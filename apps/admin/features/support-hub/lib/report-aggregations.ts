@@ -61,7 +61,7 @@ export function buildReportSeries(
 
   switch (slice) {
     case "volume":
-      return buildVolumeSeries(request, scopedConversations, groupBy, now);
+      return buildVolumeSeries(request, inRangeConversations, groupBy, now);
     case "messages-received":
       return buildMessageDirectionSeries(
         request,

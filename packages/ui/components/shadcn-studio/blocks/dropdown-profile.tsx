@@ -1,14 +1,6 @@
 "use client";
 
-import {
-  UserIcon,
-  SettingsIcon,
-  UsersIcon,
-  SquarePenIcon,
-  CirclePlusIcon,
-  InfoIcon,
-  LogOutIcon,
-} from "lucide-react";
+import { LogOutIcon } from "lucide-react";
 import Link from "next/link";
 
 import {
@@ -26,7 +18,14 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 
+import type { LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
+
+export type ProfileDropdownMenuItem = {
+  label: string;
+  href: string;
+  icon?: LucideIcon;
+};
 
 type Props = {
   trigger: ReactNode;
@@ -37,6 +36,7 @@ type Props = {
     email?: string;
     avatarUrl?: string | null;
   } | null;
+  menuItems?: readonly ProfileDropdownMenuItem[];
   onSignOut?: () => void;
 };
 
@@ -45,6 +45,7 @@ const ProfileDropdown = ({
   defaultOpen,
   align = "end",
   user,
+  menuItems = [],
   onSignOut,
 }: Props) => {
   const initials =
@@ -82,74 +83,31 @@ const ProfileDropdown = ({
           </div>
         </DropdownMenuLabel>
 
-        <DropdownMenuSeparator />
+        {menuItems.length > 0 && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              {menuItems.map((item) => {
+                const Icon = item.icon;
 
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            asChild
-            className="px-3 py-1.5 text-sm cursor-pointer"
-          >
-            <Link href="/mc/admin">
-              <UserIcon className="text-muted-foreground size-4" />
-              <span>My account</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            asChild
-            className="px-3 py-1.5 text-sm cursor-pointer"
-          >
-            <Link href="/mc/admin">
-              <SettingsIcon className="text-muted-foreground size-4" />
-              <span>Settings</span>
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            asChild
-            className="px-3 py-1.5 text-sm cursor-pointer"
-          >
-            <Link href="/mc/admin/teams">
-              <UsersIcon className="text-muted-foreground size-4" />
-              <span>Manage team</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            asChild
-            className="px-3 py-1.5 text-sm cursor-pointer"
-          >
-            <Link href="/mc/admin">
-              <SquarePenIcon className="text-muted-foreground size-4" />
-              <span>Customization</span>
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem
-            asChild
-            className="px-3 py-1.5 text-sm cursor-pointer"
-          >
-            <Link href="/mc/admin/teams">
-              <CirclePlusIcon className="text-muted-foreground size-4" />
-              <span>Add team account</span>
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
-
-        <DropdownMenuSeparator />
-
-        <DropdownMenuGroup>
-          <DropdownMenuItem
-            asChild
-            className="px-3 py-1.5 text-sm cursor-pointer"
-          >
-            <Link href="/help/about">
-              <InfoIcon className="text-muted-foreground size-4" />
-              <span>About</span>
-            </Link>
-          </DropdownMenuItem>
-        </DropdownMenuGroup>
+                return (
+                  <DropdownMenuItem
+                    key={`${item.href}:${item.label}`}
+                    asChild
+                    className="px-3 py-1.5 text-sm cursor-pointer"
+                  >
+                    <Link href={item.href}>
+                      {Icon && (
+                        <Icon className="text-muted-foreground size-4" />
+                      )}
+                      <span>{item.label}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            </DropdownMenuGroup>
+          </>
+        )}
 
         <DropdownMenuSeparator />
 

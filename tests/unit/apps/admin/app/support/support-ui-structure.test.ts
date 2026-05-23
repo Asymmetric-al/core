@@ -117,4 +117,13 @@ describe("support hub UI structure", () => {
       expect(source).toMatch(/loadSupport/);
     }
   });
+
+  it("uses the server-generated support model clock instead of a client render-time clock", () => {
+    const source = readRepoFile("apps/admin/app/support/page-client.tsx");
+
+    expect(source).not.toMatch(
+      /useState\(\(\) => new Date\(\)\.toISOString\(\)\)/,
+    );
+    expect(source).toMatch(/const now = model\.generatedAt;/);
+  });
 });
