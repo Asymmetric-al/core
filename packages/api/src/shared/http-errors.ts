@@ -78,11 +78,23 @@ function getZodErrorMessage(error: ZodError): string {
     return "Invalid request";
   }
 
-  if (firstIssue.code === "invalid_union") {
-    for (const unionError of firstIssue.unionErrors ?? []) {
-      const nestedIssue = unionError.issues[0];
-      if (nestedIssue?.message) {
-        return nestedIssue.message;
+  if (firstIssue.code === "invalid_union" && "errors" in firstIssue) {
+    const branchErrors = firstIssue.errors;
+    if (Array.isArray(branchErrors)) {
+      for (const branch of branchErrors) {
+        if (!Array.isArray(branch)) continue;
+        for (const nestedIssue of branch) {
+          if (
+            typeof nestedIssue === "object" &&
+            nestedIssue !== null &&
+            "message" in nestedIssue &&
+            typeof nestedIssue.message === "string" &&
+            nestedIssue.message.length > 0 &&
+            nestedIssue.message !== "Invalid input"
+          ) {
+            return nestedIssue.message;
+          }
+        }
       }
     }
   }
