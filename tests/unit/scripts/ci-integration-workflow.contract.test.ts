@@ -44,7 +44,7 @@ function jobBlock(workflow: string, jobId: string): string {
 function listPlaywrightTests(args: string[]): string {
   const result = spawnSync(
     process.execPath,
-    [PLAYWRIGHT_CLI, "test", ...args],
+    [PLAYWRIGHT_CLI, "test", ...args, "--reporter=list"],
     {
       encoding: "utf8",
     },

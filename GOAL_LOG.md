@@ -63,3 +63,10 @@ merging it. Work directly on `cursor/test-quality-phases-1-3-24c3`.
   `get-auth-context-request-propagation.test.ts`; both were fixed.
 - Second `bun run check` passed: lint/typecheck succeeded and Vitest reported
   248 files passed, 1081 tests passed, 2 skipped.
+- After merging `origin/develop`, targeted review tests passed again: 7 files /
+  32 tests.
+- After merging `origin/develop`, smoke inventory list checks passed with
+  `--reporter=list`: 12 chromium smoke tests and 14 `chromium-donor`
+  upload-crop tests.
+- Post-merge `bun run check` passed: lint/typecheck succeeded and Vitest
+  reported 253 files passed, 1101 tests passed, 2 skipped.
