@@ -43,6 +43,9 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
   (demo auth preflight paths, usability smoke, donate, upload-crop, and Support
   Hub smoke). It blocks merges without running the full broad Playwright
   inventory.
+- The smoke gate is not an accessibility, hydration, performance, or full auth
+  gate. Changes in those areas still need the relevant command, such as
+  `bun run test:a11y`, `bun run test:perf`, or the broader `bun run test:e2e`.
 - The required `e2e-gate` on `epic` must run a bounded production-release suite, not the
   full broad local Playwright inventory. Use `bun run test:e2e:production-gate`
   for the release gate and keep local-seed-only CMS proof under

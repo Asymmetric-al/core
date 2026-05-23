@@ -61,6 +61,10 @@ import {
   GET,
   POST,
 } from "../../../../../packages/api/src/email/connect";
+import {
+  FIXED_RESEND_VALIDATED_AT,
+  verifiedResendValidationResult,
+} from "./resend-validation-fixtures";
 
 function createPostRequest(body: unknown): NextRequest {
   return new Request("https://example.com/api/email/connect", {
@@ -87,47 +91,11 @@ describe("api/email/connect", () => {
 
   it("persists validated Resend connection settings", async () => {
     vi.useFakeTimers();
-    vi.setSystemTime(new Date("2026-04-02T12:00:00.000Z"));
+    vi.setSystemTime(new Date(FIXED_RESEND_VALIDATED_AT));
 
-    validateResendApiKeyMock.mockResolvedValueOnce({
-      valid: true,
-      senderIdentities: [
-        {
-          id: 1,
-          nickname: "default",
-          from_email: "a@b.com",
-          from_name: "A",
-          reply_to_email: null,
-          verified: true,
-        },
-      ],
-      domainAuthentication: [
-        {
-          id: 1,
-          domain: "example.com",
-          subdomain: null,
-          valid: true,
-          records: [
-            {
-              record: "SPF",
-              type: "TXT",
-              name: "send",
-              value: '"v=spf1 include:amazonses.com ~all"',
-              status: "verified",
-            },
-            {
-              record: "DKIM",
-              type: "TXT",
-              name: "resend._domainkey",
-              value: "p=abc123",
-              status: "verified",
-            },
-          ],
-        },
-      ],
-      deliverabilityScore: 100,
-      warnings: [],
-    });
+    validateResendApiKeyMock.mockResolvedValueOnce(
+      verifiedResendValidationResult(),
+    );
     encryptResendApiKeyMock.mockReturnValueOnce("encrypted-key");
     upsertTenantEmailSettingsMock.mockResolvedValueOnce({});
 
@@ -143,7 +111,7 @@ describe("api/email/connect", () => {
     expect(response.status).toBe(200);
     expect(body.success).toBe(true);
     expect(body.sendReady).toBe(true);
-    expect(body.validatedAt).toBe("2026-04-02T12:00:00.000Z");
+    expect(body.validatedAt).toBe(FIXED_RESEND_VALIDATED_AT);
     expect(upsertTenantEmailSettingsMock).toHaveBeenCalledWith(
       expect.objectContaining({
         tenantId: "tenant_1",
@@ -161,8 +129,6 @@ describe("api/email/connect", () => {
         }),
       }),
     );
-
-    vi.useRealTimers();
   });
 
   it("hydrates disconnected state when settings do not exist", async () => {

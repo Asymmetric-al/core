@@ -159,9 +159,13 @@ jobs:
         run: |
           nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
           echo $! > /tmp/donor-dev.pid
+      - name: Start admin app
+        run: |
+          nohup bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 > /tmp/admin-dev.log 2>&1 &
+          echo $! > /tmp/admin-dev.pid
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
-      - name: Wait for health endpoint
+      - name: Wait for donor health endpoint
         run: |
           for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
@@ -179,11 +183,31 @@ jobs:
             fi
             sleep 1
           done
+      - name: Wait for admin health endpoint
+        run: |
+          for i in $(seq 1 120); do
+            if curl -sf http://127.0.0.1:3030/api/health >/dev/null; then
+              echo "Admin health endpoint ready after ${i}s"
+              exit 0
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "Timed out waiting for admin health endpoint"
+              echo "--- admin dev log (tail) ---"
+              tail -n 100 /tmp/admin-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3030/api/health || true
+              kill "$(cat /tmp/admin-dev.pid)" 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
       - name: Run Playwright smoke suite
         timeout-minutes: 15
         env:
           CI: "1"
           PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+          PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
+          PLAYWRIGHT_INCLUDE_ADMIN: "1"
         run: bun run test:e2e:smoke
       - name: Upload artifact on failure
         if: failure()
@@ -249,29 +273,45 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Start donor app
-        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
-      - name: Wait for health endpoint
         run: |
-          for i in $(seq 1 60); do
+          nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
+          echo $! > /tmp/donor-dev.pid
+      - name: Wait for donor health endpoint
+        run: |
+          for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
+              echo "Health endpoint ready after ${i}s"
               exit 0
             fi
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "Timed out waiting for health endpoint"
+              echo "--- donor dev log (tail) ---"
+              tail -n 100 /tmp/donor-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3005/api/health || true
+              kill "$(cat /tmp/donor-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1
           done
       - name: Start admin app
-        run: bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 &
+        run: |
+          nohup bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 > /tmp/admin-dev.log 2>&1 &
+          echo $! > /tmp/admin-dev.pid
       - name: Wait for admin health endpoint
         run: |
-          for i in $(seq 1 60); do
+          for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3030/api/health >/dev/null; then
+              echo "Admin health endpoint ready after ${i}s"
               exit 0
             fi
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "Timed out waiting for admin health endpoint"
+              echo "--- admin dev log (tail) ---"
+              tail -n 100 /tmp/admin-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3030/api/health || true
+              kill "$(cat /tmp/admin-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1

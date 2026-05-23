@@ -6,46 +6,21 @@ import {
   parseResendValidationSnapshot,
 } from "@asym/email/resend";
 
-const FIXED_VALIDATED_AT = "2026-04-02T12:00:00.000Z";
+import {
+  FIXED_RESEND_VALIDATED_AT,
+  verifiedResendValidationResult,
+} from "./resend-validation-fixtures";
 
 describe("@asym/email Resend validation snapshot contract", () => {
   it("maps domain record evidence to snapshot flags used by api/email/connect", () => {
     const snapshot = createResendValidationSnapshot(
-      {
-        senderIdentities: [],
-        domainAuthentication: [
-          {
-            id: 1,
-            domain: "example.com",
-            subdomain: null,
-            valid: true,
-            records: [
-              {
-                record: "SPF",
-                type: "TXT",
-                name: "send",
-                value: '"v=spf1 include:amazonses.com ~all"',
-                status: "verified",
-              },
-              {
-                record: "DKIM",
-                type: "TXT",
-                name: "resend._domainkey",
-                value: "p=abc123",
-                status: "verified",
-              },
-            ],
-          },
-        ],
-        deliverabilityScore: 100,
-        warnings: [],
-      },
-      FIXED_VALIDATED_AT,
+      verifiedResendValidationResult({ senderIdentities: [] }),
+      FIXED_RESEND_VALIDATED_AT,
     );
 
     expect(snapshot).toEqual(
       expect.objectContaining({
-        validatedAt: FIXED_VALIDATED_AT,
+        validatedAt: FIXED_RESEND_VALIDATED_AT,
         domainAuthenticated: true,
         dkimVerified: true,
         spfVerified: true,
@@ -57,17 +32,7 @@ describe("@asym/email Resend validation snapshot contract", () => {
 
   it("round-trips snapshots through parseResendValidationSnapshot", () => {
     const snapshot = createResendValidationSnapshot(
-      {
-        senderIdentities: [
-          {
-            id: 1,
-            nickname: "default",
-            from_email: "from@example.com",
-            from_name: "From Team",
-            reply_to_email: null,
-            verified: true,
-          },
-        ],
+      verifiedResendValidationResult({
         domainAuthentication: [
           {
             id: 1,
@@ -86,9 +51,8 @@ describe("@asym/email Resend validation snapshot contract", () => {
           },
         ],
         deliverabilityScore: 91,
-        warnings: [],
-      },
-      FIXED_VALIDATED_AT,
+      }),
+      FIXED_RESEND_VALIDATED_AT,
     );
 
     const parsed = parseResendValidationSnapshot(snapshot);
@@ -96,7 +60,7 @@ describe("@asym/email Resend validation snapshot contract", () => {
     expect(parsed).not.toBeNull();
     expect(parsed).toEqual(
       expect.objectContaining({
-        validatedAt: FIXED_VALIDATED_AT,
+        validatedAt: FIXED_RESEND_VALIDATED_AT,
         domainAuthenticated: true,
         deliverabilityScore: 91,
         senderIdentities: [
@@ -113,7 +77,7 @@ describe("@asym/email Resend validation snapshot contract", () => {
 
   it("marks send as blocked when deliverability warnings include errors", () => {
     const snapshot = createResendValidationSnapshot(
-      {
+      verifiedResendValidationResult({
         senderIdentities: [],
         domainAuthentication: [
           { id: 1, domain: "example.com", subdomain: null, valid: true },
@@ -126,8 +90,8 @@ describe("@asym/email Resend validation snapshot contract", () => {
             message: "Sender domain is not verified.",
           },
         ],
-      },
-      FIXED_VALIDATED_AT,
+      }),
+      FIXED_RESEND_VALIDATED_AT,
     );
 
     expect(snapshot.domainAuthenticated).toBe(true);

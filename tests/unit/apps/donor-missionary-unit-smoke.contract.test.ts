@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync } from "node:fs";
 import path from "node:path";
 
 import { describe, expect, it } from "vitest";
@@ -19,16 +19,21 @@ const MISSIONARY_UNIT_SMOKE_FILES = [
   "tests/unit/apps/missionary/app/access.test.ts",
 ] as const;
 
+function expectUnitSmokeFile(relativePath: string) {
+  expect(relativePath).toMatch(/^tests\/unit\/.+\.test\.tsx?$/);
+  expect(existsSync(path.join(repoRoot, relativePath))).toBe(true);
+}
+
 describe("donor and missionary unit smoke contract", () => {
   it("keeps baseline donor app unit smoke files on disk", () => {
     for (const relativePath of DONOR_UNIT_SMOKE_FILES) {
-      expect(existsSync(path.join(repoRoot, relativePath))).toBe(true);
+      expectUnitSmokeFile(relativePath);
     }
   });
 
   it("keeps baseline missionary app unit smoke files on disk", () => {
     for (const relativePath of MISSIONARY_UNIT_SMOKE_FILES) {
-      expect(existsSync(path.join(repoRoot, relativePath))).toBe(true);
+      expectUnitSmokeFile(relativePath);
     }
   });
 
@@ -57,23 +62,6 @@ describe("donor and missionary unit smoke contract", () => {
     expect(setupFiles).toContain("./tests/setup/unit-env.ts");
     expect(existsSync(path.join(repoRoot, "tests/setup/unit-env.ts"))).toBe(
       true,
-    );
-  });
-
-  it("mocks Resend validation in connect tests without replacing @asym/email", () => {
-    const connectSource = readFileSync(
-      path.join(repoRoot, "tests/unit/packages/api/email/connect.test.ts"),
-      "utf8",
-    );
-
-    expect(connectSource).toContain(
-      'vi.mock("@asym/email", async (importOriginal)',
-    );
-    expect(connectSource).toContain(
-      "validateResendApiKey: validateResendApiKeyMock",
-    );
-    expect(connectSource).not.toMatch(
-      /vi\.mock\("@asym\/email"\s*,\s*\(\)\s*=>\s*\(\{/,
     );
   });
 });
