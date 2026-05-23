@@ -62,3 +62,29 @@ Doctor audit and document higher-risk follow-ups with owners and blockers.
 - `tests/unit/packages/api/auth/get-auth-context-request-propagation.test.ts`: remove `normalizeRepoPath` only if recursive test discovery is made POSIX-normalized elsewhere.
 - `scripts/run-with-ci-env.mjs` and `scripts/verify/ci-build.mjs`: restore the previous async wrapper and Turbo app-build path only if Windows root builds are no longer required or Turbo app builds stop hanging locally.
 - `docs/ai/working-set.md` and this file are tracking notes; revert or delete them if the cleanup record is no longer wanted.
+
+---
+
+## PR #240 babysit (2026-05-23)
+
+### Fixes pushed for review feedback
+
+| Item                               | Action                                                                |
+| ---------------------------------- | --------------------------------------------------------------------- |
+| `verify:workspace-contract`        | Added missionary donor PATCH/activities rows to `runtime-map.md`      |
+| `docs/ai/working-set.md`           | Reverted to `production` baseline (remove +106 session log from PR)   |
+| Windows `ci-build.mjs`             | `Get-CimInstance` + `Start-Sleep` on win32 for lock coordination      |
+| Clean Code `input.input`           | Renamed `updateMissionaryDonor` field to `patch`; fixed PATCH handler |
+| Greptile Zod union errors          | `getZodErrorMessage` unwraps `invalid_union` in `http-errors.ts`      |
+| Bugbot dead `toDonorUpdatePayload` | Already removed from client form model — no code change               |
+
+### Validation (babysit)
+
+- `bun run verify:workspace-contract` — pass
+- `bunx vitest run tests/unit/packages/api/missionary-portal/donor-mutations.test.ts` — 4 passed
+
+### Remaining for human reviewer
+
+- PR description should list full shipped scope (donor API, auth `Request` threading, table UX) vs title-only framing
+- Optional: duplicated donor Zod schemas (form vs API) — deferred
+- Resolve GitHub review threads after CI green

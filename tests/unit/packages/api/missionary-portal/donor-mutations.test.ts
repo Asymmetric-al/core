@@ -1,3 +1,6 @@
+import { createRequire } from "node:module";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { describe, expect, it, vi } from "vitest";
 
 import {
@@ -5,6 +8,7 @@ import {
   updateMissionaryDonor,
   updateMissionaryDonorTags,
 } from "../../../../../packages/api/src/missionary-portal/donor";
+import { toApiHttpError } from "../../../../../packages/api/src/shared/http-errors";
 
 type QueryResult<T> = {
   data: T | null;
@@ -38,6 +42,34 @@ function createUpdateQuery<T>(result: QueryResult<T>) {
 }
 
 describe("missionary donor mutations", () => {
+  it("maps zod union validation errors to nested field messages", () => {
+    const requireFromApi = createRequire(
+      path.join(
+        fileURLToPath(
+          new URL("../../../../../packages/api/package.json", import.meta.url),
+        ),
+      ),
+    );
+    const { z } = requireFromApi("zod") as typeof import("zod");
+
+    const schema = z.union([
+      z.object({ tags: z.array(z.string()) }).strict(),
+      z
+        .object({
+          email: z.string().email(),
+        })
+        .strict(),
+    ]);
+
+    const error = schema.safeParse({ email: "not-an-email" }).error;
+    expect(error).toBeDefined();
+
+    const apiError = toApiHttpError(error);
+    expect(apiError.status).toBe(400);
+    expect(apiError.message).toMatch(/invalid email/i);
+    expect(apiError.message).not.toBe("Invalid input");
+  });
+
   it("records donor activity only after proving missionary-owned donor access", async () => {
     const accessQuery = createSelectQuery({
       data: { id: "donor-1" },
@@ -120,7 +152,7 @@ describe("missionary donor mutations", () => {
       donorId: "donor-1",
       profileId: "missionary-profile-1",
       tenantId: "tenant-1",
-      input: {
+      patch: {
         name: " Ada Lovelace ",
         email: "ada@example.org",
         phone: "",

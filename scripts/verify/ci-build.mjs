@@ -62,7 +62,45 @@ function run(command, args, label) {
   console.log(`==> PASS ${label}`);
 }
 
+function sleepSeconds(seconds) {
+  if (process.platform === "win32") {
+    spawnSync(
+      "powershell",
+      [
+        "-NoProfile",
+        "-Command",
+        `Start-Sleep -Seconds ${Math.max(1, Math.ceil(seconds))}`,
+      ],
+      { stdio: "ignore" },
+    );
+    return;
+  }
+
+  spawnSync("sleep", [String(seconds)], { stdio: "ignore" });
+}
+
 function isNextBuildRunning() {
+  if (process.platform === "win32") {
+    const result = spawnSync(
+      "powershell",
+      [
+        "-NoProfile",
+        "-Command",
+        "Get-CimInstance Win32_Process | Select-Object -ExpandProperty CommandLine",
+      ],
+      {
+        encoding: "utf8",
+        stdio: ["ignore", "pipe", "pipe"],
+      },
+    );
+
+    if (result.status !== 0) return false;
+
+    return result.stdout
+      .split(/\r?\n/)
+      .some((line) => /\bnext build\b/i.test(line));
+  }
+
   const result = spawnSync("ps", ["-axo", "command="], {
     encoding: "utf8",
     stdio: ["ignore", "pipe", "pipe"],
@@ -80,7 +118,7 @@ function waitForNextBuildsToExit() {
 
   for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
     if (!isNextBuildRunning()) return true;
-    spawnSync("sleep", ["1"], { stdio: "ignore" });
+    sleepSeconds(1);
   }
 
   return !isNextBuildRunning();

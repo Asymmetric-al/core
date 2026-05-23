@@ -174,12 +174,12 @@ export async function updateMissionaryDonor(input: {
   donorId: string;
   profileId: string;
   tenantId: string;
-  input: DonorUpdateInput;
+  patch: DonorUpdateInput;
   now?: Date;
 }) {
   const result = await input.supabaseAdmin
     .from("donors")
-    .update(toDonorUpdatePayload(input.input, input.now ?? new Date()))
+    .update(toDonorUpdatePayload(input.patch, input.now ?? new Date()))
     .eq("id", input.donorId)
     .eq("tenant_id", input.tenantId)
     .eq("missionary_id", input.profileId)
@@ -214,7 +214,7 @@ export async function PATCH(
           donorId,
           profileId: auth.profileId,
           tenantId: auth.tenantId,
-          input,
+          patch: input,
         });
       }
 

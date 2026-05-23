@@ -72,6 +72,24 @@ function getStatusFromUnknown(error: unknown): number | undefined {
   return undefined;
 }
 
+function getZodErrorMessage(error: ZodError): string {
+  const firstIssue = error.issues[0];
+  if (!firstIssue) {
+    return "Invalid request";
+  }
+
+  if (firstIssue.code === "invalid_union") {
+    for (const unionError of firstIssue.unionErrors ?? []) {
+      const nestedIssue = unionError.issues[0];
+      if (nestedIssue?.message) {
+        return nestedIssue.message;
+      }
+    }
+  }
+
+  return firstIssue.message;
+}
+
 export function toApiHttpError(
   error: unknown,
   fallbackMessage = "Internal error",
@@ -81,8 +99,7 @@ export function toApiHttpError(
   }
 
   if (error instanceof ZodError) {
-    const firstIssue = error.issues[0];
-    return new ApiHttpError(400, firstIssue?.message ?? "Invalid request");
+    return new ApiHttpError(400, getZodErrorMessage(error));
   }
 
   const message = error instanceof Error ? error.message : fallbackMessage;
