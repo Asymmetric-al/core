@@ -78,7 +78,7 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
   const [activeQueueId, setActiveQueueId] =
     useState<SupportQueueId>("donor_care");
   const [search, setSearch] = useState("");
-  const [now] = useState(() => new Date().toISOString());
+  const now = model.generatedAt;
   const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null);
   const stats = useMemo(() => deriveSupportHubStats(model, now), [model, now]);
   const queueSummaries = useMemo(

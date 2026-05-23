@@ -36,7 +36,9 @@ import ActivityDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-acti
 import SearchDialog from "@asym/ui/components/shadcn-studio/blocks/dialog-search";
 import LanguageDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-language";
 import NotificationDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-notification";
-import ProfileDropdown from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
+import ProfileDropdown, {
+  type ProfileDropdownMenuItem,
+} from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -50,6 +52,7 @@ import {
   FileText,
   Globe,
   Heart,
+  Info,
   Languages,
   LifeBuoy,
   LogOut,
@@ -112,6 +115,12 @@ const toolNav: NavItem[] = [
 ];
 
 const systemNav: NavItem[] = [{ title: "Admin", href: "/admin", icon: Shield }];
+
+const adminProfileMenuItems: readonly ProfileDropdownMenuItem[] = [
+  { label: "Administration", href: "/admin", icon: Shield },
+  { label: "Manage team", href: "/admin/teams", icon: Users },
+  { label: "About", href: "/help/about", icon: Info },
+];
 
 /* ------------------------------------------------------------------ */
 /*  Nav section component                                              */
@@ -421,6 +430,7 @@ function AppHeader() {
               </Button>
             }
             user={user}
+            menuItems={adminProfileMenuItems}
             onSignOut={signOut}
           />
           <Button

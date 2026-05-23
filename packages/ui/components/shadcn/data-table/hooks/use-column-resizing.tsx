@@ -61,17 +61,18 @@ export function useColumnResizing<TData>(
     onColumnSizeChange,
   } = options;
 
-  const [columnSizing, setColumnSizingState] = useState<ColumnSizingState>(
-    () => {
-      if (persistKey) {
-        const stored = loadFromStorage(persistKey);
-        if (stored) return stored;
-      }
-      return {};
-    },
-  );
+  const [columnSizing, setColumnSizingState] = useState<ColumnSizingState>({});
 
   const [isResizing, setIsResizing] = useState(false);
+
+  useEffect(() => {
+    if (!persistKey) return;
+
+    const stored = loadFromStorage(persistKey);
+    if (stored) {
+      setColumnSizingState(stored);
+    }
+  }, [persistKey]);
 
   useEffect(() => {
     if (persistKey && Object.keys(columnSizing).length > 0) {

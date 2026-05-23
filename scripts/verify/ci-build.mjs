@@ -8,11 +8,7 @@ const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const TURBO_BIN = path.join(
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "turbo.cmd" : "turbo",
-);
+const TURBO_BIN = resolveTurboBin();
 
 const NEXT_APPS = Object.freeze([
   {
@@ -37,6 +33,23 @@ const NEXT_APP_FILTERS = Object.freeze([
   "--filter=!@asym/donor",
   "--filter=!@asym/missionary-app",
 ]);
+
+function resolveTurboBin() {
+  const binDir = path.join(REPO_ROOT, "node_modules", ".bin");
+  const candidates =
+    process.platform === "win32"
+      ? ["turbo.exe", "turbo.cmd", "turbo"]
+      : ["turbo"];
+
+  for (const candidate of candidates) {
+    const absolutePath = path.join(binDir, candidate);
+    if (existsSync(absolutePath)) {
+      return absolutePath;
+    }
+  }
+
+  return path.join(binDir, candidates.at(-1));
+}
 
 function run(command, args, label) {
   console.log(`==> CI build: ${label}`);
