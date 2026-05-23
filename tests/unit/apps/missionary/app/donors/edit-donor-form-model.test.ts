@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  createInitialEditDonorFormValues,
-} from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
+import { createInitialEditDonorFormValues } from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
 
 describe("apps/missionary/app/donors/edit-donor-form-model", () => {
   it("creates empty defaults when no donor is selected", () => {
@@ -74,5 +72,4 @@ describe("apps/missionary/app/donors/edit-donor-form-model", () => {
       zip: "80202",
     });
   });
-
 });
