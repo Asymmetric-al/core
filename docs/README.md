@@ -57,9 +57,12 @@ Configuration and rules for AI coding assistants:
 
 - **`rules/`** - AI agent rules (general, frontend, backend, testing, TypeScript future-proofing)
 - **`skills/`** - AI agent skills for specific technologies
+- **`audits/`** - UI and other audit artifacts
 - **`stack-registry.md`** - Technology stack registry
 - **`working-set.example.md`** - Template for local `working-set.md` scratch context
 - **`nia.md`** - Nia MCP usage, source-check workflow, and local sync hygiene
+
+**Root-level code quality audit:** [`CODE_QUALITY_AUDIT.md`](../CODE_QUALITY_AUDIT.md) — verified maintainability snapshot for `develop` (see also `docs/ai/audits/`).
 
 **See:** `AGENTS.md` in the root for the AI agent router.
 

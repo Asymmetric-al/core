@@ -1,11 +1,14 @@
-# Code Quality Audit — `give-hope` monorepo
+# Code Quality Audit — Asymmetric.al monorepo (`Asymmetric-al/core`)
 
 **Branch audited:** `develop` (read-only inspection; no application code changed)  
 **Audit date:** 2026-05-22  
+**Snapshot commit:** `02105e43` on `develop` (line counts and greps are valid as of this SHA)  
 **Package manager / task runner:** Bun `1.3.4`, Turborepo (`turbo.json`, `envMode: "loose"`)  
 **Next.js:** `16.2.6` with `cacheComponents: true` in all three apps (`apps/admin`, `apps/donor`, `apps/missionary`)
 
 This document is a **claims-backed** maintainability and repo-health audit. Every material finding below was checked against files and commands in this repository. Items that could not be verified are called out explicitly.
+
+> **Snapshot only — does not fix CI.** Merging this file does not change runtime code or repair `bun run check`. Follow-up **code** PRs are still required for the Payload CMS unit-test timeouts documented below.
 
 ---
 
@@ -13,11 +16,11 @@ This document is a **claims-backed** maintainability and repo-health audit. Ever
 
 The monorepo is **structurally sound at the boundaries**: lint and typecheck pass across workspaces, Prettier is clean, the documented data-access boundary check passes, and Cache Components are enabled with `'use cache'` reads in `packages/api` that do **not** call `cookies()` or `headers()` inside cached read modules.
 
-The **primary release gate failure** observed in this environment is **unit test reliability**: seven tests in `tests/unit/cms/supabase-strategy.test.ts` hit Vitest’s default **5000ms** timeout when exercising `createSupabaseAuthStrategy().authenticate()` with `sb-access-token` cookie paths. That blocks `bun run test:unit:cms` and therefore `bun run check` (which runs the full unit suite).
+The **primary release gate failure** observed in this environment is **unit test reliability** in **Payload CMS admin auth** (not donor/missionary app login shells): seven tests in `tests/unit/cms/supabase-strategy.test.ts` hit Vitest’s default **5000ms** timeout when exercising `createSupabaseAuthStrategy().authenticate()` with `sb-access-token` cookie paths. That blocks `bun run test:unit:cms` and therefore `bun run check` (which runs the full unit suite).
 
 Secondary maintainability risks are **concentrated size and duplication**, not mystery architecture:
 
-- **16** first-party `.ts`/`.tsx` files under `apps/` and `packages/` are **≥1000 lines** (76 files ≥500 lines).
+- **15** first-party `.ts`/`.tsx` files under `apps/` and `packages/` are **≥1000 lines** at snapshot `02105e43` (76 files ≥500 lines).
 - **Triplicated demo mock data** across `apps/{admin,donor,missionary}/lib/mock-data/` (5 files × 3 apps; `users.ts` is **935 lines** and **byte-identical** across apps).
 - **Documented `any` query-builder aliases** in admin CRM/contribution services with explicit TODOs.
 
@@ -62,23 +65,22 @@ Secondary maintainability risks are **concentrated size and duplication**, not m
 
 All commands run from repository root `/workspace` on `develop` unless noted.
 
-| Command                                                    | Result                                 | Notes                                                                                  |
-| ---------------------------------------------------------- | -------------------------------------- | -------------------------------------------------------------------------------------- |
-| `git status --short`                                       | Only `CODE_QUALITY_AUDIT.md` untracked | No application files modified for this task                                            |
-| `bun run verify:data-boundary`                             | **Pass**                               | `scripts/verify/data-boundary-check.mjs`                                               |
-| `bun run format:check`                                     | **Pass**                               | Prettier                                                                               |
-| `bunx turbo run lint typecheck --force`                    | **Pass**                               | 26 tasks successful (~56s); re-run during false-positive verification pass             |
-| `bunx vitest run tests/unit/cms/supabase-strategy.test.ts` | **Fail**                               | 7 failed, 4 passed, ~35s; all failures = `Test timed out in 5000ms` (re-run confirmed) |
-| `bun run test:unit:cms`                                    | **Fail**                               | Same failure surface as isolated file run                                              |
-| `find apps packages … \| awk '$1>=1000'`                   | **16 files**                           | Line counts via `wc -l`                                                                |
-| `diff -q apps/*/lib/mock-data/users.ts`                    | **Identical**                          | admin vs donor vs missionary                                                           |
+| Command                                                    | Result        | Notes                                                                                  |
+| ---------------------------------------------------------- | ------------- | -------------------------------------------------------------------------------------- |
+| `bun run verify:data-boundary`                             | **Pass**      | `scripts/verify/data-boundary-check.mjs`                                               |
+| `bun run format:check`                                     | **Pass**      | Prettier                                                                               |
+| `bunx turbo run lint typecheck --force`                    | **Pass**      | 26 tasks successful (~56s); re-run during false-positive verification pass             |
+| `bunx vitest run tests/unit/cms/supabase-strategy.test.ts` | **Fail**      | 7 failed, 4 passed, ~35s; all failures = `Test timed out in 5000ms` (re-run confirmed) |
+| `bun run test:unit:cms`                                    | **Fail**      | Same failure surface as isolated file run                                              |
+| `find apps packages … \| awk '$1>=1000'`                   | **15 files**  | Line counts via `wc -l` @ `02105e43`                                                   |
+| `diff -q apps/*/lib/mock-data/users.ts`                    | **Identical** | admin vs donor vs missionary                                                           |
 
 ### Not run in this pass (limitations)
 
 | Command                                  | Why skipped / caveat                                                                         |
 | ---------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `bun run test:unit` (full suite)         | Known CMS failures; would not change P0 conclusion                                           |
-| `bun run build` / `bun run build:strict` | Expensive; prior session reported build pass — re-run before release if needed               |
+| `bun run build` / `bun run build:strict` | Not verified in this audit pass — run before release if needed                               |
 | `bun run ci:preflight`                   | Fails on cloud VMs without configured git identity — **environment**, not code (see Tooling) |
 | `bun run test:perf`                      | Playwright perf; out of scope unless perf work                                               |
 
@@ -112,7 +114,7 @@ Seven tests that call `strategy.authenticate()` with a `sb-access-token=test` co
 **Evidence**
 
 - `bunx vitest run tests/unit/cms/supabase-strategy.test.ts` → **7 failed | 4 passed** (11 total), duration ~35s (consistent with 7 × 5s timeouts).
-- **Passing** tests in the same file (fast, &lt;100ms class):
+- **Passing** tests in the same file (fast, `<100ms` class):
   - `returns null when Supabase env is missing`
   - `authenticates admin E2E bypass cookies through normal Payload users`
   - `rejects donor E2E bypass cookies for the Payload admin surface`
@@ -131,11 +133,12 @@ Seven tests that call `strategy.authenticate()` with a `sb-access-token=test` co
 - `package.json` defines `"check": "bun run lint && bun run typecheck && bun run test:unit"`.
 - CMS regressions are not caught reliably in CI/local `check` until these tests finish quickly and deterministically.
 - Timeouts often indicate **unresolved promises**, blocking I/O, or missing mocks — not flaky assertions.
+- **Observed test gap (snapshot `02105e43`):** the seven failing tests mock `createSupabaseClient` only. Production code also calls `createSupabaseDataClient()` (defaulting to `createTrustedSupabaseDataClient()` when `SUPABASE_SERVICE_ROLE_KEY` is set). The one **passing** cookie-auth test injects **both** clients. Incomplete data-client mocks can leave real Supabase I/O pending until Vitest’s 5s timeout.
 
 **Best fix (incremental, test-first)**
 
 1. **RED:** Add a failing test with a **test-only timeout** and logging boundary (or run one test under `vitest --inspect`) to locate the await that never settles.
-2. **GREEN (minimal):** Prefer fixing **test doubles** first (incomplete Supabase/Payload mock chains in `createSupabaseClientMock` / `createPayloadMock`) before changing production auth.
+2. **GREEN (minimal):** Prefer fixing **test doubles** first — ensure failing tests inject mocked `createSupabaseDataClient` (same pattern as the passing trusted-data-client test) and complete Supabase/Payload mock chains in `createSupabaseClientMock` / `createPayloadMock` before changing production auth.
 3. If production code awaits real network without guards, add explicit dependency injection (already partially supported via `createSupabaseClient` in strategy factory) and mock at the boundary.
 4. Consider `vi.useFakeTimers()` only if timers are proven involved — avoid masking real hangs.
 
@@ -157,16 +160,16 @@ bun run check
 
 **Location (examples)**
 
-| File                                                   | Lines (`wc -l`) | Role                           |
-| ------------------------------------------------------ | --------------- | ------------------------------ |
-| `apps/missionary/app/donors/use-donors-page-view.tsx`  | 2776            | Hook orchestrating donors page |
-| `apps/missionary/app/feed/worker-feed-page-client.tsx` | 2078            | Client feed surface            |
-| `apps/admin/app/pdf/page-client.tsx`                   | 1971            | Admin PDF UI                   |
-| `apps/admin/app/feed/content-moderation-sections.tsx`  | 1805            | Moderation sections            |
+| File                                                   | Lines (`wc -l` @ `02105e43`) | Role                           |
+| ------------------------------------------------------ | ---------------------------- | ------------------------------ |
+| `apps/missionary/app/donors/use-donors-page-view.tsx`  | 2738                         | Hook orchestrating donors page |
+| `apps/missionary/app/feed/worker-feed-page-client.tsx` | 2002                         | Client feed surface            |
+| `apps/admin/app/pdf/page-client.tsx`                   | 1860                         | Admin PDF UI                   |
+| `apps/admin/app/feed/content-moderation-sections.tsx`  | 1749                         | Moderation sections            |
 
 **Problem**
 
-Files far above the repo’s implicit **~1000-line decomposition threshold** (thermo-nuclear / team norm) mix orchestration, view state, handlers, and feature branches in one unit. This raises review cost and makes **code-judo** refactors harder — not necessarily incorrect runtime behavior.
+Files far above the repo’s **~1000-line internal decomposition guideline** mix orchestration, view state, handlers, and feature branches in one unit. This raises review cost and makes incremental refactors harder — not necessarily incorrect runtime behavior.
 
 **Evidence**
 
@@ -223,8 +226,8 @@ missionary users.ts: 935
 
 **Best fix**
 
-1. Move shared mock types and data to `packages/` (e.g. `packages/mock-data` or `packages/fixtures`) **if** mocks are still required for dev/demo.
-2. Re-export thin app-specific wrappers only when an app truly needs a subset.
+1. Pick one canonical copy under `apps/admin/lib/mock-data/` (or a shared `packages/fixtures` module **only if** mocks are required in CI/production-like paths).
+2. Import or re-export from other apps; delete byte-identical copies once verified.
 3. If mocks are legacy, gate behind `NODE_ENV`/feature flag and delete unused copies.
 
 **Validation**
@@ -238,26 +241,25 @@ bunx turbo run typecheck --filter=@asym/admin --filter=@asym/donor --filter=@asy
 
 ## Large Files (over 1000 lines)
 
-First-party TypeScript/TSX only (≥1000 lines):
+First-party TypeScript/TSX only (≥1000 lines at commit `02105e43`):
 
 | Lines | Path                                                                 |
 | ----: | -------------------------------------------------------------------- |
-|  2776 | `apps/missionary/app/donors/use-donors-page-view.tsx`                |
-|  2418 | `packages/database/collections/support-hub.ts`                       |
-|  2078 | `apps/missionary/app/feed/worker-feed-page-client.tsx`               |
-|  1971 | `apps/admin/app/pdf/page-client.tsx`                                 |
-|  1805 | `apps/admin/app/feed/content-moderation-sections.tsx`                |
-|  1748 | `apps/admin/src/migrations/20260515_173042_init_payload_cms.ts`      |
-|  1580 | `apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx` |
-|  1542 | `apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx`  |
-|  1542 | `apps/admin/app/feed/org-updates/page-client.tsx`                    |
-|  1379 | `packages/api/src/admin/support-hub/adapter/supabase.ts`             |
-|  1330 | `apps/donor/app/(public)/checkout/checkout-client.tsx`               |
-|  1326 | `apps/admin/app/events/page-client.tsx`                              |
-|  1284 | `apps/admin/app/email/page-client.tsx`                               |
-|  1221 | `packages/email/resend.ts`                                           |
-|  1097 | `apps/donor/app/(public)/where-we-work/map-wrapper.tsx`              |
-|  1020 | `apps/admin/app/crm/page-client.tsx`                                 |
+|  2738 | `apps/missionary/app/donors/use-donors-page-view.tsx`                |
+|  2301 | `packages/database/collections/support-hub.ts`                       |
+|  2002 | `apps/missionary/app/feed/worker-feed-page-client.tsx`               |
+|  1860 | `apps/admin/app/pdf/page-client.tsx`                                 |
+|  1749 | `apps/admin/app/feed/content-moderation-sections.tsx`                |
+|  1746 | `apps/admin/src/migrations/20260515_173042_init_payload_cms.ts`      |
+|  1510 | `apps/donor/app/(dashboard)/donor-dashboard/pledges/page-client.tsx` |
+|  1472 | `apps/admin/app/feed/org-updates/page-client.tsx`                    |
+|  1464 | `apps/donor/app/(dashboard)/donor-dashboard/wallet/page-client.tsx`  |
+|  1309 | `packages/api/src/admin/support-hub/adapter/supabase.ts`             |
+|  1274 | `apps/admin/app/events/page-client.tsx`                              |
+|  1263 | `apps/donor/app/(public)/checkout/checkout-client.tsx`               |
+|  1214 | `apps/admin/app/email/page-client.tsx`                               |
+|  1072 | `packages/email/resend.ts`                                           |
+|  1039 | `apps/donor/app/(public)/where-we-work/map-wrapper.tsx`              |
 
 **Additional context:** **76** files ≥500 lines in the same scan.
 
@@ -439,7 +441,7 @@ Treat **`ci:preflight` git attribution** and **missing `updateTag`** as contextu
 
 ## Audit Verification Notes
 
-This report was produced by **verifying claims against the repository**, not by trusting a prior draft. A **false-positive prevention pass** re-checked every material finding (paths, line counts, test names, grep claims, and commands) on 2026-05-22 without modifying application code.
+This report was produced by **verifying claims against the repository** at snapshot commit **`02105e43`** on `develop` (2026-05-22). Line counts and greps are snapshot-bound; re-run `find` / `wc -l` after large merges.
 
 ### Methods
 
@@ -448,7 +450,7 @@ This report was produced by **verifying claims against the repository**, not by 
 - Ran commands listed in [Commands Run](#commands-run)
 - Matched all 11 Vitest test titles in `tests/unit/cms/supabase-strategy.test.ts` to pass vs timeout behavior
 
-### Findings removed or not included (false-positive prevention)
+### False-positive prevention (summary)
 
 | Claim type                                         | Treatment                                                                              |
 | -------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -459,27 +461,18 @@ This report was produced by **verifying claims against the repository**, not by 
 | Subjective “messy/spaghetti” without paths         | **Omitted** unless tied to file size or test hang evidence                             |
 | Vendor `vendor/payload-upstream` issues            | **Out of scope**                                                                       |
 
-### Counts (material findings in this report)
+### Removing this document from git
 
-| Action                                             |                                                        Count |
-| -------------------------------------------------- | -----------------------------------------------------------: |
-| Verified P0 findings                               |                                                            1 |
-| Verified P1 findings                               |                                       4 (+ large-file table) |
-| Verified P2 findings                               |                                                            3 |
-| P3 / environment notes                             |                                                            1 |
-| New findings added during verification             |                                                            0 |
-| Findings rewritten/downgraded in verification pass |                  1 (`updateTag` → optional P2; not a defect) |
-| Invalid commands corrected in report               | 1 (`bun run lint --filter` → `bunx turbo run lint --filter`) |
-
-### Revert instructions
-
-Only `CODE_QUALITY_AUDIT.md` should change in git for this task:
+To drop this audit file after merge, use a follow-up commit (not `git checkout develop -- CODE_QUALITY_AUDIT.md`, which only restores an older version if the file already existed on `develop`):
 
 ```bash
-git checkout develop -- CODE_QUALITY_AUDIT.md   # remove file if it should not exist
-# or
-git restore --staged --worktree CODE_QUALITY_AUDIT.md
+git rm CODE_QUALITY_AUDIT.md
+git commit -m "docs: remove CODE_QUALITY_AUDIT snapshot"
 ```
+
+Or revert the merge commit that introduced it.
+
+**Related audits:** see [`docs/ai/audits/`](./docs/ai/audits/) for UI and other audit artifacts.
 
 ---
 
