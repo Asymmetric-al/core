@@ -23,7 +23,7 @@ function sourceFilesUnder(relativeDir: string): string[] {
     }
 
     if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
-      files.push(relativePath);
+      files.push(relativePath.split(path.sep).join("/"));
     }
   }
 
