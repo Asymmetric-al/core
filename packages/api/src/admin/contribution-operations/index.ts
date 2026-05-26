@@ -1,6 +1,4 @@
-export {
-  executeContributionAction,
-} from "./actions";
+export { executeContributionAction } from "./actions";
 export { buildContributionDetail } from "./detail-read-model";
 export {
   assertContributionActionPermission,

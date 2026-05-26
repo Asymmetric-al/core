@@ -36,9 +36,9 @@ describe("contribution operations permissions", () => {
       ],
     });
 
-    expect(hasContributionPermission(auth, "finance:manage_contributions")).toBe(
-      true,
-    );
+    expect(
+      hasContributionPermission(auth, "finance:manage_contributions"),
+    ).toBe(true);
     expect(() =>
       assertContributionActionPermission(auth, "refund"),
     ).not.toThrow();
@@ -64,9 +64,9 @@ describe("contribution operations permissions", () => {
       ],
     });
 
-    expect(hasContributionPermission(auth, "finance:manage_contributions")).toBe(
-      false,
-    );
+    expect(
+      hasContributionPermission(auth, "finance:manage_contributions"),
+    ).toBe(false);
     expect(() => assertContributionActionPermission(auth, "refund")).toThrow(
       "finance:manage_contributions",
     );

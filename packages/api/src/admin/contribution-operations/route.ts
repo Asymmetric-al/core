@@ -372,13 +372,12 @@ export const POST = withOperation(
             if (typeof stripeEventId !== "string" || !stripeEventId) {
               throw new ApiHttpError(400, "stripeEventId is required.");
             }
-            const rawEvent = await replayStripeEventThroughContributionOperations(
-              {
+            const rawEvent =
+              await replayStripeEventThroughContributionOperations({
                 supabaseAdmin,
                 tenantId,
                 stripeEventId,
-              },
-            );
+              });
             return {
               provider: "stripe" as const,
               status: "queued_for_replay",
