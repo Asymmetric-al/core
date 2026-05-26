@@ -82,3 +82,16 @@
 - [x] 7.7 Add missing/invalid template blocked-email audit and task bridge
 - [x] 7.8 Integrate notification hook with Contribution Operations Core
 - [x] 7.9 Verify targeted notification tests and relevant checks
+
+## 8. PRD 3 Shared Mission Control Tasks And Needs Attention
+
+- [x] 8.1 Add PRD 3 documentation under
+      `docs/prds/mission-control-contribution-operations/`
+- [ ] 8.2 Add shared task and queue schema
+- [ ] 8.3 Add task creation, lifecycle, comments, reminders, and link services
+- [ ] 8.4 Add assignment policy for actor-only, queue-only, and both
+- [ ] 8.5 Add urgency rules, aging thresholds, and override audit
+- [ ] 8.6 Add Contribution Hub Needs Attention read model
+- [ ] 8.7 Integrate PRD2 notification failure task bridge with shared tasks
+- [ ] 8.8 Refactor/admin-wire task UI entry points to shared model
+- [ ] 8.9 Verify targeted task and Needs Attention tests
