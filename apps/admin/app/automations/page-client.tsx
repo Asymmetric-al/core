@@ -1,5 +1,6 @@
 "use client";
 
+import { useMissionControlAutomations } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -172,6 +173,15 @@ function AutomationStatsRow() {
 }
 
 function RecentFlowsCard() {
+  const automationsQuery = useMissionControlAutomations();
+  const flows =
+    automationsQuery.data?.automationRules.map((rule) => ({
+      app: "Mission Control",
+      name: rule.name,
+      status: rule.enabled ? ("Active" as const) : ("Paused" as const),
+      trigger: rule.trigger.kind.replace(/_/g, " "),
+    })) ?? RECENT_FLOWS;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
@@ -196,7 +206,7 @@ function RecentFlowsCard() {
         </CardHeader>
         <CardContent className="p-0">
           <div className="divide-y divide-zinc-50">
-            {RECENT_FLOWS.map((flow) => (
+            {flows.map((flow) => (
               <div
                 key={flow.name}
                 className="flex items-center justify-between p-4 hover:bg-zinc-50/50 transition-colors group cursor-pointer"

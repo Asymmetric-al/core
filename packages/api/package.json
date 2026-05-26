@@ -40,6 +40,8 @@
     "./admin/contribution-operations/route": "./src/admin/contribution-operations/route.ts",
     "./admin/mission-control-tasks": "./src/admin/mission-control-tasks/index.ts",
     "./admin/mission-control-tasks/route": "./src/admin/mission-control-tasks/route.ts",
+    "./admin/mission-control-automations": "./src/admin/mission-control-automations/index.ts",
+    "./admin/mission-control-automations/route": "./src/admin/mission-control-automations/route.ts",
     "./crm": "./src/crm/index.ts",
     "./admin/crm": "./src/admin/crm/index.ts",
     "./admin/crm/gateway": "./src/admin/crm/gateway.ts",

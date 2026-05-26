@@ -514,6 +514,50 @@ CREATE TABLE IF NOT EXISTS public.mission_control_attention_items (
     UNIQUE (tenant_id, dedupe_key)
 );
 
+CREATE TABLE IF NOT EXISTS public.mission_control_automation_rules (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    name TEXT NOT NULL,
+    description TEXT,
+    mode TEXT NOT NULL CHECK (mode IN ('simple', 'advanced')),
+    trigger JSONB NOT NULL DEFAULT '{}'::jsonb,
+    conditions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    actions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    run_mode TEXT NOT NULL DEFAULT 'automatic' CHECK (run_mode IN ('automatic', 'review_first')),
+    reviewer_policy JSONB NOT NULL DEFAULT '{}'::jsonb,
+    failure_policy JSONB NOT NULL DEFAULT '{}'::jsonb,
+    activity_log_policy JSONB NOT NULL DEFAULT '{}'::jsonb,
+    enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    activation_status TEXT NOT NULL DEFAULT 'draft' CHECK (activation_status IN ('draft', 'ready', 'active', 'paused', 'disabled')),
+    version INTEGER NOT NULL DEFAULT 1 CHECK (version > 0),
+    last_preview_id UUID,
+    last_test_run_id UUID,
+    created_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    disabled_at TIMESTAMPTZ,
+    disabled_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS public.mission_control_automation_activity_logs (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    rule_id UUID REFERENCES public.mission_control_automation_rules(id) ON DELETE SET NULL,
+    run_id UUID,
+    trigger JSONB NOT NULL DEFAULT '{}'::jsonb,
+    matched_records JSONB NOT NULL DEFAULT '[]'::jsonb,
+    attempted_actions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    completed_actions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    skipped_actions JSONB NOT NULL DEFAULT '[]'::jsonb,
+    failures JSONB NOT NULL DEFAULT '[]'::jsonb,
+    notifications JSONB NOT NULL DEFAULT '[]'::jsonb,
+    created_tasks UUID[] NOT NULL DEFAULT '{}'::uuid[],
+    actor_profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    actor_kind TEXT NOT NULL DEFAULT 'system' CHECK (actor_kind IN ('human', 'system')),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
 ALTER TABLE public.email_send_logs
     ADD CONSTRAINT email_send_logs_template_version_id_fkey
     FOREIGN KEY (template_version_id)
@@ -1229,6 +1273,12 @@ CREATE INDEX IF NOT EXISTS idx_mission_control_task_links_task
 CREATE INDEX IF NOT EXISTS idx_mission_control_attention_tenant_status
     ON public.mission_control_attention_items (tenant_id, status, urgency, last_seen_at DESC);
 
+CREATE INDEX IF NOT EXISTS idx_mission_control_automation_rules_tenant_status
+    ON public.mission_control_automation_rules (tenant_id, activation_status, updated_at DESC);
+
+CREATE INDEX IF NOT EXISTS idx_mission_control_automation_activity_tenant_rule
+    ON public.mission_control_automation_activity_logs (tenant_id, rule_id, created_at DESC);
+
 CREATE INDEX IF NOT EXISTS idx_email_events_tenant_event_type_occurred_at
     ON public.email_events (tenant_id, event_type, occurred_at DESC);
 
@@ -1581,6 +1631,8 @@ ALTER TABLE public.mission_control_task_comments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mission_control_task_reminders ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mission_control_task_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.mission_control_attention_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mission_control_automation_rules ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.mission_control_automation_activity_logs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_suppression_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_suppressions ENABLE ROW LEVEL SECURITY;
@@ -1616,6 +1668,8 @@ REVOKE ALL ON TABLE public.mission_control_task_comments FROM anon, authenticate
 REVOKE ALL ON TABLE public.mission_control_task_reminders FROM anon, authenticated;
 REVOKE ALL ON TABLE public.mission_control_task_events FROM anon, authenticated;
 REVOKE ALL ON TABLE public.mission_control_attention_items FROM anon, authenticated;
+REVOKE ALL ON TABLE public.mission_control_automation_rules FROM anon, authenticated;
+REVOKE ALL ON TABLE public.mission_control_automation_activity_logs FROM anon, authenticated;
 
 GRANT ALL ON TABLE public.tenant_email_settings TO service_role;
 GRANT ALL ON TABLE public.email_send_logs TO service_role;
@@ -1637,3 +1691,5 @@ GRANT ALL ON TABLE public.mission_control_task_comments TO service_role;
 GRANT ALL ON TABLE public.mission_control_task_reminders TO service_role;
 GRANT ALL ON TABLE public.mission_control_task_events TO service_role;
 GRANT ALL ON TABLE public.mission_control_attention_items TO service_role;
+GRANT ALL ON TABLE public.mission_control_automation_rules TO service_role;
+GRANT ALL ON TABLE public.mission_control_automation_activity_logs TO service_role;

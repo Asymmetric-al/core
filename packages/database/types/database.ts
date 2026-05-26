@@ -511,6 +511,53 @@ export interface MissionControlAttentionItem {
   updated_at: string;
 }
 
+export type MissionControlAutomationMode = "simple" | "advanced";
+export type MissionControlAutomationRunMode = "automatic" | "review_first";
+
+export interface MissionControlAutomationRule {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  mode: MissionControlAutomationMode;
+  trigger: Record<string, unknown>;
+  conditions: unknown[];
+  actions: unknown[];
+  run_mode: MissionControlAutomationRunMode;
+  reviewer_policy: Record<string, unknown>;
+  failure_policy: Record<string, unknown>;
+  activity_log_policy: Record<string, unknown>;
+  enabled: boolean;
+  activation_status: string;
+  version: number;
+  last_preview_id: string | null;
+  last_test_run_id: string | null;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  disabled_at: string | null;
+  disabled_by: string | null;
+}
+
+export interface MissionControlAutomationActivityLog {
+  id: string;
+  tenant_id: string;
+  rule_id: string | null;
+  run_id: string | null;
+  trigger: Record<string, unknown>;
+  matched_records: unknown[];
+  attempted_actions: unknown[];
+  completed_actions: unknown[];
+  skipped_actions: unknown[];
+  failures: unknown[];
+  notifications: unknown[];
+  created_tasks: string[];
+  actor_profile_id: string | null;
+  actor_kind: "human" | "system";
+  created_at: string;
+}
+
 export interface Campaign {
   id: string;
   tenant_id: string;

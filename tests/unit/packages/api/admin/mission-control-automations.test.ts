@@ -1,0 +1,151 @@
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  assertAutomationPermission,
+  canManageAutomations,
+} from "../../../../../packages/api/src/admin/mission-control-automations/permissions";
+import {
+  automationRuleSchema,
+  compileSimpleAutomation,
+} from "../../../../../packages/api/src/admin/mission-control-automations/schemas";
+import {
+  createAutomationPreview,
+  ensureActivationReady,
+} from "../../../../../packages/api/src/admin/mission-control-automations/preview";
+import { evaluateAutomationRule } from "../../../../../packages/api/src/admin/mission-control-automations/evaluator";
+
+import type { AuthenticatedContext } from "@asym/auth/context";
+
+function authContext(
+  overrides: Partial<AuthenticatedContext>,
+): AuthenticatedContext {
+  return {
+    userId: "user_1",
+    email: "admin@example.com",
+    tenantId: "tenant_1",
+    role: "admin",
+    profileRole: "admin",
+    memberships: [],
+    profileId: "profile_1",
+    isAuthenticated: true,
+    ...overrides,
+  };
+}
+
+describe("mission control automation permissions", () => {
+  it("allows admins with automation:manage compatibility to manage automations", () => {
+    expect(canManageAutomations(authContext({}))).toBe(true);
+    expect(() => assertAutomationPermission(authContext({}))).not.toThrow();
+  });
+
+  it("blocks non-admin staff from managing automations", () => {
+    expect(
+      canManageAutomations(
+        authContext({ role: "staff", profileRole: "staff" }),
+      ),
+    ).toBe(false);
+    expect(() =>
+      assertAutomationPermission(
+        authContext({ role: "staff", profileRole: "staff" }),
+      ),
+    ).toThrow("automation:manage");
+  });
+});
+
+describe("mission control automation schemas", () => {
+  it("rejects arbitrary code action definitions", () => {
+    expect(() =>
+      automationRuleSchema.parse({
+        name: "Unsafe",
+        mode: "advanced",
+        trigger: { kind: "contribution_action_completed" },
+        conditions: [],
+        actions: [{ kind: "run_javascript", code: "process.exit()" }],
+        runMode: "automatic",
+        enabled: false,
+      }),
+    ).toThrow();
+  });
+
+  it("compiles simple mode into the same declarative rule shape", () => {
+    expect(
+      compileSimpleAutomation({
+        name: "Create task on failed receipt",
+        when: "receipt_failed",
+        then: "create_task",
+      }),
+    ).toEqual(
+      expect.objectContaining({
+        mode: "simple",
+        trigger: { kind: "contribution_issue_created" },
+        actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+      }),
+    );
+  });
+});
+
+describe("mission control automation preview and evaluation", () => {
+  it("previews matching records and proposed task actions without mutation", async () => {
+    const fetchCandidates = vi.fn().mockResolvedValue([
+      { id: "record_1", issueType: "receipt_failed" },
+      { id: "record_2", issueType: "crm_post_failed" },
+    ]);
+
+    const preview = await createAutomationPreview({
+      rule: compileSimpleAutomation({
+        name: "Receipt follow-up",
+        when: "receipt_failed",
+        then: "create_task",
+      }),
+      fetchCandidates,
+    });
+
+    expect(preview.matchedRecords).toEqual([{ id: "record_1" }]);
+    expect(preview.proposedChanges[0]).toEqual(
+      expect.objectContaining({
+        recordId: "record_1",
+        action: "create_task",
+      }),
+    );
+    expect(fetchCandidates).toHaveBeenCalled();
+  });
+
+  it("blocks activation until preview and test run are complete", () => {
+    expect(() =>
+      ensureActivationReady({
+        hasFreshPreview: true,
+        hasSuccessfulTestRun: false,
+        activityLogConfigured: true,
+      }),
+    ).toThrow("test run");
+  });
+
+  it("plans donor email actions through Email Studio notification service only", () => {
+    const result = evaluateAutomationRule({
+      rule: {
+        id: "rule_1",
+        name: "Notify donor",
+        mode: "advanced",
+        trigger: { kind: "contribution_action_completed" },
+        conditions: [],
+        actions: [
+          {
+            kind: "send_donor_notification",
+            actionType: "refund",
+          },
+        ],
+        runMode: "review_first",
+        enabled: true,
+      },
+      record: { id: "record_1", issueType: "refund" },
+    });
+
+    expect(result.plannedActions).toEqual([
+      {
+        kind: "send_donor_notification",
+        via: "email_studio",
+        actionType: "refund",
+      },
+    ]);
+  });
+});

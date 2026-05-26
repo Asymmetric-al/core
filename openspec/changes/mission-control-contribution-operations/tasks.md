@@ -100,12 +100,12 @@
 
 - [x] 9.1 Add PRD 4 documentation under
       `docs/prds/mission-control-contribution-operations/`
-- [ ] 9.2 Add declarative automation schema and permission tests
-- [ ] 9.3 Add `automation:manage` permission adapter
-- [ ] 9.4 Add preview and test-run services
-- [ ] 9.5 Add auto-run and review-first run models
-- [ ] 9.6 Add activity log schema and run item model
+- [x] 9.2 Add declarative automation schema and permission tests
+- [x] 9.3 Add `automation:manage` permission adapter
+- [x] 9.4 Add preview and test-run services
+- [x] 9.5 Add auto-run and review-first run models
+- [x] 9.6 Add activity log schema and run item model
 - [ ] 9.7 Add domain adapters for contribution actions, Email Studio
       notifications, and shared tasks
-- [ ] 9.8 Wire Mission Control automation UI/API to persisted model
-- [ ] 9.9 Verify targeted automation tests and checks
+- [x] 9.8 Wire Mission Control automation UI/API to persisted model
+- [x] 9.9 Verify targeted automation tests and checks

@@ -62,6 +62,11 @@ export {
   type MissionControlNeedsAttentionItem,
 } from "./mission-control-tasks";
 export {
+  MISSION_CONTROL_AUTOMATIONS_QUERY_KEY,
+  useMissionControlAutomations,
+  type MissionControlAutomationRule,
+} from "./mission-control-automations";
+export {
   useLocations,
   useLinkedEntities,
   useUpsertLocation,
