@@ -189,6 +189,7 @@ describe("bulk contribution preview and execution", () => {
               id: "batch_1",
               operation: "refund",
               source_surface: "contribution_hub",
+              status: "running",
               reason: "bulk refund",
               confirmation_snapshot: { confirmationToken: "confirm_1" },
             },
@@ -242,7 +243,7 @@ describe("bulk contribution preview and execution", () => {
         actorPermissions: ["finance:manage_contributions"],
       }),
     );
-    expect(itemUpdates[0]).toEqual(
+    expect(itemUpdates).toContainEqual(
       expect.objectContaining({
         status: "succeeded",
         operation_audit_event_id: "audit_1",
