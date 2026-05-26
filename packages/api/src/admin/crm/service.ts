@@ -7,13 +7,19 @@ import {
 import { ApiHttpError } from "../../shared/http-errors";
 
 import type { AdminCrmListResponse } from "./types";
+import type {
+  AdminSupabaseFluentFilterBuilder,
+  SupabaseColumn,
+} from "../shared/supabase-filter-builder";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type { Donor } from "@asym/database/types";
 
 type AdminSupabase = AdminSupabaseClient;
 
 type DonorRow = Parameters<typeof buildCrmGridRow>[0];
+type DonorColumn = SupabaseColumn<Donor>;
 
-const SORT_COLUMN_BY_FIELD: Record<CrmSortField, string> = {
+const SORT_COLUMN_BY_FIELD = {
   updatedAt: "updated_at",
   createdAt: "created_at",
   name: "name",
@@ -21,7 +27,7 @@ const SORT_COLUMN_BY_FIELD: Record<CrmSortField, string> = {
   lifecycleStatus: "status",
   lifetimeGiving: "total_given",
   lastGiftAt: "last_gift_date",
-};
+} satisfies Record<CrmSortField, DonorColumn>;
 
 function escapeSearchValue(value: string) {
   return value.replace(/[%(),]/g, " ");
@@ -31,13 +37,15 @@ function normalizeIds(ids: Iterable<string>) {
   return Array.from(new Set(ids)).filter(Boolean);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(crm-postgrest): narrow when donor query builder is fully typed
-type DonorQueryBuilder = any;
+type DonorQueryBuilder<TQuery> = AdminSupabaseFluentFilterBuilder<
+  Donor,
+  TQuery
+>;
 
-function applyBaseFilters(
-  query: DonorQueryBuilder,
+function applyBaseFilters<TQuery extends DonorQueryBuilder<TQuery>>(
+  query: TQuery,
   params: AdminCrmParams,
-): DonorQueryBuilder {
+): TQuery {
   const { filters, search } = params;
 
   if (filters.recordTypes.length > 0) {
@@ -68,10 +76,10 @@ function applyBaseFilters(
   return query;
 }
 
-function applyCursor(
-  query: DonorQueryBuilder,
+function applyCursor<TQuery extends DonorQueryBuilder<TQuery>>(
+  query: TQuery,
   params: AdminCrmParams,
-): DonorQueryBuilder {
+): TQuery {
   const { cursor, sort } = params;
   if (!cursor) {
     return query;
