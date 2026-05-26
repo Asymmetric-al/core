@@ -1,8 +1,8 @@
-import { ApiHttpError } from "../../shared/http-errors";
 import { isHighRiskContributionAction } from "./policy";
+import { ApiHttpError } from "../../shared/http-errors";
 
-import type { AuthenticatedContext } from "@asym/auth/context";
 import type { ContributionActionType, ContributionPermission } from "./types";
+import type { AuthenticatedContext } from "@asym/auth/context";
 
 function hasFinanceStaffMembership(auth: AuthenticatedContext): boolean {
   return auth.memberships.some(
