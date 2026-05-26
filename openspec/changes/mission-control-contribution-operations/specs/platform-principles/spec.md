@@ -46,3 +46,20 @@ visible state changed, or where to find the audit trail.
 - WHEN staff reviews the operation result
 - THEN the platform shows an honest state and next action
 - AND it does not hide uncertainty behind reassuring language
+
+### Requirement: Donor Correction Notifications Are Clear And Accountable
+
+Donor-facing contribution correction notifications MUST be factual, templated,
+merge-tag validated, and auditable. Staff MAY add a bounded personal note, but
+the note MUST NOT replace the official template explanation or required facts.
+
+Notification suppression for money or official document changes MUST require a
+reason and MUST be recorded as an audit decision.
+
+#### Scenario: Staff suppresses an official-document correction email
+
+- GIVEN a receipt or statement correction normally notifies a donor
+- WHEN staff suppresses the donor email
+- THEN the suppression requires a reason
+- AND the audit trail records the policy, suppression reason, actor, template
+  family, and source contribution operation

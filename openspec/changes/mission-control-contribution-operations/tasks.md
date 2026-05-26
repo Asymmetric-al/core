@@ -69,3 +69,16 @@
 - Full `bun run test:unit` was executed; all PRD1 tests passed and the only
   failing file was unrelated CMS auth strategy tests timing out in
   `tests/unit/cms/supabase-strategy.test.ts`.
+
+## 7. PRD 2 Email Studio Donor Correction Notifications
+
+- [x] 7.1 Add PRD 2 documentation under
+      `docs/prds/mission-control-contribution-operations/`
+- [ ] 7.2 Add correction notification merge tag registry and tests
+- [ ] 7.3 Add template family/variant resolver and required-tag validation
+- [ ] 7.4 Add action-type notification policy and suppression reason rules
+- [ ] 7.5 Add contribution notification event/settings schema
+- [ ] 7.6 Add send-time composer through Email Studio templates and Resend
+- [ ] 7.7 Add missing/invalid template blocked-email audit and task bridge
+- [ ] 7.8 Integrate notification hook with Contribution Operations Core
+- [ ] 7.9 Verify targeted notification tests and relevant checks

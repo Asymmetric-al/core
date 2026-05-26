@@ -172,3 +172,38 @@ later sync to donor-facing money history.
 - WHEN the action succeeds
 - THEN donor-facing history reflects the corrected truth promptly
 - AND the donor portal does not depend on a delayed side-sync model
+
+### Requirement: Donor Correction Emails Use Email Studio
+
+Donor-facing emails for contribution corrections MUST use Email Studio
+templates, the provider-neutral template/version model, required merge-tag
+validation, tenant notification settings, and the approved Resend delivery
+path.
+
+Contribution operations, automations, and future bulk actions MUST NOT send
+donor-facing contribution correction emails directly through Resend or a
+feature-local email builder.
+
+If a required correction template is missing, inactive, or invalid at send
+time, the contribution action MUST remain complete, the donor email MUST be
+blocked, the notification decision MUST be audited, and follow-up task intent
+MUST be created through the shared task contract.
+
+#### Scenario: A refund notification is sent
+
+- GIVEN a contribution refund action has a donor-facing notification outcome
+- WHEN the notification is sent
+- THEN the email is rendered from the active Email Studio refund template
+  family and variant
+- AND the send records the template version, recipient, provider outcome, and
+  contribution operation audit link
+
+#### Scenario: A correction template is invalid at send time
+
+- GIVEN a contribution action succeeds but its required donor correction
+  template is missing, inactive, or missing required merge tags
+- WHEN notification dispatch runs
+- THEN no fallback donor email is sent
+- AND the contribution action remains successful
+- AND the blocked notification decision is audited
+- AND a follow-up task is requested for the configured actor or queue
