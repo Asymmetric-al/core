@@ -60,4 +60,11 @@ export interface ProcessContributionBatchInput {
     actionType: ContributionActionType;
     payload: Record<string, unknown>;
   }) => Promise<{ auditEventId?: string | null; taskIds?: string[] }>;
+  createFollowUpTask?: (input: {
+    tenantId: string;
+    actorProfileId: string | null;
+    contributionId: string;
+    actionType: ContributionActionType;
+    reason: string;
+  }) => Promise<string>;
 }

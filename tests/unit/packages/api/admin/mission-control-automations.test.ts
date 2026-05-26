@@ -8,6 +8,12 @@ import {
   automationRuleSchema,
   compileSimpleAutomation,
 } from "../../../../../packages/api/src/admin/mission-control-automations/schemas";
+import { saveMissionControlAutomationRule } from "../../../../../packages/api/src/admin/mission-control-automations/store";
+import {
+  planContributionAutomationAction,
+  planDonorNotificationAutomationAction,
+  planTaskAutomationAction,
+} from "../../../../../packages/api/src/admin/mission-control-automations/adapters";
 import {
   createAutomationPreview,
   ensureActivationReady,
@@ -120,6 +126,25 @@ describe("mission control automation preview and evaluation", () => {
     ).toThrow("test run");
   });
 
+  it("blocks saving enabled automations without activation readiness", async () => {
+    await expect(
+      saveMissionControlAutomationRule({
+        tenantId: "tenant_1",
+        actorProfileId: "actor_1",
+        rule: {
+          name: "Unsafe active rule",
+          mode: "advanced",
+          trigger: { kind: "contribution_issue_created" },
+          conditions: [],
+          actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+          runMode: "automatic",
+          enabled: true,
+        },
+        supabaseAdmin: {} as never,
+      }),
+    ).rejects.toThrow("preview");
+  });
+
   it("plans donor email actions through Email Studio notification service only", () => {
     const result = evaluateAutomationRule({
       rule: {
@@ -147,5 +172,37 @@ describe("mission control automation preview and evaluation", () => {
         actionType: "refund",
       },
     ]);
+  });
+
+  it("domain adapters point automations at shared services", () => {
+    expect(
+      planContributionAutomationAction({
+        actionType: "refund",
+        contributionId: "donation_1",
+      }),
+    ).toMatchObject({
+      service: "contribution_operations",
+      method: "executeContributionAction",
+    });
+
+    expect(
+      planDonorNotificationAutomationAction({
+        actionType: "refund",
+        contributionId: "donation_1",
+      }),
+    ).toMatchObject({
+      service: "email_studio_notifications",
+      method: "sendContributionCorrectionNotification",
+    });
+
+    expect(
+      planTaskAutomationAction({
+        issueType: "receipt_failed",
+        contributionId: "donation_1",
+      }),
+    ).toMatchObject({
+      service: "mission_control_tasks",
+      method: "createMissionControlTask",
+    });
   });
 });

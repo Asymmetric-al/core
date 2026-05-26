@@ -1,3 +1,8 @@
+export {
+  planContributionAutomationAction,
+  planDonorNotificationAutomationAction,
+  planTaskAutomationAction,
+} from "./adapters";
 export { evaluateAutomationRule } from "./evaluator";
 export {
   assertAutomationPermission,

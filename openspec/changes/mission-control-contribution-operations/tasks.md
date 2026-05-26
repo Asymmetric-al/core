@@ -105,7 +105,7 @@
 - [x] 9.4 Add preview and test-run services
 - [x] 9.5 Add auto-run and review-first run models
 - [x] 9.6 Add activity log schema and run item model
-- [ ] 9.7 Add domain adapters for contribution actions, Email Studio
+- [x] 9.7 Add domain adapters for contribution actions, Email Studio
       notifications, and shared tasks
 - [x] 9.8 Wire Mission Control automation UI/API to persisted model
 - [x] 9.9 Verify targeted automation tests and checks

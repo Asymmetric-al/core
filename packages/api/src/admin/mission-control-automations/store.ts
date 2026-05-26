@@ -52,8 +52,25 @@ export async function saveMissionControlAutomationRule(input: {
   tenantId: string;
   actorProfileId: string | null;
   rule: AutomationRule;
+  activationReady?: {
+    hasFreshPreview: boolean;
+    hasSuccessfulTestRun: boolean;
+    activityLogConfigured: boolean;
+  };
 }) {
   const rule = automationRuleSchema.parse(input.rule);
+  if (rule.enabled) {
+    const ready = input.activationReady;
+    if (!ready?.hasFreshPreview) {
+      throw new Error("Automation activation requires a fresh preview.");
+    }
+    if (!ready.hasSuccessfulTestRun) {
+      throw new Error("Automation activation requires a successful test run.");
+    }
+    if (!ready.activityLogConfigured) {
+      throw new Error("Automation activation requires activity log setup.");
+    }
+  }
   const payload = {
     tenant_id: input.tenantId,
     name: rule.name,

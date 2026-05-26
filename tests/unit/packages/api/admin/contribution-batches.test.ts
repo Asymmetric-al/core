@@ -119,6 +119,34 @@ describe("bulk contribution preview and execution", () => {
       followUpTasksCreated: 0,
     });
   });
+
+  it("creates follow-up tasks for important failed records", async () => {
+    const executeContributionAction = vi
+      .fn()
+      .mockRejectedValueOnce(new Error("Stripe failed"));
+    const createFollowUpTask = vi.fn().mockResolvedValue("task_1");
+
+    const result = await processContributionBatch({
+      tenantId: "tenant_1",
+      actorProfileId: "actor_1",
+      actionType: "refund",
+      sourceSurface: "contribution_hub",
+      records: [
+        { id: "donation_1", stagedGiftId: "staged_1", receiptStatus: "sent" },
+      ],
+      executeContributionAction,
+      createFollowUpTask,
+    });
+
+    expect(createFollowUpTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contributionId: "donation_1",
+        reason: "Stripe failed",
+      }),
+    );
+    expect(result.summary.followUpTasksCreated).toBe(1);
+    expect(result.results[0]?.taskId).toBe("task_1");
+  });
 });
 
 describe("bulk contribution results", () => {

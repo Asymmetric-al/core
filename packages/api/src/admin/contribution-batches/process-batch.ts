@@ -44,14 +44,25 @@ export async function processContributionBatch(
         timestamp: new Date().toISOString(),
       });
     } catch (error) {
+      const failureReason =
+        error instanceof Error ? error.message : "Contribution action failed.";
+      const taskId =
+        input.createFollowUpTask != null
+          ? await input.createFollowUpTask({
+              tenantId: input.tenantId,
+              actorProfileId: input.actorProfileId,
+              contributionId: record.contributionId,
+              actionType: input.actionType,
+              reason: failureReason,
+            })
+          : null;
+
       results.push({
         contributionId: record.contributionId,
         action: input.actionType,
         status: "failed" as const,
-        failureReason:
-          error instanceof Error
-            ? error.message
-            : "Contribution action failed.",
+        failureReason,
+        taskId,
         timestamp: new Date().toISOString(),
       });
     }
