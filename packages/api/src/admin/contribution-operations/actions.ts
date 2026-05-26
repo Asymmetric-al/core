@@ -7,6 +7,7 @@ import type {
   ContributionActionType,
   ContributionCorrectionRecordInput,
   ContributionOperationAuditEventInput,
+  ContributionProviderOutcome,
   ExecuteContributionActionInput,
 } from "./types";
 
@@ -182,6 +183,30 @@ function isCorrectionAction(actionType: ContributionActionType): boolean {
   );
 }
 
+async function sendCorrectionNotification(
+  input: ExecuteContributionActionInput,
+  result: {
+    auditEventId: string;
+    correctionId: string | null;
+    providerOutcome?: ContributionProviderOutcome | null;
+  },
+) {
+  const sendNotification = input.dependencies?.sendCorrectionNotification;
+  if (!sendNotification) {
+    return { decision: "not_required" as const, taskIds: [] };
+  }
+
+  return sendNotification({
+    tenantId: input.tenantId,
+    actionType: input.actionType,
+    contributionId: input.contributionId,
+    correctionId: result.correctionId,
+    auditEventId: result.auditEventId,
+    actorProfileId: input.actorProfileId,
+    providerOutcome: result.providerOutcome ?? null,
+  });
+}
+
 export async function executeContributionAction<TContribution = unknown>(
   input: ExecuteContributionActionInput<TContribution>,
 ): Promise<ContributionActionResult<TContribution>> {
@@ -312,12 +337,17 @@ export async function executeContributionAction<TContribution = unknown>(
           afterSummary: relink.after ?? { donorId },
         }),
       );
+      const notification = await sendCorrectionNotification(input, {
+        auditEventId,
+        correctionId,
+      });
 
       return {
         canonicalContribution: await loadCanonicalContribution(input),
         auditEventId,
         correctionId,
-        taskIds: [],
+        notification,
+        taskIds: notification.taskIds ?? [],
       };
     }
 
@@ -353,12 +383,18 @@ export async function executeContributionAction<TContribution = unknown>(
           afterSummary: { refundAmount: amount },
         }),
       );
+      const notification = await sendCorrectionNotification(input, {
+        auditEventId,
+        correctionId,
+        providerOutcome,
+      });
 
       return {
         canonicalContribution: await loadCanonicalContribution(input),
         auditEventId,
         correctionId,
-        taskIds: [],
+        notification,
+        taskIds: notification.taskIds ?? [],
         providerOutcome,
       };
     }
@@ -390,12 +426,18 @@ export async function executeContributionAction<TContribution = unknown>(
           providerOutcome,
         }),
       );
+      const notification = await sendCorrectionNotification(input, {
+        auditEventId,
+        correctionId,
+        providerOutcome,
+      });
 
       return {
         canonicalContribution: await loadCanonicalContribution(input),
         auditEventId,
         correctionId,
-        taskIds: [],
+        notification,
+        taskIds: notification.taskIds ?? [],
         providerOutcome,
       };
     }
@@ -428,12 +470,17 @@ export async function executeContributionAction<TContribution = unknown>(
             correctionId,
           }),
         );
+        const notification = await sendCorrectionNotification(input, {
+          auditEventId,
+          correctionId,
+        });
 
         return {
           canonicalContribution: await loadCanonicalContribution(input),
           auditEventId,
           correctionId,
-          taskIds: [],
+          notification,
+          taskIds: notification.taskIds ?? [],
         };
       }
 

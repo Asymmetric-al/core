@@ -372,6 +372,69 @@ export interface ContributionOperationAuditEvent {
   created_at: string;
 }
 
+export type ContributionNotificationMode =
+  | "auto_notify"
+  | "always_ask"
+  | "staff_chooses";
+
+export type ContributionNotificationDecision =
+  | "sent"
+  | "suppressed"
+  | "blocked"
+  | "failed"
+  | "not_required";
+
+export interface EmailTemplateSystemBinding {
+  id: string;
+  tenant_id: string;
+  template_id: string;
+  family_key: string;
+  variant_key: string;
+  required_merge_tags: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionNotificationSetting {
+  id: string;
+  tenant_id: string;
+  action_type: string;
+  mode: ContributionNotificationMode;
+  suppression_reason_required: boolean;
+  task_assignment_mode: "actor_only" | "queue_only" | "actor_and_queue";
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+export interface ContributionNotificationEvent {
+  id: string;
+  tenant_id: string;
+  operation_audit_event_id: string | null;
+  correction_id: string | null;
+  action_type: string;
+  template_id: string | null;
+  template_version_id: string | null;
+  template_family: string | null;
+  template_variant: string | null;
+  template_version: number | null;
+  decision: ContributionNotificationDecision;
+  policy_snapshot: Record<string, unknown>;
+  suppression_reason: string | null;
+  personal_note_present: boolean;
+  recipient_donor_id: string | null;
+  recipient_email: string | null;
+  email_send_log_id: string | null;
+  provider_status: string | null;
+  provider_message_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  task_ids: string[];
+  created_at: string;
+  sent_at: string | null;
+}
+
 export interface Campaign {
   id: string;
   tenant_id: string;

@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { z } from "zod";
 
 import { executeContributionAction } from "./actions";
+import { sendContributionCorrectionNotificationFromSupabase } from "./notifications/store";
 import { hasContributionPermission } from "./permissions";
 import {
   appendContributionOperationAuditEvent,
@@ -399,6 +400,25 @@ export const POST = withOperation(
             appendContributionOperationAuditEvent({ supabaseAdmin, event }),
           createCorrectionRecord: (correction) =>
             createContributionCorrectionRecord({ supabaseAdmin, correction }),
+          sendCorrectionNotification: async (notificationInput) => {
+            const detail = await loadContributionDetailFromSupabase({
+              supabaseAdmin,
+              tenantId: notificationInput.tenantId,
+              contributionId: notificationInput.contributionId,
+            });
+
+            return sendContributionCorrectionNotificationFromSupabase({
+              supabaseAdmin,
+              tenantId: notificationInput.tenantId,
+              actionType: notificationInput.actionType,
+              contributionId: notificationInput.contributionId,
+              correctionId: notificationInput.correctionId,
+              auditEventId: notificationInput.auditEventId,
+              actorProfileId: notificationInput.actorProfileId,
+              providerOutcome: notificationInput.providerOutcome,
+              detail,
+            });
+          },
           loadContributionDetail: ({ contributionId, tenantId }) =>
             loadContributionDetailFromSupabase({
               supabaseAdmin,

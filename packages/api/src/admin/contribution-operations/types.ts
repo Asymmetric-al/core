@@ -138,6 +138,18 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     contributionId: string;
     payload: Record<string, unknown>;
   }) => Promise<ContributionProviderOutcome>;
+  sendCorrectionNotification?: (input: {
+    tenantId: string;
+    actionType: ContributionActionType;
+    contributionId: string;
+    correctionId: string | null;
+    auditEventId: string;
+    actorProfileId: string | null;
+    providerOutcome?: ContributionProviderOutcome | null;
+  }) => Promise<{
+    decision: "sent" | "suppressed" | "blocked" | "failed" | "not_required";
+    taskIds?: string[];
+  }>;
   refundContribution?: (input: {
     tenantId: string;
     contributionId: string;
