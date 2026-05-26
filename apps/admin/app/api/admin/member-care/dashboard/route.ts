@@ -4,8 +4,8 @@ import {
 } from "@asym/api/admin/member-care/route-helpers";
 import { readMemberCareDashboardSnapshot } from "@asym/api/reads/member-care";
 
-export async function GET() {
-  const auth = await requireMemberCareAccess();
+export async function GET(request: Request) {
+  const auth = await requireMemberCareAccess(request);
   if (!auth.ok) {
     return auth.response;
   }

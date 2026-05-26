@@ -40,11 +40,11 @@ import {
   DataTableLoadingOverlay,
 } from "./data-table-skeleton";
 import { DataTableToolbar } from "./data-table-toolbar";
-import { useDataTableVirtualization } from "./hooks";
 import {
   useDataTableStateCore,
   useDataTableStateWithUrl,
 } from "./hooks/use-data-table-state";
+import { useDataTableVirtualization } from "./hooks/use-data-table-virtualization";
 
 import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
 import type {

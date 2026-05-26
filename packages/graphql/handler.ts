@@ -954,7 +954,7 @@ export function createGraphQLHandler() {
     graphqlEndpoint: "/api/graphql",
     fetchAPI: { Response },
     context: async ({ request }) => {
-      const auth = await getAuthContext();
+      const auth = await getAuthContext(request);
       const { client: supabaseAdmin, error } = getAdminClient();
       if (!supabaseAdmin) {
         throw new Error(error);

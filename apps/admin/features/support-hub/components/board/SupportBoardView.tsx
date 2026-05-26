@@ -6,12 +6,12 @@ import { BoardCard } from "./BoardCard";
 import { BoardColumn } from "./BoardColumn";
 import { useBoardDnd } from "./use-board-dnd";
 import { useSetSupportConversationStatus } from "../../hooks/use-support-mutations";
-import { SUPPORT_CONVERSATION_STATUSES } from "../../types";
+import { SUPPORT_CONVERSATION_STATUSES } from "../../types/conversation";
 
 import type {
   SupportConversation,
   SupportConversationStatus,
-} from "../../types";
+} from "../../types/conversation";
 
 interface SupportBoardViewProps {
   conversations: SupportConversation[];

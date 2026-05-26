@@ -42,7 +42,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 
@@ -89,7 +89,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireRole(auth, ["donor", "admin", "staff", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 

@@ -6,8 +6,8 @@ import {
 
 type RouteContext = { params: Promise<{ id: string }> };
 
-export async function GET(_request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+export async function GET(request: Request, context: RouteContext) {
+  return withSupportHubAccess(request, async () => {
     try {
       const { id } = await context.params;
       const conversation = await getSupportConversation(id);

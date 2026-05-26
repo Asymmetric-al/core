@@ -252,7 +252,21 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 **Supabase and Supabase Auth:** For any work touching Supabase products (database, Auth, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations), load **`docs/ai/skills/supabase/SKILL.md`** first. For Next.js App Router auth integration specifically, also use **`docs/ai/skills/nextjs-supabase-auth/SKILL.md`**. For Postgres query/schema/RLS performance, use **`docs/ai/skills/supabase-postgres-best-practices/SKILL.md`**.
 
-**Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`). To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y` (this rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates). To **pull newer upstream** content: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`. **`npm-deps-cleanup`** (`anthonyshew/dotfiles`): `npx skills add anthonyshew/dotfiles -y`, then `bun run skills:refresh-upstream` → `skills:sync` / `skills:verify` (see `docs/ai/skills/npm-deps-cleanup/references/upstream.md`). **`emil-design-engineering`** is not in `skills-lock.json`; refresh it with the animations.dev installer into `~/.cursor/skills/`, then the same `skills:refresh-upstream` → `skills:sync` / `skills:verify` loop (see root `README.md`). Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`. **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`); refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md` — it is **not** updated by `bun run skills:refresh-upstream` today.
+**Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`).
+
+To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
+
+To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`.
+
+**`npm-deps-cleanup`** (`anthonyshew/dotfiles`): `npx skills add anthonyshew/dotfiles -y`, then `bun run skills:refresh-upstream` → `skills:sync` / `skills:verify` (see `docs/ai/skills/npm-deps-cleanup/references/upstream.md`).
+
+**`emil-design-engineering`** is not in `skills-lock.json`; refresh it with the animations.dev installer into `~/.cursor/skills/`, then the same `skills:refresh-upstream` → `skills:sync` / `skills:verify` loop (see root `README.md`). Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`.
+
+**Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). Refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
+
+**`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
+
+**Payload CMS** ([`payloadcms/skills`](https://github.com/payloadcms/skills)) is vendored into `docs/ai/skills/payloadcms-payload/` and `docs/ai/skills/payloadcms-cms-migration/`. Refresh steps live in each skill's `references/upstream.md`; optional Skills CLI install is `npx skills add payloadcms/skills`; these skills are **not** updated by `bun run skills:refresh-upstream` today.
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
@@ -261,6 +275,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
+- **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
 - **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
@@ -273,6 +288,8 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 - **Supabase (platform-wide: Auth, DB API, Storage, Realtime, Edge Functions, CLI, MCP, RLS, migrations):** `docs/ai/skills/supabase/SKILL.md`
 - **Supabase Postgres tuning / query patterns:** `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
 - **Next.js + Supabase Auth integration:** `docs/ai/skills/nextjs-supabase-auth/SKILL.md`
+- **Payload CMS (config, collections, fields, hooks, access, queries, adapters, plugins — [`payloadcms/skills`](https://github.com/payloadcms/skills)):** `docs/ai/skills/payloadcms-payload/SKILL.md` (topic reference under `reference/`; subordinate to `docs/ai/rules/backend.md`, Supabase skills, and `docs/guides/architecture/data-access-boundary.md`)
+- **CMS → Payload migration workflow ([`payloadcms/skills`](https://github.com/payloadcms/skills) `cms-migration`):** `docs/ai/skills/payloadcms-cms-migration/SKILL.md`
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`

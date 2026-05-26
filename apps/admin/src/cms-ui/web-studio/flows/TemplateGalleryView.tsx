@@ -65,8 +65,10 @@ export function TemplateGalleryView() {
 
 function TemplateGalleryViewContent() {
   const searchParams = useSearchParams();
-  const pageTypeFilter = searchParams.get("pageType") ?? "";
-  const missionaryContext = searchParams.get("missionaryId");
+  const { get: readSearchParam } = searchParams;
+  const get = readSearchParam.bind(searchParams);
+  const pageTypeFilter = String(get("pageType") ?? "");
+  const missionaryContext = get("missionaryId");
 
   const {
     config: { routes, serverURL },

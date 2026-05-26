@@ -17,7 +17,7 @@ import {
   SUPPORT_PRIORITIES,
   type SupportConversation,
   type SupportPriority,
-} from "../../types";
+} from "../../types/conversation";
 
 interface ConversationPriorityMenuProps {
   conversation: SupportConversation;

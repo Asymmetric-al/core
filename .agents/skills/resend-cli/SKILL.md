@@ -63,6 +63,36 @@ references:
 
 # Resend CLI
 
+## This repository (Asymmetric-al/core)
+
+These repo-owned sections are intentionally kept on top of the vendored Resend
+CLI skill. If upstream refreshes replace this file, reconcile this overlay
+before running `bun run skills:sync`. App-level Resend integration lives in
+`docs/guides/features/resend-integration.md`; this skill is only for the
+terminal CLI, shell scripts, and CI automation.
+
+### Triggers
+
+- Running, scripting, installing, or troubleshooting the `resend` CLI.
+- Resend CLI work in local shells, CI/CD, automations, or non-interactive agent runs.
+- Sending or previewing React Email templates through CLI flags.
+
+### Workflow
+
+1. Confirm the task is CLI work; for product email routes, SDK, webhooks, or inbound handling, use `docs/guides/features/resend-integration.md` instead.
+2. Check `resend --version` before invoking CLI commands.
+3. Confirm required environment variables are available without printing secret values.
+4. Use non-interactive flags and JSON-safe output patterns from this skill.
+5. Verify the command result and capture sanitized IDs/status only.
+
+### Checklist
+
+- [ ] Confirmed the task belongs to Resend CLI rather than app integration.
+- [ ] Verified the `resend` binary and auth/env prerequisites.
+- [ ] Avoided printing API keys, tokens, or full secret values.
+- [ ] Used non-interactive flags suitable for agents/CI.
+- [ ] Recorded sanitized command evidence or a clear blocker.
+
 ## Installation
 
 Before running any `resend` commands, check whether the CLI is installed:

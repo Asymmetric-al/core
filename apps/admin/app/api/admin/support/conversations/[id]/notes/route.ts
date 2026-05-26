@@ -9,7 +9,7 @@ import { addPrivateNoteSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function POST(request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, addPrivateNoteSchema);
     if (!body.ok) return body.response;
     try {

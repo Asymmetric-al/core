@@ -9,7 +9,7 @@ import { assignConversationSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, assignConversationSchema);
     if (!body.ok) return body.response;
     try {

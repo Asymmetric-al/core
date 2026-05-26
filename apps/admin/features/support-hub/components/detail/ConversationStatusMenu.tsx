@@ -17,7 +17,7 @@ import {
   SUPPORT_CONVERSATION_STATUSES,
   type SupportConversation,
   type SupportConversationStatus,
-} from "../../types";
+} from "../../types/conversation";
 
 interface ConversationStatusMenuProps {
   conversation: SupportConversation;

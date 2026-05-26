@@ -26,7 +26,7 @@
     "@asym/graphql": "workspace:*",
     "@asym/lib": "workspace:*",
     "@asym/ui": "workspace:*",
-    "@base-ui/react": "1.4.0",
+    "@base-ui/react": "1.5.0",
     "@openpolicy/react": "0.0.17",
     "@openpolicy/sdk": "0.0.17",
     "@next/env": "16.2.6",

@@ -37,10 +37,13 @@ import {
 } from "./data-table-skeleton";
 import {
   createEmptyFilterState,
-  createAdvancedFilterFn,
   type AdvancedFilterState,
-} from "./filters";
-import { useDataTableKeyboard, getKeyboardNavigationStyles } from "./hooks";
+} from "./filters/types";
+import { createAdvancedFilterFn } from "./filters/use-advanced-filter";
+import {
+  useDataTableKeyboard,
+  getKeyboardNavigationStyles,
+} from "./hooks/use-data-table-keyboard";
 
 import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
 import type { DataTableFilterField } from "./types";

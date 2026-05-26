@@ -173,6 +173,31 @@ describe("buildReportSeries", () => {
     expect(day14?.value).toBe(2);
   });
 
+  it("excludes volume conversations outside the requested range", () => {
+    const series = buildReportSeries(buildRequest({ slice: "volume" }), {
+      conversations: [
+        buildConversation({
+          id: "in-range",
+          createdAt: "2026-04-14T10:00:00.000Z",
+        }),
+        buildConversation({
+          id: "before-range",
+          createdAt: "2026-03-31T23:00:00.000Z",
+        }),
+        buildConversation({
+          id: "after-range",
+          createdAt: "2026-05-01T00:00:00.000Z",
+        }),
+      ],
+      messages: [],
+      labels: [],
+      now: NOW,
+    });
+
+    expect(series.total).toBe(1);
+    expect(series.buckets.map((bucket) => bucket.key)).toEqual(["2026-04-14"]);
+  });
+
   it("returns 0 when no resolved conversations are in range", () => {
     const series = buildReportSeries(
       buildRequest({ slice: "resolution-count" }),

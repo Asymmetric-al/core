@@ -24,7 +24,7 @@ export async function PATCH(
       return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
     const { requestId } = await params;
@@ -119,7 +119,7 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _request: NextRequest,
+  request: NextRequest,
   { params }: { params: Promise<{ requestId: string }> },
 ) {
   try {
@@ -128,7 +128,7 @@ export async function DELETE(
       return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
     const { requestId } = await params;

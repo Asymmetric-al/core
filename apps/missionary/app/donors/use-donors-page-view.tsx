@@ -103,6 +103,18 @@ import {
   getTagLabel,
   getTagStyle,
 } from "./donors-model";
+import {
+  applyDonorsStatFilter,
+  createDefaultDonorsFilters,
+  createDonorsPageSummary,
+  formatDonorAddress,
+  getGivingHistoryRows,
+  hasDonorsActiveFilters,
+  removeTagSelection,
+  toggleTagSelection,
+  type DonorsPageSummary,
+  type DonorsStatFilterType,
+} from "./donors-page-model";
 import { EditDonorDialog } from "./edit-donor-dialog";
 
 import type {
@@ -112,6 +124,7 @@ import type {
   Donor,
   RecurringStatus,
 } from "./donor-types";
+import type { Profile } from "@asym/database/types";
 
 import { PageHeader } from "@/components/page-header";
 
@@ -354,64 +367,79 @@ async function updateDonorTags(options: {
   }
 }
 
-export type DonorsPageViewModel = {
-  activeCount: number;
-  activePledgeCount: number;
-  activeTab: string;
-  activityType: "note" | "call" | "meeting" | "email";
-  atRiskCount: number;
-  clearAllFilters: () => void;
-  copyToClipboard: (text: string, label: string) => void;
-  donorColumns: ColumnDef<Donor>[];
-  donors: Donor[];
-  error: string | null;
-  filteredDonors: Donor[];
-  formatAddress: (address: Address) => string[];
-  givingHistoryColumns: ColumnDef<Activity>[];
-  givingHistoryRows: Activity[];
-  handleAddNote: () => Promise<void>;
-  handleRefreshDonors: () => void;
-  handleSaveTags: () => Promise<void>;
-  handleStatCardClick: (
-    filterType: "atRisk" | "activePledge" | "lapsed" | "new",
-  ) => void;
-  hasActiveFilters: boolean;
-  isEditDialogOpen: boolean;
-  isLoading: boolean;
-  isNoteDialogOpen: boolean;
-  isSavingNote: boolean;
-  isSavingTags: boolean;
-  isTagDialogOpen: boolean;
-  lapsedCount: number;
-  monthlyPledgeTotal: number;
-  noteInput: string;
-  openEditDialog: () => void;
-  pledgeFilter: string;
-  profile: ReturnType<typeof useAuth>["profile"];
-  searchTerm: string;
-  selectedDonor: Donor | null;
-  selectedTags: string[];
-  setActiveTab: React.Dispatch<React.SetStateAction<string>>;
-  setActivityType: React.Dispatch<
-    React.SetStateAction<"note" | "call" | "meeting" | "email">
-  >;
-  setIsEditDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsNoteDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setIsTagDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
-  setNoteInput: React.Dispatch<React.SetStateAction<string>>;
-  setPledgeFilter: React.Dispatch<React.SetStateAction<string>>;
-  setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-  setSelectedDonorId: React.Dispatch<React.SetStateAction<string | null>>;
-  setSortAsc: React.Dispatch<React.SetStateAction<boolean>>;
-  setSortBy: React.Dispatch<React.SetStateAction<SortOption>>;
-  setStatusFilter: React.Dispatch<React.SetStateAction<string>>;
-  setTagFilter: React.Dispatch<React.SetStateAction<string[]>>;
-  sortAsc: boolean;
-  sortBy: SortOption;
-  statusFilter: string;
-  tagFilter: string[];
-  toggleTag: (tagId: string) => void;
-  totalGiven: number;
+type DonorsPageViewModel = {
+  profile: Profile | null;
+  status: {
+    isLoading: boolean;
+    error: string | null;
+  };
+  summary: DonorsPageSummary;
+  tabs: {
+    activeTab: string;
+    setActiveTab: (value: string) => void;
+  };
+  donors: {
+    all: Donor[];
+    filtered: Donor[];
+    selected: Donor | null;
+    selectById: (id: string) => void;
+    clearSelection: () => void;
+  };
+  filters: {
+    searchTerm: string;
+    statusFilter: string;
+    tagFilter: string[];
+    pledgeFilter: string;
+    hasActiveFilters: boolean;
+    setSearchTerm: (value: string) => void;
+    setStatusFilter: (value: string) => void;
+    setPledgeFilter: (value: string) => void;
+    toggleTag: (tagId: string) => void;
+    removeTag: (tagId: string) => void;
+    clearAll: () => void;
+  };
+  sorting: {
+    sortBy: SortOption;
+    sortAsc: boolean;
+    setSortBy: (value: SortOption) => void;
+    toggleSortAsc: () => void;
+  };
+  tables: {
+    donorColumns: ColumnDef<Donor>[];
+    givingHistoryColumns: ColumnDef<Activity>[];
+    givingHistoryRows: Activity[];
+  };
+  noteComposer: {
+    isOpen: boolean;
+    isSaving: boolean;
+    noteInput: string;
+    activityType: DonorActivityType;
+    setNoteInput: (value: string) => void;
+    setActivityType: (value: DonorActivityType) => void;
+    open: (activityType?: DonorActivityType) => void;
+    close: () => void;
+    save: () => Promise<void>;
+  };
+  tagEditor: {
+    isOpen: boolean;
+    isSaving: boolean;
+    selectedTags: string[];
+    open: () => void;
+    close: () => void;
+    toggleTag: (tagId: string) => void;
+    save: () => Promise<void>;
+  };
+  editDialog: {
+    isOpen: boolean;
+    open: () => void;
+    close: () => void;
+  };
+  actions: {
+    refreshDonors: () => void;
+    copyToClipboard: (text: string, label: string) => void;
+    applyStatFilter: (filterType: DonorsStatFilterType) => void;
+    formatAddress: (address: Address) => string[];
+  };
 };
 
 export function useDonorsPageView(): DonorsPageViewModel {
@@ -596,6 +624,49 @@ export function useDonorsPageView(): DonorsPageViewModel {
     toast.success(`${label} copied to clipboard`);
   }, []);
 
+  const selectDonorById = React.useCallback((id: string) => {
+    setSelectedDonorId(id);
+  }, []);
+
+  const clearSelectedDonor = React.useCallback(() => {
+    setSelectedDonorId(null);
+  }, []);
+
+  const toggleFilterTag = React.useCallback((tagId: string) => {
+    setTagFilter((prev) => toggleTagSelection(prev, tagId));
+  }, []);
+
+  const removeFilterTag = React.useCallback((tagId: string) => {
+    setTagFilter((prev) => removeTagSelection(prev, tagId));
+  }, []);
+
+  const toggleSortAsc = React.useCallback(() => {
+    setSortAsc((current) => !current);
+  }, []);
+
+  const openNoteComposer = React.useCallback(
+    (nextActivityType?: DonorActivityType) => {
+      if (nextActivityType) {
+        setActivityType(nextActivityType);
+      }
+
+      setIsNoteDialogOpen(true);
+    },
+    [],
+  );
+
+  const closeNoteComposer = React.useCallback(() => {
+    setIsNoteDialogOpen(false);
+  }, []);
+
+  const openTagEditor = React.useCallback(() => {
+    setIsTagDialogOpen(true);
+  }, []);
+
+  const closeTagEditor = React.useCallback(() => {
+    setIsTagDialogOpen(false);
+  }, []);
+
   const handleAddNote = React.useCallback(async () => {
     if (!selectedDonor || !noteInput.trim() || !supabase) return;
 
@@ -639,9 +710,7 @@ export function useDonorsPageView(): DonorsPageViewModel {
   }, [selectedDonor, selectedTags, supabase, handleRefreshDonors]);
 
   const toggleTag = React.useCallback((tagId: string) => {
-    setSelectedTags((prev) =>
-      prev.includes(tagId) ? prev.filter((t) => t !== tagId) : [...prev, tagId],
-    );
+    setSelectedTags((prev) => toggleTagSelection(prev, tagId));
   }, []);
 
   const openEditDialog = React.useCallback(() => {
@@ -649,90 +718,48 @@ export function useDonorsPageView(): DonorsPageViewModel {
     setIsEditDialogOpen(true);
   }, [selectedDonor]);
 
-  const handleStatCardClick = React.useCallback(
-    (filterType: "atRisk" | "activePledge" | "lapsed" | "new") => {
-      setSearchTerm("");
-      setTagFilter([]);
+  const closeEditDialog = React.useCallback(() => {
+    setIsEditDialogOpen(false);
+  }, []);
 
-      switch (filterType) {
-        case "atRisk":
-          setStatusFilter("At Risk");
-          setPledgeFilter("All");
-          break;
-        case "activePledge":
-          setStatusFilter("All");
-          setPledgeFilter("Active");
-          break;
-        case "lapsed":
-          setStatusFilter("Lapsed");
-          setPledgeFilter("All");
-          break;
-        case "new":
-          setStatusFilter("New");
-          setPledgeFilter("All");
-          break;
-      }
-      setSelectedDonorId(null);
+  const applyStatFilter = React.useCallback(
+    (filterType: DonorsStatFilterType) => {
+      const nextFilterState = applyDonorsStatFilter(filterType);
+
+      setSearchTerm(nextFilterState.searchTerm);
+      setStatusFilter(nextFilterState.statusFilter);
+      setTagFilter(nextFilterState.tagFilter);
+      setPledgeFilter(nextFilterState.pledgeFilter);
+      setSelectedDonorId(nextFilterState.selectedDonorId);
     },
     [],
   );
 
   const clearAllFilters = React.useCallback(() => {
-    setStatusFilter("All");
-    setTagFilter([]);
-    setPledgeFilter("All");
-    setSearchTerm("");
+    const defaultFilters = createDefaultDonorsFilters();
+
+    setStatusFilter(defaultFilters.statusFilter);
+    setTagFilter(defaultFilters.tagFilter);
+    setPledgeFilter(defaultFilters.pledgeFilter);
+    setSearchTerm(defaultFilters.searchTerm);
   }, []);
 
   const isLoading = authLoading || donorsQuery.isLoading;
 
-  const activeCount = donors.filter((d) => d.status === "Active").length;
-  const atRiskCount = donors.filter((d) => d.status === "At Risk").length;
-  const lapsedCount = donors.filter((d) => d.status === "Lapsed").length;
-  const activePledgeCount = donors.filter((d) => d.has_active_pledge).length;
-  const totalGiven = donors.reduce((sum, d) => sum + (d.total_given || 0), 0);
-  const monthlyPledgeTotal = donors.reduce((sum, d) => {
-    const activeRecurring = d.recurring_donations.find(
-      (p) => p.status === "active",
-    );
-    if (!activeRecurring) return sum;
-    const monthly =
-      activeRecurring.frequency === "Monthly"
-        ? activeRecurring.amount
-        : activeRecurring.frequency === "Quarterly"
-          ? activeRecurring.amount / 3
-          : activeRecurring.amount / 12;
-    return sum + monthly;
-  }, 0);
+  const summary = React.useMemo(
+    () => createDonorsPageSummary(donors),
+    [donors],
+  );
 
-  const formatAddress = (address: Address) => {
-    const parts = [];
-    if (address.street) parts.push(address.street);
-    if (address.street2) parts.push(address.street2);
-    const cityLine = [address.city, address.state, address.zip]
-      .filter(Boolean)
-      .join(", ");
-    if (cityLine) parts.push(cityLine);
-    if (
-      address.country &&
-      address.country !== "United States" &&
-      address.country !== "USA"
-    )
-      parts.push(address.country);
-    return parts;
-  };
-
-  const hasActiveFilters =
-    statusFilter !== "All" ||
-    tagFilter.length > 0 ||
-    pledgeFilter !== "All" ||
-    searchTerm.length > 0;
+  const hasActiveFilters = hasDonorsActiveFilters({
+    searchTerm,
+    statusFilter,
+    tagFilter,
+    pledgeFilter,
+  });
 
   const givingHistoryRows = React.useMemo(
-    () =>
-      (selectedDonor?.activities ?? []).filter(
-        (activity) => activity.type === "gift",
-      ),
+    () => getGivingHistoryRows(selectedDonor),
     [selectedDonor],
   );
 
@@ -804,117 +831,130 @@ export function useDonorsPageView(): DonorsPageViewModel {
   );
 
   return {
-    activeCount,
-    activePledgeCount,
-    activeTab,
-    activityType,
-    atRiskCount,
-    clearAllFilters,
-    copyToClipboard,
-    donorColumns,
-    donors,
-    error,
-    filteredDonors,
-    formatAddress,
-    givingHistoryColumns,
-    givingHistoryRows,
-    handleAddNote,
-    handleRefreshDonors,
-    handleSaveTags,
-    handleStatCardClick,
-    hasActiveFilters,
-    isEditDialogOpen,
-    isLoading,
-    isNoteDialogOpen,
-    isSavingNote,
-    isSavingTags,
-    isTagDialogOpen,
-    lapsedCount,
-    monthlyPledgeTotal,
-    noteInput,
-    openEditDialog,
-    pledgeFilter,
     profile,
-    searchTerm,
-    selectedDonor,
-    selectedTags,
-    setActiveTab,
-    setActivityType,
-    setIsEditDialogOpen,
-    setIsNoteDialogOpen,
-    setIsTagDialogOpen,
-    setNoteInput,
-    setPledgeFilter,
-    setSearchTerm,
-    setSelectedDonorId,
-    setSortAsc,
-    setSortBy,
-    setStatusFilter,
-    setTagFilter,
-    sortAsc,
-    sortBy,
-    statusFilter,
-    tagFilter,
-    toggleTag,
-    totalGiven,
+    status: {
+      isLoading,
+      error,
+    },
+    summary,
+    tabs: {
+      activeTab,
+      setActiveTab,
+    },
+    donors: {
+      all: donors,
+      filtered: filteredDonors,
+      selected: selectedDonor,
+      selectById: selectDonorById,
+      clearSelection: clearSelectedDonor,
+    },
+    filters: {
+      searchTerm,
+      statusFilter,
+      tagFilter,
+      pledgeFilter,
+      hasActiveFilters,
+      setSearchTerm,
+      setStatusFilter,
+      setPledgeFilter,
+      toggleTag: toggleFilterTag,
+      removeTag: removeFilterTag,
+      clearAll: clearAllFilters,
+    },
+    sorting: {
+      sortBy,
+      sortAsc,
+      setSortBy,
+      toggleSortAsc,
+    },
+    tables: {
+      donorColumns,
+      givingHistoryColumns,
+      givingHistoryRows,
+    },
+    noteComposer: {
+      isOpen: isNoteDialogOpen,
+      isSaving: isSavingNote,
+      noteInput,
+      activityType,
+      setNoteInput,
+      setActivityType,
+      open: openNoteComposer,
+      close: closeNoteComposer,
+      save: handleAddNote,
+    },
+    tagEditor: {
+      isOpen: isTagDialogOpen,
+      isSaving: isSavingTags,
+      selectedTags,
+      open: openTagEditor,
+      close: closeTagEditor,
+      toggleTag,
+      save: handleSaveTags,
+    },
+    editDialog: {
+      isOpen: isEditDialogOpen,
+      open: openEditDialog,
+      close: closeEditDialog,
+    },
+    actions: {
+      refreshDonors: handleRefreshDonors,
+      copyToClipboard,
+      applyStatFilter,
+      formatAddress: formatDonorAddress,
+    },
   };
 }
 
 export function DonorsPageContent({
-  activeCount,
-  activePledgeCount,
-  activeTab,
-  activityType,
-  atRiskCount,
-  clearAllFilters,
-  copyToClipboard,
-  donorColumns,
-  donors,
-  error,
-  filteredDonors,
-  formatAddress,
-  givingHistoryColumns,
-  givingHistoryRows,
-  handleAddNote,
-  handleRefreshDonors,
-  handleSaveTags,
-  handleStatCardClick,
-  hasActiveFilters,
-  isEditDialogOpen,
-  isLoading,
-  isNoteDialogOpen,
-  isSavingNote,
-  isSavingTags,
-  isTagDialogOpen,
-  lapsedCount,
-  monthlyPledgeTotal,
-  noteInput,
-  openEditDialog,
-  pledgeFilter,
   profile,
-  searchTerm,
-  selectedDonor,
-  selectedTags,
-  setActiveTab,
-  setActivityType,
-  setIsEditDialogOpen,
-  setIsNoteDialogOpen,
-  setIsTagDialogOpen,
-  setNoteInput,
-  setPledgeFilter,
-  setSearchTerm,
-  setSelectedDonorId,
-  setSortAsc,
-  setSortBy,
-  setStatusFilter,
-  setTagFilter,
-  sortAsc,
-  sortBy,
-  statusFilter,
-  tagFilter,
-  toggleTag,
-  totalGiven,
+  status,
+  summary,
+  tabs,
+  donors,
+  filters,
+  sorting,
+  tables,
+  noteComposer,
+  tagEditor,
+  editDialog,
+  actions,
 }: DonorsPageViewModel) {
+  const { isLoading, error } = status;
+  const {
+    activeCount,
+    activePledgeCount,
+    atRiskCount,
+    lapsedCount,
+    monthlyPledgeTotal,
+    totalGiven,
+  } = summary;
+  const { activeTab, setActiveTab } = tabs;
+  const {
+    all: donorRows,
+    filtered: filteredDonors,
+    selected: selectedDonor,
+    selectById,
+    clearSelection,
+  } = donors;
+  const {
+    searchTerm,
+    statusFilter,
+    tagFilter,
+    pledgeFilter,
+    hasActiveFilters,
+    setSearchTerm,
+    setStatusFilter,
+    setPledgeFilter,
+    toggleTag: toggleFilterTag,
+    removeTag: removeFilterTag,
+    clearAll: clearAllFilters,
+  } = filters;
+  const { sortBy, sortAsc, setSortBy, toggleSortAsc } = sorting;
+  const { donorColumns, givingHistoryColumns, givingHistoryRows } = tables;
+  const { refreshDonors, copyToClipboard, applyStatFilter, formatAddress } =
+    actions;
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -939,7 +979,7 @@ export function DonorsPageContent({
         {profile?.id && (
           <AddPartnerDialog
             missionaryId={profile.id}
-            onSuccess={handleRefreshDonors}
+            onSuccess={refreshDonors}
             trigger={
               <motion.div
                 whileHover={{ scale: 1.02 }}
@@ -958,7 +998,7 @@ export function DonorsPageContent({
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total Partners"
-          value={donors.length}
+          value={donorRows.length}
           subtext={`${activeCount} active`}
           icon={Users}
           iconBg="bg-zinc-50 border-zinc-100"
@@ -981,7 +1021,7 @@ export function DonorsPageContent({
           icon={Repeat}
           iconBg="bg-blue-50 border-blue-100"
           iconColor="text-blue-600"
-          onClick={() => handleStatCardClick("activePledge")}
+          onClick={() => applyStatFilter("activePledge")}
           isActive={pledgeFilter === "Active"}
           delay={0.1}
         />
@@ -992,7 +1032,7 @@ export function DonorsPageContent({
           icon={AlertCircle}
           iconBg="bg-amber-50 border-amber-100"
           iconColor="text-amber-600"
-          onClick={() => handleStatCardClick("atRisk")}
+          onClick={() => applyStatFilter("atRisk")}
           isActive={statusFilter === "At Risk"}
           delay={0.15}
         />
@@ -1055,7 +1095,7 @@ export function DonorsPageContent({
                       <DropdownMenuSeparator className="bg-zinc-100" />
                       <DropdownMenuCheckboxItem
                         checked={sortAsc}
-                        onCheckedChange={() => setSortAsc(!sortAsc)}
+                        onCheckedChange={toggleSortAsc}
                         className="text-xs font-medium"
                       >
                         Ascending
@@ -1125,13 +1165,7 @@ export function DonorsPageContent({
                         <DropdownMenuCheckboxItem
                           key={tag.id}
                           checked={tagFilter.includes(tag.id)}
-                          onCheckedChange={() =>
-                            setTagFilter((prev) =>
-                              prev.includes(tag.id)
-                                ? prev.filter((t) => t !== tag.id)
-                                : [...prev, tag.id],
-                            )
-                          }
+                          onCheckedChange={() => toggleFilterTag(tag.id)}
                           className="text-xs font-medium"
                         >
                           {tag.label}
@@ -1227,11 +1261,7 @@ export function DonorsPageContent({
                         >
                           {getTagLabel(tag)}
                           <button
-                            onClick={() =>
-                              setTagFilter((prev) =>
-                                prev.filter((t) => t !== tag),
-                              )
-                            }
+                            onClick={() => removeFilterTag(tag)}
                             className="ml-1"
                           >
                             <X className="size-2.5" />
@@ -1256,7 +1286,7 @@ export function DonorsPageContent({
             <div className="flex-1 min-h-0">
               <ScrollArea className="h-full">
                 {error ? (
-                  <ErrorState message={error} onRetry={handleRefreshDonors} />
+                  <ErrorState message={error} onRetry={refreshDonors} />
                 ) : isLoading ? (
                   <DonorListSkeleton />
                 ) : filteredDonors.length === 0 ? (
@@ -1319,7 +1349,7 @@ export function DonorsPageContent({
                       secondaryField: "location",
                       badgeField: "status",
                     }}
-                    onRowClick={(row) => setSelectedDonorId(row.original.id)}
+                    onRowClick={(row) => selectById(row.original.id)}
                     emptyState={
                       <div className="flex flex-col items-center justify-center py-12 text-center">
                         <p className="text-sm font-semibold text-zinc-900">
@@ -1364,7 +1394,7 @@ export function DonorsPageContent({
                             variant="ghost"
                             size="icon"
                             className="lg:hidden size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
-                            onClick={() => setSelectedDonorId(null)}
+                            onClick={clearSelection}
                           >
                             <ArrowLeft className="size-5" />
                           </Button>
@@ -1425,10 +1455,7 @@ export function DonorsPageContent({
                             variant="outline"
                             size="sm"
                             className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
-                            onClick={() => {
-                              setActivityType("note");
-                              setIsNoteDialogOpen(true);
-                            }}
+                            onClick={() => noteComposer.open("note")}
                           >
                             <Pencil className="size-3.5 mr-1.5" /> Note
                           </Button>
@@ -1485,42 +1512,33 @@ export function DonorsPageContent({
                             </DropdownMenuLabel>
                             <DropdownMenuSeparator className="bg-zinc-100" />
                             <DropdownMenuItem
-                              onClick={openEditDialog}
+                              onClick={editDialog.open}
                               className="text-xs font-medium"
                             >
                               <Pencil className="size-3.5 mr-2" /> Edit Profile
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => setIsTagDialogOpen(true)}
+                              onClick={tagEditor.open}
                               className="text-xs font-medium"
                             >
                               <Tag className="size-3.5 mr-2" /> Manage Tags
                             </DropdownMenuItem>
                             <DropdownMenuSeparator className="bg-zinc-100" />
                             <DropdownMenuItem
-                              onClick={() => {
-                                setActivityType("call");
-                                setIsNoteDialogOpen(true);
-                              }}
+                              onClick={() => noteComposer.open("call")}
                               className="text-xs font-medium"
                             >
                               <Phone className="size-3.5 mr-2" /> Log Call
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => {
-                                setActivityType("meeting");
-                                setIsNoteDialogOpen(true);
-                              }}
+                              onClick={() => noteComposer.open("meeting")}
                               className="text-xs font-medium"
                             >
                               <Briefcase className="size-3.5 mr-2" /> Log
                               Meeting
                             </DropdownMenuItem>
                             <DropdownMenuItem
-                              onClick={() => {
-                                setActivityType("email");
-                                setIsNoteDialogOpen(true);
-                              }}
+                              onClick={() => noteComposer.open("email")}
                               className="text-xs font-medium"
                             >
                               <Mail className="size-3.5 mr-2" /> Log Email
@@ -1659,7 +1677,7 @@ export function DonorsPageContent({
                           variant="ghost"
                           size="sm"
                           className="h-6 px-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hover:text-zinc-900"
-                          onClick={() => setIsTagDialogOpen(true)}
+                          onClick={tagEditor.open}
                         >
                           <Plus className="size-3 mr-1" /> Add Tag
                         </Button>
@@ -1715,8 +1733,10 @@ export function DonorsPageContent({
                               <Textarea
                                 placeholder="Log a call, meeting notes, or observation..."
                                 className="min-h-[80px] border-none bg-white focus:ring-0 resize-none text-sm p-3 rounded-xl shadow-sm"
-                                value={noteInput}
-                                onChange={(e) => setNoteInput(e.target.value)}
+                                value={noteComposer.noteInput}
+                                onChange={(e) =>
+                                  noteComposer.setNoteInput(e.target.value)
+                                }
                               />
                               <div className="flex justify-between items-center mt-3 pt-3 border-t border-zinc-100">
                                 <div className="flex gap-2">
@@ -1749,13 +1769,13 @@ export function DonorsPageContent({
                                         className={cn(
                                           "h-8 rounded-lg text-[10px] font-semibold uppercase tracking-widest",
                                           hidden,
-                                          activityType === type
+                                          noteComposer.activityType === type
                                             ? bg
                                             : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
                                         )}
                                         onClick={() =>
-                                          setActivityType(
-                                            type as typeof activityType,
+                                          noteComposer.setActivityType(
+                                            type as DonorActivityType,
                                           )
                                         }
                                       >
@@ -1773,10 +1793,13 @@ export function DonorsPageContent({
                                   <Button
                                     size="sm"
                                     className="h-8 rounded-xl px-4 text-[10px] font-semibold uppercase tracking-widest"
-                                    onClick={handleAddNote}
-                                    disabled={!noteInput.trim() || isSavingNote}
+                                    onClick={noteComposer.save}
+                                    disabled={
+                                      !noteComposer.noteInput.trim() ||
+                                      noteComposer.isSaving
+                                    }
                                   >
-                                    {isSavingNote ? (
+                                    {noteComposer.isSaving ? (
                                       <Loader2 className="size-3 animate-spin" />
                                     ) : (
                                       <>
@@ -1936,7 +1959,7 @@ export function DonorsPageContent({
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  onClick={openEditDialog}
+                                  onClick={editDialog.open}
                                   className="h-8 px-3 text-xs rounded-xl border-zinc-200"
                                 >
                                   <Pencil className="size-3.5 mr-1.5" /> Edit
@@ -2621,7 +2644,7 @@ export function DonorsPageContent({
                       >
                         <AddPartnerDialog
                           missionaryId={profile.id}
-                          onSuccess={handleRefreshDonors}
+                          onSuccess={refreshDonors}
                           trigger={
                             <Button className="mt-10 h-11 px-8 rounded-2xl bg-zinc-900 text-[10px] font-semibold uppercase tracking-[0.2em] text-white hover:bg-zinc-800">
                               <Plus className="size-4 mr-2" /> Add Partner
@@ -2638,15 +2661,25 @@ export function DonorsPageContent({
         </motion.div>
       </div>
 
-      <Dialog open={isNoteDialogOpen} onOpenChange={setIsNoteDialogOpen}>
+      <Dialog
+        open={noteComposer.isOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            noteComposer.open();
+            return;
+          }
+
+          noteComposer.close();
+        }}
+      >
         <DialogContent className="sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold tracking-tight">
-              {activityType === "note"
+              {noteComposer.activityType === "note"
                 ? "Add Note"
-                : activityType === "call"
+                : noteComposer.activityType === "call"
                   ? "Log Call"
-                  : activityType === "meeting"
+                  : noteComposer.activityType === "meeting"
                     ? "Log Meeting"
                     : "Log Email"}
             </DialogTitle>
@@ -2656,12 +2689,12 @@ export function DonorsPageContent({
           </DialogHeader>
           <div className="py-4">
             <Textarea
-              value={noteInput}
-              onChange={(e) => setNoteInput(e.target.value)}
+              value={noteComposer.noteInput}
+              onChange={(e) => noteComposer.setNoteInput(e.target.value)}
               placeholder={
-                activityType === "call"
+                noteComposer.activityType === "call"
                   ? "What did you discuss?"
-                  : activityType === "meeting"
+                  : noteComposer.activityType === "meeting"
                     ? "Meeting notes..."
                     : "Type your note here..."
               }
@@ -2671,17 +2704,17 @@ export function DonorsPageContent({
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => setIsNoteDialogOpen(false)}
+              onClick={noteComposer.close}
               className="h-10 px-6 rounded-xl border-zinc-200"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleAddNote}
-              disabled={!noteInput.trim() || isSavingNote}
+              onClick={noteComposer.save}
+              disabled={!noteComposer.noteInput.trim() || noteComposer.isSaving}
               className="h-10 px-6 rounded-xl"
             >
-              {isSavingNote ? (
+              {noteComposer.isSaving ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 "Save"
@@ -2691,7 +2724,17 @@ export function DonorsPageContent({
         </DialogContent>
       </Dialog>
 
-      <Dialog open={isTagDialogOpen} onOpenChange={setIsTagDialogOpen}>
+      <Dialog
+        open={tagEditor.isOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            tagEditor.open();
+            return;
+          }
+
+          tagEditor.close();
+        }}
+      >
         <DialogContent className="sm:max-w-[500px] rounded-2xl">
           <DialogHeader>
             <DialogTitle className="text-lg font-semibold tracking-tight">
@@ -2716,16 +2759,16 @@ export function DonorsPageContent({
                   transition={{ delay: i * 0.02 }}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  onClick={() => toggleTag(tag.id)}
+                  onClick={() => tagEditor.toggleTag(tag.id)}
                   className={cn(
                     "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
-                    selectedTags.includes(tag.id)
+                    tagEditor.selectedTags.includes(tag.id)
                       ? cn(tag.color, "ring-2 ring-offset-1 ring-zinc-400")
                       : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",
                   )}
                 >
                   <AnimatePresence mode="wait">
-                    {selectedTags.includes(tag.id) && (
+                    {tagEditor.selectedTags.includes(tag.id) && (
                       <motion.span
                         initial={{ width: 0, opacity: 0 }}
                         animate={{ width: "auto", opacity: 1 }}
@@ -2744,17 +2787,17 @@ export function DonorsPageContent({
           <DialogFooter className="gap-2 sm:gap-0">
             <Button
               variant="outline"
-              onClick={() => setIsTagDialogOpen(false)}
+              onClick={tagEditor.close}
               className="h-10 px-6 rounded-xl border-zinc-200"
             >
               Cancel
             </Button>
             <Button
-              onClick={handleSaveTags}
-              disabled={isSavingTags}
+              onClick={tagEditor.save}
+              disabled={tagEditor.isSaving}
               className="h-10 px-6 rounded-xl"
             >
-              {isSavingTags ? (
+              {tagEditor.isSaving ? (
                 <Loader2 className="size-4 animate-spin" />
               ) : (
                 "Save Tags"
@@ -2766,9 +2809,16 @@ export function DonorsPageContent({
 
       <EditDonorDialog
         donor={selectedDonor}
-        onOpenChange={setIsEditDialogOpen}
-        onSuccess={handleRefreshDonors}
-        open={isEditDialogOpen}
+        onOpenChange={(open) => {
+          if (open) {
+            editDialog.open();
+            return;
+          }
+
+          editDialog.close();
+        }}
+        onSuccess={refreshDonors}
+        open={editDialog.isOpen}
       />
     </motion.div>
   );

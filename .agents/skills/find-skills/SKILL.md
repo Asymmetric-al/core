@@ -45,7 +45,22 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 
 **Example — npm dependency cleanup:** reducing unused or heavy JS dependencies across npm, pnpm, Yarn, or Bun is covered by `docs/ai/skills/npm-deps-cleanup/SKILL.md`. Install or refresh from [anthonyshew/dotfiles](https://skills.sh/anthonyshew/dotfiles) with `npx skills add anthonyshew/dotfiles -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`.
 
-**Example — Resend:** **CLI** work (terminal, automation, CI) is covered by `docs/ai/skills/resend-cli/SKILL.md`, vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/` at tag v2.0.0+); maintainer refresh notes are in `docs/ai/skills/resend-cli/references/upstream.md`. **Platform send/receive** (SDK, webhooks, inbound) is a separate concern — optional ecosystem install [`resend/resend-skills`](https://github.com/resend/resend-skills) may live under `.agents/skills/resend/` when added with the Skills CLI. **App-level Resend integration** in this monorepo is documented in `docs/guides/features/resend-integration.md`.
+**Example — Resend CLI:** terminal, automation, and CI work is covered by `docs/ai/skills/resend-cli/SKILL.md`. It is vendored from [`resend/resend-cli`](https://github.com/resend/resend-cli) (`skills/resend-cli/` at tag v2.0.0+); maintainer refresh notes are in `docs/ai/skills/resend-cli/references/upstream.md`.
+
+**Example — Resend platform skills:** SDK, webhooks, inbound, and send/receive platform workflows are a separate concern. Optional ecosystem install [`resend/resend-skills`](https://github.com/resend/resend-skills) may live under `.agents/skills/resend/` when added with the Skills CLI.
+
+**Example — Resend app integration:** app-level Resend integration in this monorepo is documented in `docs/guides/features/resend-integration.md`.
+
+**Example — bendc frontend guidelines:** semantic HTML, CSS discipline, and vanilla JS readability patterns from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) are covered by `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored `README.md` under `references/`); maintainer refresh notes are in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`. Use **`docs/ai/rules/frontend.md`** first for `apps/*` and `packages/ui` work.
+
+**Example — Payload CMS:**
+
+- **Application skill:** `docs/ai/skills/payloadcms-payload/SKILL.md` for collections, fields, hooks, access, queries, adapters, plugins, and Payload app behavior.
+- **Migration skill:** `docs/ai/skills/payloadcms-cms-migration/SKILL.md` for CMS to Payload content-model migration.
+- **Upstream:** vendored from [`payloadcms/skills`](https://github.com/payloadcms/skills) (`skills/payload/`, `skills/cms-migration/`).
+- **Refresh notes:** `docs/ai/skills/payloadcms-payload/references/upstream.md` and `docs/ai/skills/payloadcms-cms-migration/references/upstream.md`.
+- **Optional Skills CLI install:** `npx skills add payloadcms/skills`.
+- **Pair with:** `docs/ai/rules/backend.md` for server and data boundaries.
 
 ## How to Help Users Find Skills
 

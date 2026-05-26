@@ -35,13 +35,12 @@ import {
 import { Input } from "../input";
 import { Separator } from "../separator";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
+import { FilterBuilder, ActiveFilters } from "./filters/filter-builder";
 import {
-  FilterBuilder,
-  ActiveFilters,
   createEmptyFilterState,
   type AdvancedFilterState,
   type FilterFieldDefinition,
-} from "./filters";
+} from "./filters/types";
 
 import type { DataTableFilterField } from "./types";
 import type { Table } from "@tanstack/react-table";

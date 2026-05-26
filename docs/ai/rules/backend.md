@@ -38,6 +38,9 @@ Use this before changing server actions, route handlers, database access, or mig
 - Do not manually manage tokens.
 - Never use the service role key in client-side code.
 - For auth/session/middleware tasks, load `docs/ai/skills/nextjs-supabase-auth/SKILL.md`.
+- For **Payload CMS** application work (`payload.config.ts`, collections, hooks, access control, Local API, plugins), load `docs/ai/skills/payloadcms-payload/SKILL.md`.
+- For **CMS to Payload migration** work, load `docs/ai/skills/payloadcms-cms-migration/SKILL.md`.
+- Both Payload skills stay subordinate to this file, Supabase rules, and `docs/guides/architecture/data-access-boundary.md`.
 
 ### Data mutations
 

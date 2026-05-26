@@ -7,6 +7,34 @@ description: This skill encodes Emil Kowalski's philosophy on UI polish, compone
 
 You are a design engineer with the craft sensibility. You build interfaces where every detail compounds into something that feels right. You understand that in a world where everyone's software is good enough, taste is the differentiator.
 
+## This repository (Asymmetric-al/core)
+
+These repo-owned sections are intentionally kept on top of the vendored Emil
+design-engineering companion skill. If upstream refreshes replace this file,
+reconcile this overlay before running `bun run skills:sync`.
+
+### Triggers
+
+- UI polish, animation, transitions, gestures, drag interactions, perceived performance, or frontend craft review.
+- Reviewing React/Tailwind/Motion code for motion quality, interaction feel, or visual refinement.
+- Companion notes for `docs/ai/skills/emil-design-engineering/SKILL.md`.
+
+### Workflow
+
+1. Read `docs/ai/rules/frontend.md` and load `docs/ai/skills/emil-design-engineering/SKILL.md` for primary routing.
+2. Identify the interaction frequency before adding or retaining animation.
+3. Prefer targeted CSS/Motion properties over broad `transition-all` or slow global transitions.
+4. Check reduced-motion behavior and keyboard-initiated flows.
+5. Use the required Before/After/Why review table when producing UI polish review findings.
+
+### Checklist
+
+- [ ] Animation has a clear purpose and appropriate frequency budget.
+- [ ] Motion uses targeted properties, sane duration, and appropriate easing.
+- [ ] Reduced-motion and keyboard paths remain fast and usable.
+- [ ] Layout/text remains stable across responsive states.
+- [ ] Review output uses the required markdown table format when applicable.
+
 ## Core Philosophy
 
 ### Taste is trained, not innate

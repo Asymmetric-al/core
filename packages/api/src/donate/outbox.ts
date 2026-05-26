@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: adminError }, { status: 503 });
     }
 
-    const auth = await getAuthContext();
+    const auth = await getAuthContext(request);
     requireRole(auth, ["admin", "staff", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 

@@ -116,7 +116,7 @@ export function useResponsive(): ResponsiveState {
     isTablet: false,
     isDesktop: true,
     breakpoint: "lg",
-    width: typeof window !== "undefined" ? window.innerWidth : BREAKPOINTS.lg,
+    width: BREAKPOINTS.lg,
   });
 
   React.useEffect(() => {

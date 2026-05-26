@@ -1,4 +1,6 @@
-import { useState, useCallback } from "react";
+"use client";
+
+import { useState, useCallback, useEffect } from "react";
 
 import type {
   EmailTemplate,
@@ -10,13 +12,26 @@ type EmailStudioDesign = Record<string, unknown>;
 const STORAGE_KEY = "email_studio_draft_templates";
 const CAMPAIGNS_KEY = "email_studio_draft_campaigns";
 
+function loadStoredItems<T>(key: string): T[] {
+  if (typeof window === "undefined") return [];
+
+  const stored = localStorage.getItem(key);
+  if (!stored) return [];
+
+  try {
+    return JSON.parse(stored);
+  } catch {
+    return [];
+  }
+}
+
 export function useEmailTemplates() {
-  const [templates, setTemplates] = useState<EmailTemplate[]>(() => {
-    if (typeof window === "undefined") return [];
-    const stored = localStorage.getItem(STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [templates, setTemplates] = useState<EmailTemplate[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setTemplates(loadStoredItems<EmailTemplate>(STORAGE_KEY));
+  }, []);
 
   const saveToStorage = useCallback((data: EmailTemplate[]) => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
@@ -142,12 +157,12 @@ export function useEmailTemplates() {
 }
 
 export function useEmailCampaigns() {
-  const [campaigns, setCampaigns] = useState<EmailCampaign[]>(() => {
-    if (typeof window === "undefined") return [];
-    const stored = localStorage.getItem(CAMPAIGNS_KEY);
-    return stored ? JSON.parse(stored) : [];
-  });
+  const [campaigns, setCampaigns] = useState<EmailCampaign[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setCampaigns(loadStoredItems<EmailCampaign>(CAMPAIGNS_KEY));
+  }, []);
 
   const saveToStorage = useCallback((data: EmailCampaign[]) => {
     localStorage.setItem(CAMPAIGNS_KEY, JSON.stringify(data));

@@ -7,10 +7,8 @@ import * as React from "react";
 
 import { AttachmentChips } from "./AttachmentChips";
 import { ComposerActions } from "./ComposerActions";
-import {
-  CannedResponseSuggestionExtension,
-  buildMentionExtension,
-} from "./extensions";
+import { CannedResponseSuggestionExtension } from "./extensions/canned-suggestion";
+import { buildMentionExtension } from "./extensions/mention-suggestion";
 import { QuickActionsSlot } from "./QuickActionsSlot";
 import { SignatureChip } from "./SignatureChip";
 import { SupportTipTapEditor } from "./SupportTipTapEditor";

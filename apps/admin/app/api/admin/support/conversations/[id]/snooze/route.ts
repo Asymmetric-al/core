@@ -10,7 +10,7 @@ import { snoozeConversationSchema } from "@asym/api/admin/support-hub/schemas";
 type RouteContext = { params: Promise<{ id: string }> };
 
 export async function PATCH(request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+  return withSupportHubAccess(request, async () => {
     const body = await readJsonBody(request, snoozeConversationSchema);
     if (!body.ok) return body.response;
     try {
@@ -29,8 +29,8 @@ export async function PATCH(request: Request, context: RouteContext) {
   });
 }
 
-export async function DELETE(_request: Request, context: RouteContext) {
-  return withSupportHubAccess(async () => {
+export async function DELETE(request: Request, context: RouteContext) {
+  return withSupportHubAccess(request, async () => {
     try {
       const { id } = await context.params;
       const conversation = await unsnoozeSupportConversation({
