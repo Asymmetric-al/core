@@ -258,6 +258,107 @@ describe("bulk contribution preview and execution", () => {
       }),
     );
   });
+
+  it("does not rerun already finished persisted batches", async () => {
+    const supabaseAdmin = {
+      from() {
+        const builder = {
+          select() {
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          single: async () => ({
+            data: {
+              id: "batch_1",
+              operation: "refund",
+              source_surface: "contribution_hub",
+              status: "complete",
+              processed_count: 3,
+              succeeded_count: 2,
+              skipped_count: 0,
+              failed_count: 1,
+              follow_up_task_count: 1,
+            },
+            error: null,
+          }),
+        };
+        return builder;
+      },
+    };
+    const executeContributionAction = vi.fn();
+
+    const result = await processPersistedContributionBatch({
+      supabaseAdmin: supabaseAdmin as never,
+      tenantId: "tenant_1",
+      batchId: "batch_1",
+      actorProfileId: "actor_1",
+      actorPermissions: ["finance:manage_contributions"],
+      executeContributionAction,
+    });
+
+    expect(executeContributionAction).not.toHaveBeenCalled();
+    expect(result.summary).toEqual({
+      processed: 3,
+      succeeded: 2,
+      skipped: 0,
+      failed: 1,
+      followUpTasksCreated: 1,
+    });
+  });
+
+  it("does not execute when no pending rows are claimed", async () => {
+    const supabaseAdmin = {
+      from(table: string) {
+        const builder = {
+          select() {
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          order() {
+            return Promise.resolve({ data: [], error: null }) as never;
+          },
+          single: async () => ({
+            data: {
+              id: "batch_1",
+              operation: "refund",
+              source_surface: "contribution_hub",
+              status: "running",
+              processed_count: 1,
+              succeeded_count: 1,
+              skipped_count: 0,
+              failed_count: 0,
+              follow_up_task_count: 0,
+              reason: "bulk refund",
+              confirmation_snapshot: { confirmationToken: "confirm_1" },
+            },
+            error: null,
+          }),
+          update() {
+            return builder;
+          },
+        };
+
+        return builder;
+      },
+    };
+    const executeContributionAction = vi.fn();
+
+    const result = await processPersistedContributionBatch({
+      supabaseAdmin: supabaseAdmin as never,
+      tenantId: "tenant_1",
+      batchId: "batch_1",
+      actorProfileId: "actor_1",
+      actorPermissions: ["finance:manage_contributions"],
+      executeContributionAction,
+    });
+
+    expect(executeContributionAction).not.toHaveBeenCalled();
+    expect(result.summary.succeeded).toBe(1);
+  });
 });
 
 describe("bulk contribution results", () => {
