@@ -15,6 +15,11 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+import { executeContributionAction } from "../contribution-operations/actions";
+import {
+  appendContributionOperationAuditEvent,
+  loadContributionDetailFromSupabase,
+} from "../contribution-operations/store";
 
 const allocationSchema = z.object({
   fundId: z.string().uuid().nullable().optional(),
@@ -47,6 +52,70 @@ function getStagedGiftIdFromPath(request: Request) {
   }
 
   return stagedGiftId;
+}
+
+async function executeStagedGiftContributionAction(input: {
+  actionType: "approve_staged_gift" | "retry_staged_gift" | "resend_receipt";
+  actorProfileId: string | null;
+  note?: string | null;
+  stagedGiftId: string;
+  supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
+  tenantId: string;
+}) {
+  const gift = await loadStagedGiftById({
+    supabaseAdmin: input.supabaseAdmin,
+    stagedGiftId: input.stagedGiftId,
+    tenantId: input.tenantId,
+  });
+
+  return executeContributionAction({
+    tenantId: input.tenantId,
+    actorProfileId: input.actorProfileId,
+    actorPermissions: [],
+    sourceSurface: "api",
+    contributionId: gift.donationId,
+    stagedGiftId: gift.id,
+    actionType: input.actionType,
+    reason: input.note ?? null,
+    payload: { stagedGiftId: gift.id },
+    dependencies: {
+      sendReceipt: ({ stagedGiftId, tenantId }) =>
+        sendStagedGiftReceipt({
+          supabaseAdmin: input.supabaseAdmin,
+          stagedGiftId,
+          tenantId,
+        }),
+      approveStagedGift: ({ actorProfileId, note, stagedGiftId, tenantId }) =>
+        queueStagedGiftPostingToTwenty({
+          supabaseAdmin: input.supabaseAdmin,
+          stagedGiftId,
+          tenantId,
+          actorProfileId,
+          note,
+          crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+        }),
+      retryStagedGift: ({ actorProfileId, note, stagedGiftId, tenantId }) =>
+        retryStagedGiftPostingToTwenty({
+          supabaseAdmin: input.supabaseAdmin,
+          stagedGiftId,
+          tenantId,
+          actorProfileId,
+          note,
+          crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+        }),
+      appendAuditEvent: (event) =>
+        appendContributionOperationAuditEvent({
+          supabaseAdmin: input.supabaseAdmin,
+          event,
+        }),
+      loadContributionDetail: ({ contributionId, tenantId }) =>
+        loadContributionDetailFromSupabase({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId,
+          contributionId,
+        }),
+    },
+  });
 }
 
 async function appendReviewAudit(input: {
@@ -216,16 +285,16 @@ export const POST_APPROVE = withOperation(
     try {
       const stagedGiftId = getStagedGiftIdFromPath(request);
       const body = actionSchema.parse(await ensureJsonBody(request));
-      const stagedGift = await queueStagedGiftPostingToTwenty({
+      const result = await executeStagedGiftContributionAction({
+        actionType: "approve_staged_gift",
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
         note: body.note,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
 
-      return NextResponse.json({ stagedGift, requestId });
+      return NextResponse.json({ result, requestId });
     } catch (error) {
       return toErrorResponse(
         error,
@@ -242,16 +311,16 @@ export const POST_RETRY = withOperation(
     try {
       const stagedGiftId = getStagedGiftIdFromPath(request);
       const body = actionSchema.parse(await ensureJsonBody(request));
-      const stagedGift = await retryStagedGiftPostingToTwenty({
+      const result = await executeStagedGiftContributionAction({
+        actionType: "retry_staged_gift",
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
         note: body.note,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
 
-      return NextResponse.json({ stagedGift, requestId });
+      return NextResponse.json({ result, requestId });
     } catch (error) {
       return toErrorResponse(error, "Failed to retry staged gift.", requestId);
     }
@@ -263,42 +332,15 @@ export const POST_RECEIPT = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       const stagedGiftId = getStagedGiftIdFromPath(request);
-      const gift = await loadStagedGiftById({
+      const result = await executeStagedGiftContributionAction({
+        actionType: "resend_receipt",
         supabaseAdmin,
         stagedGiftId,
         tenantId: auth.tenantId,
-      });
-      await appendReviewAudit({
-        action: "staged_gift_receipt_resend_requested",
         actorProfileId: auth.profileId,
-        details: {
-          receiptStatus: gift.receiptStatus,
-          source: "mission_control_crm",
-        },
-        stagedGiftId: gift.id,
-        supabaseAdmin,
-        tenantId: gift.tenantId,
       });
 
-      const receipt = await sendStagedGiftReceipt({
-        supabaseAdmin,
-        stagedGiftId: gift.id,
-        tenantId: auth.tenantId,
-      });
-      await appendReviewAudit({
-        action: "staged_gift_receipt_resent",
-        actorProfileId: auth.profileId,
-        details: {
-          receiptStatus: receipt.status,
-          sendLogId: receipt.sendLogId,
-          source: "mission_control_crm",
-        },
-        stagedGiftId: gift.id,
-        supabaseAdmin,
-        tenantId: gift.tenantId,
-      });
-
-      return NextResponse.json({ receipt, requestId });
+      return NextResponse.json({ result, requestId });
     } catch (error) {
       return toErrorResponse(error, "Failed to send gift receipt.", requestId);
     }

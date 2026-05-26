@@ -41,7 +41,7 @@
 ## 5. API and UI integration
 
 - [x] 5.1 Add thin admin contribution operations API routes
-- [ ] 5.2 Delegate existing staged gift action routes to the shared action
+- [x] 5.2 Delegate existing staged gift action routes to the shared action
       executor where possible
 - [x] 5.3 Wire Contribution Hub detail actions to the shared action contract
 - [x] 5.4 Wire donor CRM gift history actions to the shared action contract
