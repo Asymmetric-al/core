@@ -26,8 +26,14 @@ The Skills CLI (`npx skills`) is the package manager for the open agent skills e
 
 - `npx skills find [query]` - Search for skills interactively or by keyword
 - `npx skills add <package>` - Install a skill from GitHub or other sources
-- `npx skills check` - Check for skill updates
-- `npx skills update` - Update all installed skills
+- `npx skills update [skills...]` - Update installed skills to latest versions
+- `npx skills experimental_install` - Restore project skills from `skills-lock.json`
+
+Do **not** use `npx skills check` as a read-only update check in this repo.
+With `skills@1.5.7`, that subcommand is not listed in `npx skills --help` and
+was observed to rewrite `.agents/skills/*` and `skills-lock.json`. Treat it like
+`update`: run it only when you intentionally want to refresh installed skills
+and are prepared to review and revert the full diff.
 
 **Browse skills at:** https://skills.sh/
 
@@ -39,7 +45,7 @@ Use the canonical docs path when routing or documenting repo-critical skills. Tr
 
 Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/` or `.agents/skills/`. Those are optional unless the repo explicitly promotes them into `docs/ai/skills/`.
 
-**Example — Supabase:** platform work is covered by `docs/ai/skills/supabase/SKILL.md` and Postgres tuning by `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`. Install or refresh from [supabase/agent-skills](https://skills.sh/supabase/agent-skills) with `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`. **`skills-lock.json`** records CLI pins; use `npx skills experimental_install -y` to restore from the lockfile.
+**Example — Supabase:** platform work is covered by `docs/ai/skills/supabase/SKILL.md` and Postgres tuning by `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`. Install or refresh from [supabase/agent-skills](https://skills.sh/supabase/agent-skills) with `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`. **`skills-lock.json`** records CLI pins; use `npx skills experimental_install -y` to restore from the lockfile when you intend to rewrite all lockfile-managed project skills.
 
 **Example — Tiptap:** rich text work is covered by `docs/ai/skills/tiptap/SKILL.md`. To compare against upstream: `npx skills add ueberdosis/tiptap` (see also [Tiptap agent skill](https://tiptap.dev/docs/resources/agent-skill)).
 

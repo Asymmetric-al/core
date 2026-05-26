@@ -12,6 +12,7 @@ const EXPECTED_STAGES: Array<{ id: string; script: string }> = [
   { id: "verify-data-boundary", script: "verify:data-boundary" },
   { id: "verify-workspace-contract", script: "verify:workspace-contract" },
   { id: "verify-eslint", script: "verify:eslint" },
+  { id: "verify-shadcn-config", script: "verify:shadcn-config" },
   { id: "verify-shadcn-diff", script: "verify:shadcn-diff" },
   { id: "typecheck", script: "typecheck" },
   { id: "build", script: "build" },

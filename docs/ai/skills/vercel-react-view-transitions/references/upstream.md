@@ -15,4 +15,5 @@ This repo-local skill `docs/ai/skills/vercel-react-view-transitions/` is adapted
 Notes:
 
 - Upstream repo `README.md` states license: MIT.
+- The upstream path for this ref is `skills/react-view-transitions/SKILL.md` (the public skill name remains `vercel-react-view-transitions`).
 - The upstream skill ships reference files (`references/*.md`) for CSS recipes, Next.js patterns, and implementation workflow; this repo folds the **monorepo-specific** guidance into `SKILL.md` and keeps this file for provenance only.

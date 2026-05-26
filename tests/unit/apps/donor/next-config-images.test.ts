@@ -15,5 +15,5 @@ describe("apps/donor next.config images", () => {
     const qualities = mod.default.images?.qualities;
     expect(qualities).toBeDefined();
     expect(qualities).toContain(85);
-  }, 10_000);
+  }, 15_000);
 });

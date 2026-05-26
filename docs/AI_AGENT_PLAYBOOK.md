@@ -15,6 +15,10 @@
 - For Codex desktop, `.agents/skills/*` is the closest repo-level match to Codex's documented skill discovery behavior.
 - For Cursor Agent Window, committed `.cursor/skills/*` improves visible availability, while `AGENTS.md` still provides the strongest always-on routing contract.
 - After pulling skill changes, run `bun run skills:verify`; if it reports drift, run `bun run skills:sync` and commit the refreshed mirrors.
+- Skills CLI operations that restore or update skills are mutating. Use targeted
+  `npx skills add <package> -y` commands when refreshing upstream packages; do
+  not use `npx skills check` as a read-only check because it can rewrite
+  `.agents/skills/*` and `skills-lock.json`.
 
 ## Monorepo scoping (pick the right app first)
 

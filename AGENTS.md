@@ -256,6 +256,8 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
 
+Do **not** use `npx skills check` as a read-only check in this repo. With `skills@1.5.7`, `check` is not listed in `npx skills --help` and was observed to update project skills. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review or revert the generated `.agents/skills` and `skills-lock.json` diff.
+
 To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`.
 
 **`npm-deps-cleanup`** (`anthonyshew/dotfiles`): `npx skills add anthonyshew/dotfiles -y`, then `bun run skills:refresh-upstream` → `skills:sync` / `skills:verify` (see `docs/ai/skills/npm-deps-cleanup/references/upstream.md`).
