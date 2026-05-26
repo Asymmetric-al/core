@@ -79,6 +79,7 @@ export interface ContributionCorrectionRecordInput {
   actorProfileId: string | null;
   sourceSurface: ContributionSourceSurface;
   correctionType: ContributionActionType;
+  status?: "pending" | "applied" | "failed" | "voided";
   reason: string;
   beforeSummary?: Record<string, unknown> | null;
   afterSummary?: Record<string, unknown> | null;
@@ -121,6 +122,16 @@ export interface ContributionActionDependencies<TContribution = unknown> {
   }) => Promise<{
     before?: Record<string, unknown> | null;
     after?: Record<string, unknown> | null;
+  }>;
+  applyCorrection?: (input: {
+    tenantId: string;
+    contributionId: string;
+    actionType: ContributionActionType;
+    payload: Record<string, unknown>;
+  }) => Promise<{
+    before?: Record<string, unknown> | null;
+    after?: Record<string, unknown> | null;
+    status?: "pending" | "applied" | "failed" | "voided";
   }>;
   refundContribution?: (input: {
     tenantId: string;

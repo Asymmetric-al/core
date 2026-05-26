@@ -289,7 +289,7 @@ export async function createContributionCorrectionRecord(input: {
       donation_id: input.correction.contributionId,
       staged_gift_id: input.correction.stagedGiftId ?? null,
       correction_type: input.correction.correctionType,
-      status: "applied",
+      status: input.correction.status ?? "applied",
       reason: input.correction.reason,
       source_surface: input.correction.sourceSurface,
       actor_profile_id: input.correction.actorProfileId,

@@ -9,6 +9,7 @@ import type {
 const HIGH_RISK_ACTIONS = new Set<ContributionActionType>([
   "refund",
   "donor_relink",
+  "amount_correction",
   "designation_correction",
   "fund_correction",
   "payment_state_correction",

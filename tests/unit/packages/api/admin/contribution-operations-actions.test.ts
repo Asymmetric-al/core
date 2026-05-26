@@ -116,4 +116,93 @@ describe("contribution operations action executor", () => {
     expect(result.correctionId).toBe("correction_1");
     expect(result.auditEventId).toBe("audit_1");
   });
+
+  it("applies amount corrections before writing correction and audit records", async () => {
+    const applyCorrection = vi.fn().mockResolvedValue({
+      before: { amount: 1000 },
+      after: { amount: 1200 },
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      amount: { value: 1200 },
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Corrected imported check amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1200 },
+      dependencies: {
+        applyCorrection,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(applyCorrection).toHaveBeenCalledWith({
+      actionType: "amount_correction",
+      contributionId: "donation_1",
+      payload: { amount: 1200 },
+      tenantId: "tenant_1",
+    });
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        beforeSummary: { amount: 1000 },
+        afterSummary: { amount: 1200 },
+        correctionType: "amount_correction",
+        status: "applied",
+      }),
+    );
+  });
+
+  it("records failed provider outcomes for refund attempts", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "failed",
+      errorCode: "card_error",
+      errorMessage: "Refund failed",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Duplicate payment",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "failed",
+        providerOutcome: expect.objectContaining({
+          provider: "stripe",
+          status: "failed",
+        }),
+      }),
+    );
+    expect(result.providerOutcome?.status).toBe("failed");
+  });
 });

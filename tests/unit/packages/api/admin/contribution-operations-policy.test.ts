@@ -10,6 +10,7 @@ describe("contribution operations policy", () => {
   it.each([
     "refund",
     "donor_relink",
+    "amount_correction",
     "designation_correction",
     "fund_correction",
     "payment_state_correction",

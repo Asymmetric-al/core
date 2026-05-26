@@ -65,6 +65,8 @@ const DONATION_SELECT = `
   created_at,
   completed_at,
   processed_at,
+  refunded_at,
+  refund_amount,
   stripe_payment_intent_id,
   stripe_charge_id,
   fund:funds(id, name),

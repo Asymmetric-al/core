@@ -59,6 +59,7 @@ describe("donor portal model", () => {
           created_at: "2026-05-01T00:00:00.000Z",
           completed_at: null,
           processed_at: null,
+          refund_amount: 0,
           stripe_payment_intent_id: "pi_123",
           stripe_charge_id: "ch_123",
           fund: null,
@@ -87,6 +88,7 @@ describe("donor portal model", () => {
           created_at: "2026-04-01T00:00:00.000Z",
           completed_at: null,
           processed_at: null,
+          refund_amount: 0,
           stripe_payment_intent_id: "pi_456",
           stripe_charge_id: null,
           fund: { id: "fund-1", name: "Clean Water" },
@@ -202,6 +204,7 @@ describe("donor portal model", () => {
           created_at: "2026-05-01T00:00:00.000Z",
           completed_at: "2026-05-01T00:00:00.000Z",
           processed_at: null,
+          refund_amount: 10_000,
           stripe_payment_intent_id: "pi_refunded",
           stripe_charge_id: "ch_refunded",
           fund: { id: "fund-1", name: "Clean Water" },
@@ -215,5 +218,77 @@ describe("donor portal model", () => {
     expect(snapshot.donations[0]?.status).toBe("Refunded");
     expect(snapshot.summary.receiptCount).toBe(0);
     expect(snapshot.summary.yearToDateCents).toBe(0);
+  });
+
+  it("shows partial refunds without treating the whole gift as fully refunded", () => {
+    const snapshot = buildDonorPortalSnapshot({
+      now: new Date("2026-05-15T00:00:00.000Z"),
+      profile: {
+        id: "profile-1",
+        email: "donor@example.com",
+        first_name: "Ada",
+        last_name: "Lovelace",
+        full_name: "Ada Lovelace",
+        display_name: null,
+        phone: null,
+        avatar_url: null,
+      },
+      donor: {
+        id: "donor-1",
+        tenant_id: "tenant-1",
+        profile_id: "profile-1",
+        missionary_id: null,
+        name: null,
+        email: "donor@example.com",
+        phone: null,
+        mobile: null,
+        preferred_contact: "email",
+        avatar_url: null,
+        location: null,
+        status: "active",
+        giving_preferences: null,
+        total_given: 0,
+        first_gift_date: null,
+        last_gift_date: null,
+        last_gift_amount: null,
+        gift_count: 1,
+        frequency: null,
+        joined_date: null,
+        receipt_email_frequency: "monthly",
+        default_update_frequency: "weekly",
+        preferred_language: "en",
+        do_not_contact: false,
+        do_not_email: false,
+        has_active_pledge: false,
+        stripe_customer_id: "cus_123",
+      },
+      donations: [
+        {
+          id: "donation-partial-refund",
+          amount: 10_000,
+          currency: "usd",
+          status: "completed",
+          donation_type: "one_time",
+          payment_method: "card",
+          is_recurring: false,
+          recurring_interval: null,
+          gift_date: "2026-05-01T00:00:00.000Z",
+          created_at: "2026-05-01T00:00:00.000Z",
+          completed_at: "2026-05-01T00:00:00.000Z",
+          processed_at: null,
+          refund_amount: 2_500,
+          stripe_payment_intent_id: "pi_partial",
+          stripe_charge_id: "ch_partial",
+          fund: { id: "fund-1", name: "Clean Water" },
+          missionary: null,
+        },
+      ],
+      pledges: [],
+      feedPreferences: null,
+    });
+
+    expect(snapshot.donations[0]?.status).toBe("Partially Refunded");
+    expect(snapshot.donations[0]?.refundAmountCents).toBe(2_500);
+    expect(snapshot.summary.yearToDateCents).toBe(7_500);
   });
 });

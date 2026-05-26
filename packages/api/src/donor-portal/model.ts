@@ -61,6 +61,7 @@ export type DonorPortalDonationRow = {
   created_at: string | null;
   completed_at: string | null;
   processed_at: string | null;
+  refund_amount?: number | null;
   stripe_payment_intent_id: string | null;
   stripe_charge_id: string | null;
   fund: { id: string; name: string | null } | null;
@@ -169,7 +170,13 @@ export type DonorPortalDonation = {
   amountCents: number;
   amount: number;
   currency: string;
-  status: "Succeeded" | "Processing" | "Failed" | "Refunded";
+  status:
+    | "Succeeded"
+    | "Processing"
+    | "Failed"
+    | "Partially Refunded"
+    | "Refunded";
+  refundAmountCents: number;
   type: "Recurring" | "One-Time";
   method: string;
   receiptUrl: string;
@@ -299,7 +306,19 @@ function designationFromPledge(
   };
 }
 
-function donationStatus(status: string | null): DonorPortalDonation["status"] {
+function donationStatus(
+  donation: Pick<DonorPortalDonationRow, "amount" | "refund_amount" | "status">,
+): DonorPortalDonation["status"] {
+  const refundAmount = donation.refund_amount ?? 0;
+  if (refundAmount > 0 && refundAmount < donation.amount) {
+    return "Partially Refunded";
+  }
+
+  if (refundAmount >= donation.amount && donation.amount > 0) {
+    return "Refunded";
+  }
+
+  const status = donation.status;
   const normalized = status?.toLowerCase() ?? "";
   if (normalized === "refunded") return "Refunded";
   if (SETTLED_DONATION_STATUSES.has(normalized)) return "Succeeded";
@@ -355,9 +374,10 @@ export function buildDonorPortalSnapshot(input: {
       amountCents,
       amount: centsToDollars(amountCents),
       currency: normalizeCurrency(donation.currency),
-      status: donationStatus(donation.status),
+      status: donationStatus(donation),
       type: donationType(donation),
       method: paymentLabel(donation.payment_method),
+      refundAmountCents: donation.refund_amount ?? 0,
       receiptUrl: `/api/donor/receipts/${donation.id}`,
       statementYear: new Date(date).getUTCFullYear(),
       designation: designationFromDonation(donation),
@@ -387,11 +407,17 @@ export function buildDonorPortalSnapshot(input: {
   });
 
   const settledDonations = donationModels.filter(
-    (donation) => donation.status === "Succeeded",
+    (donation) =>
+      donation.status === "Succeeded" ||
+      donation.status === "Partially Refunded",
   );
   const yearToDateCents = settledDonations
     .filter((donation) => donation.statementYear === currentYear)
-    .reduce((sum, donation) => sum + donation.amountCents, 0);
+    .reduce(
+      (sum, donation) =>
+        sum + Math.max(0, donation.amountCents - donation.refundAmountCents),
+      0,
+    );
   const activeRecurringGiftCount = recurringGifts.filter((gift) =>
     ["active", "processing", "trialing"].includes(gift.status.toLowerCase()),
   ).length;

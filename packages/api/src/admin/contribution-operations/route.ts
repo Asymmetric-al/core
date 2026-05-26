@@ -132,49 +132,149 @@ async function refundContribution(input: {
     );
   }
 
-  const stripe = new Stripe(requireStripeSecretKey(), {
-    apiVersion: STRIPE_API_VERSION,
-  });
-  const refund = await stripe.refunds.create(
-    {
-      charge: data.stripe_charge_id,
-      amount: input.amount,
-      metadata: {
-        donation_id: input.contributionId,
-        tenant_id: input.tenantId,
-        reason: input.reason,
+  try {
+    const stripe = new Stripe(requireStripeSecretKey(), {
+      apiVersion: STRIPE_API_VERSION,
+    });
+    const refund = await stripe.refunds.create(
+      {
+        charge: data.stripe_charge_id,
+        amount: input.amount,
+        metadata: {
+          donation_id: input.contributionId,
+          tenant_id: input.tenantId,
+          reason: input.reason,
+        },
       },
-    },
-    {
-      idempotencyKey: `contribution-refund/${input.tenantId}/${input.contributionId}/${input.amount}`,
-    },
-  );
+      {
+        idempotencyKey: `contribution-refund/${input.tenantId}/${input.contributionId}/${input.amount}/${crypto.randomUUID()}`,
+      },
+    );
 
-  const providerStatus = refund.status ?? "pending";
-  const nextRefundAmount = refunded + input.amount;
-  await input.supabaseAdmin
+    const providerStatus = refund.status ?? "pending";
+    const nextRefundAmount = refunded + input.amount;
+    const updateResult = await input.supabaseAdmin
+      .from("donations")
+      .update({
+        refund_amount: nextRefundAmount,
+        refunded_at: new Date().toISOString(),
+        status:
+          providerStatus === "succeeded" && nextRefundAmount >= amount
+            ? "refunded"
+            : data.status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("tenant_id", input.tenantId)
+      .eq("id", input.contributionId);
+
+    if (updateResult.error) {
+      throw new ApiHttpError(
+        500,
+        `Stripe refund ${refund.id} was created, but the local contribution state could not be updated: ${updateResult.error.message}`,
+      );
+    }
+
+    return {
+      provider: "stripe" as const,
+      status: providerStatus,
+      referenceId: refund.id,
+      raw: {
+        amount: refund.amount,
+        currency: refund.currency,
+        status: refund.status,
+      },
+    };
+  } catch (error) {
+    if (error instanceof ApiHttpError) {
+      throw error;
+    }
+
+    return {
+      provider: "stripe" as const,
+      status: "failed",
+      errorCode:
+        typeof error === "object" && error !== null && "code" in error
+          ? String((error as { code?: unknown }).code)
+          : "stripe_refund_failed",
+      errorMessage:
+        error instanceof Error ? error.message : "Stripe refund failed.",
+    };
+  }
+}
+
+async function applyContributionCorrection(input: {
+  supabaseAdmin: Parameters<
+    typeof loadContributionDetailFromSupabase
+  >[0]["supabaseAdmin"];
+  tenantId: string;
+  contributionId: string;
+  actionType: ContributionActionType;
+  payload: Record<string, unknown>;
+}) {
+  const before = await loadContributionDetailFromSupabase(input);
+  const patch: Record<string, unknown> = {
+    updated_at: new Date().toISOString(),
+  };
+
+  if (input.actionType === "amount_correction") {
+    const amount = input.payload.amount;
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
+      throw new ApiHttpError(400, "amount must be a non-negative number.");
+    }
+    patch.amount = amount;
+  } else if (
+    input.actionType === "designation_correction" ||
+    input.actionType === "fund_correction"
+  ) {
+    const fundId = input.payload.fundId;
+    patch.fund_id = typeof fundId === "string" ? fundId : null;
+  } else if (input.actionType === "allocation_correction") {
+    const fundId = input.payload.fundId;
+    const missionaryId = input.payload.missionaryId;
+    patch.fund_id = typeof fundId === "string" ? fundId : null;
+    patch.missionary_id =
+      typeof missionaryId === "string" ? missionaryId : null;
+  } else if (input.actionType === "payment_state_correction") {
+    const status = input.payload.status;
+    if (typeof status !== "string" || status.trim().length === 0) {
+      throw new ApiHttpError(400, "status is required.");
+    }
+    patch.status = status;
+  } else {
+    throw new ApiHttpError(
+      501,
+      `${input.actionType} requires a dedicated operation adapter before it can be applied.`,
+    );
+  }
+
+  const { error } = await input.supabaseAdmin
     .from("donations")
-    .update({
-      refund_amount: nextRefundAmount,
-      refunded_at: new Date().toISOString(),
-      status:
-        providerStatus === "succeeded" && nextRefundAmount >= amount
-          ? "refunded"
-          : data.status,
-      updated_at: new Date().toISOString(),
-    })
+    .update(patch)
     .eq("tenant_id", input.tenantId)
     .eq("id", input.contributionId);
 
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const after = await loadContributionDetailFromSupabase(input);
+
   return {
-    provider: "stripe" as const,
-    status: providerStatus,
-    referenceId: refund.id,
-    raw: {
-      amount: refund.amount,
-      currency: refund.currency,
-      status: refund.status,
+    before: {
+      amount: before.amount.value,
+      donorId: before.donor?.id ?? null,
+      fundId: before.designation.fundId,
+      missionaryId: before.designation.missionaryId,
+      status: before.payment.status,
     },
+    after: {
+      amount: after.amount.value,
+      donorId: after.donor?.id ?? null,
+      fundId: after.designation.fundId,
+      missionaryId: after.designation.missionaryId,
+      status: after.payment.status,
+    },
+    status: "applied" as const,
   };
 }
 
@@ -265,6 +365,8 @@ export const POST = withOperation(
               after: { donorId },
             };
           },
+          applyCorrection: (correctionInput) =>
+            applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
           refundContribution: (refundInput) =>
             refundContribution({ supabaseAdmin, ...refundInput }),
           appendAuditEvent: (event) =>

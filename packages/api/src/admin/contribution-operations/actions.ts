@@ -4,6 +4,7 @@ import { ApiHttpError } from "../../shared/http-errors";
 import type {
   ContributionActionDependencies,
   ContributionActionResult,
+  ContributionActionType,
   ContributionCorrectionRecordInput,
   ContributionOperationAuditEventInput,
   ExecuteContributionActionInput,
@@ -15,7 +16,10 @@ function requireDependency<TKey extends keyof ContributionActionDependencies>(
 ): NonNullable<ContributionActionDependencies[TKey]> {
   const dependency = dependencies?.[key];
   if (!dependency) {
-    throw new ApiHttpError(501, `Contribution operation dependency missing: ${key}`);
+    throw new ApiHttpError(
+      501,
+      `Contribution operation dependency missing: ${key}`,
+    );
   }
   return dependency as NonNullable<ContributionActionDependencies[TKey]>;
 }
@@ -123,7 +127,10 @@ async function createCorrectionRecord(
   input: ExecuteContributionActionInput,
   correction: ContributionCorrectionRecordInput,
 ): Promise<string> {
-  const create = requireDependency(input.dependencies, "createCorrectionRecord");
+  const create = requireDependency(
+    input.dependencies,
+    "createCorrectionRecord",
+  );
   return create(correction);
 }
 
@@ -145,9 +152,33 @@ function correctionInput(
     actorProfileId: input.actorProfileId,
     sourceSurface: input.sourceSurface,
     correctionType: input.actionType,
+    status: "applied",
     reason: input.reason,
     ...extra,
   };
+}
+
+function isFailedProviderOutcome(
+  outcome: { status?: string | null } | null | undefined,
+): boolean {
+  return (
+    outcome?.status === "failed" ||
+    outcome?.status === "canceled" ||
+    outcome?.status === "requires_action"
+  );
+}
+
+function isCorrectionAction(actionType: ContributionActionType): boolean {
+  return (
+    actionType === "amount_correction" ||
+    actionType === "designation_correction" ||
+    actionType === "fund_correction" ||
+    actionType === "allocation_correction" ||
+    actionType === "receipt_correction" ||
+    actionType === "statement_correction" ||
+    actionType === "payment_state_correction" ||
+    actionType === "stripe_replay"
+  );
 }
 
 export async function executeContributionAction<TContribution = unknown>(
@@ -165,7 +196,8 @@ export async function executeContributionAction<TContribution = unknown>(
   switch (input.actionType) {
     case "resend_receipt": {
       const stagedGiftId =
-        input.stagedGiftId ?? requireStringPayload(input.payload, "stagedGiftId");
+        input.stagedGiftId ??
+        requireStringPayload(input.payload, "stagedGiftId");
       const sendReceipt = requireDependency(input.dependencies, "sendReceipt");
       const receipt = await sendReceipt({
         tenantId: input.tenantId,
@@ -197,8 +229,12 @@ export async function executeContributionAction<TContribution = unknown>(
 
     case "approve_staged_gift": {
       const stagedGiftId =
-        input.stagedGiftId ?? requireStringPayload(input.payload, "stagedGiftId");
-      const approve = requireDependency(input.dependencies, "approveStagedGift");
+        input.stagedGiftId ??
+        requireStringPayload(input.payload, "stagedGiftId");
+      const approve = requireDependency(
+        input.dependencies,
+        "approveStagedGift",
+      );
       await approve({
         tenantId: input.tenantId,
         stagedGiftId,
@@ -225,7 +261,8 @@ export async function executeContributionAction<TContribution = unknown>(
     case "retry_staged_gift":
     case "crm_repost": {
       const stagedGiftId =
-        input.stagedGiftId ?? requireStringPayload(input.payload, "stagedGiftId");
+        input.stagedGiftId ??
+        requireStringPayload(input.payload, "stagedGiftId");
       const retry = requireDependency(input.dependencies, "retryStagedGift");
       await retry({
         tenantId: input.tenantId,
@@ -285,7 +322,10 @@ export async function executeContributionAction<TContribution = unknown>(
 
     case "refund": {
       const amount = requireNumberPayload(input.payload, "amount");
-      const refund = requireDependency(input.dependencies, "refundContribution");
+      const refund = requireDependency(
+        input.dependencies,
+        "refundContribution",
+      );
       const providerOutcome = await refund({
         tenantId: input.tenantId,
         contributionId: input.contributionId,
@@ -296,6 +336,9 @@ export async function executeContributionAction<TContribution = unknown>(
         input,
         correctionInput(input, {
           correctionType: "refund",
+          status: isFailedProviderOutcome(providerOutcome)
+            ? "failed"
+            : "applied",
           providerOutcome,
           afterSummary: { refundAmount: amount },
         }),
@@ -319,6 +362,42 @@ export async function executeContributionAction<TContribution = unknown>(
     }
 
     default: {
+      if (isCorrectionAction(input.actionType)) {
+        const applyCorrection = requireDependency(
+          input.dependencies,
+          "applyCorrection",
+        );
+        const correction = await applyCorrection({
+          tenantId: input.tenantId,
+          contributionId: input.contributionId,
+          actionType: input.actionType,
+          payload: input.payload ?? {},
+        });
+        const correctionId = await createCorrectionRecord(
+          input,
+          correctionInput(input, {
+            beforeSummary: correction.before ?? null,
+            afterSummary: correction.after ?? null,
+            status: correction.status ?? "applied",
+          }),
+        );
+        const auditEventId = await appendAuditEvent(
+          input,
+          auditInput(input, {
+            beforeSummary: correction.before ?? null,
+            afterSummary: correction.after ?? null,
+            correctionId,
+          }),
+        );
+
+        return {
+          canonicalContribution: await loadCanonicalContribution(input),
+          auditEventId,
+          correctionId,
+          taskIds: [],
+        };
+      }
+
       if (policy.riskLevel === "low") {
         const auditEventId = await appendAuditEvent(input, auditInput(input));
         return {
