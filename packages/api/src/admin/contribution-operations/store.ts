@@ -111,13 +111,17 @@ async function fetchMissionaryLabel(
   }
 
   const profile: JsonRecord = isRecord(data.profile) ? data.profile : {};
+  const firstLastName = [
+    asString(profile.first_name),
+    asString(profile.last_name),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
   const name =
     asString(profile.display_name) ??
     asString(profile.full_name) ??
-    [asString(profile.first_name), asString(profile.last_name)]
-      .filter(Boolean)
-      .join(" ")
-      .trim() ??
+    asString(firstLastName) ??
     asString(profile.email);
 
   return {
