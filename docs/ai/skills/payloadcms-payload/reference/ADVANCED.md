@@ -13,7 +13,7 @@ const response = await fetch("/api/users/login", {
   headers: { "Content-Type": "application/json" },
   body: JSON.stringify({
     email: "user@example.com",
-    password: "password", // pragma: allowlist secret
+    password: "password",
   }),
 });
 
@@ -22,16 +22,15 @@ const result = await payload.login({
   collection: "users",
   data: {
     email: "user@example.com",
-    password: "password", // pragma: allowlist secret
+    password: "password",
   },
 });
 ```
 
-### Recover access via email
+### Forgot Password
 
 ```ts
 await payload.forgotPassword({
-  // pragma: allowlist secret
   collection: "users",
   data: {
     email: "user@example.com",

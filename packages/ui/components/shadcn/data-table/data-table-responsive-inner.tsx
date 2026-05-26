@@ -1,5 +1,6 @@
 "use client";
 
+import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
 import {
   type ColumnDef,
   type Row,
@@ -113,7 +114,7 @@ export function DataTableResponsiveInner<TData, TValue>({
   } = config;
 
   const [viewMode, setViewMode] = React.useState(defaultViewMode);
-  const [isMobile, setIsMobile] = React.useState(false);
+  const isMobile = useMediaQuery(`(max-width: ${mobileBreakpoint - 1}px)`);
   const resolvedEnableVirtualization =
     enableVirtualization ?? configVirtualizationEnabled;
   const [advancedFilter, setAdvancedFilter] = React.useState(
@@ -121,18 +122,10 @@ export function DataTableResponsiveInner<TData, TValue>({
   );
 
   React.useEffect(() => {
-    const checkMobile = () => {
-      const mobile = window.innerWidth < mobileBreakpoint;
-      setIsMobile(mobile);
-      if (mobile && viewMode === "table") {
-        setViewMode("card");
-      }
-    };
-
-    checkMobile();
-    window.addEventListener("resize", checkMobile);
-    return () => window.removeEventListener("resize", checkMobile);
-  }, [mobileBreakpoint, viewMode]);
+    if (isMobile && viewMode === "table") {
+      setViewMode("card");
+    }
+  }, [isMobile, viewMode]);
 
   const selectColumn = React.useMemo<ColumnDef<TData, unknown>>(
     () => ({

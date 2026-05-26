@@ -1,9 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import {
-  createInitialEditDonorFormValues,
-  toDonorUpdatePayload,
-} from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
+import { createInitialEditDonorFormValues } from "../../../../../../apps/missionary/app/donors/edit-donor-form-model";
 
 describe("apps/missionary/app/donors/edit-donor-form-model", () => {
   it("creates empty defaults when no donor is selected", () => {
@@ -74,61 +71,5 @@ describe("apps/missionary/app/donors/edit-donor-form-model", () => {
       state: "CO",
       zip: "80202",
     });
-  });
-
-  it("builds an update payload with nullable optional fields and a normalized address", () => {
-    const payload = toDonorUpdatePayload({
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      phone: "",
-      mobile: "",
-      work_phone: "",
-      preferred_contact: "email",
-      type: "Individual",
-      status: "Active",
-      frequency: "Monthly",
-      location: "",
-      website: "",
-      organization: "",
-      title: "",
-      spouse: "",
-      birthday: "",
-      anniversary: "",
-      notes: "",
-      street: "123 Main St",
-      street2: "",
-      city: "Denver",
-      state: "CO",
-      zip: "80202",
-    });
-
-    expect(payload).toMatchObject({
-      name: "Alice Johnson",
-      email: "alice@example.com",
-      phone: null,
-      mobile: null,
-      work_phone: null,
-      preferred_contact: "email",
-      type: "Individual",
-      status: "Active",
-      frequency: "Monthly",
-      location: null,
-      website: null,
-      organization: null,
-      title: null,
-      spouse: null,
-      birthday: null,
-      anniversary: null,
-      notes: null,
-      address: {
-        street: "123 Main St",
-        street2: "",
-        city: "Denver",
-        state: "CO",
-        zip: "80202",
-        country: "USA",
-      },
-    });
-    expect(typeof payload.updated_at).toBe("string");
   });
 });

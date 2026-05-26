@@ -5,7 +5,8 @@ description: Bridge from PRD to an implementation plan. Upstream mattpocock/skil
 
 There is **no** `prd-to-plan` skill in [mattpocock/skills](https://github.com/mattpocock/skills). Use this sequence instead:
 
-1. **`to-prd`** — `.cursor/skills/to-prd/SKILL.md` — produce the PRD (align with **OpenSpec**: `openspec/specs/**`, `openspec/changes/**`).
+1. **`to-prd`** — `docs/ai/skills/to-prd/SKILL.md` — produce the PRD
+   (align with **OpenSpec**: `openspec/specs/**`, `openspec/changes/**`).
 2. **Planning / breakdown** — **`to-issues`** (issue decomposition), **`improve-codebase-architecture`** (deepening/refactors), **`zoom-out`** (module map), plus **`docs/ai/rules/*`** as needed.
 
 See **`references/upstream.md`**.

@@ -1,5 +1,3 @@
-> **Vendored reference:** [`payloadcms/skills`](https://github.com/payloadcms/skills) — `skills/payload/README.md` at commit `b87f7a8f6c6fd59c9e99d254b0a53e2934437c0d` (snapshot 2026-05-16). Upstream [README](https://github.com/payloadcms/skills/blob/main/README.md) states **MIT** license.
-
 # Payload Skill for AI Coding Agents
 
 Agent skill providing comprehensive guidance for Payload development with TypeScript patterns, field configurations, hooks, access control, and API examples.
@@ -18,7 +16,7 @@ The `payload` skill provides expert guidance on:
 
 ## Usage
 
-Configured agents may invoke this skill through the repo routing in `AGENTS.md` when you're working on Payload CMS projects. The skill applies when you:
+Once installed, the Agent will automatically invoke the skill when you're working on Payload CMS projects. The skill activates when you:
 
 - Edit `payload.config.ts` files
 - Work with collection or global configurations

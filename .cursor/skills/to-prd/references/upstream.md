@@ -1,12 +1,23 @@
-# To PRD (upstream)
+---
+source_name: mattpocock/skills (to-prd)
+source_url: https://github.com/mattpocock/skills
+source_type: github
+upstream_path: skills/engineering/to-prd/SKILL.md
+skills_lock_hash: a80acb8760af6521a37ea4f079e617712fcaa800f8a766e247f815c5dabb20d2
+last_reviewed: 2026-05-23
+---
 
-Installed from **mattpocock/skills** at `skills/engineering/to-prd/SKILL.md`.
+# Upstream: to-prd
 
-- Index: https://skills.sh/mattpocock/skills/to-prd
-- CLI: `npx skills add mattpocock/skills@to-prd -y`
+Canonical copy in this repo: `docs/ai/skills/to-prd/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
 
-## This repository
+- **Repository:** https://github.com/mattpocock/skills
+- **Upstream path:** `skills/engineering/to-prd/SKILL.md`
+- **Install via Skills CLI:** `npx skills add mattpocock/skills -y`
 
-Durable product and workflow intent lives in **OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`). Use **`to-prd`** to synthesize a PRD from conversation context; align terminology with existing specs and ADRs. An issue-tracker publish step from the skill does not replace OpenSpec — fold durable decisions into specs/changes per `openspec/specs/agent-instruction-system/spec.md`.
+## Refresh from ecosystem
 
-Refresh: re-run the Skills CLI pin, update `skills-lock.json` `computedHash` for `to-prd`, then `bun run skills:sync` and `bun run skills:verify`.
+1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
+2. Copy the routed skill into `docs/ai/skills/to-prd/` if this canonical copy needs updating.
+3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+4. Run `bun run skills:sync` and `bun run skills:verify`.
