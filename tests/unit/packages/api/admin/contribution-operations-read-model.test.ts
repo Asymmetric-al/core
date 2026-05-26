@@ -1,0 +1,90 @@
+import { describe, expect, it } from "vitest";
+
+import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
+
+describe("contribution operations detail read model", () => {
+  it("builds canonical staff and donor-visible contribution truth", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_1",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: "missionary_1",
+        fundId: "fund_1",
+        amount: 12000,
+        currency: "usd",
+        status: "refunded",
+        donationType: "recurring",
+        paymentMethod: "card",
+        isRecurring: true,
+        recurringInterval: "month",
+        notes: "internal note",
+        stripePaymentIntentId: "pi_123",
+        stripeChargeId: "ch_123",
+        giftDate: "2026-05-01T00:00:00.000Z",
+        campaignId: "campaign_1",
+        pledgeId: "pledge_1",
+        processedAt: "2026-05-01T00:01:00.000Z",
+        completedAt: "2026-05-01T00:02:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: "2026-05-02T00:00:00.000Z",
+        refundAmount: 12000,
+        source: "online",
+        createdAt: "2026-05-01T00:00:00.000Z",
+        updatedAt: "2026-05-02T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: "profile_1",
+        name: "Jordan Donor",
+        email: "jordan@example.com",
+        phone: "555-0100",
+        mobile: "555-0101",
+        location: "Austin, TX",
+        organization: "Jordan Family",
+      },
+      fund: { id: "fund_1", name: "General Fund" },
+      missionary: { id: "missionary_1", name: "Riley Worker" },
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+        reviewReason: null,
+        twentyRecordId: "twenty_1",
+      },
+      auditEvents: [
+        {
+          id: "audit_1",
+          actionType: "refund",
+          sourceSurface: "contribution_hub",
+          reason: "duplicate gift",
+          createdAt: "2026-05-02T00:00:00.000Z",
+        },
+      ],
+      corrections: [
+        {
+          id: "correction_1",
+          correctionType: "refund_correction",
+          status: "applied",
+        },
+      ],
+    });
+
+    expect(detail.id).toBe("donation_1");
+    expect(detail.donor?.phoneNumbers).toEqual(["555-0100", "555-0101"]);
+    expect(detail.payment.stripe.paymentIntentId).toBe("pi_123");
+    expect(detail.payment.stripe.chargeId).toBe("ch_123");
+    expect(detail.refund.status).toBe("refunded");
+    expect(detail.refund.amount).toBe(12000);
+    expect(detail.receipt.status).toBe("sent");
+    expect(detail.recurring.isRecurring).toBe(true);
+    expect(detail.crm.postStatus).toBe("posted");
+    expect(detail.auditEvents).toHaveLength(1);
+    expect(detail.corrections).toHaveLength(1);
+    expect(detail.donorVisible.status).toBe("Refunded");
+    expect(detail.donorVisible.historyUpdatedImmediately).toBe(true);
+  });
+});
