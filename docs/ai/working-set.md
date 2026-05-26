@@ -1,5 +1,61 @@
 # Working Set
 
+## 2026-05-26 (Mission Control Contribution Operations Core PRD 1)
+
+- Date: 2026-05-26
+- Repo: Asymmetric-al/core
+- Goal: Implement PRD 1, the Mission Control Contribution Operations Core, so
+  Contribution Hub and donor CRM entry points share one server-side
+  contribution action layer, canonical detail read model, correction/audit
+  framework, high-risk reason/confirmation policy, Stripe-aware refund/replay
+  handling, and donor-visible truth updates.
+- Primary area:
+  - `packages/api/src/admin/contribution-operations/**`
+  - `packages/api/src/admin/contributions/**`
+  - `packages/api/src/admin/crm/detail/**`
+  - `packages/api/src/stripe/**`
+  - `packages/api/src/donor-portal/**`
+  - `apps/admin/app/contributions/**`
+  - `apps/admin/app/crm/**`
+  - `apps/admin/app/api/admin/**`
+  - `supabase/migrations/**`
+  - `tests/unit/packages/api/admin/**`
+  - `tests/unit/packages/api/giving/**`
+  - `tests/unit/apps/admin/**`
+- Stack:
+  - Next.js 16 App Router
+  - React 19
+  - TypeScript
+  - Supabase Postgres/Auth/RLS
+  - Stripe
+  - TanStack Query
+  - Vitest
+  - Playwright
+- Constraints:
+  - Follow TDD: write failing tests before production code.
+  - Keep app route handlers thin; business logic belongs in `packages/api`.
+  - Preserve Stripe as payment execution/payment-method authority.
+  - Never expose Stripe or Supabase service credentials to client code.
+  - Maintain tenant isolation for every query/mutation.
+  - High-risk actions require `finance:manage_contributions`, reason, and
+    confirmation: refunds, donor relinking, designation/fund correction,
+    payment state correction, and Stripe replay.
+  - Donor-visible corrections must update from the same persisted truth; no
+    hidden side-sync model.
+  - Inngest is planned but unavailable; do not depend on it.
+- Evidence sources used:
+  - User-provided PRD 1
+  - `/opt/cursor/artifacts/PLAN.md`
+  - OpenSpec platform product/surfaces/boundaries/principles specs
+  - Active Twenty CRM OpenSpec change for CRM boundary constraints
+  - `docs/ai/rules/{general,backend,frontend,testing,openspec}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - Supabase skill + `supabase/AGENTS.md`
+  - Stripe best-practices payments/security/billing references
+  - `.next-docs` route handlers, Server Components, and Server Functions docs
+  - Nia repo-scoped searches plus local reads of contribution, donor portal,
+    Stripe replay/webhook, Email Studio, tasks, and automation code
+
 ## 2026-05-16 (Monorepo Vercel build controls)
 
 - Date: 2026-05-16
