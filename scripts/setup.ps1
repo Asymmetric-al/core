@@ -131,6 +131,22 @@ try {
 Write-Log 'Checking prerequisites...'
 $ok = $true
 $ok = (Require-Command 'bun' 'Install Bun for Windows and ensure it is on PATH: https://bun.sh/docs/installation#windows') -and $ok
+if (-not $ok) { exit 1 }
+
+$bunVersionScript = Join-Path $rootDir 'scripts/verify/bun-version.sh'
+if (Test-Path -LiteralPath $bunVersionScript) {
+  $bashCommand = Get-Command 'bash' -ErrorAction SilentlyContinue
+  if ($bashCommand) {
+    & bash $bunVersionScript
+    if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+  } else {
+    Write-Log 'Skipping Bun version guard (bash not found). Run: bun run verify:bun-version'
+  }
+} else {
+  Write-Fail "Missing Bun version guard script: $bunVersionScript"
+  exit 1
+}
+
 $ok = (Require-Command 'git' 'Install Git for Windows and ensure it is on PATH: https://git-scm.com/download/win') -and $ok
 if (-not $ok) { exit 1 }
 Write-SupabaseCliGuidance
