@@ -558,6 +558,70 @@ export interface MissionControlAutomationActivityLog {
   created_at: string;
 }
 
+export type ContributionOperationBatchStatus =
+  | "running"
+  | "complete"
+  | "complete_with_issues"
+  | "failed"
+  | "cancelled";
+export type ContributionOperationBatchExecutionMode =
+  | "immediate"
+  | "background";
+export type ContributionOperationBatchItemStatus =
+  | "pending"
+  | "running"
+  | "succeeded"
+  | "skipped"
+  | "failed";
+
+export interface ContributionOperationBatch {
+  id: string;
+  tenant_id: string;
+  operation: string;
+  risk_level: "low" | "high";
+  source_surface: string;
+  selection_snapshot: Record<string, unknown>;
+  preview_snapshot: Record<string, unknown>;
+  preview_skipped: boolean;
+  confirmation_snapshot: Record<string, unknown>;
+  reason: string | null;
+  status: ContributionOperationBatchStatus;
+  execution_mode: ContributionOperationBatchExecutionMode;
+  total_count: number;
+  processed_count: number;
+  succeeded_count: number;
+  skipped_count: number;
+  failed_count: number;
+  follow_up_task_count: number;
+  created_by_profile_id: string | null;
+  activity_audit_event_id: string | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  cancelled_at: string | null;
+}
+
+export interface ContributionOperationBatchItem {
+  id: string;
+  batch_id: string;
+  tenant_id: string;
+  record_index: number;
+  resource_type: string;
+  resource_id: string | null;
+  donation_id: string | null;
+  staged_gift_id: string | null;
+  status: ContributionOperationBatchItemStatus;
+  skip_reason: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  result: Record<string, unknown>;
+  operation_audit_event_id: string | null;
+  task_id: string | null;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Campaign {
   id: string;
   tenant_id: string;

@@ -114,11 +114,11 @@
 
 - [x] 10.1 Add PRD 5 documentation under
       `docs/prds/mission-control-contribution-operations/`
-- [ ] 10.2 Add bulk action catalog and policy tests
-- [ ] 10.3 Add batch schema and result model
-- [ ] 10.4 Add preview planning and confirmation enforcement
-- [ ] 10.5 Add immediate/background execution mode selection
-- [ ] 10.6 Add per-record result and CSV export support
-- [ ] 10.7 Add important-failure task bridge
+- [x] 10.2 Add bulk action catalog and policy tests
+- [x] 10.3 Add batch schema and result model
+- [x] 10.4 Add preview planning and confirmation enforcement
+- [x] 10.5 Add immediate/background execution mode selection
+- [x] 10.6 Add per-record result and CSV export support
+- [x] 10.7 Add important-failure task bridge
 - [ ] 10.8 Wire Contribution Hub bulk actions to batch API
-- [ ] 10.9 Verify targeted batch tests and checks
+- [x] 10.9 Verify targeted batch tests and checks
