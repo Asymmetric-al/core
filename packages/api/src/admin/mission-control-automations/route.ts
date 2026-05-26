@@ -43,6 +43,12 @@ export const POST = withOperation(
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
         rule: rule as never,
+        activationReady:
+          "activationReady" in body &&
+          typeof body.activationReady === "object" &&
+          body.activationReady
+            ? (body.activationReady as never)
+            : undefined,
       });
 
       return NextResponse.json({ automationRule, requestId }, { status: 201 });

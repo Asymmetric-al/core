@@ -161,6 +161,7 @@ export function ContributionsMainBody({
         body: JSON.stringify({
           actionType: "resend_receipt",
           confirmationToken: crypto.randomUUID(),
+          reason: "Bulk receipt resend requested from Contribution Hub.",
           records: rows.map((row) => ({
             id: row.id,
             receiptStatus: row.receiptStatus,

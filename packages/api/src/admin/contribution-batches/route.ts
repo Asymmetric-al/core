@@ -7,6 +7,7 @@ import { sendStagedGiftReceipt } from "../../giving/receipts";
 import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 import { executeContributionAction } from "../contribution-operations/actions";
+import { assertContributionActionPermission } from "../contribution-operations/permissions";
 import { appendContributionOperationAuditEvent } from "../contribution-operations/store";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks/store";
 
@@ -29,6 +30,7 @@ const batchRequestSchema = z.object({
     "stripe_replay",
   ]),
   confirmationToken: z.string().min(1),
+  reason: z.string().trim().min(1).optional(),
   records: z.array(batchRecordSchema).min(1).max(1000),
 });
 
@@ -40,6 +42,16 @@ export const POST = withOperation(
         actionType: body.actionType,
         selectedCount: body.records.length,
       });
+      assertContributionActionPermission(auth, body.actionType);
+
+      const isHighRisk =
+        body.actionType !== "resend_receipt" &&
+        body.actionType !== "crm_repost";
+      if (isHighRisk && !body.reason) {
+        throw new Error(
+          "High-risk bulk contribution actions require a reason.",
+        );
+      }
 
       if (executionMode === "background") {
         const { data, error } = await supabaseAdmin
@@ -56,6 +68,10 @@ export const POST = withOperation(
             status: "running",
             execution_mode: "background",
             total_count: body.records.length,
+            reason: body.reason ?? null,
+            selection_snapshot: {
+              records: body.records,
+            },
             confirmation_snapshot: {
               confirmationToken: body.confirmationToken,
             },
@@ -65,10 +81,30 @@ export const POST = withOperation(
           .select("id")
           .single();
         if (error) throw new Error(error.message);
+        const batchId = (data as { id?: string } | null)?.id ?? null;
+
+        if (batchId) {
+          const { error: itemError } = await supabaseAdmin
+            .from("contribution_operation_batch_items")
+            .insert(
+              body.records.map((record, index) => ({
+                batch_id: batchId,
+                tenant_id: auth.tenantId,
+                record_index: index,
+                resource_type: "donation",
+                resource_id: record.id,
+                donation_id: record.id,
+                staged_gift_id: record.stagedGiftId ?? null,
+                status: "pending",
+                result: {},
+              })),
+            );
+          if (itemError) throw new Error(itemError.message);
+        }
 
         return NextResponse.json({
           batch: {
-            id: (data as { id?: string } | null)?.id ?? null,
+            id: batchId,
             status: "running",
             executionMode,
             summary: {
