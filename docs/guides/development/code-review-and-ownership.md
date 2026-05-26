@@ -27,6 +27,7 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 - `develop` requires:
   - `ci-gate`
   - `integration-gate`
+  - `e2e-smoke-gate`
 - `main` is retired/protected historical history and is not an active PR or
   deploy target.
 
@@ -41,13 +42,17 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 - `integration-gate` covers:
   - `migrate` (DB migrations + seed verification)
   - `smoke` (app boot + health check)
+  - `e2e-smoke-gate` (summary gate for `test-e2e-smoke`)
+- `e2e-smoke-gate` covers:
+  - `test-e2e-smoke` (`bun run test:e2e:smoke`)
 - `e2e-gate` covers:
   - bounded production-release Playwright coverage through
     `bun run test:e2e:production-gate`
   - app-specific boneyard smoke checks
   - portable `@cms` coverage; local-seed-only `@cms-local` proof stays in
     `bun run test:e2e:cms:local`
-  - On `develop`, E2E remains informational (non-blocking)
+  - On `develop`, the full `test-e2e` job remains informational (non-blocking);
+    bounded smoke is enforced separately through `e2e-smoke-gate`
 
 ## Contributor PR Checklist
 

@@ -110,7 +110,7 @@ React/Next.js cleanup audits are documented in `docs/guides/development/react-do
 
 ## Project Structure
 
-This is a **Turborepo monorepo** with three Next.js applications and seven shared packages:
+This is a **Turborepo monorepo** with three Next.js applications and eight shared packages:
 
 ```
 core/
@@ -166,7 +166,8 @@ core/
 │   │
 │   ├── auth/                 # @asym/auth - Authentication
 │   ├── config/               # @asym/config - Configuration
-│   └── email/                # @asym/email - Email services
+│   ├── email/                # @asym/email - Email services
+│   └── mock-data/            # @asym/mock-data - Shared demo fixtures
 │
 ├── tooling/                  # Build tooling
 │   ├── eslint-config/       # Shared ESLint config
@@ -365,7 +366,7 @@ export { MyNewComponent } from "./my-new-component";
 
 ## Working with Mock Data
 
-Mock data is managed per-app in `apps/[app-name]/lib/mock-data/`. For development:
+Mock data is canonical in `packages/mock-data/` and exposed to each app through `apps/[app-name]/lib/mock-data/index.ts`. For development:
 
 ```typescript
 // In an app (e.g., apps/admin/)
@@ -379,7 +380,7 @@ import {
 } from "@/lib/mock-data";
 ```
 
-**Note:** Mock data is app-specific and not shared across apps via packages.
+**Note:** Edit shared demo fixtures in `packages/mock-data/`. Keep app-local `apps/[app-name]/lib/mock-data/index.ts` files as thin compatibility re-exports for `@/lib/mock-data` imports.
 
 ## Common Tasks
 

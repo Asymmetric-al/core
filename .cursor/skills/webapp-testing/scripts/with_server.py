@@ -9,8 +9,8 @@ Usage:
 
     # Multiple servers
     python scripts/with_server.py \
-      --cwd backend --server "python server.py" --port 3000 \
-      --cwd frontend --server "npm run dev" --port 5173 \
+      --server "cd backend && python server.py" --port 3000 \
+      --server "cd frontend && npm run dev" --port 5173 \
       -- python test.py
 """
 
@@ -35,7 +35,6 @@ def is_server_ready(port, timeout=30):
 def main():
     parser = argparse.ArgumentParser(description='Run command with one or more servers')
     parser.add_argument('--server', action='append', dest='servers', required=True, help='Server command (can be repeated)')
-    parser.add_argument('--cwd', action='append', dest='cwds', default=None, help='Working directory for each --server entry (optional, can be repeated)')
     parser.add_argument('--port', action='append', dest='ports', type=int, required=True, help='Port for each server (must match --server count)')
     parser.add_argument('--timeout', type=int, default=30, help='Timeout in seconds per server (default: 30)')
     parser.add_argument('command', nargs=argparse.REMAINDER, help='Command to run after server(s) ready')
@@ -55,33 +54,20 @@ def main():
         print("Error: Number of --server and --port arguments must match")
         sys.exit(1)
 
-    cwds = args.cwds or []
-    if cwds and len(cwds) != len(args.servers):
-        print("Error: Number of --cwd arguments must match --server count when provided")
-        sys.exit(1)
-
-    if not cwds:
-        cwds = [None] * len(args.servers)
-
     servers = []
-    for cmd, port, cwd in zip(args.servers, args.ports, cwds):
-        servers.append({'cmd': cmd, 'port': port, 'cwd': cwd})
+    for cmd, port in zip(args.servers, args.ports):
+        servers.append({'cmd': cmd, 'port': port})
 
     server_processes = []
 
     try:
         # Start all servers
         for i, server in enumerate(servers):
-            cmd_display = server['cmd']
-            if server['cwd']:
-                cmd_display = f"(cwd={server['cwd']}) {cmd_display}"
-            print(f"Starting server {i+1}/{len(servers)}: {cmd_display}")
+            print(f"Starting server {i+1}/{len(servers)}: {server['cmd']}")
 
-            # Keep shell=True for command compatibility, but prefer --cwd
-            # over inline `cd ... && ...` to improve cross-platform usage.
+            # Use shell=True to support commands with cd and &&
             process = subprocess.Popen(
                 server['cmd'],
-                cwd=server['cwd'],
                 shell=True,
                 stdout=subprocess.PIPE,
                 stderr=subprocess.PIPE

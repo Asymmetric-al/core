@@ -10,7 +10,12 @@ import type {
   AdminContributionsListResponse,
   AdminContributionsSummary,
 } from "./types";
+import type {
+  AdminSupabaseFluentFilterBuilder,
+  SupabaseColumn,
+} from "../shared/supabase-filter-builder";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type { Donation } from "@asym/database/types";
 
 type AdminSupabase = AdminSupabaseClient;
 
@@ -88,15 +93,16 @@ type StagedGiftRow = {
 };
 
 const PENDING_STATUSES = ["pending", "processing"] as const;
+type DonationColumn = SupabaseColumn<Donation>;
 
-const SORT_COLUMN_BY_FIELD: Record<ContributionSortField, string> = {
+const SORT_COLUMN_BY_FIELD = {
   giftDate: "gift_date",
   createdAt: "created_at",
   amount: "amount",
   status: "status",
   paymentMethod: "payment_method",
   source: "source",
-};
+} satisfies Record<ContributionSortField, DonationColumn>;
 
 function escapeSearchValue(value: string) {
   return value.replace(/[%(),]/g, " ");
@@ -169,14 +175,16 @@ async function resolveMatchingDonorIds(
   return Array.from(donorIds);
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(asym): narrow Postgrest builder typing without breaking dynamic filters
-type ContributionQueryBuilder = any;
+type ContributionQueryBuilder<TQuery> = AdminSupabaseFluentFilterBuilder<
+  Donation,
+  TQuery
+>;
 
-function applyBaseFilters(
-  query: ContributionQueryBuilder,
+function applyBaseFilters<TQuery extends ContributionQueryBuilder<TQuery>>(
+  query: TQuery,
   params: AdminContributionsParams,
   directSearchableDonorIds: string[],
-): ContributionQueryBuilder {
+): TQuery {
   const { filters, search } = params;
 
   if (filters.statuses.length > 0) {
@@ -276,10 +284,10 @@ function applyBaseFilters(
   return query;
 }
 
-function applyCursor(
-  query: ContributionQueryBuilder,
+function applyCursor<TQuery extends ContributionQueryBuilder<TQuery>>(
+  query: TQuery,
   params: AdminContributionsParams,
-): ContributionQueryBuilder {
+): TQuery {
   const { cursor, sort } = params;
   if (!cursor) {
     return query;

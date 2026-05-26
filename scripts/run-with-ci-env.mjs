@@ -1,4 +1,4 @@
-import { spawn } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -161,21 +161,22 @@ if (isDirectExecution) {
 
   const [command, ...commandArgs] = commandParts;
   const spawnCommand = getSpawnCommand(command, commandArgs);
-  const child = spawn(spawnCommand.command, spawnCommand.args, {
+  const result = spawnSync(spawnCommand.command, spawnCommand.args, {
     stdio: "inherit",
     env: getEnv(commandParts),
   });
 
-  child.on("error", (error) => {
-    console.error(`Failed to start command "${command}": ${error.message}`);
+  if (result.error) {
+    console.error(
+      `Failed to start command "${command}": ${result.error.message}`,
+    );
     process.exit(1);
-  });
+  }
 
-  child.on("close", (code, signal) => {
-    if (signal) {
-      process.kill(process.pid, signal);
-      return;
-    }
-    process.exit(code ?? 1);
-  });
+  if (result.signal) {
+    process.kill(process.pid, result.signal);
+    process.exit(1);
+  }
+
+  process.exit(result.status ?? 1);
 }

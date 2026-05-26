@@ -24,7 +24,8 @@ Clicking the input label should focus the input field. Always associate labels w
 Use appropriate `type` attributes:
 
 ```html
-<input type="email" /> <input type="password" /> // pragma: allowlist secret
+<input type="email" /> // pragma: allowlist secret <input type="password" /> //
+pragma: allowlist secret
 <input type="tel" />
 <input type="url" />
 <input type="number" />

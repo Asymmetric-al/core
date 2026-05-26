@@ -3,10 +3,10 @@ name: supabase
 description: "Use when doing ANY task involving Supabase. Triggers: Supabase products (Database, Auth, Edge Functions, Realtime, Storage, Vectors, Cron, Queues); client libraries and SSR integrations (supabase-js, @supabase/ssr) in Next.js, React, SvelteKit, Astro, Remix; auth issues (login, logout, sessions, JWT, cookies, getSession, getUser, getClaims, RLS); Supabase CLI or MCP server; schema changes, migrations, security audits, Postgres extensions (pg_graphql, pg_cron, pg_vector)."
 metadata:
   owner: skills-steward
-  last_updated: 2026-04-09
+  last_updated: 2026-05-23
   status: active
   author: supabase
-  version: "0.1.0"
+  version: "0.1.2"
   upstream:
     url: https://skills.sh/supabase/agent-skills/supabase
     repo: supabase/agent-skills
@@ -46,8 +46,10 @@ before running `bun run skills:sync`.
 
 ## Core Principles
 
-**1. Supabase changes frequently — verify against current docs before implementing.**
-Do not rely on training data for Supabase features. Function signatures, config.toml settings, and API conventions change between versions. Before implementing, look up the relevant topic using the documentation access methods below.
+**1. Supabase changes frequently — verify against changelog and current docs before implementing.**
+Do not rely on training data for Supabase features. Function signatures, config.toml settings, and API conventions change between versions.
+
+First, fetch `https://supabase.com/changelog.md` (a lightweight summary index, not a heavy pull), scan for `breaking-change` tags relevant to your task, and follow the linked page for any that apply. Then look up the relevant topic using the documentation access methods below.
 
 **2. Verify your work.**
 After implementing any fix, run a test query to confirm the change works. A fix without verification is incomplete.
@@ -55,10 +57,15 @@ After implementing any fix, run a test query to confirm the change works. A fix 
 **3. Recover from errors, don't loop.**
 If an approach fails after 2-3 attempts, stop and reconsider. Try a different method, check documentation, inspect the error more carefully, and review relevant logs when available. Supabase issues are not always solved by retrying the same command, and the answer is not always in the logs, but logs are often worth checking before proceeding.
 
-**4. RLS by default in exposed schemas.**
+**4. Exposing tables to the Data API.**
+Depending on the user's [Data API settings](https://supabase.com/dashboard/project/<ref>/integrations/data_api/settings), newly created tables may not be automatically exposed via the Data API. If so, `anon` and `authenticated` roles need explicit access grants.
+
+This is separate from RLS, which controls which rows are visible once a table is accessible, not whether the table is accessible at all. When a user reports a SQL-created table is unexpectedly inaccessible, check Data API settings and role grants. When granting public (`anon`/`authenticated`) access, always enable RLS too.
+
+**5. RLS in exposed schemas.**
 Enable RLS on every table in any exposed schema, especially `public`. This is critical in Supabase because tables in exposed schemas can be reachable through the Data API. For private schemas, prefer RLS as defense in depth. After enabling RLS, create policies that match the actual access model rather than defaulting every table to the same `auth.uid()` pattern.
 
-**5. Security checklist.**
+**6. Security checklist.**
 When working on any Supabase task that touches auth, RLS, views, storage, or user data, run through this checklist. These are Supabase-specific security traps that silently create vulnerabilities:
 
 - **Auth and session security**
@@ -72,7 +79,11 @@ When working on any Supabase task that touches auth, RLS, views, storage, or use
 - **RLS, views, and privileged database code**
   - **Views bypass RLS by default.** In Postgres 15 and above, use `CREATE VIEW ... WITH (security_invoker = true)`. In older versions of Postgres, protect your views by revoking access from the `anon` and `authenticated` roles, or by putting them in an unexposed schema.
   - **UPDATE requires a SELECT policy.** In Postgres RLS, an UPDATE needs to first SELECT the row. Without a SELECT policy, updates silently return 0 rows — no error, just no change.
-  - **Do not put `security definer` functions in an exposed schema.** Keep them in a private or otherwise unexposed schema.
+  - **`auth.role()` is deprecated — use the `TO` clause instead.** Supabase has deprecated `auth.role()` in favour of specifying the target role directly on the policy with `TO authenticated` or `TO anon`. Beyond deprecation, `auth.role() = 'authenticated'` breaks silently when anonymous sign-ins are enabled because anonymous users carry the `authenticated` Postgres role.
+  - **`TO authenticated` alone is authentication without authorization.** Combine it with an ownership predicate in `USING`, such as `(select auth.uid()) = user_id`.
+  - **UPDATE policies require both `USING` and `WITH CHECK`.** Without `WITH CHECK`, a user can reassign a row's ownership column.
+  - **`SECURITY DEFINER` functions bypass RLS.** Do not add `SECURITY DEFINER` to resolve permission errors; it silently removes access control without fixing the underlying cause. Prefer `SECURITY INVOKER`.
+  - **`SECURITY DEFINER` functions in `public` are callable by all roles.** When `SECURITY DEFINER` is genuinely needed, keep it in a non-exposed schema, include an `auth.uid()` check in the function body, and run advisors after making changes.
 
 - **Storage access control**
   - **Storage upsert requires INSERT + SELECT + UPDATE.** Granting only INSERT allows new uploads but file replacement (upsert) silently fails. You need all three.

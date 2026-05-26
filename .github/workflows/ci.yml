@@ -10,6 +10,9 @@ on:
 permissions:
   contents: read
 
+env:
+  BUN_VERSION: "1.3.14"
+
 jobs:
   format:
     runs-on: ubuntu-latest
@@ -22,13 +25,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v5
         with:
           path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-${{ runner.os }}-
-      - run: bun install --frozen-lockfile
+          key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run format:check
       - run: bun run skills:verify
 
@@ -43,13 +46,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v5
         with:
           path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-${{ runner.os }}-
-      - run: bun install --frozen-lockfile
+          key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run lint
       - name: Check data access boundary
         run: bun run verify:data-boundary
@@ -67,13 +70,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v5
         with:
           path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-${{ runner.os }}-
-      - run: bun install --frozen-lockfile
+          key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run typecheck
 
   build:
@@ -90,13 +93,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v5
         with:
           path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-${{ runner.os }}-
-      - run: bun install --frozen-lockfile
+          key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run build
 
   test-unit:
@@ -113,13 +116,13 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - uses: actions/cache@v5
         with:
           path: .turbo
-          key: turbo-${{ runner.os }}-${{ github.sha }}
-          restore-keys: turbo-${{ runner.os }}-
-      - run: bun install --frozen-lockfile
+          key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
+          restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
+      - run: bun ci --no-cache --backend=copyfile
       - name: Run unit tests
         run: bun run test:unit
       - name: Upload coverage artifact (best effort)

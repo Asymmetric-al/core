@@ -3,7 +3,7 @@ name: payloadcms-payload
 description: "Payload CMS application development (collections, fields, hooks, access control, Local/REST/GraphQL queries, adapters, plugins). Vendored from payloadcms/skills. Use when editing payload.config.ts, Payload collections, admin, or debugging validation, security, relationships, transactions, or hooks in this repo."
 metadata:
   owner: core
-  last_updated: 2026-05-16
+  last_updated: 2026-05-23
   status: active
   author: payloadcms
   version: "1.0.0"
@@ -14,44 +14,60 @@ metadata:
 license: MIT
 ---
 
-# Payload CMS Application Development
+# Payload Application Development
 
 Payload is a Next.js native CMS with TypeScript-first architecture, providing admin panel, database management, REST/GraphQL APIs, authentication, and file storage.
 
 ## Triggers
 
-Use this skill when work touches Payload CMS application behavior in this repo, including:
+Use this skill when work touches Payload CMS application behavior in this repo,
+including:
 
-- `apps/admin/payload.config.ts`, Payload collections, globals, fields, hooks, access control, admin routes, Local API usage, REST/GraphQL access, adapters, or plugins.
-- Web Studio or CMS work under `apps/admin/app/(payload)/**`, `apps/admin/src/cms/**`, `apps/admin/src/cms-ui/**`, and related tests or docs.
-- Payload validation, relationships, transactions, hook recursion, access-control behavior, generated types, migrations, import maps, or storage/email adapter behavior.
+- `apps/admin/payload.config.ts`, Payload collections, globals, fields, hooks,
+  access control, admin routes, Local API usage, REST/GraphQL access, adapters,
+  or plugins.
+- Web Studio or CMS work under `apps/admin/app/(payload)/**`,
+  `apps/admin/src/cms/**`, `apps/admin/src/cms-ui/**`, and related tests or
+  docs.
+- Payload validation, relationships, transactions, hook recursion,
+  access-control behavior, generated types, migrations, import maps, or
+  storage/email adapter behavior.
 
 ## Do not use when
 
-- The task is only Supabase schema, RLS, Auth, Storage, or Edge Functions work; use the Supabase skills and nested Supabase instructions instead.
-- The task is only Next.js route-handler or shared API boundary work without Payload-specific behavior; use `docs/guides/architecture/data-access-boundary.md` and backend rules first.
-- The task is migrating content models from another CMS into Payload; use `docs/ai/skills/payloadcms-cms-migration/SKILL.md`.
-
-## Workflow
-
-1. Read **This repository** and apply the precedence rules before using generic upstream examples.
-2. Open the local Payload entry points, starting with `apps/admin/payload.config.ts` and the relevant files under `apps/admin/src/cms/**` or `apps/admin/src/cms-ui/**`.
-3. Use the matching topic reference under `reference/` for the specific Payload pattern: collections, fields, hooks, access, queries, adapters, endpoints, or plugins.
-4. Prefer the repo's installed Payload version, `@payloadcms/db-postgres`, and `vendor/payload-upstream/` over newer upstream snippets when APIs differ.
-5. Run the repo verification commands appropriate to the changed files; if you edit this skill, run `bun run skills:sync` and `bun run skills:verify`.
+- The task is only Supabase schema, RLS, Auth, Storage, or Edge Functions work;
+  use the Supabase skills and nested Supabase instructions instead.
+- The task is only Next.js route-handler or shared API boundary work without
+  Payload-specific behavior; use
+  `docs/guides/architecture/data-access-boundary.md` and backend rules first.
+- The task is migrating content models from another CMS into Payload; use
+  `docs/ai/skills/payloadcms-cms-migration/SKILL.md`.
 
 ## This repository (Asymmetric-al/core)
 
-Canonical vendored source: [`payloadcms/skills`](https://github.com/payloadcms/skills) (`skills/payload/`). Maintainer refresh: `docs/ai/skills/payloadcms-payload/references/upstream.md`.
+Canonical vendored source: [`payloadcms/skills`](https://github.com/payloadcms/skills)
+(`skills/payload/`). Maintainer refresh:
+`docs/ai/skills/payloadcms-payload/references/upstream.md`.
 
-**Precedence when guidance conflicts**
+**Precedence:** **OpenSpec** and **`docs/ai/rules/backend.md`** control durable
+behavior and security. **Supabase schema, RLS, and Auth** follow
+**`docs/ai/skills/supabase/SKILL.md`** and **`supabase/AGENTS.md`**. Prefer the
+repo's installed Payload version and `vendor/payload-upstream/` when upstream
+examples differ from local APIs.
 
-1. **OpenSpec** (`openspec/specs/**`, `openspec/changes/**`) and **`docs/ai/rules/backend.md`** own product intent, security posture, and data-access boundaries for this monorepo.
-2. **Supabase** (migrations, RLS, Auth, Storage) follows **`docs/ai/skills/supabase/SKILL.md`** and **`supabase/AGENTS.md`** — not replaced by Payload-only patterns.
-3. **Next.js route handlers and shared API** follow **`docs/guides/architecture/data-access-boundary.md`** and existing app and package conventions.
-4. This repo vendors a Payload tree under **`vendor/payload-upstream/`** and pins workspace packages to tracked versions. Prefer **local installed APIs and that tree** over examples from newer upstream Payload releases when they disagree.
+## Workflow
 
-The remainder of this skill documents **Payload CMS engine patterns** (config, collections, fields, hooks, access control, queries, adapters, plugins). Use the official [Payload documentation](https://payloadcms.com/docs) for version-specific gaps not covered in the vendored `reference/*.md` files.
+1. Read **This repository** and apply the precedence rules before using generic
+   upstream examples.
+2. Open the local Payload entry points, starting with
+   `apps/admin/payload.config.ts` and the relevant files under
+   `apps/admin/src/cms/**` or `apps/admin/src/cms-ui/**`.
+3. Use the matching topic reference under `reference/` for the specific Payload
+   pattern: collections, fields, hooks, access, queries, adapters, endpoints, or
+   plugins.
+4. Prefer repo conventions over generic examples for auth, storage, migrations,
+   import maps, and generated types.
+5. Run focused verification for changed Payload behavior.
 
 ## Quick Reference
 
@@ -85,20 +101,7 @@ The remainder of this skill documents **Payload CMS engine patterns** (config, c
 | Plugin hooks             | Preserve existing hooks in array          | [PLUGIN-DEVELOPMENT.md#adding-hooks](reference/PLUGIN-DEVELOPMENT.md#adding-hooks)                                               |
 | Check field type         | Type guard functions                      | [FIELD-TYPE-GUARDS.md](reference/FIELD-TYPE-GUARDS.md)                                                                           |
 
-## This Repo Quick Start
-
-Start from the existing admin app instead of creating a fresh standalone Payload app:
-
-- Payload config: `apps/admin/payload.config.ts`
-- Runtime/admin app: `bun run dev:admin`
-- Local CMS helpers: `bun run cms:local:bootstrap`, `bun run cms:local:dev`, `bun run cms:local:seed`, `bun run cms:local:verify`
-- Payload migrations: `bun run cms:migrate`, `bun run cms:migrate:create`, `bun run cms:migrate:status`
-- Database adapter: `@payloadcms/db-postgres`
-- Local/runtime env: `PAYLOAD_SECRET`, `PAYLOAD_DATABASE_URI` or the repo's local Postgres fallback documented in `apps/admin/src/cms/payload-database-config.ts`
-
-## Upstream Generic Quick Start
-
-The snippet below is retained as upstream reference material for standalone Payload apps. Do **not** treat it as this monorepo's setup path; this repo uses Bun, the admin app, Postgres, and repo CMS scripts listed above.
+## Quick Start
 
 ```bash
 npx create-payload-app@latest my-app
@@ -106,7 +109,7 @@ cd my-app
 pnpm dev
 ```
 
-### Upstream Minimal Config
+### Minimal Config
 
 ```ts
 import { buildConfig } from "payload";
@@ -210,7 +213,7 @@ For all hook patterns, see [HOOKS.md](reference/HOOKS.md). For access control, s
 import type { Access } from "payload";
 import type { User } from "@/payload-types";
 
-// Example assumes req.user has already been narrowed to the generated User type.
+// Type-safe access control
 export const adminOnly: Access = ({ req }) => {
   const user = req.user as User;
   return user?.roles?.includes("admin") || false;
@@ -406,7 +409,7 @@ hooks: {
 }
 ```
 
-See [HOOKS.md#hook-context](reference/HOOKS.md#hook-context).
+See [HOOKS.md#context](reference/HOOKS.md#context).
 
 ## Project Structure
 
@@ -466,11 +469,3 @@ import type { Post, User } from "@/payload-types";
 - GitHub: <https://github.com/payloadcms/payload>
 - Examples: <https://github.com/payloadcms/payload/tree/main/examples>
 - Templates: <https://github.com/payloadcms/payload/tree/main/templates>
-
-## Checklist
-
-- [ ] Read the **This repository** precedence block at the top of this `SKILL.md`.
-- [ ] Opened **`docs/ai/rules/backend.md`** when work touches auth, persisted data, secrets, or admin/CMS boundaries.
-- [ ] For database or RLS-affecting changes: reconciled with **`docs/ai/skills/supabase/SKILL.md`** and **`supabase/AGENTS.md`** as needed.
-- [ ] For topic-specific Payload patterns, opened the matching file under **`reference/`** (for example `reference/HOOKS.md`, `reference/QUERIES.md`).
-- [ ] If you edited files under `docs/ai/skills/payloadcms-payload/`, ran **`bun run skills:sync`** and **`bun run skills:verify`** before committing.

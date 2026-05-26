@@ -2,7 +2,7 @@
 source_name: resend/resend-cli (resend-cli agent skill)
 source_url: https://github.com/resend/resend-cli
 license: MIT
-last_reviewed: 2026-04-16
+last_reviewed: 2026-05-23
 ---
 
 # Upstream: Resend CLI agent skill

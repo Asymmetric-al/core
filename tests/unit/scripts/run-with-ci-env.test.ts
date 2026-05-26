@@ -4,6 +4,7 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { applyMissionControlCloudEnvDefaults } from "../../../scripts/dev/setup-mission-control-cloud.mjs";
 import {
   getSpawnCommand,
   loadLocalEnvFiles,
@@ -11,7 +12,6 @@ import {
   parseEnvFile,
   shouldUseShellForCommand,
 } from "../../../scripts/run-with-ci-env.mjs";
-import { applyMissionControlCloudEnvDefaults } from "../../../scripts/dev/setup-mission-control-cloud.mjs";
 
 const tempRoots: string[] = [];
 

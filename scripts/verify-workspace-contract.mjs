@@ -7,12 +7,12 @@ const rootPkg = JSON.parse(await fs.readFile("package.json", "utf8"));
 const requiredGlobs = ["apps/*", "packages/*", "packages/env", "tooling/*"];
 const globs = Array.isArray(rootPkg.workspaces) ? rootPkg.workspaces : [];
 const violations = [];
-const allowedVendoredAsymTarballs = new Map([
-  ["@asym/docraptor-client", "asym-docraptor-client-0.0.0.tgz"],
-  ["@asym/pdf-editor", "asym-pdf-editor-0.0.0.tgz"],
-  ["@asym/pdf-renderer", "asym-pdf-renderer-0.0.0.tgz"],
-  ["@asym/pdf-studio-adapter", "asym-pdf-studio-adapter-0.0.0.tgz"],
-  ["@asym/pdf-template-schema", "asym-pdf-template-schema-0.0.0.tgz"],
+const allowedVendoredAsymPackages = new Map([
+  ["@asym/docraptor-client", "asym-docraptor-client"],
+  ["@asym/pdf-editor", "asym-pdf-editor"],
+  ["@asym/pdf-renderer", "asym-pdf-renderer"],
+  ["@asym/pdf-studio-adapter", "asym-pdf-studio-adapter"],
+  ["@asym/pdf-template-schema", "asym-pdf-template-schema"],
 ]);
 
 function getScriptKind(filePath) {
@@ -86,7 +86,7 @@ function verifyAsymDeps(pkg, pkgPath) {
         !isAllowedVendoredAsymDependency(name, version)
       ) {
         violations.push(
-          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*' or approved vendored tarball`,
+          `${pkgPath}:1: ${depType}.${name}: '${version}' != 'workspace:*' or approved vendored package directory`,
         );
       }
     }
@@ -94,8 +94,8 @@ function verifyAsymDeps(pkg, pkgPath) {
 }
 
 function isAllowedVendoredAsymDependency(name, version) {
-  const expectedTarball = allowedVendoredAsymTarballs.get(name);
-  if (!expectedTarball || typeof version !== "string") {
+  const expectedPackageDirectory = allowedVendoredAsymPackages.get(name);
+  if (!expectedPackageDirectory || typeof version !== "string") {
     return false;
   }
 
@@ -109,7 +109,9 @@ function isAllowedVendoredAsymDependency(name, version) {
     .replaceAll("\\", "/")
     .replace(/^(\.\.\/)+/, "");
 
-  return normalizedPath === `vendor/react-pdf-packages/${expectedTarball}`;
+  return (
+    normalizedPath === `vendor/react-pdf-packages/${expectedPackageDirectory}`
+  );
 }
 
 const missingGlobs = requiredGlobs.filter((g) => !globs.includes(g));

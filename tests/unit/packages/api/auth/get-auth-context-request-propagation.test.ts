@@ -10,20 +10,26 @@ function readSource(relativePath: string) {
   return readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
 
+function normalizeRepoPath(relativePath: string) {
+  return relativePath.replaceAll("\\", "/");
+}
+
 function sourceFilesUnder(relativeDir: string): string[] {
   const absoluteDir = path.join(repoRoot, relativeDir);
   const entries = readdirSync(absoluteDir, { withFileTypes: true });
   const files: string[] = [];
 
   for (const entry of entries) {
-    const relativePath = path.join(relativeDir, entry.name);
+    const relativePath = path
+      .join(relativeDir, entry.name)
+      .replaceAll("\\", "/");
     if (entry.isDirectory()) {
       files.push(...sourceFilesUnder(relativePath));
       continue;
     }
 
     if (entry.isFile() && /\.(ts|tsx)$/.test(entry.name)) {
-      files.push(relativePath);
+      files.push(relativePath.split(path.sep).join("/"));
     }
   }
 
@@ -42,7 +48,9 @@ describe("getAuthContext request propagation", () => {
     ];
 
     const zeroArgumentCallers = authGateFiles.filter((filePath) => {
-      if (allowedServerOnlyFiles.has(filePath)) return false;
+      if (allowedServerOnlyFiles.has(normalizeRepoPath(filePath))) {
+        return false;
+      }
       return /\bgetAuthContext\(\)/.test(readSource(filePath));
     });
 

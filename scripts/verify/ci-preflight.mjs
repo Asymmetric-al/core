@@ -13,7 +13,8 @@ const ciSupabasePublicEnv = {
 /**
  * Mirrors blocking GitHub CI checks:
  * verify:git-attribution -> format -> skills:verify -> lint -> verify:data-boundary
- * -> verify:workspace-contract -> verify:eslint -> verify:shadcn-diff
+ * -> verify:workspace-contract -> verify:eslint -> verify:shadcn-config
+ * -> verify:shadcn-diff
  * -> typecheck -> build -> test-unit
  */
 const stages = [
@@ -44,6 +45,10 @@ const stages = [
   {
     id: "verify-eslint",
     script: "verify:eslint",
+  },
+  {
+    id: "verify-shadcn-config",
+    script: "verify:shadcn-config",
   },
   {
     id: "verify-shadcn-diff",

@@ -9,6 +9,9 @@ on:
 permissions:
   contents: read
 
+env:
+  BUN_VERSION: "1.3.14"
+
 jobs:
   migrate:
     runs-on: ubuntu-latest
@@ -24,7 +27,7 @@ jobs:
         image: postgres:15-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
           POSTGRES_DB: asymmetrical_test
         ports:
           - 5432:5432
@@ -35,11 +38,13 @@ jobs:
           --health-retries 5
     steps:
       - uses: actions/checkout@v6
+      - name: Install system dependencies (canvas)
+        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun ci --no-cache --backend=copyfile
       - name: Install PostgreSQL client
         run: |
           sudo apt-get update
@@ -69,7 +74,7 @@ jobs:
         image: postgres:15-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
           POSTGRES_DB: asymmetrical_test
         ports:
           - 5432:5432
@@ -85,11 +90,13 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     steps:
       - uses: actions/checkout@v6
+      - name: Install system dependencies (canvas)
+        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun ci --no-cache --backend=copyfile
       - name: Start donor app
         run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
       - name: Wait for health endpoint
@@ -109,6 +116,114 @@ jobs:
           response=$(curl -sf http://127.0.0.1:3005/api/health)
           echo "$response" | grep -q '"status":"ok"'
 
+  test-e2e-smoke:
+    needs: smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
+          POSTGRES_DB: asymmetrical_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
+      PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
+      PAYLOAD_SECRET: ci-payload-secret
+      SKIP_ENV_VALIDATION: "1"
+      E2E_AUTH_BYPASS: "true"
+      PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+    steps:
+      - uses: actions/checkout@v6
+      - name: Install PostgreSQL client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+      - name: Apply migrations
+        run: node scripts/verify/supabase-migrations.mjs
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.4"
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+      - name: Apply Payload migrations
+        run: bun run cms:migrate
+      - name: Verify Payload migration status
+        run: bun run cms:migrate:status
+      - name: Apply demo seed
+        run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
+      - name: Start donor app
+        run: |
+          nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
+          echo $! > /tmp/donor-dev.pid
+      - name: Start admin app
+        run: |
+          nohup bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 > /tmp/admin-dev.log 2>&1 &
+          echo $! > /tmp/admin-dev.pid
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Wait for donor health endpoint
+        run: |
+          for i in $(seq 1 120); do
+            if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
+              echo "Health endpoint ready after ${i}s"
+              exit 0
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "Timed out waiting for health endpoint"
+              echo "--- donor dev log (tail) ---"
+              tail -n 100 /tmp/donor-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3005/api/health || true
+              kill "$(cat /tmp/donor-dev.pid)" 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Wait for admin health endpoint
+        run: |
+          for i in $(seq 1 120); do
+            if curl -sf http://127.0.0.1:3030/api/health >/dev/null; then
+              echo "Admin health endpoint ready after ${i}s"
+              exit 0
+            fi
+            if [ "$i" -eq 120 ]; then
+              echo "Timed out waiting for admin health endpoint"
+              echo "--- admin dev log (tail) ---"
+              tail -n 100 /tmp/admin-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3030/api/health || true
+              kill "$(cat /tmp/admin-dev.pid)" 2>/dev/null || true
+              exit 1
+            fi
+            sleep 1
+          done
+      - name: Run Playwright smoke suite
+        timeout-minutes: 15
+        env:
+          CI: "1"
+          PLAYWRIGHT_BASE_URL: "http://127.0.0.1:3005"
+          PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
+          PLAYWRIGHT_INCLUDE_ADMIN: "1"
+        run: bun run test:e2e:smoke
+      - name: Upload artifact on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-smoke-report
+          path: playwright-report/
+          retention-days: 7
+
   test-e2e:
     needs: smoke
     continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
@@ -119,7 +234,7 @@ jobs:
         image: postgres:15-alpine
         env:
           POSTGRES_USER: postgres
-          POSTGRES_PASSWORD: postgres
+          POSTGRES_PASSWORD: postgres # pragma: allowlist secret
           POSTGRES_DB: asymmetrical_test
         ports:
           - 5432:5432
@@ -151,11 +266,13 @@ jobs:
           sudo apt-get install -y postgresql-client
       - name: Apply migrations
         run: node scripts/verify/supabase-migrations.mjs
+      - name: Install system dependencies (canvas)
+        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: bun ci --no-cache --backend=copyfile
       - name: Apply Payload migrations
         run: bun run cms:migrate
       - name: Verify Payload migration status
@@ -165,29 +282,45 @@ jobs:
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
       - name: Start donor app
-        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
-      - name: Wait for health endpoint
         run: |
-          for i in $(seq 1 60); do
+          nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
+          echo $! > /tmp/donor-dev.pid
+      - name: Wait for donor health endpoint
+        run: |
+          for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
+              echo "Health endpoint ready after ${i}s"
               exit 0
             fi
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "Timed out waiting for health endpoint"
+              echo "--- donor dev log (tail) ---"
+              tail -n 100 /tmp/donor-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3005/api/health || true
+              kill "$(cat /tmp/donor-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1
           done
       - name: Start admin app
-        run: bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 &
+        run: |
+          nohup bun run --cwd apps/admin dev -- --port 3030 --hostname 127.0.0.1 > /tmp/admin-dev.log 2>&1 &
+          echo $! > /tmp/admin-dev.pid
       - name: Wait for admin health endpoint
         run: |
-          for i in $(seq 1 60); do
+          for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3030/api/health >/dev/null; then
+              echo "Admin health endpoint ready after ${i}s"
               exit 0
             fi
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "Timed out waiting for admin health endpoint"
+              echo "--- admin dev log (tail) ---"
+              tail -n 100 /tmp/admin-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3030/api/health || true
+              kill "$(cat /tmp/admin-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1
@@ -236,20 +369,36 @@ jobs:
           path: playwright-report/
           retention-days: 7
 
+  e2e-smoke-gate:
+    if: always()
+    needs: [test-e2e-smoke]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fail if E2E smoke failed
+        run: |
+          echo "test-e2e-smoke: ${{ needs['test-e2e-smoke'].result }}"
+
+          if [ "${{ needs['test-e2e-smoke'].result }}" != "success" ]; then
+            echo "E2E smoke gate failed."
+            exit 1
+          fi
+
   integration-gate:
     if: always()
-    needs: [migrate, smoke]
+    needs: [migrate, smoke, e2e-smoke-gate]
     runs-on: ubuntu-latest
     steps:
       - name: Fail if integration prerequisites failed
         run: |
           echo "migrate: ${{ needs.migrate.result }}"
           echo "smoke: ${{ needs.smoke.result }}"
+          echo "e2e-smoke-gate: ${{ needs['e2e-smoke-gate'].result }}"
 
           failed=0
           for result in \
             "${{ needs.migrate.result }}" \
-            "${{ needs.smoke.result }}"
+            "${{ needs.smoke.result }}" \
+            "${{ needs['e2e-smoke-gate'].result }}"
           do
             if [ "$result" != "success" ]; then
               failed=1

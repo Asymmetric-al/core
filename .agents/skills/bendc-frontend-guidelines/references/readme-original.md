@@ -1,7 +1,3 @@
-> **Vendored reference:** [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) — `README.md` on branch `master`, snapshot 2026-05-15.
->
-> GitHub did not report an SPDX license for the upstream repository at vendoring time; keep this copy for attribution and agent context. When exact upstream wording matters, compare against the live README on GitHub.
-
 # Frontend Guidelines
 
 ## HTML

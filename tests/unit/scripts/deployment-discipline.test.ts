@@ -56,6 +56,14 @@ const branchProtection = {
   },
 };
 
+const developBranchProtection = {
+  ...branchProtection,
+  required_status_checks: {
+    strict: true,
+    contexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
+  },
+};
+
 const branchProtectionRule = {
   allowsForcePushes: false,
   requiresDeployments: false,
@@ -85,10 +93,20 @@ describe("deployment discipline verifier", () => {
       scripts: Record<string, string>;
     };
 
+    expect(workflow).toContain("test-e2e-smoke:");
+    expect(workflow).toContain("e2e-smoke-gate:");
+    expect(workflow).toContain("run: bun run test:e2e:smoke");
     expect(workflow).toContain("run: bun run test:e2e:production-gate");
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
     expect(workflow).toContain("timeout-minutes: 30");
+    expect(workflow).toContain("timeout-minutes: 25");
     expect(workflow).toContain("timeout-minutes: 10");
+    expect(packageJson.scripts["test:e2e:smoke"]).toContain(
+      "tests/e2e/usability-smoke.spec.ts",
+    );
+    expect(packageJson.scripts["test:e2e:smoke"]).toContain(
+      "tests/e2e/support-hub.smoke.spec.ts",
+    );
     expect(packageJson.scripts["test:e2e:production-gate"]).toContain(
       "tests/e2e/usability-smoke.spec.ts",
     );
@@ -139,19 +157,46 @@ describe("deployment discipline verifier", () => {
   it("accepts protected GitHub branches with required checks and force pushes disabled", () => {
     const developChecks = validateGitHubBranchProtection({
       branch: "develop",
-      protection: branchProtection,
+      protection: developBranchProtection,
       branchRule: branchProtectionRule,
-      requiredContexts: ["ci-gate", "integration-gate"],
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
+      forbiddenContexts: ["e2e-gate"],
     });
     const epicChecks = validateGitHubBranchProtection({
       branch: "epic",
       protection: branchProtection,
       branchRule: branchProtectionRule,
       requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
+      forbiddenContexts: ["e2e-smoke-gate"],
     });
 
     expect(developChecks.every((item) => item.ok)).toBe(true);
     expect(epicChecks.every((item) => item.ok)).toBe(true);
+  });
+
+  it("detects extra broad E2E requirements on develop branch protection", () => {
+    const checks = validateGitHubBranchProtection({
+      branch: "develop",
+      protection: {
+        ...developBranchProtection,
+        required_status_checks: {
+          strict: true,
+          contexts: [
+            "ci-gate",
+            "integration-gate",
+            "e2e-smoke-gate",
+            "e2e-gate",
+          ],
+        },
+      },
+      branchRule: branchProtectionRule,
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
+      forbiddenContexts: ["e2e-gate"],
+    });
+
+    expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
+      expect.arrayContaining(["develop does not require e2e-gate"]),
+    );
   });
 
   it("detects missing GitHub status checks and enabled force pushes", () => {
@@ -181,7 +226,7 @@ describe("deployment discipline verifier", () => {
   it("detects required deployments for disabled Vercel Preview environments", () => {
     const checks = validateGitHubBranchProtection({
       branch: "develop",
-      protection: branchProtection,
+      protection: developBranchProtection,
       branchRule: {
         ...branchProtectionRule,
         requiresDeployments: true,
@@ -191,7 +236,8 @@ describe("deployment discipline verifier", () => {
           "Preview – missionary",
         ],
       },
-      requiredContexts: ["ci-gate", "integration-gate"],
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
+      forbiddenContexts: ["e2e-gate"],
     });
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(

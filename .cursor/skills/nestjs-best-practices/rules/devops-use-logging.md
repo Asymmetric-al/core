@@ -16,25 +16,25 @@ Use NestJS Logger with structured JSON output in production. Include contextual 
 @Injectable()
 export class UsersService {
   async createUser(dto: CreateUserDto): Promise<User> {
-    console.log("Creating user:", dto);
+    console.log('Creating user:', dto);
     // Not structured, no levels, lost in production logs
 
     try {
       const user = await this.repo.save(dto);
-      console.log("User created:", user.id);
+      console.log('User created:', user.id);
       return user;
     } catch (error) {
-      console.log("Error:", error); // Using log for errors
+      console.log('Error:', error); // Using log for errors
       throw error;
     }
   }
 }
 
 // Log sensitive data
-console.log("Login attempt:", { email, password }); // SECURITY RISK!
+console.log('Login attempt:', { email, password }); // SECURITY RISK!
 
 // Inconsistent log format
-logger.log("User " + userId + " created at " + new Date());
+logger.log('User ' + userId + ' created at ' + new Date());
 // Hard to parse, no structure
 ```
 
@@ -45,9 +45,9 @@ logger.log("User " + userId + " created at " + new Date());
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger:
-      process.env.NODE_ENV === "production"
-        ? ["error", "warn", "log"]
-        : ["error", "warn", "log", "debug", "verbose"],
+      process.env.NODE_ENV === 'production'
+        ? ['error', 'warn', 'log']
+        : ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 }
 
@@ -57,14 +57,14 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   async createUser(dto: CreateUserDto): Promise<User> {
-    this.logger.log("Creating user", { email: dto.email });
+    this.logger.log('Creating user', { email: dto.email });
 
     try {
       const user = await this.repo.save(dto);
-      this.logger.log("User created", { userId: user.id });
+      this.logger.log('User created', { userId: user.id });
       return user;
     } catch (error) {
-      this.logger.error("Failed to create user", error.stack, {
+      this.logger.error('Failed to create user', error.stack, {
         email: dto.email,
       });
       throw error;
@@ -78,7 +78,7 @@ export class JsonLogger implements LoggerService {
   log(message: string, context?: object): void {
     console.log(
       JSON.stringify({
-        level: "info",
+        level: 'info',
         timestamp: new Date().toISOString(),
         message,
         ...context,
@@ -89,7 +89,7 @@ export class JsonLogger implements LoggerService {
   error(message: string, trace?: string, context?: object): void {
     console.error(
       JSON.stringify({
-        level: "error",
+        level: 'error',
         timestamp: new Date().toISOString(),
         message,
         trace,
@@ -101,7 +101,7 @@ export class JsonLogger implements LoggerService {
   warn(message: string, context?: object): void {
     console.warn(
       JSON.stringify({
-        level: "warn",
+        level: 'warn',
         timestamp: new Date().toISOString(),
         message,
         ...context,
@@ -112,7 +112,7 @@ export class JsonLogger implements LoggerService {
   debug(message: string, context?: object): void {
     console.debug(
       JSON.stringify({
-        level: "debug",
+        level: 'debug',
         timestamp: new Date().toISOString(),
         message,
         ...context,
@@ -122,7 +122,7 @@ export class JsonLogger implements LoggerService {
 }
 
 // Request context logging with ClsModule
-import { ClsModule, ClsService } from "nestjs-cls";
+import { ClsModule, ClsService } from 'nestjs-cls';
 
 @Module({
   imports: [
@@ -143,11 +143,11 @@ export class RequestContextMiddleware implements NestMiddleware {
   constructor(private cls: ClsService) {}
 
   use(req: Request, res: Response, next: NextFunction): void {
-    const requestId = req.headers["x-request-id"] || randomUUID();
-    this.cls.set("requestId", requestId);
-    this.cls.set("userId", req.user?.id);
+    const requestId = req.headers['x-request-id'] || randomUUID();
+    this.cls.set('requestId', requestId);
+    this.cls.set('userId', req.user?.id);
 
-    res.setHeader("x-request-id", requestId);
+    res.setHeader('x-request-id', requestId);
     next();
   }
 }
@@ -160,10 +160,10 @@ export class ContextLogger {
   log(message: string, data?: object): void {
     console.log(
       JSON.stringify({
-        level: "info",
+        level: 'info',
         timestamp: new Date().toISOString(),
-        requestId: this.cls.get("requestId"),
-        userId: this.cls.get("userId"),
+        requestId: this.cls.get('requestId'),
+        userId: this.cls.get('userId'),
         message,
         ...data,
       }),
@@ -173,10 +173,10 @@ export class ContextLogger {
   error(message: string, error: Error, data?: object): void {
     console.error(
       JSON.stringify({
-        level: "error",
+        level: 'error',
         timestamp: new Date().toISOString(),
-        requestId: this.cls.get("requestId"),
-        userId: this.cls.get("userId"),
+        requestId: this.cls.get('requestId'),
+        userId: this.cls.get('userId'),
         message,
         error: error.message,
         stack: error.stack,
@@ -187,18 +187,18 @@ export class ContextLogger {
 }
 
 // Pino integration for high-performance logging
-import { LoggerModule } from "nestjs-pino";
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
     LoggerModule.forRoot({
       pinoHttp: {
-        level: process.env.NODE_ENV === "production" ? "info" : "debug",
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
         transport:
-          process.env.NODE_ENV !== "production"
-            ? { target: "pino-pretty" }
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty' }
             : undefined,
-        redact: ["req.headers.authorization", "req.body.password"],
+        redact: ['req.headers.authorization', 'req.body.password'],
         serializers: {
           req: (req) => ({
             method: req.method,
@@ -223,7 +223,7 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    this.logger.info({ userId: id }, "Finding user");
+    this.logger.info({ userId: id }, 'Finding user');
     // Pino uses first arg for data, second for message
   }
 }

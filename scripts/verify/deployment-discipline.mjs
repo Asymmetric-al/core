@@ -135,6 +135,7 @@ export function validateGitHubBranchProtection({
   protection,
   branchRule,
   requiredContexts,
+  forbiddenContexts = [],
 }) {
   const checks = [];
   const contexts = contextNames(protection);
@@ -169,6 +170,14 @@ export function validateGitHubBranchProtection({
       checks,
       contexts.includes(context),
       `${branch} requires ${context}`,
+      contexts.join(", ") || "<none>",
+    );
+  }
+  for (const context of forbiddenContexts) {
+    requireCheck(
+      checks,
+      !contexts.includes(context),
+      `${branch} does not require ${context}`,
       contexts.join(", ") || "<none>",
     );
   }
@@ -376,6 +385,7 @@ async function main() {
           PRODUCTION_BRANCH,
         ),
         requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
+        forbiddenContexts: ["e2e-smoke-gate"],
       }),
     );
     checks.push(
@@ -383,7 +393,8 @@ async function main() {
         branch: STAGING_BRANCH,
         protection: readGitHubProtection(args.repo, STAGING_BRANCH),
         branchRule: readGitHubBranchProtectionRule(args.repo, STAGING_BRANCH),
-        requiredContexts: ["ci-gate", "integration-gate"],
+        requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
+        forbiddenContexts: ["e2e-gate"],
       }),
     );
 
