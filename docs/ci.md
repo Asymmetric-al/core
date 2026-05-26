@@ -8,12 +8,13 @@ Two workflow files run on every PR to `develop` and `epic`, and on every push to
 | Workflow          | File                                   | Branches                          | Jobs                                            | Target time               |
 | ----------------- | -------------------------------------- | --------------------------------- | ----------------------------------------------- | ------------------------- |
 | Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `epic` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `epic` | `migrate → smoke → test-e2e`                    | ~5 min                    |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `epic` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
 
 Current workflow semantics:
 
 - `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `epic`).
 - `ci-integration.yml` runs on the same active long-lived branches.
+- `test-e2e-smoke` is **blocking on `develop`** through `e2e-smoke-gate` and `integration-gate`.
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
 - `test-e2e` is enforced on `epic` through the workflow's `e2e-gate`, and
   branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
@@ -42,6 +43,10 @@ bun run ci:preflight
 9. `typecheck`
 10. `build` (with CI-compatible env defaults for local parity)
 11. `test:unit`
+
+Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
+`tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
+`tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` (app unit smoke paths).
 
 This command is wired into `.husky/pre-push` so pushes fail fast when a blocking CI gate would fail in GitHub.
 
@@ -203,6 +208,14 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
 - _Why it matters:_ Verifies the app boots without a crash — catches missing imports, broken middleware, and startup-time errors that build alone cannot catch.
 - _Debug locally:_ Run `bun run test:e2e` (default CI-equivalent env) or `bun run dev:donor` with real `.env.local` values, then `curl http://localhost:3005/api/health`. Expect `{"status":"ok","checks":{"supabase":"ok"},"observability":{"surface":"donor",...}}`; `observability.release` carries the commit/ref/environment metadata when the deployment provides it.
 
+### `test-e2e-smoke` (needs: `smoke`)
+
+- _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030 with `E2E_AUTH_BYPASS=true`, waits for both `/api/health` endpoints, and runs the bounded Playwright smoke suite via `bun run test:e2e:smoke` (demo auth preflight, usability smoke, donate, upload-crop under the donor-auth project, and Support Hub smoke). The job has a 25-minute cap, the Playwright smoke step has a 15-minute cap, and failures upload `playwright-smoke-report/`.
+- _Branch behavior:_ Blocking on `develop` through `e2e-smoke-gate` and `integration-gate`.
+- _Debug locally:_ Run `bun run test:e2e:smoke` after `bun run test:e2e:auth-preflight` with donor on port 3005.
+- _Coverage note:_ This bounded smoke gate is not the a11y, hydration, perf, or full auth signal. Run `bun run test:a11y`, `bun run test:perf`, or the broader `bun run test:e2e` when a change affects those contracts.
+- _Regression guards (unit):_ `tests/unit/scripts/ci-integration-workflow.contract.test.ts` locks `integration-gate` / `e2e-smoke-gate` / `e2e-gate` wiring; `tests/unit/e2e/e2e-flake-guards.test.ts` forbids `waitForTimeout` in `tests/e2e/**/*.spec.ts`; `tests/unit/scripts/ci-preflight.contract.test.ts` locks `ci:preflight` stage order; `tests/unit/scripts/local-gates.contract.test.ts` locks `bun run check`; `tests/unit/apps/donor-missionary-unit-smoke.contract.test.ts` keeps donor/missionary unit smoke coverage and API email mock posture.
+
 ### `test-e2e` (needs: `smoke`)
 
 - _What it does:_ Re-applies SQL migrations against a fresh Postgres container through `node scripts/verify/supabase-migrations.mjs`, runs Payload migrations + status checks, then applies seed data, starts `apps/donor` on port 3005 and `apps/admin` on port 3030, enables deterministic test auth mode (`E2E_AUTH_BYPASS=true`) for Playwright web servers, and sets `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` so Playwright reuses the already-started servers instead of trying to bind those ports again. It executes demo-auth preflight (`bun run test:e2e:auth-preflight`), then runs bounded production-release suites:
@@ -227,7 +240,7 @@ The workflow files are the source of truth for execution. Branch protection shou
 
 ### Required checks by branch
 
-- `develop`: `ci-gate` and `integration-gate` are enforced; `CI Integration / test-e2e` is visible but intentionally non-blocking.
+- `develop`: `ci-gate`, `integration-gate`, and `e2e-smoke-gate` are enforced; the full `CI Integration / test-e2e` job remains visible but intentionally non-blocking.
 - `epic`: `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
 - `main`: retired/protected historical branch only; do not treat it as production or staging in this repo.
 
@@ -237,7 +250,7 @@ The workflow files are the source of truth for execution. Branch protection shou
 2. Keep rules for `epic` and `develop`.
 3. Enable **Require status checks to pass before merging**.
 4. Require `ci-gate`, `integration-gate`, and `e2e-gate` on `epic`.
-5. Require `ci-gate` and `integration-gate` on `develop`.
+5. Require `ci-gate`, `integration-gate`, and `e2e-smoke-gate` on `develop`.
 6. Disable force pushes on both branches.
 7. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
 

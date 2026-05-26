@@ -15,8 +15,8 @@ is not a deploy target.
       `bun run verify:deployment-discipline`
 - [ ] Monorepo build-control verifier passes:
       `bun run verify:vercel-build-controls`
-- [ ] GitHub branch protection requires `ci-gate` on `epic`; `ci-gate` and
-      `integration-gate` on `develop`
+- [ ] GitHub branch protection requires `ci-gate` on `epic`; `ci-gate`,
+      `integration-gate`, and `e2e-smoke-gate` on `develop`
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
 - [ ] Migrations tested on staging first
 - [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
