@@ -240,13 +240,13 @@ afterEach(async () => {
 });
 
 describe("verify-workspace-contract", () => {
-  it("allows the explicitly vendored native PDF package tarballs", async () => {
+  it("allows the explicitly vendored native PDF package directories", async () => {
     const tempRoot = await createWorkspaceContractRepo();
     await writeJson(path.join(tempRoot, "apps/demo/package.json"), {
       name: "@asym/demo",
       dependencies: {
         "@asym/pdf-editor":
-          "file:../../vendor/react-pdf-packages/asym-pdf-editor-0.0.0.tgz",
+          "file:../../vendor/react-pdf-packages/asym-pdf-editor",
         "@asym/ui": "workspace:*",
       },
     });
@@ -254,7 +254,7 @@ describe("verify-workspace-contract", () => {
       name: "@asym/lib",
       dependencies: {
         "@asym/docraptor-client":
-          "file:../../vendor/react-pdf-packages/asym-docraptor-client-0.0.0.tgz",
+          "file:../../vendor/react-pdf-packages/asym-docraptor-client",
       },
     });
 
@@ -274,7 +274,7 @@ describe("verify-workspace-contract", () => {
 
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-workspace-contract.mjs"),
-    ).toThrow(/approved vendored tarball/);
+    ).toThrow(/approved vendored package directory/);
   });
 
   it("ignores commented route segment config exports", async () => {
