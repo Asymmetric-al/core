@@ -36,12 +36,16 @@ export interface AdminContributionsFilters {
   sources: string[];
   fundIds: string[];
   missionaryIds: string[];
+  projectIds: string[];
+  batchIds: string[];
   receiptStatuses: ContributionReceiptStatus[];
+  refundStatuses: string[];
   anonymousOnly: boolean;
   dateFrom: string | null;
   dateTo: string | null;
   amountMin: number | null;
   amountMax: number | null;
+  paymentLast4: string | null;
 }
 
 export interface AdminContributionsParams {
@@ -195,15 +199,19 @@ export function parseAdminContributionsParams(
       sources: getNormalizedValues(searchParams, "source"),
       fundIds: getNormalizedValues(searchParams, "fundId"),
       missionaryIds: getNormalizedValues(searchParams, "missionaryId"),
+      projectIds: getNormalizedValues(searchParams, "projectId"),
+      batchIds: getNormalizedValues(searchParams, "batchId"),
       receiptStatuses: getNormalizedValues(
         searchParams,
         "receiptStatus",
       ).filter(isReceiptStatus),
+      refundStatuses: getNormalizedValues(searchParams, "refundStatus"),
       anonymousOnly: parseBoolean(searchParams.get("anonymousOnly")),
       dateFrom: searchParams.get("dateFrom")?.trim() || null,
       dateTo: searchParams.get("dateTo")?.trim() || null,
       amountMin: parseNumber(searchParams.get("amountMin")),
       amountMax: parseNumber(searchParams.get("amountMax")),
+      paymentLast4: searchParams.get("last4")?.trim() || null,
     },
   };
 }

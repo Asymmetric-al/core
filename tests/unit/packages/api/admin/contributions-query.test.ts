@@ -28,6 +28,10 @@ describe("api/admin/contributions/query", () => {
       dateTo: null,
       amountMin: null,
       amountMax: null,
+      batchIds: [],
+      projectIds: [],
+      refundStatuses: [],
+      paymentLast4: null,
     });
   });
 
@@ -50,6 +54,10 @@ describe("api/admin/contributions/query", () => {
       ["dateTo", "2026-01-31"],
       ["amountMin", "50"],
       ["amountMax", "1000"],
+      ["refundStatus", "refunded,partial"],
+      ["batchId", "batch-1"],
+      ["projectId", "project-1"],
+      ["last4", " 4242 "],
     ]);
 
     const params = parseAdminContributionsParams(searchParams);
@@ -73,6 +81,10 @@ describe("api/admin/contributions/query", () => {
       dateTo: "2026-01-31",
       amountMin: 50,
       amountMax: 1000,
+      batchIds: ["batch-1"],
+      projectIds: ["project-1"],
+      refundStatuses: ["refunded", "partial"],
+      paymentLast4: "4242",
     });
   });
 

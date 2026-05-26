@@ -122,7 +122,7 @@ async function resolveMatchingDonorIds(
       .select("id, profile_id")
       .eq("tenant_id", tenantId)
       .or(
-        `name.ilike.%${term}%,email.ilike.%${term}%,organization.ilike.%${term}%`,
+        `name.ilike.%${term}%,email.ilike.%${term}%,organization.ilike.%${term}%,phone.ilike.%${term}%,mobile.ilike.%${term}%,location.ilike.%${term}%`,
       )
       .limit(200),
     supabaseAdmin
@@ -204,6 +204,19 @@ function applyBaseFilters(
 
   if (filters.missionaryIds.length > 0) {
     query = query.in("missionary_id", filters.missionaryIds);
+  }
+
+  if (filters.refundStatuses.length > 0) {
+    const statuses = new Set(filters.refundStatuses);
+    if (statuses.has("refunded") && !statuses.has("partial")) {
+      query = query.gt("refund_amount", 0).eq("status", "refunded");
+    } else if (statuses.has("partial") && !statuses.has("refunded")) {
+      query = query.gt("refund_amount", 0).neq("status", "refunded");
+    } else if (statuses.has("none") && statuses.size === 1) {
+      query = query.eq("refund_amount", 0);
+    } else if (!statuses.has("refunded") && !statuses.has("partial")) {
+      query = query.eq("id", "__no_refund_match__");
+    }
   }
 
   if (filters.dateFrom) {
