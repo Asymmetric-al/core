@@ -120,5 +120,5 @@
 - [x] 10.5 Add immediate/background execution mode selection
 - [x] 10.6 Add per-record result and CSV export support
 - [x] 10.7 Add important-failure task bridge
-- [ ] 10.8 Wire Contribution Hub bulk actions to batch API
+- [x] 10.8 Wire Contribution Hub bulk actions to batch API
 - [x] 10.9 Verify targeted batch tests and checks

@@ -144,8 +144,56 @@ export function ContributionsMainBody({
     toast.info("Bulk delete coming soon.");
   };
 
-  const handleBulkReceipt = (_rows: Contribution[]) => {
-    toast.info("Send receipts coming soon.");
+  const handleBulkReceipt = async (rows: Contribution[]) => {
+    if (rows.length === 0) {
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Send receipts for ${rows.length} selected contribution${rows.length === 1 ? "" : "s"}?`,
+    );
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      const response = await fetch("/api/admin/contribution-batches", {
+        body: JSON.stringify({
+          actionType: "resend_receipt",
+          confirmationToken: crypto.randomUUID(),
+          records: rows.map((row) => ({
+            id: row.id,
+            receiptStatus: row.receiptStatus,
+            stagedGiftId: row.stagedGiftId,
+          })),
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
+        method: "POST",
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(body?.error ?? "Bulk receipt send failed.");
+      }
+      const body = (await response.json()) as {
+        batch?: {
+          status?: string;
+          summary?: { succeeded?: number; failed?: number };
+        };
+      };
+      toast.success(
+        `Bulk receipt batch ${body.batch?.status ?? "completed"}: ${body.batch?.summary?.succeeded ?? 0} succeeded, ${body.batch?.summary?.failed ?? 0} failed.`,
+      );
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not send receipts in bulk.",
+      );
+    }
   };
 
   return (
