@@ -38,6 +38,7 @@
     "./admin/contributions/types": "./src/admin/contributions/types.ts",
     "./admin/contribution-operations": "./src/admin/contribution-operations/index.ts",
     "./admin/contribution-operations/route": "./src/admin/contribution-operations/route.ts",
+    "./admin/mission-control-tasks": "./src/admin/mission-control-tasks/index.ts",
     "./crm": "./src/crm/index.ts",
     "./admin/crm": "./src/admin/crm/index.ts",
     "./admin/crm/gateway": "./src/admin/crm/gateway.ts",

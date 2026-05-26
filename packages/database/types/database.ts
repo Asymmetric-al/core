@@ -435,6 +435,82 @@ export interface ContributionNotificationEvent {
   sent_at: string | null;
 }
 
+export type MissionControlTaskStatus =
+  | "open"
+  | "in_progress"
+  | "completed"
+  | "dismissed"
+  | "suppressed";
+export type MissionControlTaskUrgency = "normal" | "high" | "critical";
+export type MissionControlAttentionStatus =
+  | "open"
+  | "resolved"
+  | "dismissed"
+  | "suppressed";
+
+export interface MissionControlQueue {
+  id: string;
+  tenant_id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MissionControlTask {
+  id: string;
+  tenant_id: string;
+  title: string;
+  description: string | null;
+  status: MissionControlTaskStatus;
+  urgency: MissionControlTaskUrgency;
+  queue_id: string | null;
+  assignee_profile_id: string | null;
+  source_module: string;
+  issue_type: string;
+  created_by_profile_id: string | null;
+  created_by_kind: "human" | "system";
+  due_at: string | null;
+  completed_at: string | null;
+  dismissed_at: string | null;
+  dismissed_reason: string | null;
+  suppressed_at: string | null;
+  suppressed_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MissionControlTaskLink {
+  id: string;
+  tenant_id: string;
+  task_id: string;
+  record_type: string;
+  record_id: string;
+  relationship: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface MissionControlAttentionItem {
+  id: string;
+  tenant_id: string;
+  dedupe_key: string;
+  issue_type: string;
+  urgency: MissionControlTaskUrgency;
+  status: MissionControlAttentionStatus;
+  task_id: string | null;
+  summary: string;
+  details: Record<string, unknown>;
+  first_seen_at: string;
+  last_seen_at: string;
+  resolved_at: string | null;
+  dismissed_at: string | null;
+  suppressed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Campaign {
   id: string;
   tenant_id: string;

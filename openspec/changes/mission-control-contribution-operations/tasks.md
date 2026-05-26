@@ -87,11 +87,11 @@
 
 - [x] 8.1 Add PRD 3 documentation under
       `docs/prds/mission-control-contribution-operations/`
-- [ ] 8.2 Add shared task and queue schema
-- [ ] 8.3 Add task creation, lifecycle, comments, reminders, and link services
-- [ ] 8.4 Add assignment policy for actor-only, queue-only, and both
-- [ ] 8.5 Add urgency rules, aging thresholds, and override audit
+- [x] 8.2 Add shared task and queue schema
+- [x] 8.3 Add task creation, lifecycle, comments, reminders, and link services
+- [x] 8.4 Add assignment policy for actor-only, queue-only, and both
+- [x] 8.5 Add urgency rules, aging thresholds, and override audit
 - [ ] 8.6 Add Contribution Hub Needs Attention read model
-- [ ] 8.7 Integrate PRD2 notification failure task bridge with shared tasks
+- [x] 8.7 Integrate PRD2 notification failure task bridge with shared tasks
 - [ ] 8.8 Refactor/admin-wire task UI entry points to shared model
 - [ ] 8.9 Verify targeted task and Needs Attention tests

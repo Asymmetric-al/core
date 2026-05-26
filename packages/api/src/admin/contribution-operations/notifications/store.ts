@@ -6,6 +6,7 @@ import {
   listEmailTemplateVersions,
   readEmailTemplate,
 } from "../../../email/template-store";
+import { createMissionControlTaskInSupabase } from "../../mission-control-tasks/store";
 
 import type { ContributionDetail } from "../detail-read-model";
 import type {
@@ -214,6 +215,37 @@ export async function sendContributionCorrectionNotificationFromSupabase(input: 
           supabaseAdmin: input.supabaseAdmin,
           event,
         }),
+      createFollowUpTask: async (taskInput) => {
+        const result = await createMissionControlTaskInSupabase({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          title: "Resolve blocked donor correction notification",
+          description: taskInput.reason,
+          issueType: "donor_notification_failed",
+          actorProfileId: taskInput.actorProfileId,
+          assignmentMode: taskInput.assignmentMode,
+          linkedRecords: [
+            {
+              type: "donor",
+              id: taskInput.recipientDonorId,
+            },
+            {
+              type: "audit_event",
+              id: taskInput.operationAuditEventId,
+            },
+            ...(taskInput.correctionId
+              ? [
+                  {
+                    type: "notification_event" as const,
+                    id: taskInput.correctionId,
+                  },
+                ]
+              : []),
+          ],
+        });
+
+        return [result.taskId];
+      },
     },
   });
 }
