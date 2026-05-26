@@ -190,7 +190,7 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This repo uses **Bun** (see root `package.json` `packageManager`, currently **1.3.x**). Prefer `bun` / `bunx` for scripts in this workspace.
+This repo uses **Bun** pinned in root `package.json` `packageManager` (currently **1.3.14**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`.
 
 ### Monorepo Workspace Contract
 
