@@ -29,6 +29,20 @@ const conditionSchema = z.discriminatedUnion("kind", [
 const actionSchema = z.discriminatedUnion("kind", [
   z.object({ kind: z.literal("create_task"), issueType: issueTypeSchema }),
   z.object({
+    kind: z.literal("contribution_action"),
+    actionType: z.enum([
+      "resend_receipt",
+      "crm_repost",
+      "refund",
+      "donor_relink",
+      "amount_correction",
+      "designation_correction",
+      "fund_correction",
+      "payment_state_correction",
+      "stripe_replay",
+    ]),
+  }),
+  z.object({
     kind: z.literal("send_donor_notification"),
     actionType: z.enum([
       "refund",

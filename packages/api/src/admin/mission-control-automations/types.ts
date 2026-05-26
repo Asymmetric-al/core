@@ -14,6 +14,7 @@ export type AutomationCondition =
 
 export type AutomationAction =
   | { kind: "create_task"; issueType: MissionControlIssueType }
+  | { kind: "contribution_action"; actionType: ContributionActionType }
   | { kind: "send_donor_notification"; actionType: ContributionActionType };
 
 export interface AutomationRule {

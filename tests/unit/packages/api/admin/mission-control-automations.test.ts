@@ -110,7 +110,7 @@ describe("mission control automation preview and evaluation", () => {
     expect(preview.proposedChanges[0]).toEqual(
       expect.objectContaining({
         recordId: "record_1",
-        action: "create_task",
+        action: "mission_control_tasks",
       }),
     );
     expect(fetchCandidates).toHaveBeenCalled();
@@ -166,11 +166,38 @@ describe("mission control automation preview and evaluation", () => {
     });
 
     expect(result.plannedActions).toEqual([
-      {
-        kind: "send_donor_notification",
-        via: "email_studio",
-        actionType: "refund",
+      expect.objectContaining({
+        service: "email_studio_notifications",
+        method: "sendContributionCorrectionNotification",
+      }),
+    ]);
+  });
+
+  it("plans contribution actions through the shared contribution service", () => {
+    const result = evaluateAutomationRule({
+      rule: {
+        id: "rule_1",
+        name: "Refund review",
+        mode: "advanced",
+        trigger: { kind: "contribution_action_completed" },
+        conditions: [],
+        actions: [
+          {
+            kind: "contribution_action",
+            actionType: "refund",
+          },
+        ],
+        runMode: "review_first",
+        enabled: true,
       },
+      record: { id: "donation_1", issueType: "refund" },
+    });
+
+    expect(result.plannedActions).toEqual([
+      expect.objectContaining({
+        service: "contribution_operations",
+        method: "executeContributionAction",
+      }),
     ]);
   });
 

@@ -28,9 +28,15 @@ export async function createAutomationPreview(input: {
 
     matchedRecords.push({ id: record.id });
     for (const action of evaluation.plannedActions) {
+      const actionName =
+        "kind" in action && typeof action.kind === "string"
+          ? action.kind
+          : "service" in action && typeof action.service === "string"
+            ? action.service
+            : "unknown";
       proposedChanges.push({
         recordId: record.id,
-        action: action.kind,
+        action: actionName,
         details: action,
       });
     }

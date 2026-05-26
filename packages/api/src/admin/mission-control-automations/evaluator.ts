@@ -1,3 +1,9 @@
+import {
+  planContributionAutomationAction,
+  planDonorNotificationAutomationAction,
+  planTaskAutomationAction,
+} from "./adapters";
+
 import type { AutomationRecord, AutomationRule } from "./types";
 
 function conditionMatches(
@@ -31,15 +37,24 @@ export function evaluateAutomationRule(input: {
   return {
     matches: true,
     plannedActions: input.rule.actions.map((action) => {
-      if (action.kind === "send_donor_notification") {
-        return {
-          kind: action.kind,
-          via: "email_studio" as const,
+      if (action.kind === "contribution_action") {
+        return planContributionAutomationAction({
           actionType: action.actionType,
-        };
+          contributionId: input.record.id,
+        });
       }
 
-      return action;
+      if (action.kind === "send_donor_notification") {
+        return planDonorNotificationAutomationAction({
+          actionType: action.actionType,
+          contributionId: input.record.id,
+        });
+      }
+
+      return planTaskAutomationAction({
+        issueType: action.issueType,
+        contributionId: input.record.id,
+      });
     }),
   };
 }
