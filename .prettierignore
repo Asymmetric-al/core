@@ -52,3 +52,6 @@ vendor/payload-upstream
 # keep command docs but skip bundled skill libraries
 .cursor/skills
 .cursor/mcp.json
+
+# Local Supabase CLI temp state
+supabase/.temp/

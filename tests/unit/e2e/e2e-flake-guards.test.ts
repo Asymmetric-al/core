@@ -5,18 +5,18 @@ import { describe, expect, it } from "vitest";
 
 const E2E_ROOT = path.join(process.cwd(), "tests", "e2e");
 
-function listSpecFiles(directory: string): string[] {
+function listE2eTypeScriptFiles(directory: string): string[] {
   const entries = readdirSync(directory, { withFileTypes: true });
   const files: string[] = [];
 
   for (const entry of entries) {
     const fullPath = path.join(directory, entry.name);
     if (entry.isDirectory()) {
-      files.push(...listSpecFiles(fullPath));
+      files.push(...listE2eTypeScriptFiles(fullPath));
       continue;
     }
 
-    if (entry.isFile() && entry.name.endsWith(".spec.ts")) {
+    if (entry.isFile() && entry.name.endsWith(".ts")) {
       files.push(fullPath);
     }
   }
@@ -25,10 +25,10 @@ function listSpecFiles(directory: string): string[] {
 }
 
 describe("e2e flake guards", () => {
-  it("avoids fixed sleep waits in Playwright specs", () => {
+  it("avoids fixed sleep waits in Playwright e2e files", () => {
     const offenders: string[] = [];
 
-    for (const filePath of listSpecFiles(E2E_ROOT)) {
+    for (const filePath of listE2eTypeScriptFiles(E2E_ROOT)) {
       const contents = readFileSync(filePath, "utf8");
       if (contents.includes("waitForTimeout(")) {
         offenders.push(path.relative(process.cwd(), filePath));

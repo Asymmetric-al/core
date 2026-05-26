@@ -54,6 +54,21 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
   `bun run test:perf`) remain useful for feature work, but do not replace the
   required gate jobs in branch protection.
 
+## Development deployment smoke
+
+- A separate headless smoke suite targets the live development hosts
+  (`development-admin` / `development-donor` / `development-missionary`).
+- Config: `playwright.development-smoke.config.ts`. Specs:
+  `tests/e2e/development-smoke/*.spec.ts`.
+- Run with committed package scripts after exporting local-only secrets:
+  `bun run test:e2e:development-smoke[:admin|:donor|:missionary]`.
+- Uses Vercel Protection Bypass for Automation via **headers**
+  (`x-vercel-protection-bypass`, `x-vercel-set-bypass-cookie`), never query
+  params. Secrets live in `.claude/settings.local.json` (gitignored). Do not
+  commit secrets and do not put bypass tokens in URLs, scripts, or CI logs.
+- This is a **smoke** suite, not regression coverage, and is not required for
+  branch protection. See `docs/qa/development-headless-smoke.md` for details.
+
 ## Workflow
 
 1. Decide the test scope (unit, e2e, a11y, perf, or specific user flow).
