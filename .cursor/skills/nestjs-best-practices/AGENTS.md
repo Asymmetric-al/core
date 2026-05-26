@@ -67,10 +67,9 @@ Comprehensive best practices and architecture guide for NestJS applications, des
    - 9.2 [Use Message and Event Patterns Correctly](#92-use-message-and-event-patterns-correctly)
    - 9.3 [Use Message Queues for Background Jobs](#93-use-message-queues-for-background-jobs)
 10. [DevOps & Deployment](#10-devops-deployment) — **LOW-MEDIUM**
-
-- 10.1 [Implement Graceful Shutdown](#101-implement-graceful-shutdown)
-- 10.2 [Use ConfigModule for Environment Configuration](#102-use-configmodule-for-environment-configuration)
-- 10.3 [Use Structured Logging](#103-use-structured-logging)
+   - 10.1 [Implement Graceful Shutdown](#101-implement-graceful-shutdown)
+   - 10.2 [Use ConfigModule for Environment Configuration](#102-use-configmodule-for-environment-configuration)
+   - 10.3 [Use Structured Logging](#103-use-structured-logging)
 
 ---
 
@@ -137,7 +136,7 @@ export class UsersService {
 
   async createUser(data: CreateUserDto) {
     const user = await this.userRepo.save(data);
-    this.eventEmitter.emit("user.created", user);
+    this.eventEmitter.emit('user.created', user);
     return user;
   }
 }
@@ -145,7 +144,7 @@ export class UsersService {
 // orders.service.ts
 @Injectable()
 export class OrdersService {
-  @OnEvent("user.created")
+  @OnEvent('user.created')
   handleUserCreated(user: User) {
     // React to user creation without direct dependency
   }
@@ -457,7 +456,7 @@ export class OrderStatsService {
 }
 
 // Orchestration in controller or dedicated orchestrator
-@Controller("orders")
+@Controller('orders')
 export class OrdersController {
   constructor(
     private orders: OrdersService,
@@ -505,8 +504,8 @@ export class OrdersService {
     // Tight coupling - OrdersService knows about all consumers
     await this.inventoryService.reserve(order.items);
     await this.emailService.sendConfirmation(order);
-    await this.analyticsService.track("order_created", order);
-    await this.notificationService.push(order.userId, "Order placed");
+    await this.analyticsService.track('order_created', order);
+    await this.notificationService.push(order.userId, 'Order placed');
     await this.loyaltyService.addPoints(order.userId, order.total);
 
     // Adding new behavior requires modifying this service
@@ -519,7 +518,7 @@ export class OrdersService {
 
 ```typescript
 // Use EventEmitter for decoupling
-import { EventEmitter2 } from "@nestjs/event-emitter";
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 // Define event
 export class OrderCreatedEvent {
@@ -544,7 +543,7 @@ export class OrdersService {
 
     // Emit event - no knowledge of consumers
     this.eventEmitter.emit(
-      "order.created",
+      'order.created',
       new OrderCreatedEvent(order.id, order.userId, order.items, order.total),
     );
 
@@ -555,7 +554,7 @@ export class OrdersService {
 // Listeners in separate modules
 @Injectable()
 export class InventoryListener {
-  @OnEvent("order.created")
+  @OnEvent('order.created')
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
     await this.inventoryService.reserve(event.items);
   }
@@ -563,7 +562,7 @@ export class InventoryListener {
 
 @Injectable()
 export class EmailListener {
-  @OnEvent("order.created")
+  @OnEvent('order.created')
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
     await this.emailService.sendConfirmation(event.orderId);
   }
@@ -571,9 +570,9 @@ export class EmailListener {
 
 @Injectable()
 export class AnalyticsListener {
-  @OnEvent("order.created")
+  @OnEvent('order.created')
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
-    await this.analyticsService.track("order_created", {
+    await this.analyticsService.track('order_created', {
       orderId: event.orderId,
       total: event.total,
     });
@@ -597,18 +596,20 @@ Create custom repositories to encapsulate complex queries and database logic. Th
 // Complex queries in services
 @Injectable()
 export class UsersService {
-  constructor(@InjectRepository(User) private repo: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private repo: Repository<User>,
+  ) {}
 
   async findActiveWithOrders(minOrders: number): Promise<User[]> {
     // Complex query logic mixed with business logic
     return this.repo
-      .createQueryBuilder("user")
-      .leftJoinAndSelect("user.orders", "order")
-      .where("user.isActive = :active", { active: true })
-      .andWhere("user.deletedAt IS NULL")
-      .groupBy("user.id")
-      .having("COUNT(order.id) >= :min", { min: minOrders })
-      .orderBy("user.createdAt", "DESC")
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.orders', 'order')
+      .where('user.isActive = :active', { active: true })
+      .andWhere('user.deletedAt IS NULL')
+      .groupBy('user.id')
+      .having('COUNT(order.id) >= :min', { min: minOrders })
+      .orderBy('user.createdAt', 'DESC')
       .getMany();
   }
 
@@ -622,7 +623,9 @@ export class UsersService {
 // Custom repository with encapsulated queries
 @Injectable()
 export class UsersRepository {
-  constructor(@InjectRepository(User) private repo: Repository<User>) {}
+  constructor(
+    @InjectRepository(User) private repo: Repository<User>,
+  ) {}
 
   async findById(id: string): Promise<User | null> {
     return this.repo.findOne({ where: { id } });
@@ -634,13 +637,13 @@ export class UsersRepository {
 
   async findActiveWithMinOrders(minOrders: number): Promise<User[]> {
     return this.repo
-      .createQueryBuilder("user")
-      .leftJoinAndSelect("user.orders", "order")
-      .where("user.isActive = :active", { active: true })
-      .andWhere("user.deletedAt IS NULL")
-      .groupBy("user.id")
-      .having("COUNT(order.id) >= :min", { min: minOrders })
-      .orderBy("user.createdAt", "DESC")
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.orders', 'order')
+      .where('user.isActive = :active', { active: true })
+      .andWhere('user.deletedAt IS NULL')
+      .groupBy('user.id')
+      .having('COUNT(order.id) >= :min', { min: minOrders })
+      .orderBy('user.createdAt', 'DESC')
       .getMany();
   }
 
@@ -661,7 +664,7 @@ export class UsersService {
   async create(dto: CreateUserDto): Promise<User> {
     const existing = await this.usersRepo.findByEmail(dto.email);
     if (existing) {
-      throw new ConflictException("Email already registered");
+      throw new ConflictException('Email already registered');
     }
 
     const user = new User();
@@ -743,7 +746,7 @@ export class OrdersService {
 }
 
 // Easy to test with mocks
-describe("OrdersService", () => {
+describe('OrdersService', () => {
   let service: OrdersService;
 
   beforeEach(async () => {
@@ -767,9 +770,9 @@ export class HandlerFactory {
 
   getHandler(type: string): Handler {
     switch (type) {
-      case "email":
+      case 'email':
         return this.moduleRef.get(EmailHandler);
-      case "sms":
+      case 'sms':
         return this.moduleRef.get(SmsHandler);
       default:
         return this.moduleRef.get(DefaultHandler);
@@ -813,7 +816,7 @@ export class OrdersService {
   async confirmOrder(order: Order): Promise<void> {
     await this.notifications.sendEmail(
       order.customer.email,
-      "Order Confirmed",
+      'Order Confirmed',
       `Your order ${order.id} has been confirmed.`,
     );
   }
@@ -822,12 +825,12 @@ export class OrdersService {
 // Testing is painful - must mock unused methods
 const mockNotificationService = {
   sendEmail: jest.fn(),
-  sendSms: jest.fn(), // Never used, but required
-  sendPush: jest.fn(), // Never used, but required
-  sendSlack: jest.fn(), // Never used, but required
-  logNotification: jest.fn(), // Never used, but required
+  sendSms: jest.fn(),           // Never used, but required
+  sendPush: jest.fn(),          // Never used, but required
+  sendSlack: jest.fn(),         // Never used, but required
+  logNotification: jest.fn(),   // Never used, but required
   getDeliveryStatus: jest.fn(), // Never used, but required
-  retryFailed: jest.fn(), // Never used, but required
+  retryFailed: jest.fn(),       // Never used, but required
   scheduleNotification: jest.fn(), // Never used, but required
 };
 ```
@@ -874,9 +877,9 @@ export class NotificationService implements EmailSender, SmsSender, PushSender {
 
 // Or separate implementations
 @Injectable()
-export class ResendEmailService implements EmailSender {
+export class SendGridEmailService implements EmailSender {
   async sendEmail(to: string, subject: string, body: string): Promise<void> {
-    // Resend-specific implementation
+    // SendGrid-specific implementation
   }
 }
 
@@ -890,7 +893,7 @@ export class OrdersService {
   async confirmOrder(order: Order): Promise<void> {
     await this.emailSender.sendEmail(
       order.customer.email,
-      "Order Confirmed",
+      'Order Confirmed',
       `Your order ${order.id} has been confirmed.`,
     );
   }
@@ -902,12 +905,12 @@ const mockEmailSender: EmailSender = {
 };
 
 // Module registration with tokens
-export const EMAIL_SENDER = Symbol("EMAIL_SENDER");
-export const SMS_SENDER = Symbol("SMS_SENDER");
+export const EMAIL_SENDER = Symbol('EMAIL_SENDER');
+export const SMS_SENDER = Symbol('SMS_SENDER');
 
 @Module({
   providers: [
-    { provide: EMAIL_SENDER, useClass: ResendEmailService },
+    { provide: EMAIL_SENDER, useClass: SendGridEmailService },
     { provide: SMS_SENDER, useClass: TwilioSmsService },
   ],
   exports: [EMAIL_SENDER, SMS_SENDER],
@@ -934,7 +937,7 @@ export class AlertService {
 
   async sendCriticalAlert(user: User, message: string): Promise<void> {
     await Promise.all([
-      this.sender.sendEmail(user.email, "Critical Alert", message),
+      this.sender.sendEmail(user.email, 'Critical Alert', message),
       this.sender.sendSms(user.phone, message),
     ]);
   }
@@ -979,11 +982,11 @@ export class MockPaymentService implements PaymentGateway {
   async charge(amount: number, currency: string): Promise<PaymentResult> {
     // VIOLATION 1: Throws for valid input (contract says return PaymentResult)
     if (amount > 1000) {
-      throw new Error("Mock does not support large amounts");
+      throw new Error('Mock does not support large amounts');
     }
 
     // VIOLATION 2: Returns null instead of PaymentResult
-    if (currency !== "USD") {
+    if (currency !== 'USD') {
       return null as any; // Real service would convert or reject properly
     }
 
@@ -1040,7 +1043,7 @@ export class StripeService implements PaymentGateway {
         amount: response.amount,
       };
     } catch (error) {
-      if (error.type === "card_error") {
+      if (error.type === 'card_error') {
         throw new PaymentFailedException(error.message);
       }
       throw error;
@@ -1059,13 +1062,13 @@ export class MockPaymentService implements PaymentGateway {
 
   async charge(amount: number, currency: string): Promise<PaymentResult> {
     // Honor the contract: validate currency like real service would
-    if (!["USD", "EUR", "GBP"].includes(currency)) {
+    if (!['USD', 'EUR', 'GBP'].includes(currency)) {
       throw new InvalidCurrencyException(`Unsupported currency: ${currency}`);
     }
 
     // Simulate decline for specific test scenarios
     if (amount === 99999) {
-      throw new PaymentFailedException("Card declined (test scenario)");
+      throw new PaymentFailedException('Card declined (test scenario)');
     }
 
     // Return same shape as production
@@ -1103,11 +1106,11 @@ export class OrdersService {
       const result = await this.payment.charge(order.total, order.currency);
       // Works with both StripeService and MockPaymentService
       order.transactionId = result.transactionId;
-      order.status = "paid";
+      order.status = 'paid';
       return order;
     } catch (error) {
       if (error instanceof PaymentFailedException) {
-        order.status = "payment_failed";
+        order.status = 'payment_failed';
         return order;
       }
       throw error;
@@ -1120,42 +1123,42 @@ export class OrdersService {
 
 ```typescript
 // Shared test suite that any implementation must pass
-function testPaymentGatewayContract(createGateway: () => PaymentGateway) {
-  describe("PaymentGateway contract", () => {
+function testPaymentGatewayContract(
+  createGateway: () => PaymentGateway,
+) {
+  describe('PaymentGateway contract', () => {
     let gateway: PaymentGateway;
 
     beforeEach(() => {
       gateway = createGateway();
     });
 
-    it("returns PaymentResult with all required fields", async () => {
-      const result = await gateway.charge(1000, "USD");
-      expect(result).toHaveProperty("success");
-      expect(result).toHaveProperty("transactionId");
-      expect(result).toHaveProperty("amount");
-      expect(typeof result.transactionId).toBe("string");
+    it('returns PaymentResult with all required fields', async () => {
+      const result = await gateway.charge(1000, 'USD');
+      expect(result).toHaveProperty('success');
+      expect(result).toHaveProperty('transactionId');
+      expect(result).toHaveProperty('amount');
+      expect(typeof result.transactionId).toBe('string');
     });
 
-    it("throws InvalidCurrencyException for unsupported currency", async () => {
-      await expect(gateway.charge(1000, "INVALID")).rejects.toThrow(
-        InvalidCurrencyException,
-      );
+    it('throws InvalidCurrencyException for unsupported currency', async () => {
+      await expect(gateway.charge(1000, 'INVALID'))
+        .rejects.toThrow(InvalidCurrencyException);
     });
 
-    it("throws TransactionNotFoundException for invalid refund", async () => {
-      await expect(gateway.refund("nonexistent")).rejects.toThrow(
-        TransactionNotFoundException,
-      );
+    it('throws TransactionNotFoundException for invalid refund', async () => {
+      await expect(gateway.refund('nonexistent'))
+        .rejects.toThrow(TransactionNotFoundException);
     });
   });
 }
 
 // Run against all implementations
-describe("StripeService", () => {
+describe('StripeService', () => {
   testPaymentGatewayContract(() => new StripeService(mockStripeClient));
 });
 
-describe("MockPaymentService", () => {
+describe('MockPaymentService', () => {
   testPaymentGatewayContract(() => new MockPaymentService());
 });
 ```
@@ -1179,7 +1182,7 @@ export class UsersService {
   @Inject()
   private userRepo: UserRepository; // Hidden dependency
 
-  @Inject("CONFIG")
+  @Inject('CONFIG')
   private config: ConfigType; // Also hidden
 
   async findAll() {
@@ -1201,7 +1204,7 @@ export class UsersService {
 export class UsersService {
   constructor(
     private readonly userRepo: UserRepository,
-    @Inject("CONFIG") private readonly config: ConfigType,
+    @Inject('CONFIG') private readonly config: ConfigType,
   ) {}
 
   async findAll(): Promise<User[]> {
@@ -1210,7 +1213,7 @@ export class UsersService {
 }
 
 // Testing is straightforward
-describe("UsersService", () => {
+describe('UsersService', () => {
   let service: UsersService;
   let mockRepo: jest.Mocked<UserRepository>;
 
@@ -1220,11 +1223,11 @@ describe("UsersService", () => {
       save: jest.fn(),
     } as any;
 
-    service = new UsersService(mockRepo, { dbUrl: "test" });
+    service = new UsersService(mockRepo, { dbUrl: 'test' });
   });
 
-  it("should find all users", async () => {
-    mockRepo.find.mockResolvedValue([{ id: "1", name: "Test" }]);
+  it('should find all users', async () => {
+    mockRepo.find.mockResolvedValue([{ id: '1', name: 'Test' }]);
     const result = await service.findAll();
     expect(result).toHaveLength(1);
   });
@@ -1234,12 +1237,12 @@ describe("UsersService", () => {
 @Injectable()
 export class LoggingService {
   @Optional()
-  @Inject("ANALYTICS")
+  @Inject('ANALYTICS')
   private analytics?: AnalyticsService;
 
   log(message: string) {
     console.log(message);
-    this.analytics?.track("log", message); // Optional enhancement
+    this.analytics?.track('log', message); // Optional enhancement
   }
 }
 ```
@@ -1310,8 +1313,8 @@ export class RequestContextService {
 }
 
 // Better: Use NestJS built-in request context
-import { REQUEST } from "@nestjs/core";
-import { Request } from "express";
+import { REQUEST } from '@nestjs/core';
+import { Request } from 'express';
 
 @Injectable({ scope: Scope.REQUEST })
 export class AuditService {
@@ -1323,14 +1326,14 @@ export class AuditService {
 }
 
 // Best: Use ClsModule for async context (no scope bubble-up)
-import { ClsService } from "nestjs-cls";
+import { ClsService } from 'nestjs-cls';
 
 @Injectable() // Stays singleton!
 export class AuditService {
   constructor(private cls: ClsService) {}
 
   log(action: string) {
-    const userId = this.cls.get("userId");
+    const userId = this.cls.get('userId');
     console.log(`User ${userId} performed ${action}`);
   }
 }
@@ -1356,9 +1359,7 @@ interface PaymentGateway {
 
 @Injectable()
 export class StripeService implements PaymentGateway {
-  charge(amount: number) {
-    /* ... */
-  }
+  charge(amount: number) { /* ... */ }
 }
 
 @Injectable()
@@ -1372,7 +1373,7 @@ export class OrdersService {
 
 ```typescript
 // Option 1: String/Symbol tokens (most flexible)
-export const PAYMENT_GATEWAY = Symbol("PAYMENT_GATEWAY");
+export const PAYMENT_GATEWAY = Symbol('PAYMENT_GATEWAY');
 
 export interface PaymentGateway {
   charge(amount: number): Promise<PaymentResult>;
@@ -1388,7 +1389,7 @@ export class StripeService implements PaymentGateway {
 @Injectable()
 export class MockPaymentService implements PaymentGateway {
   async charge(amount: number): Promise<PaymentResult> {
-    return { success: true, id: "mock-id" };
+    return { success: true, id: 'mock-id' };
   }
 }
 
@@ -1397,8 +1398,9 @@ export class MockPaymentService implements PaymentGateway {
   providers: [
     {
       provide: PAYMENT_GATEWAY,
-      useClass:
-        process.env.NODE_ENV === "test" ? MockPaymentService : StripeService,
+      useClass: process.env.NODE_ENV === 'test'
+        ? MockPaymentService
+        : StripeService,
     },
   ],
   exports: [PAYMENT_GATEWAY],
@@ -1408,7 +1410,9 @@ export class PaymentModule {}
 // Injection
 @Injectable()
 export class OrdersService {
-  constructor(@Inject(PAYMENT_GATEWAY) private payment: PaymentGateway) {}
+  constructor(
+    @Inject(PAYMENT_GATEWAY) private payment: PaymentGateway,
+  ) {}
 
   async createOrder(dto: CreateOrderDto) {
     await this.payment.charge(dto.amount);
@@ -1501,7 +1505,7 @@ export class UsersService {
 
     // Explicitly catch and log errors
     this.emailService.sendWelcome(user.email).catch((error) => {
-      this.logger.error("Failed to send welcome email", error.stack);
+      this.logger.error('Failed to send welcome email', error.stack);
       // Optionally queue for retry
     });
 
@@ -1514,14 +1518,14 @@ export class UsersService {
 export class OrdersService {
   private readonly logger = new Logger(OrdersService.name);
 
-  @OnEvent("order.created")
+  @OnEvent('order.created')
   async handleOrderCreated(event: OrderCreatedEvent): Promise<void> {
     try {
       await this.processOrder(event);
     } catch (error) {
-      this.logger.error("Failed to process order", { event, error });
+      this.logger.error('Failed to process order', { event, error });
       // Don't rethrow - would crash the process
-      await this.deadLetterQueue.add("order.created", event);
+      await this.deadLetterQueue.add('order.created', event);
     }
   }
 }
@@ -1531,13 +1535,13 @@ export class OrdersService {
 export class CleanupService {
   private readonly logger = new Logger(CleanupService.name);
 
-  @Cron("0 0 * * *")
+  @Cron('0 0 * * *')
   async dailyCleanup(): Promise<void> {
     try {
       await this.cleanupService.run();
-      this.logger.log("Daily cleanup completed");
+      this.logger.log('Daily cleanup completed');
     } catch (error) {
-      this.logger.error("Daily cleanup failed", error.stack);
+      this.logger.error('Daily cleanup failed', error.stack);
       // Alert or retry logic
     }
   }
@@ -1546,14 +1550,14 @@ export class CleanupService {
 // Global unhandled rejection handler in main.ts
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  const logger = new Logger("Bootstrap");
+  const logger = new Logger('Bootstrap');
 
-  process.on("unhandledRejection", (reason, promise) => {
-    logger.error("Unhandled Rejection at:", promise, "reason:", reason);
+  process.on('unhandledRejection', (reason, promise) => {
+    logger.error('Unhandled Rejection at:', promise, 'reason:', reason);
   });
 
-  process.on("uncaughtException", (error) => {
-    logger.error("Uncaught Exception:", error);
+  process.on('uncaughtException', (error) => {
+    logger.error('Uncaught Exception:', error);
     process.exit(1);
   });
 
@@ -1580,16 +1584,16 @@ export class UsersService {
   async findById(id: string): Promise<{ user?: User; error?: string }> {
     const user = await this.repo.findOne({ where: { id } });
     if (!user) {
-      return { error: "User not found" }; // Controller must check this
+      return { error: 'User not found' }; // Controller must check this
     }
     return { user };
   }
 }
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  async findOne(@Param("id") id: string) {
+  @Get(':id')
+  async findOne(@Param('id') id: string) {
     const result = await this.usersService.findById(id);
     if (result.error) {
       throw new NotFoundException(result.error);
@@ -1620,7 +1624,7 @@ export class UsersService {
       where: { email: dto.email },
     });
     if (existing) {
-      throw new ConflictException("Email already registered");
+      throw new ConflictException('Email already registered');
     }
     return this.repo.save(dto);
   }
@@ -1633,10 +1637,10 @@ export class UsersService {
 }
 
 // Controller stays thin
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  findOne(@Param("id") id: string): Promise<User> {
+  @Get(':id')
+  findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.findById(id);
   }
 
@@ -1687,16 +1691,16 @@ Never catch exceptions and manually format error responses in controllers. Use N
 
 ```typescript
 // Manual error handling in controllers
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  async findOne(@Param("id") id: string, @Res() res: Response) {
+  @Get(':id')
+  async findOne(@Param('id') id: string, @Res() res: Response) {
     try {
       const user = await this.usersService.findById(id);
       if (!user) {
         return res.status(404).json({
           statusCode: 404,
-          message: "User not found",
+          message: 'User not found',
         });
       }
       return res.json(user);
@@ -1704,7 +1708,7 @@ export class UsersController {
       console.error(error);
       return res.status(500).json({
         statusCode: 500,
-        message: "Internal server error",
+        message: 'Internal server error',
       });
     }
   }
@@ -1715,10 +1719,10 @@ export class UsersController {
 
 ```typescript
 // Use built-in and custom exceptions
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<User> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<User> {
     const user = await this.usersService.findById(id);
     if (!user) {
       throw new NotFoundException(`User #${id} not found`);
@@ -1732,9 +1736,9 @@ export class UserNotFoundException extends NotFoundException {
   constructor(userId: string) {
     super({
       statusCode: 404,
-      error: "Not Found",
+      error: 'Not Found',
       message: `User with ID "${userId}" not found`,
-      code: "USER_NOT_FOUND",
+      code: 'USER_NOT_FOUND',
     });
   }
 }
@@ -1777,7 +1781,7 @@ export class AllExceptionsFilter implements ExceptionFilter {
     const message =
       exception instanceof HttpException
         ? exception.message
-        : "Internal server error";
+        : 'Internal server error';
 
     this.logger.error(
       `${request.method} ${request.url}`,
@@ -1877,15 +1881,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>("JWT_SECRET"),
+        secret: config.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: "15m", // Short-lived access tokens
-          issuer: config.get<string>("JWT_ISSUER"),
-          audience: config.get<string>("JWT_AUDIENCE"),
+          expiresIn: '15m', // Short-lived access tokens
+          issuer: config.get<string>('JWT_ISSUER'),
+          audience: config.get<string>('JWT_AUDIENCE'),
         },
       }),
     }),
-    PassportModule.register({ defaultStrategy: "jwt" }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
 })
 export class AuthModule {}
@@ -1909,7 +1913,7 @@ export class AuthService {
   }
 
   private async createRefreshToken(userId: string): Promise<string> {
-    const token = randomBytes(32).toString("hex");
+    const token = randomBytes(32).toString('hex');
     const hashedToken = await bcrypt.hash(token, 10);
 
     await this.refreshTokenRepo.save({
@@ -1931,10 +1935,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.get<string>("JWT_SECRET"),
+      secretOrKey: config.get<string>('JWT_SECRET'),
       ignoreExpiration: false,
-      issuer: config.get<string>("JWT_ISSUER"),
-      audience: config.get<string>("JWT_AUDIENCE"),
+      issuer: config.get<string>('JWT_ISSUER'),
+      audience: config.get<string>('JWT_AUDIENCE'),
     });
   }
 
@@ -1943,14 +1947,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findById(payload.sub);
 
     if (!user || !user.isActive) {
-      throw new UnauthorizedException("User not found or inactive");
+      throw new UnauthorizedException('User not found or inactive');
     }
 
     // Verify token wasn't issued before password change
     if (user.passwordChangedAt) {
       const tokenIssuedAt = new Date(payload.iat * 1000);
       if (tokenIssuedAt < user.passwordChangedAt) {
-        throw new UnauthorizedException("Token invalidated by password change");
+        throw new UnauthorizedException('Token invalidated by password change');
       }
     }
 
@@ -1973,15 +1977,15 @@ Use `@nestjs/throttler` to limit request rates per client. Apply different limit
 
 ```typescript
 // No rate limiting on sensitive endpoints
-@Controller("auth")
+@Controller('auth')
 export class AuthController {
-  @Post("login")
+  @Post('login')
   async login(@Body() dto: LoginDto): Promise<TokenResponse> {
     // Attackers can brute-force credentials
     return this.authService.login(dto);
   }
 
-  @Post("forgot-password")
+  @Post('forgot-password')
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
     // Can be abused to spam users with emails
     return this.authService.sendResetEmail(dto.email);
@@ -1990,12 +1994,12 @@ export class AuthController {
 
 // Same limits for all endpoints
 @UseGuards(ThrottlerGuard)
-@Controller("api")
+@Controller('api')
 export class ApiController {
-  @Get("public-data")
+  @Get('public-data')
   async getPublic() {} // Should allow more requests
 
-  @Post("process-payment")
+  @Post('process-payment')
   async payment() {} // Should be more restrictive
 }
 ```
@@ -2004,23 +2008,23 @@ export class ApiController {
 
 ```typescript
 // Configure throttler globally with multiple limits
-import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
     ThrottlerModule.forRoot([
       {
-        name: "short",
+        name: 'short',
         ttl: 1000, // 1 second
         limit: 3, // 3 requests per second
       },
       {
-        name: "medium",
+        name: 'medium',
         ttl: 10000, // 10 seconds
         limit: 20, // 20 requests per 10 seconds
       },
       {
-        name: "long",
+        name: 'long',
         ttl: 60000, // 1 minute
         limit: 100, // 100 requests per minute
       },
@@ -2036,15 +2040,15 @@ import { ThrottlerModule, ThrottlerGuard } from "@nestjs/throttler";
 export class AppModule {}
 
 // Override limits per endpoint
-@Controller("auth")
+@Controller('auth')
 export class AuthController {
-  @Post("login")
+  @Post('login')
   @Throttle({ short: { limit: 5, ttl: 60000 } }) // 5 attempts per minute
   async login(@Body() dto: LoginDto): Promise<TokenResponse> {
     return this.authService.login(dto);
   }
 
-  @Post("forgot-password")
+  @Post('forgot-password')
   @Throttle({ short: { limit: 3, ttl: 3600000 } }) // 3 per hour
   async forgotPassword(@Body() dto: ForgotPasswordDto): Promise<void> {
     return this.authService.sendResetEmail(dto.email);
@@ -2052,12 +2056,12 @@ export class AuthController {
 }
 
 // Skip throttling for certain routes
-@Controller("health")
+@Controller('health')
 export class HealthController {
   @Get()
   @SkipThrottle()
   check(): string {
-    return "OK";
+    return 'OK';
   }
 }
 
@@ -2233,25 +2237,25 @@ Guards determine whether a request should be handled based on authentication sta
 
 ```typescript
 // Manual auth checks in every handler
-@Controller("admin")
+@Controller('admin')
 export class AdminController {
-  @Get("users")
+  @Get('users')
   async getUsers(@Request() req) {
     if (!req.user) {
       throw new UnauthorizedException();
     }
-    if (!req.user.roles.includes("admin")) {
+    if (!req.user.roles.includes('admin')) {
       throw new ForbiddenException();
     }
     return this.adminService.getUsers();
   }
 
-  @Delete("users/:id")
-  async deleteUser(@Request() req, @Param("id") id: string) {
+  @Delete('users/:id')
+  async deleteUser(@Request() req, @Param('id') id: string) {
     if (!req.user) {
       throw new UnauthorizedException();
     }
-    if (!req.user.roles.includes("admin")) {
+    if (!req.user.roles.includes('admin')) {
       throw new ForbiddenException();
     }
     return this.adminService.deleteUser(id);
@@ -2272,7 +2276,7 @@ export class JwtAuthGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     // Check for @Public() decorator
-    const isPublic = this.reflector.getAllAndOverride<boolean>("isPublic", [
+    const isPublic = this.reflector.getAllAndOverride<boolean>('isPublic', [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -2282,20 +2286,20 @@ export class JwtAuthGuard implements CanActivate {
     const token = this.extractToken(request);
 
     if (!token) {
-      throw new UnauthorizedException("No token provided");
+      throw new UnauthorizedException('No token provided');
     }
 
     try {
       request.user = await this.jwtService.verifyAsync(token);
       return true;
     } catch {
-      throw new UnauthorizedException("Invalid token");
+      throw new UnauthorizedException('Invalid token');
     }
   }
 
   private extractToken(request: Request): string | undefined {
-    const [type, token] = request.headers.authorization?.split(" ") ?? [];
-    return type === "Bearer" ? token : undefined;
+    const [type, token] = request.headers.authorization?.split(' ') ?? [];
+    return type === 'Bearer' ? token : undefined;
   }
 }
 
@@ -2305,7 +2309,7 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<Role[]>("roles", [
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>('roles', [
       context.getHandler(),
       context.getClass(),
     ]);
@@ -2318,8 +2322,8 @@ export class RolesGuard implements CanActivate {
 }
 
 // Decorators
-export const Public = () => SetMetadata("isPublic", true);
-export const Roles = (...roles: Role[]) => SetMetadata("roles", roles);
+export const Public = () => SetMetadata('isPublic', true);
+export const Roles = (...roles: Role[]) => SetMetadata('roles', roles);
 
 // Register guards globally
 @Module({
@@ -2331,23 +2335,23 @@ export const Roles = (...roles: Role[]) => SetMetadata("roles", roles);
 export class AppModule {}
 
 // Clean controller
-@Controller("admin")
+@Controller('admin')
 @Roles(Role.Admin) // Applied to all routes
 export class AdminController {
-  @Get("users")
+  @Get('users')
   getUsers(): Promise<User[]> {
     return this.adminService.getUsers();
   }
 
-  @Delete("users/:id")
-  deleteUser(@Param("id") id: string): Promise<void> {
+  @Delete('users/:id')
+  deleteUser(@Param('id') id: string): Promise<void> {
     return this.adminService.deleteUser(id);
   }
 
   @Public() // Override: no auth required
-  @Get("health")
+  @Get('health')
   health() {
-    return { status: "ok" };
+    return { status: 'ok' };
   }
 }
 ```
@@ -2366,7 +2370,7 @@ Always validate incoming data using class-validator decorators on DTOs and the g
 
 ```typescript
 // Trust raw input without validation
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Post()
   create(@Body() body: any) {
@@ -2383,9 +2387,9 @@ export class UsersController {
 
 // DTOs without validation decorators
 export class CreateUserDto {
-  name: string; // No validation
-  email: string; // Could be "not-an-email"
-  age: number; // Could be "abc" or -999
+  name: string;    // No validation
+  email: string;   // Could be "not-an-email"
+  age: number;     // Could be "abc" or -999
 }
 ```
 
@@ -2398,9 +2402,9 @@ async function bootstrap() {
 
   app.useGlobalPipes(
     new ValidationPipe({
-      whitelist: true, // Strip unknown properties
-      forbidNonWhitelisted: true, // Throw on unknown properties
-      transform: true, // Auto-transform to DTO types
+      whitelist: true,              // Strip unknown properties
+      forbidNonWhitelisted: true,   // Throw on unknown properties
+      transform: true,              // Auto-transform to DTO types
       transformOptions: {
         enableImplicitConversion: true,
       },
@@ -2422,8 +2426,8 @@ import {
   MaxLength,
   Matches,
   IsNotEmpty,
-} from "class-validator";
-import { Transform, Type } from "class-transformer";
+} from 'class-validator';
+import { Transform, Type } from 'class-transformer';
 
 export class CreateUserDto {
   @IsString()
@@ -2446,7 +2450,7 @@ export class CreateUserDto {
   @MinLength(8)
   @MaxLength(100)
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
-    message: "Password must contain uppercase, lowercase, and number",
+    message: 'Password must contain uppercase, lowercase, and number',
   })
   password: string;
 }
@@ -2474,11 +2478,11 @@ export class FindUsersQueryDto {
 
 // Param validation
 export class UserIdParamDto {
-  @IsUUID("4")
+  @IsUUID('4')
   id: string;
 }
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Post()
   create(@Body() dto: CreateUserDto): Promise<User> {
@@ -2492,7 +2496,7 @@ export class UsersController {
     return this.usersService.findAll(query);
   }
 
-  @Get(":id")
+  @Get(':id')
   findOne(@Param() params: UserIdParamDto): Promise<User> {
     // params.id is a valid UUID
     return this.usersService.findById(params.id);
@@ -2527,7 +2531,7 @@ export class DatabaseService implements OnModuleInit {
 
   private async connect() {
     await this.pool.connect();
-    console.log("Database connected");
+    console.log('Database connected');
   }
 }
 
@@ -2538,7 +2542,7 @@ export class ConfigService {
 
   constructor() {
     // BLOCKS entire module instantiation synchronously
-    this.config = fs.readFileSync("config.json");
+    this.config = fs.readFileSync('config.json');
   }
 }
 ```
@@ -2554,13 +2558,13 @@ export class DatabaseService implements OnModuleInit {
   async onModuleInit(): Promise<void> {
     // NestJS waits for this to complete before continuing
     await this.pool.connect();
-    console.log("Database connected");
+    console.log('Database connected');
   }
 
   async onModuleDestroy(): Promise<void> {
     // Clean up resources on shutdown
     await this.pool.end();
-    console.log("Database disconnected");
+    console.log('Database disconnected');
   }
 }
 
@@ -2594,7 +2598,7 @@ export class ConfigService implements OnModuleInit {
   }
 
   private async loadConfig(): Promise<Config> {
-    const file = await fs.promises.readFile("config.json");
+    const file = await fs.promises.readFile('config.json');
     return JSON.parse(file.toString());
   }
 
@@ -2648,7 +2652,7 @@ export class AppModule {}
 
 ```typescript
 // Use LazyModuleLoader for optional modules
-import { LazyModuleLoader } from "@nestjs/core";
+import { LazyModuleLoader } from '@nestjs/core';
 
 @Injectable()
 export class ReportsService {
@@ -2656,7 +2660,7 @@ export class ReportsService {
 
   async generateReport(type: string): Promise<Report> {
     // Load module only when needed
-    const { ReportsModule } = await import("./reports/reports.module");
+    const { ReportsModule } = await import('./reports/reports.module');
     const moduleRef = await this.lazyModuleLoader.load(() => ReportsModule);
 
     const reportsService = moduleRef.get(ReportsGeneratorService);
@@ -2673,7 +2677,7 @@ export class AdminService {
 
   private async getAdminModule(): Promise<ModuleRef> {
     if (!this.adminModule) {
-      const { AdminModule } = await import("./admin/admin.module");
+      const { AdminModule } = await import('./admin/admin.module');
       this.adminModule = await this.lazyModuleLoader.load(() => AdminModule);
     }
     return this.adminModule;
@@ -2699,7 +2703,7 @@ export class ModuleLoaderService {
   ): Promise<ModuleRef> {
     if (!this.loadedModules.has(key)) {
       const module = await importFn();
-      const moduleType = "default" in module ? module.default : module;
+      const moduleType = 'default' in module ? module.default : module;
       const moduleRef = await this.lazyModuleLoader.load(() => moduleType);
       this.loadedModules.set(key, moduleRef);
     }
@@ -2714,7 +2718,7 @@ export class ModulePreloader implements OnApplicationBootstrap {
 
   async onApplicationBootstrap(): Promise<void> {
     setTimeout(async () => {
-      await this.preloadModule(() => import("./reports/reports.module"));
+      await this.preloadModule(() => import('./reports/reports.module'));
     }, 5000); // 5 seconds after startup
   }
 
@@ -2724,7 +2728,7 @@ export class ModulePreloader implements OnApplicationBootstrap {
       const moduleType = module.default || Object.values(module)[0];
       await this.lazyModuleLoader.load(() => moduleType);
     } catch (error) {
-      console.warn("Failed to preload module", error);
+      console.warn('Failed to preload module', error);
     }
   }
 }
@@ -2755,12 +2759,7 @@ export class UsersService {
   async getUserSummary(id: string): Promise<UserSummary> {
     const user = await this.repo.findOne({
       where: { id },
-      relations: [
-        "posts",
-        "posts.comments",
-        "posts.comments.author",
-        "followers",
-      ],
+      relations: ['posts', 'posts.comments', 'posts.comments.author', 'followers'],
     });
     // Over-fetches massive relation tree
     return { name: user.name, postCount: user.posts.length };
@@ -2786,7 +2785,7 @@ export class Order {
 export class UsersService {
   async findAllEmails(): Promise<string[]> {
     const users = await this.repo.find({
-      select: ["email"], // Only fetch email column
+      select: ['email'], // Only fetch email column
     });
     return users.map((u) => u.email);
   }
@@ -2794,12 +2793,12 @@ export class UsersService {
   // Use QueryBuilder for complex selections
   async getUserSummary(id: string): Promise<UserSummary> {
     return this.repo
-      .createQueryBuilder("user")
-      .select("user.name", "name")
-      .addSelect("COUNT(post.id)", "postCount")
-      .leftJoin("user.posts", "post")
-      .where("user.id = :id", { id })
-      .groupBy("user.id")
+      .createQueryBuilder('user')
+      .select('user.name', 'name')
+      .addSelect('COUNT(post.id)', 'postCount')
+      .leftJoin('user.posts', 'post')
+      .where('user.id = :id', { id })
+      .groupBy('user.id')
       .getRawOne();
   }
 
@@ -2807,7 +2806,7 @@ export class UsersService {
   async getFullProfile(id: string): Promise<User> {
     return this.repo.findOne({
       where: { id },
-      relations: ["posts"], // Only immediate relation
+      relations: ['posts'], // Only immediate relation
       select: {
         id: true,
         name: true,
@@ -2823,12 +2822,12 @@ export class UsersService {
 
 // Add indexes on frequently queried columns
 @Entity()
-@Index(["userId"])
-@Index(["status"])
-@Index(["createdAt"])
-@Index(["userId", "status"]) // Composite index for common query pattern
+@Index(['userId'])
+@Index(['status'])
+@Index(['createdAt'])
+@Index(['userId', 'status']) // Composite index for common query pattern
 export class Order {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -2848,7 +2847,7 @@ export class OrdersService {
     const [items, total] = await this.repo.findAndCount({
       skip: (page - 1) * limit,
       take: limit,
-      order: { createdAt: "DESC" },
+      order: { createdAt: 'DESC' },
     });
 
     return {
@@ -2883,11 +2882,11 @@ export class ProductsService {
   async getPopular(): Promise<Product[]> {
     // Runs complex aggregation query EVERY request
     return this.productsRepo
-      .createQueryBuilder("p")
-      .leftJoin("p.orders", "o")
-      .select("p.*, COUNT(o.id) as orderCount")
-      .groupBy("p.id")
-      .orderBy("orderCount", "DESC")
+      .createQueryBuilder('p')
+      .leftJoin('p.orders', 'o')
+      .select('p.*, COUNT(o.id) as orderCount')
+      .groupBy('p.id')
+      .orderBy('orderCount', 'DESC')
       .limit(20)
       .getMany();
   }
@@ -2896,7 +2895,7 @@ export class ProductsService {
 // Cache everything without thought
 @Injectable()
 export class UsersService {
-  @CacheKey("users")
+  @CacheKey('users')
   @CacheTTL(3600)
   @UseInterceptors(CacheInterceptor)
   async findAll(): Promise<User[]> {
@@ -2916,7 +2915,9 @@ export class UsersService {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        stores: [new KeyvRedis(config.get("REDIS_URL"))],
+        stores: [
+          new KeyvRedis(config.get('REDIS_URL')),
+        ],
         ttl: 60 * 1000, // Default 60s
       }),
     }),
@@ -2933,7 +2934,7 @@ export class ProductsService {
   ) {}
 
   async getPopular(): Promise<Product[]> {
-    const cacheKey = "products:popular";
+    const cacheKey = 'products:popular';
 
     // Try cache first
     const cached = await this.cache.get<Product[]>(cacheKey);
@@ -2948,13 +2949,13 @@ export class ProductsService {
   // Invalidate cache on changes
   async updateProduct(id: string, dto: UpdateProductDto): Promise<Product> {
     const product = await this.productsRepo.save({ id, ...dto });
-    await this.cache.del("products:popular"); // Invalidate
+    await this.cache.del('products:popular'); // Invalidate
     return product;
   }
 }
 
 // Decorator-based caching with auto-interceptor
-@Controller("categories")
+@Controller('categories')
 @UseInterceptors(CacheInterceptor)
 export class CategoriesController {
   @Get()
@@ -2963,10 +2964,10 @@ export class CategoriesController {
     return this.categoriesService.findAll();
   }
 
-  @Get(":id")
+  @Get(':id')
   @CacheTTL(60 * 1000) // 1 minute
-  @CacheKey("category")
-  findOne(@Param("id") id: string): Promise<Category> {
+  @CacheKey('category')
+  findOne(@Param('id') id: string): Promise<Category> {
     return this.categoriesService.findOne(id);
   }
 }
@@ -2976,12 +2977,12 @@ export class CategoriesController {
 export class CacheInvalidationService {
   constructor(@Inject(CACHE_MANAGER) private cache: Cache) {}
 
-  @OnEvent("product.created")
-  @OnEvent("product.updated")
-  @OnEvent("product.deleted")
+  @OnEvent('product.created')
+  @OnEvent('product.updated')
+  @OnEvent('product.deleted')
   async invalidateProductCaches(event: ProductEvent) {
     await Promise.all([
-      this.cache.del("products:popular"),
+      this.cache.del('products:popular'),
       this.cache.del(`product:${event.productId}`),
     ]);
   }
@@ -3006,8 +3007,8 @@ End-to-end tests use Supertest to make real HTTP requests against your NestJS ap
 
 ```typescript
 // Only unit test controllers
-describe("UsersController", () => {
-  it("should return users", async () => {
+describe('UsersController', () => {
+  it('should return users', async () => {
     const service = { findAll: jest.fn().mockResolvedValue([]) };
     const controller = new UsersController(service as any);
 
@@ -3019,8 +3020,8 @@ describe("UsersController", () => {
 });
 
 // E2E tests without proper setup/teardown
-describe("Users API", () => {
-  it("should create user", async () => {
+describe('Users API', () => {
+  it('should create user', async () => {
     const app = await NestFactory.create(AppModule);
     // No proper initialization
     // No cleanup after test
@@ -3033,12 +3034,12 @@ describe("Users API", () => {
 
 ```typescript
 // Proper E2E test setup
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
-import * as request from "supertest";
-import { AppModule } from "../src/app.module";
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
 
-describe("UsersController (e2e)", () => {
+describe('UsersController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -3064,41 +3065,41 @@ describe("UsersController (e2e)", () => {
     await app.close();
   });
 
-  describe("/users (POST)", () => {
-    it("should create a user", () => {
+  describe('/users (POST)', () => {
+    it('should create a user', () => {
       return request(app.getHttpServer())
-        .post("/users")
-        .send({ name: "John", email: "john@test.com" })
+        .post('/users')
+        .send({ name: 'John', email: 'john@test.com' })
         .expect(201)
         .expect((res) => {
-          expect(res.body).toHaveProperty("id");
-          expect(res.body.name).toBe("John");
-          expect(res.body.email).toBe("john@test.com");
+          expect(res.body).toHaveProperty('id');
+          expect(res.body.name).toBe('John');
+          expect(res.body.email).toBe('john@test.com');
         });
     });
 
-    it("should return 400 for invalid email", () => {
+    it('should return 400 for invalid email', () => {
       return request(app.getHttpServer())
-        .post("/users")
-        .send({ name: "John", email: "invalid-email" })
+        .post('/users')
+        .send({ name: 'John', email: 'invalid-email' })
         .expect(400)
         .expect((res) => {
-          expect(res.body.message).toContain("email");
+          expect(res.body.message).toContain('email');
         });
     });
   });
 
-  describe("/users/:id (GET)", () => {
-    it("should return 404 for non-existent user", () => {
+  describe('/users/:id (GET)', () => {
+    it('should return 404 for non-existent user', () => {
       return request(app.getHttpServer())
-        .get("/users/non-existent-id")
+        .get('/users/non-existent-id')
         .expect(404);
     });
   });
 });
 
 // Testing with authentication
-describe("Protected Routes (e2e)", () => {
+describe('Protected Routes (e2e)', () => {
   let app: INestApplication;
   let authToken: string;
 
@@ -3113,29 +3114,31 @@ describe("Protected Routes (e2e)", () => {
 
     // Get auth token
     const loginResponse = await request(app.getHttpServer())
-      .post("/auth/login")
-      .send({ email: "test@test.com", password: "password" });
+      .post('/auth/login')
+      .send({ email: 'test@test.com', password: 'password' });
 
     authToken = loginResponse.body.accessToken;
   });
 
-  it("should return 401 without token", () => {
-    return request(app.getHttpServer()).get("/users/me").expect(401);
+  it('should return 401 without token', () => {
+    return request(app.getHttpServer())
+      .get('/users/me')
+      .expect(401);
   });
 
-  it("should return user profile with valid token", () => {
+  it('should return user profile with valid token', () => {
     return request(app.getHttpServer())
-      .get("/users/me")
-      .set("Authorization", `Bearer ${authToken}`)
+      .get('/users/me')
+      .set('Authorization', `Bearer ${authToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.email).toBe("test@test.com");
+        expect(res.body.email).toBe('test@test.com');
       });
   });
 });
 
 // Database isolation for E2E tests
-describe("Orders API (e2e)", () => {
+describe('Orders API (e2e)', () => {
   let app: INestApplication;
   let dataSource: DataSource;
 
@@ -3143,7 +3146,7 @@ describe("Orders API (e2e)", () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
-          envFilePath: ".env.test", // Test database config
+          envFilePath: '.env.test', // Test database config
         }),
         AppModule,
       ],
@@ -3180,23 +3183,23 @@ Never call real external services (APIs, databases, message queues) in unit test
 
 ```typescript
 // Call real APIs in tests
-describe("PaymentService", () => {
-  it("should process payment", async () => {
+describe('PaymentService', () => {
+  it('should process payment', async () => {
     const service = new PaymentService(new StripeClient(realApiKey));
     // Hits real Stripe API!
-    const result = await service.charge("tok_visa", 1000);
+    const result = await service.charge('tok_visa', 1000);
     // Slow, costs money, flaky
   });
 });
 
 // Use real database
-describe("UsersService", () => {
+describe('UsersService', () => {
   beforeEach(async () => {
-    await connection.query("DELETE FROM users"); // Modifies real DB
+    await connection.query('DELETE FROM users'); // Modifies real DB
   });
 
-  it("should create user", async () => {
-    const user = await service.create({ email: "test@test.com" });
+  it('should create user', async () => {
+    const user = await service.create({ email: 'test@test.com' });
     // Side effects on shared database
   });
 });
@@ -3212,7 +3215,7 @@ const mockHttpService = {
 
 ```typescript
 // Mock HTTP service properly
-describe("WeatherService", () => {
+describe('WeatherService', () => {
   let service: WeatherService;
   let httpService: jest.Mocked<HttpService>;
 
@@ -3234,45 +3237,43 @@ describe("WeatherService", () => {
     httpService = module.get(HttpService);
   });
 
-  it("should return weather data", async () => {
+  it('should return weather data', async () => {
     const mockResponse = {
       data: { temperature: 72, humidity: 45 },
       status: 200,
-      statusText: "OK",
+      statusText: 'OK',
       headers: {},
       config: {},
     };
 
     httpService.get.mockReturnValue(of(mockResponse));
 
-    const result = await service.getWeather("NYC");
+    const result = await service.getWeather('NYC');
 
     expect(result).toEqual({ temperature: 72, humidity: 45 });
   });
 
-  it("should handle API timeout", async () => {
-    httpService.get.mockReturnValue(throwError(() => new Error("ETIMEDOUT")));
-
-    await expect(service.getWeather("NYC")).rejects.toThrow(
-      "Weather service unavailable",
+  it('should handle API timeout', async () => {
+    httpService.get.mockReturnValue(
+      throwError(() => new Error('ETIMEDOUT')),
     );
+
+    await expect(service.getWeather('NYC')).rejects.toThrow('Weather service unavailable');
   });
 
-  it("should handle rate limiting", async () => {
+  it('should handle rate limiting', async () => {
     httpService.get.mockReturnValue(
       throwError(() => ({
-        response: { status: 429, data: { message: "Rate limited" } },
+        response: { status: 429, data: { message: 'Rate limited' } },
       })),
     );
 
-    await expect(service.getWeather("NYC")).rejects.toThrow(
-      TooManyRequestsException,
-    );
+    await expect(service.getWeather('NYC')).rejects.toThrow(TooManyRequestsException);
   });
 });
 
 // Mock repository instead of database
-describe("UsersService", () => {
+describe('UsersService', () => {
   let service: UsersService;
   let repo: jest.Mocked<Repository<User>>;
 
@@ -3296,14 +3297,14 @@ describe("UsersService", () => {
     repo = module.get(getRepositoryToken(User));
   });
 
-  it("should find user by id", async () => {
-    const mockUser = { id: "1", name: "John", email: "john@test.com" };
+  it('should find user by id', async () => {
+    const mockUser = { id: '1', name: 'John', email: 'john@test.com' };
     repo.findOne.mockResolvedValue(mockUser);
 
-    const result = await service.findById("1");
+    const result = await service.findById('1');
 
     expect(result).toEqual(mockUser);
-    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: "1" } });
+    expect(repo.findOne).toHaveBeenCalledWith({ where: { id: '1' } });
   });
 });
 
@@ -3324,17 +3325,17 @@ function createMockStripe(): jest.Mocked<Stripe> {
 }
 
 // Mock time for time-dependent tests
-describe("TokenService", () => {
+describe('TokenService', () => {
   beforeEach(() => {
     jest.useFakeTimers();
-    jest.setSystemTime(new Date("2024-01-15"));
+    jest.setSystemTime(new Date('2024-01-15'));
   });
 
   afterEach(() => {
     jest.useRealTimers();
   });
 
-  it("should expire token after 1 hour", async () => {
+  it('should expire token after 1 hour', async () => {
     const token = await service.createToken();
 
     // Fast-forward time
@@ -3359,24 +3360,24 @@ Use `@nestjs/testing` module to create isolated test environments with mocked de
 
 ```typescript
 // Instantiate services manually without DI
-describe("UsersService", () => {
-  it("should create user", async () => {
+describe('UsersService', () => {
+  it('should create user', async () => {
     // Manual instantiation bypasses DI
     const repo = new UserRepository(); // Real repo!
     const service = new UsersService(repo);
 
-    const user = await service.create({ name: "Test" });
+    const user = await service.create({ name: 'Test' });
     // This hits the real database!
   });
 });
 
 // Test implementation details
-describe("UsersController", () => {
-  it("should call service", async () => {
+describe('UsersController', () => {
+  it('should call service', async () => {
     const service = { create: jest.fn() };
     const controller = new UsersController(service as any);
 
-    await controller.create({ name: "Test" });
+    await controller.create({ name: 'Test' });
 
     expect(service.create).toHaveBeenCalled(); // Tests implementation, not behavior
   });
@@ -3387,9 +3388,9 @@ describe("UsersController", () => {
 
 ```typescript
 // Use Test.createTestingModule for proper DI
-import { Test, TestingModule } from "@nestjs/testing";
+import { Test, TestingModule } from '@nestjs/testing';
 
-describe("UsersService", () => {
+describe('UsersService', () => {
   let service: UsersService;
   let repo: jest.Mocked<UserRepository>;
 
@@ -3416,10 +3417,10 @@ describe("UsersService", () => {
     jest.clearAllMocks();
   });
 
-  describe("create", () => {
-    it("should save and return user", async () => {
-      const dto = { name: "John", email: "john@test.com" };
-      const expectedUser = { id: "1", ...dto };
+  describe('create', () => {
+    it('should save and return user', async () => {
+      const dto = { name: 'John', email: 'john@test.com' };
+      const expectedUser = { id: '1', ...dto };
 
       repo.save.mockResolvedValue(expectedUser);
 
@@ -3429,35 +3430,35 @@ describe("UsersService", () => {
       expect(repo.save).toHaveBeenCalledWith(dto);
     });
 
-    it("should throw on duplicate email", async () => {
-      repo.findOne.mockResolvedValue({ id: "1", email: "test@test.com" });
+    it('should throw on duplicate email', async () => {
+      repo.findOne.mockResolvedValue({ id: '1', email: 'test@test.com' });
 
       await expect(
-        service.create({ name: "Test", email: "test@test.com" }),
+        service.create({ name: 'Test', email: 'test@test.com' }),
       ).rejects.toThrow(ConflictException);
     });
   });
 
-  describe("findById", () => {
-    it("should return user when found", async () => {
-      const user = { id: "1", name: "John" };
+  describe('findById', () => {
+    it('should return user when found', async () => {
+      const user = { id: '1', name: 'John' };
       repo.findOne.mockResolvedValue(user);
 
-      const result = await service.findById("1");
+      const result = await service.findById('1');
 
       expect(result).toEqual(user);
     });
 
-    it("should throw NotFoundException when not found", async () => {
+    it('should throw NotFoundException when not found', async () => {
       repo.findOne.mockResolvedValue(null);
 
-      await expect(service.findById("999")).rejects.toThrow(NotFoundException);
+      await expect(service.findById('999')).rejects.toThrow(NotFoundException);
     });
   });
 });
 
 // Testing guards and interceptors
-describe("RolesGuard", () => {
+describe('RolesGuard', () => {
   let guard: RolesGuard;
   let reflector: Reflector;
 
@@ -3470,24 +3471,22 @@ describe("RolesGuard", () => {
     reflector = module.get<Reflector>(Reflector);
   });
 
-  it("should allow when no roles required", () => {
+  it('should allow when no roles required', () => {
     const context = createMockExecutionContext({ user: { roles: [] } });
-    jest.spyOn(reflector, "getAllAndOverride").mockReturnValue(undefined);
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 
-  it("should allow admin for admin-only route", () => {
-    const context = createMockExecutionContext({ user: { roles: ["admin"] } });
-    jest.spyOn(reflector, "getAllAndOverride").mockReturnValue(["admin"]);
+  it('should allow admin for admin-only route', () => {
+    const context = createMockExecutionContext({ user: { roles: ['admin'] } });
+    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
 
     expect(guard.canActivate(context)).toBe(true);
   });
 });
 
-function createMockExecutionContext(
-  request: Partial<Request>,
-): ExecutionContext {
+function createMockExecutionContext(request: Partial<Request>): ExecutionContext {
   return {
     switchToHttp: () => ({
       getRequest: () => request,
@@ -3532,7 +3531,7 @@ export class OrdersService {
 }
 
 // Accessing lazy relations without loading
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Get()
   async findAll(): Promise<User[]> {
@@ -3654,7 +3653,7 @@ Never use `synchronize: true` in production. Use migrations for all schema chang
 ```typescript
 // Use synchronize in production
 TypeOrmModule.forRoot({
-  type: "postgres",
+  type: 'postgres',
   synchronize: true, // DANGEROUS in production!
   // Can drop columns, tables, or data
 });
@@ -3663,7 +3662,7 @@ TypeOrmModule.forRoot({
 @Injectable()
 export class DatabaseService {
   async addColumn(): Promise<void> {
-    await this.dataSource.query("ALTER TABLE users ADD COLUMN age INT");
+    await this.dataSource.query('ALTER TABLE users ADD COLUMN age INT');
     // No version control, no rollback, inconsistent across envs
   }
 }
@@ -3685,14 +3684,14 @@ export class User {
 // Configure TypeORM for migrations
 // data-source.ts
 export const dataSource = new DataSource({
-  type: "postgres",
+  type: 'postgres',
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: ["dist/**/*.entity.js"],
-  migrations: ["dist/migrations/*.js"],
+  entities: ['dist/**/*.entity.js'],
+  migrations: ['dist/migrations/*.js'],
   synchronize: false, // Always false in production
   migrationsRun: true, // Run migrations on startup
 });
@@ -3701,19 +3700,19 @@ export const dataSource = new DataSource({
 TypeOrmModule.forRootAsync({
   inject: [ConfigService],
   useFactory: (config: ConfigService) => ({
-    type: "postgres",
-    host: config.get("DB_HOST"),
-    synchronize: config.get("NODE_ENV") === "development", // Only in dev
-    migrations: ["dist/migrations/*.js"],
+    type: 'postgres',
+    host: config.get('DB_HOST'),
+    synchronize: config.get('NODE_ENV') === 'development', // Only in dev
+    migrations: ['dist/migrations/*.js'],
     migrationsRun: true,
   }),
 });
 
 // migrations/1705312800000-AddUserAge.ts
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddUserAge1705312800000 implements MigrationInterface {
-  name = "AddUserAge1705312800000";
+  name = 'AddUserAge1705312800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Add column with default to handle existing rows
@@ -3784,15 +3783,11 @@ When multiple database operations must succeed or fail together, wrap them in a 
 export class OrdersService {
   async createOrder(userId: string, items: OrderItem[]): Promise<Order> {
     // If any step fails, data is inconsistent
-    const order = await this.orderRepo.save({ userId, status: "pending" });
+    const order = await this.orderRepo.save({ userId, status: 'pending' });
 
     for (const item of items) {
       await this.orderItemRepo.save({ orderId: order.id, ...item });
-      await this.inventoryRepo.decrement(
-        { productId: item.productId },
-        "stock",
-        item.quantity,
-      );
+      await this.inventoryRepo.decrement({ productId: item.productId }, 'stock', item.quantity);
     }
 
     await this.paymentService.charge(order.id);
@@ -3814,14 +3809,14 @@ export class OrdersService {
   async createOrder(userId: string, items: OrderItem[]): Promise<Order> {
     return this.dataSource.transaction(async (manager) => {
       // All operations use the same transactional manager
-      const order = await manager.save(Order, { userId, status: "pending" });
+      const order = await manager.save(Order, { userId, status: 'pending' });
 
       for (const item of items) {
         await manager.save(OrderItem, { orderId: order.id, ...item });
         await manager.decrement(
           Inventory,
           { productId: item.productId },
-          "stock",
+          'stock',
           item.quantity,
         );
       }
@@ -3849,7 +3844,7 @@ export class TransferService {
       await queryRunner.manager.decrement(
         Account,
         { id: fromId },
-        "balance",
+        'balance',
         amount,
       );
 
@@ -3858,14 +3853,14 @@ export class TransferService {
         where: { id: fromId },
       });
       if (source.balance < 0) {
-        throw new BadRequestException("Insufficient funds");
+        throw new BadRequestException('Insufficient funds');
       }
 
       // Credit destination account
       await queryRunner.manager.increment(
         Account,
         { id: toId },
-        "balance",
+        'balance',
         amount,
       );
 
@@ -3963,7 +3958,7 @@ async function bootstrap() {
 // Entity with serialization control
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -3993,10 +3988,10 @@ export class User {
 }
 
 // Now returning entity is safe
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<User> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.findById(id);
     // Returns: { id, email, name, createdAt }
     // Sensitive fields excluded automatically
@@ -4033,17 +4028,17 @@ export class UserDetailResponseDto extends UserResponseDto {
 }
 
 // Controller with explicit DTOs
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Get()
   @SerializeOptions({ type: UserResponseDto })
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersService.findAll();
-    return users.map((u) => plainToInstance(UserResponseDto, u));
+    return users.map(u => plainToInstance(UserResponseDto, u));
   }
 
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<UserDetailResponseDto> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<UserDetailResponseDto> {
     const user = await this.usersService.findByIdWithPosts(id);
     return plainToInstance(UserDetailResponseDto, user, {
       excludeExtraneousValues: true,
@@ -4059,33 +4054,33 @@ export class UserDto {
   @Expose()
   name: string;
 
-  @Expose({ groups: ["admin"] })
+  @Expose({ groups: ['admin'] })
   email: string;
 
-  @Expose({ groups: ["admin"] })
+  @Expose({ groups: ['admin'] })
   createdAt: Date;
 
-  @Expose({ groups: ["admin", "owner"] })
+  @Expose({ groups: ['admin', 'owner'] })
   settings: UserSettings;
 }
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Get()
-  @SerializeOptions({ groups: ["public"] })
+  @SerializeOptions({ groups: ['public'] })
   async findAllPublic(): Promise<UserDto[]> {
     // Returns: { id, name }
   }
 
-  @Get("admin")
+  @Get('admin')
   @UseGuards(AdminGuard)
-  @SerializeOptions({ groups: ["admin"] })
+  @SerializeOptions({ groups: ['admin'] })
   async findAllAdmin(): Promise<UserDto[]> {
     // Returns: { id, name, email, createdAt }
   }
 
-  @Get("me")
-  @SerializeOptions({ groups: ["owner"] })
+  @Get('me')
+  @SerializeOptions({ groups: ['owner'] })
   async getProfile(@CurrentUser() user: User): Promise<UserDto> {
     // Returns: { id, name, settings }
   }
@@ -4509,10 +4504,10 @@ Use NestJS built-in versioning when making breaking changes to your API. Choose 
 
 ```typescript
 // Breaking changes without versioning
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<User> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<User> {
     // Original response: { id, name, email }
     // Later changed to: { id, firstName, lastName, emailAddress }
     // Old clients break!
@@ -4521,10 +4516,10 @@ export class UsersController {
 }
 
 // Manual versioning in routes
-@Controller("v1/users")
+@Controller('v1/users')
 export class UsersV1Controller {}
 
-@Controller("v2/users")
+@Controller('v2/users')
 export class UsersV2Controller {}
 // Inconsistent, error-prone, hard to maintain
 ```
@@ -4539,32 +4534,32 @@ async function bootstrap() {
   // URI versioning: /v1/users, /v2/users
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: "1",
+    defaultVersion: '1',
   });
 
   // Or header versioning: X-API-Version: 1
   app.enableVersioning({
     type: VersioningType.HEADER,
-    header: "X-API-Version",
-    defaultVersion: "1",
+    header: 'X-API-Version',
+    defaultVersion: '1',
   });
 
   // Or media type: Accept: application/json;v=1
   app.enableVersioning({
     type: VersioningType.MEDIA_TYPE,
-    key: "v=",
-    defaultVersion: "1",
+    key: 'v=',
+    defaultVersion: '1',
   });
 
   await app.listen(3000);
 }
 
 // Version-specific controllers
-@Controller("users")
-@Version("1")
+@Controller('users')
+@Version('1')
 export class UsersV1Controller {
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<UserV1Response> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<UserV1Response> {
     const user = await this.usersService.findOne(id);
     // V1 response format
     return {
@@ -4575,11 +4570,11 @@ export class UsersV1Controller {
   }
 }
 
-@Controller("users")
-@Version("2")
+@Controller('users')
+@Version('2')
 export class UsersV2Controller {
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<UserV2Response> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<UserV2Response> {
     const user = await this.usersService.findOne(id);
     // V2 response format with breaking changes
     return {
@@ -4593,23 +4588,23 @@ export class UsersV2Controller {
 }
 
 // Per-route versioning - different versions for different routes
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Get()
-  @Version("1")
+  @Version('1')
   findAllV1(): Promise<UserV1Response[]> {
     return this.usersService.findAllV1();
   }
 
   @Get()
-  @Version("2")
+  @Version('2')
   findAllV2(): Promise<UserV2Response[]> {
     return this.usersService.findAllV2();
   }
 
-  @Get(":id")
-  @Version(["1", "2"]) // Same handler for multiple versions
-  findOne(@Param("id") id: string): Promise<User> {
+  @Get(':id')
+  @Version(['1', '2']) // Same handler for multiple versions
+  findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.findOne(id);
   }
 
@@ -4626,7 +4621,7 @@ export class UsersService {
   async findOne(id: string, version: string): Promise<any> {
     const user = await this.repo.findOne({ where: { id } });
 
-    if (version === "1") {
+    if (version === '1') {
       return this.toV1Response(user);
     }
     return this.toV2Response(user);
@@ -4652,20 +4647,20 @@ export class UsersService {
 }
 
 // Controller extracts version
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
+  @Get(':id')
   async findOne(
-    @Param("id") id: string,
-    @Headers("X-API-Version") version: string = "1",
+    @Param('id') id: string,
+    @Headers('X-API-Version') version: string = '1',
   ): Promise<any> {
     return this.usersService.findOne(id, version);
   }
 }
 
 // Deprecation strategy - mark old versions as deprecated
-@Controller("users")
-@Version("1")
+@Controller('users')
+@Version('1')
 @UseInterceptors(DeprecationInterceptor)
 export class UsersV1Controller {
   // All V1 routes will include deprecation warning
@@ -4675,9 +4670,9 @@ export class UsersV1Controller {
 export class DeprecationInterceptor implements NestInterceptor {
   intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
     const response = context.switchToHttp().getResponse();
-    response.setHeader("Deprecation", "true");
-    response.setHeader("Sunset", "Sat, 1 Jan 2025 00:00:00 GMT");
-    response.setHeader("Link", '</v2/users>; rel="successor-version"');
+    response.setHeader('Deprecation', 'true');
+    response.setHeader('Sunset', 'Sat, 1 Jan 2025 00:00:00 GMT');
+    response.setHeader('Link', '</v2/users>; rel="successor-version"');
 
     return next.handle();
   }
@@ -4702,24 +4697,24 @@ Implement liveness and readiness probes using `@nestjs/terminus`. Liveness check
 
 ```typescript
 // Simple ping that doesn't check dependencies
-@Controller("health")
+@Controller('health')
 export class HealthController {
   @Get()
   check(): string {
-    return "OK"; // Service might be unhealthy but returns OK
+    return 'OK'; // Service might be unhealthy but returns OK
   }
 }
 
 // Health check that blocks on slow dependencies
-@Controller("health")
+@Controller('health')
 export class HealthController {
   @Get()
   async check(): Promise<string> {
     // If database is slow, health check times out
-    await this.userRepo.findOne({ where: { id: "1" } });
+    await this.userRepo.findOne({ where: { id: '1' } });
     await this.redis.ping();
     await this.externalApi.healthCheck();
-    return "OK";
+    return 'OK';
   }
 }
 ```
@@ -4928,7 +4923,7 @@ NestJS microservices support two communication patterns: request-response (Messa
 // Use @MessagePattern for fire-and-forget
 @Controller()
 export class NotificationsController {
-  @MessagePattern("user.created")
+  @MessagePattern('user.created')
   async handleUserCreated(data: UserCreatedEvent) {
     // This WAITS for response, blocking the sender
     await this.emailService.sendWelcome(data.email);
@@ -4939,7 +4934,7 @@ export class NotificationsController {
 // Use @EventPattern expecting a response
 @Controller()
 export class OrdersController {
-  @EventPattern("inventory.check")
+  @EventPattern('inventory.check')
   async checkInventory(data: CheckInventoryDto) {
     const available = await this.inventory.check(data);
     return available; // This return value is IGNORED with @EventPattern!
@@ -4953,7 +4948,7 @@ export class UsersService {
     const user = await this.repo.save(dto);
 
     // Blocks until notification service responds
-    await this.client.send("user.created", user).toPromise();
+    await this.client.send('user.created', user).toPromise();
     // If notification service is down, user creation fails!
 
     return user;
@@ -5091,7 +5086,7 @@ Use `@nestjs/bullmq` for background job processing. Queues decouple long-running
 
 ```typescript
 // Long-running tasks in HTTP handlers
-@Controller("reports")
+@Controller('reports')
 export class ReportsController {
   @Post()
   async generate(@Body() dto: GenerateReportDto): Promise<Report> {
@@ -5108,7 +5103,7 @@ export class ReportsController {
 export class EmailService {
   async sendWelcome(email: string): Promise<void> {
     // If this fails, email is never sent
-    await this.mailer.send({ to: email, template: "welcome" });
+    await this.mailer.send({ to: email, template: 'welcome' });
     // No retry, no tracking, no visibility
   }
 }
@@ -5123,13 +5118,13 @@ setInterval(async () => {
 
 ```typescript
 // Configure BullMQ
-import { BullModule } from "@nestjs/bullmq";
+import { BullModule } from '@nestjs/bullmq';
 
 @Module({
   imports: [
     BullModule.forRoot({
       connection: {
-        host: "localhost",
+        host: 'localhost',
         port: 6379,
       },
       defaultJobOptions: {
@@ -5137,15 +5132,15 @@ import { BullModule } from "@nestjs/bullmq";
         removeOnFail: 5000,
         attempts: 3,
         backoff: {
-          type: "exponential",
+          type: 'exponential',
           delay: 1000,
         },
       },
     }),
     BullModule.registerQueue(
-      { name: "email" },
-      { name: "reports" },
-      { name: "notifications" },
+      { name: 'email' },
+      { name: 'reports' },
+      { name: 'notifications' },
     ),
   ],
 })
@@ -5154,11 +5149,13 @@ export class QueueModule {}
 // Producer: Add jobs to queue
 @Injectable()
 export class ReportsService {
-  constructor(@InjectQueue("reports") private reportsQueue: Queue) {}
+  constructor(
+    @InjectQueue('reports') private reportsQueue: Queue,
+  ) {}
 
   async requestReport(dto: GenerateReportDto): Promise<{ jobId: string }> {
     // Return immediately, process in background
-    const job = await this.reportsQueue.add("generate", dto, {
+    const job = await this.reportsQueue.add('generate', dto, {
       priority: dto.urgent ? 1 : 10,
       delay: dto.scheduledFor ? Date.parse(dto.scheduledFor) - Date.now() : 0,
     });
@@ -5177,11 +5174,11 @@ export class ReportsService {
 }
 
 // Consumer: Process jobs
-@Processor("reports")
+@Processor('reports')
 export class ReportsProcessor {
   private readonly logger = new Logger(ReportsProcessor.name);
 
-  @Process("generate")
+  @Process('generate')
   async generateReport(job: Job<GenerateReportDto>): Promise<Report> {
     this.logger.log(`Processing report job ${job.id}`);
 
@@ -5217,9 +5214,9 @@ export class ReportsProcessor {
 }
 
 // Email queue with retry
-@Processor("email")
+@Processor('email')
 export class EmailProcessor {
-  @Process("send")
+  @Process('send')
   async sendEmail(job: Job<SendEmailDto>): Promise<void> {
     const { to, template, data } = job.data;
 
@@ -5239,19 +5236,19 @@ export class EmailProcessor {
 // Usage
 @Injectable()
 export class NotificationService {
-  constructor(@InjectQueue("email") private emailQueue: Queue) {}
+  constructor(@InjectQueue('email') private emailQueue: Queue) {}
 
   async sendWelcome(user: User): Promise<void> {
     await this.emailQueue.add(
-      "send",
+      'send',
       {
         to: user.email,
-        template: "welcome",
+        template: 'welcome',
         data: { name: user.name },
       },
       {
         attempts: 5,
-        backoff: { type: "exponential", delay: 5000 },
+        backoff: { type: 'exponential', delay: 5000 },
       },
     );
   }
@@ -5260,64 +5257,64 @@ export class NotificationService {
 // Scheduled jobs
 @Injectable()
 export class ScheduledJobsService implements OnModuleInit {
-  constructor(@InjectQueue("maintenance") private queue: Queue) {}
+  constructor(@InjectQueue('maintenance') private queue: Queue) {}
 
   async onModuleInit(): Promise<void> {
     // Clean up old reports daily at midnight
     await this.queue.add(
-      "cleanup",
+      'cleanup',
       {},
       {
-        repeat: { cron: "0 0 * * *" },
-        jobId: "daily-cleanup", // Prevent duplicates
+        repeat: { cron: '0 0 * * *' },
+        jobId: 'daily-cleanup', // Prevent duplicates
       },
     );
 
     // Send digest every hour
     await this.queue.add(
-      "digest",
+      'digest',
       {},
       {
         repeat: { every: 60 * 60 * 1000 },
-        jobId: "hourly-digest",
+        jobId: 'hourly-digest',
       },
     );
   }
 }
 
-@Processor("maintenance")
+@Processor('maintenance')
 export class MaintenanceProcessor {
-  @Process("cleanup")
+  @Process('cleanup')
   async cleanup(): Promise<void> {
     await this.cleanupOldReports();
     await this.cleanupExpiredSessions();
   }
 
-  @Process("digest")
+  @Process('digest')
   async sendDigest(): Promise<void> {
     const users = await this.getUsersForDigest();
     for (const user of users) {
-      await this.emailQueue.add("send", { to: user.email, template: "digest" });
+      await this.emailQueue.add('send', { to: user.email, template: 'digest' });
     }
   }
 }
 
 // Queue monitoring with Bull Board
-import { BullBoardModule } from "@bull-board/nestjs";
-import { BullMQAdapter } from "@bull-board/api/bullMQAdapter";
+import { BullBoardModule } from '@bull-board/nestjs';
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
 
 @Module({
   imports: [
     BullBoardModule.forRoot({
-      route: "/admin/queues",
+      route: '/admin/queues',
       adapter: ExpressAdapter,
     }),
     BullBoardModule.forFeature({
-      name: "email",
+      name: 'email',
       adapter: BullMQAdapter,
     }),
     BullBoardModule.forFeature({
-      name: "reports",
+      name: 'reports',
       adapter: BullMQAdapter,
     }),
   ],
@@ -5379,21 +5376,21 @@ async function bootstrap() {
   server.setTimeout(30000); // 30 second timeout
 
   // Handle graceful shutdown
-  const signals = ["SIGTERM", "SIGINT"];
+  const signals = ['SIGTERM', 'SIGINT'];
   signals.forEach((signal) => {
     process.on(signal, async () => {
       console.log(`Received ${signal}, starting graceful shutdown...`);
 
       // Stop accepting new connections
       server.close(async () => {
-        console.log("HTTP server closed");
+        console.log('HTTP server closed');
         await app.close();
         process.exit(0);
       });
 
       // Force exit after timeout
       setTimeout(() => {
-        console.error("Forced shutdown after timeout");
+        console.error('Forced shutdown after timeout');
         process.exit(1);
       }, 30000);
     });
@@ -5409,9 +5406,11 @@ export class DatabaseService implements OnApplicationShutdown {
     console.log(`Database service shutting down on ${signal}`);
 
     // Close all connections gracefully
-    await Promise.all(this.connections.map((conn) => conn.close()));
+    await Promise.all(
+      this.connections.map((conn) => conn.close()),
+    );
 
-    console.log("All database connections closed");
+    console.log('All database connections closed');
   }
 }
 
@@ -5431,7 +5430,7 @@ export class QueueService implements OnApplicationShutdown, OnModuleDestroy {
 
   async processJob(job: Job): Promise<void> {
     if (this.isShuttingDown) {
-      throw new Error("Service is shutting down");
+      throw new Error('Service is shutting down');
     }
     await this.doWork(job);
   }
@@ -5445,7 +5444,7 @@ export class EventsGateway implements OnApplicationShutdown {
 
   async onApplicationShutdown(): Promise<void> {
     // Notify all connected clients
-    this.server.emit("shutdown", { message: "Server is shutting down" });
+    this.server.emit('shutdown', { message: 'Server is shutting down' });
 
     // Close all connections
     this.server.disconnectSockets();
@@ -5466,19 +5465,21 @@ export class ShutdownService {
   }
 }
 
-@Controller("health")
+@Controller('health')
 export class HealthController {
   constructor(private shutdownService: ShutdownService) {}
 
-  @Get("ready")
+  @Get('ready')
   @HealthCheck()
   readiness(): Promise<HealthCheckResult> {
     // Return 503 during shutdown - k8s stops sending traffic
     if (this.shutdownService.isShutdown()) {
-      throw new ServiceUnavailableException("Shutting down");
+      throw new ServiceUnavailableException('Shutting down');
     }
 
-    return this.health.check([() => this.db.pingCheck("database")]);
+    return this.health.check([
+      () => this.db.pingCheck('database'),
+    ]);
   }
 }
 
@@ -5508,19 +5509,15 @@ export class RequestTracker implements NestMiddleware, OnApplicationShutdown {
 
   use(req: Request, res: Response, next: NextFunction): void {
     if (this.isShuttingDown) {
-      res.status(503).send("Service Unavailable");
+      res.status(503).send('Service Unavailable');
       return;
     }
 
     this.activeRequests++;
 
-    res.on("finish", () => {
+    res.on('finish', () => {
       this.activeRequests--;
-      if (
-        this.isShuttingDown &&
-        this.activeRequests === 0 &&
-        this.resolveShutdown
-      ) {
+      if (this.isShuttingDown && this.activeRequests === 0 && this.resolveShutdown) {
         this.resolveShutdown();
       }
     });
@@ -5544,7 +5541,7 @@ export class RequestTracker implements NestMiddleware, OnApplicationShutdown {
       ]);
     }
 
-    console.log("All requests completed");
+    console.log('All requests completed');
   }
 }
 ```
@@ -5580,8 +5577,8 @@ export class DatabaseService {
 export class EmailService {
   sendEmail() {
     // Different services access env differently
-    const apiKey = process.env.RESEND_API_KEY || "default";
-    // Typos go unnoticed: process.env.RESEND_API_KY
+    const apiKey = process.env.SENDGRID_API_KEY || 'default';
+    // Typos go unnoticed: process.env.SENDGRID_API_KY
   }
 }
 ```
@@ -5590,11 +5587,11 @@ export class EmailService {
 
 ```typescript
 // Setup validated configuration
-import { ConfigModule, ConfigService, registerAs } from "@nestjs/config";
-import * as Joi from "joi";
+import { ConfigModule, ConfigService, registerAs } from '@nestjs/config';
+import * as Joi from 'joi';
 
 // config/database.config.ts
-export const databaseConfig = registerAs("database", () => ({
+export const databaseConfig = registerAs('database', () => ({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
   username: process.env.DB_USERNAME,
@@ -5603,17 +5600,17 @@ export const databaseConfig = registerAs("database", () => ({
 }));
 
 // config/app.config.ts
-export const appConfig = registerAs("app", () => ({
+export const appConfig = registerAs('app', () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
-  environment: process.env.NODE_ENV || "development",
-  apiPrefix: process.env.API_PREFIX || "api",
+  environment: process.env.NODE_ENV || 'development',
+  apiPrefix: process.env.API_PREFIX || 'api',
 }));
 
 // config/validation.schema.ts
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .valid("development", "production", "test")
-    .default("development"),
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(3000),
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().default(5432),
@@ -5639,12 +5636,12 @@ export const validationSchema = Joi.object({
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: "postgres",
-        host: config.get("database.host"),
-        port: config.get("database.port"),
-        username: config.get("database.username"),
-        password: config.get("database.password"),
-        database: config.get("database.database"),
+        type: 'postgres',
+        host: config.get('database.host'),
+        port: config.get('database.port'),
+        username: config.get('database.username'),
+        password: config.get('database.password'),
+        database: config.get('database.database'),
         autoLoadEntities: true,
       }),
     }),
@@ -5655,7 +5652,7 @@ export class AppModule {}
 // Type-safe configuration access
 export interface AppConfig {
   port: number;
-  environment: "development" | "production" | "test";
+  environment: 'development' | 'production' | 'test';
   apiPrefix: string;
 }
 
@@ -5674,11 +5671,11 @@ export class AppService {
 
   getPort(): number {
     // Type-safe with generic
-    return this.config.get<number>("app.port");
+    return this.config.get<number>('app.port');
   }
 
   getDatabaseConfig(): DatabaseConfig {
-    return this.config.get<DatabaseConfig>("database");
+    return this.config.get<DatabaseConfig>('database');
   }
 }
 
@@ -5700,8 +5697,8 @@ ConfigModule.forRoot({
   envFilePath: [
     `.env.${process.env.NODE_ENV}.local`,
     `.env.${process.env.NODE_ENV}`,
-    ".env.local",
-    ".env",
+    '.env.local',
+    '.env',
   ],
 });
 
@@ -5731,25 +5728,25 @@ Use NestJS Logger with structured JSON output in production. Include contextual 
 @Injectable()
 export class UsersService {
   async createUser(dto: CreateUserDto): Promise<User> {
-    console.log("Creating user:", dto);
+    console.log('Creating user:', dto);
     // Not structured, no levels, lost in production logs
 
     try {
       const user = await this.repo.save(dto);
-      console.log("User created:", user.id);
+      console.log('User created:', user.id);
       return user;
     } catch (error) {
-      console.log("Error:", error); // Using log for errors
+      console.log('Error:', error); // Using log for errors
       throw error;
     }
   }
 }
 
 // Log sensitive data
-console.log("Login attempt:", { email, password }); // SECURITY RISK!
+console.log('Login attempt:', { email, password }); // SECURITY RISK!
 
 // Inconsistent log format
-logger.log("User " + userId + " created at " + new Date());
+logger.log('User ' + userId + ' created at ' + new Date());
 // Hard to parse, no structure
 ```
 
@@ -5760,9 +5757,9 @@ logger.log("User " + userId + " created at " + new Date());
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger:
-      process.env.NODE_ENV === "production"
-        ? ["error", "warn", "log"]
-        : ["error", "warn", "log", "debug", "verbose"],
+      process.env.NODE_ENV === 'production'
+        ? ['error', 'warn', 'log']
+        : ['error', 'warn', 'log', 'debug', 'verbose'],
   });
 }
 
@@ -5772,14 +5769,14 @@ export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
   async createUser(dto: CreateUserDto): Promise<User> {
-    this.logger.log("Creating user", { email: dto.email });
+    this.logger.log('Creating user', { email: dto.email });
 
     try {
       const user = await this.repo.save(dto);
-      this.logger.log("User created", { userId: user.id });
+      this.logger.log('User created', { userId: user.id });
       return user;
     } catch (error) {
-      this.logger.error("Failed to create user", error.stack, {
+      this.logger.error('Failed to create user', error.stack, {
         email: dto.email,
       });
       throw error;
@@ -5793,7 +5790,7 @@ export class JsonLogger implements LoggerService {
   log(message: string, context?: object): void {
     console.log(
       JSON.stringify({
-        level: "info",
+        level: 'info',
         timestamp: new Date().toISOString(),
         message,
         ...context,
@@ -5804,7 +5801,7 @@ export class JsonLogger implements LoggerService {
   error(message: string, trace?: string, context?: object): void {
     console.error(
       JSON.stringify({
-        level: "error",
+        level: 'error',
         timestamp: new Date().toISOString(),
         message,
         trace,
@@ -5816,7 +5813,7 @@ export class JsonLogger implements LoggerService {
   warn(message: string, context?: object): void {
     console.warn(
       JSON.stringify({
-        level: "warn",
+        level: 'warn',
         timestamp: new Date().toISOString(),
         message,
         ...context,
@@ -5827,7 +5824,7 @@ export class JsonLogger implements LoggerService {
   debug(message: string, context?: object): void {
     console.debug(
       JSON.stringify({
-        level: "debug",
+        level: 'debug',
         timestamp: new Date().toISOString(),
         message,
         ...context,
@@ -5837,7 +5834,7 @@ export class JsonLogger implements LoggerService {
 }
 
 // Request context logging with ClsModule
-import { ClsModule, ClsService } from "nestjs-cls";
+import { ClsModule, ClsService } from 'nestjs-cls';
 
 @Module({
   imports: [
@@ -5858,11 +5855,11 @@ export class RequestContextMiddleware implements NestMiddleware {
   constructor(private cls: ClsService) {}
 
   use(req: Request, res: Response, next: NextFunction): void {
-    const requestId = req.headers["x-request-id"] || randomUUID();
-    this.cls.set("requestId", requestId);
-    this.cls.set("userId", req.user?.id);
+    const requestId = req.headers['x-request-id'] || randomUUID();
+    this.cls.set('requestId', requestId);
+    this.cls.set('userId', req.user?.id);
 
-    res.setHeader("x-request-id", requestId);
+    res.setHeader('x-request-id', requestId);
     next();
   }
 }
@@ -5875,10 +5872,10 @@ export class ContextLogger {
   log(message: string, data?: object): void {
     console.log(
       JSON.stringify({
-        level: "info",
+        level: 'info',
         timestamp: new Date().toISOString(),
-        requestId: this.cls.get("requestId"),
-        userId: this.cls.get("userId"),
+        requestId: this.cls.get('requestId'),
+        userId: this.cls.get('userId'),
         message,
         ...data,
       }),
@@ -5888,10 +5885,10 @@ export class ContextLogger {
   error(message: string, error: Error, data?: object): void {
     console.error(
       JSON.stringify({
-        level: "error",
+        level: 'error',
         timestamp: new Date().toISOString(),
-        requestId: this.cls.get("requestId"),
-        userId: this.cls.get("userId"),
+        requestId: this.cls.get('requestId'),
+        userId: this.cls.get('userId'),
         message,
         error: error.message,
         stack: error.stack,
@@ -5902,18 +5899,18 @@ export class ContextLogger {
 }
 
 // Pino integration for high-performance logging
-import { LoggerModule } from "nestjs-pino";
+import { LoggerModule } from 'nestjs-pino';
 
 @Module({
   imports: [
     LoggerModule.forRoot({
       pinoHttp: {
-        level: process.env.NODE_ENV === "production" ? "info" : "debug",
+        level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
         transport:
-          process.env.NODE_ENV !== "production"
-            ? { target: "pino-pretty" }
+          process.env.NODE_ENV !== 'production'
+            ? { target: 'pino-pretty' }
             : undefined,
-        redact: ["req.headers.authorization", "req.body.password"],
+        redact: ['req.headers.authorization', 'req.body.password'],
         serializers: {
           req: (req) => ({
             method: req.method,
@@ -5938,7 +5935,7 @@ export class UsersService {
   }
 
   async findOne(id: string): Promise<User> {
-    this.logger.info({ userId: id }, "Finding user");
+    this.logger.info({ userId: id }, 'Finding user');
     // Pino uses first arg for data, second for message
   }
 }
@@ -5958,4 +5955,4 @@ Reference: [NestJS Logger](https://docs.nestjs.com/techniques/logger)
 
 ---
 
-_Generated by build-agents.ts on 2026-01-16_
+*Generated by build-agents.ts on 2026-01-16*

@@ -61,15 +61,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       imports: [ConfigModule],
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        secret: config.get<string>("JWT_SECRET"),
+        secret: config.get<string>('JWT_SECRET'),
         signOptions: {
-          expiresIn: "15m", // Short-lived access tokens
-          issuer: config.get<string>("JWT_ISSUER"),
-          audience: config.get<string>("JWT_AUDIENCE"),
+          expiresIn: '15m', // Short-lived access tokens
+          issuer: config.get<string>('JWT_ISSUER'),
+          audience: config.get<string>('JWT_AUDIENCE'),
         },
       }),
     }),
-    PassportModule.register({ defaultStrategy: "jwt" }),
+    PassportModule.register({ defaultStrategy: 'jwt' }),
   ],
 })
 export class AuthModule {}
@@ -93,7 +93,7 @@ export class AuthService {
   }
 
   private async createRefreshToken(userId: string): Promise<string> {
-    const token = randomBytes(32).toString("hex");
+    const token = randomBytes(32).toString('hex');
     const hashedToken = await bcrypt.hash(token, 10);
 
     await this.refreshTokenRepo.save({
@@ -115,10 +115,10 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: config.get<string>("JWT_SECRET"),
+      secretOrKey: config.get<string>('JWT_SECRET'),
       ignoreExpiration: false,
-      issuer: config.get<string>("JWT_ISSUER"),
-      audience: config.get<string>("JWT_AUDIENCE"),
+      issuer: config.get<string>('JWT_ISSUER'),
+      audience: config.get<string>('JWT_AUDIENCE'),
     });
   }
 
@@ -127,14 +127,14 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.usersService.findById(payload.sub);
 
     if (!user || !user.isActive) {
-      throw new UnauthorizedException("User not found or inactive");
+      throw new UnauthorizedException('User not found or inactive');
     }
 
     // Verify token wasn't issued before password change
     if (user.passwordChangedAt) {
       const tokenIssuedAt = new Date(payload.iat * 1000);
       if (tokenIssuedAt < user.passwordChangedAt) {
-        throw new UnauthorizedException("Token invalidated by password change");
+        throw new UnauthorizedException('Token invalidated by password change');
       }
     }
 

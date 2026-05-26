@@ -19,11 +19,11 @@ What's inside a module — its body of code. Distinct from **Adapter**: a thing 
 Leverage at the interface — the amount of behaviour a caller (or test) can exercise per unit of interface they have to learn. A module is **deep** when a large amount of behaviour sits behind a small interface. A module is **shallow** when the interface is nearly as complex as the implementation.
 
 **Seam** _(from Michael Feathers)_
-A place where you can alter behaviour without editing in that place. The *location* at which a module's interface lives. Choosing where to put the seam is its own design decision, distinct from what goes behind it.
+A place where you can alter behaviour without editing in that place. The _location_ at which a module's interface lives. Choosing where to put the seam is its own design decision, distinct from what goes behind it.
 _Avoid_: boundary (overloaded with DDD's bounded context).
 
 **Adapter**
-A concrete thing that satisfies an interface at a seam. Describes *role* (what slot it fills), not substance (what's inside).
+A concrete thing that satisfies an interface at a seam. Describes _role_ (what slot it fills), not substance (what's inside).
 
 **Leverage**
 What callers get from depth. More capability per unit of interface they have to learn. One implementation pays back across N call sites and M tests.
@@ -35,7 +35,7 @@ What maintainers get from depth. Change, bugs, knowledge, and verification conce
 
 - **Depth is a property of the interface, not the implementation.** A deep module can be internally composed of small, mockable, swappable parts — they just aren't part of the interface. A module can have **internal seams** (private to its implementation, used by its own tests) as well as the **external seam** at its interface.
 - **The deletion test.** Imagine deleting the module. If complexity vanishes, the module wasn't hiding anything (it was a pass-through). If complexity reappears across N callers, the module was earning its keep.
-- **The interface is the test surface.** Callers and tests cross the same seam. If you want to test *past* the interface, the module is probably the wrong shape.
+- **The interface is the test surface.** Callers and tests cross the same seam. If you want to test _past_ the interface, the module is probably the wrong shape.
 - **One adapter means a hypothetical seam. Two adapters means a real one.** Don't introduce a seam unless something actually varies across it.
 
 ## Relationships

@@ -3,7 +3,7 @@ name: payloadcms-cms-migration
 description: "Interactive CMS-to-Payload migration workflow: analyze exports, design collection configs, field mapping. Vendored from payloadcms/skills (cms-migration). Use when migrating from WordPress, Contentful, Strapi, Sanity, Webflow, or similar into Payload."
 metadata:
   owner: core
-  last_updated: 2026-05-16
+  last_updated: 2026-05-23
   status: active
   author: payloadcms
   version: "1.0.0"
@@ -20,19 +20,30 @@ Interactive workflow to design Payload collections from source CMS data. Config-
 
 ## Triggers
 
-Use this skill when migrating content models or exports from another CMS into Payload, including WordPress, Contentful, Strapi, Sanity, Webflow, custom JSON/CSV exports, or a legacy in-house CMS.
+Use this skill when migrating content models or exports from another CMS into
+Payload, including WordPress, Contentful, Strapi, Sanity, Webflow, custom
+JSON/CSV exports, or a legacy in-house CMS.
 
 ## Do not use when
 
-- The task is ordinary Payload application development in this repo; use `docs/ai/skills/payloadcms-payload/SKILL.md`.
-- The task is only Supabase schema, RLS, Auth, Storage, or Edge Functions work; use the Supabase skills and nested Supabase instructions instead.
-- The task asks to import production/customer data into the repo. Do not commit customer exports or secrets.
+- The task is ordinary Payload application development in this repo; use
+  `docs/ai/skills/payloadcms-payload/SKILL.md`.
+- The task is only Supabase schema, RLS, Auth, Storage, or Edge Functions work;
+  use the Supabase skills and nested Supabase instructions instead.
+- The task asks to import production/customer data into the repo. Do not commit
+  customer exports or secrets.
 
 ## This repository (Asymmetric-al/core)
 
-Canonical vendored source: [`payloadcms/skills`](https://github.com/payloadcms/skills) (`skills/cms-migration/`). Maintainer refresh: `docs/ai/skills/payloadcms-cms-migration/references/upstream.md`.
+Canonical vendored source: [`payloadcms/skills`](https://github.com/payloadcms/skills)
+(`skills/cms-migration/`). Maintainer refresh:
+`docs/ai/skills/payloadcms-cms-migration/references/upstream.md`.
 
-**Precedence:** **OpenSpec** and **`docs/ai/rules/backend.md`** control durable behavior and security. **Supabase schema, RLS, and Auth** follow **`docs/ai/skills/supabase/SKILL.md`** and **`supabase/AGENTS.md`**. Design Payload collections so application code continues to respect **`docs/guides/architecture/data-access-boundary.md`**.
+**Precedence:** **OpenSpec** and **`docs/ai/rules/backend.md`** control durable
+behavior and security. **Supabase schema, RLS, and Auth** follow
+**`docs/ai/skills/supabase/SKILL.md`** and **`supabase/AGENTS.md`**. Design
+Payload collections so application code continues to respect
+**`docs/guides/architecture/data-access-boundary.md`**.
 
 ## Workflow
 
@@ -178,10 +189,3 @@ If creating a relationship, remember to add the related collection (Categories, 
 | Rich text ambiguity        | Clarify: Lexical editor, Slate, or store raw HTML          |
 | Missing media collection   | Always confirm upload collection exists before referencing |
 | Overly complex nested data | Consider flattening or using blocks instead of deep groups |
-
-## Checklist
-
-- [ ] Read the **This repository** precedence block at the top of this `SKILL.md`.
-- [ ] Confirmed collection designs respect **`docs/ai/rules/backend.md`**, **`docs/guides/architecture/data-access-boundary.md`**, and Supabase guidance when platform data is involved.
-- [ ] Used **`reference/PAYLOAD-FIELD-REFERENCE.md`** when mapping source CMS fields to Payload types.
-- [ ] If you edited files under `docs/ai/skills/payloadcms-cms-migration/`, ran **`bun run skills:sync`** and **`bun run skills:verify`** before committing.

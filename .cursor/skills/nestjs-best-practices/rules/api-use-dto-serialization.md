@@ -50,7 +50,7 @@ async function bootstrap() {
 // Entity with serialization control
 @Entity()
 export class User {
-  @PrimaryGeneratedColumn("uuid")
+  @PrimaryGeneratedColumn('uuid')
   id: string;
 
   @Column()
@@ -80,10 +80,10 @@ export class User {
 }
 
 // Now returning entity is safe
-@Controller("users")
+@Controller('users')
 export class UsersController {
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<User> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<User> {
     return this.usersService.findById(id);
     // Returns: { id, email, name, createdAt }
     // Sensitive fields excluded automatically
@@ -120,17 +120,17 @@ export class UserDetailResponseDto extends UserResponseDto {
 }
 
 // Controller with explicit DTOs
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Get()
   @SerializeOptions({ type: UserResponseDto })
   async findAll(): Promise<UserResponseDto[]> {
     const users = await this.usersService.findAll();
-    return users.map((u) => plainToInstance(UserResponseDto, u));
+    return users.map(u => plainToInstance(UserResponseDto, u));
   }
 
-  @Get(":id")
-  async findOne(@Param("id") id: string): Promise<UserDetailResponseDto> {
+  @Get(':id')
+  async findOne(@Param('id') id: string): Promise<UserDetailResponseDto> {
     const user = await this.usersService.findByIdWithPosts(id);
     return plainToInstance(UserDetailResponseDto, user, {
       excludeExtraneousValues: true,
@@ -146,33 +146,33 @@ export class UserDto {
   @Expose()
   name: string;
 
-  @Expose({ groups: ["admin"] })
+  @Expose({ groups: ['admin'] })
   email: string;
 
-  @Expose({ groups: ["admin"] })
+  @Expose({ groups: ['admin'] })
   createdAt: Date;
 
-  @Expose({ groups: ["admin", "owner"] })
+  @Expose({ groups: ['admin', 'owner'] })
   settings: UserSettings;
 }
 
-@Controller("users")
+@Controller('users')
 export class UsersController {
   @Get()
-  @SerializeOptions({ groups: ["public"] })
+  @SerializeOptions({ groups: ['public'] })
   async findAllPublic(): Promise<UserDto[]> {
     // Returns: { id, name }
   }
 
-  @Get("admin")
+  @Get('admin')
   @UseGuards(AdminGuard)
-  @SerializeOptions({ groups: ["admin"] })
+  @SerializeOptions({ groups: ['admin'] })
   async findAllAdmin(): Promise<UserDto[]> {
     // Returns: { id, name, email, createdAt }
   }
 
-  @Get("me")
-  @SerializeOptions({ groups: ["owner"] })
+  @Get('me')
+  @SerializeOptions({ groups: ['owner'] })
   async getProfile(@CurrentUser() user: User): Promise<UserDto> {
     // Returns: { id, name, settings }
   }
