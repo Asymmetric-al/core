@@ -28,6 +28,10 @@ commit when the deployment exposes a non-`unknown` commit.
 | ---------- | -------------------------------------------------------------- | ------------------------------------- | ------------------------------------------ |
 | admin      | `/api/admin/comments`                                          | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/comments/[commentId]`                              | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/contribution-batches`                              | Node.js (no `runtime` segment export) | Bulk contribution actions, admin client    |
+| admin      | `/api/admin/contribution-batches/[batchId]/process`            | Node.js (no `runtime` segment export) | Background contribution batch processing   |
+| admin      | `/api/admin/contribution-operations/[contributionId]`          | Node.js (no `runtime` segment export) | Contribution operation detail              |
+| admin      | `/api/admin/contribution-operations/actions`                   | Node.js (no `runtime` segment export) | Contribution operation mutations           |
 | admin      | `/api/admin/contributions`                                     | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/contributions/reconcile`                           | Node.js (no `runtime` segment export) | Giving reconciliation, admin client        |
 | admin      | `/api/admin/contributions/replay`                              | Node.js (no `runtime` segment export) | Giving replay tooling, Stripe SDK          |
@@ -60,6 +64,8 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/member-care/private-notes`                         | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/member-care/requirements`                          | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/member-care/thread`                                | Node.js (no `runtime` segment export) | Admin client                               |
+| admin      | `/api/admin/mission-control/automations`                       | Node.js (no `runtime` segment export) | Mission Control automation rules           |
+| admin      | `/api/admin/mission-control/needs-attention`                   | Node.js (no `runtime` segment export) | Mission Control attention read model       |
 | admin      | `/api/admin/missionaries`                                      | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/org-settings`                                      | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                               |
