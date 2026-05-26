@@ -9,7 +9,7 @@
 ## Workflow
 
 1. Run `bun run react-doctor:first-party -- --full --offline --fail-on none`.
-2. Read the `apps` and `packages` sections separately; both targets run with the same root `react-doctor.config.json`.
+2. Read each configured first-party target separately; the wrapper iterates concrete React project roots under `apps/*` and React-bearing workspace packages instead of aggregate `apps` / `packages` directories.
 3. Treat the result as a configured first-party audit, not a claim that every possible React Doctor rule is enabled.
 4. Fix errors and high-confidence warnings in source code first.
 5. Keep repo-level exceptions in `react-doctor.config.json` so repeated scans are deterministic.
@@ -47,8 +47,8 @@ The ignore list is intentionally human-readable here because `react-doctor.confi
 
 ## Checklist
 
-- [ ] React Doctor reports the expected score for `apps` under the configured audit.
-- [ ] React Doctor reports the expected score for `packages` under the configured audit.
+- [ ] React Doctor reports the expected score for each configured app target under the configured audit.
+- [ ] React Doctor reports the expected score for each configured package target under the configured audit.
 - [ ] Any remaining findings are either fixed or documented as known exceptions.
 - [ ] Any new ignored rule has a repo-specific reason and is not masking a known bug.
 - [ ] `failOn` behavior is described honestly in the PR summary.

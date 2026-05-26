@@ -8,11 +8,7 @@ const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
 );
-const TURBO_BIN = path.join(
-  "node_modules",
-  ".bin",
-  process.platform === "win32" ? "turbo.exe" : "turbo",
-);
+const TURBO_BIN = resolveTurboBin();
 
 const NEXT_APPS = Object.freeze([
   {
@@ -41,6 +37,121 @@ const NEXT_APP_FILTERS = Object.freeze([
   "--filter=!@asym/missionary-app",
 ]);
 
+const SHARED_PACKAGES = Object.freeze([
+  { id: "api", cwd: "packages/api" },
+  { id: "auth", cwd: "packages/auth" },
+  { id: "config", cwd: "packages/config" },
+  { id: "database", cwd: "packages/database" },
+  { id: "email", cwd: "packages/email" },
+  { id: "env", cwd: "packages/env" },
+  { id: "graphql", cwd: "packages/graphql" },
+  { id: "lib", cwd: "packages/lib" },
+  { id: "missionary", cwd: "packages/missionary" },
+  { id: "ui", cwd: "packages/ui" },
+]);
+
+export function resolveTurboBin({
+  platform = process.platform,
+  exists = existsSync,
+} = {}) {
+  const binDir = path.join(REPO_ROOT, "node_modules", ".bin");
+  const candidates =
+    platform === "win32" ? ["turbo.exe", "turbo.cmd", "turbo"] : ["turbo"];
+
+  for (const candidate of candidates) {
+    const absolutePath = path.join(binDir, candidate);
+    if (exists(absolutePath)) {
+      return absolutePath;
+    }
+  }
+
+  return path.join(binDir, candidates.at(-1));
+}
+
+export function getProcessListCommand(platform = process.platform) {
+  if (platform === "win32") {
+    return {
+      command: "powershell",
+      args: [
+        "-NoProfile",
+        "-Command",
+        "Get-CimInstance Win32_Process | Select-Object -ExpandProperty CommandLine",
+      ],
+    };
+  }
+
+  return { command: "ps", args: ["-axo", "command="] };
+}
+
+export function getSleepCommand(seconds, platform = process.platform) {
+  if (platform === "win32") {
+    return {
+      command: "powershell",
+      args: [
+        "-NoProfile",
+        "-Command",
+        `Start-Sleep -Seconds ${Math.max(1, Math.ceil(seconds))}`,
+      ],
+    };
+  }
+
+  return { command: "sleep", args: [String(seconds)] };
+}
+
+function createRunWithCiEnvStep(label, command, args) {
+  return {
+    label,
+    command: "node",
+    args: ["scripts/run-with-ci-env.mjs", "--", command, ...args],
+  };
+}
+
+export function getSharedPackageBuildSteps({
+  platform = process.platform,
+  turboBin = TURBO_BIN,
+} = {}) {
+  if (platform === "win32") {
+    return SHARED_PACKAGES.map((workspace) =>
+      createRunWithCiEnvStep(workspace.id, "bun", [
+        "run",
+        "--cwd",
+        workspace.cwd,
+        "build",
+      ]),
+    );
+  }
+
+  return [
+    createRunWithCiEnvStep("shared packages", turboBin, [
+      "run",
+      "build",
+      ...NEXT_APP_FILTERS,
+      "--concurrency=1",
+    ]),
+  ];
+}
+
+export function getAppBuildStep(
+  app,
+  { platform = process.platform, turboBin = TURBO_BIN } = {},
+) {
+  if (platform === "win32") {
+    return createRunWithCiEnvStep(app.id, "bun", [
+      "run",
+      "--cwd",
+      app.cwd,
+      "build",
+    ]);
+  }
+
+  return createRunWithCiEnvStep(app.id, turboBin, [
+    "run",
+    "build",
+    `--filter=${app.filter}`,
+    "--concurrency=1",
+  ]);
+}
+
 function run(command, args, label) {
   console.log(`==> CI build: ${label}`);
   const result = spawnSync(command, args, {
@@ -63,54 +174,26 @@ function run(command, args, label) {
 }
 
 function sleepSeconds(seconds) {
-  if (process.platform === "win32") {
-    spawnSync(
-      "powershell",
-      [
-        "-NoProfile",
-        "-Command",
-        `Start-Sleep -Seconds ${Math.max(1, Math.ceil(seconds))}`,
-      ],
-      { stdio: "ignore" },
-    );
-    return;
-  }
-
-  spawnSync("sleep", [String(seconds)], { stdio: "ignore" });
+  const sleepCommand = getSleepCommand(seconds);
+  spawnSync(sleepCommand.command, sleepCommand.args, { stdio: "ignore" });
 }
 
 function isNextBuildRunning() {
-  if (process.platform === "win32") {
-    const result = spawnSync(
-      "powershell",
-      [
-        "-NoProfile",
-        "-Command",
-        "Get-CimInstance Win32_Process | Select-Object -ExpandProperty CommandLine",
-      ],
-      {
-        encoding: "utf8",
-        stdio: ["ignore", "pipe", "pipe"],
-      },
-    );
-
-    if (result.status !== 0) return false;
-
-    return result.stdout
-      .split(/\r?\n/)
-      .some((line) => /\bnext build\b/i.test(line));
-  }
-
-  const result = spawnSync("ps", ["-axo", "command="], {
-    encoding: "utf8",
-    stdio: ["ignore", "pipe", "pipe"],
-  });
+  const processListCommand = getProcessListCommand();
+  const result = spawnSync(
+    processListCommand.command,
+    processListCommand.args,
+    {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    },
+  );
 
   if (result.status !== 0) return false;
 
   return result.stdout
     .split(/\r?\n/)
-    .some((line) => /\bnext build\b/.test(line));
+    .some((line) => /\bnext build\b/i.test(line));
 }
 
 function waitForNextBuildsToExit() {
@@ -174,53 +257,27 @@ function clearStaleNextLocks() {
   }
 }
 
-clearStaleNextLocks();
-run(
-  "node",
-  [
-    "scripts/run-with-ci-env.mjs",
-    "--",
-    TURBO_BIN,
-    "run",
-    "build",
-    ...NEXT_APP_FILTERS,
-    "--concurrency=1",
-  ],
-  "shared packages",
-);
-
-for (const app of NEXT_APPS) {
-  clearStaleNextLocks();
-  if (process.platform === "win32") {
-    run(
-      "node",
-      [
-        "scripts/run-with-ci-env.mjs",
-        "--",
-        "bun",
-        "run",
-        "--cwd",
-        app.cwd,
-        "build",
-      ],
-      app.id,
-    );
-  } else {
-    run(
-      "node",
-      [
-        "scripts/run-with-ci-env.mjs",
-        "--",
-        TURBO_BIN,
-        "run",
-        "build",
-        `--filter=${app.filter}`,
-        "--concurrency=1",
-      ],
-      app.id,
-    );
+function main() {
+  for (const step of getSharedPackageBuildSteps()) {
+    clearStaleNextLocks();
+    run(step.command, step.args, step.label);
+    clearStaleNextLocks();
   }
-  clearStaleNextLocks();
+
+  for (const app of NEXT_APPS) {
+    const step = getAppBuildStep(app);
+    clearStaleNextLocks();
+    run(step.command, step.args, step.label);
+    clearStaleNextLocks();
+  }
+
+  console.log("==> PASS ci-build");
 }
 
-console.log("==> PASS ci-build");
+const isDirectExecution =
+  process.argv[1] &&
+  path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+
+if (isDirectExecution) {
+  main();
+}

@@ -67,6 +67,36 @@ describe("filterAndSortDonors", () => {
     expect(result.map((donor) => donor.id)).toEqual(["org-match"]);
   });
 
+  it("trims search text before matching donor identity fields", () => {
+    const donors = [
+      createDonor({
+        id: "alpha",
+        name: "Alpha Partner",
+        organization: "Local Computing Lab",
+      }),
+      createDonor({
+        id: "zulu",
+        name: "Zulu Partner",
+      }),
+    ];
+
+    expect(
+      filterAndSortDonors(donors, {
+        ...defaultFilters,
+        searchTerm: "  computing  ",
+      }).map((donor) => donor.id),
+    ).toEqual(["alpha"]);
+
+    expect(
+      filterAndSortDonors(donors, {
+        ...defaultFilters,
+        searchTerm: "   ",
+        sortBy: "name",
+        sortAsc: true,
+      }).map((donor) => donor.id),
+    ).toEqual(["alpha", "zulu"]);
+  });
+
   it("applies status, tag, and pledge filters together", () => {
     const donors = [
       createDonor({
@@ -134,7 +164,7 @@ describe("filterAndSortDonors", () => {
     ).toEqual(["newer-larger", "older-smaller"]);
   });
 
-  it("keeps the existing sortAsc inversion behavior", () => {
+  it("sorts names ascending when sortAsc is true", () => {
     const donors = [
       createDonor({ id: "alpha", name: "Alpha" }),
       createDonor({ id: "zulu", name: "Zulu" }),
@@ -146,6 +176,6 @@ describe("filterAndSortDonors", () => {
       sortAsc: true,
     });
 
-    expect(result.map((donor) => donor.id)).toEqual(["zulu", "alpha"]);
+    expect(result.map((donor) => donor.id)).toEqual(["alpha", "zulu"]);
   });
 });

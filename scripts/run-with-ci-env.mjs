@@ -105,8 +105,34 @@ export function normalizeEnvForCommand(env, commandParts = []) {
   return env;
 }
 
-export function shouldSpawnWithShell(command, platform = process.platform) {
-  return platform === "win32" && /\.(?:cmd|bat)$/i.test(command);
+export function shouldUseShellForCommand(command, platform = process.platform) {
+  return platform === "win32" && /\.(cmd|bat)$/i.test(command);
+}
+
+function quoteForCmd(argument) {
+  return `"${String(argument).replaceAll('"', '""')}"`;
+}
+
+export function getSpawnCommand(
+  command,
+  commandArgs = [],
+  { platform = process.platform, env = process.env } = {},
+) {
+  if (!shouldUseShellForCommand(command, platform)) {
+    return { command, args: commandArgs };
+  }
+
+  const shell = env.ComSpec ?? env.COMSPEC ?? "cmd.exe";
+
+  return {
+    command: shell,
+    args: [
+      "/d",
+      "/s",
+      "/c",
+      [command, ...commandArgs].map(quoteForCmd).join(" "),
+    ],
+  };
 }
 
 function getEnv(commandParts = []) {
@@ -134,10 +160,10 @@ if (isDirectExecution) {
   }
 
   const [command, ...commandArgs] = commandParts;
-  const result = spawnSync(command, commandArgs, {
+  const spawnCommand = getSpawnCommand(command, commandArgs);
+  const result = spawnSync(spawnCommand.command, spawnCommand.args, {
     stdio: "inherit",
     env: getEnv(commandParts),
-    shell: shouldSpawnWithShell(command),
   });
 
   if (result.error) {

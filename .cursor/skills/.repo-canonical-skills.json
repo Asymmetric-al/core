@@ -3,6 +3,7 @@
   "canonicalSkills": [
     "anim",
     "base-ui",
+    "bendc-frontend-guidelines",
     "cache-components",
     "commit",
     "components-build",
@@ -14,6 +15,8 @@
     "nextjs-app-router",
     "nextjs-supabase-auth",
     "npm-deps-cleanup",
+    "payloadcms-cms-migration",
+    "payloadcms-payload",
     "react-component-dev",
     "react-doctor",
     "rechart",

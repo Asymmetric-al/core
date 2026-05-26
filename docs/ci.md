@@ -211,6 +211,12 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
      The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
 - _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `epic`, `e2e-gate` converts this job into a required production-bound signal.
+- _Donor-only default projects:_ When a local or CI caller sets
+  `PLAYWRIGHT_INCLUDE_ADMIN=0`, `playwright.config.ts` omits the admin web
+  server and the default `chromium`/`mobile-chrome` projects ignore specs that
+  require admin, missionary, CMS, Support Hub, or boneyard servers. Dedicated
+  admin, missionary, CMS, and boneyard scripts keep their own configs and should
+  be run separately when those surfaces are in scope.
 - _Debug locally:_ Run `bun run test:e2e:auth-preflight` first, then `bun run test:e2e:production-gate` for the required production gate, `bun run test:e2e` for the broader local suite, `bun run test:e2e:cms` for portable CMS/admin coverage, `bun run test:e2e:cms:local` for the local seed-dependent CMS proof, `bun run test:e2e:strict` (core strict env), `bun run test:e2e:cms:strict` (CMS strict env), `bun run test:perf` (perf-only suites), or `bun run test:e2e --project=chromium` (Chromium only). Use `bun run test:e2e:ui` for interactive debugging.
 
 ---

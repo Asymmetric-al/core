@@ -4,13 +4,14 @@ import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
 
+import { applyMissionControlCloudEnvDefaults } from "../../../scripts/dev/setup-mission-control-cloud.mjs";
 import {
+  getSpawnCommand,
   loadLocalEnvFiles,
   normalizeEnvForCommand,
   parseEnvFile,
-  shouldSpawnWithShell,
+  shouldUseShellForCommand,
 } from "../../../scripts/run-with-ci-env.mjs";
-import { applyMissionControlCloudEnvDefaults } from "../../../scripts/dev/setup-mission-control-cloud.mjs";
 
 const tempRoots: string[] = [];
 
@@ -102,14 +103,35 @@ describe("run-with-ci-env", () => {
     expect(env).toEqual({ FORCE_COLOR: "" });
   });
 
-  it("uses a shell for Windows command shims", () => {
-    expect(shouldSpawnWithShell("node_modules/.bin/turbo.cmd", "win32")).toBe(
+  it("uses a shell for Windows command shims but not native binaries", () => {
+    expect(
+      shouldUseShellForCommand("node_modules/.bin/turbo.cmd", "win32"),
+    ).toBe(true);
+    expect(shouldUseShellForCommand("scripts/run-check.bat", "win32")).toBe(
       true,
     );
-    expect(shouldSpawnWithShell("node", "win32")).toBe(false);
-    expect(shouldSpawnWithShell("node_modules/.bin/turbo.cmd", "linux")).toBe(
+    expect(shouldUseShellForCommand("node", "win32")).toBe(false);
+    expect(shouldUseShellForCommand("node_modules/.bin/turbo", "linux")).toBe(
       false,
     );
+  });
+
+  it("wraps Windows command shims through cmd.exe", () => {
+    const result = getSpawnCommand(
+      "C:\\repo with spaces\\node_modules\\.bin\\turbo.cmd",
+      ["run", "build", "--filter=!@asym/admin"],
+      { platform: "win32", env: { ComSpec: "C:\\Windows\\System32\\cmd.exe" } },
+    );
+
+    expect(result).toEqual({
+      command: "C:\\Windows\\System32\\cmd.exe",
+      args: [
+        "/d",
+        "/s",
+        "/c",
+        '"C:\\repo with spaces\\node_modules\\.bin\\turbo.cmd" "run" "build" "--filter=!@asym/admin"',
+      ],
+    });
   });
 });
 
