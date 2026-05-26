@@ -23,6 +23,13 @@ import {
   markStripeRawEventForReplay,
 } from "../../stripe/replay";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
+import { executeContributionAction } from "../contribution-operations/actions";
+import { hasContributionPermission } from "../contribution-operations/permissions";
+import {
+  appendContributionOperationAuditEvent,
+  createContributionCorrectionRecord,
+  loadContributionDetailFromSupabase,
+} from "../contribution-operations/store";
 
 const STRIPE_API_VERSION = "2025-02-24.acacia";
 
@@ -32,6 +39,8 @@ const replaySchema = z
     donationSagaOutboxId: z.string().uuid().optional(),
     stagedGiftId: z.string().uuid().optional(),
     receiptSendId: z.string().uuid().optional(),
+    reason: z.string().max(1000).nullable().optional(),
+    confirmationToken: z.string().max(200).nullable().optional(),
   })
   .refine(
     (value) =>
@@ -59,6 +68,16 @@ function getStripeForReplay() {
   return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
 }
 
+function actorPermissionsFromAuth(
+  auth: { role: string | null } & Parameters<
+    typeof hasContributionPermission
+  >[0],
+) {
+  return hasContributionPermission(auth, "finance:manage_contributions")
+    ? (["finance:manage_contributions"] as const)
+    : [];
+}
+
 export const POST = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
@@ -70,51 +89,112 @@ export const POST = withOperation(
           stripeEventId: body.stripeEventId,
           tenantId: auth.tenantId,
         });
-        await markStripeRawEventForReplay({
-          supabaseAdmin,
-          rawEventId: rawEvent.id,
-        });
-        const claim = await claimStripeRawEvent({
-          supabaseAdmin,
-          rawEventId: rawEvent.id,
-        });
-        if (!claim.claimed) {
-          throw new ApiHttpError(409, "Stripe raw event is not replayable.");
+        if (!rawEvent.donationId) {
+          throw new ApiHttpError(
+            409,
+            "Stripe raw event is not linked to a contribution.",
+          );
         }
 
-        const event = getRawPayloadEvent(rawEvent);
-        let outcome;
-        try {
-          outcome = await handleStripeWebhookEvent(supabaseAdmin, event, {
-            rawEventId: rawEvent.id,
-            stripeEventId: rawEvent.stripeEventId,
-          });
-          await completeStripeRawEvent({
-            supabaseAdmin,
-            rawEventId: rawEvent.id,
-            lockId: claim.lockId,
-            status: outcome.handled ? "processed" : "ignored",
-            outcome: {
-              action: outcome.action,
-              donationId: outcome.donationId,
-              handled: outcome.handled,
-              paymentIntentId: outcome.paymentIntentId,
-              reason: outcome.reason,
-              stagedGiftId: outcome.stagedGiftId,
+        const result = await executeContributionAction({
+          tenantId: auth.tenantId,
+          actorProfileId: auth.profileId,
+          actorPermissions: [...actorPermissionsFromAuth(auth)],
+          sourceSurface: "contribution_hub",
+          contributionId: rawEvent.donationId,
+          actionType: "stripe_replay",
+          reason: body.reason ?? null,
+          confirmationToken: body.confirmationToken ?? null,
+          payload: { stripeEventId: body.stripeEventId },
+          dependencies: {
+            replayStripeEvent: async () => {
+              await markStripeRawEventForReplay({
+                supabaseAdmin,
+                rawEventId: rawEvent.id,
+              });
+              const claim = await claimStripeRawEvent({
+                supabaseAdmin,
+                rawEventId: rawEvent.id,
+              });
+              if (!claim.claimed) {
+                throw new ApiHttpError(
+                  409,
+                  "Stripe raw event is not replayable.",
+                );
+              }
+
+              const event = getRawPayloadEvent(rawEvent);
+              try {
+                const outcome = await handleStripeWebhookEvent(
+                  supabaseAdmin,
+                  event,
+                  {
+                    rawEventId: rawEvent.id,
+                    stripeEventId: rawEvent.stripeEventId,
+                  },
+                );
+                await completeStripeRawEvent({
+                  supabaseAdmin,
+                  rawEventId: rawEvent.id,
+                  lockId: claim.lockId,
+                  status: outcome.handled ? "processed" : "ignored",
+                  outcome: {
+                    action: outcome.action,
+                    donationId: outcome.donationId,
+                    handled: outcome.handled,
+                    paymentIntentId: outcome.paymentIntentId,
+                    reason: outcome.reason,
+                    stagedGiftId: outcome.stagedGiftId,
+                  },
+                  stagedGiftId: outcome.stagedGiftId ?? null,
+                });
+
+                return {
+                  provider: "stripe" as const,
+                  status: outcome.handled ? "processed" : "ignored",
+                  referenceId: rawEvent.stripeEventId,
+                  raw: {
+                    action: outcome.action,
+                    donationId: outcome.donationId,
+                    reason: outcome.reason,
+                    stagedGiftId: outcome.stagedGiftId,
+                  },
+                };
+              } catch (error) {
+                await recordStripeRawEventFailure({
+                  supabaseAdmin,
+                  rawEventId: rawEvent.id,
+                  lockId: claim.lockId,
+                  error,
+                });
+                return {
+                  provider: "stripe" as const,
+                  status: "failed",
+                  referenceId: rawEvent.stripeEventId,
+                  errorMessage:
+                    error instanceof Error
+                      ? error.message
+                      : "Stripe replay failed.",
+                };
+              }
             },
-            stagedGiftId: outcome.stagedGiftId ?? null,
-          });
-        } catch (error) {
-          await recordStripeRawEventFailure({
-            supabaseAdmin,
-            rawEventId: rawEvent.id,
-            lockId: claim.lockId,
-            error,
-          });
-          throw error;
-        }
+            appendAuditEvent: (event) =>
+              appendContributionOperationAuditEvent({ supabaseAdmin, event }),
+            createCorrectionRecord: (correction) =>
+              createContributionCorrectionRecord({
+                supabaseAdmin,
+                correction,
+              }),
+            loadContributionDetail: ({ contributionId, tenantId }) =>
+              loadContributionDetailFromSupabase({
+                supabaseAdmin,
+                tenantId,
+                contributionId,
+              }),
+          },
+        });
 
-        return NextResponse.json({ replayed: outcome, requestId });
+        return NextResponse.json({ replayed: result, requestId });
       }
 
       if (body.donationSagaOutboxId) {

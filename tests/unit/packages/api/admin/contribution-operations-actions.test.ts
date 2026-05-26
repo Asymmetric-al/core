@@ -205,4 +205,51 @@ describe("contribution operations action executor", () => {
     );
     expect(result.providerOutcome?.status).toBe("failed");
   });
+
+  it("routes Stripe replay through a dedicated provider adapter and audit trail", async () => {
+    const replayStripeEvent = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "queued_for_replay",
+      referenceId: "evt_123",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "stripe_replay",
+      reason: "Recover missing webhook",
+      confirmationToken: "confirm",
+      payload: { stripeEventId: "evt_123" },
+      dependencies: {
+        replayStripeEvent,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(replayStripeEvent).toHaveBeenCalledWith({
+      contributionId: "donation_1",
+      payload: { stripeEventId: "evt_123" },
+      tenantId: "tenant_1",
+    });
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        correctionType: "stripe_replay",
+        providerOutcome: expect.objectContaining({
+          referenceId: "evt_123",
+          status: "queued_for_replay",
+        }),
+      }),
+    );
+    expect(result.providerOutcome?.referenceId).toBe("evt_123");
+  });
 });

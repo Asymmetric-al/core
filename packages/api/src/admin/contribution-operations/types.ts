@@ -133,6 +133,11 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     after?: Record<string, unknown> | null;
     status?: "pending" | "applied" | "failed" | "voided";
   }>;
+  replayStripeEvent?: (input: {
+    tenantId: string;
+    contributionId: string;
+    payload: Record<string, unknown>;
+  }) => Promise<ContributionProviderOutcome>;
   refundContribution?: (input: {
     tenantId: string;
     contributionId: string;

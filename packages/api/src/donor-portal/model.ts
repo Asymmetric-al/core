@@ -411,13 +411,11 @@ export function buildDonorPortalSnapshot(input: {
       donation.status === "Succeeded" ||
       donation.status === "Partially Refunded",
   );
+  const netDonationAmount = (donation: DonorPortalDonation) =>
+    Math.max(0, donation.amountCents - donation.refundAmountCents);
   const yearToDateCents = settledDonations
     .filter((donation) => donation.statementYear === currentYear)
-    .reduce(
-      (sum, donation) =>
-        sum + Math.max(0, donation.amountCents - donation.refundAmountCents),
-      0,
-    );
+    .reduce((sum, donation) => sum + netDonationAmount(donation), 0);
   const activeRecurringGiftCount = recurringGifts.filter((gift) =>
     ["active", "processing", "trialing"].includes(gift.status.toLowerCase()),
   ).length;
@@ -497,12 +495,10 @@ export function buildDonorPortalSnapshot(input: {
     },
     summary: {
       yearToDateCents,
-      lifetimeGivenCents:
-        input.donor.total_given ??
-        settledDonations.reduce(
-          (sum, donation) => sum + donation.amountCents,
-          0,
-        ),
+      lifetimeGivenCents: settledDonations.reduce(
+        (sum, donation) => sum + netDonationAmount(donation),
+        0,
+      ),
       giftCount: input.donor.gift_count ?? donationModels.length,
       activeRecurringGiftCount,
       supportedDesignationCount: supportedDesignations.size,

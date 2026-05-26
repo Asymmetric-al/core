@@ -367,6 +367,24 @@ export const POST = withOperation(
           },
           applyCorrection: (correctionInput) =>
             applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
+          replayStripeEvent: async ({ payload, tenantId }) => {
+            const stripeEventId = payload.stripeEventId;
+            if (typeof stripeEventId !== "string" || !stripeEventId) {
+              throw new ApiHttpError(400, "stripeEventId is required.");
+            }
+            const rawEvent = await replayStripeEventThroughContributionOperations(
+              {
+                supabaseAdmin,
+                tenantId,
+                stripeEventId,
+              },
+            );
+            return {
+              provider: "stripe" as const,
+              status: "queued_for_replay",
+              referenceId: rawEvent.stripeEventId,
+            };
+          },
           refundContribution: (refundInput) =>
             refundContribution({ supabaseAdmin, ...refundInput }),
           appendAuditEvent: (event) =>

@@ -290,5 +290,6 @@ describe("donor portal model", () => {
     expect(snapshot.donations[0]?.status).toBe("Partially Refunded");
     expect(snapshot.donations[0]?.refundAmountCents).toBe(2_500);
     expect(snapshot.summary.yearToDateCents).toBe(7_500);
+    expect(snapshot.summary.lifetimeGivenCents).toBe(7_500);
   });
 });

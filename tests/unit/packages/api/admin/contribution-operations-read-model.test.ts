@@ -87,4 +87,42 @@ describe("contribution operations detail read model", () => {
     expect(detail.donorVisible.status).toBe("Refunded");
     expect(detail.donorVisible.historyUpdatedImmediately).toBe(true);
   });
+
+  it("keeps partial refunds distinct from full refunds in donor-visible staff detail", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_1",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: null,
+        fundId: null,
+        amount: 12000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_123",
+        stripeChargeId: "ch_123",
+        giftDate: "2026-05-01T00:00:00.000Z",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: "2026-05-01T00:02:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: "2026-05-02T00:00:00.000Z",
+        refundAmount: 2500,
+        source: "online",
+        createdAt: "2026-05-01T00:00:00.000Z",
+        updatedAt: "2026-05-02T00:00:00.000Z",
+      },
+    });
+
+    expect(detail.refund.status).toBe("partial_refund");
+    expect(detail.donorVisible.status).toBe("Partially Refunded");
+  });
 });

@@ -138,7 +138,12 @@ export interface ContributionDetail {
   tasks: unknown[];
   batches: unknown[];
   donorVisible: {
-    status: "Succeeded" | "Processing" | "Failed" | "Refunded";
+    status:
+      | "Succeeded"
+      | "Processing"
+      | "Failed"
+      | "Partially Refunded"
+      | "Refunded";
     historyUpdatedImmediately: true;
     amount: number;
     currency: string;
@@ -149,7 +154,9 @@ function normalizeCurrency(currency: string | null | undefined): string {
   return (currency ?? "usd").toUpperCase();
 }
 
-function displayNameFromDonor(donor: NonNullable<ContributionDetailDonorInput>) {
+function displayNameFromDonor(
+  donor: NonNullable<ContributionDetailDonorInput>,
+) {
   return (
     donor.name?.trim() ||
     donor.email?.trim() ||
@@ -162,15 +169,24 @@ function phoneNumbersFromDonor(
   donor: NonNullable<ContributionDetailDonorInput>,
 ): string[] {
   return Array.from(
-    new Set([donor.phone, donor.mobile].filter((value): value is string =>
-      Boolean(value?.trim()),
-    )),
+    new Set(
+      [donor.phone, donor.mobile].filter((value): value is string =>
+        Boolean(value?.trim()),
+      ),
+    ),
   );
 }
 
-function donorVisibleStatus(status: string | null, refundAmount: number) {
+function donorVisibleStatus(
+  status: string | null,
+  refundAmount: number,
+  amount: number,
+) {
   const normalized = status?.toLowerCase() ?? "";
-  if (normalized === "refunded" || refundAmount > 0) {
+  if (refundAmount > 0 && refundAmount < amount) {
+    return "Partially Refunded" as const;
+  }
+  if (normalized === "refunded" || (amount > 0 && refundAmount >= amount)) {
     return "Refunded" as const;
   }
   if (
@@ -276,7 +292,11 @@ export function buildContributionDetail(
     tasks: [],
     batches: [],
     donorVisible: {
-      status: donorVisibleStatus(donation.status, donation.refundAmount),
+      status: donorVisibleStatus(
+        donation.status,
+        donation.refundAmount,
+        donation.amount,
+      ),
       historyUpdatedImmediately: true,
       amount: donation.amount,
       currency,

@@ -361,6 +361,43 @@ export async function executeContributionAction<TContribution = unknown>(
       };
     }
 
+    case "stripe_replay": {
+      const replayStripeEvent = requireDependency(
+        input.dependencies,
+        "replayStripeEvent",
+      );
+      const providerOutcome = await replayStripeEvent({
+        tenantId: input.tenantId,
+        contributionId: input.contributionId,
+        payload: input.payload ?? {},
+      });
+      const correctionId = await createCorrectionRecord(
+        input,
+        correctionInput(input, {
+          correctionType: "stripe_replay",
+          status: isFailedProviderOutcome(providerOutcome)
+            ? "failed"
+            : "applied",
+          providerOutcome,
+        }),
+      );
+      const auditEventId = await appendAuditEvent(
+        input,
+        auditInput(input, {
+          correctionId,
+          providerOutcome,
+        }),
+      );
+
+      return {
+        canonicalContribution: await loadCanonicalContribution(input),
+        auditEventId,
+        correctionId,
+        taskIds: [],
+        providerOutcome,
+      };
+    }
+
     default: {
       if (isCorrectionAction(input.actionType)) {
         const applyCorrection = requireDependency(
