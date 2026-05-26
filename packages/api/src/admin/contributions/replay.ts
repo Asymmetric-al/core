@@ -84,6 +84,25 @@ export const POST = withOperation(
       const body = replaySchema.parse(await ensureJsonBody(request));
 
       if (body.stripeEventId) {
+        if (!body.reason?.trim()) {
+          throw new ApiHttpError(
+            400,
+            "A reason is required for stripe_replay.",
+          );
+        }
+        if (!body.confirmationToken?.trim()) {
+          throw new ApiHttpError(
+            400,
+            "A confirmation token is required for stripe_replay.",
+          );
+        }
+        if (!hasContributionPermission(auth, "finance:manage_contributions")) {
+          throw new ApiHttpError(
+            403,
+            "Forbidden: requires finance:manage_contributions",
+          );
+        }
+
         const rawEvent = await loadStripeRawEventForReplay({
           supabaseAdmin,
           stripeEventId: body.stripeEventId,

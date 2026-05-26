@@ -143,6 +143,7 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     contributionId: string;
     amount: number;
     reason: string;
+    confirmationToken: string;
   }) => Promise<ContributionProviderOutcome>;
   appendAuditEvent?: (
     input: ContributionOperationAuditEventInput,

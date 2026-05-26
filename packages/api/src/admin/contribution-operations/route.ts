@@ -103,6 +103,7 @@ async function refundContribution(input: {
   contributionId: string;
   amount: number;
   reason: string;
+  confirmationToken: string;
 }) {
   const { data, error } = await input.supabaseAdmin
     .from("donations")
@@ -147,7 +148,7 @@ async function refundContribution(input: {
         },
       },
       {
-        idempotencyKey: `contribution-refund/${input.tenantId}/${input.contributionId}/${input.amount}/${crypto.randomUUID()}`,
+        idempotencyKey: `contribution-refund/${input.tenantId}/${input.contributionId}/${input.amount}/${input.confirmationToken}`,
       },
     );
 
@@ -168,10 +169,18 @@ async function refundContribution(input: {
       .eq("id", input.contributionId);
 
     if (updateResult.error) {
-      throw new ApiHttpError(
-        500,
-        `Stripe refund ${refund.id} was created, but the local contribution state could not be updated: ${updateResult.error.message}`,
-      );
+      return {
+        provider: "stripe" as const,
+        status: "local_update_failed",
+        referenceId: refund.id,
+        errorCode: "local_contribution_update_failed",
+        errorMessage: `Stripe refund ${refund.id} was created, but the local contribution state could not be updated: ${updateResult.error.message}`,
+        raw: {
+          amount: refund.amount,
+          currency: refund.currency,
+          status: refund.status,
+        },
+      };
     }
 
     return {

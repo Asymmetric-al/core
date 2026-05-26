@@ -203,6 +203,11 @@ describe("contribution operations action executor", () => {
         }),
       }),
     );
+    expect(refundContribution).toHaveBeenCalledWith(
+      expect.objectContaining({
+        confirmationToken: "confirm",
+      }),
+    );
     expect(result.providerOutcome?.status).toBe("failed");
   });
 

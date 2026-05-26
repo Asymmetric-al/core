@@ -163,6 +163,7 @@ function isFailedProviderOutcome(
 ): boolean {
   return (
     outcome?.status === "failed" ||
+    outcome?.status === "local_update_failed" ||
     outcome?.status === "canceled" ||
     outcome?.status === "requires_action"
   );
@@ -331,6 +332,7 @@ export async function executeContributionAction<TContribution = unknown>(
         contributionId: input.contributionId,
         amount,
         reason: input.reason ?? "",
+        confirmationToken: input.confirmationToken ?? "",
       });
       const correctionId = await createCorrectionRecord(
         input,
