@@ -294,6 +294,84 @@ export interface DonationWithDetails extends Donation {
   fund: Fund | null;
 }
 
+export type ContributionOperationSourceSurface =
+  | "contribution_hub"
+  | "donor_crm_record"
+  | "automation"
+  | "bulk_action"
+  | "api";
+
+export type ContributionCorrectionStatus =
+  | "pending"
+  | "applied"
+  | "failed"
+  | "voided";
+
+export interface ContributionOperationPromptSettings {
+  tenant_id: string;
+  default_reason_mode: "optional" | "required";
+  allow_user_reason_prompt_reduction: boolean;
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+export interface ContributionOperationUserPreference {
+  id: string;
+  tenant_id: string;
+  profile_id: string;
+  reduce_reason_prompts: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionCorrection {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  staged_gift_id: string | null;
+  correction_type: string;
+  status: ContributionCorrectionStatus;
+  reason: string;
+  source_surface: ContributionOperationSourceSurface;
+  actor_profile_id: string | null;
+  before_summary: Record<string, unknown>;
+  after_summary: Record<string, unknown>;
+  provider_outcome: Record<string, unknown>;
+  donor_visible_effect: Record<string, unknown>;
+  receipt_effect: Record<string, unknown>;
+  statement_effect: Record<string, unknown>;
+  audit_event_id: string | null;
+  created_at: string;
+  applied_at: string | null;
+  failed_at: string | null;
+}
+
+export interface ContributionOperationAuditEvent {
+  id: string;
+  tenant_id: string;
+  actor_profile_id: string | null;
+  donation_id: string | null;
+  staged_gift_id: string | null;
+  donor_id: string | null;
+  correction_id: string | null;
+  operation: string;
+  resource_type: string;
+  resource_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  reason: string | null;
+  confirmation_label: string | null;
+  policy_snapshot: Record<string, unknown>;
+  before_snapshot: Record<string, unknown>;
+  after_snapshot: Record<string, unknown>;
+  provider_outcome: Record<string, unknown>;
+  downstream_effects: Record<string, unknown>;
+  related_task_ids: string[];
+  related_batch_id: string | null;
+  correlation_id: string;
+  created_at: string;
+}
+
 export interface Campaign {
   id: string;
   tenant_id: string;

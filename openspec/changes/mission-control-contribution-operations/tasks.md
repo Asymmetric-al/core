@@ -24,7 +24,7 @@
 
 - [x] 3.1 Add contribution operation audit/correction/prompt-settings migration
 - [x] 3.2 Preserve tenant isolation and keep exposed-table access safe
-- [ ] 3.3 Update generated database types if required by repo workflow
+- [x] 3.3 Update generated database types if required by repo workflow
 
 ## 4. Contribution operations package
 
@@ -52,7 +52,20 @@
 ## 6. Verification
 
 - [x] 6.1 Run targeted unit tests for contribution operations
-- [ ] 6.2 Run targeted admin app tests for Contribution Hub/CRM entry points
+- [x] 6.2 Run targeted admin app tests for Contribution Hub/CRM entry points
 - [x] 6.3 Run `bun run verify:data-boundary`
 - [x] 6.4 Run admin lint and typecheck
-- [ ] 6.5 Run broader repo gates required before PR-ready
+- [x] 6.5 Run broader repo gates required before PR-ready
+
+## Verification notes
+
+- Targeted PRD1 unit tests passed.
+- Targeted admin app tests passed:
+  `tests/unit/apps/admin/app/contributions-page.test.tsx` and
+  `tests/unit/apps/admin/tanstack-surface-imports.test.ts`.
+- `bun run verify:data-boundary` passed.
+- `bun run lint`, `bun run typecheck`, `bun run format:check`, and
+  `bun run build` passed.
+- Full `bun run test:unit` was executed; all PRD1 tests passed and the only
+  failing file was unrelated CMS auth strategy tests timing out in
+  `tests/unit/cms/supabase-strategy.test.ts`.
