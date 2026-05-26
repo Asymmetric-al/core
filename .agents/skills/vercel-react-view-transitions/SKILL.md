@@ -8,7 +8,7 @@ metadata:
   upstream:
     url: "https://skills.sh/vercel-labs/agent-skills/vercel-react-view-transitions"
     repo: "vercel-labs/agent-skills"
-    path: "skills/vercel-react-view-transitions/SKILL.md"
+    path: "skills/react-view-transitions/SKILL.md"
     ref: "73140fc5b3a214ad3222bcf557b397b3c02d11c1"
     license: "MIT"
 ---

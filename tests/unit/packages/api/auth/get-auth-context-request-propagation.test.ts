@@ -6,6 +6,10 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = fileURLToPath(new URL("../../../../../", import.meta.url));
 
+function toRepoRelativePath(filePath: string): string {
+  return filePath.split(path.sep).join("/");
+}
+
 function readSource(relativePath: string) {
   return readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
@@ -44,7 +48,8 @@ describe("getAuthContext request propagation", () => {
     ];
 
     const zeroArgumentCallers = authGateFiles.filter((filePath) => {
-      if (allowedServerOnlyFiles.has(filePath)) return false;
+      const normalizedPath = toRepoRelativePath(filePath);
+      if (allowedServerOnlyFiles.has(normalizedPath)) return false;
       return /\bgetAuthContext\(\)/.test(readSource(filePath));
     });
 
