@@ -31,7 +31,7 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
-      - run: bun ci --backend=copyfile
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run format:check
       - run: bun run skills:verify
 
@@ -52,7 +52,7 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
-      - run: bun ci --backend=copyfile
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run lint
       - name: Check data access boundary
         run: bun run verify:data-boundary
@@ -76,7 +76,7 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
-      - run: bun ci --backend=copyfile
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run typecheck
 
   build:
@@ -99,7 +99,7 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
-      - run: bun ci --backend=copyfile
+      - run: bun ci --no-cache --backend=copyfile
       - run: bun run build
 
   test-unit:
@@ -122,7 +122,7 @@ jobs:
           path: .turbo
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
-      - run: bun ci --backend=copyfile
+      - run: bun ci --no-cache --backend=copyfile
       - name: Run unit tests
         run: bun run test:unit
       - name: Upload coverage artifact (best effort)

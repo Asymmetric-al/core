@@ -15,7 +15,7 @@ describe("CI workflow Bun install backend", () => {
 
       expect(bunCiCommands, workflowPath).not.toEqual([]);
       expect(bunCiCommands, workflowPath).toEqual(
-        bunCiCommands.map(() => "run: bun ci --backend=copyfile"),
+        bunCiCommands.map(() => "run: bun ci --no-cache --backend=copyfile"),
       );
     }
   });
