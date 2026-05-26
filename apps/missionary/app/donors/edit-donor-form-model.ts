@@ -86,39 +86,3 @@ export function createInitialEditDonorFormValues(
     zip: donor?.address?.zip || "",
   };
 }
-
-function optionalText(value: string): string | null {
-  const trimmed = value.trim();
-  return trimmed.length > 0 ? trimmed : null;
-}
-
-export function toDonorUpdatePayload(values: EditDonorFormValues) {
-  return {
-    name: values.name.trim(),
-    email: values.email.trim(),
-    phone: optionalText(values.phone),
-    mobile: optionalText(values.mobile),
-    work_phone: optionalText(values.work_phone),
-    preferred_contact: values.preferred_contact,
-    type: values.type,
-    status: values.status,
-    frequency: values.frequency.trim(),
-    location: optionalText(values.location),
-    website: optionalText(values.website),
-    organization: optionalText(values.organization),
-    title: optionalText(values.title),
-    spouse: optionalText(values.spouse),
-    birthday: optionalText(values.birthday),
-    anniversary: optionalText(values.anniversary),
-    notes: optionalText(values.notes),
-    address: {
-      street: values.street.trim(),
-      street2: values.street2.trim(),
-      city: values.city.trim(),
-      state: values.state.trim(),
-      zip: values.zip.trim(),
-      country: "USA",
-    },
-    updated_at: new Date().toISOString(),
-  };
-}

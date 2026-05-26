@@ -10,6 +10,10 @@ function readSource(relativePath: string) {
   return readFileSync(path.join(repoRoot, relativePath), "utf8");
 }
 
+function normalizeRepoPath(relativePath: string) {
+  return relativePath.replaceAll("\\", "/");
+}
+
 function sourceFilesUnder(relativeDir: string): string[] {
   const absoluteDir = path.join(repoRoot, relativeDir);
   const entries = readdirSync(absoluteDir, { withFileTypes: true });
@@ -42,7 +46,9 @@ describe("getAuthContext request propagation", () => {
     ];
 
     const zeroArgumentCallers = authGateFiles.filter((filePath) => {
-      if (allowedServerOnlyFiles.has(filePath)) return false;
+      if (allowedServerOnlyFiles.has(normalizeRepoPath(filePath))) {
+        return false;
+      }
       return /\bgetAuthContext\(\)/.test(readSource(filePath));
     });
 
