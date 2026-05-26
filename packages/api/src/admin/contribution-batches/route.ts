@@ -131,6 +131,8 @@ export const POST = withOperation(
         actorProfileId: auth.profileId,
         actionType: body.actionType,
         sourceSurface: "contribution_hub",
+        reason: body.reason ?? null,
+        confirmationToken: body.confirmationToken,
         records: body.records.map((record) => ({
           id: record.id,
           receiptStatus: record.receiptStatus,
@@ -139,8 +141,9 @@ export const POST = withOperation(
         executeContributionAction: (actionInput) =>
           executeContributionAction({
             ...actionInput,
-            actorPermissions: [],
+            actorPermissions: actionInput.actorPermissions ?? [],
             confirmationToken: body.confirmationToken,
+            reason: body.reason ?? actionInput.reason,
             dependencies: {
               sendReceipt: ({ stagedGiftId, tenantId }) =>
                 sendStagedGiftReceipt({

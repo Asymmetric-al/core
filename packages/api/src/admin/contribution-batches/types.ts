@@ -51,6 +51,8 @@ export interface ProcessContributionBatchInput {
   actionType: ContributionActionType;
   sourceSurface: ContributionSourceSurface;
   records: ContributionBatchRecord[];
+  reason?: string | null;
+  confirmationToken?: string | null;
   executeContributionAction: (input: {
     tenantId: string;
     actorProfileId: string | null;
@@ -58,6 +60,9 @@ export interface ProcessContributionBatchInput {
     contributionId: string;
     stagedGiftId?: string | null;
     actionType: ContributionActionType;
+    reason?: string | null;
+    confirmationToken?: string | null;
+    actorPermissions?: Array<"finance:manage_contributions">;
     payload: Record<string, unknown>;
   }) => Promise<{ auditEventId?: string | null; taskIds?: string[] }>;
   createFollowUpTask?: (input: {

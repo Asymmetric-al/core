@@ -32,6 +32,11 @@ export async function processContributionBatch(
         contributionId: record.contributionId,
         stagedGiftId: record.stagedGiftId,
         actionType: input.actionType,
+        actorPermissions: input.reason
+          ? ["finance:manage_contributions"]
+          : undefined,
+        reason: input.reason,
+        confirmationToken: input.confirmationToken,
         payload: record.stagedGiftId
           ? { stagedGiftId: record.stagedGiftId }
           : {},
@@ -99,7 +104,7 @@ export async function processPersistedContributionBatch(input: {
 }) {
   const { data: batchRow, error: batchError } = await input.supabaseAdmin
     .from("contribution_operation_batches")
-    .select("id, operation, source_surface")
+    .select("id, operation, source_surface, reason, confirmation_snapshot")
     .eq("tenant_id", input.tenantId)
     .eq("id", input.batchId)
     .single();
@@ -126,20 +131,26 @@ export async function processPersistedContributionBatch(input: {
     actorProfileId: input.actorProfileId,
     actionType: String(batchRow.operation) as never,
     sourceSurface: String(batchRow.source_surface) as never,
+    reason: asString(batchRow.reason),
+    confirmationToken: isRecord(batchRow.confirmation_snapshot)
+      ? asString(batchRow.confirmation_snapshot.confirmationToken)
+      : null,
     records,
     executeContributionAction: input.executeContributionAction,
     createFollowUpTask: input.createFollowUpTask,
   });
 
   const rows = (itemRows ?? []) as JsonRecord[];
-  for (let index = 0; index < rows.length; index += 1) {
-    const row = rows[index];
-    const itemResult = result.results[index];
+  for (const row of rows) {
+    const contributionId = asString(row.donation_id);
+    const itemResult = result.results.find(
+      (candidate) => candidate.contributionId === contributionId,
+    );
     if (!row) continue;
     const id = asString(row.id);
     if (!id || !itemResult) continue;
 
-    await input.supabaseAdmin
+    const { error: updateError } = await input.supabaseAdmin
       .from("contribution_operation_batch_items")
       .update({
         status: itemResult.status,
@@ -153,9 +164,10 @@ export async function processPersistedContributionBatch(input: {
       })
       .eq("tenant_id", input.tenantId)
       .eq("id", id);
+    if (updateError) throw new Error(updateError.message);
   }
 
-  await input.supabaseAdmin
+  const { error: batchUpdateError } = await input.supabaseAdmin
     .from("contribution_operation_batches")
     .update({
       status: result.status,
@@ -168,6 +180,7 @@ export async function processPersistedContributionBatch(input: {
     })
     .eq("tenant_id", input.tenantId)
     .eq("id", input.batchId);
+  if (batchUpdateError) throw new Error(batchUpdateError.message);
 
   return result;
 }
