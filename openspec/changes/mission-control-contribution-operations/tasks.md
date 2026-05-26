@@ -109,3 +109,16 @@
       notifications, and shared tasks
 - [x] 9.8 Wire Mission Control automation UI/API to persisted model
 - [x] 9.9 Verify targeted automation tests and checks
+
+## 10. PRD 5 Bulk Contribution Actions And Batch Results
+
+- [x] 10.1 Add PRD 5 documentation under
+      `docs/prds/mission-control-contribution-operations/`
+- [ ] 10.2 Add bulk action catalog and policy tests
+- [ ] 10.3 Add batch schema and result model
+- [ ] 10.4 Add preview planning and confirmation enforcement
+- [ ] 10.5 Add immediate/background execution mode selection
+- [ ] 10.6 Add per-record result and CSV export support
+- [ ] 10.7 Add important-failure task bridge
+- [ ] 10.8 Wire Contribution Hub bulk actions to batch API
+- [ ] 10.9 Verify targeted batch tests and checks

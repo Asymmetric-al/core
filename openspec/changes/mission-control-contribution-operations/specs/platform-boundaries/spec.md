@@ -262,3 +262,37 @@ notification policy.
 - THEN it uses the contribution notification module and Email Studio template
   policy
 - AND it does not call Resend directly
+
+### Requirement: Bulk Contribution Actions Use The Single-Action Contract
+
+Bulk contribution actions MUST execute per-record work through the same
+Contribution Operations Core action contract used by single contribution
+actions. Bulk execution MUST NOT bypass permission, reason, confirmation,
+correction, notification, task, or audit rules.
+
+Every bulk contribution action MUST require confirmation. High-risk bulk
+actions MUST require preview plus confirmation and MUST run as background
+batches. Small low-risk batches MAY run immediately when tenant settings allow
+preview skipping.
+
+Batch results MUST record summary counts, per-record status and reason, audit
+links, task links, and CSV export data.
+
+#### Scenario: Staff runs bulk receipt resend
+
+- GIVEN staff selects multiple contribution records
+- WHEN they run a bulk receipt resend
+- THEN each record is planned through the bulk preview model
+- AND each executed item calls the shared Contribution Operations Core action
+  contract
+- AND the batch result records success, skipped, failed, audit, and task
+  outcomes
+
+#### Scenario: Staff runs a high-risk bulk refund
+
+- GIVEN staff selects multiple contribution records for refund
+- WHEN they confirm the bulk refund
+- THEN preview and confirmation are both required
+- AND the batch runs as a background batch
+- AND every per-record refund still enforces the high-risk contribution action
+  policy
