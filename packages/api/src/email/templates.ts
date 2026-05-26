@@ -19,6 +19,10 @@ import {
   updateEmailTemplate,
 } from "./template-store";
 import {
+  isContributionCorrectionTemplateFamily,
+  validateContributionCorrectionTemplate,
+} from "../admin/contribution-operations/notifications/templates";
+import {
   ApiHttpError,
   ensureJsonBody,
   toErrorResponse,
@@ -54,6 +58,8 @@ function validateTemplateMergeTags(input: {
   textContent?: string | null;
   defaultSubject?: string | null;
   defaultPreheader?: string | null;
+  editorMetadata?: Record<string, unknown>;
+  isActive?: boolean;
 }) {
   const validation = validateMergeTags(
     [
@@ -63,6 +69,60 @@ function validateTemplateMergeTags(input: {
       input.defaultPreheader ?? "",
     ].join("\n"),
   );
+
+  if (!validation.valid) {
+    throw new ApiHttpError(400, validation.errors.join("; "));
+  }
+
+  validateEmailTemplateForActivation(input);
+}
+
+function getContributionCorrectionBinding(
+  metadata: Record<string, unknown> | undefined,
+): {
+  family: string;
+  variant: string;
+} | null {
+  const value = metadata?.contributionCorrection;
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return null;
+  }
+
+  const family =
+    "family" in value && typeof value.family === "string" ? value.family : null;
+  const variant =
+    "variant" in value && typeof value.variant === "string"
+      ? value.variant
+      : null;
+
+  return family && variant ? { family, variant } : null;
+}
+
+export function validateEmailTemplateForActivation(input: {
+  htmlContent?: string | null;
+  textContent?: string | null;
+  editorMetadata?: Record<string, unknown>;
+  isActive?: boolean;
+}) {
+  const binding = getContributionCorrectionBinding(input.editorMetadata);
+  if (!binding) {
+    return;
+  }
+
+  if (!isContributionCorrectionTemplateFamily(binding.family)) {
+    throw new ApiHttpError(
+      400,
+      "Unknown contribution correction template family.",
+    );
+  }
+
+  const validation = validateContributionCorrectionTemplate({
+    family: binding.family,
+    variant: binding.variant as never,
+    html: input.htmlContent ?? "",
+    text: input.textContent ?? "",
+    active: input.isActive !== false,
+  });
 
   if (!validation.valid) {
     throw new ApiHttpError(400, validation.errors.join("; "));

@@ -81,4 +81,4 @@
 - [x] 7.6 Add send-time composer through Email Studio templates and Resend
 - [x] 7.7 Add missing/invalid template blocked-email audit and task bridge
 - [x] 7.8 Integrate notification hook with Contribution Operations Core
-- [ ] 7.9 Verify targeted notification tests and relevant checks
+- [x] 7.9 Verify targeted notification tests and relevant checks
