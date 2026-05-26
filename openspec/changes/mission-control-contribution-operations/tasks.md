@@ -95,3 +95,17 @@
 - [x] 8.7 Integrate PRD2 notification failure task bridge with shared tasks
 - [x] 8.8 Refactor/admin-wire task UI entry points to shared model
 - [x] 8.9 Verify targeted task and Needs Attention tests
+
+## 9. PRD 4 Mission Control Automation Builder
+
+- [x] 9.1 Add PRD 4 documentation under
+      `docs/prds/mission-control-contribution-operations/`
+- [ ] 9.2 Add declarative automation schema and permission tests
+- [ ] 9.3 Add `automation:manage` permission adapter
+- [ ] 9.4 Add preview and test-run services
+- [ ] 9.5 Add auto-run and review-first run models
+- [ ] 9.6 Add activity log schema and run item model
+- [ ] 9.7 Add domain adapters for contribution actions, Email Studio
+      notifications, and shared tasks
+- [ ] 9.8 Wire Mission Control automation UI/API to persisted model
+- [ ] 9.9 Verify targeted automation tests and checks
