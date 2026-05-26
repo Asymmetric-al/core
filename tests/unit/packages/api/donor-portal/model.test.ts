@@ -145,4 +145,75 @@ describe("donor portal model", () => {
       recurringGiftIds: ["pledge-1"],
     });
   });
+
+  it("shows refunded donations honestly instead of collapsing them into failures", () => {
+    const snapshot = buildDonorPortalSnapshot({
+      now: new Date("2026-05-15T00:00:00.000Z"),
+      profile: {
+        id: "profile-1",
+        email: "donor@example.com",
+        first_name: "Ada",
+        last_name: "Lovelace",
+        full_name: "Ada Lovelace",
+        display_name: null,
+        phone: null,
+        avatar_url: null,
+      },
+      donor: {
+        id: "donor-1",
+        tenant_id: "tenant-1",
+        profile_id: "profile-1",
+        missionary_id: null,
+        name: null,
+        email: "donor@example.com",
+        phone: null,
+        mobile: null,
+        preferred_contact: "email",
+        avatar_url: null,
+        location: null,
+        status: "active",
+        giving_preferences: null,
+        total_given: 0,
+        first_gift_date: null,
+        last_gift_date: null,
+        last_gift_amount: null,
+        gift_count: 1,
+        frequency: null,
+        joined_date: null,
+        receipt_email_frequency: "monthly",
+        default_update_frequency: "weekly",
+        preferred_language: "en",
+        do_not_contact: false,
+        do_not_email: false,
+        has_active_pledge: false,
+        stripe_customer_id: "cus_123",
+      },
+      donations: [
+        {
+          id: "donation-refunded",
+          amount: 10_000,
+          currency: "usd",
+          status: "refunded",
+          donation_type: "one_time",
+          payment_method: "card",
+          is_recurring: false,
+          recurring_interval: null,
+          gift_date: "2026-05-01T00:00:00.000Z",
+          created_at: "2026-05-01T00:00:00.000Z",
+          completed_at: "2026-05-01T00:00:00.000Z",
+          processed_at: null,
+          stripe_payment_intent_id: "pi_refunded",
+          stripe_charge_id: "ch_refunded",
+          fund: { id: "fund-1", name: "Clean Water" },
+          missionary: null,
+        },
+      ],
+      pledges: [],
+      feedPreferences: null,
+    });
+
+    expect(snapshot.donations[0]?.status).toBe("Refunded");
+    expect(snapshot.summary.receiptCount).toBe(0);
+    expect(snapshot.summary.yearToDateCents).toBe(0);
+  });
 });

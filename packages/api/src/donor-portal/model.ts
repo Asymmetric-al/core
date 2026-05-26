@@ -3,7 +3,7 @@ const SETTLED_DONATION_STATUSES = new Set([
   "succeeded",
   "success",
 ]);
-const FAILED_DONATION_STATUSES = new Set(["failed", "refunded"]);
+const FAILED_DONATION_STATUSES = new Set(["failed"]);
 
 export type JsonRecord = Record<string, unknown>;
 
@@ -169,7 +169,7 @@ export type DonorPortalDonation = {
   amountCents: number;
   amount: number;
   currency: string;
-  status: "Succeeded" | "Processing" | "Failed";
+  status: "Succeeded" | "Processing" | "Failed" | "Refunded";
   type: "Recurring" | "One-Time";
   method: string;
   receiptUrl: string;
@@ -301,6 +301,7 @@ function designationFromPledge(
 
 function donationStatus(status: string | null): DonorPortalDonation["status"] {
   const normalized = status?.toLowerCase() ?? "";
+  if (normalized === "refunded") return "Refunded";
   if (SETTLED_DONATION_STATUSES.has(normalized)) return "Succeeded";
   if (FAILED_DONATION_STATUSES.has(normalized)) return "Failed";
   return "Processing";
