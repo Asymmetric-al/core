@@ -4,17 +4,20 @@ This guide explains the mock data system used for development/demo purposes and 
 
 ## Overview
 
-The application ships with realistic mock data in `apps/[app-name]/lib/mock-data/` for demonstration and development. Each app has its own mock data. When deploying your own instance, you'll replace this mock data with real data from your database.
+The application ships with realistic mock data for demonstration and development. The **canonical source** is the shared workspace package `@asym/mock-data` (`packages/mock-data/`). Each app exposes the same API via a thin re-export at `apps/<app>/lib/mock-data/index.ts` (import as `@/lib/mock-data`). When deploying your own instance, replace demo fixtures with real data from your database.
 
 ## Mock Data Structure
 
 ```
-src/lib/mock-data/
-├── index.ts        # Main entry point and helper functions
-├── types.ts        # TypeScript interfaces (keep for reference)
-├── users.ts        # Missionaries, donors, staff profiles
-├── donations.ts    # Donations, pledges, payment methods, projects
-└── activities.ts   # Tasks, activities, posts, alerts, feed items
+packages/mock-data/           # Canonical demo data (edit here)
+├── index.ts
+├── types.ts
+├── users.ts
+├── donations.ts
+└── activities.ts
+
+apps/<app>/lib/mock-data/
+└── index.ts                  # export * from "@asym/mock-data"
 ```
 
 ### Data Collections
@@ -158,7 +161,7 @@ When migrating from an existing system, import data in this order:
 
 ## Type Reference
 
-Keep `apps/[app-name]/lib/mock-data/types.ts` as a reference for your database schema. Key interfaces:
+Keep `packages/mock-data/types.ts` as the canonical reference for your database schema. Apps should continue importing through `@/lib/mock-data`, which re-exports the shared package.
 
 ```typescript
 // User types
@@ -183,7 +186,7 @@ interface Post { id, authorId, type, title, content, likes, prayers, ... }
 
 For a fast deployment with your data:
 
-1. **Create database tables** matching the types in `types.ts`
+1. **Create database tables** matching the types in `packages/mock-data/types.ts`
 2. **Import core data**: profiles, donations, pledges
 3. **Update 3 key files** (per app):
    - `apps/donor/app/(public)/workers/page.tsx` - Replace `getFieldWorkers()`
@@ -209,6 +212,6 @@ See [Stripe Migration Guide](https://stripe.com/docs/account/data-migrations) fo
 
 ## Support
 
-- **Types reference**: `apps/[app-name]/lib/mock-data/types.ts`
+- **Types reference**: `packages/mock-data/types.ts`
 - **Architecture**: `docs/guides/architecture/overview.md`
 - **Database patterns**: `docs/guides/architecture/technical-decisions.md`
