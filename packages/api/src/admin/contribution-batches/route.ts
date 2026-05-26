@@ -2,7 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { chooseContributionBatchExecutionMode } from "./preview";
-import { processContributionBatch } from "./process-batch";
+import {
+  processContributionBatch,
+  processPersistedContributionBatch,
+} from "./process-batch";
 import { sendStagedGiftReceipt } from "../../giving/receipts";
 import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
@@ -170,6 +173,79 @@ export const POST = withOperation(
             description: reason,
             issueType:
               body.actionType === "resend_receipt"
+                ? "receipt_failed"
+                : "provider_failed",
+            actorProfileId: auth.profileId,
+            linkedRecords: [
+              {
+                type: "contribution",
+                id: contributionId,
+              },
+            ],
+          });
+
+          return result.taskId;
+        },
+      });
+
+      return NextResponse.json({ batch, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to process contribution batch.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export const POST_PROCESS_BATCH = withOperation(
+  async ({ auth, request, requestId, supabaseAdmin }) => {
+    try {
+      const pathnameParts = new URL(request.url).pathname.split("/");
+      const batchId = pathnameParts.at(-2);
+      if (typeof batchId !== "string" || batchId.length === 0) {
+        throw new Error("Missing batch id.");
+      }
+
+      const batch = await processPersistedContributionBatch({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+        batchId,
+        actorProfileId: auth.profileId,
+        executeContributionAction: (actionInput) =>
+          executeContributionAction({
+            ...actionInput,
+            actorPermissions: actionInput.actorPermissions ?? [],
+            confirmationToken: actionInput.confirmationToken,
+            reason: actionInput.reason,
+            dependencies: {
+              sendReceipt: ({ stagedGiftId, tenantId }) =>
+                sendStagedGiftReceipt({
+                  supabaseAdmin,
+                  stagedGiftId,
+                  tenantId,
+                }),
+              appendAuditEvent: (event) =>
+                appendContributionOperationAuditEvent({
+                  supabaseAdmin,
+                  event,
+                }),
+              loadContributionDetail: async ({ contributionId, tenantId }) => ({
+                id: contributionId,
+                tenantId,
+              }),
+            },
+          }),
+        createFollowUpTask: async ({ contributionId, reason, actionType }) => {
+          const result = await createMissionControlTaskInSupabase({
+            supabaseAdmin,
+            tenantId: auth.tenantId,
+            title: "Resolve bulk contribution action failure",
+            description: reason,
+            issueType:
+              actionType === "resend_receipt"
                 ? "receipt_failed"
                 : "provider_failed",
             actorProfileId: auth.profileId,
