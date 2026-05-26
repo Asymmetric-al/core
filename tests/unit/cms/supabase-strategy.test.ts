@@ -178,12 +178,32 @@ function createPayloadMock({
   return { create, find, update };
 }
 
+function createStrategyWithMocks(
+  mock: ReturnType<typeof createSupabaseClientMock>,
+  extra?: Omit<
+    Parameters<SupabaseAuthStrategyFactory>[0],
+    "createSupabaseClient"
+  >,
+) {
+  const dataClient = {
+    from: mock.from,
+    schema: mock.schema,
+  };
+
+  return createSupabaseAuthStrategy({
+    createSupabaseClient: mock.createServerClientMock as never,
+    createSupabaseDataClient: vi.fn(() => dataClient) as never,
+    ...extra,
+  });
+}
+
 describe("createSupabaseAuthStrategy", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
     delete process.env.E2E_AUTH_BYPASS;
     delete process.env.ASYM_E2E_AUTH_SURFACE;
+    delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   });
 
   it("returns null when Supabase env is missing", async () => {
@@ -203,7 +223,7 @@ describe("createSupabaseAuthStrategy", () => {
 
   it("authenticates admin E2E bypass cookies through normal Payload users", async () => {
     process.env.E2E_AUTH_BYPASS = "true";
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       userId: "",
     });
     const e2eCookie = createE2EAuthCookieValue({
@@ -212,9 +232,7 @@ describe("createSupabaseAuthStrategy", () => {
       userId: "e2e-admin-user",
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
     const result = await strategy.authenticate({
@@ -247,7 +265,7 @@ describe("createSupabaseAuthStrategy", () => {
 
   it("rejects donor E2E bypass cookies for the Payload admin surface", async () => {
     process.env.E2E_AUTH_BYPASS = "true";
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       userId: "",
     });
     const e2eCookie = createE2EAuthCookieValue({
@@ -256,9 +274,7 @@ describe("createSupabaseAuthStrategy", () => {
       userId: "e2e-donor-user",
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
     const result = await strategy.authenticate({
@@ -276,14 +292,12 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("creates a CMS user against the mirrored Payload tenant", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "donor",
       staffMembershipRole: "member_care",
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
     const result = await strategy.authenticate({
@@ -291,7 +305,7 @@ describe("createSupabaseAuthStrategy", () => {
       payload,
     } as never);
 
-    expect(createServerClientMock).toHaveBeenCalledTimes(1);
+    expect(supabaseMock.createServerClientMock).toHaveBeenCalledTimes(1);
     expect(payload.create).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: "cms-users",
@@ -312,14 +326,12 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("skips write operations when the existing user is already in sync", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "donor",
       staffMembershipRole: "member_care",
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock({
       existingUser: {
         email: "staff@example.org",
@@ -346,7 +358,7 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("updates the CMS user when Supabase profile data changes tenant", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "donor",
       tenantId: "tenant_2",
       staffMembershipRole: "finance",
@@ -357,9 +369,7 @@ describe("createSupabaseAuthStrategy", () => {
       },
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock({
       cmsTenant: { id: 22, name: "Tenant Two", slug: "tenant-two" },
       existingUser: {
@@ -390,13 +400,11 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("rejects non-staff profile roles", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "donor",
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
     const result = await strategy.authenticate({
@@ -409,14 +417,12 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("accepts active staff membership even when profile role is donor", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "donor",
       staffMembershipRole: "finance",
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
     const result = await strategy.authenticate({
@@ -433,14 +439,12 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("accepts admin profile roles without giving them CRM ownership", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "admin",
       staffMembershipRole: null,
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock();
 
     const result = await strategy.authenticate({
@@ -496,7 +500,7 @@ describe("createSupabaseAuthStrategy", () => {
   });
 
   it("accepts tenantless super admins using the default tenant context", async () => {
-    const { createServerClientMock } = createSupabaseClientMock({
+    const supabaseMock = createSupabaseClientMock({
       role: "super_admin",
       tenantId: null,
       publicTenant: {
@@ -506,9 +510,7 @@ describe("createSupabaseAuthStrategy", () => {
       },
     });
 
-    const strategy = createSupabaseAuthStrategy({
-      createSupabaseClient: createServerClientMock as never,
-    });
+    const strategy = createStrategyWithMocks(supabaseMock);
     const payload = createPayloadMock({
       cmsTenant: { id: 17, name: "Default Tenant", slug: "default" },
     });

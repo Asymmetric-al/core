@@ -24,13 +24,11 @@ test("permissions guard flow", async ({ page }) => {
   await page.waitForURL((url) => !url.pathname.startsWith("/login"), {
     timeout: 20000,
   });
-  await page.waitForTimeout(1500);
   await expect
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedPostLoginPath!);
 
   await page.goto(protectedPath!, { waitUntil: "domcontentloaded" });
-  await page.waitForTimeout(1500);
   await expect
     .poll(() => new URL(page.url()).pathname, { timeout: 20000 })
     .toBe(expectedProtectedPath!);

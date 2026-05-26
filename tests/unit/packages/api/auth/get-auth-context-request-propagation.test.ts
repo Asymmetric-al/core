@@ -16,7 +16,9 @@ function sourceFilesUnder(relativeDir: string): string[] {
   const files: string[] = [];
 
   for (const entry of entries) {
-    const relativePath = path.join(relativeDir, entry.name);
+    const relativePath = path
+      .join(relativeDir, entry.name)
+      .replaceAll("\\", "/");
     if (entry.isDirectory()) {
       files.push(...sourceFilesUnder(relativePath));
       continue;
