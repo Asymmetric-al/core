@@ -1,0 +1,308 @@
+import { serverEnv } from "@asym/env";
+import { NextResponse } from "next/server";
+import Stripe from "stripe";
+import { z } from "zod";
+
+import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
+import { sendStagedGiftReceipt } from "../../giving/receipts";
+import {
+  queueStagedGiftPostingToTwenty,
+  retryStagedGiftPostingToTwenty,
+} from "../../giving/staged-gifts";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
+import {
+  loadStripeRawEventForReplay,
+  markStripeRawEventForReplay,
+} from "../../stripe/replay";
+import { executeContributionAction } from "./actions";
+import { hasContributionPermission } from "./permissions";
+import {
+  appendContributionOperationAuditEvent,
+  createContributionCorrectionRecord,
+  loadContributionDetailFromSupabase,
+} from "./store";
+
+import type { AuthenticatedContext } from "@asym/auth/context";
+import type {
+  ContributionActionType,
+  ContributionPermission,
+  ContributionSourceSurface,
+} from "./types";
+
+const STRIPE_API_VERSION = "2025-02-24.acacia";
+
+const actionTypeSchema = z.enum([
+  "resend_receipt",
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "crm_repost",
+  "metadata_update",
+  "refund",
+  "donor_relink",
+  "amount_correction",
+  "designation_correction",
+  "fund_correction",
+  "allocation_correction",
+  "receipt_correction",
+  "statement_correction",
+  "payment_state_correction",
+  "stripe_replay",
+]);
+
+const sourceSurfaceSchema = z.enum([
+  "contribution_hub",
+  "donor_crm_record",
+  "automation",
+  "bulk_action",
+  "api",
+]);
+
+const actionRequestSchema = z.object({
+  contributionId: z.string().uuid(),
+  stagedGiftId: z.string().uuid().nullable().optional(),
+  actionType: actionTypeSchema,
+  sourceSurface: sourceSurfaceSchema.default("api"),
+  reason: z.string().max(1000).nullable().optional(),
+  confirmationToken: z.string().max(200).nullable().optional(),
+  payload: z.record(z.string(), z.unknown()).default({}),
+});
+
+function getContributionIdFromPath(request: Request): string | null {
+  const pathname = new URL(request.url).pathname;
+  const segments = pathname.split("/").filter(Boolean);
+  const index = segments.indexOf("contribution-operations");
+  return index >= 0 ? (segments[index + 1] ?? null) : null;
+}
+
+function actorPermissionsFromAuth(
+  auth: AuthenticatedContext,
+): ContributionPermission[] {
+  return hasContributionPermission(auth, "finance:manage_contributions")
+    ? ["finance:manage_contributions"]
+    : [];
+}
+
+function requireStripeSecretKey(): string {
+  const key = serverEnv.STRIPE_SECRET_KEY;
+  if (!key) {
+    throw new ApiHttpError(503, "Stripe is not configured for refunds.");
+  }
+  return key;
+}
+
+async function refundContribution(input: {
+  supabaseAdmin: Parameters<
+    typeof loadContributionDetailFromSupabase
+  >[0]["supabaseAdmin"];
+  tenantId: string;
+  contributionId: string;
+  amount: number;
+  reason: string;
+}) {
+  const { data, error } = await input.supabaseAdmin
+    .from("donations")
+    .select("id, tenant_id, amount, refund_amount, status, stripe_charge_id")
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.contributionId)
+    .single();
+
+  if (error || !data) {
+    throw new ApiHttpError(404, "Contribution not found for refund.");
+  }
+
+  const amount = typeof data.amount === "number" ? data.amount : 0;
+  const refunded =
+    typeof data.refund_amount === "number" ? data.refund_amount : 0;
+  const remaining = Math.max(0, amount - refunded);
+  if (input.amount > remaining) {
+    throw new ApiHttpError(
+      400,
+      "Refund amount exceeds remaining refundable amount.",
+    );
+  }
+  if (!data.stripe_charge_id) {
+    throw new ApiHttpError(
+      409,
+      "Contribution does not have a Stripe charge id.",
+    );
+  }
+
+  const stripe = new Stripe(requireStripeSecretKey(), {
+    apiVersion: STRIPE_API_VERSION,
+  });
+  const refund = await stripe.refunds.create(
+    {
+      charge: data.stripe_charge_id,
+      amount: input.amount,
+      metadata: {
+        donation_id: input.contributionId,
+        tenant_id: input.tenantId,
+        reason: input.reason,
+      },
+    },
+    {
+      idempotencyKey: `contribution-refund/${input.tenantId}/${input.contributionId}/${input.amount}`,
+    },
+  );
+
+  const providerStatus = refund.status ?? "pending";
+  const nextRefundAmount = refunded + input.amount;
+  await input.supabaseAdmin
+    .from("donations")
+    .update({
+      refund_amount: nextRefundAmount,
+      refunded_at: new Date().toISOString(),
+      status:
+        providerStatus === "succeeded" && nextRefundAmount >= amount
+          ? "refunded"
+          : data.status,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.contributionId);
+
+  return {
+    provider: "stripe" as const,
+    status: providerStatus,
+    referenceId: refund.id,
+    raw: {
+      amount: refund.amount,
+      currency: refund.currency,
+      status: refund.status,
+    },
+  };
+}
+
+export const GET = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const contributionId = getContributionIdFromPath(request);
+      if (!contributionId) {
+        throw new ApiHttpError(400, "Missing contribution id.");
+      }
+
+      const contribution = await loadContributionDetailFromSupabase({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+        contributionId,
+      });
+
+      return NextResponse.json({ contribution, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to load contribution operation detail.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export const POST = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const body = actionRequestSchema.parse(await ensureJsonBody(request));
+      const result = await executeContributionAction({
+        tenantId: auth.tenantId,
+        actorProfileId: auth.profileId,
+        actorPermissions: actorPermissionsFromAuth(auth),
+        sourceSurface: body.sourceSurface as ContributionSourceSurface,
+        contributionId: body.contributionId,
+        stagedGiftId: body.stagedGiftId ?? null,
+        actionType: body.actionType as ContributionActionType,
+        reason: body.reason ?? null,
+        confirmationToken: body.confirmationToken ?? null,
+        payload: body.payload,
+        dependencies: {
+          sendReceipt: ({ stagedGiftId, tenantId }) =>
+            sendStagedGiftReceipt({ supabaseAdmin, stagedGiftId, tenantId }),
+          approveStagedGift: ({
+            actorProfileId,
+            note,
+            stagedGiftId,
+            tenantId,
+          }) =>
+            queueStagedGiftPostingToTwenty({
+              supabaseAdmin,
+              actorProfileId,
+              note,
+              stagedGiftId,
+              tenantId,
+              crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+            }),
+          retryStagedGift: ({ actorProfileId, note, stagedGiftId, tenantId }) =>
+            retryStagedGiftPostingToTwenty({
+              supabaseAdmin,
+              actorProfileId,
+              note,
+              stagedGiftId,
+              tenantId,
+              crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
+            }),
+          relinkDonor: async ({ contributionId, donorId, tenantId }) => {
+            const before = await loadContributionDetailFromSupabase({
+              supabaseAdmin,
+              tenantId,
+              contributionId,
+            });
+            const { error } = await supabaseAdmin
+              .from("donations")
+              .update({
+                donor_id: donorId,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("tenant_id", tenantId)
+              .eq("id", contributionId);
+            if (error) throw new Error(error.message);
+            return {
+              before: { donorId: before.donor?.id ?? null },
+              after: { donorId },
+            };
+          },
+          refundContribution: (refundInput) =>
+            refundContribution({ supabaseAdmin, ...refundInput }),
+          appendAuditEvent: (event) =>
+            appendContributionOperationAuditEvent({ supabaseAdmin, event }),
+          createCorrectionRecord: (correction) =>
+            createContributionCorrectionRecord({ supabaseAdmin, correction }),
+          loadContributionDetail: ({ contributionId, tenantId }) =>
+            loadContributionDetailFromSupabase({
+              supabaseAdmin,
+              tenantId,
+              contributionId,
+            }),
+        },
+      });
+
+      return NextResponse.json({ result, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to execute contribution action.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+export async function replayStripeEventThroughContributionOperations(input: {
+  supabaseAdmin: Parameters<
+    typeof loadContributionDetailFromSupabase
+  >[0]["supabaseAdmin"];
+  tenantId: string;
+  stripeEventId: string;
+}) {
+  const rawEvent = await loadStripeRawEventForReplay(input);
+  await markStripeRawEventForReplay({
+    supabaseAdmin: input.supabaseAdmin,
+    rawEventId: rawEvent.id,
+  });
+  return rawEvent;
+}

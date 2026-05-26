@@ -83,9 +83,9 @@ function DetailField({
 interface ContributionDetailSheetProps {
   contribution: Contribution | null;
   onClose: () => void;
-  onApproveStagedGift?: (stagedGiftId: string) => void;
-  onRetryStagedGift?: (stagedGiftId: string) => void;
-  onSendReceipt?: (stagedGiftId: string) => void;
+  onApproveStagedGift?: (stagedGiftId: string, contributionId: string) => void;
+  onRetryStagedGift?: (stagedGiftId: string, contributionId: string) => void;
+  onSendReceipt?: (stagedGiftId: string, contributionId: string) => void;
   isActionPending?: boolean;
 }
 
@@ -344,7 +344,8 @@ export function ContributionDetailSheet({
                     className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
                     disabled={!stagedGiftId || isActionPending}
                     onClick={() =>
-                      stagedGiftId && onSendReceipt?.(stagedGiftId)
+                      stagedGiftId &&
+                      onSendReceipt?.(stagedGiftId, contribution.id)
                     }
                   >
                     <Receipt className="size-3.5" />
@@ -358,7 +359,8 @@ export function ContributionDetailSheet({
                     disabled={isActionPending}
                     className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
                     onClick={() =>
-                      stagedGiftId && onApproveStagedGift?.(stagedGiftId)
+                      stagedGiftId &&
+                      onApproveStagedGift?.(stagedGiftId, contribution.id)
                     }
                   >
                     <CheckCircle2 className="size-3.5" />
@@ -372,7 +374,8 @@ export function ContributionDetailSheet({
                     disabled={isActionPending}
                     className="gap-2 rounded-xl font-bold uppercase tracking-widest text-[10px] h-9"
                     onClick={() =>
-                      stagedGiftId && onRetryStagedGift?.(stagedGiftId)
+                      stagedGiftId &&
+                      onRetryStagedGift?.(stagedGiftId, contribution.id)
                     }
                   >
                     <RefreshCcw className="size-3.5" />

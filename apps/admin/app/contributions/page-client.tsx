@@ -23,17 +23,24 @@ import type { Contribution } from "./types";
 const USE_MOCK_CONTRIBUTIONS_UI =
   process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK === "1";
 
-async function postStagedGiftAction(stagedGiftId: string, action: string) {
-  const response = await fetch(
-    `/api/admin/contributions/staged-gifts/${stagedGiftId}/${action}`,
-    {
-      body: JSON.stringify({}),
-      headers: {
-        "content-type": "application/json",
-      },
-      method: "POST",
+async function postContributionOperation(input: {
+  actionType: "approve_staged_gift" | "retry_staged_gift" | "resend_receipt";
+  contributionId: string;
+  stagedGiftId: string;
+}) {
+  const response = await fetch("/api/admin/contribution-operations/actions", {
+    body: JSON.stringify({
+      actionType: input.actionType,
+      contributionId: input.contributionId,
+      payload: { stagedGiftId: input.stagedGiftId },
+      sourceSurface: "contribution_hub",
+      stagedGiftId: input.stagedGiftId,
+    }),
+    headers: {
+      "content-type": "application/json",
     },
-  );
+    method: "POST",
+  });
 
   if (!response.ok) {
     const body = (await response.json().catch(() => null)) as {
@@ -51,8 +58,11 @@ export default function ContributionsPage() {
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
   const approveMutation = useMutation({
-    mutationFn: (stagedGiftId: string) =>
-      postStagedGiftAction(stagedGiftId, "approve"),
+    mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
+      postContributionOperation({
+        ...input,
+        actionType: "approve_staged_gift",
+      }),
     onError(error) {
       toast.error(
         error instanceof Error ? error.message : "Could not approve gift.",
@@ -67,8 +77,11 @@ export default function ContributionsPage() {
     },
   });
   const retryMutation = useMutation({
-    mutationFn: (stagedGiftId: string) =>
-      postStagedGiftAction(stagedGiftId, "retry"),
+    mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
+      postContributionOperation({
+        ...input,
+        actionType: "retry_staged_gift",
+      }),
     onError(error) {
       toast.error(error instanceof Error ? error.message : "Could not retry.");
     },
@@ -81,8 +94,11 @@ export default function ContributionsPage() {
     },
   });
   const receiptMutation = useMutation({
-    mutationFn: (stagedGiftId: string) =>
-      postStagedGiftAction(stagedGiftId, "receipt"),
+    mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
+      postContributionOperation({
+        ...input,
+        actionType: "resend_receipt",
+      }),
     onError(error) {
       toast.error(
         error instanceof Error ? error.message : "Could not send receipt.",
@@ -169,13 +185,15 @@ export default function ContributionsPage() {
         <ContributionDetailSheet
           contribution={selectedContribution}
           onClose={() => setSelectedContribution(null)}
-          onApproveStagedGift={(stagedGiftId) =>
-            approveMutation.mutate(stagedGiftId)
+          onApproveStagedGift={(stagedGiftId, contributionId) =>
+            approveMutation.mutate({ contributionId, stagedGiftId })
           }
-          onRetryStagedGift={(stagedGiftId) =>
-            retryMutation.mutate(stagedGiftId)
+          onRetryStagedGift={(stagedGiftId, contributionId) =>
+            retryMutation.mutate({ contributionId, stagedGiftId })
           }
-          onSendReceipt={(stagedGiftId) => receiptMutation.mutate(stagedGiftId)}
+          onSendReceipt={(stagedGiftId, contributionId) =>
+            receiptMutation.mutate({ contributionId, stagedGiftId })
+          }
           isActionPending={
             approveMutation.isPending ||
             retryMutation.isPending ||

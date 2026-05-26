@@ -74,19 +74,25 @@ async function createLinkedCrmNote(input: {
   return (await response.json()) as AdminCrmNoteCreateResponse;
 }
 
-async function resendStagedGiftReceipt(input: { stagedGiftId: string }) {
-  const response = await fetch(
-    `/api/admin/contributions/staged-gifts/${input.stagedGiftId}/receipt`,
-    {
-      body: JSON.stringify({}),
-      credentials: "same-origin",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
+async function resendStagedGiftReceipt(input: {
+  contributionId: string;
+  stagedGiftId: string;
+}) {
+  const response = await fetch("/api/admin/contribution-operations/actions", {
+    body: JSON.stringify({
+      actionType: "resend_receipt",
+      contributionId: input.contributionId,
+      payload: { stagedGiftId: input.stagedGiftId },
+      sourceSurface: "donor_crm_record",
+      stagedGiftId: input.stagedGiftId,
+    }),
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
     },
-  );
+    method: "POST",
+  });
 
   if (!response.ok) {
     throw new Error(
@@ -97,7 +103,7 @@ async function resendStagedGiftReceipt(input: { stagedGiftId: string }) {
     );
   }
 
-  return (await response.json()) as { receipt: unknown; requestId?: string };
+  return (await response.json()) as { result: unknown; requestId?: string };
 }
 
 export function useAdminCrmRecordDetail(recordId: string | null) {

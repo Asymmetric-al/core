@@ -153,9 +153,12 @@ function DetailDrawer({
     }
   };
 
-  const resendReceipt = async (stagedGiftId: string) => {
+  const resendReceipt = async (input: {
+    contributionId: string;
+    stagedGiftId: string;
+  }) => {
     try {
-      await receiptMutation.mutateAsync({ stagedGiftId });
+      await receiptMutation.mutateAsync(input);
       toast.success("Receipt resend queued.");
     } catch (error) {
       toast.error(
@@ -423,7 +426,10 @@ function DetailDrawer({
                               className="h-8 shrink-0 gap-2 text-xs"
                               disabled={receiptMutation.isPending}
                               onClick={() =>
-                                void resendReceipt(gift.stagedGiftId!)
+                                void resendReceipt({
+                                  contributionId: gift.donationId,
+                                  stagedGiftId: gift.stagedGiftId!,
+                                })
                               }
                             >
                               <Receipt className="size-3.5" />
