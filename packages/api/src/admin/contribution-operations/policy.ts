@@ -17,7 +17,6 @@ const HIGH_RISK_ACTIONS = new Set<ContributionActionType>([
 ]);
 
 const MEDIUM_RISK_ACTIONS = new Set<ContributionActionType>([
-  "amount_correction",
   "allocation_correction",
   "receipt_correction",
   "statement_correction",
