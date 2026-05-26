@@ -23,6 +23,7 @@
     "@asym/email": "workspace:*",
     "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
+    "@asym/mock-data": "workspace:*",
     "@asym/missionary": "workspace:*",
     "@asym/pdf-editor": "file:../../vendor/react-pdf-packages/asym-pdf-editor-0.0.0.tgz",
     "@asym/pdf-renderer": "file:../../vendor/react-pdf-packages/asym-pdf-renderer-0.0.0.tgz",
