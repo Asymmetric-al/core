@@ -32,9 +32,7 @@ export async function processContributionBatch(
         contributionId: record.contributionId,
         stagedGiftId: record.stagedGiftId,
         actionType: input.actionType,
-        actorPermissions: input.reason
-          ? ["finance:manage_contributions"]
-          : undefined,
+        actorPermissions: input.actorPermissions,
         reason: input.reason,
         confirmationToken: input.confirmationToken,
         payload: record.stagedGiftId
@@ -101,6 +99,10 @@ export async function processPersistedContributionBatch(input: {
   actorProfileId: string | null;
   executeContributionAction: ProcessContributionBatchInput["executeContributionAction"];
   createFollowUpTask?: ProcessContributionBatchInput["createFollowUpTask"];
+  actorPermissions?: ProcessContributionBatchInput["actorPermissions"];
+  assertActionPermission?: (
+    actionType: ProcessContributionBatchInput["actionType"],
+  ) => void;
 }) {
   const { data: batchRow, error: batchError } = await input.supabaseAdmin
     .from("contribution_operation_batches")
@@ -111,6 +113,10 @@ export async function processPersistedContributionBatch(input: {
   if (batchError || !isRecord(batchRow)) {
     throw new Error(batchError?.message ?? "Batch not found.");
   }
+  const actionType = String(
+    batchRow.operation,
+  ) as ProcessContributionBatchInput["actionType"];
+  input.assertActionPermission?.(actionType);
 
   const { data: itemRows, error: itemError } = await input.supabaseAdmin
     .from("contribution_operation_batch_items")
@@ -129,12 +135,13 @@ export async function processPersistedContributionBatch(input: {
   const result = await processContributionBatch({
     tenantId: input.tenantId,
     actorProfileId: input.actorProfileId,
-    actionType: String(batchRow.operation) as never,
+    actionType,
     sourceSurface: String(batchRow.source_surface) as never,
     reason: asString(batchRow.reason),
     confirmationToken: isRecord(batchRow.confirmation_snapshot)
       ? asString(batchRow.confirmation_snapshot.confirmationToken)
       : null,
+    actorPermissions: input.actorPermissions,
     records,
     executeContributionAction: input.executeContributionAction,
     createFollowUpTask: input.createFollowUpTask,

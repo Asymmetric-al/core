@@ -53,6 +53,7 @@ export interface ProcessContributionBatchInput {
   records: ContributionBatchRecord[];
   reason?: string | null;
   confirmationToken?: string | null;
+  actorPermissions?: Array<"finance:manage_contributions">;
   executeContributionAction: (input: {
     tenantId: string;
     actorProfileId: string | null;

@@ -10,7 +10,10 @@ import { sendStagedGiftReceipt } from "../../giving/receipts";
 import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 import { executeContributionAction } from "../contribution-operations/actions";
-import { assertContributionActionPermission } from "../contribution-operations/permissions";
+import {
+  assertContributionActionPermission,
+  hasContributionPermission,
+} from "../contribution-operations/permissions";
 import { appendContributionOperationAuditEvent } from "../contribution-operations/store";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks/store";
 
@@ -47,6 +50,12 @@ export const POST = withOperation(
         selectedCount: body.records.length,
       });
       assertContributionActionPermission(auth, body.actionType);
+      const actorPermissions = hasContributionPermission(
+        auth,
+        "finance:manage_contributions",
+      )
+        ? (["finance:manage_contributions"] as const)
+        : [];
 
       const isHighRisk =
         body.actionType !== "resend_receipt" &&
@@ -136,6 +145,7 @@ export const POST = withOperation(
         sourceSurface: "contribution_hub",
         reason: body.reason ?? null,
         confirmationToken: body.confirmationToken,
+        actorPermissions: [...actorPermissions],
         records: body.records.map((record) => ({
           id: record.id,
           receiptStatus: record.receiptStatus,
@@ -214,6 +224,14 @@ export const POST_PROCESS_BATCH = withOperation(
         tenantId: auth.tenantId,
         batchId,
         actorProfileId: auth.profileId,
+        actorPermissions: hasContributionPermission(
+          auth,
+          "finance:manage_contributions",
+        )
+          ? ["finance:manage_contributions"]
+          : [],
+        assertActionPermission: (actionType) =>
+          assertContributionActionPermission(auth, actionType),
         executeContributionAction: (actionInput) =>
           executeContributionAction({
             ...actionInput,

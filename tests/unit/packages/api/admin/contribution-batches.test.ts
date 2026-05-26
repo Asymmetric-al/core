@@ -231,6 +231,7 @@ describe("bulk contribution preview and execution", () => {
       tenantId: "tenant_1",
       batchId: "batch_1",
       actorProfileId: "actor_1",
+      actorPermissions: ["finance:manage_contributions"],
       executeContributionAction,
     });
 
