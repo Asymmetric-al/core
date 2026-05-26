@@ -203,6 +203,7 @@ describe("createSupabaseAuthStrategy", () => {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
     delete process.env.E2E_AUTH_BYPASS;
     delete process.env.ASYM_E2E_AUTH_SURFACE;
+    // Keep unit tests on injected clients even when a developer shell exports the service role key.
     delete process.env.SUPABASE_SERVICE_ROLE_KEY;
   });
 
@@ -496,6 +497,41 @@ describe("createSupabaseAuthStrategy", () => {
       publicTenantId: "tenant_1",
       role: "admin",
       tenantId: "17",
+    });
+  });
+
+  it("completes cookie auth when service role env is set if data client is injected", async () => {
+    process.env.SUPABASE_SERVICE_ROLE_KEY = "unit-test-service-role-key";
+    const sessionClient = createSupabaseClientMock({ role: "admin" });
+    const trustedDataClient = createSupabaseClientMock({
+      role: "admin",
+      publicTenant: {
+        id: "tenant_1",
+        name: "Tenant One",
+        slug: "tenant-one",
+      },
+    });
+    const createSupabaseDataClient = vi.fn(() => ({
+      from: trustedDataClient.from,
+      schema: trustedDataClient.schema,
+    }));
+
+    const strategy = createSupabaseAuthStrategy({
+      createSupabaseClient: sessionClient.createServerClientMock as never,
+      createSupabaseDataClient: createSupabaseDataClient as never,
+    });
+    const payload = createPayloadMock();
+
+    const result = await strategy.authenticate({
+      headers: new Headers({ cookie: "sb-access-token=test" }),
+      payload,
+    } as never);
+
+    expect(createSupabaseDataClient).toHaveBeenCalledTimes(1);
+    expect(result.user).toMatchObject({
+      collection: "cms-users",
+      role: "admin",
+      publicTenantId: "tenant_1",
     });
   });
 
