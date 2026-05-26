@@ -22,6 +22,14 @@ Current workflow semantics:
 - `main` is retired and protected historical history; active workflows do not
   treat it as staging or production.
 
+### Bun toolchain
+
+- **Pinned version:** root `package.json` `packageManager` (currently `bun@1.3.14`).
+- **GitHub Actions:** both workflows set `env.BUN_VERSION` to that exact version; every `oven-sh/setup-bun@v2` step uses `bun-version: ${{ env.BUN_VERSION }}`.
+- **Install in CI:** `bun ci --no-cache --backend=copyfile` (frozen lockfile install with Bun's portable file-copy backend). Do not use `bun install --frozen-lockfile` in workflows unless a future Bun release documents a regression.
+- **Turbo cache keys** in `ci.yml` include `bun-${{ env.BUN_VERSION }}` so cache restores do not cross Bun upgrades.
+- **Local parity:** match the pin (`bun run verify:bun-version`); reproducible install from a clean tree is `bun ci`. GitHub Actions uses `bun ci --no-cache --backend=copyfile` so Linux runners use Bun's portable install backend for vendored `file:` tarballs.
+
 ## Local CI parity (pre-push)
 
 Use the local preflight command to mirror blocking GitHub checks before pushing:

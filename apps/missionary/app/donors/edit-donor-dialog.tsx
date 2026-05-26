@@ -1,6 +1,5 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
 import { useAsymForm } from "@asym/ui/components/primitives/tanstack-form";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -15,10 +14,11 @@ import { Loader2 } from "lucide-react";
 import * as React from "react";
 import { toast } from "sonner";
 
+import { updateDonorDetails } from "./donor-mutation-client";
 import {
   createInitialEditDonorFormValues,
   editDonorSchema,
-  toDonorUpdatePayload,
+  type EditDonorFormValues,
   type EditDonorFormSource,
 } from "./edit-donor-form-model";
 
@@ -58,13 +58,19 @@ const LABEL_CLASS_NAME =
 const FIELD_CLASS_NAME =
   "h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5";
 
+async function updateDonor(donorId: string, value: EditDonorFormValues) {
+  const outcome = await updateDonorDetails({ donorId, value });
+  if (!outcome.ok) {
+    throw new Error(String(outcome.error));
+  }
+}
+
 export function EditDonorDialog({
   donor,
   onOpenChange,
   onSuccess,
   open,
 }: EditDonorDialogProps) {
-  const supabase = React.useMemo(() => createBrowserClient(), []);
   const initialValues = React.useMemo(
     () => createInitialEditDonorFormValues(donor),
     [donor],
@@ -82,15 +88,7 @@ export function EditDonorDialog({
       }
 
       try {
-        const { error } = await supabase
-          .from("donors")
-          .update(toDonorUpdatePayload(value))
-          .eq("id", donor.id);
-
-        if (error) {
-          throw error;
-        }
-
+        await updateDonor(donor.id, value);
         toast.success("Partner updated successfully");
         onOpenChange(false);
         onSuccess?.();

@@ -318,10 +318,9 @@ export const externalUsersLogin = {
   path: "/login-external",
   method: "post",
   handler: async (req) => {
-    const { email, password, tenant } = await req.json(); // pragma: allowlist secret
+    const { email, password, tenant } = await req.json();
 
     if (!email || !password || !tenant) {
-      // pragma: allowlist secret
       throw new APIError("Missing credentials", 400);
     }
 
@@ -348,7 +347,7 @@ export const externalUsersLogin = {
     // Authenticate user
     const result = await req.payload.login({
       collection: "users",
-      data: { email, password }, // pragma: allowlist secret
+      data: { email, password },
     });
 
     return Response.json(result, {

@@ -48,6 +48,7 @@ apps/admin/payload-types.ts
 .traycer
 ~
 vendor/payload-upstream
+vendor/react-pdf-packages/*/
 
 # keep command docs but skip bundled skill libraries
 .cursor/skills

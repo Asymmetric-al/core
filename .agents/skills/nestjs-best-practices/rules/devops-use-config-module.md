@@ -30,8 +30,8 @@ export class DatabaseService {
 export class EmailService {
   sendEmail() {
     // Different services access env differently
-    const apiKey = process.env.RESEND_API_KEY || "default";
-    // Typos go unnoticed: process.env.RESEND_API_KY
+    const apiKey = process.env.SENDGRID_API_KEY || 'default';
+    // Typos go unnoticed: process.env.SENDGRID_API_KY
   }
 }
 ```
@@ -40,11 +40,11 @@ export class EmailService {
 
 ```typescript
 // Setup validated configuration
-import { ConfigModule, ConfigService, registerAs } from "@nestjs/config";
-import * as Joi from "joi";
+import { ConfigModule, ConfigService, registerAs } from '@nestjs/config';
+import * as Joi from 'joi';
 
 // config/database.config.ts
-export const databaseConfig = registerAs("database", () => ({
+export const databaseConfig = registerAs('database', () => ({
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT, 10),
   username: process.env.DB_USERNAME,
@@ -53,17 +53,17 @@ export const databaseConfig = registerAs("database", () => ({
 }));
 
 // config/app.config.ts
-export const appConfig = registerAs("app", () => ({
+export const appConfig = registerAs('app', () => ({
   port: parseInt(process.env.PORT, 10) || 3000,
-  environment: process.env.NODE_ENV || "development",
-  apiPrefix: process.env.API_PREFIX || "api",
+  environment: process.env.NODE_ENV || 'development',
+  apiPrefix: process.env.API_PREFIX || 'api',
 }));
 
 // config/validation.schema.ts
 export const validationSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .valid("development", "production", "test")
-    .default("development"),
+    .valid('development', 'production', 'test')
+    .default('development'),
   PORT: Joi.number().default(3000),
   DB_HOST: Joi.string().required(),
   DB_PORT: Joi.number().default(5432),
@@ -89,12 +89,12 @@ export const validationSchema = Joi.object({
     TypeOrmModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (config: ConfigService) => ({
-        type: "postgres",
-        host: config.get("database.host"),
-        port: config.get("database.port"),
-        username: config.get("database.username"),
-        password: config.get("database.password"),
-        database: config.get("database.database"),
+        type: 'postgres',
+        host: config.get('database.host'),
+        port: config.get('database.port'),
+        username: config.get('database.username'),
+        password: config.get('database.password'),
+        database: config.get('database.database'),
         autoLoadEntities: true,
       }),
     }),
@@ -105,7 +105,7 @@ export class AppModule {}
 // Type-safe configuration access
 export interface AppConfig {
   port: number;
-  environment: "development" | "production" | "test";
+  environment: 'development' | 'production' | 'test';
   apiPrefix: string;
 }
 
@@ -124,11 +124,11 @@ export class AppService {
 
   getPort(): number {
     // Type-safe with generic
-    return this.config.get<number>("app.port");
+    return this.config.get<number>('app.port');
   }
 
   getDatabaseConfig(): DatabaseConfig {
-    return this.config.get<DatabaseConfig>("database");
+    return this.config.get<DatabaseConfig>('database');
   }
 }
 
@@ -150,8 +150,8 @@ ConfigModule.forRoot({
   envFilePath: [
     `.env.${process.env.NODE_ENV}.local`,
     `.env.${process.env.NODE_ENV}`,
-    ".env.local",
-    ".env",
+    '.env.local',
+    '.env',
   ],
 });
 

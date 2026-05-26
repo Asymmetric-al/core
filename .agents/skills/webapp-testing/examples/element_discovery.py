@@ -1,6 +1,4 @@
 from playwright.sync_api import sync_playwright
-import os
-import tempfile
 
 # Example: Discovering buttons and other elements on a page
 
@@ -36,8 +34,7 @@ with sync_playwright() as p:
         print(f"  - {name} ({input_type})")
 
     # Take screenshot for visual reference
-    screenshot_path = os.path.join(tempfile.gettempdir(), "page_discovery.png")
-    page.screenshot(path=screenshot_path, full_page=True)
-    print(f"\nScreenshot saved to {screenshot_path}")
+    page.screenshot(path='/tmp/page_discovery.png', full_page=True)
+    print("\nScreenshot saved to /tmp/page_discovery.png")
 
     browser.close()

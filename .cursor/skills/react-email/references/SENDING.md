@@ -1,13 +1,15 @@
-Below are general guidelines for sending emails with React Email.
+# Sending Guide
+
+General guidelines for sending emails with React Email.
 
 Important: Use verified domains in `from` addresses. Ask the user for the verified domain and use it in the `from` address. If the user does not have a verified domain, ask them to verify one with their email service provider.
 
-### Send with Resend (Recommended)
+## Send with Resend (Recommended)
 
 When you have access to the Resend MCP tool:
 
 ```typescript
-import { render } from '@react-email/components';
+import { render } from 'react-email';
 import { WelcomeEmail } from './emails/welcome';
 
 // Render to HTML
@@ -28,28 +30,26 @@ const text = await render(<WelcomeEmail name="John" verificationUrl="https://exa
 If no MCP tool is available, you can use the Resend SDK for Node.js to send the email, which can accept React components directly:
 
 ```tsx
-import { Resend } from "resend";
-import { WelcomeEmail } from "./emails/welcome";
+import { Resend } from 'resend';
+import { WelcomeEmail } from './emails/welcome';
 
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const { data, error } = await resend.emails.send({
-  from: "Acme <onboarding@resend.dev>",
-  to: ["user@example.com"],
-  subject: "Welcome to Acme",
-  react: (
-    <WelcomeEmail name="John" verificationUrl="https://example.com/verify" />
-  ),
+  from: 'Acme <onboarding@resend.dev>',
+  to: ['user@example.com'],
+  subject: 'Welcome to Acme',
+  react: <WelcomeEmail name="John" verificationUrl="https://example.com/verify" />
 });
 
 if (error) {
-  console.error("Failed to send:", error);
+  console.error('Failed to send:', error);
 }
 ```
 
 The Node SDK automatically handles the plain-text rendering and HTML rendering for you.
 
-### Send as a Template to Resend
+## Send as a Template to Resend
 
 If preferred, you can upload the email as a template to Resend, which can be used to send emails with the Resend SDK for Node.js:
 
@@ -65,57 +65,77 @@ If using a template when sending with the Resend SDK for Node.js, the user can p
 
 ```tsx
 await resend.emails.send({
-  from: "Acme <onboarding@resend.dev>",
-  to: ["user@example.com"],
-  subject: "Welcome to Acme",
+  from: 'Acme <onboarding@resend.dev>',
+  to: ['user@example.com'],
+  subject: 'Welcome to Acme',
   template: {
-    id: "1245-1256-1234-1234",
-  },
+    id: '1245-1256-1234-1234',
+  }
 });
 ```
 
-### Send with Other Providers
+## Send with Other Providers
 
 **Nodemailer:**
 
 ```tsx
-import { render } from "@react-email/components";
-import nodemailer from "nodemailer";
+import { render } from 'react-email';
+import nodemailer from 'nodemailer';
 
 const transporter = nodemailer.createTransport({
-  host: "smtp.example.com",
+  host: 'smtp.example.com',
   port: 587,
-  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+  auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS }
 });
 
-const html = await render(
-  <WelcomeEmail name="John" verificationUrl="https://example.com/verify" />,
-);
+const html = await render(<WelcomeEmail name="John" verificationUrl="https://example.com/verify" />);
 
 await transporter.sendMail({
-  from: "noreply@example.com",
-  to: "user@example.com",
-  subject: "Welcome",
+  from: 'noreply@example.com',
+  to: 'user@example.com',
+  subject: 'Welcome',
+  html
+});
+```
+
+**Mailgun:**
+
+```tsx
+import { render } from 'react-email';
+import FormData from 'form-data';
+import Mailgun from 'mailgun.js';
+import { WelcomeEmail } from './emails/welcome';
+
+const mailgun = new Mailgun(FormData);
+const client = mailgun.client({
+  username: 'api',
+  key: process.env.MAILGUN_API_KEY,
+});
+
+const html = await render(<WelcomeEmail name="John" verificationUrl="https://example.com/verify" />);
+
+await client.messages.create(process.env.MAILGUN_DOMAIN, {
+  from: 'noreply@example.com',
+  to: ['user@example.com'],
+  subject: 'Welcome',
   html,
 });
 ```
 
-**Resend:**
+**SendGrid:**
 
 ```tsx
-import { render } from "@react-email/components";
-import { Resend } from "resend";
+import { render } from 'react-email';
+import sgMail from '@sendgrid/mail';
 
-const resend = new Resend(process.env.RESEND_API_KEY);
+sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 
-const html = await render(
-  <WelcomeEmail name="John" verificationUrl="https://example.com/verify" />,
-);
+const html = await render(<WelcomeEmail name="John" verificationUrl="https://example.com/verify" />);
 
-await resend.emails.send({
-  to: "user@example.com",
-  from: "noreply@example.com",
-  subject: "Welcome",
-  html,
+await sgMail.send({
+  to: 'user@example.com',
+  from: 'noreply@example.com',
+  subject: 'Welcome',
+  html
 });
 ```

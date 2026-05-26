@@ -188,9 +188,9 @@ const ComposerContext = createContext<ComposerContextValue | null>(null)
 
 function ComposerProvider({ children, state, actions, meta }: ProviderProps) {
   return (
-    <ComposerContext.Provider value={{ state, actions, meta }}>
+    <ComposerContext value={{ state, actions, meta }}>
       {children}
-    </ComposerContext.Provider>
+    </ComposerContext>
   )
 }
 
@@ -457,7 +457,7 @@ function ForwardMessageProvider({ children }: { children: React.ReactNode }) {
   const submit = useForwardMessage()
 
   return (
-    <ComposerContext.Provider
+    <ComposerContext
       value={{
         state,
         actions: { update: setState, submit },
@@ -465,7 +465,7 @@ function ForwardMessageProvider({ children }: { children: React.ReactNode }) {
       }}
     >
       {children}
-    </ComposerContext.Provider>
+    </ComposerContext>
   )
 }
 
@@ -475,7 +475,7 @@ function ChannelProvider({ channelId, children }: Props) {
   const inputRef = useRef(null)
 
   return (
-    <ComposerContext.Provider
+    <ComposerContext
       value={{
         state,
         actions: { update, submit },
@@ -483,7 +483,7 @@ function ChannelProvider({ channelId, children }: Props) {
       }}
     >
       {children}
-    </ComposerContext.Provider>
+    </ComposerContext>
   )
 }
 ```
@@ -678,7 +678,7 @@ function ForwardMessageDialog() {
 }
 
 function ForwardButton() {
-  const { actions } = use(ComposerContext)
+  const { actions } = use(Composer.Context)
   return <Button onPress={actions.submit}>Forward</Button>
 }
 ```

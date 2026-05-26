@@ -19,6 +19,9 @@
   `npx skills add <package> -y` commands when refreshing upstream packages; do
   not use `npx skills check` as a read-only check because it can rewrite
   `.agents/skills/*` and `skills-lock.json`.
+- Manual vendors document their source in
+  `docs/ai/skills/<name>/references/upstream.md`; preserve repo overlays before
+  syncing mirrors.
 
 ## Monorepo scoping (pick the right app first)
 

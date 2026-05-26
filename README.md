@@ -166,7 +166,7 @@ Agent-oriented docs live under `docs/ai/`:
 | `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                                                                                                                                              |
 | `bun run skills:refresh-upstream` | Vendors the pinned set into `docs/ai/skills/`: `supabase`, `supabase-postgres-best-practices`, and `npm-deps-cleanup` from repo-local `.agents/skills/` (after targeted Skills CLI refreshes); `emil-design-engineering` from `$HOME/.cursor/skills/` (after the animations.dev installer). Use the matching upstream workflow for each skill, then run `skills:sync` / `skills:verify` (see below). |
 
-**Resend CLI skill:** `docs/ai/skills/resend-cli/` is copied manually from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). It is not part of `skills:refresh-upstream`. After updating it, run `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/resend-cli/references/upstream.md`.
+**Manual-vendored skills:** `docs/ai/skills/resend-cli/`, `docs/ai/skills/bendc-frontend-guidelines/`, `docs/ai/skills/payloadcms-payload/`, and `docs/ai/skills/payloadcms-cms-migration/` are not part of `skills:refresh-upstream`. Refresh them from the source documented in each `references/upstream.md`, then run `bun run skills:sync` and `bun run skills:verify`.
 
 When you add or change a skill **only** under `docs/ai/skills/`:
 
@@ -179,11 +179,12 @@ Commit both the canonical files and any mirror updates.
 
 **Updating vendored skills from upstream** (maintainers / periodic refresh):
 
-1. Use targeted Skills CLI refreshes only, such as `npx skills add supabase/agent-skills -y` or `npx skills add anthonyshew/dotfiles -y`; these update `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
+1. Use targeted Skills CLI refreshes only, such as `npx skills add supabase/agent-skills -y`, `npx skills add anthonyshew/dotfiles -y`, or `npx skills add mattpocock/skills -y`; these update `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
 2. Do **not** use `npx skills check` as a read-only check. In `skills@1.5.7`, that subcommand was observed to update project skills; treat it like `skills update` and review or revert the generated diff.
 3. `curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash` — updates the upstream-installed `emil-design-engineering` skill under `~/.cursor/skills/`.
 4. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase`, `docs/ai/skills/supabase-postgres-best-practices`, `docs/ai/skills/npm-deps-cleanup`, and `docs/ai/skills/emil-design-engineering` (reconcile any repo-specific notes in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
-5. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+5. Follow `references/upstream.md` for manual-vendored skills such as Resend CLI, Payload CMS, and bendc frontend guidelines.
+6. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
 
 **Updating the vendored Resend CLI skill from upstream** (maintainers / on CLI releases):
 
@@ -194,7 +195,7 @@ Commit both the canonical files and any mirror updates.
 
 ### Package Manager
 
-This repo uses **Bun** (see root `package.json` `packageManager`, currently **1.3.x**). Prefer `bun` / `bunx` for scripts in this workspace.
+This repo uses **Bun** pinned in root `package.json` `packageManager` (currently **1.3.14**). Install that exact version locally (`bun run verify:bun-version` after setup). Prefer `bun` / `bunx` for scripts in this workspace; CI installs with `bun ci`.
 
 ### Monorepo Workspace Contract
 

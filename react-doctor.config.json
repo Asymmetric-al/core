@@ -29,7 +29,6 @@
       "jsx-a11y/label-has-associated-control",
       "jsx-a11y/no-autofocus",
       "jsx-a11y/no-redundant-roles",
-      "react/no-danger",
       "react-doctor/advanced-event-handler-refs",
       "react-doctor/async-await-in-loop",
       "react-doctor/async-defer-await",

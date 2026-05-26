@@ -26,7 +26,7 @@ The Skills CLI (`npx skills`) is the package manager for the open agent skills e
 
 - `npx skills find [query]` - Search for skills interactively or by keyword
 - `npx skills add <package>` - Install a skill from GitHub or other sources
-- `npx skills update [skills...]` - Update installed skills to latest versions
+- `npx skills update` / `npx skills upgrade` - Update installed skills
 - `npx skills experimental_install` - Restore project skills from `skills-lock.json`
 
 Do **not** use `npx skills check` as a read-only update check in this repo.
@@ -45,7 +45,7 @@ Use the canonical docs path when routing or documenting repo-critical skills. Tr
 
 Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/` or `.agents/skills/`. Those are optional unless the repo explicitly promotes them into `docs/ai/skills/`.
 
-**Example — Supabase:** platform work is covered by `docs/ai/skills/supabase/SKILL.md` and Postgres tuning by `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`. Install or refresh from [supabase/agent-skills](https://skills.sh/supabase/agent-skills) with `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`. **`skills-lock.json`** records CLI pins; use `npx skills experimental_install -y` to restore from the lockfile when you intend to rewrite all lockfile-managed project skills.
+**Example — Supabase:** platform work is covered by `docs/ai/skills/supabase/SKILL.md` and Postgres tuning by `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`. Install or refresh from [supabase/agent-skills](https://skills.sh/supabase/agent-skills) with `npx skills add supabase/agent-skills -y`, then `bun run skills:refresh-upstream`, `bun run skills:sync`, and `bun run skills:verify`. **`skills-lock.json`** records CLI pins; use targeted `npx skills add <source> -y` refreshes before falling back to `npx skills experimental_install -y`, because the latter rewrites all lockfile entries.
 
 **Example — Tiptap:** rich text work is covered by `docs/ai/skills/tiptap/SKILL.md`. To compare against upstream: `npx skills add ueberdosis/tiptap` (see also [Tiptap agent skill](https://tiptap.dev/docs/resources/agent-skill)).
 
