@@ -13,6 +13,7 @@ import {
   summarizeContributionBatchResults,
 } from "../../../../../packages/api/src/admin/contribution-batches/results";
 import { processContributionBatch } from "../../../../../packages/api/src/admin/contribution-batches/process-batch";
+import { batchRequestSchema } from "../../../../../packages/api/src/admin/contribution-batches/route";
 
 describe("bulk contribution action catalog", () => {
   it("allows preview skipping only for configured low-risk actions", () => {
@@ -146,6 +147,23 @@ describe("bulk contribution preview and execution", () => {
     );
     expect(result.summary.followUpTasksCreated).toBe(1);
     expect(result.results[0]?.taskId).toBe("task_1");
+  });
+
+  it("accepts high-risk and large background route inputs", () => {
+    expect(() =>
+      batchRequestSchema.parse({
+        actionType: "refund",
+        confirmationToken: "confirm",
+        reason: "Bulk refund review",
+        previewSnapshot: { previewId: "preview_1" },
+        records: [
+          {
+            id: "00000000-0000-4000-8000-000000000001",
+            stagedGiftId: null,
+          },
+        ],
+      }),
+    ).not.toThrow();
   });
 });
 

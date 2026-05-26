@@ -17,7 +17,7 @@ const batchRecordSchema = z.object({
   receiptStatus: z.string().nullable().optional(),
 });
 
-const batchRequestSchema = z.object({
+export const batchRequestSchema = z.object({
   actionType: z.enum([
     "resend_receipt",
     "crm_repost",
@@ -31,6 +31,7 @@ const batchRequestSchema = z.object({
   ]),
   confirmationToken: z.string().min(1),
   reason: z.string().trim().min(1).optional(),
+  previewSnapshot: z.record(z.string(), z.unknown()).optional(),
   records: z.array(batchRecordSchema).min(1).max(1000),
 });
 
@@ -50,6 +51,11 @@ export const POST = withOperation(
       if (isHighRisk && !body.reason) {
         throw new Error(
           "High-risk bulk contribution actions require a reason.",
+        );
+      }
+      if (isHighRisk && !body.previewSnapshot) {
+        throw new Error(
+          "High-risk bulk contribution actions require a preview snapshot.",
         );
       }
 
@@ -72,6 +78,7 @@ export const POST = withOperation(
             selection_snapshot: {
               records: body.records,
             },
+            preview_snapshot: body.previewSnapshot ?? {},
             confirmation_snapshot: {
               confirmationToken: body.confirmationToken,
             },

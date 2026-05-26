@@ -3,7 +3,10 @@ export {
   getBulkContributionActionRiskLevel,
   isBulkPreviewSkippable,
 } from "./action-catalog";
-export { processContributionBatch } from "./process-batch";
+export {
+  processContributionBatch,
+  processPersistedContributionBatch,
+} from "./process-batch";
 export {
   chooseContributionBatchExecutionMode,
   createContributionBatchPreview,

@@ -2,6 +2,7 @@ import { createContributionBatchPreview } from "./preview";
 import { summarizeContributionBatchResults } from "./results";
 
 import type { ProcessContributionBatchInput } from "./types";
+import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 export async function processContributionBatch(
   input: ProcessContributionBatchInput,
@@ -76,4 +77,97 @@ export async function processContributionBatch(
     summary: summaryCounts,
     status,
   };
+}
+
+type JsonRecord = Record<string, unknown>;
+
+function isRecord(value: unknown): value is JsonRecord {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function asString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+export async function processPersistedContributionBatch(input: {
+  supabaseAdmin: AdminSupabaseClient;
+  tenantId: string;
+  batchId: string;
+  actorProfileId: string | null;
+  executeContributionAction: ProcessContributionBatchInput["executeContributionAction"];
+  createFollowUpTask?: ProcessContributionBatchInput["createFollowUpTask"];
+}) {
+  const { data: batchRow, error: batchError } = await input.supabaseAdmin
+    .from("contribution_operation_batches")
+    .select("id, operation, source_surface")
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.batchId)
+    .single();
+  if (batchError || !isRecord(batchRow)) {
+    throw new Error(batchError?.message ?? "Batch not found.");
+  }
+
+  const { data: itemRows, error: itemError } = await input.supabaseAdmin
+    .from("contribution_operation_batch_items")
+    .select("id, donation_id, staged_gift_id")
+    .eq("tenant_id", input.tenantId)
+    .eq("batch_id", input.batchId)
+    .eq("status", "pending")
+    .order("record_index", { ascending: true });
+  if (itemError) throw new Error(itemError.message);
+
+  const records = ((itemRows ?? []) as JsonRecord[]).map((row) => ({
+    id: asString(row.donation_id) ?? "",
+    stagedGiftId: asString(row.staged_gift_id),
+  }));
+
+  const result = await processContributionBatch({
+    tenantId: input.tenantId,
+    actorProfileId: input.actorProfileId,
+    actionType: String(batchRow.operation) as never,
+    sourceSurface: String(batchRow.source_surface) as never,
+    records,
+    executeContributionAction: input.executeContributionAction,
+    createFollowUpTask: input.createFollowUpTask,
+  });
+
+  const rows = (itemRows ?? []) as JsonRecord[];
+  for (let index = 0; index < rows.length; index += 1) {
+    const row = rows[index];
+    const itemResult = result.results[index];
+    if (!row) continue;
+    const id = asString(row.id);
+    if (!id || !itemResult) continue;
+
+    await input.supabaseAdmin
+      .from("contribution_operation_batch_items")
+      .update({
+        status: itemResult.status,
+        skip_reason: itemResult.skipReason ?? null,
+        error_message: itemResult.failureReason ?? null,
+        operation_audit_event_id: itemResult.auditEventId ?? null,
+        task_id: itemResult.taskId ?? null,
+        result: itemResult,
+        processed_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("tenant_id", input.tenantId)
+      .eq("id", id);
+  }
+
+  await input.supabaseAdmin
+    .from("contribution_operation_batches")
+    .update({
+      status: result.status,
+      processed_count: result.summary.processed,
+      succeeded_count: result.summary.succeeded,
+      skipped_count: result.summary.skipped,
+      failed_count: result.summary.failed,
+      follow_up_task_count: result.summary.followUpTasksCreated,
+      finished_at: new Date().toISOString(),
+    })
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.batchId);
+
+  return result;
 }
