@@ -91,7 +91,7 @@
 - [x] 8.3 Add task creation, lifecycle, comments, reminders, and link services
 - [x] 8.4 Add assignment policy for actor-only, queue-only, and both
 - [x] 8.5 Add urgency rules, aging thresholds, and override audit
-- [ ] 8.6 Add Contribution Hub Needs Attention read model
+- [x] 8.6 Add Contribution Hub Needs Attention read model
 - [x] 8.7 Integrate PRD2 notification failure task bridge with shared tasks
-- [ ] 8.8 Refactor/admin-wire task UI entry points to shared model
-- [ ] 8.9 Verify targeted task and Needs Attention tests
+- [x] 8.8 Refactor/admin-wire task UI entry points to shared model
+- [x] 8.9 Verify targeted task and Needs Attention tests

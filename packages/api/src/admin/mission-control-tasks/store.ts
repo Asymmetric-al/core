@@ -1,3 +1,8 @@
+import {
+  buildNeedsAttentionGroups,
+  mapNeedsAttentionRow,
+  type NeedsAttentionRow,
+} from "./read-model";
 import { createMissionControlTask } from "./service";
 
 import type {
@@ -129,4 +134,30 @@ export async function createMissionControlTaskInSupabase(input: {
       },
     },
   });
+}
+
+export async function listContributionNeedsAttention(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+}) {
+  const { data, error } = await input.supabaseAdmin
+    .from("mission_control_attention_items")
+    .select(
+      "id, task_id, issue_type, urgency, status, summary, dedupe_key, first_seen_at, last_seen_at, details",
+    )
+    .eq("tenant_id", input.tenantId)
+    .eq("status", "open")
+    .order("last_seen_at", { ascending: false })
+    .limit(100);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const items = ((data ?? []) as NeedsAttentionRow[]).map(mapNeedsAttentionRow);
+
+  return {
+    groups: buildNeedsAttentionGroups(items),
+    items,
+  };
 }

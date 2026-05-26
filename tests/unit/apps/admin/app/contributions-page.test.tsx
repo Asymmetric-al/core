@@ -5,12 +5,22 @@ import { QueryProvider } from "@asym/database/providers";
 import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { useAdminContributionsMock } = vi.hoisted(() => {
-  process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+const { useAdminContributionsMock, useContributionNeedsAttentionMock } =
+  vi.hoisted(() => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
 
+    return {
+      useAdminContributionsMock: vi.fn(),
+      useContributionNeedsAttentionMock: vi.fn(),
+    };
+  });
+
+vi.mock("@asym/database/hooks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@asym/database/hooks")>();
   return {
-    useAdminContributionsMock: vi.fn(),
+    ...actual,
+    useContributionNeedsAttention: useContributionNeedsAttentionMock,
   };
 });
 
@@ -74,6 +84,13 @@ describe("apps/admin/app/contributions/page", () => {
         isPending: false,
         data: [],
         error: null,
+      }),
+    );
+    useContributionNeedsAttentionMock.mockReturnValue(
+      mockQuery({
+        data: { groups: [], items: [] },
+        isError: false,
+        isPending: false,
       }),
     );
 
@@ -151,6 +168,56 @@ describe("apps/admin/app/contributions/page", () => {
 
     expect(screen.getByText(rows[0]!.donorName!)).toBeTruthy();
     expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
+  });
+
+  it("renders Needs Attention groups from Mission Control task state", () => {
+    const rows = boneyardContributionsFixture;
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: false,
+        isPending: false,
+        data: rows,
+        error: null,
+      }),
+    );
+    useContributionNeedsAttentionMock.mockReturnValue(
+      mockQuery({
+        data: {
+          groups: [
+            {
+              key: "critical:donor_notification_failed",
+              title: "Donor notification",
+              urgency: "critical",
+              count: 1,
+              items: [
+                {
+                  id: "attention_1",
+                  taskId: "task_1",
+                  issueType: "donor_notification_failed",
+                  issueLabel: "Donor notification",
+                  urgency: "critical",
+                  status: "open",
+                  summary: "Donor correction email failed",
+                  contributionId: rows[0]!.id,
+                  donorId: rows[0]!.donorId,
+                  firstSeenAt: "2026-05-26T00:00:00.000Z",
+                  lastSeenAt: "2026-05-26T01:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          items: [],
+        },
+        isError: false,
+        isPending: false,
+      }),
+    );
+
+    renderContributionsPage();
+
+    expect(screen.getByText("Needs Attention")).toBeTruthy();
+    expect(screen.getByText("Donor notification")).toBeTruthy();
+    expect(screen.getByText("Donor correction email failed")).toBeTruthy();
   });
 
   it("does not show load failed while the query is pending", () => {

@@ -56,6 +56,12 @@ export {
   useTeamMembers,
 } from "./admin-workspace";
 export {
+  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+  useContributionNeedsAttention,
+  type MissionControlNeedsAttentionGroup,
+  type MissionControlNeedsAttentionItem,
+} from "./mission-control-tasks";
+export {
   useLocations,
   useLinkedEntities,
   useUpsertLocation,

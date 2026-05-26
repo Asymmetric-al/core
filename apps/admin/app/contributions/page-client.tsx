@@ -1,5 +1,6 @@
 "use client";
 
+import { useContributionNeedsAttention } from "@asym/database/hooks";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -54,6 +55,7 @@ async function postContributionOperation(input: {
 
 export default function ContributionsPage() {
   const contributionsQuery = useAdminContributions();
+  const needsAttentionQuery = useContributionNeedsAttention();
   const queryClient = useQueryClient();
   const [selectedContribution, setSelectedContribution] =
     useState<Contribution | null>(null);
@@ -120,6 +122,9 @@ export default function ContributionsPage() {
     : USE_MOCK_CONTRIBUTIONS_UI
       ? mockContributions
       : (contributionsQuery.data ?? []);
+  const needsAttentionGroups = isError
+    ? []
+    : (needsAttentionQuery.data?.groups ?? []);
 
   const errorMessage =
     contributionsQuery.error instanceof Error
@@ -167,6 +172,7 @@ export default function ContributionsPage() {
                 data={boneyardContributionsFixture}
                 isLoading={false}
                 onSelectContribution={() => {}}
+                needsAttentionGroups={[]}
               />
             }
             snapshotConfig={{
@@ -177,6 +183,7 @@ export default function ContributionsPage() {
             <ContributionsMainBody
               data={contributionRows}
               isLoading={isPagePending}
+              needsAttentionGroups={needsAttentionGroups}
               onSelectContribution={setSelectedContribution}
             />
           </BoneyardSkeleton>

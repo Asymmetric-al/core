@@ -24,8 +24,10 @@ import {
   paymentMethodOptions,
   sourceOptions,
 } from "./data";
+import { ContributionNeedsAttentionPanel } from "./needs-attention-panel";
 
 import type { Contribution, ContributionStatus } from "./types";
+import type { MissionControlNeedsAttentionGroup } from "@asym/database/hooks";
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
@@ -86,10 +88,14 @@ export function ContributionsMainBody({
   data,
   isLoading,
   onSelectContribution,
+  needsAttentionGroups = [],
+  onOpenContributionById,
 }: {
   data: Contribution[];
   isLoading: boolean;
   onSelectContribution: (c: Contribution) => void;
+  needsAttentionGroups?: MissionControlNeedsAttentionGroup[];
+  onOpenContributionById?: (contributionId: string) => void;
 }) {
   const handleViewContribution = useCallback(
     (c: Contribution) => {
@@ -144,6 +150,18 @@ export function ContributionsMainBody({
 
   return (
     <div className="space-y-10">
+      <ContributionNeedsAttentionPanel
+        groups={needsAttentionGroups}
+        onOpenContribution={(contributionId) => {
+          const contribution = data.find((row) => row.id === contributionId);
+          if (contribution) {
+            onSelectContribution(contribution);
+            return;
+          }
+          onOpenContributionById?.(contributionId);
+        }}
+      />
+
       <div className="flex flex-wrap gap-4">
         <StatCard
           label="Received"
