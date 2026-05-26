@@ -263,8 +263,7 @@ export const apiKeyAccess: Access = ({ req }) => {
 
   if (!apiKey) return false;
 
-  // Reference-only example. In production, compare stored API keys with a constant-time helper
-  // or use the repo's standard auth mechanism instead of a raw string equality check.
+  // Validate against stored keys
   return apiKey === process.env.VALID_API_KEY;
 };
 

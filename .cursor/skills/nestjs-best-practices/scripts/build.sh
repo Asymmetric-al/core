@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # Build script for generating AGENTS.md
 # Usage: ./build.sh

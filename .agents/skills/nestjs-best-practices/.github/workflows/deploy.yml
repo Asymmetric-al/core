@@ -4,7 +4,7 @@ on:
   push:
     branches: [docs]
     paths:
-      - "website/**"
+      - 'website/**'
   workflow_dispatch:
 
 permissions:

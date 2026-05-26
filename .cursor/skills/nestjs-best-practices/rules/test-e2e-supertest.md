@@ -13,8 +13,8 @@ End-to-end tests use Supertest to make real HTTP requests against your NestJS ap
 
 ```typescript
 // Only unit test controllers
-describe("UsersController", () => {
-  it("should return users", async () => {
+describe('UsersController', () => {
+  it('should return users', async () => {
     const service = { findAll: jest.fn().mockResolvedValue([]) };
     const controller = new UsersController(service as any);
 
@@ -26,8 +26,8 @@ describe("UsersController", () => {
 });
 
 // E2E tests without proper setup/teardown
-describe("Users API", () => {
-  it("should create user", async () => {
+describe('Users API', () => {
+  it('should create user', async () => {
     const app = await NestFactory.create(AppModule);
     // No proper initialization
     // No cleanup after test
@@ -40,12 +40,12 @@ describe("Users API", () => {
 
 ```typescript
 // Proper E2E test setup
-import { Test, TestingModule } from "@nestjs/testing";
-import { INestApplication, ValidationPipe } from "@nestjs/common";
-import * as request from "supertest";
-import { AppModule } from "../src/app.module";
+import { Test, TestingModule } from '@nestjs/testing';
+import { INestApplication, ValidationPipe } from '@nestjs/common';
+import * as request from 'supertest';
+import { AppModule } from '../src/app.module';
 
-describe("UsersController (e2e)", () => {
+describe('UsersController (e2e)', () => {
   let app: INestApplication;
 
   beforeAll(async () => {
@@ -71,41 +71,41 @@ describe("UsersController (e2e)", () => {
     await app.close();
   });
 
-  describe("/users (POST)", () => {
-    it("should create a user", () => {
+  describe('/users (POST)', () => {
+    it('should create a user', () => {
       return request(app.getHttpServer())
-        .post("/users")
-        .send({ name: "John", email: "john@test.com" })
+        .post('/users')
+        .send({ name: 'John', email: 'john@test.com' })
         .expect(201)
         .expect((res) => {
-          expect(res.body).toHaveProperty("id");
-          expect(res.body.name).toBe("John");
-          expect(res.body.email).toBe("john@test.com");
+          expect(res.body).toHaveProperty('id');
+          expect(res.body.name).toBe('John');
+          expect(res.body.email).toBe('john@test.com');
         });
     });
 
-    it("should return 400 for invalid email", () => {
+    it('should return 400 for invalid email', () => {
       return request(app.getHttpServer())
-        .post("/users")
-        .send({ name: "John", email: "invalid-email" })
+        .post('/users')
+        .send({ name: 'John', email: 'invalid-email' })
         .expect(400)
         .expect((res) => {
-          expect(res.body.message).toContain("email");
+          expect(res.body.message).toContain('email');
         });
     });
   });
 
-  describe("/users/:id (GET)", () => {
-    it("should return 404 for non-existent user", () => {
+  describe('/users/:id (GET)', () => {
+    it('should return 404 for non-existent user', () => {
       return request(app.getHttpServer())
-        .get("/users/non-existent-id")
+        .get('/users/non-existent-id')
         .expect(404);
     });
   });
 });
 
 // Testing with authentication
-describe("Protected Routes (e2e)", () => {
+describe('Protected Routes (e2e)', () => {
   let app: INestApplication;
   let authToken: string;
 
@@ -120,29 +120,31 @@ describe("Protected Routes (e2e)", () => {
 
     // Get auth token
     const loginResponse = await request(app.getHttpServer())
-      .post("/auth/login")
-      .send({ email: "test@test.com", password: "password" });
+      .post('/auth/login')
+      .send({ email: 'test@test.com', password: 'password' });
 
     authToken = loginResponse.body.accessToken;
   });
 
-  it("should return 401 without token", () => {
-    return request(app.getHttpServer()).get("/users/me").expect(401);
+  it('should return 401 without token', () => {
+    return request(app.getHttpServer())
+      .get('/users/me')
+      .expect(401);
   });
 
-  it("should return user profile with valid token", () => {
+  it('should return user profile with valid token', () => {
     return request(app.getHttpServer())
-      .get("/users/me")
-      .set("Authorization", `Bearer ${authToken}`)
+      .get('/users/me')
+      .set('Authorization', `Bearer ${authToken}`)
       .expect(200)
       .expect((res) => {
-        expect(res.body.email).toBe("test@test.com");
+        expect(res.body.email).toBe('test@test.com');
       });
   });
 });
 
 // Database isolation for E2E tests
-describe("Orders API (e2e)", () => {
+describe('Orders API (e2e)', () => {
   let app: INestApplication;
   let dataSource: DataSource;
 
@@ -150,7 +152,7 @@ describe("Orders API (e2e)", () => {
     const moduleFixture = await Test.createTestingModule({
       imports: [
         ConfigModule.forRoot({
-          envFilePath: ".env.test", // Test database config
+          envFilePath: '.env.test', // Test database config
         }),
         AppModule,
       ],

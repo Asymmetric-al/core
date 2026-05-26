@@ -14,7 +14,7 @@ Never use `synchronize: true` in production. Use migrations for all schema chang
 ```typescript
 // Use synchronize in production
 TypeOrmModule.forRoot({
-  type: "postgres",
+  type: 'postgres',
   synchronize: true, // DANGEROUS in production!
   // Can drop columns, tables, or data
 });
@@ -23,7 +23,7 @@ TypeOrmModule.forRoot({
 @Injectable()
 export class DatabaseService {
   async addColumn(): Promise<void> {
-    await this.dataSource.query("ALTER TABLE users ADD COLUMN age INT");
+    await this.dataSource.query('ALTER TABLE users ADD COLUMN age INT');
     // No version control, no rollback, inconsistent across envs
   }
 }
@@ -45,14 +45,14 @@ export class User {
 // Configure TypeORM for migrations
 // data-source.ts
 export const dataSource = new DataSource({
-  type: "postgres",
+  type: 'postgres',
   host: process.env.DB_HOST,
   port: parseInt(process.env.DB_PORT),
   username: process.env.DB_USERNAME,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  entities: ["dist/**/*.entity.js"],
-  migrations: ["dist/migrations/*.js"],
+  entities: ['dist/**/*.entity.js'],
+  migrations: ['dist/migrations/*.js'],
   synchronize: false, // Always false in production
   migrationsRun: true, // Run migrations on startup
 });
@@ -61,19 +61,19 @@ export const dataSource = new DataSource({
 TypeOrmModule.forRootAsync({
   inject: [ConfigService],
   useFactory: (config: ConfigService) => ({
-    type: "postgres",
-    host: config.get("DB_HOST"),
-    synchronize: config.get("NODE_ENV") === "development", // Only in dev
-    migrations: ["dist/migrations/*.js"],
+    type: 'postgres',
+    host: config.get('DB_HOST'),
+    synchronize: config.get('NODE_ENV') === 'development', // Only in dev
+    migrations: ['dist/migrations/*.js'],
     migrationsRun: true,
   }),
 });
 
 // migrations/1705312800000-AddUserAge.ts
-import { MigrationInterface, QueryRunner } from "typeorm";
+import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class AddUserAge1705312800000 implements MigrationInterface {
-  name = "AddUserAge1705312800000";
+  name = 'AddUserAge1705312800000';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     // Add column with default to handle existing rows
