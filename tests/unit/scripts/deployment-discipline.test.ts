@@ -162,7 +162,7 @@ describe("deployment discipline verifier", () => {
       requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
       forbiddenContexts: ["e2e-gate"],
     });
-    const epicChecks = validateGitHubBranchProtection({
+    const productionChecks = validateGitHubBranchProtection({
       branch: "production",
       protection: branchProtection,
       branchRule: branchProtectionRule,
@@ -171,7 +171,7 @@ describe("deployment discipline verifier", () => {
     });
 
     expect(developChecks.every((item) => item.ok)).toBe(true);
-    expect(epicChecks.every((item) => item.ok)).toBe(true);
+    expect(productionChecks.every((item) => item.ok)).toBe(true);
   });
 
   it("detects extra broad E2E requirements on develop branch protection", () => {

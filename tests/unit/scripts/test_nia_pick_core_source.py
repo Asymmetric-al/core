@@ -37,7 +37,7 @@ class NiaPickCoreSourceTest(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "core-main")
         self.assertIn("identifier='https://github.com/Asymmetric-al/core'", result.stderr)
 
-    def test_prefers_epic_branch_when_multiple_core_sources_match(self) -> None:
+    def test_prefers_production_branch_when_multiple_core_sources_match(self) -> None:
         result = run_picker(
             {
                 "items": [
