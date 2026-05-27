@@ -2,7 +2,13 @@
 
 import React from "react";
 import { QueryProvider } from "@asym/database/providers";
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { useAdminContributionsMock, useContributionNeedsAttentionMock } =
@@ -76,6 +82,7 @@ describe("apps/admin/app/contributions/page", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
+    vi.unstubAllGlobals();
   });
 
   beforeEach(() => {
@@ -221,6 +228,143 @@ describe("apps/admin/app/contributions/page", () => {
     expect(screen.getByText("Needs Attention")).toBeTruthy();
     expect(screen.getByText("Donor notification")).toBeTruthy();
     expect(screen.getByText("Donor correction email failed")).toBeTruthy();
+  });
+
+  it("loads contribution detail when an attention item is outside the current table rows", async () => {
+    useAdminContributionsMock.mockReturnValue(
+      mockQuery({
+        isError: false,
+        isPending: false,
+        data: [],
+        error: null,
+      }),
+    );
+    useContributionNeedsAttentionMock.mockReturnValue(
+      mockQuery({
+        data: {
+          groups: [
+            {
+              key: "high:crm_post_failed",
+              title: "CRM post",
+              urgency: "high",
+              count: 1,
+              items: [
+                {
+                  id: "attention_1",
+                  taskId: "task_1",
+                  issueType: "crm_post_failed",
+                  issueLabel: "CRM post",
+                  urgency: "high",
+                  status: "open",
+                  summary: "CRM post failed",
+                  contributionId: "00000000-0000-4000-8000-000000000123",
+                  donorId: "donor_1",
+                  firstSeenAt: "2026-05-26T00:00:00.000Z",
+                  lastSeenAt: "2026-05-26T01:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          items: [],
+        },
+        isError: false,
+        isPending: false,
+      }),
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        contribution: {
+          id: "00000000-0000-4000-8000-000000000123",
+          donor: {
+            id: "donor_1",
+            profileId: "profile_1",
+            name: "Remote Donor",
+            email: "remote@example.com",
+            phoneNumbers: [],
+            location: null,
+            organization: null,
+          },
+          gift: {
+            date: "2026-05-26T00:00:00.000Z",
+            createdAt: "2026-05-26T00:00:00.000Z",
+            updatedAt: "2026-05-26T00:00:00.000Z",
+            source: "online",
+            campaignId: null,
+            pledgeId: null,
+          },
+          amount: {
+            value: 10000,
+            gross: 10000,
+            net: null,
+            fee: null,
+            taxDeductible: null,
+            currency: "USD",
+          },
+          payment: {
+            type: "one_time",
+            method: "card",
+            status: "completed",
+            lastFour: null,
+            stripe: {
+              paymentIntentId: "pi_123",
+              chargeId: "ch_123",
+              refundIds: [],
+              replayContext: null,
+            },
+          },
+          designation: {
+            fundId: "fund_1",
+            fundName: "General Fund",
+            missionaryId: null,
+            missionaryName: null,
+            projectId: null,
+          },
+          receipt: {
+            status: "pending",
+            statementStatus: null,
+          },
+          refund: {
+            status: "none",
+            amount: 0,
+            refundedAt: null,
+          },
+          recurring: {
+            isRecurring: false,
+            interval: null,
+            pledgeId: null,
+          },
+          stagedGift: null,
+          crm: {
+            postStatus: "failed",
+            twentyRecordId: null,
+          },
+          auditEvents: [],
+          corrections: [],
+          tasks: [],
+          batches: [],
+          donorVisible: {
+            status: "Succeeded",
+            historyUpdatedImmediately: true,
+            amount: 10000,
+            currency: "USD",
+          },
+        },
+      }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    renderContributionsPage();
+
+    fireEvent.click(screen.getByRole("button", { name: /open contribution/i }));
+
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledWith(
+        "/api/admin/contribution-operations/00000000-0000-4000-8000-000000000123",
+        { headers: { accept: "application/json" } },
+      );
+    });
+    expect(await screen.findByText("Remote Donor")).toBeTruthy();
   });
 
   it("invalidates contributions and Needs Attention after contribution mutations", async () => {

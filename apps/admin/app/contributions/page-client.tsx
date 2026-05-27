@@ -26,6 +26,7 @@ import {
 } from "./use-admin-contributions";
 
 import type { Contribution } from "./types";
+import type { ContributionDetail } from "@asym/api/admin/contribution-operations";
 
 /** When `"1"`, table data comes from `mockContributions` (local dev only). */
 const USE_MOCK_CONTRIBUTIONS_UI =
@@ -71,6 +72,148 @@ export async function invalidateContributionOperationQueries(
       queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
     }),
   ]);
+}
+
+function contributionStatusFromDetail(
+  detail: ContributionDetail,
+): Contribution["status"] {
+  const status = detail.payment.status.toLowerCase();
+  if (detail.refund.status === "refunded") return "refunded";
+  if (status === "failed") return "failed";
+  if (status === "completed" || status === "succeeded") return "completed";
+  return "pending";
+}
+
+function contributionTypeFromDetail(
+  detail: ContributionDetail,
+): Contribution["type"] {
+  return detail.recurring.isRecurring ? "Recurring" : "One-time";
+}
+
+function paymentMethodFromDetail(
+  detail: ContributionDetail,
+): Contribution["paymentMethod"] {
+  const method = detail.payment.method.toLowerCase();
+  if (method.includes("card")) return "Credit Card";
+  if (method.includes("bank") || method.includes("ach")) {
+    return "Bank Transfer";
+  }
+  if (method.includes("check")) return "Check";
+  if (method.includes("cash")) return "Cash";
+  if (method.includes("paypal")) return "PayPal";
+  return "Other";
+}
+
+function receiptStatusFromDetail(detail: ContributionDetail) {
+  const status = detail.receipt.status;
+  if (status === "sent" || status === "pending" || status === "failed") {
+    return status;
+  }
+  return "not_sent";
+}
+
+function contributionFromDetail(detail: ContributionDetail): Contribution {
+  const donorName = detail.donor?.name ?? "Unknown donor";
+  const stagedGift = detail.stagedGift;
+  const crmPostStatus = detail.crm.postStatus;
+
+  return {
+    id: detail.id,
+    donorId: detail.donor?.id ?? null,
+    donorName,
+    donorEmail: detail.donor?.email ?? "",
+    donorAvatar: null,
+    donorType: null,
+    donorPhone: detail.donor?.phoneNumbers[0] ?? null,
+    donorLocation: detail.donor?.location ?? null,
+    organizationName: detail.donor?.organization ?? null,
+    amount: detail.amount.value,
+    amountGross: detail.amount.gross,
+    amountNet: detail.amount.net,
+    amountFee: detail.amount.fee,
+    amountTaxDeductible: detail.amount.taxDeductible,
+    currency: detail.amount.currency,
+    date: detail.gift.date,
+    contributionDate: detail.gift.date,
+    createdAt: detail.gift.createdAt,
+    updatedAt: detail.gift.updatedAt,
+    settlementDate: null,
+    depositDate: null,
+    status: contributionStatusFromDetail(detail),
+    subStatus: null,
+    type: contributionTypeFromDetail(detail),
+    paymentMethod: paymentMethodFromDetail(detail),
+    source: "Online",
+    fundId: detail.designation.fundId,
+    fundCode: detail.designation.fundId,
+    fundName: detail.designation.fundName,
+    missionaryId: detail.designation.missionaryId,
+    missionaryName: detail.designation.missionaryName,
+    campaignId: detail.gift.campaignId,
+    receiptStatus: receiptStatusFromDetail(detail),
+    receiptSent: detail.receipt.status === "sent",
+    receiptSentAt: null,
+    stagedGiftId: stagedGift?.id ?? null,
+    stagedGiftStatus:
+      stagedGift?.status === "received" ||
+      stagedGift?.status === "needs_review" ||
+      stagedGift?.status === "ready_to_post" ||
+      stagedGift?.status === "posted" ||
+      stagedGift?.status === "failed" ||
+      stagedGift?.status === "refunded" ||
+      stagedGift?.status === "voided"
+        ? stagedGift.status
+        : null,
+    stagedGiftReviewReason: stagedGift?.reviewReason ?? null,
+    crmPostStatus:
+      crmPostStatus === "not_required" ||
+      crmPostStatus === "queued" ||
+      crmPostStatus === "posted" ||
+      crmPostStatus === "failed" ||
+      crmPostStatus === "blocked"
+        ? crmPostStatus
+        : null,
+    annualStatementEligible: true,
+    entryMethod: "api",
+    reconciliationStatus:
+      crmPostStatus === "posted"
+        ? "reconciled"
+        : crmPostStatus === "failed" || crmPostStatus === "blocked"
+          ? "review"
+          : "unreconciled",
+    transactionId:
+      detail.payment.stripe.paymentIntentId ??
+      detail.payment.stripe.chargeId ??
+      detail.id,
+    externalTransactionId: detail.payment.stripe.chargeId,
+    processorTransactionId: detail.payment.stripe.paymentIntentId,
+    notes: null,
+    notesPreview: null,
+    isAnonymous: detail.donor === null,
+  };
+}
+
+async function loadContributionDetailRow(contributionId: string) {
+  const response = await fetch(
+    `/api/admin/contribution-operations/${contributionId}`,
+    {
+      headers: {
+        accept: "application/json",
+      },
+    },
+  );
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(body?.error ?? "Could not load contribution detail.");
+  }
+
+  const body = (await response.json()) as {
+    contribution: ContributionDetail;
+  };
+  return contributionFromDetail(body.contribution);
 }
 
 export default function ContributionsPage() {
@@ -147,6 +290,16 @@ export default function ContributionsPage() {
         ? String(contributionsQuery.error)
         : "Could not load contributions.";
 
+  async function openContributionById(contributionId: string) {
+    try {
+      setSelectedContribution(await loadContributionDetailRow(contributionId));
+    } catch (error) {
+      toast.error(
+        error instanceof Error ? error.message : "Could not open contribution.",
+      );
+    }
+  }
+
   return (
     <PageShell
       title="Contributions"
@@ -199,6 +352,9 @@ export default function ContributionsPage() {
               isLoading={isPagePending}
               needsAttentionGroups={needsAttentionGroups}
               onSelectContribution={setSelectedContribution}
+              onOpenContributionById={(contributionId) => {
+                void openContributionById(contributionId);
+              }}
             />
           </BoneyardSkeleton>
         )}

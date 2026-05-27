@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { after, NextResponse } from "next/server";
 import { z } from "zod";
 
 import { chooseContributionBatchExecutionMode } from "./preview";
@@ -119,6 +119,76 @@ export const POST = withOperation(
               })),
             );
           if (itemError) throw new Error(itemError.message);
+          after(async () => {
+            try {
+              await processPersistedContributionBatch({
+                supabaseAdmin,
+                tenantId: auth.tenantId,
+                batchId,
+                actorProfileId: auth.profileId,
+                actorPermissions: [...actorPermissions],
+                assertActionPermission: (actionType) =>
+                  assertContributionActionPermission(auth, actionType),
+                executeContributionAction: (actionInput) =>
+                  executeContributionAction({
+                    ...actionInput,
+                    actorPermissions: actionInput.actorPermissions ?? [],
+                    confirmationToken: actionInput.confirmationToken,
+                    reason: actionInput.reason,
+                    dependencies: {
+                      sendReceipt: ({ stagedGiftId, tenantId }) =>
+                        sendStagedGiftReceipt({
+                          supabaseAdmin,
+                          stagedGiftId,
+                          tenantId,
+                        }),
+                      appendAuditEvent: (event) =>
+                        appendContributionOperationAuditEvent({
+                          supabaseAdmin,
+                          event,
+                        }),
+                      loadContributionDetail: async ({
+                        contributionId,
+                        tenantId,
+                      }) => ({
+                        id: contributionId,
+                        tenantId,
+                      }),
+                    },
+                  }),
+                createFollowUpTask: async ({
+                  contributionId,
+                  reason,
+                  actionType,
+                }) => {
+                  const result = await createMissionControlTaskInSupabase({
+                    supabaseAdmin,
+                    tenantId: auth.tenantId,
+                    title: "Resolve bulk contribution action failure",
+                    description: reason,
+                    issueType:
+                      actionType === "resend_receipt"
+                        ? "receipt_failed"
+                        : "provider_failed",
+                    actorProfileId: auth.profileId,
+                    linkedRecords: [
+                      {
+                        type: "contribution",
+                        id: contributionId,
+                      },
+                    ],
+                  });
+
+                  return result.taskId;
+                },
+              });
+            } catch (error) {
+              console.error("[contribution-batches] Background batch failed", {
+                batchId,
+                error,
+              });
+            }
+          });
         }
 
         return NextResponse.json({
