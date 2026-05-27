@@ -24,11 +24,17 @@ function getExpectation(
   const envTarget = process.env.PLAYWRIGHT_BONEYARD_TARGET;
 
   const target =
-    projectName === "admin-boneyard" || envTarget === "admin"
+    projectName === "admin-boneyard" ||
+    projectName === "development-admin" ||
+    envTarget === "admin"
       ? "admin"
-      : projectName === "missionary-boneyard" || envTarget === "missionary"
+      : projectName === "missionary-boneyard" ||
+          projectName === "development-missionary" ||
+          envTarget === "missionary"
         ? "missionary"
-        : projectName === "donor-boneyard" || envTarget === "donor"
+        : projectName === "donor-boneyard" ||
+            projectName === "development-donor" ||
+            envTarget === "donor"
           ? "donor"
           : null;
 

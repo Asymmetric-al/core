@@ -37,13 +37,20 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).not.toContain("--target=production");
   });
 
-  it("uses the repository's configured Vercel project secret names", () => {
-    expect(workflow).toContain("secrets.VERCEL_PROJECT_ID_ADMIN");
-    expect(workflow).toContain("secrets.VERCEL_PROJECT_ID_DONOR");
-    expect(workflow).toContain("secrets.VERCEL_PROJECT_ID_MISSIONARY");
-    expect(workflow).not.toContain("secrets.VERCEL_ADMIN_PROJECT_ID");
-    expect(workflow).not.toContain("secrets.VERCEL_DONOR_PROJECT_ID");
-    expect(workflow).not.toContain("secrets.VERCEL_MISSIONARY_PROJECT_ID");
+  it("uses the required Vercel deployment and Playwright smoke secrets", () => {
+    expect(workflow).toContain("secrets.VERCEL_ADMIN_PROJECT_ID");
+    expect(workflow).toContain("secrets.VERCEL_DONOR_PROJECT_ID");
+    expect(workflow).toContain("secrets.VERCEL_MISSIONARY_PROJECT_ID");
+    expect(workflow).toContain("secrets.QA_TEST_EMAIL");
+    expect(workflow).toContain("secrets.QA_TEST_PASSWORD");
+    expect(workflow).toContain("secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET");
+    expect(workflow).toContain("secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET");
+    expect(workflow).toContain(
+      "secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET",
+    );
+    expect(workflow).not.toContain("secrets.VERCEL_PROJECT_ID_ADMIN");
+    expect(workflow).not.toContain("secrets.VERCEL_PROJECT_ID_DONOR");
+    expect(workflow).not.toContain("secrets.VERCEL_PROJECT_ID_MISSIONARY");
   });
 
   it("comments preview URLs and optional Claude handoff without requiring the webhook", () => {
@@ -52,5 +59,20 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).toContain("CLAUDE_QA_ROUTINE_WEBHOOK_URL");
     expect(workflow).toContain("Claude QA routine webhook is not configured");
     expect(workflow).toContain("qa_smoke_preview_ready");
+  });
+
+  it("runs headless preview smoke projects and reports PASS/FAIL separately", () => {
+    expect(workflow).toContain("playwright.development-smoke.config.ts");
+    expect(workflow).toContain("development-admin");
+    expect(workflow).toContain("development-donor");
+    expect(workflow).toContain("development-missionary");
+    expect(workflow).toContain("actions/upload-artifact@v4");
+    expect(workflow).toContain("<!-- headless-pr-preview-smoke-qa -->");
+    expect(workflow).toContain("# Headless PR Preview Smoke QA");
+  });
+
+  it("does not use bypass query parameters", () => {
+    expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
+    expect(workflow).not.toContain("?x-vercel-protection-bypass");
   });
 });

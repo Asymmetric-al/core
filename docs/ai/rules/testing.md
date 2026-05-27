@@ -40,6 +40,13 @@ variables:
 - `QA_DONOR_BASE_URL`
 - `QA_MISSIONARY_BASE_URL`
 
+GitHub Actions owns the preferred PR preview smoke execution. The workflow uses
+`QA_TEST_EMAIL`, `QA_TEST_PASSWORD`, and per-surface Vercel automation bypass
+secrets only inside the Playwright step; bypass secrets must be sent as
+`x-vercel-protection-bypass` headers, never URL query parameters. Claude should
+read/comment the GitHub Actions result unless Claude is explicitly configured
+as the Playwright runner.
+
 See `docs/qa/pr-preview-smoke.md` and
 `docs/qa/claude-pr-preview-smoke-routine.md`.
 
@@ -115,6 +122,8 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 - [ ] Local CI parity gate passed (`bun run ci:preflight`)
 - [ ] `qa:smoke` applied for eligible user-facing/runtime PRs, or skipped with
       docs-only/non-runtime rationale
+- [ ] PR preview smoke reports use no credentials, no secret values, and no
+      bypass URLs in comments or artifacts
 
 ### Review checklist
 

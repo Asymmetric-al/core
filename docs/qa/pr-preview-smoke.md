@@ -55,9 +55,22 @@ Production.
 -->
 ```
 
-7. If `CLAUDE_QA_ROUTINE_WEBHOOK_URL` is configured, the action posts the same
-   preview URL payload for Claude QA handoff. Missing webhook configuration is
-   a skip, not a failure.
+7. The action runs headless Playwright smoke only for projects with preview
+   URLs:
+   - `development-admin`
+   - `development-donor`
+   - `development-missionary`
+8. Playwright receives Vercel deployment-protection bypass secrets as
+   `x-vercel-protection-bypass` headers, never as URL query parameters.
+9. The action upserts a separate PASS/FAIL/SKIPPED comment with this marker:
+
+```html
+<!-- headless-pr-preview-smoke-qa -->
+```
+
+10. If `CLAUDE_QA_ROUTINE_WEBHOOK_URL` is configured, the action posts the same
+    preview URL payload for Claude QA handoff. Missing webhook configuration is
+    a skip, not a failure.
 
 ## Required Secrets
 
@@ -65,9 +78,14 @@ Configure these GitHub repository secrets:
 
 - `VERCEL_TOKEN`
 - `VERCEL_ORG_ID`
-- `VERCEL_PROJECT_ID_ADMIN`
-- `VERCEL_PROJECT_ID_DONOR`
-- `VERCEL_PROJECT_ID_MISSIONARY`
+- `VERCEL_ADMIN_PROJECT_ID`
+- `VERCEL_DONOR_PROJECT_ID`
+- `VERCEL_MISSIONARY_PROJECT_ID`
+- `QA_TEST_EMAIL`
+- `QA_TEST_PASSWORD`
+- `VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET`
+- `VERCEL_DONOR_AUTOMATION_BYPASS_SECRET`
+- `VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET`
 
 Optional:
 
@@ -88,6 +106,14 @@ The same Playwright smoke specs run against preview URLs by setting:
 
 The older `PLAYWRIGHT_*_BASE_URL` variables still work and take precedence for
 local or specialized runs.
+
+GitHub Actions sets `QA_TEST_EMAIL`, `QA_TEST_PASSWORD`, and the per-surface
+Vercel automation bypass secrets only in the Playwright step. These values must
+not be printed, written to files, embedded in URLs, or included in PR comments.
+Claude cloud routines should not store these secrets unless Claude itself runs
+Playwright. The preferred flow is that GitHub Actions deploys previews, runs
+Playwright, uploads sanitized failure artifacts, and comments the PASS/FAIL
+result for Claude to read.
 
 ## Rerun Method
 
@@ -135,6 +161,8 @@ development and production deployments remain available.
 - [ ] `qa:smoke` is present only for user-facing/runtime changes
 - [ ] Workflow comment lists Admin, Donor, and Missionary as URL or skipped
 - [ ] Marker JSON contains only the commit SHA and preview URL/null values
+- [ ] Headless PR preview smoke QA comment reports PASS/FAIL/SKIPPED per
+      `development-*` project
 - [ ] No production deployment was requested
 - [ ] No secrets, credentials, tokens, cookies, reports, or bypass URLs were
       posted

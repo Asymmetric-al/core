@@ -8,6 +8,10 @@ import {
   resolveAdminBaseUrlEnv,
   resolveDonorBaseUrlEnv,
 } from "../../playwright.config";
+import {
+  buildVercelProtectionHeaders,
+  default as previewSmokeConfig,
+} from "../../playwright.development-smoke.config";
 import { resolveDonorBaseUrl } from "../../playwright.donor.config";
 import { resolveMissionaryBaseUrl } from "../../playwright.missionary.config";
 
@@ -72,5 +76,24 @@ describe("Playwright preview smoke base URL env", () => {
         PLAYWRIGHT_REUSE_EXISTING_SERVER: "true",
       }),
     ).toBe(true);
+  });
+
+  it("defines the PR preview smoke projects", () => {
+    const projectNames = previewSmokeConfig.projects?.map(
+      (project) => project.name,
+    );
+
+    expect(projectNames).toEqual([
+      "development-admin",
+      "development-donor",
+      "development-missionary",
+    ]);
+  });
+
+  it("uses Vercel deployment protection bypass secrets as headers only", () => {
+    expect(buildVercelProtectionHeaders("secret-value")).toEqual({
+      "x-vercel-protection-bypass": "secret-value",
+    });
+    expect(buildVercelProtectionHeaders("")).toBeUndefined();
   });
 });
