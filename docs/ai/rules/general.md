@@ -11,8 +11,8 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 - **Project name:** Asymmetric.al
 - **Issue key format:** `AL-###`
-- **Production branch:** `epic` is the protected Vercel Production Branch. Use
-  `bun run release:production`; do not push directly to `epic`.
+- **Production branch:** `production` is the protected Vercel Production Branch. Use
+  `bun run release:production`; do not push directly to `production`.
 - **Legacy branch:** `main` may still exist for compatibility, but it is not the
   production branch for this repo.
 - **Tech stack (reference):** Next.js 16.2.x (App Router), React 19, TypeScript 5.9.x (see root `package.json` for exact version), Tailwind CSS 4, Supabase client libraries, package manager `bun`.
@@ -64,7 +64,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ### PR checklist
 
-- [ ] Branch is not a direct production push to `epic`
+- [ ] Branch is not a direct production push to `production`
 - [ ] CI gates pass (`format:check`, `lint`, `typecheck`, `build`, `test:unit`)
 - [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
 - [ ] Changes are minimal and scoped
@@ -78,5 +78,5 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 - Skipping the issue or using a non-`AL-###` identifier
 - Applying multiple labels from the same category
-- Pushing directly to `epic`
+- Pushing directly to `production`
 - Editing generated files without need

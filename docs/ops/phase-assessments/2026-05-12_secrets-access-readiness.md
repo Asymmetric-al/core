@@ -2,9 +2,9 @@
 
 Generated: 2026-05-12T19:37:44+07:00
 Repo: Asymmetric-al/core
-Branch: epic
+Branch: production
 Commit: 1c66a3aa31e7da6b096cb66cf8655b778e65ae80
-Working tree: uncommitted documentation artifacts only under `docs/ops/phase-assessments/`; no unrelated tracked file changes observed. Local `epic` is 0 ahead and 0 behind `origin/epic` after HTTPS fetch. SSH fetch from `origin` failed with publickey auth, then HTTPS fetch from `https://github.com/Asymmetric-al/core.git` succeeded.
+Working tree: uncommitted documentation artifacts only under `docs/ops/phase-assessments/`; no unrelated tracked file changes observed. Local `production` is 0 ahead and 0 behind `origin/production` after HTTPS fetch. SSH fetch from `origin` failed with publickey auth, then HTTPS fetch from `https://github.com/Asymmetric-al/core.git` succeeded.
 Assessor: Codex
 
 ## Executive Summary
@@ -45,7 +45,7 @@ For Phase 3 completion through deployment:
 
 | Phase | Phase name                                | Required before start                                                         | Required before completion                                                                                        | Current status           | Missing / blocked items                                                                                          | Where to get it                                                                | Notes                                                                                                                                                               |
 | ----- | ----------------------------------------- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- | ------------------------ | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 0     | Delivery guardrails / repo readiness      | GitHub access, branch state, dependency install, CI visibility                | CI green, repo checks pass, readiness package committed/reviewed                                                  | ready                    | No code blocker; docs artifacts are uncommitted in this working tree                                             | GitHub repo, local repo                                                        | CI green for target commit; local branch even with `origin/epic`; SSH fetch needs local key repair but HTTPS fetch works.                                           |
+| 0     | Delivery guardrails / repo readiness      | GitHub access, branch state, dependency install, CI visibility                | CI green, repo checks pass, readiness package committed/reviewed                                                  | ready                    | No code blocker; docs artifacts are uncommitted in this working tree                                             | GitHub repo, local repo                                                        | CI green for target commit; local branch even with `origin/production`; SSH fetch needs local key repair but HTTPS fetch works.                                     |
 | 1     | Identity, tenancy, permissions            | Supabase public URL/anon key, service role for protected server flows         | Auth E2E, RLS/tenant proof, protected deployment env                                                              | partially ready          | Auth E2E skipped; provider auth flows not smoke-tested locally                                                   | Supabase project dashboard; Vercel env; Playwright auth tests                  | Supabase env names are present locally and in Vercel production.                                                                                                    |
 | 2     | Platform DB, RLS, integration foundations | Supabase service role, DB URL, migration target clarity                       | Migration verifier, RLS checks, rollback path                                                                     | partially ready          | `verify:supabase-migrations` failed due missing `DATABASE_URL` for disposable local DB                           | Local disposable Postgres; Supabase CLI/dashboard                              | Do not point the verifier at hosted production. Local `.env.local` has `SUPABASE_DB_URL` by name.                                                                   |
 | 3     | Payments / giving pipeline                | Supabase + Stripe test keys, repo checks, data boundary, Vercel app env names | Stripe webhook proof, Resend receipt proof, Twenty gift-posting proof, Sentry runtime DSN proof, deployment proof | ready for local/dev only | Twenty workspace ID; Stripe dashboard verification; Resend dashboard verification; migration verifier; E2E smoke | Stripe dashboard, Resend dashboard, Twenty settings, Supabase local DB, Vercel | Sentry sourcemaps are Phase 11 unless build/deploy explicitly requires upload. Can start local/dev implementation planning. Cannot claim deployment completion yet. |
@@ -148,7 +148,7 @@ Production deployment for the current commit is ready at the Vercel level, but p
   - `admin`: root `apps/admin`, project found by Vercel CLI and connector.
   - `donor`: root `apps/donor`, project found by Vercel CLI and connector.
   - `missionary`: root `apps/missionary`, project found by Vercel CLI and connector.
-- Production branch: `epic` for all three apps per production verifier output.
+- Production branch: `production` for all three apps per production verifier output.
 - Deployment state for target commit:
   - `admin`: production deployment for commit `1c66a3aa31e7da6b096cb66cf8655b778e65ae80` READY; health HTTP 200.
   - `donor`: production deployment for commit `1c66a3aa31e7da6b096cb66cf8655b778e65ae80` READY; health HTTP 200.
@@ -277,7 +277,7 @@ Current evidence:
 - Local `.env.local` has Supabase URL, anon key, service role key, and DB URL by name.
 - Vercel production has Supabase URL, anon key, and service role env names for all three apps.
 - Admin production has `SUPABASE_DB_URL` by name.
-- Supabase CLI access listed projects, including active `epic` and `staging` projects.
+- Supabase CLI access listed projects, including active `production` and `staging` projects.
 - Data-boundary verifier passed.
 
 Current gaps:
@@ -318,12 +318,12 @@ Current optional status:
 | Command                                                                                             | Status | Result / notes                                                                                                 |
 | --------------------------------------------------------------------------------------------------- | ------ | -------------------------------------------------------------------------------------------------------------- |
 | `git remote -v`                                                                                     | passed | `origin` is `git@github.com:Asymmetric-al/core.git`; fork remote also present.                                 |
-| `git branch --show-current`                                                                         | passed | `epic`.                                                                                                        |
+| `git branch --show-current`                                                                         | passed | `production`.                                                                                                  |
 | `git rev-parse HEAD`                                                                                | passed | `1c66a3aa31e7da6b096cb66cf8655b778e65ae80`.                                                                    |
 | `git status --short`                                                                                | passed | Documentation artifacts under `docs/ops/phase-assessments/`; no unrelated tracked edits.                       |
 | `git fetch --all --prune`                                                                           | failed | SSH fetch from `origin` failed due local publickey auth; fork fetch completed.                                 |
 | `git fetch --prune https://github.com/Asymmetric-al/core.git '+refs/heads/*:refs/remotes/origin/*'` | passed | HTTPS fallback refreshed `origin/*`.                                                                           |
-| `git rev-list --left-right --count HEAD...origin/epic`                                              | passed | `0 0`.                                                                                                         |
+| `git rev-list --left-right --count HEAD...origin/production`                                        | passed | `0 0`.                                                                                                         |
 | `bun install --frozen-lockfile`                                                                     | passed | Dependency install completed without repo changes.                                                             |
 | `gh repo view Asymmetric-al/core`                                                                   | passed | GitHub repo metadata accessible.                                                                               |
 | `gh pr list -R Asymmetric-al/core --state open --limit 20`                                          | passed | One open PR found; not a readiness blocker for current commit.                                                 |

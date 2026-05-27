@@ -22,7 +22,7 @@
 - **CODEOWNERS resolves only to PR author:** GitHub blocks self-review; prompt for a fallback reviewer/team.
 - **Cleanup ran without user choice:** hard rule to wait for `1/2/3` before running cleanup commands.
   Create a patch backup before any branch switching or stashing.
-- **PR base must be explicit.** The command must list remote branches and choose a base (default: `epic` if present, else the repo default branch).
+- **PR base must be explicit.** The command must list remote branches and choose a base (default: `production` if present, else the repo default branch).
 - **Branch name must be derived from a summary of changes.**
   - Format: `<ticket?>-<kebab-summary>` (ticket optional, e.g. `al-123-...`)
 - **Local quality gates should run before opening/marking a PR ready.**
@@ -130,7 +130,7 @@ gh repo view --json defaultBranchRef,nameWithOwner -q '.defaultBranchRef.name'
 
 The command must show the user a **short list of candidate PR base branches**:
 
-- If `origin/epic` exists → include `epic` and default to it
+- If `origin/production` exists → include `production` and default to it
 - Else default to the repo’s default branch (from `gh repo view`)
 - Also include common alternatives if they exist: `develop`, `main`
 
@@ -141,7 +141,7 @@ The command must show the user a **short list of candidate PR base branches**:
 Choose base branch using this priority:
 
 1. user-specified base (if valid on origin)
-2. `epic` if it exists on origin
+2. `production` if it exists on origin
 3. repo default branch (from GitHub)
 4. otherwise: current branch (last resort) **with warning**
 

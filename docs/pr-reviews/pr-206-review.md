@@ -1,7 +1,7 @@
 # PR #206 Review - OpenSpec Guardian and QA Foreman agents; streaming shells and env helpers
 
 - URL: https://github.com/Asymmetric-al/core/pull/206
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/openspec-guardian-qa-foreman-and-surface-updates`
 - Draft: no
 - GitHub state at review: `DIRTY`, `CHANGES_REQUESTED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflicts:
 
@@ -18,7 +18,7 @@ Conflicts:
 - `apps/donor/app/(dashboard)/donor-dashboard/wallet/page.tsx`
 - `apps/missionary/app/tasks/page.tsx`
 
-Tests were not run because the PR does not produce a merged tree against current `epic`.
+Tests were not run because the PR does not produce a merged tree against current `production`.
 
 ## Verdict
 
@@ -26,13 +26,13 @@ Do not merge. The branch conflicts with current route work and has a confirmed e
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: the final route-shell behavior and env changes cannot be tested until conflicts are resolved.
 
 Suggested fix:
 
-- Rebase onto current `epic`.
+- Rebase onto current `production`.
 - Resolve the route conflicts.
 - Re-run full preflight.
 

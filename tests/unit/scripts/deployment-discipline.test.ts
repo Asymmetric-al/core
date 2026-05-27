@@ -39,7 +39,7 @@ const localConfig = {
     deploymentEnabled: {
       "*": false,
       develop: true,
-      epic: true,
+      production: true,
       main: false,
     },
   },
@@ -72,7 +72,7 @@ const branchProtectionRule = {
 
 const vercelSettings = {
   link: {
-    productionBranch: "epic",
+    productionBranch: "production",
   },
   previewDeploymentsDisabled: true,
   enableAffectedProjectsDeployments: true,
@@ -130,7 +130,7 @@ describe("deployment discipline verifier", () => {
     }
   });
 
-  it("accepts local Vercel config with ignored builds and only epic/develop deployments", () => {
+  it("accepts local Vercel config with ignored builds and only production/develop deployments", () => {
     const checks = validateLocalVercelConfig({ project, config: localConfig });
 
     expect(checks).toEqual(
@@ -163,7 +163,7 @@ describe("deployment discipline verifier", () => {
       forbiddenContexts: ["e2e-gate"],
     });
     const epicChecks = validateGitHubBranchProtection({
-      branch: "epic",
+      branch: "production",
       protection: branchProtection,
       branchRule: branchProtectionRule,
       requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
@@ -201,7 +201,7 @@ describe("deployment discipline verifier", () => {
 
   it("detects missing GitHub status checks and enabled force pushes", () => {
     const checks = validateGitHubBranchProtection({
-      branch: "epic",
+      branch: "production",
       protection: {
         ...branchProtection,
         required_status_checks: { strict: false, contexts: [] },
@@ -214,11 +214,11 @@ describe("deployment discipline verifier", () => {
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
       expect.arrayContaining([
-        "epic force pushes disabled",
-        "epic requires up-to-date status checks",
-        "epic requires ci-gate",
-        "epic requires integration-gate",
-        "epic requires e2e-gate",
+        "production force pushes disabled",
+        "production requires up-to-date status checks",
+        "production requires ci-gate",
+        "production requires integration-gate",
+        "production requires e2e-gate",
       ]),
     );
   });

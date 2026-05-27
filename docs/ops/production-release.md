@@ -26,31 +26,31 @@ plan by avoiding debug loops on the production branch.
 `bun run release:production` is the normal production path. It refuses to ship
 unless the repo is in a release-ready state:
 
-- current branch is `develop` or `epic`
+- current branch is `develop` or `production`
 - working tree is clean
 - deployment discipline verifier passes
 - Git attribution verifier passes
 - full local `ci:preflight` passes
-- deployment impact is summarized before pushing `HEAD` to `origin/epic`
+- deployment impact is summarized before pushing `HEAD` to `origin/production`
 
 The command sets an internal release env var so the pre-push hook can tell a
 checked production release apart from an accidental direct push.
 
 ## Guardrails
 
-- Direct `git push origin epic` is blocked by `.husky/pre-push`.
+- Direct `git push origin production` is blocked by `.husky/pre-push`.
 - Non-production pushes still run the normal `ci:preflight` hook.
 - Emergency production pushes require a visible reason:
 
   ```bash
-  ASYM_PRODUCTION_PUSH_BYPASS_REASON="restore previous production deploy" git push origin HEAD:epic
+  ASYM_PRODUCTION_PUSH_BYPASS_REASON="restore previous production deploy" git push origin HEAD:production
   ```
 
   Use this only for urgent recovery. The normal release command is safer.
 
 ## Deployment cost rules
 
-- Do not debug by pushing repeated fix commits to `epic`.
+- Do not debug by pushing repeated fix commits to `production`.
 - Keep app-only changes app-local when possible so ignored-build gating can skip
   unaffected projects.
 - Shared runtime/build changes intentionally build all three projects.

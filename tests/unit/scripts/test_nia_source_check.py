@@ -20,7 +20,7 @@ class NiaSourceCheckScriptTest(unittest.TestCase):
                 """#!/usr/bin/env bash
 printf '%s\n' "$@" > "$CURL_ARGS_FILE"
 cat <<'JSON'
-{"items":[{"id":"core-epic","identifier":"https://github.com/Asymmetric-al/core","branch":"epic"}]}
+{"items":[{"id":"core-production","identifier":"https://github.com/Asymmetric-al/core","branch":"production"}]}
 JSON
 """,
                 encoding="utf-8",
@@ -52,7 +52,7 @@ JSON
             self.assertEqual(
                 status,
                 {
-                    "source_id": "core-epic",
+                    "source_id": "core-production",
                     "registered": True,
                     "repository": "asymmetric-al/core",
                 },
@@ -60,7 +60,7 @@ JSON
             self.assertIn("Nia source for asymmetric-al/core is registered.", result.stdout)
 
             output = github_output.read_text(encoding="utf-8")
-            self.assertIn("source_id=core-epic", output)
+            self.assertIn("source_id=core-production", output)
             self.assertIn("registered=true", output)
             self.assertNotIn("test-api-key", result.stdout)
             self.assertNotIn("test-api-key", result.stderr)

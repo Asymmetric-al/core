@@ -2,21 +2,21 @@
 
 ## Overview
 
-Two workflow files run on every PR to `develop` and `epic`, and on every push to
-`develop` and `epic`:
+Two workflow files run on every PR to `develop` and `production`, and on every push to
+`develop` and `production`:
 
-| Workflow          | File                                   | Branches                          | Jobs                                            | Target time               |
-| ----------------- | -------------------------------------- | --------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `epic` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `epic` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
+| Workflow          | File                                   | Branches                                | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | --------------------------------------- | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
 
 Current workflow semantics:
 
-- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `epic`).
+- `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`).
 - `ci-integration.yml` runs on the same active long-lived branches.
 - `test-e2e-smoke` is **blocking on `develop`** through `e2e-smoke-gate` and `integration-gate`.
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
-- `test-e2e` is enforced on `epic` through the workflow's `e2e-gate`, and
+- `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and
   branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
   before production release PRs can merge.
 - `main` is retired and protected historical history; active workflows do not
@@ -67,7 +67,7 @@ GitHub resolves the latest commit to `abiatarprado`. The allowed identities are
 
 ### Production release guard
 
-Direct pushes to `epic` are blocked by `.husky/pre-push` unless they come from
+Direct pushes to `production` are blocked by `.husky/pre-push` unless they come from
 the production release command:
 
 ```bash
@@ -75,11 +75,11 @@ bun run release:production
 ```
 
 The release command checks deployment discipline, Git attribution, local CI
-preflight, and deployment impact before pushing `HEAD` to `origin/epic`.
+preflight, and deployment impact before pushing `HEAD` to `origin/production`.
 Emergency bypasses require an explicit reason:
 
 ```bash
-ASYM_PRODUCTION_PUSH_BYPASS_REASON="restore previous production deploy" git push origin HEAD:epic
+ASYM_PRODUCTION_PUSH_BYPASS_REASON="restore previous production deploy" git push origin HEAD:production
 ```
 
 Run this verifier after deployment-control changes:
@@ -232,7 +232,7 @@ Current coverage caveat: the repo's custom raw V8 fallback provider writes cover
   2. `bun run test:e2e:boneyard:admin`, `bun run test:e2e:boneyard:missionary`, and `bun run test:e2e:boneyard:donor` (visual regression smoke by app)
   3. `bun run test:e2e:cms --project=chromium` (portable CMS/admin suite tagged `@cms`, excluding `@manual` and local-seed-only `@cms-local`; CI reuses the same donor/admin servers)
      The job has a 30-minute cap, and individual Playwright suite steps have 5-10 minute caps. Uploads `playwright-report/` as an artifact on failure (retained 7 days).
-- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `epic`, `e2e-gate` converts this job into a required production-bound signal.
+- _Branch behavior:_ On `develop`, this job is informational (`continue-on-error: true`). On `production`, `e2e-gate` converts this job into a required production-bound signal.
 - _Donor-only default projects:_ When a local or CI caller sets
   `PLAYWRIGHT_INCLUDE_ADMIN=0`, `playwright.config.ts` omits the admin web
   server and the default `chromium`/`mobile-chrome` projects ignore specs that
@@ -250,15 +250,15 @@ The workflow files are the source of truth for execution. Branch protection shou
 ### Required checks by branch
 
 - `develop`: `ci-gate`, `integration-gate`, and `e2e-smoke-gate` are enforced; the full `CI Integration / test-e2e` job remains visible but intentionally non-blocking.
-- `epic`: `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
+- `production`: `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
 - `main`: retired/protected historical branch only; do not treat it as production or staging in this repo.
 
 ### GitHub branch rule guidance
 
 1. Go to _Settings → Branches → Branch protection rules_.
-2. Keep rules for `epic` and `develop`.
+2. Keep rules for `production` and `develop`.
 3. Enable **Require status checks to pass before merging**.
-4. Require `ci-gate`, `integration-gate`, and `e2e-gate` on `epic`.
+4. Require `ci-gate`, `integration-gate`, and `e2e-gate` on `production`.
 5. Require `ci-gate`, `integration-gate`, and `e2e-smoke-gate` on `develop`.
 6. Disable force pushes on both branches.
 7. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.

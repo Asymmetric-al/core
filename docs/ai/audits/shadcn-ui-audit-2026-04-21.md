@@ -183,7 +183,7 @@ npx --yes shadcn@latest add field --diff
 1. **`button`:** Upstream → Base UI `ButtonPrimitive`; local → Radix `Slot` + `asChild` + **Maia** variants. Large intentional divergence.
 2. **`field`:** `add field --diff` pulls **`label`**, **`separator`**, and related files — shows **radix-ui → native / base-ui** migrations and import alias churn (`@/lib/utils` vs `@asym/ui/lib/utils`).
 
-**Skill:** Never `add --overwrite` without explicit approval. Plan **merge-by-file** or a dedicated “migrate to base-maia template” epic.
+**Skill:** Never `add --overwrite` without explicit approval. Plan **merge-by-file** or a dedicated “migrate to base-maia template” production.
 
 ---
 

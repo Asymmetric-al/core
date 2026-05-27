@@ -1,7 +1,7 @@
 # PR #219 Review - Add npm-deps-cleanup skill
 
 - URL: https://github.com/Asymmetric-al/core/pull/219
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/add-npm-deps-cleanup-skill-002d`
 - Draft: yes
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

@@ -2,7 +2,7 @@
 
 Date: 2026-05-15
 Repo: `/Users/blake/Documents/asymmetrical/repos/core`
-Branch: `epic`
+Branch: `production`
 Handoff: `docs/ops/phase-handoffs/phase-09_donor-missionary-portals_codex-handoff.md`
 
 ## Executive Summary

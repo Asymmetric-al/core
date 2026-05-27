@@ -1,7 +1,7 @@
 # PR #217 Review - Refine Mission Control dashboard and module UX
 
 - URL: https://github.com/Asymmetric-al/core/pull/217
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/mission-control-ui-refinement-796e`
 - Draft: yes
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

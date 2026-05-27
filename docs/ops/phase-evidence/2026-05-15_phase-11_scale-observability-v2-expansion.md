@@ -2,7 +2,7 @@
 
 - Date: 2026-05-15
 - Repo: `Asymmetric-al/core`
-- Branch: `epic`
+- Branch: `production`
 - Product commit: `ad8c79b6c2fc64982719c2768445530e6d85c684`
 - Evidence status: complete
 
@@ -204,7 +204,7 @@ Results:
 Pre-push gate:
 
 ```bash
-git push origin epic
+git push origin production
 ```
 
 Result: `ci:preflight` passed before push, including format, skills verify,

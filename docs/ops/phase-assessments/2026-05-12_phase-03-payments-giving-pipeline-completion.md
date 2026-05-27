@@ -2,7 +2,7 @@
 
 Generated: 2026-05-14 00:00:30 +07
 Repo: Asymmetric-al/core
-Branch: epic
+Branch: production
 Audited HEAD: 2fff1bff82de4986885bef9e3668e4635dc49162
 Phase implementation commit: 65b7a8252ca09a78d4642bb12b5d06afb7fa98ba
 Status: handoff-complete; phase remains complete-except-admin-provider-proof
@@ -17,7 +17,7 @@ donor/payment/CRM data, or starting Phase 4/5.
 ## Current Repo State
 
 ```txt
-branch: epic
+branch: production
 HEAD: 2fff1bff82de4986885bef9e3668e4635dc49162
 latest commits:
 2fff1bff82 fix resend webhook event persistence

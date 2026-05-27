@@ -1,7 +1,7 @@
 # Phase 09 Repo Finalization Evidence
 
 Date: 2026-05-15
-Branch: `epic`
+Branch: `production`
 Product commit: `df9c30329e58095bd61d60afc8d11c0b7cb50f21`
 Product commit message: `feat(portals): harden donor and missionary self-service`
 
@@ -91,13 +91,13 @@ git@github.com: Permission denied (publickey).
 The commit was then pushed to the same repository and branch through the authenticated HTTPS GitHub transport:
 
 ```bash
-git push https://github.com/Asymmetric-al/core.git epic
+git push https://github.com/Asymmetric-al/core.git production
 ```
 
 Result:
 
-- `3a164ff16f..df9c30329e epic -> epic`
-- GitHub reported repository rule bypasses for direct push to `epic`, but accepted the push.
+- `3a164ff16f..df9c30329e production -> production`
+- GitHub reported repository rule bypasses for direct push to `production`, but accepted the push.
 
 ## Production Readiness
 

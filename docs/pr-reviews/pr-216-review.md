@@ -1,7 +1,7 @@
 # PR #216 Review - Harden and redesign Support Hub workflows
 
 - URL: https://github.com/Asymmetric-al/core/pull/216
-- Base: `epic`
+- Base: `production`
 - Head: `support-hub-three-track-remediation`
 - Draft: no
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

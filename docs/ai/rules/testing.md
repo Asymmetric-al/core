@@ -52,18 +52,18 @@ See `docs/qa/pr-preview-smoke.md` and
 
 ## Branch protection (required)
 
-- **Required PR checks on `epic`:** `ci-gate`, `integration-gate`, and
+- **Required PR checks on `production`:** `ci-gate`, `integration-gate`, and
   `e2e-gate`.
 - **Required PR checks on `develop`:** `ci-gate`, `integration-gate`, and
   `e2e-smoke-gate`.
 - **Non-blocking informational checks:** raw `CI Integration / test-e2e` on
   `develop` must **not** be required; use the gate jobs as branch protection
-  requirements. `e2e-gate` is production-only and is required for `epic`.
+  requirements. `e2e-gate` is production-only and is required for `production`.
   `e2e-smoke-gate` enforces the bounded `test-e2e-smoke` Playwright suite on
   `develop`.
 - **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
   - Require the checks above.
-  - Disable force pushes on `epic` and `develop`.
+  - Disable force pushes on `production` and `develop`.
   - Keep owner emergency bypass available only for urgent production repair
     after local `bun run ci:preflight`.
 
@@ -78,7 +78,7 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 - The smoke gate is not an accessibility, hydration, performance, or full auth
   gate. Changes in those areas still need the relevant command, such as
   `bun run test:a11y`, `bun run test:perf`, or the broader `bun run test:e2e`.
-- The required `e2e-gate` on `epic` must run a bounded production-release suite, not the
+- The required `e2e-gate` on `production` must run a bounded production-release suite, not the
   full broad local Playwright inventory. Use `bun run test:e2e:production-gate`
   for the release gate and keep local-seed-only CMS proof under
   `bun run test:e2e:cms:local`.
@@ -202,7 +202,7 @@ npx playwright show-report
   Resend snapshot helpers used by `packages/api` email connect flows.
 - `tests/unit/scripts/deployment-discipline.test.ts` and
   `scripts/verify/deployment-discipline.mjs` enforce `e2e-smoke-gate` on
-  `develop` and `e2e-gate` on `epic`.
+  `develop` and `e2e-gate` on `production`.
 - `tests/unit/unit-test-harness.test.ts` and `tests/setup/unit-env.ts` keep unit
   tests off live secrets (`SUPABASE_SERVICE_ROLE_KEY` cleared globally).
 
