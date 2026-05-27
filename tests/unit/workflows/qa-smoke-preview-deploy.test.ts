@@ -16,6 +16,12 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).not.toContain("pull_request_target");
   });
 
+  it("has enough token permissions to read PRs and write the preview comment", () => {
+    expect(workflow).toContain("contents: read");
+    expect(workflow).toContain("issues: write");
+    expect(workflow).toContain("pull-requests: write");
+  });
+
   it("skips non-develop, draft, fork, missing-label, and non-smoke-label PRs", () => {
     expect(workflow).toContain('"${base_ref}" != "develop"');
     expect(workflow).toContain('"${draft}" == "true"');

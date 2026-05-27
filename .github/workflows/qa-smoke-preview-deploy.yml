@@ -14,7 +14,7 @@ on:
 permissions:
   contents: read
   issues: write
-  pull-requests: read
+  pull-requests: write
 
 concurrency:
   group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}
