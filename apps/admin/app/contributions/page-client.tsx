@@ -1,10 +1,17 @@
 "use client";
 
-import { useContributionNeedsAttention } from "@asym/database/hooks";
+import {
+  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+  useContributionNeedsAttention,
+} from "@asym/database/hooks";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  useMutation,
+  useQueryClient,
+  type QueryClient,
+} from "@tanstack/react-query";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -53,6 +60,19 @@ async function postContributionOperation(input: {
   return response.json();
 }
 
+export async function invalidateContributionOperationQueries(
+  queryClient: QueryClient,
+) {
+  await Promise.all([
+    queryClient.invalidateQueries({
+      queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
+    }),
+    queryClient.invalidateQueries({
+      queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+    }),
+  ]);
+}
+
 export default function ContributionsPage() {
   const contributionsQuery = useAdminContributions();
   const needsAttentionQuery = useContributionNeedsAttention();
@@ -72,9 +92,7 @@ export default function ContributionsPage() {
     },
     async onSuccess() {
       toast.success("Gift queued for finance posting.");
-      await queryClient.invalidateQueries({
-        queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
-      });
+      await invalidateContributionOperationQueries(queryClient);
       setSelectedContribution(null);
     },
   });
@@ -89,9 +107,7 @@ export default function ContributionsPage() {
     },
     async onSuccess() {
       toast.success("Gift retry queued.");
-      await queryClient.invalidateQueries({
-        queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
-      });
+      await invalidateContributionOperationQueries(queryClient);
       setSelectedContribution(null);
     },
   });
@@ -108,9 +124,7 @@ export default function ContributionsPage() {
     },
     async onSuccess() {
       toast.success("Receipt send recorded.");
-      await queryClient.invalidateQueries({
-        queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
-      });
+      await invalidateContributionOperationQueries(queryClient);
       setSelectedContribution(null);
     },
   });

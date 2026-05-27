@@ -44,11 +44,14 @@ vi.mock("sonner", () => ({
 }));
 
 import ContributionsPage from "../../../../../apps/admin/app/contributions/page";
+import { invalidateContributionOperationQueries } from "../../../../../apps/admin/app/contributions/page-client";
 import {
   boneyardContributionsFixture,
   mockContributions,
 } from "../../../../../apps/admin/app/contributions/data";
 import { loadMockAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
+import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
+import { MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY } from "@asym/database/hooks";
 
 function mockQuery(partial: Record<string, unknown>) {
   return {
@@ -218,6 +221,21 @@ describe("apps/admin/app/contributions/page", () => {
     expect(screen.getByText("Needs Attention")).toBeTruthy();
     expect(screen.getByText("Donor notification")).toBeTruthy();
     expect(screen.getByText("Donor correction email failed")).toBeTruthy();
+  });
+
+  it("invalidates contributions and Needs Attention after contribution mutations", async () => {
+    const queryClient = {
+      invalidateQueries: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await invalidateContributionOperationQueries(queryClient as never);
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
+    });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+    });
   });
 
   it("does not show load failed while the query is pending", () => {
