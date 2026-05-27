@@ -97,25 +97,24 @@ Goal: upgrade `boneyard-js` to **1.8.1**, align root capture scripts with origin
 
 ### Completed
 
-| Area                 | Status | Notes                                                                                          |
-| -------------------- | ------ | ---------------------------------------------------------------------------------------------- | ---- | ----------------------------------- |
-| `boneyard-js@^1.8.1` | Done   | admin, donor, missionary, `@asym/ui`; `bun.lock` resolves `boneyard-js@1.8.1`                  |
-| Root scripts         | Done   | `boneyard:*` pass `http://localhost:3030                                                       | 4000 | 3000`only (no`/boneyard/...` paths) |
-| Donor breakpoints    | Done   | `[1280]` in `apps/donor/boneyard.config.json` only; no `--breakpoints` on root donor scripts   |
-| Capture route robots | Done   | `noindex`/`nofollow` on admin contributions page + missionary tasks layout (donor already had) |
-| Docs                 | Done   | `docs/guides/ui-design/boneyard.md` updated for 1.8.1 workflow                                 |
-| TDD contract test    | Done   | `tests/unit/scripts/boneyard-scripts.test.ts` (5 tests)                                        |
+| Area                 | Status | Notes                                                                                                 |
+| -------------------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| `boneyard-js@^1.8.1` | Done   | admin, donor, missionary, `@asym/ui`; `bun.lock` resolves `boneyard-js@1.8.1`                         |
+| Root scripts         | Done   | `boneyard:*` use origin URLs only (`http://localhost:3030`, `4000`, `3000`); no `/boneyard/...` paths |
+| Donor breakpoints    | Done   | `[1280]` in `apps/donor/boneyard.config.json` only; no `--breakpoints` on root donor scripts          |
+| Capture route robots | Done   | `noindex`/`nofollow` on admin contributions page + missionary tasks layout (donor already had)        |
+| Docs                 | Done   | `docs/guides/ui-design/boneyard.md` updated for 1.8.1 workflow                                        |
+| TDD contract test    | Done   | `tests/unit/scripts/boneyard-scripts.test.ts` (5 tests)                                               |
+| Bone regeneration    | Done   | `bun run boneyard:force` with dev servers; commit `4ce84b2b`                                          |
 
 ### Validation
 
 - `bunx vitest run tests/unit/scripts/boneyard-scripts.test.ts` → 5 passed
 - `bunx turbo run typecheck --filter=@asym/admin --filter=@asym/donor --filter=@asym/missionary-app` → passed
+- Config routes match capture pages: `/boneyard/contributions`, `/boneyard/donor-dashboard`, `/boneyard/tasks`
 
-### Deferred (requires local dev servers)
+### Optional follow-up (local dev servers)
 
-| Step                          | Blocker                                                            |
-| ----------------------------- | ------------------------------------------------------------------ |
-| `bun run boneyard:force`      | Ports 3030/4000/3000 not reachable in this environment             |
-| `bun run test:e2e:boneyard:*` | Same; run after `bun run dev:admin`, `dev:missionary`, `dev:donor` |
-
-Follow-up for reviewer/CI: regenerate bones and run `tests/e2e/boneyard-smoke.spec.ts` when apps are up.
+| Step                          | Notes                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `bun run test:e2e:boneyard:*` | Run after `bun run dev:admin`, `dev:missionary`, `dev:donor` when validating smoke specs |
