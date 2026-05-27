@@ -1,5 +1,7 @@
 import path from "path";
+
 import { defineConfig, devices } from "@playwright/test";
+
 import { nextDevReadyURL } from "./tests/e2e/base-urls";
 
 const DEFAULT_DONOR_PORT = 3005;
@@ -96,6 +98,18 @@ export function shouldReuseExistingServer(
   return !env.CI;
 }
 
+export function resolveDonorBaseUrlEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  return env.PLAYWRIGHT_BASE_URL || env.QA_DONOR_BASE_URL;
+}
+
+export function resolveAdminBaseUrlEnv(
+  env: NodeJS.ProcessEnv = process.env,
+): string | undefined {
+  return env.PLAYWRIGHT_ADMIN_BASE_URL || env.QA_ADMIN_BASE_URL;
+}
+
 export function getDefaultProjectTestIgnore(
   includeAdminOrEnv: boolean | NodeJS.ProcessEnv = process.env,
 ): string[] {
@@ -113,7 +127,7 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
   baseURL: string;
   port: number;
 } {
-  const envBase = process.env.PLAYWRIGHT_BASE_URL;
+  const envBase = resolveDonorBaseUrlEnv();
   const envPort = Number(process.env.PLAYWRIGHT_PORT || defaultPort);
 
   if (!envBase) {
@@ -166,8 +180,7 @@ const adminPort = Number(
   process.env.PLAYWRIGHT_ADMIN_PORT || DEFAULT_ADMIN_PORT,
 );
 const adminBaseURL = normalizeBaseUrl(
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL ||
-    `http://${DEFAULT_LOCAL_HOSTNAME}:${adminPort}`,
+  resolveAdminBaseUrlEnv() || `http://${DEFAULT_LOCAL_HOSTNAME}:${adminPort}`,
   adminPort,
 );
 const resolvedEnv = withPlaywrightEnvDefaults(process.env);
@@ -178,7 +191,7 @@ const supabaseAnonKey =
 const reuseExistingServer = shouldReuseExistingServer(process.env);
 
 const isRemoteBaseUrl = (() => {
-  const envBase = process.env.PLAYWRIGHT_BASE_URL;
+  const envBase = resolveDonorBaseUrlEnv();
   if (!envBase) return false;
   try {
     const url = new URL(envBase);

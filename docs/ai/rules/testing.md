@@ -18,6 +18,31 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.
 - **Pre-push mirror:** `bun run ci:preflight` runs `scripts/verify/ci-preflight.mjs`, which mirrors the blocking stages in `.github/workflows/ci.yml` (through `test:unit`). It does **not** run `verify:deployment-discipline`; use `bun run verify:deployment-discipline` or `bun run release:production` when branch-protection or Vercel release posture changes.
 
+## PR preview smoke label policy
+
+Apply the GitHub label `qa:smoke` to ready PRs targeting `develop` when they
+affect user-facing runtime flows:
+
+- `apps/admin/**`, `apps/donor/**`, or `apps/missionary/**`
+- `packages/ui/**`, `packages/auth/**`, or `packages/api/**`
+- routing, middleware, login/session, dashboards, giving flows, or the shared
+  UI shell
+
+Do not apply `qa:smoke` for docs-only, evidence-only, formatting-only, or other
+non-runtime changes. The label is the gate for
+`.github/workflows/qa-smoke-preview-deploy.yml`; Vercel itself does not filter
+Preview Deployments by GitHub label.
+
+The preview smoke workflow keeps the deployed Playwright URL handoff on these
+variables:
+
+- `QA_ADMIN_BASE_URL`
+- `QA_DONOR_BASE_URL`
+- `QA_MISSIONARY_BASE_URL`
+
+See `docs/qa/pr-preview-smoke.md` and
+`docs/qa/claude-pr-preview-smoke-routine.md`.
+
 ## Branch protection (required)
 
 - **Required PR checks on `epic`:** `ci-gate`, `integration-gate`, and
@@ -76,6 +101,8 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 3. Run `bun run ci:preflight` before push/PR-ready.
 4. Run the relevant Playwright command(s) before marking a PR ready.
 5. Fix failures before proceeding.
+6. For user-facing/runtime PRs targeting `develop`, apply `qa:smoke` when the
+   PR is ready for preview smoke QA.
 
 ## Checklists
 
@@ -86,6 +113,8 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 - [ ] Critical user flows have Playwright coverage
 - [ ] Unit tests added for new logic/utils where applicable
 - [ ] Local CI parity gate passed (`bun run ci:preflight`)
+- [ ] `qa:smoke` applied for eligible user-facing/runtime PRs, or skipped with
+      docs-only/non-runtime rationale
 
 ### Review checklist
 

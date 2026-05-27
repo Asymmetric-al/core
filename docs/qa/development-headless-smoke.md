@@ -121,3 +121,21 @@ For any failed test, Playwright keeps under `playwright-report/development-smoke
 - Local secret names: `QA_<SURFACE>_BASE_URL`,
   `VERCEL_<SURFACE>_AUTOMATION_BYPASS_SECRET`, `QA_TEST_EMAIL`, and
   `QA_TEST_PASSWORD`.
+
+## PR preview smoke relationship
+
+Do not use this development smoke flow for label-gated PR previews. Use
+[PR Preview Smoke QA](./pr-preview-smoke.md) for `qa:smoke` preview
+deployments. Development smoke validates stable branch-bound `develop` URLs;
+PR preview smoke validates a specific PR head SHA and uses clean Vercel preview
+URLs from the GitHub Actions comment marker.
+
+## Checklist
+
+- [ ] Target URLs are development URLs, not production
+- [ ] Only non-destructive smoke tests are selected
+- [ ] `QA_*_BASE_URL` values and Vercel bypass secrets are loaded from a
+      gitignored local or cloud secret store
+- [ ] Playwright failures are triaged before release
+- [ ] Reports remain uncommitted
+- [ ] Shared findings mention only non-secret URLs and statuses

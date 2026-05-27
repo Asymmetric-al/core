@@ -1,0 +1,375 @@
+name: QA Smoke Preview Deploy
+
+on:
+  pull_request:
+    branches: [develop]
+    types: [labeled, ready_for_review]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Pull request number to deploy for QA smoke preview"
+        required: true
+        type: number
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: read
+
+concurrency:
+  group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: label-gated-preview-smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - name: Gate PR
+        id: gate
+        env:
+          EVENT_ACTION: ${{ github.event.action || '' }}
+          EVENT_LABEL_NAME: ${{ github.event.label.name || '' }}
+          EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number || '' }}
+          EVENT_PR_NUMBER: ${{ github.event.pull_request.number || '' }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${EVENT_NAME}" == "pull_request" ]]; then
+            pr_number="${EVENT_PR_NUMBER}"
+          else
+            pr_number="${INPUT_PR_NUMBER}"
+          fi
+
+          if [[ -z "${pr_number}" ]]; then
+            echo "::error::A PR number is required."
+            exit 1
+          fi
+
+          pr_json="$(gh api "repos/${GITHUB_REPOSITORY}/pulls/${pr_number}")"
+          base_ref="$(jq -r '.base.ref' <<<"${pr_json}")"
+          draft="$(jq -r '.draft' <<<"${pr_json}")"
+          head_repo="$(jq -r '.head.repo.full_name' <<<"${pr_json}")"
+          head_sha="$(jq -r '.head.sha' <<<"${pr_json}")"
+          has_label="$(jq -r --arg label "qa:smoke" '[.labels[].name] | index($label) != null' <<<"${pr_json}")"
+
+          skip_reason=""
+          if [[ "${EVENT_NAME}" == "pull_request" && "${EVENT_ACTION}" == "labeled" && "${EVENT_LABEL_NAME}" != "qa:smoke" ]]; then
+            skip_reason="different label was applied"
+          elif [[ "${base_ref}" != "develop" ]]; then
+            skip_reason="base branch is ${base_ref}, not develop"
+          elif [[ "${draft}" == "true" ]]; then
+            skip_reason="pull request is draft"
+          elif [[ "${head_repo}" != "${GITHUB_REPOSITORY}" ]]; then
+            skip_reason="pull request comes from fork ${head_repo}"
+          elif [[ "${has_label}" != "true" ]]; then
+            skip_reason="qa:smoke label is missing"
+          fi
+
+          {
+            echo "pr_number=${pr_number}"
+            echo "base_ref=${base_ref}"
+            echo "head_repo=${head_repo}"
+            echo "head_sha=${head_sha}"
+          } >>"${GITHUB_OUTPUT}"
+
+          if [[ -n "${skip_reason}" ]]; then
+            echo "should_run=false" >>"${GITHUB_OUTPUT}"
+            echo "skip_reason=${skip_reason}" >>"${GITHUB_OUTPUT}"
+            echo "Skipping QA smoke preview deployment: ${skip_reason}."
+            exit 0
+          fi
+
+          echo "should_run=true" >>"${GITHUB_OUTPUT}"
+          echo "skip_reason=" >>"${GITHUB_OUTPUT}"
+
+      - name: Stop after gate skip
+        if: steps.gate.outputs.should_run != 'true'
+        run: echo "QA smoke preview deployment skipped before checkout."
+
+      - uses: actions/checkout@v6
+        if: steps.gate.outputs.should_run == 'true'
+        with:
+          ref: ${{ steps.gate.outputs.head_sha }}
+          fetch-depth: 1
+
+      - name: Resolve affected preview surfaces
+        if: steps.gate.outputs.should_run == 'true'
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          changed_files="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/pulls/${PR_NUMBER}/files" --jq '.[].filename'
+          )"
+          files_json="$(printf '%s\n' "${changed_files}" | jq -R -s -c 'split("\n") | map(select(length > 0))')"
+          scope_json="$(printf '%s' "${files_json}" | node scripts/qa/preview-smoke-scope.mjs --json)"
+
+          {
+            echo "admin=$(jq -r '.admin' <<<"${scope_json}")"
+            echo "donor=$(jq -r '.donor' <<<"${scope_json}")"
+            echo "missionary=$(jq -r '.missionary' <<<"${scope_json}")"
+            echo "any=$(jq -r '.any' <<<"${scope_json}")"
+            echo "scope=$(jq -r '.scope' <<<"${scope_json}")"
+          } >>"${GITHUB_OUTPUT}"
+
+          echo "QA smoke preview scope: $(jq -r '.scope' <<<"${scope_json}")"
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.scope.outputs.any == 'true'
+        with:
+          bun-version: "1.3.4"
+
+      - name: Mask deployment secrets
+        if: steps.scope.outputs.any == 'true'
+        env:
+          CLAUDE_QA_ROUTINE_WEBHOOK_URL: ${{ secrets.CLAUDE_QA_ROUTINE_WEBHOOK_URL }}
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          for value in "${VERCEL_TOKEN:-}" "${VERCEL_ORG_ID:-}" "${CLAUDE_QA_ROUTINE_WEBHOOK_URL:-}"; do
+            if [[ -n "${value}" ]]; then
+              echo "::add-mask::${value}"
+            fi
+          done
+
+      - name: Deploy admin preview
+        if: steps.scope.outputs.admin == 'true'
+        id: deploy_admin
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${VERCEL_TOKEN:-}" || -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
+            echo "::error::Missing required Vercel secret for admin preview deployment."
+            exit 1
+          fi
+
+          stdout_file="$(mktemp)"
+          stderr_file="$(mktemp)"
+
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+            echo "::error::Vercel preview deployment failed for admin. Inspect Vercel dashboard build logs."
+            exit 1
+          fi
+
+          url="$(grep -hEo 'https://[^[:space:]]+\.vercel\.app|[A-Za-z0-9][A-Za-z0-9.-]+\.vercel\.app' "${stdout_file}" "${stderr_file}" | tail -n 1 || true)"
+          if [[ -z "${url}" ]]; then
+            echo "::error::Could not parse admin preview URL from Vercel CLI output."
+            exit 1
+          fi
+          if [[ "${url}" != https://* ]]; then
+            url="https://${url}"
+          fi
+
+          echo "url=${url}" >>"${GITHUB_OUTPUT}"
+          echo "Admin preview URL captured."
+
+      - name: Deploy donor preview
+        if: steps.scope.outputs.donor == 'true'
+        id: deploy_donor
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DONOR_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${VERCEL_TOKEN:-}" || -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
+            echo "::error::Missing required Vercel secret for donor preview deployment."
+            exit 1
+          fi
+
+          stdout_file="$(mktemp)"
+          stderr_file="$(mktemp)"
+
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+            echo "::error::Vercel preview deployment failed for donor. Inspect Vercel dashboard build logs."
+            exit 1
+          fi
+
+          url="$(grep -hEo 'https://[^[:space:]]+\.vercel\.app|[A-Za-z0-9][A-Za-z0-9.-]+\.vercel\.app' "${stdout_file}" "${stderr_file}" | tail -n 1 || true)"
+          if [[ -z "${url}" ]]; then
+            echo "::error::Could not parse donor preview URL from Vercel CLI output."
+            exit 1
+          fi
+          if [[ "${url}" != https://* ]]; then
+            url="https://${url}"
+          fi
+
+          echo "url=${url}" >>"${GITHUB_OUTPUT}"
+          echo "Donor preview URL captured."
+
+      - name: Deploy missionary preview
+        if: steps.scope.outputs.missionary == 'true'
+        id: deploy_missionary
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_MISSIONARY_PROJECT_ID }}
+          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${VERCEL_TOKEN:-}" || -z "${VERCEL_ORG_ID:-}" || -z "${VERCEL_PROJECT_ID:-}" ]]; then
+            echo "::error::Missing required Vercel secret for missionary preview deployment."
+            exit 1
+          fi
+
+          stdout_file="$(mktemp)"
+          stderr_file="$(mktemp)"
+
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+            echo "::error::Vercel preview deployment failed for missionary. Inspect Vercel dashboard build logs."
+            exit 1
+          fi
+
+          url="$(grep -hEo 'https://[^[:space:]]+\.vercel\.app|[A-Za-z0-9][A-Za-z0-9.-]+\.vercel\.app' "${stdout_file}" "${stderr_file}" | tail -n 1 || true)"
+          if [[ -z "${url}" ]]; then
+            echo "::error::Could not parse missionary preview URL from Vercel CLI output."
+            exit 1
+          fi
+          if [[ "${url}" != https://* ]]; then
+            url="https://${url}"
+          fi
+
+          echo "url=${url}" >>"${GITHUB_OUTPUT}"
+          echo "Missionary preview URL captured."
+
+      - name: Comment preview URLs
+        if: steps.gate.outputs.should_run == 'true'
+        env:
+          ADMIN_URL: ${{ steps.deploy_admin.outputs.url }}
+          DONOR_URL: ${{ steps.deploy_donor.outputs.url }}
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
+          MISSIONARY_URL: ${{ steps.deploy_missionary.outputs.url }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+          SCOPE: ${{ steps.scope.outputs.scope }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          admin_display="${ADMIN_URL:-skipped}"
+          donor_display="${DONOR_URL:-skipped}"
+          missionary_display="${MISSIONARY_URL:-skipped}"
+          marker_json="$(
+            jq -nc \
+              --arg sha "${HEAD_SHA}" \
+              --arg admin "${ADMIN_URL:-}" \
+              --arg donor "${DONOR_URL:-}" \
+              --arg missionary "${MISSIONARY_URL:-}" \
+              '{
+                sha: $sha,
+                admin: (if $admin == "" then null else $admin end),
+                donor: (if $donor == "" then null else $donor end),
+                missionary: (if $missionary == "" then null else $missionary end)
+              }'
+          )"
+
+          body_file="${RUNNER_TEMP}/qa-smoke-preview-comment.md"
+          cat >"${body_file}" <<EOF
+          # QA Smoke Preview Deployments
+
+          Label: qa:smoke
+          Commit: ${HEAD_SHA}
+          Scope: ${SCOPE}
+
+          Preview URLs:
+          - Admin: ${admin_display}
+          - Donor: ${donor_display}
+          - Missionary: ${missionary_display}
+
+          <!-- qa-smoke-preview-ready
+          ${marker_json}
+          -->
+          EOF
+
+          if [[ "${SCOPE}" == "none" ]]; then
+            cat >>"${body_file}" <<EOF
+
+          No affected smoke surface was detected; no Vercel preview deployment was created.
+          EOF
+          fi
+
+          existing_comment_id="$(
+            gh api --paginate "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --jq '.[] | select(.body | contains("<!-- qa-smoke-preview-ready")) | .id' \
+              | tail -n 1
+          )"
+
+          if [[ -n "${existing_comment_id}" ]]; then
+            gh api \
+              --method PATCH \
+              "repos/${GITHUB_REPOSITORY}/issues/comments/${existing_comment_id}" \
+              --field "body=$(cat "${body_file}")" >/dev/null
+          else
+            gh api \
+              --method POST \
+              "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              --field "body=$(cat "${body_file}")" >/dev/null
+          fi
+
+      - name: Notify Claude QA routine
+        if: steps.scope.outputs.any == 'true'
+        env:
+          ADMIN_URL: ${{ steps.deploy_admin.outputs.url }}
+          CLAUDE_QA_ROUTINE_WEBHOOK_URL: ${{ secrets.CLAUDE_QA_ROUTINE_WEBHOOK_URL }}
+          DONOR_URL: ${{ steps.deploy_donor.outputs.url }}
+          HEAD_SHA: ${{ steps.gate.outputs.head_sha }}
+          MISSIONARY_URL: ${{ steps.deploy_missionary.outputs.url }}
+          PR_NUMBER: ${{ steps.gate.outputs.pr_number }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ -z "${CLAUDE_QA_ROUTINE_WEBHOOK_URL:-}" ]]; then
+            echo "Claude QA routine webhook is not configured; skipping handoff."
+            exit 0
+          fi
+
+          payload="$(
+            jq -nc \
+              --argjson pr_number "${PR_NUMBER}" \
+              --arg sha "${HEAD_SHA}" \
+              --arg admin "${ADMIN_URL:-}" \
+              --arg donor "${DONOR_URL:-}" \
+              --arg missionary "${MISSIONARY_URL:-}" \
+              '{
+                event: "qa_smoke_preview_ready",
+                repo: "Asymmetric-al/core",
+                pr_number: $pr_number,
+                sha: $sha,
+                base: "develop",
+                label: "qa:smoke",
+                urls: {
+                  admin: (if $admin == "" then null else $admin end),
+                  donor: (if $donor == "" then null else $donor end),
+                  missionary: (if $missionary == "" then null else $missionary end)
+                }
+              }'
+          )"
+
+          if ! curl --fail --silent --output /dev/null \
+            --header "Content-Type: application/json" \
+            --request POST \
+            --data "${payload}" \
+            "${CLAUDE_QA_ROUTINE_WEBHOOK_URL}"; then
+            echo "::warning::Claude QA routine webhook call failed; continuing."
+          fi
