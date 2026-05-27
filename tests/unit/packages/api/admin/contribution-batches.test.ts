@@ -308,7 +308,8 @@ describe("bulk contribution preview and execution", () => {
     });
   });
 
-  it("does not execute when no pending rows are claimed", async () => {
+  it("finalizes the batch when no pending rows are claimed", async () => {
+    const batchUpdates: Array<Record<string, unknown>> = [];
     const supabaseAdmin = {
       from(table: string) {
         const builder = {
@@ -337,7 +338,10 @@ describe("bulk contribution preview and execution", () => {
             },
             error: null,
           }),
-          update() {
+          update(payload: Record<string, unknown>) {
+            if (table === "contribution_operation_batches") {
+              batchUpdates.push(payload);
+            }
             return builder;
           },
         };
@@ -357,7 +361,14 @@ describe("bulk contribution preview and execution", () => {
     });
 
     expect(executeContributionAction).not.toHaveBeenCalled();
+    expect(result.status).toBe("complete");
     expect(result.summary.succeeded).toBe(1);
+    expect(batchUpdates[0]).toEqual(
+      expect.objectContaining({
+        status: "complete",
+        finished_at: expect.any(String),
+      }),
+    );
   });
 });
 

@@ -189,6 +189,8 @@ async function sendCorrectionNotification(
     auditEventId: string;
     correctionId: string | null;
     providerOutcome?: ContributionProviderOutcome | null;
+    beforeSummary?: Record<string, unknown> | null;
+    afterSummary?: Record<string, unknown> | null;
   },
 ) {
   const sendNotification = input.dependencies?.sendCorrectionNotification;
@@ -204,6 +206,8 @@ async function sendCorrectionNotification(
     auditEventId: result.auditEventId,
     actorProfileId: input.actorProfileId,
     providerOutcome: result.providerOutcome ?? null,
+    beforeSummary: result.beforeSummary ?? null,
+    afterSummary: result.afterSummary ?? null,
   });
 }
 
@@ -340,6 +344,8 @@ export async function executeContributionAction<TContribution = unknown>(
       const notification = await sendCorrectionNotification(input, {
         auditEventId,
         correctionId,
+        beforeSummary: relink.before ?? null,
+        afterSummary: relink.after ?? { donorId },
       });
 
       return {
@@ -387,6 +393,7 @@ export async function executeContributionAction<TContribution = unknown>(
         auditEventId,
         correctionId,
         providerOutcome,
+        afterSummary: { refundAmount: amount },
       });
 
       return {
@@ -473,6 +480,8 @@ export async function executeContributionAction<TContribution = unknown>(
         const notification = await sendCorrectionNotification(input, {
           auditEventId,
           correctionId,
+          beforeSummary: correction.before ?? null,
+          afterSummary: correction.after ?? null,
         });
 
         return {

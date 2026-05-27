@@ -6,15 +6,18 @@ import {
   processContributionBatch,
   processPersistedContributionBatch,
 } from "./process-batch";
-import { sendStagedGiftReceipt } from "../../giving/receipts";
-import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
+import {
+  ApiHttpError,
+  ensureJsonBody,
+  toErrorResponse,
+} from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 import { executeContributionAction } from "../contribution-operations/actions";
+import { createContributionActionDependencies } from "../contribution-operations/dependencies";
 import {
   assertContributionActionPermission,
   hasContributionPermission,
 } from "../contribution-operations/permissions";
-import { appendContributionOperationAuditEvent } from "../contribution-operations/store";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks/store";
 
 const batchRecordSchema = z.object({
@@ -61,15 +64,20 @@ export const POST = withOperation(
         body.actionType !== "resend_receipt" &&
         body.actionType !== "crm_repost";
       if (isHighRisk && !body.reason) {
-        throw new Error(
+        throw new ApiHttpError(
+          400,
           "High-risk bulk contribution actions require a reason.",
         );
       }
       if (isHighRisk && !body.previewSnapshot) {
-        throw new Error(
+        throw new ApiHttpError(
+          400,
           "High-risk bulk contribution actions require a preview snapshot.",
         );
       }
+
+      const contributionActionDependencies =
+        createContributionActionDependencies(supabaseAdmin);
 
       if (executionMode === "background") {
         const { data, error } = await supabaseAdmin
@@ -135,26 +143,7 @@ export const POST = withOperation(
                     actorPermissions: actionInput.actorPermissions ?? [],
                     confirmationToken: actionInput.confirmationToken,
                     reason: actionInput.reason,
-                    dependencies: {
-                      sendReceipt: ({ stagedGiftId, tenantId }) =>
-                        sendStagedGiftReceipt({
-                          supabaseAdmin,
-                          stagedGiftId,
-                          tenantId,
-                        }),
-                      appendAuditEvent: (event) =>
-                        appendContributionOperationAuditEvent({
-                          supabaseAdmin,
-                          event,
-                        }),
-                      loadContributionDetail: async ({
-                        contributionId,
-                        tenantId,
-                      }) => ({
-                        id: contributionId,
-                        tenantId,
-                      }),
-                    },
+                    dependencies: contributionActionDependencies,
                   }),
                 createFollowUpTask: async ({
                   contributionId,
@@ -227,23 +216,7 @@ export const POST = withOperation(
             actorPermissions: actionInput.actorPermissions ?? [],
             confirmationToken: body.confirmationToken,
             reason: body.reason ?? actionInput.reason,
-            dependencies: {
-              sendReceipt: ({ stagedGiftId, tenantId }) =>
-                sendStagedGiftReceipt({
-                  supabaseAdmin,
-                  stagedGiftId,
-                  tenantId,
-                }),
-              appendAuditEvent: (event) =>
-                appendContributionOperationAuditEvent({
-                  supabaseAdmin,
-                  event,
-                }),
-              loadContributionDetail: async ({ contributionId, tenantId }) => ({
-                id: contributionId,
-                tenantId,
-              }),
-            },
+            dependencies: contributionActionDependencies,
           }),
         createFollowUpTask: async ({ contributionId, reason }) => {
           const result = await createMissionControlTaskInSupabase({
@@ -308,23 +281,7 @@ export const POST_PROCESS_BATCH = withOperation(
             actorPermissions: actionInput.actorPermissions ?? [],
             confirmationToken: actionInput.confirmationToken,
             reason: actionInput.reason,
-            dependencies: {
-              sendReceipt: ({ stagedGiftId, tenantId }) =>
-                sendStagedGiftReceipt({
-                  supabaseAdmin,
-                  stagedGiftId,
-                  tenantId,
-                }),
-              appendAuditEvent: (event) =>
-                appendContributionOperationAuditEvent({
-                  supabaseAdmin,
-                  event,
-                }),
-              loadContributionDetail: async ({ contributionId, tenantId }) => ({
-                id: contributionId,
-                tenantId,
-              }),
-            },
+            dependencies: createContributionActionDependencies(supabaseAdmin),
           }),
         createFollowUpTask: async ({ contributionId, reason, actionType }) => {
           const result = await createMissionControlTaskInSupabase({

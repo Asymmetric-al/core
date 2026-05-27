@@ -45,29 +45,65 @@ function formatMoney(cents: number, currency: string) {
   }).format(cents / 100);
 }
 
-function buildMergeValues(detail: ContributionDetail) {
-  const currency = detail.amount.currency;
+function summaryAmountCents(
+  summary: Record<string, unknown> | null | undefined,
+  key: string,
+  fallback: number,
+) {
+  const value = summary?.[key];
+  return typeof value === "number" ? value : fallback;
+}
+
+function buildMergeValues(input: {
+  detail: ContributionDetail;
+  beforeSummary?: Record<string, unknown> | null;
+  afterSummary?: Record<string, unknown> | null;
+  orgName?: string | null;
+  supportContactEmail?: string | null;
+}) {
+  const currency = input.detail.amount.currency;
+  const currentAmount = input.detail.amount.value;
+  const originalCents = summaryAmountCents(
+    input.beforeSummary,
+    "amount",
+    currentAmount,
+  );
+  const correctedCents = summaryAmountCents(
+    input.afterSummary,
+    "amount",
+    currentAmount,
+  );
+  const refundCents =
+    typeof input.afterSummary?.refundAmount === "number"
+      ? input.afterSummary.refundAmount
+      : input.detail.refund.amount;
+  const orgName = input.orgName?.trim() || "Your ministry";
+  const supportEmail = input.supportContactEmail?.trim();
+  const supportContactLink = supportEmail
+    ? `mailto:${supportEmail}`
+    : "mailto:finance@example.com";
+
   return {
-    full_name: detail.donor?.name ?? "Donor",
-    email: detail.donor?.email ?? "",
-    org_name: "Your ministry",
-    gift_date: new Date(detail.gift.date).toLocaleDateString("en-US", {
+    full_name: input.detail.donor?.name ?? "Donor",
+    email: input.detail.donor?.email ?? "",
+    org_name: orgName,
+    gift_date: new Date(input.detail.gift.date).toLocaleDateString("en-US", {
       day: "numeric",
       month: "long",
       year: "numeric",
     }),
-    donation_amount: formatMoney(detail.amount.value, currency),
-    original_amount: formatMoney(detail.amount.value, currency),
-    corrected_amount: formatMoney(detail.amount.value, currency),
-    refund_amount: formatMoney(detail.refund.amount, currency),
-    previous_designation_name: detail.designation.fundName,
-    corrected_designation_name: detail.designation.fundName,
+    donation_amount: formatMoney(correctedCents, currency),
+    original_amount: formatMoney(originalCents, currency),
+    corrected_amount: formatMoney(correctedCents, currency),
+    refund_amount: formatMoney(refundCents, currency),
+    previous_designation_name: input.detail.designation.fundName,
+    corrected_designation_name: input.detail.designation.fundName,
     receipt_link: "/donor-dashboard/history",
     statement_link: "/donor-dashboard/history",
-    payment_state: detail.donorVisible.status,
+    payment_state: input.detail.donorVisible.status,
     donor_portal_link: "/donor-dashboard/history",
-    support_contact_link: "mailto:finance@example.com",
-    operation_reference: detail.id,
+    support_contact_link: supportContactLink,
+    operation_reference: input.detail.id,
   };
 }
 
@@ -142,6 +178,8 @@ export async function sendContributionCorrectionNotificationFromSupabase(input: 
   actorProfileId: string | null;
   providerOutcome?: ContributionProviderOutcome | null;
   detail: ContributionDetail;
+  beforeSummary?: Record<string, unknown> | null;
+  afterSummary?: Record<string, unknown> | null;
 }) {
   const variant = resolveContributionCorrectionTemplateVariant({
     actionType: input.actionType,
@@ -193,7 +231,13 @@ export async function sendContributionCorrectionNotificationFromSupabase(input: 
       email: donor?.email ?? "",
       name: donor?.name ?? "Donor",
     },
-    mergeValues: buildMergeValues(input.detail),
+    mergeValues: buildMergeValues({
+      detail: input.detail,
+      beforeSummary: input.beforeSummary,
+      afterSummary: input.afterSummary,
+      orgName: defaultFromName,
+      supportContactEmail: settings?.reply_to_email ?? null,
+    }),
     template:
       template && version
         ? {

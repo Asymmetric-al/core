@@ -146,6 +146,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     auditEventId: string;
     actorProfileId: string | null;
     providerOutcome?: ContributionProviderOutcome | null;
+    beforeSummary?: Record<string, unknown> | null;
+    afterSummary?: Record<string, unknown> | null;
   }) => Promise<{
     decision: "sent" | "suppressed" | "blocked" | "failed" | "not_required";
     taskIds?: string[];

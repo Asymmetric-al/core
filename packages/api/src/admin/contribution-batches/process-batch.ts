@@ -153,16 +153,27 @@ export async function processPersistedContributionBatch(input: {
     stagedGiftId: asString(row.staged_gift_id),
   }));
   if (rows.length === 0) {
+    const summary = {
+      processed: Number(batchRow.processed_count ?? 0),
+      succeeded: Number(batchRow.succeeded_count ?? 0),
+      skipped: Number(batchRow.skipped_count ?? 0),
+      failed: Number(batchRow.failed_count ?? 0),
+      followUpTasksCreated: Number(batchRow.follow_up_task_count ?? 0),
+    };
+    const { error: batchUpdateError } = await input.supabaseAdmin
+      .from("contribution_operation_batches")
+      .update({
+        status: "complete",
+        finished_at: new Date().toISOString(),
+      })
+      .eq("tenant_id", input.tenantId)
+      .eq("id", input.batchId);
+    if (batchUpdateError) throw new Error(batchUpdateError.message);
+
     return {
       results: [],
-      status: String(batchRow.status),
-      summary: {
-        processed: Number(batchRow.processed_count ?? 0),
-        succeeded: Number(batchRow.succeeded_count ?? 0),
-        skipped: Number(batchRow.skipped_count ?? 0),
-        failed: Number(batchRow.failed_count ?? 0),
-        followUpTasksCreated: Number(batchRow.follow_up_task_count ?? 0),
-      },
+      status: "complete",
+      summary,
     };
   }
 
