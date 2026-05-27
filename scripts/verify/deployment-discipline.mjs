@@ -11,7 +11,7 @@ import {
 
 const DEFAULT_REPO = "Asymmetric-al/core";
 const DEFAULT_SCOPE = "asymmetric-al";
-const PRODUCTION_BRANCH = "epic";
+const PRODUCTION_BRANCH = "production";
 const STAGING_BRANCH = "develop";
 const REQUIRED_BUILD_QUEUE_CONFIGURATION = "WAIT_FOR_NAMESPACE_QUEUE";
 

@@ -20,7 +20,7 @@ GitHub uses CODEOWNERS to automatically request reviews on pull requests that to
 
 The repo uses gate jobs as merge controls. Gate jobs are summary checks that fail when any prerequisite check fails.
 
-- `epic` requires:
+- `production` requires:
   - `ci-gate`
   - `integration-gate`
   - `e2e-gate`
@@ -61,7 +61,7 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 - If your change affects user flows, also run:
   - `bun run test:e2e:production-gate`
   - `bun run test:e2e` for broader local coverage when the change needs it
-- Confirm branch target is correct: `develop` for staging validation, `epic`
+- Confirm branch target is correct: `develop` for staging validation, `production`
   only for an intentional production release, and never `main`.
 
 ## Changing Ownership

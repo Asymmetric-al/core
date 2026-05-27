@@ -2,7 +2,7 @@
 
 Generated: 2026-05-14T10:16:00Z
 Repo: Asymmetric-al/core
-Branch: epic
+Branch: production
 Commit: 691afecd98e5bc8e089da237bacd168dce8f87b9
 
 ## Summary
@@ -28,7 +28,7 @@ custom-environment association was preserved.
   `docs/ops/phase-evidence/2026-05-14_phase-04_twenty-crm-foundation.md`
 - Start state: untracked.
 - Commit: `691afecd98e5bc8e089da237bacd168dce8f87b9`.
-- Push status: pushed to `origin/epic`; local branch is even with upstream.
+- Push status: pushed to `origin/production`; local branch is even with upstream.
 - Unrelated working tree changes intentionally excluded:
   - `docs/ai/working-set.md`
   - untracked local agent/tool directories such as `.adal/`, `.augment/`,

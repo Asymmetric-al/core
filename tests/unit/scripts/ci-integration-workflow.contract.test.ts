@@ -93,8 +93,8 @@ describe("ci-integration workflow contract", () => {
     expect(e2eSmokeGate).toContain('!= "success"');
 
     expect(e2eGate).toContain("needs: [test-e2e]");
-    expect(e2eGate).toContain("github.base_ref == 'epic'");
-    expect(e2eGate).toContain("refs/heads/epic");
+    expect(e2eGate).toContain("github.base_ref == 'production'");
+    expect(e2eGate).toContain("refs/heads/production");
     expect(e2eGate).not.toContain("develop");
   });
 

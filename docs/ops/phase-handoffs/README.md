@@ -2,7 +2,7 @@
 
 Generated: 2026-05-15
 Repo: `Asymmetric-al/core`
-Branch: `epic`
+Branch: `production`
 Current baseline: `b28ac0cc09` (`docs(phase-10): record studios operational hubs evidence`)
 
 This directory contains the repo-local phase handoffs recreated from the

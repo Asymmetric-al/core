@@ -50,7 +50,7 @@ describe("app health handler", () => {
     process.env = { ...originalEnv };
     delete process.env.SKIP_ENV_VALIDATION;
     process.env.VERCEL_GIT_COMMIT_SHA = "commit-1";
-    process.env.VERCEL_GIT_COMMIT_REF = "epic";
+    process.env.VERCEL_GIT_COMMIT_REF = "production";
     process.env.VERCEL_ENV = "production";
     process.env.NEXT_RUNTIME = "nodejs";
   });
@@ -72,7 +72,7 @@ describe("app health handler", () => {
     expect(body.observability.surface).toBe("donor");
     expect(body.observability.release).toMatchObject({
       commit: "commit-1",
-      ref: "epic",
+      ref: "production",
       environment: "production",
       runtime: "nodejs",
     });

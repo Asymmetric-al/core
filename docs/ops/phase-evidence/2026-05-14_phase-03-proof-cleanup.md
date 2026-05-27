@@ -2,7 +2,7 @@
 
 Generated: 2026-05-14T09:50:11Z
 Repo: Asymmetric-al/core
-Branch: epic
+Branch: production
 Commit: 44a3c24c4eabcaed0f32001f204c51b2326356d3
 
 ## Source Evidence Reviewed

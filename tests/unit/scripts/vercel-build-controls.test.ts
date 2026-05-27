@@ -22,7 +22,7 @@ const localConfig = {
     deploymentEnabled: {
       "*": false,
       develop: true,
-      epic: true,
+      production: true,
       main: false,
     },
   },

@@ -1,19 +1,11 @@
 import { defineConfig, devices } from "@playwright/test";
 
 /**
- * Headless development-deployment smoke tests.
+ * Headless development/PR-preview smoke tests.
  *
- * This config targets the live development hosts (development-admin /
- * development-donor / development-missionary) using Vercel Protection Bypass
- * for Automation **headers** so the deployment-protection wall lets headless
- * Playwright sessions through. Secrets and base URLs are injected via env vars
- * by the operator's shell or local helper; this file does not import or read
- * any secret files directly.
- *
- * - No webServer (we hit live deployments, not localhost).
- * - One worker, chromium only, headless.
- * - HTML + JSON report under playwright-report/development-smoke/.
- * - Trace / screenshot / video retained on failure.
+ * This config targets deployed Vercel URLs using Protection Bypass for
+ * Automation headers so headless Playwright sessions can test protected
+ * previews without putting bypass secrets in URLs.
  */
 
 type SurfaceKey = "admin" | "donor" | "missionary";
@@ -33,33 +25,39 @@ const SURFACE_ENV_KEYS: Record<SurfaceKey, { base: string; secret: string }> = {
   },
 };
 
-function requireEnv(name: string): string {
-  const value = process.env[name];
-  if (!value || value.length === 0) {
-    // Print only the variable name, never the value.
-    throw new Error(
-      `Missing required env var for headless development smoke: ${name}. ` +
-        `Export the required QA_* and VERCEL_* variables, then run ` +
-        `bun run test:e2e:development-smoke[:surface].`,
-    );
+function readEnv(name: string): string | undefined {
+  const value = process.env[name]?.trim();
+
+  return value ? value : undefined;
+}
+
+export function buildVercelProtectionHeaders(
+  bypassSecret: string | undefined,
+): Record<string, string> | undefined {
+  const trimmedSecret = bypassSecret?.trim();
+
+  if (!trimmedSecret) {
+    return undefined;
   }
-  return value;
+
+  return {
+    "x-vercel-protection-bypass": trimmedSecret,
+  };
 }
 
 function surfaceProject(name: `development-${SurfaceKey}`, key: SurfaceKey) {
-  const baseURL = requireEnv(SURFACE_ENV_KEYS[key].base);
-  const bypassSecret = requireEnv(SURFACE_ENV_KEYS[key].secret);
+  const baseURL = readEnv(SURFACE_ENV_KEYS[key].base);
+  const extraHTTPHeaders = buildVercelProtectionHeaders(
+    readEnv(SURFACE_ENV_KEYS[key].secret),
+  );
 
   return {
     name,
-    testMatch: [`**/development-smoke/${key}.*.spec.ts`],
+    testMatch: [`**/${key}.*.spec.ts`],
     use: {
       ...devices["Desktop Chrome"],
-      baseURL,
-      extraHTTPHeaders: {
-        "x-vercel-protection-bypass": bypassSecret,
-        "x-vercel-set-bypass-cookie": "true",
-      },
+      ...(baseURL ? { baseURL } : {}),
+      ...(extraHTTPHeaders ? { extraHTTPHeaders } : {}),
     },
   };
 }

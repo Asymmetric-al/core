@@ -48,9 +48,15 @@ export function shouldReuseExistingServer(
   return !env.CI;
 }
 
-const baseURL = normalizeBaseUrl(
-  process.env.PLAYWRIGHT_ADMIN_BASE_URL || DEFAULT_BASE_URL,
-);
+export function resolveAdminBaseUrl(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return normalizeBaseUrl(
+    env.PLAYWRIGHT_ADMIN_BASE_URL || env.QA_ADMIN_BASE_URL || DEFAULT_BASE_URL,
+  );
+}
+
+const baseURL = resolveAdminBaseUrl();
 
 const isLocalBaseUrl = (() => {
   try {

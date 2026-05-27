@@ -1,7 +1,7 @@
 # PR #212 Review - Align Nia MCP repo integration
 
 - URL: https://github.com/Asymmetric-al/core/pull/212
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/nia-repo-integration-b221`
 - Draft: no
 - GitHub state at review: `DIRTY`, `REVIEW_REQUIRED`
@@ -10,11 +10,11 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflict:
 
-- `docs/ai/working-set.md` was deleted by the PR and modified in `epic`.
+- `docs/ai/working-set.md` was deleted by the PR and modified in `production`.
 
 Tests were not run because the PR does not produce a merged tree.
 
@@ -24,21 +24,21 @@ Do not merge until the conflict is resolved and the new Nia workflow is safe whe
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: local verification cannot run on the final merge state.
 
 Suggested fix:
 
-- Rebase or merge current `epic`.
+- Rebase or merge current `production`.
 - Decide whether `docs/ai/working-set.md` remains tracked, becomes an example only, or is replaced by another workflow.
 - Run full preflight after conflict resolution.
 
-### P1 - New Nia source-check workflow can make every `epic` push fail if the secret is absent
+### P1 - New Nia source-check workflow can make every `production` push fail if the secret is absent
 
-Evidence: `.github/workflows/nia-source-check.yml` runs on pushes to `epic` and uses `${{ secrets.NIA_API_KEY }}` around lines 19-30.
+Evidence: `.github/workflows/nia-source-check.yml` runs on pushes to `production` and uses `${{ secrets.NIA_API_KEY }}` around lines 19-30.
 
-Impact: if the secret is not configured in the repository, unrelated pushes to `epic` can go red.
+Impact: if the secret is not configured in the repository, unrelated pushes to `production` can go red.
 
 Suggested fix:
 
