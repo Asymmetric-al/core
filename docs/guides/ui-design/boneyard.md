@@ -2,7 +2,7 @@
 
 ## Version and upstream
 
-- **npm:** track **`boneyard-js@^1.7.6`** (see [0xGF/boneyard releases](https://github.com/0xGF/boneyard/releases)). The 1.7.x line adds guided `skeletons` config, redirect/auth diagnostics, optional styling controls, and 1.7.6 improves the React/Preact first visible frame so bones mount without the earlier blank flash.
+- **npm:** track **`boneyard-js@^1.8.1`** (see [0xGF/boneyard releases](https://github.com/0xGF/boneyard/releases)). The 1.8.x line continues guided `skeletons` config, redirect/auth diagnostics, and styling controls; pass **app origin URLs only** to the CLI so it reads each app’s `boneyard.config.json` and visits configured `skeletons` routes (not full `/boneyard/...` paths, which trigger specific-page mode and skip skeletons).
 - **Monorepo:** `@asym/ui` re-exports the React `Skeleton` as `BoneyardSkeleton` from `boneyard-js/react` but does **not** list `boneyard-js` as a runtime `dependency`. It is an **optional** `peerDependency` plus a **`devDependency`** for `@asym/ui`’s own typecheck. Apps that render Boneyard at runtime declare **`boneyard-js`** in their **`dependencies`** (`@asym/admin`, `@asym/missionary-app`, `@asym/donor`).
 
 ## Triggers
@@ -16,15 +16,17 @@
 2. **High-fidelity loading** — wrap the stable layout region in `BoneyardSkeleton` from `@asym/ui/components/boneyard-skeleton`, set a unique `name`, optional `fixture`, and `fallback` (usually the existing manual skeleton).
 3. **Register bones at runtime** — each app imports its generated `bones/registry.js` once via `app/_providers/boneyard-registry.tsx` in the root layout (client-only; do not import the registry from server-only files).
 4. **Capture** — with the app dev server running, from repo root:
-   - Admin: `bun run boneyard:admin` (port **3030**, explicit URL required — not in Boneyard’s default port scan).
-   - Missionary: `bun run boneyard:missionary` (port **4000**).
-   - Donor: `bun run boneyard:donor` (port **3000**; script passes `--breakpoints 1280` — see **Donor capture note** below).
+   - Admin: `bun run boneyard:admin` → `http://localhost:3030` (port **3030**; origin only — routes come from `apps/admin/boneyard.config.json`).
+   - Missionary: `bun run boneyard:missionary` → `http://localhost:4000`.
+   - Donor: `bun run boneyard:donor` → `http://localhost:3000` (breakpoints live in **`apps/donor/boneyard.config.json`** only — see **Donor capture note**).
    - All three: `bun run boneyard:all`.
 5. **Force recapture** — after **CSS-only** changes (tokens, fonts, padding) where DOM markup is unchanged: `bun run boneyard:admin:force` / `missionary` / `donor` (incremental hash is `innerHTML`-based).
 
 ## Guided crawling (`skeletons` in `boneyard.config.json`)
 
-boneyard-js **1.7+** supports a top-level **`skeletons`** object: keys are skeleton **names**, values include **`route`** (path on the same origin as the CLI start URL) and optional **`wait`** (ms override for that page). When present, the CLI **skips** link discovery and visits only those routes — ideal for monorepos with multiple apps and public `/boneyard/*` capture pages.
+boneyard-js **1.8+** supports a top-level **`skeletons`** object: keys are skeleton **names**, values include **`route`** (path on the same origin as the CLI start URL) and optional **`wait`** (ms override for that page). When present, the CLI **skips** link discovery and visits only those routes — ideal for monorepos with multiple apps and public `/boneyard/*` capture pages.
+
+**CLI start URL:** pass the app **origin** (`http://localhost:3030`, `4000`, or `3000`). Do **not** pass a full capture path like `http://localhost:3030/boneyard/contributions` — that selects specific-page mode and ignores `skeletons`.
 
 Each app’s config in this repo lists its named skeleton(s) explicitly.
 
@@ -35,11 +37,11 @@ The current repo rollout intentionally keeps Boneyard on the conservative defaul
 - `color: "rgba(0,0,0,0.06)"`
 - `animate: "pulse"`
 
-Upstream 1.7.x also supports `stagger`, `transition`, `boneClass`, `shimmerColor`, `darkShimmerColor`, `speed`, and `shimmerAngle`, but we do **not** enable them globally by default. Add those only when a specific loading surface benefits from them and the regenerated bones are visually verified.
+Upstream also supports `stagger`, `transition`, `boneClass`, `shimmerColor`, `darkShimmerColor`, `speed`, and `shimmerAngle`, but we do **not** enable them globally by default. Add those only when a specific loading surface benefits from them and the regenerated bones are visually verified.
 
 ## Donor capture note (single breakpoint)
 
-Next.js **Turbopack dev** can **navigate / hot-reload** between viewport resizes. For `@asym/donor`, the root scripts use **`--breakpoints 1280`** and `apps/donor/boneyard.config.json` sets **`"breakpoints": [1280]`** so capture is stable. Add more widths after verifying dev capture stays stable, or capture from a production build if you need full responsive bones.
+Next.js **Turbopack dev** can **navigate / hot-reload** between viewport resizes. For `@asym/donor`, **`apps/donor/boneyard.config.json`** sets **`"breakpoints": [1280]`** (root `boneyard:donor` scripts do **not** pass `--breakpoints`) so capture is stable. Add more widths after verifying dev capture stays stable, or capture from a production build if you need full responsive bones.
 
 ### Donor dashboard bootstrap query
 
@@ -47,11 +49,11 @@ Next.js **Turbopack dev** can **navigate / hot-reload** between viewport resizes
 
 ## Where files live
 
-| App                    | Config                                 | Generated output         | Capture URL (public fixture route)               |
-| ---------------------- | -------------------------------------- | ------------------------ | ------------------------------------------------ |
-| `@asym/admin`          | `apps/admin/boneyard.config.json`      | `apps/admin/bones/`      | `http://localhost:3030/boneyard/contributions`   |
-| `@asym/missionary-app` | `apps/missionary/boneyard.config.json` | `apps/missionary/bones/` | `http://localhost:4000/boneyard/tasks`           |
-| `@asym/donor`          | `apps/donor/boneyard.config.json`      | `apps/donor/bones/`      | `http://localhost:3000/boneyard/donor-dashboard` |
+| App                    | Config                                 | Generated output         | CLI origin (scripts)    | Skeleton route (`skeletons.*.route`) |
+| ---------------------- | -------------------------------------- | ------------------------ | ----------------------- | ------------------------------------ |
+| `@asym/admin`          | `apps/admin/boneyard.config.json`      | `apps/admin/bones/`      | `http://localhost:3030` | `/boneyard/contributions`            |
+| `@asym/missionary-app` | `apps/missionary/boneyard.config.json` | `apps/missionary/bones/` | `http://localhost:4000` | `/boneyard/tasks`                    |
+| `@asym/donor`          | `apps/donor/boneyard.config.json`      | `apps/donor/bones/`      | `http://localhost:3000` | `/boneyard/donor-dashboard`          |
 
 `boneyard.config.json` is read from **current working directory**; scripts `cd` into each app so `out` resolves to that app’s `./bones`.
 
@@ -75,6 +77,8 @@ Missionary **`/boneyard` routes** render inside a minimal padded shell (not full
 
 `/boneyard/*` is **intentionally public**. Do **not** wire real donor or task APIs, PII, or privileged server loaders into these routes—use **synthetic fixtures only**. In review, flag any change that pulls production data into `app/boneyard/**`.
 
+Each public capture route exports **`metadata.robots`** with **`index: false`** and **`follow: false`** so search engines do not index fixture pages.
+
 ## `data-no-skeleton` and exclusions
 
 The attribute is **not** honored unless listed in `snapshotConfig.excludeSelectors` (e.g. `'[data-no-skeleton]'`). This repo also excludes `svg` / `svg.lucide` on pilots to reduce icon noise.
@@ -95,7 +99,9 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 - [ ] After global style changes, ran `--force` if skeletons look wrong.
 - [ ] Did not import `bones/registry` from a server-only module.
 - [ ] `/boneyard/*` pages use fixture data only (no real PII or authenticated data paths).
+- [ ] Public capture routes set **`robots: { index: false, follow: false }`** in page/layout metadata.
 - [ ] `boneyard.config.json` includes **`skeletons`** entries for each named capture route.
+- [ ] Root capture scripts pass **origin URLs only** (not full `/boneyard/...` paths).
 - [ ] Donor proxy allowlists `/boneyard` (no trailing slash) so nested capture routes stay public.
 
 ## Playwright smoke (`tests/e2e/boneyard-smoke.spec.ts`)

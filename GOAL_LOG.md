@@ -88,3 +88,34 @@ Doctor audit and document higher-risk follow-ups with owners and blockers.
 - PR description should list full shipped scope (donor API, auth `Request` threading, table UX) vs title-only framing
 - Optional: duplicated donor Zod schemas (form vs API) — deferred
 - Resolve GitHub review threads after CI green
+
+---
+
+## Boneyard 1.8.1 maintenance (2026-05-27)
+
+Goal: upgrade `boneyard-js` to **1.8.1**, align root capture scripts with origin-only CLI URLs, lock contract in unit tests, add `noindex` on synthetic capture routes, update `docs/guides/ui-design/boneyard.md`.
+
+### Completed
+
+| Area                 | Status | Notes                                                                                          |
+| -------------------- | ------ | ---------------------------------------------------------------------------------------------- | ---- | ----------------------------------- |
+| `boneyard-js@^1.8.1` | Done   | admin, donor, missionary, `@asym/ui`; `bun.lock` resolves `boneyard-js@1.8.1`                  |
+| Root scripts         | Done   | `boneyard:*` pass `http://localhost:3030                                                       | 4000 | 3000`only (no`/boneyard/...` paths) |
+| Donor breakpoints    | Done   | `[1280]` in `apps/donor/boneyard.config.json` only; no `--breakpoints` on root donor scripts   |
+| Capture route robots | Done   | `noindex`/`nofollow` on admin contributions page + missionary tasks layout (donor already had) |
+| Docs                 | Done   | `docs/guides/ui-design/boneyard.md` updated for 1.8.1 workflow                                 |
+| TDD contract test    | Done   | `tests/unit/scripts/boneyard-scripts.test.ts` (5 tests)                                        |
+
+### Validation
+
+- `bunx vitest run tests/unit/scripts/boneyard-scripts.test.ts` → 5 passed
+- `bunx turbo run typecheck --filter=@asym/admin --filter=@asym/donor --filter=@asym/missionary-app` → passed
+
+### Deferred (requires local dev servers)
+
+| Step                          | Blocker                                                            |
+| ----------------------------- | ------------------------------------------------------------------ |
+| `bun run boneyard:force`      | Ports 3030/4000/3000 not reachable in this environment             |
+| `bun run test:e2e:boneyard:*` | Same; run after `bun run dev:admin`, `dev:missionary`, `dev:donor` |
+
+Follow-up for reviewer/CI: regenerate bones and run `tests/e2e/boneyard-smoke.spec.ts` when apps are up.
