@@ -132,13 +132,22 @@ jobs:
         if: steps.scope.outputs.any == 'true'
         env:
           CLAUDE_QA_ROUTINE_WEBHOOK_URL: ${{ secrets.CLAUDE_QA_ROUTINE_WEBHOOK_URL }}
+          VERCEL_PROJECT_ID_ADMIN: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
+          VERCEL_PROJECT_ID_DONOR: ${{ secrets.VERCEL_PROJECT_ID_DONOR }}
+          VERCEL_PROJECT_ID_MISSIONARY: ${{ secrets.VERCEL_PROJECT_ID_MISSIONARY }}
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
 
-          for value in "${VERCEL_TOKEN:-}" "${VERCEL_ORG_ID:-}" "${CLAUDE_QA_ROUTINE_WEBHOOK_URL:-}"; do
+          for value in \
+            "${VERCEL_TOKEN:-}" \
+            "${VERCEL_ORG_ID:-}" \
+            "${VERCEL_PROJECT_ID_ADMIN:-}" \
+            "${VERCEL_PROJECT_ID_DONOR:-}" \
+            "${VERCEL_PROJECT_ID_MISSIONARY:-}" \
+            "${CLAUDE_QA_ROUTINE_WEBHOOK_URL:-}"; do
             if [[ -n "${value}" ]]; then
               echo "::add-mask::${value}"
             fi
@@ -149,7 +158,7 @@ jobs:
         id: deploy_admin
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_ADMIN_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_ADMIN }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
         run: |
@@ -185,7 +194,7 @@ jobs:
         id: deploy_donor
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_DONOR_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_DONOR }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
         run: |
@@ -221,7 +230,7 @@ jobs:
         id: deploy_missionary
         env:
           VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_MISSIONARY_PROJECT_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID_MISSIONARY }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         shell: bash
         run: |

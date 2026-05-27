@@ -31,6 +31,15 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).not.toContain("--target=production");
   });
 
+  it("uses the repository's configured Vercel project secret names", () => {
+    expect(workflow).toContain("secrets.VERCEL_PROJECT_ID_ADMIN");
+    expect(workflow).toContain("secrets.VERCEL_PROJECT_ID_DONOR");
+    expect(workflow).toContain("secrets.VERCEL_PROJECT_ID_MISSIONARY");
+    expect(workflow).not.toContain("secrets.VERCEL_ADMIN_PROJECT_ID");
+    expect(workflow).not.toContain("secrets.VERCEL_DONOR_PROJECT_ID");
+    expect(workflow).not.toContain("secrets.VERCEL_MISSIONARY_PROJECT_ID");
+  });
+
   it("comments preview URLs and optional Claude handoff without requiring the webhook", () => {
     expect(workflow).toContain("# QA Smoke Preview Deployments");
     expect(workflow).toContain("<!-- qa-smoke-preview-ready");
