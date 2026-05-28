@@ -598,6 +598,7 @@ CREATE TABLE IF NOT EXISTS public.contribution_operation_batch_items (
     skip_reason TEXT,
     error_code TEXT,
     error_message TEXT,
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
     result JSONB NOT NULL DEFAULT '{}'::jsonb,
     operation_audit_event_id UUID REFERENCES public.contribution_operation_audit_events(id) ON DELETE SET NULL,
     task_id UUID REFERENCES public.mission_control_tasks(id) ON DELETE SET NULL,

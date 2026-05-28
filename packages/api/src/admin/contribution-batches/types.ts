@@ -17,12 +17,14 @@ export interface ContributionBatchRecord {
   id: string;
   stagedGiftId: string | null;
   receiptStatus?: string | null;
+  payload?: Record<string, unknown>;
 }
 
 export interface ContributionBatchAffectedRecord {
   contributionId: string;
   stagedGiftId: string | null;
   proposedAction: ContributionActionType;
+  payload?: Record<string, unknown>;
 }
 
 export interface ContributionBatchSkippedRecord {

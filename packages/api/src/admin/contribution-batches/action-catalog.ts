@@ -12,6 +12,7 @@ const HIGH_RISK_BULK_ACTIONS = new Set<ContributionActionType>([
   "amount_correction",
   "designation_correction",
   "fund_correction",
+  "allocation_correction",
   "payment_state_correction",
   "stripe_replay",
 ]);

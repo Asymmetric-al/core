@@ -124,6 +124,102 @@ describe("bulk contribution preview and execution", () => {
     });
   });
 
+  it("passes per-record payload through for immediate high-risk records", async () => {
+    const executeContributionAction = vi
+      .fn()
+      .mockResolvedValue({ auditEventId: "audit_1", taskIds: [] });
+
+    const result = await processContributionBatch({
+      tenantId: "tenant_1",
+      actorProfileId: "actor_1",
+      actionType: "refund",
+      sourceSurface: "contribution_hub",
+      reason: "Bulk refund review",
+      confirmationToken: "confirm",
+      actorPermissions: ["finance:manage_contributions"],
+      records: [
+        {
+          id: "donation_1",
+          stagedGiftId: null,
+          payload: { amount: 2500 },
+        },
+      ],
+      executeContributionAction,
+    });
+
+    expect(executeContributionAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "refund",
+        contributionId: "donation_1",
+        reason: "Bulk refund review",
+        confirmationToken: "confirm",
+        actorPermissions: ["finance:manage_contributions"],
+        payload: { amount: 2500 },
+      }),
+    );
+    expect(result.status).toBe("complete");
+  });
+
+  it("skips destructive corrections when required payload is missing", async () => {
+    const executeContributionAction = vi.fn();
+
+    const result = await processContributionBatch({
+      tenantId: "tenant_1",
+      actorProfileId: "actor_1",
+      actionType: "fund_correction",
+      sourceSurface: "contribution_hub",
+      reason: "Correct designation",
+      confirmationToken: "confirm",
+      actorPermissions: ["finance:manage_contributions"],
+      records: [{ id: "donation_1", stagedGiftId: null, payload: {} }],
+      executeContributionAction,
+    });
+
+    expect(executeContributionAction).not.toHaveBeenCalled();
+    expect(result.results[0]).toEqual(
+      expect.objectContaining({
+        contributionId: "donation_1",
+        status: "skipped",
+        skipReason: "Missing payload.fundId for fund correction.",
+      }),
+    );
+    expect(result.summary).toEqual(
+      expect.objectContaining({ processed: 1, skipped: 1, succeeded: 0 }),
+    );
+  });
+
+  it("preserves explicit correction payload for executable records", async () => {
+    const executeContributionAction = vi
+      .fn()
+      .mockResolvedValue({ auditEventId: "audit_1", taskIds: [] });
+
+    await processContributionBatch({
+      tenantId: "tenant_1",
+      actorProfileId: "actor_1",
+      actionType: "fund_correction",
+      sourceSurface: "contribution_hub",
+      reason: "Correct designation",
+      confirmationToken: "confirm",
+      actorPermissions: ["finance:manage_contributions"],
+      records: [
+        {
+          id: "donation_1",
+          stagedGiftId: null,
+          payload: { fundId: "fund_1" },
+        },
+      ],
+      executeContributionAction,
+    });
+
+    expect(executeContributionAction).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "fund_correction",
+        contributionId: "donation_1",
+        payload: { fundId: "fund_1" },
+      }),
+    );
+  });
+
   it("creates follow-up tasks for important failed records", async () => {
     const executeContributionAction = vi
       .fn()
@@ -136,7 +232,12 @@ describe("bulk contribution preview and execution", () => {
       actionType: "refund",
       sourceSurface: "contribution_hub",
       records: [
-        { id: "donation_1", stagedGiftId: "staged_1", receiptStatus: "sent" },
+        {
+          id: "donation_1",
+          stagedGiftId: "staged_1",
+          receiptStatus: "sent",
+          payload: { amount: 2500 },
+        },
       ],
       executeContributionAction,
       createFollowUpTask,
@@ -153,20 +254,21 @@ describe("bulk contribution preview and execution", () => {
   });
 
   it("accepts high-risk and large background route inputs", () => {
-    expect(() =>
-      batchRequestSchema.parse({
-        actionType: "refund",
-        confirmationToken: "confirm",
-        reason: "Bulk refund review",
-        previewSnapshot: { previewId: "preview_1" },
-        records: [
-          {
-            id: "00000000-0000-4000-8000-000000000001",
-            stagedGiftId: null,
-          },
-        ],
-      }),
-    ).not.toThrow();
+    const parsed = batchRequestSchema.parse({
+      actionType: "refund",
+      confirmationToken: "confirm",
+      reason: "Bulk refund review",
+      previewSnapshot: { previewId: "preview_1" },
+      records: [
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          stagedGiftId: null,
+          payload: { amount: 2500 },
+        },
+      ],
+    });
+
+    expect(parsed.records[0]?.payload).toEqual({ amount: 2500 });
   });
 
   it("executes persisted batches with stored reason and confirmation", async () => {
@@ -213,6 +315,7 @@ describe("bulk contribution preview and execution", () => {
                   id: "item_1",
                   donation_id: "donation_1",
                   staged_gift_id: "staged_1",
+                  payload: { amount: 2500 },
                 },
               ],
               error: null,
@@ -241,6 +344,7 @@ describe("bulk contribution preview and execution", () => {
         reason: "bulk refund",
         confirmationToken: "confirm_1",
         actorPermissions: ["finance:manage_contributions"],
+        payload: { amount: 2500 },
       }),
     );
     expect(itemUpdates).toContainEqual(

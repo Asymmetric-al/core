@@ -1,4 +1,4 @@
-import { createContributionBatchPreview } from "./preview";
+import { asPayload, createContributionBatchPreview } from "./preview";
 import { summarizeContributionBatchResults } from "./results";
 
 import type { ProcessContributionBatchInput } from "./types";
@@ -35,9 +35,7 @@ export async function processContributionBatch(
         actorPermissions: input.actorPermissions,
         reason: input.reason,
         confirmationToken: input.confirmationToken,
-        payload: record.stagedGiftId
-          ? { stagedGiftId: record.stagedGiftId }
-          : {},
+        payload: asPayload(record.payload),
       });
       results.push({
         contributionId: record.contributionId,
@@ -143,7 +141,7 @@ export async function processPersistedContributionBatch(input: {
     .eq("tenant_id", input.tenantId)
     .eq("batch_id", input.batchId)
     .eq("status", "pending")
-    .select("id, donation_id, staged_gift_id")
+    .select("id, donation_id, staged_gift_id, payload")
     .order("record_index", { ascending: true });
   if (claimError) throw new Error(claimError.message);
 
@@ -151,6 +149,7 @@ export async function processPersistedContributionBatch(input: {
   const records = rows.map((row) => ({
     id: asString(row.donation_id) ?? "",
     stagedGiftId: asString(row.staged_gift_id),
+    payload: asPayload(row.payload),
   }));
   if (rows.length === 0) {
     const summary = {

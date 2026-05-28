@@ -238,10 +238,7 @@ export async function relinkContributionDonor(input: {
     throw new Error(donorError.message);
   }
   if (!donor) {
-    throw new ApiHttpError(
-      404,
-      "Donor not found in this organization.",
-    );
+    throw new ApiHttpError(404, "Donor not found in this organization.");
   }
 
   const before = await loadContributionDetailFromSupabase(input);

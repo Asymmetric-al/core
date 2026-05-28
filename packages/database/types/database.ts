@@ -614,6 +614,7 @@ export interface ContributionOperationBatchItem {
   skip_reason: string | null;
   error_code: string | null;
   error_message: string | null;
+  payload: Record<string, unknown>;
   result: Record<string, unknown>;
   operation_audit_event_id: string | null;
   task_id: string | null;

@@ -24,6 +24,7 @@ const batchRecordSchema = z.object({
   id: z.string().uuid(),
   stagedGiftId: z.string().uuid().nullable().optional(),
   receiptStatus: z.string().nullable().optional(),
+  payload: z.record(z.string(), z.unknown()).optional().default({}),
 });
 
 export const batchRequestSchema = z.object({
@@ -35,6 +36,7 @@ export const batchRequestSchema = z.object({
     "amount_correction",
     "designation_correction",
     "fund_correction",
+    "allocation_correction",
     "payment_state_correction",
     "stripe_replay",
   ]),
@@ -122,6 +124,7 @@ export const POST = withOperation(
                 resource_id: record.id,
                 donation_id: record.id,
                 staged_gift_id: record.stagedGiftId ?? null,
+                payload: record.payload ?? {},
                 status: "pending",
                 result: {},
               })),
@@ -209,6 +212,7 @@ export const POST = withOperation(
           id: record.id,
           receiptStatus: record.receiptStatus,
           stagedGiftId: record.stagedGiftId ?? null,
+          payload: record.payload ?? {},
         })),
         executeContributionAction: (actionInput) =>
           executeContributionAction({
