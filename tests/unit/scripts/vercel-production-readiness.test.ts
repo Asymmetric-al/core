@@ -127,31 +127,31 @@ export RESEND_API_KEY='re_hidden'
       parseVercelProjectDetails(
         JSON.stringify({
           link: {
-            productionBranch: "epic",
+            productionBranch: "production",
           },
         }),
       ),
     ).toEqual({
-      productionBranch: "epic",
+      productionBranch: "production",
     });
   });
 
   it("models Vercel deploymentEnabled branch matching", () => {
-    expect(branchPatternMatches("epic", "epic")).toBe(true);
+    expect(branchPatternMatches("production", "production")).toBe(true);
     expect(branchPatternMatches("internal-*", "internal-build")).toBe(true);
     expect(branchPatternMatches("internal-*", "release-build")).toBe(false);
 
-    expect(isBranchDeploymentEnabled({}, "epic")).toBe(true);
+    expect(isBranchDeploymentEnabled({}, "production")).toBe(true);
     expect(
       isBranchDeploymentEnabled(
         {
           git: {
             deploymentEnabled: {
-              epic: false,
+              production: false,
             },
           },
         },
-        "epic",
+        "production",
       ),
     ).toBe(false);
     expect(
@@ -161,12 +161,12 @@ export RESEND_API_KEY='re_hidden'
             deploymentEnabled: {
               "*": false,
               develop: true,
-              epic: true,
+              production: true,
               main: false,
             },
           },
         },
-        "epic",
+        "production",
       ),
     ).toBe(true);
     expect(
@@ -176,7 +176,7 @@ export RESEND_API_KEY='re_hidden'
             deploymentEnabled: {
               "*": false,
               develop: true,
-              epic: true,
+              production: true,
               main: false,
             },
           },
@@ -191,7 +191,7 @@ export RESEND_API_KEY='re_hidden'
             deploymentEnabled: {
               "*": false,
               develop: true,
-              epic: true,
+              production: true,
               main: false,
             },
           },
@@ -206,7 +206,7 @@ export RESEND_API_KEY='re_hidden'
             deploymentEnabled: {
               "*": false,
               develop: true,
-              epic: true,
+              production: true,
               main: false,
             },
           },
@@ -295,7 +295,7 @@ export RESEND_API_KEY='re_hidden'
           target: "production",
           createdAt: 123,
           commitSha: "abc123",
-          commitRef: "epic",
+          commitRef: "production",
         },
       ],
       commit: "abc123",
@@ -307,7 +307,7 @@ export RESEND_API_KEY='re_hidden'
         surface: "donor",
         releaseEnvironment: "production",
       },
-      productionBranch: "epic",
+      productionBranch: "production",
       productionBranchEnabled: true,
     });
 
@@ -336,18 +336,18 @@ export RESEND_API_KEY='re_hidden'
           target: "production",
           createdAt: 123,
           commitSha: "abc123",
-          commitRef: "epic",
+          commitRef: "production",
         },
       ],
       commit: "abc123",
       health: { url: project.healthUrl, status: 200 },
-      productionBranch: "epic",
+      productionBranch: "production",
       productionBranchEnabled: false,
     });
 
     expect(report.ready).toBe(false);
     expect(
       formatReadinessReport({ commit: "abc123", reports: [report] }),
-    ).toContain("Production branch: `epic` (disabled");
+    ).toContain("Production branch: `production` (disabled");
   });
 });

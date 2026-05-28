@@ -1,7 +1,7 @@
 # PR #211 Review - Remove Orchids.app metadata and committed tool cruft
 
 - URL: https://github.com/Asymmetric-al/core/pull/211
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/remove-orchids-artifact-a8e4`
 - Draft: no
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

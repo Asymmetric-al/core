@@ -31,9 +31,17 @@ function getWorkerCount(): number {
   return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
 }
 
-const baseURL = normalizeBaseUrl(
-  process.env.PLAYWRIGHT_MISSIONARY_BASE_URL || DEFAULT_BASE_URL,
-);
+export function resolveMissionaryBaseUrl(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return normalizeBaseUrl(
+    env.PLAYWRIGHT_MISSIONARY_BASE_URL ||
+      env.QA_MISSIONARY_BASE_URL ||
+      DEFAULT_BASE_URL,
+  );
+}
+
+const baseURL = resolveMissionaryBaseUrl();
 
 const isLocalBaseUrl = (() => {
   try {

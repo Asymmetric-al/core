@@ -1,7 +1,7 @@
 # Phase 07 Repo Finalization Evidence
 
 Generated: 2026-05-15
-Base branch: `origin/epic`
+Base branch: `origin/production`
 Starting commit: `62495e64bdabd144114ac663305aca3c97b513f7`
 Status: `clean-and-pushed`
 
@@ -9,12 +9,12 @@ Status: `clean-and-pushed`
 
 This finalization closes the repository state after Phase 7 without starting
 Phase 8. The goal is to keep the merged Phase 5, Phase 6, and Phase 7 product
-work on `epic`, add the Phase 7 provider-shell close-out, and leave local
+work on `production`, add the Phase 7 provider-shell close-out, and leave local
 scratch/tooling artifacts uncommitted.
 
 ## Remote Baseline
 
-`origin/epic` already contained the merged Phase 5, Phase 6, and Phase 7 PR
+`origin/production` already contained the merged Phase 5, Phase 6, and Phase 7 PR
 history before this finalization commit:
 
 - `da66285219` / PR #225: Phase 5 CRM domain workflows.
@@ -61,7 +61,7 @@ were deliberately not staged or committed:
 
 ## Verification Results
 
-The finalization worktree was clean and even with `origin/epic` after push.
+The finalization worktree was clean and even with `origin/production` after push.
 The original checkout was intentionally left dirty with local scratch and older
 uncommitted phase copies; those files were not staged.
 
@@ -78,7 +78,7 @@ bun run verify:vercel-production -- --commit $(git rev-parse HEAD)
 Results:
 
 - `git status --short --branch`: clean finalization worktree, branch even with
-  `origin/epic`.
+  `origin/production`.
 - `bun run format:check`: passed.
 - `bun run verify:data-boundary`: passed.
 - `bun run verify:workspace-contract`: passed.
@@ -87,7 +87,7 @@ Results:
   and missionary deployments were all `READY`, and production health checks
   returned HTTP 200.
 
-The direct push to `epic` ran the repo pre-push `ci:preflight` hook. It passed
+The direct push to `production` ran the repo pre-push `ci:preflight` hook. It passed
 format, skills verification, lint, data-boundary, workspace-contract,
 eslint-config verification, shadcn diff verification, typecheck, build, and the
 full unit suite before the push completed.

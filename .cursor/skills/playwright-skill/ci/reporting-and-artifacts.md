@@ -378,7 +378,6 @@ import { test, expect } from '@playwright/test';
 import { allure } from 'allure-playwright';
 
 test('checkout flow', async ({ page }) => {
-  await allure.epic('E-Commerce');
   await allure.feature('Checkout');
   await allure.story('Credit Card Payment');
   await allure.severity('critical');

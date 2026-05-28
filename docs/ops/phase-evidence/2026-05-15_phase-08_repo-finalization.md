@@ -2,7 +2,7 @@
 
 Generated: 2026-05-15
 Repo: `Asymmetric-al/core`
-Branch: `epic`
+Branch: `production`
 Starting commit: `92292aab972182f2766c2fdb96ef6c2b96f8383d`
 Phase 8 product commit: `d769c1770f7458ec7ae2c83b35f2bcff11e2ce17`
 Status: `repo-finalized`
@@ -180,17 +180,17 @@ Result:
 The SSH push path was unavailable in this shell:
 
 ```bash
-git push origin epic
+git push origin production
 ```
 
 Result:
 
 - Failed with `Permission denied (publickey)`.
 
-The same commit was pushed to `origin/epic` through the GitHub HTTPS remote:
+The same commit was pushed to `origin/production` through the GitHub HTTPS remote:
 
 ```bash
-git push https://github.com/Asymmetric-al/core.git epic:epic
+git push https://github.com/Asymmetric-al/core.git production:production
 ```
 
 The repo pre-push `ci:preflight` hook ran before the push completed. It passed
@@ -201,7 +201,7 @@ full unit suite.
 Remote-tracking state was refreshed with:
 
 ```bash
-git fetch https://github.com/Asymmetric-al/core.git epic:refs/remotes/origin/epic
+git fetch https://github.com/Asymmetric-al/core.git production:refs/remotes/origin/production
 ```
 
 Production readiness was then run against the pushed Phase 8 product commit:
@@ -244,5 +244,5 @@ Final result:
 ## Phase 9 Readiness
 
 Phase 9 is safe to begin only after this finalization evidence is committed and
-pushed to `origin/epic`. The Phase 8 product commit itself has passed the
+pushed to `origin/production`. The Phase 8 product commit itself has passed the
 required production-readiness gate.

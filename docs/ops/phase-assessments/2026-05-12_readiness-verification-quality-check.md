@@ -2,7 +2,7 @@
 
 Generated: 2026-05-12T20:03:16+07:00
 Repo: Asymmetric-al/core
-Branch: epic
+Branch: production
 Commit: 1c66a3aa31e7da6b096cb66cf8655b778e65ae80
 Reviewer: Codex
 
@@ -38,9 +38,9 @@ Additional handoff index created because the expected phase handoff files were n
 Repo state recorded in the readiness report:
 
 - Repo: `Asymmetric-al/core`
-- Branch: `epic`
+- Branch: `production`
 - Commit: `1c66a3aa31e7da6b096cb66cf8655b778e65ae80`
-- Local/remote: 0 ahead and 0 behind `origin/epic` after HTTPS fetch fallback
+- Local/remote: 0 ahead and 0 behind `origin/production` after HTTPS fetch fallback
 - Working tree: uncommitted documentation artifacts only under the allowed docs paths
 
 ## Markdown Report Completeness
@@ -234,7 +234,7 @@ Status: complete.
 The report checks:
 
 - Vercel projects exist for `admin`, `donor`, and `missionary`.
-- Production branch is `epic`.
+- Production branch is `production`.
 - Production deployments for the target commit are READY.
 - Latest deployment state is recorded separately from target production deployment state.
 - Required production env vars are present per production verifier.

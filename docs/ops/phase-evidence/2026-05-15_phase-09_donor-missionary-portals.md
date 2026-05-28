@@ -1,7 +1,7 @@
 # Phase 09 Evidence - Donor and Missionary Portals
 
 Date: 2026-05-15
-Branch: `epic`
+Branch: `production`
 Goal source: `docs/ops/phase-handoffs/phase-09_donor-missionary-portals_codex-handoff.md`
 
 ## Scope
