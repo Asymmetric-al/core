@@ -4,7 +4,7 @@
 
 set -euo pipefail
 
-SPEC_FILE="${{1:?Usage: $0 <openapi_spec>}}"
+SPEC_FILE="${1:?Usage: $0 <openapi_spec>}"
 
 echo "Validating API spec: $SPEC_FILE"
 
