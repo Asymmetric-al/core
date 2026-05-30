@@ -33,6 +33,22 @@ Cursor and other tools merge nested agent instructions with the root file. In th
 - `supabase/AGENTS.md` — migrations, seed, demo RLS posture
 - `scripts/AGENTS.md` — operational scripts that touch Supabase data
 
+## Agent skills
+
+Matt Pocock engineering skills (`triage`, `to-prd`, `to-issues`, `diagnose`, `tdd`, `grill-with-docs`, `improve-codebase-architecture`, and related) read repo-specific configuration from `docs/agents/`.
+
+### Issue tracker
+
+GitHub Issues on `Asymmetric-al/core` via the `gh` CLI; prefer `AL-###` issue keys per `docs/ai/rules/general.md`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five-role triage vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Multi-context: read `CONTEXT-MAP.md`, then per-context `CONTEXT.md` and `docs/adr/`. See `docs/agents/domain.md`.
+
 # Agent Router — Rules
 
 **Name:** `agents-router`  
