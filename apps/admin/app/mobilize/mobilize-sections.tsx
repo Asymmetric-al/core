@@ -32,7 +32,7 @@ import {
   GraduationCap,
   Mail,
   MapPin,
-  MoreHorizontal,
+  ChevronRight,
   Phone,
   Plane,
   Plus,
@@ -364,13 +364,16 @@ export function MobilizePipelineTable({
         cell: ({ row }) => (
           <div className="flex justify-end pr-2">
             <Button
-              aria-label={`Open ${row.original.name}`}
+              aria-label={`Open candidate profile for ${row.original.name}`}
               variant="ghost"
               size="icon"
               className="size-8 rounded-lg"
               onClick={() => onSelectCandidate(row.original)}
             >
-              <MoreHorizontal className="size-4 text-zinc-400" />
+              <ChevronRight
+                className="size-4 text-zinc-400"
+                aria-hidden="true"
+              />
             </Button>
           </div>
         ),

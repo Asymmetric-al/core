@@ -44,13 +44,14 @@ export const TaskItem = memo(function TaskItem({
       <Button
         variant="ghost"
         size="icon"
-        className="size-6 text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100"
+        className="size-6 text-zinc-400 opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100"
+        aria-label={`Task actions for ${title}`}
         onClick={(e) => {
           e.stopPropagation();
           onMenuClick?.();
         }}
       >
-        <MoreHorizontalIcon className="size-3" />
+        <MoreHorizontalIcon className="size-3" aria-hidden="true" />
       </Button>
     </div>
   );

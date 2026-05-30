@@ -22,14 +22,6 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@asym/ui/components/shadcn/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
@@ -64,14 +56,11 @@ import {
   Info,
   Lock,
   Mail,
-  MoreHorizontal,
   Plus,
   Search,
   Settings2,
-  Shield,
   ShieldCheck,
   Trash2,
-  UserCog,
   UserPlus,
   Users,
 } from "lucide-react";
@@ -400,14 +389,6 @@ function TeamMembersTab({
                   >
                     {member.role}
                   </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    aria-label={`Open actions for ${member.name}`}
-                    className="size-7 text-zinc-500 hover:text-zinc-900"
-                  >
-                    <MoreHorizontal className="size-3.5" />
-                  </Button>
                 </div>
               </div>
             ))}
@@ -804,39 +785,6 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                 >
                   {member.status}
                 </Badge>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-zinc-400 hover:text-zinc-900"
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuLabel className="font-semibold text-xs">
-                      User Options
-                    </DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <UserCog className="mr-2 size-4 text-zinc-400" /> Change
-                      Role
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <Shield className="mr-2 size-4 text-zinc-400" /> Assign
-                      Team
-                    </DropdownMenuItem>
-                    <DropdownMenuItem className="cursor-pointer font-semibold text-xs py-2">
-                      <Settings2 className="mr-2 size-4 text-zinc-400" /> User
-                      Settings
-                    </DropdownMenuItem>
-                    <DropdownMenuSeparator />
-                    <DropdownMenuItem className="text-destructive focus:text-destructive cursor-pointer font-semibold text-xs py-2">
-                      <Trash2 className="mr-2 size-4" /> Remove Access
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
               </div>
             </div>
           ))}

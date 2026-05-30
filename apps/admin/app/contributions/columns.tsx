@@ -402,13 +402,19 @@ export function getContributionColumns({
       id: "actions",
       cell: ({ row }) => {
         const contribution = row.original;
+        const donorName = contribution.isAnonymous
+          ? "Anonymous"
+          : contribution.donorName;
 
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="size-4" />
+              <Button
+                variant="ghost"
+                className="size-8 p-0"
+                aria-label={`Contribution actions for ${donorName}`}
+              >
+                <MoreHorizontal className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">

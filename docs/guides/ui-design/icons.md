@@ -186,10 +186,28 @@ interface Props {
 
 ### Icon Button
 
+Icon-only controls must expose an accessible name with `aria-label` on the
+`<Button>`. Mark decorative icons with `aria-hidden="true"`. Do not rely on
+`sr-only` text inside icon buttons when the label should describe the row or
+target context.
+
 ```tsx
-<Button variant="ghost" size="icon">
-  <Settings className="h-4 w-4" />
+<Button
+  variant="ghost"
+  size="icon"
+  aria-label={`Task actions for ${task.title}`}
+>
+  <MoreHorizontal className="size-4" aria-hidden="true" />
 </Button>
+```
+
+For menus opened from a table row, prefer a contextual label such as
+`Contribution actions for ${donorName}` rather than generic text like "Open menu".
+
+Hover-only icon buttons should remain keyboard-visible:
+
+```tsx
+className = "opacity-0 group-hover:opacity-100 focus-visible:opacity-100";
 ```
 
 ### Conditional Icon

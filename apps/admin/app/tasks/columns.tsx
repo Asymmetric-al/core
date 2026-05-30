@@ -375,11 +375,11 @@ export function getColumns({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
+                  aria-label={`Task actions for ${task.title}`}
                   variant="ghost"
                   className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
                 >
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="size-4" />
+                  <MoreHorizontal className="size-4" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent

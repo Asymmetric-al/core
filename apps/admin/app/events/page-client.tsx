@@ -37,7 +37,6 @@ import {
   DollarSign,
   Plus,
   Search,
-  MoreHorizontal,
   ChevronDown,
   Printer,
   FileText,
@@ -1182,21 +1181,6 @@ function EventsAttendeesTab() {
             <span className="text-xs font-medium text-zinc-700">
               {row.original.paymentStatus}
             </span>
-          </div>
-        ),
-      },
-      {
-        id: "actions",
-        cell: () => (
-          <div className="flex justify-end pr-2">
-            <Button
-              variant="ghost"
-              size="icon"
-              className="size-8 text-zinc-500"
-              aria-label="Open attendee actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
           </div>
         ),
       },
