@@ -204,7 +204,7 @@ function DetailDrawer({
               aria-label="Close CRM record details"
               className="size-8 text-muted-foreground"
             >
-              <X className="size-4" />
+              <X className="size-4" aria-hidden="true" />
             </Button>
           </div>
         </div>
@@ -350,16 +350,18 @@ function DetailDrawer({
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="Attach file to note"
                         className="size-7 text-muted-foreground hover:text-foreground"
                       >
-                        <Paperclip className="size-3.5" />
+                        <Paperclip className="size-3.5" aria-hidden="true" />
                       </Button>
                       <Button
                         variant="ghost"
                         size="icon"
+                        aria-label="View note history"
                         className="size-7 text-muted-foreground hover:text-foreground"
                       >
-                        <History className="size-3.5" />
+                        <History className="size-3.5" aria-hidden="true" />
                       </Button>
                     </div>
                     <Button
