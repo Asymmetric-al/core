@@ -651,7 +651,10 @@ function KanbanView({
                           {name}
                         </span>
                       </SharedNamedViewTransition>
-                      <MoreHorizontal className="size-3.5 text-muted-foreground" />
+                      <MoreHorizontal
+                        className="size-3.5 text-muted-foreground"
+                        aria-hidden="true"
+                      />
                     </div>
                     <div className="flex items-center gap-2">
                       <div className="size-4 rounded bg-muted flex items-center justify-center text-[8px] font-semibold text-muted-foreground border border-border">

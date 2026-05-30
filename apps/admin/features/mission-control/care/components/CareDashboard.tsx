@@ -260,10 +260,10 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                        className="size-8 rounded-lg opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-all text-muted-foreground hover:text-primary"
                         aria-label={`Open ${p.name} care profile`}
                       >
-                        <ArrowUpRight className="size-4" />
+                        <ArrowUpRight className="size-4" aria-hidden="true" />
                       </Button>
                     </div>
                   );

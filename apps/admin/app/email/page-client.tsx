@@ -424,7 +424,7 @@ function EmailStudioHeader({
               className="size-8 p-0"
               aria-label="More email template actions"
             >
-              <MoreHorizontal className="size-4" />
+              <MoreHorizontal className="size-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
@@ -622,7 +622,7 @@ function EmailExportDialog({
               <Button
                 variant="secondary"
                 size="sm"
-                className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-7 px-2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                 onClick={onCopyHtml}
               >
                 {copiedHtml ? (

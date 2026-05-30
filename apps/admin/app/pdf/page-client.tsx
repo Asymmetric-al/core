@@ -601,8 +601,13 @@ function PDFStudioHeaderSection({
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="size-8 p-0">
-              <MoreHorizontal className="size-4" />
+            <Button
+              variant="ghost"
+              size="sm"
+              className="size-8 p-0"
+              aria-label="More PDF template actions"
+            >
+              <MoreHorizontal className="size-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-52">
@@ -883,7 +888,7 @@ function PDFExportDialogSection({
               <Button
                 variant="secondary"
                 size="sm"
-                className="h-7 px-2 opacity-0 group-hover:opacity-100 transition-opacity"
+                className="h-7 px-2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
                 onClick={onCopyHtml}
               >
                 {copiedHtml ? (

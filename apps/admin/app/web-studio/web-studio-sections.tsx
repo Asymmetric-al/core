@@ -430,20 +430,22 @@ export function WebStudioEditorPanel({
                       </p>
                     </div>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
                     <Button
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900"
+                      aria-label={`Open ${project.title} in new tab`}
                     >
-                      <ExternalLink className="size-4" />
+                      <ExternalLink className="size-4" aria-hidden="true" />
                     </Button>
                     <Button
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900"
+                      aria-label={`Edit ${project.title}`}
                     >
-                      <Edit2 className="size-4" />
+                      <Edit2 className="size-4" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
@@ -487,9 +489,10 @@ export function WebStudioEditorPanel({
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="size-8 text-zinc-400"
+                      className="size-8 text-zinc-400 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity"
+                      aria-label={`Edit ${update.title}`}
                     >
-                      <Edit2 className="size-3.5" />
+                      <Edit2 className="size-3.5" aria-hidden="true" />
                     </Button>
                   </div>
                 </div>
