@@ -141,8 +141,9 @@ export function ContributionDetailSheet({
             size="icon"
             onClick={onClose}
             className="size-8 text-muted-foreground hover:text-foreground"
+            aria-label="Close contribution details"
           >
-            <X className="size-4" />
+            <X className="size-4" aria-hidden="true" />
           </Button>
         </div>
 
