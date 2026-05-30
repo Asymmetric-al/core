@@ -64,7 +64,10 @@ export {
 export {
   MISSION_CONTROL_AUTOMATIONS_QUERY_KEY,
   useMissionControlAutomations,
+  type MissionControlAutomationActivationStatus,
   type MissionControlAutomationRule,
+  type MissionControlAutomationSummary,
+  type MissionControlAutomationsResponse,
 } from "./mission-control-automations";
 export {
   useLocations,

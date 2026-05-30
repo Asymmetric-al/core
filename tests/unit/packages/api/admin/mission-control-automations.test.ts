@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
   assertAutomationPermission,
@@ -8,7 +8,10 @@ import {
   automationRuleSchema,
   compileSimpleAutomation,
 } from "../../../../../packages/api/src/admin/mission-control-automations/schemas";
-import { saveMissionControlAutomationRule } from "../../../../../packages/api/src/admin/mission-control-automations/store";
+import {
+  loadMissionControlAutomationDashboard,
+  saveMissionControlAutomationRule,
+} from "../../../../../packages/api/src/admin/mission-control-automations/store";
 import {
   planContributionAutomationAction,
   planDonorNotificationAutomationAction,
@@ -21,6 +24,101 @@ import {
 import { evaluateAutomationRule } from "../../../../../packages/api/src/admin/mission-control-automations/evaluator";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
+import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+
+type QueryResult = {
+  data?: unknown;
+  error?: { message: string } | null;
+};
+
+type QueryCall = {
+  table: string;
+  selected?: string;
+  filters: Array<[string, string, unknown]>;
+  orderBy?: { column: string; ascending?: boolean };
+  limitCount?: number;
+};
+
+class MissionControlAutomationsQueryStub {
+  readonly filters: Array<[string, string, unknown]> = [];
+  selected?: string;
+  orderBy?: { column: string; ascending?: boolean };
+  limitCount?: number;
+
+  constructor(
+    readonly table: string,
+    private readonly result: QueryResult,
+    private readonly calls: QueryCall[],
+  ) {
+    this.calls.push(this);
+  }
+
+  select(columns: string): this {
+    this.selected = columns;
+    return this;
+  }
+
+  eq(column: string, value: unknown): this {
+    this.filters.push(["eq", column, value]);
+    return this;
+  }
+
+  gte(column: string, value: unknown): this {
+    this.filters.push(["gte", column, value]);
+    return this;
+  }
+
+  order(
+    column: string,
+    options?: {
+      ascending?: boolean;
+    },
+  ): this {
+    this.orderBy = { column, ascending: options?.ascending };
+    return this;
+  }
+
+  limit(count: number): Promise<QueryResult> {
+    this.limitCount = count;
+    return Promise.resolve({
+      data: this.result.data ?? null,
+      error: this.result.error ?? null,
+    });
+  }
+}
+
+function createMissionControlAutomationsSupabaseStub(
+  resultsByTable: Record<string, QueryResult>,
+) {
+  const calls: QueryCall[] = [];
+  const supabaseAdmin = {
+    from(table: string) {
+      return new MissionControlAutomationsQueryStub(
+        table,
+        resultsByTable[table] ?? { data: [] },
+        calls,
+      );
+    },
+  } as unknown as AdminSupabaseClient;
+
+  return { calls, supabaseAdmin };
+}
+
+function automationRuleRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: "rule_1",
+    name: "Receipt follow-up",
+    mode: "advanced",
+    trigger: { kind: "contribution_issue_created" },
+    conditions: [],
+    actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+    run_mode: "automatic",
+    enabled: false,
+    activation_status: "draft",
+    updated_at: "2026-05-30T00:00:00.000Z",
+    ...overrides,
+  };
+}
 
 function authContext(
   overrides: Partial<AuthenticatedContext>,
@@ -37,6 +135,10 @@ function authContext(
     ...overrides,
   };
 }
+
+afterEach(() => {
+  vi.useRealTimers();
+});
 
 describe("mission control automation permissions", () => {
   it("allows admins with automation:manage compatibility to manage automations", () => {
@@ -230,6 +332,157 @@ describe("mission control automation preview and evaluation", () => {
     ).toMatchObject({
       service: "mission_control_tasks",
       method: "createMissionControlTask",
+    });
+  });
+});
+
+describe("mission control automation dashboard summary", () => {
+  it("counts persisted rules by activation state", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({
+            id: "rule_active",
+            name: "Active rule",
+            enabled: true,
+            activation_status: "active",
+          }),
+          automationRuleRow({
+            id: "rule_draft",
+            name: "Draft rule",
+            enabled: false,
+            activation_status: "draft",
+          }),
+          automationRuleRow({
+            id: "rule_paused",
+            name: "Paused rule",
+            enabled: false,
+            activation_status: "paused",
+          }),
+        ],
+      },
+      mission_control_automation_activity_logs: { data: [] },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.summary).toMatchObject({
+      totalRules: 3,
+      activeRules: 1,
+      draftRules: 1,
+      pausedRules: 1,
+      executions24h: 0,
+      failedRuns24h: 0,
+      activityLogBacked: true,
+      integrationHealthBacked: false,
+    });
+    expect(dashboard.automationRules[0]).toHaveProperty(
+      "activationStatus",
+      "active",
+    );
+  });
+
+  it("counts executions and failed runs from recent activity logs", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({
+            id: "rule_active",
+            enabled: true,
+            activation_status: "active",
+          }),
+        ],
+      },
+      mission_control_automation_activity_logs: {
+        data: [
+          { failures: [] },
+          { failures: [{ message: "Action failed" }] },
+          { failures: "not-an-array" },
+        ],
+      },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.summary.executions24h).toBe(3);
+    expect(dashboard.summary.failedRuns24h).toBe(1);
+  });
+
+  it("scopes activity queries to the tenant and the last 24 hours", async () => {
+    const earliestExpectedCutoff = Date.now() - 24 * 60 * 60 * 1000 - 1000;
+    const { calls, supabaseAdmin } =
+      createMissionControlAutomationsSupabaseStub({
+        mission_control_automation_rules: { data: [] },
+        mission_control_automation_activity_logs: { data: [] },
+      });
+
+    await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    const activityCall = calls.find(
+      (call) => call.table === "mission_control_automation_activity_logs",
+    );
+
+    expect(activityCall).toBeTruthy();
+    expect(activityCall?.filters).toContainEqual([
+      "eq",
+      "tenant_id",
+      "tenant_1",
+    ]);
+    const cutoffFilter = activityCall?.filters.find(
+      ([operator, column]) => operator === "gte" && column === "created_at",
+    );
+    const cutoff = Date.parse(String(cutoffFilter?.[2] ?? ""));
+
+    expect(Number.isNaN(cutoff)).toBe(false);
+    expect(cutoff).toBeGreaterThanOrEqual(earliestExpectedCutoff);
+    expect(cutoff).toBeLessThanOrEqual(Date.now());
+  });
+
+  it("does not mask activity log query failures as zero activity", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: { data: [] },
+      mission_control_automation_activity_logs: {
+        error: { message: "activity log unavailable" },
+      },
+    });
+
+    await expect(
+      loadMissionControlAutomationDashboard({
+        supabaseAdmin,
+        tenantId: "tenant_1",
+      }),
+    ).rejects.toThrow("activity log unavailable");
+  });
+
+  it("does not return demo dashboard defaults", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: { data: [] },
+      mission_control_automation_activity_logs: { data: [] },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.summary).toEqual({
+      totalRules: 0,
+      activeRules: 0,
+      pausedRules: 0,
+      draftRules: 0,
+      executions24h: 0,
+      failedRuns24h: 0,
+      activityLogBacked: true,
+      integrationHealthBacked: false,
     });
   });
 });

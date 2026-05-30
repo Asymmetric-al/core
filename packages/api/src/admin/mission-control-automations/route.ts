@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { assertAutomationPermission } from "./permissions";
 import {
-  listMissionControlAutomationRules,
+  loadMissionControlAutomationDashboard,
   saveMissionControlAutomationRule,
 } from "./store";
 import {
@@ -16,12 +16,12 @@ export const GET = withOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
     try {
       assertAutomationPermission(auth);
-      const automationRules = await listMissionControlAutomationRules({
+      const dashboard = await loadMissionControlAutomationDashboard({
         supabaseAdmin,
         tenantId: auth.tenantId,
       });
 
-      return NextResponse.json({ automationRules, requestId });
+      return NextResponse.json({ ...dashboard, requestId });
     } catch (error) {
       return toErrorResponse(error, "Failed to list automations.", requestId);
     }

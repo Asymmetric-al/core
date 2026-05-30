@@ -3,6 +3,12 @@ import type { MissionControlIssueType } from "../mission-control-tasks/types";
 
 export type AutomationMode = "simple" | "advanced";
 export type AutomationRunMode = "automatic" | "review_first";
+export type AutomationActivationStatus =
+  | "draft"
+  | "ready"
+  | "active"
+  | "paused"
+  | "disabled";
 
 export type AutomationTrigger =
   | { kind: "contribution_issue_created" }
@@ -26,9 +32,26 @@ export interface AutomationRule {
   actions: AutomationAction[];
   runMode: AutomationRunMode;
   enabled: boolean;
+  activationStatus?: AutomationActivationStatus;
 }
 
 export interface AutomationRecord {
   id: string;
   issueType?: string;
+}
+
+export interface MissionControlAutomationSummary {
+  totalRules: number;
+  activeRules: number;
+  pausedRules: number;
+  draftRules: number;
+  executions24h: number;
+  failedRuns24h: number;
+  activityLogBacked: boolean;
+  integrationHealthBacked: boolean;
+}
+
+export interface MissionControlAutomationDashboard {
+  automationRules: AutomationRule[];
+  summary: MissionControlAutomationSummary;
 }

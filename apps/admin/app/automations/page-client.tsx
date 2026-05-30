@@ -1,328 +1,429 @@
 "use client";
 
-import { useMissionControlAutomations } from "@asym/database/hooks";
+import {
+  useMissionControlAutomations,
+  type MissionControlAutomationRule,
+  type MissionControlAutomationSummary,
+} from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardHeader,
   CardTitle,
-  CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  Zap,
-  Link2,
   AlertTriangle,
-  History,
+  ClipboardList,
+  Link2,
   Play,
-  CheckCircle,
-  Plus,
   Search,
-  MoreHorizontal,
-  ArrowUpRight,
-  Settings,
+  Zap,
 } from "lucide-react";
-import React from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
-interface AutomationFlow {
-  name: string;
-  trigger: string;
-  app: string;
-  status: "Active" | "Paused";
+const numberFormatter = new Intl.NumberFormat("en-US");
+
+function formatCount(value: number): string {
+  return numberFormatter.format(value);
 }
 
-interface IntegrationConnection {
-  name: string;
-  status: "Operational" | "Issue Detected";
-  icon: React.ComponentType<{ className?: string }>;
-  iconContainerClassName: string;
+function formatTriggerKind(kind: string): string {
+  return kind
+    .split("_")
+    .filter(Boolean)
+    .map((part) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
+    .join(" ");
 }
 
-const RECENT_FLOWS: AutomationFlow[] = [
-  {
-    name: "mobilize.advance-to-interview",
-    trigger: "Stage Change",
-    app: "Mobilize",
-    status: "Active",
-  },
-  {
-    name: "giving.send-thank-you",
-    trigger: "New Gift",
-    app: "Stripe",
-    status: "Active",
-  },
-  {
-    name: "care.alert-on-gap",
-    trigger: "Inactivity",
-    app: "Reports",
-    status: "Active",
-  },
-  {
-    name: "crm.sync-to-mailchimp",
-    trigger: "New Contact",
-    app: "CRM",
-    status: "Paused",
-  },
-];
+function getRuleStatus(rule: MissionControlAutomationRule): string {
+  if (rule.enabled || rule.activationStatus === "active") {
+    return "Active";
+  }
 
-const INTEGRATION_CONNECTIONS: IntegrationConnection[] = [
-  {
-    name: "Stripe",
-    status: "Operational",
-    icon: Link2,
-    iconContainerClassName: "bg-blue-50 text-blue-600 border border-blue-100",
-  },
-  {
-    name: "Mailchimp",
-    status: "Operational",
-    icon: Link2,
-    iconContainerClassName:
-      "bg-amber-50 text-amber-600 border border-amber-100",
-  },
-  {
-    name: "Slack",
-    status: "Issue Detected",
-    icon: AlertTriangle,
-    iconContainerClassName: "bg-rose-50 text-rose-600 border border-rose-100",
-  },
-  {
-    name: "Postmark",
-    status: "Operational",
-    icon: Link2,
-    iconContainerClassName:
-      "bg-emerald-50 text-emerald-600 border border-emerald-100",
-  },
-];
+  if (rule.activationStatus === "paused") {
+    return "Paused";
+  }
 
-const STAT_CARDS = [
-  {
-    label: "Active Flows",
-    value: "28",
-    sub: "across 12 integrations",
-    icon: Zap,
-    iconClassName: "text-amber-500",
-  },
-  {
-    label: "Executions (24h)",
-    value: "1,247",
-    sub: "99.2% success",
-    icon: Play,
-    iconClassName: "text-blue-600",
-    hasCheck: true,
-  },
-  {
-    label: "Connections",
-    value: "12",
-    sub: "all systems operational",
-    icon: Link2,
-    iconClassName: "text-indigo-600",
-  },
-  {
-    label: "Failed Runs",
-    value: "8",
-    sub: "require manual review",
-    icon: AlertTriangle,
-    iconClassName: "text-rose-600",
-    valueClassName: "text-rose-600",
-  },
-];
+  if (rule.activationStatus === "disabled") {
+    return "Disabled";
+  }
 
-function AutomationStatsRow() {
+  if (rule.activationStatus === "ready") {
+    return "Ready";
+  }
+
+  return "Draft";
+}
+
+export function filterAutomationRules(
+  automationRules: MissionControlAutomationRule[],
+  search: string,
+): MissionControlAutomationRule[] {
+  const normalizedSearch = search.trim().toLowerCase();
+  if (!normalizedSearch) {
+    return automationRules;
+  }
+
+  return automationRules.filter((rule) => {
+    const trigger = formatTriggerKind(rule.trigger.kind).toLowerCase();
+    return (
+      rule.name.toLowerCase().includes(normalizedSearch) ||
+      trigger.includes(normalizedSearch) ||
+      getRuleStatus(rule).toLowerCase().includes(normalizedSearch)
+    );
+  });
+}
+
+function LoadingStatCard() {
   return (
-    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 text-left">
-      {STAT_CARDS.map((stat, i) => (
+    <Card className="border-border bg-card shadow-sm">
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between pb-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="size-4 rounded" />
+        </div>
+        <Skeleton className="mt-3 h-8 w-16" />
+        <Skeleton className="mt-2 h-3 w-32" />
+      </CardContent>
+    </Card>
+  );
+}
+
+function StatCard({
+  icon,
+  label,
+  sublabel,
+  value,
+  valueClassName,
+}: {
+  icon: ReactNode;
+  label: string;
+  sublabel: string;
+  value: number;
+  valueClassName?: string;
+}) {
+  return (
+    <Card className="border-border bg-card text-card-foreground shadow-sm">
+      <CardContent className="p-6">
+        <div className="flex flex-row items-center justify-between pb-2">
+          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            {label}
+          </span>
+          {icon}
+        </div>
+        <div>
+          <div
+            className={cn(
+              "text-3xl font-semibold tabular-nums tracking-tight text-foreground",
+              valueClassName,
+            )}
+          >
+            {formatCount(value)}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">{sublabel}</p>
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function AutomationStatsRow({
+  isLoading,
+  summary,
+}: {
+  isLoading: boolean;
+  summary?: MissionControlAutomationSummary;
+}) {
+  if (isLoading) {
+    return (
+      <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-4">
+        {Array.from({ length: 4 }, (_, index) => (
+          <LoadingStatCard key={`automation-stat-loading-${index}`} />
+        ))}
+      </div>
+    );
+  }
+
+  if (!summary) {
+    return null;
+  }
+
+  const stats = [
+    {
+      label: "Active Rules",
+      value: summary.activeRules,
+      sublabel: "Enabled persisted rules",
+      icon: <Zap className="size-4 text-muted-foreground" />,
+    },
+    {
+      label: "Total Rules",
+      value: summary.totalRules,
+      sublabel: "Rules stored for this tenant",
+      icon: <ClipboardList className="size-4 text-muted-foreground" />,
+    },
+    {
+      label: "Executions (24h)",
+      value: summary.executions24h,
+      sublabel: "Persisted activity log rows",
+      icon: <Play className="size-4 text-muted-foreground" />,
+    },
+    {
+      label: "Failed Runs (24h)",
+      value: summary.failedRuns24h,
+      sublabel: "Activity logs with failures",
+      icon: <AlertTriangle className="size-4 text-destructive" />,
+      valueClassName: summary.failedRuns24h > 0 ? "text-destructive" : "",
+    },
+  ];
+
+  return (
+    <div className="grid gap-4 text-left md:grid-cols-2 lg:grid-cols-4">
+      {stats.map((stat, index) => (
         <motion.div
           key={stat.label}
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: i * 0.05 }}
+          transition={{ duration: 0.4, delay: index * 0.05 }}
         >
-          <div className="rounded-2xl border border-zinc-100 bg-white shadow-sm p-6">
-            <div className="flex flex-row items-center justify-between pb-2">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400">
-                {stat.label}
-              </span>
-              <stat.icon className={cn("size-4", stat.iconClassName)} />
-            </div>
-            <div>
-              <div
-                className={cn(
-                  "text-3xl font-black tabular-nums tracking-tight text-zinc-900",
-                  stat.valueClassName,
-                )}
-              >
-                {stat.value}
-              </div>
-              <div className="flex items-center gap-1 mt-1">
-                {stat.hasCheck && (
-                  <CheckCircle className="size-3 text-emerald-600" />
-                )}
-                <span className="text-xs text-zinc-500">{stat.sub}</span>
-              </div>
-            </div>
-          </div>
+          <StatCard {...stat} />
         </motion.div>
       ))}
     </div>
   );
 }
 
-function RecentFlowsCard() {
-  const automationsQuery = useMissionControlAutomations();
-  const flows =
-    automationsQuery.data?.automationRules.map((rule) => ({
-      app: "Mission Control",
-      name: rule.name,
-      status: rule.enabled ? ("Active" as const) : ("Paused" as const),
-      trigger: rule.trigger.kind.replace(/_/g, " "),
-    })) ?? RECENT_FLOWS;
+function RulesLoadingState() {
+  return (
+    <div className="space-y-4 p-6">
+      <p className="text-sm text-muted-foreground">
+        Loading automation dashboard
+      </p>
+      {Array.from({ length: 3 }, (_, index) => (
+        <div
+          key={`automation-rule-loading-${index}`}
+          className="flex items-center justify-between gap-4"
+        >
+          <div className="flex items-center gap-3">
+            <Skeleton className="size-9 rounded-lg" />
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-48" />
+              <Skeleton className="h-3 w-64" />
+            </div>
+          </div>
+          <Skeleton className="h-6 w-16 rounded-full" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
+function AutomationRulesEmptyState({
+  description,
+  icon,
+  title,
+}: {
+  description: string;
+  icon: ReactNode;
+  title: string;
+}) {
+  return (
+    <Empty className="border-0 py-14">
+      <EmptyHeader>
+        <EmptyMedia variant="icon">{icon}</EmptyMedia>
+        <EmptyTitle>{title}</EmptyTitle>
+        <EmptyDescription>{description}</EmptyDescription>
+      </EmptyHeader>
+    </Empty>
+  );
+}
+
+function AutomationRulesCard({
+  allRuleCount,
+  filteredRules,
+  isBlocked,
+  isLoading,
+  onSearchChange,
+  search,
+}: {
+  allRuleCount: number;
+  filteredRules: MissionControlAutomationRule[];
+  isBlocked: boolean;
+  isLoading: boolean;
+  onSearchChange: (value: string) => void;
+  search: string;
+}) {
   return (
     <motion.div
+      className="md:col-span-4"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
     >
-      <Card className="col-span-4 shadow-sm border-zinc-200">
-        <CardHeader className="border-b border-zinc-50 flex flex-row items-center justify-between">
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="flex flex-col gap-4 border-b border-border sm:flex-row sm:items-center sm:justify-between">
           <div>
-            <CardTitle className="text-base font-bold">Recent Flows</CardTitle>
+            <CardTitle className="text-base font-semibold">
+              Automation Rules
+            </CardTitle>
             <CardDescription className="text-xs">
-              Your most active automation workflows.
+              Rules configured for Mission Control automations.
             </CardDescription>
           </div>
-          <div className="relative w-48">
-            <Search className="absolute left-2.5 top-2.5 size-3.5 text-zinc-400" />
+          <div className="relative w-full sm:w-56">
+            <label className="sr-only" htmlFor="automation-rule-filter">
+              Filter automation rules
+            </label>
+            <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
             <Input
-              placeholder="Filter flows..."
-              className="pl-8 h-8 text-xs bg-zinc-50 border-none"
+              aria-label="Filter automation rules"
+              className="h-8 bg-background pl-8 text-xs"
+              disabled={isLoading || isBlocked || allRuleCount === 0}
+              id="automation-rule-filter"
+              onChange={(event) => onSearchChange(event.target.value)}
+              placeholder="Filter rules..."
+              value={search}
             />
           </div>
         </CardHeader>
         <CardContent className="p-0">
-          <div className="divide-y divide-zinc-50">
-            {flows.map((flow) => (
-              <div
-                key={flow.name}
-                className="flex items-center justify-between p-4 hover:bg-zinc-50/50 transition-colors group cursor-pointer"
-              >
-                <div className="flex items-center gap-3">
+          {isLoading ? (
+            <RulesLoadingState />
+          ) : isBlocked ? (
+            <AutomationRulesEmptyState
+              description="Automation rules cannot be displayed until the persisted dashboard response loads successfully."
+              icon={<AlertTriangle className="size-5" />}
+              title="Automation rules unavailable"
+            />
+          ) : allRuleCount === 0 ? (
+            <AutomationRulesEmptyState
+              description="This tenant has no persisted Mission Control automation rules."
+              icon={<Zap className="size-5" />}
+              title="No automation rules yet"
+            />
+          ) : filteredRules.length === 0 ? (
+            <AutomationRulesEmptyState
+              description="No persisted automation rules match the current filter."
+              icon={<Search className="size-5" />}
+              title="No matching automation rules"
+            />
+          ) : (
+            <div className="divide-y divide-border">
+              {filteredRules.map((rule) => {
+                const status = getRuleStatus(rule);
+
+                return (
                   <div
-                    className={cn(
-                      "size-8 rounded-lg flex items-center justify-center border",
-                      flow.status === "Active"
-                        ? "bg-emerald-50 text-emerald-600 border-emerald-100"
-                        : "bg-zinc-50 text-zinc-400 border-zinc-100",
-                    )}
+                    key={rule.id ?? rule.name}
+                    className="flex items-center justify-between gap-4 p-4"
                   >
-                    <Zap className="size-4" />
+                    <div className="flex min-w-0 items-center gap-3">
+                      <div className="flex size-9 shrink-0 items-center justify-center rounded-lg border border-border bg-muted text-muted-foreground">
+                        <Zap className="size-4" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-foreground">
+                          {rule.name}
+                        </p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          Trigger: {formatTriggerKind(rule.trigger.kind)}
+                        </p>
+                      </div>
+                    </div>
+                    <Badge
+                      className="shrink-0 rounded-md text-xs"
+                      variant={status === "Active" ? "default" : "outline"}
+                    >
+                      {status}
+                    </Badge>
                   </div>
-                  <div>
-                    <p className="text-sm font-bold text-zinc-900">
-                      {flow.name}
-                    </p>
-                    <p className="text-xs text-zinc-500">
-                      Trigger: {flow.trigger} • via {flow.app}
-                    </p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-4">
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] font-bold h-5 shadow-none",
-                      flow.status === "Active"
-                        ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                        : "bg-zinc-100 text-zinc-500 border-zinc-200",
-                    )}
-                  >
-                    {flow.status}
-                  </Badge>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-zinc-400 group-hover:text-zinc-900"
-                  >
-                    <MoreHorizontal className="size-4" />
-                  </Button>
-                </div>
-              </div>
-            ))}
-          </div>
+                );
+              })}
+            </div>
+          )}
         </CardContent>
-        <div className="p-3 border-t border-zinc-50 bg-zinc-50/30 text-center">
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-xs text-zinc-500 hover:text-zinc-900 w-full h-8 group"
-          >
-            View All Flows{" "}
-            <ArrowUpRight className="ml-1 size-3 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" />
-          </Button>
-        </div>
       </Card>
     </motion.div>
   );
 }
 
-function IntegrationHealthCard() {
+function IntegrationTelemetryCard({
+  isLoading,
+  summary,
+}: {
+  isLoading: boolean;
+  summary?: MissionControlAutomationSummary;
+}) {
+  const telemetryBacked = summary?.integrationHealthBacked === true;
+
   return (
     <motion.div
+      className="md:col-span-3"
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.25 }}
     >
-      <Card className="col-span-3 shadow-sm border-zinc-200">
-        <CardHeader className="border-b border-zinc-50">
-          <CardTitle className="text-base font-bold">
-            Integration Health
+      <Card className="border-border bg-card shadow-sm">
+        <CardHeader className="border-b border-border">
+          <CardTitle className="text-base font-semibold">
+            Connection Telemetry
           </CardTitle>
           <CardDescription className="text-xs">
-            Status of third-party platform connections.
+            Provider health appears here only after it is backed by persisted
+            telemetry.
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4 p-6">
-          {INTEGRATION_CONNECTIONS.map((conn) => (
-            <div
-              key={conn.name}
-              className="flex items-center justify-between p-3 rounded-xl border border-zinc-100 bg-zinc-50/50"
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className={cn(
-                    "size-8 rounded-lg flex items-center justify-center",
-                    conn.iconContainerClassName,
-                  )}
-                >
-                  <conn.icon className="size-4" />
-                </div>
-                <span className="text-sm font-semibold text-zinc-700">
-                  {conn.name}
-                </span>
-              </div>
-              <Badge
-                className={cn(
-                  "text-[10px] font-bold h-5 shadow-none",
-                  conn.status === "Operational"
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200"
-                    : "bg-rose-50 text-rose-700 border-rose-200",
-                )}
-              >
-                {conn.status}
-              </Badge>
+        <CardContent className="p-6">
+          {isLoading ? (
+            <div className="space-y-4">
+              <Skeleton className="size-10 rounded-lg" />
+              <Skeleton className="h-4 w-56" />
+              <Skeleton className="h-3 w-full" />
+              <Skeleton className="h-3 w-4/5" />
             </div>
-          ))}
-          <Button
-            variant="outline"
-            className="w-full h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] text-zinc-600 gap-2 mt-2"
-          >
-            <Settings className="mr-2 size-3.5" /> Manage Connections
-          </Button>
+          ) : (
+            <div className="rounded-lg border border-border bg-background p-4">
+              <div className="flex items-start gap-3">
+                <div className="flex size-10 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                  <Link2 className="size-5" />
+                </div>
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="text-sm font-semibold text-foreground">
+                      {telemetryBacked
+                        ? "Connection telemetry is backed by persisted data"
+                        : "Connection telemetry is not wired yet"}
+                    </h3>
+                    <Badge variant="outline" className="rounded-md text-xs">
+                      {telemetryBacked ? "Backed" : "Not wired yet"}
+                    </Badge>
+                  </div>
+                  <p className="mt-2 text-sm leading-6 text-muted-foreground">
+                    Live provider statuses will be shown only after a real
+                    integration telemetry source is connected.
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
     </motion.div>
@@ -336,35 +437,37 @@ function AutomationBestPracticesCard() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
     >
-      <Card className="border-zinc-200 text-left">
+      <Card className="border-border bg-card text-left">
         <CardHeader className="pb-2">
-          <CardTitle className="text-sm font-bold uppercase tracking-wider text-zinc-400">
-            Automation Best Practices
+          <CardTitle className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+            Automation Guardrails
           </CardTitle>
         </CardHeader>
-        <CardContent className="text-sm text-zinc-600 space-y-2">
-          <ul className="list-disc list-inside space-y-1 ml-2">
+        <CardContent className="space-y-2 text-sm text-muted-foreground">
+          <ul className="ml-2 list-inside list-disc space-y-1">
             <li>
               Use{" "}
-              <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-900">
+              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
                 idempotency keys
               </code>{" "}
-              on all create actions to prevent duplicates.
+              on create actions to prevent duplicates.
             </li>
             <li>
-              Always prefix flow names by domain:{" "}
-              <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-900">
+              Keep rule names domain-prefixed, such as{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
                 mobilize.
-              </code>
-              ,{" "}
-              <code className="bg-zinc-100 px-1.5 py-0.5 rounded text-zinc-900">
+              </code>{" "}
+              or{" "}
+              <code className="rounded bg-muted px-1.5 py-0.5 text-foreground">
                 giving.
               </code>
-              , etc.
             </li>
-            <li>Owners must subscribe to failure alerts via Slack or Email.</li>
             <li>
-              Test flows in isolation before deploying to production streams.
+              Assign a clear owner for failure review before enabling a rule.
+            </li>
+            <li>
+              Review persisted activity logs before treating an automation as
+              production-ready.
             </li>
           </ul>
         </CardContent>
@@ -373,36 +476,89 @@ function AutomationBestPracticesCard() {
   );
 }
 
-export default function AutomationsPage() {
+function AutomationsErrorAlert({ message }: { message: string }) {
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle className="size-4" />
+      <AlertTitle>Could not load automations</AlertTitle>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  );
+}
+
+export function AutomationsPageView({
+  automationRules,
+  errorMessage,
+  hasLoadedData = true,
+  isError,
+  isLoading,
+  summary,
+}: {
+  automationRules: MissionControlAutomationRule[];
+  errorMessage?: string;
+  hasLoadedData?: boolean;
+  isError: boolean;
+  isLoading: boolean;
+  summary?: MissionControlAutomationSummary;
+}) {
+  const [search, setSearch] = useState("");
+  const queryError =
+    errorMessage ?? "Could not load persisted automation data.";
+  const missingSummary = !isLoading && !isError && hasLoadedData && !summary;
+
+  const filteredRules = useMemo(
+    () => filterAutomationRules(automationRules, search),
+    [automationRules, search],
+  );
+
   return (
     <PageShell
       title="Automations"
       description="Workflow automation and integration management."
       density="compact"
-      actions={
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 font-bold uppercase tracking-widest text-[10px] gap-2"
-          >
-            <History className="size-4 text-zinc-400" /> History
-          </Button>
-          <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
-            <Plus className="size-4" /> New Flow
-          </Button>
-        </div>
-      }
     >
       <div className="space-y-8 animate-in fade-in duration-500">
-        <AutomationStatsRow />
+        <AutomationStatsRow isLoading={isLoading} summary={summary} />
 
-        <div className="grid gap-6 md:grid-cols-7 text-left">
-          <RecentFlowsCard />
-          <IntegrationHealthCard />
+        {isError ? <AutomationsErrorAlert message={queryError} /> : null}
+
+        {missingSummary ? (
+          <AutomationsErrorAlert message="The automations response did not include a persisted dashboard summary." />
+        ) : null}
+
+        <div className="grid gap-6 text-left md:grid-cols-7">
+          <AutomationRulesCard
+            allRuleCount={automationRules.length}
+            filteredRules={filteredRules}
+            isBlocked={isError || Boolean(missingSummary)}
+            isLoading={isLoading}
+            onSearchChange={setSearch}
+            search={search}
+          />
+          <IntegrationTelemetryCard isLoading={isLoading} summary={summary} />
         </div>
 
         <AutomationBestPracticesCard />
       </div>
     </PageShell>
+  );
+}
+
+export default function AutomationsPage() {
+  const automationsQuery = useMissionControlAutomations();
+  const errorMessage =
+    automationsQuery.error instanceof Error
+      ? automationsQuery.error.message
+      : undefined;
+
+  return (
+    <AutomationsPageView
+      automationRules={automationsQuery.data?.automationRules ?? []}
+      errorMessage={errorMessage}
+      hasLoadedData={Boolean(automationsQuery.data)}
+      isError={automationsQuery.isError}
+      isLoading={automationsQuery.isPending}
+      summary={automationsQuery.data?.summary}
+    />
   );
 }

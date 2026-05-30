@@ -66,6 +66,9 @@ export const automationRuleSchema = z.object({
   actions: z.array(actionSchema).min(1),
   runMode: z.enum(["automatic", "review_first"]),
   enabled: z.boolean(),
+  activationStatus: z
+    .enum(["draft", "ready", "active", "paused", "disabled"])
+    .optional(),
 });
 
 export function compileSimpleAutomation(input: {

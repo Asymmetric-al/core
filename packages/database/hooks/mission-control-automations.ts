@@ -2,6 +2,13 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+export type MissionControlAutomationActivationStatus =
+  | "draft"
+  | "ready"
+  | "active"
+  | "paused"
+  | "disabled";
+
 export interface MissionControlAutomationRule {
   id?: string;
   name: string;
@@ -11,6 +18,23 @@ export interface MissionControlAutomationRule {
   actions: Array<Record<string, unknown>>;
   runMode: "automatic" | "review_first";
   enabled: boolean;
+  activationStatus?: MissionControlAutomationActivationStatus;
+}
+
+export interface MissionControlAutomationSummary {
+  totalRules: number;
+  activeRules: number;
+  pausedRules: number;
+  draftRules: number;
+  executions24h: number;
+  failedRuns24h: number;
+  activityLogBacked: boolean;
+  integrationHealthBacked: boolean;
+}
+
+export interface MissionControlAutomationsResponse {
+  automationRules: MissionControlAutomationRule[];
+  summary: MissionControlAutomationSummary;
 }
 
 export const MISSION_CONTROL_AUTOMATIONS_QUERY_KEY = [
@@ -19,7 +43,7 @@ export const MISSION_CONTROL_AUTOMATIONS_QUERY_KEY = [
   "automations",
 ] as const;
 
-async function loadMissionControlAutomations() {
+async function loadMissionControlAutomations(): Promise<MissionControlAutomationsResponse> {
   const response = await fetch("/api/admin/mission-control/automations", {
     credentials: "same-origin",
     headers: { accept: "application/json" },
@@ -32,9 +56,7 @@ async function loadMissionControlAutomations() {
     throw new Error(body?.error ?? "Could not load automations.");
   }
 
-  return (await response.json()) as {
-    automationRules: MissionControlAutomationRule[];
-  };
+  return (await response.json()) as MissionControlAutomationsResponse;
 }
 
 export function useMissionControlAutomations() {
