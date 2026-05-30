@@ -94,7 +94,7 @@ export function TeamList() {
                 aria-label={`Edit ${team.name}`}
                 className="size-8 text-zinc-500 hover:text-zinc-900"
               >
-                <Pencil className="size-3.5" />
+                <Pencil className="size-3.5" aria-hidden="true" />
               </Button>
               <Button
                 type="button"
@@ -104,7 +104,7 @@ export function TeamList() {
                 aria-label={`Remove ${team.name}`}
                 className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5" aria-hidden="true" />
               </Button>
             </li>
           ))}

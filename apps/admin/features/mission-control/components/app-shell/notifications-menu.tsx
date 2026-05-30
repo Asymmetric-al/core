@@ -72,8 +72,11 @@ export const NotificationsMenu = memo(function NotificationsMenu() {
           aria-label="Open notifications"
           className="relative size-8"
         >
-          <Bell className="size-4" />
-          <span className="absolute right-1 top-1 flex size-2">
+          <Bell className="size-4" aria-hidden="true" />
+          <span
+            className="absolute right-1 top-1 flex size-2"
+            aria-hidden="true"
+          >
             <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75 [@media(prefers-reduced-motion:reduce)]:animate-none" />
             <span className="relative inline-flex size-2 rounded-full bg-primary" />
           </span>

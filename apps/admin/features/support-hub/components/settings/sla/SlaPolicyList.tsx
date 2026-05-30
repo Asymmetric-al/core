@@ -112,7 +112,7 @@ export function SlaPolicyList() {
                     aria-label={`Make ${row.name} default`}
                     className="size-8 text-amber-500 hover:bg-amber-50 hover:text-amber-700"
                   >
-                    <Star className="size-3.5" />
+                    <Star className="size-3.5" aria-hidden="true" />
                   </Button>
                 ) : null}
                 <Button
@@ -123,7 +123,7 @@ export function SlaPolicyList() {
                   aria-label={`Edit ${row.name}`}
                   className="size-8 text-zinc-500 hover:text-zinc-900"
                 >
-                  <Pencil className="size-3.5" />
+                  <Pencil className="size-3.5" aria-hidden="true" />
                 </Button>
                 <Button
                   type="button"
@@ -133,7 +133,7 @@ export function SlaPolicyList() {
                   aria-label={`Delete ${row.name}`}
                   className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
                 >
-                  <Trash2 className="size-3.5" />
+                  <Trash2 className="size-3.5" aria-hidden="true" />
                 </Button>
               </li>
             ))}

@@ -82,7 +82,7 @@ export const MobileSidebar = memo(function MobileSidebar() {
           aria-label="Open navigation menu"
           className="size-9 lg:hidden"
         >
-          <Menu className="size-5" />
+          <Menu className="size-5" aria-hidden="true" />
         </Button>
       </SheetTrigger>
       <SheetContent side="left" className="w-72 p-0">

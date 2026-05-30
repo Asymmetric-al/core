@@ -77,7 +77,7 @@ export function SavedViewsList() {
                 aria-label={`Delete ${view.name}`}
                 className="size-8 text-rose-500 hover:bg-rose-50 hover:text-rose-700"
               >
-                <Trash2 className="size-3.5" />
+                <Trash2 className="size-3.5" aria-hidden="true" />
               </Button>
             </li>
           ))}

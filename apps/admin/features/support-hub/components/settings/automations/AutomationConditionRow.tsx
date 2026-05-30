@@ -151,7 +151,7 @@ export function AutomationConditionRow({
         aria-label="Remove condition"
         className="size-7 text-rose-500 hover:bg-rose-50"
       >
-        <Trash2 className="size-3.5" />
+        <Trash2 className="size-3.5" aria-hidden="true" />
       </Button>
     </li>
   );

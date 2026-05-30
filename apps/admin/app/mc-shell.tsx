@@ -349,7 +349,7 @@ function AppHeader() {
                   className="hidden h-8 w-56 justify-start px-3 text-muted-foreground hover:bg-muted/50 sm:flex gap-2"
                   aria-label="Open Mission Control search"
                 >
-                  <Search className="size-4" />
+                  <Search className="size-4" aria-hidden="true" />
                   <span className="text-sm text-muted-foreground/60">
                     Search…
                   </span>
@@ -363,8 +363,7 @@ function AppHeader() {
                   className="size-8 sm:hidden"
                   aria-label="Open Mission Control search"
                 >
-                  <Search className="size-4" />
-                  <span className="sr-only">Search</span>
+                  <Search className="size-4" aria-hidden="true" />
                 </Button>
               </>
             }
@@ -379,7 +378,7 @@ function AppHeader() {
                 aria-label="Change language"
                 className="size-8 hidden sm:inline-flex"
               >
-                <Languages className="size-4" />
+                <Languages className="size-4" aria-hidden="true" />
               </Button>
             }
           />
@@ -391,7 +390,7 @@ function AppHeader() {
                 aria-label="Open activity"
                 className="size-8 hidden sm:inline-flex"
               >
-                <Activity className="size-4" />
+                <Activity className="size-4" aria-hidden="true" />
               </Button>
             }
           />
@@ -403,8 +402,11 @@ function AppHeader() {
                 aria-label="Open notifications"
                 className="relative size-8"
               >
-                <Bell className="size-4" />
-                <span className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background" />
+                <Bell className="size-4" aria-hidden="true" />
+                <span
+                  className="bg-rose-500 absolute top-1.5 right-1.5 size-1.5 rounded-full ring-2 ring-background"
+                  aria-hidden="true"
+                />
               </Button>
             }
           />
