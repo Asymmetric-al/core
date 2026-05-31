@@ -63,21 +63,17 @@ import { ThemeProvider } from "next-themes"
 
 ## Changing the Theme
 
+In Asymmetric-al/core, theme colors, fonts, radius, chart tokens, sidebar tokens, dark mode, and motion tokens are not changed by routine shadcn maintenance. Do not run `shadcn apply` unless the human explicitly requests a preset/theme application.
+
 ```bash
-# Apply a preset code from ui.shadcn.com.
-npx shadcn@latest apply --preset a2r6bw
+# Preview project state first.
+bunx --bun shadcn@latest info --json
 
-# Positional shorthand also works.
-npx shadcn@latest apply a2r6bw
+# Apply preset commands only with explicit human approval.
+bunx --bun shadcn@latest apply --preset a2r6bw
 
-# Switch to a named preset and overwrite existing components.
-npx shadcn@latest apply --preset nova
-
-# Preserve existing components instead.
-npx shadcn@latest init --preset nova --force --no-reinstall
-
-# Use a custom theme URL.
-npx shadcn@latest apply --preset "https://ui.shadcn.com/init?base=radix&style=nova&theme=blue&..."
+# Preserve existing components when explicitly asked to inspect a preset.
+bunx --bun shadcn@latest init --preset nova --force --no-reinstall
 ```
 
 Or edit CSS variables directly in `globals.css`.
@@ -86,7 +82,7 @@ Or edit CSS variables directly in `globals.css`.
 
 ## Adding Custom Colors
 
-Add variables to the file at `tailwindCssFile` from `npx shadcn@latest info` (typically `globals.css`). Never create a new CSS file for this.
+Add variables to the file at `tailwindCssFile` from `bunx --bun shadcn@latest info --json` (in this repo, `packages/ui/styles/globals.css`). Never create a new CSS file for this.
 
 ```css
 /* 1. Define in the global CSS file. */
@@ -108,7 +104,7 @@ Add variables to the file at `tailwindCssFile` from `npx shadcn@latest info` (ty
 }
 ```
 
-When `tailwindVersion` is `"v3"` (check via `npx shadcn@latest info`), register in `tailwind.config.js` instead:
+When `tailwindVersion` is `"v3"` (check via `bunx --bun shadcn@latest info --json`), register in `tailwind.config.js` instead:
 
 ```js
 // 2b. Register with Tailwind v3 (tailwind.config.js).
@@ -196,14 +192,14 @@ export function ConfirmDialog({ title, description, onConfirm, children }) {
 ## Checking for Updates
 
 ```bash
-npx shadcn@latest add button --diff
+bunx --bun shadcn@latest add button --diff
 ```
 
 To preview exactly what would change before updating, use `--dry-run` and `--diff`:
 
 ```bash
-npx shadcn@latest add button --dry-run        # see all affected files
-npx shadcn@latest add button --diff button.tsx # see the diff for a specific file
+bunx --bun shadcn@latest add button --dry-run        # see all affected files
+bunx --bun shadcn@latest add button --diff button.tsx # see the diff for a specific file
 ```
 
 See [Updating Components in SKILL.md](./SKILL.md#updating-components) for the full smart merge workflow.

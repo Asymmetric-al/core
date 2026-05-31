@@ -1,5 +1,7 @@
 # Dark Mode Implementation
 
+> Asymmetric-al/core note: dark mode tokens already live in `packages/ui/styles/globals.css`. Do not duplicate `.dark` theme primitives in app globals or change dark mode tokens as part of Tailwind/shadcn dependency modernization.
+
 ## Overview
 
 Tailwind v4 + shadcn/ui dark mode requires:
@@ -116,7 +118,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 ### Using shadcn/ui Dropdown Menu
 
 ```bash
-pnpm dlx shadcn@latest add dropdown-menu
+bunx --bun shadcn@latest add dropdown-menu
 ```
 
 ```typescript

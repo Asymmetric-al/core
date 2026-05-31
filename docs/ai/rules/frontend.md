@@ -40,6 +40,15 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Avoid arbitrary values like `w-[123px]` unless there is no practical alternative.
 - Keep spacing, typography, and radius aligned with existing shared components.
 
+### Tailwind v4 architecture
+
+- Next apps in this repo use `@tailwindcss/postcss` through each app's `postcss.config.js`. Do not migrate them to `@tailwindcss/vite`; that plugin is only for actual Vite workspaces.
+- Do not add `tailwind.config.ts`. Shared Tailwind v4 theme configuration lives in CSS, and `packages/ui/components.json` must keep `tailwind.config` as an empty string.
+- Theme primitives live in `packages/ui/styles/globals.css`. App `globals.css` files import the shared stylesheet and must not duplicate color, radius, chart, sidebar, dark mode, or motion primitives.
+- This repo uses OKLCH token values directly. Do not rewrite tokens to `hsl(var(...))` or duplicate upstream shadcn examples that assume HSL wrappers.
+- Prefer semantic utilities such as `bg-background`, `text-foreground`, `border-border`, `bg-card`, `bg-popover`, and `text-muted-foreground`.
+- Keep `@source` directives deliberate and validated. Do not add `not` exclusions unless build and shadcn drift checks prove no required classes are removed.
+
 ### Motion rules
 
 Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
@@ -59,10 +68,17 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 ### shadcn component workflow
 
 - Shared `packages/ui/components.json` pins **`style: base-maia`** so CLI installs align with **Base UI first** (see “Component and primitive policy” above).
-- Run shadcn additions from repo root with `--cwd packages/ui`:
+- Use `shadcn@latest`; do not pin the CLI as a dependency.
+- Run `bunx --bun shadcn@latest info --json --cwd packages/ui` before changes so aliases, registries, and installed components are current.
+- Run `bunx --bun shadcn@latest docs <component> --cwd packages/ui` before composition work that depends on a component API.
+- Preview shadcn changes before writing:
+  - `bunx --bun shadcn@latest add <component> --diff --cwd packages/ui`
+  - `bunx --bun shadcn@latest add <component> --dry-run --cwd packages/ui`
+- Run shadcn additions from repo root with `--cwd packages/ui` only after review:
   - `bunx --bun shadcn@latest add <component> --cwd packages/ui`
 - Ensure generated files land in the shared UI package and remain correctly exported for `@asym/ui` consumers.
 - Do not run `shadcn add` inside app workspaces.
+- Do not run `shadcn apply`, `shadcn add --overwrite`, or `shadcn add --all` without explicit human approval.
 
 ### shadcn/studio MCP workflows (conditional)
 

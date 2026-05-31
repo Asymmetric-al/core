@@ -1,5 +1,7 @@
 # Migration Guide: Hardcoded Colors → CSS Variables
 
+> Asymmetric-al/core note: this repo already uses semantic Tailwind utilities and OKLCH tokens from `packages/ui/styles/globals.css`. Use this guide only to remove hardcoded colors in feature code; do not rewrite shared theme tokens, duplicate primitives in app globals, add `tailwind.config.ts`, or migrate Next apps from `@tailwindcss/postcss` to `@tailwindcss/vite`.
+
 ## Overview
 
 This guide helps you migrate from hardcoded Tailwind colors (`bg-blue-600`) to semantic CSS variables (`bg-primary`).

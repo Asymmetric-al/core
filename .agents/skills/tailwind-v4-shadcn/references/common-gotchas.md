@@ -1,5 +1,7 @@
 # Common Gotchas & Solutions
 
+> Asymmetric-al/core note: keep Next apps on `@tailwindcss/postcss`, keep `components.json` `tailwind.config` empty, preserve OKLCH tokens in `packages/ui/styles/globals.css`, and do not duplicate theme primitives in app globals.
+
 ## Critical Failures (Will Break Your Build)
 
 ### 1. `:root` Inside `@layer base`
@@ -18,7 +20,7 @@
 
 ```css
 :root {
-  --background: hsl(0 0% 100%);
+  --background: oklch(1 0 0);
 }
 
 @layer base {
@@ -38,12 +40,12 @@
 
 ```css
 @theme {
-  --color-primary: hsl(0 0% 0%);
+  --color-primary: oklch(0.205 0 0);
 }
 
 .dark {
   @theme {
-    --color-primary: hsl(0 0% 100%);
+    --color-primary: oklch(0.985 0 0);
   }
 }
 ```
@@ -52,11 +54,11 @@
 
 ```css
 :root {
-  --primary: hsl(0 0% 0%);
+  --primary: oklch(0.205 0 0);
 }
 
 .dark {
-  --primary: hsl(0 0% 100%);
+  --primary: oklch(0.985 0 0);
 }
 
 @theme inline {
@@ -85,12 +87,12 @@
 ```css
 @layer base {
   body {
-    background-color: var(--background); /* Already has hsl() */
+    background-color: var(--background); /* Token already contains a complete color value */
   }
 }
 ```
 
-**Why:** Variables already contain `hsl()`, double-wrapping creates `hsl(hsl(...))`.
+**Why:** Variables already contain complete color values, so double-wrapping creates invalid CSS.
 
 ---
 
@@ -135,7 +137,7 @@ export default {}
 
 ```css
 :root {
-  --background: hsl(0 0% 100%);
+  --background: oklch(1 0 0);
 }
 
 /* No @theme inline block */
@@ -147,7 +149,7 @@ Result: `bg-background` class doesn't exist
 
 ```css
 :root {
-  --background: hsl(0 0% 100%);
+  --background: oklch(1 0 0);
 }
 
 @theme inline {
@@ -185,27 +187,28 @@ Result: `bg-background` class doesn't exist
 
 ---
 
-### 7. Using PostCSS Instead of Vite Plugin
+### 7. Using the Vite Plugin in Next Apps
 
-❌ **WRONG:**
-
-```typescript
-// vite.config.ts
-export default defineConfig({
-  css: {
-    postcss: "./postcss.config.js", // Old v3 way
-  },
-});
-```
-
-✅ **CORRECT:**
+❌ **WRONG for this repo's Next apps:**
 
 ```typescript
+// Adding a Vite Tailwind plugin to a Next app
 import tailwindcss from "@tailwindcss/vite";
 
 export default defineConfig({
-  plugins: [react(), tailwindcss()], // v4 way
+  plugins: [tailwindcss()],
 });
+```
+
+✅ **CORRECT for this repo's Next apps:**
+
+```js
+// postcss.config.js
+module.exports = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+}
 ```
 
 ---
@@ -323,14 +326,14 @@ import { cn } from "@/lib/utils";
 ❌ **WRONG:**
 
 ```bash
-npm install tailwindcss@^3.4.0  # v3
+bun add tailwindcss@^3.4.0  # v3
 ```
 
 ✅ **CORRECT:**
 
 ```bash
-npm install tailwindcss@^4.1.0  # v4
-npm install @tailwindcss/vite
+bun add tailwindcss@^4
+# Add @tailwindcss/vite only in actual Vite workspaces.
 ```
 
 ---
@@ -342,8 +345,8 @@ npm install @tailwindcss/vite
 ```json
 {
   "dependencies": {
-    "tailwindcss": "^4.1.0"
-    // Missing @tailwindcss/vite
+    "tailwindcss": "^4",
+    "@tailwindcss/postcss": "^4"
   }
 }
 ```
@@ -353,10 +356,10 @@ npm install @tailwindcss/vite
 ```json
 {
   "dependencies": {
-    "tailwindcss": "^4.1.0",
-    "@tailwindcss/vite": "^4.1.0",
+    "tailwindcss": "^4",
+    "@tailwindcss/postcss": "^4",
     "clsx": "^2.1.1",
-    "tailwind-merge": "^3.3.1"
+    "tailwind-merge": "^3.6.0"
   },
   "devDependencies": {
     "@types/node": "^24.0.0"
@@ -371,7 +374,7 @@ npm install @tailwindcss/vite
 ❌ **WRONG:**
 
 ```bash
-npm install tailwindcss-animate  # Deprecated package
+bun add tailwindcss-animate  # Deprecated package
 ```
 
 ```css
@@ -500,7 +503,7 @@ Before deploying:
 
 - [ ] No `tailwind.config.ts` file (or it's empty)
 - [ ] `components.json` has `"config": ""`
-- [ ] All colors have `hsl()` wrapper in `:root`
+- [ ] Existing OKLCH token values are preserved in `:root`
 - [ ] `@theme inline` maps all variables
 - [ ] `@layer base` doesn't wrap `:root`
 - [ ] Theme provider wraps app

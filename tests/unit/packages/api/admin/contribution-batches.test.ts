@@ -16,7 +16,6 @@ import {
   processContributionBatch,
   processPersistedContributionBatch,
 } from "../../../../../packages/api/src/admin/contribution-batches/process-batch";
-import { batchRequestSchema } from "../../../../../packages/api/src/admin/contribution-batches/route";
 
 describe("bulk contribution action catalog", () => {
   it("allows preview skipping only for configured low-risk actions", () => {
@@ -253,7 +252,12 @@ describe("bulk contribution preview and execution", () => {
     expect(result.results[0]?.taskId).toBe("task_1");
   });
 
-  it("accepts high-risk and large background route inputs", () => {
+  it("accepts high-risk and large background route inputs", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    const { batchRequestSchema } =
+      await import("../../../../../packages/api/src/admin/contribution-batches/route");
+
     const parsed = batchRequestSchema.parse({
       actionType: "refund",
       confirmationToken: "confirm",

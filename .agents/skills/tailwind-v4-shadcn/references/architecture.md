@@ -1,5 +1,7 @@
 # Tailwind v4 + shadcn/ui Theming Architecture
 
+> Asymmetric-al/core note: the repo uses OKLCH token values directly in `packages/ui/styles/globals.css`, keeps `components.json` `tailwind.config` empty, and keeps Next apps on `@tailwindcss/postcss`. Do not copy HSL wrapper examples into this repo or rewrite existing tokens.
+
 ## The Four-Step Pattern
 
 Tailwind v4 requires a specific architecture for CSS variable-based theming. This pattern is **mandatory** - skipping or modifying steps will break your theme.
@@ -8,14 +10,14 @@ Tailwind v4 requires a specific architecture for CSS variable-based theming. Thi
 
 ```css
 :root {
-  --background: hsl(0 0% 100%);
-  --foreground: hsl(222.2 84% 4.9%);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
   /* ... more colors */
 }
 
 .dark {
-  --background: hsl(222.2 84% 4.9%);
-  --foreground: hsl(210 40% 98%);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
   /* ... dark mode colors */
 }
 ```
@@ -23,7 +25,7 @@ Tailwind v4 requires a specific architecture for CSS variable-based theming. Thi
 **Critical Rules:**
 
 - ✅ Define at root level (NOT inside `@layer base`)
-- ✅ Use `hsl()` wrapper on all color values
+- ✅ Preserve the repo's existing OKLCH token format
 - ✅ Use `.dark` for dark mode overrides (NOT `.dark { @theme { } }`)
 - ❌ Never put `:root` or `.dark` inside `@layer base`
 
@@ -48,7 +50,7 @@ Tailwind v4 requires a specific architecture for CSS variable-based theming. Thi
 ```css
 @layer base {
   body {
-    background-color: var(--background); /* NO hsl() wrapper here */
+    background-color: var(--background); /* token already contains a complete color value */
     color: var(--foreground);
   }
 }
@@ -57,7 +59,7 @@ Tailwind v4 requires a specific architecture for CSS variable-based theming. Thi
 **Critical Rules:**
 
 - ✅ Reference variables directly: `var(--background)`
-- ❌ Never double-wrap: `hsl(var(--background))` (already has hsl)
+- ❌ Never double-wrap: `hsl(var(--background))` (the token already contains a complete color value)
 
 ### Step 4: Result - Automatic Dark Mode
 
@@ -77,7 +79,7 @@ With this architecture:
 ```
 CSS Variable Definition → @theme inline Mapping → Tailwind Utility Class
 --background           → --color-background     → bg-background
-(with hsl() wrapper)     (references variable)    (generated class)
+(color value in token)     (references variable)    (generated class)
 ```
 
 ### Dark Mode Switching
@@ -102,7 +104,7 @@ UI updates without re-render
 /* WRONG */
 @layer base {
   :root {
-    --background: hsl(0 0% 100%);
+  --background: oklch(1 0 0);
   }
 }
 ```
@@ -114,12 +116,12 @@ UI updates without re-render
 ```css
 /* WRONG */
 @theme {
-  --color-primary: hsl(0 0% 0%);
+  --color-primary: oklch(0.205 0 0);
 }
 
 .dark {
   @theme {
-    --color-primary: hsl(0 0% 100%);
+    --color-primary: oklch(0.985 0 0);
   }
 }
 ```
@@ -137,7 +139,7 @@ UI updates without re-render
 }
 ```
 
-**Why It Fails:** `--background` already contains `hsl()`, results in `hsl(hsl(...))`.
+**Why It Fails:** `--background` already contains a complete color value, so wrapping it again creates invalid CSS.
 
 ### ❌ Mistake 4: Config-Based Colors
 
@@ -174,8 +176,8 @@ Use semantic names, not color values:
 Every background color needs a foreground:
 
 ```css
---primary: hsl(...);
---primary-foreground: hsl(...);
+--primary: oklch(...);
+--primary-foreground: oklch(...);
 ```
 
 ### 3. WCAG Contrast Ratios
@@ -192,7 +194,7 @@ Charts need separate variables (don't use hsl wrapper in components):
 
 ```css
 :root {
-  --chart-1: hsl(12 76% 61%);
+  --chart-1: oklch(0.646 0.222 41.116);
 }
 
 @theme inline {

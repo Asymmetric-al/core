@@ -9,20 +9,38 @@ user-invocable: true
 
 # Tailwind v4 + shadcn/ui Production Stack
 
+## Asymmetric-al/core Repository Guardrails
+
+This repo is already on Tailwind v4. Preserve the current architecture instead of reinitializing it:
+
+- Use Bun for package and CLI commands.
+- Keep shadcn CLI usage on `shadcn@latest`; do not add or pin `shadcn`.
+- Next apps use `@tailwindcss/postcss` through app `postcss.config.js` files. `@tailwindcss/vite` is Vite-only and must not be added to these Next apps.
+- Keep `packages/ui/components.json` `tailwind.config` as an empty string. Do not add `tailwind.config.ts`.
+- Theme primitives live in `packages/ui/styles/globals.css`; app globals must not duplicate color, radius, chart, sidebar, dark mode, or motion tokens.
+- This repo uses OKLCH token values directly. Do not convert repo tokens to `hsl(var(...))` or HSL wrapper examples.
+- Run `bunx --bun shadcn@latest info --json --cwd packages/ui` before changes, `docs` before component composition, and `add --diff` or `add --dry-run` before component updates.
+- Do not run `shadcn apply`, `shadcn add --overwrite`, or `shadcn add --all` without explicit human approval.
+- Use `@source` only after validation; do not add `@source not` exclusions speculatively.
+
 **Production-tested**: WordPress Auditor (https://wordpress-auditor.webfonts.workers.dev)
 **Last Updated**: 2026-01-20
-**Versions**: tailwindcss@4.1.18, @tailwindcss/vite@4.1.18
+**Asymmetric-al/core versions**: tailwindcss@4.3.0, @tailwindcss/postcss@4.3.0. Use @tailwindcss/vite only in actual Vite workspaces.
 **Status**: Production Ready ✅
 
 ---
 
-## Quick Start (Follow This Exact Order)
+## Generic Vite-Only Quick Start (Do Not Run In This Repo's Next Apps)
+
+This setup is only for a new Vite workspace. In Asymmetric-al/core, the Next
+apps are already configured with `@tailwindcss/postcss`; do not run this setup
+against `apps/admin`, `apps/donor`, or `apps/missionary`.
 
 ```bash
 # 1. Install dependencies
-pnpm add tailwindcss @tailwindcss/vite
-pnpm add -D @types/node tw-animate-css
-pnpm dlx shadcn@latest init
+bun add tailwindcss @tailwindcss/vite
+bun add -d @types/node tw-animate-css
+bunx --bun shadcn@latest init
 
 # 2. Delete v3 config if exists
 rm tailwind.config.ts  # v4 doesn't use this file
@@ -57,9 +75,11 @@ export default defineConfig({
 
 ---
 
-## The Four-Step Architecture (MANDATORY)
+## Four-Step Architecture (Adapt To Repo Tokens)
 
-Skipping steps will break your theme. Follow exactly:
+The structure matters, but color syntax must match the repo. In
+Asymmetric-al/core, preserve the OKLCH tokens already defined in
+`packages/ui/styles/globals.css`.
 
 ### Step 1: Define CSS Variables at Root
 
@@ -69,21 +89,21 @@ Skipping steps will break your theme. Follow exactly:
 @import "tw-animate-css"; /* Required for shadcn/ui animations */
 
 :root {
-  --background: hsl(0 0% 100%); /* ← hsl() wrapper required */
-  --foreground: hsl(222.2 84% 4.9%);
-  --primary: hsl(221.2 83.2% 53.3%);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
   /* ... all light mode colors */
 }
 
 .dark {
-  --background: hsl(222.2 84% 4.9%);
-  --foreground: hsl(210 40% 98%);
-  --primary: hsl(217.2 91.2% 59.8%);
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
   /* ... all dark mode colors */
 }
 ```
 
-**Critical**: Define at root level (NOT inside `@layer base`). Use `hsl()` wrapper.
+**Critical**: Define at root level (NOT inside `@layer base`). Preserve the repo's existing OKLCH token values; do not rewrite them to HSL wrappers.
 
 ### Step 2: Map Variables to Tailwind Utilities
 
@@ -141,7 +161,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 **3. Add Theme Toggle**:
 
 ```bash
-pnpm dlx shadcn@latest add dropdown-menu
+bunx --bun shadcn@latest add dropdown-menu
 ```
 
 See `reference/dark-mode.md` for ModeToggle component.
@@ -152,11 +172,11 @@ See `reference/dark-mode.md` for ModeToggle component.
 
 ### ✅ Always Do:
 
-1. Wrap colors with `hsl()` in `:root`/`.dark`: `--bg: hsl(0 0% 100%);`
+1. Preserve the repo's existing OKLCH token format in `packages/ui/styles/globals.css`; do not rewrite to HSL wrappers.
 2. Use `@theme inline` to map all CSS variables
 3. Set `"tailwind.config": ""` in components.json
 4. Delete `tailwind.config.ts` if exists
-5. Use `@tailwindcss/vite` plugin (NOT PostCSS)
+5. Use `@tailwindcss/vite` only for actual Vite workspaces; keep this repo's Next apps on `@tailwindcss/postcss`.
 
 ### ❌ Never Do:
 
@@ -185,14 +205,14 @@ This skill prevents **8 documented errors**.
 
 ```bash
 # ✅ DO
-pnpm add -D tw-animate-css
+bun add -d tw-animate-css
 
 # Add to src/index.css:
 @import "tailwindcss";
 @import "tw-animate-css";
 
 # ❌ DON'T
-npm install tailwindcss-animate  # v3 only
+bun add tailwindcss-animate  # v3 only; do not use in this repo
 ```
 
 ---
@@ -243,7 +263,7 @@ npm install tailwindcss-animate  # v3 only
 @import "tailwindcss";
 
 :root {
-  --background: hsl(0 0% 100%);
+  --background: oklch(1 0 0);
 }
 
 @theme inline {
@@ -394,7 +414,7 @@ v4 configuration happens in `src/index.css` using `@theme` directive.
 @import "tailwindcss";
 
 :root {
-  --background: hsl(0 0% 100%);
+  --background: oklch(1 0 0);
 }
 
 body {
@@ -411,7 +431,7 @@ body {
 | Symptom                   | Cause                       | Fix                                        |
 | ------------------------- | --------------------------- | ------------------------------------------ |
 | `bg-primary` doesn't work | Missing `@theme inline`     | Add `@theme inline` block                  |
-| Colors all black/white    | Double `hsl()` wrapping     | Use `var(--color)` not `hsl(var(--color))` |
+| Colors all black/white    | Double color wrapping       | Use `var(--color)` not `hsl(var(--color))` |
 | Dark mode not switching   | Missing ThemeProvider       | Wrap app in `<ThemeProvider>`              |
 | Build fails               | `tailwind.config.ts` exists | Delete file                                |
 | Animation errors          | Using `tailwindcss-animate` | Install `tw-animate-css`                   |
@@ -494,7 +514,7 @@ Use `@plugin` directive (NOT `require()` or `@import`):
 **Typography** (for Markdown/CMS content):
 
 ```bash
-pnpm add -D @tailwindcss/typography
+bun add -d @tailwindcss/typography
 ```
 
 ```css
@@ -509,7 +529,7 @@ pnpm add -D @tailwindcss/typography
 **Forms** (cross-browser form styling):
 
 ```bash
-pnpm add -D @tailwindcss/forms
+bun add -d @tailwindcss/forms
 ```
 
 ```css
@@ -539,13 +559,13 @@ pnpm add -D @tailwindcss/forms
 
 ## Setup Checklist
 
-- [ ] `@tailwindcss/vite` installed (NOT postcss)
-- [ ] `vite.config.ts` uses `tailwindcss()` plugin
+- [ ] For Next apps in this repo, `@tailwindcss/postcss` remains configured in `postcss.config.js`
+- [ ] `@tailwindcss/vite` is used only in real Vite workspaces
 - [ ] `components.json` has `"config": ""`
 - [ ] NO `tailwind.config.ts` exists
 - [ ] `src/index.css` follows 4-step pattern:
   - [ ] `:root`/`.dark` at root level (not in @layer)
-  - [ ] Colors wrapped with `hsl()`
+  - [ ] Existing OKLCH token values preserved
   - [ ] `@theme inline` maps all variables
   - [ ] `@layer base` uses unwrapped variables
 - [ ] ThemeProvider wraps app
@@ -608,7 +628,7 @@ Tailwind v4 takes a more minimal approach to Preflight, removing default styles 
 **Option 1: Use @tailwindcss/typography for content pages**:
 
 ```bash
-pnpm add -D @tailwindcss/typography
+bun add -d @tailwindcss/typography
 ```
 
 ```css

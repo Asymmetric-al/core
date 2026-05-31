@@ -2,6 +2,8 @@
 
 Add Tailwind CSS v4 and shadcn/ui to an existing React/Vite project.
 
+> Asymmetric-al/core note: this repo's Next apps are already configured and use `@tailwindcss/postcss`, not `@tailwindcss/vite`. Do not run this setup against `apps/admin`, `apps/donor`, or `apps/missionary`; preserve their existing `postcss.config.js` files and shared `packages/ui/styles/globals.css` import path.
+
 ---
 
 ## Your Task
@@ -20,7 +22,7 @@ If not a Vite project, inform user of requirements.
 ### 2. Install Tailwind v4
 
 ```bash
-npm install tailwindcss @tailwindcss/vite
+bun add tailwindcss @tailwindcss/vite
 ```
 
 ### 3. Configure Vite
@@ -37,7 +39,7 @@ export default defineConfig({
 });
 ```
 
-**Important**: Use `@tailwindcss/vite` plugin, NOT PostCSS.
+**Important**: Use `@tailwindcss/vite` only for Vite projects. For this repo's Next apps, keep `@tailwindcss/postcss`.
 
 ### 4. Create CSS Entry
 
@@ -50,7 +52,7 @@ Create or update `src/index.css`:
 ### 5. Initialize shadcn/ui
 
 ```bash
-npx shadcn@latest init
+bunx --bun shadcn@latest init
 ```
 
 When prompted:
@@ -162,8 +164,8 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
 ### 9. Add First Components
 
 ```bash
-npx shadcn@latest add button
-npx shadcn@latest add card
+bunx --bun shadcn@latest add button
+bunx --bun shadcn@latest add card
 ```
 
 ### 10. Provide Next Steps
@@ -178,8 +180,8 @@ npx shadcn@latest add card
    - Theme provider         (dark/light/system)
 
 🎨 Add components:
-   npx shadcn@latest add <component>
-   npx shadcn@latest add button card input
+   bunx --bun shadcn@latest add <component>
+   bunx --bun shadcn@latest add button card input
 
 ⚠️ Critical Rules:
    - Use semantic colors: bg-primary, text-foreground
@@ -198,5 +200,5 @@ npx shadcn@latest add card
 | v3 Pattern           | v4 Pattern                        |
 | -------------------- | --------------------------------- |
 | `tailwind.config.js` | CSS-based config in `@theme`      |
-| PostCSS plugin       | Vite plugin (`@tailwindcss/vite`) |
+| PostCSS plugin       | Vite plugin for Vite projects; `@tailwindcss/postcss` remains valid for this repo's Next apps |
 | `@apply` everywhere  | Prefer utility classes            |

@@ -1,5 +1,7 @@
 # shadcn/ui audit — 2026-04-21 (MCP + skill)
 
+> Historical reference only. For current Tailwind/shadcn modernization guidance, use `docs/ai/audits/tailwind-shadcn-modernization-2026-05-29.md` and the 2026-05-30 implementation note. Current repo policy is Bun-first, `shadcn@latest`, `info --json` before changes, `docs` before composition work, and `add --diff`/`--dry-run` before component updates. Do not treat the point-in-time `4.4.0` CLI result or npx preference below as current.
+
 This audit follows the repo plan: **shadcn MCP** for registry wiring and catalog operations, **shadcn skill** (Critical Rules: styling, forms, composition, icons, CLI) for severity and remediation framing, plus **CLI** (`npx shadcn@latest`) as the documented companion to the MCP server for `info`, `docs`, `view`, `search`, and `add --dry-run/--diff`.
 
 ## 1. Environment and MCP
@@ -33,6 +35,8 @@ Per [shadcn MCP docs](https://ui.shadcn.com/docs/mcp), the server was initialize
 **Human step:** In Cursor Settings, enable the **shadcn** MCP server (green dot). The agent session used **CLI** for all registry calls because hosted MCP tool names (`list_components`, `get_component_metadata`, …) are not exposed in this runner; behavior matches the same registries the MCP server would use (`components.json` + `@shadcn` URL pattern from `info`).
 
 ### 1.2 Tooling note (Bun vs npx)
+
+> Historical note: this reflected Bun 1.3.4 behavior during the April audit. Current guidance is to try `bunx --bun shadcn@latest` first and use `npx --yes shadcn@latest` only as a documented fallback for read-only commands that hit a Bun cache/runtime issue.
 
 `bunx --bun shadcn@latest search …` failed with `fast-glob` / `./providers/async` under Bun 1.3.4. **`npx --yes shadcn@latest`** was used for `search` / heavy CLI paths. Prefer **npx** for shadcn in CI until Bun compatibility is confirmed.
 

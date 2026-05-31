@@ -3,6 +3,16 @@
 import { motion } from "@asym/lib/motion";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
+import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -14,7 +24,7 @@ import {
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getContributionColumns } from "./columns";
@@ -33,6 +43,14 @@ function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
     ? new globalThis.Date()
     : new globalThis.Date(value);
+}
+
+function formatSelectedContributionCount(count: number): string {
+  return `${count} selected contribution${count === 1 ? "" : "s"}`;
+}
+
+function formatMissingStagedGiftCount(count: number): string {
+  return `${count} missing`;
 }
 
 const smoothTransition = {
@@ -84,6 +102,105 @@ function StatCard({
   );
 }
 
+function BulkReceiptConfirmDialog({
+  onConfirm,
+  onOpenChange,
+  open,
+  rows,
+  submitting,
+}: {
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  rows: Contribution[];
+  submitting: boolean;
+}) {
+  const selectedCount = rows.length;
+  const eligibleCount = rows.filter((row) => row.stagedGiftId).length;
+  const missingStagedGiftCount = selectedCount - eligibleCount;
+  const hasEligibleReceipts = eligibleCount > 0;
+  const actionLabel = submitting
+    ? "Starting batch..."
+    : hasEligibleReceipts
+      ? "Send receipts"
+      : "No eligible receipts";
+
+  return (
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!submitting) {
+          onOpenChange(nextOpen);
+        }
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Send receipts?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will start a receipt resend batch for{" "}
+            {formatSelectedContributionCount(selectedCount)}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="rounded-lg border border-border bg-muted/50 p-4">
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="font-medium text-muted-foreground">
+                Selected contributions
+              </dt>
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {selectedCount}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-muted-foreground">
+                Ready to send
+              </dt>
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {eligibleCount}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-muted-foreground">
+                Missing staged gift id
+              </dt>
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {formatMissingStagedGiftCount(missingStagedGiftCount)}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Contributions missing a staged gift id will be skipped by the batch
+            processor. You will see the succeeded and failed counts after the
+            batch starts.
+          </p>
+          {!hasEligibleReceipts ? (
+            <p className="mt-3 text-sm font-medium text-destructive">
+              No selected contributions have a staged gift id.
+            </p>
+          ) : null}
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={submitting || !hasEligibleReceipts}
+            onClick={(event) => {
+              event.preventDefault();
+              if (!submitting && hasEligibleReceipts) {
+                onConfirm();
+              }
+            }}
+          >
+            {actionLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 export function ContributionsMainBody({
   data,
   isLoading,
@@ -97,6 +214,12 @@ export function ContributionsMainBody({
   needsAttentionGroups?: MissionControlNeedsAttentionGroup[];
   onOpenContributionById?: (contributionId: string) => void;
 }) {
+  const [pendingBulkReceiptRows, setPendingBulkReceiptRows] = useState<
+    Contribution[]
+  >([]);
+  const [isBulkReceiptSubmitting, setIsBulkReceiptSubmitting] = useState(false);
+  const isBulkReceiptSubmittingRef = useRef(false);
+
   const handleViewContribution = useCallback(
     (c: Contribution) => {
       onSelectContribution(c);
@@ -144,18 +267,34 @@ export function ContributionsMainBody({
     toast.info("Bulk delete coming soon.");
   };
 
-  const handleBulkReceipt = async (rows: Contribution[]) => {
+  const handleBulkReceipt = useCallback((rows: Contribution[]) => {
     if (rows.length === 0) {
       return;
     }
+    setPendingBulkReceiptRows(rows);
+  }, []);
 
-    const confirmed = window.confirm(
-      `Send receipts for ${rows.length} selected contribution${rows.length === 1 ? "" : "s"}?`,
-    );
-    if (!confirmed) {
+  const handleBulkReceiptDialogOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open && !isBulkReceiptSubmitting) {
+        setPendingBulkReceiptRows([]);
+      }
+    },
+    [isBulkReceiptSubmitting],
+  );
+
+  const submitBulkReceipt = useCallback(async () => {
+    const rows = pendingBulkReceiptRows;
+    if (
+      rows.length === 0 ||
+      isBulkReceiptSubmittingRef.current ||
+      rows.every((row) => !row.stagedGiftId)
+    ) {
       return;
     }
 
+    isBulkReceiptSubmittingRef.current = true;
+    setIsBulkReceiptSubmitting(true);
     try {
       const response = await fetch("/api/admin/contribution-batches", {
         body: JSON.stringify({
@@ -188,17 +327,29 @@ export function ContributionsMainBody({
       toast.success(
         `Bulk receipt batch ${body.batch?.status ?? "completed"}: ${body.batch?.summary?.succeeded ?? 0} succeeded, ${body.batch?.summary?.failed ?? 0} failed.`,
       );
+      setPendingBulkReceiptRows([]);
     } catch (error) {
       toast.error(
         error instanceof Error
           ? error.message
           : "Could not send receipts in bulk.",
       );
+    } finally {
+      isBulkReceiptSubmittingRef.current = false;
+      setIsBulkReceiptSubmitting(false);
     }
-  };
+  }, [pendingBulkReceiptRows]);
 
   return (
     <div className="space-y-10">
+      <BulkReceiptConfirmDialog
+        onConfirm={submitBulkReceipt}
+        onOpenChange={handleBulkReceiptDialogOpenChange}
+        open={pendingBulkReceiptRows.length > 0}
+        rows={pendingBulkReceiptRows}
+        submitting={isBulkReceiptSubmitting}
+      />
+
       <ContributionNeedsAttentionPanel
         groups={needsAttentionGroups}
         onOpenContribution={(contributionId) => {

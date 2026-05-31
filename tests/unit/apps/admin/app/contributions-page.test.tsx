@@ -1,45 +1,47 @@
 /** @vitest-environment jsdom */
 
-import React from "react";
 import { QueryProvider } from "@asym/database/providers";
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { useAdminContributionsMock, useContributionNeedsAttentionMock } =
-  vi.hoisted(() => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+type ContributionsPageComponent =
+  typeof import("../../../../../apps/admin/app/contributions/page").default;
+type InvalidateContributionOperationQueries =
+  typeof import("../../../../../apps/admin/app/contributions/page-client").invalidateContributionOperationQueries;
+type ContributionsDataModule =
+  typeof import("../../../../../apps/admin/app/contributions/data");
+type UseAdminContributionsModule =
+  typeof import("../../../../../apps/admin/app/contributions/use-admin-contributions");
+type DatabaseHooksModule = typeof import("@asym/database/hooks");
 
-    return {
-      useAdminContributionsMock: vi.fn(),
-      useContributionNeedsAttentionMock: vi.fn(),
-    };
-  });
+const useAdminContributionsMock = vi.fn();
+const useContributionNeedsAttentionMock = vi.fn();
+const ADMIN_CONTRIBUTIONS_QUERY_KEY_VALUE = ["admin", "contributions"] as const;
+const MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY_VALUE = [
+  "admin",
+  "mission-control",
+  "needs-attention",
+] as const;
 
-vi.mock("@asym/database/hooks", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@asym/database/hooks")>();
-  return {
-    ...actual,
-    useContributionNeedsAttention: useContributionNeedsAttentionMock,
-  };
-});
+vi.mock("@asym/database/hooks", () => ({
+  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY:
+    MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY_VALUE,
+  useContributionNeedsAttention: useContributionNeedsAttentionMock,
+}));
 
 vi.mock(
   "../../../../../apps/admin/app/contributions/use-admin-contributions",
-  async (importOriginal) => {
-    const actual =
-      await importOriginal<
-        typeof import("../../../../../apps/admin/app/contributions/use-admin-contributions")
-      >();
+  async () => {
+    const dataModule =
+      await import("../../../../../apps/admin/app/contributions/data");
 
     return {
-      ...actual,
+      ADMIN_CONTRIBUTIONS_QUERY_KEY: ADMIN_CONTRIBUTIONS_QUERY_KEY_VALUE,
+      loadMockAdminContributions: () =>
+        dataModule.mockContributions.map((contribution) => ({
+          ...contribution,
+        })),
       useAdminContributions: useAdminContributionsMock,
     };
   },
@@ -49,21 +51,22 @@ vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
 }));
 
-import ContributionsPage from "../../../../../apps/admin/app/contributions/page";
-import { invalidateContributionOperationQueries } from "../../../../../apps/admin/app/contributions/page-client";
-import {
-  boneyardContributionsFixture,
-  mockContributions,
-} from "../../../../../apps/admin/app/contributions/data";
-import { loadMockAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
-import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
-import { MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY } from "@asym/database/hooks";
+let ContributionsPage: ContributionsPageComponent;
+let ADMIN_CONTRIBUTIONS_QUERY_KEY: UseAdminContributionsModule["ADMIN_CONTRIBUTIONS_QUERY_KEY"];
+let MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY: DatabaseHooksModule["MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY"];
+let boneyardContributionsFixture: ContributionsDataModule["boneyardContributionsFixture"];
+let dom: JSDOM | undefined;
+let fetchDescriptor: PropertyDescriptor | undefined;
+let loadMockAdminContributions: UseAdminContributionsModule["loadMockAdminContributions"];
+let mockContributions: ContributionsDataModule["mockContributions"];
+let windowConfirmDescriptor: PropertyDescriptor | undefined;
+let invalidateContributionOperationQueries: InvalidateContributionOperationQueries;
 
 function mockQuery(partial: Record<string, unknown>) {
   return {
     isError: false,
     isPending: false,
-    data: undefined as typeof mockContributions | undefined,
+    data: undefined,
     error: null as Error | null,
     refetch: vi.fn().mockResolvedValue({}),
     ...partial,
@@ -78,15 +81,119 @@ function renderContributionsPage() {
   );
 }
 
+function installDom() {
+  dom = new JSDOM("<!doctype html><html><body></body></html>", {
+    url: "http://localhost",
+  });
+
+  globalThis.window = dom.window as unknown as Window & typeof globalThis;
+  globalThis.document = dom.window.document;
+  globalThis.HTMLElement = dom.window.HTMLElement;
+  globalThis.HTMLButtonElement = dom.window.HTMLButtonElement;
+  globalThis.HTMLInputElement = dom.window.HTMLInputElement;
+  globalThis.HTMLTextAreaElement = dom.window.HTMLTextAreaElement;
+  globalThis.SVGElement = dom.window.SVGElement;
+  globalThis.Element = dom.window.Element;
+  globalThis.Node = dom.window.Node;
+  globalThis.Event = dom.window.Event;
+  globalThis.CustomEvent = dom.window.CustomEvent;
+  globalThis.DocumentFragment = dom.window.DocumentFragment;
+  globalThis.EventTarget = dom.window.EventTarget;
+  globalThis.NodeFilter = dom.window.NodeFilter;
+  globalThis.MouseEvent = dom.window.MouseEvent;
+  globalThis.KeyboardEvent = dom.window.KeyboardEvent;
+  globalThis.MutationObserver = dom.window.MutationObserver;
+  globalThis.getComputedStyle = dom.window.getComputedStyle;
+  globalThis.requestAnimationFrame = (callback) =>
+    window.setTimeout(callback, 0);
+  globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
+
+  Object.defineProperty(globalThis, "navigator", {
+    configurable: true,
+    value: dom.window.navigator,
+  });
+  Object.defineProperty(globalThis.window, "matchMedia", {
+    configurable: true,
+    value: vi.fn().mockImplementation((query: string) => ({
+      matches: false,
+      media: query,
+      onchange: null,
+      addListener: vi.fn(),
+      removeListener: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      dispatchEvent: vi.fn(),
+    })),
+  });
+  globalThis.ResizeObserver = class {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  };
+
+  windowConfirmDescriptor =
+    typeof window === "undefined"
+      ? undefined
+      : Object.getOwnPropertyDescriptor(window, "confirm");
+}
+
+async function loadEnvSensitiveModules() {
+  process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+
+  const [
+    contributionsPageModule,
+    pageClientModule,
+    dataModule,
+    useAdminContributionsModule,
+    databaseHooksModule,
+  ] = await Promise.all([
+    import("../../../../../apps/admin/app/contributions/page"),
+    import("../../../../../apps/admin/app/contributions/page-client"),
+    import("../../../../../apps/admin/app/contributions/data"),
+    import("../../../../../apps/admin/app/contributions/use-admin-contributions"),
+    import("@asym/database/hooks"),
+  ]);
+
+  ContributionsPage = contributionsPageModule.default;
+  invalidateContributionOperationQueries =
+    pageClientModule.invalidateContributionOperationQueries;
+  boneyardContributionsFixture = dataModule.boneyardContributionsFixture;
+  mockContributions = dataModule.mockContributions;
+  loadMockAdminContributions =
+    useAdminContributionsModule.loadMockAdminContributions;
+  ADMIN_CONTRIBUTIONS_QUERY_KEY =
+    useAdminContributionsModule.ADMIN_CONTRIBUTIONS_QUERY_KEY;
+  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY =
+    databaseHooksModule.MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY;
+}
+
 describe("apps/admin/app/contributions/page", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
-    vi.unstubAllGlobals();
+    if (fetchDescriptor) {
+      Object.defineProperty(globalThis, "fetch", fetchDescriptor);
+    } else {
+      Reflect.deleteProperty(globalThis, "fetch");
+    }
+    if (typeof window !== "undefined") {
+      if (windowConfirmDescriptor) {
+        Object.defineProperty(window, "confirm", windowConfirmDescriptor);
+      } else {
+        Reflect.deleteProperty(window, "confirm");
+      }
+    }
+    dom?.window.close();
+    dom = undefined;
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
     delete process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK;
+    fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
+    installDom();
+    await loadEnvSensitiveModules();
+
     useAdminContributionsMock.mockReset();
     useAdminContributionsMock.mockReturnValue(
       mockQuery({
@@ -103,46 +210,21 @@ describe("apps/admin/app/contributions/page", () => {
         isPending: false,
       }),
     );
-
-    vi.stubGlobal(
-      "matchMedia",
-      vi.fn().mockImplementation((query: string) => ({
-        matches: false,
-        media: query,
-        onchange: null,
-        addListener: vi.fn(),
-        removeListener: vi.fn(),
-        addEventListener: vi.fn(),
-        removeEventListener: vi.fn(),
-        dispatchEvent: vi.fn(),
-      })),
-    );
-
-    vi.stubGlobal(
-      "ResizeObserver",
-      class {
-        observe() {}
-        unobserve() {}
-        disconnect() {}
-      },
-    );
-  });
+  }, 30_000);
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");
   });
 
   it("renders contributions shell with empty data", async () => {
-    renderContributionsPage();
+    const view = renderContributionsPage();
 
     await waitFor(() => {
-      expect(
-        screen.getByRole("heading", { name: "Contributions" }),
-      ).toBeTruthy();
+      expect(view.getByRole("heading", { name: "Contributions" })).toBeTruthy();
     });
 
-    expect(screen.getByTestId("mc-contributions-live")).toBeTruthy();
-    expect(screen.getByText("No contributions found")).toBeTruthy();
+    expect(view.getByTestId("mc-contributions-live")).toBeTruthy();
+    expect(view.getByText("No contributions found")).toBeTruthy();
   });
 
   it("shows load failed and retry when the query is in error state", () => {
@@ -155,12 +237,12 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    renderContributionsPage();
+    const view = renderContributionsPage();
 
-    expect(screen.getByRole("heading", { name: "Load failed" })).toBeTruthy();
-    expect(screen.getByText("Upstream unavailable")).toBeTruthy();
-    expect(screen.getByRole("button", { name: /retry/i })).toBeTruthy();
-    expect(screen.queryByText("Sarah Mitchell")).toBeNull();
+    expect(view.getByRole("heading", { name: "Load failed" })).toBeTruthy();
+    expect(view.getByText("Upstream unavailable")).toBeTruthy();
+    expect(view.getByRole("button", { name: /retry/i })).toBeTruthy();
+    expect(view.queryByText("Sarah Mitchell")).toBeNull();
   });
 
   it("renders contribution rows when the query succeeds", () => {
@@ -174,10 +256,10 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    renderContributionsPage();
+    const view = renderContributionsPage();
 
-    expect(screen.getByText(rows[0]!.donorName!)).toBeTruthy();
-    expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
+    expect(view.getByText(rows[0]!.donorName!)).toBeTruthy();
+    expect(view.queryByRole("heading", { name: "Load failed" })).toBeNull();
   });
 
   it("renders Needs Attention groups from Mission Control task state", () => {
@@ -223,11 +305,11 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    renderContributionsPage();
+    const view = renderContributionsPage();
 
-    expect(screen.getByText("Needs Attention")).toBeTruthy();
-    expect(screen.getByText("Donor notification")).toBeTruthy();
-    expect(screen.getByText("Donor correction email failed")).toBeTruthy();
+    expect(view.getByText("Needs Attention")).toBeTruthy();
+    expect(view.getByText("Donor notification")).toBeTruthy();
+    expect(view.getByText("Donor correction email failed")).toBeTruthy();
   });
 
   it("loads contribution detail when an attention item is outside the current table rows", async () => {
@@ -352,11 +434,14 @@ describe("apps/admin/app/contributions/page", () => {
         },
       }),
     });
-    vi.stubGlobal("fetch", fetchMock);
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
 
-    renderContributionsPage();
+    const view = renderContributionsPage();
 
-    fireEvent.click(screen.getByRole("button", { name: /open contribution/i }));
+    fireEvent.click(view.getByRole("button", { name: /open contribution/i }));
 
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
@@ -364,7 +449,7 @@ describe("apps/admin/app/contributions/page", () => {
         { headers: { accept: "application/json" } },
       );
     });
-    expect(await screen.findByText("Remote Donor")).toBeTruthy();
+    expect(await view.findByText("Remote Donor")).toBeTruthy();
   });
 
   it("invalidates contributions and Needs Attention after contribution mutations", async () => {
@@ -392,11 +477,13 @@ describe("apps/admin/app/contributions/page", () => {
       }),
     );
 
-    const { container } = renderContributionsPage();
+    const view = renderContributionsPage();
 
-    expect(screen.queryByRole("heading", { name: "Load failed" })).toBeNull();
+    expect(view.queryByRole("heading", { name: "Load failed" })).toBeNull();
     expect(
-      container.querySelector('[data-boneyard="admin-contributions-content"]'),
+      view.container.querySelector(
+        '[data-boneyard="admin-contributions-content"]',
+      ),
     ).toBeTruthy();
   });
 

@@ -11,7 +11,7 @@ Claude's training may reference Tailwind v3 patterns. This project uses **Tailwi
 ### Configuration
 
 - **No `tailwind.config.ts`** - v4 uses CSS-first config with `@theme` blocks
-- **No PostCSS setup** - Use `@tailwindcss/vite` plugin instead
+- **PostCSS is correct for this repo's Next apps** - use `@tailwindcss/vite` only for real Vite workspaces
 - **`components.json`** must have `"config": ""` (empty string)
 
 ### CSS Syntax
@@ -47,10 +47,10 @@ theme: {
 
 ```bash
 # ❌ v3 package (deprecated for v4)
-pnpm add tailwindcss-animate
+bun add tailwindcss-animate
 
 # ✅ v4 package
-pnpm add -D tw-animate-css
+bun add -d tw-animate-css
 ```
 
 ```css
@@ -89,13 +89,13 @@ CSS variables must follow this structure:
 ```css
 /* 1. Define at root (NOT inside @layer base) */
 :root {
-  --background: hsl(0 0% 100%); /* hsl() wrapper required */
-  --primary: hsl(221.2 83.2% 53.3%);
+  --background: oklch(1 0 0);
+  --primary: oklch(0.205 0 0);
 }
 
 .dark {
-  --background: hsl(222.2 84% 4.9%);
-  --primary: hsl(217.2 91.2% 59.8%);
+  --background: oklch(0.145 0 0);
+  --primary: oklch(0.922 0 0);
 }
 
 /* 2. Map to Tailwind utilities */
@@ -128,4 +128,4 @@ CSS variables must follow this structure:
 | `tailwindcss-animate` | `tw-animate-css`                 |
 | `require('@plugin')`  | `@plugin "@plugin"`              |
 | `@apply`              | Direct CSS or utility classes    |
-| `hsl(var(--color))`   | `var(--color)` (already has hsl) |
+| `hsl(var(--color))`   | `var(--color)` (repo tokens already contain color values) |

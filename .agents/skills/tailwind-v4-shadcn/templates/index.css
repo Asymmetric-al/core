@@ -1,6 +1,12 @@
 @import "tailwindcss";
 
 /*
+  Asymmetric-al/core note:
+  Do not copy this template into the repo's Next app globals. Use
+  packages/ui/styles/globals.css as the shared source of truth instead.
+  The repo uses OKLCH tokens directly and must not duplicate theme
+  primitives in app globals.
+
   Tailwind v4 + shadcn/ui Dark Mode Pattern
   Based on: https://ui.shadcn.com/docs/tailwind-v4
 
@@ -8,7 +14,7 @@
   1. Define CSS variables at root level (NOT in @layer base)
   2. Use .dark for dark mode overrides (NOT in @theme)
   3. Use @theme inline to map variables to Tailwind utilities
-  4. All color values must use hsl() wrapper
+  4. Generic template values may use hsl(); Asymmetric-al/core tokens use OKLCH directly
 */
 
 /* Light mode colors - Define at root level */

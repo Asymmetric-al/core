@@ -13,6 +13,7 @@ import { Separator } from "@asym/ui/components/shadcn/separator";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetTitle,
 } from "@asym/ui/components/shadcn/sheet";
 import { cn } from "@asym/ui/lib/utils";
@@ -136,6 +137,10 @@ export function ContributionDetailSheet({
             <DollarSign className="size-4 text-muted-foreground" aria-hidden />
             Contribution Details
           </SheetTitle>
+          <SheetDescription className="sr-only">
+            Contribution details for {donorDisplayName}, including donor,
+            receipt, staged gift, and payment information.
+          </SheetDescription>
           <Button
             variant="ghost"
             size="icon"

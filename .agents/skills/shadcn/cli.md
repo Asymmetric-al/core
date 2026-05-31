@@ -2,7 +2,7 @@
 
 Configuration is read from `components.json`.
 
-> **IMPORTANT:** Always run commands using the project's package runner: `npx shadcn@latest`, `pnpm dlx shadcn@latest`, or `bunx --bun shadcn@latest`. Check `packageManager` from project context to choose the right one. Examples below use `npx shadcn@latest` but substitute the correct runner for the project.
+> **IMPORTANT:** In Asymmetric-al/core, use `bunx --bun shadcn@latest` by default and keep the CLI on `shadcn@latest`. Do not add or pin `shadcn` as a dependency. Use `npx --yes shadcn@latest` only as a documented fallback for read-only commands when Bun hits a cache/runtime issue.
 
 > **IMPORTANT:** Only use the flags documented below. Do not invent or guess flags — if a flag isn't listed here, it doesn't exist. The CLI auto-detects the package manager from the project's lockfile; there is no `--package-manager` flag.
 
@@ -50,6 +50,8 @@ npx shadcn@latest apply [preset] [options]
 
 Applies a preset to an existing project, overwriting preset-driven config, fonts, CSS variables, and detected UI components.
 
+In Asymmetric-al/core, do not run `apply` unless the human explicitly requests a preset/theme application. Normal component maintenance should use `info --json`, `docs`, `add --diff`, and `add --dry-run`.
+
 | Flag                | Short | Description                                | Default |
 | ------------------- | ----- | ------------------------------------------ | ------- |
 | `--preset <preset>` | —     | Preset configuration (named, code, or URL) | —       |
@@ -62,7 +64,7 @@ If no preset is provided, the CLI offers to open the custom preset builder on `u
 
 ### `add` — Add components
 
-> **IMPORTANT:** To compare local components against upstream or to preview changes, ALWAYS use `npx shadcn@latest add <component> --dry-run`, `--diff`, or `--view`. NEVER fetch raw files from GitHub or other sources manually. The CLI handles registry resolution, file paths, and CSS diffing automatically.
+> **IMPORTANT:** To compare local components against upstream or to preview changes, ALWAYS use `bunx --bun shadcn@latest add <component> --dry-run`, `--diff`, or `--view`. NEVER fetch raw files from GitHub or other sources manually. The CLI handles registry resolution, file paths, and CSS diffing automatically.
 
 ```bash
 npx shadcn@latest add [components...] [options]
@@ -73,9 +75,9 @@ Accepts component names, registry-prefixed names (`@magicui/shimmer-button`), UR
 | Flag            | Short | Description                                                                                                          | Default |
 | --------------- | ----- | -------------------------------------------------------------------------------------------------------------------- | ------- |
 | `--yes`         | `-y`  | Skip confirmation prompt                                                                                             | `false` |
-| `--overwrite`   | `-o`  | Overwrite existing files                                                                                             | `false` |
+| `--overwrite`   | `-o`  | Overwrite existing files. Do not use without explicit human approval.                                                 | `false` |
 | `--cwd <cwd>`   | `-c`  | Working directory                                                                                                    | current |
-| `--all`         | `-a`  | Add all available components                                                                                         | `false` |
+| `--all`         | `-a`  | Add all available components. Do not use without explicit human approval.                                             | `false` |
 | `--path <path>` | `-p`  | Target path for the component                                                                                        | —       |
 | `--silent`      | `-s`  | Mute output                                                                                                          | `false` |
 | `--dry-run`     |       | Preview all changes without writing files                                                                            | `false` |
@@ -181,6 +183,7 @@ npx shadcn@latest info [options]
 ```
 
 Displays project info and `components.json` configuration. Run this first to discover the project's framework, aliases, Tailwind version, and resolved paths.
+In Asymmetric-al/core, run `bunx --bun shadcn@latest info --json --cwd packages/ui` before shadcn changes.
 
 | Flag          | Short | Description       | Default |
 | ------------- | ----- | ----------------- | ------- |
@@ -262,15 +265,15 @@ Three ways to specify a preset via `--preset`:
 2. **Code:** `--preset a2r6bw` (version-prefixed base62 string, e.g. `a2r6bw` or `b0`)
 3. **URL:** `--preset "https://ui.shadcn.com/init?base=radix&style=nova&..."`
 
-> **IMPORTANT:** Never try to decode, fetch, or resolve preset codes manually. Preset codes are opaque — pass them directly to `npx shadcn@latest init --preset <code>` and let the CLI handle resolution.
-> Use `npx shadcn@latest apply --preset <code>` when overwriting an existing project's preset.
+> **IMPORTANT:** Never try to decode, fetch, or resolve preset codes manually. Preset codes are opaque — pass them directly to `bunx --bun shadcn@latest init --preset <code>` and let the CLI handle resolution.
+> Use `apply` only when the human explicitly approves overwriting preset-driven project files.
 
 ## Switching Presets
 
 Ask the user first: **overwrite**, **merge**, or **skip** existing components?
 
-- **Overwrite / Re-install** → `npx shadcn@latest apply --preset <code>`. Overwrites all detected component files with the new preset styles. Use when the user hasn't customized components.
-- **Merge** → `npx shadcn@latest init --preset <code> --force --no-reinstall`, then run `npx shadcn@latest info` to get the list of installed components and use the [smart merge workflow](./SKILL.md#updating-components) to update them one by one, preserving local changes. Use when the user has customized components.
-- **Skip** → `npx shadcn@latest init --preset <code> --force --no-reinstall`. Only updates config and CSS variables, leaves existing components as-is.
+- **Overwrite / Re-install** → only after explicit human approval; this overwrites detected component files with the new preset styles.
+- **Merge** → `bunx --bun shadcn@latest init --preset <code> --force --no-reinstall`, then run `bunx --bun shadcn@latest info --json` to get the list of installed components and use the [smart merge workflow](./SKILL.md#updating-components) to update them one by one, preserving local changes. Use when the user has customized components.
+- **Skip** → `bunx --bun shadcn@latest init --preset <code> --force --no-reinstall`. Only updates config and CSS variables, leaves existing components as-is.
 
 Always run preset commands inside the user's project directory. `apply` only works in an existing project with a `components.json` file. The CLI automatically preserves the current base (`base` vs `radix`) from `components.json`. If you must use a scratch/temp directory (e.g. for `--dry-run` comparisons), pass `--base <current-base>` explicitly — preset codes do not encode the base.

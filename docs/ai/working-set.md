@@ -1,5 +1,58 @@
 # Working Set
 
+## 2026-05-31 (Automation POST route boundary validation)
+
+- Date: 2026-05-31
+- Repo: Asymmetric-al/core
+- Goal: Move Mission Control automation POST request shape validation to the API
+  route boundary with Zod, preserving wrapped and direct rule payloads while
+  removing loose casts and caller-supplied activation readiness trust.
+- Primary area:
+  - `packages/api/src/admin/mission-control-automations/route.ts`
+  - `packages/api/src/admin/mission-control-automations/schemas.ts`
+  - `packages/api/src/admin/mission-control-automations/store.ts`
+  - `tests/unit/packages/api/admin/mission-control-automations.test.ts`
+- Stack:
+  - Next.js 16 App Router
+  - TypeScript
+  - Zod
+  - Supabase Postgres
+  - Bun
+  - Vitest
+- Constraints:
+  - Keep `apps/*/app/api/**` routes thin and API logic under `packages/api`.
+  - Do not change schema, automation executor behavior, or activation readiness
+    logic beyond removing client trust at the POST boundary.
+  - Keep store-level validation as defense in depth.
+  - Commit the scoped API boundary fix after validation passes.
+
+## 2026-05-30 (Contribution Hub bulk receipt confirmation)
+
+- Date: 2026-05-30
+- Repo: Asymmetric-al/core
+- Goal: Replace the Contribution Hub bulk receipt native `window.confirm` with
+  the existing app AlertDialog while preserving the current contribution batch
+  POST behavior.
+- Primary area:
+  - `apps/admin/app/contributions/main-body.tsx`
+  - `tests/unit/apps/admin/app/contributions-main-body.test.tsx`
+  - `packages/ui/components/shadcn/alert-dialog.tsx`
+- Stack:
+  - Next.js 16 App Router
+  - React 19
+  - TypeScript
+  - shadcn/ui
+  - Base UI
+  - Tailwind CSS v4
+  - Vitest
+  - Bun
+- Constraints:
+  - Keep the patch focused on bulk receipt confirmation only.
+  - Do not change backend batch APIs, schema, or DataTableResponsive APIs.
+  - Use semantic design tokens in new dialog UI.
+  - Preserve accessibility basics: title, description, focus/keyboard behavior,
+    clear labels, and duplicate-submit prevention.
+
 ## 2026-05-23 (PR 241 babysit review feedback)
 
 - Date: 2026-05-23
