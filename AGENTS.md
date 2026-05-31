@@ -2,7 +2,7 @@
 
 # Next.js: ALWAYS read docs before coding
 
-Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated. The docs are the source of truth.
+Before any Next.js work, find and read the relevant doc in `node_modules/next/dist/docs/`. Your training data is outdated — the docs are the source of truth. For a semantic index of all Next.js documentation, see https://nextjs.org/docs/llms.txt (bundled tree mirrors the site under `node_modules/next/dist/docs/`).
 
 <!-- END:nextjs-agent-rules -->
 
@@ -13,6 +13,7 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
 - Keep both generated marker regions intact:
   - `<!-- BEGIN:nextjs-agent-rules --> ... <!-- END:nextjs-agent-rules -->`
   - `<!-- NEXT-AGENTS-MD-START --> ... <!-- NEXT-AGENTS-MD-END -->`
+- When `node_modules/next/dist/docs/` is installed, it is the version-matched API source of truth; committed `.next-docs/` and the compressed index at the end of this file are fallbacks when `node_modules` is missing (e.g. sandboxes).
 
 ## Source-of-truth order
 
