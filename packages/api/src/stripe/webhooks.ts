@@ -2,6 +2,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
 
+import { STRIPE_API_VERSION } from "./api-version";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -13,7 +14,6 @@ import {
   stageGiftFromStripeDonation,
 } from "../giving/staged-gifts";
 
-const STRIPE_API_VERSION = "2025-02-24.acacia";
 const TERMINAL_PAID_STATUSES = new Set(["completed", "refunded"]);
 
 type SupabaseAdminClient = NonNullable<

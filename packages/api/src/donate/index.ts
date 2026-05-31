@@ -13,9 +13,10 @@ import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
+import { STRIPE_API_VERSION } from "../stripe/api-version";
 
 function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
+  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
 }
 
 function parseRpcObject<T extends Record<string, unknown>>(

@@ -10,6 +10,7 @@ import Stripe from "stripe";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { STRIPE_API_VERSION } from "../stripe/api-version";
 
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
@@ -18,7 +19,7 @@ function getSupabaseAdmin() {
 }
 
 function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
+  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
 }
 
 function parseRpcObject<T extends Record<string, unknown>>(

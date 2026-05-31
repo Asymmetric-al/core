@@ -9,9 +9,10 @@ import Stripe from "stripe";
 
 import { processDueDonationSagaOutboxEvents } from "./saga";
 import { toErrorResponse } from "../shared/http-errors";
+import { STRIPE_API_VERSION } from "../stripe/api-version";
 
 function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
+  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
 }
 
 function parseLimit(request: NextRequest, fallback = 10): number {

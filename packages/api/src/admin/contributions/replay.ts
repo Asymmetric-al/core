@@ -12,6 +12,7 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+import { STRIPE_API_VERSION } from "../../stripe/api-version";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -23,8 +24,6 @@ import {
   markStripeRawEventForReplay,
 } from "../../stripe/replay";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
-
-const STRIPE_API_VERSION = "2025-02-24.acacia";
 
 const replaySchema = z
   .object({
