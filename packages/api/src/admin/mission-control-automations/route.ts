@@ -1,16 +1,24 @@
 import { NextResponse } from "next/server";
+import { z } from "zod";
 
 import { assertAutomationPermission } from "./permissions";
+import { automationRuleSchema } from "./schemas";
 import {
   loadMissionControlAutomationDashboard,
   saveMissionControlAutomationRule,
 } from "./store";
-import {
-  ApiHttpError,
-  ensureJsonBody,
-  toErrorResponse,
-} from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+
+const automationPostBodySchema = z.union([
+  z.object({ rule: automationRuleSchema }),
+  automationRuleSchema,
+]);
+
+function parseAutomationPostBody(body: unknown) {
+  const parsed = automationPostBodySchema.parse(body);
+  return "rule" in parsed ? parsed.rule : parsed;
+}
 
 export const GET = withOperation(
   async ({ auth, requestId, supabaseAdmin }) => {
@@ -33,29 +41,16 @@ export const POST = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
       assertAutomationPermission(auth);
-      const body = (await ensureJsonBody(request)) as Record<string, unknown>;
-      const rule =
-        "rule" in body && typeof body.rule === "object" && body.rule
-          ? body.rule
-          : body;
+      const rule = parseAutomationPostBody(await ensureJsonBody(request));
       const automationRule = await saveMissionControlAutomationRule({
         supabaseAdmin,
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
-        rule: rule as never,
-        activationReady:
-          "activationReady" in body &&
-          typeof body.activationReady === "object" &&
-          body.activationReady
-            ? (body.activationReady as never)
-            : undefined,
+        rule,
       });
 
       return NextResponse.json({ automationRule, requestId }, { status: 201 });
     } catch (error) {
-      if (error instanceof ApiHttpError) {
-        return toErrorResponse(error, "Failed to save automation.", requestId);
-      }
       return toErrorResponse(error, "Failed to save automation.", requestId);
     }
   },
