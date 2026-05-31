@@ -2,8 +2,8 @@
 
 Domain language and architectural decisions are scoped per feature area. Engineering skills (`diagnose`, `tdd`, `improve-codebase-architecture`, `grill-with-docs`, etc.) should read this map before exploring code.
 
-| Context ID | When to use | `CONTEXT.md` | ADRs |
-| ---------- | ----------- | ------------ | ---- |
+| Context ID                            | When to use                                                                                                                      | `CONTEXT.md`                                                                                                                   | ADRs                                                                                                                         |
+| ------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | `mission-control/contribution-detail` | Mission Control contribution detail UI/API, gifts, donations, designation lines, receipts, correction approval, CRM gift history | [`docs/features/mission-control/contribution-detail/CONTEXT.md`](docs/features/mission-control/contribution-detail/CONTEXT.md) | [`docs/features/mission-control/contribution-detail/docs/adr/`](docs/features/mission-control/contribution-detail/docs/adr/) |
 
 ## Adding a context
