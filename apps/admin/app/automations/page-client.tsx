@@ -28,6 +28,7 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -289,17 +290,20 @@ function AutomationRulesCard({
             </CardDescription>
           </div>
           <div className="relative w-full sm:w-56">
-            <label className="sr-only" htmlFor="automation-rule-filter">
+            <Label className="sr-only" htmlFor="automation-rule-filter">
               Filter automation rules
-            </label>
-            <Search className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
+            </Label>
+            <Search
+              aria-hidden="true"
+              className="pointer-events-none absolute left-2.5 top-2.5 size-3.5 text-muted-foreground"
+            />
             <Input
-              aria-label="Filter automation rules"
               className="h-8 bg-background pl-8 text-xs"
               disabled={isLoading || isBlocked || allRuleCount === 0}
               id="automation-rule-filter"
               onChange={(event) => onSearchChange(event.target.value)}
               placeholder="Filter rules..."
+              type="search"
               value={search}
             />
           </div>

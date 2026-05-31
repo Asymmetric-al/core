@@ -27,6 +27,13 @@ const emptySummary = {
   integrationHealthBacked: false,
 };
 
+const pendingControlLabels = [
+  "View All Flows",
+  "Manage Connections",
+  "History",
+  "New Flow",
+] as const;
+
 function readRepoFile(path: string) {
   return readFileSync(join(repoRoot, path), "utf8");
 }
@@ -139,6 +146,27 @@ describe("apps/admin/app/automations/page-client", () => {
     expect(view.queryByText("mobilize.advance-to-interview")).toBeNull();
   });
 
+  it("associates the automation rules filter with a real label", () => {
+    const view = render(
+      <AutomationsPageView
+        automationRules={[]}
+        isError={false}
+        isLoading={false}
+        summary={emptySummary}
+      />,
+    );
+
+    const filterInput = view.getByRole("searchbox", {
+      name: /filter automation rules/i,
+    });
+
+    expect(filterInput.getAttribute("id")).toBe("automation-rule-filter");
+    expect(
+      view.container.querySelector('label[for="automation-rule-filter"]')
+        ?.textContent,
+    ).toContain("Filter automation rules");
+  });
+
   it("renders real summary values and real automation rules", async () => {
     const automationRules: Parameters<FilterAutomationRules>[0] = [
       {
@@ -215,6 +243,23 @@ describe("apps/admin/app/automations/page-client", () => {
     expect(view.queryByText("Postmark")).toBeNull();
   });
 
+  it("does not render pending automation controls as fake actions", () => {
+    const view = render(
+      <AutomationsPageView
+        automationRules={[]}
+        isError={false}
+        isLoading={false}
+        summary={emptySummary}
+      />,
+    );
+
+    for (const label of pendingControlLabels) {
+      expect(view.queryByRole("button", { name: label })).toBeNull();
+      expect(view.queryByRole("link", { name: label })).toBeNull();
+      expect(view.queryByText(label)).toBeNull();
+    }
+  });
+
   it("does not keep production fallback demo data in the page source", () => {
     const source = readRepoFile("apps/admin/app/automations/page-client.tsx");
 
@@ -227,6 +272,7 @@ describe("apps/admin/app/automations/page-client", () => {
       "Issue Detected",
       "most active",
       "MoreHorizontal",
+      ...pendingControlLabels,
     ]) {
       expect(source).not.toContain(banned);
     }
