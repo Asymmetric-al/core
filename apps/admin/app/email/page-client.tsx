@@ -185,8 +185,6 @@ function emailStudioUiReducer(
 
 interface EmailStudioHeaderProps {
   metadata: EmailMetadata;
-  builder: EmailBuilderKind;
-  legacyUnlayerEnabled: boolean;
   hasUnsavedChanges: boolean;
   isEditorReady: boolean;
   isSaving: boolean;
@@ -206,8 +204,6 @@ interface EmailStudioHeaderProps {
 
 function EmailStudioHeader({
   metadata,
-  builder,
-  legacyUnlayerEnabled,
   hasUnsavedChanges,
   isEditorReady,
   isSaving,
@@ -237,11 +233,7 @@ function EmailStudioHeader({
         </div>
 
         <div className="hidden md:block">
-          <EmailStudioProviderStatus
-            builder={builder}
-            legacyUnlayerEnabled={legacyUnlayerEnabled}
-            variant="badge"
-          />
+          <EmailStudioProviderStatus variant="badge" />
         </div>
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
@@ -785,7 +777,7 @@ function EmailTemplatePickerDialog({
                     <div className="mt-0.5 text-xs text-muted-foreground">
                       {template.builder === "react_email"
                         ? "React Email"
-                        : "Legacy Unlayer"}{" "}
+                        : "Legacy (read-only)"}{" "}
                       · v{template.version}
                     </div>
                   </div>
@@ -915,9 +907,6 @@ export default function EmailStudio() {
     emailStudioUiReducer,
     INITIAL_EMAIL_STUDIO_UI_STATE,
   );
-  const [builder, setBuilder] = useState<EmailBuilderKind>(
-    runtimeConfig.builder.defaultBuilder,
-  );
   const [initialDesign, setInitialDesign] = useState<Record<string, unknown>>(
     EMPTY_REACT_EMAIL_DESIGN,
   );
@@ -1004,13 +993,9 @@ export default function EmailStudio() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleEditorReady = useCallback(
-    (readyBuilder: EmailBuilderKind) => {
-      setBuilder(readyBuilder);
-      dispatchUi({ type: "editor_ready", config: runtimeConfig });
-    },
-    [runtimeConfig],
-  );
+  const handleEditorReady = useCallback(() => {
+    dispatchUi({ type: "editor_ready", config: runtimeConfig });
+  }, [runtimeConfig]);
 
   const handleDesignUpdate = useCallback(() => {
     dispatchUi({ type: "set_unsaved_changes", value: true });
@@ -1106,10 +1091,9 @@ export default function EmailStudio() {
       editorRef.current.loadDesign(EMPTY_REACT_EMAIL_DESIGN);
     }
     setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
-    setBuilder(runtimeConfig.builder.defaultBuilder);
     dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New template created");
-  }, [runtimeConfig.builder.defaultBuilder]);
+  }, []);
 
   const handleInsertMergeTag = useCallback((key: string) => {
     editorRef.current?.insertMergeTag?.(key);
@@ -1137,25 +1121,42 @@ export default function EmailStudio() {
 
   const handleSelectTemplate = useCallback(
     (template: EmailTemplateListEntry) => {
-      const isSameBuilder = template.builder === builder;
+      // Legacy Unlayer templates can no longer be edited in Email Studio.
+      // Open them read-only by previewing their cached HTML/text so the
+      // content stays viewable and safe from accidental overwrite.
+      if (template.builder !== "react_email") {
+        setPreviewResult({
+          builder: template.builder,
+          builderVersion: template.builder_version ?? "",
+          design: template.design_json,
+          html: template.html_content ?? "",
+          text: template.text_content ?? "",
+          subject: template.default_subject ?? "",
+          preheader: template.default_preheader ?? "",
+        });
+        setShowTemplatePicker(false);
+        toast.info("Legacy template opened read-only", {
+          description:
+            "Unlayer templates can't be edited in React Email. Showing a preview.",
+        });
+        return;
+      }
+
       setInitialDesign(template.design_json);
-      setBuilder(template.builder);
       setMetadata({
         id: template.id,
         name: template.name,
         subject: template.default_subject ?? "",
         preheader: template.default_preheader ?? "",
       });
-      if (isSameBuilder) {
-        editorRef.current?.loadDesign(template.design_json);
-      }
+      editorRef.current?.loadDesign(template.design_json);
       dispatchUi({ type: "set_unsaved_changes", value: false });
       setShowTemplatePicker(false);
       toast.success("Template opened", {
         description: template.name,
       });
     },
-    [builder],
+    [],
   );
 
   const handleSendTestEmail = useCallback(async () => {
@@ -1197,8 +1198,6 @@ export default function EmailStudio() {
     >
       <EmailStudioHeader
         metadata={metadata}
-        builder={builder}
-        legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
         hasUnsavedChanges={hasUnsavedChanges}
         isEditorReady={isEditorReady}
         isSaving={isSaving}
@@ -1218,9 +1217,7 @@ export default function EmailStudio() {
 
       <div className="flex-1 relative overflow-hidden bg-muted/30">
         <EmailStudioEditor
-          key={`${builder}:${metadata.id ?? "draft"}`}
-          builder={builder}
-          legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
+          key={metadata.id ?? "draft"}
           initialDesign={initialDesign}
           templateId={metadata.id}
           onReady={handleEditorReady}

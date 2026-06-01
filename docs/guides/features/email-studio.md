@@ -15,7 +15,7 @@ Use this guide when changing:
 ## Architecture
 
 ```txt
-Editor/runtime        React Email Editor or legacy Unlayer adapter
+Editor/runtime        React Email Editor (Unlayer removed from Email Studio)
 Template model        Asym provider-neutral builder envelope
 Personalization       Asym merge-tag registry and renderer
 Persistence           Supabase email_templates + email_template_versions
@@ -26,9 +26,9 @@ Events/audit          email_send_logs + Resend webhook ingestion
 Primary files:
 
 - `apps/admin/app/email/page-client.tsx` - admin Email Studio shell.
-- `packages/ui/components/studio/EmailStudioEditor.tsx` - provider switch.
+- `packages/ui/components/studio/EmailStudioEditor.tsx` - React Email editor surface (Unlayer removed).
 - `packages/ui/components/studio/ReactEmailEditor.tsx` - React Email Editor wrapper.
-- `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` - controlled legacy email path.
+- `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` - legacy Unlayer adapter, now used only by PDF Studio.
 - `packages/email/email-builder-types.ts` - provider-neutral builder contract.
 - `packages/email/merge-tags.ts` and `packages/email/merge-tag-render.ts` - merge-tag registry, validation, and substitution.
 - `packages/api/src/email/templates.ts` and `packages/api/src/email/template-store.ts` - template CRUD/versioning.
@@ -42,9 +42,9 @@ NEXT_PUBLIC_EMAIL_STUDIO_BUILDER=react_email
 NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED=true
 ```
 
-`react_email` is the default for new templates. `unlayer` is allowed only for existing legacy templates or rollback. `auto` may be used during rollout to choose React Email for new templates and legacy Unlayer for rows already stored with `builder='unlayer'`.
+Email Studio uses React Email Editor exclusively — `getEmailStudioBuilderConfig()` always returns `react_email`. The `NEXT_PUBLIC_EMAIL_STUDIO_BUILDER` and `NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED` flags remain in the env schema but no longer switch the email editor.
 
-Legacy Unlayer env vars are retained only while legacy templates or PDF Studio still depend on Unlayer:
+Unlayer env vars are retained only because PDF Studio (and reading legacy `builder='unlayer'` rows) still depends on them:
 
 ```env
 NEXT_PUBLIC_UNLAYER_PROJECT_ID=
@@ -97,13 +97,14 @@ React Email Editor image upload calls `POST /api/email/assets/upload`. The route
 
 ## Legacy Unlayer
 
-Existing Unlayer email templates must not be silently converted. They open through `packages/ui/components/studio/legacy/UnlayerEmailEditor.tsx` while the legacy flag is enabled. PDF Studio uses `packages/ui/components/studio/legacy/UnlayerDocumentEditor.tsx` until a separate PDF/document migration removes that dependency.
+The Email Studio editor no longer instantiates Unlayer — React Email is the sole editor. Existing `builder='unlayer'` email templates are never silently converted: they stay listed in the template picker (badged "Legacy (read-only)") and open as a read-only preview of their cached HTML/text. They cannot be edited in the React Email editor. The `unlayer` value is kept in the `email_templates.builder` data model so those rows remain valid and servable.
+
+The `react-email-editor` dependency and the `packages/ui/components/studio/legacy/Unlayer*` components are retained for **PDF Studio** (`UnlayerDocumentEditor`), which is a separate, later migration.
 
 Do not remove the `react-email-editor` dependency until:
 
-1. No active email template needs the legacy Unlayer adapter.
-2. PDF Studio has been migrated or explicitly disabled.
-3. Static grep shows no active references outside the approved legacy allowlist.
+1. PDF Studio has been migrated or explicitly disabled.
+2. Static grep shows no active references outside the approved legacy allowlist.
 
 Use `bun run verify:email-studio-legacy` during rollout. For the final decommission PR, run `EMAIL_STUDIO_UNLAYER_MODE=zero bun run verify:email-studio-legacy` and expect zero references.
 

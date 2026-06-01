@@ -58,12 +58,6 @@ export interface EmailStudioFullConfig {
   };
 }
 
-function isEmailStudioBuilderMode(
-  value: unknown,
-): value is EmailStudioBuilderMode {
-  return value === "react_email" || value === "unlayer" || value === "auto";
-}
-
 function getEnvironment(): "development" | "staging" | "production" {
   if (typeof window === "undefined") {
     return runtimeEnvFlags.NODE_ENV === "production"
@@ -158,19 +152,13 @@ export const DEFAULT_MERGE_TAGS: UnlayerMergeTags = toLegacyUnlayerMergeTags(
 );
 
 export function getEmailStudioBuilderConfig(): EmailStudioFullConfig["builder"] {
-  const requestedBuilder = isEmailStudioBuilderMode(
-    clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER,
-  )
-    ? clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER
-    : "react_email";
-  const defaultBuilder =
-    requestedBuilder === "unlayer" ? "unlayer" : "react_email";
-
+  // Email Studio uses React Email exclusively. Unlayer is retained only for
+  // PDF Studio and for reading legacy templates already stored as "unlayer";
+  // it is never offered as an Email Studio editing surface.
   return {
-    requestedBuilder,
-    defaultBuilder,
-    legacyUnlayerEnabled:
-      clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED ?? true,
+    requestedBuilder: "react_email",
+    defaultBuilder: "react_email",
+    legacyUnlayerEnabled: false,
   };
 }
 
