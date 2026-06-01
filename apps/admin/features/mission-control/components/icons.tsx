@@ -35,10 +35,7 @@ import {
 import dynamicIconImports from "lucide-react/dynamicIconImports";
 import React, { lazy, Suspense, useMemo } from "react";
 
-// Helper to convert PascalCase to kebab-case for lucide-react/dynamicIconImports
-function pascalToKebab(str: string): string {
-  return str.replace(/([a-z0-9])([A-Z])/g, "$1-$2").toLowerCase();
-}
+import { resolveDynamicIconKebabName } from "./dynamic-icon-name";
 
 export interface DynamicIconProps extends Omit<LucideProps, "ref" | "name"> {
   name: string | LucideIcon;
@@ -56,26 +53,26 @@ const LAZY_ICON_MAP = new Map<
   ]),
 );
 
+function isLucideIconComponent(name: string | LucideIcon): name is LucideIcon {
+  return typeof name !== "string";
+}
+
 export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   const kebabName = useMemo(() => {
-    if (typeof name === "function") return null;
+    if (isLucideIconComponent(name)) return null;
 
-    if (!name || typeof name !== "string") return null;
-    // If it's already kebab-case or a valid key in dynamicIconImports, use it
-    if (name in dynamicIconImports)
-      return name as keyof typeof dynamicIconImports;
-    // Otherwise try converting from PascalCase
-    const converted = pascalToKebab(name);
-    if (converted in dynamicIconImports)
-      return converted as keyof typeof dynamicIconImports;
-    return null;
+    if (!name) return null;
+
+    return resolveDynamicIconKebabName(
+      name,
+      dynamicIconImports as Record<string, unknown>,
+    ) as keyof typeof dynamicIconImports | null;
   }, [name]);
   const lazyIconComponent = kebabName
     ? (LAZY_ICON_MAP.get(kebabName) ?? null)
     : null;
 
-  // If name is already an icon component, render it directly
-  if (typeof name === "function") {
+  if (isLucideIconComponent(name)) {
     const IconComponent = name;
     return <IconComponent {...props} />;
   }
@@ -132,7 +129,7 @@ const iconMap: Record<string, React.ComponentType<LucideProps>> = {
 export function getIcon(
   name: string | LucideIcon,
 ): React.ComponentType<LucideProps> {
-  if (typeof name === "function") {
+  if (isLucideIconComponent(name)) {
     return name;
   }
 

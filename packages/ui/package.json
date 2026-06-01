@@ -87,7 +87,7 @@
     "date-fns": "^4.1.0",
     "embla-carousel-react": "^8.6.0",
     "input-otp": "^1.4.2",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "1.17.0",
     "maplibre-gl": "^5.15.0",
     "motion": "^12.34.2",
     "next": "16.2.6",
