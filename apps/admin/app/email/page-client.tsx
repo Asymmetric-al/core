@@ -1256,8 +1256,8 @@ export default function EmailStudio() {
         }}
         html={previewResult?.html ?? ""}
         text={previewResult?.text ?? ""}
-        subject={metadata.subject}
-        preheader={metadata.preheader}
+        subject={previewResult?.subject ?? metadata.subject}
+        preheader={previewResult?.preheader ?? metadata.preheader}
       />
 
       <EmailTestSendDialog
