@@ -1,4 +1,3 @@
-import dynamicIconImports from "lucide-react/dynamicIconImports";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -22,8 +21,15 @@ describe("pascalToKebab", () => {
   });
 });
 
+/** Minimal lucide dynamic import key set — avoids resolving `lucide-react/dynamicIconImports` from repo-root Vitest. */
+const missionControlDynamicIconKeys: Record<string, unknown> = {
+  globe: true,
+  "user-plus": true,
+  "pen-square": true,
+};
+
 describe("resolveDynamicIconKebabName", () => {
-  const importKeys = dynamicIconImports as Record<string, unknown>;
+  const importKeys = missionControlDynamicIconKeys;
 
   it("accepts PascalCase names used in mission-control tiles", () => {
     expect(resolveDynamicIconKebabName("Globe", importKeys)).toBe("globe");
