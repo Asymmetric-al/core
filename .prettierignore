@@ -43,6 +43,7 @@ apps/admin/payload-types.ts
 .tmp
 .agent
 .agents
+.claude/worktrees
 .next-docs
 .nia-sync
 .traycer
