@@ -118,7 +118,7 @@ export const ReactEmailEditor = forwardRef<
 
       const result: EmailStudioExportResult = {
         builder: "react_email",
-        builderVersion: "1.3.8",
+        builderVersion: "1.5.3",
         design,
         html: email.html,
         text: email.text,
