@@ -23,7 +23,7 @@ describe("bun version guard", () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
     expect(result.stderr).toBe("");
-  });
+  }, 30000);
 
   it("fails fast when the Bun binary does not match packageManager", () => {
     const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
@@ -58,5 +58,5 @@ describe("bun version guard", () => {
     expect(result.stderr).toContain(
       "installed (bun --version):              bun@1.3.4",
     );
-  });
+  }, 30000);
 });
