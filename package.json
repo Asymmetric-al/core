@@ -96,7 +96,7 @@
     "verify:shadcn-registries": "node scripts/verify/shadcn-registry-smoke.mjs",
     "verify:shadcn-token-drift": "node scripts/verify/shadcn-token-drift.mjs",
     "tsconfig:future-audit": "node scripts/tsconfig-future-audit.mjs",
-    "verify:bun-version": "bash scripts/verify/bun-version.sh",
+    "verify:bun-version": "node scripts/verify/bun-version.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
     "verify:twenty-crm-health": "bun scripts/verify/twenty-crm-health.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
