@@ -102,6 +102,15 @@ describe("ci-integration workflow contract", () => {
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
   });
 
+  it("keeps the blocking smoke job on the shared Bun install contract", () => {
+    const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
+
+    expect(testE2eSmoke).toContain("bun-version: ${{ env.BUN_VERSION }}");
+    expect(testE2eSmoke).toContain("run: bun ci --no-cache --backend=copyfile");
+    expect(testE2eSmoke).not.toContain('bun-version: "1.3.4"');
+    expect(testE2eSmoke).not.toContain("bun install --frozen-lockfile");
+  });
+
   it("runs the resolved smoke inventory under projects that include each file", () => {
     expect(scripts["test:e2e:smoke"]).toContain("--project=chromium");
     expect(scripts["test:e2e:smoke"]).toContain("--project=chromium-donor");
