@@ -68,6 +68,9 @@ const diffResult = spawnSync(
     "--",
     ".agents/skills",
     ".cursor/skills",
+    ".claude/skills",
+    ".claude/commands",
+    ".claude/agents",
   ],
   { cwd: repoRoot, env: gitSafeEnv, stdio: "inherit" },
 );
@@ -93,6 +96,9 @@ const untrackedResult = spawnSync(
     "--",
     ".agents/skills",
     ".cursor/skills",
+    ".claude/skills",
+    ".claude/commands",
+    ".claude/agents",
   ],
   {
     cwd: repoRoot,

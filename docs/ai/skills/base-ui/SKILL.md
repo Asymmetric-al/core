@@ -1,3 +1,8 @@
+---
+name: base-ui
+description: "Build accessible, composable UI with @base-ui/react primitives and project styling tokens. Use when creating or refining unstyled primitive components and behavior-heavy UI such as overlays, menus, popovers, dialogs, and form controls, or defining custom component APIs. Prefer the moai-library-shadcn skill when copied-in shadcn components are the primary implementation path."
+---
+
 # Base UI Primitives - Skill
 
 **Name:** `base-ui`

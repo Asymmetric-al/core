@@ -1,3 +1,8 @@
+---
+name: nextjs-app-router
+description: "Ensure correct Next.js App Router architecture, rendering strategy, and data fetching. Use whenever working under /app — routing, layouts, server/client component boundaries, data fetching, Suspense, and Server Actions. Defaults to Server Components and adds 'use client' only for interactivity. Not for the Pages Router (/pages)."
+---
+
 # Next.js App Router — Skill
 
 **Name:** `nextjs-app-router`

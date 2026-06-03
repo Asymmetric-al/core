@@ -54,6 +54,7 @@ vendor/react-pdf-packages/*/
 # keep command docs but skip bundled skill libraries
 .cursor/skills
 .cursor/mcp.json
+.claude/skills
 
 # Local Supabase CLI temp state
 supabase/.temp/
