@@ -4,7 +4,8 @@ import { handleServerFunctions } from "@payloadcms/next/layouts";
 import { defaultTheme, ProgressBar, RootProvider } from "@payloadcms/ui";
 import { RenderServerComponent } from "@payloadcms/ui/elements/RenderServerComponent";
 import { getClientConfig } from "@payloadcms/ui/utilities/getClientConfig";
-import { cookies as nextCookies, headers as nextHeaders } from "next/headers";
+import { getRequestHighContrast } from "@payloadcms/ui/utilities/getRequestHighContrast";
+import { headers as nextHeaders } from "next/headers";
 import Link from "next/link";
 import {
   createLocalReq,
@@ -31,6 +32,7 @@ import {
   assertPayloadDatabaseConfiguration,
   PayloadDatabaseConfigurationError,
 } from "@/src/cms/payload-database-config";
+import { NextRouterAdapter } from "@/src/cms/payload-next-router-adapter";
 
 type Props = {
   children: React.ReactNode;
@@ -132,16 +134,21 @@ async function PayloadEmbeddedLayout({ children }: Props) {
 
   return (
     <RootProvider
+      RouterAdapter={NextRouterAdapter}
       config={clientConfig}
       dateFNSKey={req.i18n.dateFNSKey}
       fallbackLang={payload.config.i18n.fallbackLanguage ?? "en"}
+      highContrastMode={getRequestHighContrast({
+        config: payload.config,
+        cookies: parsedCookies,
+        headers: headerStore,
+      })}
       isNavOpen={(await getPayloadNavPreference(req))?.open ?? true}
       languageCode={languageCode}
       languageOptions={buildLanguageOptions(payload.config)}
       locale={req.locale ?? undefined}
       permissions={req.user ? permissions : (null as never)}
       serverFunction={serverFunction}
-      switchLanguageServerAction={switchLanguageServerAction}
       theme={getPayloadTheme({
         config: payload.config,
         cookies: parsedCookies,
@@ -194,23 +201,6 @@ function WebStudioDatabaseConfigurationError({
       </section>
     </main>
   );
-}
-
-async function switchLanguageServerAction(lang: string): Promise<void> {
-  "use server";
-
-  const cookieStore = await nextCookies();
-  const payload = await getPayload({
-    config,
-    cron: true,
-    importMap,
-  });
-
-  cookieStore.set({
-    name: `${payload.config.cookiePrefix || "payload"}-lng`,
-    path: "/",
-    value: lang,
-  });
 }
 
 function buildLanguageOptions(payloadConfig: PayloadConfig): LanguageOptions {

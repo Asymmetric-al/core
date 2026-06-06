@@ -49,7 +49,7 @@ import { MissionaryGivingCreateView as MissionaryGivingCreateView_542909ad000c3c
 import { StandardPageFromTemplateView as StandardPageFromTemplateView_49a7f949c7c0ce9ac71739fa03761464 } from "../../../src/cms-ui/web-studio/flows/StandardPageFromTemplateView.tsx";
 import { ProjectPageCreateView as ProjectPageCreateView_94786e79bca1b62db27cfe5aaeb47d59 } from "../../../src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx";
 import { MinistryUpdateCreateView as MinistryUpdateCreateView_d83db835455a052213c8588bac1de0d2 } from "../../../src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx";
-import { CollectionCards as CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1 } from "@payloadcms/next/rsc";
+import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from "@payloadcms/ui/rsc";
 
 /** @type import('payload').ImportMap */
 /** @type {Record<string, unknown>} */
@@ -150,6 +150,6 @@ export const importMap = {
     ProjectPageCreateView_94786e79bca1b62db27cfe5aaeb47d59,
   "/src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx#MinistryUpdateCreateView":
     MinistryUpdateCreateView_d83db835455a052213c8588bac1de0d2,
-  "@payloadcms/next/rsc#CollectionCards":
-    CollectionCards_f9c02e79a4aed9a3924487c0cd4cafb1,
+  "@payloadcms/ui/rsc#CollectionCards":
+    CollectionCards_ab83ff7e88da8d3530831f296ec4756a,
 };

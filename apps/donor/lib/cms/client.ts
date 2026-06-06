@@ -120,11 +120,12 @@ export async function fetchPublishedCmsUpdates(
   limit = 5,
   hostOverride?: string,
 ) {
-  const payload = await fetchCmsJSON<{
-    updates: Array<Record<string, unknown>>;
-  }>(`/api/cms/public/updates?limit=${limit}`, hostOverride);
+  const payload = await fetchCmsJSON<unknown>(
+    `/api/cms/public/updates?limit=${limit}`,
+    hostOverride,
+  );
 
-  return payload?.updates ?? [];
+  return readPublicCmsUpdates(payload);
 }
 
 export async function fetchPublishedMissionaryGivingPage(
@@ -259,6 +260,25 @@ function readCmsError(body: unknown) {
   }
 
   return "Failed to fetch page content";
+}
+
+function readPublicCmsUpdates(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return [];
+  }
+
+  const updates = (value as { updates?: unknown }).updates;
+  if (!Array.isArray(updates)) {
+    return [];
+  }
+
+  return updates.filter(isPublicCmsUpdateRecord);
+}
+
+function isPublicCmsUpdateRecord(
+  value: unknown,
+): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function buildGenericPublicCmsCacheTags(tenantHost: string) {
