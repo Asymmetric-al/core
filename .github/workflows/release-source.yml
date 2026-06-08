@@ -1,0 +1,53 @@
+name: Release Source
+
+on:
+  pull_request:
+    branches:
+      - production
+    types:
+      - opened
+      - synchronize
+      - reopened
+      - ready_for_review
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  release-source-gate:
+    name: release-source-gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Verify production PR source
+        env:
+          BASE_REF: ${{ github.base_ref }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+          IS_DRAFT: ${{ github.event.pull_request.draft }}
+        run: |
+          set -euo pipefail
+
+          echo "Base ref: ${BASE_REF}"
+          echo "Head ref: ${HEAD_REF}"
+          echo "Head repo: ${HEAD_REPO}"
+          echo "Repository: ${REPOSITORY}"
+          echo "Draft: ${IS_DRAFT}"
+
+          if [ "${BASE_REF}" != "production" ]; then
+            echo "release-source-gate only applies to PRs targeting production."
+            exit 1
+          fi
+
+          if [ "${HEAD_REPO}" != "${REPOSITORY}" ]; then
+            echo "Production release PRs must originate from this repository."
+            exit 1
+          fi
+
+          if [ "${HEAD_REF}" != "develop" ]; then
+            echo "Production release PRs must be opened from develop to production."
+            exit 1
+          fi
+
+          echo "release-source-gate passed: develop -> production."

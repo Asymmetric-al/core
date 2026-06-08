@@ -80,12 +80,12 @@ class IdempotencyService {
 
 Detailed implementations in the `references/` directory:
 
-| Guide | Contents |
-|---|---|
+| Guide                                                                          | Contents                       |
+| ------------------------------------------------------------------------------ | ------------------------------ |
 | [Express Idempotency Middleware](references/express-idempotency-middleware.md) | Express Idempotency Middleware |
-| [Database-Based Idempotency](references/database-based-idempotency.md) | Database-Based Idempotency |
-| [Stripe-Style Idempotency](references/stripe-style-idempotency.md) | Stripe-Style Idempotency |
-| [Message Queue Idempotency](references/message-queue-idempotency.md) | Message Queue Idempotency |
+| [Database-Based Idempotency](references/database-based-idempotency.md)         | Database-Based Idempotency     |
+| [Stripe-Style Idempotency](references/stripe-style-idempotency.md)             | Stripe-Style Idempotency       |
+| [Message Queue Idempotency](references/message-queue-idempotency.md)           | Message Queue Idempotency      |
 
 ## Best Practices
 
