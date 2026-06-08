@@ -455,13 +455,13 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 ### Services overview
 
-| Service                 | Port                                    | Start command                 |
-| ----------------------- | --------------------------------------- | ----------------------------- |
-| Donor app               | 3000                                    | `bun run dev:donor`           |
-| Admin app               | 3030                                    | `bun run dev:admin`           |
-| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control` |
-| Missionary app          | 4000                                    | `bun run dev:missionary`      |
-| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`              |
+| Service                 | Port                                    | Start command                                                                                                                      |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Donor app               | 3000                                    | `node scripts/run-with-ci-env.mjs -- bun run dev:donor` (cloud); `bun run dev:donor` when root `.env.local` is loaded in the shell |
+| Admin app               | 3030                                    | `bun run dev:admin`                                                                                                                |
+| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control`                                                                                                      |
+| Missionary app          | 4000                                    | `bun run dev:missionary`                                                                                                           |
+| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`                                                                                                                   |
 
 ### Mission Control Cloud Agent startup
 
@@ -473,6 +473,16 @@ bun run dev:mission-control
 ```
 
 Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
+
+### Donor app in cloud sandboxes
+
+After `bun run setup:mission-control:cloud`, start the donor dev server with the same CI env wrapper Turbo uses for admin and E2E (plain `bun run dev:donor` can return HTTP 500 because `NEXT_PUBLIC_*` vars from root `.env.local` are not always forwarded to the Turbo child):
+
+```bash
+node scripts/run-with-ci-env.mjs -- bun run dev:donor
+```
+
+Then open `http://localhost:3000`. For all three apps with one command, use `bun run dev:all` (loads `--env-file=.env.local`).
 
 ### Local Supabase startup
 
