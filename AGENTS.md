@@ -474,6 +474,25 @@ bun run dev:mission-control
 
 Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
 
+If `bun install` fails on `@asym/pdf-renderer` (`ENOENT` extracting the vendor tarball), run `bun run setup:mission-control:cloud --skip-install` after fixing the package manually (see **Bun install workaround** below).
+
+### Bun install workaround (`@asym/pdf-renderer`)
+
+On some Cloud Agent VMs, `bun install` exits non-zero when extracting `@asym/pdf-renderer` from `vendor/react-pdf-packages/asym-pdf-renderer-0.0.0.tgz` even though the tarball exists. If `node_modules/@asym/pdf-renderer/package.json` is missing after install:
+
+```bash
+rm -rf node_modules/@asym/pdf-renderer
+mkdir -p node_modules/@asym/pdf-renderer
+tar -xzf vendor/react-pdf-packages/asym-pdf-renderer-0.0.0.tgz -C node_modules/@asym/pdf-renderer --strip-components=1
+```
+
+Then rerun checks (`bun run lint`, `bun run typecheck`, `bun run test:unit`). The VM startup update script applies the same extract when needed.
+
+### Dev server env injection
+
+- **Mission Control / admin E2E builds:** `bun run dev:mission-control` wraps `dev:admin` with `scripts/run-with-ci-env.mjs`, which injects cloud/CI defaults even when `.env.local` is not exported into the shell.
+- **Donor (and missionary) via plain Turbo:** `bun run dev:donor` does **not** use that wrapper. If the app returns 500 with `Invalid environment variables`, either export root `.env.local` before starting (`set -a && source .env.local && set +a && bun run dev:donor`), use `bun run dev:all` (loads `--env-file=.env.local`), or symlink `.env.local` into `apps/donor/` (see **Environment variables**).
+
 ### Local Supabase startup
 
 Docker and Supabase CLI must be installed and running before starting local Supabase. After Docker is running (`sudo dockerd &`), run `supabase start` from the repo root.
