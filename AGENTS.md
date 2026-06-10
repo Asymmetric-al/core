@@ -272,6 +272,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
+**`improve`** ([`shadcn/improve`](https://github.com/shadcn/improve)) is in `docs/ai/skills/improve/`. Refresh via `npx skills add shadcn/improve -y`, then **delete any project-level `.claude/skills/improve` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/improve/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/improve/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
+
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
@@ -297,6 +299,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
+- **Audit any codebase (bugs, security, perf, tests, tech debt, migrations, DX), suggest features/roadmap, or write self-contained handoff plans for another agent to execute ([`shadcn/improve`](https://github.com/shadcn/improve)):** `docs/ai/skills/improve/SKILL.md` — strictly read-only on source code; writes only to `plans/`. Invoke `/improve` (composes with `quick`/`deep`, `branch`, `next`, `plan <desc>`, `review-plan`, `execute`, `reconcile`, `--issues`). Also installed personally at `~/.claude/skills/improve/` for use outside this repo.
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 

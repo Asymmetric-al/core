@@ -79,6 +79,12 @@
       "skillPath": "skills/idempotency-handling/SKILL.md",
       "computedHash": "282a4585f756e098318a3d778e7480cb61e90617c290b79d2fd206845e7f82b6"
     },
+    "improve": {
+      "source": "shadcn/improve",
+      "sourceType": "github",
+      "skillPath": "skills/improve/SKILL.md",
+      "computedHash": "992d71e2ed2a83e7f25d8522d069f090e2ea16286ec29ea86f84cfa05c0c2430"
+    },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
       "sourceType": "github",
