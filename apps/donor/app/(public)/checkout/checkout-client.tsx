@@ -31,13 +31,8 @@ import {
 import Link from "next/link";
 import React, { useMemo, useState } from "react";
 
+import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
 
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = "one-time" | "monthly";
@@ -478,7 +473,7 @@ function MonthlyScheduleSection({
                     id="start-date"
                     type="date"
                     value={startDate}
-                    min={makeDisplayDate().toISOString().split("T")[0]}
+                    min={todayDateInputValue()}
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
                   />
@@ -1117,7 +1112,7 @@ function CheckoutContent({
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
-    startDate: makeDisplayDate().toISOString().split("T")[0] ?? "",
+    startDate: todayDateInputValue(),
     step: "config",
   }));
   const {

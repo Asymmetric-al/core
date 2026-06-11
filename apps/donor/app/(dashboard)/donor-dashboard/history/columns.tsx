@@ -33,11 +33,7 @@ import { STATUS_COLORS } from "./types";
 
 import type { Transaction } from "./types";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
+import { makeDisplayDate } from "@/lib/dates";
 
 const getStatusIcon = (status: Transaction["status"]) => {
   switch (status) {
