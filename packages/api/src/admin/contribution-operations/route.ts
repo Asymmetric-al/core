@@ -22,7 +22,9 @@ import {
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 
+import type { ContributionDetail } from "./detail-read-model";
 import type {
+  ContributionActionResult,
   ContributionActionType,
   ContributionPermission,
   ContributionSourceSurface,
@@ -30,6 +32,30 @@ import type {
 import type { AuthenticatedContext } from "@asym/auth/context";
 
 export { replayStripeEventThroughContributionOperations };
+
+/**
+ * Apply the same viewer projection the GET detail endpoint uses to an action
+ * result before returning it (ADR-CD-014). Without this, a low-capability staff
+ * user (e.g. donor-care invoking resend_receipt) would receive the unredacted
+ * Stripe identifiers carried on result.canonicalContribution, which the GET
+ * endpoint nulls for viewers lacking contributions.use_provider_actions.
+ */
+export function projectContributionActionResultForViewer<
+  TResult extends ContributionActionResult,
+>(result: TResult, viewerCapabilities: string[]): TResult {
+  const canonical = result.canonicalContribution;
+  if (!canonical || typeof canonical !== "object") {
+    return result;
+  }
+
+  return {
+    ...result,
+    canonicalContribution: projectContributionDetailForViewer(
+      canonical as ContributionDetail,
+      viewerCapabilities,
+    ),
+  };
+}
 
 const actionTypeSchema = z.enum([
   "resend_receipt",
@@ -140,7 +166,12 @@ export const POST = withOperation(
         dependencies: createContributionActionDependencies(supabaseAdmin),
       });
 
-      return NextResponse.json({ result, requestId });
+      const projectedResult = projectContributionActionResultForViewer(
+        result,
+        resolveContributionCapabilities(auth),
+      );
+
+      return NextResponse.json({ result: projectedResult, requestId });
     } catch (error) {
       return toErrorResponse(
         error,
@@ -193,9 +224,19 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         recordOutcome: recordCorrectionApprovalOutcome,
       });
 
+      // Consistency with GET / POST actions: project provider identifiers for
+      // the viewer. Not a leak today (deciders already hold
+      // contributions.use_provider_actions) but kept defense-in-depth.
+      const projectedResult = outcome.result
+        ? projectContributionActionResultForViewer(
+            outcome.result,
+            resolveContributionCapabilities(auth),
+          )
+        : null;
+
       return NextResponse.json({
         request: outcome.request,
-        result: outcome.result ?? null,
+        result: projectedResult,
         idempotentReplay: outcome.idempotentReplay ?? false,
         requestId,
       });
