@@ -1,3 +1,7 @@
+export {
+  buildContributionActionAvailability,
+  type ContributionActionAvailability,
+} from "./action-availability";
 export { executeContributionAction } from "./actions";
 export { buildContributionDetail } from "./detail-read-model";
 export {

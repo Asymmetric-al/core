@@ -323,6 +323,7 @@ export function ContributionDetailOverlay({
   return (
     <ContributionDetailSheet
       contribution={donationId ? contribution : null}
+      actionAvailability={detailQuery.data?.actionAvailability}
       onClose={onClose}
       onApproveStagedGift={(stagedGiftId, contributionId) =>
         approveMutation.mutate({ contributionId, stagedGiftId })

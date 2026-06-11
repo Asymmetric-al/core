@@ -1,4 +1,8 @@
 import {
+  buildContributionActionAvailability,
+  type ContributionActionAvailability,
+} from "./action-availability";
+import {
   buildSharedContributionRowFields,
   type SharedContributionRowFields,
 } from "../contribution-shared/row-contract";
@@ -146,6 +150,8 @@ export interface ContributionDetail {
   };
   auditEvents: NonNullable<ContributionDetailInput["auditEvents"]>;
   corrections: NonNullable<ContributionDetailInput["corrections"]>;
+  /** Server-computed action availability (ADR-CD-017 / ADR-CD-018). */
+  actionAvailability: ContributionActionAvailability[];
   tasks: unknown[];
   batches: unknown[];
   donorVisible: {
@@ -337,6 +343,17 @@ export function buildContributionDetail(
     },
     auditEvents: input.auditEvents ?? [],
     corrections: input.corrections ?? [],
+    actionAvailability: buildContributionActionAvailability({
+      stagedGift: stagedGift
+        ? {
+            id: stagedGift.id,
+            status: stagedGift.status,
+            receiptStatus: stagedGift.receiptStatus,
+            crmPostStatus: stagedGift.crmPostStatus,
+          }
+        : null,
+      paymentStatus: donation.status,
+    }),
     tasks: [],
     batches: [],
     donorVisible: {

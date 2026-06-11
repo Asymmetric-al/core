@@ -29,6 +29,7 @@ import {
 import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
+import type { ContributionActionAvailability } from "@asym/api/admin/contribution-operations";
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
@@ -88,7 +89,21 @@ interface ContributionDetailSheetProps {
   onRetryStagedGift?: (stagedGiftId: string, contributionId: string) => void;
   onSendReceipt?: (stagedGiftId: string, contributionId: string) => void;
   isActionPending?: boolean;
+  /**
+   * Server-computed action availability (ADR-CD-017 / ADR-CD-018). When
+   * provided it is the authority for which workflow actions render; the
+   * legacy client-side gating below only applies when it is absent.
+   */
+  actionAvailability?: ContributionActionAvailability[];
 }
+
+const ACTION_LABELS: Partial<
+  Record<ContributionActionAvailability["actionType"], string>
+> = {
+  approve_staged_gift: "Approve/Post",
+  retry_staged_gift: "Retry posting",
+  resend_receipt: "Send receipt",
+};
 
 export function ContributionDetailSheet({
   contribution,
@@ -97,6 +112,7 @@ export function ContributionDetailSheet({
   onRetryStagedGift,
   onSendReceipt,
   isActionPending = false,
+  actionAvailability,
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
@@ -104,15 +120,36 @@ export function ContributionDetailSheet({
   const date = makeDisplayDate(contribution.date);
   const donorDisplayName = isAnonymous ? "Anonymous" : (donorName ?? "Unknown");
   const stagedGiftId = contribution.stagedGiftId;
-  const canApproveGift =
-    stagedGiftId &&
-    (contribution.stagedGiftStatus === "received" ||
-      contribution.stagedGiftStatus === "needs_review");
-  const canRetryGift =
-    stagedGiftId &&
-    (contribution.stagedGiftStatus === "failed" ||
-      contribution.crmPostStatus === "failed" ||
-      contribution.crmPostStatus === "blocked");
+
+  const availabilityByAction = actionAvailability
+    ? new Map(actionAvailability.map((entry) => [entry.actionType, entry]))
+    : null;
+  const approveEntry = availabilityByAction?.get("approve_staged_gift") ?? null;
+  const retryEntry = availabilityByAction?.get("retry_staged_gift") ?? null;
+  const receiptEntry = availabilityByAction?.get("resend_receipt") ?? null;
+  const missingStagedGiftWorkflow =
+    Boolean(availabilityByAction) && !stagedGiftId;
+  const blockedWorkflowEntries = availabilityByAction
+    ? [approveEntry, retryEntry, receiptEntry].filter(
+        (entry): entry is ContributionActionAvailability =>
+          Boolean(entry && !entry.available && entry.blockedReason),
+      )
+    : [];
+
+  const canApproveGift = availabilityByAction
+    ? Boolean(stagedGiftId && approveEntry?.available)
+    : stagedGiftId &&
+      (contribution.stagedGiftStatus === "received" ||
+        contribution.stagedGiftStatus === "needs_review");
+  const canRetryGift = availabilityByAction
+    ? Boolean(stagedGiftId && retryEntry?.available)
+    : stagedGiftId &&
+      (contribution.stagedGiftStatus === "failed" ||
+        contribution.crmPostStatus === "failed" ||
+        contribution.crmPostStatus === "blocked");
+  const canSendReceipt = availabilityByAction
+    ? Boolean(stagedGiftId && receiptEntry?.available)
+    : !contribution.receiptSent;
 
   const handleCopyTxn = async () => {
     const tid = contribution.transactionId;
@@ -323,6 +360,23 @@ export function ContributionDetailSheet({
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Actions
               </p>
+
+              {missingStagedGiftWorkflow && (
+                <div
+                  role="note"
+                  className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
+                >
+                  <p className="text-sm font-medium text-foreground">
+                    This gift has no staged gift workflow record, so finance
+                    workflow actions are unavailable.
+                  </p>
+                  <p className="text-xs text-muted-foreground leading-relaxed">
+                    The donation is valid and shown read-only. Import or create
+                    a staged gift to run finance workflow actions for it.
+                  </p>
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-2">
                 <Button
                   variant="outline"
@@ -343,7 +397,7 @@ export function ContributionDetailSheet({
                     Email Donor
                   </Button>
                 )}
-                {!contribution.receiptSent && (
+                {canSendReceipt && (
                   <Button
                     variant="outline"
                     size="sm"
@@ -399,6 +453,24 @@ export function ContributionDetailSheet({
                   </Button>
                 )}
               </div>
+
+              {!missingStagedGiftWorkflow &&
+                blockedWorkflowEntries.length > 0 && (
+                  <ul className="space-y-1.5">
+                    {blockedWorkflowEntries.map((entry) => (
+                      <li
+                        key={entry.actionType}
+                        className="text-xs text-muted-foreground leading-relaxed"
+                      >
+                        <span className="font-medium text-foreground">
+                          {ACTION_LABELS[entry.actionType] ?? entry.actionType}:
+                        </span>{" "}
+                        {entry.blockedReason}
+                        {entry.nextStep ? ` ${entry.nextStep}` : null}
+                      </li>
+                    ))}
+                  </ul>
+                )}
             </div>
 
             {/* ---- Metadata ---- */}

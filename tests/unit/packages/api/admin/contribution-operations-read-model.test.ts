@@ -182,6 +182,21 @@ describe("contribution operations detail read model", () => {
       ],
     });
 
+    expect(detail.actionAvailability).toEqual([
+      expect.objectContaining({
+        actionType: "approve_staged_gift",
+        available: false,
+      }),
+      expect.objectContaining({
+        actionType: "retry_staged_gift",
+        available: false,
+      }),
+      expect.objectContaining({
+        actionType: "resend_receipt",
+        available: true,
+      }),
+    ]);
+
     expect(detail.shared).toEqual({
       donationId: "donation_2",
       amountCents: 25_000,
@@ -202,5 +217,59 @@ describe("contribution operations detail read model", () => {
       refundedAmountCents: 0,
       correctionState: "pending",
     });
+  });
+
+  it("returns read-only truth with blocked workflow actions for gifts without staged gifts", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_3",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: null,
+        fundId: null,
+        amount: 7_500,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "check",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: null,
+        stripeChargeId: null,
+        giftDate: "2026-03-15",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: "2026-03-15T00:00:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "mail",
+        createdAt: "2026-03-15T00:00:00.000Z",
+        updatedAt: "2026-03-15T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: "Legacy Donor",
+        email: null,
+        phone: null,
+        location: null,
+        organization: null,
+      },
+    });
+
+    expect(detail.stagedGift).toBeNull();
+    expect(detail.shared.amountCents).toBe(7_500);
+    expect(detail.shared.designationSummary.fundName).toBe("General Fund");
+
+    for (const entry of detail.actionAvailability) {
+      expect(entry.available).toBe(false);
+      expect(entry.blockedReason).toMatch(/no staged gift/i);
+      expect(entry.nextStep).toMatch(/valid/i);
+    }
   });
 });
