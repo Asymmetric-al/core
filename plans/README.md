@@ -26,14 +26,16 @@ fails in local Windows/Bun environments.
 
 ## Execution order & status
 
-| Plan | Title                                                                                                | Priority | Effort | Depends on | Status                                                                                                                           |
-| ---- | ---------------------------------------------------------------------------------------------------- | -------- | ------ | ---------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| 001  | Cache member-care dashboard snapshot; bound unbounded queries                                        | P1       | S      | —          | DONE — approved; branch `advisor/001-member-care-cache` @ 57172ec3 (rebased onto a661bfb9, all criteria re-verified by reviewer) |
-| 002  | Push Support Hub conversation/message/threading filters into SQL                                     | P1       | M      | —          | DONE — approved; branch `advisor/002-support-hub-sql` @ cf8b33cd (criteria re-verified by reviewer on clean commit state)        |
-| 003  | Fix UTC date-only parsing in donor money UI (off-by-one day)                                         | P1       | M      | —          | DONE — approved; branch `advisor/003-donor-local-dates` @ ce103fef (criteria re-verified by reviewer)                            |
-| 004  | Make staged-gift creation self-healing across webhook retries                                        | P2       | M      | —          | DONE — approved; branch `advisor/004-staged-gift-resilience` @ 3ded9a7c (criteria re-verified by reviewer)                       |
-| 005  | Client resilience papercuts (chart-load errors, unmount-safe timers)                                 | P3       | S      | —          | DONE — approved; branch `advisor/005-client-resilience` @ f795a9f1 (criteria re-verified by reviewer)                            |
-| 006  | Delete dead admin shell copies; share theme-provider/page-header via @asym/ui; purge phantom exports | P2       | M      | —          | DONE — approved; branch `advisor/006-shell-dedupe` @ 61c5d034 (criteria re-verified by reviewer, forced/uncached)                |
+| Plan | Title                                                                                                | Priority | Effort | Depends on | Status                                                                                                                                        |
+| ---- | ---------------------------------------------------------------------------------------------------- | -------- | ------ | ---------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 001  | Cache member-care dashboard snapshot; bound unbounded queries                                        | P1       | S      | —          | DONE — approved; branch `advisor/001-member-care-cache` @ 57172ec3 (rebased onto a661bfb9, all criteria re-verified by reviewer)              |
+| 002  | Push Support Hub conversation/message/threading filters into SQL                                     | P1       | M      | —          | DONE — approved; branch `advisor/002-support-hub-sql` @ cf8b33cd (criteria re-verified by reviewer on clean commit state)                     |
+| 003  | Fix UTC date-only parsing in donor money UI (off-by-one day)                                         | P1       | M      | —          | DONE — approved; branch `advisor/003-donor-local-dates` @ ce103fef (criteria re-verified by reviewer)                                         |
+| 004  | Make staged-gift creation self-healing across webhook retries                                        | P2       | M      | —          | DONE — approved; branch `advisor/004-staged-gift-resilience` @ 3ded9a7c (criteria re-verified by reviewer)                                    |
+| 005  | Client resilience papercuts (chart-load errors, unmount-safe timers)                                 | P3       | S      | —          | DONE — approved; branch `advisor/005-client-resilience` @ f795a9f1 (criteria re-verified by reviewer)                                         |
+| 006  | Delete dead admin shell copies; share theme-provider/page-header via @asym/ui; purge phantom exports | P2       | M      | —          | DONE — approved; branch `advisor/006-shell-dedupe` @ 61c5d034 (criteria re-verified by reviewer, forced/uncached)                             |
+| 007  | Backstop concurrent-webhook allocation race (partial unique index + 23505-tolerant insert)           | P2       | M      | 004        | DONE — approved; branch `advisor/007-staged-gift-allocation-unique` @ ded1fa94 (criteria re-verified; migration validated by CI migrate gate) |
+| 008  | Three LOW hardening nits (date range guard, message-read cap, truncation log)                        | P3       | S      | —          | DONE — approved; branch `advisor/008-low-hardening-nits` @ ec1fa072 (criteria re-verified by reviewer)                                        |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) |
 REJECTED (with one-line rationale — finding fixed independently or approach
@@ -59,6 +61,75 @@ abandoned)
   follow-ups: donor view-transition adoption (new feature, not dedupe);
   migrating the remaining non-donor `makeDisplayDate` copies; extracting
   missionary's now-singular app-shell only when a second consumer appears.)
+
+## Branch self-audit (PR #304, against `a661bfb9`, 2026-06-11)
+
+A `/improve branch` pass re-audited the 10 commits in this PR with a
+cold-context reviewer plus first-party vetting (all categories, incl.
+security). Verdict: **the branch is clean.** One MED finding clears the bar
+for a plan; the rest are LOW hardening nits or rejected over-reports.
+
+**Confirmed — worth a plan (007, TODO):**
+
+- **[BR-02] Concurrent-webhook duplicate allocation** (introduced, MED): the
+  retry-repair added `ensureInitialAllocation` (read-then-insert) to the
+  23505/duplicate path in `packages/api/src/giving/staged-gifts.ts:357`,
+  which previously never touched allocations. `staged_gift_allocations` has
+  only a non-unique index (`idx_staged_gift_allocations_gift`,
+  `supabase/migrations/20260512190000_phase_03_giving_pipeline.sql:165`), so
+  two truly-concurrent deliveries of the same `payment_intent.succeeded` can
+  both miss and double-insert. Sequential retries (the common case, and the
+  fix's actual target) are correct. This is the durable fix plan 004
+  explicitly deferred — needs a DB migration, so it changes this PR's
+  "Migrations: N/A" posture.
+
+**Confirmed — LOW hardening nits (recorded, not planned unless requested):**
+
+- [BR-05] `apps/donor/lib/dates.ts:10` — non-padded strings (`"2026-2-3"`)
+  fall through to `new Date()` (UTC parse → the very off-by-one the helper
+  fixes). HTML `<input type="date">` always emits padded values and audited
+  call sites comply, so impact is low; tighten regex or add a guard + test.
+- [BR-06] `support-hub/adapter/supabase.ts:722` — `listMessages` has no
+  `.limit()` on the messages query (attachments are chunked). Still a large
+  improvement over the prior tenant-wide `allRows` scan; residual is the
+  pathological single-conversation case. Add a cap when pagination lands.
+- [BR-07] `member-care.ts:423,445,476` — the new `.limit(1000/500)` truncate
+  silently. 1000 goals/requirements per tenant far exceeds realistic volume;
+  plan 001's maintenance note already flags revisiting if a show-all view
+  appears.
+
+**Rejected (so nobody re-audits — over-reports from the cold pass):**
+
+- [BR-01] "SQL injection via `email_headers->>messageId` `.in()`" — FALSE as a
+  security finding. postgrest-js quotes reserved-char values
+  (`PostgrestFilterBuilder.ts` `in()`) and PostgREST parameterizes the
+  filter; no SQL is string-built. Residual is only a malformed-filter edge
+  on a crafted Message-ID (embedded `"` unescaped) → query error / missed
+  thread-match → harmless fallback to subject matching. LOW robustness, not
+  injection.
+- [BR-03] "Cache cross-actor leak in `readMemberCareDashboardSnapshot`" —
+  FALSE. The snapshot type (`member-care.ts:86`) is purely tenant-scoped
+  (personnel/activities/goals/requirements); the only actor-scoped field
+  (`privateNotes`) lives in `MemberCarePersonDetail`, which is uncached. The
+  sibling `readMemberCareDirectory` was already tenant-cached pre-branch. No
+  actor dimension exists in the cached data.
+- [BR-04] "Timer cleanup unsafe on re-mount" — handled. `FollowerRequestItem`
+  is keyed by `p.id` (`worker-feed-page-client.tsx:450`); same id = same
+  mount, different id = unmount + cleanup. The `useRef([]) + effect cleanup`
+  is the correct idiom.
+- [BR-08] "Allocation-failure retry loop" — by design. `requireNoError` on
+  the allocation is intentional (transient failure → throw → Stripe retries →
+  self-heal); the audit write is best-effort (try/catch) because it is
+  observability, not state. A persistent poison-pill error is a theoretical
+  edge not worth pre-engineering.
+- [BR-09] "`applyCache` swallows all errors" — by design. `cacheLife`/
+  `cacheTag` throw outside a `"use cache"` scope (unit tests, non-cached
+  callers); the `try/catch {}` is the documented noop guard, pre-existing for
+  the directory function.
+- [BR-10] "`readMemberCarePersonDetail` uncached N+1" — mis-tagged. It was
+  never cached pre-branch and the branch didn't change its caching; plan 001
+  deliberately deferred caching it (actor-scoped private-note freshness).
+  Pre-existing perf opportunity, already a recorded deferred follow-up.
 
 ## Findings considered and rejected
 
