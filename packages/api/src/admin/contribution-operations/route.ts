@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { executeContributionAction } from "./actions";
+import { recordCorrectionApprovalOutcome } from "./approval-notifications";
 import {
   decideContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
@@ -176,6 +177,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         deciderProfileId: auth.profileId,
         deciderCapabilities: resolveContributionCapabilities(auth),
         dependencies: createContributionActionDependencies(supabaseAdmin),
+        recordOutcome: recordCorrectionApprovalOutcome,
       });
 
       return NextResponse.json({

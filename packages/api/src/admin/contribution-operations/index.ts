@@ -11,6 +11,18 @@ export {
   type CorrectionApprovalPolicy,
 } from "./approval-policy";
 export {
+  ensureCorrectionApprovalWorkflow,
+  evaluatePendingApprovalSla,
+  planApprovalNotifications,
+  processCorrectionApprovalSla,
+  recordCorrectionApprovalOutcome,
+  resolveApprovalNotificationSettings,
+  resolveApproverNotificationPreference,
+  type ApprovalNotificationSettings,
+  type ApproverNotificationPreference,
+  type PlannedApprovalNotification,
+} from "./approval-notifications";
+export {
   createContributionCorrectionRequestInSupabase,
   decideContributionCorrectionRequest,
   loadContributionCorrectionRequest,

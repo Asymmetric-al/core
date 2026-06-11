@@ -806,9 +806,50 @@ CREATE TABLE IF NOT EXISTS public.contribution_correction_requests (
     applied_adjustment_id UUID REFERENCES public.contribution_adjustments(id) ON DELETE SET NULL,
     approval_task_id UUID,
     follow_up_task_id UUID,
+    last_reminder_at TIMESTAMPTZ,
+    escalated_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Approval workflow notification settings, preferences, and deduplicated
+-- delivery records (ADR-CD-026 / ADR-CD-028).
+CREATE TABLE IF NOT EXISTS public.contribution_approval_notification_settings (
+    tenant_id UUID PRIMARY KEY REFERENCES public.tenants(id) ON DELETE CASCADE,
+    create_approval_task BOOLEAN NOT NULL DEFAULT TRUE,
+    in_app_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    email_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.contribution_approval_notification_preferences (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    in_app_enabled BOOLEAN NOT NULL DEFAULT TRUE,
+    email_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (tenant_id, profile_id)
+);
+
+CREATE TABLE IF NOT EXISTS public.contribution_approval_notifications (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    correction_request_id UUID NOT NULL REFERENCES public.contribution_correction_requests(id) ON DELETE CASCADE,
+    recipient_profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    channel TEXT NOT NULL CHECK (channel IN ('in_app', 'email')),
+    kind TEXT NOT NULL CHECK (kind IN ('approval_requested', 'reminder', 'escalation', 'outcome')),
+    dedupe_key TEXT NOT NULL,
+    payload JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (tenant_id, dedupe_key)
+);
+
+CREATE INDEX IF NOT EXISTS idx_contribution_approval_notifications_request
+    ON public.contribution_approval_notifications (tenant_id, correction_request_id, created_at DESC);
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_contribution_correction_requests_idempotency
     ON public.contribution_correction_requests (tenant_id, idempotency_key)
@@ -1753,6 +1794,9 @@ ALTER TABLE public.contribution_corrections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_adjustments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_approval_policies ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_correction_requests ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contribution_approval_notification_settings ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contribution_approval_notification_preferences ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contribution_approval_notifications ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_operation_audit_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_notification_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_notification_events ENABLE ROW LEVEL SECURITY;
@@ -1794,6 +1838,9 @@ REVOKE ALL ON TABLE public.contribution_corrections FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_adjustments FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_approval_policies FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_correction_requests FROM anon, authenticated;
+REVOKE ALL ON TABLE public.contribution_approval_notification_settings FROM anon, authenticated;
+REVOKE ALL ON TABLE public.contribution_approval_notification_preferences FROM anon, authenticated;
+REVOKE ALL ON TABLE public.contribution_approval_notifications FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_operation_audit_events FROM anon, authenticated;
 REVOKE ALL ON TABLE public.email_template_system_bindings FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_notification_settings FROM anon, authenticated;

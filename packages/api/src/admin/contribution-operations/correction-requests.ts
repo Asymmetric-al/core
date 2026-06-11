@@ -236,6 +236,17 @@ export interface DecideCorrectionRequestInput {
     request: ContributionCorrectionRequest;
     decisionReason: string;
   }) => Promise<string | null>;
+  /**
+   * Outcome follow-through (close approval task, notify requester). Defaults
+   * to the production implementation; injectable for tests (ADR-CD-027).
+   */
+  recordOutcome?: (input: {
+    supabaseAdmin: SupabaseAdmin;
+    tenantId: string;
+    request: ContributionCorrectionRequest;
+    decision: "approved" | "rejected";
+    decisionReason: string | null;
+  }) => Promise<void>;
 }
 
 export interface DecideCorrectionRequestOutcome {
@@ -334,6 +345,16 @@ export async function decideContributionCorrectionRequest(
       },
     });
 
+    if (input.recordOutcome) {
+      await input.recordOutcome({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        request,
+        decision: "rejected",
+        decisionReason,
+      });
+    }
+
     return {
       request: await loadContributionCorrectionRequest(input),
     };
@@ -388,6 +409,16 @@ export async function decideContributionCorrectionRequest(
       },
     },
   });
+
+  if (input.recordOutcome) {
+    await input.recordOutcome({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      request,
+      decision: "approved",
+      decisionReason: input.reason?.trim() || null,
+    });
+  }
 
   return {
     request: await loadContributionCorrectionRequest(input),

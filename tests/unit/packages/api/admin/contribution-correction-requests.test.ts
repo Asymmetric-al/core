@@ -173,6 +173,7 @@ describe("decideContributionCorrectionRequest", () => {
   it("applies approved corrections through the shared contract and records the outcome", async () => {
     const state: StubState = { request: pendingRequest(), auditInserts: [] };
     const dependencies = approverDependencies();
+    const recordOutcome = vi.fn().mockResolvedValue(undefined);
 
     const outcome = await decideContributionCorrectionRequest({
       supabaseAdmin: createStub(state),
@@ -185,7 +186,16 @@ describe("decideContributionCorrectionRequest", () => {
         "contributions.apply_corrections",
       ],
       dependencies,
+      recordOutcome,
     });
+
+    // The approval task closes and the requester is notified (ADR-CD-027).
+    expect(recordOutcome).toHaveBeenCalledWith(
+      expect.objectContaining({
+        decision: "approved",
+        request: expect.objectContaining({ id: REQUEST_ID }),
+      }),
+    );
 
     expect(dependencies.applyCorrection).toHaveBeenCalledWith(
       expect.objectContaining({

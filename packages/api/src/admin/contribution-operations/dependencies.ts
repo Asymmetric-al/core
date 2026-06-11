@@ -1,5 +1,6 @@
 import { serverEnv } from "@asym/env";
 
+import { ensureCorrectionApprovalWorkflow } from "./approval-notifications";
 import { createContributionCorrectionRequestInSupabase } from "./correction-requests";
 import { sendContributionCorrectionNotificationFromSupabase } from "./notifications/store";
 import {
@@ -52,11 +53,20 @@ export function createContributionActionDependencies(
       relinkContributionDonor({ supabaseAdmin, ...relinkInput }),
     applyCorrection: (correctionInput) =>
       applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
-    createCorrectionRequest: (request) =>
-      createContributionCorrectionRequestInSupabase({
+    createCorrectionRequest: async (request) => {
+      const requestId = await createContributionCorrectionRequestInSupabase({
         supabaseAdmin,
         request,
-      }),
+      });
+      // Durable approval task + approver notifications (ADR-CD-026); safe to
+      // repeat because the task is keyed on the request and deliveries dedupe.
+      await ensureCorrectionApprovalWorkflow({
+        supabaseAdmin,
+        tenantId: request.tenantId,
+        requestId,
+      });
+      return requestId;
+    },
     replayStripeEvent: async ({ payload, tenantId }) => {
       const stripeEventId = payload.stripeEventId;
       if (typeof stripeEventId !== "string" || !stripeEventId) {
