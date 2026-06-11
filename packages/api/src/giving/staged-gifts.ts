@@ -284,7 +284,12 @@ async function ensureInitialAllocation(input: {
       missionary_id: input.donation.missionary_id,
       amount: input.donation.amount,
       memo: "Initial allocation from Stripe payment intent.",
+      is_initial: true,
     });
+  if (error?.code === "23505") {
+    // A concurrent webhook delivery already inserted the initial allocation.
+    return;
+  }
   requireNoError(error, "Failed to stage gift allocation.");
 }
 

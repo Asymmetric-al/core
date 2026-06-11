@@ -380,6 +380,61 @@ describe("stageGiftFromStripeDonation resilience", () => {
     expect(auditInsertAttempted).toBe(true);
   });
 
+  it("does not throw when allocation insert returns 23505 (concurrent webhook delivery)", async () => {
+    // Simulates two concurrent webhook deliveries for the same payment_intent.
+    // The concurrent loser: staged gift already exists (or was just inserted),
+    // no allocation row is visible yet (both workers pass the existence check),
+    // and the allocation insert races and loses — returning 23505. The function
+    // must resolve successfully instead of throwing.
+    const supabaseAdmin = {
+      from: vi.fn((table: string) => {
+        const chain: Record<string, unknown> = {};
+        chain.eq = vi.fn(() => chain);
+        chain.limit = vi.fn(() => chain);
+        chain.select = vi.fn(() => chain);
+        chain.insert = vi.fn(() => {
+          if (table === "staged_gift_allocations") {
+            // The concurrent peer already committed — unique index fires.
+            return Promise.resolve({
+              data: null,
+              error: { message: "duplicate key value", code: "23505" },
+            });
+          }
+          return chain;
+        });
+
+        chain.single = vi.fn(() => {
+          if (table === "staged_gifts") {
+            return Promise.resolve({ data: stagedGiftDbRow, error: null });
+          }
+          return Promise.resolve({ data: null, error: null });
+        });
+
+        chain.maybeSingle = vi.fn(() => {
+          if (table === "staged_gifts") {
+            // Gift already exists (concurrent winner inserted it).
+            return Promise.resolve({ data: stagedGiftDbRow, error: null });
+          }
+          if (table === "staged_gift_allocations") {
+            // No allocation visible yet — both workers pass the read check.
+            return Promise.resolve({ data: null, error: null });
+          }
+          return Promise.resolve({ data: null, error: null });
+        });
+
+        return chain;
+      }),
+    } as never;
+
+    const result = await stageGiftFromStripeDonation({
+      ...baseStageInput,
+      supabaseAdmin,
+    });
+
+    // Concurrent loser should resolve with the staged gift, not throw.
+    expect(result.id).toBe("sg-abc");
+  });
+
   it("throws when staged gift insert returns no row", async () => {
     const supabaseAdmin = {
       from: vi.fn((table: string) => {
