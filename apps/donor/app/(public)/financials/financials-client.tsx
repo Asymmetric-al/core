@@ -42,6 +42,7 @@ export function FinancialsPageClient() {
   const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
     null,
   );
+  const [rechartsFailed, setRechartsFailed] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,6 +61,7 @@ export function FinancialsPageClient() {
       })
       .catch((error) => {
         console.error("Failed to load Recharts for donor financials:", error);
+        if (isMounted) setRechartsFailed(true);
       });
 
     return () => {
@@ -95,7 +97,11 @@ export function FinancialsPageClient() {
             </CardHeader>
             <CardContent className="p-8">
               <div className="h-[350px] w-full relative">
-                {rechartsModule ? (
+                {rechartsFailed ? (
+                  <p className="text-sm text-zinc-500">
+                    The chart couldn&apos;t load. Refresh the page to try again.
+                  </p>
+                ) : rechartsModule ? (
                   <FinancialsPieChart rechartsModule={rechartsModule} />
                 ) : (
                   <FinancialsChartFallback />
