@@ -14,6 +14,8 @@ export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export {
+  ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
+  ADMIN_CRM_RECORDS_QUERY_KEY,
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
   useResendCrmGiftReceipt,

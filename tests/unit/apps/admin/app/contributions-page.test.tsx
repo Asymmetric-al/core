@@ -23,11 +23,33 @@ const MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY_VALUE = [
   "mission-control",
   "needs-attention",
 ] as const;
+const ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE = [
+  "admin",
+  "crm",
+  "records",
+  "detail",
+] as const;
+const ADMIN_CRM_RECORDS_QUERY_KEY_VALUE = ["admin", "crm", "records"] as const;
 
 vi.mock("@asym/database/hooks", () => ({
+  ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE,
+  ADMIN_CRM_RECORDS_QUERY_KEY: ADMIN_CRM_RECORDS_QUERY_KEY_VALUE,
   MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY:
     MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY_VALUE,
   useContributionNeedsAttention: useContributionNeedsAttentionMock,
+}));
+
+const routerPushMock = vi.fn();
+const routerReplaceMock = vi.fn();
+let mockSearch = "";
+
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/contributions",
+  useRouter: () => ({
+    push: routerPushMock,
+    replace: routerReplaceMock,
+  }),
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }));
 
 vi.mock(
@@ -190,6 +212,7 @@ describe("apps/admin/app/contributions/page", () => {
 
   beforeEach(async () => {
     delete process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK;
+    mockSearch = "";
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
     installDom();
     await loadEnvSensitiveModules();
@@ -470,9 +493,116 @@ describe("apps/admin/app/contributions/page", () => {
       );
     });
     expect(await view.findByText("Remote Donor")).toBeTruthy();
+    expect(routerPushMock).toHaveBeenCalledWith(
+      "/contributions?gift=00000000-0000-4000-8000-000000000123",
+      { scroll: false },
+    );
   });
 
-  it("invalidates contributions and Needs Attention after contribution mutations", async () => {
+  it("opens the shared detail overlay from a ?gift= deep link without any row click", async () => {
+    mockSearch = "gift=00000000-0000-4000-8000-000000000124";
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        contribution: {
+          id: "00000000-0000-4000-8000-000000000124",
+          shared: {
+            donationId: "00000000-0000-4000-8000-000000000124",
+            amountCents: 10000,
+            currencyCode: "USD",
+            giftDate: "2026-05-26T00:00:00.000Z",
+            donorId: "donor_1",
+            donorName: "Deep Link Donor",
+            designationSummary: {
+              fundId: "fund_1",
+              fundName: "General Fund",
+              missionaryId: null,
+              missionaryName: null,
+            },
+            paymentStatus: "completed",
+            receiptStatus: "pending",
+            crmPostStatus: null,
+            refundState: "none",
+            refundedAmountCents: 0,
+            correctionState: "none",
+          },
+          donor: {
+            id: "donor_1",
+            profileId: null,
+            name: "Deep Link Donor",
+            email: "deep@example.com",
+            phoneNumbers: [],
+            location: null,
+            organization: null,
+          },
+          gift: {
+            date: "2026-05-26T00:00:00.000Z",
+            createdAt: "2026-05-26T00:00:00.000Z",
+            updatedAt: "2026-05-26T00:00:00.000Z",
+            source: "online",
+            campaignId: null,
+            pledgeId: null,
+          },
+          amount: {
+            value: 10000,
+            gross: 10000,
+            net: null,
+            fee: null,
+            taxDeductible: null,
+            currency: "USD",
+          },
+          payment: {
+            type: "one_time",
+            method: "card",
+            status: "completed",
+            lastFour: null,
+            stripe: {
+              paymentIntentId: null,
+              chargeId: null,
+              refundIds: [],
+              replayContext: null,
+            },
+          },
+          designation: {
+            fundId: "fund_1",
+            fundName: "General Fund",
+            missionaryId: null,
+            missionaryName: null,
+            projectId: null,
+          },
+          receipt: { status: "pending", statementStatus: null },
+          refund: { status: "none", amount: 0, refundedAt: null },
+          recurring: { isRecurring: false, interval: null, pledgeId: null },
+          stagedGift: null,
+          crm: { postStatus: null, twentyRecordId: null },
+          auditEvents: [],
+          corrections: [],
+          tasks: [],
+          batches: [],
+          donorVisible: {
+            status: "Succeeded",
+            historyUpdatedImmediately: true,
+            amount: 10000,
+            currency: "USD",
+          },
+        },
+      }),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    expect(await view.findByText("Deep Link Donor")).toBeTruthy();
+    expect(fetchMock).toHaveBeenCalledWith(
+      "/api/admin/contribution-operations/00000000-0000-4000-8000-000000000124",
+      { headers: { accept: "application/json" } },
+    );
+  });
+
+  it("invalidates every shared contribution surface after contribution mutations", async () => {
     const queryClient = {
       invalidateQueries: vi.fn().mockResolvedValue(undefined),
     };
@@ -484,6 +614,15 @@ describe("apps/admin/app/contributions/page", () => {
     });
     expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
       queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+    });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ["admin", "contribution-detail"],
+    });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE,
+    });
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
+      queryKey: ADMIN_CRM_RECORDS_QUERY_KEY_VALUE,
     });
   });
 

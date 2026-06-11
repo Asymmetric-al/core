@@ -61,11 +61,13 @@ import {
   GitCompareArrows,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useState, useMemo } from "react";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
 import { getCrmColumns } from "./columns";
 import { PORTAL_BADGE_CLASS, toCrmRecord } from "./types";
+import { ContributionDetailOverlay } from "../contributions/contribution-detail-overlay";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
@@ -80,9 +82,11 @@ function makeDisplayDate(value?: string | number | Date): Date {
 function DetailDrawer({
   contact,
   onClose,
+  onOpenGift,
 }: {
   contact: CrmRecord;
   onClose: () => void;
+  onOpenGift: (donationId: string) => void;
 }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [noteBody, setNoteBody] = useState("");
@@ -414,7 +418,15 @@ function DetailDrawer({
                           key={gift.id}
                           className="flex items-center justify-between gap-4 py-3"
                         >
-                          <div className="min-w-0">
+                          <button
+                            type="button"
+                            onClick={() => onOpenGift(gift.donationId)}
+                            className="min-w-0 rounded-lg text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring"
+                            aria-label={`Open gift detail for ${formatSharedContributionAmount(
+                              gift.shared.amountCents,
+                              gift.shared.currencyCode,
+                            )} to ${gift.shared.designationSummary.fundName}`}
+                          >
                             <p className="text-sm font-semibold text-foreground">
                               {formatSharedContributionAmount(
                                 gift.shared.amountCents,
@@ -437,7 +449,7 @@ function DetailDrawer({
                                   ]
                                 : "Not required"}
                             </p>
-                          </div>
+                          </button>
                           {gift.canResendReceipt && gift.stagedGiftId ? (
                             <Button
                               variant="outline"
@@ -711,6 +723,16 @@ function KanbanView({
 export default function MissionControlCRM() {
   const [view, setView] = useState<"table" | "kanban">("table");
   const [selectedRecord, setSelectedRecord] = useState<CrmRecord | null>(null);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const donorParam = searchParams.get("donor");
+  const giftParam = searchParams.get("gift");
+  const [openGiftId, setOpenGiftId] = useState<string | null>(() => giftParam);
+
+  useEffect(() => {
+    setOpenGiftId(giftParam);
+  }, [giftParam]);
 
   const {
     columnFilters,
@@ -725,6 +747,62 @@ export default function MissionControlCRM() {
     sorting,
     tableError,
   } = useAdminCrmRecordsInfiniteGrid();
+
+  /**
+   * Restore the donor drawer from `?donor=` route state when the record is in
+   * the loaded grid, so context-preserving CRM gift links reopen in context.
+   */
+  useEffect(() => {
+    if (!donorParam || selectedRecord?.id === donorParam) {
+      return;
+    }
+    const row = rows.find((candidate) => candidate.id === donorParam);
+    if (row) {
+      setSelectedRecord(toCrmRecord(row));
+    }
+  }, [donorParam, rows, selectedRecord?.id]);
+
+  const selectRecord = useCallback(
+    (record: CrmRecord | null) => {
+      setSelectedRecord(record);
+      setOpenGiftId(null);
+      const params = new URLSearchParams(searchParams.toString());
+      params.delete("gift");
+      if (record) {
+        params.set("donor", record.id);
+      } else {
+        params.delete("donor");
+      }
+      const query = params.toString();
+      router.replace(query ? `${pathname}?${query}` : pathname, {
+        scroll: false,
+      });
+    },
+    [pathname, router, searchParams],
+  );
+
+  const openGift = useCallback(
+    (donationId: string) => {
+      setOpenGiftId(donationId);
+      const params = new URLSearchParams(searchParams.toString());
+      if (selectedRecord) {
+        params.set("donor", selectedRecord.id);
+      }
+      params.set("gift", donationId);
+      router.push(`${pathname}?${params.toString()}`, { scroll: false });
+    },
+    [pathname, router, searchParams, selectedRecord],
+  );
+
+  const closeGift = useCallback(() => {
+    setOpenGiftId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("gift");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [pathname, router, searchParams]);
 
   const tagOptions = useMemo(() => {
     const s = new Set<string>();
@@ -780,10 +858,10 @@ export default function MissionControlCRM() {
   const columns = useMemo(
     () =>
       getCrmColumns({
-        onViewRecord: (r) => setSelectedRecord(toCrmRecord(r)),
+        onViewRecord: (r) => selectRecord(toCrmRecord(r)),
         tagOptions,
       }),
-    [tagOptions],
+    [selectRecord, tagOptions],
   );
 
   const handleBulkArchive = (_selected: CrmGridRow[]) => {
@@ -880,9 +958,7 @@ export default function MissionControlCRM() {
                   onFiltersChange={onFiltersChange}
                   onSortingChange={onSortingChange}
                   onRefresh={() => void onRefresh()}
-                  onRowClick={(row) =>
-                    setSelectedRecord(toCrmRecord(row.original))
-                  }
+                  onRowClick={(row) => selectRecord(toCrmRecord(row.original))}
                   infiniteScroll={{
                     hasMore,
                     isFetchingMore,
@@ -969,7 +1045,7 @@ export default function MissionControlCRM() {
                       return (
                         <button
                           type="button"
-                          onClick={() => setSelectedRecord(toCrmRecord(c))}
+                          onClick={() => selectRecord(toCrmRecord(c))}
                           className="w-full p-4 cursor-pointer space-y-3 text-left"
                         >
                           <div className="flex items-center justify-between">
@@ -1029,7 +1105,7 @@ export default function MissionControlCRM() {
               >
                 <KanbanView
                   rows={rows}
-                  onSelectRow={(r) => setSelectedRecord(toCrmRecord(r))}
+                  onSelectRow={(r) => selectRecord(toCrmRecord(r))}
                 />
               </motion.div>
             )}
@@ -1040,9 +1116,16 @@ export default function MissionControlCRM() {
       {selectedRecord && (
         <DetailDrawer
           contact={selectedRecord}
-          onClose={() => setSelectedRecord(null)}
+          onClose={() => selectRecord(null)}
+          onOpenGift={openGift}
         />
       )}
+
+      <ContributionDetailOverlay
+        donationId={openGiftId}
+        sourceSurface="donor_crm_record"
+        onClose={closeGift}
+      />
     </>
   );
 }
