@@ -2,6 +2,8 @@
 
 import {
   formatSharedContributionAmount,
+  hasSharedContributionIssue,
+  matchesSharedContributionFilter,
   SHARED_CRM_POST_STATUS_LABELS,
   SHARED_RECEIPT_STATUS_LABELS,
 } from "@asym/api/admin/contribution-shared";
@@ -397,6 +399,32 @@ function GiftHistoryViewSettingsMenu({
           </DropdownMenuRadioItem>
         </DropdownMenuRadioGroup>
         <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Issues
+        </DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={settings.filtersSort.issue}
+          onValueChange={(value) =>
+            onPatch({
+              filtersSort: {
+                ...settings.filtersSort,
+                issue: value as CrmGiftHistoryFiltersSortSettings["issue"],
+              },
+            })
+          }
+        >
+          <DropdownMenuRadioItem value="all">All gifts</DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="needs_attention">
+            Needs attention
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="receipt_affected">
+            Receipt affected
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="pending_correction">
+            Pending correction
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Reset view settings</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
@@ -775,17 +803,40 @@ function DetailDrawer({
   const display = contact.displayName || "Unnamed record";
   const detail = detailQuery.data;
 
-  // Effective view settings drive the gift list (#272): payment filter and
-  // sort apply before display; columns control which row fields render.
+  // Effective view settings drive the gift list (#272): filters and sort
+  // apply before display; columns control which row fields render. Filters
+  // evaluate through the shared CRM/Hub definitions so the same gift matches
+  // identically on both surfaces (#274).
   const giftRows = useMemo(() => {
     const gifts = detail?.giftHistory ?? [];
     const { filtersSort } = viewSettings;
-    const filtered =
-      filtersSort.paymentStatus === "all"
-        ? gifts
-        : gifts.filter(
-            (gift) => gift.paymentStatus === filtersSort.paymentStatus,
+    const filtered = gifts.filter((gift) => {
+      if (
+        filtersSort.paymentStatus !== "all" &&
+        !matchesSharedContributionFilter(
+          { shared: gift.shared },
+          { id: "payment_status", value: filtersSort.paymentStatus },
+        )
+      ) {
+        return false;
+      }
+      switch (filtersSort.issue) {
+        case "needs_attention":
+          return hasSharedContributionIssue({ shared: gift.shared });
+        case "receipt_affected":
+          return matchesSharedContributionFilter(
+            { shared: gift.shared },
+            { id: "receipt_affected" },
           );
+        case "pending_correction":
+          return matchesSharedContributionFilter(
+            { shared: gift.shared },
+            { id: "pending_correction" },
+          );
+        default:
+          return true;
+      }
+    });
     return [...filtered].sort((left, right) => {
       const leftValue =
         filtersSort.sortField === "amountCents"

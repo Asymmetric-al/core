@@ -13,6 +13,11 @@ export interface CrmGiftHistoryFiltersSortSettings {
   sortField: "giftDate" | "amountCents";
   sortDirection: "asc" | "desc";
   paymentStatus: "all" | "completed" | "refunded";
+  /**
+   * Compact CRM issue filter (issue #274). Each value composes shared
+   * CRM/Hub filter definitions — never CRM-only status logic.
+   */
+  issue: "all" | "needs_attention" | "receipt_affected" | "pending_correction";
 }
 
 export interface CrmGiftHistoryViewSettings {

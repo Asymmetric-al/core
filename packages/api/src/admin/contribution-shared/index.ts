@@ -1,4 +1,14 @@
 export {
+  filterSharedContributions,
+  hasSharedContributionIssue,
+  matchesSharedContributionFilter,
+  SHARED_CONTRIBUTION_FILTERS,
+  type SharedContributionFilter,
+  type SharedContributionFilterDefinition,
+  type SharedContributionFilterId,
+  type SharedContributionFilterInput,
+} from "./filters";
+export {
   deriveEffectiveContribution,
   mapContributionAdjustmentRow,
   type ContributionAdjustmentEffectiveValues,

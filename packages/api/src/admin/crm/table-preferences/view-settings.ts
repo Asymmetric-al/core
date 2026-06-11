@@ -26,6 +26,7 @@ export const CRM_GIFT_HISTORY_SYSTEM_VIEW_SETTINGS: CrmGiftHistoryViewSettings =
       sortField: "giftDate",
       sortDirection: "desc",
       paymentStatus: "all",
+      issue: "all",
     },
   };
 
@@ -55,6 +56,12 @@ const SORT_DIRECTIONS: CrmGiftHistoryFiltersSortSettings["sortDirection"][] = [
 ];
 const PAYMENT_STATUS_FILTERS: CrmGiftHistoryFiltersSortSettings["paymentStatus"][] =
   ["all", "completed", "refunded"];
+const ISSUE_FILTERS: CrmGiftHistoryFiltersSortSettings["issue"][] = [
+  "all",
+  "needs_attention",
+  "receipt_affected",
+  "pending_correction",
+];
 
 function mergeFiltersSort(
   layer: Partial<CrmGiftHistoryFiltersSortSettings> | null | undefined,
@@ -76,6 +83,11 @@ function mergeFiltersSort(
     )
       ? layer!.paymentStatus!
       : base.paymentStatus,
+    issue: ISSUE_FILTERS.includes(
+      layer?.issue as CrmGiftHistoryFiltersSortSettings["issue"],
+    )
+      ? layer!.issue!
+      : base.issue,
   };
 }
 

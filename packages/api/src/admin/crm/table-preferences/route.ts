@@ -40,6 +40,14 @@ const filtersSortSchema = z
     sortField: z.enum(["giftDate", "amountCents"]).optional(),
     sortDirection: z.enum(["asc", "desc"]).optional(),
     paymentStatus: z.enum(["all", "completed", "refunded"]).optional(),
+    issue: z
+      .enum([
+        "all",
+        "needs_attention",
+        "receipt_affected",
+        "pending_correction",
+      ])
+      .optional(),
   })
   .strict();
 
