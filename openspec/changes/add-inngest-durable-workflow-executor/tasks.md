@@ -34,9 +34,9 @@
 
 ## 4. Support Hub Moves
 
-- [ ] 4.1 Add explicit audited tenant-scoped single-message moves with required
+- [x] 4.1 Add explicit audited tenant-scoped single-message moves with required
       reason and retention rules (#296)
-- [ ] 4.2 Add bulk moves with single-move safeguards, partial success,
+- [x] 4.2 Add bulk moves with single-move safeguards, partial success,
       item-level batch audit, and Retry failed recovery (#297)
 
 ## 5. Mission Control Summaries

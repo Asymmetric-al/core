@@ -98,6 +98,8 @@
     "./admin/support-hub/inbound-retry": "./src/admin/support-hub/inbound-retry.ts",
     "./admin/support-hub/inbound-routes": "./src/admin/support-hub/inbound-routes.ts",
     "./admin/support-hub/inbound-route": "./src/admin/support-hub/inbound-route.ts",
+    "./admin/support-hub/move": "./src/admin/support-hub/move.ts",
+    "./admin/support-hub/move-service": "./src/admin/support-hub/move-service.ts",
     "./admin/support-hub/reads/*": "./src/admin/support-hub/reads/*.ts",
     "./admin/support-hub/mutations/*": "./src/admin/support-hub/mutations/*.ts",
     "./workflows/serve": "./src/workflows/serve.ts",
