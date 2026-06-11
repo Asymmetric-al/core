@@ -89,6 +89,19 @@ export async function updateSubscriptionPledge(params: {
     ? "cancelled"
     : mapSubscriptionStatusToPledgeStatus(params.subscription);
 
+  if (pledge.status === "cancelled" && status !== "cancelled") {
+    // Cancellation is terminal. A non-cancelled snapshot here is a stale
+    // customer.subscription.updated (created before the deletion) arriving
+    // late through retries or the recovery scan — applying it would
+    // resurrect the pledge and schedule a charge that will never come.
+    return {
+      action: "pledge_cancellation_preserved",
+      handled: true,
+      pledgeId: pledge.id,
+      reason: "Pledge is cancelled; stale subscription update ignored.",
+    };
+  }
+
   const patch: Record<string, unknown> = { status };
 
   if (isDeleted) {

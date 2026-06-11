@@ -307,18 +307,30 @@ export async function routeReadyInboundEmail(
 
   // Recovery lookup: a previous run may have inserted the support message but
   // lost the bridge write. Backfill the link instead of routing a duplicate.
+  // limit(1) instead of maybeSingle: if duplicates already exist, recover to
+  // the first message rather than erroring on every re-dispatch.
   const existingMessage = await client
     .from("support_messages")
     .select("id, conversation_id")
     .eq("tenant_id", row.tenant_id)
     .eq("inbound_email_id", row.id)
-    .maybeSingle();
+    .limit(1);
 
-  if (existingMessage.data?.id) {
-    const recoveredConversationId = existingMessage.data.conversation_id
-      ? String(existingMessage.data.conversation_id)
+  if (existingMessage.error) {
+    // A failed lookup must not be treated as "not routed yet" — that would
+    // mint a duplicate support message. Throw so the step retries.
+    throw new Error(
+      `inbound_recovery_lookup_failed: ${existingMessage.error.message}`,
+    );
+  }
+
+  const existingRow = existingMessage.data?.[0];
+
+  if (existingRow?.id) {
+    const recoveredConversationId = existingRow.conversation_id
+      ? String(existingRow.conversation_id)
       : null;
-    const recoveredMessageId = String(existingMessage.data.id);
+    const recoveredMessageId = String(existingRow.id);
 
     const recovered = await client
       .from(INBOUND_TABLE)

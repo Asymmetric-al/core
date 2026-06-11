@@ -98,6 +98,49 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
     expect(mock.updates[0]).toMatchObject({ status: "paused" });
   });
 
+  it("never resurrects a cancelled pledge from a stale subscription update", async () => {
+    // Stripe does not guarantee event ordering, and the recovery scan can
+    // replay a customer.subscription.updated snapshot (status "active",
+    // created before the cancellation) after customer.subscription.deleted
+    // already cancelled the pledge. Cancellation is terminal.
+    const mock = createPledgeClientMock(pledgeRow({ status: "cancelled" }));
+
+    const outcome = await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: {
+        id: "sub_1",
+        status: "active",
+        pause_collection: null,
+        current_period_end: 1_780_000_000,
+      } as unknown as Stripe.Subscription,
+      eventType: "customer.subscription.updated",
+    });
+
+    expect(outcome).toMatchObject({
+      action: "pledge_cancellation_preserved",
+      handled: true,
+      pledgeId: PLEDGE_ID,
+    });
+    // No write at all: neither status nor next_charge_at may land.
+    expect(mock.updates).toHaveLength(0);
+  });
+
+  it("treats a replayed subscription deletion as an idempotent re-cancel", async () => {
+    const mock = createPledgeClientMock(pledgeRow({ status: "cancelled" }));
+
+    const outcome = await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: {
+        id: "sub_1",
+        status: "canceled",
+      } as unknown as Stripe.Subscription,
+      eventType: "customer.subscription.deleted",
+    });
+
+    expect(outcome.action).toBe("pledge_cancelled");
+    expect(mock.updates[0]).toMatchObject({ status: "cancelled" });
+  });
+
   it("records a successful invoice payment on the pledge", async () => {
     const mock = createPledgeClientMock(pledgeRow({ failed_charge_count: 2 }));
 

@@ -44,6 +44,8 @@ function inboundRow(overrides: Partial<InboundEmailRow> = {}): InboundEmailRow {
 interface InboundClientMockOptions {
   /** Existing support message returned by the bridge-recovery lookup. */
   supportMessage?: { id: string; conversation_id: string | null } | null;
+  /** Error returned by the bridge-recovery lookup itself. */
+  supportMessageError?: { message: string } | null;
   /** Error returned by email_inbound_messages updates (bridge failure). */
   updateError?: { message: string } | null;
 }
@@ -56,11 +58,11 @@ function createInboundClientMock(
 
   const from = vi.fn((table: string) => {
     if (table === "support_messages") {
-      const maybeSingle = vi.fn().mockResolvedValue({
-        data: options.supportMessage ?? null,
-        error: null,
+      const limit = vi.fn().mockResolvedValue({
+        data: options.supportMessage ? [options.supportMessage] : [],
+        error: options.supportMessageError ?? null,
       });
-      const eqSecond = vi.fn(() => ({ maybeSingle }));
+      const eqSecond = vi.fn(() => ({ limit }));
       const eqFirst = vi.fn(() => ({ eq: eqSecond }));
       return { select: vi.fn(() => ({ eq: eqFirst })) };
     }
@@ -252,6 +254,26 @@ describe("inbound email workflow adapter (#294)", () => {
       conversation_id: "conv-9",
       support_message_id: "msg-9",
     });
+  });
+
+  it("throws when the recovery lookup fails instead of routing a duplicate", async () => {
+    // A transport failure (or duplicate rows) in the recovery lookup must not
+    // be treated as "not routed yet" — that would mint another support
+    // message. The step throws so the run retries.
+    const mock = createInboundClientMock(
+      inboundRow({ body_retrieval_status: "available" }),
+      { supportMessageError: { message: "connection reset" } },
+    );
+    const route = vi.fn();
+
+    await expect(
+      routeReadyInboundEmail(
+        mock.client,
+        { tenantId: TENANT_ID, inboundEmailRowId: ROW_ID },
+        route,
+      ),
+    ).rejects.toThrow("inbound_recovery_lookup_failed");
+    expect(route).not.toHaveBeenCalled();
   });
 
   it("throws when the bridge write fails so the step retries", async () => {
