@@ -70,7 +70,9 @@ describe("admin/contribution-operations route action-result projection", () => {
     );
 
     const canonical = projected.canonicalContribution as {
-      payment: { stripe: { paymentIntentId: string | null; chargeId: string | null } };
+      payment: {
+        stripe: { paymentIntentId: string | null; chargeId: string | null };
+      };
     };
     expect(canonical.payment.stripe.paymentIntentId).toBeNull();
     expect(canonical.payment.stripe.chargeId).toBeNull();
@@ -85,7 +87,9 @@ describe("admin/contribution-operations route action-result projection", () => {
     );
 
     const canonical = projected.canonicalContribution as {
-      payment: { stripe: { paymentIntentId: string | null; chargeId: string | null } };
+      payment: {
+        stripe: { paymentIntentId: string | null; chargeId: string | null };
+      };
     };
     expect(canonical.payment.stripe.paymentIntentId).toBe("pi_proof");
     expect(canonical.payment.stripe.chargeId).toBe("ch_proof");
