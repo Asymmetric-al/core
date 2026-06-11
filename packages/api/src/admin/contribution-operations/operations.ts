@@ -156,6 +156,107 @@ export async function refundContribution(input: {
   }
 }
 
+/**
+ * Collect every fund/missionary id a correction's effective values reference,
+ * across the top-level fields and each designation line. `null` (clearing a
+ * designation) is intentionally not collected.
+ */
+function collectCorrectionReferenceIds(
+  effectiveValues: Record<string, unknown>,
+): {
+  fundIds: string[];
+  missionaryIds: string[];
+} {
+  const fundIds = new Set<string>();
+  const missionaryIds = new Set<string>();
+  const addFund = (value: unknown) => {
+    if (typeof value === "string" && value.length > 0) {
+      fundIds.add(value);
+    }
+  };
+  const addMissionary = (value: unknown) => {
+    if (typeof value === "string" && value.length > 0) {
+      missionaryIds.add(value);
+    }
+  };
+
+  addFund(effectiveValues.fundId);
+  addMissionary(effectiveValues.missionaryId);
+
+  const lines = effectiveValues.designationLines;
+  if (Array.isArray(lines)) {
+    for (const line of lines) {
+      if (line && typeof line === "object") {
+        const record = line as Record<string, unknown>;
+        addFund(record.fundId);
+        addMissionary(record.missionaryId);
+      }
+    }
+  }
+
+  return { fundIds: [...fundIds], missionaryIds: [...missionaryIds] };
+}
+
+/**
+ * Reject corrections that reference a fund or missionary that does not exist
+ * for the tenant before the adjustment is written. Without this guard a
+ * free-text / bogus / cross-tenant id would be baked into the gift's effective
+ * financial truth (designations, receipts, reconciliation, CRM posting) with no
+ * later validation. Mirrors the tenant-scoped donor guard in
+ * `relinkContributionDonor`.
+ */
+async function assertCorrectionReferencesExist(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  effectiveValues: Record<string, unknown>;
+}): Promise<void> {
+  const { fundIds, missionaryIds } = collectCorrectionReferenceIds(
+    input.effectiveValues,
+  );
+
+  if (fundIds.length > 0) {
+    const { data, error } = await input.supabaseAdmin
+      .from("funds")
+      .select("id")
+      .eq("tenant_id", input.tenantId)
+      .in("id", fundIds);
+    if (error) {
+      throw new Error(error.message);
+    }
+    const found = new Set(
+      ((data ?? []) as Array<{ id: string }>).map((row) => row.id),
+    );
+    const missing = fundIds.filter((id) => !found.has(id));
+    if (missing.length > 0) {
+      throw new ApiHttpError(
+        400,
+        `Unknown fund for this organization: ${missing.join(", ")}.`,
+      );
+    }
+  }
+
+  if (missionaryIds.length > 0) {
+    const { data, error } = await input.supabaseAdmin
+      .from("missionaries")
+      .select("id")
+      .eq("tenant_id", input.tenantId)
+      .in("id", missionaryIds);
+    if (error) {
+      throw new Error(error.message);
+    }
+    const found = new Set(
+      ((data ?? []) as Array<{ id: string }>).map((row) => row.id),
+    );
+    const missing = missionaryIds.filter((id) => !found.has(id));
+    if (missing.length > 0) {
+      throw new ApiHttpError(
+        400,
+        `Unknown missionary for this organization: ${missing.join(", ")}.`,
+      );
+    }
+  }
+}
+
 function correctionEffectiveValues(
   actionType: ContributionActionType,
   payload: Record<string, unknown>,
@@ -425,6 +526,14 @@ export async function applyContributionCorrection(input: {
     input.actionType,
     input.payload,
   );
+
+  // Validate fund/missionary references against the tenant before writing the
+  // adjustment — a bogus or cross-tenant id must never enter financial truth.
+  await assertCorrectionReferencesExist({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    effectiveValues,
+  });
 
   const affectedFields = computeReceiptAffectedFields(effectiveValues);
   const receiptAffected =

@@ -16,7 +16,7 @@ bun run typecheck && bun run test:unit && bun run build`.
 | ---- | ----- | -------- | ------ | ---- | ---------- | ------ |
 | 001  | Remove dead resend-receipt hook + canResendReceipt field | P2 | S | LOW | none | DONE |
 | 002  | Redact Stripe IDs in POST /actions result | P1 | S | LOW | none | DONE |
-| 003  | Validate fund/missionary IDs in corrections | P1 | M | MED | none | TODO |
+| 003  | Validate fund/missionary IDs in corrections | P1 | M | MED | none | DONE |
 | 004  | Make inline stripe_replay derive its event id server-side | P2 | M | LOW | none | TODO |
 | 005  | Share the CRM view-settings patch util (in @asym/database) | P2 | M | LOW | none | TODO |
 | 006  | Extract components from the crm/page-client god-file | P3 | L | MED | 001, 005 | TODO |

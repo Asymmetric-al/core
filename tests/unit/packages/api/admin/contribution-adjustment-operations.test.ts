@@ -31,12 +31,17 @@ interface StubState {
   stagedGift?: Record<string, unknown> | null;
   donor?: Record<string, unknown> | null;
   snapshots?: Array<Record<string, unknown>>;
+  /** Fund ids that exist for this tenant (for correction reference checks). */
+  funds?: string[];
+  /** Missionary ids that exist for this tenant. */
+  missionaries?: string[];
 }
 
 class QueryBuilder {
   private operation: "select" | "insert" | "update" = "select";
   private insertPayload: Record<string, unknown> | null = null;
   private wantsSingle = false;
+  private inValues: unknown[] = [];
 
   constructor(
     private readonly table: string,
@@ -62,6 +67,11 @@ class QueryBuilder {
   }
 
   eq() {
+    return this;
+  }
+
+  in(_column: string, values: unknown[]) {
+    this.inValues = values;
     return this;
   }
 
@@ -101,6 +111,20 @@ class QueryBuilder {
     }
     if (this.table === "staged_gift_allocations") {
       return { data: [], error: null };
+    }
+    if (this.table === "funds") {
+      const valid = this.state.funds ?? [];
+      const rows = this.inValues
+        .filter((id) => valid.includes(id as string))
+        .map((id) => ({ id }));
+      return { data: rows, error: null };
+    }
+    if (this.table === "missionaries") {
+      const valid = this.state.missionaries ?? [];
+      const rows = this.inValues
+        .filter((id) => valid.includes(id as string))
+        .map((id) => ({ id }));
+      return { data: rows, error: null };
     }
     if (this.table === "contribution_receipt_delivery_policies") {
       return { data: null, error: null };
@@ -340,6 +364,101 @@ describe("applyContributionCorrection (adjustment records)", () => {
     });
     expect(state.snapshots).toHaveLength(1);
     expect(state.snapshots![0]).toMatchObject({ kind: "pdf" });
+  });
+
+  it("applies a fund correction when the fund exists for the tenant", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: ["fund-valid"],
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      actionType: "fund_correction",
+      payload: { fundId: "fund-valid" },
+      reason: "Donor redirected the gift",
+    });
+
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.adjustments[0]).toMatchObject({
+      adjustment_type: "fund_correction",
+      effective_values: { fundId: "fund-valid" },
+    });
+    expect(result.status).toBe("applied");
+  });
+
+  it("rejects a fund correction with an unknown/cross-tenant fund and writes nothing", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: ["fund-valid"],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "fund_correction",
+        payload: { fundId: "fund-from-another-tenant" },
+        reason: "Typo'd fund id",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/unknown fund/i),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("rejects an allocation correction when any line references an unknown fund", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: ["fund-valid"],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "allocation_correction",
+        payload: {
+          designationLines: [
+            { amountCents: 10_000, fundId: "fund-valid" },
+            { amountCents: 15_000, fundId: "fund-bogus" },
+          ],
+        },
+        reason: "Split the gift",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/unknown fund/i),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("allows a fund correction that clears the designation (null fund)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      actionType: "fund_correction",
+      payload: { fundId: null },
+      reason: "Move to General Fund",
+    });
+
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.adjustments[0]).toMatchObject({
+      effective_values: { fundId: null },
+    });
+    expect(result.status).toBe("applied");
   });
 
   it("returns the existing adjustment on idempotent retry instead of double-applying", async () => {
