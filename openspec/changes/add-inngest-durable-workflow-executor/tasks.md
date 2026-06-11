@@ -41,5 +41,5 @@
 
 ## 5. Mission Control Summaries
 
-- [ ] 5.1 Show product-owned workflow run summaries and notification policy
+- [x] 5.1 Show product-owned workflow run summaries and notification policy
       without mirroring raw Inngest step logs (#298)

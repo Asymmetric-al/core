@@ -107,7 +107,11 @@
     "./workflows/events": "./src/workflows/events.ts",
     "./workflows/ledger": "./src/workflows/ledger.ts",
     "./workflows/claims": "./src/workflows/claims.ts",
-    "./workflows/recovery": "./src/workflows/recovery.ts"
+    "./workflows/recovery": "./src/workflows/recovery.ts",
+    "./workflows/summaries": "./src/workflows/summaries.ts",
+    "./workflows/notification-policy": "./src/workflows/notification-policy.ts",
+    "./admin/workflows/summaries": "./src/admin/workflows/summaries.ts",
+    "./admin/workflows/notification-policy": "./src/admin/workflows/notification-policy.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
