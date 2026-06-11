@@ -96,6 +96,8 @@
     "./admin/support-hub/adapter/types": "./src/admin/support-hub/adapter/types.ts",
     "./admin/support-hub/inbound-router": "./src/admin/support-hub/inbound-router.ts",
     "./admin/support-hub/inbound-retry": "./src/admin/support-hub/inbound-retry.ts",
+    "./admin/support-hub/inbound-routes": "./src/admin/support-hub/inbound-routes.ts",
+    "./admin/support-hub/inbound-route": "./src/admin/support-hub/inbound-route.ts",
     "./admin/support-hub/reads/*": "./src/admin/support-hub/reads/*.ts",
     "./admin/support-hub/mutations/*": "./src/admin/support-hub/mutations/*.ts",
     "./workflows/serve": "./src/workflows/serve.ts",

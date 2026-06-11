@@ -216,11 +216,17 @@ describe("inbound email workflow adapter (#294)", () => {
       messageId: "msg-1",
       reason: "created a new Support Hub conversation.",
     });
+    const resolveDecision = vi.fn().mockResolvedValue({
+      kind: "inbox",
+      inboxId: "inbox-1",
+      source: "inbox_address",
+    });
 
     const result = await routeReadyInboundEmail(
       mock.client,
       { tenantId: TENANT_ID, inboundEmailRowId: ROW_ID },
       route,
+      resolveDecision,
     );
 
     expect(result.status).toBe("routed");
@@ -228,6 +234,7 @@ describe("inbound email workflow adapter (#294)", () => {
       expect.objectContaining({
         tenantId: TENANT_ID,
         bodyText: "Hello support",
+        inboxId: "inbox-1",
       }),
     );
     expect(mock.updates[0]?.values).toEqual({

@@ -103,6 +103,8 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/support/tickets`                                   | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/support/tickets/[id]`                              | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/admin/support-hub/inbound/retry`                         | Node.js (no `runtime` segment export) | Inbound email retry, work claims, ledger   |
+| admin      | `/api/admin/support-hub/inbound/routes`                        | Node.js (no `runtime` segment export) | Saved inbound routes, save-and-continue    |
+| admin      | `/api/admin/support-hub/inbound/routes/[routeId]`              | Node.js (no `runtime` segment export) | Tenant route management, audit             |
 | admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Admin client (`SUPABASE_SERVICE_ROLE_KEY`) |
 | admin      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                    |
 | admin      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                       |

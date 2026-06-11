@@ -6,6 +6,11 @@ import { getHeaderValue } from "../../email/webhooks/resend";
 import { acquireWorkClaim, releaseWorkClaim } from "../claims";
 import { EMAIL_INBOUND_PROCESS_EVENT } from "../events";
 import {
+  ensureRoutingReview,
+  resolveInboundRouteDecision,
+  type InboundRouteDecision,
+} from "./inbound-routing";
+import {
   requestWorkflowDispatch,
   type CreateDispatchRequestInput,
   type RequestWorkflowDispatchDeps,
@@ -259,7 +264,12 @@ export async function listInboundAttachments(
 }
 
 export interface RouteReadyInboundEmailResult {
-  status: "routed" | "already_routed" | "skipped" | "skipped_no_body";
+  status:
+    | "routed"
+    | "already_routed"
+    | "skipped"
+    | "skipped_no_body"
+    | "review_pending";
   conversationId: string | null;
   messageId: string | null;
   reason: string;
@@ -268,7 +278,10 @@ export interface RouteReadyInboundEmailResult {
 /**
  * Support Hub routing for a ready inbound email. Support message readiness
  * requires the body: placeholders never become empty support messages, and a
- * fresh read prevents duplicate routing on replay or concurrent runs.
+ * fresh read prevents duplicate routing on replay or concurrent runs. Known
+ * routes (thread replies, inbox addresses, saved routes, approved domain
+ * defaults) route automatically; unknown or ambiguous safe routes hold for
+ * tenant routing review.
  */
 export async function routeReadyInboundEmail(
   client: InboundWorkflowClient,
@@ -276,6 +289,10 @@ export async function routeReadyInboundEmail(
   route: (
     envelope: Parameters<typeof routeInboundToSupportHub>[0],
   ) => Promise<InboundRouterResult> = routeInboundToSupportHub,
+  resolveDecision: (
+    decisionClient: InboundWorkflowClient,
+    row: InboundEmailRow,
+  ) => Promise<InboundRouteDecision> = resolveInboundRouteDecision,
 ): Promise<RouteReadyInboundEmailResult> {
   const row = await loadInboundEmailForWorkflow(client, input);
 
@@ -298,11 +315,27 @@ export async function routeReadyInboundEmail(
     };
   }
 
+  const decision = await resolveDecision(client, row);
+
+  if (decision.kind === "review") {
+    await ensureRoutingReview(client, row, decision);
+
+    return {
+      status: "review_pending",
+      conversationId: null,
+      messageId: null,
+      reason:
+        decision.reason === "ambiguous"
+          ? "Multiple safe routes matched; held for tenant routing review."
+          : "No known safe route matched; held for tenant routing review.",
+    };
+  }
+
   const routing = await route({
     tenantId: row.tenant_id,
     resendEmailId: row.resend_email_id,
     inboundEmailRowId: row.id,
-    inboxId: null,
+    inboxId: decision.inboxId,
     fromAddress: row.from_email,
     fromName: null,
     toAddresses: row.to_recipients,

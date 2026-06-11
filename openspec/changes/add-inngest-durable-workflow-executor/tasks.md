@@ -29,7 +29,7 @@
 - [x] 3.2 Retrieve inbound body durably before Support Hub routing; track
       attachment status as pending/retrying/failed/available without blocking
       the conversation (#294)
-- [ ] 3.3 Add inbound routing review for unknown or ambiguous safe routes and
+- [x] 3.3 Add inbound routing review for unknown or ambiguous safe routes and
       tenant-owned saved route management (#295)
 
 ## 4. Support Hub Moves
