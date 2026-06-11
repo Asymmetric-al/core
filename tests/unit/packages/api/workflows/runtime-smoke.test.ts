@@ -147,13 +147,19 @@ describe("workflow runtime smoke (#287)", () => {
   });
 
   describe("serve endpoint module", () => {
-    it("exposes GET, POST, and PUT handlers for the thin app route", async () => {
-      const serveModule =
-        await import("../../../../../packages/api/src/workflows/serve");
+    it(
+      "exposes GET, POST, and PUT handlers for the thin app route",
+      // serve.ts pulls in every workflow function; transforming that module
+      // graph can exceed the default 5s timeout under parallel suite load.
+      { timeout: 30_000 },
+      async () => {
+        const serveModule =
+          await import("../../../../../packages/api/src/workflows/serve");
 
-      expect(typeof serveModule.GET).toBe("function");
-      expect(typeof serveModule.POST).toBe("function");
-      expect(typeof serveModule.PUT).toBe("function");
-    });
+        expect(typeof serveModule.GET).toBe("function");
+        expect(typeof serveModule.POST).toBe("function");
+        expect(typeof serveModule.PUT).toBe("function");
+      },
+    );
   });
 });

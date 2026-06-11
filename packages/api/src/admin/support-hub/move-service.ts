@@ -386,27 +386,22 @@ export async function bulkMoveSupportConversations(
   const moved = items.filter((item) => item.status === "moved").length;
   const failed = items.length - moved;
 
-  const batchRecord = {
-    id: batchOperationId,
-    tenant_id: input.tenantId,
-    destination_inbox_id: input.destinationInboxId,
-    reason,
-    created_by_profile_id: input.actorProfileId,
-    items,
-    status: failed === 0 ? "completed" : "partial",
-    retry_of: options.isRetry ? (options.batchOperationId ?? null) : null,
-  };
-
+  // Retries skip this write entirely: retryFailedBulkMove merges the retried
+  // items into the original batch row and owns that single update.
   if (!options.isRetry) {
-    await client
-      .from("support_bulk_move_operations")
-      .upsert(batchRecord, { onConflict: "id" });
-  } else {
-    await client
-      .from("support_bulk_move_operations")
-      .update({ items, status: failed === 0 ? "completed" : "partial" })
-      .eq("tenant_id", input.tenantId)
-      .eq("id", batchOperationId);
+    await client.from("support_bulk_move_operations").upsert(
+      {
+        id: batchOperationId,
+        tenant_id: input.tenantId,
+        destination_inbox_id: input.destinationInboxId,
+        reason,
+        created_by_profile_id: input.actorProfileId,
+        items,
+        status: failed === 0 ? "completed" : "partial",
+        retry_of: null,
+      },
+      { onConflict: "id" },
+    );
   }
 
   return {

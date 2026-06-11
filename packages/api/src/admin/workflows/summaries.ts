@@ -35,12 +35,17 @@ export const GET = withOperation(
     const overrides = await loadOverrides(supabaseAdmin, ctx.tenantId);
     const summaries = await summarizeWorkflowRuns(supabaseAdmin, ctx.tenantId);
 
+    // One policy evaluation per row, reused for both display and counts.
+    const withNotifications = summaries.map((summary) => ({
+      ...summary,
+      notification: evaluateWorkflowNotification(summary, overrides),
+    }));
+
     return NextResponse.json({
-      summaries: summaries.map((summary) => ({
-        ...summary,
-        notification: evaluateWorkflowNotification(summary, overrides),
-      })),
-      counts: countWorkflowNotifications(summaries, overrides),
+      summaries: withNotifications,
+      counts: countWorkflowNotifications(
+        withNotifications.map((summary) => summary.notification),
+      ),
     });
   },
   { roles: ["admin", "staff", "super_admin"] },

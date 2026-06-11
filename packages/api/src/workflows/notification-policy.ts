@@ -32,7 +32,6 @@ export function evaluateWorkflowNotification(
   input: {
     productArea: string;
     state: WorkflowSummaryState;
-    attempts: number;
   },
   overrides: WorkflowNotificationOverrides = {},
 ): WorkflowNotificationDecision {
@@ -91,18 +90,16 @@ export interface WorkflowNotificationCounts {
   visible: number;
 }
 
+/**
+ * Counts already-evaluated decisions so callers evaluate the policy exactly
+ * once per row and reuse the same decisions for both display and counting.
+ */
 export function countWorkflowNotifications(
-  summaries: Array<{
-    productArea: string;
-    state: WorkflowSummaryState;
-    attempts: number;
-  }>,
-  overrides: WorkflowNotificationOverrides = {},
+  decisions: Array<Pick<WorkflowNotificationDecision, "level">>,
 ): WorkflowNotificationCounts {
   const counts: WorkflowNotificationCounts = { urgent: 0, visible: 0 };
 
-  for (const summary of summaries) {
-    const decision = evaluateWorkflowNotification(summary, overrides);
+  for (const decision of decisions) {
     if (decision.level === "urgent") counts.urgent += 1;
     else counts.visible += 1;
   }

@@ -394,31 +394,14 @@ function SuccessView({
           </div>
 
           <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
-            {achStatus ? (
-              <>
-                {achStatus.message} A confirmation has been sent to{" "}
-                <span className="text-zinc-950 font-semibold">
-                  {donorInfo.email}
-                </span>
-                . Your gift is being routed to{" "}
-                <span className="text-zinc-950 font-semibold">
-                  {workerTitle}
-                </span>
-                .
-              </>
-            ) : (
-              <>
-                A secure receipt has been sent to{" "}
-                <span className="text-zinc-950 font-semibold">
-                  {donorInfo.email}
-                </span>
-                . Your gift is being routed to{" "}
-                <span className="text-zinc-950 font-semibold">
-                  {workerTitle}
-                </span>
-                .
-              </>
-            )}
+            {achStatus
+              ? `${achStatus.message} A confirmation has been sent to `
+              : "A secure receipt has been sent to "}
+            <span className="text-zinc-950 font-semibold">
+              {donorInfo.email}
+            </span>
+            . Your gift is being routed to{" "}
+            <span className="text-zinc-950 font-semibold">{workerTitle}</span>.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">

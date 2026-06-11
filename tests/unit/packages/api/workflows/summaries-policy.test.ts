@@ -202,7 +202,6 @@ describe("workflow notification policy (#298)", () => {
     const decision = evaluateWorkflowNotification({
       productArea: "email",
       state: "dead_letter",
-      attempts: 10,
     });
 
     expect(decision.level).toBe("urgent");
@@ -212,7 +211,6 @@ describe("workflow notification policy (#298)", () => {
     const decision = evaluateWorkflowNotification({
       productArea: "email",
       state: "action_required",
-      attempts: 1,
     });
 
     expect(decision.level).toBe("urgent");
@@ -223,14 +221,12 @@ describe("workflow notification policy (#298)", () => {
       evaluateWorkflowNotification({
         productArea: "donations",
         state: "failed",
-        attempts: 1,
       }).level,
     ).toBe("urgent");
     expect(
       evaluateWorkflowNotification({
         productArea: "giving",
         state: "failed",
-        attempts: 1,
       }).level,
     ).toBe("urgent");
   });
@@ -239,7 +235,6 @@ describe("workflow notification policy (#298)", () => {
     const decision = evaluateWorkflowNotification({
       productArea: "donations",
       state: "retrying",
-      attempts: 2,
     });
 
     expect(decision.level).toBe("visible");
@@ -247,31 +242,35 @@ describe("workflow notification policy (#298)", () => {
 
   it("lets tenant overrides adjust behavior without making defaults noisy", () => {
     const escalated = evaluateWorkflowNotification(
-      { productArea: "email", state: "retrying", attempts: 2 },
+      { productArea: "email", state: "retrying" },
       { urgentOnRetry: ["email"] },
     );
     expect(escalated.level).toBe("urgent");
 
     const muted = evaluateWorkflowNotification(
-      { productArea: "donations", state: "failed", attempts: 2 },
+      { productArea: "donations", state: "failed" },
       { muteFailed: ["donations"] },
     );
     expect(muted.level).toBe("visible");
 
     // Untouched areas keep the quiet defaults.
     const untouched = evaluateWorkflowNotification(
-      { productArea: "email", state: "retrying", attempts: 2 },
+      { productArea: "email", state: "retrying" },
       { muteFailed: ["donations"] },
     );
     expect(untouched.level).toBe("visible");
   });
 
   it("counts urgent and visible items for the Mission Control header", () => {
-    const counts = countWorkflowNotifications([
-      { productArea: "donations", state: "failed", attempts: 1 },
-      { productArea: "email", state: "retrying", attempts: 1 },
-      { productArea: "email", state: "completed", attempts: 1 },
-    ]);
+    const counts = countWorkflowNotifications(
+      (
+        [
+          { productArea: "donations", state: "failed" },
+          { productArea: "email", state: "retrying" },
+          { productArea: "email", state: "completed" },
+        ] as const
+      ).map((input) => evaluateWorkflowNotification(input)),
+    );
 
     expect(counts).toEqual({ urgent: 1, visible: 2 });
   });
