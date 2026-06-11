@@ -1,13 +1,8 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { type AuthenticatedContext } from "@asym/auth/context";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 import {
   listInboundRoutes,
   saveInboundRouteAndResume,
@@ -27,16 +22,9 @@ const saveRouteSchema = z
  * Tenant admins view saved inbound routes. Route data is tenant-scoped and
  * carries no provider internals.
  */
-export async function GET(request: NextRequest) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+export const GET = withOperation(
+  async ({ supabaseAdmin, auth }) => {
     const ctx = auth as AuthenticatedContext;
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
 
     const routes = await listInboundRoutes(supabaseAdmin, ctx.tenantId);
 
@@ -49,10 +37,9 @@ export async function GET(request: NextRequest) {
         isActive: route.is_active,
       })),
     });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "super_admin"] },
+);
 
 /**
  * Route Save And Continue: any authenticated support agent in the owning
@@ -60,16 +47,9 @@ export async function GET(request: NextRequest) {
  * toward Support Hub routing. Tenant-domain defaults require explicit
  * confirmation and the confirmation result is audit logged.
  */
-export async function POST(request: NextRequest) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "staff", "super_admin"]);
+export const POST = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
 
     const parsed = saveRouteSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -104,7 +84,6 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(result);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "staff", "super_admin"] },
+);

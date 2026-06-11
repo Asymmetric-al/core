@@ -1,12 +1,8 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { type AuthenticatedContext } from "@asym/auth/context";
+import { type getAdminClient } from "@asym/database/supabase/admin";
+import { NextResponse } from "next/server";
 
-import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 import {
   countWorkflowNotifications,
   evaluateWorkflowNotification,
@@ -32,16 +28,9 @@ async function loadOverrides(
  * notification levels. No raw Inngest step logs, secrets, provider
  * internals, signed URLs, stack traces, or cross-tenant details.
  */
-export async function GET(request: NextRequest) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "staff", "super_admin"]);
+export const GET = withOperation(
+  async ({ supabaseAdmin, auth }) => {
     const ctx = auth as AuthenticatedContext;
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
 
     const overrides = await loadOverrides(supabaseAdmin, ctx.tenantId);
     const summaries = await summarizeWorkflowRuns(supabaseAdmin, ctx.tenantId);
@@ -53,7 +42,6 @@ export async function GET(request: NextRequest) {
       })),
       counts: countWorkflowNotifications(summaries, overrides),
     });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "staff", "super_admin"] },
+);

@@ -1,13 +1,8 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { type AuthenticatedContext } from "@asym/auth/context";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 import { requestInboundEmailRetryDispatch } from "../../workflows/adapters/inbound-email";
 
 const retryRequestSchema = z
@@ -23,16 +18,9 @@ const retryRequestSchema = z
  * server; the browser never calls the provider and never receives provider
  * secrets, signed URLs, raw payloads, or attachment bytes.
  */
-export async function POST(request: NextRequest) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "staff", "super_admin"]);
+export const POST = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
 
     const parsed = retryRequestSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -42,33 +30,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const result = await requestInboundEmailRetryDispatch(
-      { client: supabaseAdmin },
-      {
-        tenantId: ctx.tenantId,
-        inboundEmailRowId: parsed.data.inboundEmailRowId,
-        kind: parsed.data.kind,
-        requestedBy: ctx.userId,
-      },
-    );
-
-    return NextResponse.json({
-      status: result.status,
-      dispatch: result.dispatch,
-    });
-  } catch (error) {
-    if (
-      error instanceof Error &&
-      (error.message === "inbound_email_not_found" ||
-        error.message === "inbound_email_tenant_mismatch")
-    ) {
-      // Same safe response for missing and cross-tenant rows.
-      return NextResponse.json(
-        { error: "Inbound email not found." },
-        { status: 404 },
+    try {
+      const result = await requestInboundEmailRetryDispatch(
+        { client: supabaseAdmin },
+        {
+          tenantId: ctx.tenantId,
+          inboundEmailRowId: parsed.data.inboundEmailRowId,
+          kind: parsed.data.kind,
+          requestedBy: ctx.userId,
+        },
       );
-    }
 
-    return toErrorResponse(error);
-  }
-}
+      return NextResponse.json({
+        status: result.status,
+        dispatch: result.dispatch,
+      });
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        (error.message === "inbound_email_not_found" ||
+          error.message === "inbound_email_tenant_mismatch")
+      ) {
+        // Same safe response for missing and cross-tenant rows.
+        return NextResponse.json(
+          { error: "Inbound email not found." },
+          { status: 404 },
+        );
+      }
+
+      throw error;
+    }
+  },
+  { roles: ["admin", "staff", "super_admin"] },
+);

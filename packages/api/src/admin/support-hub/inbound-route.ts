@@ -1,13 +1,8 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { type AuthenticatedContext } from "@asym/auth/context";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 import {
   deleteInboundRoute,
   updateInboundRoute,
@@ -29,18 +24,11 @@ interface RouteParams {
  * inbound route. Changes apply to future routing; already routed messages
  * keep their historical routing audit trail.
  */
-export async function PATCH(request: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+export const PATCH = withOperation<RouteParams>(
+  async ({ supabaseAdmin, auth, request }, routeContext) => {
     const ctx = auth as AuthenticatedContext;
 
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const { routeId } = await params;
+    const { routeId } = await (routeContext as RouteParams).params;
     const routeIdParsed = z.string().uuid().safeParse(routeId);
     const parsed = updateRouteSchema.safeParse(await request.json());
 
@@ -64,26 +52,18 @@ export async function PATCH(request: NextRequest, { params }: RouteParams) {
     });
 
     return NextResponse.json({ updated: true });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "super_admin"] },
+);
 
 /**
  * Deleting a route removes the future active rule only; audit history stays.
  */
-export async function DELETE(request: NextRequest, { params }: RouteParams) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+export const DELETE = withOperation<RouteParams>(
+  async ({ supabaseAdmin, auth }, routeContext) => {
     const ctx = auth as AuthenticatedContext;
 
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
-
-    const { routeId } = await params;
+    const { routeId } = await (routeContext as RouteParams).params;
     const routeIdParsed = z.string().uuid().safeParse(routeId);
     if (!routeIdParsed.success) {
       return NextResponse.json({ error: "Invalid route id." }, { status: 400 });
@@ -96,7 +76,6 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     });
 
     return NextResponse.json({ deleted: true });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "super_admin"] },
+);

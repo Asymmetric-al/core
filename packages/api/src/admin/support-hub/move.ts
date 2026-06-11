@@ -1,10 +1,5 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { type AuthenticatedContext } from "@asym/auth/context";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
@@ -12,7 +7,7 @@ import {
   moveSupportConversation,
   retryFailedBulkMove,
 } from "./move-service";
-import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 
 const moveSchema = z
   .object({
@@ -39,25 +34,15 @@ const retrySchema = z
   })
   .strict();
 
-function requireSupportAgent(request: NextRequest) {
-  return getAuthContext(request).then((auth) => {
-    requireRole(auth, ["admin", "staff", "super_admin"]);
-    return auth as AuthenticatedContext;
-  });
-}
+const SUPPORT_AGENT_ROLES = ["admin", "staff", "super_admin"] as const;
 
 /**
  * Explicit audited Support Hub conversation move. Tenant scoping, reason
  * validation, retention rules, markers, and audit live in the move service.
  */
-export async function POST(request: NextRequest) {
-  try {
-    const ctx = await requireSupportAgent(request);
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
+export const POST = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
+    const ctx = auth as AuthenticatedContext;
 
     const parsed = moveSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -86,19 +71,13 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(result);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: [...SUPPORT_AGENT_ROLES] },
+);
 
-export async function bulkMovePOST(request: NextRequest) {
-  try {
-    const ctx = await requireSupportAgent(request);
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
+export const bulkMovePOST = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
+    const ctx = auth as AuthenticatedContext;
 
     const parsed = bulkMoveSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -118,19 +97,13 @@ export async function bulkMovePOST(request: NextRequest) {
     });
 
     return NextResponse.json(result);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: [...SUPPORT_AGENT_ROLES] },
+);
 
-export async function retryPOST(request: NextRequest) {
-  try {
-    const ctx = await requireSupportAgent(request);
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
+export const retryPOST = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
+    const ctx = auth as AuthenticatedContext;
 
     const parsed = retrySchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -148,7 +121,6 @@ export async function retryPOST(request: NextRequest) {
     });
 
     return NextResponse.json(result);
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: [...SUPPORT_AGENT_ROLES] },
+);

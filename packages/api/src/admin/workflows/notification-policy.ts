@@ -1,13 +1,8 @@
-import {
-  getAuthContext,
-  requireRole,
-  type AuthenticatedContext,
-} from "@asym/auth/context";
-import { getAdminClient } from "@asym/database/supabase/admin";
-import { type NextRequest, NextResponse } from "next/server";
+import { type AuthenticatedContext } from "@asym/auth/context";
+import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { toErrorResponse } from "../../shared/http-errors";
+import { withOperation } from "../../shared/with-operation";
 
 const overridesSchema = z
   .object({
@@ -17,16 +12,9 @@ const overridesSchema = z
   .strict();
 
 /** Tenant admins read the current workflow notification overrides. */
-export async function GET(request: NextRequest) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+export const GET = withOperation(
+  async ({ supabaseAdmin, auth }) => {
     const ctx = auth as AuthenticatedContext;
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
 
     const { data } = await supabaseAdmin
       .from("workflow_notification_policies")
@@ -35,26 +23,18 @@ export async function GET(request: NextRequest) {
       .maybeSingle();
 
     return NextResponse.json({ overrides: data?.overrides ?? {} });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "super_admin"] },
+);
 
 /**
  * Tenant admins adjust notification behavior. Only bounded override knobs
  * are accepted; the quiet defaults stay in code so adjustments cannot make
  * the default noisy for everyone.
  */
-export async function PUT(request: NextRequest) {
-  try {
-    const auth = await getAuthContext(request);
-    requireRole(auth, ["admin", "super_admin"]);
+export const PUT = withOperation(
+  async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
-
-    const { client: supabaseAdmin, error: adminError } = getAdminClient();
-    if (!supabaseAdmin) {
-      return NextResponse.json({ error: adminError }, { status: 503 });
-    }
 
     const parsed = overridesSchema.safeParse(await request.json());
     if (!parsed.success) {
@@ -83,7 +63,6 @@ export async function PUT(request: NextRequest) {
     }
 
     return NextResponse.json({ saved: true, overrides: parsed.data });
-  } catch (error) {
-    return toErrorResponse(error);
-  }
-}
+  },
+  { roles: ["admin", "super_admin"] },
+);
