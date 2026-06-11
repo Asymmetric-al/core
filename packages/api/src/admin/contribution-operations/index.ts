@@ -24,6 +24,7 @@ export {
 } from "./approval-notifications";
 export {
   buildInlineContributionActions,
+  isInlineContributionActionType,
   pickNextBestInlineContributionAction,
   INLINE_ACTION_CAPABILITY,
   type BuildInlineContributionActionsInput,

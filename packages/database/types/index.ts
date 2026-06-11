@@ -31,6 +31,10 @@ export type {
   CrmNoteSortField,
 } from "./crm-notes";
 export type {
+  CrmTablePreferencesResponse,
+  CrmTableRowActionPreference,
+} from "./crm-table-preferences";
+export type {
   AdminCrmRelationshipsListResponse,
   CrmRelationshipAuthorityScope,
   CrmRelationshipDomain,

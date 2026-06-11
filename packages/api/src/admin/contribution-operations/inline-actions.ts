@@ -43,7 +43,7 @@ const NEXT_BEST_PRIORITY: CrmGiftInlineActionType[] = [
   "resend_receipt",
 ];
 
-function isInlineActionType(
+export function isInlineContributionActionType(
   actionType: string,
 ): actionType is CrmGiftInlineActionType {
   return actionType in INLINE_ACTION_CAPABILITY;
@@ -94,7 +94,7 @@ export function buildInlineContributionActions(
     (
       entry,
     ): entry is ContributionActionAvailability & CrmGiftInlineActionEntry =>
-      isInlineActionType(entry.actionType),
+      isInlineContributionActionType(entry.actionType),
   );
 
   const allEntries: CrmGiftInlineActionEntry[] = [

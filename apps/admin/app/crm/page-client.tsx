@@ -6,9 +6,15 @@ import {
   SHARED_RECEIPT_STATUS_LABELS,
 } from "@asym/api/admin/contribution-shared";
 import {
+  CRM_GIFT_HISTORY_TABLE_ID,
+  resolveCrmRowAction,
+} from "@asym/api/admin/crm/table-preferences";
+import {
   useAdminCrmRecordDetail,
   useAdminCrmRecordsInfiniteGrid,
   useCreateLinkedCrmNote,
+  useCrmTablePreferences,
+  useSaveCrmRowActionPin,
 } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
@@ -34,8 +40,13 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
   DropdownMenuSeparator,
   DropdownMenuShortcut,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
@@ -64,6 +75,7 @@ import {
   FileText,
   MoreHorizontal,
   Network,
+  Pin,
   Receipt,
   Trash2,
   StickyNote,
@@ -86,7 +98,10 @@ import {
 } from "../contributions/operation-shell";
 
 import type { CrmGridRow, CrmRecord } from "./types";
-import type { CrmGiftInlineActions } from "@asym/database/types";
+import type {
+  CrmGiftInlineActions,
+  CrmTablePreferencesResponse,
+} from "@asym/database/types";
 
 const EMPTY_CELL_VALUE = "N/A";
 
@@ -100,22 +115,34 @@ function makeDisplayDate(value?: string | number | Date): Date {
  * Server-computed inline operations for one gift row (#270): a single
  * next-best action plus a capability/state-filtered menu grouped by
  * operation category. Submissions run through the shared operation shell.
+ *
+ * The visible row action honors preferences (#271): valid user pin, then
+ * valid tenant default, then the system next-best. Resolution re-validates
+ * against the entries, so preferences never bypass capabilities or state.
  */
 function GiftInlineActionControls({
   inlineActions,
+  preferences,
   onRunOperation,
+  onPinChange,
 }: {
   inlineActions: CrmGiftInlineActions | undefined;
+  preferences: CrmTablePreferencesResponse | undefined;
   onRunOperation: (operation: OperationDefinition) => void;
+  onPinChange: (actionId: string | null) => void;
 }) {
   const entries = inlineActions?.entries ?? [];
   if (entries.length === 0) {
     return null;
   }
 
-  const nextBestType = inlineActions?.nextBestActionType ?? null;
-  const nextBest = nextBestType
-    ? OPERATION_DEFINITIONS[nextBestType]
+  const resolved = resolveCrmRowAction({
+    userPin: preferences?.user ?? null,
+    tenantDefault: preferences?.tenantDefault ?? null,
+    entries,
+  });
+  const rowAction = resolved.actionType
+    ? OPERATION_DEFINITIONS[resolved.actionType]
     : undefined;
 
   const categories = Object.keys(
@@ -136,15 +163,24 @@ function GiftInlineActionControls({
 
   return (
     <div className="flex shrink-0 items-center gap-1">
-      {nextBest ? (
+      {rowAction ? (
         <Button
           variant="outline"
           size="sm"
           className="h-8 gap-2 text-xs"
-          onClick={() => onRunOperation(nextBest)}
+          title={resolved.explanation ?? undefined}
+          onClick={() => onRunOperation(rowAction)}
         >
-          {nextBest.title}
+          {resolved.source === "user_pin" ? (
+            <Pin className="size-3" aria-hidden="true" />
+          ) : null}
+          {rowAction.title}
         </Button>
+      ) : null}
+      {resolved.explanation ? (
+        <span role="note" className="sr-only">
+          {resolved.explanation}
+        </span>
       ) : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
@@ -180,6 +216,39 @@ function GiftInlineActionControls({
               ))}
             </DropdownMenuGroup>
           ))}
+          <DropdownMenuSeparator />
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>
+              <Pin className="size-3.5" aria-hidden="true" />
+              Pin row action
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent>
+              <DropdownMenuRadioGroup
+                value={preferences?.user?.actionId ?? ""}
+                onValueChange={(value) =>
+                  onPinChange(value === "" ? null : value)
+                }
+              >
+                <DropdownMenuRadioItem value="">
+                  System default
+                </DropdownMenuRadioItem>
+                {entries.map((entry) => {
+                  const definition = OPERATION_DEFINITIONS[entry.actionType];
+                  if (!definition) {
+                    return null;
+                  }
+                  return (
+                    <DropdownMenuRadioItem
+                      key={entry.actionType}
+                      value={entry.actionType}
+                    >
+                      {definition.title}
+                    </DropdownMenuRadioItem>
+                  );
+                })}
+              </DropdownMenuRadioGroup>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -204,10 +273,26 @@ function DetailDrawer({
   } | null>(null);
   const detailQuery = useAdminCrmRecordDetail(contact.id);
   const createNoteMutation = useCreateLinkedCrmNote(contact.id);
+  const tablePreferencesQuery = useCrmTablePreferences(
+    CRM_GIFT_HISTORY_TABLE_ID,
+  );
+  const savePinMutation = useSaveCrmRowActionPin(CRM_GIFT_HISTORY_TABLE_ID);
   const [inlineOperation, setInlineOperation] = useState<{
     donationId: string;
     operation: OperationDefinition;
   } | null>(null);
+
+  const pinRowAction = (actionId: string | null) => {
+    savePinMutation.mutate(actionId, {
+      onError: (error) => {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to save the pinned row action.",
+        );
+      },
+    });
+  };
 
   const summarizeContact = async () => {
     setIsAnalyzing(true);
@@ -556,6 +641,8 @@ function DetailDrawer({
                             </button>
                             <GiftInlineActionControls
                               inlineActions={gift.inlineActions}
+                              preferences={tablePreferencesQuery.data}
+                              onPinChange={pinRowAction}
                               onRunOperation={(operation) =>
                                 setInlineOperation({
                                   donationId: gift.donationId,

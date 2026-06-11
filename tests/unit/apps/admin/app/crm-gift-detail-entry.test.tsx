@@ -17,10 +17,13 @@ type CrmPageComponent =
 const useAdminCrmRecordsInfiniteGridMock = vi.fn();
 const useAdminCrmRecordDetailMock = vi.fn();
 const useCreateLinkedCrmNoteMock = vi.fn();
+const useCrmTablePreferencesMock = vi.fn();
+const useSaveCrmRowActionPinMock = vi.fn();
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm", "records"],
+  ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY: ["admin", "crm", "table-preferences"],
   MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY: [
     "admin",
     "mission-control",
@@ -29,6 +32,8 @@ vi.mock("@asym/database/hooks", () => ({
   useAdminCrmRecordDetail: useAdminCrmRecordDetailMock,
   useAdminCrmRecordsInfiniteGrid: useAdminCrmRecordsInfiniteGridMock,
   useCreateLinkedCrmNote: useCreateLinkedCrmNoteMock,
+  useCrmTablePreferences: useCrmTablePreferencesMock,
+  useSaveCrmRowActionPin: useSaveCrmRowActionPinMock,
 }));
 
 const routerPushMock = vi.fn();
@@ -402,6 +407,11 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutateAsync: vi.fn().mockResolvedValue({}),
     });
+    useCrmTablePreferencesMock.mockReturnValue(mockQuery({ data: undefined }));
+    useSaveCrmRowActionPinMock.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
   }, 30_000);
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
@@ -558,5 +568,128 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
     // Shared row data refreshes in place after the operation.
     expect(detailRefetch).toHaveBeenCalled();
+  });
+
+  it("shows a valid pinned action as the row action", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d004";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: { actionId: "amount_correction", schemaVersion: 1 },
+          tenantDefault: null,
+        },
+      }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    // The pin replaces the system next-best (Send receipt) as the row action.
+    expect(
+      await view.findByRole("button", { name: /correct gift amount/i }),
+    ).toBeTruthy();
+    expect(view.queryByRole("button", { name: "Send receipt" })).toBeNull();
+  });
+
+  it("falls back from a blocked pin to the tenant default with explanation", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d005";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          // The fixture's refund entry is blocked for this gift.
+          user: { actionId: "refund", schemaVersion: 1 },
+          tenantDefault: { actionId: "fund_correction", schemaVersion: 1 },
+        },
+      }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    expect(
+      await view.findByRole("button", { name: /correct fund designation/i }),
+    ).toBeTruthy();
+    // The fallback is explained, never silent (#271).
+    expect(view.getByRole("note").textContent).toMatch(
+      /pinned action .* is blocked/i,
+    );
+  });
+
+  it("pins a row action by stable operation id from the menu", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d006";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    const pinMutate = vi.fn();
+    useSaveCrmRowActionPinMock.mockReturnValue({
+      isPending: false,
+      mutate: pinMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", {
+      name: "More gift actions",
+    });
+    fireEvent.keyDown(trigger, { key: "Enter" });
+
+    const subTrigger = await view.findByText("Pin row action");
+    fireEvent.keyDown(subTrigger, { key: "ArrowRight" });
+
+    const pinOption = await view.findByRole("menuitemradio", {
+      name: "Correct gift amount",
+    });
+    fireEvent.click(pinOption);
+
+    await waitFor(() => {
+      expect(pinMutate).toHaveBeenCalledWith(
+        "amount_correction",
+        expect.anything(),
+      );
+    });
   });
 });

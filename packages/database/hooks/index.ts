@@ -22,6 +22,11 @@ export {
 } from "./admin-crm-detail";
 export { useAdminCrmNotesGrid } from "./admin-crm-notes";
 export {
+  ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY,
+  useCrmTablePreferences,
+  useSaveCrmRowActionPin,
+} from "./admin-crm-table-preferences";
+export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
   useAdminCrmRelationshipsGrid,
 } from "./admin-crm-relationships";
