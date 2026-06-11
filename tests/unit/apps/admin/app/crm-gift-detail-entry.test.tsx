@@ -1,7 +1,13 @@
 /** @vitest-environment jsdom */
 
 import { QueryProvider } from "@asym/database/providers";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -11,7 +17,6 @@ type CrmPageComponent =
 const useAdminCrmRecordsInfiniteGridMock = vi.fn();
 const useAdminCrmRecordDetailMock = vi.fn();
 const useCreateLinkedCrmNoteMock = vi.fn();
-const useResendCrmGiftReceiptMock = vi.fn();
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
@@ -24,7 +29,6 @@ vi.mock("@asym/database/hooks", () => ({
   useAdminCrmRecordDetail: useAdminCrmRecordDetailMock,
   useAdminCrmRecordsInfiniteGrid: useAdminCrmRecordsInfiniteGridMock,
   useCreateLinkedCrmNote: useCreateLinkedCrmNoteMock,
-  useResendCrmGiftReceipt: useResendCrmGiftReceiptMock,
 }));
 
 const routerPushMock = vi.fn();
@@ -225,6 +229,68 @@ const contributionDetailPayload = {
   },
 };
 
+const inlineActionsFixture = {
+  nextBestActionType: "resend_receipt",
+  entries: [
+    {
+      actionType: "amount_correction",
+      available: true,
+      blockedReason: null,
+      nextStep: null,
+      riskLevel: "high",
+    },
+    {
+      actionType: "fund_correction",
+      available: true,
+      blockedReason: null,
+      nextStep: null,
+      riskLevel: "high",
+    },
+    {
+      actionType: "resend_receipt",
+      available: true,
+      blockedReason: null,
+      nextStep: null,
+      riskLevel: "low",
+    },
+    {
+      actionType: "refund",
+      available: false,
+      blockedReason:
+        "This gift has no payment provider charge to refund against.",
+      nextStep: null,
+      riskLevel: "high",
+    },
+  ],
+};
+
+function crmDonorDetailFor(donationId: string) {
+  return {
+    ...crmDonorDetail,
+    giftHistory: [
+      {
+        ...crmDonorDetail.giftHistory[0]!,
+        id: donationId,
+        donationId,
+        shared: { ...sharedGiftFields, donationId },
+        inlineActions: inlineActionsFixture,
+      },
+    ],
+  };
+}
+
+function contributionDetailPayloadFor(donationId: string) {
+  return {
+    contribution: {
+      ...contributionDetailPayload.contribution,
+      id: donationId,
+      shared: { ...sharedGiftFields, donationId },
+      revision: "2026-05-01T00:00:00.000Z#0",
+      actionAvailability: inlineActionsFixture.entries,
+    },
+  };
+}
+
 let CrmPage: CrmPageComponent;
 let dom: JSDOM | undefined;
 let fetchDescriptor: PropertyDescriptor | undefined;
@@ -336,10 +402,6 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutateAsync: vi.fn().mockResolvedValue({}),
     });
-    useResendCrmGiftReceiptMock.mockReturnValue({
-      isPending: false,
-      mutateAsync: vi.fn().mockResolvedValue({}),
-    });
   }, 30_000);
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
@@ -378,5 +440,123 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
     expect(await view.findByText("Clean Water Initiative")).toBeTruthy();
     expect(view.getAllByText("Alice Johnson").length).toBeGreaterThan(0);
+  });
+
+  it("renders the next-best action and a grouped, filtered more-actions menu", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d002";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    // One server-computed next-best action per row (#270).
+    expect(
+      await view.findByRole("button", { name: "Send receipt" }),
+    ).toBeTruthy();
+
+    const trigger = view.getByRole("button", { name: "More gift actions" });
+    fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
+    fireEvent.keyDown(trigger, { key: "Enter" });
+
+    // Capability/state-filtered entries grouped by operation category.
+    expect(await view.findByText("Correction")).toBeTruthy();
+    expect(view.getByText("Receipt")).toBeTruthy();
+    expect(view.getByText("Refund")).toBeTruthy();
+    expect(view.getByText("Correct gift amount")).toBeTruthy();
+    expect(view.getByText("Correct fund designation")).toBeTruthy();
+    const refundItem = view.getByText("Refund gift").closest("[role=menuitem]");
+    expect(refundItem?.textContent).toContain("Blocked");
+    // Entries the server filtered out never render.
+    expect(view.queryByText("Replay provider webhook")).toBeNull();
+  });
+
+  it("submits inline operations through the shared contract and stays in CRM", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d003";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const detailRefetch = vi.fn().mockResolvedValue({});
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId), refetch: detailRefetch }),
+    );
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-9",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+
+    // The reusable operation shell opens with the shared contract context.
+    const shell = await view.findByTestId("contribution-operation-shell");
+    const submit = await within(shell).findByRole("button", {
+      name: "Send receipt",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    // The result stays in CRM — no navigation away.
+    expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
+    expect(view.getByText(/audit event: audit-9/i)).toBeTruthy();
+    expect(routerPushMock).not.toHaveBeenCalled();
+
+    // Same shared operation contract as contribution detail.
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "resend_receipt",
+      contributionId: donationId,
+      stagedGiftId: "staged-1",
+      sourceSurface: "donor_crm_record",
+      expectedRevision: "2026-05-01T00:00:00.000Z#0",
+      payload: { stagedGiftId: "staged-1" },
+    });
+    expect(typeof body.idempotencyKey).toBe("string");
+    expect(body.idempotencyKey.length).toBeGreaterThan(10);
+
+    // Shared row data refreshes in place after the operation.
+    expect(detailRefetch).toHaveBeenCalled();
   });
 });

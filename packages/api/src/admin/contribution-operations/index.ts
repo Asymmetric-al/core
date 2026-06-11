@@ -23,7 +23,14 @@ export {
   type PlannedApprovalNotification,
 } from "./approval-notifications";
 export {
+  buildInlineContributionActions,
+  pickNextBestInlineContributionAction,
+  INLINE_ACTION_CAPABILITY,
+  type BuildInlineContributionActionsInput,
+} from "./inline-actions";
+export {
   projectContributionDetailForViewer,
+  stripeReplayAvailability,
   type ContributionProviderProof,
   type ViewerProjectedContributionDetail,
 } from "./viewer-projection";

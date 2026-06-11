@@ -43,6 +43,8 @@ interface DonationRow {
   gift_date: string | null;
   refund_amount: number | string | null;
   refunded_at: string | null;
+  stripe_payment_intent_id: string | null;
+  stripe_charge_id: string | null;
   created_at: string | null;
   updated_at: string | null;
 }
@@ -292,6 +294,8 @@ export async function getAdminCrmDonorDetail(input: {
   donorId: string;
   role: UserRole;
   crmWritesEnabled?: boolean;
+  /** Filters which contribution operations surface inline on gift rows (#270). */
+  viewerCapabilities?: string[];
 }): Promise<CrmDonorDetailResponse> {
   const donorResult = await input.supabaseAdmin
     .from("donors")
@@ -310,7 +314,7 @@ export async function getAdminCrmDonorDetail(input: {
   const donationsResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, recurring_interval, pledge_id, donation_type, gift_date, refund_amount, refunded_at, created_at, updated_at",
+      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, recurring_interval, pledge_id, donation_type, gift_date, refund_amount, refunded_at, stripe_payment_intent_id, stripe_charge_id, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("donor_id", donor.id)
@@ -630,6 +634,11 @@ export async function getAdminCrmDonorDetail(input: {
           }
         : null,
       corrections: correctionsByDonationId.get(donation.id),
+      provider: {
+        stripePaymentIntentId: donation.stripe_payment_intent_id,
+        stripeChargeId: donation.stripe_charge_id,
+      },
+      viewerCapabilities: input.viewerCapabilities ?? [],
     });
   });
 

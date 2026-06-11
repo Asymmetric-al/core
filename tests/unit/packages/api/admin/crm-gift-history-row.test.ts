@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { buildContributionActionAvailability } from "../../../../../packages/api/src/admin/contribution-operations/action-availability";
 import { buildSharedContributionRowFields } from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
 import { buildContributionGridRow } from "../../../../../packages/api/src/admin/contributions/model";
 import { buildCrmGiftHistoryRow } from "../../../../../packages/api/src/admin/crm/detail/gift-history";
@@ -236,5 +237,79 @@ describe("admin/crm/detail/gift-history", () => {
     });
 
     expect(crmRow.shared).toEqual(hubRow.shared);
+  });
+
+  it("exposes inline actions with detail-identical blocked reasons (#270)", () => {
+    const failedStagedGift = {
+      ...stagedGift,
+      crm_post_status: "failed",
+      twenty_record_id: null,
+    };
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift: failedStagedGift,
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+      viewerCapabilities: [
+        "contributions.view_detail",
+        "contributions.request_corrections",
+        "contributions.apply_corrections",
+        "contributions.manage_receipts",
+        "contributions.retry_crm_post",
+        "contributions.run_refunds",
+        "contributions.use_provider_actions",
+      ],
+    });
+
+    // The detail surface derives availability from the same shared inputs;
+    // every overlapping entry must match exactly.
+    const detailAvailability = buildContributionActionAvailability({
+      stagedGift: {
+        id: failedStagedGift.id,
+        status: failedStagedGift.status,
+        receiptStatus: failedStagedGift.receipt_status,
+        crmPostStatus: failedStagedGift.crm_post_status,
+      },
+      paymentStatus: donation.status,
+      refund: {
+        amountCents: row.shared.amountCents,
+        refundedAmountCents: row.shared.refundedAmountCents,
+        hasProviderCharge: true,
+      },
+    });
+    for (const detailEntry of detailAvailability) {
+      expect(
+        row.inlineActions.entries.find(
+          (entry) => entry.actionType === detailEntry.actionType,
+        ),
+      ).toEqual(detailEntry);
+    }
+
+    expect(row.inlineActions.nextBestActionType).toBe("retry_staged_gift");
+    expect(
+      row.inlineActions.entries.map((entry) => entry.actionType),
+    ).toContain("stripe_replay");
+  });
+
+  it("hides inline operations the viewer has no capability for", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift: { ...stagedGift, twenty_record_id: null },
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+      viewerCapabilities: [
+        "contributions.view_detail",
+        "contributions.request_corrections",
+      ],
+    });
+
+    expect(
+      row.inlineActions.entries.map((entry) => entry.actionType).sort(),
+    ).toEqual(["amount_correction", "fund_correction"]);
+    expect(row.inlineActions.nextBestActionType).toBeNull();
   });
 });

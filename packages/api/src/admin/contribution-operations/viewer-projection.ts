@@ -27,7 +27,7 @@ export type ViewerProjectedContributionDetail = ContributionDetail & {
   providerProof: ContributionProviderProof | null;
 };
 
-function stripeReplayAvailability(
+export function stripeReplayAvailability(
   paymentIntentId: string | null,
 ): ContributionActionAvailability {
   if (!paymentIntentId) {

@@ -1,3 +1,5 @@
+import { buildContributionActionAvailability } from "../../contribution-operations/action-availability";
+import { buildInlineContributionActions } from "../../contribution-operations/inline-actions";
 import {
   buildSharedContributionRowFields,
   type BuildSharedContributionRowFieldsInput,
@@ -23,6 +25,13 @@ export interface BuildCrmGiftHistoryRowInput {
     | null;
   corrections?: SharedContributionCorrectionInput[];
   designationSet?: ContributionDesignationSet;
+  /** Provider linkage drives refund/replay availability (never exposed raw). */
+  provider?: {
+    stripePaymentIntentId: string | null;
+    stripeChargeId: string | null;
+  };
+  /** Viewer capabilities filter which operations surface inline (#270). */
+  viewerCapabilities?: string[];
 }
 
 /**
@@ -58,6 +67,30 @@ export function buildCrmGiftHistoryRow(
     donation.status === "completed" &&
     stagedGift?.receipt_status !== "suppressed";
 
+  // Inline operations reuse the exact availability derivation contribution
+  // detail uses, so blocked reasons and risk levels stay identical (#270).
+  const availability = buildContributionActionAvailability({
+    stagedGift: stagedGift
+      ? {
+          id: stagedGift.id,
+          status: stagedGift.status,
+          receiptStatus: stagedGift.receipt_status,
+          crmPostStatus: stagedGift.crm_post_status,
+        }
+      : null,
+    paymentStatus: donation.status,
+    refund: {
+      amountCents: shared.amountCents,
+      refundedAmountCents: shared.refundedAmountCents,
+      hasProviderCharge: Boolean(input.provider?.stripeChargeId),
+    },
+  });
+  const inlineActions = buildInlineContributionActions({
+    availability,
+    providerPaymentIntentId: input.provider?.stripePaymentIntentId ?? null,
+    viewerCapabilities: input.viewerCapabilities ?? [],
+  });
+
   return {
     shared,
     id: shared.donationId,
@@ -77,5 +110,6 @@ export function buildCrmGiftHistoryRow(
     stagedGiftId: stagedGift?.id ?? null,
     twentyRecordId: stagedGift?.twenty_record_id ?? null,
     canResendReceipt,
+    inlineActions,
   };
 }

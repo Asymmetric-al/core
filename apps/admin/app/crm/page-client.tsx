@@ -9,7 +9,6 @@ import {
   useAdminCrmRecordDetail,
   useAdminCrmRecordsInfiniteGrid,
   useCreateLinkedCrmNote,
-  useResendCrmGiftReceipt,
 } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
@@ -29,6 +28,16 @@ import {
   DataTableResponsive,
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@asym/ui/components/shadcn/dropdown-menu";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Sheet,
@@ -68,8 +77,16 @@ import { toast } from "sonner";
 import { getCrmColumns } from "./columns";
 import { PORTAL_BADGE_CLASS, toCrmRecord } from "./types";
 import { ContributionDetailOverlay } from "../contributions/contribution-detail-overlay";
+import {
+  ContributionOperationShell,
+  OPERATION_CATEGORY_LABELS,
+  OPERATION_DEFINITIONS,
+  type OperationCategory,
+  type OperationDefinition,
+} from "../contributions/operation-shell";
 
 import type { CrmGridRow, CrmRecord } from "./types";
+import type { CrmGiftInlineActions } from "@asym/database/types";
 
 const EMPTY_CELL_VALUE = "N/A";
 
@@ -77,6 +94,96 @@ function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
     ? new globalThis.Date()
     : new globalThis.Date(value);
+}
+
+/**
+ * Server-computed inline operations for one gift row (#270): a single
+ * next-best action plus a capability/state-filtered menu grouped by
+ * operation category. Submissions run through the shared operation shell.
+ */
+function GiftInlineActionControls({
+  inlineActions,
+  onRunOperation,
+}: {
+  inlineActions: CrmGiftInlineActions | undefined;
+  onRunOperation: (operation: OperationDefinition) => void;
+}) {
+  const entries = inlineActions?.entries ?? [];
+  if (entries.length === 0) {
+    return null;
+  }
+
+  const nextBestType = inlineActions?.nextBestActionType ?? null;
+  const nextBest = nextBestType
+    ? OPERATION_DEFINITIONS[nextBestType]
+    : undefined;
+
+  const categories = Object.keys(
+    OPERATION_CATEGORY_LABELS,
+  ) as OperationCategory[];
+  const groups = categories
+    .map((category) => ({
+      category,
+      items: entries.flatMap((entry) => {
+        const definition = OPERATION_DEFINITIONS[entry.actionType];
+        if (!definition || definition.category !== category) {
+          return [];
+        }
+        return [{ definition, entry }];
+      }),
+    }))
+    .filter((group) => group.items.length > 0);
+
+  return (
+    <div className="flex shrink-0 items-center gap-1">
+      {nextBest ? (
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 gap-2 text-xs"
+          onClick={() => onRunOperation(nextBest)}
+        >
+          {nextBest.title}
+        </Button>
+      ) : null}
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground"
+            aria-label="More gift actions"
+          >
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-64">
+          {groups.map((group, index) => (
+            <DropdownMenuGroup key={group.category}>
+              {index > 0 ? <DropdownMenuSeparator /> : null}
+              <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                {OPERATION_CATEGORY_LABELS[group.category]}
+              </DropdownMenuLabel>
+              {group.items.map(({ definition, entry }) => (
+                <DropdownMenuItem
+                  key={entry.actionType}
+                  className={
+                    entry.available ? undefined : "text-muted-foreground"
+                  }
+                  onSelect={() => onRunOperation(definition)}
+                >
+                  {definition.title}
+                  {entry.available ? null : (
+                    <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
+                  )}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
+  );
 }
 
 function DetailDrawer({
@@ -97,7 +204,10 @@ function DetailDrawer({
   } | null>(null);
   const detailQuery = useAdminCrmRecordDetail(contact.id);
   const createNoteMutation = useCreateLinkedCrmNote(contact.id);
-  const receiptMutation = useResendCrmGiftReceipt(contact.id);
+  const [inlineOperation, setInlineOperation] = useState<{
+    donationId: string;
+    operation: OperationDefinition;
+  } | null>(null);
 
   const summarizeContact = async () => {
     setIsAnalyzing(true);
@@ -162,456 +272,455 @@ function DetailDrawer({
     }
   };
 
-  const resendReceipt = async (input: {
-    contributionId: string;
-    stagedGiftId: string;
-  }) => {
-    try {
-      await receiptMutation.mutateAsync(input);
-      toast.success("Receipt resend queued.");
-    } catch (error) {
-      toast.error(
-        error instanceof Error ? error.message : "Failed to resend receipt.",
-      );
-    }
-  };
-
   return (
-    <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
-        <SheetTitle className="sr-only">
-          {display}, CRM record details
-        </SheetTitle>
-        <SheetDescription className="sr-only">
-          Constituent summary, activity, and properties for this CRM record.
-        </SheetDescription>
-        <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
-          <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-            <User className="size-4 text-muted-foreground" />
-            <span className="truncate max-w-[200px] sm:max-w-md">
-              {display}
-            </span>
-          </div>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="ghost"
-              size="sm"
-              className="h-9 gap-2 rounded-xl border border-border bg-card text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
-              onClick={summarizeContact}
-              disabled={isAnalyzing}
-            >
-              <FileText
-                className={cn("size-3.5", isAnalyzing && "animate-pulse")}
-              />
-              {isAnalyzing ? "Summarizing..." : "Quick Summary"}
-            </Button>
-            <div className="h-4 w-px bg-border mx-2" />
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={onClose}
-              aria-label="Close CRM record details"
-              className="size-8 text-muted-foreground"
-            >
-              <X className="size-4" aria-hidden="true" />
-            </Button>
-          </div>
-        </div>
-
-        <ScrollArea className="flex-1">
-          <div className="p-6 space-y-8">
-            <div className="flex gap-6 items-start">
-              <SharedNamedViewTransition
-                name={crmRecordAvatarTransitionName(contact.id)}
+    <>
+      <Sheet open={!!contact} onOpenChange={(open) => !open && onClose()}>
+        <SheetContent className="w-full sm:max-w-2xl p-0 gap-0 border-l border-border bg-background shadow-2xl overflow-hidden flex flex-col h-full text-left">
+          <SheetTitle className="sr-only">
+            {display}, CRM record details
+          </SheetTitle>
+          <SheetDescription className="sr-only">
+            Constituent summary, activity, and properties for this CRM record.
+          </SheetDescription>
+          <div className="h-14 bg-card border-b border-border flex items-center justify-between px-4 shrink-0 z-10">
+            <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
+              <User className="size-4 text-muted-foreground" />
+              <span className="truncate max-w-[200px] sm:max-w-md">
+                {display}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-9 gap-2 rounded-xl border border-border bg-card text-xs font-semibold text-muted-foreground hover:bg-muted hover:text-foreground"
+                onClick={summarizeContact}
+                disabled={isAnalyzing}
               >
-                <Avatar className="size-20 border-4 border-background shadow-sm">
-                  <AvatarImage src={contact.avatarUrl ?? undefined} />
-                  <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
-                    {display[0] ?? "?"}
-                  </AvatarFallback>
-                </Avatar>
-              </SharedNamedViewTransition>
-              <div className="space-y-1 pt-1 min-w-0">
+                <FileText
+                  className={cn("size-3.5", isAnalyzing && "animate-pulse")}
+                />
+                {isAnalyzing ? "Summarizing..." : "Quick Summary"}
+              </Button>
+              <div className="h-4 w-px bg-border mx-2" />
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                aria-label="Close CRM record details"
+                className="size-8 text-muted-foreground"
+              >
+                <X className="size-4" aria-hidden="true" />
+              </Button>
+            </div>
+          </div>
+
+          <ScrollArea className="flex-1">
+            <div className="p-6 space-y-8">
+              <div className="flex gap-6 items-start">
                 <SharedNamedViewTransition
-                  name={crmRecordTitleTransitionName(contact.id)}
+                  name={crmRecordAvatarTransitionName(contact.id)}
                 >
-                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">
-                    {display}
-                  </h2>
+                  <Avatar className="size-20 border-4 border-background shadow-sm">
+                    <AvatarImage src={contact.avatarUrl ?? undefined} />
+                    <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
+                      {display[0] ?? "?"}
+                    </AvatarFallback>
+                  </Avatar>
                 </SharedNamedViewTransition>
-                <p className="text-sm text-muted-foreground font-medium">
-                  {contact.title ? (
-                    <>
-                      {contact.title}
-                      {contact.primaryOrganization ? (
-                        <>
-                          {" "}
-                          at{" "}
-                          <span className="text-foreground">
-                            {contact.primaryOrganization}
-                          </span>
-                        </>
-                      ) : null}
-                    </>
-                  ) : contact.primaryOrganization ? (
-                    <span className="text-foreground">
-                      {contact.primaryOrganization}
-                    </span>
-                  ) : (
-                    <span className="text-muted-foreground">No title set</span>
-                  )}
-                </p>
-                <div className="flex flex-wrap gap-2 pt-2">
-                  <Badge
-                    variant="outline"
-                    className="text-[10px] font-semibold uppercase"
+                <div className="space-y-1 pt-1 min-w-0">
+                  <SharedNamedViewTransition
+                    name={crmRecordTitleTransitionName(contact.id)}
                   >
-                    {contact.lifecycleStatus ?? "Unknown status"}
-                  </Badge>
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "text-[10px] font-semibold uppercase border shadow-none",
-                      PORTAL_BADGE_CLASS[contact.portalAccessLabel],
+                    <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                      {display}
+                    </h2>
+                  </SharedNamedViewTransition>
+                  <p className="text-sm text-muted-foreground font-medium">
+                    {contact.title ? (
+                      <>
+                        {contact.title}
+                        {contact.primaryOrganization ? (
+                          <>
+                            {" "}
+                            at{" "}
+                            <span className="text-foreground">
+                              {contact.primaryOrganization}
+                            </span>
+                          </>
+                        ) : null}
+                      </>
+                    ) : contact.primaryOrganization ? (
+                      <span className="text-foreground">
+                        {contact.primaryOrganization}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">
+                        No title set
+                      </span>
                     )}
-                  >
-                    {contact.portalAccessLabel === "linked"
-                      ? "Portal linked"
-                      : "No portal"}
-                  </Badge>
-                  <Badge
-                    variant="secondary"
-                    className="h-5 text-[10px] font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
-                  >
-                    {formatCurrency(contact.lifetimeGiving)}
-                  </Badge>
+                  </p>
+                  <div className="flex flex-wrap gap-2 pt-2">
+                    <Badge
+                      variant="outline"
+                      className="text-[10px] font-semibold uppercase"
+                    >
+                      {contact.lifecycleStatus ?? "Unknown status"}
+                    </Badge>
+                    <Badge
+                      variant="outline"
+                      className={cn(
+                        "text-[10px] font-semibold uppercase border shadow-none",
+                        PORTAL_BADGE_CLASS[contact.portalAccessLabel],
+                      )}
+                    >
+                      {contact.portalAccessLabel === "linked"
+                        ? "Portal linked"
+                        : "No portal"}
+                    </Badge>
+                    <Badge
+                      variant="secondary"
+                      className="h-5 text-[10px] font-semibold uppercase tracking-wider border-none bg-muted text-muted-foreground"
+                    >
+                      {formatCurrency(contact.lifetimeGiving)}
+                    </Badge>
+                  </div>
                 </div>
               </div>
-            </div>
 
-            <AnimatePresence>
-              {summary && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4"
-                >
-                  <div className="flex items-center gap-2 text-foreground font-semibold text-[10px] uppercase tracking-[0.2em]">
-                    <FileText className="size-3.5 text-muted-foreground" />{" "}
-                    Highlights
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                        Type
-                      </span>
-                      <p className="text-sm font-semibold text-foreground">
-                        {summary.category}
-                      </p>
+              <AnimatePresence>
+                {summary && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="rounded-xl border border-border bg-card p-5 shadow-sm space-y-4"
+                  >
+                    <div className="flex items-center gap-2 text-foreground font-semibold text-[10px] uppercase tracking-[0.2em]">
+                      <FileText className="size-3.5 text-muted-foreground" />{" "}
+                      Highlights
                     </div>
-                    <div>
-                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                        Notes
-                      </span>
-                      <p className="text-xs text-muted-foreground leading-relaxed font-medium">
-                        {summary.focus}
-                      </p>
-                    </div>
-                    <div>
-                      <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                        Next step
-                      </span>
-                      <p className="text-xs text-foreground font-semibold">
-                        {summary.nextMove}
-                      </p>
-                    </div>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-
-            <Tabs defaultValue="activity">
-              <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
-                <TabsTrigger
-                  value="activity"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
-                >
-                  Activity
-                </TabsTrigger>
-                <TabsTrigger
-                  value="properties"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
-                >
-                  Properties
-                </TabsTrigger>
-              </TabsList>
-
-              <TabsContent value="activity" className="pt-6 space-y-6">
-                <div className="bg-card p-4 rounded-xl border border-border shadow-sm space-y-3">
-                  <textarea
-                    placeholder="Log a note, call, or meeting..."
-                    value={noteBody}
-                    onChange={(event) => setNoteBody(event.target.value)}
-                    className="w-full h-20 bg-muted border-none focus:ring-0 text-sm resize-none p-3 rounded-lg"
-                  />
-                  <div className="flex justify-between items-center pt-2 border-t border-muted">
-                    <div className="flex gap-1">
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="Attach file to note"
-                        className="size-7 text-muted-foreground hover:text-foreground"
-                      >
-                        <Paperclip className="size-3.5" aria-hidden="true" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        aria-label="View note history"
-                        className="size-7 text-muted-foreground hover:text-foreground"
-                      >
-                        <History className="size-3.5" aria-hidden="true" />
-                      </Button>
-                    </div>
-                    <Button
-                      size="sm"
-                      className="h-7 px-4 text-[10px] font-semibold uppercase tracking-wider"
-                      disabled={
-                        createNoteMutation.isPending || !noteBody.trim()
-                      }
-                      onClick={() => void saveNote()}
-                    >
-                      {createNoteMutation.isPending ? "Saving..." : "Save Note"}
-                    </Button>
-                  </div>
-                </div>
-
-                {detail?.duplicateWarnings.length ? (
-                  <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em]">
-                      Duplicate warning
-                    </p>
-                    <div className="mt-2 space-y-2">
-                      {detail.duplicateWarnings.map((warning) => (
-                        <p key={warning.id} className="text-xs leading-relaxed">
-                          {warning.reason}
-                          {warning.score != null ? ` (${warning.score})` : ""}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div>
+                        <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                          Type
+                        </span>
+                        <p className="text-sm font-semibold text-foreground">
+                          {summary.category}
                         </p>
-                      ))}
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                          Notes
+                        </span>
+                        <p className="text-xs text-muted-foreground leading-relaxed font-medium">
+                          {summary.focus}
+                        </p>
+                      </div>
+                      <div>
+                        <span className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                          Next step
+                        </span>
+                        <p className="text-xs text-foreground font-semibold">
+                          {summary.nextMove}
+                        </p>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              <Tabs defaultValue="activity">
+                <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
+                  <TabsTrigger
+                    value="activity"
+                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                  >
+                    Activity
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="properties"
+                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                  >
+                    Properties
+                  </TabsTrigger>
+                </TabsList>
+
+                <TabsContent value="activity" className="pt-6 space-y-6">
+                  <div className="bg-card p-4 rounded-xl border border-border shadow-sm space-y-3">
+                    <textarea
+                      placeholder="Log a note, call, or meeting..."
+                      value={noteBody}
+                      onChange={(event) => setNoteBody(event.target.value)}
+                      className="w-full h-20 bg-muted border-none focus:ring-0 text-sm resize-none p-3 rounded-lg"
+                    />
+                    <div className="flex justify-between items-center pt-2 border-t border-muted">
+                      <div className="flex gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="Attach file to note"
+                          className="size-7 text-muted-foreground hover:text-foreground"
+                        >
+                          <Paperclip className="size-3.5" aria-hidden="true" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          aria-label="View note history"
+                          className="size-7 text-muted-foreground hover:text-foreground"
+                        >
+                          <History className="size-3.5" aria-hidden="true" />
+                        </Button>
+                      </div>
+                      <Button
+                        size="sm"
+                        className="h-7 px-4 text-[10px] font-semibold uppercase tracking-wider"
+                        disabled={
+                          createNoteMutation.isPending || !noteBody.trim()
+                        }
+                        onClick={() => void saveNote()}
+                      >
+                        {createNoteMutation.isPending
+                          ? "Saving..."
+                          : "Save Note"}
+                      </Button>
                     </div>
                   </div>
-                ) : null}
 
-                {detail?.giftHistory.length ? (
-                  <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
-                        Gift history
+                  {detail?.duplicateWarnings.length ? (
+                    <div className="rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-950 dark:border-amber-900 dark:bg-amber-950/30 dark:text-amber-100">
+                      <p className="text-[10px] font-semibold uppercase tracking-[0.18em]">
+                        Duplicate warning
                       </p>
-                      <Badge variant="secondary" className="text-[10px]">
-                        {detail.giftHistory.length}
-                      </Badge>
-                    </div>
-                    <div className="mt-3 divide-y divide-border">
-                      {detail.giftHistory.slice(0, 6).map((gift) => (
-                        <div
-                          key={gift.id}
-                          className="flex items-center justify-between gap-4 py-3"
-                        >
-                          <button
-                            type="button"
-                            onClick={() => onOpenGift(gift.donationId)}
-                            className="min-w-0 rounded-lg text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring"
-                            aria-label={`Open gift detail for ${formatSharedContributionAmount(
-                              gift.shared.amountCents,
-                              gift.shared.currencyCode,
-                            )} to ${gift.shared.designationSummary.fundName}`}
+                      <div className="mt-2 space-y-2">
+                        {detail.duplicateWarnings.map((warning) => (
+                          <p
+                            key={warning.id}
+                            className="text-xs leading-relaxed"
                           >
-                            <p className="text-sm font-semibold text-foreground">
-                              {formatSharedContributionAmount(
+                            {warning.reason}
+                            {warning.score != null ? ` (${warning.score})` : ""}
+                          </p>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null}
+
+                  {detail?.giftHistory.length ? (
+                    <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+                          Gift history
+                        </p>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {detail.giftHistory.length}
+                        </Badge>
+                      </div>
+                      <div className="mt-3 divide-y divide-border">
+                        {detail.giftHistory.slice(0, 6).map((gift) => (
+                          <div
+                            key={gift.id}
+                            className="flex items-center justify-between gap-4 py-3"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => onOpenGift(gift.donationId)}
+                              className="min-w-0 rounded-lg text-left transition-colors hover:bg-muted/50 focus-visible:outline-2 focus-visible:outline-ring"
+                              aria-label={`Open gift detail for ${formatSharedContributionAmount(
                                 gift.shared.amountCents,
                                 gift.shared.currencyCode,
-                              )}
-                            </p>
-                            <p className="truncate text-xs text-muted-foreground">
-                              {gift.shared.designationSummary.fundName}
-                            </p>
-                            <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                              {
-                                SHARED_RECEIPT_STATUS_LABELS[
-                                  gift.shared.receiptStatus
-                                ]
-                              }{" "}
-                              /{" "}
-                              {gift.shared.crmPostStatus
-                                ? SHARED_CRM_POST_STATUS_LABELS[
-                                    gift.shared.crmPostStatus
+                              )} to ${gift.shared.designationSummary.fundName}`}
+                            >
+                              <p className="text-sm font-semibold text-foreground">
+                                {formatSharedContributionAmount(
+                                  gift.shared.amountCents,
+                                  gift.shared.currencyCode,
+                                )}
+                              </p>
+                              <p className="truncate text-xs text-muted-foreground">
+                                {gift.shared.designationSummary.fundName}
+                              </p>
+                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                {
+                                  SHARED_RECEIPT_STATUS_LABELS[
+                                    gift.shared.receiptStatus
                                   ]
-                                : "Not required"}
-                            </p>
-                          </button>
-                          {gift.canResendReceipt && gift.stagedGiftId ? (
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="h-8 shrink-0 gap-2 text-xs"
-                              disabled={receiptMutation.isPending}
-                              onClick={() =>
-                                void resendReceipt({
-                                  contributionId: gift.donationId,
-                                  stagedGiftId: gift.stagedGiftId!,
+                                }{" "}
+                                /{" "}
+                                {gift.shared.crmPostStatus
+                                  ? SHARED_CRM_POST_STATUS_LABELS[
+                                      gift.shared.crmPostStatus
+                                    ]
+                                  : "Not required"}
+                              </p>
+                            </button>
+                            <GiftInlineActionControls
+                              inlineActions={gift.inlineActions}
+                              onRunOperation={(operation) =>
+                                setInlineOperation({
+                                  donationId: gift.donationId,
+                                  operation,
                                 })
                               }
-                            >
-                              <Receipt className="size-3.5" />
-                              Resend
-                            </Button>
-                          ) : null}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                ) : detailQuery.isLoading ? (
-                  <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
-                    Loading donor workflow history…
-                  </div>
-                ) : null}
-
-                <div className="space-y-6 pl-4 border-l border-border ml-2">
-                  {timeline.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">
-                      No timeline entries yet. Activity from donations and tasks
-                      will appear here as the CRM read model expands.
-                    </p>
-                  ) : (
-                    timeline.map((act) => (
-                      <div key={act.id} className="relative group">
-                        <div className="absolute -left-[21px] top-0 size-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
-                        <div className="pb-4 space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs font-semibold text-foreground">
-                              {act.title}
-                            </span>
-                            <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
-                              {makeDisplayDate(
-                                act.occurredAt,
-                              ).toLocaleDateString()}
-                            </span>
+                            />
                           </div>
-                          {act.description && (
-                            <p className="text-xs text-muted-foreground leading-relaxed bg-card p-3 rounded-lg border border-border shadow-sm">
-                              {act.description}
-                            </p>
-                          )}
-                          {act.amountCents && (
-                            <p className="text-xs font-semibold text-emerald-600">
-                              +{formatCurrency(act.amountCents)}
-                            </p>
-                          )}
-                        </div>
+                        ))}
                       </div>
-                    ))
-                  )}
-                </div>
-              </TabsContent>
+                    </div>
+                  ) : detailQuery.isLoading ? (
+                    <div className="rounded-xl border border-border bg-card p-4 text-sm text-muted-foreground">
+                      Loading donor workflow history…
+                    </div>
+                  ) : null}
 
-              <TabsContent
-                value="properties"
-                className="pt-6 grid grid-cols-2 gap-8 text-left"
-              >
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Email
-                    </p>
-                    <p className="text-sm font-semibold text-foreground truncate hover:text-primary cursor-pointer">
-                      {contact.email ?? EMPTY_CELL_VALUE}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Phone
-                    </p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {contact.phone ?? EMPTY_CELL_VALUE}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Location
-                    </p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {contact.location ?? EMPTY_CELL_VALUE}
-                    </p>
-                  </div>
-                </div>
-                <div className="space-y-6">
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Assigned missionary
-                    </p>
-                    <p className="text-sm font-semibold text-foreground">
-                      {detail?.support.byMissionary[0]?.missionaryName ??
-                        contact.assignedMissionaryName ??
-                        EMPTY_CELL_VALUE}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Support status
-                    </p>
-                    <div className="space-y-1 text-sm font-semibold text-foreground">
-                      <p>
-                        {detail
-                          ? formatCurrency(detail.support.lifetimeGivingCents)
-                          : formatCurrency(contact.lifetimeGiving)}
+                  <div className="space-y-6 pl-4 border-l border-border ml-2">
+                    {timeline.length === 0 ? (
+                      <p className="text-sm text-muted-foreground">
+                        No timeline entries yet. Activity from donations and
+                        tasks will appear here as the CRM read model expands.
                       </p>
-                      <p className="text-xs text-muted-foreground">
-                        {detail
-                          ? `${detail.support.activeRecurringCommitments} recurring / ${detail.support.atRiskCommitments} at risk`
-                          : "Recurring support not loaded"}
+                    ) : (
+                      timeline.map((act) => (
+                        <div key={act.id} className="relative group">
+                          <div className="absolute -left-[21px] top-0 size-4 rounded-full border-2 border-background bg-muted z-10 transition-colors group-hover:bg-foreground" />
+                          <div className="pb-4 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-semibold text-foreground">
+                                {act.title}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground font-semibold uppercase tracking-widest">
+                                {makeDisplayDate(
+                                  act.occurredAt,
+                                ).toLocaleDateString()}
+                              </span>
+                            </div>
+                            {act.description && (
+                              <p className="text-xs text-muted-foreground leading-relaxed bg-card p-3 rounded-lg border border-border shadow-sm">
+                                {act.description}
+                              </p>
+                            )}
+                            {act.amountCents && (
+                              <p className="text-xs font-semibold text-emerald-600">
+                                +{formatCurrency(act.amountCents)}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </TabsContent>
+
+                <TabsContent
+                  value="properties"
+                  className="pt-6 grid grid-cols-2 gap-8 text-left"
+                >
+                  <div className="space-y-6">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Email
+                      </p>
+                      <p className="text-sm font-semibold text-foreground truncate hover:text-primary cursor-pointer">
+                        {contact.email ?? EMPTY_CELL_VALUE}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Phone
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {contact.phone ?? EMPTY_CELL_VALUE}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Location
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {contact.location ?? EMPTY_CELL_VALUE}
                       </p>
                     </div>
                   </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Privacy
-                    </p>
-                    <p className="text-xs font-medium text-muted-foreground">
-                      {detail?.privacy.missionaryContactDataExposed === false
-                        ? "Missionary users do not receive restricted donor contact data."
-                        : "Staff-only donor data."}
-                    </p>
-                  </div>
-                  <div className="space-y-1">
-                    <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
-                      Tags
-                    </p>
-                    <div className="flex flex-wrap gap-1 mt-1">
-                      {(contact.tags ?? []).length === 0 ? (
-                        <span className="text-sm text-muted-foreground">
-                          {EMPTY_CELL_VALUE}
-                        </span>
-                      ) : (
-                        contact.tags.map((t) => (
-                          <Badge
-                            key={t}
-                            variant="secondary"
-                            className="text-[9px] px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
-                          >
-                            {t}
-                          </Badge>
-                        ))
-                      )}
+                  <div className="space-y-6">
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Assigned missionary
+                      </p>
+                      <p className="text-sm font-semibold text-foreground">
+                        {detail?.support.byMissionary[0]?.missionaryName ??
+                          contact.assignedMissionaryName ??
+                          EMPTY_CELL_VALUE}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Support status
+                      </p>
+                      <div className="space-y-1 text-sm font-semibold text-foreground">
+                        <p>
+                          {detail
+                            ? formatCurrency(detail.support.lifetimeGivingCents)
+                            : formatCurrency(contact.lifetimeGiving)}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {detail
+                            ? `${detail.support.activeRecurringCommitments} recurring / ${detail.support.atRiskCommitments} at risk`
+                            : "Recurring support not loaded"}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Privacy
+                      </p>
+                      <p className="text-xs font-medium text-muted-foreground">
+                        {detail?.privacy.missionaryContactDataExposed === false
+                          ? "Missionary users do not receive restricted donor contact data."
+                          : "Staff-only donor data."}
+                      </p>
+                    </div>
+                    <div className="space-y-1">
+                      <p className="text-[9px] font-semibold text-muted-foreground uppercase tracking-widest">
+                        Tags
+                      </p>
+                      <div className="flex flex-wrap gap-1 mt-1">
+                        {(contact.tags ?? []).length === 0 ? (
+                          <span className="text-sm text-muted-foreground">
+                            {EMPTY_CELL_VALUE}
+                          </span>
+                        ) : (
+                          contact.tags.map((t) => (
+                            <Badge
+                              key={t}
+                              variant="secondary"
+                              className="text-[9px] px-1.5 h-4 bg-muted text-muted-foreground border-none shadow-none"
+                            >
+                              {t}
+                            </Badge>
+                          ))
+                        )}
+                      </div>
                     </div>
                   </div>
-                </div>
-              </TabsContent>
-            </Tabs>
-          </div>
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
+                </TabsContent>
+              </Tabs>
+            </div>
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+      <ContributionOperationShell
+        open={inlineOperation !== null}
+        onClose={() => setInlineOperation(null)}
+        operation={inlineOperation?.operation ?? null}
+        donationId={inlineOperation?.donationId ?? null}
+        sourceSurface="donor_crm_record"
+        onOpenFullDetail={(donationId) => {
+          setInlineOperation(null);
+          onOpenGift(donationId);
+        }}
+        onRowRefresh={() => void detailQuery.refetch()}
+      />
+    </>
   );
 }
 
