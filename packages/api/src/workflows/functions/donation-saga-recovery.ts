@@ -1,7 +1,7 @@
 import { NonRetriableError } from "inngest";
-import Stripe from "stripe";
 
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
+import { getStripeClient } from "../../stripe/client";
 import { runDonationSagaRecoveryScan } from "../adapters/donations";
 import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
@@ -10,8 +10,6 @@ import {
   WORKFLOW_SYSTEM_ACTOR_ID,
 } from "../events";
 import { inngest } from "../inngest/client";
-
-const STRIPE_API_VERSION = "2025-02-24.acacia";
 
 /**
  * Durable one-time donation saga recovery. Each run processes exactly one
@@ -59,9 +57,7 @@ export const donationSagaRecovery = inngest.createFunction(
         );
       }
 
-      const stripe = new Stripe(stripeSecretKey, {
-        apiVersion: STRIPE_API_VERSION,
-      });
+      const stripe = getStripeClient(stripeSecretKey);
 
       return await processDonationSagaOutboxEvent({
         supabaseAdmin,

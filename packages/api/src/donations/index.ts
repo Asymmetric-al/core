@@ -5,20 +5,16 @@ import {
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
+import { getStripeClient } from "../stripe/client";
 
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
   if (!client) return { supabaseAdmin: null, error };
   return { supabaseAdmin: client, error: null };
-}
-
-function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
 }
 
 function parseRpcObject<T extends Record<string, unknown>>(
