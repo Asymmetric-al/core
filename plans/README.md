@@ -12,10 +12,10 @@ starting, honor its STOP conditions, and update your row when done.
 
 | Plan | Title                                                                    | Priority | Effort | Depends on    | Status |
 | ---- | ------------------------------------------------------------------------ | -------- | ------ | ------------- | ------ |
-| 001  | Fix partial-index upserts (routing reviews + saved routes)               | P1       | S      | —             | TODO   |
-| 002  | Stripe event recovery (claim backoff, failed-event scan) + pledge guards | P1       | M      | —             | TODO   |
-| 003  | Inbound pipeline hardening (headers, dedupe, review visibility, retry)   | P1/P2    | M      | 001           | TODO   |
-| 004  | Consolidate duplicated helpers + trim wasted I/O                         | P2       | M      | 001, 002, 003 | TODO   |
+| 001  | Fix partial-index upserts (routing reviews + saved routes)               | P1       | S      | —             | DONE   |
+| 002  | Stripe event recovery (claim backoff, failed-event scan) + pledge guards | P1       | M      | —             | DONE   |
+| 003  | Inbound pipeline hardening (headers, dedupe, review visibility, retry)   | P1/P2    | M      | 001           | DONE   |
+| 004  | Consolidate duplicated helpers + trim wasted I/O                         | P2       | M      | 001, 002, 003 | DONE   |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJECTED (with one-line rationale)
 
