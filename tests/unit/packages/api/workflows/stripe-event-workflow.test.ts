@@ -299,7 +299,9 @@ describe("stripe-event-processing workflow function (#291)", () => {
         rawPayload: {
           id: "evt_1",
           type: "invoice.paid",
-          data: { object: { id: "in_1", object: "invoice", subscription: "sub_1" } },
+          data: {
+            object: { id: "in_1", object: "invoice", subscription: "sub_1" },
+          },
         },
       }),
     });

@@ -45,8 +45,7 @@ function chain(result: { data: unknown; error: unknown }) {
   const proxy: Record<string, unknown> = new Proxy(target, {
     get(_t, prop) {
       if (prop === "then") {
-        return (resolve: (value: unknown) => unknown) =>
-          resolve(result);
+        return (resolve: (value: unknown) => unknown) => resolve(result);
       }
       if (prop === "maybeSingle" || prop === "single") {
         return () => Promise.resolve(result);
@@ -477,8 +476,7 @@ describe("pending email resume (#295)", () => {
 
     expect(result.resumedPendingReviews).toBe(1);
     const dispatchedSubjects = requestDispatch.mock.calls.map(
-      ([, input]) =>
-        (input as { subject: { id: string } }).subject.id,
+      ([, input]) => (input as { subject: { id: string } }).subject.id,
     );
     expect(dispatchedSubjects).toContain(ROW_ID);
     expect(dispatchedSubjects).toContain(secondReviewEmailId);

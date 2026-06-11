@@ -1,12 +1,15 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { InngestTestEngine } from "@inngest/test";
 
-const { processDonationSagaOutboxEventMock, getAdminClientMock, stripeCtorMock } =
-  vi.hoisted(() => ({
-    processDonationSagaOutboxEventMock: vi.fn(),
-    getAdminClientMock: vi.fn(),
-    stripeCtorMock: vi.fn(),
-  }));
+const {
+  processDonationSagaOutboxEventMock,
+  getAdminClientMock,
+  stripeCtorMock,
+} = vi.hoisted(() => ({
+  processDonationSagaOutboxEventMock: vi.fn(),
+  getAdminClientMock: vi.fn(),
+  stripeCtorMock: vi.fn(),
+}));
 
 vi.mock("../../../../../packages/api/src/donate/saga", () => ({
   processDonationSagaOutboxEvent: processDonationSagaOutboxEventMock,
@@ -119,10 +122,7 @@ describe("donation saga recovery scan (#290)", () => {
     expect(summary.dispatched).toBe(2);
     expect(requestDispatch).toHaveBeenCalledTimes(2);
     expect(scan.from).toHaveBeenCalledWith("donation_saga_outbox");
-    expect(scan.inFilter).toHaveBeenCalledWith("status", [
-      "pending",
-      "failed",
-    ]);
+    expect(scan.inFilter).toHaveBeenCalledWith("status", ["pending", "failed"]);
   });
 
   it("counts failed handoffs without aborting the scan", async () => {
@@ -185,7 +185,9 @@ describe("donation saga recovery workflow function (#290)", () => {
 
     const engine = new InngestTestEngine({ function: donationSagaRecovery });
     const { result } = await engine.execute({
-      events: [{ name: DONATION_SAGA_RECOVERY_EVENT, data: recoveryEnvelope() }],
+      events: [
+        { name: DONATION_SAGA_RECOVERY_EVENT, data: recoveryEnvelope() },
+      ],
     });
 
     expect(processDonationSagaOutboxEventMock).toHaveBeenCalledTimes(1);
@@ -210,7 +212,9 @@ describe("donation saga recovery workflow function (#290)", () => {
 
     const engine = new InngestTestEngine({ function: donationSagaRecovery });
     const { result } = await engine.execute({
-      events: [{ name: DONATION_SAGA_RECOVERY_EVENT, data: recoveryEnvelope() }],
+      events: [
+        { name: DONATION_SAGA_RECOVERY_EVENT, data: recoveryEnvelope() },
+      ],
     });
 
     expect(result).toMatchObject({ status: "processing" });
@@ -241,7 +245,9 @@ describe("donation saga recovery workflow function (#290)", () => {
 
     const engine = new InngestTestEngine({ function: donationSagaRecovery });
     const { error } = await engine.execute({
-      events: [{ name: DONATION_SAGA_RECOVERY_EVENT, data: recoveryEnvelope() }],
+      events: [
+        { name: DONATION_SAGA_RECOVERY_EVENT, data: recoveryEnvelope() },
+      ],
     });
 
     expect(error).toBeDefined();

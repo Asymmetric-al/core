@@ -37,8 +37,9 @@ function createMoveClientMock(tables: MoveTables) {
           return () => {
             if (table === "support_conversations") {
               const row =
-                tables.conversations?.[String(filters.id ?? conversationLookupId)] ??
-                null;
+                tables.conversations?.[
+                  String(filters.id ?? conversationLookupId)
+                ] ?? null;
               return Promise.resolve({ data: row, error: null });
             }
             if (table === "support_inboxes") {
@@ -48,10 +49,16 @@ function createMoveClientMock(tables: MoveTables) {
               });
             }
             if (table === "support_agents") {
-              return Promise.resolve({ data: tables.agent ?? null, error: null });
+              return Promise.resolve({
+                data: tables.agent ?? null,
+                error: null,
+              });
             }
             if (table === "support_bulk_move_operations") {
-              return Promise.resolve({ data: tables.batch ?? null, error: null });
+              return Promise.resolve({
+                data: tables.batch ?? null,
+                error: null,
+              });
             }
             return Promise.resolve({ data: null, error: null });
           };

@@ -148,9 +148,8 @@ describe("workflow runtime smoke (#287)", () => {
 
   describe("serve endpoint module", () => {
     it("exposes GET, POST, and PUT handlers for the thin app route", async () => {
-      const serveModule = await import(
-        "../../../../../packages/api/src/workflows/serve"
-      );
+      const serveModule =
+        await import("../../../../../packages/api/src/workflows/serve");
 
       expect(typeof serveModule.GET).toBe("function");
       expect(typeof serveModule.POST).toBe("function");

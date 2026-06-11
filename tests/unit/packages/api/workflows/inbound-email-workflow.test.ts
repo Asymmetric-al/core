@@ -250,20 +250,21 @@ describe("staff inbound retry dispatch (#294)", () => {
     acquireResult: { acquired: boolean; claim_id?: string },
   ) {
     const base = createInboundClientMock(row);
-    (base.rpc as ReturnType<typeof vi.fn>).mockImplementation(
-      (fn: string) => {
-        if (fn === "acquire_workflow_work_claim") {
-          return Promise.resolve({ data: acquireResult, error: null });
-        }
-        return Promise.resolve({ data: true, error: null });
-      },
-    );
+    (base.rpc as ReturnType<typeof vi.fn>).mockImplementation((fn: string) => {
+      if (fn === "acquire_workflow_work_claim") {
+        return Promise.resolve({ data: acquireResult, error: null });
+      }
+      return Promise.resolve({ data: true, error: null });
+    });
     return base;
   }
 
   it("dispatches a retry through claims and the workflow ledger", async () => {
     const mock = createRetryClientMock(
-      inboundRow({ body_retrieval_status: "failed", body_retrieval_attempts: 4 }),
+      inboundRow({
+        body_retrieval_status: "failed",
+        body_retrieval_attempts: 4,
+      }),
       { acquired: true, claim_id: CLAIM_ID },
     );
     const requestDispatch = vi.fn().mockResolvedValue({
@@ -283,7 +284,10 @@ describe("staff inbound retry dispatch (#294)", () => {
       },
     );
 
-    expect(result).toEqual({ status: "retry_dispatched", dispatch: "dispatched" });
+    expect(result).toEqual({
+      status: "retry_dispatched",
+      dispatch: "dispatched",
+    });
     expect(requestDispatch).toHaveBeenCalledWith(
       expect.anything(),
       expect.objectContaining({

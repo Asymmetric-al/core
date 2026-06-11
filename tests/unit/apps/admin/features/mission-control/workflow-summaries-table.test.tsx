@@ -41,7 +41,13 @@ describe("WorkflowSummariesTable (#298)", () => {
     expect(
       screen.getByText("Workflow run summaries for this organization"),
     ).toBeTruthy();
-    for (const header of ["Workflow", "Record", "Status", "Attempts", "Alert"]) {
+    for (const header of [
+      "Workflow",
+      "Record",
+      "Status",
+      "Attempts",
+      "Alert",
+    ]) {
       expect(screen.getByRole("columnheader", { name: header })).toBeTruthy();
     }
   });

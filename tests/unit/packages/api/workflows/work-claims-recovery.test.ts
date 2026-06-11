@@ -105,17 +105,20 @@ interface ScanClientOptions {
 }
 
 function createScanClientMock(options: ScanClientOptions) {
-  const limit = vi
-    .fn()
-    .mockResolvedValue({ data: options.rows, error: null });
+  const limit = vi.fn().mockResolvedValue({ data: options.rows, error: null });
   const order = vi.fn().mockReturnValue({ limit });
   const lte = vi.fn().mockReturnValue({ order });
   const inFilter = vi.fn().mockReturnValue({ lte });
   const select = vi.fn().mockReturnValue({ in: inFilter });
 
-  const updateSingle = vi.fn().mockImplementation(() =>
-    Promise.resolve({ data: recoverableRow({ status: "dispatched" }), error: null }),
-  );
+  const updateSingle = vi
+    .fn()
+    .mockImplementation(() =>
+      Promise.resolve({
+        data: recoverableRow({ status: "dispatched" }),
+        error: null,
+      }),
+    );
   const update = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({ single: updateSingle }),
@@ -127,7 +130,10 @@ function createScanClientMock(options: ScanClientOptions) {
   const rpc = vi.fn();
   rpc.mockImplementation((fn: string) => {
     if (fn === "acquire_workflow_work_claim") {
-      const next = options.acquireResults.shift() ?? { acquired: true, claim_id: CLAIM_ID };
+      const next = options.acquireResults.shift() ?? {
+        acquired: true,
+        claim_id: CLAIM_ID,
+      };
       return Promise.resolve({ data: next, error: null });
     }
     return Promise.resolve({ data: true, error: null });
@@ -145,7 +151,11 @@ describe("dispatch recovery scan (#289)", () => {
     });
     const dispatcher = vi
       .fn()
-      .mockResolvedValue({ dispatched: true, eventIds: ["evt-2"], error: null });
+      .mockResolvedValue({
+        dispatched: true,
+        eventIds: ["evt-2"],
+        error: null,
+      });
 
     const summary = await runDispatchRecoveryScan(
       { client: mock.client, dispatcher },
@@ -258,7 +268,9 @@ describe("workflow work claims migration", () => {
 
   it("expires stale claims before acquiring inside the rpc", () => {
     expect(migration).toMatch(/expires_at < NOW\(\)/);
-    expect(migration).toMatch(/ON CONFLICT \(tenant_id, subject_type, subject_id\) WHERE status = 'active' DO NOTHING/);
+    expect(migration).toMatch(
+      /ON CONFLICT \(tenant_id, subject_type, subject_id\) WHERE status = 'active' DO NOTHING/,
+    );
   });
 
   it("restricts claim rpc execution to the service role", () => {

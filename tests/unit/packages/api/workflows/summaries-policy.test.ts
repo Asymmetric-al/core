@@ -66,7 +66,8 @@ function createSummariesClientMock(options: {
         order: () => builder,
         limit: () =>
           Promise.resolve({
-            data: table === "workflow_dispatch_requests" ? options.ledgerRows : [],
+            data:
+              table === "workflow_dispatch_requests" ? options.ledgerRows : [],
             error: null,
           }),
         then: (resolve: (value: unknown) => unknown) =>
@@ -90,7 +91,11 @@ describe("workflow run summaries (#298)", () => {
         ledgerRow(),
         ledgerRow({ id: "req-2", status: "failed", subject_id: "outbox-2" }),
         ledgerRow({ id: "req-3", status: "pending", subject_id: "outbox-3" }),
-        ledgerRow({ id: "req-4", status: "dead_letter", subject_id: "outbox-4" }),
+        ledgerRow({
+          id: "req-4",
+          status: "dead_letter",
+          subject_id: "outbox-4",
+        }),
       ],
       sagaRows: [{ id: "outbox-1", status: "completed" }],
     });
@@ -112,13 +117,20 @@ describe("workflow run summaries (#298)", () => {
 
   it("excludes secrets, raw payloads, step logs, and provider internals", async () => {
     const mock = createSummariesClientMock({
-      ledgerRows: [ledgerRow({ status: "failed", last_error_code: "workflow_dispatch_failed" })],
+      ledgerRows: [
+        ledgerRow({
+          status: "failed",
+          last_error_code: "workflow_dispatch_failed",
+        }),
+      ],
     });
 
     const summaries = await summarizeWorkflowRuns(mock.client, TENANT_ID);
     const serialized = JSON.stringify(summaries);
 
-    expect(serialized).not.toMatch(/sk_live|signed\.example|last_error_message/);
+    expect(serialized).not.toMatch(
+      /sk_live|signed\.example|last_error_message/,
+    );
     expect(serialized).not.toMatch(/raw_payload|parsed_text|step|stack/i);
     expect(Object.keys(summaries[0]!).sort()).toEqual(
       [

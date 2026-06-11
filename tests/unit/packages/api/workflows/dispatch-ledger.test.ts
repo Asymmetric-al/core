@@ -182,7 +182,11 @@ describe("workflow dispatch ledger (#288)", () => {
     });
     const dispatcher = vi
       .fn()
-      .mockResolvedValue({ dispatched: true, eventIds: ["evt-9"], error: null });
+      .mockResolvedValue({
+        dispatched: true,
+        eventIds: ["evt-9"],
+        error: null,
+      });
 
     const result = await requestWorkflowDispatch(
       { client: mock.client, dispatcher },
@@ -308,10 +312,10 @@ describe("workflow dispatch ledger migration", () => {
   );
 
   it("scopes dispatch request idempotency by tenant", () => {
+    expect(migration).toMatch(/UNIQUE \(tenant_id, idempotency_key\)/);
     expect(migration).toMatch(
-      /UNIQUE \(tenant_id, idempotency_key\)/,
+      /tenant_id UUID NOT NULL REFERENCES public\.tenants/,
     );
-    expect(migration).toMatch(/tenant_id UUID NOT NULL REFERENCES public\.tenants/);
   });
 
   it("tracks handoff status, attempts, and recovery eligibility", () => {
@@ -326,10 +330,14 @@ describe("workflow dispatch ledger migration", () => {
 
   it("locks the ledger down to the service role", () => {
     expect(migration).toMatch(/ENABLE ROW LEVEL SECURITY/);
-    expect(migration).toMatch(/REVOKE ALL ON TABLE public\.workflow_dispatch_requests FROM anon/);
+    expect(migration).toMatch(
+      /REVOKE ALL ON TABLE public\.workflow_dispatch_requests FROM anon/,
+    );
     expect(migration).toMatch(
       /REVOKE ALL ON TABLE public\.workflow_dispatch_requests FROM authenticated/,
     );
-    expect(migration).toMatch(/GRANT ALL ON TABLE public\.workflow_dispatch_requests TO service_role/);
+    expect(migration).toMatch(
+      /GRANT ALL ON TABLE public\.workflow_dispatch_requests TO service_role/,
+    );
   });
 });

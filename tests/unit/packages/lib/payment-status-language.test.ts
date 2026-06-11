@@ -129,9 +129,7 @@ describe("contribution grid status normalization (#292)", () => {
   });
 
   it("never claims completion for unknown statuses", () => {
-    expect(normalizeContributionGridStatus("anything-unknown")).toBe(
-      "pending",
-    );
+    expect(normalizeContributionGridStatus("anything-unknown")).toBe("pending");
     expect(normalizeContributionGridStatus(null)).toBe("pending");
     expect(normalizeContributionGridStatus("completed")).toBe("completed");
   });
