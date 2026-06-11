@@ -59,6 +59,12 @@ function makeResult(): ContributionActionResult {
     }),
     auditEventId: "audit_1",
     taskIds: [],
+    providerOutcome: {
+      provider: "stripe" as const,
+      status: "succeeded",
+      referenceId: "re_live_refund_id",
+      raw: { amount: 25_000, currency: "usd", status: "succeeded" },
+    },
   };
 }
 
@@ -76,6 +82,11 @@ describe("admin/contribution-operations route action-result projection", () => {
     };
     expect(canonical.payment.stripe.paymentIntentId).toBeNull();
     expect(canonical.payment.stripe.chargeId).toBeNull();
+    // The provider outcome's raw identifiers (e.g. the live Stripe refund id)
+    // are also stripped, while workflow status stays visible.
+    expect(projected.providerOutcome?.referenceId).toBeNull();
+    expect(projected.providerOutcome?.raw).toBeUndefined();
+    expect(projected.providerOutcome?.status).toBe("succeeded");
     // Non-canonical result fields are preserved.
     expect(projected.auditEventId).toBe("audit_1");
   });
@@ -93,6 +104,13 @@ describe("admin/contribution-operations route action-result projection", () => {
     };
     expect(canonical.payment.stripe.paymentIntentId).toBe("pi_proof");
     expect(canonical.payment.stripe.chargeId).toBe("ch_proof");
+    // Provider-authorized viewers keep the raw provider outcome.
+    expect(projected.providerOutcome?.referenceId).toBe("re_live_refund_id");
+    expect(projected.providerOutcome?.raw).toEqual({
+      amount: 25_000,
+      currency: "usd",
+      status: "succeeded",
+    });
   });
 
   it("passes through a result whose canonicalContribution is not a detail object", () => {

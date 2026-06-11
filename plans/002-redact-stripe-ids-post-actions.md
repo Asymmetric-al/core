@@ -40,6 +40,14 @@ Project it anyway for consistency/defense-in-depth.
 2. Apply it in POST before `NextResponse.json` and in POST_CORRECTION_REQUEST_DECISION's `result`.
 3. Add a test: a low-capability (donor-care) actor POSTing `resend_receipt` receives a result whose `canonicalContribution.payment.stripe.paymentIntentId` / `chargeId` are null; a provider-capable actor receives them populated.
 
+**Adversarial-review follow-up (applied):** the result also carries
+`providerOutcome` (`referenceId` = a live Stripe `re_`/`pi_` id, plus `raw`),
+which a finance-staff user (passes refund gates via `finance:manage_contributions`
+but lacks `use_provider_actions`) would receive on a suppressed-approval refund.
+The helper now also strips `providerOutcome.referenceId`/`raw`/`errorMessage`
+for non-provider viewers, keeping `provider`/`status`/`errorCode`. Covered by the
+extended projection test.
+
 ## Verify / Done criteria
 
 - New test passes; existing `contribution-operations-actions` and route tests stay green.

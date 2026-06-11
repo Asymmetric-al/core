@@ -27,6 +27,7 @@ import type {
   ContributionActionResult,
   ContributionActionType,
   ContributionPermission,
+  ContributionProviderOutcome,
   ContributionSourceSurface,
 } from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";
@@ -34,26 +35,62 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 export { replayStripeEventThroughContributionOperations };
 
 /**
+ * Strip raw provider identifiers from a provider outcome for viewers lacking
+ * contributions.use_provider_actions. `referenceId` (e.g. a Stripe `re_`/`pi_`
+ * id), `raw` (the provider payload), and `errorMessage` (which can embed ids)
+ * are removed; the non-sensitive provider/status/errorCode workflow fields are
+ * kept so the UI can still show what happened.
+ */
+function redactProviderOutcomeForViewer(
+  outcome: ContributionProviderOutcome | null | undefined,
+): ContributionProviderOutcome | null | undefined {
+  if (!outcome) {
+    return outcome;
+  }
+
+  return {
+    provider: outcome.provider,
+    status: outcome.status,
+    errorCode: outcome.errorCode ?? null,
+    referenceId: null,
+  };
+}
+
+/**
  * Apply the same viewer projection the GET detail endpoint uses to an action
- * result before returning it (ADR-CD-014). Without this, a low-capability staff
- * user (e.g. donor-care invoking resend_receipt) would receive the unredacted
- * Stripe identifiers carried on result.canonicalContribution, which the GET
- * endpoint nulls for viewers lacking contributions.use_provider_actions.
+ * result before returning it (ADR-CD-014). Without this, a viewer lacking
+ * contributions.use_provider_actions (e.g. donor-care invoking resend_receipt,
+ * or finance-staff running a suppressed-approval refund) would receive raw
+ * Stripe identifiers carried on the result — both on
+ * result.canonicalContribution (which the GET endpoint nulls) and on
+ * result.providerOutcome (the live refund/charge id and raw provider payload).
  */
 export function projectContributionActionResultForViewer<
   TResult extends ContributionActionResult,
 >(result: TResult, viewerCapabilities: string[]): TResult {
+  const hasProviderAccess = viewerCapabilities.includes(
+    "contributions.use_provider_actions",
+  );
+
   const canonical = result.canonicalContribution;
-  if (!canonical || typeof canonical !== "object") {
-    return result;
+  const projected: TResult =
+    canonical && typeof canonical === "object"
+      ? {
+          ...result,
+          canonicalContribution: projectContributionDetailForViewer(
+            canonical as ContributionDetail,
+            viewerCapabilities,
+          ),
+        }
+      : result;
+
+  if (hasProviderAccess || result.providerOutcome == null) {
+    return projected;
   }
 
   return {
-    ...result,
-    canonicalContribution: projectContributionDetailForViewer(
-      canonical as ContributionDetail,
-      viewerCapabilities,
-    ),
+    ...projected,
+    providerOutcome: redactProviderOutcomeForViewer(result.providerOutcome),
   };
 }
 
