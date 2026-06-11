@@ -12,6 +12,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { EMAIL_INBOUND_PROCESS_EVENT } from "../../workflows/events";
 import { requestWorkflowDispatch } from "../../workflows/ledger";
+import { extractEmailAddress } from "../address";
 
 type JsonRecord = Record<string, unknown>;
 type AdminSupabaseClient = NonNullable<
@@ -187,33 +188,6 @@ export function getHeaderValue(
 
 function normalizeToken(value: string): string {
   return value.trim().toLowerCase();
-}
-
-function extractEmailAddress(value: unknown): string | null {
-  const rawValue = asString(value);
-  if (!rawValue) {
-    return null;
-  }
-
-  const trimmed = normalizeToken(rawValue);
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  const bracketMatch = trimmed.match(/<([^>]+)>/);
-  const candidate = bracketMatch?.[1] ?? trimmed;
-  const parts = candidate.split("@");
-
-  if (parts.length !== 2) {
-    return null;
-  }
-
-  const [localPart, domainPart] = parts;
-  if (!localPart || !domainPart) {
-    return null;
-  }
-
-  return `${localPart}@${domainPart}`;
 }
 
 function extractDomainFromEmail(value: unknown): string | null {

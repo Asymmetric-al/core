@@ -1,3 +1,4 @@
+import { extractEmailAddress } from "../../email/address";
 import { EMAIL_INBOUND_PROCESS_EVENT } from "../events";
 import {
   requestWorkflowDispatch,
@@ -29,14 +30,6 @@ export type InboundRouteDecision =
       reason: "no_route" | "ambiguous";
       candidateInboxIds: string[];
     };
-
-function extractEmailAddress(value: string): string | null {
-  const trimmed = value.trim().toLowerCase();
-  if (!trimmed) return null;
-  const bracketMatch = trimmed.match(/<([^>]+)>/);
-  const candidate = bracketMatch?.[1] ?? trimmed;
-  return candidate.includes("@") ? candidate : null;
-}
 
 function recipientAddresses(row: InboundEmailRow): string[] {
   return [
