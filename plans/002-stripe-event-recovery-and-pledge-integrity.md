@@ -28,7 +28,7 @@ Four verified defects around Stripe event handling on this branch:
    `stripe-event-processing` Inngest function treats `claimed:false` as terminal
    success, but the DB claim RPC refuses claims for `failed` events still inside
    their 60-second `next_attempt_at` backoff — and Inngest's first retry fires at
-   ~15–45s, *always* inside that window. The run completes "skipped", retries
+   ~15–45s, _always_ inside that window. The run completes "skipped", retries
    stop, Stripe already got a 200, and nothing ever re-claims the event.
 2. **No automated re-driver exists for `failed` stripe_raw_events.** The dispatch
    recovery scan only repairs LEDGER handoffs (the ledger row is already
@@ -48,8 +48,12 @@ Four verified defects around Stripe event handling on this branch:
   ```ts
   const claim = await claimStripeRawEvent({ supabaseAdmin, rawEventId });
   if (!claim.claimed) {
-    return { action: "stripe_event_already_claimed", handled: true, skipped: true,
-             processingStatus: claim.rawEvent.processingStatus };
+    return {
+      action: "stripe_event_already_claimed",
+      handled: true,
+      skipped: true,
+      processingStatus: claim.rawEvent.processingStatus,
+    };
   }
   ```
 
@@ -86,13 +90,13 @@ Four verified defects around Stripe event handling on this branch:
 
 ## Commands you will need
 
-| Purpose       | Command                                                                                                                                  | Expected on success |
-| ------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------- |
-| Install       | `bun install`                                                                                                                                | exit 0              |
+| Purpose       | Command                                                                                                                                    | Expected on success |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| Install       | `bun install`                                                                                                                              | exit 0              |
 | Focused tests | `bunx vitest run tests/unit/packages/api/workflows/stripe-event-workflow.test.ts tests/unit/packages/api/stripe-recurring-pledges.test.ts` | all pass            |
-| All workflows | `bunx vitest run tests/unit/packages/api/workflows`                                                                                         | all pass            |
-| Typecheck     | `bunx turbo run typecheck --filter=@asym/api --filter=@asym/env`                                                                            | exit 0              |
-| Lint          | `bunx turbo run lint --filter=@asym/api`                                                                                                    | exit 0              |
+| All workflows | `bunx vitest run tests/unit/packages/api/workflows`                                                                                        | all pass            |
+| Typecheck     | `bunx turbo run typecheck --filter=@asym/api --filter=@asym/env`                                                                           | exit 0              |
+| Lint          | `bunx turbo run lint --filter=@asym/api`                                                                                                   | exit 0              |
 
 ## Scope
 
@@ -184,10 +188,21 @@ In `packages/api/src/stripe/recurring.ts`:
    newer API shapes:
 
    ```ts
-   const parent = (invoice as { parent?: { subscription_details?: { subscription?: string | { id?: string } } } }).parent;
+   const parent = (
+     invoice as {
+       parent?: {
+         subscription_details?: { subscription?: string | { id?: string } };
+       };
+     }
+   ).parent;
    const parentSub = parent?.subscription_details?.subscription;
    if (typeof parentSub === "string" && parentSub.length > 0) return parentSub;
-   if (parentSub && typeof parentSub === "object" && typeof parentSub.id === "string") return parentSub.id;
+   if (
+     parentSub &&
+     typeof parentSub === "object" &&
+     typeof parentSub.id === "string"
+   )
+     return parentSub.id;
    ```
 
    (The cast is required because the pinned `stripe@17` types predate the basil
@@ -237,7 +252,8 @@ ACKing-and-stranding payment events.
 ## Test plan
 
 See Step 5. Structural patterns: `stripe-event-workflow.test.ts` (InngestTestEngine
-+ hoisted module mocks) and `donation-saga-recovery.test.ts` (scanner client mock).
+
+- hoisted module mocks) and `donation-saga-recovery.test.ts` (scanner client mock).
 
 ## Done criteria
 
@@ -271,7 +287,7 @@ Stop and report back if:
 - The new scanner gives `failed` Stripe events the same recovery story as
   donation saga rows; dead-lettering still comes from the event-store RPC
   threshold. Mission Control summaries already map `dead_letter` → urgent.
-- Inngest-down remains a real failure mode for *dispatch* (mitigated by required
+- Inngest-down remains a real failure mode for _dispatch_ (mitigated by required
   keys + ledger dead-letter visibility); a non-Inngest watchdog (e.g. pg_cron or
   external uptime check on `/api/inngest`) is deliberately deferred — see
   plans/README "considered and rejected".

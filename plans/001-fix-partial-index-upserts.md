@@ -30,8 +30,7 @@ partial unique index as an arbiter without it, so **both statements fail at
 runtime with error 42P10** ("there is no unique or exclusion constraint matching
 the ON CONFLICT specification"). Consequences: every inbound email held for
 routing review throws (the email is neither routed nor held — it becomes
-invisible to staff), and every staff "save route and continue" request returns
-500. CI passes because unit tests mock the Supabase client.
+invisible to staff), and every staff "save route and continue" request returns 500. CI passes because unit tests mock the Supabase client.
 
 ## Current state
 
@@ -56,20 +55,20 @@ invisible to staff), and every staff "save route and continue" request returns
   checks PostgreSQL error code `23505` after a plain `.insert()` and treats it
   as an idempotent replay. **Match this pattern.**
 - The partial indexes themselves are CORRECT and must stay: they enforce "one
-  *pending* review per email" and "one *active* route per (scope, value)" while
+  _pending_ review per email" and "one _active_ route per (scope, value)" while
   allowing resolved reviews / disabled routes to accumulate. Do **not** convert
   them to full unique constraints — that would block legitimate re-reviews and
   route re-creation after delete.
 
 ## Commands you will need
 
-| Purpose         | Command                                                                  | Expected on success |
-| --------------- | ------------------------------------------------------------------------ | ------------------- |
-| Install         | `bun install`                                                             | exit 0              |
-| Focused tests   | `bunx vitest run tests/unit/packages/api/workflows/inbound-routing.test.ts` | all pass           |
-| Typecheck (api) | `bunx turbo run typecheck --filter=@asym/api`                              | exit 0              |
-| Lint (api)      | `bunx turbo run lint --filter=@asym/api`                                   | exit 0              |
-| Format check    | `bun run format:check`                                                     | exit 0              |
+| Purpose         | Command                                                                     | Expected on success |
+| --------------- | --------------------------------------------------------------------------- | ------------------- |
+| Install         | `bun install`                                                               | exit 0              |
+| Focused tests   | `bunx vitest run tests/unit/packages/api/workflows/inbound-routing.test.ts` | all pass            |
+| Typecheck (api) | `bunx turbo run typecheck --filter=@asym/api`                               | exit 0              |
+| Lint (api)      | `bunx turbo run lint --filter=@asym/api`                                    | exit 0              |
+| Format check    | `bun run format:check`                                                      | exit 0              |
 
 ## Scope
 
@@ -135,7 +134,10 @@ Replace the `.upsert(...).select("id").single()` with:
 ```ts
 const updated = await deps.client
   .from("support_inbound_routes")
-  .update({ inbox_id: input.inboxId, created_by_profile_id: input.actorProfileId })
+  .update({
+    inbox_id: input.inboxId,
+    created_by_profile_id: input.actorProfileId,
+  })
   .eq("tenant_id", input.tenantId)
   .eq("scope", input.scope)
   .eq("match_value", matchValue)

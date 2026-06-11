@@ -80,12 +80,12 @@ Consolidating now, while the branch is unmerged, is the cheap moment.
 
 ## Commands you will need
 
-| Purpose   | Command                                                            | Expected on success |
-| --------- | ------------------------------------------------------------------ | ------------------- |
-| Tests     | `bunx vitest run tests/unit/packages tests/unit/apps/admin`         | all pass            |
-| Typecheck | `bun run typecheck`                                                 | exit 0 (14/14)      |
-| Lint      | `bun run lint`                                                      | exit 0 (14/14)      |
-| Gates     | `bun run format:check && bun run verify:workspace-contract`         | exit 0              |
+| Purpose   | Command                                                     | Expected on success |
+| --------- | ----------------------------------------------------------- | ------------------- |
+| Tests     | `bunx vitest run tests/unit/packages tests/unit/apps/admin` | all pass            |
+| Typecheck | `bun run typecheck`                                         | exit 0 (14/14)      |
+| Lint      | `bun run lint`                                              | exit 0 (14/14)      |
+| Gates     | `bun run format:check && bun run verify:workspace-contract` | exit 0              |
 
 ## Scope
 

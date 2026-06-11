@@ -41,7 +41,7 @@ Status values: TODO | IN PROGRESS | DONE | BLOCKED (with one-line reason) | REJE
   dispatch ledger + (002's) required-keys validation + dead-letter visibility
   are the mitigation; a non-Inngest watchdog belongs in ops tooling, not this
   branch.
-- **`set_workflow_dispatch_updated_at` reused by support_* tables** (naming/
+- **`set_workflow_dispatch_updated_at` reused by support\_\* tables** (naming/
   ownership): cosmetic until a rollback drops the function; fix by introducing
   a generic `public.set_updated_at` in the NEXT schema migration rather than
   churning applied migrations now.

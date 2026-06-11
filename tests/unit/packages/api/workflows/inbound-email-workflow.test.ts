@@ -56,12 +56,10 @@ function createInboundClientMock(
 
   const from = vi.fn((table: string) => {
     if (table === "support_messages") {
-      const maybeSingle = vi
-        .fn()
-        .mockResolvedValue({
-          data: options.supportMessage ?? null,
-          error: null,
-        });
+      const maybeSingle = vi.fn().mockResolvedValue({
+        data: options.supportMessage ?? null,
+        error: null,
+      });
       const eqSecond = vi.fn(() => ({ maybeSingle }));
       const eqFirst = vi.fn(() => ({ eq: eqSecond }));
       return { select: vi.fn(() => ({ eq: eqFirst })) };

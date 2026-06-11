@@ -63,10 +63,13 @@ adjacent staff surfaces, all introduced on this branch:
     the bridge update result is not error-checked:
 
     ```ts
-    await client.from(INBOUND_TABLE).update({
-      conversation_id: routing.conversationId,
-      support_message_id: routing.messageId,
-    }).eq("id", row.id);
+    await client
+      .from(INBOUND_TABLE)
+      .update({
+        conversation_id: routing.conversationId,
+        support_message_id: routing.messageId,
+      })
+      .eq("id", row.id);
     ```
 
   - `requestInboundEmailRetryDispatch` (~lines 459–491): writes `statusPatch`
@@ -74,6 +77,7 @@ adjacent staff surfaces, all introduced on this branch:
     rollback on throw.
   - `support_messages` rows carry `inbound_email_id` (FK to
     `email_inbound_messages.id`) — usable for dedupe.
+
 - `packages/api/src/workflows/summaries.ts` `loadInboundEmailOutcomes`
   (~lines 105–130): maps body-available + `support_message_id`-null rows to
   `"processing"`; never queries `support_inbound_routing_reviews`.
@@ -100,6 +104,7 @@ adjacent staff surfaces, all introduced on this branch:
 
   Every other query in this adapter scopes `.eq("tenant_id", tenantId())` —
   see `allRows` (~line 143).
+
 - `apps/admin/app/contributions/data.ts` (~lines 134–139):
   `contributionStatusOptions` lists Completed/Pending/Failed/Refunded only.
   The badge/label records in `columns.tsx`, `main-body.tsx`,
@@ -107,13 +112,13 @@ adjacent staff surfaces, all introduced on this branch:
 
 ## Commands you will need
 
-| Purpose       | Command                                                                                                                                                                | Expected on success |
-| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
-| Install       | `bun install`                                                                                                                                                              | exit 0              |
-| Focused tests | `bunx vitest run tests/unit/packages/api/workflows tests/unit/packages/api/email tests/unit/packages/api/support-hub-move-service.test.ts`                                  | all pass            |
-| UI test       | `bunx vitest run tests/unit/apps/admin/features/mission-control/workflow-summaries-table.test.tsx`                                                                          | all pass            |
-| Typecheck     | `bunx turbo run typecheck --filter=@asym/api --filter=@asym/admin`                                                                                                          | exit 0              |
-| Full gates    | `bun run format:check && bun run verify:data-boundary && bun run verify:workspace-contract`                                                                                 | all exit 0          |
+| Purpose       | Command                                                                                                                                    | Expected on success |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------------------------ | ------------------- |
+| Install       | `bun install`                                                                                                                              | exit 0              |
+| Focused tests | `bunx vitest run tests/unit/packages/api/workflows tests/unit/packages/api/email tests/unit/packages/api/support-hub-move-service.test.ts` | all pass            |
+| UI test       | `bunx vitest run tests/unit/apps/admin/features/mission-control/workflow-summaries-table.test.tsx`                                         | all pass            |
+| Typecheck     | `bunx turbo run typecheck --filter=@asym/api --filter=@asym/admin`                                                                         | exit 0              |
+| Full gates    | `bun run format:check && bun run verify:data-boundary && bun run verify:workspace-contract`                                                | all exit 0          |
 
 ## Scope
 
@@ -190,14 +195,15 @@ In `packages/api/src/workflows/adapters/inbound-email.ts`
    duplicates.
 
 Add two tests in `tests/unit/packages/api/workflows/inbound-email-workflow.test.ts`:
+
 - "recovers the bridge link instead of routing twice": mock the
   `support_messages` lookup returning `{ id: "msg-1", conversation_id: "conv-1" }`
   → `route` not called, status `already_routed`, bridge update written.
 - "throws when the bridge write fails so the step retries": routing mock
   returns routed, bridge update mock resolves `{ error: { message: "boom" } }`
   → the call rejects with `/inbound_bridge_persist_failed/`.
-(The existing client mock's `from` only handles one table — extend it with a
-table-routing map like the one in `inbound-routing.test.ts`.)
+  (The existing client mock's `from` only handles one table — extend it with a
+  table-routing map like the one in `inbound-routing.test.ts`.)
 
 **Verify**: `bunx vitest run tests/unit/packages/api/workflows/inbound-email-workflow.test.ts` → all pass with 2 new tests.
 
@@ -242,6 +248,7 @@ In `packages/api/src/admin/support-hub/move-service.ts`:
    insert, one error check).
 
 Add tests in `tests/unit/packages/api/support-hub-move-service.test.ts`:
+
 - "retry treats an already-moved conversation as success": batch with one item
   whose conversation row already has `inbox_id === destination` → retry result
   has that item `moved`, batch `completed`.
