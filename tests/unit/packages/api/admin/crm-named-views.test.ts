@@ -26,7 +26,10 @@ function createSupabaseStub(initialRows: ViewRow[] = []) {
   }> = [];
   const deletes: Array<Record<string, unknown>> = [];
 
-  function applyFilters(candidates: ViewRow[], filters: Record<string, unknown>) {
+  function applyFilters(
+    candidates: ViewRow[],
+    filters: Record<string, unknown>,
+  ) {
     return candidates.filter((row) =>
       Object.entries(filters).every(([key, value]) =>
         key === "id" ? row.id === value : true,
@@ -123,9 +126,7 @@ function createSupabaseStub(initialRows: ViewRow[] = []) {
           const match = applyFilters(rows, filters)[0] ?? null;
           return { data: match, error: null };
         },
-        then(
-          resolve: (result: { data: ViewRow[]; error: null }) => void,
-        ) {
+        then(resolve: (result: { data: ViewRow[]; error: null }) => void) {
           resolve({ data: applyFilters(rows, filters), error: null });
         },
       };

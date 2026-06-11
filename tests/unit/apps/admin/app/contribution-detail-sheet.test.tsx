@@ -76,10 +76,10 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
       />,
     );
 
+    expect(screen.getByText(/no staged gift workflow record/i)).toBeTruthy();
     expect(
-      screen.getByText(/no staged gift workflow record/i),
+      screen.getByText(/donation is valid and shown read-only/i),
     ).toBeTruthy();
-    expect(screen.getByText(/donation is valid and shown read-only/i)).toBeTruthy();
 
     expect(screen.queryByRole("button", { name: /send receipt/i })).toBeNull();
     expect(screen.queryByRole("button", { name: /approve/i })).toBeNull();

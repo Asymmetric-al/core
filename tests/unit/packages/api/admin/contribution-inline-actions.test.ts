@@ -46,7 +46,8 @@ function availabilityFor(input?: {
   hasProviderCharge?: boolean;
 }) {
   return buildContributionActionAvailability({
-    stagedGift: input?.stagedGift === undefined ? postedStagedGift : input.stagedGift,
+    stagedGift:
+      input?.stagedGift === undefined ? postedStagedGift : input.stagedGift,
     paymentStatus: input?.paymentStatus ?? "completed",
     refund: {
       amountCents: 25_000,
@@ -216,8 +217,6 @@ describe("admin/contribution-operations/inline-actions", () => {
     // Donor care cannot approve, so nothing is promoted even though the
     // gift needs review.
     expect(entries.nextBestActionType).toBeNull();
-    expect(
-      pickNextBestInlineContributionAction(entries.entries),
-    ).toBeNull();
+    expect(pickNextBestInlineContributionAction(entries.entries)).toBeNull();
   });
 });

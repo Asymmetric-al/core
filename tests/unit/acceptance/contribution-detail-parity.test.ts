@@ -216,13 +216,17 @@ describe("acceptance: inline CRM operations share detail contracts (#270)", () =
     stronger_approval_categories: [],
   });
 
-  function correctionInput(sourceSurface: "donor_crm_record" | "contribution_hub") {
+  function correctionInput(
+    sourceSurface: "donor_crm_record" | "contribution_hub",
+  ) {
     const applyCorrection = vi.fn().mockResolvedValue({
       before: { amount: 25_000 },
       after: { amount: 20_000 },
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction-1");
-    const appendAuditEvent = vi.fn().mockResolvedValue(`audit-${sourceSurface}`);
+    const appendAuditEvent = vi
+      .fn()
+      .mockResolvedValue(`audit-${sourceSurface}`);
     const loadContributionDetail = vi.fn().mockResolvedValue({
       id: "donation-1",
       amount: { value: 20_000 },

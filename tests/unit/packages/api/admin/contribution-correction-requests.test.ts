@@ -116,7 +116,10 @@ class QueryBuilder {
       return { data: null, error: null };
     }
     if (this.table === "contribution_operation_audit_events") {
-      return { data: { id: `audit-${this.state.auditInserts.length}` }, error: null };
+      return {
+        data: { id: `audit-${this.state.auditInserts.length}` },
+        error: null,
+      };
     }
     return { data: null, error: null };
   }

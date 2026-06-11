@@ -126,25 +126,23 @@ describe("acceptance: inline operation UX (ADR-CD-033)", () => {
   });
 
   it("shows risky-operation context, requires intent, and keeps the user in place", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockImplementation(async (url: string) => {
-        if (String(url).includes("/actions")) {
-          return {
-            ok: true,
-            json: async () => ({
-              result: {
-                auditEventId: "audit-ux-1",
-                adjustmentId: "adj-1",
-                approvalStatus: "applied",
-                taskIds: [],
-                canonicalContribution: {},
-              },
-            }),
-          };
-        }
-        return { ok: true, json: async () => ({ contribution: makeDetail() }) };
-      });
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return {
+          ok: true,
+          json: async () => ({
+            result: {
+              auditEventId: "audit-ux-1",
+              adjustmentId: "adj-1",
+              approvalStatus: "applied",
+              taskIds: [],
+              canonicalContribution: {},
+            },
+          }),
+        };
+      }
+      return { ok: true, json: async () => ({ contribution: makeDetail() }) };
+    });
     Object.defineProperty(globalThis, "fetch", {
       configurable: true,
       value: fetchMock,
@@ -173,12 +171,8 @@ describe("acceptance: inline operation UX (ADR-CD-033)", () => {
     // effects before anything is submitted (ADR-CD-017).
     expect(await within(shell).findByText("$250.00")).toBeTruthy();
     expect(within(shell).getByText("Clean Water Initiative")).toBeTruthy();
-    expect(
-      within(shell).getByText(/receipts and reports/i),
-    ).toBeTruthy();
-    expect(
-      within(shell).getByText(/receipt-affected/i),
-    ).toBeTruthy();
+    expect(within(shell).getByText(/receipts and reports/i)).toBeTruthy();
+    expect(within(shell).getByText(/receipt-affected/i)).toBeTruthy();
 
     // Intent is explicit: amount, labeled reason, and confirmation are all
     // required before the action can run.
@@ -252,9 +246,7 @@ describe("acceptance: inline operation UX (ADR-CD-033)", () => {
     expect(
       await view.findByText(/no payment provider charge to refund against/i),
     ).toBeTruthy();
-    expect(
-      view.getByText(/corrected through adjustments/i),
-    ).toBeTruthy();
+    expect(view.getByText(/corrected through adjustments/i)).toBeTruthy();
     expect(view.queryByRole("button", { name: "Refund gift" })).toBeNull();
   });
 });

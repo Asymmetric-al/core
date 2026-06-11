@@ -526,7 +526,10 @@ describe("apps/admin/app/crm gift detail entry", () => {
     mockSearch = `donor=${DONOR_RECORD_ID}`;
     const detailRefetch = vi.fn().mockResolvedValue({});
     useAdminCrmRecordDetailMock.mockReturnValue(
-      mockQuery({ data: crmDonorDetailFor(donationId), refetch: detailRefetch }),
+      mockQuery({
+        data: crmDonorDetailFor(donationId),
+        refetch: detailRefetch,
+      }),
     );
     const fetchMock = vi
       .fn()
@@ -847,7 +850,9 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
     // The reset previews the fallback before anything is applied.
     const preview = await view.findByTestId("view-settings-reset-preview");
-    expect(preview.textContent).toMatch(/columns return to the tenant default/i);
+    expect(preview.textContent).toMatch(
+      /columns return to the tenant default/i,
+    );
     expect(viewSettingsMutate).not.toHaveBeenCalled();
 
     fireEvent.click(view.getByRole("button", { name: "Reset" }));

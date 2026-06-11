@@ -10,9 +10,8 @@ vi.mock("next/navigation", () => ({
 
 describe("canonical contribution route", () => {
   it("opens the shared contribution detail overlay for a donation id without requiring CRM context", async () => {
-    const { default: Page } = await import(
-      "../../../../../apps/admin/app/contributions/[contributionId]/page"
-    );
+    const { default: Page } =
+      await import("../../../../../apps/admin/app/contributions/[contributionId]/page");
 
     await expect(
       Page({
@@ -20,6 +19,8 @@ describe("canonical contribution route", () => {
       }),
     ).rejects.toThrow("NEXT_REDIRECT:/contributions?gift=donation-123");
 
-    expect(redirectMock).toHaveBeenCalledWith("/contributions?gift=donation-123");
+    expect(redirectMock).toHaveBeenCalledWith(
+      "/contributions?gift=donation-123",
+    );
   });
 });

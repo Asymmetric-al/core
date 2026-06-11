@@ -27,7 +27,10 @@ describe("admin/contribution-operations/approval-notifications", () => {
       requestId: "request-1",
       settings,
       eligibleApprovers: [
-        { profileId: "approver-1", preference: { inAppEnabled: true, emailEnabled: false } },
+        {
+          profileId: "approver-1",
+          preference: { inAppEnabled: true, emailEnabled: false },
+        },
       ],
       existingTaskId: null,
     });
@@ -37,7 +40,10 @@ describe("admin/contribution-operations/approval-notifications", () => {
       requestId: "request-1",
       settings,
       eligibleApprovers: [
-        { profileId: "approver-1", preference: { inAppEnabled: true, emailEnabled: false } },
+        {
+          profileId: "approver-1",
+          preference: { inAppEnabled: true, emailEnabled: false },
+        },
       ],
       existingTaskId: "task-1",
     });
@@ -112,7 +118,10 @@ describe("admin/contribution-operations/approval-notifications", () => {
       requestId: "request-1",
       settings,
       eligibleApprovers: [
-        { profileId: "approver-1", preference: { inAppEnabled: true, emailEnabled: false } },
+        {
+          profileId: "approver-1",
+          preference: { inAppEnabled: true, emailEnabled: false },
+        },
       ],
       existingTaskId: null,
     });
@@ -120,7 +129,10 @@ describe("admin/contribution-operations/approval-notifications", () => {
       requestId: "request-1",
       settings,
       eligibleApprovers: [
-        { profileId: "approver-1", preference: { inAppEnabled: true, emailEnabled: false } },
+        {
+          profileId: "approver-1",
+          preference: { inAppEnabled: true, emailEnabled: false },
+        },
       ],
       existingTaskId: null,
     });
@@ -142,11 +154,19 @@ describe("admin/contribution-operations/approval-notifications", () => {
 
     expect(
       evaluatePendingApprovalSla({ ...base, now: "2026-06-01T12:00:00.000Z" }),
-    ).toEqual({ reminderDue: false, escalationDue: false, pendingTooLong: false });
+    ).toEqual({
+      reminderDue: false,
+      escalationDue: false,
+      pendingTooLong: false,
+    });
 
     expect(
       evaluatePendingApprovalSla({ ...base, now: "2026-06-02T01:00:00.000Z" }),
-    ).toEqual({ reminderDue: true, escalationDue: false, pendingTooLong: true });
+    ).toEqual({
+      reminderDue: true,
+      escalationDue: false,
+      pendingTooLong: true,
+    });
 
     // A recent reminder keeps things quiet until the next interval.
     expect(
@@ -188,6 +208,10 @@ describe("admin/contribution-operations/approval-notifications", () => {
         status: "approved",
         now: "2026-06-10T00:00:00.000Z",
       }),
-    ).toEqual({ reminderDue: false, escalationDue: false, pendingTooLong: false });
+    ).toEqual({
+      reminderDue: false,
+      escalationDue: false,
+      pendingTooLong: false,
+    });
   });
 });

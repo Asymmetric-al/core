@@ -56,7 +56,10 @@ describe("admin/contribution-shared/filters", () => {
 
   it("receipt affected means a sent receipt with correction activity", () => {
     const affected = {
-      shared: sharedFields({ receiptStatus: "sent", correctionState: "applied" }),
+      shared: sharedFields({
+        receiptStatus: "sent",
+        correctionState: "applied",
+      }),
     };
     const cleanSent = {
       shared: sharedFields({ receiptStatus: "sent", correctionState: "none" }),
@@ -243,10 +246,7 @@ describe("admin/contribution-shared/filters", () => {
       [{ id: "refund_state", value: "refunded" }],
       [{ id: "crm_post_state", value: "failed" }],
       [{ id: "payment_status", value: "refunded" }],
-      [
-        { id: "crm_post_state", value: "failed" },
-        { id: "pending_correction" },
-      ],
+      [{ id: "crm_post_state", value: "failed" }, { id: "pending_correction" }],
     ];
 
     for (const filterSet of filters) {

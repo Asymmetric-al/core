@@ -83,7 +83,10 @@ class QueryBuilder {
     return this;
   }
 
-  private resolve(): { data: unknown; error: { code?: string; message: string } | null } {
+  private resolve(): {
+    data: unknown;
+    error: { code?: string; message: string } | null;
+  } {
     if (this.table === "donations" && this.operation === "select") {
       return { data: donationRow, error: null };
     }
@@ -105,7 +108,10 @@ class QueryBuilder {
     if (this.table === "contribution_receipt_snapshots") {
       if (this.operation === "insert" && this.insertPayload) {
         const snapshots = (this.state.snapshots ??= []);
-        const row = { id: `snap-${snapshots.length + 1}`, ...this.insertPayload };
+        const row = {
+          id: `snap-${snapshots.length + 1}`,
+          ...this.insertPayload,
+        };
         snapshots.push(row);
         return { data: { id: row.id }, error: null };
       }
@@ -122,9 +128,7 @@ class QueryBuilder {
         const key = this.insertPayload?.idempotency_key;
         const duplicate =
           typeof key === "string" &&
-          this.state.adjustments.some(
-            (row) => row.idempotency_key === key,
-          );
+          this.state.adjustments.some((row) => row.idempotency_key === key);
         if (duplicate) {
           return {
             data: null,
@@ -256,7 +260,10 @@ describe("applyContributionCorrection (adjustment records)", () => {
       ...baseInput(state),
       payload: {
         amount: 20_000,
-        receiptDelivery: { choice: "defer", deferReason: "Donor asked us to wait" },
+        receiptDelivery: {
+          choice: "defer",
+          deferReason: "Donor asked us to wait",
+        },
       },
       actorCapabilities: ["contributions.manage_receipts"],
     });

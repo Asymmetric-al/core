@@ -70,7 +70,8 @@ function makeDetail(overrides: Partial<Record<string, unknown>> = {}) {
       {
         actionType: "refund",
         available: false,
-        blockedReason: "This gift has no payment provider charge to refund against.",
+        blockedReason:
+          "This gift has no payment provider charge to refund against.",
         nextStep:
           "Offline gifts are corrected through adjustments rather than provider refunds.",
         riskLevel: "high",
@@ -143,7 +144,9 @@ describe("ContributionOperationShell", () => {
     // Risky operation shows current effective values before submission.
     expect(await view.findByText("$250.00")).toBeTruthy();
     expect(view.getByText("Clean Water Initiative")).toBeTruthy();
-    expect(view.getByText(/high-risk corrections may require approval/i)).toBeTruthy();
+    expect(
+      view.getByText(/high-risk corrections may require approval/i),
+    ).toBeTruthy();
 
     const submit = view.getByRole("button", { name: "Correct gift amount" });
     expect(submit).toHaveProperty("disabled", true);
@@ -210,17 +213,15 @@ describe("ContributionOperationShell", () => {
   });
 
   it("preserves entered form state on failure and offers retry", async () => {
-    const fetchMock = vi
-      .fn()
-      .mockImplementation(async (url: string) => {
-        if (String(url).includes("/actions")) {
-          return {
-            ok: false,
-            json: async () => ({ error: "The operation failed upstream." }),
-          };
-        }
-        return { ok: true, json: async () => ({ contribution: makeDetail() }) };
-      });
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return {
+          ok: false,
+          json: async () => ({ error: "The operation failed upstream." }),
+        };
+      }
+      return { ok: true, json: async () => ({ contribution: makeDetail() }) };
+    });
     Object.defineProperty(globalThis, "fetch", {
       configurable: true,
       value: fetchMock,
@@ -258,7 +259,9 @@ describe("ContributionOperationShell", () => {
 
     await waitFor(() => {
       expect(
-        fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions")),
+        fetchMock.mock.calls.filter(([url]) =>
+          String(url).includes("/actions"),
+        ),
       ).toHaveLength(1);
     });
   });
