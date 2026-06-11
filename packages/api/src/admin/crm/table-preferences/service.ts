@@ -1,3 +1,5 @@
+import { applyCrmViewSettingsPatch } from "@asym/database/types";
+
 import {
   CRM_ROW_ACTION_SCHEMA_VERSION,
   migrateCrmRowActionId,
@@ -6,12 +8,15 @@ import { ApiHttpError } from "../../../shared/http-errors";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
-  CrmGiftHistoryColumnSettings,
-  CrmGiftHistoryFiltersSortSettings,
   CrmTablePreferencesResponse,
   CrmTableRowActionPreference,
   CrmViewSettingsLayer,
+  CrmViewSettingsPatch,
 } from "@asym/database/types";
+
+// Re-exported so existing consumers (route handlers) keep importing the patch
+// type from this module while the shared semantics live in @asym/database.
+export type { CrmViewSettingsPatch };
 
 type SupabaseAdmin = AdminSupabaseClient;
 
@@ -53,58 +58,6 @@ function normalizePinnedActionId(actionId: string | null): string | null {
   }
 
   return migrated;
-}
-
-/**
- * Per-scope settings update: undefined leaves a scope unchanged, null clears
- * it (scoped reset), a value replaces it.
- */
-export interface CrmViewSettingsPatch {
-  columns?: Partial<CrmGiftHistoryColumnSettings> | null;
-  filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
-  delegatedManagerProfileIds?: string[] | null;
-  activeViewId?: string | null;
-}
-
-function applySettingsPatch(
-  existing: CrmViewSettingsLayer | null,
-  patch: CrmViewSettingsPatch,
-): CrmViewSettingsLayer {
-  const next: CrmViewSettingsLayer = { ...(existing ?? {}) };
-
-  if (patch.columns !== undefined) {
-    if (patch.columns === null) {
-      delete next.columns;
-    } else {
-      next.columns = patch.columns;
-    }
-  }
-
-  if (patch.filtersSort !== undefined) {
-    if (patch.filtersSort === null) {
-      delete next.filtersSort;
-    } else {
-      next.filtersSort = patch.filtersSort;
-    }
-  }
-
-  if (patch.delegatedManagerProfileIds !== undefined) {
-    if (patch.delegatedManagerProfileIds === null) {
-      delete next.delegatedManagerProfileIds;
-    } else {
-      next.delegatedManagerProfileIds = patch.delegatedManagerProfileIds;
-    }
-  }
-
-  if (patch.activeViewId !== undefined) {
-    if (patch.activeViewId === null) {
-      delete next.activeViewId;
-    } else {
-      next.activeViewId = patch.activeViewId;
-    }
-  }
-
-  return next;
 }
 
 export async function getCrmTablePreferences(input: {
@@ -172,7 +125,7 @@ export async function saveCrmUserTablePreference(
     input.pinnedActionId === undefined
       ? (existing?.pinned_action_id ?? null)
       : normalizePinnedActionId(input.pinnedActionId);
-  const settings = applySettingsPatch(
+  const settings = applyCrmViewSettingsPatch(
     existing?.settings ?? null,
     input.settingsPatch ?? {},
   );
@@ -232,7 +185,7 @@ export async function saveCrmTenantTableDefault(
     input.pinnedActionId === undefined
       ? (before?.pinned_action_id ?? null)
       : normalizePinnedActionId(input.pinnedActionId);
-  const settings = applySettingsPatch(
+  const settings = applyCrmViewSettingsPatch(
     before?.settings ?? null,
     input.settingsPatch ?? {},
   );

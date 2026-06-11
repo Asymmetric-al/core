@@ -38,6 +38,66 @@ export interface CrmViewSettingsLayer {
   activeViewId?: string | null;
 }
 
+/**
+ * Per-scope view-settings patch (issues #272/#273): `undefined` leaves a scope
+ * unchanged, `null` clears it (scoped reset), a value replaces it. Used by both
+ * the API service (persisting the server record) and the database hook
+ * (optimistic local cache), so the three-way semantics live in one place.
+ */
+export interface CrmViewSettingsPatch {
+  columns?: Partial<CrmGiftHistoryColumnSettings> | null;
+  filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
+  delegatedManagerProfileIds?: string[] | null;
+  activeViewId?: string | null;
+}
+
+/**
+ * Apply a {@link CrmViewSettingsPatch} to a settings layer. Pure and
+ * framework-free so both server (`@asym/api`) and `"use client"` consumers can
+ * share it. Lives in `@asym/database` (which `@asym/api` already depends on) to
+ * avoid a database -> api -> database cycle.
+ */
+export function applyCrmViewSettingsPatch(
+  existing: CrmViewSettingsLayer | null,
+  patch: CrmViewSettingsPatch,
+): CrmViewSettingsLayer {
+  const next: CrmViewSettingsLayer = { ...(existing ?? {}) };
+
+  if (patch.columns !== undefined) {
+    if (patch.columns === null) {
+      delete next.columns;
+    } else {
+      next.columns = patch.columns;
+    }
+  }
+
+  if (patch.filtersSort !== undefined) {
+    if (patch.filtersSort === null) {
+      delete next.filtersSort;
+    } else {
+      next.filtersSort = patch.filtersSort;
+    }
+  }
+
+  if (patch.delegatedManagerProfileIds !== undefined) {
+    if (patch.delegatedManagerProfileIds === null) {
+      delete next.delegatedManagerProfileIds;
+    } else {
+      next.delegatedManagerProfileIds = patch.delegatedManagerProfileIds;
+    }
+  }
+
+  if (patch.activeViewId !== undefined) {
+    if (patch.activeViewId === null) {
+      delete next.activeViewId;
+    } else {
+      next.activeViewId = patch.activeViewId;
+    }
+  }
+
+  return next;
+}
+
 export type CrmViewSettingsScope =
   | "columns"
   | "filtersSort"

@@ -30,6 +30,7 @@ export type {
   CrmNoteSortDirection,
   CrmNoteSortField,
 } from "./crm-notes";
+export { applyCrmViewSettingsPatch } from "./crm-table-preferences";
 export type {
   CrmGiftHistoryColumnSettings,
   CrmGiftHistoryFiltersSortSettings,
@@ -39,6 +40,7 @@ export type {
   CrmTablePreferencesResponse,
   CrmTableRowActionPreference,
   CrmViewSettingsLayer,
+  CrmViewSettingsPatch,
   CrmViewSettingsScope,
   CrmViewSettingsSource,
 } from "./crm-table-preferences";

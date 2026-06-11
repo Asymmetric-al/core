@@ -2,11 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+import { applyCrmViewSettingsPatch } from "@asym/database/types";
+
 import type {
   CrmGiftHistoryColumnSettings,
   CrmGiftHistoryFiltersSortSettings,
   CrmTablePreferencesResponse,
-  CrmViewSettingsLayer,
 } from "@asym/database/types";
 
 export const ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY = [
@@ -126,35 +127,6 @@ async function saveCrmTablePreferencePatch(input: {
   };
 }
 
-function applyPatchToLayer(
-  layer: CrmViewSettingsLayer | null | undefined,
-  patch: CrmViewSettingsSavePatch,
-): CrmViewSettingsLayer | null {
-  const next: CrmViewSettingsLayer = { ...(layer ?? {}) };
-  if (patch.columns !== undefined) {
-    if (patch.columns === null) {
-      delete next.columns;
-    } else {
-      next.columns = patch.columns;
-    }
-  }
-  if (patch.filtersSort !== undefined) {
-    if (patch.filtersSort === null) {
-      delete next.filtersSort;
-    } else {
-      next.filtersSort = patch.filtersSort;
-    }
-  }
-  if (patch.activeViewId !== undefined) {
-    if (patch.activeViewId === null) {
-      delete next.activeViewId;
-    } else {
-      next.activeViewId = patch.activeViewId;
-    }
-  }
-  return next;
-}
-
 /**
  * Saves CRM gift-history view settings (columns, filters/sort, pin) with an
  * optimistic local cache update over the server source of truth (#272).
@@ -179,7 +151,10 @@ export function useSaveCrmViewSettings(tableId: string) {
                 ? patch.pinnedActionId
                 : (previous.user?.actionId ?? null),
             schemaVersion: previous.schemaVersion,
-            settings: applyPatchToLayer(previous.user?.settings, patch),
+            settings: applyCrmViewSettingsPatch(
+              previous.user?.settings ?? null,
+              patch,
+            ),
           },
         });
       }
