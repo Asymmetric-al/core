@@ -13,7 +13,7 @@
 
 ## 2. Donation Recovery
 
-- [ ] 2.1 Move one-time donation saga recovery to Inngest while preserving the
+- [x] 2.1 Move one-time donation saga recovery to Inngest while preserving the
       immediate donor-facing payment creation moment (#290)
 - [ ] 2.2 Dispatch Stripe webhook follow-up and recurring donation lifecycle
       work after verified durable storage; store unsupported events as ignored

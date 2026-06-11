@@ -6,6 +6,15 @@ import { z } from "zod";
  */
 export const WORKFLOW_SMOKE_EVENT = "workflows/smoke.requested";
 
+export const DONATION_SAGA_RECOVERY_EVENT = "donations/saga.recovery.requested";
+
+/**
+ * System actor recorded when a workflow run (not a staff user) performs a
+ * product action. audit_logs.user_id has no FK, and the donation saga RPCs
+ * accept any UUID, so the nil UUID identifies "the workflow executor".
+ */
+export const WORKFLOW_SYSTEM_ACTOR_ID = "00000000-0000-0000-0000-000000000000";
+
 /**
  * Context keys that look like sensitive or broad product content. The
  * envelope rejects these so secrets, payment internals, bank details, email
