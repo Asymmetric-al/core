@@ -5,6 +5,7 @@ import {
   donationSagaRecovery,
   donationSagaRecoveryScan,
 } from "./functions/donation-saga-recovery";
+import { inboundEmailProcessing } from "./functions/inbound-email-processing";
 import { stripeEventProcessing } from "./functions/stripe-event-processing";
 import { workflowSmoke } from "./functions/workflow-smoke";
 import { inngest } from "./inngest/client";
@@ -22,5 +23,6 @@ export const { GET, POST, PUT } = serve({
     donationSagaRecovery,
     donationSagaRecoveryScan,
     stripeEventProcessing,
+    inboundEmailProcessing,
   ],
 });

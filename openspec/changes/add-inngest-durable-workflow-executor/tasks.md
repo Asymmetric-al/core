@@ -26,7 +26,7 @@
 - [x] 3.1 Dispatch verified tenant-resolved inbound email work through minimal
       placeholders with no body, HTML, attachments, signed URLs, or Support Hub
       rows before workflow processing (#293)
-- [ ] 3.2 Retrieve inbound body durably before Support Hub routing; track
+- [x] 3.2 Retrieve inbound body durably before Support Hub routing; track
       attachment status as pending/retrying/failed/available without blocking
       the conversation (#294)
 - [ ] 3.3 Add inbound routing review for unknown or ambiguous safe routes and
