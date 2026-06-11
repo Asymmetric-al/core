@@ -74,16 +74,6 @@ export async function invalidateContributionOperationQueries(
   ]);
 }
 
-function contributionStatusFromDetail(
-  detail: ContributionDetail,
-): Contribution["status"] {
-  const status = detail.payment.status.toLowerCase();
-  if (detail.refund.status === "refunded") return "refunded";
-  if (status === "failed") return "failed";
-  if (status === "completed" || status === "succeeded") return "completed";
-  return "pending";
-}
-
 function contributionTypeFromDetail(
   detail: ContributionDetail,
 ): Contribution["type"] {
@@ -104,54 +94,47 @@ function paymentMethodFromDetail(
   return "Other";
 }
 
-function receiptStatusFromDetail(detail: ContributionDetail) {
-  const status = detail.receipt.status;
-  if (status === "sent" || status === "pending" || status === "failed") {
-    return status;
-  }
-  return "not_sent";
-}
-
 function contributionFromDetail(detail: ContributionDetail): Contribution {
-  const donorName = detail.donor?.name ?? "Unknown donor";
+  const shared = detail.shared;
   const stagedGift = detail.stagedGift;
-  const crmPostStatus = detail.crm.postStatus;
+  const crmPostStatus = shared.crmPostStatus;
 
   return {
-    id: detail.id,
-    donorId: detail.donor?.id ?? null,
-    donorName,
+    shared,
+    id: shared.donationId,
+    donorId: shared.donorId,
+    donorName: shared.donorName,
     donorEmail: detail.donor?.email ?? "",
     donorAvatar: null,
     donorType: null,
     donorPhone: detail.donor?.phoneNumbers[0] ?? null,
     donorLocation: detail.donor?.location ?? null,
     organizationName: detail.donor?.organization ?? null,
-    amount: detail.amount.value,
-    amountGross: detail.amount.gross,
+    amount: shared.amountCents,
+    amountGross: shared.amountCents,
     amountNet: detail.amount.net,
     amountFee: detail.amount.fee,
     amountTaxDeductible: detail.amount.taxDeductible,
     currency: detail.amount.currency,
-    date: detail.gift.date,
-    contributionDate: detail.gift.date,
+    date: shared.giftDate,
+    contributionDate: shared.giftDate,
     createdAt: detail.gift.createdAt,
     updatedAt: detail.gift.updatedAt,
     settlementDate: null,
     depositDate: null,
-    status: contributionStatusFromDetail(detail),
+    status: shared.paymentStatus,
     subStatus: null,
     type: contributionTypeFromDetail(detail),
     paymentMethod: paymentMethodFromDetail(detail),
     source: "Online",
-    fundId: detail.designation.fundId,
-    fundCode: detail.designation.fundId,
-    fundName: detail.designation.fundName,
-    missionaryId: detail.designation.missionaryId,
-    missionaryName: detail.designation.missionaryName,
+    fundId: shared.designationSummary.fundId,
+    fundCode: shared.designationSummary.fundId,
+    fundName: shared.designationSummary.fundName,
+    missionaryId: shared.designationSummary.missionaryId,
+    missionaryName: shared.designationSummary.missionaryName,
     campaignId: detail.gift.campaignId,
-    receiptStatus: receiptStatusFromDetail(detail),
-    receiptSent: detail.receipt.status === "sent",
+    receiptStatus: shared.receiptStatus,
+    receiptSent: shared.receiptStatus === "sent",
     receiptSentAt: null,
     stagedGiftId: stagedGift?.id ?? null,
     stagedGiftStatus:
@@ -165,14 +148,7 @@ function contributionFromDetail(detail: ContributionDetail): Contribution {
         ? stagedGift.status
         : null,
     stagedGiftReviewReason: stagedGift?.reviewReason ?? null,
-    crmPostStatus:
-      crmPostStatus === "not_required" ||
-      crmPostStatus === "queued" ||
-      crmPostStatus === "posted" ||
-      crmPostStatus === "failed" ||
-      crmPostStatus === "blocked"
-        ? crmPostStatus
-        : null,
+    crmPostStatus,
     annualStatementEligible: true,
     entryMethod: "api",
     reconciliationStatus:

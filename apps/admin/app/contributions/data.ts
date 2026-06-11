@@ -32,7 +32,28 @@ function boneyardRow(
 ): Contribution {
   const amountGross = row.amountGross ?? row.amount;
   const receiptSent = row.receiptSent;
+  const receiptStatus = row.receiptStatus ?? (receiptSent ? "sent" : "pending");
   return {
+    shared: row.shared ?? {
+      donationId: row.id,
+      amountCents: amountGross,
+      currencyCode: (row.currency ?? "usd").toUpperCase(),
+      giftDate: row.date,
+      donorId: row.donorId,
+      donorName: row.donorName,
+      designationSummary: {
+        fundId: row.fundId ?? row.fundCode,
+        fundName: row.fundName,
+        missionaryId: row.missionaryId ?? null,
+        missionaryName: row.missionaryName ?? null,
+      },
+      paymentStatus: row.status,
+      receiptStatus,
+      crmPostStatus: row.crmPostStatus ?? null,
+      refundState: "none",
+      refundedAmountCents: 0,
+      correctionState: "none",
+    },
     donorAvatar: row.donorAvatar ?? null,
     donorType: row.donorType ?? null,
     donorPhone: row.donorPhone ?? null,
@@ -61,7 +82,7 @@ function boneyardRow(
     missionaryId: row.missionaryId ?? null,
     missionaryName: row.missionaryName ?? null,
     campaignId: row.campaignId ?? null,
-    receiptStatus: row.receiptStatus ?? (receiptSent ? "sent" : "pending"),
+    receiptStatus,
     receiptSent,
     receiptSentAt: row.receiptSentAt ?? null,
     stagedGiftId: row.stagedGiftId ?? null,

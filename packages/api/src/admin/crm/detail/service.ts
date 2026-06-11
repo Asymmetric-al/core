@@ -1,3 +1,4 @@
+import { buildCrmGiftHistoryRow } from "./gift-history";
 import { ApiHttpError } from "../../../shared/http-errors";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -30,7 +31,16 @@ interface DonationRow {
   status: string | null;
   is_recurring: boolean | null;
   donation_type: string | null;
+  gift_date: string | null;
+  refund_amount: number | string | null;
+  refunded_at: string | null;
   created_at: string | null;
+  updated_at: string | null;
+}
+
+interface CorrectionRow {
+  donation_id: string;
+  status: string;
 }
 
 interface StagedGiftRow {
@@ -113,10 +123,6 @@ function toCents(value: number | string | null | undefined): number {
   return Number.isFinite(numberValue) ? Math.round(numberValue) : 0;
 }
 
-function normalizeCurrency(value: string | null | undefined): string {
-  return (value ?? "usd").trim().toUpperCase();
-}
-
 function previewNotes(notes: string | null): string | null {
   if (!notes?.trim()) {
     return null;
@@ -126,19 +132,19 @@ function previewNotes(notes: string | null): string | null {
   return trimmed.length <= 160 ? trimmed : `${trimmed.slice(0, 157)}...`;
 }
 
-function profileName(row: LabelRow): string {
+function profileName(row: LabelRow): string | null {
   const profile = row.profile ?? {};
   return (
     profile.display_name?.trim() ||
     profile.full_name?.trim() ||
     [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim() ||
     row.name?.trim() ||
-    "Unassigned"
+    null
   );
 }
 
 function getLabel(
-  map: Map<string, string>,
+  map: Map<string, string | null>,
   id: string | null,
   fallback: string,
 ) {
@@ -153,7 +159,7 @@ async function fetchLabels(
   supabaseAdmin: SupabaseAdmin,
   table: "funds" | "missionaries",
   ids: string[],
-): Promise<Map<string, string>> {
+): Promise<Map<string, string | null>> {
   if (ids.length === 0) {
     return new Map();
   }
@@ -171,7 +177,7 @@ async function fetchLabels(
   return new Map(
     ((data ?? []) as LabelRow[]).map((row) => [
       row.id,
-      table === "missionaries" ? profileName(row) : (row.name ?? "Unnamed"),
+      table === "missionaries" ? profileName(row) : (row.name ?? null),
     ]),
   );
 }
@@ -179,8 +185,8 @@ async function fetchLabels(
 function buildSupportSummary(input: {
   donor: DonorRow;
   donations: DonationRow[];
-  fundsById: Map<string, string>;
-  missionariesById: Map<string, string>;
+  fundsById: Map<string, string | null>;
+  missionariesById: Map<string, string | null>;
   pledges: PledgeRow[];
 }): CrmDonorDetailResponse["support"] {
   const byFund = new Map<string, { label: string; amountCents: number }>();
@@ -277,7 +283,7 @@ export async function getAdminCrmDonorDetail(input: {
   const donationsResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, donation_type, created_at",
+      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, donation_type, gift_date, refund_amount, refunded_at, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("donor_id", donor.id)
@@ -313,6 +319,22 @@ export async function getAdminCrmDonorDetail(input: {
       : { data: [], error: null };
   assertNoError(linkResult.error, "Failed to load donation CRM links.");
   const links = (linkResult.data ?? []) as DonationCrmLinkRow[];
+
+  const correctionsResult =
+    donationIds.length > 0
+      ? await input.supabaseAdmin
+          .from("contribution_corrections")
+          .select("donation_id, status")
+          .eq("tenant_id", input.tenantId)
+          .in("donation_id", donationIds)
+      : { data: [], error: null };
+  assertNoError(correctionsResult.error, "Failed to load gift corrections.");
+  const correctionsByDonationId = new Map<string, Array<{ status: string }>>();
+  for (const correction of (correctionsResult.data ?? []) as CorrectionRow[]) {
+    const existing = correctionsByDonationId.get(correction.donation_id) ?? [];
+    existing.push({ status: correction.status });
+    correctionsByDonationId.set(correction.donation_id, existing);
+  }
 
   const activityResult = await input.supabaseAdmin
     .from("donor_activities")
@@ -372,34 +394,51 @@ export async function getAdminCrmDonorDetail(input: {
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
     const link = stagedGift ? linkByStagedGiftId.get(stagedGift.id) : null;
-    const fundId = stagedGift?.fund_id ?? donation.fund_id;
-    const missionaryId = stagedGift?.missionary_id ?? donation.missionary_id;
 
-    return {
-      amountCents: toCents(donation.amount),
-      canResendReceipt:
-        Boolean(stagedGift?.id) &&
-        donation.status === "completed" &&
-        stagedGift?.receipt_status !== "suppressed",
-      crmPostStatus: stagedGift?.crm_post_status ?? null,
-      currencyCode: normalizeCurrency(donation.currency),
-      donationId: donation.id,
-      fundId,
-      fundName: getLabel(fundsById, fundId, "Unassigned fund"),
-      giftDate: donation.created_at,
-      id: donation.id,
-      missionaryId,
-      missionaryName: getLabel(
-        missionariesById,
-        missionaryId,
-        "Unassigned missionary",
-      ),
-      paymentStatus: donation.status,
-      receiptStatus: stagedGift?.receipt_status ?? null,
-      stagedGiftId: stagedGift?.id ?? null,
-      twentyRecordId:
-        stagedGift?.twenty_record_id ?? link?.twenty_record_id ?? null,
-    };
+    return buildCrmGiftHistoryRow({
+      donation: {
+        id: donation.id,
+        donor_id: donation.donor_id,
+        missionary_id: donation.missionary_id,
+        fund_id: donation.fund_id,
+        amount: toCents(donation.amount),
+        currency: donation.currency ?? "usd",
+        status: donation.status,
+        gift_date: donation.gift_date,
+        refund_amount: toCents(donation.refund_amount),
+        refunded_at: donation.refunded_at,
+        created_at: donation.created_at ?? "",
+        updated_at: donation.updated_at ?? donation.created_at ?? "",
+      },
+      donor: {
+        id: donor.id,
+        name: donor.name,
+        email: donor.email,
+      },
+      fund: donation.fund_id
+        ? {
+            id: donation.fund_id,
+            name: fundsById.get(donation.fund_id) ?? null,
+          }
+        : null,
+      missionary: donation.missionary_id
+        ? {
+            id: donation.missionary_id,
+            display_name: missionariesById.get(donation.missionary_id) ?? null,
+          }
+        : null,
+      stagedGift: stagedGift
+        ? {
+            id: stagedGift.id,
+            status: stagedGift.status,
+            receipt_status: stagedGift.receipt_status,
+            crm_post_status: stagedGift.crm_post_status,
+            twenty_record_id:
+              stagedGift.twenty_record_id ?? link?.twenty_record_id ?? null,
+          }
+        : null,
+      corrections: correctionsByDonationId.get(donation.id),
+    });
   });
 
   const timeline = [
@@ -409,7 +448,7 @@ export async function getAdminCrmDonorDetail(input: {
       description: gift.fundName,
       id: `gift:${gift.id}`,
       kind: "gift" as const,
-      occurredAt: gift.giftDate ?? new Date(0).toISOString(),
+      occurredAt: gift.giftDate || new Date(0).toISOString(),
       source: "platform" as const,
       title: "Gift received",
       visibility: "standard" as const,

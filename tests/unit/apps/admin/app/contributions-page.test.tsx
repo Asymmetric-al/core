@@ -358,6 +358,26 @@ describe("apps/admin/app/contributions/page", () => {
       json: async () => ({
         contribution: {
           id: "00000000-0000-4000-8000-000000000123",
+          shared: {
+            donationId: "00000000-0000-4000-8000-000000000123",
+            amountCents: 10000,
+            currencyCode: "USD",
+            giftDate: "2026-05-26T00:00:00.000Z",
+            donorId: "donor_1",
+            donorName: "Remote Donor",
+            designationSummary: {
+              fundId: "fund_1",
+              fundName: "General Fund",
+              missionaryId: null,
+              missionaryName: null,
+            },
+            paymentStatus: "completed",
+            receiptStatus: "pending",
+            crmPostStatus: "failed",
+            refundState: "none",
+            refundedAmountCents: 0,
+            correctionState: "none",
+          },
           donor: {
             id: "donor_1",
             profileId: "profile_1",

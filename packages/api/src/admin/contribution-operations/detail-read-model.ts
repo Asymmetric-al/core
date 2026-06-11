@@ -1,3 +1,8 @@
+import {
+  buildSharedContributionRowFields,
+  type SharedContributionRowFields,
+} from "../contribution-shared/row-contract";
+
 export type ContributionDetailDonationInput = {
   id: string;
   tenantId: string;
@@ -68,6 +73,12 @@ export interface ContributionDetailInput {
 }
 
 export interface ContributionDetail {
+  /**
+   * Shared contribution row contract fields (ADR-CD-032). Hub rows, CRM
+   * gift-history rows, and this detail payload derive overlapping fields from
+   * the same builder so surfaces cannot drift.
+   */
+  shared: SharedContributionRowFields;
   id: string;
   tenantId: string;
   donor: {
@@ -219,7 +230,44 @@ export function buildContributionDetail(
   const { donation, donor, fund, missionary, stagedGift } = input;
   const currency = normalizeCurrency(donation.currency);
 
+  const shared = buildSharedContributionRowFields({
+    donation: {
+      id: donation.id,
+      donor_id: donation.donorId,
+      missionary_id: donation.missionaryId,
+      fund_id: donation.fundId,
+      amount: donation.amount,
+      currency: donation.currency,
+      status: donation.status,
+      gift_date: donation.giftDate,
+      refund_amount: donation.refundAmount,
+      refunded_at: donation.refundedAt,
+      created_at: donation.createdAt,
+      updated_at: donation.updatedAt,
+    },
+    donor: donor
+      ? { id: donor.id, name: donor.name, email: donor.email }
+      : null,
+    profile: null,
+    fund: fund ?? null,
+    missionary: missionary
+      ? { id: missionary.id, display_name: missionary.name }
+      : null,
+    stagedGift: stagedGift
+      ? {
+          id: stagedGift.id,
+          status: stagedGift.status,
+          receipt_status: stagedGift.receiptStatus,
+          crm_post_status: stagedGift.crmPostStatus,
+        }
+      : null,
+    corrections: input.corrections?.map((correction) => ({
+      status: correction.status,
+    })),
+  });
+
   return {
+    shared,
     id: donation.id,
     tenantId: donation.tenantId,
     donor: donor

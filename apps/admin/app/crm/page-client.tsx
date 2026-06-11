@@ -1,6 +1,11 @@
 "use client";
 
 import {
+  formatSharedContributionAmount,
+  SHARED_CRM_POST_STATUS_LABELS,
+  SHARED_RECEIPT_STATUS_LABELS,
+} from "@asym/api/admin/contribution-shared";
+import {
   useAdminCrmRecordDetail,
   useAdminCrmRecordsInfiniteGrid,
   useCreateLinkedCrmNote,
@@ -411,14 +416,26 @@ function DetailDrawer({
                         >
                           <div className="min-w-0">
                             <p className="text-sm font-semibold text-foreground">
-                              {formatCurrency(gift.amountCents)}
+                              {formatSharedContributionAmount(
+                                gift.shared.amountCents,
+                                gift.shared.currencyCode,
+                              )}
                             </p>
                             <p className="truncate text-xs text-muted-foreground">
-                              {gift.fundName ?? gift.missionaryName ?? "Gift"}
+                              {gift.shared.designationSummary.fundName}
                             </p>
                             <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                              {gift.receiptStatus ?? "receipt unknown"} /{" "}
-                              {gift.crmPostStatus ?? "crm pending"}
+                              {
+                                SHARED_RECEIPT_STATUS_LABELS[
+                                  gift.shared.receiptStatus
+                                ]
+                              }{" "}
+                              /{" "}
+                              {gift.shared.crmPostStatus
+                                ? SHARED_CRM_POST_STATUS_LABELS[
+                                    gift.shared.crmPostStatus
+                                  ]
+                                : "Not required"}
                             </p>
                           </div>
                           {gift.canResendReceipt && gift.stagedGiftId ? (

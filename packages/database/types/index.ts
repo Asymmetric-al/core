@@ -1,3 +1,12 @@
+export type {
+  SharedContributionCorrectionState,
+  SharedContributionCrmPostStatus,
+  SharedContributionDesignationSummary,
+  SharedContributionPaymentStatus,
+  SharedContributionReceiptStatus,
+  SharedContributionRefundState,
+  SharedContributionRowFields,
+} from "./contribution-shared";
 export type { CrmGridRow, AdminCrmListResponse } from "./crm-grid";
 export type {
   CrmDonorDetailResponse,

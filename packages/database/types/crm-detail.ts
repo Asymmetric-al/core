@@ -1,3 +1,12 @@
+import type {
+  SharedContributionCorrectionState,
+  SharedContributionCrmPostStatus,
+  SharedContributionPaymentStatus,
+  SharedContributionReceiptStatus,
+  SharedContributionRefundState,
+  SharedContributionRowFields,
+} from "./contribution-shared";
+
 export type CrmTimelineEntryKind =
   | "gift"
   | "receipt"
@@ -7,20 +16,29 @@ export type CrmTimelineEntryKind =
   | "support";
 
 export interface CrmGiftHistoryRow {
+  /**
+   * Shared contribution row contract fields (ADR-CD-032 display parity).
+   * Overlapping CRM/Hub fields below are adapter-mapped from this object and
+   * must never be derived separately.
+   */
+  shared: SharedContributionRowFields;
   id: string;
   donationId: string;
-  stagedGiftId: string | null;
   amountCents: number;
   currencyCode: string;
-  giftDate: string | null;
-  paymentStatus: string | null;
-  receiptStatus: string | null;
-  crmPostStatus: string | null;
-  twentyRecordId: string | null;
+  giftDate: string;
+  paymentStatus: SharedContributionPaymentStatus;
+  receiptStatus: SharedContributionReceiptStatus;
+  crmPostStatus: SharedContributionCrmPostStatus | null;
+  refundState: SharedContributionRefundState;
+  correctionState: SharedContributionCorrectionState;
   fundId: string | null;
-  fundName: string | null;
+  fundName: string;
   missionaryId: string | null;
   missionaryName: string | null;
+  /** CRM-only workflow context — not part of the shared row contract. */
+  stagedGiftId: string | null;
+  twentyRecordId: string | null;
   canResendReceipt: boolean;
 }
 

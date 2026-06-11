@@ -125,4 +125,82 @@ describe("contribution operations detail read model", () => {
     expect(detail.refund.status).toBe("partial_refund");
     expect(detail.donorVisible.status).toBe("Partially Refunded");
   });
+
+  it("embeds the shared contribution row contract so detail and rows cannot drift", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_2",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: "missionary_1",
+        fundId: "fund_1",
+        amount: 25_000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_900",
+        stripeChargeId: null,
+        giftDate: "2026-05-10",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: null,
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "online",
+        createdAt: "2026-05-10T08:00:00.000Z",
+        updatedAt: "2026-05-10T08:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: "Alice Johnson",
+        email: "alice@example.com",
+        phone: null,
+        location: null,
+        organization: null,
+      },
+      fund: { id: "fund_1", name: "Clean Water Initiative" },
+      missionary: { id: "missionary_1", name: "John Martinez" },
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+        reviewReason: null,
+        twentyRecordId: null,
+      },
+      corrections: [
+        { id: "c1", correctionType: "amount_correction", status: "pending" },
+      ],
+    });
+
+    expect(detail.shared).toEqual({
+      donationId: "donation_2",
+      amountCents: 25_000,
+      currencyCode: "USD",
+      giftDate: "2026-05-10",
+      donorId: "donor_1",
+      donorName: "Alice Johnson",
+      designationSummary: {
+        fundId: "fund_1",
+        fundName: "Clean Water Initiative",
+        missionaryId: "missionary_1",
+        missionaryName: "John Martinez",
+      },
+      paymentStatus: "completed",
+      receiptStatus: "sent",
+      crmPostStatus: "posted",
+      refundState: "none",
+      refundedAmountCents: 0,
+      correctionState: "pending",
+    });
+  });
 });
