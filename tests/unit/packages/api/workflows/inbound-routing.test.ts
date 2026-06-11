@@ -93,13 +93,13 @@ function createRoutingClientMock(tables: RoutingTables) {
     if (table === "support_inbound_routes") {
       return {
         select: () => chain({ data: tables.routes ?? [], error: null }),
-        upsert: (values: unknown) => {
-          writes.push({ table, op: "upsert", values });
+        insert: (values: unknown) => {
+          writes.push({ table, op: "insert", values });
           return chain({ data: { id: ROUTE_ID }, error: null });
         },
         update: (values: unknown) => {
           writes.push({ table, op: "update", values });
-          return chain({ data: null, error: null });
+          return chain({ data: { id: ROUTE_ID }, error: null });
         },
         delete: () => {
           writes.push({ table, op: "delete" });
@@ -109,8 +109,8 @@ function createRoutingClientMock(tables: RoutingTables) {
     }
     if (table === "support_inbound_routing_reviews") {
       return {
-        upsert: (values: unknown) => {
-          writes.push({ table, op: "upsert", values });
+        insert: (values: unknown) => {
+          writes.push({ table, op: "insert", values });
           return Promise.resolve({ data: null, error: null });
         },
         update: (values: unknown) => {
@@ -389,7 +389,7 @@ describe("route save and continue (#295)", () => {
     expect(result.status).toBe("saved");
     const routeWrite = mock.writes.find(
       (write) =>
-        write.table === "support_inbound_routes" && write.op === "upsert",
+        write.table === "support_inbound_routes" && write.op === "insert",
     );
     expect(routeWrite?.values).toMatchObject({
       scope: "recipient",
@@ -401,6 +401,86 @@ describe("route save and continue (#295)", () => {
         write.op === "update",
     );
     expect(reviewUpdate?.values).toMatchObject({ status: "resolved" });
+  });
+
+  it("treats an existing pending review as an idempotent replay", async () => {
+    const mock = createRoutingClientMock({ inboxes: [], routes: [] });
+    const originalFrom = mock.from.getMockImplementation()!;
+    mock.from.mockImplementation((table: string) => {
+      if (table === "support_inbound_routing_reviews") {
+        const base = originalFrom(table) as Record<string, unknown>;
+        return {
+          ...base,
+          insert: () =>
+            Promise.resolve({
+              data: null,
+              error: { code: "23505", message: "duplicate key value" },
+            }),
+        };
+      }
+      return originalFrom(table);
+    });
+
+    // The partial unique index already holds an open pending review for this
+    // email; the replay must resolve without throwing.
+    await expect(
+      ensureRoutingReview(mock.client, inboundRow(), {
+        kind: "review",
+        reason: "no_route",
+        candidateInboxIds: [],
+      }),
+    ).resolves.toBeUndefined();
+  });
+
+  it("redirects an existing active route instead of failing on conflict", async () => {
+    const mock = createRoutingClientMock({});
+    const originalFrom = mock.from.getMockImplementation()!;
+    mock.from.mockImplementation((table: string) => {
+      if (table === "support_inbound_routes") {
+        const base = originalFrom(table) as Record<string, unknown>;
+        return {
+          ...base,
+          insert: (values: unknown) => {
+            mock.writes.push({ table, op: "insert", values });
+            return chain({
+              data: null,
+              error: { code: "23505", message: "duplicate key value" },
+            });
+          },
+          update: (values: unknown) => {
+            mock.writes.push({ table, op: "update", values });
+            return chain({ data: { id: ROUTE_ID }, error: null });
+          },
+        };
+      }
+      return originalFrom(table);
+    });
+    const requestDispatch = vi.fn().mockResolvedValue({
+      outcome: "dispatched",
+      request: { id: "wdr-1" },
+      reused: false,
+      error: null,
+    });
+
+    const result = await saveInboundRouteAndResume(
+      { client: mock.client, requestDispatch },
+      {
+        tenantId: TENANT_ID,
+        inboundEmailRowId: ROW_ID,
+        inboxId: "inbox-9",
+        scope: "recipient",
+        matchValue: "help@one.org",
+        actorProfileId: "profile-1",
+      },
+    );
+
+    expect(result.status).toBe("saved");
+    expect(result.routeId).toBe(ROUTE_ID);
+    const redirect = mock.writes.find(
+      (write) =>
+        write.table === "support_inbound_routes" && write.op === "update",
+    );
+    expect(redirect?.values).toMatchObject({ inbox_id: "inbox-9" });
   });
 
   it("deletes a route while audit history stays in the audit log", async () => {

@@ -210,24 +210,29 @@ export async function resolveInboundRouteDecision(
 /**
  * Hold an inbound email for tenant routing review. Idempotent: replays reuse
  * the open review for the same inbound email.
+ *
+ * The pending-uniqueness guarantee comes from the PARTIAL unique index
+ * idx_support_inbound_routing_reviews_pending (WHERE status = 'pending'),
+ * which Postgres cannot use as an ON CONFLICT arbiter through PostgREST.
+ * A plain insert with 23505 tolerance gives the same idempotency.
  */
 export async function ensureRoutingReview(
   client: RoutingClient,
   row: InboundEmailRow,
   decision: Extract<InboundRouteDecision, { kind: "review" }>,
 ): Promise<void> {
-  const { error } = await client.from("support_inbound_routing_reviews").upsert(
-    {
+  const { error } = await client
+    .from("support_inbound_routing_reviews")
+    .insert({
       tenant_id: row.tenant_id,
       inbound_email_id: row.id,
       status: "pending",
       reason: decision.reason,
       candidate_inbox_ids: decision.candidateInboxIds,
-    },
-    { onConflict: "tenant_id,inbound_email_id", ignoreDuplicates: true },
-  );
+    });
 
-  if (error) {
+  // 23505: an open pending review already exists — an idempotent replay.
+  if (error && error.code !== "23505") {
     throw new Error(`inbound_routing_review_failed: ${error.message}`);
   }
 }
@@ -319,29 +324,56 @@ export async function saveInboundRouteAndResume(
 
   const matchValue = input.matchValue.trim().toLowerCase();
 
+  // The one-active-route guarantee comes from the PARTIAL unique index
+  // idx_support_inbound_routes_active_match (WHERE is_active), which cannot
+  // serve as an ON CONFLICT arbiter through PostgREST. Insert first; on a
+  // 23505 conflict, redirect the existing active route instead.
   const inserted = await deps.client
     .from("support_inbound_routes")
-    .upsert(
-      {
-        tenant_id: input.tenantId,
-        scope: input.scope,
-        match_value: matchValue,
-        inbox_id: input.inboxId,
-        is_active: true,
-        created_by_profile_id: input.actorProfileId,
-      },
-      { onConflict: "tenant_id,scope,match_value", ignoreDuplicates: false },
-    )
+    .insert({
+      tenant_id: input.tenantId,
+      scope: input.scope,
+      match_value: matchValue,
+      inbox_id: input.inboxId,
+      is_active: true,
+      created_by_profile_id: input.actorProfileId,
+    })
     .select("id")
     .single();
 
-  if (inserted.error || !inserted.data) {
+  let routeId: string;
+
+  if (!inserted.error && inserted.data) {
+    routeId = String(inserted.data.id);
+  } else if (inserted.error?.code === "23505") {
+    // An active route for this (scope, value) already exists: redirect it.
+    // The is_active filter is load-bearing — only one such row can exist,
+    // and disabled historical rows must never be resurrected here.
+    const updated = await deps.client
+      .from("support_inbound_routes")
+      .update({
+        inbox_id: input.inboxId,
+        created_by_profile_id: input.actorProfileId,
+      })
+      .eq("tenant_id", input.tenantId)
+      .eq("scope", input.scope)
+      .eq("match_value", matchValue)
+      .eq("is_active", true)
+      .select("id")
+      .single();
+
+    if (updated.error || !updated.data) {
+      throw new Error(
+        `inbound_route_save_failed: ${updated.error?.message ?? "missing row"}`,
+      );
+    }
+
+    routeId = String(updated.data.id);
+  } else {
     throw new Error(
       `inbound_route_save_failed: ${inserted.error?.message ?? "missing row"}`,
     );
   }
-
-  const routeId = String(inserted.data.id);
 
   await appendSupportAudit(deps.client, {
     tenantId: input.tenantId,
