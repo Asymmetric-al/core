@@ -8,10 +8,13 @@ import {
   recordStripeRawEventFailure,
   storeStripeRawEvent,
 } from "./event-store";
+import { updateInvoicePledge, updateSubscriptionPledge } from "./recurring";
 import {
   markStagedGiftRefunded,
   stageGiftFromStripeDonation,
 } from "../giving/staged-gifts";
+import { STRIPE_EVENT_PROCESS_EVENT } from "../workflows/events";
+import { requestWorkflowDispatch } from "../workflows/ledger";
 
 const STRIPE_API_VERSION = "2025-02-24.acacia";
 const TERMINAL_PAID_STATUSES = new Set(["completed", "refunded"]);
@@ -33,13 +36,37 @@ interface DonationWebhookRow {
   stripe_charge_id: string | null;
 }
 
-interface StripeWebhookOutcome {
+export interface StripeWebhookOutcome {
   action: string;
   donationId?: string;
   handled: boolean;
   paymentIntentId?: string;
+  pledgeId?: string;
   reason?: string;
   stagedGiftId?: string | null;
+}
+
+/**
+ * Event types the product processes through the durable workflow executor
+ * once the raw event is stored. Anything else is stored and marked ignored
+ * with a safe reason at the webhook boundary.
+ */
+const WORKFLOW_DISPATCHED_STRIPE_EVENT_TYPES = new Set<string>([
+  "payment_intent.succeeded",
+  "payment_intent.payment_failed",
+  "payment_intent.canceled",
+  "payment_intent.processing",
+  "charge.refunded",
+  "customer.subscription.updated",
+  "customer.subscription.deleted",
+  "invoice.paid",
+  "invoice.payment_failed",
+]);
+
+export function isWorkflowDispatchedStripeEventType(
+  eventType: string,
+): boolean {
+  return WORKFLOW_DISPATCHED_STRIPE_EVENT_TYPES.has(eventType);
 }
 
 interface StripeWebhookProcessingContext {
@@ -288,6 +315,25 @@ export async function handleStripeWebhookEvent(
         supabaseAdmin,
         event.data.object as Stripe.Charge,
       );
+    case "customer.subscription.updated":
+    case "customer.subscription.deleted":
+      return updateSubscriptionPledge({
+        supabaseAdmin,
+        subscription: event.data.object as Stripe.Subscription,
+        eventType: event.type,
+      });
+    case "invoice.paid":
+      return updateInvoicePledge({
+        supabaseAdmin,
+        invoice: event.data.object as Stripe.Invoice,
+        outcome: "paid",
+      });
+    case "invoice.payment_failed":
+      return updateInvoicePledge({
+        supabaseAdmin,
+        invoice: event.data.object as Stripe.Invoice,
+        outcome: "failed",
+      });
     default:
       return {
         action: "ignored",
@@ -342,6 +388,42 @@ export async function POST(request: NextRequest) {
       rawBody,
       signatureHeader: signature,
     });
+
+    // Durable storage is provider webhook acceptance. Supported tenant-scoped
+    // events hand processing to the workflow executor; an immediate dispatch
+    // failure is recorded on the dispatch ledger and recovered internally
+    // instead of forcing Stripe to replay an already accepted event.
+    if (
+      isWorkflowDispatchedStripeEventType(event.type) &&
+      storedEvent.tenantId
+    ) {
+      try {
+        const dispatch = await requestWorkflowDispatch(
+          { client: supabaseAdmin },
+          {
+            tenantId: storedEvent.tenantId,
+            productArea: "giving",
+            workflowName: STRIPE_EVENT_PROCESS_EVENT,
+            subject: { type: "stripe_raw_event", id: storedEvent.id },
+            idempotencyKey: `stripe-event/${storedEvent.stripeEventId}`,
+          },
+        );
+
+        return NextResponse.json({
+          action: "workflow_dispatch",
+          dispatch: dispatch.outcome,
+          eventId: event.id,
+          eventType: event.type,
+          handled: true,
+          rawEventId: storedEvent.id,
+          received: true,
+        });
+      } catch {
+        // Ledger unavailable: fall back to inline processing so the stored
+        // event is still handled on the legacy path.
+      }
+    }
+
     const claim = await claimStripeRawEvent({
       supabaseAdmin,
       rawEventId: storedEvent.id,

@@ -1,0 +1,157 @@
+import { describe, expect, it, vi } from "vitest";
+
+import {
+  updateInvoicePledge,
+  updateSubscriptionPledge,
+} from "../../../../packages/api/src/stripe/recurring";
+
+import type Stripe from "stripe";
+
+const PLEDGE_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+
+function createPledgeClientMock(pledgeRow: Record<string, unknown> | null) {
+  const updates: Record<string, unknown>[] = [];
+  const maybeSingle = vi
+    .fn()
+    .mockResolvedValue({ data: pledgeRow, error: null });
+  const selectEq = vi.fn(() => ({ maybeSingle }));
+  const select = vi.fn(() => ({ eq: selectEq }));
+  const updateEq = vi.fn().mockResolvedValue({ error: null });
+  const update = vi.fn((values: Record<string, unknown>) => {
+    updates.push(values);
+    return { eq: updateEq };
+  });
+  const from = vi.fn(() => ({ select, update }));
+
+  return { client: { from } as never, updates, selectEq, from };
+}
+
+function pledgeRow(overrides: Record<string, unknown> = {}) {
+  return {
+    id: PLEDGE_ID,
+    tenant_id: "11111111-1111-4111-8111-111111111111",
+    status: "active",
+    failed_charge_count: 0,
+    payments_completed: 4,
+    ...overrides,
+  };
+}
+
+describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
+  it("updates the pledge from a subscription lifecycle event", async () => {
+    const mock = createPledgeClientMock(pledgeRow());
+
+    const outcome = await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: {
+        id: "sub_1",
+        status: "active",
+        pause_collection: null,
+        current_period_end: 1_780_000_000,
+      } as unknown as Stripe.Subscription,
+      eventType: "customer.subscription.updated",
+    });
+
+    expect(outcome).toMatchObject({
+      action: "pledge_subscription_updated",
+      handled: true,
+      pledgeId: PLEDGE_ID,
+    });
+    expect(mock.updates[0]).toMatchObject({ status: "active" });
+    expect(mock.updates[0]?.next_charge_at).toMatch(/^2026-/);
+    expect(mock.selectEq).toHaveBeenCalledWith(
+      "stripe_subscription_id",
+      "sub_1",
+    );
+  });
+
+  it("cancels the pledge when the subscription is deleted", async () => {
+    const mock = createPledgeClientMock(pledgeRow());
+
+    const outcome = await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: {
+        id: "sub_1",
+        status: "canceled",
+      } as unknown as Stripe.Subscription,
+      eventType: "customer.subscription.deleted",
+    });
+
+    expect(outcome.action).toBe("pledge_cancelled");
+    expect(mock.updates[0]).toMatchObject({ status: "cancelled" });
+    expect(mock.updates[0]?.end_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+  });
+
+  it("marks the pledge paused when Stripe pauses collection", async () => {
+    const mock = createPledgeClientMock(pledgeRow());
+
+    await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: {
+        id: "sub_1",
+        status: "active",
+        pause_collection: { behavior: "void" },
+      } as unknown as Stripe.Subscription,
+      eventType: "customer.subscription.updated",
+    });
+
+    expect(mock.updates[0]).toMatchObject({ status: "paused" });
+  });
+
+  it("records a successful invoice payment on the pledge", async () => {
+    const mock = createPledgeClientMock(pledgeRow({ failed_charge_count: 2 }));
+
+    const outcome = await updateInvoicePledge({
+      supabaseAdmin: mock.client,
+      invoice: {
+        id: "in_1",
+        subscription: "sub_1",
+      } as unknown as Stripe.Invoice,
+      outcome: "paid",
+    });
+
+    expect(outcome.action).toBe("pledge_invoice_paid");
+    expect(mock.updates[0]).toMatchObject({
+      status: "active",
+      failed_charge_count: 0,
+      payments_completed: 5,
+    });
+    expect(mock.updates[0]?.last_charge_at).toBeTruthy();
+  });
+
+  it("tracks a failed invoice payment without inventing a new status", async () => {
+    const mock = createPledgeClientMock(pledgeRow({ failed_charge_count: 1 }));
+
+    const outcome = await updateInvoicePledge({
+      supabaseAdmin: mock.client,
+      invoice: {
+        id: "in_1",
+        subscription: { id: "sub_1" },
+      } as unknown as Stripe.Invoice,
+      outcome: "failed",
+    });
+
+    expect(outcome.action).toBe("pledge_invoice_payment_failed");
+    expect(mock.updates[0]).toMatchObject({ failed_charge_count: 2 });
+    expect(mock.updates[0]?.status).toBeUndefined();
+    expect(mock.updates[0]?.last_charge_attempt).toBeTruthy();
+  });
+
+  it("ignores lifecycle events that match no pledge with a safe reason", async () => {
+    const mock = createPledgeClientMock(null);
+
+    const outcome = await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: {
+        id: "sub_unknown",
+        status: "active",
+      } as unknown as Stripe.Subscription,
+      eventType: "customer.subscription.updated",
+    });
+
+    expect(outcome.handled).toBe(false);
+    expect(outcome.action).toBe("ignored");
+    expect(outcome.reason).toContain("sub_unknown");
+    expect(outcome.reason).not.toMatch(/sk_|whsec_|secret/i);
+  });
+});

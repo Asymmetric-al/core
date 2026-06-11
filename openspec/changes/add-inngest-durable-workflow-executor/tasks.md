@@ -15,7 +15,7 @@
 
 - [x] 2.1 Move one-time donation saga recovery to Inngest while preserving the
       immediate donor-facing payment creation moment (#290)
-- [ ] 2.2 Dispatch Stripe webhook follow-up and recurring donation lifecycle
+- [x] 2.2 Dispatch Stripe webhook follow-up and recurring donation lifecycle
       work after verified durable storage; store unsupported events as ignored
       with safe reasons (#291)
 - [ ] 2.3 Use honest payment status and ACH language across giving surfaces;
