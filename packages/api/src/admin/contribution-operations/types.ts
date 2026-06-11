@@ -1,3 +1,5 @@
+import type { CorrectionApprovalPolicy } from "./approval-policy";
+
 export type ContributionActionType =
   | "resend_receipt"
   | "approve_staged_gift"
@@ -90,6 +92,10 @@ export interface ContributionActionResult<TContribution = unknown> {
   canonicalContribution: TContribution;
   auditEventId: string;
   correctionId?: string | null;
+  /** Pending correction request id when approval policy gated the action. */
+  correctionRequestId?: string | null;
+  /** Whether the correction applied immediately or awaits approval. */
+  approvalStatus?: "applied" | "pending_approval";
   /** Adjustment record id when the action applied an adjustment (ADR-CD-004). */
   adjustmentId?: string | null;
   /** True when an idempotent retry returned the previously applied adjustment. */
@@ -180,12 +186,37 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     tenantId: string;
     contributionId: string;
   }) => Promise<TContribution>;
+  /** Persists a pending correction request (ADR-CD-005); returns its id. */
+  createCorrectionRequest?: (input: {
+    tenantId: string;
+    contributionId: string;
+    actionType: ContributionActionType;
+    payload: Record<string, unknown>;
+    reason: string;
+    requestedByProfileId: string | null;
+    sourceSurface: ContributionSourceSurface;
+    expectedRevision?: string | null;
+    idempotencyKey?: string | null;
+  }) => Promise<string>;
 }
 
 export interface ExecuteContributionActionInput<TContribution = unknown> {
   tenantId: string;
   actorProfileId: string | null;
   actorPermissions: ContributionPermission[];
+  /** Granular backend capabilities for the actor (ADR-CD-024). */
+  actorCapabilities?: string[];
+  /**
+   * Tenant correction approval policy (ADR-CD-005 / ADR-CD-025). When
+   * omitted, the conservative default (separation of duties, no
+   * suppression) applies and high-risk corrections create requests.
+   */
+  approvalPolicy?: CorrectionApprovalPolicy;
+  /**
+   * Set when an approver applies a previously approved correction request;
+   * bypasses request creation but never audit, reasons, or idempotency.
+   */
+  approvedRequestId?: string | null;
   sourceSurface: ContributionSourceSurface;
   contributionId: string;
   stagedGiftId?: string | null;

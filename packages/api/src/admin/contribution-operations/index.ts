@@ -3,6 +3,21 @@ export {
   type ContributionActionAvailability,
 } from "./action-availability";
 export { executeContributionAction } from "./actions";
+export {
+  assertCanDecideCorrectionRequest,
+  correctionRequiresApproval,
+  resolveCorrectionApprovalPolicy,
+  type CorrectionApprovalOwnershipMode,
+  type CorrectionApprovalPolicy,
+} from "./approval-policy";
+export {
+  createContributionCorrectionRequestInSupabase,
+  decideContributionCorrectionRequest,
+  loadContributionCorrectionRequest,
+  loadCorrectionApprovalPolicy,
+  type ContributionCorrectionRequest,
+  type CorrectionRequestStatus,
+} from "./correction-requests";
 export { buildContributionDetail } from "./detail-read-model";
 export {
   assertContributionActionPermission,

@@ -2,9 +2,16 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { executeContributionAction } from "./actions";
+import {
+  decideContributionCorrectionRequest,
+  loadCorrectionApprovalPolicy,
+} from "./correction-requests";
 import { createContributionActionDependencies } from "./dependencies";
 import { replayStripeEventThroughContributionOperations } from "./operations";
-import { hasContributionPermission } from "./permissions";
+import {
+  hasContributionPermission,
+  resolveContributionCapabilities,
+} from "./permissions";
 import { loadContributionDetailFromSupabase } from "./store";
 import {
   ApiHttpError,
@@ -105,10 +112,16 @@ export const POST = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       const body = actionRequestSchema.parse(await ensureJsonBody(request));
+      const approvalPolicy = await loadCorrectionApprovalPolicy({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+      });
       const result = await executeContributionAction({
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
         actorPermissions: actorPermissionsFromAuth(auth),
+        actorCapabilities: resolveContributionCapabilities(auth),
+        approvalPolicy,
         sourceSurface: body.sourceSurface as ContributionSourceSurface,
         contributionId: body.contributionId,
         stagedGiftId: body.stagedGiftId ?? null,
@@ -126,6 +139,55 @@ export const POST = withOperation(
       return toErrorResponse(
         error,
         "Failed to execute contribution action.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+const decisionRequestSchema = z.object({
+  decision: z.enum(["approve", "reject"]),
+  reason: z.string().max(1000).nullable().optional(),
+});
+
+function getCorrectionRequestIdFromPath(request: Request): string | null {
+  const pathname = new URL(request.url).pathname;
+  const segments = pathname.split("/").filter(Boolean);
+  const index = segments.indexOf("correction-requests");
+  return index >= 0 ? (segments[index + 1] ?? null) : null;
+}
+
+export const POST_CORRECTION_REQUEST_DECISION = withOperation(
+  async ({ request, supabaseAdmin, auth, requestId }) => {
+    try {
+      const correctionRequestId = getCorrectionRequestIdFromPath(request);
+      if (!correctionRequestId) {
+        throw new ApiHttpError(400, "Missing correction request id.");
+      }
+
+      const body = decisionRequestSchema.parse(await ensureJsonBody(request));
+      const outcome = await decideContributionCorrectionRequest({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+        requestId: correctionRequestId,
+        decision: body.decision,
+        reason: body.reason ?? null,
+        deciderProfileId: auth.profileId,
+        deciderCapabilities: resolveContributionCapabilities(auth),
+        dependencies: createContributionActionDependencies(supabaseAdmin),
+      });
+
+      return NextResponse.json({
+        request: outcome.request,
+        result: outcome.result ?? null,
+        idempotentReplay: outcome.idempotentReplay ?? false,
+        requestId,
+      });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to decide correction request.",
         requestId,
       );
     }

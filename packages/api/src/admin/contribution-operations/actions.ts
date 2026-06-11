@@ -1,3 +1,7 @@
+import {
+  correctionRequiresApproval,
+  resolveCorrectionApprovalPolicy,
+} from "./approval-policy";
 import { getContributionActionPolicy } from "./policy";
 import { ApiHttpError } from "../../shared/http-errors";
 
@@ -69,20 +73,57 @@ function assertReasonAndConfirmation(
   }
 }
 
+/**
+ * Granular capability that satisfies the legacy broad permission per
+ * high-risk action (ADR-CD-024 capability split).
+ */
+const HIGH_RISK_CAPABILITY: Partial<Record<ContributionActionType, string>> = {
+  refund: "contributions.run_refunds",
+  stripe_replay: "contributions.use_provider_actions",
+  donor_relink: "contributions.apply_corrections",
+  amount_correction: "contributions.apply_corrections",
+  designation_correction: "contributions.apply_corrections",
+  fund_correction: "contributions.apply_corrections",
+  payment_state_correction: "contributions.apply_corrections",
+};
+
 function assertActorPermissions(
-  input: Pick<ExecuteContributionActionInput, "actorPermissions">,
+  input: Pick<
+    ExecuteContributionActionInput,
+    "actorPermissions" | "actorCapabilities" | "actionType"
+  >,
   policy: ReturnType<typeof getContributionActionPolicy>,
 ) {
   if (!policy.requiredPermission) {
     return;
   }
 
-  if (!input.actorPermissions.includes(policy.requiredPermission)) {
-    throw new ApiHttpError(
-      403,
-      `Forbidden: requires ${policy.requiredPermission}`,
-    );
+  if (input.actorPermissions.includes(policy.requiredPermission)) {
+    return;
   }
+
+  const acceptedCapability = HIGH_RISK_CAPABILITY[input.actionType];
+  if (
+    acceptedCapability &&
+    (input.actorCapabilities ?? []).includes(acceptedCapability)
+  ) {
+    return;
+  }
+
+  // Correction requests are gated separately by the request capability.
+  if (
+    isCorrectionAction(input.actionType) &&
+    (input.actorCapabilities ?? []).includes(
+      "contributions.request_corrections",
+    )
+  ) {
+    return;
+  }
+
+  throw new ApiHttpError(
+    403,
+    `Forbidden: requires ${policy.requiredPermission}`,
+  );
 }
 
 async function loadCanonicalContribution<TContribution>(
@@ -458,6 +499,77 @@ export async function executeContributionAction<TContribution = unknown>(
           );
         }
 
+        const approvalPolicy =
+          input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
+        const hasLegacyManagePermission = input.actorPermissions.includes(
+          "finance:manage_contributions",
+        );
+        const requiresApproval =
+          !input.approvedRequestId &&
+          correctionRequiresApproval({
+            actionType: input.actionType,
+            policy: approvalPolicy,
+          });
+
+        if (requiresApproval) {
+          const canRequest =
+            hasLegacyManagePermission ||
+            (input.actorCapabilities ?? []).includes(
+              "contributions.request_corrections",
+            );
+          if (!canRequest) {
+            throw new ApiHttpError(
+              403,
+              "Forbidden: requires contributions.request_corrections",
+            );
+          }
+
+          const createCorrectionRequest = requireDependency(
+            input.dependencies,
+            "createCorrectionRequest",
+          );
+          const correctionRequestId = await createCorrectionRequest({
+            tenantId: input.tenantId,
+            contributionId: input.contributionId,
+            actionType: input.actionType,
+            payload: input.payload ?? {},
+            reason: input.reason,
+            requestedByProfileId: input.actorProfileId,
+            sourceSurface: input.sourceSurface,
+            expectedRevision: input.expectedRevision ?? null,
+            idempotencyKey: input.idempotencyKey ?? null,
+          });
+          const auditEventId = await appendAuditEvent(
+            input,
+            auditInput(input, {
+              downstreamEffects: {
+                correctionRequestId,
+                approvalStatus: "pending_approval",
+              },
+            }),
+          );
+
+          return {
+            canonicalContribution: await loadCanonicalContribution(input),
+            auditEventId,
+            correctionRequestId,
+            approvalStatus: "pending_approval",
+            taskIds: [],
+          };
+        }
+
+        const canApply =
+          hasLegacyManagePermission ||
+          (input.actorCapabilities ?? []).includes(
+            "contributions.apply_corrections",
+          );
+        if (!canApply) {
+          throw new ApiHttpError(
+            403,
+            "Forbidden: requires contributions.apply_corrections",
+          );
+        }
+
         const applyCorrection = requireDependency(
           input.dependencies,
           "applyCorrection",
@@ -526,6 +638,7 @@ export async function executeContributionAction<TContribution = unknown>(
           auditEventId,
           correctionId,
           adjustmentId: correction.adjustmentId ?? null,
+          approvalStatus: "applied",
           notification,
           taskIds: notification.taskIds ?? [],
         };

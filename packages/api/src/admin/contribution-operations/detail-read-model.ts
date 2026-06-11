@@ -85,6 +85,15 @@ export interface ContributionDetailInput {
     correctionType: string;
     status: string;
   }>;
+  /** Correction requests linked to this donation (ADR-CD-005). */
+  correctionRequests?: Array<{
+    id: string;
+    actionType: string;
+    status: string;
+    reason: string;
+    requestedByProfileId: string | null;
+    createdAt: string;
+  }>;
   /** Applied/reversed adjustment records linked to this donation (ADR-CD-004). */
   adjustments?: ContributionAdjustmentRecord[];
   /** Allocation rows backing the designation set (staged_gift_allocations). */
@@ -170,6 +179,10 @@ export interface ContributionDetail {
   };
   auditEvents: NonNullable<ContributionDetailInput["auditEvents"]>;
   corrections: NonNullable<ContributionDetailInput["corrections"]>;
+  /** Pending and decided correction requests for this gift (ADR-CD-005). */
+  correctionRequests: NonNullable<
+    ContributionDetailInput["correctionRequests"]
+  >;
   /** Server-computed action availability (ADR-CD-017 / ADR-CD-018). */
   actionAvailability: ContributionActionAvailability[];
   /** Original donation truth — never mutated by corrections (ADR-CD-004). */
@@ -383,9 +396,14 @@ export function buildContributionDetail(
           crm_post_status: stagedGift.crmPostStatus,
         }
       : null,
-    corrections: input.corrections?.map((correction) => ({
-      status: correction.status,
-    })),
+    corrections: [
+      ...(input.corrections ?? []).map((correction) => ({
+        status: correction.status,
+      })),
+      ...(input.correctionRequests ?? [])
+        .filter((request) => request.status === "pending")
+        .map(() => ({ status: "pending" })),
+    ],
   });
 
   return {
@@ -453,6 +471,7 @@ export function buildContributionDetail(
     },
     auditEvents: input.auditEvents ?? [],
     corrections: input.corrections ?? [],
+    correctionRequests: input.correctionRequests ?? [],
     original,
     effective: {
       ...effective,

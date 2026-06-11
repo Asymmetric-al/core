@@ -307,6 +307,7 @@ export async function loadContributionDetailFromSupabase(input: {
     stagedGiftResult,
     auditResult,
     correctionResult,
+    correctionRequestResult,
   ] = await Promise.all([
     maybeFetchById(
       input.supabaseAdmin,
@@ -338,6 +339,15 @@ export async function loadContributionDetailFromSupabase(input: {
       .eq("donation_id", input.contributionId)
       .order("created_at", { ascending: false })
       .limit(50),
+    input.supabaseAdmin
+      .from("contribution_correction_requests")
+      .select(
+        "id, action_type, status, reason, requested_by_profile_id, created_at",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .order("created_at", { ascending: false })
+      .limit(50),
   ]);
 
   assertNoError(stagedGiftResult.error, "Failed to load staged gift.");
@@ -345,6 +355,10 @@ export async function loadContributionDetailFromSupabase(input: {
   assertNoError(
     correctionResult.error,
     "Failed to load contribution corrections.",
+  );
+  assertNoError(
+    correctionRequestResult.error,
+    "Failed to load correction requests.",
   );
 
   const stagedGift = isRecord(stagedGiftResult.data)
@@ -428,6 +442,16 @@ export async function loadContributionDetailFromSupabase(input: {
         status: asString(correction.status) ?? "pending",
       }),
     ),
+    correctionRequests: (
+      (correctionRequestResult.data ?? []) as JsonRecord[]
+    ).map((request) => ({
+      id: asString(request.id) ?? "",
+      actionType: asString(request.action_type) ?? "unknown",
+      status: asString(request.status) ?? "pending",
+      reason: asString(request.reason) ?? "",
+      requestedByProfileId: asString(request.requested_by_profile_id),
+      createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
+    })),
   });
 }
 

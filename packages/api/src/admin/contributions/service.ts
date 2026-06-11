@@ -365,6 +365,7 @@ async function fetchContributionRelations(
     donorsResult,
     stagedGiftsResult,
     correctionsResult,
+    correctionRequestsResult,
     adjustmentsResult,
   ] = await Promise.all([
     donorIds.length > 0
@@ -391,6 +392,13 @@ async function fetchContributionRelations(
       : Promise.resolve({ data: [], error: null }),
     donationIds.length > 0
       ? supabaseAdmin
+          .from("contribution_correction_requests")
+          .select("donation_id, status")
+          .in("donation_id", donationIds)
+          .eq("status", "pending")
+      : Promise.resolve({ data: [], error: null }),
+    donationIds.length > 0
+      ? supabaseAdmin
           .from("contribution_adjustments")
           .select(
             "id, donation_id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
@@ -408,6 +416,9 @@ async function fetchContributionRelations(
   }
   if (correctionsResult.error) {
     throw new ApiHttpError(500, correctionsResult.error.message);
+  }
+  if (correctionRequestsResult.error) {
+    throw new ApiHttpError(500, correctionRequestsResult.error.message);
   }
   if (adjustmentsResult.error) {
     throw new ApiHttpError(500, adjustmentsResult.error.message);
@@ -574,9 +585,10 @@ async function fetchContributionRelations(
     stagedGiftsByDonationId: new Map(
       stagedGiftRows.map((gift) => [gift.donation_id, gift]),
     ),
-    correctionsByDonationId: groupCorrectionsByDonationId(
-      (correctionsResult.data ?? []) as CorrectionRow[],
-    ),
+    correctionsByDonationId: groupCorrectionsByDonationId([
+      ...((correctionsResult.data ?? []) as CorrectionRow[]),
+      ...((correctionRequestsResult.data ?? []) as CorrectionRow[]),
+    ]),
     effectiveByDonationId,
   };
 }

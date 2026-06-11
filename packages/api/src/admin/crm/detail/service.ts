@@ -354,8 +354,26 @@ export async function getAdminCrmDonorDetail(input: {
           .in("donation_id", donationIds)
       : { data: [], error: null };
   assertNoError(correctionsResult.error, "Failed to load gift corrections.");
+
+  const correctionRequestsResult =
+    donationIds.length > 0
+      ? await input.supabaseAdmin
+          .from("contribution_correction_requests")
+          .select("donation_id, status")
+          .eq("tenant_id", input.tenantId)
+          .in("donation_id", donationIds)
+          .eq("status", "pending")
+      : { data: [], error: null };
+  assertNoError(
+    correctionRequestsResult.error,
+    "Failed to load correction requests.",
+  );
+
   const correctionsByDonationId = new Map<string, Array<{ status: string }>>();
-  for (const correction of (correctionsResult.data ?? []) as CorrectionRow[]) {
+  for (const correction of [
+    ...((correctionsResult.data ?? []) as CorrectionRow[]),
+    ...((correctionRequestsResult.data ?? []) as CorrectionRow[]),
+  ]) {
     const existing = correctionsByDonationId.get(correction.donation_id) ?? [];
     existing.push({ status: correction.status });
     correctionsByDonationId.set(correction.donation_id, existing);

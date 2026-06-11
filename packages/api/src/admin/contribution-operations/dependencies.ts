@@ -1,5 +1,6 @@
 import { serverEnv } from "@asym/env";
 
+import { createContributionCorrectionRequestInSupabase } from "./correction-requests";
 import { sendContributionCorrectionNotificationFromSupabase } from "./notifications/store";
 import {
   applyContributionCorrection,
@@ -51,6 +52,11 @@ export function createContributionActionDependencies(
       relinkContributionDonor({ supabaseAdmin, ...relinkInput }),
     applyCorrection: (correctionInput) =>
       applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
+    createCorrectionRequest: (request) =>
+      createContributionCorrectionRequestInSupabase({
+        supabaseAdmin,
+        request,
+      }),
     replayStripeEvent: async ({ payload, tenantId }) => {
       const stripeEventId = payload.stripeEventId;
       if (typeof stripeEventId !== "string" || !stripeEventId) {

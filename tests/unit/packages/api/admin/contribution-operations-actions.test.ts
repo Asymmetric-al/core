@@ -1,6 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { executeContributionAction } from "../../../../../packages/api/src/admin/contribution-operations/actions";
+import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
+
+const APPROVAL_SUPPRESSED_POLICY = resolveCorrectionApprovalPolicy({
+  ownership_mode: "no_approval_required",
+  suppressed_gates: [],
+  stronger_approval_categories: [],
+});
 
 describe("contribution operations action executor", () => {
   it("rejects high-risk actions without reason and confirmation", async () => {
@@ -139,6 +146,7 @@ describe("contribution operations action executor", () => {
       reason: "Corrected imported check amount",
       confirmationToken: "confirm",
       payload: { amount: 1200 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
         applyCorrection,
         createCorrectionRecord,
@@ -262,5 +270,100 @@ describe("contribution operations action executor", () => {
       }),
     );
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
+  });
+
+  it("creates a correction request instead of applying high-risk corrections under default policy", async () => {
+    const applyCorrection = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Donor reported the wrong amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: {
+        applyCorrection,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: "tenant_1",
+        contributionId: "donation_1",
+        actionType: "amount_correction",
+        payload: { amount: 1500 },
+        reason: "Donor reported the wrong amount",
+        requestedByProfileId: "profile_1",
+        sourceSurface: "donor_crm_record",
+      }),
+    );
+    expect(result.correctionRequestId).toBe("request_1");
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionId).toBeFalsy();
+  });
+
+  it("requires the request capability to open a correction request", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.view_detail"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "allocation_correction",
+        reason: "Split between two funds",
+        payload: { fundId: "fund_2" },
+        approvalPolicy: resolveCorrectionApprovalPolicy({
+          ownership_mode: "separation_of_duties",
+          suppressed_gates: [],
+          stronger_approval_categories: ["allocation_correction"],
+        }),
+        dependencies: {
+          createCorrectionRequest: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/request_corrections/);
+  });
+
+  it("requires the apply capability for direct high-risk corrections when approval is suppressed", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.request_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "amount_correction",
+        reason: "fix",
+        confirmationToken: "confirm",
+        payload: { amount: 100 },
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        dependencies: {
+          applyCorrection: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/apply_corrections|finance:manage_contributions/);
   });
 });
