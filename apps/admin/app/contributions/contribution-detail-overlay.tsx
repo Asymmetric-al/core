@@ -256,17 +256,17 @@ export function ContributionDetailOverlay({
     }
   };
 
+  const detailError = detailQuery.error;
   useEffect(() => {
     if (detailQuery.isError && donationId) {
       toast.error(
-        detailQuery.error instanceof Error
-          ? detailQuery.error.message
+        detailError instanceof Error
+          ? detailError.message
           : "Could not open contribution.",
       );
       onClose();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [detailQuery.isError, donationId]);
+  }, [detailQuery.isError, detailError, donationId, onClose]);
 
   const approveMutation = useMutation({
     mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
