@@ -58,6 +58,11 @@ const statusConfig: Record<
     className:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
   },
+  processing: {
+    icon: Clock,
+    className:
+      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
+  },
   failed: {
     icon: XCircle,
     className:
@@ -73,6 +78,9 @@ const statusConfig: Record<
 const statusLabels: Record<ContributionStatus, string> = {
   completed: "Completed",
   pending: "Pending",
+  // Delayed-notification rails (e.g. ACH Direct Debit) stay "Processing"
+  // until Stripe confirms final payment status.
+  processing: "Processing",
   failed: "Failed",
   refunded: "Refunded",
 };

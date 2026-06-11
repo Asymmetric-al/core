@@ -18,7 +18,7 @@
 - [x] 2.2 Dispatch Stripe webhook follow-up and recurring donation lifecycle
       work after verified durable storage; store unsupported events as ignored
       with safe reasons (#291)
-- [ ] 2.3 Use honest payment status and ACH language across giving surfaces;
+- [x] 2.3 Use honest payment status and ACH language across giving surfaces;
       distinguish authorization checkpoints from payment finality (#292)
 
 ## 3. Resend Inbound Workflow

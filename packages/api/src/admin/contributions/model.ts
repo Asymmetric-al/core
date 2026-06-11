@@ -1,6 +1,7 @@
 export type ContributionGridStatus =
   | "completed"
   | "pending"
+  | "processing"
   | "failed"
   | "refunded";
 
@@ -167,17 +168,28 @@ type RawStagedGift = {
   crm_post_status: string | null;
 } | null;
 
-function normalizeStatus(
+/**
+ * Map raw donation status to the staff-facing grid status. Stripe is the
+ * payment authority: "processing" stays distinct (ACH and other delayed
+ * rails are not collected yet), and unknown statuses are never shown as
+ * completed — they stay pending until a Stripe-confirmed state arrives.
+ */
+export function normalizeContributionGridStatus(
   status: string | null | undefined,
 ): ContributionGridStatus {
-  if (status === "processing" || status === "pending") {
-    return "pending";
+  if (status === "processing") {
+    return "processing";
+  }
+  if (status === "completed") {
+    return "completed";
   }
   if (status === "failed" || status === "refunded") {
     return status;
   }
-  return "completed";
+  return "pending";
 }
+
+const normalizeStatus = normalizeContributionGridStatus;
 
 function normalizeType(
   donationType: string | null | undefined,

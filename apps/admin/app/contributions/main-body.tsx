@@ -41,6 +41,7 @@ const smoothTransition = {
 const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
+  processing: "bg-blue-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
@@ -48,6 +49,7 @@ const statusDotColor: Record<ContributionStatus, string> = {
 const statusShortLabel: Record<ContributionStatus, string> = {
   completed: "Completed",
   pending: "Pending",
+  processing: "Processing",
   failed: "Failed",
   refunded: "Refunded",
 };
@@ -113,7 +115,10 @@ export function ContributionsMainBody({
     );
     const totalCount = data.filter((c) => c.status === "completed").length;
     const pendingAmount = data.reduce(
-      (sum, c) => (c.status === "pending" ? sum + c.amount : sum),
+      (sum, c) =>
+        c.status === "pending" || c.status === "processing"
+          ? sum + c.amount
+          : sum,
       0,
     );
     const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
