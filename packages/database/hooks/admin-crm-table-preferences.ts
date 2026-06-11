@@ -2,7 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import type { CrmTablePreferencesResponse } from "@asym/database/types";
+import type {
+  CrmGiftHistoryColumnSettings,
+  CrmGiftHistoryFiltersSortSettings,
+  CrmTablePreferencesResponse,
+  CrmViewSettingsLayer,
+} from "@asym/database/types";
 
 export const ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY = [
   "admin",
@@ -78,6 +83,107 @@ export function useCrmTablePreferences(tableId: string) {
     queryKey: [...ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY, tableId],
     refetchOnWindowFocus: false,
     staleTime: 60_000,
+  });
+}
+
+/**
+ * Per-scope view settings patch (#272): absent = unchanged, null = scoped
+ * reset, value = replace.
+ */
+export interface CrmViewSettingsSavePatch {
+  pinnedActionId?: string | null;
+  columns?: Partial<CrmGiftHistoryColumnSettings> | null;
+  filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
+}
+
+async function saveCrmTablePreferencePatch(input: {
+  tableId: string;
+  patch: CrmViewSettingsSavePatch;
+}) {
+  const response = await fetch("/api/admin/crm/table-preferences", {
+    body: JSON.stringify({ tableId: input.tableId, ...input.patch }),
+    credentials: "same-origin",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
+  if (!response.ok) {
+    throw new Error(
+      await parsePreferenceError(
+        response,
+        `Failed to save view settings (${response.status})`,
+      ),
+    );
+  }
+
+  return (await response.json()) as {
+    user: CrmTablePreferencesResponse["user"];
+  };
+}
+
+function applyPatchToLayer(
+  layer: CrmViewSettingsLayer | null | undefined,
+  patch: CrmViewSettingsSavePatch,
+): CrmViewSettingsLayer | null {
+  const next: CrmViewSettingsLayer = { ...(layer ?? {}) };
+  if (patch.columns !== undefined) {
+    if (patch.columns === null) {
+      delete next.columns;
+    } else {
+      next.columns = patch.columns;
+    }
+  }
+  if (patch.filtersSort !== undefined) {
+    if (patch.filtersSort === null) {
+      delete next.filtersSort;
+    } else {
+      next.filtersSort = patch.filtersSort;
+    }
+  }
+  return next;
+}
+
+/**
+ * Saves CRM gift-history view settings (columns, filters/sort, pin) with an
+ * optimistic local cache update over the server source of truth (#272).
+ */
+export function useSaveCrmViewSettings(tableId: string) {
+  const queryClient = useQueryClient();
+  const queryKey = [...ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY, tableId];
+
+  return useMutation({
+    mutationFn: (patch: CrmViewSettingsSavePatch) =>
+      saveCrmTablePreferencePatch({ tableId, patch }),
+    onMutate: async (patch) => {
+      await queryClient.cancelQueries({ queryKey });
+      const previous =
+        queryClient.getQueryData<CrmTablePreferencesResponse>(queryKey);
+      if (previous) {
+        queryClient.setQueryData<CrmTablePreferencesResponse>(queryKey, {
+          ...previous,
+          user: {
+            actionId:
+              patch.pinnedActionId !== undefined
+                ? patch.pinnedActionId
+                : (previous.user?.actionId ?? null),
+            schemaVersion: previous.schemaVersion,
+            settings: applyPatchToLayer(previous.user?.settings, patch),
+          },
+        });
+      }
+      return { previous };
+    },
+    onError: (_error, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(queryKey, context.previous);
+      }
+    },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey });
+    },
   });
 }
 

@@ -3,7 +3,9 @@ import { describe, expect, it } from "vitest";
 import {
   getCrmTablePreferences,
   saveCrmTenantRowActionDefault,
+  saveCrmTenantTableDefault,
   saveCrmUserRowActionPin,
+  saveCrmUserTablePreference,
 } from "../../../../../packages/api/src/admin/crm/table-preferences/service";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -89,8 +91,12 @@ describe("admin/crm/table-preferences/service", () => {
     expect(preferences).toEqual({
       tableId: "crm.giftHistory",
       schemaVersion: 1,
-      user: { actionId: "amount_correction", schemaVersion: 1 },
-      tenantDefault: { actionId: "resend_receipt", schemaVersion: 1 },
+      user: { actionId: "amount_correction", schemaVersion: 1, settings: null },
+      tenantDefault: {
+        actionId: "resend_receipt",
+        schemaVersion: 1,
+        settings: null,
+      },
     });
   });
 
@@ -127,6 +133,69 @@ describe("admin/crm/table-preferences/service", () => {
         pinnedActionId: "made_up_operation",
       }),
     ).rejects.toMatchObject({ status: 400 });
+  });
+
+  it("persists view-settings scopes and clears them on scoped reset", async () => {
+    const { supabaseAdmin, upserts } = createSupabaseStub({
+      rowsByTable: {
+        crm_table_user_preferences: {
+          pinned_action_id: "amount_correction",
+          schema_version: 1,
+          settings: {
+            columns: { designation: false },
+            filtersSort: { sortDirection: "asc" },
+          },
+        },
+      },
+    });
+
+    // Update one scope; the other scope and the pin stay untouched.
+    await saveCrmUserTablePreference({
+      supabaseAdmin,
+      tenantId: "tenant-1",
+      profileId: "profile-1",
+      tableId: "crm.giftHistory",
+      settingsPatch: { columns: { designation: true, statusLine: false } },
+    });
+    expect(upserts[0]?.payload).toMatchObject({
+      pinned_action_id: "amount_correction",
+      settings: {
+        columns: { designation: true, statusLine: false },
+        filtersSort: { sortDirection: "asc" },
+      },
+    });
+
+    // Scoped reset (null) removes only the selected scope.
+    await saveCrmUserTablePreference({
+      supabaseAdmin,
+      tenantId: "tenant-1",
+      profileId: "profile-1",
+      tableId: "crm.giftHistory",
+      settingsPatch: { filtersSort: null },
+    });
+    const resetPayload = upserts[1]?.payload as {
+      settings: Record<string, unknown>;
+    };
+    expect(resetPayload.settings).toEqual({
+      columns: { designation: false },
+    });
+  });
+
+  it("stores delegated default managers on the tenant default record", async () => {
+    const { supabaseAdmin, upserts } = createSupabaseStub();
+
+    await saveCrmTenantTableDefault({
+      supabaseAdmin,
+      tenantId: "tenant-1",
+      tableId: "crm.giftHistory",
+      actorProfileId: "super-admin-1",
+      settingsPatch: { delegatedManagerProfileIds: ["lead-1", "lead-2"] },
+    });
+
+    expect(upserts[0]?.payload).toMatchObject({
+      settings: { delegatedManagerProfileIds: ["lead-1", "lead-2"] },
+      updated_by: "super-admin-1",
+    });
   });
 
   it("audits tenant default changes with before/after snapshots", async () => {

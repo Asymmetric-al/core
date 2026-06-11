@@ -7,6 +7,8 @@ import {
 } from "@asym/api/admin/contribution-shared";
 import {
   CRM_GIFT_HISTORY_TABLE_ID,
+  previewCrmViewSettingsReset,
+  resolveCrmGiftHistoryViewSettings,
   resolveCrmRowAction,
 } from "@asym/api/admin/crm/table-preferences";
 import {
@@ -15,6 +17,7 @@ import {
   useCreateLinkedCrmNote,
   useCrmTablePreferences,
   useSaveCrmRowActionPin,
+  useSaveCrmViewSettings,
 } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
@@ -35,7 +38,14 @@ import {
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from "@asym/ui/components/shadcn/dialog";
+import {
   DropdownMenu,
+  DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuGroup,
   DropdownMenuItem,
@@ -77,6 +87,7 @@ import {
   Network,
   Pin,
   Receipt,
+  Settings2,
   Trash2,
   StickyNote,
   GitCompareArrows,
@@ -99,9 +110,23 @@ import {
 
 import type { CrmGridRow, CrmRecord } from "./types";
 import type {
+  CrmGiftHistoryColumnSettings,
+  CrmGiftHistoryFiltersSortSettings,
+  CrmGiftHistoryViewSettings,
   CrmGiftInlineActions,
   CrmTablePreferencesResponse,
+  CrmViewSettingsScope,
 } from "@asym/database/types";
+
+/**
+ * Per-scope view settings patch: absent = unchanged, null = scoped reset,
+ * value = replace (#272).
+ */
+interface ViewSettingsPatch {
+  pinnedActionId?: string | null;
+  columns?: CrmGiftHistoryColumnSettings | null;
+  filtersSort?: CrmGiftHistoryFiltersSortSettings | null;
+}
 
 const EMPTY_CELL_VALUE = "N/A";
 
@@ -255,6 +280,137 @@ function GiftInlineActionControls({
   );
 }
 
+/**
+ * One CRM gift-history view settings surface (#272): columns, filters/sort,
+ * and granular resets. The server preference record is authoritative;
+ * toggles save optimistically through the preferences mutation.
+ */
+function GiftHistoryViewSettingsMenu({
+  settings,
+  onPatch,
+  onRequestReset,
+}: {
+  settings: CrmGiftHistoryViewSettings;
+  onPatch: (patch: ViewSettingsPatch) => void;
+  onRequestReset: (scope: CrmViewSettingsScope) => void;
+}) {
+  const sortValue = `${settings.filtersSort.sortField}:${settings.filtersSort.sortDirection}`;
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8 text-muted-foreground"
+          aria-label="Gift history view settings"
+        >
+          <Settings2 className="size-4" aria-hidden="true" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64">
+        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Columns
+        </DropdownMenuLabel>
+        <DropdownMenuCheckboxItem
+          checked={settings.columns.designation}
+          onCheckedChange={(checked) =>
+            onPatch({
+              columns: { ...settings.columns, designation: checked === true },
+            })
+          }
+        >
+          Designation
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuCheckboxItem
+          checked={settings.columns.statusLine}
+          onCheckedChange={(checked) =>
+            onPatch({
+              columns: { ...settings.columns, statusLine: checked === true },
+            })
+          }
+        >
+          Receipt / CRM status
+        </DropdownMenuCheckboxItem>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Sort
+        </DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={sortValue}
+          onValueChange={(value) => {
+            const [sortField, sortDirection] = value.split(":") as [
+              CrmGiftHistoryFiltersSortSettings["sortField"],
+              CrmGiftHistoryFiltersSortSettings["sortDirection"],
+            ];
+            onPatch({
+              filtersSort: {
+                ...settings.filtersSort,
+                sortField,
+                sortDirection,
+              },
+            });
+          }}
+        >
+          <DropdownMenuRadioItem value="giftDate:desc">
+            Newest first
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="giftDate:asc">
+            Oldest first
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="amountCents:desc">
+            Largest amount
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+          Filter
+        </DropdownMenuLabel>
+        <DropdownMenuRadioGroup
+          value={settings.filtersSort.paymentStatus}
+          onValueChange={(value) =>
+            onPatch({
+              filtersSort: {
+                ...settings.filtersSort,
+                paymentStatus:
+                  value as CrmGiftHistoryFiltersSortSettings["paymentStatus"],
+              },
+            })
+          }
+        >
+          <DropdownMenuRadioItem value="all">
+            All payments
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="completed">
+            Completed only
+          </DropdownMenuRadioItem>
+          <DropdownMenuRadioItem value="refunded">
+            Refunded only
+          </DropdownMenuRadioItem>
+        </DropdownMenuRadioGroup>
+        <DropdownMenuSeparator />
+        <DropdownMenuSub>
+          <DropdownMenuSubTrigger>Reset view settings</DropdownMenuSubTrigger>
+          <DropdownMenuSubContent>
+            <DropdownMenuItem onSelect={() => onRequestReset("columns")}>
+              Reset columns…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onRequestReset("filtersSort")}>
+              Reset filters & sort…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onRequestReset("pinnedAction")}>
+              Reset pinned row action…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onRequestReset("all")}>
+              Reset all view settings…
+            </DropdownMenuItem>
+          </DropdownMenuSubContent>
+        </DropdownMenuSub>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function DetailDrawer({
   contact,
   onClose,
@@ -277,10 +433,16 @@ function DetailDrawer({
     CRM_GIFT_HISTORY_TABLE_ID,
   );
   const savePinMutation = useSaveCrmRowActionPin(CRM_GIFT_HISTORY_TABLE_ID);
+  const saveViewSettingsMutation = useSaveCrmViewSettings(
+    CRM_GIFT_HISTORY_TABLE_ID,
+  );
   const [inlineOperation, setInlineOperation] = useState<{
     donationId: string;
     operation: OperationDefinition;
   } | null>(null);
+  const [pendingReset, setPendingReset] = useState<CrmViewSettingsScope | null>(
+    null,
+  );
 
   const pinRowAction = (actionId: string | null) => {
     savePinMutation.mutate(actionId, {
@@ -292,6 +454,58 @@ function DetailDrawer({
         );
       },
     });
+  };
+
+  const saveViewSettings = (patch: ViewSettingsPatch) => {
+    saveViewSettingsMutation.mutate(patch, {
+      onError: (error) => {
+        toast.error(
+          error instanceof Error
+            ? error.message
+            : "Failed to save view settings.",
+        );
+      },
+    });
+  };
+
+  const tablePreferences = tablePreferencesQuery.data;
+  const viewSettings = useMemo(
+    () =>
+      resolveCrmGiftHistoryViewSettings({
+        user: tablePreferences?.user?.settings ?? null,
+        tenantDefault: tablePreferences?.tenantDefault?.settings ?? null,
+      }).settings,
+    [tablePreferences],
+  );
+
+  const resetPreview = pendingReset
+    ? previewCrmViewSettingsReset({
+        scope: pendingReset,
+        user: {
+          settings: tablePreferences?.user?.settings ?? null,
+          pinnedActionId: tablePreferences?.user?.actionId ?? null,
+        },
+        tenantDefault: {
+          settings: tablePreferences?.tenantDefault?.settings ?? null,
+          pinnedActionId: tablePreferences?.tenantDefault?.actionId ?? null,
+        },
+      })
+    : null;
+
+  const confirmPendingReset = () => {
+    if (!pendingReset) {
+      return;
+    }
+    const patch: ViewSettingsPatch =
+      pendingReset === "columns"
+        ? { columns: null }
+        : pendingReset === "filtersSort"
+          ? { filtersSort: null }
+          : pendingReset === "pinnedAction"
+            ? { pinnedActionId: null }
+            : { columns: null, filtersSort: null, pinnedActionId: null };
+    saveViewSettings(patch);
+    setPendingReset(null);
   };
 
   const summarizeContact = async () => {
@@ -320,6 +534,33 @@ function DetailDrawer({
 
   const display = contact.displayName || "Unnamed record";
   const detail = detailQuery.data;
+
+  // Effective view settings drive the gift list (#272): payment filter and
+  // sort apply before display; columns control which row fields render.
+  const giftRows = useMemo(() => {
+    const gifts = detail?.giftHistory ?? [];
+    const { filtersSort } = viewSettings;
+    const filtered =
+      filtersSort.paymentStatus === "all"
+        ? gifts
+        : gifts.filter(
+            (gift) => gift.paymentStatus === filtersSort.paymentStatus,
+          );
+    return [...filtered].sort((left, right) => {
+      const leftValue =
+        filtersSort.sortField === "amountCents"
+          ? left.amountCents
+          : new Date(left.giftDate).getTime();
+      const rightValue =
+        filtersSort.sortField === "amountCents"
+          ? right.amountCents
+          : new Date(right.giftDate).getTime();
+      return filtersSort.sortDirection === "asc"
+        ? leftValue - rightValue
+        : rightValue - leftValue;
+    });
+  }, [detail?.giftHistory, viewSettings]);
+
   const timeline =
     detail?.timeline ??
     contact.activities.map((activity) => ({
@@ -597,12 +838,24 @@ function DetailDrawer({
                         <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
                           Gift history
                         </p>
-                        <Badge variant="secondary" className="text-[10px]">
-                          {detail.giftHistory.length}
-                        </Badge>
+                        <div className="flex items-center gap-1">
+                          <Badge variant="secondary" className="text-[10px]">
+                            {giftRows.length}
+                          </Badge>
+                          <GiftHistoryViewSettingsMenu
+                            settings={viewSettings}
+                            onPatch={saveViewSettings}
+                            onRequestReset={setPendingReset}
+                          />
+                        </div>
                       </div>
                       <div className="mt-3 divide-y divide-border">
-                        {detail.giftHistory.slice(0, 6).map((gift) => (
+                        {giftRows.length === 0 ? (
+                          <p className="py-3 text-xs text-muted-foreground">
+                            No gifts match the current view filters.
+                          </p>
+                        ) : null}
+                        {giftRows.slice(0, 6).map((gift) => (
                           <div
                             key={gift.id}
                             className="flex items-center justify-between gap-4 py-3"
@@ -622,22 +875,26 @@ function DetailDrawer({
                                   gift.shared.currencyCode,
                                 )}
                               </p>
-                              <p className="truncate text-xs text-muted-foreground">
-                                {gift.shared.designationSummary.fundName}
-                              </p>
-                              <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
-                                {
-                                  SHARED_RECEIPT_STATUS_LABELS[
-                                    gift.shared.receiptStatus
-                                  ]
-                                }{" "}
-                                /{" "}
-                                {gift.shared.crmPostStatus
-                                  ? SHARED_CRM_POST_STATUS_LABELS[
-                                      gift.shared.crmPostStatus
+                              {viewSettings.columns.designation ? (
+                                <p className="truncate text-xs text-muted-foreground">
+                                  {gift.shared.designationSummary.fundName}
+                                </p>
+                              ) : null}
+                              {viewSettings.columns.statusLine ? (
+                                <p className="text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  {
+                                    SHARED_RECEIPT_STATUS_LABELS[
+                                      gift.shared.receiptStatus
                                     ]
-                                  : "Not required"}
-                              </p>
+                                  }{" "}
+                                  /{" "}
+                                  {gift.shared.crmPostStatus
+                                    ? SHARED_CRM_POST_STATUS_LABELS[
+                                        gift.shared.crmPostStatus
+                                      ]
+                                    : "Not required"}
+                                </p>
+                              ) : null}
                             </button>
                             <GiftInlineActionControls
                               inlineActions={gift.inlineActions}
@@ -807,6 +1064,29 @@ function DetailDrawer({
         }}
         onRowRefresh={() => void detailQuery.refetch()}
       />
+      {pendingReset && resetPreview ? (
+        <Dialog open onOpenChange={(open) => !open && setPendingReset(null)}>
+          <DialogContent
+            className="sm:max-w-md"
+            data-testid="view-settings-reset-preview"
+          >
+            <DialogTitle>Reset view settings</DialogTitle>
+            <DialogDescription>{resetPreview.description}</DialogDescription>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="h-11"
+                onClick={() => setPendingReset(null)}
+              >
+                Cancel
+              </Button>
+              <Button className="h-11" onClick={confirmPendingReset}>
+                Reset
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </>
   );
 }

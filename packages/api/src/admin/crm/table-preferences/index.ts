@@ -9,3 +9,11 @@ export {
   type CrmRowActionSource,
   type ResolvedCrmRowAction,
 } from "./row-action";
+export {
+  canManageCrmTenantDefaults,
+  CRM_GIFT_HISTORY_SYSTEM_VIEW_SETTINGS,
+  previewCrmViewSettingsReset,
+  resolveCrmGiftHistoryViewSettings,
+  type CrmViewSettingsResetPreview,
+  type ResolvedCrmViewSettings,
+} from "./view-settings";

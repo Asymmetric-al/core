@@ -6,8 +6,11 @@ import { ApiHttpError } from "../../../shared/http-errors";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
+  CrmGiftHistoryColumnSettings,
+  CrmGiftHistoryFiltersSortSettings,
   CrmTablePreferencesResponse,
   CrmTableRowActionPreference,
+  CrmViewSettingsLayer,
 } from "@asym/database/types";
 
 type SupabaseAdmin = AdminSupabaseClient;
@@ -15,7 +18,10 @@ type SupabaseAdmin = AdminSupabaseClient;
 interface PreferenceRow {
   pinned_action_id: string | null;
   schema_version: number | null;
+  settings: CrmViewSettingsLayer | null;
 }
+
+const PREFERENCE_COLUMNS = "pinned_action_id, schema_version, settings";
 
 function mapPreferenceRow(
   row: PreferenceRow | null,
@@ -27,6 +33,7 @@ function mapPreferenceRow(
   return {
     actionId: row.pinned_action_id,
     schemaVersion: row.schema_version ?? CRM_ROW_ACTION_SCHEMA_VERSION,
+    settings: row.settings ?? null,
   };
 }
 
@@ -48,6 +55,49 @@ function normalizePinnedActionId(actionId: string | null): string | null {
   return migrated;
 }
 
+/**
+ * Per-scope settings update: undefined leaves a scope unchanged, null clears
+ * it (scoped reset), a value replaces it.
+ */
+export interface CrmViewSettingsPatch {
+  columns?: Partial<CrmGiftHistoryColumnSettings> | null;
+  filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
+  delegatedManagerProfileIds?: string[] | null;
+}
+
+function applySettingsPatch(
+  existing: CrmViewSettingsLayer | null,
+  patch: CrmViewSettingsPatch,
+): CrmViewSettingsLayer {
+  const next: CrmViewSettingsLayer = { ...(existing ?? {}) };
+
+  if (patch.columns !== undefined) {
+    if (patch.columns === null) {
+      delete next.columns;
+    } else {
+      next.columns = patch.columns;
+    }
+  }
+
+  if (patch.filtersSort !== undefined) {
+    if (patch.filtersSort === null) {
+      delete next.filtersSort;
+    } else {
+      next.filtersSort = patch.filtersSort;
+    }
+  }
+
+  if (patch.delegatedManagerProfileIds !== undefined) {
+    if (patch.delegatedManagerProfileIds === null) {
+      delete next.delegatedManagerProfileIds;
+    } else {
+      next.delegatedManagerProfileIds = patch.delegatedManagerProfileIds;
+    }
+  }
+
+  return next;
+}
+
 export async function getCrmTablePreferences(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -57,14 +107,14 @@ export async function getCrmTablePreferences(input: {
   const [userResult, tenantResult] = await Promise.all([
     input.supabaseAdmin
       .from("crm_table_user_preferences")
-      .select("pinned_action_id, schema_version")
+      .select(PREFERENCE_COLUMNS)
       .eq("tenant_id", input.tenantId)
       .eq("profile_id", input.profileId)
       .eq("table_id", input.tableId)
       .maybeSingle(),
     input.supabaseAdmin
       .from("crm_table_tenant_defaults")
-      .select("pinned_action_id, schema_version")
+      .select(PREFERENCE_COLUMNS)
       .eq("tenant_id", input.tenantId)
       .eq("table_id", input.tableId)
       .maybeSingle(),
@@ -85,14 +135,38 @@ export async function getCrmTablePreferences(input: {
   };
 }
 
-export async function saveCrmUserRowActionPin(input: {
+export interface SaveCrmTablePreferenceInput {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
-  profileId: string;
   tableId: string;
-  pinnedActionId: string | null;
-}): Promise<CrmTableRowActionPreference> {
-  const pinnedActionId = normalizePinnedActionId(input.pinnedActionId);
+  /** undefined = unchanged; null = unpin. */
+  pinnedActionId?: string | null;
+  settingsPatch?: CrmViewSettingsPatch;
+}
+
+export async function saveCrmUserTablePreference(
+  input: SaveCrmTablePreferenceInput & { profileId: string },
+): Promise<CrmTableRowActionPreference> {
+  const existingResult = await input.supabaseAdmin
+    .from("crm_table_user_preferences")
+    .select(PREFERENCE_COLUMNS)
+    .eq("tenant_id", input.tenantId)
+    .eq("profile_id", input.profileId)
+    .eq("table_id", input.tableId)
+    .maybeSingle();
+  if (existingResult.error) {
+    throw new ApiHttpError(500, existingResult.error.message);
+  }
+  const existing = existingResult.data as PreferenceRow | null;
+
+  const pinnedActionId =
+    input.pinnedActionId === undefined
+      ? (existing?.pinned_action_id ?? null)
+      : normalizePinnedActionId(input.pinnedActionId);
+  const settings = applySettingsPatch(
+    existing?.settings ?? null,
+    input.settingsPatch ?? {},
+  );
 
   const { data, error } = await input.supabaseAdmin
     .from("crm_table_user_preferences")
@@ -103,41 +177,56 @@ export async function saveCrmUserRowActionPin(input: {
         table_id: input.tableId,
         pinned_action_id: pinnedActionId,
         schema_version: CRM_ROW_ACTION_SCHEMA_VERSION,
+        settings,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "tenant_id,profile_id,table_id" },
     )
-    .select("pinned_action_id, schema_version")
+    .select(PREFERENCE_COLUMNS)
     .single();
 
   if (error || !data) {
     throw new ApiHttpError(
       500,
-      error?.message ?? "Failed to save the pinned row action.",
+      error?.message ?? "Failed to save table preferences.",
     );
   }
 
   return mapPreferenceRow(data as PreferenceRow)!;
 }
 
-export async function saveCrmTenantRowActionDefault(input: {
+export async function saveCrmUserRowActionPin(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
+  profileId: string;
   tableId: string;
   pinnedActionId: string | null;
-  actorProfileId: string;
 }): Promise<CrmTableRowActionPreference> {
-  const pinnedActionId = normalizePinnedActionId(input.pinnedActionId);
+  return saveCrmUserTablePreference(input);
+}
 
+export async function saveCrmTenantTableDefault(
+  input: SaveCrmTablePreferenceInput & { actorProfileId: string },
+): Promise<CrmTableRowActionPreference> {
   const beforeResult = await input.supabaseAdmin
     .from("crm_table_tenant_defaults")
-    .select("pinned_action_id, schema_version")
+    .select(PREFERENCE_COLUMNS)
     .eq("tenant_id", input.tenantId)
     .eq("table_id", input.tableId)
     .maybeSingle();
   if (beforeResult.error) {
     throw new ApiHttpError(500, beforeResult.error.message);
   }
+  const before = beforeResult.data as PreferenceRow | null;
+
+  const pinnedActionId =
+    input.pinnedActionId === undefined
+      ? (before?.pinned_action_id ?? null)
+      : normalizePinnedActionId(input.pinnedActionId);
+  const settings = applySettingsPatch(
+    before?.settings ?? null,
+    input.settingsPatch ?? {},
+  );
 
   const { data, error } = await input.supabaseAdmin
     .from("crm_table_tenant_defaults")
@@ -147,18 +236,19 @@ export async function saveCrmTenantRowActionDefault(input: {
         table_id: input.tableId,
         pinned_action_id: pinnedActionId,
         schema_version: CRM_ROW_ACTION_SCHEMA_VERSION,
+        settings,
         updated_by: input.actorProfileId,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "tenant_id,table_id" },
     )
-    .select("pinned_action_id, schema_version")
+    .select(PREFERENCE_COLUMNS)
     .single();
 
   if (error || !data) {
     throw new ApiHttpError(
       500,
-      error?.message ?? "Failed to save the tenant default row action.",
+      error?.message ?? "Failed to save the tenant default.",
     );
   }
 
@@ -171,14 +261,24 @@ export async function saveCrmTenantRowActionDefault(input: {
       table_id: input.tableId,
       scope: "tenant_default",
       before_snapshot: {
-        pinnedActionId:
-          (beforeResult.data as PreferenceRow | null)?.pinned_action_id ?? null,
+        pinnedActionId: before?.pinned_action_id ?? null,
+        settings: before?.settings ?? null,
       },
-      after_snapshot: { pinnedActionId },
+      after_snapshot: { pinnedActionId, settings },
     });
   if (auditResult.error) {
     throw new ApiHttpError(500, auditResult.error.message);
   }
 
   return mapPreferenceRow(data as PreferenceRow)!;
+}
+
+export async function saveCrmTenantRowActionDefault(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  tableId: string;
+  pinnedActionId: string | null;
+  actorProfileId: string;
+}): Promise<CrmTableRowActionPreference> {
+  return saveCrmTenantTableDefault(input);
 }

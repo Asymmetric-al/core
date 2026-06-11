@@ -25,6 +25,7 @@ export {
   ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY,
   useCrmTablePreferences,
   useSaveCrmRowActionPin,
+  useSaveCrmViewSettings,
 } from "./admin-crm-table-preferences";
 export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,

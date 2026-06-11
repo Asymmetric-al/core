@@ -19,6 +19,7 @@ const useAdminCrmRecordDetailMock = vi.fn();
 const useCreateLinkedCrmNoteMock = vi.fn();
 const useCrmTablePreferencesMock = vi.fn();
 const useSaveCrmRowActionPinMock = vi.fn();
+const useSaveCrmViewSettingsMock = vi.fn();
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
@@ -34,6 +35,7 @@ vi.mock("@asym/database/hooks", () => ({
   useCreateLinkedCrmNote: useCreateLinkedCrmNoteMock,
   useCrmTablePreferences: useCrmTablePreferencesMock,
   useSaveCrmRowActionPin: useSaveCrmRowActionPinMock,
+  useSaveCrmViewSettings: useSaveCrmViewSettingsMock,
 }));
 
 const routerPushMock = vi.fn();
@@ -412,6 +414,10 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutate: vi.fn(),
     });
+    useSaveCrmViewSettingsMock.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
   }, 30_000);
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
@@ -688,6 +694,145 @@ describe("apps/admin/app/crm gift detail entry", () => {
     await waitFor(() => {
       expect(pinMutate).toHaveBeenCalledWith(
         "amount_correction",
+        expect.anything(),
+      );
+    });
+  });
+
+  it("applies view settings columns, filter, and sort to the gift list", async () => {
+    const giftA = "00000000-0000-4000-8000-00000000d007";
+    const giftB = "00000000-0000-4000-8000-00000000d008";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const base = crmDonorDetailFor(giftA).giftHistory[0]!;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({
+        data: {
+          ...crmDonorDetail,
+          giftHistory: [
+            base,
+            {
+              ...base,
+              id: giftB,
+              donationId: giftB,
+              amountCents: 10_000,
+              shared: {
+                ...sharedGiftFields,
+                donationId: giftB,
+                amountCents: 10_000,
+              },
+            },
+          ],
+        },
+      }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: {
+            actionId: null,
+            schemaVersion: 1,
+            settings: {
+              columns: { designation: false },
+              filtersSort: {
+                sortField: "amountCents",
+                sortDirection: "asc",
+                paymentStatus: "all",
+              },
+            },
+          },
+          tenantDefault: null,
+        },
+      }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(giftA),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const giftButtons = await view.findAllByRole("button", {
+      name: /open gift detail for/i,
+    });
+    // Ascending amount sort puts the $100 gift first.
+    expect(giftButtons[0]?.textContent).toContain("$100.00");
+    expect(giftButtons[1]?.textContent).toContain("$250.00");
+    // The designation column is hidden by the user preference.
+    expect(view.queryByText("Clean Water Initiative")).toBeNull();
+  });
+
+  it("previews a scoped reset before applying it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d009";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: {
+            actionId: null,
+            schemaVersion: 1,
+            settings: { columns: { designation: false } },
+          },
+          tenantDefault: {
+            actionId: null,
+            schemaVersion: 1,
+            settings: { columns: { designation: true, statusLine: true } },
+          },
+        },
+      }),
+    );
+    const viewSettingsMutate = vi.fn();
+    useSaveCrmViewSettingsMock.mockReturnValue({
+      isPending: false,
+      mutate: viewSettingsMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", {
+      name: "Gift history view settings",
+    });
+    fireEvent.keyDown(trigger, { key: "Enter" });
+
+    const resetSubTrigger = await view.findByText("Reset view settings");
+    fireEvent.keyDown(resetSubTrigger, { key: "ArrowRight" });
+
+    fireEvent.click(await view.findByText("Reset columns…"));
+
+    // The reset previews the fallback before anything is applied.
+    const preview = await view.findByTestId("view-settings-reset-preview");
+    expect(preview.textContent).toMatch(/columns return to the tenant default/i);
+    expect(viewSettingsMutate).not.toHaveBeenCalled();
+
+    fireEvent.click(view.getByRole("button", { name: "Reset" }));
+
+    await waitFor(() => {
+      expect(viewSettingsMutate).toHaveBeenCalledWith(
+        { columns: null },
         expect.anything(),
       );
     });
