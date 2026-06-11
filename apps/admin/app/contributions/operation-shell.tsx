@@ -14,7 +14,7 @@ import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useQueryClient } from "@tanstack/react-query";
 import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
-import { useEffect, useId, useMemo, useState } from "react";
+import { useId, useMemo, useState } from "react";
 
 import {
   invalidateContributionOperationQueries,
@@ -30,7 +30,7 @@ import type {
 /**
  * Reusable inline contribution operation shell (ADR-CD-033).
  *
- * The shell owns the shared behavior — server-computed blocked states,
+ * The shell owns the shared behavior â€” server-computed blocked states,
  * current effective values, downstream-effect framing, required reason and
  * confirmation, submit/loading/error state, the in-place result panel, row
  * refresh, and focus return. Each operation only supplies its specific
@@ -245,7 +245,7 @@ export function ContributionOperationShell({
   operation: OperationDefinition | null;
   donationId: string | null;
   sourceSurface: ContributionSourceSurface;
-  /** Optional secondary action — never an automatic redirect (ADR-CD-033). */
+  /** Optional secondary action â€” never an automatic redirect (ADR-CD-033). */
   onOpenFullDetail?: (donationId: string) => void;
   onRowRefresh?: () => void;
 }) {
@@ -257,18 +257,26 @@ export function ContributionOperationShell({
     confirmed: false,
   });
   const [idempotencyKey, setIdempotencyKey] = useState("");
+  const [openKey, setOpenKey] = useState<string | null>(null);
   const reasonId = useId();
   const amountId = useId();
   const fundId = useId();
   const confirmId = useId();
 
-  useEffect(() => {
-    if (open) {
+  // Reset the form whenever a different operation/gift opens. State is
+  // adjusted during render (React's documented pattern) so no effect-driven
+  // cascading renders are needed.
+  const nextOpenKey = open
+    ? `${donationId ?? ""}:${operation?.actionType ?? ""}`
+    : null;
+  if (nextOpenKey !== openKey) {
+    setOpenKey(nextOpenKey);
+    if (nextOpenKey) {
       setPhase({ name: "form" });
       setValues({ reason: "", confirmed: false });
       setIdempotencyKey(crypto.randomUUID());
     }
-  }, [open, operation?.actionType, donationId]);
+  }
 
   const detail = detailQuery.data;
   const availability = useMemo(() => {
@@ -376,7 +384,7 @@ export function ContributionOperationShell({
 
         {detailQuery.isPending && (
           <p role="status" className="text-sm text-muted-foreground">
-            Loading current gift values…
+            Loading current gift valuesâ€¦
           </p>
         )}
 
@@ -522,7 +530,7 @@ export function ContributionOperationShell({
         {phase.name === "submitting" && (
           <p role="status" className="flex items-center gap-2 text-sm">
             <LoaderCircle className="size-4 animate-spin" aria-hidden />
-            Submitting…
+            Submittingâ€¦
           </p>
         )}
 
