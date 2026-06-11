@@ -1,9 +1,9 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { NonRetriableError } from "inngest";
 import Stripe from "stripe";
 
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
 import { runDonationSagaRecoveryScan } from "../adapters/donations";
+import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
 import {
   DONATION_SAGA_RECOVERY_EVENT,
@@ -36,13 +36,7 @@ export const donationSagaRecovery = inngest.createFunction(
     const outboxId = envelope.subject.id;
 
     return await step.run("process-donation-saga-row", async () => {
-      const { client: supabaseAdmin, error: adminError } = getAdminClient();
-
-      if (!supabaseAdmin) {
-        throw new Error(
-          `donation_recovery_admin_client_unavailable: ${adminError ?? "unknown"}`,
-        );
-      }
+      const supabaseAdmin = requireWorkflowAdminClient("donation_recovery");
 
       const { data: tenant, error: tenantError } = await supabaseAdmin
         .from("tenants")
@@ -93,13 +87,7 @@ export const donationSagaRecoveryScan = inngest.createFunction(
   },
   async ({ step }) => {
     return await step.run("scan-due-saga-rows", async () => {
-      const { client, error } = getAdminClient();
-
-      if (!client) {
-        throw new Error(
-          `donation_recovery_admin_client_unavailable: ${error ?? "unknown"}`,
-        );
-      }
+      const client = requireWorkflowAdminClient("donation_recovery");
 
       return await runDonationSagaRecoveryScan({ client });
     });

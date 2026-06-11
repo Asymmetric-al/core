@@ -1,5 +1,4 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
-
+import { requireWorkflowAdminClient } from "../admin-client";
 import { inngest } from "../inngest/client";
 import { runDispatchRecoveryScan } from "../recovery";
 
@@ -18,13 +17,7 @@ export const dispatchRecoveryScan = inngest.createFunction(
   },
   async ({ step }) => {
     return await step.run("scan-dispatch-ledger", async () => {
-      const { client, error } = getAdminClient();
-
-      if (!client) {
-        throw new Error(
-          `workflow_recovery_admin_client_unavailable: ${error ?? "unknown"}`,
-        );
-      }
+      const client = requireWorkflowAdminClient("workflow_recovery");
 
       return await runDispatchRecoveryScan({ client });
     });

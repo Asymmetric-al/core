@@ -1,4 +1,3 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { getReceivedEmail, listReceivedEmailAttachments } from "@asym/email";
 import { serverEnv } from "@asym/env";
 import { NonRetriableError } from "inngest";
@@ -11,6 +10,7 @@ import {
   routeReadyInboundEmail,
   type InboundProviderClient,
 } from "../adapters/inbound-email";
+import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
 import { EMAIL_INBOUND_PROCESS_EVENT } from "../events";
 import { inngest } from "../inngest/client";
@@ -21,15 +21,7 @@ const NON_RETRIABLE_LOAD_ERRORS = new Set([
 ]);
 
 function getWorkflowAdminClient() {
-  const { client, error } = getAdminClient();
-
-  if (!client) {
-    throw new Error(
-      `inbound_email_admin_client_unavailable: ${error ?? "unknown"}`,
-    );
-  }
-
-  return client;
+  return requireWorkflowAdminClient("inbound_email");
 }
 
 function getProviderClient(): InboundProviderClient {

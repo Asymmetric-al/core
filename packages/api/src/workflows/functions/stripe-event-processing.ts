@@ -1,4 +1,3 @@
-import { getAdminClient } from "@asym/database/supabase/admin";
 import { RetryAfterError } from "inngest";
 
 import {
@@ -9,6 +8,7 @@ import {
 } from "../../stripe/event-store";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
 import { runStripeEventRecoveryScan } from "../adapters/stripe-events";
+import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
 import { STRIPE_EVENT_PROCESS_EVENT } from "../events";
 import { inngest } from "../inngest/client";
@@ -34,13 +34,7 @@ export const stripeEventProcessing = inngest.createFunction(
     const rawEventId = envelope.subject.id;
 
     return await step.run("process-stored-stripe-event", async () => {
-      const { client: supabaseAdmin, error: adminError } = getAdminClient();
-
-      if (!supabaseAdmin) {
-        throw new Error(
-          `stripe_event_admin_client_unavailable: ${adminError ?? "unknown"}`,
-        );
-      }
+      const supabaseAdmin = requireWorkflowAdminClient("stripe_event");
 
       const claim = await claimStripeRawEvent({ supabaseAdmin, rawEventId });
 
@@ -132,13 +126,7 @@ export const stripeEventRecoveryScan = inngest.createFunction(
   },
   async ({ step }) => {
     return await step.run("scan-failed-stripe-events", async () => {
-      const { client, error } = getAdminClient();
-
-      if (!client) {
-        throw new Error(
-          `stripe_event_recovery_admin_client_unavailable: ${error ?? "unknown"}`,
-        );
-      }
+      const client = requireWorkflowAdminClient("stripe_event_recovery");
 
       return await runStripeEventRecoveryScan({ client });
     });
