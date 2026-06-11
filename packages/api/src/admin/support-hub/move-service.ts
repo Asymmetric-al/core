@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 
+import { appendSupportAudit } from "./audit";
 import { acquireWorkClaim, releaseWorkClaim } from "../../workflows/claims";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
@@ -197,28 +198,26 @@ export async function moveSupportConversation(
   // Both quiet markers land in ONE insert so they succeed or fail together:
   // the destination's moved-from entry and the original inbox's moved-to
   // entry (no duplicate replyable message left behind).
-  const markers = await client.from("support_audit_log").insert([
-    {
-      tenant_id: input.tenantId,
-      conversation_id: input.conversationId,
-      actor_profile_id: input.actorProfileId,
-      actor_agent_id: null,
-      verb: "conversation_moved",
-      body: `Moved from another inbox: ${reason}`,
-      metadata: { ...sharedMetadata, marker: "moved_from" },
-    },
-    {
-      tenant_id: input.tenantId,
-      conversation_id: input.conversationId,
-      actor_profile_id: input.actorProfileId,
-      actor_agent_id: null,
-      verb: "conversation_moved_out",
-      body: `Moved to another inbox: ${reason}`,
-      metadata: { ...sharedMetadata, marker: "moved_to" },
-    },
-  ]);
-
-  if (markers.error) {
+  try {
+    await appendSupportAudit(client, [
+      {
+        tenantId: input.tenantId,
+        conversationId: input.conversationId,
+        actorProfileId: input.actorProfileId,
+        verb: "conversation_moved",
+        body: `Moved from another inbox: ${reason}`,
+        metadata: { ...sharedMetadata, marker: "moved_from" },
+      },
+      {
+        tenantId: input.tenantId,
+        conversationId: input.conversationId,
+        actorProfileId: input.actorProfileId,
+        verb: "conversation_moved_out",
+        body: `Moved to another inbox: ${reason}`,
+        metadata: { ...sharedMetadata, marker: "moved_to" },
+      },
+    ]);
+  } catch {
     // The move already happened; surface a safe failure for audit issues so
     // staff retry the audit-bearing operation rather than losing history.
     // (Bulk Retry failed maps the resulting same_inbox to success.)

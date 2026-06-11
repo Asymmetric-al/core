@@ -1,3 +1,4 @@
+import { appendSupportAudit } from "../../admin/support-hub/audit";
 import { extractEmailAddress } from "../../email/address";
 import { EMAIL_INBOUND_PROCESS_EVENT } from "../events";
 import {
@@ -227,31 +228,6 @@ export async function ensureRoutingReview(
   // 23505: an open pending review already exists — an idempotent replay.
   if (error && error.code !== "23505") {
     throw new Error(`inbound_routing_review_failed: ${error.message}`);
-  }
-}
-
-async function appendSupportAudit(
-  client: RoutingClient,
-  entry: {
-    tenantId: string;
-    actorProfileId: string | null;
-    verb: string;
-    body: string;
-    metadata: Record<string, unknown>;
-  },
-): Promise<void> {
-  const { error } = await client.from("support_audit_log").insert({
-    tenant_id: entry.tenantId,
-    conversation_id: null,
-    actor_profile_id: entry.actorProfileId,
-    actor_agent_id: null,
-    verb: entry.verb,
-    body: entry.body,
-    metadata: entry.metadata,
-  });
-
-  if (error) {
-    throw new Error(`support_audit_append_failed: ${error.message}`);
   }
 }
 
