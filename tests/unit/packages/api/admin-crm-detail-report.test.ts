@@ -222,7 +222,6 @@ describe("Phase 5 CRM donor detail and reports", () => {
 
     expect(detail.donor.name).toBe("Ada Donor");
     expect(detail.giftHistory[0]).toMatchObject({
-      canResendReceipt: true,
       currencyCode: "USD",
       stagedGiftId: "staged-gift-1",
       twentyRecordId: "twenty-gift-1",

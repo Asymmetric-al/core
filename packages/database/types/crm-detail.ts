@@ -72,7 +72,6 @@ export interface CrmGiftHistoryRow {
   /** CRM-only workflow context — not part of the shared row contract. */
   stagedGiftId: string | null;
   twentyRecordId: string | null;
-  canResendReceipt: boolean;
   /** Inline operation parity with contribution detail (issue #270). */
   inlineActions: CrmGiftInlineActions;
 }

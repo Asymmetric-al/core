@@ -62,11 +62,6 @@ export function buildCrmGiftHistoryRow(
     designationSet: input.designationSet,
   });
 
-  const canResendReceipt =
-    Boolean(stagedGift?.id) &&
-    donation.status === "completed" &&
-    stagedGift?.receipt_status !== "suppressed";
-
   // Inline operations reuse the exact availability derivation contribution
   // detail uses, so blocked reasons and risk levels stay identical (#270).
   const availability = buildContributionActionAvailability({
@@ -109,7 +104,6 @@ export function buildCrmGiftHistoryRow(
     missionaryName: shared.designationSummary.missionaryName,
     stagedGiftId: stagedGift?.id ?? null,
     twentyRecordId: stagedGift?.twenty_record_id ?? null,
-    canResendReceipt,
     inlineActions,
   };
 }

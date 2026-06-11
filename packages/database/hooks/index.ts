@@ -18,7 +18,6 @@ export {
   ADMIN_CRM_RECORDS_QUERY_KEY,
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
-  useResendCrmGiftReceipt,
 } from "./admin-crm-detail";
 export { useAdminCrmNotesGrid } from "./admin-crm-notes";
 export {

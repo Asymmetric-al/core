@@ -74,7 +74,6 @@ describe("admin/crm/detail/gift-history", () => {
 
     expect(row.stagedGiftId).toBe("staged-1");
     expect(row.twentyRecordId).toBe("twenty-1");
-    expect(row.canResendReceipt).toBe(true);
   });
 
   it("uses gift_date and General Fund fallback like the Hub does", () => {
@@ -89,7 +88,6 @@ describe("admin/crm/detail/gift-history", () => {
 
     expect(row.giftDate).toBe(donation.created_at);
     expect(row.fundName).toBe("General Fund");
-    expect(row.canResendReceipt).toBe(false);
     expect(row.stagedGiftId).toBeNull();
   });
 

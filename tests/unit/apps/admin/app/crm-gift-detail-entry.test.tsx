@@ -146,7 +146,6 @@ const crmDonorDetail = {
       missionaryName: null,
       stagedGiftId: "staged-1",
       twentyRecordId: null,
-      canResendReceipt: true,
     },
   ],
   timeline: [],
