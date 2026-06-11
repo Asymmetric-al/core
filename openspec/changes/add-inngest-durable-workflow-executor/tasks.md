@@ -5,7 +5,7 @@
 - [x] 1.2 Add the Inngest runtime endpoint and a no-op dispatch adapter smoke
       behind the server-side boundary, with local dev server discovery proven
       and no product workflow behavior moved (#287)
-- [ ] 1.3 Add the shared workflow dispatch ledger and the schema-versioned
+- [x] 1.3 Add the shared workflow dispatch ledger and the schema-versioned
       tenant-scoped workflow event envelope with sensitive-field rejection
       (#288)
 - [ ] 1.4 Add reusable product work claims and the dispatch recovery scan

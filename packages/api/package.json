@@ -99,7 +99,8 @@
     "./admin/support-hub/mutations/*": "./src/admin/support-hub/mutations/*.ts",
     "./workflows/serve": "./src/workflows/serve.ts",
     "./workflows/dispatch": "./src/workflows/dispatch.ts",
-    "./workflows/events": "./src/workflows/events.ts"
+    "./workflows/events": "./src/workflows/events.ts",
+    "./workflows/ledger": "./src/workflows/ledger.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
