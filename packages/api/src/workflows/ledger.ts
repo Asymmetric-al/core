@@ -242,34 +242,32 @@ export interface RequestWorkflowDispatchDeps {
   ) => Promise<WorkflowDispatchResult>;
 }
 
+export interface DispatchLedgerRequestResult {
+  outcome: "dispatched" | "failed";
+  request: WorkflowDispatchRequest;
+  error: string | null;
+}
+
 /**
- * The stable dispatch ledger interface: create or reuse the product-owned
- * dispatch request, attempt the immediate workflow handoff, and record the
- * outcome durably. A failed handoff stays recoverable by the dispatch
- * recovery scan; an already dispatched request is never re-sent.
+ * Hand an existing ledger request to workflow orchestration and record the
+ * outcome. Used for immediate handoffs and by the dispatch recovery scan;
+ * the event envelope is rebuilt from the durable ledger row.
  */
-export async function requestWorkflowDispatch(
+export async function dispatchLedgerRequest(
   deps: RequestWorkflowDispatchDeps,
-  input: CreateDispatchRequestInput,
-): Promise<RequestWorkflowDispatchResult> {
+  request: WorkflowDispatchRequest,
+): Promise<DispatchLedgerRequestResult> {
   const dispatcher = deps.dispatcher ?? dispatchWorkflowEvent;
 
-  const { request, reused } = await createOrReuseDispatchRequest(
-    deps.client,
-    input,
-  );
-
-  if (request.status === "dispatched") {
-    return { outcome: "already_dispatched", request, reused, error: null };
-  }
-
   const envelopeCandidate: WorkflowEventEnvelope = {
-    tenantId: input.tenantId,
-    workflowName: input.workflowName,
+    tenantId: request.tenantId,
+    workflowName: request.workflowName,
     schemaVersion: 1,
-    subject: input.subject,
+    subject: request.subject,
     dispatchRequestId: request.id,
-    ...(input.context ? { context: input.context } : {}),
+    ...(Object.keys(request.context).length > 0
+      ? { context: request.context }
+      : {}),
   };
 
   const parsedEnvelope =
@@ -286,13 +284,13 @@ export async function requestWorkflowDispatch(
       result: { dispatched: false, eventIds: [], error },
     });
 
-    return { outcome: "failed", request: failed, reused, error };
+    return { outcome: "failed", request: failed, error };
   }
 
   const result = await dispatcher({
-    name: input.workflowName,
+    name: request.workflowName,
     envelope: parsedEnvelope.data,
-    dedupeId: `${input.workflowName}:${request.id}`,
+    dedupeId: `${request.workflowName}:${request.id}`,
   });
 
   const updated = await recordDispatchOutcome(deps.client, {
@@ -303,6 +301,69 @@ export async function requestWorkflowDispatch(
   return {
     outcome: result.dispatched ? "dispatched" : "failed",
     request: updated,
+    error: result.error,
+  };
+}
+
+/**
+ * The stable dispatch ledger interface: create or reuse the product-owned
+ * dispatch request, attempt the immediate workflow handoff, and record the
+ * outcome durably. A failed handoff stays recoverable by the dispatch
+ * recovery scan; an already dispatched request is never re-sent. Sensitive
+ * context is rejected before it can be persisted to the ledger.
+ */
+export async function requestWorkflowDispatch(
+  deps: RequestWorkflowDispatchDeps,
+  input: CreateDispatchRequestInput,
+): Promise<RequestWorkflowDispatchResult> {
+  const candidate: WorkflowEventEnvelope = {
+    tenantId: input.tenantId,
+    workflowName: input.workflowName,
+    schemaVersion: 1,
+    subject: input.subject,
+    ...(input.context ? { context: input.context } : {}),
+  };
+  const parsedCandidate = workflowEventEnvelopeSchema.safeParse(candidate);
+
+  if (!parsedCandidate.success) {
+    const invalidPaths = parsedCandidate.error.issues
+      .map((issue) => issue.path.join(".") || issue.code)
+      .join(", ");
+    const error = `workflow_envelope_invalid: ${invalidPaths}`;
+
+    // Record the attempted handoff durably, but never persist the
+    // rejected context payload.
+    const { request, reused } = await createOrReuseDispatchRequest(
+      deps.client,
+      { ...input, context: {} },
+    );
+
+    if (request.status === "dispatched") {
+      return { outcome: "already_dispatched", request, reused, error: null };
+    }
+
+    const failed = await recordDispatchOutcome(deps.client, {
+      request,
+      result: { dispatched: false, eventIds: [], error },
+    });
+
+    return { outcome: "failed", request: failed, reused, error };
+  }
+
+  const { request, reused } = await createOrReuseDispatchRequest(
+    deps.client,
+    input,
+  );
+
+  if (request.status === "dispatched") {
+    return { outcome: "already_dispatched", request, reused, error: null };
+  }
+
+  const result = await dispatchLedgerRequest(deps, request);
+
+  return {
+    outcome: result.outcome,
+    request: result.request,
     reused,
     error: result.error,
   };

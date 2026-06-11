@@ -8,7 +8,7 @@
 - [x] 1.3 Add the shared workflow dispatch ledger and the schema-versioned
       tenant-scoped workflow event envelope with sensitive-field rejection
       (#288)
-- [ ] 1.4 Add reusable product work claims and the dispatch recovery scan
+- [x] 1.4 Add reusable product work claims and the dispatch recovery scan
       (#289)
 
 ## 2. Donation Recovery

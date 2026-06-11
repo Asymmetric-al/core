@@ -1,5 +1,6 @@
 import { serve } from "inngest/next";
 
+import { dispatchRecoveryScan } from "./functions/dispatch-recovery-scan";
 import { workflowSmoke } from "./functions/workflow-smoke";
 import { inngest } from "./inngest/client";
 
@@ -10,5 +11,5 @@ import { inngest } from "./inngest/client";
  */
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [workflowSmoke],
+  functions: [workflowSmoke, dispatchRecoveryScan],
 });

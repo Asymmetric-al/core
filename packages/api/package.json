@@ -100,7 +100,9 @@
     "./workflows/serve": "./src/workflows/serve.ts",
     "./workflows/dispatch": "./src/workflows/dispatch.ts",
     "./workflows/events": "./src/workflows/events.ts",
-    "./workflows/ledger": "./src/workflows/ledger.ts"
+    "./workflows/ledger": "./src/workflows/ledger.ts",
+    "./workflows/claims": "./src/workflows/claims.ts",
+    "./workflows/recovery": "./src/workflows/recovery.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
