@@ -451,6 +451,13 @@ export async function executeContributionAction<TContribution = unknown>(
 
     default: {
       if (isCorrectionAction(input.actionType)) {
+        if (!input.reason?.trim()) {
+          throw new ApiHttpError(
+            400,
+            `A reason is required for ${input.actionType}.`,
+          );
+        }
+
         const applyCorrection = requireDependency(
           input.dependencies,
           "applyCorrection",
@@ -460,7 +467,37 @@ export async function executeContributionAction<TContribution = unknown>(
           contributionId: input.contributionId,
           actionType: input.actionType,
           payload: input.payload ?? {},
+          reason: input.reason,
+          actorProfileId: input.actorProfileId,
+          sourceSurface: input.sourceSurface,
+          expectedRevision: input.expectedRevision ?? null,
+          idempotencyKey:
+            input.idempotencyKey ??
+            (input.confirmationToken
+              ? `correction/${input.tenantId}/${input.contributionId}/${input.actionType}/${input.confirmationToken}`
+              : null),
         });
+
+        if (correction.idempotentReplay) {
+          const auditEventId = await appendAuditEvent(
+            input,
+            auditInput(input, {
+              beforeSummary: correction.before ?? null,
+              afterSummary: correction.after ?? null,
+              downstreamEffects: { idempotentReplay: true },
+            }),
+          );
+
+          return {
+            canonicalContribution: await loadCanonicalContribution(input),
+            auditEventId,
+            correctionId: null,
+            adjustmentId: correction.adjustmentId ?? null,
+            idempotentReplay: true,
+            taskIds: [],
+          };
+        }
+
         const correctionId = await createCorrectionRecord(
           input,
           correctionInput(input, {
@@ -488,6 +525,7 @@ export async function executeContributionAction<TContribution = unknown>(
           canonicalContribution: await loadCanonicalContribution(input),
           auditEventId,
           correctionId,
+          adjustmentId: correction.adjustmentId ?? null,
           notification,
           taskIds: notification.taskIds ?? [],
         };

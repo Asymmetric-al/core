@@ -90,6 +90,10 @@ export interface ContributionActionResult<TContribution = unknown> {
   canonicalContribution: TContribution;
   auditEventId: string;
   correctionId?: string | null;
+  /** Adjustment record id when the action applied an adjustment (ADR-CD-004). */
+  adjustmentId?: string | null;
+  /** True when an idempotent retry returned the previously applied adjustment. */
+  idempotentReplay?: boolean;
   notification?: {
     decision: "sent" | "suppressed" | "blocked" | "failed" | "not_required";
     taskIds?: string[];
@@ -128,10 +132,17 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     contributionId: string;
     actionType: ContributionActionType;
     payload: Record<string, unknown>;
+    reason: string;
+    actorProfileId: string | null;
+    sourceSurface: ContributionSourceSurface;
+    expectedRevision?: string | null;
+    idempotencyKey?: string | null;
   }) => Promise<{
     before?: Record<string, unknown> | null;
     after?: Record<string, unknown> | null;
     status?: "pending" | "applied" | "failed" | "voided";
+    adjustmentId?: string | null;
+    idempotentReplay?: boolean;
   }>;
   replayStripeEvent?: (input: {
     tenantId: string;
@@ -181,6 +192,13 @@ export interface ExecuteContributionActionInput<TContribution = unknown> {
   actionType: ContributionActionType;
   reason?: string | null;
   confirmationToken?: string | null;
+  /**
+   * Optimistic-concurrency token from the detail payload (`detail.revision`).
+   * Stale saves are rejected server-side with a recovery path (ADR-CD-022).
+   */
+  expectedRevision?: string | null;
+  /** Caller idempotency key so retried saves cannot double-apply. */
+  idempotencyKey?: string | null;
   payload?: Record<string, unknown>;
   organizationSettings?: ContributionOperationOrganizationSettings;
   userPreferences?: ContributionOperationUserPreferences;

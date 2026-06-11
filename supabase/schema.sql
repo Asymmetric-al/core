@@ -747,6 +747,31 @@ CREATE TABLE IF NOT EXISTS public.contribution_corrections (
     failed_at TIMESTAMPTZ
 );
 
+-- Contribution adjustment records (ADR-CD-004). Corrections never rewrite the
+-- original donation row; effective values derive from original + adjustments.
+CREATE TABLE IF NOT EXISTS public.contribution_adjustments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    donation_id UUID NOT NULL REFERENCES public.donations(id) ON DELETE CASCADE,
+    correction_id UUID REFERENCES public.contribution_corrections(id) ON DELETE SET NULL,
+    adjustment_type TEXT NOT NULL,
+    status TEXT NOT NULL DEFAULT 'applied' CHECK (status IN ('applied', 'reversed')),
+    effective_values JSONB NOT NULL DEFAULT '{}'::jsonb,
+    reason TEXT NOT NULL,
+    actor_profile_id UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    source_surface TEXT NOT NULL CHECK (source_surface IN ('contribution_hub', 'donor_crm_record', 'automation', 'bulk_action', 'api')),
+    base_revision TEXT,
+    idempotency_key TEXT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_contribution_adjustments_idempotency
+    ON public.contribution_adjustments (tenant_id, idempotency_key)
+    WHERE idempotency_key IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_contribution_adjustments_tenant_donation
+    ON public.contribution_adjustments (tenant_id, donation_id, created_at);
+
 CREATE TABLE IF NOT EXISTS public.contribution_operation_audit_events (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
@@ -1676,6 +1701,7 @@ ALTER TABLE public.email_template_system_bindings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_operation_prompt_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_operation_user_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_corrections ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contribution_adjustments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_operation_audit_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_notification_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_notification_events ENABLE ROW LEVEL SECURITY;
@@ -1714,6 +1740,7 @@ REVOKE ALL ON TABLE public.email_inbound_messages FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_operation_prompt_settings FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_operation_user_preferences FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_corrections FROM anon, authenticated;
+REVOKE ALL ON TABLE public.contribution_adjustments FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_operation_audit_events FROM anon, authenticated;
 REVOKE ALL ON TABLE public.email_template_system_bindings FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_notification_settings FROM anon, authenticated;

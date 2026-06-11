@@ -381,4 +381,110 @@ describe("contribution operations detail read model", () => {
     // No designation is labeled primary anywhere in the payload.
     expect(detail).not.toHaveProperty("designation");
   });
+
+  it("derives effective values from applied adjustments while preserving the original", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_5",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: null,
+        fundId: "fund_1",
+        amount: 25_000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_1",
+        stripeChargeId: null,
+        giftDate: "2026-05-20",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: "2026-05-20T00:00:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "online",
+        createdAt: "2026-05-20T00:00:00.000Z",
+        updatedAt: "2026-05-21T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: "Adjusted Donor",
+        email: "adjusted@example.com",
+        phone: null,
+        location: null,
+        organization: null,
+      },
+      fund: { id: "fund_1", name: "Clean Water Initiative" },
+      allocationFunds: [
+        {
+          id: "fund_1",
+          name: "Clean Water Initiative",
+          missionary_id: null,
+          goal_amount: 0,
+          start_date: null,
+          end_date: null,
+        },
+        {
+          id: "fund_2",
+          name: "Disaster Relief",
+          missionary_id: null,
+          goal_amount: 0,
+          start_date: null,
+          end_date: null,
+        },
+      ],
+      adjustments: [
+        {
+          id: "adj_1",
+          adjustmentType: "amount_correction",
+          status: "applied",
+          effectiveValues: { amountCents: 20_000 },
+          reason: "data entry error",
+          actorProfileId: "profile_1",
+          sourceSurface: "contribution_hub",
+          createdAt: "2026-05-21T00:00:00.000Z",
+        },
+        {
+          id: "adj_2",
+          adjustmentType: "fund_correction",
+          status: "applied",
+          effectiveValues: { fundId: "fund_2" },
+          reason: "donor intent clarified",
+          actorProfileId: "profile_1",
+          sourceSurface: "donor_crm_record",
+          createdAt: "2026-05-22T00:00:00.000Z",
+        },
+      ],
+    });
+
+    // Original donation truth is preserved and visible.
+    expect(detail.original).toEqual({
+      amountCents: 25_000,
+      fundId: "fund_1",
+      missionaryId: null,
+      paymentStatus: "completed",
+    });
+
+    // Effective values derive from original + applied adjustments.
+    expect(detail.effective.amountCents).toBe(20_000);
+    expect(detail.effective.fundId).toBe("fund_2");
+    expect(detail.effective.materiallyDiffers).toBe(true);
+    expect(detail.amount.value).toBe(20_000);
+    expect(detail.shared.amountCents).toBe(20_000);
+    expect(detail.shared.designationSummary.fundName).toBe("Disaster Relief");
+    expect(detail.designations.totalAmountCents).toBe(20_000);
+
+    // Adjustment history and version metadata are part of the contract.
+    expect(detail.adjustments).toHaveLength(2);
+    expect(detail.revision).toBe("2026-05-21T00:00:00.000Z#2");
+  });
 });

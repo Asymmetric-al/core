@@ -55,6 +55,8 @@ const actionRequestSchema = z.object({
   sourceSurface: sourceSurfaceSchema.default("api"),
   reason: z.string().max(1000).nullable().optional(),
   confirmationToken: z.string().max(200).nullable().optional(),
+  expectedRevision: z.string().max(200).nullable().optional(),
+  idempotencyKey: z.string().max(200).nullable().optional(),
   payload: z.record(z.string(), z.unknown()).default({}),
 });
 
@@ -113,6 +115,8 @@ export const POST = withOperation(
         actionType: body.actionType as ContributionActionType,
         reason: body.reason ?? null,
         confirmationToken: body.confirmationToken ?? null,
+        expectedRevision: body.expectedRevision ?? null,
+        idempotencyKey: body.idempotencyKey ?? null,
         payload: body.payload,
         dependencies: createContributionActionDependencies(supabaseAdmin),
       });

@@ -8,6 +8,10 @@ import {
   type DesignationFundInput,
 } from "../contribution-shared/designation-set";
 import {
+  deriveEffectiveContribution,
+  type ContributionAdjustmentRecord,
+} from "../contribution-shared/effective-values";
+import {
   buildSharedContributionRowFields,
   type SharedContributionRowFields,
 } from "../contribution-shared/row-contract";
@@ -81,6 +85,8 @@ export interface ContributionDetailInput {
     correctionType: string;
     status: string;
   }>;
+  /** Applied/reversed adjustment records linked to this donation (ADR-CD-004). */
+  adjustments?: ContributionAdjustmentRecord[];
   /** Allocation rows backing the designation set (staged_gift_allocations). */
   allocations?: DesignationAllocationInput[];
   /** Fund metadata for designation lines (subtype derivation). */
@@ -166,6 +172,29 @@ export interface ContributionDetail {
   corrections: NonNullable<ContributionDetailInput["corrections"]>;
   /** Server-computed action availability (ADR-CD-017 / ADR-CD-018). */
   actionAvailability: ContributionActionAvailability[];
+  /** Original donation truth — never mutated by corrections (ADR-CD-004). */
+  original: {
+    amountCents: number;
+    fundId: string | null;
+    missionaryId: string | null;
+    paymentStatus: string;
+  };
+  /** Current effective view derived from original + applied adjustments. */
+  effective: {
+    amountCents: number;
+    fundId: string | null;
+    missionaryId: string | null;
+    paymentStatus: string;
+    changedFields: string[];
+    materiallyDiffers: boolean;
+  };
+  /** Adjustment history linked to this donation, oldest first. */
+  adjustments: ContributionAdjustmentRecord[];
+  /**
+   * Optimistic-concurrency token (ADR-CD-022). Save APIs verify the submitted
+   * revision before applying so stale saves are rejected with recovery.
+   */
+  revision: string;
   tasks: unknown[];
   batches: unknown[];
   donorVisible: {
@@ -276,16 +305,48 @@ export function buildContributionDetail(
     );
   }
 
+  const adjustments = input.adjustments ?? [];
+  const original = {
+    amountCents: donation.amount,
+    fundId: donation.fundId,
+    missionaryId: donation.missionaryId,
+    paymentStatus: donation.status ?? "pending",
+  };
+  const effectiveResult = deriveEffectiveContribution({
+    original,
+    adjustments,
+  });
+  const effective = effectiveResult.effective;
+
+  const effectiveFund = effective.fundId
+    ? (designationFunds.get(effective.fundId) ?? null)
+    : null;
+  const effectiveMissionary = effective.missionaryId
+    ? {
+        id: effective.missionaryId,
+        display_name:
+          designationMissionaries.get(effective.missionaryId) ?? null,
+      }
+    : null;
+
   const designations = buildContributionDesignationSet({
     donation: {
       id: donation.id,
-      amount: donation.amount,
+      amount: effective.amountCents,
       currency: donation.currency,
-      fund_id: donation.fundId,
-      missionary_id: donation.missionaryId,
+      fund_id: effective.fundId,
+      missionary_id: effective.missionaryId,
     },
-    effectiveAmountCents: donation.amount,
-    allocations: input.allocations ?? [],
+    effectiveAmountCents: effective.amountCents,
+    allocations: effectiveResult.effectiveDesignationLines
+      ? effectiveResult.effectiveDesignationLines.map((line) => ({
+          id: line.id,
+          amount: line.amountCents,
+          fund_id: line.fundId,
+          missionary_id: line.missionaryId,
+          memo: line.memo,
+        }))
+      : (input.allocations ?? []),
     funds: designationFunds,
     missionaries: designationMissionaries,
   });
@@ -295,11 +356,11 @@ export function buildContributionDetail(
     donation: {
       id: donation.id,
       donor_id: donation.donorId,
-      missionary_id: donation.missionaryId,
-      fund_id: donation.fundId,
-      amount: donation.amount,
+      missionary_id: effective.missionaryId,
+      fund_id: effective.fundId,
+      amount: effective.amountCents,
       currency: donation.currency,
-      status: donation.status,
+      status: effective.paymentStatus,
       gift_date: donation.giftDate,
       refund_amount: donation.refundAmount,
       refunded_at: donation.refundedAt,
@@ -310,10 +371,10 @@ export function buildContributionDetail(
       ? { id: donor.id, name: donor.name, email: donor.email }
       : null,
     profile: null,
-    fund: fund ?? null,
-    missionary: missionary
-      ? { id: missionary.id, display_name: missionary.name }
+    fund: effectiveFund
+      ? { id: effectiveFund.id, name: effectiveFund.name }
       : null,
+    missionary: effectiveMissionary,
     stagedGift: stagedGift
       ? {
           id: stagedGift.id,
@@ -351,8 +412,8 @@ export function buildContributionDetail(
       pledgeId: donation.pledgeId,
     },
     amount: {
-      value: donation.amount,
-      gross: donation.amount,
+      value: effective.amountCents,
+      gross: effective.amountCents,
       net: null,
       fee: null,
       taxDeductible: null,
@@ -361,7 +422,7 @@ export function buildContributionDetail(
     payment: {
       type: donation.donationType ?? "one_time",
       method: donation.paymentMethod ?? "unknown",
-      status: donation.status ?? "pending",
+      status: effective.paymentStatus,
       lastFour: null,
       stripe: {
         paymentIntentId: donation.stripePaymentIntentId,
@@ -392,6 +453,14 @@ export function buildContributionDetail(
     },
     auditEvents: input.auditEvents ?? [],
     corrections: input.corrections ?? [],
+    original,
+    effective: {
+      ...effective,
+      changedFields: effectiveResult.changedFields,
+      materiallyDiffers: effectiveResult.materiallyDiffers,
+    },
+    adjustments,
+    revision: `${donation.updatedAt}#${adjustments.length}`,
     actionAvailability: buildContributionActionAvailability({
       stagedGift: stagedGift
         ? {

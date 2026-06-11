@@ -1,6 +1,12 @@
 import { buildCrmGiftHistoryRow } from "./gift-history";
 import { ApiHttpError } from "../../../shared/http-errors";
 import { buildContributionDesignationSet } from "../../contribution-shared/designation-set";
+import {
+  deriveEffectiveContribution,
+  mapContributionAdjustmentRow,
+  type ContributionAdjustmentRecord,
+  type EffectiveContributionResult,
+} from "../../contribution-shared/effective-values";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
@@ -355,6 +361,47 @@ export async function getAdminCrmDonorDetail(input: {
     correctionsByDonationId.set(correction.donation_id, existing);
   }
 
+  const adjustmentsResult =
+    donationIds.length > 0
+      ? await input.supabaseAdmin
+          .from("contribution_adjustments")
+          .select(
+            "id, donation_id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
+          )
+          .eq("tenant_id", input.tenantId)
+          .in("donation_id", donationIds)
+          .order("created_at", { ascending: true })
+      : { data: [], error: null };
+  assertNoError(adjustmentsResult.error, "Failed to load gift adjustments.");
+  const adjustmentsByDonationId = new Map<
+    string,
+    ContributionAdjustmentRecord[]
+  >();
+  for (const row of (adjustmentsResult.data ?? []) as Array<
+    Record<string, unknown>
+  >) {
+    const donationId =
+      typeof row.donation_id === "string" ? row.donation_id : "";
+    const existing = adjustmentsByDonationId.get(donationId) ?? [];
+    existing.push(mapContributionAdjustmentRow(row));
+    adjustmentsByDonationId.set(donationId, existing);
+  }
+
+  const effectiveByDonationId = new Map<string, EffectiveContributionResult>(
+    donations.map((donation) => [
+      donation.id,
+      deriveEffectiveContribution({
+        original: {
+          amountCents: toCents(donation.amount),
+          fundId: donation.fund_id,
+          missionaryId: donation.missionary_id,
+          paymentStatus: donation.status ?? "pending",
+        },
+        adjustments: adjustmentsByDonationId.get(donation.id) ?? [],
+      }),
+    ]),
+  );
+
   const allocationsResult =
     stagedGiftIds.length > 0
       ? await input.supabaseAdmin
@@ -419,17 +466,29 @@ export async function getAdminCrmDonorDetail(input: {
     .limit(10);
   assertNoError(duplicateResult.error, "Failed to load duplicate warnings.");
 
+  const effectiveResults = Array.from(effectiveByDonationId.values());
   const fundIds = mergeUniqueIds([
     ...donations.map((donation) => donation.fund_id),
     ...stagedGifts.map((gift) => gift.fund_id),
     ...pledges.map((pledge) => pledge.fund_id),
     ...allocationRows.map((allocation) => allocation.fund_id),
+    ...effectiveResults.map((result) => result.effective.fundId),
+    ...effectiveResults.flatMap(
+      (result) =>
+        result.effectiveDesignationLines?.map((line) => line.fundId) ?? [],
+    ),
   ]);
   const missionaryIds = mergeUniqueIds([
     ...donations.map((donation) => donation.missionary_id),
     ...stagedGifts.map((gift) => gift.missionary_id),
     ...pledges.map((pledge) => pledge.missionary_id),
     ...allocationRows.map((allocation) => allocation.missionary_id),
+    ...effectiveResults.map((result) => result.effective.missionaryId),
+    ...effectiveResults.flatMap(
+      (result) =>
+        result.effectiveDesignationLines?.map((line) => line.missionaryId) ??
+        [],
+    ),
     donor.missionary_id,
   ]);
   const [fundsMetaResult, missionariesById] = await Promise.all([
@@ -472,18 +531,33 @@ export async function getAdminCrmDonorDetail(input: {
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
     const link = stagedGift ? linkByStagedGiftId.get(stagedGift.id) : null;
-    const allocations = stagedGift
-      ? (allocationsByStagedGiftId.get(stagedGift.id) ?? [])
-      : [];
+    const effectiveResult = effectiveByDonationId.get(donation.id);
+    const effective = effectiveResult?.effective ?? {
+      amountCents: toCents(donation.amount),
+      fundId: donation.fund_id,
+      missionaryId: donation.missionary_id,
+      paymentStatus: donation.status ?? "pending",
+    };
+    const allocations = effectiveResult?.effectiveDesignationLines
+      ? effectiveResult.effectiveDesignationLines.map((line) => ({
+          id: line.id,
+          amount: line.amountCents,
+          fund_id: line.fundId,
+          missionary_id: line.missionaryId,
+          memo: line.memo,
+        }))
+      : stagedGift
+        ? (allocationsByStagedGiftId.get(stagedGift.id) ?? [])
+        : [];
     const designationSet = buildContributionDesignationSet({
       donation: {
         id: donation.id,
-        amount: toCents(donation.amount),
+        amount: effective.amountCents,
         currency: donation.currency ?? "usd",
-        fund_id: donation.fund_id,
-        missionary_id: donation.missionary_id,
+        fund_id: effective.fundId,
+        missionary_id: effective.missionaryId,
       },
-      effectiveAmountCents: toCents(donation.amount),
+      effectiveAmountCents: effective.amountCents,
       allocations,
       funds: fundsMetaById,
       missionaries: missionariesById,
@@ -494,11 +568,11 @@ export async function getAdminCrmDonorDetail(input: {
       donation: {
         id: donation.id,
         donor_id: donation.donor_id,
-        missionary_id: donation.missionary_id,
-        fund_id: donation.fund_id,
-        amount: toCents(donation.amount),
+        missionary_id: effective.missionaryId,
+        fund_id: effective.fundId,
+        amount: effective.amountCents,
         currency: donation.currency ?? "usd",
-        status: donation.status,
+        status: effective.paymentStatus,
         gift_date: donation.gift_date,
         refund_amount: toCents(donation.refund_amount),
         refunded_at: donation.refunded_at,
@@ -510,16 +584,16 @@ export async function getAdminCrmDonorDetail(input: {
         name: donor.name,
         email: donor.email,
       },
-      fund: donation.fund_id
+      fund: effective.fundId
         ? {
-            id: donation.fund_id,
-            name: fundsById.get(donation.fund_id) ?? null,
+            id: effective.fundId,
+            name: fundsById.get(effective.fundId) ?? null,
           }
         : null,
-      missionary: donation.missionary_id
+      missionary: effective.missionaryId
         ? {
-            id: donation.missionary_id,
-            display_name: missionariesById.get(donation.missionary_id) ?? null,
+            id: effective.missionaryId,
+            display_name: missionariesById.get(effective.missionaryId) ?? null,
           }
         : null,
       stagedGift: stagedGift

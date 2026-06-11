@@ -20,6 +20,10 @@ class SupabaseQueryStub {
     return this;
   }
 
+  in(): this {
+    return this;
+  }
+
   order(): this {
     return this;
   }
@@ -34,6 +38,12 @@ class SupabaseQueryStub {
 
   single(): Promise<QueryResult> {
     return Promise.resolve(this.result);
+  }
+
+  then<TResult>(
+    onfulfilled: (value: QueryResult) => TResult,
+  ): Promise<TResult> {
+    return Promise.resolve(this.result).then(onfulfilled);
   }
 }
 
@@ -66,16 +76,18 @@ describe("contribution operations store", () => {
         error: null,
       },
       missionaries: {
-        data: {
-          id: "missionary_1",
-          profile: {
-            display_name: "",
-            full_name: "",
-            first_name: "",
-            last_name: "",
-            email: "worker@example.com",
+        data: [
+          {
+            id: "missionary_1",
+            profile: {
+              display_name: "",
+              full_name: "",
+              first_name: "",
+              last_name: "",
+              email: "worker@example.com",
+            },
           },
-        },
+        ],
         error: null,
       },
       staged_gifts: { data: null, error: null },

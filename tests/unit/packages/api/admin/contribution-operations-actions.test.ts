@@ -152,6 +152,12 @@ describe("contribution operations action executor", () => {
       contributionId: "donation_1",
       payload: { amount: 1200 },
       tenantId: "tenant_1",
+      reason: "Corrected imported check amount",
+      actorProfileId: "profile_1",
+      sourceSurface: "contribution_hub",
+      expectedRevision: null,
+      idempotencyKey:
+        "correction/tenant_1/donation_1/amount_correction/confirm",
     });
     expect(createCorrectionRecord).toHaveBeenCalledWith(
       expect.objectContaining({

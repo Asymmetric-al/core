@@ -6,6 +6,12 @@ import {
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
 import { buildContributionDesignationSet } from "../contribution-shared/designation-set";
+import {
+  deriveEffectiveContribution,
+  mapContributionAdjustmentRow,
+  type ContributionAdjustmentRecord,
+  type EffectiveContributionResult,
+} from "../contribution-shared/effective-values";
 
 import type {
   AdminContributionsListResponse,
@@ -355,31 +361,44 @@ async function fetchContributionRelations(
   const donorIds = normalizeSearchIds(rows.map((row) => row.donor_id || ""));
   const donationIds = normalizeSearchIds(rows.map((row) => row.id));
 
-  const [donorsResult, stagedGiftsResult, correctionsResult] =
-    await Promise.all([
-      donorIds.length > 0
-        ? supabaseAdmin
-            .from("donors")
-            .select(
-              "id, profile_id, name, email, phone, type, location, organization, notes",
-            )
-            .in("id", donorIds)
-        : Promise.resolve({ data: [], error: null }),
-      donationIds.length > 0
-        ? supabaseAdmin
-            .from("staged_gifts")
-            .select(
-              "id, donation_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
-            )
-            .in("donation_id", donationIds)
-        : Promise.resolve({ data: [], error: null }),
-      donationIds.length > 0
-        ? supabaseAdmin
-            .from("contribution_corrections")
-            .select("donation_id, status")
-            .in("donation_id", donationIds)
-        : Promise.resolve({ data: [], error: null }),
-    ]);
+  const [
+    donorsResult,
+    stagedGiftsResult,
+    correctionsResult,
+    adjustmentsResult,
+  ] = await Promise.all([
+    donorIds.length > 0
+      ? supabaseAdmin
+          .from("donors")
+          .select(
+            "id, profile_id, name, email, phone, type, location, organization, notes",
+          )
+          .in("id", donorIds)
+      : Promise.resolve({ data: [], error: null }),
+    donationIds.length > 0
+      ? supabaseAdmin
+          .from("staged_gifts")
+          .select(
+            "id, donation_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
+          )
+          .in("donation_id", donationIds)
+      : Promise.resolve({ data: [], error: null }),
+    donationIds.length > 0
+      ? supabaseAdmin
+          .from("contribution_corrections")
+          .select("donation_id, status")
+          .in("donation_id", donationIds)
+      : Promise.resolve({ data: [], error: null }),
+    donationIds.length > 0
+      ? supabaseAdmin
+          .from("contribution_adjustments")
+          .select(
+            "id, donation_id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
+          )
+          .in("donation_id", donationIds)
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
+  ]);
 
   if (donorsResult.error) {
     throw new ApiHttpError(500, donorsResult.error.message);
@@ -390,6 +409,38 @@ async function fetchContributionRelations(
   if (correctionsResult.error) {
     throw new ApiHttpError(500, correctionsResult.error.message);
   }
+  if (adjustmentsResult.error) {
+    throw new ApiHttpError(500, adjustmentsResult.error.message);
+  }
+
+  const adjustmentsByDonationId = new Map<
+    string,
+    ContributionAdjustmentRecord[]
+  >();
+  for (const row of (adjustmentsResult.data ?? []) as Array<
+    Record<string, unknown>
+  >) {
+    const donationId =
+      typeof row.donation_id === "string" ? row.donation_id : "";
+    const existing = adjustmentsByDonationId.get(donationId) ?? [];
+    existing.push(mapContributionAdjustmentRow(row));
+    adjustmentsByDonationId.set(donationId, existing);
+  }
+
+  const effectiveByDonationId = new Map<string, EffectiveContributionResult>(
+    rows.map((row) => [
+      row.id,
+      deriveEffectiveContribution({
+        original: {
+          amountCents: row.amount,
+          fundId: row.fund_id,
+          missionaryId: row.missionary_id,
+          paymentStatus: row.status ?? "pending",
+        },
+        adjustments: adjustmentsByDonationId.get(row.id) ?? [],
+      }),
+    ]),
+  );
 
   const stagedGiftRows = (stagedGiftsResult.data ?? []) as StagedGiftRow[];
   const stagedGiftIds = normalizeSearchIds(stagedGiftRows.map((row) => row.id));
@@ -408,13 +459,27 @@ async function fetchContributionRelations(
   }
 
   const allocationRows = (allocationsResult.data ?? []) as AllocationRow[];
+  const effectiveResults = Array.from(effectiveByDonationId.values());
   const fundIds = normalizeSearchIds([
     ...rows.map((row) => row.fund_id || ""),
     ...allocationRows.map((row) => row.fund_id || ""),
+    ...effectiveResults.map((result) => result.effective.fundId || ""),
+    ...effectiveResults.flatMap(
+      (result) =>
+        result.effectiveDesignationLines?.map((line) => line.fundId || "") ??
+        [],
+    ),
   ]);
   const missionaryIds = normalizeSearchIds([
     ...rows.map((row) => row.missionary_id || ""),
     ...allocationRows.map((row) => row.missionary_id || ""),
+    ...effectiveResults.map((result) => result.effective.missionaryId || ""),
+    ...effectiveResults.flatMap(
+      (result) =>
+        result.effectiveDesignationLines?.map(
+          (line) => line.missionaryId || "",
+        ) ?? [],
+    ),
   ]);
 
   const [fundsResult, missionariesResult] = await Promise.all([
@@ -512,6 +577,7 @@ async function fetchContributionRelations(
     correctionsByDonationId: groupCorrectionsByDonationId(
       (correctionsResult.data ?? []) as CorrectionRow[],
     ),
+    effectiveByDonationId,
   };
 }
 
@@ -599,32 +665,44 @@ export async function listAdminContributions(
       donor?.profile_id != null
         ? (relationData.profilesById.get(donor.profile_id) ?? null)
         : null;
+    const effectiveResult = relationData.effectiveByDonationId.get(donation.id);
+    const effective = effectiveResult?.effective ?? {
+      amountCents: donation.amount,
+      fundId: donation.fund_id,
+      missionaryId: donation.missionary_id,
+      paymentStatus: donation.status ?? "pending",
+    };
     const fund =
-      donation.fund_id != null
-        ? (relationData.fundsById.get(donation.fund_id) ?? null)
+      effective.fundId != null
+        ? (relationData.fundsById.get(effective.fundId) ?? null)
         : null;
-    const missionary =
-      donation.missionary_id != null
-        ? (relationData.missionariesById.get(donation.missionary_id) ?? null)
-        : null;
-    const missionaryProfile =
-      missionary?.profile_id != null
-        ? (relationData.profilesById.get(missionary.profile_id) ?? null)
+    const missionaryName =
+      effective.missionaryId != null
+        ? (relationData.missionaryNamesById.get(effective.missionaryId) ?? null)
         : null;
     const stagedGift = relationData.stagedGiftsByDonationId.get(donation.id);
     const corrections = relationData.correctionsByDonationId.get(donation.id);
-    const allocations = stagedGift
-      ? (relationData.allocationsByStagedGiftId.get(stagedGift.id) ?? [])
-      : [];
+    const allocations = effectiveResult?.effectiveDesignationLines
+      ? effectiveResult.effectiveDesignationLines.map((line) => ({
+          id: line.id,
+          staged_gift_id: stagedGift?.id ?? "",
+          amount: line.amountCents,
+          fund_id: line.fundId,
+          missionary_id: line.missionaryId,
+          memo: line.memo,
+        }))
+      : stagedGift
+        ? (relationData.allocationsByStagedGiftId.get(stagedGift.id) ?? [])
+        : [];
     const designationSet = buildContributionDesignationSet({
       donation: {
         id: donation.id,
-        amount: donation.amount,
+        amount: effective.amountCents,
         currency: donation.currency,
-        fund_id: donation.fund_id,
-        missionary_id: donation.missionary_id,
+        fund_id: effective.fundId,
+        missionary_id: effective.missionaryId,
       },
-      effectiveAmountCents: donation.amount,
+      effectiveAmountCents: effective.amountCents,
       allocations,
       funds: relationData.fundsMetaById,
       missionaries: relationData.missionaryNamesById,
@@ -633,21 +711,20 @@ export async function listAdminContributions(
     return buildContributionGridRow({
       corrections,
       designationSet,
-      donation,
+      donation: {
+        ...donation,
+        amount: effective.amountCents,
+        fund_id: effective.fundId,
+        missionary_id: effective.missionaryId,
+        status: effective.paymentStatus,
+      },
       donor,
       profile: donorProfile,
       fund,
-      missionary: missionaryProfile
+      missionary: effective.missionaryId
         ? {
-            id: missionary?.id ?? donation.missionary_id ?? "",
-            display_name:
-              (missionaryProfile.display_name ??
-                missionaryProfile.full_name ??
-                [missionaryProfile.first_name, missionaryProfile.last_name]
-                  .filter(Boolean)
-                  .join(" ")
-                  .trim()) ||
-              missionaryProfile.email,
+            id: effective.missionaryId,
+            display_name: missionaryName,
           }
         : null,
       stagedGift: stagedGift ?? null,

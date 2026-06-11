@@ -146,78 +146,196 @@ export async function refundContribution(input: {
   }
 }
 
+function correctionEffectiveValues(
+  actionType: ContributionActionType,
+  payload: Record<string, unknown>,
+): Record<string, unknown> {
+  if (actionType === "amount_correction") {
+    const amount = payload.amount;
+    if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
+      throw new ApiHttpError(400, "amount must be a non-negative number.");
+    }
+    return { amountCents: amount };
+  }
+
+  if (
+    actionType === "designation_correction" ||
+    actionType === "fund_correction"
+  ) {
+    const fundId = payload.fundId;
+    return { fundId: typeof fundId === "string" ? fundId : null };
+  }
+
+  if (actionType === "allocation_correction") {
+    const designationLines = payload.designationLines;
+    if (Array.isArray(designationLines)) {
+      const lines = designationLines.map((line, index) => {
+        if (typeof line !== "object" || line === null) {
+          throw new ApiHttpError(400, "designationLines must be objects.");
+        }
+        const record = line as Record<string, unknown>;
+        const amountCents = record.amountCents;
+        if (
+          typeof amountCents !== "number" ||
+          !Number.isFinite(amountCents) ||
+          amountCents < 0
+        ) {
+          throw new ApiHttpError(
+            400,
+            "Each designation line needs a non-negative amountCents.",
+          );
+        }
+        return {
+          id:
+            typeof record.id === "string" && record.id
+              ? record.id
+              : `line-${index + 1}`,
+          amountCents,
+          fundId: typeof record.fundId === "string" ? record.fundId : null,
+          missionaryId:
+            typeof record.missionaryId === "string"
+              ? record.missionaryId
+              : null,
+          memo: typeof record.memo === "string" ? record.memo : null,
+        };
+      });
+      return { designationLines: lines };
+    }
+
+    const fundId = payload.fundId;
+    const missionaryId = payload.missionaryId;
+    return {
+      fundId: typeof fundId === "string" ? fundId : null,
+      missionaryId: typeof missionaryId === "string" ? missionaryId : null,
+    };
+  }
+
+  if (actionType === "payment_state_correction") {
+    const status = payload.status;
+    if (typeof status !== "string" || status.trim().length === 0) {
+      throw new ApiHttpError(400, "status is required.");
+    }
+    assertAllowedPaymentStateCorrectionStatus(status);
+    return { paymentStatus: status };
+  }
+
+  throw new ApiHttpError(
+    501,
+    `${actionType} requires a dedicated operation adapter before it can be applied.`,
+  );
+}
+
+function summarizeEffectiveDetail(detail: {
+  effective: {
+    amountCents: number;
+    fundId: string | null;
+    missionaryId: string | null;
+    paymentStatus: string;
+  };
+  donor: { id: string } | null;
+}) {
+  return {
+    amount: detail.effective.amountCents,
+    donorId: detail.donor?.id ?? null,
+    fundId: detail.effective.fundId,
+    missionaryId: detail.effective.missionaryId,
+    status: detail.effective.paymentStatus,
+  };
+}
+
+/**
+ * Applies a correction as an immutable adjustment record (ADR-CD-004).
+ *
+ * The original donation row is never rewritten; effective values derive from
+ * the original plus applied adjustments. Saves are concurrency-checked
+ * against the detail revision and idempotent on retry.
+ */
 export async function applyContributionCorrection(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   contributionId: string;
   actionType: ContributionActionType;
   payload: Record<string, unknown>;
+  reason: string;
+  actorProfileId: string | null;
+  sourceSurface: string;
+  expectedRevision?: string | null;
+  idempotencyKey?: string | null;
 }) {
   const before = await loadContributionDetailFromSupabase(input);
-  const patch: Record<string, unknown> = {
-    updated_at: new Date().toISOString(),
-  };
 
-  if (input.actionType === "amount_correction") {
-    const amount = input.payload.amount;
-    if (typeof amount !== "number" || !Number.isFinite(amount) || amount < 0) {
-      throw new ApiHttpError(400, "amount must be a non-negative number.");
-    }
-    patch.amount = amount;
-  } else if (
-    input.actionType === "designation_correction" ||
-    input.actionType === "fund_correction"
-  ) {
-    const fundId = input.payload.fundId;
-    patch.fund_id = typeof fundId === "string" ? fundId : null;
-  } else if (input.actionType === "allocation_correction") {
-    const fundId = input.payload.fundId;
-    const missionaryId = input.payload.missionaryId;
-    patch.fund_id = typeof fundId === "string" ? fundId : null;
-    patch.missionary_id =
-      typeof missionaryId === "string" ? missionaryId : null;
-  } else if (input.actionType === "payment_state_correction") {
-    const status = input.payload.status;
-    if (typeof status !== "string" || status.trim().length === 0) {
-      throw new ApiHttpError(400, "status is required.");
-    }
-    assertAllowedPaymentStateCorrectionStatus(status);
-    patch.status = status;
-  } else {
+  if (input.expectedRevision && input.expectedRevision !== before.revision) {
     throw new ApiHttpError(
-      501,
-      `${input.actionType} requires a dedicated operation adapter before it can be applied.`,
+      409,
+      "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
     );
   }
 
-  const { error } = await input.supabaseAdmin
-    .from("donations")
-    .update(patch)
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.contributionId);
+  const effectiveValues = correctionEffectiveValues(
+    input.actionType,
+    input.payload,
+  );
 
-  if (error) {
-    throw new Error(error.message);
+  const insertResult = await input.supabaseAdmin
+    .from("contribution_adjustments")
+    .insert({
+      tenant_id: input.tenantId,
+      donation_id: input.contributionId,
+      adjustment_type: input.actionType,
+      status: "applied",
+      effective_values: effectiveValues,
+      reason: input.reason,
+      actor_profile_id: input.actorProfileId,
+      source_surface: input.sourceSurface,
+      base_revision: before.revision,
+      idempotency_key: input.idempotencyKey ?? null,
+    })
+    .select("id")
+    .single();
+
+  if (insertResult.error) {
+    const isDuplicateKey =
+      insertResult.error.code === "23505" && Boolean(input.idempotencyKey);
+    if (!isDuplicateKey) {
+      throw new Error(insertResult.error.message);
+    }
+
+    const existingResult = await input.supabaseAdmin
+      .from("contribution_adjustments")
+      .select("id")
+      .eq("tenant_id", input.tenantId)
+      .eq("idempotency_key", input.idempotencyKey!)
+      .maybeSingle();
+
+    if (existingResult.error || !existingResult.data) {
+      throw new Error(
+        existingResult.error?.message ??
+          "Adjustment already exists but could not be loaded for replay.",
+      );
+    }
+
+    return {
+      before: summarizeEffectiveDetail(before),
+      after: summarizeEffectiveDetail(before),
+      status: "applied" as const,
+      adjustmentId: String(
+        (existingResult.data as Record<string, unknown>).id ?? "",
+      ),
+      idempotentReplay: true,
+    };
   }
 
+  const adjustmentId = String(
+    ((insertResult.data ?? {}) as Record<string, unknown>).id ?? "",
+  );
   const after = await loadContributionDetailFromSupabase(input);
 
   return {
-    before: {
-      amount: before.amount.value,
-      donorId: before.donor?.id ?? null,
-      fundId: before.shared.designationSummary.fundId,
-      missionaryId: before.shared.designationSummary.missionaryId,
-      status: before.payment.status,
-    },
-    after: {
-      amount: after.amount.value,
-      donorId: after.donor?.id ?? null,
-      fundId: after.shared.designationSummary.fundId,
-      missionaryId: after.shared.designationSummary.missionaryId,
-      status: after.payment.status,
-    },
+    before: summarizeEffectiveDetail(before),
+    after: summarizeEffectiveDetail(after),
     status: "applied" as const,
+    adjustmentId,
+    idempotentReplay: false,
   };
 }
 

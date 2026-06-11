@@ -1,5 +1,6 @@
 import { buildContributionDetail } from "./detail-read-model";
 import { ApiHttpError } from "../../shared/http-errors";
+import { deriveEffectiveContribution } from "../contribution-shared/effective-values";
 
 import type { ContributionDetail } from "./detail-read-model";
 import type {
@@ -10,6 +11,10 @@ import type {
   DesignationAllocationInput,
   DesignationFundInput,
 } from "../contribution-shared/designation-set";
+import type {
+  ContributionAdjustmentEffectiveValues,
+  ContributionAdjustmentRecord,
+} from "../contribution-shared/effective-values";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdmin = AdminSupabaseClient;
@@ -134,11 +139,43 @@ async function fetchMissionaryLabel(
   };
 }
 
+export async function loadContributionAdjustments(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  contributionId: string;
+}): Promise<ContributionAdjustmentRecord[]> {
+  const { data, error } = await input.supabaseAdmin
+    .from("contribution_adjustments")
+    .select(
+      "id, adjustment_type, status, effective_values, reason, actor_profile_id, source_surface, created_at",
+    )
+    .eq("tenant_id", input.tenantId)
+    .eq("donation_id", input.contributionId)
+    .order("created_at", { ascending: true });
+
+  assertNoError(error, "Failed to load contribution adjustments.");
+
+  return ((data ?? []) as JsonRecord[]).map((row) => ({
+    id: asString(row.id) ?? "",
+    adjustmentType: asString(row.adjustment_type) ?? "unknown",
+    status: row.status === "reversed" ? "reversed" : "applied",
+    effectiveValues: (isRecord(row.effective_values)
+      ? row.effective_values
+      : {}) as ContributionAdjustmentEffectiveValues,
+    reason: asString(row.reason) ?? "",
+    actorProfileId: asString(row.actor_profile_id),
+    sourceSurface: asString(row.source_surface) ?? "api",
+    createdAt: asString(row.created_at) ?? new Date(0).toISOString(),
+  }));
+}
+
 async function loadDesignationSetData(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   stagedGiftId: string | null;
   donationFundId: string | null;
+  extraFundIds?: Array<string | null>;
+  extraMissionaryIds?: Array<string | null>;
 }): Promise<{
   allocations: DesignationAllocationInput[];
   funds: DesignationFundInput[];
@@ -168,15 +205,17 @@ async function loadDesignationSetData(input: {
     new Set(
       [
         input.donationFundId,
+        ...(input.extraFundIds ?? []),
         ...allocations.map((allocation) => allocation.fund_id),
       ].filter((id): id is string => Boolean(id)),
     ),
   );
   const missionaryIds = Array.from(
     new Set(
-      allocations
-        .map((allocation) => allocation.missionary_id)
-        .filter((id): id is string => Boolean(id)),
+      [
+        ...(input.extraMissionaryIds ?? []),
+        ...allocations.map((allocation) => allocation.missionary_id),
+      ].filter((id): id is string => Boolean(id)),
     ),
   );
 
@@ -319,14 +358,38 @@ export async function loadContributionDetailFromSupabase(input: {
       }
     : null;
 
+  const adjustments = await loadContributionAdjustments(input);
+  const effectivePreview = deriveEffectiveContribution({
+    original: {
+      amountCents: donation.amount,
+      fundId: donation.fundId,
+      missionaryId: donation.missionaryId,
+      paymentStatus: donation.status ?? "pending",
+    },
+    adjustments,
+  });
+
   const designationData = await loadDesignationSetData({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     stagedGiftId: stagedGift?.id ?? null,
     donationFundId: donation.fundId,
+    extraFundIds: [
+      effectivePreview.effective.fundId,
+      ...(effectivePreview.effectiveDesignationLines?.map(
+        (line) => line.fundId,
+      ) ?? []),
+    ],
+    extraMissionaryIds: [
+      effectivePreview.effective.missionaryId,
+      ...(effectivePreview.effectiveDesignationLines?.map(
+        (line) => line.missionaryId,
+      ) ?? []),
+    ],
   });
 
   return buildContributionDetail({
+    adjustments,
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
     allocationMissionaries: designationData.missionaries,
