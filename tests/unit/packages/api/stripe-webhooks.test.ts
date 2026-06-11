@@ -142,10 +142,22 @@ function createSupabaseDonationMock(row: Record<string, unknown> | null) {
       };
     }
 
-    if (
-      table === "staged_gift_allocations" ||
-      table === "staged_gift_audit_events"
-    ) {
+    if (table === "staged_gift_allocations") {
+      const makeFilter = () => {
+        const filter = {
+          eq: vi.fn(() => filter),
+          limit: vi.fn(() => filter),
+          maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+        };
+        return filter;
+      };
+      return {
+        insert: vi.fn(async () => ({ error: null })),
+        select: vi.fn(() => makeFilter()),
+      };
+    }
+
+    if (table === "staged_gift_audit_events") {
       return {
         insert: vi.fn(async () => ({ error: null })),
       };
