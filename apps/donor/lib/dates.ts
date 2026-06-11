@@ -14,11 +14,12 @@ export function makeDisplayDate(value?: string | number | Date): Date {
   if (typeof value === "string") {
     const match = DATE_ONLY_PATTERN.exec(value);
     if (match) {
-      return new globalThis.Date(
-        Number(match[1]),
-        Number(match[2]) - 1,
-        Number(match[3]),
-      );
+      const year = Number(match[1]);
+      const month = Number(match[2]);
+      const day = Number(match[3]);
+      if (month >= 1 && month <= 12 && day >= 1 && day <= 31) {
+        return new globalThis.Date(year, month - 1, day);
+      }
     }
   }
   return new globalThis.Date(value);

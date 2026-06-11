@@ -30,6 +30,25 @@ describe("makeDisplayDate", () => {
     const d = makeDisplayDate(1760000000000);
     expect(d.getTime()).toBe(1760000000000);
   });
+
+  it("out-of-range month falls through to native Date (no silent year rollover)", () => {
+    // "2026-13-01" matches the regex but month 13 is out of range; the guard
+    // rejects it and falls through to new Date("2026-13-01"), which is Invalid Date.
+    const d = makeDisplayDate("2026-13-01");
+    expect(Number.isNaN(d.getTime())).toBe(true);
+  });
+
+  it("day 31 on a short month passes the range guard (JS rolls the day; calendar clamping is out of scope)", () => {
+    // day=31 is within 1-31, so the guard allows it and JS rolls the date.
+    // e.g. June 31 becomes July 1 — acceptable: the guard rejects clearly-out-of-range
+    // months, not full calendar validation.
+    const d = makeDisplayDate("2026-06-31");
+    expect(Number.isNaN(d.getTime())).toBe(false);
+    // JS rolls June 31 to July 1
+    expect(d.getFullYear()).toBe(2026);
+    expect(d.getMonth()).toBe(6); // 6 = July
+    expect(d.getDate()).toBe(1);
+  });
 });
 
 describe("todayDateInputValue", () => {

@@ -432,7 +432,13 @@ async function readGoalRows(tenantId: string, missionaryId?: string) {
     throw new Error(toErrorMessage(error, "Failed to read member care goals."));
   }
 
-  return (data ?? []) as GoalRow[];
+  const rows = (data ?? []) as GoalRow[];
+  if (rows.length === 1000) {
+    console.warn(
+      "member-care: member_care_goals query hit its row limit; results may be truncated.",
+    );
+  }
+  return rows;
 }
 
 async function readRequirementRows(tenantId: string, missionaryId?: string) {
@@ -456,7 +462,13 @@ async function readRequirementRows(tenantId: string, missionaryId?: string) {
     );
   }
 
-  return (data ?? []) as RequirementRow[];
+  const rows = (data ?? []) as RequirementRow[];
+  if (rows.length === 1000) {
+    console.warn(
+      "member-care: member_care_requirements query hit its row limit; results may be truncated.",
+    );
+  }
+  return rows;
 }
 
 async function readPrivateNoteRows(
@@ -491,7 +503,13 @@ async function readPrivateNoteRows(
     );
   }
 
-  return (data ?? []) as PrivateNoteRow[];
+  const rows = (data ?? []) as PrivateNoteRow[];
+  if (rows.length === 500) {
+    console.warn(
+      "member-care: member_care_private_notes query hit its row limit; results may be truncated.",
+    );
+  }
+  return rows;
 }
 
 function applyGoalsAndRequirements(
