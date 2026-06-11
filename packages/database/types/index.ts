@@ -34,6 +34,8 @@ export type {
   CrmGiftHistoryColumnSettings,
   CrmGiftHistoryFiltersSortSettings,
   CrmGiftHistoryViewSettings,
+  CrmNamedView,
+  CrmNamedViewsResponse,
   CrmTablePreferencesResponse,
   CrmTableRowActionPreference,
   CrmViewSettingsLayer,

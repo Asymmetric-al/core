@@ -22,6 +22,13 @@ export {
 } from "./admin-crm-detail";
 export { useAdminCrmNotesGrid } from "./admin-crm-notes";
 export {
+  ADMIN_CRM_NAMED_VIEWS_QUERY_KEY,
+  useCreateCrmNamedView,
+  useCrmNamedViews,
+  useDeleteCrmNamedView,
+  useUpdateCrmNamedView,
+} from "./admin-crm-named-views";
+export {
   ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY,
   useCrmTablePreferences,
   useSaveCrmRowActionPin,

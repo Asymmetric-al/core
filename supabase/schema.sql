@@ -957,6 +957,26 @@ CREATE TABLE IF NOT EXISTS public.crm_table_preference_audit_events (
 CREATE INDEX IF NOT EXISTS idx_crm_table_preference_audit_tenant
     ON public.crm_table_preference_audit_events (tenant_id, table_id, created_at DESC);
 
+-- Named personal CRM gift-history views (ADR-CD-021, issue #273).
+CREATE TABLE IF NOT EXISTS public.crm_table_named_views (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    table_id TEXT NOT NULL,
+    name TEXT NOT NULL,
+    is_default BOOLEAN NOT NULL DEFAULT FALSE,
+    schema_version INTEGER NOT NULL DEFAULT 1,
+    pinned_action_id TEXT,
+    settings JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    UNIQUE (tenant_id, profile_id, table_id, name)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_crm_table_named_views_default
+    ON public.crm_table_named_views (tenant_id, profile_id, table_id)
+    WHERE is_default;
+
 -- 10. Follows (Donors following missionaries)
 CREATE TABLE IF NOT EXISTS public.follows (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
@@ -1886,6 +1906,7 @@ ALTER TABLE public.contribution_operation_batch_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crm_table_user_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crm_table_tenant_defaults ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.crm_table_preference_audit_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.crm_table_named_views ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_suppression_groups ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.email_suppressions ENABLE ROW LEVEL SECURITY;
@@ -1936,6 +1957,7 @@ REVOKE ALL ON TABLE public.contribution_operation_batch_items FROM anon, authent
 REVOKE ALL ON TABLE public.crm_table_user_preferences FROM anon, authenticated;
 REVOKE ALL ON TABLE public.crm_table_tenant_defaults FROM anon, authenticated;
 REVOKE ALL ON TABLE public.crm_table_preference_audit_events FROM anon, authenticated;
+REVOKE ALL ON TABLE public.crm_table_named_views FROM anon, authenticated;
 
 GRANT ALL ON TABLE public.tenant_email_settings TO service_role;
 GRANT ALL ON TABLE public.email_send_logs TO service_role;
@@ -1964,3 +1986,4 @@ GRANT ALL ON TABLE public.contribution_operation_batch_items TO service_role;
 GRANT ALL ON TABLE public.crm_table_user_preferences TO service_role;
 GRANT ALL ON TABLE public.crm_table_tenant_defaults TO service_role;
 GRANT ALL ON TABLE public.crm_table_preference_audit_events TO service_role;
+GRANT ALL ON TABLE public.crm_table_named_views TO service_role;

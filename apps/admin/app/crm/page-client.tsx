@@ -14,10 +14,14 @@ import {
 import {
   useAdminCrmRecordDetail,
   useAdminCrmRecordsInfiniteGrid,
+  useCreateCrmNamedView,
   useCreateLinkedCrmNote,
+  useCrmNamedViews,
   useCrmTablePreferences,
+  useDeleteCrmNamedView,
   useSaveCrmRowActionPin,
   useSaveCrmViewSettings,
+  useUpdateCrmNamedView,
 } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
@@ -59,6 +63,8 @@ import {
   DropdownMenuSubTrigger,
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Input } from "@asym/ui/components/shadcn/input";
+import { Label } from "@asym/ui/components/shadcn/label";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
 import {
   Sheet,
@@ -114,6 +120,7 @@ import type {
   CrmGiftHistoryFiltersSortSettings,
   CrmGiftHistoryViewSettings,
   CrmGiftInlineActions,
+  CrmNamedView,
   CrmTablePreferencesResponse,
   CrmViewSettingsScope,
 } from "@asym/database/types";
@@ -124,8 +131,9 @@ import type {
  */
 interface ViewSettingsPatch {
   pinnedActionId?: string | null;
-  columns?: CrmGiftHistoryColumnSettings | null;
-  filtersSort?: CrmGiftHistoryFiltersSortSettings | null;
+  columns?: Partial<CrmGiftHistoryColumnSettings> | null;
+  filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
+  activeViewId?: string | null;
 }
 
 const EMPTY_CELL_VALUE = "N/A";
@@ -411,6 +419,111 @@ function GiftHistoryViewSettingsMenu({
   );
 }
 
+function viewMutationErrorToast(error: unknown) {
+  toast.error(
+    error instanceof Error ? error.message : "Failed to update named views.",
+  );
+}
+
+/**
+ * Compact named-view switcher near the gift-history toolbar (#273).
+ * Views are personal-only; one can be the user's default.
+ */
+function GiftHistoryViewSwitcher({
+  views,
+  activeViewId,
+  onApplyView,
+  onSaveCurrentAs,
+  onRename,
+  onDuplicate,
+  onSetDefault,
+  onResetToSaved,
+  onDelete,
+}: {
+  views: CrmNamedView[];
+  activeViewId: string | null;
+  onApplyView: (view: CrmNamedView) => void;
+  onSaveCurrentAs: () => void;
+  onRename: (view: CrmNamedView) => void;
+  onDuplicate: (view: CrmNamedView) => void;
+  onSetDefault: (view: CrmNamedView) => void;
+  onResetToSaved: (view: CrmNamedView) => void;
+  onDelete: (view: CrmNamedView) => void;
+}) {
+  const activeView = views.find((view) => view.id === activeViewId) ?? null;
+  const defaultView = views.find((view) => view.isDefault) ?? null;
+  const label = activeView?.name ?? defaultView?.name ?? "Views";
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="outline"
+          size="sm"
+          className="h-8 max-w-36 gap-1 truncate text-xs"
+          aria-label="Gift history views"
+        >
+          {label}
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-64">
+        {views.length > 0 ? (
+          <DropdownMenuRadioGroup
+            value={activeViewId ?? ""}
+            onValueChange={(value) => {
+              const view = views.find((candidate) => candidate.id === value);
+              if (view) {
+                onApplyView(view);
+              }
+            }}
+          >
+            {views.map((view) => (
+              <DropdownMenuRadioItem key={view.id} value={view.id}>
+                {view.name}
+                {view.isDefault ? (
+                  <DropdownMenuShortcut>Default</DropdownMenuShortcut>
+                ) : null}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        ) : (
+          <DropdownMenuLabel className="text-xs font-normal text-muted-foreground">
+            No saved views yet.
+          </DropdownMenuLabel>
+        )}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem onSelect={onSaveCurrentAs}>
+          Save current as view…
+        </DropdownMenuItem>
+        {activeView ? (
+          <>
+            <DropdownMenuItem onSelect={() => onRename(activeView)}>
+              Rename “{activeView.name}”…
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => onDuplicate(activeView)}>
+              Duplicate
+            </DropdownMenuItem>
+            {activeView.isDefault ? null : (
+              <DropdownMenuItem onSelect={() => onSetDefault(activeView)}>
+                Set as default
+              </DropdownMenuItem>
+            )}
+            <DropdownMenuItem onSelect={() => onResetToSaved(activeView)}>
+              Reset to saved view
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              variant="destructive"
+              onSelect={() => onDelete(activeView)}
+            >
+              Delete view…
+            </DropdownMenuItem>
+          </>
+        ) : null}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
 function DetailDrawer({
   contact,
   onClose,
@@ -477,6 +590,133 @@ function DetailDrawer({
       }).settings,
     [tablePreferences],
   );
+
+  // Named personal views (#273).
+  const namedViewsQuery = useCrmNamedViews(CRM_GIFT_HISTORY_TABLE_ID);
+  const createViewMutation = useCreateCrmNamedView(CRM_GIFT_HISTORY_TABLE_ID);
+  const updateViewMutation = useUpdateCrmNamedView(CRM_GIFT_HISTORY_TABLE_ID);
+  const deleteViewMutation = useDeleteCrmNamedView(CRM_GIFT_HISTORY_TABLE_ID);
+  const namedViews = useMemo(
+    () => namedViewsQuery.data?.views ?? [],
+    [namedViewsQuery.data],
+  );
+  const activeViewId = tablePreferences?.user?.settings?.activeViewId ?? null;
+  const [viewNameDialog, setViewNameDialog] = useState<{
+    mode: "create" | "rename" | "duplicate";
+    view?: CrmNamedView;
+  } | null>(null);
+  const [viewNameInput, setViewNameInput] = useState("");
+  const [deleteViewDialog, setDeleteViewDialog] = useState<CrmNamedView | null>(
+    null,
+  );
+  const [nextDefaultChoice, setNextDefaultChoice] = useState("");
+
+  /** Applying a view copies its snapshot into the working preference. */
+  const applyNamedView = (view: CrmNamedView) => {
+    saveViewSettingsMutation.mutate(
+      {
+        columns: view.settings?.columns ?? null,
+        filtersSort: view.settings?.filtersSort ?? null,
+        pinnedActionId: view.pinnedActionId,
+        activeViewId: view.id,
+      },
+      { onError: viewMutationErrorToast },
+    );
+  };
+
+  // The default named view loads automatically when the user has no working
+  // preference record yet (#273). The ref guard keeps this one-shot; the
+  // effect runs without a dependency array because its guards are cheap and
+  // its inputs include a non-memoized helper.
+  const appliedDefaultViewRef = React.useRef(false);
+  useEffect(() => {
+    if (appliedDefaultViewRef.current) {
+      return;
+    }
+    if (!tablePreferencesQuery.data || tablePreferencesQuery.data.user) {
+      return;
+    }
+    const defaultView = namedViewsQuery.data?.views.find(
+      (view) => view.isDefault,
+    );
+    if (!defaultView) {
+      return;
+    }
+    appliedDefaultViewRef.current = true;
+    applyNamedView(defaultView);
+  });
+
+  const submitViewNameDialog = () => {
+    if (!viewNameDialog) {
+      return;
+    }
+    const name = viewNameInput.trim();
+    if (!name) {
+      return;
+    }
+
+    if (viewNameDialog.mode === "rename" && viewNameDialog.view) {
+      updateViewMutation.mutate(
+        { viewId: viewNameDialog.view.id, name },
+        { onError: viewMutationErrorToast },
+      );
+    } else if (viewNameDialog.mode === "duplicate" && viewNameDialog.view) {
+      createViewMutation.mutate(
+        {
+          name,
+          pinnedActionId: viewNameDialog.view.pinnedActionId,
+          columns: viewNameDialog.view.settings?.columns ?? undefined,
+          filtersSort: viewNameDialog.view.settings?.filtersSort ?? undefined,
+        },
+        { onError: viewMutationErrorToast },
+      );
+    } else {
+      // Save the current working settings and pin as a new view.
+      createViewMutation.mutate(
+        {
+          name,
+          pinnedActionId: tablePreferences?.user?.actionId ?? null,
+          columns: tablePreferences?.user?.settings?.columns ?? undefined,
+          filtersSort:
+            tablePreferences?.user?.settings?.filtersSort ?? undefined,
+        },
+        {
+          onError: viewMutationErrorToast,
+          onSuccess: ({ view }) => {
+            saveViewSettings({ activeViewId: view.id });
+          },
+        },
+      );
+    }
+    setViewNameDialog(null);
+    setViewNameInput("");
+  };
+
+  const confirmDeleteView = () => {
+    if (!deleteViewDialog) {
+      return;
+    }
+    const deletingActive = deleteViewDialog.id === activeViewId;
+    deleteViewMutation.mutate(
+      {
+        viewId: deleteViewDialog.id,
+        nextDefaultViewId:
+          deleteViewDialog.isDefault && nextDefaultChoice
+            ? nextDefaultChoice
+            : undefined,
+      },
+      {
+        onError: viewMutationErrorToast,
+        onSuccess: () => {
+          if (deletingActive) {
+            saveViewSettings({ activeViewId: null });
+          }
+        },
+      },
+    );
+    setDeleteViewDialog(null);
+    setNextDefaultChoice("");
+  };
 
   const resetPreview = pendingReset
     ? previewCrmViewSettingsReset({
@@ -842,6 +1082,34 @@ function DetailDrawer({
                           <Badge variant="secondary" className="text-[10px]">
                             {giftRows.length}
                           </Badge>
+                          <GiftHistoryViewSwitcher
+                            views={namedViews}
+                            activeViewId={activeViewId}
+                            onApplyView={applyNamedView}
+                            onSaveCurrentAs={() => {
+                              setViewNameInput("");
+                              setViewNameDialog({ mode: "create" });
+                            }}
+                            onRename={(view) => {
+                              setViewNameInput(view.name);
+                              setViewNameDialog({ mode: "rename", view });
+                            }}
+                            onDuplicate={(view) => {
+                              setViewNameInput(`${view.name} copy`);
+                              setViewNameDialog({ mode: "duplicate", view });
+                            }}
+                            onSetDefault={(view) =>
+                              updateViewMutation.mutate(
+                                { viewId: view.id, isDefault: true },
+                                { onError: viewMutationErrorToast },
+                              )
+                            }
+                            onResetToSaved={applyNamedView}
+                            onDelete={(view) => {
+                              setNextDefaultChoice("");
+                              setDeleteViewDialog(view);
+                            }}
+                          />
                           <GiftHistoryViewSettingsMenu
                             settings={viewSettings}
                             onPatch={saveViewSettings}
@@ -1082,6 +1350,116 @@ function DetailDrawer({
               </Button>
               <Button className="h-11" onClick={confirmPendingReset}>
                 Reset
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+      {viewNameDialog ? (
+        <Dialog open onOpenChange={(open) => !open && setViewNameDialog(null)}>
+          <DialogContent
+            className="sm:max-w-md"
+            data-testid="named-view-name-dialog"
+          >
+            <DialogTitle>
+              {viewNameDialog.mode === "rename"
+                ? "Rename view"
+                : viewNameDialog.mode === "duplicate"
+                  ? "Duplicate view"
+                  : "Save current as view"}
+            </DialogTitle>
+            <DialogDescription>
+              Named views are personal — they save your columns, filters, sort,
+              and pinned row action.
+            </DialogDescription>
+            <div className="space-y-1.5">
+              <Label htmlFor="named-view-name">View name</Label>
+              <Input
+                id="named-view-name"
+                value={viewNameInput}
+                onChange={(event) => setViewNameInput(event.target.value)}
+                className="h-11"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="h-11"
+                onClick={() => setViewNameDialog(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="h-11"
+                disabled={!viewNameInput.trim()}
+                onClick={submitViewNameDialog}
+              >
+                Save view
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+      {deleteViewDialog ? (
+        <Dialog
+          open
+          onOpenChange={(open) => !open && setDeleteViewDialog(null)}
+        >
+          <DialogContent
+            className="sm:max-w-md"
+            data-testid="named-view-delete-dialog"
+          >
+            <DialogTitle>Delete “{deleteViewDialog.name}”</DialogTitle>
+            <DialogDescription>
+              {deleteViewDialog.isDefault
+                ? "This is your default view. Choose another default or fall back to the tenant/system default."
+                : "This personal view will be removed. Your current working settings stay as they are."}
+            </DialogDescription>
+            {deleteViewDialog.isDefault ? (
+              <div className="space-y-2">
+                {namedViews
+                  .filter((view) => view.id !== deleteViewDialog.id)
+                  .map((view) => (
+                    <label
+                      key={view.id}
+                      className="flex items-center gap-2 text-sm"
+                    >
+                      <input
+                        type="radio"
+                        name="next-default-view"
+                        value={view.id}
+                        checked={nextDefaultChoice === view.id}
+                        onChange={() => setNextDefaultChoice(view.id)}
+                      />
+                      Make “{view.name}” the default
+                    </label>
+                  ))}
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    name="next-default-view"
+                    value=""
+                    checked={nextDefaultChoice === ""}
+                    onChange={() => setNextDefaultChoice("")}
+                  />
+                  No default (use tenant/system default)
+                </label>
+              </div>
+            ) : null}
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="h-11"
+                onClick={() => setDeleteViewDialog(null)}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                className="h-11"
+                onClick={confirmDeleteView}
+              >
+                Delete view
               </Button>
             </div>
           </DialogContent>

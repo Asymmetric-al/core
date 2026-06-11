@@ -94,6 +94,8 @@ export interface CrmViewSettingsSavePatch {
   pinnedActionId?: string | null;
   columns?: Partial<CrmGiftHistoryColumnSettings> | null;
   filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
+  /** Named personal view applied by the user (issue #273). */
+  activeViewId?: string | null;
 }
 
 async function saveCrmTablePreferencePatch(input: {
@@ -141,6 +143,13 @@ function applyPatchToLayer(
       delete next.filtersSort;
     } else {
       next.filtersSort = patch.filtersSort;
+    }
+  }
+  if (patch.activeViewId !== undefined) {
+    if (patch.activeViewId === null) {
+      delete next.activeViewId;
+    } else {
+      next.activeViewId = patch.activeViewId;
     }
   }
   return next;

@@ -1,6 +1,12 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import {
+  createCrmNamedView,
+  deleteCrmNamedView,
+  listCrmNamedViews,
+  updateCrmNamedView,
+} from "./named-views";
 import { CRM_GIFT_HISTORY_TABLE_ID } from "./row-action";
 import {
   getCrmTablePreferences,
@@ -46,6 +52,7 @@ const savePreferenceSchema = z.object({
   pinnedActionId: z.string().min(1).nullable().optional(),
   columns: columnsSchema.nullable().optional(),
   filtersSort: filtersSortSchema.nullable().optional(),
+  activeViewId: z.string().min(1).nullable().optional(),
 });
 
 const tenantDefaultSchema = savePreferenceSchema.extend({
@@ -56,6 +63,7 @@ function settingsPatchFromBody(body: {
   columns?: CrmViewSettingsPatch["columns"];
   filtersSort?: CrmViewSettingsPatch["filtersSort"];
   delegatedManagerProfileIds?: string[];
+  activeViewId?: string | null;
 }): CrmViewSettingsPatch {
   const patch: CrmViewSettingsPatch = {};
   if (body.columns !== undefined) {
@@ -67,7 +75,48 @@ function settingsPatchFromBody(body: {
   if (body.delegatedManagerProfileIds !== undefined) {
     patch.delegatedManagerProfileIds = body.delegatedManagerProfileIds;
   }
+  if (body.activeViewId !== undefined) {
+    patch.activeViewId = body.activeViewId;
+  }
   return patch;
+}
+
+const namedViewCreateSchema = z.object({
+  tableId: tableIdSchema.default(CRM_GIFT_HISTORY_TABLE_ID),
+  name: z.string().min(1).max(80),
+  isDefault: z.boolean().optional(),
+  pinnedActionId: z.string().min(1).nullable().optional(),
+  columns: columnsSchema.nullable().optional(),
+  filtersSort: filtersSortSchema.nullable().optional(),
+});
+
+const namedViewUpdateSchema = z.object({
+  tableId: tableIdSchema.default(CRM_GIFT_HISTORY_TABLE_ID),
+  name: z.string().min(1).max(80).optional(),
+  isDefault: z.boolean().optional(),
+  pinnedActionId: z.string().min(1).nullable().optional(),
+  columns: columnsSchema.nullable().optional(),
+  filtersSort: filtersSortSchema.nullable().optional(),
+});
+
+function getViewIdFromPath(request: Request): string {
+  const segments = new URL(request.url).pathname.split("/").filter(Boolean);
+  const viewsIndex = segments.indexOf("views");
+  const viewId = viewsIndex >= 0 ? segments[viewsIndex + 1] : null;
+  if (!viewId) {
+    throw new ApiHttpError(400, "Missing named view id.");
+  }
+  return viewId;
+}
+
+function namedViewSettingsFromBody(body: {
+  columns?: CrmViewSettingsPatch["columns"];
+  filtersSort?: CrmViewSettingsPatch["filtersSort"];
+}) {
+  return {
+    ...(body.columns ? { columns: body.columns } : {}),
+    ...(body.filtersSort ? { filtersSort: body.filtersSort } : {}),
+  };
 }
 
 function requireProfileId(profileId: string | null): string {
@@ -216,6 +265,138 @@ export const PUT_TENANT_DEFAULT = withOperation(
       return toErrorResponse(
         error,
         "Failed to save the tenant default.",
+        requestId,
+      );
+    }
+  },
+  {
+    roles: ["staff", "admin", "super_admin"],
+  },
+);
+
+export const GET_NAMED_VIEWS = withOperation(
+  async ({ auth, request, requestId, supabaseAdmin }) => {
+    const actor = requireCrmAccess(auth, {
+      action: "crm.table_preferences.read",
+      resourceType: "record",
+    });
+
+    try {
+      const tableId = resolveTableId(request);
+      const views = await listCrmNamedViews({
+        supabaseAdmin,
+        tenantId: actor.tenantId,
+        profileId: requireProfileId(actor.profileId),
+        tableId,
+      });
+
+      return NextResponse.json({ tableId, views, requestId });
+    } catch (error) {
+      return toErrorResponse(error, "Failed to load named views.", requestId);
+    }
+  },
+  {
+    roles: ["staff", "admin", "super_admin"],
+  },
+);
+
+export const POST_NAMED_VIEW = withOperation(
+  async ({ auth, request, requestId, supabaseAdmin }) => {
+    const actor = requireCrmAccess(auth, {
+      action: "crm.table_preferences.write",
+      resourceType: "record",
+    });
+
+    try {
+      const body = namedViewCreateSchema.parse(await ensureJsonBody(request));
+      const view = await createCrmNamedView({
+        supabaseAdmin,
+        tenantId: actor.tenantId,
+        profileId: requireProfileId(actor.profileId),
+        tableId: body.tableId,
+        name: body.name,
+        isDefault: body.isDefault,
+        pinnedActionId: body.pinnedActionId ?? null,
+        settings: namedViewSettingsFromBody(body),
+      });
+
+      return NextResponse.json({ view, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to save the named view.",
+        requestId,
+      );
+    }
+  },
+  {
+    roles: ["staff", "admin", "super_admin"],
+  },
+);
+
+export const PUT_NAMED_VIEW = withOperation(
+  async ({ auth, request, requestId, supabaseAdmin }) => {
+    const actor = requireCrmAccess(auth, {
+      action: "crm.table_preferences.write",
+      resourceType: "record",
+    });
+
+    try {
+      const viewId = getViewIdFromPath(request);
+      const body = namedViewUpdateSchema.parse(await ensureJsonBody(request));
+      await updateCrmNamedView({
+        supabaseAdmin,
+        tenantId: actor.tenantId,
+        profileId: requireProfileId(actor.profileId),
+        tableId: body.tableId,
+        viewId,
+        name: body.name,
+        isDefault: body.isDefault,
+        pinnedActionId: body.pinnedActionId,
+        settings:
+          body.columns !== undefined || body.filtersSort !== undefined
+            ? namedViewSettingsFromBody(body)
+            : undefined,
+      });
+
+      return NextResponse.json({ ok: true, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to update the named view.",
+        requestId,
+      );
+    }
+  },
+  {
+    roles: ["staff", "admin", "super_admin"],
+  },
+);
+
+export const DELETE_NAMED_VIEW = withOperation(
+  async ({ auth, request, requestId, supabaseAdmin }) => {
+    const actor = requireCrmAccess(auth, {
+      action: "crm.table_preferences.write",
+      resourceType: "record",
+    });
+
+    try {
+      const viewId = getViewIdFromPath(request);
+      const url = new URL(request.url);
+      await deleteCrmNamedView({
+        supabaseAdmin,
+        tenantId: actor.tenantId,
+        profileId: requireProfileId(actor.profileId),
+        tableId: resolveTableId(request),
+        viewId,
+        nextDefaultViewId: url.searchParams.get("nextDefaultViewId"),
+      });
+
+      return NextResponse.json({ ok: true, requestId });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to delete the named view.",
         requestId,
       );
     }

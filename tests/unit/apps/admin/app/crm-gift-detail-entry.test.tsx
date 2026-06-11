@@ -20,8 +20,13 @@ const useCreateLinkedCrmNoteMock = vi.fn();
 const useCrmTablePreferencesMock = vi.fn();
 const useSaveCrmRowActionPinMock = vi.fn();
 const useSaveCrmViewSettingsMock = vi.fn();
+const useCrmNamedViewsMock = vi.fn();
+const useCreateCrmNamedViewMock = vi.fn();
+const useUpdateCrmNamedViewMock = vi.fn();
+const useDeleteCrmNamedViewMock = vi.fn();
 
 vi.mock("@asym/database/hooks", () => ({
+  ADMIN_CRM_NAMED_VIEWS_QUERY_KEY: ["admin", "crm", "named-views"],
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm", "records"],
   ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY: ["admin", "crm", "table-preferences"],
@@ -32,10 +37,14 @@ vi.mock("@asym/database/hooks", () => ({
   ],
   useAdminCrmRecordDetail: useAdminCrmRecordDetailMock,
   useAdminCrmRecordsInfiniteGrid: useAdminCrmRecordsInfiniteGridMock,
+  useCreateCrmNamedView: useCreateCrmNamedViewMock,
   useCreateLinkedCrmNote: useCreateLinkedCrmNoteMock,
+  useCrmNamedViews: useCrmNamedViewsMock,
   useCrmTablePreferences: useCrmTablePreferencesMock,
+  useDeleteCrmNamedView: useDeleteCrmNamedViewMock,
   useSaveCrmRowActionPin: useSaveCrmRowActionPinMock,
   useSaveCrmViewSettings: useSaveCrmViewSettingsMock,
+  useUpdateCrmNamedView: useUpdateCrmNamedViewMock,
 }));
 
 const routerPushMock = vi.fn();
@@ -415,6 +424,19 @@ describe("apps/admin/app/crm gift detail entry", () => {
       mutate: vi.fn(),
     });
     useSaveCrmViewSettingsMock.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    useCrmNamedViewsMock.mockReturnValue(mockQuery({ data: undefined }));
+    useCreateCrmNamedViewMock.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    useUpdateCrmNamedViewMock.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    useDeleteCrmNamedViewMock.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
     });
@@ -833,6 +855,163 @@ describe("apps/admin/app/crm gift detail entry", () => {
     await waitFor(() => {
       expect(viewSettingsMutate).toHaveBeenCalledWith(
         { columns: null },
+        expect.anything(),
+      );
+    });
+  });
+
+  it("applies the default named view automatically when no working preference exists", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00a";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: null,
+          tenantDefault: null,
+        },
+      }),
+    );
+    useCrmNamedViewsMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          views: [
+            {
+              id: "view-1",
+              name: "Receipts focus",
+              isDefault: true,
+              schemaVersion: 1,
+              pinnedActionId: "resend_receipt",
+              settings: { columns: { designation: false } },
+            },
+          ],
+        },
+      }),
+    );
+    const viewSettingsMutate = vi.fn();
+    useSaveCrmViewSettingsMock.mockReturnValue({
+      isPending: false,
+      mutate: viewSettingsMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    await waitFor(() => {
+      expect(viewSettingsMutate).toHaveBeenCalledWith(
+        {
+          columns: { designation: false },
+          filtersSort: null,
+          pinnedActionId: "resend_receipt",
+          activeViewId: "view-1",
+        },
+        expect.anything(),
+      );
+    });
+  });
+
+  it("deleting the default view asks for a replacement default", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00b";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: {
+            actionId: null,
+            schemaVersion: 1,
+            settings: { activeViewId: "view-1" },
+          },
+          tenantDefault: null,
+        },
+      }),
+    );
+    useCrmNamedViewsMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          views: [
+            {
+              id: "view-1",
+              name: "Default view",
+              isDefault: true,
+              schemaVersion: 1,
+              pinnedActionId: null,
+              settings: null,
+            },
+            {
+              id: "view-2",
+              name: "Backup view",
+              isDefault: false,
+              schemaVersion: 1,
+              pinnedActionId: null,
+              settings: null,
+            },
+          ],
+        },
+      }),
+    );
+    const deleteMutate = vi.fn();
+    useDeleteCrmNamedViewMock.mockReturnValue({
+      isPending: false,
+      mutate: deleteMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    // The compact switcher sits near the gift-history toolbar and shows
+    // the active view name.
+    const switcher = await view.findByRole("button", {
+      name: "Gift history views",
+    });
+    expect(switcher.textContent).toContain("Default view");
+    fireEvent.keyDown(switcher, { key: "Enter" });
+
+    fireEvent.click(await view.findByText("Delete view…"));
+
+    const dialog = await view.findByTestId("named-view-delete-dialog");
+    expect(dialog.textContent).toMatch(/choose another default/i);
+
+    fireEvent.click(
+      within(dialog).getByLabelText(/make “backup view” the default/i),
+    );
+    fireEvent.click(
+      within(dialog).getByRole("button", { name: "Delete view" }),
+    );
+
+    await waitFor(() => {
+      expect(deleteMutate).toHaveBeenCalledWith(
+        { viewId: "view-1", nextDefaultViewId: "view-2" },
         expect.anything(),
       );
     });

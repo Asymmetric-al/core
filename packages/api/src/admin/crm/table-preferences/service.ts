@@ -63,6 +63,7 @@ export interface CrmViewSettingsPatch {
   columns?: Partial<CrmGiftHistoryColumnSettings> | null;
   filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
   delegatedManagerProfileIds?: string[] | null;
+  activeViewId?: string | null;
 }
 
 function applySettingsPatch(
@@ -92,6 +93,14 @@ function applySettingsPatch(
       delete next.delegatedManagerProfileIds;
     } else {
       next.delegatedManagerProfileIds = patch.delegatedManagerProfileIds;
+    }
+  }
+
+  if (patch.activeViewId !== undefined) {
+    if (patch.activeViewId === null) {
+      delete next.activeViewId;
+    } else {
+      next.activeViewId = patch.activeViewId;
     }
   }
 

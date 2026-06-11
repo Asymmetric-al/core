@@ -29,6 +29,8 @@ export interface CrmViewSettingsLayer {
   filtersSort?: Partial<CrmGiftHistoryFiltersSortSettings> | null;
   /** Delegated tenant-default managers (tenant default layer only). */
   delegatedManagerProfileIds?: string[] | null;
+  /** The named personal view last applied by the user (issue #273). */
+  activeViewId?: string | null;
 }
 
 export type CrmViewSettingsScope =
@@ -54,4 +56,23 @@ export interface CrmTablePreferencesResponse {
   schemaVersion: number;
   user: CrmTableRowActionPreference | null;
   tenantDefault: CrmTableRowActionPreference | null;
+}
+
+/**
+ * Personal-only named view snapshot (issue #273): columns, filters/sort, and
+ * pinned row action under a user-chosen name. One view per user/table can be
+ * the default. No sharing or team views.
+ */
+export interface CrmNamedView {
+  id: string;
+  name: string;
+  isDefault: boolean;
+  schemaVersion: number;
+  pinnedActionId: string | null;
+  settings: CrmViewSettingsLayer | null;
+}
+
+export interface CrmNamedViewsResponse {
+  tableId: string;
+  views: CrmNamedView[];
 }
