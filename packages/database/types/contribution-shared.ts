@@ -40,6 +40,40 @@ export interface SharedContributionDesignationSummary {
   fundName: string;
   missionaryId: string | null;
   missionaryName: string | null;
+  /** Number of designation lines the summary represents (1 when not split). */
+  lineCount: number;
+}
+
+export type ContributionDesignationFundType =
+  | "missionary"
+  | "project"
+  | "campaign"
+  | "general";
+
+/**
+ * One donor-intent allocation line (ADR-CD-008 / ADR-CD-010). Lines are equal
+ * — there is intentionally no primary flag — and every line resolves to
+ * exactly one fund (General Fund when donor intent is unspecified).
+ */
+export interface ContributionDesignationLine {
+  id: string;
+  amountCents: number;
+  currencyCode: string;
+  fundId: string | null;
+  fundName: string;
+  fundType: ContributionDesignationFundType;
+  missionaryId: string | null;
+  missionaryName: string | null;
+  memo: string | null;
+  restriction: string | null;
+  correctionState: SharedContributionCorrectionState;
+}
+
+export interface ContributionDesignationSet {
+  lines: ContributionDesignationLine[];
+  totalAmountCents: number;
+  reconcilesToGiftAmount: boolean;
+  issues: string[];
 }
 
 export interface SharedContributionRowFields {

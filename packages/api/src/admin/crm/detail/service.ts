@@ -1,5 +1,6 @@
 import { buildCrmGiftHistoryRow } from "./gift-history";
 import { ApiHttpError } from "../../../shared/http-errors";
+import { buildContributionDesignationSet } from "../../contribution-shared/designation-set";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
@@ -41,6 +42,24 @@ interface DonationRow {
 interface CorrectionRow {
   donation_id: string;
   status: string;
+}
+
+interface AllocationRow {
+  id: string;
+  staged_gift_id: string;
+  amount: number | string | null;
+  fund_id: string | null;
+  missionary_id: string | null;
+  memo: string | null;
+}
+
+interface FundMetaRow {
+  id: string;
+  name: string | null;
+  missionary_id: string | null;
+  goal_amount: number | string | null;
+  start_date: string | null;
+  end_date: string | null;
 }
 
 interface StagedGiftRow {
@@ -336,6 +355,40 @@ export async function getAdminCrmDonorDetail(input: {
     correctionsByDonationId.set(correction.donation_id, existing);
   }
 
+  const allocationsResult =
+    stagedGiftIds.length > 0
+      ? await input.supabaseAdmin
+          .from("staged_gift_allocations")
+          .select("id, staged_gift_id, amount, fund_id, missionary_id, memo")
+          .eq("tenant_id", input.tenantId)
+          .in("staged_gift_id", stagedGiftIds)
+          .order("created_at", { ascending: true })
+      : { data: [], error: null };
+  assertNoError(allocationsResult.error, "Failed to load designation lines.");
+  const allocationRows = (allocationsResult.data ?? []) as AllocationRow[];
+  const allocationsByStagedGiftId = new Map<
+    string,
+    Array<{
+      id: string;
+      amount: number;
+      fund_id: string | null;
+      missionary_id: string | null;
+      memo: string | null;
+    }>
+  >();
+  for (const allocation of allocationRows) {
+    const existing =
+      allocationsByStagedGiftId.get(allocation.staged_gift_id) ?? [];
+    existing.push({
+      id: allocation.id,
+      amount: toCents(allocation.amount),
+      fund_id: allocation.fund_id,
+      missionary_id: allocation.missionary_id,
+      memo: allocation.memo,
+    });
+    allocationsByStagedGiftId.set(allocation.staged_gift_id, existing);
+  }
+
   const activityResult = await input.supabaseAdmin
     .from("donor_activities")
     .select("id, type, title, description, amount, date, created_at")
@@ -370,17 +423,42 @@ export async function getAdminCrmDonorDetail(input: {
     ...donations.map((donation) => donation.fund_id),
     ...stagedGifts.map((gift) => gift.fund_id),
     ...pledges.map((pledge) => pledge.fund_id),
+    ...allocationRows.map((allocation) => allocation.fund_id),
   ]);
   const missionaryIds = mergeUniqueIds([
     ...donations.map((donation) => donation.missionary_id),
     ...stagedGifts.map((gift) => gift.missionary_id),
     ...pledges.map((pledge) => pledge.missionary_id),
+    ...allocationRows.map((allocation) => allocation.missionary_id),
     donor.missionary_id,
   ]);
-  const [fundsById, missionariesById] = await Promise.all([
-    fetchLabels(input.supabaseAdmin, "funds", fundIds),
+  const [fundsMetaResult, missionariesById] = await Promise.all([
+    fundIds.length > 0
+      ? input.supabaseAdmin
+          .from("funds")
+          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .in("id", fundIds)
+      : Promise.resolve({ data: [], error: null }),
     fetchLabels(input.supabaseAdmin, "missionaries", missionaryIds),
   ]);
+  assertNoError(fundsMetaResult.error, "Failed to load fund metadata.");
+  const fundsMetaById = new Map(
+    ((fundsMetaResult.data ?? []) as FundMetaRow[]).map((fund) => [
+      fund.id,
+      {
+        id: fund.id,
+        name: fund.name,
+        missionary_id: fund.missionary_id,
+        goal_amount:
+          fund.goal_amount == null ? null : toCents(fund.goal_amount),
+        start_date: fund.start_date,
+        end_date: fund.end_date,
+      },
+    ]),
+  );
+  const fundsById = new Map<string, string | null>(
+    Array.from(fundsMetaById.values()).map((fund) => [fund.id, fund.name]),
+  );
 
   const stagedByDonationId = new Map(
     stagedGifts.map((gift) => [gift.donation_id, gift]),
@@ -394,8 +472,25 @@ export async function getAdminCrmDonorDetail(input: {
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
     const link = stagedGift ? linkByStagedGiftId.get(stagedGift.id) : null;
+    const allocations = stagedGift
+      ? (allocationsByStagedGiftId.get(stagedGift.id) ?? [])
+      : [];
+    const designationSet = buildContributionDesignationSet({
+      donation: {
+        id: donation.id,
+        amount: toCents(donation.amount),
+        currency: donation.currency ?? "usd",
+        fund_id: donation.fund_id,
+        missionary_id: donation.missionary_id,
+      },
+      effectiveAmountCents: toCents(donation.amount),
+      allocations,
+      funds: fundsMetaById,
+      missionaries: missionariesById,
+    });
 
     return buildCrmGiftHistoryRow({
+      designationSet,
       donation: {
         id: donation.id,
         donor_id: donation.donor_id,

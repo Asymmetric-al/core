@@ -46,6 +46,7 @@ function boneyardRow(
         fundName: row.fundName,
         missionaryId: row.missionaryId ?? null,
         missionaryName: row.missionaryName ?? null,
+        lineCount: 1,
       },
       paymentStatus: row.status,
       receiptStatus,

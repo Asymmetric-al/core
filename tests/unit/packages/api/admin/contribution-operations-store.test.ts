@@ -89,6 +89,12 @@ describe("contribution operations store", () => {
       contributionId: "donation_1",
     });
 
-    expect(detail.designation.missionaryName).toBe("worker@example.com");
+    expect(detail.designations.lines).toHaveLength(1);
+    expect(detail.designations.lines[0]!.missionaryName).toBe(
+      "worker@example.com",
+    );
+    expect(detail.shared.designationSummary.missionaryName).toBe(
+      "worker@example.com",
+    );
   });
 });

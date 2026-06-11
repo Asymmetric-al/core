@@ -1,5 +1,6 @@
 "use client";
 
+import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
 import {
   Avatar,
@@ -30,6 +31,10 @@ import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
 import type { ContributionActionAvailability } from "@asym/api/admin/contribution-operations";
+import type {
+  ContributionDesignationFundType,
+  ContributionDesignationSet,
+} from "@asym/database/types";
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
@@ -95,7 +100,19 @@ interface ContributionDetailSheetProps {
    * legacy client-side gating below only applies when it is absent.
    */
   actionAvailability?: ContributionActionAvailability[];
+  /**
+   * The gift's complete designation set (ADR-CD-008 / ADR-CD-011). Lines
+   * render equally — compact rows with expandable per-line context.
+   */
+  designations?: ContributionDesignationSet;
 }
+
+const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
+  missionary: "Missionary fund",
+  project: "Project fund",
+  campaign: "Campaign",
+  general: "General fund",
+};
 
 const ACTION_LABELS: Partial<
   Record<ContributionActionAvailability["actionType"], string>
@@ -113,6 +130,7 @@ export function ContributionDetailSheet({
   onSendReceipt,
   isActionPending = false,
   actionAvailability,
+  designations,
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
@@ -264,12 +282,14 @@ export function ContributionDetailSheet({
 
               <DetailField label="Source">{contribution.source}</DetailField>
 
-              <DetailField label="Fund">
-                <span>{contribution.fundName}</span>
-                <span className="block font-mono text-xs text-muted-foreground">
-                  {contribution.fundCode}
-                </span>
-              </DetailField>
+              {!designations && (
+                <DetailField label="Fund">
+                  <span>{contribution.fundName}</span>
+                  <span className="block font-mono text-xs text-muted-foreground">
+                    {contribution.fundCode}
+                  </span>
+                </DetailField>
+              )}
 
               <DetailField label="Transaction ID" mono>
                 {contribution.transactionId}
@@ -319,6 +339,92 @@ export function ContributionDetailSheet({
                 </DetailField>
               )}
             </div>
+
+            {/* ---- Designations (ADR-CD-008 / ADR-CD-011) ---- */}
+            {designations && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Designations
+                  </p>
+                  {!designations.reconcilesToGiftAmount && (
+                    <div
+                      role="note"
+                      className="rounded-lg border border-border bg-amber-50/50 p-3 dark:bg-amber-950/20"
+                    >
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Designation lines do not reconcile to the gift amount.
+                        Review the designation set before relying on these
+                        allocations.
+                      </p>
+                    </div>
+                  )}
+                  <ul className="space-y-2">
+                    {designations.lines.map((line) => {
+                      const hasContext = Boolean(
+                        line.memo || line.restriction || line.missionaryName,
+                      );
+
+                      return (
+                        <li
+                          key={line.id}
+                          className="rounded-lg border border-border bg-card"
+                        >
+                          <details className="group">
+                            <summary
+                              className={cn(
+                                "flex items-center justify-between gap-3 p-3",
+                                hasContext
+                                  ? "cursor-pointer list-none"
+                                  : "pointer-events-none list-none",
+                              )}
+                            >
+                              <span className="min-w-0">
+                                <span className="block truncate text-sm font-semibold text-foreground">
+                                  {line.fundName}
+                                </span>
+                                <span className="block text-[10px] uppercase tracking-wider text-muted-foreground">
+                                  {FUND_TYPE_LABELS[line.fundType]}
+                                </span>
+                              </span>
+                              <span className="shrink-0 text-sm font-semibold font-mono tabular-nums text-foreground">
+                                {formatSharedContributionAmount(
+                                  line.amountCents,
+                                  line.currencyCode,
+                                )}
+                              </span>
+                            </summary>
+                            {hasContext && (
+                              <div className="space-y-1 border-t border-border px-3 py-2">
+                                {line.missionaryName && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Supports{" "}
+                                    <span className="font-medium text-foreground">
+                                      {line.missionaryName}
+                                    </span>
+                                  </p>
+                                )}
+                                {line.memo && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Donor memo: “{line.memo}”
+                                  </p>
+                                )}
+                                {line.restriction && (
+                                  <p className="text-xs text-muted-foreground">
+                                    Restriction: {line.restriction}
+                                  </p>
+                                )}
+                              </div>
+                            )}
+                          </details>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              </>
+            )}
 
             {/* ---- Notes ---- */}
             {contribution.notes && (

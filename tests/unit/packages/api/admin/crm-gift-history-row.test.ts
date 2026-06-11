@@ -92,6 +92,100 @@ describe("admin/crm/detail/gift-history", () => {
     expect(row.stagedGiftId).toBeNull();
   });
 
+  it("derives split-gift summaries from the same designation set as the Hub", () => {
+    const designationSet = {
+      lines: [
+        {
+          id: "alloc-1",
+          amountCents: 10_000,
+          currencyCode: "USD",
+          fundId: "fund-1",
+          fundName: "Clean Water Initiative",
+          fundType: "project" as const,
+          missionaryId: null,
+          missionaryName: null,
+          memo: null,
+          restriction: null,
+          correctionState: "none" as const,
+        },
+        {
+          id: "alloc-2",
+          amountCents: 15_000,
+          currencyCode: "USD",
+          fundId: "fund-2",
+          fundName: "Martinez Family Support",
+          fundType: "missionary" as const,
+          missionaryId: "missionary-1",
+          missionaryName: "John Martinez",
+          memo: null,
+          restriction: null,
+          correctionState: "none" as const,
+        },
+      ],
+      totalAmountCents: 25_000,
+      reconcilesToGiftAmount: true,
+      issues: [],
+    };
+
+    const crmRow = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift: { ...stagedGift, twenty_record_id: null },
+      designationSet,
+    });
+
+    const hubRow = buildContributionGridRow({
+      donation: {
+        ...donation,
+        donation_type: "one_time",
+        payment_method: "card",
+        is_recurring: false,
+        recurring_interval: null,
+        notes: null,
+        stripe_payment_intent_id: "pi_1",
+        campaign_id: null,
+        pledge_id: null,
+        processed_at: null,
+        completed_at: null,
+        failed_at: null,
+        error_code: null,
+        error_message: null,
+        stripe_charge_id: null,
+        source: "online",
+      },
+      donor: {
+        ...donor,
+        phone: null,
+        type: null,
+        location: null,
+        organization: null,
+        notes: null,
+      },
+      profile: null,
+      fund,
+      missionary,
+      stagedGift: {
+        ...stagedGift,
+        review_reason: null,
+        receipt_send_log_id: null,
+      },
+      designationSet,
+    });
+
+    expect(crmRow.shared.designationSummary).toEqual({
+      fundId: null,
+      fundName: "2 designations",
+      missionaryId: null,
+      missionaryName: null,
+      lineCount: 2,
+    });
+    expect(crmRow.shared.designationSummary).toEqual(
+      hubRow.shared.designationSummary,
+    );
+  });
+
   it("produces the identical shared fields the Contributions Hub row produces", () => {
     const corrections = [{ status: "pending" }];
     const crmRow = buildCrmGiftHistoryRow({

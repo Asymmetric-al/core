@@ -133,3 +133,92 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
     ).toBeTruthy();
   });
 });
+
+describe("ContributionDetailSheet designation set", () => {
+  it("renders every designation line equally with expandable context", () => {
+    const contribution = boneyardContributionsFixture[0]!;
+
+    render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        designations={{
+          lines: [
+            {
+              id: "alloc-1",
+              amountCents: 10_000,
+              currencyCode: "USD",
+              fundId: "fund-1",
+              fundName: "Clean Water Initiative",
+              fundType: "project",
+              missionaryId: null,
+              missionaryName: null,
+              memo: "water project",
+              restriction: null,
+              correctionState: "none",
+            },
+            {
+              id: "alloc-2",
+              amountCents: 15_000,
+              currencyCode: "USD",
+              fundId: "fund-2",
+              fundName: "Martinez Family Support",
+              fundType: "missionary",
+              missionaryId: "missionary-1",
+              missionaryName: "John Martinez",
+              memo: null,
+              restriction: null,
+              correctionState: "none",
+            },
+          ],
+          totalAmountCents: 25_000,
+          reconcilesToGiftAmount: true,
+          issues: [],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Clean Water Initiative")).toBeTruthy();
+    expect(screen.getByText("Martinez Family Support")).toBeTruthy();
+    expect(screen.getByText("$100.00")).toBeTruthy();
+    expect(screen.getByText("$150.00")).toBeTruthy();
+    expect(screen.getByText(/water project/i)).toBeTruthy();
+    expect(screen.getByText("John Martinez")).toBeTruthy();
+    expect(screen.queryByText(/primary/i)).toBeNull();
+  });
+
+  it("warns when designation lines do not reconcile to the gift amount", () => {
+    const contribution = boneyardContributionsFixture[0]!;
+
+    render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        designations={{
+          lines: [
+            {
+              id: "alloc-1",
+              amountCents: 10_000,
+              currencyCode: "USD",
+              fundId: "fund-1",
+              fundName: "Clean Water Initiative",
+              fundType: "project",
+              missionaryId: null,
+              missionaryName: null,
+              memo: null,
+              restriction: null,
+              correctionState: "none",
+            },
+          ],
+          totalAmountCents: 10_000,
+          reconcilesToGiftAmount: false,
+          issues: [
+            "Designation lines total 10000 and do not reconcile to the effective gift amount 25000.",
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText(/do not reconcile/i)).toBeTruthy();
+  });
+});

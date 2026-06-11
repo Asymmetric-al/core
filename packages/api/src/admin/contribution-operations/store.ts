@@ -6,6 +6,10 @@ import type {
   ContributionCorrectionRecordInput,
   ContributionOperationAuditEventInput,
 } from "./types";
+import type {
+  DesignationAllocationInput,
+  DesignationFundInput,
+} from "../contribution-shared/designation-set";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdmin = AdminSupabaseClient;
@@ -130,6 +134,113 @@ async function fetchMissionaryLabel(
   };
 }
 
+async function loadDesignationSetData(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  stagedGiftId: string | null;
+  donationFundId: string | null;
+}): Promise<{
+  allocations: DesignationAllocationInput[];
+  funds: DesignationFundInput[];
+  missionaries: Array<{ id: string; display_name: string | null }>;
+}> {
+  const allocationsResult = input.stagedGiftId
+    ? await input.supabaseAdmin
+        .from("staged_gift_allocations")
+        .select("id, amount, fund_id, missionary_id, memo")
+        .eq("tenant_id", input.tenantId)
+        .eq("staged_gift_id", input.stagedGiftId)
+        .order("created_at", { ascending: true })
+    : { data: [], error: null };
+  assertNoError(allocationsResult.error, "Failed to load designation lines.");
+
+  const allocations = ((allocationsResult.data ?? []) as JsonRecord[]).map(
+    (row) => ({
+      id: asString(row.id) ?? "",
+      amount: typeof row.amount === "number" ? row.amount : Number(row.amount),
+      fund_id: asString(row.fund_id),
+      missionary_id: asString(row.missionary_id),
+      memo: asString(row.memo),
+    }),
+  );
+
+  const fundIds = Array.from(
+    new Set(
+      [
+        input.donationFundId,
+        ...allocations.map((allocation) => allocation.fund_id),
+      ].filter((id): id is string => Boolean(id)),
+    ),
+  );
+  const missionaryIds = Array.from(
+    new Set(
+      allocations
+        .map((allocation) => allocation.missionary_id)
+        .filter((id): id is string => Boolean(id)),
+    ),
+  );
+
+  const [fundsResult, missionariesResult] = await Promise.all([
+    fundIds.length > 0
+      ? input.supabaseAdmin
+          .from("funds")
+          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .in("id", fundIds)
+      : Promise.resolve({ data: [], error: null }),
+    missionaryIds.length > 0
+      ? input.supabaseAdmin
+          .from("missionaries")
+          .select(
+            "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
+          )
+          .in("id", missionaryIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  assertNoError(fundsResult.error, "Failed to load designation funds.");
+  assertNoError(
+    missionariesResult.error,
+    "Failed to load designation missionaries.",
+  );
+
+  const funds = ((fundsResult.data ?? []) as JsonRecord[]).map((row) => ({
+    id: asString(row.id) ?? "",
+    name: asString(row.name),
+    missionary_id: asString(row.missionary_id),
+    goal_amount:
+      typeof row.goal_amount === "number"
+        ? row.goal_amount
+        : row.goal_amount != null
+          ? Number(row.goal_amount)
+          : null,
+    start_date: asString(row.start_date),
+    end_date: asString(row.end_date),
+  }));
+
+  const missionaries = ((missionariesResult.data ?? []) as JsonRecord[]).map(
+    (row) => {
+      const profile: JsonRecord = isRecord(row.profile) ? row.profile : {};
+      const firstLastName = [
+        asString(profile.first_name),
+        asString(profile.last_name),
+      ]
+        .filter(Boolean)
+        .join(" ")
+        .trim();
+
+      return {
+        id: asString(row.id) ?? "",
+        display_name:
+          asString(profile.display_name) ??
+          asString(profile.full_name) ??
+          (firstLastName || null) ??
+          asString(profile.email),
+      };
+    },
+  );
+
+  return { allocations, funds, missionaries };
+}
+
 export async function loadContributionDetailFromSupabase(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -208,7 +319,17 @@ export async function loadContributionDetailFromSupabase(input: {
       }
     : null;
 
+  const designationData = await loadDesignationSetData({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: stagedGift?.id ?? null,
+    donationFundId: donation.fundId,
+  });
+
   return buildContributionDetail({
+    allocations: designationData.allocations,
+    allocationFunds: designationData.funds,
+    allocationMissionaries: designationData.missionaries,
     donation,
     donor: donor
       ? {

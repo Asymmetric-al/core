@@ -8,7 +8,10 @@
  * from `buildSharedContributionRowFields`.
  */
 
+import { summarizeContributionDesignationSet } from "./designation-set";
+
 import type {
+  ContributionDesignationSet,
   SharedContributionCorrectionState,
   SharedContributionCrmPostStatus,
   SharedContributionDesignationSummary,
@@ -76,6 +79,12 @@ export interface BuildSharedContributionRowFieldsInput {
   missionary: { id: string; display_name: string | null } | null;
   stagedGift: SharedContributionStagedGiftInput | null;
   corrections?: SharedContributionCorrectionInput[];
+  /**
+   * Full designation set when the caller has loaded allocation lines. When
+   * provided, the designation summary derives from the set (ADR-CD-008);
+   * otherwise a single-line summary is built from the fund/missionary inputs.
+   */
+  designationSet?: ContributionDesignationSet;
 }
 
 export const SHARED_GENERAL_FUND_NAME = "General Fund";
@@ -269,12 +278,15 @@ export function buildSharedContributionRowFields(
     giftDate: deriveSharedGiftDate(donation),
     donorId: donor?.id ?? donation.donor_id,
     donorName: deriveSharedDonorName(donor, profile),
-    designationSummary: {
-      fundId: fund?.id ?? donation.fund_id,
-      fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
-      missionaryId: missionary?.id ?? donation.missionary_id,
-      missionaryName: missionary?.display_name?.trim() || null,
-    },
+    designationSummary: input.designationSet
+      ? summarizeContributionDesignationSet(input.designationSet)
+      : {
+          fundId: fund?.id ?? donation.fund_id,
+          fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
+          missionaryId: missionary?.id ?? donation.missionary_id,
+          missionaryName: missionary?.display_name?.trim() || null,
+          lineCount: 1,
+        },
     paymentStatus:
       refundState === "refunded"
         ? "refunded"

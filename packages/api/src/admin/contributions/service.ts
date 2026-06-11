@@ -5,6 +5,7 @@ import {
   type ContributionSortField,
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
+import { buildContributionDesignationSet } from "../contribution-shared/designation-set";
 
 import type {
   AdminContributionsListResponse,
@@ -72,11 +73,6 @@ type ProfileRow = {
   avatar_url: string | null;
 };
 
-type FundRow = {
-  id: string;
-  name: string | null;
-};
-
 type MissionaryRow = {
   id: string;
   profile_id: string | null;
@@ -95,6 +91,24 @@ type StagedGiftRow = {
 type CorrectionRow = {
   donation_id: string;
   status: string;
+};
+
+type AllocationRow = {
+  id: string;
+  staged_gift_id: string;
+  amount: number;
+  fund_id: string | null;
+  missionary_id: string | null;
+  memo: string | null;
+};
+
+type FundMetaRow = {
+  id: string;
+  name: string | null;
+  missionary_id: string | null;
+  goal_amount: number | null;
+  start_date: string | null;
+  end_date: string | null;
 };
 
 const PENDING_STATUSES = ["pending", "processing"] as const;
@@ -340,28 +354,75 @@ async function fetchContributionRelations(
 ) {
   const donorIds = normalizeSearchIds(rows.map((row) => row.donor_id || ""));
   const donationIds = normalizeSearchIds(rows.map((row) => row.id));
-  const fundIds = normalizeSearchIds(rows.map((row) => row.fund_id || ""));
-  const missionaryIds = normalizeSearchIds(
-    rows.map((row) => row.missionary_id || ""),
-  );
 
-  const [
-    donorsResult,
-    fundsResult,
-    missionariesResult,
-    stagedGiftsResult,
-    correctionsResult,
-  ] = await Promise.all([
-    donorIds.length > 0
-      ? supabaseAdmin
-          .from("donors")
-          .select(
-            "id, profile_id, name, email, phone, type, location, organization, notes",
-          )
-          .in("id", donorIds)
-      : Promise.resolve({ data: [], error: null }),
+  const [donorsResult, stagedGiftsResult, correctionsResult] =
+    await Promise.all([
+      donorIds.length > 0
+        ? supabaseAdmin
+            .from("donors")
+            .select(
+              "id, profile_id, name, email, phone, type, location, organization, notes",
+            )
+            .in("id", donorIds)
+        : Promise.resolve({ data: [], error: null }),
+      donationIds.length > 0
+        ? supabaseAdmin
+            .from("staged_gifts")
+            .select(
+              "id, donation_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
+            )
+            .in("donation_id", donationIds)
+        : Promise.resolve({ data: [], error: null }),
+      donationIds.length > 0
+        ? supabaseAdmin
+            .from("contribution_corrections")
+            .select("donation_id, status")
+            .in("donation_id", donationIds)
+        : Promise.resolve({ data: [], error: null }),
+    ]);
+
+  if (donorsResult.error) {
+    throw new ApiHttpError(500, donorsResult.error.message);
+  }
+  if (stagedGiftsResult.error) {
+    throw new ApiHttpError(500, stagedGiftsResult.error.message);
+  }
+  if (correctionsResult.error) {
+    throw new ApiHttpError(500, correctionsResult.error.message);
+  }
+
+  const stagedGiftRows = (stagedGiftsResult.data ?? []) as StagedGiftRow[];
+  const stagedGiftIds = normalizeSearchIds(stagedGiftRows.map((row) => row.id));
+
+  const allocationsResult =
+    stagedGiftIds.length > 0
+      ? await supabaseAdmin
+          .from("staged_gift_allocations")
+          .select("id, staged_gift_id, amount, fund_id, missionary_id, memo")
+          .in("staged_gift_id", stagedGiftIds)
+          .order("created_at", { ascending: true })
+      : { data: [], error: null };
+
+  if (allocationsResult.error) {
+    throw new ApiHttpError(500, allocationsResult.error.message);
+  }
+
+  const allocationRows = (allocationsResult.data ?? []) as AllocationRow[];
+  const fundIds = normalizeSearchIds([
+    ...rows.map((row) => row.fund_id || ""),
+    ...allocationRows.map((row) => row.fund_id || ""),
+  ]);
+  const missionaryIds = normalizeSearchIds([
+    ...rows.map((row) => row.missionary_id || ""),
+    ...allocationRows.map((row) => row.missionary_id || ""),
+  ]);
+
+  const [fundsResult, missionariesResult] = await Promise.all([
     fundIds.length > 0
-      ? supabaseAdmin.from("funds").select("id, name").in("id", fundIds)
+      ? supabaseAdmin
+          .from("funds")
+          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .in("id", fundIds)
       : Promise.resolve({ data: [], error: null }),
     missionaryIds.length > 0
       ? supabaseAdmin
@@ -369,36 +430,13 @@ async function fetchContributionRelations(
           .select("id, profile_id")
           .in("id", missionaryIds)
       : Promise.resolve({ data: [], error: null }),
-    donationIds.length > 0
-      ? supabaseAdmin
-          .from("staged_gifts")
-          .select(
-            "id, donation_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
-          )
-          .in("donation_id", donationIds)
-      : Promise.resolve({ data: [], error: null }),
-    donationIds.length > 0
-      ? supabaseAdmin
-          .from("contribution_corrections")
-          .select("donation_id, status")
-          .in("donation_id", donationIds)
-      : Promise.resolve({ data: [], error: null }),
   ]);
 
-  if (donorsResult.error) {
-    throw new ApiHttpError(500, donorsResult.error.message);
-  }
   if (fundsResult.error) {
     throw new ApiHttpError(500, fundsResult.error.message);
   }
   if (missionariesResult.error) {
     throw new ApiHttpError(500, missionariesResult.error.message);
-  }
-  if (stagedGiftsResult.error) {
-    throw new ApiHttpError(500, stagedGiftsResult.error.message);
-  }
-  if (correctionsResult.error) {
-    throw new ApiHttpError(500, correctionsResult.error.message);
   }
 
   const donorRows = (donorsResult.data ?? []) as DonorRow[];
@@ -422,23 +460,54 @@ async function fetchContributionRelations(
     throw new ApiHttpError(500, profilesResult.error.message);
   }
 
+  const profilesById = new Map(
+    ((profilesResult.data ?? []) as ProfileRow[]).map((profile) => [
+      profile.id,
+      profile,
+    ]),
+  );
+
+  const missionaryNamesById = new Map<string, string | null>(
+    missionaryRows.map((row) => {
+      const profile = row.profile_id
+        ? (profilesById.get(row.profile_id) ?? null)
+        : null;
+      const name = profile
+        ? profile.display_name?.trim() ||
+          profile.full_name?.trim() ||
+          [profile.first_name, profile.last_name]
+            .filter(Boolean)
+            .join(" ")
+            .trim() ||
+          profile.email?.trim() ||
+          null
+        : null;
+      return [row.id, name];
+    }),
+  );
+
+  const allocationsByStagedGiftId = new Map<string, AllocationRow[]>();
+  for (const allocation of allocationRows) {
+    const existing =
+      allocationsByStagedGiftId.get(allocation.staged_gift_id) ?? [];
+    existing.push(allocation);
+    allocationsByStagedGiftId.set(allocation.staged_gift_id, existing);
+  }
+
+  const fundMetaRows = (fundsResult.data ?? []) as FundMetaRow[];
+
   return {
     donorsById: new Map(donorRows.map((donor) => [donor.id, donor])),
     fundsById: new Map(
-      ((fundsResult.data ?? []) as FundRow[]).map((fund) => [fund.id, fund]),
+      fundMetaRows.map((fund) => [fund.id, { id: fund.id, name: fund.name }]),
     ),
+    fundsMetaById: new Map(fundMetaRows.map((fund) => [fund.id, fund])),
     missionariesById: new Map(missionaryRows.map((row) => [row.id, row])),
-    profilesById: new Map(
-      ((profilesResult.data ?? []) as ProfileRow[]).map((profile) => [
-        profile.id,
-        profile,
-      ]),
-    ),
+    missionaryNamesById,
+    profilesById,
+    allocationsByStagedGiftId,
     stagedGiftsByDonationId: new Map(
-      ((stagedGiftsResult.data ?? []) as StagedGiftRow[]).map((gift) => [
-        gift.donation_id,
-        gift,
-      ]),
+      stagedGiftRows.map((gift) => [gift.donation_id, gift]),
     ),
     correctionsByDonationId: groupCorrectionsByDonationId(
       (correctionsResult.data ?? []) as CorrectionRow[],
@@ -544,9 +613,26 @@ export async function listAdminContributions(
         : null;
     const stagedGift = relationData.stagedGiftsByDonationId.get(donation.id);
     const corrections = relationData.correctionsByDonationId.get(donation.id);
+    const allocations = stagedGift
+      ? (relationData.allocationsByStagedGiftId.get(stagedGift.id) ?? [])
+      : [];
+    const designationSet = buildContributionDesignationSet({
+      donation: {
+        id: donation.id,
+        amount: donation.amount,
+        currency: donation.currency,
+        fund_id: donation.fund_id,
+        missionary_id: donation.missionary_id,
+      },
+      effectiveAmountCents: donation.amount,
+      allocations,
+      funds: relationData.fundsMetaById,
+      missionaries: relationData.missionaryNamesById,
+    });
 
     return buildContributionGridRow({
       corrections,
+      designationSet,
       donation,
       donor,
       profile: donorProfile,

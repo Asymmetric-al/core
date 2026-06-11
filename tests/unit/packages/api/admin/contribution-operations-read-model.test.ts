@@ -209,6 +209,7 @@ describe("contribution operations detail read model", () => {
         fundName: "Clean Water Initiative",
         missionaryId: "missionary_1",
         missionaryName: "John Martinez",
+        lineCount: 1,
       },
       paymentStatus: "completed",
       receiptStatus: "sent",
@@ -271,5 +272,113 @@ describe("contribution operations detail read model", () => {
       expect(entry.blockedReason).toMatch(/no staged gift/i);
       expect(entry.nextStep).toMatch(/valid/i);
     }
+  });
+
+  it("exposes a first-class designation set for split gifts that reconciles to the gift amount", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_4",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: null,
+        fundId: "fund_1",
+        amount: 30_000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_1",
+        stripeChargeId: null,
+        giftDate: "2026-05-20",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: "2026-05-20T00:00:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "online",
+        createdAt: "2026-05-20T00:00:00.000Z",
+        updatedAt: "2026-05-20T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: "Split Donor",
+        email: "split@example.com",
+        phone: null,
+        location: null,
+        organization: null,
+      },
+      fund: { id: "fund_1", name: "Clean Water Initiative" },
+      allocations: [
+        {
+          id: "alloc_1",
+          amount: 10_000,
+          fund_id: "fund_1",
+          missionary_id: null,
+          memo: "water",
+        },
+        {
+          id: "alloc_2",
+          amount: 20_000,
+          fund_id: "fund_2",
+          missionary_id: "missionary_1",
+          memo: null,
+        },
+      ],
+      allocationFunds: [
+        {
+          id: "fund_1",
+          name: "Clean Water Initiative",
+          missionary_id: null,
+          goal_amount: 50_000,
+          start_date: null,
+          end_date: null,
+        },
+        {
+          id: "fund_2",
+          name: "Martinez Family Support",
+          missionary_id: "missionary_1",
+          goal_amount: 0,
+          start_date: null,
+          end_date: null,
+        },
+      ],
+      allocationMissionaries: [
+        { id: "missionary_1", display_name: "John Martinez" },
+      ],
+    });
+
+    expect(detail.designations.lines).toHaveLength(2);
+    expect(detail.designations.totalAmountCents).toBe(30_000);
+    expect(detail.designations.reconcilesToGiftAmount).toBe(true);
+    expect(detail.designations.lines[0]).toMatchObject({
+      fundName: "Clean Water Initiative",
+      fundType: "project",
+      memo: "water",
+    });
+    expect(detail.designations.lines[1]).toMatchObject({
+      fundName: "Martinez Family Support",
+      fundType: "missionary",
+      missionaryName: "John Martinez",
+    });
+
+    // The shared row summary derives from the same designation set.
+    expect(detail.shared.designationSummary).toEqual({
+      fundId: null,
+      fundName: "2 designations",
+      missionaryId: null,
+      missionaryName: null,
+      lineCount: 2,
+    });
+
+    // No designation is labeled primary anywhere in the payload.
+    expect(detail).not.toHaveProperty("designation");
   });
 });

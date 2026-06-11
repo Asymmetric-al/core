@@ -6,7 +6,10 @@ import {
   type SharedContributionDonorInput,
 } from "../../contribution-shared/row-contract";
 
-import type { CrmGiftHistoryRow } from "@asym/database/types";
+import type {
+  ContributionDesignationSet,
+  CrmGiftHistoryRow,
+} from "@asym/database/types";
 
 export interface BuildCrmGiftHistoryRowInput {
   donation: SharedContributionDonationInput & { status: string | null };
@@ -19,6 +22,7 @@ export interface BuildCrmGiftHistoryRowInput {
       })
     | null;
   corrections?: SharedContributionCorrectionInput[];
+  designationSet?: ContributionDesignationSet;
 }
 
 /**
@@ -46,6 +50,7 @@ export function buildCrmGiftHistoryRow(
         }
       : null,
     corrections: input.corrections,
+    designationSet: input.designationSet,
   });
 
   const canResendReceipt =

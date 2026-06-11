@@ -3,9 +3,16 @@ import {
   type ContributionActionAvailability,
 } from "./action-availability";
 import {
+  buildContributionDesignationSet,
+  type DesignationAllocationInput,
+  type DesignationFundInput,
+} from "../contribution-shared/designation-set";
+import {
   buildSharedContributionRowFields,
   type SharedContributionRowFields,
 } from "../contribution-shared/row-contract";
+
+import type { ContributionDesignationSet } from "@asym/database/types";
 
 export type ContributionDetailDonationInput = {
   id: string;
@@ -74,6 +81,15 @@ export interface ContributionDetailInput {
     correctionType: string;
     status: string;
   }>;
+  /** Allocation rows backing the designation set (staged_gift_allocations). */
+  allocations?: DesignationAllocationInput[];
+  /** Fund metadata for designation lines (subtype derivation). */
+  allocationFunds?: DesignationFundInput[];
+  /** Missionary display names for designation lines. */
+  allocationMissionaries?: Array<{
+    id: string;
+    display_name: string | null;
+  }>;
 }
 
 export interface ContributionDetail {
@@ -122,13 +138,11 @@ export interface ContributionDetail {
       replayContext: Record<string, unknown> | null;
     };
   };
-  designation: {
-    fundId: string | null;
-    fundName: string;
-    missionaryId: string | null;
-    missionaryName: string | null;
-    projectId: string | null;
-  };
+  /**
+   * The gift's complete designation set — financial truth per ADR-CD-008.
+   * Lines are equal; there is intentionally no single primary designation.
+   */
+  designations: ContributionDesignationSet;
   receipt: {
     status: string;
     statementStatus: string | null;
@@ -236,7 +250,48 @@ export function buildContributionDetail(
   const { donation, donor, fund, missionary, stagedGift } = input;
   const currency = normalizeCurrency(donation.currency);
 
+  const designationFunds = new Map<string, DesignationFundInput>();
+  if (fund) {
+    designationFunds.set(fund.id, {
+      id: fund.id,
+      name: fund.name,
+      missionary_id: null,
+      goal_amount: null,
+      start_date: null,
+      end_date: null,
+    });
+  }
+  for (const allocationFund of input.allocationFunds ?? []) {
+    designationFunds.set(allocationFund.id, allocationFund);
+  }
+
+  const designationMissionaries = new Map<string, string | null>();
+  if (missionary) {
+    designationMissionaries.set(missionary.id, missionary.name);
+  }
+  for (const allocationMissionary of input.allocationMissionaries ?? []) {
+    designationMissionaries.set(
+      allocationMissionary.id,
+      allocationMissionary.display_name,
+    );
+  }
+
+  const designations = buildContributionDesignationSet({
+    donation: {
+      id: donation.id,
+      amount: donation.amount,
+      currency: donation.currency,
+      fund_id: donation.fundId,
+      missionary_id: donation.missionaryId,
+    },
+    effectiveAmountCents: donation.amount,
+    allocations: input.allocations ?? [],
+    funds: designationFunds,
+    missionaries: designationMissionaries,
+  });
+
   const shared = buildSharedContributionRowFields({
+    designationSet: designations,
     donation: {
       id: donation.id,
       donor_id: donation.donorId,
@@ -315,13 +370,7 @@ export function buildContributionDetail(
         replayContext: null,
       },
     },
-    designation: {
-      fundId: fund?.id ?? donation.fundId,
-      fundName: fund?.name?.trim() || "General Fund",
-      missionaryId: missionary?.id ?? donation.missionaryId,
-      missionaryName: missionary?.name?.trim() || null,
-      projectId: null,
-    },
+    designations,
     receipt: {
       status: stagedGift?.receiptStatus ?? "pending",
       statementStatus: null,

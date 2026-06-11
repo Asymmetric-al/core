@@ -1,4 +1,7 @@
 export type {
+  ContributionDesignationFundType,
+  ContributionDesignationLine,
+  ContributionDesignationSet,
   SharedContributionCorrectionState,
   SharedContributionCrmPostStatus,
   SharedContributionDesignationSummary,

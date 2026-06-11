@@ -75,6 +75,7 @@ describe("admin/contribution-shared/row-contract", () => {
         fundName: "Clean Water Initiative",
         missionaryId: "missionary-1",
         missionaryName: "John Martinez",
+        lineCount: 1,
       },
       paymentStatus: "completed",
       receiptStatus: "sent",

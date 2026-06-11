@@ -1,4 +1,12 @@
 export {
+  buildContributionDesignationSet,
+  deriveFundType,
+  summarizeContributionDesignationSet,
+  type BuildContributionDesignationSetInput,
+  type DesignationAllocationInput,
+  type DesignationFundInput,
+} from "./designation-set";
+export {
   buildSharedContributionRowFields,
   deriveSharedCorrectionState,
   deriveSharedGiftDate,

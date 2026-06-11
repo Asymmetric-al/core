@@ -7,6 +7,8 @@ import {
   type SharedContributionRowFields,
 } from "../contribution-shared/row-contract";
 
+import type { ContributionDesignationSet } from "@asym/database/types";
+
 export type ContributionGridStatus = SharedContributionPaymentStatus;
 
 export type ContributionGridType =
@@ -282,6 +284,7 @@ export function buildContributionGridRow({
   missionary,
   stagedGift,
   corrections,
+  designationSet,
 }: {
   donation: RawDonation;
   donor: RawDonor;
@@ -290,6 +293,7 @@ export function buildContributionGridRow({
   missionary: RawMissionary;
   stagedGift?: RawStagedGift;
   corrections?: SharedContributionCorrectionInput[];
+  designationSet?: ContributionDesignationSet;
 }): ContributionGridRow {
   const shared = buildSharedContributionRowFields({
     donation,
@@ -299,6 +303,7 @@ export function buildContributionGridRow({
     missionary,
     stagedGift: stagedGift ?? null,
     corrections,
+    designationSet,
   });
   const donorEmail = donor?.email?.trim() || profile?.email?.trim() || "";
   const receiptStatus = shared.receiptStatus;
