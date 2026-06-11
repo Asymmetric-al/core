@@ -851,6 +851,34 @@ CREATE TABLE IF NOT EXISTS public.contribution_approval_notifications (
 CREATE INDEX IF NOT EXISTS idx_contribution_approval_notifications_request
     ON public.contribution_approval_notifications (tenant_id, correction_request_id, created_at DESC);
 
+-- Updated receipt delivery policy and receipt content snapshots
+-- (ADR-CD-013 / ADR-CD-029 / ADR-CD-031).
+CREATE TABLE IF NOT EXISTS public.contribution_receipt_delivery_policies (
+    tenant_id UUID PRIMARY KEY REFERENCES public.tenants(id) ON DELETE CASCADE,
+    default_choice TEXT NOT NULL DEFAULT 'email' CHECK (default_choice IN ('email', 'pdf', 'defer')),
+    allow_defer BOOLEAN NOT NULL DEFAULT TRUE,
+    defer_reason_required BOOLEAN NOT NULL DEFAULT TRUE,
+    require_delivery_action BOOLEAN NOT NULL DEFAULT FALSE,
+    email_capability TEXT NOT NULL DEFAULT 'contributions.manage_receipts',
+    pdf_capability TEXT NOT NULL DEFAULT 'contributions.manage_receipts',
+    updated_by UUID REFERENCES public.profiles(id) ON DELETE SET NULL,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS public.contribution_receipt_snapshots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
+    donation_id UUID NOT NULL REFERENCES public.donations(id) ON DELETE CASCADE,
+    adjustment_id UUID REFERENCES public.contribution_adjustments(id) ON DELETE SET NULL,
+    kind TEXT NOT NULL CHECK (kind IN ('email', 'pdf')),
+    content JSONB NOT NULL DEFAULT '{}'::jsonb,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_contribution_receipt_snapshots_tenant_donation
+    ON public.contribution_receipt_snapshots (tenant_id, donation_id, created_at DESC);
+
 CREATE UNIQUE INDEX IF NOT EXISTS idx_contribution_correction_requests_idempotency
     ON public.contribution_correction_requests (tenant_id, idempotency_key)
     WHERE idempotency_key IS NOT NULL;
@@ -1797,6 +1825,8 @@ ALTER TABLE public.contribution_correction_requests ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_approval_notification_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_approval_notification_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_approval_notifications ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contribution_receipt_delivery_policies ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.contribution_receipt_snapshots ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_operation_audit_events ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_notification_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_notification_events ENABLE ROW LEVEL SECURITY;
@@ -1841,6 +1871,8 @@ REVOKE ALL ON TABLE public.contribution_correction_requests FROM anon, authentic
 REVOKE ALL ON TABLE public.contribution_approval_notification_settings FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_approval_notification_preferences FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_approval_notifications FROM anon, authenticated;
+REVOKE ALL ON TABLE public.contribution_receipt_delivery_policies FROM anon, authenticated;
+REVOKE ALL ON TABLE public.contribution_receipt_snapshots FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_operation_audit_events FROM anon, authenticated;
 REVOKE ALL ON TABLE public.email_template_system_bindings FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_notification_settings FROM anon, authenticated;

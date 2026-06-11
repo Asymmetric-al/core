@@ -1,4 +1,5 @@
 import type { CorrectionApprovalPolicy } from "./approval-policy";
+import type { ReceiptDeliveryOutcome } from "./receipt-delivery";
 
 export type ContributionActionType =
   | "resend_receipt"
@@ -98,6 +99,8 @@ export interface ContributionActionResult<TContribution = unknown> {
   approvalStatus?: "applied" | "pending_approval";
   /** Adjustment record id when the action applied an adjustment (ADR-CD-004). */
   adjustmentId?: string | null;
+  /** Updated receipt delivery outcome for receipt-affecting corrections. */
+  receiptOutcome?: ReceiptDeliveryOutcome | null;
   /** True when an idempotent retry returned the previously applied adjustment. */
   idempotentReplay?: boolean;
   notification?: {
@@ -141,6 +144,7 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     reason: string;
     actorProfileId: string | null;
     sourceSurface: ContributionSourceSurface;
+    actorCapabilities?: string[];
     expectedRevision?: string | null;
     idempotencyKey?: string | null;
   }) => Promise<{
@@ -149,6 +153,7 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     status?: "pending" | "applied" | "failed" | "voided";
     adjustmentId?: string | null;
     idempotentReplay?: boolean;
+    receiptOutcome?: ReceiptDeliveryOutcome | null;
   }>;
   replayStripeEvent?: (input: {
     tenantId: string;
@@ -197,6 +202,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     sourceSurface: ContributionSourceSurface;
     expectedRevision?: string | null;
     idempotencyKey?: string | null;
+    /** Requester's proposed updated receipt delivery action (ADR-CD-030). */
+    receiptDeliveryProposal?: Record<string, unknown> | null;
   }) => Promise<string>;
 }
 

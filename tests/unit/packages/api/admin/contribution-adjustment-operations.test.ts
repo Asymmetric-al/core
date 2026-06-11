@@ -10,7 +10,7 @@ const DONATION_ID = "donation-1";
 const donationRow = {
   id: DONATION_ID,
   tenant_id: TENANT_ID,
-  donor_id: null,
+  donor_id: "donor-1",
   missionary_id: null,
   fund_id: null,
   amount: 25_000,
@@ -27,6 +27,10 @@ interface StubState {
   adjustments: Array<Record<string, unknown>>;
   donationUpdates: Array<Record<string, unknown>>;
   insertCount: number;
+  /** When set, the gift has a staged gift with a sent receipt. */
+  stagedGift?: Record<string, unknown> | null;
+  donor?: Record<string, unknown> | null;
+  snapshots?: Array<Record<string, unknown>>;
 }
 
 class QueryBuilder {
@@ -87,6 +91,24 @@ class QueryBuilder {
       return { data: null, error: null };
     }
     if (this.table === "staged_gifts") {
+      return { data: this.state.stagedGift ?? null, error: null };
+    }
+    if (this.table === "donors") {
+      return { data: this.state.donor ?? null, error: null };
+    }
+    if (this.table === "staged_gift_allocations") {
+      return { data: [], error: null };
+    }
+    if (this.table === "contribution_receipt_delivery_policies") {
+      return { data: null, error: null };
+    }
+    if (this.table === "contribution_receipt_snapshots") {
+      if (this.operation === "insert" && this.insertPayload) {
+        const snapshots = (this.state.snapshots ??= []);
+        const row = { id: `snap-${snapshots.length + 1}`, ...this.insertPayload };
+        snapshots.push(row);
+        return { data: { id: row.id }, error: null };
+      }
       return { data: null, error: null };
     }
     if (
@@ -211,6 +233,106 @@ describe("applyContributionCorrection (adjustment records)", () => {
 
     expect(state.adjustments).toHaveLength(0);
     expect(state.donationUpdates).toHaveLength(0);
+  });
+
+  it("records a deferred receipt outcome with the changed fields for receipt-affecting corrections", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      stagedGift: {
+        id: "staged-1",
+        donation_id: DONATION_ID,
+        status: "posted",
+        review_reason: null,
+        receipt_status: "sent",
+        crm_post_status: "posted",
+        twenty_record_id: null,
+      },
+      donor: { id: "donor-1", email: "donor@example.com", do_not_email: false },
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: {
+        amount: 20_000,
+        receiptDelivery: { choice: "defer", deferReason: "Donor asked us to wait" },
+      },
+      actorCapabilities: ["contributions.manage_receipts"],
+    });
+
+    expect(result.receiptOutcome).toMatchObject({
+      status: "deferred",
+      affectedFields: ["amount"],
+      confirmed: { choice: "defer" },
+    });
+  });
+
+  it("blocks updated receipt emails when the donor opted out", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      stagedGift: {
+        id: "staged-1",
+        donation_id: DONATION_ID,
+        status: "posted",
+        review_reason: null,
+        receipt_status: "sent",
+        crm_post_status: "posted",
+        twenty_record_id: null,
+      },
+      donor: { id: "donor-1", email: "donor@example.com", do_not_email: true },
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        payload: {
+          amount: 20_000,
+          receiptDelivery: { choice: "email" },
+        },
+        actorCapabilities: ["contributions.manage_receipts"],
+      }),
+    ).rejects.toMatchObject({
+      message: expect.stringMatching(/opted out/i),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("generates a durable PDF snapshot when staff choose PDF delivery", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      stagedGift: {
+        id: "staged-1",
+        donation_id: DONATION_ID,
+        status: "posted",
+        review_reason: null,
+        receipt_status: "sent",
+        crm_post_status: "posted",
+        twenty_record_id: null,
+      },
+      donor: { id: "donor-1", email: null, do_not_email: false },
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: {
+        amount: 20_000,
+        receiptDelivery: { choice: "pdf" },
+      },
+      actorCapabilities: ["contributions.manage_receipts"],
+    });
+
+    expect(result.receiptOutcome).toMatchObject({
+      status: "pdf_generated",
+      snapshotId: "snap-1",
+    });
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots![0]).toMatchObject({ kind: "pdf" });
   });
 
   it("returns the existing adjustment on idempotent retry instead of double-applying", async () => {

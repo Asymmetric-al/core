@@ -538,6 +538,12 @@ export async function executeContributionAction<TContribution = unknown>(
             sourceSurface: input.sourceSurface,
             expectedRevision: input.expectedRevision ?? null,
             idempotencyKey: input.idempotencyKey ?? null,
+            receiptDeliveryProposal:
+              input.payload &&
+              typeof input.payload.receiptDelivery === "object" &&
+              input.payload.receiptDelivery !== null
+                ? (input.payload.receiptDelivery as Record<string, unknown>)
+                : null,
           });
           const auditEventId = await appendAuditEvent(
             input,
@@ -582,6 +588,7 @@ export async function executeContributionAction<TContribution = unknown>(
           reason: input.reason,
           actorProfileId: input.actorProfileId,
           sourceSurface: input.sourceSurface,
+          actorCapabilities: input.actorCapabilities,
           expectedRevision: input.expectedRevision ?? null,
           idempotencyKey:
             input.idempotencyKey ??
@@ -624,6 +631,12 @@ export async function executeContributionAction<TContribution = unknown>(
             beforeSummary: correction.before ?? null,
             afterSummary: correction.after ?? null,
             correctionId,
+            downstreamEffects: {
+              receiptOutcome:
+                correction.receiptOutcome?.status ?? "not_required",
+              receiptAffectedFields:
+                correction.receiptOutcome?.affectedFields ?? [],
+            },
           }),
         );
         const notification = await sendCorrectionNotification(input, {
@@ -638,6 +651,7 @@ export async function executeContributionAction<TContribution = unknown>(
           auditEventId,
           correctionId,
           adjustmentId: correction.adjustmentId ?? null,
+          receiptOutcome: correction.receiptOutcome ?? null,
           approvalStatus: "applied",
           notification,
           taskIds: notification.taskIds ?? [],

@@ -2,7 +2,17 @@ import { serverEnv } from "@asym/env";
 import Stripe from "stripe";
 
 import { assertAllowedPaymentStateCorrectionStatus } from "./payment-status-allowlist";
+import {
+  computeReceiptAffectedFields,
+  parseReceiptDeliverySelection,
+  resolveTenantReceiptDeliveryPolicy,
+  validateReceiptDeliverySelection,
+  type ReceiptDeliveryOutcome,
+  type ReceiptDeliverySelection,
+  type TenantReceiptDeliveryPolicyRow,
+} from "./receipt-delivery";
 import { loadContributionDetailFromSupabase } from "./store";
+import { sendStagedGiftReceipt } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import {
   loadStripeRawEventForReplay,
@@ -243,12 +253,151 @@ function summarizeEffectiveDetail(detail: {
   };
 }
 
+async function loadReceiptDeliveryContext(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  donorId: string | null;
+}) {
+  const [policyResult, donorResult] = await Promise.all([
+    input.supabaseAdmin
+      .from("contribution_receipt_delivery_policies")
+      .select(
+        "default_choice, allow_defer, defer_reason_required, require_delivery_action, email_capability, pdf_capability",
+      )
+      .eq("tenant_id", input.tenantId)
+      .maybeSingle(),
+    input.donorId
+      ? input.supabaseAdmin
+          .from("donors")
+          .select("email, do_not_email")
+          .eq("id", input.donorId)
+          .maybeSingle()
+      : Promise.resolve({ data: null, error: null }),
+  ]);
+
+  if (policyResult.error) {
+    throw new Error(policyResult.error.message);
+  }
+  if (donorResult.error) {
+    throw new Error(donorResult.error.message);
+  }
+
+  const donorRow = donorResult.data as {
+    email?: string | null;
+    do_not_email?: boolean | null;
+  } | null;
+
+  return {
+    policy: resolveTenantReceiptDeliveryPolicy(
+      (policyResult.data as TenantReceiptDeliveryPolicyRow | null) ?? null,
+    ),
+    donor: {
+      email: donorRow?.email ?? null,
+      doNotEmail: donorRow?.do_not_email === true,
+    },
+  };
+}
+
+async function insertReceiptSnapshot(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  contributionId: string;
+  adjustmentId: string | null;
+  kind: "email" | "pdf";
+  content: Record<string, unknown>;
+}): Promise<string | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from("contribution_receipt_snapshots")
+    .insert({
+      tenant_id: input.tenantId,
+      donation_id: input.contributionId,
+      adjustment_id: input.adjustmentId,
+      kind: input.kind,
+      content: input.content,
+    })
+    .select("id")
+    .single();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const id = (data as Record<string, unknown> | null)?.id;
+  return typeof id === "string" ? id : null;
+}
+
+async function runReceiptDelivery(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  contributionId: string;
+  adjustmentId: string | null;
+  stagedGiftId: string | null;
+  selection: ReceiptDeliverySelection;
+  affectedFields: string[];
+  requested: ReceiptDeliverySelection | null;
+  snapshotContent: Record<string, unknown>;
+}): Promise<ReceiptDeliveryOutcome> {
+  const base = {
+    affectedFields: input.affectedFields,
+    requested: input.requested,
+    confirmed: input.selection,
+  };
+
+  if (input.selection.choice === "defer") {
+    return {
+      ...base,
+      status: "deferred",
+      reason: input.selection.deferReason ?? null,
+      snapshotId: null,
+    };
+  }
+
+  if (input.selection.choice === "pdf") {
+    const snapshotId = await insertReceiptSnapshot({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      contributionId: input.contributionId,
+      adjustmentId: input.adjustmentId,
+      kind: "pdf",
+      content: input.snapshotContent,
+    });
+    return { ...base, status: "pdf_generated", reason: null, snapshotId };
+  }
+
+  if (!input.stagedGiftId) {
+    return {
+      ...base,
+      status: "blocked",
+      reason:
+        "This gift has no staged gift workflow record, so an updated receipt email cannot be sent.",
+      snapshotId: null,
+    };
+  }
+
+  await sendStagedGiftReceipt({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: input.stagedGiftId,
+  });
+  const snapshotId = await insertReceiptSnapshot({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    contributionId: input.contributionId,
+    adjustmentId: input.adjustmentId,
+    kind: "email",
+    content: input.snapshotContent,
+  });
+  return { ...base, status: "emailed", reason: null, snapshotId };
+}
+
 /**
  * Applies a correction as an immutable adjustment record (ADR-CD-004).
  *
  * The original donation row is never rewritten; effective values derive from
  * the original plus applied adjustments. Saves are concurrency-checked
- * against the detail revision and idempotent on retry.
+ * against the detail revision and idempotent on retry. Receipt-affecting
+ * corrections run the staff-selected updated receipt delivery action
+ * (ADR-CD-029) and report the outcome.
  */
 export async function applyContributionCorrection(input: {
   supabaseAdmin: SupabaseAdmin;
@@ -259,6 +408,7 @@ export async function applyContributionCorrection(input: {
   reason: string;
   actorProfileId: string | null;
   sourceSurface: string;
+  actorCapabilities?: string[];
   expectedRevision?: string | null;
   idempotencyKey?: string | null;
 }) {
@@ -275,6 +425,43 @@ export async function applyContributionCorrection(input: {
     input.actionType,
     input.payload,
   );
+
+  const affectedFields = computeReceiptAffectedFields(effectiveValues);
+  const receiptAffected =
+    before.shared.receiptStatus === "sent" && affectedFields.length > 0;
+  const deliverySelection = parseReceiptDeliverySelection(
+    input.payload.receiptDelivery,
+  );
+  const requestedDelivery = parseReceiptDeliverySelection(
+    input.payload.requestedReceiptDelivery,
+  );
+
+  let receiptContext: Awaited<
+    ReturnType<typeof loadReceiptDeliveryContext>
+  > | null = null;
+  if (receiptAffected) {
+    receiptContext = await loadReceiptDeliveryContext({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      donorId: before.donor?.id ?? null,
+    });
+
+    if (!deliverySelection && receiptContext.policy.requireDeliveryAction) {
+      throw new ApiHttpError(
+        400,
+        `This correction changes receipt fields (${affectedFields.join(", ")}) and your organization requires choosing an updated receipt action (email or PDF) before completing it.`,
+      );
+    }
+
+    if (deliverySelection) {
+      validateReceiptDeliverySelection({
+        policy: receiptContext.policy,
+        donor: receiptContext.donor,
+        actorCapabilities: input.actorCapabilities ?? [],
+        selection: deliverySelection,
+      });
+    }
+  }
 
   const insertResult = await input.supabaseAdmin
     .from("contribution_adjustments")
@@ -322,6 +509,7 @@ export async function applyContributionCorrection(input: {
         (existingResult.data as Record<string, unknown>).id ?? "",
       ),
       idempotentReplay: true,
+      receiptOutcome: null,
     };
   }
 
@@ -330,12 +518,43 @@ export async function applyContributionCorrection(input: {
   );
   const after = await loadContributionDetailFromSupabase(input);
 
+  let receiptOutcome: ReceiptDeliveryOutcome | null = null;
+  if (receiptAffected) {
+    if (deliverySelection) {
+      receiptOutcome = await runReceiptDelivery({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        contributionId: input.contributionId,
+        adjustmentId,
+        stagedGiftId: before.stagedGift?.id ?? null,
+        selection: deliverySelection,
+        affectedFields,
+        requested: requestedDelivery ?? deliverySelection,
+        snapshotContent: {
+          effective: after.effective,
+          designationLines: after.designations.lines,
+        },
+      });
+    } else {
+      receiptOutcome = {
+        status: "deferred",
+        reason:
+          "No updated receipt action was selected; the receipt remains as originally sent.",
+        snapshotId: null,
+        affectedFields,
+        requested: requestedDelivery,
+        confirmed: null,
+      };
+    }
+  }
+
   return {
     before: summarizeEffectiveDetail(before),
     after: summarizeEffectiveDetail(after),
     status: "applied" as const,
     adjustmentId,
     idempotentReplay: false,
+    receiptOutcome,
   };
 }
 

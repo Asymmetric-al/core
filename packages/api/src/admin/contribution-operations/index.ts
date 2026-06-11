@@ -23,6 +23,18 @@ export {
   type PlannedApprovalNotification,
 } from "./approval-notifications";
 export {
+  computeReceiptAffectedFields,
+  evaluateReceiptDeliveryOptions,
+  parseReceiptDeliverySelection,
+  resolveConfirmedReceiptDelivery,
+  resolveTenantReceiptDeliveryPolicy,
+  validateReceiptDeliverySelection,
+  type ReceiptDeliveryChoice,
+  type ReceiptDeliveryOutcome,
+  type ReceiptDeliverySelection,
+  type TenantReceiptDeliveryPolicy,
+} from "./receipt-delivery";
+export {
   createContributionCorrectionRequestInSupabase,
   decideContributionCorrectionRequest,
   loadContributionCorrectionRequest,

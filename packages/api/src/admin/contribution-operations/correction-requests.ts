@@ -5,6 +5,11 @@ import {
   type CorrectionApprovalPolicy,
   type CorrectionApprovalPolicyRow,
 } from "./approval-policy";
+import {
+  parseReceiptDeliverySelection,
+  resolveConfirmedReceiptDelivery,
+  type ReceiptDeliverySelection,
+} from "./receipt-delivery";
 import { appendContributionOperationAuditEvent } from "./store";
 import { ApiHttpError } from "../../shared/http-errors";
 
@@ -230,6 +235,12 @@ export interface DecideCorrectionRequestInput {
   deciderCapabilities: string[];
   dependencies: ContributionActionDependencies;
   policy?: CorrectionApprovalPolicy;
+  /**
+   * Approver's updated receipt delivery choice (ADR-CD-030). When omitted,
+   * the requester's proposal stands; when provided, it overrides and the
+   * change is audited.
+   */
+  receiptDelivery?: ReceiptDeliverySelection | null;
   /** Optional hook creating requester follow-up work on rejection (#262). */
   createFollowUpTask?: (input: {
     tenantId: string;
@@ -360,6 +371,11 @@ export async function decideContributionCorrectionRequest(
     };
   }
 
+  const receiptDelivery = resolveConfirmedReceiptDelivery({
+    proposal: parseReceiptDeliverySelection(request.receiptDeliveryProposal),
+    approverSelection: input.receiptDelivery ?? null,
+  });
+
   const result = await executeContributionAction({
     tenantId: input.tenantId,
     actorProfileId: input.deciderProfileId,
@@ -373,7 +389,15 @@ export async function decideContributionCorrectionRequest(
     reason: request.reason,
     confirmationToken: `correction-request/${request.id}`,
     idempotencyKey: `correction-request-apply/${input.tenantId}/${request.id}`,
-    payload: request.payload,
+    payload: {
+      ...request.payload,
+      ...(receiptDelivery.confirmed
+        ? {
+            receiptDelivery: receiptDelivery.confirmed,
+            requestedReceiptDelivery: receiptDelivery.requested,
+          }
+        : {}),
+    },
     dependencies: input.dependencies,
   });
 
@@ -406,6 +430,9 @@ export async function decideContributionCorrectionRequest(
         correctionRequestId: request.id,
         decision: "approved",
         adjustmentId: result.adjustmentId ?? null,
+        receiptDeliveryRequested: receiptDelivery.requested,
+        receiptDeliveryConfirmed: receiptDelivery.confirmed,
+        receiptDeliveryChangedByApprover: receiptDelivery.changedByApprover,
       },
     },
   });

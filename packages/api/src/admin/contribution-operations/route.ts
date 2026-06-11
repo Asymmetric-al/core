@@ -150,6 +150,13 @@ export const POST = withOperation(
 const decisionRequestSchema = z.object({
   decision: z.enum(["approve", "reject"]),
   reason: z.string().max(1000).nullable().optional(),
+  receiptDelivery: z
+    .object({
+      choice: z.enum(["email", "pdf", "defer"]),
+      deferReason: z.string().max(1000).nullable().optional(),
+    })
+    .nullable()
+    .optional(),
 });
 
 function getCorrectionRequestIdFromPath(request: Request): string | null {
@@ -174,6 +181,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         requestId: correctionRequestId,
         decision: body.decision,
         reason: body.reason ?? null,
+        receiptDelivery: body.receiptDelivery ?? null,
         deciderProfileId: auth.profileId,
         deciderCapabilities: resolveContributionCapabilities(auth),
         dependencies: createContributionActionDependencies(supabaseAdmin),
