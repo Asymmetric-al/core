@@ -11,10 +11,8 @@ import {
   routeReadyInboundEmail,
   type InboundProviderClient,
 } from "../adapters/inbound-email";
-import {
-  EMAIL_INBOUND_PROCESS_EVENT,
-  workflowEventEnvelopeSchema,
-} from "../events";
+import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
+import { EMAIL_INBOUND_PROCESS_EVENT } from "../events";
 import { inngest } from "../inngest/client";
 
 const NON_RETRIABLE_LOAD_ERRORS = new Set([
@@ -75,17 +73,7 @@ export const inboundEmailProcessing = inngest.createFunction(
     },
   },
   async ({ event, step }) => {
-    const parsed = workflowEventEnvelopeSchema.safeParse(event.data);
-
-    if (!parsed.success) {
-      throw new NonRetriableError(
-        `workflow_envelope_invalid: ${parsed.error.issues
-          .map((issue) => issue.path.join(".") || issue.code)
-          .join(", ")}`,
-      );
-    }
-
-    const envelope = parsed.data;
+    const envelope = parseWorkflowEnvelopeOrThrow(event.data);
     const target = {
       tenantId: envelope.tenantId,
       inboundEmailRowId: envelope.subject.id,

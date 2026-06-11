@@ -3,6 +3,7 @@ import {
   type WorkflowDispatchInput,
   type WorkflowDispatchResult,
 } from "./dispatch";
+import { envelopeInvalidMessage } from "./envelope-guard";
 import {
   workflowEventEnvelopeSchema,
   type WorkflowEventEnvelope,
@@ -274,10 +275,7 @@ export async function dispatchLedgerRequest(
     workflowEventEnvelopeSchema.safeParse(envelopeCandidate);
 
   if (!parsedEnvelope.success) {
-    const invalidPaths = parsedEnvelope.error.issues
-      .map((issue) => issue.path.join(".") || issue.code)
-      .join(", ");
-    const error = `workflow_envelope_invalid: ${invalidPaths}`;
+    const error = envelopeInvalidMessage(parsedEnvelope.error);
 
     const failed = await recordDispatchOutcome(deps.client, {
       request,
@@ -326,10 +324,7 @@ export async function requestWorkflowDispatch(
   const parsedCandidate = workflowEventEnvelopeSchema.safeParse(candidate);
 
   if (!parsedCandidate.success) {
-    const invalidPaths = parsedCandidate.error.issues
-      .map((issue) => issue.path.join(".") || issue.code)
-      .join(", ");
-    const error = `workflow_envelope_invalid: ${invalidPaths}`;
+    const error = envelopeInvalidMessage(parsedCandidate.error);
 
     // Record the attempted handoff durably, but never persist the
     // rejected context payload.

@@ -4,10 +4,10 @@ import Stripe from "stripe";
 
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
 import { runDonationSagaRecoveryScan } from "../adapters/donations";
+import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
 import {
   DONATION_SAGA_RECOVERY_EVENT,
   WORKFLOW_SYSTEM_ACTOR_ID,
-  workflowEventEnvelopeSchema,
 } from "../events";
 import { inngest } from "../inngest/client";
 
@@ -32,17 +32,7 @@ export const donationSagaRecovery = inngest.createFunction(
     ],
   },
   async ({ event, step }) => {
-    const parsed = workflowEventEnvelopeSchema.safeParse(event.data);
-
-    if (!parsed.success) {
-      throw new NonRetriableError(
-        `workflow_envelope_invalid: ${parsed.error.issues
-          .map((issue) => issue.path.join(".") || issue.code)
-          .join(", ")}`,
-      );
-    }
-
-    const envelope = parsed.data;
+    const envelope = parseWorkflowEnvelopeOrThrow(event.data);
     const outboxId = envelope.subject.id;
 
     return await step.run("process-donation-saga-row", async () => {

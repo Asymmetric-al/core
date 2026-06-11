@@ -1,3 +1,4 @@
+import { envelopeInvalidMessage } from "./envelope-guard";
 import {
   workflowEventEnvelopeSchema,
   type WorkflowEventEnvelope,
@@ -41,14 +42,10 @@ export function createWorkflowDispatcher(
     const parsed = workflowEventEnvelopeSchema.safeParse(input.envelope);
 
     if (!parsed.success) {
-      const invalidPaths = parsed.error.issues
-        .map((issue) => issue.path.join(".") || issue.code)
-        .join(", ");
-
       return {
         dispatched: false,
         eventIds: [],
-        error: `workflow_envelope_invalid: ${invalidPaths}`,
+        error: envelopeInvalidMessage(parsed.error),
       };
     }
 

@@ -1,5 +1,5 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { NonRetriableError, RetryAfterError } from "inngest";
+import { RetryAfterError } from "inngest";
 
 import {
   claimStripeRawEvent,
@@ -9,10 +9,8 @@ import {
 } from "../../stripe/event-store";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
 import { runStripeEventRecoveryScan } from "../adapters/stripe-events";
-import {
-  STRIPE_EVENT_PROCESS_EVENT,
-  workflowEventEnvelopeSchema,
-} from "../events";
+import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
+import { STRIPE_EVENT_PROCESS_EVENT } from "../events";
 import { inngest } from "../inngest/client";
 
 import type Stripe from "stripe";
@@ -32,17 +30,8 @@ export const stripeEventProcessing = inngest.createFunction(
     concurrency: [{ key: "event.data.tenantId", limit: 5 }],
   },
   async ({ event, step }) => {
-    const parsed = workflowEventEnvelopeSchema.safeParse(event.data);
-
-    if (!parsed.success) {
-      throw new NonRetriableError(
-        `workflow_envelope_invalid: ${parsed.error.issues
-          .map((issue) => issue.path.join(".") || issue.code)
-          .join(", ")}`,
-      );
-    }
-
-    const rawEventId = parsed.data.subject.id;
+    const envelope = parseWorkflowEnvelopeOrThrow(event.data);
+    const rawEventId = envelope.subject.id;
 
     return await step.run("process-stored-stripe-event", async () => {
       const { client: supabaseAdmin, error: adminError } = getAdminClient();

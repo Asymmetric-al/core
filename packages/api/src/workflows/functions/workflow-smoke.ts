@@ -1,6 +1,5 @@
-import { NonRetriableError } from "inngest";
-
-import { WORKFLOW_SMOKE_EVENT, workflowEventEnvelopeSchema } from "../events";
+import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
+import { WORKFLOW_SMOKE_EVENT } from "../events";
 import { inngest } from "../inngest/client";
 
 /**
@@ -16,17 +15,7 @@ export const workflowSmoke = inngest.createFunction(
     concurrency: [{ key: "event.data.tenantId", limit: 1 }],
   },
   async ({ event, step }) => {
-    const parsed = workflowEventEnvelopeSchema.safeParse(event.data);
-
-    if (!parsed.success) {
-      throw new NonRetriableError(
-        `workflow_envelope_invalid: ${parsed.error.issues
-          .map((issue) => issue.path.join(".") || issue.code)
-          .join(", ")}`,
-      );
-    }
-
-    const envelope = parsed.data;
+    const envelope = parseWorkflowEnvelopeOrThrow(event.data);
 
     return await step.run("acknowledge-smoke-envelope", () => ({
       acknowledged: true,
