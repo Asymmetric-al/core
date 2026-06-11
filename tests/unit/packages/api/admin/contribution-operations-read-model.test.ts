@@ -221,6 +221,7 @@ describe("contribution operations detail read model", () => {
       refundState: "none",
       refundedAmountCents: 0,
       correctionState: "pending",
+      recurringLinkState: "none",
     });
   });
 
@@ -396,6 +397,85 @@ describe("contribution operations detail read model", () => {
 
     // No designation is labeled primary anywhere in the payload.
     expect(detail).not.toHaveProperty("designation");
+  });
+
+  it("links the internal recurring agreement first and warns on provider-only recurrence", () => {
+    const base = {
+      id: "donation_r",
+      tenantId: "tenant_1",
+      donorId: "donor_1",
+      missionaryId: null,
+      fundId: null,
+      amount: 5_000,
+      currency: "usd",
+      status: "completed",
+      donationType: "recurring",
+      paymentMethod: "card",
+      notes: null,
+      stripePaymentIntentId: "pi_r",
+      stripeChargeId: null,
+      giftDate: "2026-06-01",
+      campaignId: null,
+      processedAt: null,
+      completedAt: null,
+      failedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      refundedAt: null,
+      refundAmount: 0,
+      source: "online",
+      createdAt: "2026-06-01T00:00:00.000Z",
+      updatedAt: "2026-06-01T00:00:00.000Z",
+    };
+
+    const linked = buildContributionDetail({
+      donation: {
+        ...base,
+        isRecurring: true,
+        recurringInterval: "month",
+        pledgeId: "pledge_1",
+      },
+      recurringAgreement: {
+        id: "pledge_1",
+        status: "active",
+        frequency: "monthly",
+        amountCents: 5_000,
+        currencyCode: "USD",
+        fundId: "fund_1",
+        fundName: "General Fund",
+        missionaryId: null,
+        nextExpectedGiftAt: "2026-07-01T00:00:00.000Z",
+        stripeSubscriptionId: "sub_1",
+      },
+    });
+    expect(linked.recurring.agreement?.id).toBe("pledge_1");
+    expect(linked.recurring.providerRecurrenceWithoutAgreement).toBe(false);
+    expect(linked.shared.recurringLinkState).toBe("agreement_linked");
+
+    const providerOnly = buildContributionDetail({
+      donation: {
+        ...base,
+        isRecurring: true,
+        recurringInterval: "month",
+        pledgeId: null,
+      },
+    });
+    expect(providerOnly.recurring.agreement).toBeNull();
+    expect(providerOnly.recurring.providerRecurrenceWithoutAgreement).toBe(
+      true,
+    );
+    expect(providerOnly.shared.recurringLinkState).toBe("provider_only");
+
+    const oneTime = buildContributionDetail({
+      donation: {
+        ...base,
+        isRecurring: false,
+        recurringInterval: null,
+        pledgeId: null,
+      },
+    });
+    expect(oneTime.recurring.providerRecurrenceWithoutAgreement).toBe(false);
+    expect(oneTime.shared.recurringLinkState).toBe("none");
   });
 
   it("derives effective values from applied adjustments while preserving the original", () => {

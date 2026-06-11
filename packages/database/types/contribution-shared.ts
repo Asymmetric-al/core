@@ -35,6 +35,16 @@ export type SharedContributionRefundState =
 
 export type SharedContributionCorrectionState = "none" | "pending" | "applied";
 
+/**
+ * Recurring linkage (ADR-CD-007): the internal recurring agreement is the
+ * primary business object; provider recurrence without one is a visible
+ * reconciliation gap.
+ */
+export type SharedContributionRecurringLinkState =
+  | "agreement_linked"
+  | "provider_only"
+  | "none";
+
 export interface SharedContributionDesignationSummary {
   fundId: string | null;
   fundName: string;
@@ -91,4 +101,5 @@ export interface SharedContributionRowFields {
   refundState: SharedContributionRefundState;
   refundedAmountCents: number;
   correctionState: SharedContributionCorrectionState;
+  recurringLinkState: SharedContributionRecurringLinkState;
 }

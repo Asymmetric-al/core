@@ -70,6 +70,12 @@ export function projectContributionDetailForViewer(
           replayContext: null,
         },
       },
+      recurring: {
+        ...detail.recurring,
+        agreement: detail.recurring.agreement
+          ? { ...detail.recurring.agreement, stripeSubscriptionId: null }
+          : null,
+      },
       // Hide provider/admin actions entirely for unauthorized viewers
       // (ADR-CD-018 mixed visibility: irrelevant or unauthorized → hidden).
       actionAvailability: detail.actionAvailability.filter(

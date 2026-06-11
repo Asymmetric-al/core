@@ -113,6 +113,23 @@ interface ContributionDetailSheetProps {
    * without provider access — the section then never renders.
    */
   providerProof?: ContributionProviderProof | null;
+  /** Recurring agreement context (ADR-CD-007). */
+  recurring?: {
+    isRecurring: boolean;
+    interval: string | null;
+    pledgeId: string | null;
+    agreement: {
+      id: string;
+      status: string | null;
+      frequency: string | null;
+      amountCents: number;
+      currencyCode: string;
+      fundName: string | null;
+      nextExpectedGiftAt: string | null;
+      stripeSubscriptionId: string | null;
+    } | null;
+    providerRecurrenceWithoutAgreement: boolean;
+  };
 }
 
 const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
@@ -140,6 +157,7 @@ export function ContributionDetailSheet({
   actionAvailability,
   designations,
   providerProof,
+  recurring,
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
@@ -587,6 +605,62 @@ export function ContributionDetailSheet({
                   </ul>
                 )}
             </div>
+
+            {/* ---- Recurring agreement context (ADR-CD-007) ---- */}
+            {recurring?.isRecurring && (
+              <>
+                <Separator />
+                <div className="space-y-3">
+                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Recurring giving
+                  </p>
+                  {recurring.providerRecurrenceWithoutAgreement && (
+                    <div
+                      role="note"
+                      className="rounded-lg border border-border bg-amber-50/50 p-3 dark:bg-amber-950/20"
+                    >
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        The payment provider reports this gift as recurring, but
+                        no internal recurring agreement is linked. Review and
+                        link the recurring agreement to close this
+                        reconciliation gap.
+                      </p>
+                    </div>
+                  )}
+                  {recurring.agreement && (
+                    <div className="rounded-lg border border-border bg-card p-3 space-y-1">
+                      <p className="text-sm font-semibold text-foreground">
+                        {formatSharedContributionAmount(
+                          recurring.agreement.amountCents,
+                          recurring.agreement.currencyCode,
+                        )}{" "}
+                        {recurring.agreement.frequency ?? "recurring"}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {recurring.agreement.fundName ?? "General Fund"}
+                        {" · "}
+                        {recurring.agreement.status ?? "active"}
+                        {recurring.agreement.nextExpectedGiftAt
+                          ? ` · Next expected ${makeDisplayDate(
+                              recurring.agreement.nextExpectedGiftAt,
+                            ).toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                              year: "numeric",
+                            })}`
+                          : null}
+                      </p>
+                      {recurring.agreement.stripeSubscriptionId && (
+                        <p className="text-[10px] font-mono text-muted-foreground">
+                          Stripe evidence:{" "}
+                          {recurring.agreement.stripeSubscriptionId}
+                        </p>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </>
+            )}
 
             {/* ---- Provider proof (ADR-CD-014, role-gated) ---- */}
             {providerProof && (

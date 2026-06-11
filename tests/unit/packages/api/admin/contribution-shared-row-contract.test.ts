@@ -83,6 +83,7 @@ describe("admin/contribution-shared/row-contract", () => {
       refundState: "none",
       refundedAmountCents: 0,
       correctionState: "none",
+      recurringLinkState: "none",
     });
   });
 

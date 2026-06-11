@@ -329,6 +329,7 @@ export function ContributionDetailOverlay({
       actionAvailability={detailQuery.data?.actionAvailability}
       designations={detailQuery.data?.designations}
       providerProof={detailQuery.data?.providerProof ?? null}
+      recurring={detailQuery.data?.recurring}
       onClose={onClose}
       onApproveStagedGift={(stagedGiftId, contributionId) =>
         approveMutation.mutate({ contributionId, stagedGiftId })

@@ -7,6 +7,7 @@ export type {
   SharedContributionDesignationSummary,
   SharedContributionPaymentStatus,
   SharedContributionReceiptStatus,
+  SharedContributionRecurringLinkState,
   SharedContributionRefundState,
   SharedContributionRowFields,
 } from "./contribution-shared";

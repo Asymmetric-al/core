@@ -44,6 +44,10 @@ export interface SharedContributionDonationInput {
   refunded_at: string | null;
   created_at: string;
   updated_at: string;
+  /** Recurrence signals for the shared recurring link state (ADR-CD-007). */
+  is_recurring?: boolean | null;
+  recurring_interval?: string | null;
+  pledge_id?: string | null;
 }
 
 export interface SharedContributionDonorInput {
@@ -220,6 +224,26 @@ export function deriveSharedRefundState(
     : "partial_refund";
 }
 
+/**
+ * Recurring link state (ADR-CD-007): the internal recurring agreement
+ * (pledge) is primary; provider recurrence without one is a reconciliation
+ * gap surfaced as `provider_only`.
+ */
+export function deriveSharedRecurringLinkState(
+  donation: Pick<
+    SharedContributionDonationInput,
+    "is_recurring" | "recurring_interval" | "pledge_id"
+  >,
+): "agreement_linked" | "provider_only" | "none" {
+  if (donation.pledge_id) {
+    return "agreement_linked";
+  }
+  if (donation.is_recurring || donation.recurring_interval) {
+    return "provider_only";
+  }
+  return "none";
+}
+
 export function deriveSharedCorrectionState(
   corrections: SharedContributionCorrectionInput[] | undefined,
 ): SharedContributionCorrectionState {
@@ -296,5 +320,6 @@ export function buildSharedContributionRowFields(
     refundState,
     refundedAmountCents: Math.max(0, donation.refund_amount),
     correctionState: deriveSharedCorrectionState(input.corrections),
+    recurringLinkState: deriveSharedRecurringLinkState(donation),
   };
 }

@@ -382,6 +382,23 @@ export async function loadContributionDetailFromSupabase(input: {
       }
     : null;
 
+  const pledgeRow = donation.pledgeId
+    ? await maybeFetchById(
+        input.supabaseAdmin,
+        "donor_pledges",
+        donation.pledgeId,
+        "id, status, frequency, amount, currency, fund_id, missionary_id, next_payment_date, next_charge_at, stripe_subscription_id",
+      )
+    : null;
+  const pledgeFund = pledgeRow
+    ? await maybeFetchById(
+        input.supabaseAdmin,
+        "funds",
+        asString(pledgeRow.fund_id),
+        "id, name",
+      )
+    : null;
+
   const adjustments = await loadContributionAdjustments(input);
   const effectivePreview = deriveEffectiveContribution({
     original: {
@@ -425,6 +442,22 @@ export async function loadContributionDetailFromSupabase(input: {
       twentyRecordId: asString(link.twenty_record_id),
       lastError: asString(link.last_error),
     })),
+    recurringAgreement: pledgeRow
+      ? {
+          id: asString(pledgeRow.id) ?? donation.pledgeId ?? "",
+          status: asString(pledgeRow.status),
+          frequency: asString(pledgeRow.frequency),
+          amountCents: asNumber(pledgeRow.amount),
+          currencyCode: (asString(pledgeRow.currency) ?? "usd").toUpperCase(),
+          fundId: asString(pledgeRow.fund_id),
+          fundName: pledgeFund ? asString(pledgeFund.name) : null,
+          missionaryId: asString(pledgeRow.missionary_id),
+          nextExpectedGiftAt:
+            asString(pledgeRow.next_charge_at) ??
+            asString(pledgeRow.next_payment_date),
+          stripeSubscriptionId: asString(pledgeRow.stripe_subscription_id),
+        }
+      : null,
     donation,
     donor: donor
       ? {

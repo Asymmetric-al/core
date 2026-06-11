@@ -37,6 +37,8 @@ interface DonationRow {
   currency: string | null;
   status: string | null;
   is_recurring: boolean | null;
+  recurring_interval: string | null;
+  pledge_id: string | null;
   donation_type: string | null;
   gift_date: string | null;
   refund_amount: number | string | null;
@@ -308,7 +310,7 @@ export async function getAdminCrmDonorDetail(input: {
   const donationsResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, donation_type, gift_date, refund_amount, refunded_at, created_at, updated_at",
+      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, recurring_interval, pledge_id, donation_type, gift_date, refund_amount, refunded_at, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("donor_id", donor.id)
@@ -596,6 +598,9 @@ export async function getAdminCrmDonorDetail(input: {
         refunded_at: donation.refunded_at,
         created_at: donation.created_at ?? "",
         updated_at: donation.updated_at ?? donation.created_at ?? "",
+        is_recurring: donation.is_recurring,
+        recurring_interval: donation.recurring_interval,
+        pledge_id: donation.pledge_id,
       },
       donor: {
         id: donor.id,

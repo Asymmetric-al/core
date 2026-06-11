@@ -54,6 +54,7 @@ function boneyardRow(
       refundState: "none",
       refundedAmountCents: 0,
       correctionState: "none",
+      recurringLinkState: row.type === "Recurring" ? "provider_only" : "none",
     },
     donorAvatar: row.donorAvatar ?? null,
     donorType: row.donorType ?? null,

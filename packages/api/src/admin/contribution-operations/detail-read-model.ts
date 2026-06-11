@@ -112,6 +112,22 @@ export interface ContributionDetailInput {
   }>;
   /** Parent and child CRM record links for this donation (ADR-CD-012). */
   crmLinks?: CrmPostLinkInput[];
+  /**
+   * The internal recurring agreement linked via `donations.pledge_id`
+   * (ADR-CD-007). Stripe references on it are secondary technical proof.
+   */
+  recurringAgreement?: {
+    id: string;
+    status: string | null;
+    frequency: string | null;
+    amountCents: number;
+    currencyCode: string;
+    fundId: string | null;
+    fundName: string | null;
+    missionaryId: string | null;
+    nextExpectedGiftAt: string | null;
+    stripeSubscriptionId: string | null;
+  } | null;
 }
 
 export interface ContributionDetail {
@@ -174,10 +190,18 @@ export interface ContributionDetail {
     amount: number;
     refundedAt: string | null;
   };
+  /**
+   * Recurring context (ADR-CD-007). The internal recurring agreement is the
+   * primary link; provider recurrence without one is a reconciliation gap.
+   */
   recurring: {
     isRecurring: boolean;
     interval: string | null;
     pledgeId: string | null;
+    agreement: NonNullable<
+      ContributionDetailInput["recurringAgreement"]
+    > | null;
+    providerRecurrenceWithoutAgreement: boolean;
   };
   stagedGift: ContributionDetailInput["stagedGift"];
   /**
@@ -391,6 +415,9 @@ export function buildContributionDetail(
       refunded_at: donation.refundedAt,
       created_at: donation.createdAt,
       updated_at: donation.updatedAt,
+      is_recurring: donation.isRecurring,
+      recurring_interval: donation.recurringInterval,
+      pledge_id: donation.pledgeId,
     },
     donor: donor
       ? { id: donor.id, name: donor.name, email: donor.email }
@@ -475,6 +502,11 @@ export function buildContributionDetail(
       isRecurring: Boolean(donation.isRecurring || donation.recurringInterval),
       interval: donation.recurringInterval,
       pledgeId: donation.pledgeId,
+      agreement: input.recurringAgreement ?? null,
+      providerRecurrenceWithoutAgreement: Boolean(
+        (donation.isRecurring || donation.recurringInterval) &&
+        !input.recurringAgreement,
+      ),
     },
     stagedGift: stagedGift ?? null,
     crm: {
