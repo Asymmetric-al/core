@@ -419,7 +419,8 @@ async function readGoalRows(tenantId: string, missionaryId?: string) {
     .from("member_care_goals")
     .select("id, missionary_id, title, status, target_date")
     .eq("tenant_id", tenantId)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .limit(1000);
 
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
@@ -440,7 +441,8 @@ async function readRequirementRows(tenantId: string, missionaryId?: string) {
     .from("member_care_requirements")
     .select("id, missionary_id, activity_type, interval_days, notes")
     .eq("tenant_id", tenantId)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .limit(1000);
 
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
@@ -470,7 +472,8 @@ async function readPrivateNoteRows(
       "id, missionary_id, author_user_id, author_name_snapshot, content, created_at",
     )
     .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (!actorIsSuperAdmin) {
     query = query.eq("author_user_id", actorUserId);
@@ -576,6 +579,14 @@ export async function readMemberCareActivities(
 export async function readMemberCareDashboardSnapshot(
   tenantId: string,
 ): Promise<MemberCareDashboardSnapshot> {
+  "use cache";
+
+  applyCache([
+    "member-care",
+    `member-care:${tenantId}`,
+    "member-care:dashboard",
+  ]);
+
   const [directoryRows, activityRows, goalRows, requirementRows] =
     await Promise.all([
       readDirectoryRows(tenantId),
