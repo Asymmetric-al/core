@@ -6,7 +6,7 @@ import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import { ContributionDetailOverlay } from "./contribution-detail-overlay";
@@ -34,13 +34,42 @@ export default function ContributionsPage() {
   const [selectedDonationId, setSelectedDonationId] = useState<string | null>(
     () => giftParam,
   );
+  const [showFreshness, setShowFreshness] = useState(false);
+  const freshnessTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
     setSelectedDonationId(giftParam);
   }, [giftParam]);
 
+  useEffect(() => {
+    return () => {
+      if (freshnessTimerRef.current !== null) {
+        window.clearTimeout(freshnessTimerRef.current);
+      }
+    };
+  }, []);
+
+  /** Quiet, low-noise freshness indicator after row data refreshes (ADR-CD-022). */
+  const markFreshness = useCallback(() => {
+    setShowFreshness(true);
+    if (freshnessTimerRef.current !== null) {
+      window.clearTimeout(freshnessTimerRef.current);
+    }
+    freshnessTimerRef.current = window.setTimeout(() => {
+      setShowFreshness(false);
+    }, 8000);
+  }, []);
+
+  const openerElementRef = useRef<HTMLElement | null>(null);
+
   const openGift = useCallback(
     (donationId: string) => {
+      // Smart close (ADR-CD-023): remember the opener so closing the detail
+      // overlay can restore focus to it.
+      openerElementRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       setSelectedDonationId(donationId);
       const params = new URLSearchParams(searchParams.toString());
       params.set("gift", donationId);
@@ -51,12 +80,19 @@ export default function ContributionsPage() {
 
   const closeGift = useCallback(() => {
     setSelectedDonationId(null);
+    // Smart close removes only the gift selection from route state; filters,
+    // search, and the rest of the workspace stay untouched (ADR-CD-023).
     const params = new URLSearchParams(searchParams.toString());
     params.delete("gift");
     const query = params.toString();
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
+    // Restore focus after the sheet unmounts so its focus-trap cleanup
+    // cannot clobber the opener focus (ADR-CD-023 focus return).
+    const opener = openerElementRef.current;
+    openerElementRef.current = null;
+    window.setTimeout(() => opener?.focus(), 0);
   }, [pathname, router, searchParams]);
 
   const isError = contributionsQuery.isError;
@@ -85,6 +121,15 @@ export default function ContributionsPage() {
       actions={<ContributionsPageActions />}
     >
       <div data-testid="mc-contributions-live">
+        {showFreshness && (
+          <p
+            role="status"
+            className="mb-2 text-xs text-muted-foreground"
+            data-testid="contributions-freshness"
+          >
+            Updated just now
+          </p>
+        )}
         {isError ? (
           <div className="flex flex-col items-center justify-center py-20 text-center bg-white border border-zinc-100 rounded-3xl">
             <div className="size-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100">
@@ -142,6 +187,7 @@ export default function ContributionsPage() {
           donationId={selectedDonationId}
           sourceSurface="contribution_hub"
           onClose={closeGift}
+          onActionSuccess={markFreshness}
         />
       </div>
     </PageShell>

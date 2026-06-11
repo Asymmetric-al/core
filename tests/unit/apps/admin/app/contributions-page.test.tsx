@@ -84,6 +84,94 @@ let mockContributions: ContributionsDataModule["mockContributions"];
 let windowConfirmDescriptor: PropertyDescriptor | undefined;
 let invalidateContributionOperationQueries: InvalidateContributionOperationQueries;
 
+function makeDetailPayload(donationId: string, donorName: string) {
+  return {
+    contribution: {
+      id: donationId,
+      shared: {
+        donationId,
+        amountCents: 10000,
+        currencyCode: "USD",
+        giftDate: "2026-05-26T00:00:00.000Z",
+        donorId: "donor_1",
+        donorName,
+        designationSummary: {
+          fundId: "fund_1",
+          fundName: "General Fund",
+          missionaryId: null,
+          missionaryName: null,
+          lineCount: 1,
+        },
+        paymentStatus: "completed",
+        receiptStatus: "pending",
+        crmPostStatus: null,
+        refundState: "none",
+        refundedAmountCents: 0,
+        correctionState: "none",
+        recurringLinkState: "none",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: donorName,
+        email: "donor@example.com",
+        phoneNumbers: [],
+        location: null,
+        organization: null,
+      },
+      gift: {
+        date: "2026-05-26T00:00:00.000Z",
+        createdAt: "2026-05-26T00:00:00.000Z",
+        updatedAt: "2026-05-26T00:00:00.000Z",
+        source: "online",
+        campaignId: null,
+        pledgeId: null,
+      },
+      amount: {
+        value: 10000,
+        gross: 10000,
+        net: null,
+        fee: null,
+        taxDeductible: null,
+        currency: "USD",
+      },
+      payment: {
+        type: "one_time",
+        method: "card",
+        status: "completed",
+        lastFour: null,
+        stripe: {
+          paymentIntentId: null,
+          chargeId: null,
+          refundIds: [],
+          replayContext: null,
+        },
+      },
+      receipt: { status: "pending", statementStatus: null },
+      refund: { status: "none", amount: 0, refundedAt: null },
+      recurring: {
+        isRecurring: false,
+        interval: null,
+        pledgeId: null,
+        agreement: null,
+        providerRecurrenceWithoutAgreement: false,
+      },
+      stagedGift: null,
+      crm: { postStatus: null, twentyRecordId: null },
+      auditEvents: [],
+      corrections: [],
+      tasks: [],
+      batches: [],
+      donorVisible: {
+        status: "Succeeded",
+        historyUpdatedImmediately: true,
+        amount: 10000,
+        currency: "USD",
+      },
+    },
+  };
+}
+
 function mockQuery(partial: Record<string, unknown>) {
   return {
     isError: false,
@@ -600,6 +688,90 @@ describe("apps/admin/app/contributions/page", () => {
       "/api/admin/contribution-operations/00000000-0000-4000-8000-000000000124",
       { headers: { accept: "application/json" } },
     );
+  });
+
+  it("smart close removes only the gift selection from route state", async () => {
+    const donationId = "00000000-0000-4000-8000-000000000125";
+    mockSearch = `status=completed&gift=${donationId}`;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => makeDetailPayload(donationId, "Smart Close Donor"),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Smart Close Donor")).toBeTruthy();
+
+    fireEvent.click(
+      view.getByRole("button", { name: /close contribution details/i }),
+    );
+
+    expect(routerReplaceMock).toHaveBeenCalledWith(
+      "/contributions?status=completed",
+      { scroll: false },
+    );
+  });
+
+  it("restores focus to the opener when the detail overlay closes", async () => {
+    const donationId = "00000000-0000-4000-8000-000000000126";
+    useContributionNeedsAttentionMock.mockReturnValue(
+      mockQuery({
+        data: {
+          groups: [
+            {
+              key: "high:crm_post_failed",
+              title: "CRM post",
+              urgency: "high",
+              count: 1,
+              items: [
+                {
+                  id: "attention_focus",
+                  taskId: "task_focus",
+                  issueType: "crm_post_failed",
+                  issueLabel: "CRM post",
+                  urgency: "high",
+                  status: "open",
+                  summary: "CRM post failed",
+                  contributionId: donationId,
+                  donorId: "donor_1",
+                  firstSeenAt: "2026-05-26T00:00:00.000Z",
+                  lastSeenAt: "2026-05-26T01:00:00.000Z",
+                },
+              ],
+            },
+          ],
+          items: [],
+        },
+        isError: false,
+        isPending: false,
+      }),
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => makeDetailPayload(donationId, "Focus Donor"),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    const opener = view.getByRole("button", { name: /open contribution/i });
+    opener.focus();
+    fireEvent.click(opener);
+
+    expect(await view.findByText("Focus Donor")).toBeTruthy();
+
+    fireEvent.click(
+      view.getByRole("button", { name: /close contribution details/i }),
+    );
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(opener);
+    });
   });
 
   it("invalidates every shared contribution surface after contribution mutations", async () => {

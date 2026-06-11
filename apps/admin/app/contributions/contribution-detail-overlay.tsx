@@ -11,7 +11,7 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { toast } from "sonner";
 
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
@@ -228,31 +228,33 @@ export function ContributionDetailOverlay({
   donationId,
   sourceSurface,
   onClose,
+  onActionSuccess,
 }: {
   donationId: string | null;
   sourceSurface: ContributionSourceSurface;
   onClose: () => void;
+  /** Lets the host surface show a quiet freshness indicator (ADR-CD-022). */
+  onActionSuccess?: () => void;
 }) {
   const queryClient = useQueryClient();
   const detailQuery = useContributionDetail(donationId);
-  const openerRef = useRef<HTMLElement | null>(null);
-  const wasOpenRef = useRef(false);
 
-  useEffect(() => {
-    if (donationId && !wasOpenRef.current) {
-      wasOpenRef.current = true;
-      openerRef.current =
-        document.activeElement instanceof HTMLElement
-          ? document.activeElement
-          : null;
+  /**
+   * Stale-save recovery (ADR-CD-022): when the server rejects a save
+   * because the gift changed, refetch the latest detail so the staff member
+   * can review and retry from current truth.
+   */
+  const recoverFromStaleSave = (error: unknown) => {
+    if (
+      error instanceof Error &&
+      /changed since you loaded/i.test(error.message) &&
+      donationId
+    ) {
+      void queryClient.invalidateQueries({
+        queryKey: contributionDetailQueryKey(donationId),
+      });
     }
-
-    if (!donationId && wasOpenRef.current) {
-      wasOpenRef.current = false;
-      openerRef.current?.focus();
-      openerRef.current = null;
-    }
-  }, [donationId]);
+  };
 
   useEffect(() => {
     if (detailQuery.isError && donationId) {
@@ -277,10 +279,12 @@ export function ContributionDetailOverlay({
       toast.error(
         error instanceof Error ? error.message : "Could not approve gift.",
       );
+      recoverFromStaleSave(error);
     },
     async onSuccess() {
       toast.success("Gift queued for finance posting.");
       await invalidateContributionOperationQueries(queryClient);
+      onActionSuccess?.();
       onClose();
     },
   });
@@ -293,10 +297,12 @@ export function ContributionDetailOverlay({
       }),
     onError(error) {
       toast.error(error instanceof Error ? error.message : "Could not retry.");
+      recoverFromStaleSave(error);
     },
     async onSuccess() {
       toast.success("Gift retry queued.");
       await invalidateContributionOperationQueries(queryClient);
+      onActionSuccess?.();
       onClose();
     },
   });
@@ -311,10 +317,12 @@ export function ContributionDetailOverlay({
       toast.error(
         error instanceof Error ? error.message : "Could not send receipt.",
       );
+      recoverFromStaleSave(error);
     },
     async onSuccess() {
       toast.success("Receipt send recorded.");
       await invalidateContributionOperationQueries(queryClient);
+      onActionSuccess?.();
       onClose();
     },
   });

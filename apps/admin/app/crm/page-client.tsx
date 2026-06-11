@@ -781,8 +781,16 @@ export default function MissionControlCRM() {
     [pathname, router, searchParams],
   );
 
+  const giftOpenerRef = React.useRef<HTMLElement | null>(null);
+
   const openGift = useCallback(
     (donationId: string) => {
+      // Smart close (ADR-CD-023): remember the gift row so closing restores
+      // focus to it while the donor drawer context stays untouched.
+      giftOpenerRef.current =
+        document.activeElement instanceof HTMLElement
+          ? document.activeElement
+          : null;
       setOpenGiftId(donationId);
       const params = new URLSearchParams(searchParams.toString());
       if (selectedRecord) {
@@ -802,6 +810,11 @@ export default function MissionControlCRM() {
     router.replace(query ? `${pathname}?${query}` : pathname, {
       scroll: false,
     });
+    // Restore focus after the sheet unmounts so its focus-trap cleanup
+    // cannot clobber the opener focus (ADR-CD-023 focus return).
+    const opener = giftOpenerRef.current;
+    giftOpenerRef.current = null;
+    window.setTimeout(() => opener?.focus(), 0);
   }, [pathname, router, searchParams]);
 
   const tagOptions = useMemo(() => {
