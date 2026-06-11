@@ -180,13 +180,11 @@ describe("workflow dispatch ledger (#288)", () => {
       upsertData: row,
       updateData: ledgerRow({ status: "dispatched" }),
     });
-    const dispatcher = vi
-      .fn()
-      .mockResolvedValue({
-        dispatched: true,
-        eventIds: ["evt-9"],
-        error: null,
-      });
+    const dispatcher = vi.fn().mockResolvedValue({
+      dispatched: true,
+      eventIds: ["evt-9"],
+      error: null,
+    });
 
     const result = await requestWorkflowDispatch(
       { client: mock.client, dispatcher },

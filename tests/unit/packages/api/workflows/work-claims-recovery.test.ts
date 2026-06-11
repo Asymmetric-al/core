@@ -111,14 +111,12 @@ function createScanClientMock(options: ScanClientOptions) {
   const inFilter = vi.fn().mockReturnValue({ lte });
   const select = vi.fn().mockReturnValue({ in: inFilter });
 
-  const updateSingle = vi
-    .fn()
-    .mockImplementation(() =>
-      Promise.resolve({
-        data: recoverableRow({ status: "dispatched" }),
-        error: null,
-      }),
-    );
+  const updateSingle = vi.fn().mockImplementation(() =>
+    Promise.resolve({
+      data: recoverableRow({ status: "dispatched" }),
+      error: null,
+    }),
+  );
   const update = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({ single: updateSingle }),
@@ -149,13 +147,11 @@ describe("dispatch recovery scan (#289)", () => {
       rows: [row],
       acquireResults: [{ acquired: true, claim_id: CLAIM_ID }],
     });
-    const dispatcher = vi
-      .fn()
-      .mockResolvedValue({
-        dispatched: true,
-        eventIds: ["evt-2"],
-        error: null,
-      });
+    const dispatcher = vi.fn().mockResolvedValue({
+      dispatched: true,
+      eventIds: ["evt-2"],
+      error: null,
+    });
 
     const summary = await runDispatchRecoveryScan(
       { client: mock.client, dispatcher },
