@@ -30,7 +30,7 @@ import type {
 /**
  * Reusable inline contribution operation shell (ADR-CD-033).
  *
- * The shell owns the shared behavior â€” server-computed blocked states,
+ * The shell owns the shared behavior — server-computed blocked states,
  * current effective values, downstream-effect framing, required reason and
  * confirmation, submit/loading/error state, the in-place result panel, row
  * refresh, and focus return. Each operation only supplies its specific
@@ -245,7 +245,7 @@ export function ContributionOperationShell({
   operation: OperationDefinition | null;
   donationId: string | null;
   sourceSurface: ContributionSourceSurface;
-  /** Optional secondary action â€” never an automatic redirect (ADR-CD-033). */
+  /** Optional secondary action — never an automatic redirect (ADR-CD-033). */
   onOpenFullDetail?: (donationId: string) => void;
   onRowRefresh?: () => void;
 }) {
@@ -384,7 +384,7 @@ export function ContributionOperationShell({
 
         {detailQuery.isPending && (
           <p role="status" className="text-sm text-muted-foreground">
-            Loading current gift valuesâ€¦
+            Loading current gift values…
           </p>
         )}
 
@@ -530,7 +530,7 @@ export function ContributionOperationShell({
         {phase.name === "submitting" && (
           <p role="status" className="flex items-center gap-2 text-sm">
             <LoaderCircle className="size-4 animate-spin" aria-hidden />
-            Submittingâ€¦
+            Submitting…
           </p>
         )}
 
