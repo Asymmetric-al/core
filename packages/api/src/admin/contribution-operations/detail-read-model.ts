@@ -3,6 +3,11 @@ import {
   type ContributionActionAvailability,
 } from "./action-availability";
 import {
+  buildContributionCrmPostState,
+  type ContributionCrmPostState,
+  type CrmPostLinkInput,
+} from "./crm-post-state";
+import {
   buildContributionDesignationSet,
   type DesignationAllocationInput,
   type DesignationFundInput,
@@ -105,6 +110,8 @@ export interface ContributionDetailInput {
     id: string;
     display_name: string | null;
   }>;
+  /** Parent and child CRM record links for this donation (ADR-CD-012). */
+  crmLinks?: CrmPostLinkInput[];
 }
 
 export interface ContributionDetail {
@@ -173,7 +180,12 @@ export interface ContributionDetail {
     pledgeId: string | null;
   };
   stagedGift: ContributionDetailInput["stagedGift"];
-  crm: {
+  /**
+   * CRM/Twenty post state — workflow metadata, never payment truth
+   * (ADR-CD-012). Parent gift status and child designation record status are
+   * distinguished so retries can target the failed scope.
+   */
+  crm: ContributionCrmPostState & {
     postStatus: string | null;
     twentyRecordId: string | null;
   };
@@ -468,6 +480,12 @@ export function buildContributionDetail(
     crm: {
       postStatus: stagedGift?.crmPostStatus ?? null,
       twentyRecordId: stagedGift?.twentyRecordId ?? null,
+      ...buildContributionCrmPostState({
+        stagedGiftCrmPostStatus: stagedGift?.crmPostStatus ?? null,
+        stagedGiftTwentyRecordId: stagedGift?.twentyRecordId ?? null,
+        links: input.crmLinks ?? [],
+        designationLineCount: designations.lines.length,
+      }),
     },
     auditEvents: input.auditEvents ?? [],
     corrections: input.corrections ?? [],

@@ -272,6 +272,71 @@ describe("contribution operations action executor", () => {
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
   });
 
+  it("retries a single designation child record without reposting unrelated lines", async () => {
+    const retryDesignationPost = vi.fn().mockResolvedValue(undefined);
+    const retryStagedGift = vi.fn();
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "retry_staged_gift",
+      payload: {
+        stagedGiftId: "staged_1",
+        scope: "designation",
+        allocationId: "alloc_2",
+      },
+      dependencies: {
+        retryDesignationPost,
+        retryStagedGift,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(retryDesignationPost).toHaveBeenCalledWith(
+      expect.objectContaining({ allocationId: "alloc_2" }),
+    );
+    expect(retryStagedGift).not.toHaveBeenCalled();
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        downstreamEffects: expect.objectContaining({
+          retryScope: "designation",
+          allocationId: "alloc_2",
+        }),
+      }),
+    );
+  });
+
+  it("surfaces the adapter limitation when child record retries are unsupported", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "retry_staged_gift",
+        payload: {
+          stagedGiftId: "staged_1",
+          scope: "designation",
+          allocationId: "alloc_2",
+        },
+        dependencies: {
+          retryStagedGift: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/does not support posting designation child records/i);
+  });
+
   it("creates a correction request instead of applying high-risk corrections under default policy", async () => {
     const applyCorrection = vi.fn();
     const createCorrectionRequest = vi.fn().mockResolvedValue("request_1");

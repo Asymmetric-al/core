@@ -308,6 +308,7 @@ export async function loadContributionDetailFromSupabase(input: {
     auditResult,
     correctionResult,
     correctionRequestResult,
+    crmLinksResult,
   ] = await Promise.all([
     maybeFetchById(
       input.supabaseAdmin,
@@ -348,6 +349,14 @@ export async function loadContributionDetailFromSupabase(input: {
       .eq("donation_id", input.contributionId)
       .order("created_at", { ascending: false })
       .limit(50),
+    input.supabaseAdmin
+      .from("donation_crm_links")
+      .select(
+        "id, scope, allocation_id, link_status, twenty_record_id, last_error",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .order("created_at", { ascending: true }),
   ]);
 
   assertNoError(stagedGiftResult.error, "Failed to load staged gift.");
@@ -360,6 +369,7 @@ export async function loadContributionDetailFromSupabase(input: {
     correctionRequestResult.error,
     "Failed to load correction requests.",
   );
+  assertNoError(crmLinksResult.error, "Failed to load CRM record links.");
 
   const stagedGift = isRecord(stagedGiftResult.data)
     ? {
@@ -407,6 +417,14 @@ export async function loadContributionDetailFromSupabase(input: {
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
     allocationMissionaries: designationData.missionaries,
+    crmLinks: ((crmLinksResult.data ?? []) as JsonRecord[]).map((link) => ({
+      id: asString(link.id) ?? "",
+      scope: link.scope === "designation" ? "designation" : "parent",
+      allocationId: asString(link.allocation_id),
+      linkStatus: asString(link.link_status),
+      twentyRecordId: asString(link.twenty_record_id),
+      lastError: asString(link.last_error),
+    })),
     donation,
     donor: donor
       ? {

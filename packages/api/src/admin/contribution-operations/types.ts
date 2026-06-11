@@ -128,6 +128,18 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     actorProfileId: string | null;
     note?: string | null;
   }) => Promise<unknown>;
+  /**
+   * Retries posting one designation child record (ADR-CD-012). Optional —
+   * when the CRM adapter cannot post child records this stays undefined and
+   * the limitation is surfaced to staff instead of silently reposting.
+   */
+  retryDesignationPost?: (input: {
+    tenantId: string;
+    stagedGiftId: string;
+    allocationId: string;
+    actorProfileId: string | null;
+    note?: string | null;
+  }) => Promise<unknown>;
   relinkDonor?: (input: {
     tenantId: string;
     contributionId: string;

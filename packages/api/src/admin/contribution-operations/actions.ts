@@ -334,6 +334,50 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
+      const retryScope =
+        input.payload?.scope === "designation" ? "designation" : "parent";
+
+      if (retryScope === "designation") {
+        // Targeted child-record retry (ADR-CD-012): only the failed line is
+        // reposted. When the adapter cannot post child records, surface the
+        // limitation rather than silently reposting the whole gift.
+        const allocationId = requireStringPayload(
+          input.payload,
+          "allocationId",
+        );
+        const retryDesignation = input.dependencies?.retryDesignationPost;
+        if (!retryDesignation) {
+          throw new ApiHttpError(
+            501,
+            "The connected CRM adapter does not support posting designation child records yet. Retry the parent gift record instead, or resolve the line in the CRM directly.",
+          );
+        }
+        await retryDesignation({
+          tenantId: input.tenantId,
+          stagedGiftId,
+          allocationId,
+          actorProfileId: input.actorProfileId,
+          note: input.reason ?? null,
+        });
+        const auditEventId = await appendAuditEvent(
+          input,
+          auditInput(input, {
+            stagedGiftId,
+            downstreamEffects: {
+              crmPostStatus: "queued",
+              retryScope: "designation",
+              allocationId,
+            },
+          }),
+        );
+
+        return {
+          canonicalContribution: await loadCanonicalContribution(input),
+          auditEventId,
+          taskIds: [],
+        };
+      }
+
       const retry = requireDependency(input.dependencies, "retryStagedGift");
       await retry({
         tenantId: input.tenantId,
@@ -347,6 +391,7 @@ export async function executeContributionAction<TContribution = unknown>(
           stagedGiftId,
           downstreamEffects: {
             crmPostStatus: "queued",
+            retryScope: "parent",
           },
         }),
       );
