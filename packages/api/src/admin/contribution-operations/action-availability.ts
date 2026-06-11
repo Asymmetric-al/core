@@ -27,6 +27,12 @@ export interface ActionAvailabilityStagedGiftInput {
 export interface BuildContributionActionAvailabilityInput {
   stagedGift: ActionAvailabilityStagedGiftInput | null;
   paymentStatus: string | null;
+  /** Refund context: original amount, refunded so far, provider charge. */
+  refund?: {
+    amountCents: number;
+    refundedAmountCents: number;
+    hasProviderCharge: boolean;
+  };
 }
 
 /**
@@ -127,16 +133,56 @@ function receiptAvailability(
   return entry("resend_receipt", { available: true });
 }
 
+function refundAvailability(
+  paymentStatus: string | null,
+  refund: NonNullable<BuildContributionActionAvailabilityInput["refund"]>,
+): ContributionActionAvailability {
+  if (paymentStatus !== "completed" && paymentStatus !== "refunded") {
+    return entry("refund", {
+      available: false,
+      blockedReason: "Only completed payments can be refunded.",
+      nextStep: "Refunds become available once the gift payment completes.",
+    });
+  }
+
+  if (!refund.hasProviderCharge) {
+    return entry("refund", {
+      available: false,
+      blockedReason:
+        "This gift has no payment provider charge to refund against.",
+      nextStep:
+        "Offline gifts are corrected through adjustments rather than provider refunds.",
+    });
+  }
+
+  const remaining = refund.amountCents - refund.refundedAmountCents;
+  if (remaining <= 0) {
+    return entry("refund", {
+      available: false,
+      blockedReason: "This gift is already fully refunded.",
+      nextStep: "No refundable amount remains on this gift.",
+    });
+  }
+
+  return entry("refund", { available: true });
+}
+
 export function buildContributionActionAvailability(
   input: BuildContributionActionAvailabilityInput,
 ): ContributionActionAvailability[] {
   const { stagedGift, paymentStatus } = input;
+  const refund = input.refund ?? {
+    amountCents: 0,
+    refundedAmountCents: 0,
+    hasProviderCharge: false,
+  };
 
   if (!stagedGift) {
     return [
       blockedWithoutStagedGift("approve_staged_gift"),
       blockedWithoutStagedGift("retry_staged_gift"),
       blockedWithoutStagedGift("resend_receipt"),
+      refundAvailability(paymentStatus, refund),
     ];
   }
 
@@ -144,5 +190,6 @@ export function buildContributionActionAvailability(
     approveAvailability(stagedGift),
     retryAvailability(stagedGift),
     receiptAvailability(stagedGift, paymentStatus),
+    refundAvailability(paymentStatus, refund),
   ];
 }

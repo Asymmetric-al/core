@@ -508,6 +508,11 @@ export function buildContributionDetail(
           }
         : null,
       paymentStatus: donation.status,
+      refund: {
+        amountCents: effective.amountCents,
+        refundedAmountCents: donation.refundAmount,
+        hasProviderCharge: Boolean(donation.stripeChargeId),
+      },
     }),
     tasks: [],
     batches: [],

@@ -195,6 +195,10 @@ describe("contribution operations detail read model", () => {
         actionType: "resend_receipt",
         available: true,
       }),
+      expect.objectContaining({
+        actionType: "refund",
+        available: false,
+      }),
     ]);
 
     expect(detail.shared).toEqual({
@@ -267,11 +271,23 @@ describe("contribution operations detail read model", () => {
     expect(detail.shared.amountCents).toBe(7_500);
     expect(detail.shared.designationSummary.fundName).toBe("General Fund");
 
-    for (const entry of detail.actionAvailability) {
+    const workflowEntries = detail.actionAvailability.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
+        entry.actionType,
+      ),
+    );
+    for (const entry of workflowEntries) {
       expect(entry.available).toBe(false);
       expect(entry.blockedReason).toMatch(/no staged gift/i);
       expect(entry.nextStep).toMatch(/valid/i);
     }
+
+    // A check gift with no provider charge cannot use provider refunds.
+    const refundEntry = detail.actionAvailability.find(
+      (entry) => entry.actionType === "refund",
+    );
+    expect(refundEntry?.available).toBe(false);
+    expect(refundEntry?.blockedReason).toMatch(/no payment provider charge/i);
   });
 
   it("exposes a first-class designation set for split gifts that reconciles to the gift amount", () => {

@@ -110,9 +110,9 @@ function assertActorPermissions(
     return;
   }
 
-  // Correction requests are gated separately by the request capability.
+  // Correction/refund requests are gated separately by the request capability.
   if (
-    isCorrectionAction(input.actionType) &&
+    (isCorrectionAction(input.actionType) || input.actionType === "refund") &&
     (input.actorCapabilities ?? []).includes(
       "contributions.request_corrections",
     )
@@ -445,6 +445,76 @@ export async function executeContributionAction<TContribution = unknown>(
 
     case "refund": {
       const amount = requireNumberPayload(input.payload, "amount");
+
+      // Refunds follow the same tenant approval policy as other high-risk
+      // corrections (ADR-CD-005 / ADR-CD-025): create a request unless the
+      // gate is suppressed or this apply comes from an approved request.
+      const refundApprovalPolicy =
+        input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
+      const refundRequiresApproval =
+        !input.approvedRequestId &&
+        correctionRequiresApproval({
+          actionType: "refund",
+          policy: refundApprovalPolicy,
+        });
+
+      if (refundRequiresApproval) {
+        const canRequest =
+          input.actorPermissions.includes("finance:manage_contributions") ||
+          (input.actorCapabilities ?? []).includes(
+            "contributions.request_corrections",
+          );
+        if (!canRequest) {
+          throw new ApiHttpError(
+            403,
+            "Forbidden: requires contributions.request_corrections",
+          );
+        }
+
+        const createCorrectionRequest = requireDependency(
+          input.dependencies,
+          "createCorrectionRequest",
+        );
+        const correctionRequestId = await createCorrectionRequest({
+          tenantId: input.tenantId,
+          contributionId: input.contributionId,
+          actionType: "refund",
+          payload: input.payload ?? {},
+          reason: input.reason ?? "",
+          requestedByProfileId: input.actorProfileId,
+          sourceSurface: input.sourceSurface,
+          expectedRevision: input.expectedRevision ?? null,
+          idempotencyKey: input.idempotencyKey ?? null,
+        });
+        const auditEventId = await appendAuditEvent(
+          input,
+          auditInput(input, {
+            downstreamEffects: {
+              correctionRequestId,
+              approvalStatus: "pending_approval",
+            },
+          }),
+        );
+
+        return {
+          canonicalContribution: await loadCanonicalContribution(input),
+          auditEventId,
+          correctionRequestId,
+          approvalStatus: "pending_approval",
+          taskIds: [],
+        };
+      }
+
+      const canRunRefund =
+        input.actorPermissions.includes("finance:manage_contributions") ||
+        (input.actorCapabilities ?? []).includes("contributions.run_refunds");
+      if (!canRunRefund) {
+        throw new ApiHttpError(
+          403,
+          "Forbidden: requires contributions.run_refunds",
+        );
+      }
+
       const refund = requireDependency(
         input.dependencies,
         "refundContribution",

@@ -200,6 +200,7 @@ describe("contribution operations action executor", () => {
       reason: "Duplicate payment",
       confirmationToken: "confirm",
       payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
         refundContribution,
         createCorrectionRecord,
@@ -270,6 +271,66 @@ describe("contribution operations action executor", () => {
       }),
     );
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
+  });
+
+  it("routes refunds through correction requests under default approval policy", async () => {
+    const refundContribution = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_9");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: {
+        refundContribution,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(refundContribution).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalledWith(
+      expect.objectContaining({ actionType: "refund" }),
+    );
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionRequestId).toBe("request_9");
+  });
+
+  it("requires the run_refunds capability for direct refunds when approval is suppressed", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.request_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "refund",
+        reason: "Duplicate payment",
+        confirmationToken: "confirm",
+        payload: { amount: 500 },
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        dependencies: {
+          refundContribution: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/run_refunds/);
   });
 
   it("retries a single designation child record without reposting unrelated lines", async () => {
