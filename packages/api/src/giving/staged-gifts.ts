@@ -254,6 +254,40 @@ export async function loadStagedGiftById(input: {
   return toStagedGiftRow(data);
 }
 
+async function ensureInitialAllocation(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  stagedGiftId: string;
+  donation: DonationForStaging;
+}) {
+  if (!(input.donation.amount > 0)) {
+    return;
+  }
+
+  const existing = await input.supabaseAdmin
+    .from("staged_gift_allocations")
+    .select("id")
+    .eq("staged_gift_id", input.stagedGiftId)
+    .limit(1)
+    .maybeSingle();
+  requireNoError(existing.error, "Failed to read staged gift allocations.");
+  if (isJsonRecord(existing.data)) {
+    return;
+  }
+
+  const { error } = await input.supabaseAdmin
+    .from("staged_gift_allocations")
+    .insert({
+      tenant_id: input.tenantId,
+      staged_gift_id: input.stagedGiftId,
+      fund_id: input.donation.fund_id,
+      missionary_id: input.donation.missionary_id,
+      amount: input.donation.amount,
+      memo: "Initial allocation from Stripe payment intent.",
+    });
+  requireNoError(error, "Failed to stage gift allocation.");
+}
+
 export async function stageGiftFromStripeDonation(
   input: StageGiftInput,
 ): Promise<StagedGiftRow> {
@@ -265,7 +299,14 @@ export async function stageGiftFromStripeDonation(
 
   requireNoError(existing.error, "Failed to read staged gift.");
   if (isJsonRecord(existing.data)) {
-    return toStagedGiftRow(existing.data);
+    const existingGift = toStagedGiftRow(existing.data);
+    await ensureInitialAllocation({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: existingGift.tenantId,
+      stagedGiftId: existingGift.id,
+      donation: input.donation,
+    });
+    return existingGift;
   }
 
   const initialReview = determineInitialReview(input.donation);
@@ -309,37 +350,47 @@ export async function stageGiftFromStripeDonation(
       .eq("donation_id", input.donation.id)
       .single();
     requireNoError(duplicate.error, "Failed to read duplicate staged gift.");
-    return toStagedGiftRow((duplicate.data ?? {}) as JsonRecord);
+    if (!isJsonRecord(duplicate.data)) {
+      throw new Error("Staged gift insert returned no row.");
+    }
+    const duplicateGift = toStagedGiftRow(duplicate.data);
+    await ensureInitialAllocation({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: duplicateGift.tenantId,
+      stagedGiftId: duplicateGift.id,
+      donation: input.donation,
+    });
+    return duplicateGift;
   }
 
   requireNoError(inserted.error, "Failed to stage gift.");
-  const stagedGift = toStagedGiftRow((inserted.data ?? {}) as JsonRecord);
-
-  if (input.donation.amount > 0) {
-    const { error: allocationError } = await input.supabaseAdmin
-      .from("staged_gift_allocations")
-      .insert({
-        tenant_id: tenantId,
-        staged_gift_id: stagedGift.id,
-        fund_id: input.donation.fund_id,
-        missionary_id: input.donation.missionary_id,
-        amount: input.donation.amount,
-        memo: "Initial allocation from Stripe payment intent.",
-      });
-    requireNoError(allocationError, "Failed to stage gift allocation.");
+  if (!isJsonRecord(inserted.data)) {
+    throw new Error("Staged gift insert returned no row.");
   }
+  const stagedGift = toStagedGiftRow(inserted.data);
 
-  await appendGiftAuditEvent({
+  await ensureInitialAllocation({
     supabaseAdmin: input.supabaseAdmin,
     tenantId,
     stagedGiftId: stagedGift.id,
-    action: "staged_gift_created",
-    details: {
-      donationId: input.donation.id,
-      stripeEventId: input.stripeEventId,
-      status: stagedGift.status,
-    },
+    donation: input.donation,
   });
+
+  try {
+    await appendGiftAuditEvent({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId,
+      stagedGiftId: stagedGift.id,
+      action: "staged_gift_created",
+      details: {
+        donationId: input.donation.id,
+        stripeEventId: input.stripeEventId,
+        status: stagedGift.status,
+      },
+    });
+  } catch (error) {
+    console.error("staged_gift_created audit event failed:", error);
+  }
 
   return stagedGift;
 }
