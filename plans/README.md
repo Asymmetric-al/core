@@ -19,9 +19,20 @@ bun run typecheck && bun run test:unit && bun run build`.
 | 003  | Validate fund/missionary IDs in corrections | P1 | M | MED | none | DONE |
 | 004  | Make inline stripe_replay derive its event id server-side | P2 | M | LOW | none | DONE |
 | 005  | Share the CRM view-settings patch util (in @asym/database) | P2 | M | LOW | none | DONE |
-| 006  | Extract components from the crm/page-client god-file | P3 | L | MED | 001, 005 | TODO |
+| 006  | Extract components from the crm/page-client god-file | P3 | L | MED | 001, 005 | DONE (partial) |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason)
+
+## Follow-up
+
+- **Plan 006 (god-file) is partially done.** The four leaf components
+  (`GiftInlineActionControls`, `GiftHistoryViewSettingsMenu`,
+  `GiftHistoryViewSwitcher`, `KanbanView`) and the shared helpers
+  (`crm-detail-shared.ts`) were extracted, taking `crm/page-client.tsx` from
+  1988 → ~1455 lines with the CRM test suite passing unchanged. `DetailDrawer`
+  (~970 lines, self-contained: props `{ contact, onClose, onOpenGift }`) is the
+  natural next extraction into `detail-drawer.tsx` and deserves its own focused
+  PR/review; it is intentionally left inline here.
 
 ## Dependency notes
 
