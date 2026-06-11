@@ -23,7 +23,7 @@
 
 ## 3. Resend Inbound Workflow
 
-- [ ] 3.1 Dispatch verified tenant-resolved inbound email work through minimal
+- [x] 3.1 Dispatch verified tenant-resolved inbound email work through minimal
       placeholders with no body, HTML, attachments, signed URLs, or Support Hub
       rows before workflow processing (#293)
 - [ ] 3.2 Retrieve inbound body durably before Support Hub routing; track

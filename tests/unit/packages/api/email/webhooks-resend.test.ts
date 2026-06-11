@@ -21,6 +21,7 @@ const {
   tenantSettingsEqMock,
   tenantSettingsIlikeMock,
   routeInboundToSupportHubMock,
+  requestWorkflowDispatchMock,
   serverEnvMock,
 } = vi.hoisted(() => {
   const upsertEmailEvents = vi
@@ -113,6 +114,7 @@ const {
     tenantSettingsEqMock: tenantSettingsEq,
     tenantSettingsIlikeMock: tenantSettingsIlike,
     routeInboundToSupportHubMock: vi.fn(),
+    requestWorkflowDispatchMock: vi.fn(),
     serverEnvMock: serverEnv,
   };
 });
@@ -141,6 +143,16 @@ vi.mock(
     routeInboundToSupportHub: routeInboundToSupportHubMock,
   }),
 );
+
+vi.mock("../../../../../packages/api/src/workflows/ledger", async () => {
+  const actual = await vi.importActual<
+    typeof import("../../../../../packages/api/src/workflows/ledger")
+  >("../../../../../packages/api/src/workflows/ledger");
+  return {
+    ...actual,
+    requestWorkflowDispatch: requestWorkflowDispatchMock,
+  };
+});
 
 import { POST } from "../../../../../packages/api/src/email/webhooks/resend";
 
@@ -177,6 +189,12 @@ describe("api/email/webhooks/resend", () => {
       conversationId: null,
       messageId: null,
       reason: "No Support Hub inbox matched the inbound recipients.",
+    });
+    requestWorkflowDispatchMock.mockResolvedValue({
+      outcome: "dispatched",
+      request: { id: "wdr-1" },
+      reused: false,
+      error: null,
     });
     getAdminClientMock.mockReturnValue({
       client: { from: fromMock },
@@ -679,7 +697,7 @@ describe("api/email/webhooks/resend", () => {
     expect(upsertInboundMock).not.toHaveBeenCalled();
   });
 
-  it("keeps inbound processing alive when attachment listing fails", async () => {
+  it("stores a metadata-only placeholder and dispatches the inbound workflow (#293)", async () => {
     tenantSettingsIlikeMock.mockResolvedValueOnce({
       data: [
         {
@@ -689,18 +707,17 @@ describe("api/email/webhooks/resend", () => {
       ],
       error: null,
     });
-    listReceivedEmailAttachmentsMock.mockRejectedValueOnce(new Error("boom"));
     verifyResendWebhookSignatureMock.mockReturnValueOnce({
       success: true,
       event: {
         type: "email.received",
         created_at: "2026-02-23T10:00:00.000Z",
         data: {
-          resend_event_id: "evt_inbound_partial_1",
-          email_id: "inbound_partial_1",
+          resend_event_id: "evt_inbound_placeholder",
+          email_id: "inbound_placeholder_1",
           from: "sender@example.com",
           to: ["user@one.org"],
-          subject: "partial",
+          subject: "placeholder",
         },
       },
     });
@@ -709,20 +726,40 @@ describe("api/email/webhooks/resend", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.receivedEmailLoaded).toBe(true);
-    expect(body.attachmentsLoaded).toBe(false);
-    expect(body.attachmentCount).toBe(0);
+    expect(body.accepted).toBe(true);
+    expect(body.dispatch).toBe("dispatched");
+
+    // The webhook never calls the provider for content; the placeholder
+    // carries verified metadata only.
+    expect(getReceivedEmailMock).not.toHaveBeenCalled();
+    expect(listReceivedEmailAttachmentsMock).not.toHaveBeenCalled();
+    expect(routeInboundToSupportHubMock).not.toHaveBeenCalled();
+
     expect(upsertInboundMock).toHaveBeenCalledTimes(1);
-    const firstUpsertCall = upsertInboundMock.mock.calls[0];
-    expect(firstUpsertCall?.[0]).toMatchObject({
+    const placeholder = upsertInboundMock.mock.calls[0]?.[0] as Record<
+      string,
+      unknown
+    >;
+    expect(placeholder).toMatchObject({
       tenant_id: "tenant_inbound",
-      resend_email_id: "inbound_partial_1",
-      parsed_text: "body",
-      attachment_count: 0,
+      resend_email_id: "inbound_placeholder_1",
     });
+    expect(placeholder).not.toHaveProperty("parsed_text");
+    expect(placeholder).not.toHaveProperty("parsed_html");
+    expect(placeholder).not.toHaveProperty("attachment_count");
+
+    expect(requestWorkflowDispatchMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({
+        tenantId: "tenant_inbound",
+        productArea: "email",
+        subject: expect.objectContaining({ type: "email_inbound_message" }),
+        idempotencyKey: "inbound-email/inbound_placeholder_1",
+      }),
+    );
   });
 
-  it("keeps inbound processing alive when email body retrieval fails", async () => {
+  it("acknowledges stored inbound events when immediate dispatch fails (#293)", async () => {
     tenantSettingsIlikeMock.mockResolvedValueOnce({
       data: [
         {
@@ -732,18 +769,11 @@ describe("api/email/webhooks/resend", () => {
       ],
       error: null,
     });
-    getReceivedEmailMock.mockRejectedValueOnce(new Error("boom"));
-    listReceivedEmailAttachmentsMock.mockResolvedValueOnce({
-      success: true,
-      data: [
-        {
-          id: "att_1",
-          filename: "doc.pdf",
-          content_type: "application/pdf",
-          download_url: "https://example.com/doc.pdf",
-          expires_at: "2026-02-23T11:00:00.000Z",
-        },
-      ],
+    requestWorkflowDispatchMock.mockResolvedValueOnce({
+      outcome: "failed",
+      request: { id: "wdr-1" },
+      reused: false,
+      error: "connect ECONNREFUSED",
     });
     verifyResendWebhookSignatureMock.mockReturnValueOnce({
       success: true,
@@ -751,11 +781,11 @@ describe("api/email/webhooks/resend", () => {
         type: "email.received",
         created_at: "2026-02-23T10:00:00.000Z",
         data: {
-          resend_event_id: "evt_inbound_partial_2",
-          email_id: "inbound_partial_2",
+          resend_event_id: "evt_inbound_dispatch_fail",
+          email_id: "inbound_dispatch_fail_1",
           from: "sender@example.com",
           to: ["user@one.org"],
-          subject: "partial",
+          subject: "dispatch failure",
         },
       },
     });
@@ -764,16 +794,98 @@ describe("api/email/webhooks/resend", () => {
     const body = await response.json();
 
     expect(response.status).toBe(200);
-    expect(body.receivedEmailLoaded).toBe(false);
-    expect(body.attachmentsLoaded).toBe(true);
-    expect(body.attachmentCount).toBe(1);
-    expect(upsertInboundMock).toHaveBeenCalledTimes(1);
-    const firstUpsertCall = upsertInboundMock.mock.calls[0];
-    expect(firstUpsertCall?.[0]).toMatchObject({
-      tenant_id: "tenant_inbound",
-      resend_email_id: "inbound_partial_2",
-      parsed_text: "",
-      attachment_count: 1,
+    expect(body.accepted).toBe(true);
+    expect(body.dispatch).toBe("failed");
+  });
+
+  it("lets the provider retry when the workflow handoff cannot be recorded (#293)", async () => {
+    tenantSettingsIlikeMock.mockResolvedValueOnce({
+      data: [
+        {
+          tenant_id: "tenant_inbound",
+          default_from_email: "noreply@one.org",
+        },
+      ],
+      error: null,
     });
+    requestWorkflowDispatchMock.mockRejectedValueOnce(
+      new Error("ledger unavailable"),
+    );
+    verifyResendWebhookSignatureMock.mockReturnValueOnce({
+      success: true,
+      event: {
+        type: "email.received",
+        created_at: "2026-02-23T10:00:00.000Z",
+        data: {
+          resend_event_id: "evt_inbound_no_ledger",
+          email_id: "inbound_no_ledger_1",
+          from: "sender@example.com",
+          to: ["user@one.org"],
+          subject: "no ledger",
+        },
+      },
+    });
+
+    const response = await POST(createWebhookRequest({ hello: "world" }));
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body.accepted).toBe(false);
+    expect(body.code).toBe("workflow_dispatch_unrecorded");
+  });
+
+  it("reuses the same handoff for duplicate inbound webhook replays (#293)", async () => {
+    tenantSettingsIlikeMock.mockResolvedValue({
+      data: [
+        {
+          tenant_id: "tenant_inbound",
+          default_from_email: "noreply@one.org",
+        },
+      ],
+      error: null,
+    });
+    requestWorkflowDispatchMock
+      .mockResolvedValueOnce({
+        outcome: "dispatched",
+        request: { id: "wdr-1" },
+        reused: false,
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        outcome: "already_dispatched",
+        request: { id: "wdr-1" },
+        reused: true,
+        error: null,
+      });
+    const inboundEvent = {
+      type: "email.received",
+      created_at: "2026-02-23T10:00:00.000Z",
+      data: {
+        resend_event_id: "evt_inbound_replay",
+        email_id: "inbound_replay_1",
+        from: "sender@example.com",
+        to: ["user@one.org"],
+        subject: "replay",
+      },
+    };
+    verifyResendWebhookSignatureMock
+      .mockReturnValueOnce({ success: true, event: inboundEvent })
+      .mockReturnValueOnce({ success: true, event: inboundEvent });
+
+    const first = await POST(createWebhookRequest({ hello: "world" }));
+    const second = await POST(createWebhookRequest({ hello: "world" }));
+    const secondBody = await second.json();
+
+    expect(first.status).toBe(200);
+    expect(second.status).toBe(200);
+    expect(secondBody.dispatch).toBe("already_dispatched");
+
+    const idempotencyKeys = requestWorkflowDispatchMock.mock.calls.map(
+      ([, input]) => (input as { idempotencyKey: string }).idempotencyKey,
+    );
+    expect(idempotencyKeys).toEqual([
+      "inbound-email/inbound_replay_1",
+      "inbound-email/inbound_replay_1",
+    ]);
   });
 });

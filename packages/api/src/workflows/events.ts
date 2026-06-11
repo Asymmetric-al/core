@@ -11,6 +11,9 @@ export const DONATION_SAGA_RECOVERY_EVENT = "donations/saga.recovery.requested";
 export const STRIPE_EVENT_PROCESS_EVENT =
   "giving/stripe-event.process.requested";
 
+export const EMAIL_INBOUND_PROCESS_EVENT =
+  "email/inbound-email.process.requested";
+
 /**
  * System actor recorded when a workflow run (not a staff user) performs a
  * product action. audit_logs.user_id has no FK, and the donation saga RPCs
