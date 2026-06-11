@@ -130,6 +130,32 @@ function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
   ) {
     return subscription.id;
   }
+
+  // Webhook payload shape follows the ENDPOINT's pinned API version, not the
+  // SDK's. API version 2025-03-31.basil moved the reference to
+  // invoice.parent.subscription_details.subscription; the pinned stripe@17
+  // types predate that shape, hence the local cast.
+  const parent = (
+    invoice as {
+      parent?: {
+        subscription_details?: {
+          subscription?: string | { id?: string } | null;
+        } | null;
+      } | null;
+    }
+  ).parent;
+  const parentSubscription = parent?.subscription_details?.subscription;
+  if (typeof parentSubscription === "string" && parentSubscription.length > 0) {
+    return parentSubscription;
+  }
+  if (
+    parentSubscription &&
+    typeof parentSubscription === "object" &&
+    typeof parentSubscription.id === "string"
+  ) {
+    return parentSubscription.id;
+  }
+
   return null;
 }
 
@@ -166,7 +192,10 @@ export async function updateInvoicePledge(params: {
   const patch: Record<string, unknown> =
     params.outcome === "paid"
       ? {
-          status: "active",
+          // Stripe does not guarantee event ordering: a late invoice.paid
+          // after customer.subscription.deleted must never reactivate a
+          // cancelled pledge. Counters still record the collection.
+          ...(pledge.status === "cancelled" ? {} : { status: "active" }),
           last_charge_at: nowIso,
           last_charge_attempt: nowIso,
           failed_charge_count: 0,

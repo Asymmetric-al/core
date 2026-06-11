@@ -1,5 +1,5 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { NonRetriableError } from "inngest";
+import { NonRetriableError, RetryAfterError } from "inngest";
 
 import {
   claimStripeRawEvent,
@@ -8,6 +8,7 @@ import {
   recordStripeRawEventFailure,
 } from "../../stripe/event-store";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
+import { runStripeEventRecoveryScan } from "../adapters/stripe-events";
 import {
   STRIPE_EVENT_PROCESS_EVENT,
   workflowEventEnvelopeSchema,
@@ -55,13 +56,24 @@ export const stripeEventProcessing = inngest.createFunction(
       const claim = await claimStripeRawEvent({ supabaseAdmin, rawEventId });
 
       if (!claim.claimed) {
-        // Duplicate dispatch or concurrent processing: the stored event is
-        // already owned elsewhere. No product effect may run twice.
+        const processingStatus = claim.rawEvent.processingStatus;
+
+        if (processingStatus === "failed" || processingStatus === "received") {
+          // The claim RPC refuses 'failed'/'received' rows only while their
+          // next_attempt_at backoff (60s) has not elapsed — and Inngest's
+          // first retry always fires inside that window. Completing here
+          // would strand the event (Stripe already got its 200), so retry
+          // after the backoff instead.
+          throw new RetryAfterError("stripe_event_claim_backoff", "70s");
+        }
+
+        // Genuinely owned elsewhere or terminal (processing, processed,
+        // ignored, dead_letter): no product effect may run twice.
         return {
           action: "stripe_event_already_claimed",
           handled: true,
           skipped: true,
-          processingStatus: claim.rawEvent.processingStatus,
+          processingStatus,
         };
       }
 
@@ -111,6 +123,35 @@ export const stripeEventProcessing = inngest.createFunction(
 
         throw error;
       }
+    });
+  },
+);
+
+/**
+ * Scheduled recovery for stored Stripe events whose processing failed.
+ * Stripe received a 200 at storage time and will not redeliver; this scan
+ * gives failed events the same automated recovery story as donation saga
+ * rows. The per-event function re-claims through claim_stripe_raw_event, so
+ * duplicate dispatch cannot duplicate payment effects.
+ */
+export const stripeEventRecoveryScan = inngest.createFunction(
+  {
+    id: "stripe-event-recovery-scan",
+    triggers: [{ cron: "*/2 * * * *" }],
+    retries: 2,
+    concurrency: [{ limit: 1 }],
+  },
+  async ({ step }) => {
+    return await step.run("scan-failed-stripe-events", async () => {
+      const { client, error } = getAdminClient();
+
+      if (!client) {
+        throw new Error(
+          `stripe_event_recovery_admin_client_unavailable: ${error ?? "unknown"}`,
+        );
+      }
+
+      return await runStripeEventRecoveryScan({ client });
     });
   },
 );

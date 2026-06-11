@@ -209,6 +209,36 @@ describe("Stripe webhook workflow handoff (#291)", () => {
 });
 
 describe("stripe-event-processing workflow function (#291)", () => {
+  it("retries after the claim backoff instead of completing", async () => {
+    // claim_stripe_raw_event refuses 'failed' events still inside their 60s
+    // next_attempt_at backoff. Treating that refusal as success would strand
+    // the payment event forever (Stripe already got its 200).
+    claimStripeRawEventMock.mockResolvedValue({
+      claimed: false,
+      lockId: "lock-x",
+      rawEvent: storedEvent({ processingStatus: "failed" }),
+    });
+
+    const engine = new InngestTestEngine({ function: stripeEventProcessing });
+    const { error } = await engine.execute({
+      events: [
+        {
+          name: STRIPE_EVENT_PROCESS_EVENT,
+          data: {
+            tenantId: TENANT_ID,
+            workflowName: STRIPE_EVENT_PROCESS_EVENT,
+            schemaVersion: 1,
+            subject: { type: "stripe_raw_event", id: RAW_EVENT_ID },
+          },
+        },
+      ],
+    });
+
+    expect(error).toBeDefined();
+    expect(completeStripeRawEventMock).not.toHaveBeenCalled();
+    expect(recordStripeRawEventFailureMock).not.toHaveBeenCalled();
+  });
+
   it("skips work when the stored event is already claimed elsewhere", async () => {
     claimStripeRawEventMock.mockResolvedValue({
       claimed: false,

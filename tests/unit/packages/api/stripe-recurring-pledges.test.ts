@@ -119,6 +119,51 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
     expect(mock.updates[0]?.last_charge_at).toBeTruthy();
   });
 
+  it("never reactivates a cancelled pledge from a late invoice payment", async () => {
+    // Stripe does not guarantee event ordering: the final invoice.paid can
+    // arrive after customer.subscription.deleted already cancelled the pledge.
+    const mock = createPledgeClientMock(
+      pledgeRow({ status: "cancelled", payments_completed: 7 }),
+    );
+
+    const outcome = await updateInvoicePledge({
+      supabaseAdmin: mock.client,
+      invoice: {
+        id: "in_late",
+        subscription: "sub_1",
+      } as unknown as Stripe.Invoice,
+      outcome: "paid",
+    });
+
+    expect(outcome.action).toBe("pledge_invoice_paid");
+    expect(mock.updates[0]?.status).toBeUndefined();
+    expect(mock.updates[0]).toMatchObject({
+      payments_completed: 8,
+      failed_charge_count: 0,
+    });
+  });
+
+  it("resolves the subscription id from basil-shaped invoices", async () => {
+    // API version 2025-03-31.basil moved the reference to
+    // invoice.parent.subscription_details.subscription.
+    const mock = createPledgeClientMock(pledgeRow());
+
+    const outcome = await updateInvoicePledge({
+      supabaseAdmin: mock.client,
+      invoice: {
+        id: "in_basil",
+        parent: { subscription_details: { subscription: "sub_basil" } },
+      } as unknown as Stripe.Invoice,
+      outcome: "paid",
+    });
+
+    expect(outcome.handled).toBe(true);
+    expect(mock.selectEq).toHaveBeenCalledWith(
+      "stripe_subscription_id",
+      "sub_basil",
+    );
+  });
+
   it("tracks a failed invoice payment without inventing a new status", async () => {
     const mock = createPledgeClientMock(pledgeRow({ failed_charge_count: 1 }));
 

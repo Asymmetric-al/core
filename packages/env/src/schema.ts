@@ -130,14 +130,15 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
-    INNGEST_EVENT_KEY: z.string().min(1).optional(),
-    INNGEST_SIGNING_KEY: z
-      .string()
-      .optional()
-      .refine(
-        (value) => !value || value.startsWith("signkey-"),
-        "INNGEST_SIGNING_KEY must start with signkey-",
-      ),
+    // Required in protected deployments: a keyless deploy would store and
+    // ACK provider events whose workflow dispatch can never succeed.
+    INNGEST_EVENT_KEY: requireInProtectedDeployments("INNGEST_EVENT_KEY"),
+    INNGEST_SIGNING_KEY: requireInProtectedDeployments(
+      "INNGEST_SIGNING_KEY",
+    ).refine(
+      (value) => !value || value.startsWith("signkey-"),
+      "INNGEST_SIGNING_KEY must start with signkey-",
+    ),
     INNGEST_SIGNING_KEY_FALLBACK: z
       .string()
       .optional()
