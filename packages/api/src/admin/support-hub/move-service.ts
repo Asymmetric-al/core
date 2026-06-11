@@ -62,6 +62,12 @@ export interface MoveConversationInput {
   confirmResolved?: boolean;
   batchOperationId?: string | null;
   isRetry?: boolean;
+  /**
+   * Bulk moves validate the shared destination inbox once before the loop;
+   * setting this skips the redundant per-item ownership lookup. The per-item
+   * conversation and same_inbox checks always run.
+   */
+  destinationValidated?: boolean;
 }
 
 export type MoveConversationResult =
@@ -123,15 +129,17 @@ export async function moveSupportConversation(
 
   const conversation = conversationRow as ConversationMoveRow;
 
-  const { data: destination, error: destinationError } = await client
-    .from("support_inboxes")
-    .select("id, tenant_id")
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.destinationInboxId)
-    .maybeSingle();
+  if (!input.destinationValidated) {
+    const { data: destination, error: destinationError } = await client
+      .from("support_inboxes")
+      .select("id, tenant_id")
+      .eq("tenant_id", input.tenantId)
+      .eq("id", input.destinationInboxId)
+      .maybeSingle();
 
-  if (destinationError || !destination) {
-    return failure(input.conversationId, "destination_not_found");
+    if (destinationError || !destination) {
+      return failure(input.conversationId, "destination_not_found");
+    }
   }
 
   if (conversation.inbox_id === input.destinationInboxId) {
@@ -289,7 +297,33 @@ export async function bulkMoveSupportConversations(
   const batchOperationId = options.batchOperationId ?? randomUUID();
   const items: BulkMoveItemResult[] = [];
 
-  for (const conversationId of input.conversationIds) {
+  // Shared destination: validate tenant ownership once, not once per item.
+  const { data: destination, error: destinationError } = await client
+    .from("support_inboxes")
+    .select("id, tenant_id")
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.destinationInboxId)
+    .maybeSingle();
+  const destinationMissing = Boolean(destinationError) || !destination;
+
+  if (destinationMissing) {
+    // Every item fails the same way; still fall through so the batch record
+    // is written exactly like any other all-failed bulk move.
+    items.push(
+      ...input.conversationIds.map(
+        (conversationId): BulkMoveItemResult => ({
+          conversationId,
+          status: "failed",
+          code: "destination_not_found",
+          message: MOVE_FAILURE_MESSAGES.destination_not_found,
+        }),
+      ),
+    );
+  }
+
+  for (const conversationId of destinationMissing
+    ? []
+    : input.conversationIds) {
     // Per-item product work claim: bulk moves, single moves, and retries
     // cannot run the same conversation move concurrently.
     const claim = await acquireWorkClaim(client, {
@@ -317,6 +351,7 @@ export async function bulkMoveSupportConversations(
         confirmResolved: input.confirmResolved,
         batchOperationId,
         isRetry: options.isRetry ?? false,
+        destinationValidated: true,
       });
 
       if (result.status === "moved") {

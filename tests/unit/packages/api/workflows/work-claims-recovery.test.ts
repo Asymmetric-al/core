@@ -117,10 +117,12 @@ function createScanClientMock(options: ScanClientOptions) {
       error: null,
     }),
   );
+  const updateIn = vi.fn().mockResolvedValue({ data: null, error: null });
   const update = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
       select: vi.fn().mockReturnValue({ single: updateSingle }),
     }),
+    in: updateIn,
   });
 
   const from = vi.fn().mockReturnValue({ select, update });
@@ -137,7 +139,7 @@ function createScanClientMock(options: ScanClientOptions) {
     return Promise.resolve({ data: true, error: null });
   });
 
-  return { client: { from, rpc } as never, from, update, rpc };
+  return { client: { from, rpc } as never, from, update, updateIn, rpc };
 }
 
 describe("dispatch recovery scan (#289)", () => {
@@ -210,6 +212,9 @@ describe("dispatch recovery scan (#289)", () => {
     expect(mock.update).toHaveBeenCalledWith(
       expect.objectContaining({ status: "dead_letter" }),
     );
+    // All exhausted rows dead-letter in ONE batched update.
+    expect(mock.updateIn).toHaveBeenCalledTimes(1);
+    expect(mock.updateIn).toHaveBeenCalledWith("id", [exhausted.id]);
   });
 
   it("keeps claims tenant-scoped when scanning work from multiple tenants", async () => {

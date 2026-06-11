@@ -1,8 +1,4 @@
-import {
-  mapWorkflowDispatchRequestRow,
-  type WorkflowDispatchRequestRow,
-} from "./ledger";
-
+import type { WorkflowDispatchRequestRow } from "./ledger";
 import type { getAdminClient } from "@asym/database/supabase/admin";
 
 type SummariesClient = NonNullable<ReturnType<typeof getAdminClient>["client"]>;
@@ -36,9 +32,29 @@ export interface WorkflowRunSummary {
   dispatchedAt: string | null;
 }
 
-function dispatchStateFor(
-  row: WorkflowDispatchRequestRow,
-): WorkflowSummaryState {
+/**
+ * The exact ledger columns a summary needs. The wide row also carries
+ * last_error_message, event_ids, and the context jsonb — none of which may
+ * reach staff summaries, so they are never selected in the first place.
+ */
+const SUMMARY_LEDGER_COLUMNS =
+  "id, product_area, workflow_name, subject_type, subject_id, status, dispatch_attempts, last_error_code, created_at, dispatched_at";
+
+type SummaryLedgerRow = Pick<
+  WorkflowDispatchRequestRow,
+  | "id"
+  | "product_area"
+  | "workflow_name"
+  | "subject_type"
+  | "subject_id"
+  | "status"
+  | "dispatch_attempts"
+  | "last_error_code"
+  | "created_at"
+  | "dispatched_at"
+>;
+
+function dispatchStateFor(row: SummaryLedgerRow): WorkflowSummaryState {
   if (row.status === "dead_letter") return "dead_letter";
   if (row.status === "failed") return "retrying";
   if (row.status === "pending") return "dispatching";
@@ -166,7 +182,7 @@ export async function summarizeWorkflowRuns(
 
   const { data, error } = await client
     .from("workflow_dispatch_requests")
-    .select("*")
+    .select(SUMMARY_LEDGER_COLUMNS)
     .eq("tenant_id", tenantId)
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -175,7 +191,7 @@ export async function summarizeWorkflowRuns(
     throw new Error(`workflow_summaries_failed: ${error.message}`);
   }
 
-  const rows = (data ?? []) as WorkflowDispatchRequestRow[];
+  const rows = (data ?? []) as unknown as SummaryLedgerRow[];
 
   const subjectIdsByType = new Map<string, string[]>();
   for (const row of rows) {
@@ -204,7 +220,6 @@ export async function summarizeWorkflowRuns(
   ]);
 
   return rows.map((row) => {
-    const request = mapWorkflowDispatchRequestRow(row);
     let state = dispatchStateFor(row);
 
     if (row.status === "dispatched") {
@@ -220,16 +235,16 @@ export async function summarizeWorkflowRuns(
     }
 
     return {
-      dispatchRequestId: request.id,
-      productArea: request.productArea,
-      workflowName: request.workflowName,
-      subjectType: request.subject.type,
-      subjectId: request.subject.id,
+      dispatchRequestId: row.id,
+      productArea: row.product_area,
+      workflowName: row.workflow_name,
+      subjectType: row.subject_type,
+      subjectId: row.subject_id,
       state,
-      attempts: request.dispatchAttempts,
-      lastErrorCode: request.lastErrorCode,
-      createdAt: request.createdAt,
-      dispatchedAt: request.dispatchedAt,
+      attempts: row.dispatch_attempts,
+      lastErrorCode: row.last_error_code,
+      createdAt: row.created_at,
+      dispatchedAt: row.dispatched_at,
     };
   });
 }

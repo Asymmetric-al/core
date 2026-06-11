@@ -431,15 +431,14 @@ async function resumeMatchingPendingReviews(
   }
 
   const requestDispatch = deps.requestDispatch ?? requestWorkflowDispatch;
-  let resumed = 0;
 
-  for (const review of pending.data) {
+  const matched = pending.data.filter((review) => {
     const email = review.email_inbound_messages as unknown as {
       to_recipients: string[];
       cc_recipients: string[];
       bcc_recipients: string[];
     } | null;
-    if (!email) continue;
+    if (!email) return false;
 
     const recipients = [
       ...(email.to_recipients ?? []),
@@ -449,25 +448,30 @@ async function resumeMatchingPendingReviews(
       .map((value) => extractEmailAddress(value))
       .filter((value): value is string => Boolean(value));
 
-    const matches =
-      input.scope === "domain_default"
-        ? recipients.some(
-            (address) => address.split("@")[1] === input.matchValue,
-          )
-        : recipients.includes(input.matchValue);
+    return input.scope === "domain_default"
+      ? recipients.some((address) => address.split("@")[1] === input.matchValue)
+      : recipients.includes(input.matchValue);
+  });
 
-    if (!matches) continue;
+  if (matched.length === 0) {
+    return 0;
+  }
 
-    await deps.client
-      .from("support_inbound_routing_reviews")
-      .update({
-        status: "resolved",
-        resolved_by_profile_id: input.actorProfileId,
-        resolved_route_id: input.routeId,
-        resolved_at: new Date().toISOString(),
-      })
-      .eq("id", review.id);
+  // One UPDATE resolves every matched review before the dispatch loop.
+  await deps.client
+    .from("support_inbound_routing_reviews")
+    .update({
+      status: "resolved",
+      resolved_by_profile_id: input.actorProfileId,
+      resolved_route_id: input.routeId,
+      resolved_at: new Date().toISOString(),
+    })
+    .in(
+      "id",
+      matched.map((review) => review.id),
+    );
 
+  for (const review of matched) {
     await requestDispatch(
       { client: deps.client },
       {
@@ -482,11 +486,9 @@ async function resumeMatchingPendingReviews(
         context: { resumedByRouteId: input.routeId },
       },
     );
-
-    resumed += 1;
   }
 
-  return resumed;
+  return matched.length;
 }
 
 export interface ManageInboundRouteInput {

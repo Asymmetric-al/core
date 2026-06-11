@@ -81,29 +81,36 @@ export async function runDispatchRecoveryScan(
     deadLettered: 0,
   };
 
+  // Exhausted rows dead-letter together in one UPDATE; only rows still
+  // inside the attempt budget go through the per-row claim + redispatch.
+  const exhaustedIds = rows
+    .filter((row) => row.dispatch_attempts >= maxAttempts)
+    .map((row) => row.id);
+
+  if (exhaustedIds.length > 0) {
+    const deadLettered = await deps.client
+      .from(LEDGER_TABLE)
+      .update({
+        status: "dead_letter",
+        dead_letter_at: now.toISOString(),
+      })
+      .in("id", exhaustedIds);
+
+    if (deadLettered.error) {
+      throw new Error(
+        `workflow_recovery_dead_letter_failed: ${deadLettered.error.message}`,
+      );
+    }
+
+    summary.deadLettered = exhaustedIds.length;
+  }
+
   for (const row of rows) {
-    const request = mapWorkflowDispatchRequestRow(row);
-
-    if (request.dispatchAttempts >= maxAttempts) {
-      const deadLettered = await deps.client
-        .from(LEDGER_TABLE)
-        .update({
-          status: "dead_letter",
-          dead_letter_at: now.toISOString(),
-        })
-        .eq("id", request.id)
-        .select()
-        .single();
-
-      if (deadLettered.error) {
-        throw new Error(
-          `workflow_recovery_dead_letter_failed: ${deadLettered.error.message}`,
-        );
-      }
-
-      summary.deadLettered += 1;
+    if (row.dispatch_attempts >= maxAttempts) {
       continue;
     }
+
+    const request = mapWorkflowDispatchRequestRow(row);
 
     const claim = await acquireWorkClaim(deps.client, {
       tenantId: request.tenantId,
