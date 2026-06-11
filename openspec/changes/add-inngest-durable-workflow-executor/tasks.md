@@ -2,7 +2,7 @@
 
 - [x] 1.1 Create this OpenSpec change and record runtime scope, environment
       names, local development expectations, and rollback boundaries (#286)
-- [ ] 1.2 Add the Inngest runtime endpoint and a no-op dispatch adapter smoke
+- [x] 1.2 Add the Inngest runtime endpoint and a no-op dispatch adapter smoke
       behind the server-side boundary, with local dev server discovery proven
       and no product workflow behavior moved (#287)
 - [ ] 1.3 Add the shared workflow dispatch ledger and the schema-versioned

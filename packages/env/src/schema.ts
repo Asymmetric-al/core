@@ -130,6 +130,23 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
+    INNGEST_EVENT_KEY: z.string().min(1).optional(),
+    INNGEST_SIGNING_KEY: z
+      .string()
+      .optional()
+      .refine(
+        (value) => !value || value.startsWith("signkey-"),
+        "INNGEST_SIGNING_KEY must start with signkey-",
+      ),
+    INNGEST_SIGNING_KEY_FALLBACK: z
+      .string()
+      .optional()
+      .refine(
+        (value) => !value || value.startsWith("signkey-"),
+        "INNGEST_SIGNING_KEY_FALLBACK must start with signkey-",
+      ),
+    INNGEST_DEV: z.enum(["0", "1"]).optional(),
+    INNGEST_BASE_URL: z.string().url().optional(),
     DOCRAPTOR_API_KEY: z.string().optional(),
     PDF_STUDIO_NATIVE_BUILDER_ENABLED: optionalBoolean,
     PDF_STUDIO_NATIVE_BUILDER_ROLLOUT: pdfStudioNativeBuilderRolloutSchema,
@@ -304,6 +321,11 @@ export const env = createEnv({
       process.env.PDF_STUDIO_NATIVE_RENDER_CALLBACK_SECRET,
     PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL:
       process.env.PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL,
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+    INNGEST_SIGNING_KEY_FALLBACK: process.env.INNGEST_SIGNING_KEY_FALLBACK,
+    INNGEST_DEV: process.env.INNGEST_DEV,
+    INNGEST_BASE_URL: process.env.INNGEST_BASE_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
     RESEND_ENCRYPTION_KEY: process.env.RESEND_ENCRYPTION_KEY,

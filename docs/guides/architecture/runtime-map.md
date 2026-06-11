@@ -124,6 +124,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                    |
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                      |
+| admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving          |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                               |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                  |
 | admin      | `/api/pdf-templates/[templateId]`                              | Node.js (no `runtime` segment export) | PDF Studio template store                  |
