@@ -30,7 +30,10 @@ import {
 import { toast } from "sonner";
 
 import type { Contribution, ContributionStatus } from "./types";
-import type { ContributionActionAvailability } from "@asym/api/admin/contribution-operations";
+import type {
+  ContributionActionAvailability,
+  ContributionProviderProof,
+} from "@asym/api/admin/contribution-operations";
 import type {
   ContributionDesignationFundType,
   ContributionDesignationSet,
@@ -105,6 +108,11 @@ interface ContributionDetailSheetProps {
    * render equally — compact rows with expandable per-line context.
    */
   designations?: ContributionDesignationSet;
+  /**
+   * Role-gated provider proof (ADR-CD-014). Null/undefined for staff
+   * without provider access — the section then never renders.
+   */
+  providerProof?: ContributionProviderProof | null;
 }
 
 const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
@@ -131,6 +139,7 @@ export function ContributionDetailSheet({
   isActionPending = false,
   actionAvailability,
   designations,
+  providerProof,
 }: ContributionDetailSheetProps) {
   if (!contribution) return null;
 
@@ -578,6 +587,53 @@ export function ContributionDetailSheet({
                   </ul>
                 )}
             </div>
+
+            {/* ---- Provider proof (ADR-CD-014, role-gated) ---- */}
+            {providerProof && (
+              <>
+                <Separator />
+                <details className="rounded-lg border border-border bg-card">
+                  <summary className="cursor-pointer list-none p-3 text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Provider proof
+                  </summary>
+                  <div className="space-y-2 border-t border-border px-3 py-3">
+                    <DetailField label="Payment intent" mono>
+                      {providerProof.paymentIntentId ?? "—"}
+                    </DetailField>
+                    <DetailField label="Charge" mono>
+                      {providerProof.chargeId ?? "—"}
+                    </DetailField>
+                    {providerProof.refundIds.length > 0 && (
+                      <DetailField label="Refund IDs" mono>
+                        {providerProof.refundIds.join(", ")}
+                      </DetailField>
+                    )}
+                    <div className="flex flex-wrap gap-3 pt-1">
+                      {providerProof.dashboardUrls.paymentIntent && (
+                        <a
+                          href={providerProof.dashboardUrls.paymentIntent}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-medium text-foreground underline underline-offset-2"
+                        >
+                          Open payment in Stripe
+                        </a>
+                      )}
+                      {providerProof.dashboardUrls.charge && (
+                        <a
+                          href={providerProof.dashboardUrls.charge}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="text-xs font-medium text-foreground underline underline-offset-2"
+                        >
+                          Open charge in Stripe
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                </details>
+              </>
+            )}
 
             {/* ---- Metadata ---- */}
             <div className="pt-2 space-y-1">

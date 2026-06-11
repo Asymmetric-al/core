@@ -21,6 +21,7 @@ import type { Contribution } from "./types";
 import type {
   ContributionDetail,
   ContributionSourceSurface,
+  ViewerProjectedContributionDetail,
 } from "@asym/api/admin/contribution-operations";
 
 export const ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY = [
@@ -72,7 +73,9 @@ async function fetchContributionDetail(donationId: string) {
     throw new Error(body?.error ?? "Could not load contribution detail.");
   }
 
-  const body = (await response.json()) as { contribution: ContributionDetail };
+  const body = (await response.json()) as {
+    contribution: ViewerProjectedContributionDetail;
+  };
   return body.contribution;
 }
 
@@ -325,6 +328,7 @@ export function ContributionDetailOverlay({
       contribution={donationId ? contribution : null}
       actionAvailability={detailQuery.data?.actionAvailability}
       designations={detailQuery.data?.designations}
+      providerProof={detailQuery.data?.providerProof ?? null}
       onClose={onClose}
       onApproveStagedGift={(stagedGiftId, contributionId) =>
         approveMutation.mutate({ contributionId, stagedGiftId })

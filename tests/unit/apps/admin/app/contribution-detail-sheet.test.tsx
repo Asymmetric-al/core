@@ -134,6 +134,47 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
   });
 });
 
+describe("ContributionDetailSheet provider proof", () => {
+  it("shows role-gated provider proof with dashboard links when provided", () => {
+    render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        providerProof={{
+          paymentIntentId: "pi_proof",
+          chargeId: "ch_proof",
+          refundIds: ["re_1"],
+          replayContext: null,
+          dashboardUrls: {
+            paymentIntent: "https://dashboard.stripe.com/payments/pi_proof",
+            charge: "https://dashboard.stripe.com/charges/ch_proof",
+          },
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Provider proof")).toBeTruthy();
+    expect(screen.getByText("pi_proof")).toBeTruthy();
+    expect(screen.getByText("ch_proof")).toBeTruthy();
+    expect(
+      screen.getByRole("link", { name: /open payment in stripe/i }),
+    ).toBeTruthy();
+  });
+
+  it("renders no provider proof section for unauthorized viewers", () => {
+    render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        providerProof={null}
+      />,
+    );
+
+    expect(screen.queryByText("Provider proof")).toBeNull();
+    expect(screen.queryByText("pi_proof")).toBeNull();
+  });
+});
+
 describe("ContributionDetailSheet designation set", () => {
   it("renders every designation line equally with expandable context", () => {
     const contribution = boneyardContributionsFixture[0]!;

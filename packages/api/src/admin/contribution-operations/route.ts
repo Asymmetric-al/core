@@ -14,6 +14,7 @@ import {
   resolveContributionCapabilities,
 } from "./permissions";
 import { loadContributionDetailFromSupabase } from "./store";
+import { projectContributionDetailForViewer } from "./viewer-projection";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -91,11 +92,15 @@ export const GET = withOperation(
         throw new ApiHttpError(400, "Missing contribution id.");
       }
 
-      const contribution = await loadContributionDetailFromSupabase({
+      const detail = await loadContributionDetailFromSupabase({
         supabaseAdmin,
         tenantId: auth.tenantId,
         contributionId,
       });
+      const contribution = projectContributionDetailForViewer(
+        detail,
+        resolveContributionCapabilities(auth),
+      );
 
       return NextResponse.json({ contribution, requestId });
     } catch (error) {

@@ -23,6 +23,11 @@ export {
   type PlannedApprovalNotification,
 } from "./approval-notifications";
 export {
+  projectContributionDetailForViewer,
+  type ContributionProviderProof,
+  type ViewerProjectedContributionDetail,
+} from "./viewer-projection";
+export {
   computeReceiptAffectedFields,
   evaluateReceiptDeliveryOptions,
   parseReceiptDeliverySelection,
