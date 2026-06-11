@@ -21,6 +21,7 @@ import {
   retryStagedGiftPostingToTwenty,
 } from "../../giving/staged-gifts";
 import { ApiHttpError } from "../../shared/http-errors";
+import { resolveLatestStripeEventIdForDonation } from "../../stripe/replay";
 
 import type { ContributionActionDependencies } from "./types";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -67,11 +68,31 @@ export function createContributionActionDependencies(
       });
       return requestId;
     },
-    replayStripeEvent: async ({ payload, tenantId }) => {
-      const stripeEventId = payload.stripeEventId;
-      if (typeof stripeEventId !== "string" || !stripeEventId) {
-        throw new ApiHttpError(400, "stripeEventId is required.");
+    replayStripeEvent: async ({ payload, tenantId, contributionId }) => {
+      // Honor an explicitly supplied event id (the dedicated batch replay path
+      // passes one). The inline "Replay provider webhook" action sends no event
+      // id, so derive the most recent stored provider event for this gift
+      // server-side rather than trusting a client-supplied value.
+      let stripeEventId =
+        typeof payload.stripeEventId === "string" && payload.stripeEventId
+          ? payload.stripeEventId
+          : null;
+
+      if (!stripeEventId) {
+        stripeEventId = await resolveLatestStripeEventIdForDonation({
+          supabaseAdmin,
+          tenantId,
+          donationId: contributionId,
+        });
       }
+
+      if (!stripeEventId) {
+        throw new ApiHttpError(
+          404,
+          "No stored provider event to replay for this gift.",
+        );
+      }
+
       const rawEvent = await replayStripeEventThroughContributionOperations({
         supabaseAdmin,
         tenantId,

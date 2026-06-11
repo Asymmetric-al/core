@@ -64,6 +64,33 @@ export async function loadStripeRawEventForReplay(input: {
   return toStoredStripeRawEvent(data);
 }
 
+/**
+ * Resolve the most recent stored provider event id for a gift, so the inline
+ * "Replay provider webhook" action can derive the event server-side instead of
+ * requiring the client to carry (and be trusted for) a Stripe event id.
+ * Returns null when the gift has no stored provider events.
+ */
+export async function resolveLatestStripeEventIdForDonation(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  donationId: string;
+}): Promise<string | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from("stripe_raw_events")
+    .select("stripe_event_id")
+    .eq("tenant_id", input.tenantId)
+    .eq("donation_id", input.donationId)
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return isJsonRecord(data) ? asString(data.stripe_event_id) : null;
+}
+
 export async function markStripeRawEventForReplay(input: {
   supabaseAdmin: SupabaseAdminClient;
   rawEventId: string;
