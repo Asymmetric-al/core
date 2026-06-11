@@ -13,6 +13,7 @@ export interface WorkflowSummaryRow {
     | "dispatching"
     | "processing"
     | "retrying"
+    | "action_required"
     | "completed"
     | "failed"
     | "dead_letter";
@@ -37,6 +38,10 @@ const STATE_TONES: Record<
   retrying: {
     tone: "border-amber-200 bg-amber-50 text-amber-700",
     label: "Retrying",
+  },
+  action_required: {
+    tone: "border-amber-300 bg-amber-100 text-amber-800",
+    label: "Needs routing review",
   },
   completed: {
     tone: "border-emerald-200 bg-emerald-50 text-emerald-700",

@@ -305,6 +305,43 @@ export async function routeReadyInboundEmail(
     };
   }
 
+  // Recovery lookup: a previous run may have inserted the support message but
+  // lost the bridge write. Backfill the link instead of routing a duplicate.
+  const existingMessage = await client
+    .from("support_messages")
+    .select("id, conversation_id")
+    .eq("tenant_id", row.tenant_id)
+    .eq("inbound_email_id", row.id)
+    .maybeSingle();
+
+  if (existingMessage.data?.id) {
+    const recoveredConversationId = existingMessage.data.conversation_id
+      ? String(existingMessage.data.conversation_id)
+      : null;
+    const recoveredMessageId = String(existingMessage.data.id);
+
+    const recovered = await client
+      .from(INBOUND_TABLE)
+      .update({
+        conversation_id: recoveredConversationId,
+        support_message_id: recoveredMessageId,
+      })
+      .eq("id", row.id);
+
+    if (recovered.error) {
+      throw new Error(
+        `inbound_bridge_persist_failed: ${recovered.error.message}`,
+      );
+    }
+
+    return {
+      status: "already_routed",
+      conversationId: recoveredConversationId,
+      messageId: recoveredMessageId,
+      reason: "recovered existing Support Hub message link.",
+    };
+  }
+
   if (row.body_retrieval_status !== "available") {
     return {
       status: "skipped_no_body",
@@ -355,13 +392,19 @@ export async function routeReadyInboundEmail(
     routing.conversationId &&
     routing.messageId
   ) {
-    await client
+    const bridge = await client
       .from(INBOUND_TABLE)
       .update({
         conversation_id: routing.conversationId,
         support_message_id: routing.messageId,
       })
       .eq("id", row.id);
+
+    if (bridge.error) {
+      // Throwing makes the step retry; the recovery lookup above then finds
+      // the inserted message and backfills the bridge instead of re-routing.
+      throw new Error(`inbound_bridge_persist_failed: ${bridge.error.message}`);
+    }
 
     return {
       status: "routed",
@@ -457,16 +500,6 @@ export async function requestInboundEmailRetryDispatch(
   }
 
   try {
-    const statusPatch =
-      input.kind === "body"
-        ? { body_retrieval_status: "pending", body_retrieval_error: null }
-        : {
-            attachment_retrieval_status: "retrying",
-            attachment_retrieval_error: null,
-          };
-
-    await deps.client.from(INBOUND_TABLE).update(statusPatch).eq("id", row.id);
-
     const attempts =
       input.kind === "body"
         ? row.body_retrieval_attempts
@@ -484,6 +517,19 @@ export async function requestInboundEmailRetryDispatch(
         context: { retryKind: input.kind, requestedBy: input.requestedBy },
       },
     );
+
+    // Flip the visible status only after the handoff is durably recorded:
+    // if the ledger write throws, the row stays 'failed' so the staff retry
+    // affordance remains available (a stuck 'retrying' badge has none).
+    const statusPatch =
+      input.kind === "body"
+        ? { body_retrieval_status: "pending", body_retrieval_error: null }
+        : {
+            attachment_retrieval_status: "retrying",
+            attachment_retrieval_error: null,
+          };
+
+    await deps.client.from(INBOUND_TABLE).update(statusPatch).eq("id", row.id);
 
     return { status: "retry_dispatched", dispatch: dispatch.outcome };
   } finally {

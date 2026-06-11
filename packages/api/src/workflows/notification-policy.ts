@@ -43,6 +43,13 @@ export function evaluateWorkflowNotification(
     };
   }
 
+  if (input.state === "action_required") {
+    return {
+      level: "urgent",
+      reason: "Staff action is required (inbound routing review).",
+    };
+  }
+
   if (input.state === "failed") {
     if (overrides.muteFailed?.includes(input.productArea)) {
       return {

@@ -72,6 +72,26 @@ describe("WorkflowSummariesTable (#298)", () => {
     expect(document.body.textContent).not.toMatch(/sk_|signed|stack|payload/i);
   });
 
+  it("labels review-held work as needing routing review", () => {
+    render(
+      <WorkflowSummariesTable
+        summaries={[
+          summary({
+            dispatchRequestId: "req-3",
+            state: "action_required",
+            notification: {
+              level: "urgent",
+              reason: "Staff action is required (inbound routing review).",
+            },
+          }),
+        ]}
+      />,
+    );
+
+    expect(screen.getByText("Needs routing review")).toBeTruthy();
+    expect(screen.getByText("Urgent")).toBeTruthy();
+  });
+
   it("renders a quiet empty state", () => {
     render(<WorkflowSummariesTable summaries={[]} />);
 

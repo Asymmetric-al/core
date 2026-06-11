@@ -134,6 +134,9 @@ export const boneyardContributionsFixture: Contribution[] = [
 export const contributionStatusOptions = [
   { label: "Completed", value: "completed" },
   { label: "Pending", value: "pending" },
+  // Delayed-notification rails (e.g. ACH) sit in "processing" until Stripe
+  // confirms finality; without this option those rows match no filter chip.
+  { label: "Processing", value: "processing" },
   { label: "Failed", value: "failed" },
   { label: "Refunded", value: "refunded" },
 ];

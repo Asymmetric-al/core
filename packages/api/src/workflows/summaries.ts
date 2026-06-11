@@ -11,6 +11,7 @@ export type WorkflowSummaryState =
   | "dispatching"
   | "processing"
   | "retrying"
+  | "action_required"
   | "completed"
   | "failed"
   | "dead_letter";
@@ -110,15 +111,31 @@ async function loadInboundEmailOutcomes(
   const outcomes: OutcomeBySubjectId = new Map();
   if (subjectIds.length === 0) return outcomes;
 
-  const { data } = await client
-    .from("email_inbound_messages")
-    .select("id, body_retrieval_status, support_message_id")
-    .eq("tenant_id", tenantId)
-    .in("id", subjectIds);
+  const [emailResult, reviewResult] = await Promise.all([
+    client
+      .from("email_inbound_messages")
+      .select("id, body_retrieval_status, support_message_id")
+      .eq("tenant_id", tenantId)
+      .in("id", subjectIds),
+    client
+      .from("support_inbound_routing_reviews")
+      .select("inbound_email_id")
+      .eq("tenant_id", tenantId)
+      .eq("status", "pending")
+      .in("inbound_email_id", subjectIds),
+  ]);
 
-  for (const row of data ?? []) {
+  const reviewHeld = new Set(
+    (reviewResult.data ?? []).map((review) => String(review.inbound_email_id)),
+  );
+
+  for (const row of emailResult.data ?? []) {
     if (row.support_message_id) {
       outcomes.set(String(row.id), "completed");
+    } else if (reviewHeld.has(String(row.id))) {
+      // Held for tenant routing review: the one state in the pipeline that
+      // needs a person must never look like routine progress.
+      outcomes.set(String(row.id), "action_required");
     } else if (String(row.body_retrieval_status) === "failed") {
       outcomes.set(String(row.id), "failed");
     } else {

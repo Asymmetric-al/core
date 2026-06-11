@@ -194,33 +194,34 @@ export async function moveSupportConversation(
     movedAt,
   };
 
-  // Destination Inbox Move Marker: the conversation timeline carries a quiet
-  // moved-from entry; the message is otherwise worked normally.
-  const movedIn = await client.from("support_audit_log").insert({
-    tenant_id: input.tenantId,
-    conversation_id: input.conversationId,
-    actor_profile_id: input.actorProfileId,
-    actor_agent_id: null,
-    verb: "conversation_moved",
-    body: `Moved from another inbox: ${reason}`,
-    metadata: { ...sharedMetadata, marker: "moved_from" },
-  });
+  // Both quiet markers land in ONE insert so they succeed or fail together:
+  // the destination's moved-from entry and the original inbox's moved-to
+  // entry (no duplicate replyable message left behind).
+  const markers = await client.from("support_audit_log").insert([
+    {
+      tenant_id: input.tenantId,
+      conversation_id: input.conversationId,
+      actor_profile_id: input.actorProfileId,
+      actor_agent_id: null,
+      verb: "conversation_moved",
+      body: `Moved from another inbox: ${reason}`,
+      metadata: { ...sharedMetadata, marker: "moved_from" },
+    },
+    {
+      tenant_id: input.tenantId,
+      conversation_id: input.conversationId,
+      actor_profile_id: input.actorProfileId,
+      actor_agent_id: null,
+      verb: "conversation_moved_out",
+      body: `Moved to another inbox: ${reason}`,
+      metadata: { ...sharedMetadata, marker: "moved_to" },
+    },
+  ]);
 
-  // Original Inbox Move Marker: a quiet moved-to entry keyed to the source
-  // inbox in metadata, with no duplicate replyable message left behind.
-  const movedOut = await client.from("support_audit_log").insert({
-    tenant_id: input.tenantId,
-    conversation_id: input.conversationId,
-    actor_profile_id: input.actorProfileId,
-    actor_agent_id: null,
-    verb: "conversation_moved_out",
-    body: `Moved to another inbox: ${reason}`,
-    metadata: { ...sharedMetadata, marker: "moved_to" },
-  });
-
-  if (movedIn.error || movedOut.error) {
+  if (markers.error) {
     // The move already happened; surface a safe failure for audit issues so
     // staff retry the audit-bearing operation rather than losing history.
+    // (Bulk Retry failed maps the resulting same_inbox to success.)
     return failure(input.conversationId, "move_failed");
   }
 
@@ -320,6 +321,13 @@ export async function bulkMoveSupportConversations(
       });
 
       if (result.status === "moved") {
+        items.push({ conversationId, status: "moved" });
+      } else if (result.code === "same_inbox" && (options.isRetry ?? false)) {
+        // Retry-time same_inbox means the conversation is already at the
+        // destination: the original attempt moved it but its bookkeeping
+        // failed. Treat it as success instead of failing forever. (Retries
+        // always reuse the original destination, so same_inbox cannot mean
+        // anything else here.)
         items.push({ conversationId, status: "moved" });
       } else {
         items.push({

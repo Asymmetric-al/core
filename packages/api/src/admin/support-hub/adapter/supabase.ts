@@ -758,6 +758,7 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
         const { data: inboundRows, error: inboundError } = await client()
           .from("email_inbound_messages")
           .select("id, attachment_retrieval_status")
+          .eq("tenant_id", tenantId())
           .in("id", inboundEmailIds);
         assertDb(inboundError, "email_inbound_messages.attachment_status");
         for (const inboundRow of inboundRows ?? []) {

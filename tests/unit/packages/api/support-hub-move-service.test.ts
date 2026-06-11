@@ -108,6 +108,16 @@ function createMoveClientMock(tables: MoveTables) {
   return { client: { from, rpc } as never, writes, rpc };
 }
 
+function auditRowsFrom(
+  writes: Array<{ table: string; op: string; values?: unknown }>,
+): Array<{ verb: string; metadata: Record<string, unknown> }> {
+  return writes
+    .filter((write) => write.table === "support_audit_log")
+    .flatMap((write) =>
+      Array.isArray(write.values) ? write.values : [write.values],
+    ) as Array<{ verb: string; metadata: Record<string, unknown> }>;
+}
+
 function conversationRow(overrides: Record<string, unknown> = {}) {
   return {
     id: "conv-1",
@@ -153,21 +163,27 @@ describe("audited support conversation move (#296)", () => {
     );
     expect(conversationUpdate?.values).toEqual({ inbox_id: "inbox-dst" });
 
+    // Both markers land in ONE insert so they succeed or fail together.
     const audits = mock.writes.filter(
       (write) => write.table === "support_audit_log",
     );
-    expect(audits).toHaveLength(2);
-    const movedFrom = audits.find(
-      (write) =>
-        (write.values as { verb: string }).verb === "conversation_moved",
+    expect(audits).toHaveLength(1);
+    const markerRows = audits[0]?.values as Array<{
+      verb: string;
+      conversation_id: string;
+      metadata: Record<string, unknown>;
+    }>;
+    expect(Array.isArray(markerRows)).toBe(true);
+    expect(markerRows).toHaveLength(2);
+    const movedFrom = markerRows.find(
+      (row) => row.verb === "conversation_moved",
     );
-    const movedTo = audits.find(
-      (write) =>
-        (write.values as { verb: string }).verb === "conversation_moved_out",
+    const movedTo = markerRows.find(
+      (row) => row.verb === "conversation_moved_out",
     );
     expect(movedFrom).toBeTruthy();
     expect(movedTo).toBeTruthy();
-    expect(movedFrom?.values).toMatchObject({
+    expect(movedFrom).toMatchObject({
       conversation_id: "conv-1",
       metadata: expect.objectContaining({
         sourceInboxId: "inbox-src",
@@ -296,12 +312,10 @@ describe("bulk support move and retry failed (#297)", () => {
     );
     expect(failedItem?.message).not.toMatch(/stack|sql|supabase|tenant_id/i);
 
-    const audit = mock.writes.find(
-      (write) =>
-        write.table === "support_audit_log" &&
-        (write.values as { verb: string }).verb === "conversation_moved",
+    const audit = auditRowsFrom(mock.writes).find(
+      (row) => row.verb === "conversation_moved",
     );
-    expect(audit?.values).toMatchObject({
+    expect(audit).toMatchObject({
       metadata: expect.objectContaining({
         reason: "Routing cleanup after inbox restructure",
         batchOperationId: result.batchOperationId,
@@ -368,18 +382,57 @@ describe("bulk support move and retry failed (#297)", () => {
     expect(result.moved).toBe(2);
     expect(result.failed).toBe(0);
 
-    const retryAudit = mock.writes.find(
-      (write) =>
-        write.table === "support_audit_log" &&
-        (write.values as { verb: string }).verb === "conversation_moved",
+    const retryAudit = auditRowsFrom(mock.writes).find(
+      (row) => row.verb === "conversation_moved",
     );
-    expect(retryAudit?.values).toMatchObject({
+    expect(retryAudit).toMatchObject({
       metadata: expect.objectContaining({
         reason: "Original shared batch reason",
         batchOperationId: BATCH_ID,
         isRetry: true,
       }),
     });
+  });
+
+  it("retry treats an already-moved conversation as success", async () => {
+    // The original attempt moved conv-2 but failed before its bookkeeping
+    // landed, so the batch row still says "failed" while the conversation
+    // already sits in the destination inbox. Retry must not fail forever.
+    const mock = createMoveClientMock({
+      conversations: {
+        "conv-2": conversationRow({ id: "conv-2", inbox_id: "inbox-dst" }),
+      },
+      destination: { id: "inbox-dst", tenant_id: TENANT_ID },
+      batch: {
+        id: BATCH_ID,
+        tenant_id: TENANT_ID,
+        destination_inbox_id: "inbox-dst",
+        reason: "Original shared batch reason",
+        items: [
+          { conversationId: "conv-1", status: "moved" },
+          { conversationId: "conv-2", status: "failed", code: "move_failed" },
+        ],
+      },
+      acquire: [
+        { acquired: true, claim_id: CLAIM_ID }, // retry-level claim
+        { acquired: true, claim_id: CLAIM_ID }, // per-item claim
+      ],
+    });
+
+    const result = await retryFailedBulkMove(mock.client, {
+      tenantId: TENANT_ID,
+      batchOperationId: BATCH_ID,
+      actorProfileId: "profile-1",
+    });
+
+    expect(result.status).toBe("retried");
+    if (result.status !== "retried") throw new Error("unreachable");
+    expect(result.moved).toBe(2);
+    expect(result.failed).toBe(0);
+    const retried = result.items.find(
+      (item) => item.conversationId === "conv-2",
+    );
+    expect(retried?.status).toBe("moved");
   });
 
   it("reuses the active retry attempt on duplicate clicks", async () => {

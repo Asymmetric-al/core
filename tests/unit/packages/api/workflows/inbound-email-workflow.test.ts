@@ -41,25 +41,51 @@ function inboundRow(overrides: Partial<InboundEmailRow> = {}): InboundEmailRow {
   };
 }
 
-function createInboundClientMock(row: InboundEmailRow | null) {
-  const updates: Array<{ values: Record<string, unknown> }> = [];
-  const maybeSingle = vi.fn().mockResolvedValue({ data: row, error: null });
-  const selectEq = vi.fn(() => ({ maybeSingle }));
-  const select = vi.fn(() => ({ eq: selectEq }));
+interface InboundClientMockOptions {
+  /** Existing support message returned by the bridge-recovery lookup. */
+  supportMessage?: { id: string; conversation_id: string | null } | null;
+  /** Error returned by email_inbound_messages updates (bridge failure). */
+  updateError?: { message: string } | null;
+}
 
-  const updateIn = vi.fn().mockResolvedValue({ data: null, error: null });
-  const updateEqResult = Object.assign(
-    Promise.resolve({ data: null, error: null }),
-    { in: updateIn },
-  );
-  const updateEq = vi.fn(() => updateEqResult);
-  const update = vi.fn((values: Record<string, unknown>) => {
-    updates.push({ values });
-    return { eq: updateEq };
+function createInboundClientMock(
+  row: InboundEmailRow | null,
+  options: InboundClientMockOptions = {},
+) {
+  const updates: Array<{ values: Record<string, unknown> }> = [];
+
+  const from = vi.fn((table: string) => {
+    if (table === "support_messages") {
+      const maybeSingle = vi
+        .fn()
+        .mockResolvedValue({
+          data: options.supportMessage ?? null,
+          error: null,
+        });
+      const eqSecond = vi.fn(() => ({ maybeSingle }));
+      const eqFirst = vi.fn(() => ({ eq: eqSecond }));
+      return { select: vi.fn(() => ({ eq: eqFirst })) };
+    }
+
+    const maybeSingle = vi.fn().mockResolvedValue({ data: row, error: null });
+    const selectEq = vi.fn(() => ({ maybeSingle }));
+    const select = vi.fn(() => ({ eq: selectEq }));
+
+    const updateIn = vi.fn().mockResolvedValue({ data: null, error: null });
+    const updateEqResult = Object.assign(
+      Promise.resolve({ data: null, error: options.updateError ?? null }),
+      { in: updateIn },
+    );
+    const updateEq = vi.fn(() => updateEqResult);
+    const update = vi.fn((values: Record<string, unknown>) => {
+      updates.push({ values });
+      return { eq: updateEq };
+    });
+
+    return { select, update };
   });
 
   const rpc = vi.fn();
-  const from = vi.fn(() => ({ select, update }));
 
   return { client: { from, rpc } as never, updates, rpc, from };
 }
@@ -203,6 +229,63 @@ describe("inbound email workflow adapter (#294)", () => {
     expect(route).not.toHaveBeenCalled();
   });
 
+  it("recovers a lost bridge link instead of routing twice", async () => {
+    // A previous run inserted the support message but lost the bridge write;
+    // re-dispatch must backfill the link, never create a duplicate message.
+    const mock = createInboundClientMock(
+      inboundRow({ body_retrieval_status: "available" }),
+      { supportMessage: { id: "msg-9", conversation_id: "conv-9" } },
+    );
+    const route = vi.fn();
+
+    const result = await routeReadyInboundEmail(
+      mock.client,
+      { tenantId: TENANT_ID, inboundEmailRowId: ROW_ID },
+      route,
+    );
+
+    expect(result).toMatchObject({
+      status: "already_routed",
+      conversationId: "conv-9",
+      messageId: "msg-9",
+    });
+    expect(route).not.toHaveBeenCalled();
+    expect(mock.updates[0]?.values).toEqual({
+      conversation_id: "conv-9",
+      support_message_id: "msg-9",
+    });
+  });
+
+  it("throws when the bridge write fails so the step retries", async () => {
+    const mock = createInboundClientMock(
+      inboundRow({
+        body_retrieval_status: "available",
+        parsed_text: "Hello support",
+      }),
+      { updateError: { message: "boom" } },
+    );
+    const route = vi.fn().mockResolvedValue({
+      status: "routed",
+      conversationId: "conv-1",
+      messageId: "msg-1",
+      reason: "created a new Support Hub conversation.",
+    });
+    const resolveDecision = vi.fn().mockResolvedValue({
+      kind: "inbox",
+      inboxId: "inbox-1",
+      source: "inbox_address",
+    });
+
+    await expect(
+      routeReadyInboundEmail(
+        mock.client,
+        { tenantId: TENANT_ID, inboundEmailRowId: ROW_ID },
+        route,
+        resolveDecision,
+      ),
+    ).rejects.toThrow(/inbound_bridge_persist_failed/);
+  });
+
   it("routes a ready inbound email and records the bridge ids", async () => {
     const mock = createInboundClientMock(
       inboundRow({
@@ -305,6 +388,41 @@ describe("staff inbound retry dispatch (#294)", () => {
     };
     const serialized = JSON.stringify(dispatchInput.context);
     expect(serialized).not.toMatch(/re_|signed|url|bytes/i);
+  });
+
+  it("leaves the failed status untouched when the handoff cannot be recorded", async () => {
+    // The visible status flips only after the ledger write succeeds —
+    // otherwise the row stays 'failed' and the staff Retry button remains.
+    const mock = createRetryClientMock(
+      inboundRow({ body_retrieval_status: "failed" }),
+      { acquired: true, claim_id: CLAIM_ID },
+    );
+    const requestDispatch = vi
+      .fn()
+      .mockRejectedValue(new Error("ledger unavailable"));
+
+    await expect(
+      requestInboundEmailRetryDispatch(
+        { client: mock.client, requestDispatch },
+        {
+          tenantId: TENANT_ID,
+          inboundEmailRowId: ROW_ID,
+          kind: "body",
+          requestedBy: "user-1",
+        },
+      ),
+    ).rejects.toThrow("ledger unavailable");
+
+    const statusWrites = mock.updates.filter(
+      (update) =>
+        "body_retrieval_status" in update.values ||
+        "attachment_retrieval_status" in update.values,
+    );
+    expect(statusWrites).toHaveLength(0);
+    expect(mock.rpc).toHaveBeenCalledWith(
+      "release_workflow_work_claim",
+      expect.objectContaining({ p_claim_id: CLAIM_ID }),
+    );
   });
 
   it("reuses the active retry instead of duplicating provider work", async () => {

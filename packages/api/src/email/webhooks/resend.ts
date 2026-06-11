@@ -185,14 +185,6 @@ export function getHeaderValue(
   return null;
 }
 
-function splitHeaderList(value: string | null): string[] {
-  if (!value) return [];
-  return value
-    .split(/\s+/)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
 function normalizeToken(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -822,16 +814,11 @@ export async function POST(request: NextRequest) {
       // Inbound email placeholder: verified metadata only. The email body,
       // rendered HTML, attachment bytes, signed attachment URLs, and Support
       // Hub rows never enter the webhook path — the inbound email workflow
-      // loads content through the provider inside durable steps.
-      const messageIdHeader =
-        asString(eventData.message_id) ?? asString(eventData.messageId);
-      const inReplyToHeader =
-        asString(eventData.in_reply_to) ?? asString(eventData.inReplyTo);
-      const referencesHeaders = [
-        ...splitHeaderList(asString(eventData.references)),
-        ...asStringArray(eventData.references),
-      ];
-
+      // loads content through the provider inside durable steps. Message
+      // headers are deliberately NOT written here: the workflow enriches
+      // them from provider-fetched headers, and a webhook redelivery must
+      // never clobber those enriched values back to event-data guesses
+      // (which would break future thread-reply routing).
       const inboundWrite = await supabaseAdmin
         .from("email_inbound_messages")
         .upsert(
@@ -846,9 +833,6 @@ export async function POST(request: NextRequest) {
             bcc_recipients: asStringArray(eventData.bcc),
             received_at: occurredAt,
             payload: eventData,
-            message_id_header: messageIdHeader,
-            in_reply_to_header: inReplyToHeader,
-            references_headers: referencesHeaders,
           },
           {
             onConflict: "resend_email_id",

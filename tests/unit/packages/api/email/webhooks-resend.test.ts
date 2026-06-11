@@ -747,6 +747,11 @@ describe("api/email/webhooks/resend", () => {
     expect(placeholder).not.toHaveProperty("parsed_text");
     expect(placeholder).not.toHaveProperty("parsed_html");
     expect(placeholder).not.toHaveProperty("attachment_count");
+    // The workflow is the single writer of threading headers; a webhook
+    // redelivery must not clobber the enriched values with placeholders.
+    expect(placeholder).not.toHaveProperty("message_id_header");
+    expect(placeholder).not.toHaveProperty("in_reply_to_header");
+    expect(placeholder).not.toHaveProperty("references_headers");
 
     expect(requestWorkflowDispatchMock).toHaveBeenCalledWith(
       expect.anything(),

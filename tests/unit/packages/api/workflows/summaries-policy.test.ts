@@ -50,8 +50,19 @@ function chain(result: { data: unknown; error: unknown }) {
 function createSummariesClientMock(options: {
   ledgerRows: unknown[];
   sagaRows?: unknown[];
+  inboundRows?: unknown[];
+  reviewRows?: unknown[];
 }) {
   const tenantFilters: Array<{ table: string; tenantId: unknown }> = [];
+
+  const resolveTableData = (table: string): unknown[] => {
+    if (table === "donation_saga_outbox") return options.sagaRows ?? [];
+    if (table === "email_inbound_messages") return options.inboundRows ?? [];
+    if (table === "support_inbound_routing_reviews") {
+      return options.reviewRows ?? [];
+    }
+    return [];
+  };
 
   const from = vi.fn((table: string) => ({
     select: () => {
@@ -71,11 +82,7 @@ function createSummariesClientMock(options: {
             error: null,
           }),
         then: (resolve: (value: unknown) => unknown) =>
-          resolve({
-            data:
-              table === "donation_saga_outbox" ? (options.sagaRows ?? []) : [],
-            error: null,
-          }),
+          resolve({ data: resolveTableData(table), error: null }),
       };
       return builder;
     },
@@ -148,6 +155,33 @@ describe("workflow run summaries (#298)", () => {
     );
   });
 
+  it("marks review-held inbound email as action_required, not routine progress", async () => {
+    const mock = createSummariesClientMock({
+      ledgerRows: [
+        ledgerRow({
+          id: "req-9",
+          product_area: "email",
+          workflow_name: "email/inbound-email.process.requested",
+          subject_type: "email_inbound_message",
+          subject_id: "email-1",
+          status: "dispatched",
+        }),
+      ],
+      inboundRows: [
+        {
+          id: "email-1",
+          body_retrieval_status: "available",
+          support_message_id: null,
+        },
+      ],
+      reviewRows: [{ inbound_email_id: "email-1" }],
+    });
+
+    const summaries = await summarizeWorkflowRuns(mock.client, TENANT_ID);
+
+    expect(summaries[0]?.state).toBe("action_required");
+  });
+
   it("scopes every query to the tenant", async () => {
     const mock = createSummariesClientMock({
       ledgerRows: [ledgerRow()],
@@ -169,6 +203,16 @@ describe("workflow notification policy (#298)", () => {
       productArea: "email",
       state: "dead_letter",
       attempts: 10,
+    });
+
+    expect(decision.level).toBe("urgent");
+  });
+
+  it("treats review-held work as urgent (staff action required)", () => {
+    const decision = evaluateWorkflowNotification({
+      productArea: "email",
+      state: "action_required",
+      attempts: 1,
     });
 
     expect(decision.level).toBe("urgent");
