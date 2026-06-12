@@ -1,6 +1,5 @@
 "use client";
 
-import { MISSIONARY_SHELL_AVATAR_VT_NAME } from "@asym/lib/view-transitions";
 import {
   Avatar,
   AvatarFallback,
@@ -20,7 +19,6 @@ import {
   SidebarMenuItem,
   SidebarRail,
 } from "@asym/ui/components/shadcn/sidebar";
-import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Home,
@@ -171,13 +169,14 @@ export function AppSidebar({
       </SidebarContent>
       <SidebarFooter className="p-3 mt-auto border-t border-zinc-100">
         <div className="flex items-center gap-2 group-data-[collapsible=icon]:justify-center">
-          <SharedNamedViewTransition name={MISSIONARY_SHELL_AVATAR_VT_NAME}>
-            <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
-              <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
-                UN
-              </AvatarFallback>
-            </Avatar>
-          </SharedNamedViewTransition>
+          {/* No shared VT name here: the sidebar persists across routes, so it
+              can never form a legal unmount/mount pair with the profile page's
+              avatar (names must be mounted one-at-a-time). */}
+          <Avatar className="size-7 rounded-md ring-1 ring-zinc-950/5">
+            <AvatarFallback className="rounded-md bg-zinc-100 text-zinc-600 text-xs font-medium">
+              UN
+            </AvatarFallback>
+          </Avatar>
           <div className="flex flex-col min-w-0 group-data-[collapsible=icon]:hidden">
             <span className="text-[13px] font-medium text-zinc-900 truncate leading-tight">
               User Name

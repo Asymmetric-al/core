@@ -1,7 +1,10 @@
 "use client";
 
 import { motion, LayoutGroup } from "@asym/lib/motion";
-import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
+import {
+  MISSIONARY_SETTINGS_HEADER_VT_NAME,
+  useWithinViewTransitionRouteLayer,
+} from "@asym/lib/view-transitions";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
 
@@ -21,6 +24,9 @@ import { PageHeader } from "@/components/page-header";
 
 export function ProfilePageClient() {
   const vm = useProfilePageView();
+  // Route VT owns the entrance when active (incl. the shared title morph);
+  // only stagger on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   if (vm.isLoading) {
     return <ProfileSkeleton />;
@@ -54,7 +60,7 @@ export function ProfilePageClient() {
     <LayoutGroup>
       <motion.div
         className="space-y-6 pb-20"
-        initial="initial"
+        initial={withinRouteVt ? false : "initial"}
         animate="animate"
         variants={staggerContainer}
       >

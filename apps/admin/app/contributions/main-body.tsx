@@ -308,7 +308,7 @@ export function ContributionsPageActions() {
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-semibold uppercase tracking-widest text-[10px] gap-2"
+        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-colors font-semibold uppercase tracking-widest text-[10px] gap-2"
         onClick={handleExport}
       >
         <Download className="size-4" />

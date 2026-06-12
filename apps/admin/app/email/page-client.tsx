@@ -1189,7 +1189,7 @@ export default function EmailStudio() {
   return (
     <div
       className={cn(
-        "flex flex-col bg-background transition-all duration-300",
+        "flex flex-col bg-background",
         isFullscreen
           ? "fixed inset-0 z-50 overflow-hidden"
           : "flex-1 min-h-0 overflow-hidden",

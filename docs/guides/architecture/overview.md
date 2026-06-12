@@ -210,12 +210,13 @@ apps/admin/features/mission-control/
 └── index.ts             # Public API barrel export
 ```
 
-**Example: Admin App Feature**
+**Example: Admin App Feature** (illustrative shape — a barrel is optional;
+many features export directly from their modules, e.g.
+`apps/admin/features/mission-control/context.tsx`)
 
 ```typescript
-// apps/admin/features/mission-control/index.ts
-export { MCProvider, useMC, useRole } from "./context";
-export { AppShell } from "./components/app-shell/app-shell";
+// apps/admin/features/<feature>/index.ts
+export { FeatureProvider, useFeature } from "./context";
 export { PageHeader } from "./components/patterns/page-header";
 // ... other exports
 ```

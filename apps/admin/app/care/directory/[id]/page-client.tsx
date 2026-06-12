@@ -1,7 +1,9 @@
 "use client";
 
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { cn } from "@asym/ui/lib/utils";
 import { ChevronLeft, MoreVertical, Edit } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
@@ -17,6 +19,8 @@ import {
 
 export default function CareProfilePage() {
   const { id } = useParams();
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const { data: personnel, isLoading: loadingProfile } = useCareProfile(
     id as string,
   );
@@ -48,7 +52,12 @@ export default function CareProfilePage() {
   }
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500">
+    <div
+      className={cn(
+        "p-6 space-y-6",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       <div className="flex items-center justify-between">
         <Link
           href="/care/directory"

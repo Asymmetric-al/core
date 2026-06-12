@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -11,6 +12,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Shield,
   Globe,
@@ -101,6 +103,9 @@ const SECURITY_TIPS = [
 ];
 
 export default function AdminPage() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <PageShell
       title="Administration"
@@ -120,18 +125,23 @@ export default function AdminPage() {
         </div>
       }
     >
-      <div className="space-y-6 animate-in fade-in duration-500">
+      <div
+        className={cn(
+          "space-y-6",
+          !withinRouteVt && "animate-in fade-in duration-300",
+        )}
+      >
         {/* Admin Modules */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {MODULES.map((item, i) => (
             <motion.div
               key={item.title}
-              initial={{ opacity: 0, y: 12 }}
+              initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: i * 0.05 }}
             >
               <Link href={item.href} className="group block">
-                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-zinc-200 hover:shadow-md">
+                <Card className="h-full overflow-hidden border border-zinc-100 bg-white shadow-sm transition-[border-color,box-shadow] duration-200 hover:border-zinc-200 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md">
                   <CardHeader className="pb-3">
                     <div className="mb-3 flex size-10 items-center justify-center rounded-xl bg-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white">
                       <item.icon className="size-5" />

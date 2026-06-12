@@ -2,6 +2,7 @@
 
 import { useDonorHistoryTransactions } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Calendar,
   FileText,
@@ -261,7 +263,7 @@ function HistoryStatsColumn({
       </Card>
 
       <div className="grid grid-cols-2 gap-4">
-        <Card className="bg-white border-zinc-100 shadow-sm hover:shadow-md transition-shadow rounded-xl">
+        <Card className="bg-white border-zinc-100 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow rounded-xl">
           <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
             <div className="size-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
               <FileText className="size-5" />
@@ -274,7 +276,7 @@ function HistoryStatsColumn({
             </p>
           </CardContent>
         </Card>
-        <Card className="bg-white border-zinc-100 shadow-sm hover:shadow-md transition-shadow rounded-xl">
+        <Card className="bg-white border-zinc-100 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow rounded-xl">
           <CardContent className="p-5 flex flex-col items-center text-center justify-center h-full">
             <div className="size-10 rounded-full bg-zinc-50 text-zinc-900 flex items-center justify-center mb-3 border border-zinc-100 shadow-sm">
               <CheckCircle2 className="size-5" />
@@ -459,6 +461,8 @@ function HistoryTransactionsCard({
 
 // --- Main Component ---
 export default function DonorHistoryPage() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const [filters, dispatchFilters] = useReducer(
     historyFiltersReducer,
     DEFAULT_HISTORY_FILTERS,
@@ -528,7 +532,12 @@ export default function DonorHistoryPage() {
   ).length;
 
   return (
-    <div className="max-w-7xl mx-auto space-y-8 animate-in fade-in duration-300 pb-20">
+    <div
+      className={cn(
+        "max-w-7xl mx-auto space-y-8 pb-20",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       <HistoryPageHeader
         yearFilter={yearFilter}
         onYearFilterChange={(value) =>

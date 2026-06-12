@@ -114,13 +114,13 @@ export function MobileProfilePreview({
               <TabsList className="w-full justify-center border-b border-zinc-100 bg-transparent h-auto p-0 mb-4 gap-4">
                 <TabsTrigger
                   value="story"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-colors text-[10px]"
                 >
                   Our Story
                 </TabsTrigger>
                 <TabsTrigger
                   value="updates"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-all text-[10px]"
+                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-1.5 font-semibold text-zinc-400 data-[state=active]:text-zinc-900 transition-colors text-[10px]"
                 >
                   Field Journal
                 </TabsTrigger>

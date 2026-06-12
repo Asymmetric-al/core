@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -132,12 +133,15 @@ const STAT_CARDS = [
 ];
 
 function AutomationStatsRow() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 text-left">
       {STAT_CARDS.map((stat, i) => (
         <motion.div
           key={stat.label}
-          initial={{ opacity: 0, y: 12 }}
+          initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: i * 0.05 }}
         >
@@ -172,9 +176,12 @@ function AutomationStatsRow() {
 }
 
 function RecentFlowsCard() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.2 }}
     >
@@ -261,9 +268,12 @@ function RecentFlowsCard() {
 }
 
 function IntegrationHealthCard() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.25 }}
     >
@@ -320,9 +330,12 @@ function IntegrationHealthCard() {
 }
 
 function AutomationBestPracticesCard() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.3 }}
     >
@@ -364,6 +377,9 @@ function AutomationBestPracticesCard() {
 }
 
 export default function AutomationsPage() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <PageShell
       title="Automations"
@@ -383,7 +399,12 @@ export default function AutomationsPage() {
         </div>
       }
     >
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div
+        className={cn(
+          "space-y-8",
+          !withinRouteVt && "animate-in fade-in duration-300",
+        )}
+      >
         <AutomationStatsRow />
 
         <div className="grid gap-6 md:grid-cols-7 text-left">

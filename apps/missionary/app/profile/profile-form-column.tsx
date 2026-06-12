@@ -82,7 +82,7 @@ export function ProfileFormColumn({
                 <Input
                   value={profile.firstName}
                   onChange={(e) => updateProfile("firstName", e.target.value)}
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                   placeholder="Your first name"
                 />
               </FormField>
@@ -90,7 +90,7 @@ export function ProfileFormColumn({
                 <Input
                   value={profile.lastName}
                   onChange={(e) => updateProfile("lastName", e.target.value)}
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                   placeholder="Your last name"
                 />
               </FormField>
@@ -102,7 +102,7 @@ export function ProfileFormColumn({
                   value={profile.location}
                   onChange={(e) => updateProfile("location", e.target.value)}
                   placeholder="City, Country"
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
               <FormField
@@ -114,7 +114,7 @@ export function ProfileFormColumn({
                   value={profile.phone}
                   onChange={(e) => updateProfile("phone", e.target.value)}
                   placeholder="+1 (555) 000-0000"
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
             </div>
@@ -147,7 +147,7 @@ export function ProfileFormColumn({
                 onChange={(e) => updateProfile("ministryFocus", e.target.value)}
                 placeholder="e.g., Church planting in Southeast Asia"
                 maxLength={TAGLINE_MAX_LENGTH}
-                className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                className="h-10 focus:ring-2 focus:ring-zinc-200"
               />
             </FormField>
 
@@ -183,7 +183,7 @@ export function ProfileFormColumn({
                 value={profile.bio}
                 onChange={(e) => updateProfile("bio", e.target.value)}
                 placeholder="Tell supporters about yourself, your ministry, and how they can partner with you..."
-                className="min-h-[180px] resize-none transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                className="min-h-[180px] resize-none focus:ring-2 focus:ring-zinc-200"
                 maxLength={BIO_MAX_CHARS}
               />
             </FormField>
@@ -289,7 +289,7 @@ export function ProfileFormColumn({
                   value={profile.instagram}
                   onChange={(e) => updateProfile("instagram", e.target.value)}
                   placeholder="@yourhandle"
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
               <FormField label="Facebook" icon={Facebook}>
@@ -297,7 +297,7 @@ export function ProfileFormColumn({
                   value={profile.facebook}
                   onChange={(e) => updateProfile("facebook", e.target.value)}
                   placeholder="facebook.com/yourpage"
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
             </div>
@@ -307,7 +307,7 @@ export function ProfileFormColumn({
                   value={profile.twitter}
                   onChange={(e) => updateProfile("twitter", e.target.value)}
                   placeholder="@yourhandle"
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
               <FormField label="YouTube" icon={Youtube}>
@@ -315,7 +315,7 @@ export function ProfileFormColumn({
                   value={profile.youtube}
                   onChange={(e) => updateProfile("youtube", e.target.value)}
                   placeholder="youtube.com/@channel"
-                  className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                  className="h-10 focus:ring-2 focus:ring-zinc-200"
                 />
               </FormField>
             </div>
@@ -328,7 +328,7 @@ export function ProfileFormColumn({
                 value={profile.website}
                 onChange={(e) => updateProfile("website", e.target.value)}
                 placeholder="https://yourwebsite.com"
-                className="h-10 transition-all duration-200 focus:ring-2 focus:ring-zinc-200"
+                className="h-10 focus:ring-2 focus:ring-zinc-200"
               />
             </FormField>
           </motion.div>

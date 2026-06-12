@@ -58,7 +58,7 @@ export function DonorSubNav() {
                 key={item.href}
                 href={item.href}
                 className={cn(
-                  "flex items-center gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-all rounded-lg",
+                  "flex items-center gap-2 px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap transition-colors rounded-lg",
                   isActive
                     ? "bg-zinc-900 text-white"
                     : "text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900",
@@ -74,7 +74,7 @@ export function DonorSubNav() {
             data-testid="auth-signout"
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="ml-auto flex items-center gap-2 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-zinc-500 transition-all hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-60"
+            className="ml-auto flex items-center gap-2 rounded-lg px-4 py-3 text-[10px] font-bold uppercase tracking-widest whitespace-nowrap text-zinc-500 transition-[color,background-color,opacity] hover:bg-zinc-100 hover:text-zinc-900 disabled:opacity-60"
           >
             <LogOut className="size-3.5" />
             <span className="hidden sm:inline">

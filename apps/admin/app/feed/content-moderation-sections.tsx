@@ -154,7 +154,7 @@ function StatCard({
       <MotionCard
         whileHover={{ y: -2, scale: 1.01 }}
         transition={springTransition}
-        className="h-full min-h-32 rounded-2xl border shadow-sm hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
+        className="h-full min-h-32 rounded-2xl border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]"
       >
         <CardContent className="grid h-full p-4 sm:p-5">
           <div className="flex h-full items-center justify-between">
@@ -427,12 +427,7 @@ function ModerationQueue({
         animate={{ opacity: 1 }}
         className="flex flex-col items-center justify-center py-20 gap-4"
       >
-        <motion.div
-          animate={{ rotate: 360 }}
-          transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-        >
-          <Loader2 className="size-10 text-muted-foreground/30" />
-        </motion.div>
+        <Loader2 className="spinner-essential size-10 text-muted-foreground/30" />
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground/50">
           Loading queue…
         </p>
@@ -530,7 +525,7 @@ function AllPostsFeedPostCard({
         whileHover={{ y: -2 }}
         transition={springTransition}
         className={cn(
-          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color,opacity] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
+          "rounded-2xl sm:rounded-3xl border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-[box-shadow,border-color,opacity] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.status === "hidden" && "opacity-60",
           post.isFlagged && "border-amber-200",
         )}
@@ -912,7 +907,7 @@ function FlaggedCommentsPanel({
             exit={{ opacity: 0, x: 20, scale: 0.95 }}
             transition={{ ...smoothTransition, delay: index * 0.05 }}
           >
-            <Card className="rounded-xl border-amber-200 hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
+            <Card className="rounded-xl border-amber-200 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]">
               <CardContent className="p-4">
                 <div className="flex gap-3">
                   <motion.div
@@ -1024,7 +1019,7 @@ function RecentActivityPanel() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...smoothTransition, delay: idx * 0.08 }}
           whileHover={{ x: 4 }}
-          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-all cursor-pointer"
+          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-colors cursor-pointer"
         >
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}
@@ -1147,7 +1142,7 @@ export function ContentModerationTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="moderation"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             <ShieldAlert className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             Queue
@@ -1168,7 +1163,7 @@ export function ContentModerationTabsSection({
           </TabsTrigger>
           <TabsTrigger
             value="all"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             <Globe className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             All Posts
@@ -1536,7 +1531,7 @@ function ModerationQueuePostCard({
         whileHover={{ y: -2 }}
         transition={springTransition}
         className={cn(
-          "rounded-2xl sm:rounded-3xl border shadow-sm hover:shadow-lg transition-[box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
+          "rounded-2xl sm:rounded-3xl border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-[box-shadow,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] overflow-hidden",
           post.isFlagged && "border-amber-200",
         )}
       >

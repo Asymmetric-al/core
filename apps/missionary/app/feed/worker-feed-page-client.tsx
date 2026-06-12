@@ -275,16 +275,7 @@ function FollowerRequestItem({
                   exit={{ opacity: 0 }}
                   className="flex items-center justify-center h-full absolute inset-0"
                 >
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                      ease: "linear",
-                    }}
-                  >
-                    <Loader2 className="size-4 text-muted-foreground" />
-                  </motion.div>
+                  <Loader2 className="spinner-essential size-4 text-muted-foreground" />
                 </motion.div>
               )}
 
@@ -450,7 +441,7 @@ function ReactionButton({
           handleClick();
         }}
         className={cn(
-          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
+          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-[color,background-color,border-color,box-shadow] duration-300 font-semibold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
           isActive
             ? cn(bg, activeColor, "shadow-sm ring-1 ring-black/5")
             : "text-muted-foreground bg-card border border-border",
@@ -699,7 +690,7 @@ function CommentSection({
                         whileTap={{ scale: 0.97 }}
                         onClick={() => submitReply(comment.id)}
                         disabled={!replyText}
-                        className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-all"
+                        className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-[background-color,opacity]"
                       >
                         <CornerDownRight className="size-4" />
                       </motion.button>
@@ -730,7 +721,7 @@ function CommentSection({
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write a comment…"
-          className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-all"
+          className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-colors"
           onKeyDown={(e) =>
             e.key === "Enter" && text && (onAddComment(text), setText(""))
           }
@@ -738,7 +729,7 @@ function CommentSection({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             size="icon"
-            className="absolute right-1.5 top-1.5 size-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
+            className="absolute right-1.5 top-1.5 size-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-colors shadow-sm rounded-lg"
             onClick={() => {
               if (text) {
                 onAddComment(text);
@@ -798,7 +789,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl group bg-card"
+        className="overflow-hidden border border-border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-shadow duration-[var(--duration-standard)] ease-[var(--ease-out-soft)] rounded-2xl sm:rounded-3xl group bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -855,7 +846,7 @@ function PostCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
+                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
                 >
                   <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                 </Button>
@@ -907,7 +898,7 @@ function PostCard({
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-all duration-500"
+                className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-lg transition-shadow duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]"
               >
                 {post.media.length === 1 && singleMedia ? (
                   <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
@@ -936,8 +927,8 @@ function PostCard({
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-2 sm:left-4 bg-background/80 border-none hover:bg-background transition-all shadow-md" />
-                    <CarouselNext className="right-2 sm:right-4 bg-background/80 border-none hover:bg-background transition-all shadow-md" />
+                    <CarouselPrevious className="left-2 sm:left-4 bg-background/80 border-none hover:bg-background transition-colors shadow-md" />
+                    <CarouselNext className="right-2 sm:right-4 bg-background/80 border-none hover:bg-background transition-colors shadow-md" />
                   </Carousel>
                 )}
               </motion.div>
@@ -976,7 +967,7 @@ function PostCard({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-all group/comm"
+              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-colors group/comm"
               onClick={() =>
                 setExpandedComments(
                   expandedComments === post.id ? null : post.id,
@@ -1141,7 +1132,7 @@ function SecurityAccessDialog({
                       whileHover={{ scale: 1.005 }}
                       whileTap={{ scale: 0.995 }}
                       className={cn(
-                        "w-full text-left p-4 rounded-xl border-2 transition-all duration-200",
+                        "w-full text-left p-4 rounded-xl border-2 transition-[background-color,border-color,box-shadow] duration-200",
                         isSelected
                           ? cn(borderColor, bgColor, "ring-2", ringColor)
                           : "border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/30",
@@ -1207,7 +1198,7 @@ function SecurityAccessDialog({
                         </div>
                         <div
                           className={cn(
-                            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-colors",
                             isSelected
                               ? cn(borderColor, bgColor)
                               : "border-border",
@@ -1425,19 +1416,10 @@ function PostComposerActions({
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-colors"
           >
             {isUploading ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Loader2 className="size-3" />
-              </motion.div>
+              <Loader2 className="spinner-essential size-3" />
             ) : (
               <ImageIcon className="size-3" />
             )}
@@ -1451,7 +1433,7 @@ function PostComposerActions({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-colors"
               >
                 {postPrivacy === "public" ? (
                   <Globe className="size-3" />
@@ -1506,16 +1488,7 @@ function PostComposerActions({
             className="h-8 px-2.5 sm:px-4 text-[9px] uppercase tracking-wider rounded-lg"
           >
             {isSaving ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Loader2 className="size-3" />
-              </motion.div>
+              <Loader2 className="spinner-essential size-3" />
             ) : (
               <Save className="size-3 sm:mr-1.5" />
             )}
@@ -1532,16 +1505,7 @@ function PostComposerActions({
             className="h-8 px-3 sm:px-5 text-[9px] uppercase tracking-wider rounded-lg shadow-sm"
           >
             {isSaving ? (
-              <motion.div
-                animate={{ rotate: 360 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                  ease: "linear",
-                }}
-              >
-                <Loader2 className="size-3" />
-              </motion.div>
+              <Loader2 className="spinner-essential size-3" />
             ) : (
               "Publish"
             )}
@@ -1648,7 +1612,7 @@ function PostComposerCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 transition-all"
+            className="flex-1 min-w-0"
           >
             <RichTextEditor
               value={postContent}
@@ -1733,13 +1697,13 @@ function FeedPostsTabsSection({
           <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
             <TabsTrigger
               value="published"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
             >
               Published
             </TabsTrigger>
             <TabsTrigger
               value="draft"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
             >
               Drafts
               <AnimatePresence>
@@ -1815,7 +1779,7 @@ function FeedPostsTabsSection({
                       <MotionCard
                         whileHover={{ y: -2 }}
                         transition={springTransition}
-                        className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
+                        className="overflow-hidden border border-border hover:border-muted-foreground/30 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-[border-color,box-shadow] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)] rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
                       >
                         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
                           <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
@@ -1942,16 +1906,7 @@ function FollowerRequestsCard({
             animate={{ opacity: 1 }}
             className="flex items-center justify-center py-12"
           >
-            <motion.div
-              animate={{ rotate: 360 }}
-              transition={{
-                duration: 1.5,
-                repeat: Infinity,
-                ease: "linear",
-              }}
-            >
-              <Loader2 className="size-5 text-muted-foreground" />
-            </motion.div>
+            <Loader2 className="spinner-essential size-5 text-muted-foreground" />
           </motion.div>
         ) : pendingRequests.length > 0 ? (
           <motion.div

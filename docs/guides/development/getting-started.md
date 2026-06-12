@@ -333,9 +333,9 @@ export default function MyPage() {
 
 Edit the appropriate navigation file:
 
-- **Admin:** `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
-- **Missionary:** `apps/missionary/features/missionary/components/app-shell/sidebar-nav.tsx`
-- **Donor:** `apps/donor/features/donor/components/app-shell/sidebar-nav.tsx`
+- **Admin:** `apps/admin/app/mc-shell.tsx` (shell + sidebar navigation)
+- **Missionary:** `apps/missionary/components/app-sidebar.tsx`
+- **Donor:** `apps/donor/features/donor/components/DonorSubNav.tsx`
 
 ## Adding a New Component
 

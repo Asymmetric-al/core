@@ -209,24 +209,19 @@ function DetailDrawer({
         <ScrollArea className="flex-1">
           <div className="p-6 space-y-8">
             <div className="flex gap-6 items-start">
-              <SharedNamedViewTransition
-                name={crmRecordAvatarTransitionName(contact.id)}
-              >
-                <Avatar className="size-20 border-4 border-background shadow-sm">
-                  <AvatarImage src={contact.avatarUrl ?? undefined} />
-                  <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
-                    {display[0] ?? "?"}
-                  </AvatarFallback>
-                </Avatar>
-              </SharedNamedViewTransition>
+              {/* No shared VT names in this overlay: the list row stays mounted
+                  behind the Sheet, so a same-name pair would mount twice at
+                  once (names must be mounted one-at-a-time). */}
+              <Avatar className="size-20 border-4 border-background shadow-sm">
+                <AvatarImage src={contact.avatarUrl ?? undefined} />
+                <AvatarFallback className="bg-muted text-muted-foreground font-semibold text-xl">
+                  {display[0] ?? "?"}
+                </AvatarFallback>
+              </Avatar>
               <div className="space-y-1 pt-1 min-w-0">
-                <SharedNamedViewTransition
-                  name={crmRecordTitleTransitionName(contact.id)}
-                >
-                  <h2 className="text-2xl font-semibold text-foreground tracking-tight">
-                    {display}
-                  </h2>
-                </SharedNamedViewTransition>
+                <h2 className="text-2xl font-semibold text-foreground tracking-tight">
+                  {display}
+                </h2>
                 <p className="text-sm text-muted-foreground font-medium">
                   {contact.title ? (
                     <>
@@ -635,7 +630,7 @@ function KanbanView({
                     key={c.id}
                     type="button"
                     onClick={() => onSelectRow(c)}
-                    className="w-full bg-card p-3 rounded-lg border border-border shadow-sm hover:shadow-md transition-all cursor-pointer space-y-3 text-left"
+                    className="w-full bg-card p-3 rounded-lg border border-border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow cursor-pointer space-y-3 text-left"
                   >
                     <div className="flex justify-between items-start">
                       <SharedNamedViewTransition
