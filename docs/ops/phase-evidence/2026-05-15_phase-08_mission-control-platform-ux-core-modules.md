@@ -2,7 +2,7 @@
 
 Generated: 2026-05-15
 Repo: `Asymmetric-al/core`
-Branch: `epic`
+Branch: `production`
 Baseline commit: `92292aab972182f2766c2fdb96ef6c2b96f8383d`
 Status: `complete-local-verification`
 

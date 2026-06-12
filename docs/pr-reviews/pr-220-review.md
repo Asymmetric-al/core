@@ -1,7 +1,7 @@
 # PR #220 Review - Deepen public CMS read/render module
 
 - URL: https://github.com/Asymmetric-al/core/pull/220
-- Base: `epic`
+- Base: `production`
 - Head: `codex/public-cms-read-render-module`
 - Draft: yes
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

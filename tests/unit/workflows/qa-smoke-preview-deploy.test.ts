@@ -1,0 +1,78 @@
+import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+const workflow = readFileSync(
+  ".github/workflows/qa-smoke-preview-deploy.yml",
+  "utf8",
+);
+
+describe("qa smoke preview deployment workflow", () => {
+  it("uses a pull_request label gate and never pull_request_target", () => {
+    expect(workflow).toContain("pull_request:");
+    expect(workflow).toContain("types: [labeled, ready_for_review]");
+    expect(workflow).toContain("workflow_dispatch:");
+    expect(workflow).toContain("pr_number:");
+    expect(workflow).not.toContain("pull_request_target");
+  });
+
+  it("has enough token permissions to read PRs and write the preview comment", () => {
+    expect(workflow).toContain("contents: read");
+    expect(workflow).toContain("issues: write");
+    expect(workflow).toContain("pull-requests: write");
+  });
+
+  it("skips non-develop, draft, fork, missing-label, and non-smoke-label PRs", () => {
+    expect(workflow).toContain('"${base_ref}" != "develop"');
+    expect(workflow).toContain('"${draft}" == "true"');
+    expect(workflow).toContain('"${head_repo}" != "${GITHUB_REPOSITORY}"');
+    expect(workflow).toContain('"${has_label}" != "true"');
+    expect(workflow).toContain('"${EVENT_LABEL_NAME}" != "qa:smoke"');
+  });
+
+  it("checks out the PR head SHA and deploys preview targets only", () => {
+    expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
+    expect(workflow).toContain("vercel@latest deploy --yes --target=preview");
+    expect(workflow).not.toContain("--prod");
+    expect(workflow).not.toContain("--target=production");
+  });
+
+  it("uses the required Vercel deployment and Playwright smoke secrets", () => {
+    expect(workflow).toContain("secrets.VERCEL_ADMIN_PROJECT_ID");
+    expect(workflow).toContain("secrets.VERCEL_DONOR_PROJECT_ID");
+    expect(workflow).toContain("secrets.VERCEL_MISSIONARY_PROJECT_ID");
+    expect(workflow).toContain("secrets.QA_TEST_EMAIL");
+    expect(workflow).toContain("secrets.QA_TEST_PASSWORD");
+    expect(workflow).toContain("secrets.VERCEL_ADMIN_AUTOMATION_BYPASS_SECRET");
+    expect(workflow).toContain("secrets.VERCEL_DONOR_AUTOMATION_BYPASS_SECRET");
+    expect(workflow).toContain(
+      "secrets.VERCEL_MISSIONARY_AUTOMATION_BYPASS_SECRET",
+    );
+    expect(workflow).not.toContain("secrets.VERCEL_PROJECT_ID_ADMIN");
+    expect(workflow).not.toContain("secrets.VERCEL_PROJECT_ID_DONOR");
+    expect(workflow).not.toContain("secrets.VERCEL_PROJECT_ID_MISSIONARY");
+  });
+
+  it("comments preview URLs and optional Claude handoff without requiring the webhook", () => {
+    expect(workflow).toContain("# QA Smoke Preview Deployments");
+    expect(workflow).toContain("<!-- qa-smoke-preview-ready");
+    expect(workflow).toContain("CLAUDE_QA_ROUTINE_WEBHOOK_URL");
+    expect(workflow).toContain("Claude QA routine webhook is not configured");
+    expect(workflow).toContain("qa_smoke_preview_ready");
+  });
+
+  it("runs headless preview smoke projects and reports PASS/FAIL separately", () => {
+    expect(workflow).toContain("playwright.development-smoke.config.ts");
+    expect(workflow).toContain("development-admin");
+    expect(workflow).toContain("development-donor");
+    expect(workflow).toContain("development-missionary");
+    expect(workflow).toContain("actions/upload-artifact@v4");
+    expect(workflow).toContain("<!-- headless-pr-preview-smoke-qa -->");
+    expect(workflow).toContain("# Headless PR Preview Smoke QA");
+  });
+
+  it("does not use bypass query parameters", () => {
+    expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
+    expect(workflow).not.toContain("?x-vercel-protection-bypass");
+  });
+});

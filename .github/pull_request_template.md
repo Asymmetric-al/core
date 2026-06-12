@@ -1,7 +1,7 @@
-## Deploy Checklist (for PRs to `epic` or `develop`)
+## Deploy Checklist (for PRs to `production` or `develop`)
 
 - [ ] CI passes
-- [ ] Base branch confirmed: `develop` = staging, `epic` = production release,
+- [ ] Base branch confirmed: `develop` = staging, `production` = production release,
       `main` = retired/inactive
 - [ ] `bun run verify:deployment-discipline` passes if deployment controls changed
 - [ ] Migrations reviewed (or N/A)

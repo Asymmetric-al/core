@@ -1,7 +1,7 @@
 # PR #210 Review - Add mattpocock skills
 
 - URL: https://github.com/Asymmetric-al/core/pull/210
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/add-grill-me-skill-e45e`
 - Draft: no
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

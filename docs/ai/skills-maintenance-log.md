@@ -4,8 +4,8 @@ Last updated: 2026-05-23
 
 ## Scope
 
-This log records the full upstream refresh of the Asymmetric-al/core agent
-skill system:
+This log records the audit and full upstream refresh of the
+Asymmetric-al/core agent skill system:
 
 - Canonical skills under `docs/ai/skills/*/SKILL.md`
 - Runtime mirrors under `.agents/skills/*` and `.cursor/skills/*`
@@ -111,7 +111,9 @@ Completed 2026-05-23:
   updated clear upstream sources and left ambiguous/plugin-only skills as
   runtime mirrors.
 - Nia's indexed repo snapshot remained stale relative to the working tree.
-- `npx skills check` remains unsafe as a read-only command in this repo.
+- `npx skills check` remains unsafe as a read-only command in this repo. With
+  `skills@1.5.7`, it was not listed in `npx skills --help` and was observed to
+  mutate `.agents/skills/*` and `skills-lock.json`.
 
 ## Validation Log
 

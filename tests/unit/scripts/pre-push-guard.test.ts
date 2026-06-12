@@ -9,20 +9,20 @@ import {
 } from "../../../scripts/git/pre-push-guard.mjs";
 
 describe("production pre-push guard", () => {
-  it("blocks direct pushes to epic outside the release command", () => {
+  it("blocks direct pushes to production outside the release command", () => {
     const updates = parsePrePushUpdates(
-      "refs/heads/epic abc123 refs/heads/epic def456\n",
+      "refs/heads/production abc123 refs/heads/production def456\n",
     );
 
     expect(evaluatePrePushGuard({ updates, env: {} })).toMatchObject({
       allowed: false,
-      reason: "direct push to epic is blocked",
+      reason: "direct push to production is blocked",
     });
   });
 
   it("allows production pushes from the release command with a reason", () => {
     const updates = parsePrePushUpdates(
-      "refs/heads/develop abc123 refs/heads/epic def456\n",
+      "refs/heads/develop abc123 refs/heads/production def456\n",
     );
 
     expect(
@@ -30,12 +30,12 @@ describe("production pre-push guard", () => {
         updates,
         env: {
           [RELEASE_PUSH_ENV]: "1",
-          [RELEASE_REASON_ENV]: "release abc123 to epic",
+          [RELEASE_REASON_ENV]: "release abc123 to production",
         },
       }),
     ).toMatchObject({
       allowed: true,
-      reason: "production release command: release abc123 to epic",
+      reason: "production release command: release abc123 to production",
     });
   });
 
@@ -46,13 +46,13 @@ describe("production pre-push guard", () => {
 
     expect(evaluatePrePushGuard({ updates, env: {} })).toMatchObject({
       allowed: true,
-      reason: "no push targets epic",
+      reason: "no push targets production",
     });
   });
 
   it("requires a concrete emergency bypass reason", () => {
     const updates = parsePrePushUpdates(
-      "refs/heads/epic abc123 refs/heads/epic def456\n",
+      "refs/heads/production abc123 refs/heads/production def456\n",
     );
 
     expect(

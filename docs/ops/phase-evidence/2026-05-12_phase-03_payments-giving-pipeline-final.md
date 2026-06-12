@@ -2,7 +2,7 @@
 
 Generated: 2026-05-14 00:59:25 +07
 Phase: 3 - Payments and Giving Pipeline
-Branch: epic
+Branch: production
 Commit: 6f47c0701118b25d30d0f050ec12dfc6501e7237
 Status: complete
 
@@ -40,7 +40,7 @@ The official status entering this closure pass was
 ## Vercel Env Scope Verification
 
 Vercel Production readiness passed for the fixed commit after it was pushed to
-`epic`.
+`production`.
 
 Command:
 
@@ -310,7 +310,7 @@ Additional proof commands passed:
 
 ## Deployment Verification
 
-Commit `6f47c0701118b25d30d0f050ec12dfc6501e7237` was pushed to `epic`.
+Commit `6f47c0701118b25d30d0f050ec12dfc6501e7237` was pushed to `production`.
 Vercel production deployments completed and readiness passed:
 
 | App        | Production deployment                           | Status | Health check |

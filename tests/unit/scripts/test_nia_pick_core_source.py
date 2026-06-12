@@ -37,7 +37,7 @@ class NiaPickCoreSourceTest(unittest.TestCase):
         self.assertEqual(result.stdout.strip(), "core-main")
         self.assertIn("identifier='https://github.com/Asymmetric-al/core'", result.stderr)
 
-    def test_prefers_epic_branch_when_multiple_core_sources_match(self) -> None:
+    def test_prefers_production_branch_when_multiple_core_sources_match(self) -> None:
         result = run_picker(
             {
                 "items": [
@@ -47,16 +47,16 @@ class NiaPickCoreSourceTest(unittest.TestCase):
                         "branch": "main",
                     },
                     {
-                        "id": "core-epic",
+                        "id": "core-production",
                         "identifier": "https://github.com/asymmetric-al/core/",
-                        "branch": "epic",
+                        "branch": "production",
                     },
                 ]
             }
         )
 
         self.assertEqual(result.returncode, 0)
-        self.assertEqual(result.stdout.strip(), "core-epic")
+        self.assertEqual(result.stdout.strip(), "core-production")
 
     def test_normalizes_identifier_case_and_trailing_slashes(self) -> None:
         result = run_picker(
@@ -88,7 +88,7 @@ class NiaPickCoreSourceTest(unittest.TestCase):
                     {
                         "id": "unrelated",
                         "identifier": "https://github.com/example/other",
-                        "branch": "epic",
+                        "branch": "production",
                     }
                 ]
             }

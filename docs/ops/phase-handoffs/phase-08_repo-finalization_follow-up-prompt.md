@@ -1,7 +1,7 @@
 # Phase 08 Repo Finalization - Follow-Up Prompt
 
 Repo: `Asymmetric-al/core`
-Branch: `epic`
+Branch: `production`
 Local path: `/Users/blake/Documents/asymmetrical/repos/core`
 
 ## Current Situation
@@ -88,7 +88,7 @@ bun run test:e2e:smoke -- --grep "Support Hub"
 ```
 
 7. Commit only intentional Phase 8 product/evidence changes.
-8. Push to `origin/epic`.
+8. Push to `origin/production`.
 9. Run production readiness against the new pushed Phase 8 commit:
 
 ```bash

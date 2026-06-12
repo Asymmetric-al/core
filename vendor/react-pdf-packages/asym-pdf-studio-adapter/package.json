@@ -1,0 +1,45 @@
+{
+  "name": "@asym/pdf-studio-adapter",
+  "version": "0.0.0",
+  "description": "Core integration adapter contract for the Asym PDF Document Builder.",
+  "private": true,
+  "type": "module",
+  "sideEffects": false,
+  "files": [
+    "dist/**",
+    "readme.md"
+  ],
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.mts",
+        "default": "./dist/index.mjs"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Asymmetric-al/react-PDF.git",
+    "directory": "packages/pdf-studio-adapter"
+  },
+  "keywords": [
+    "asym",
+    "pdf",
+    "adapter",
+    "core"
+  ],
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@asym/docraptor-client": "0.0.0",
+    "@asym/pdf-renderer": "0.0.0",
+    "@asym/pdf-editor": "0.0.0",
+    "@asym/pdf-template-schema": "0.0.0"
+  }
+}

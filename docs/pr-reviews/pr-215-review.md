@@ -1,7 +1,7 @@
 # PR #215 Review - Set up Mission Control Cloud Agent dev environment
 
 - URL: https://github.com/Asymmetric-al/core/pull/215
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/mission-control-cloud-env-0f58`
 - Draft: no
 - GitHub state at review: `DIRTY`, `REVIEW_REQUIRED`
@@ -10,13 +10,13 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflict:
 
 - `docs/ai/working-set.md`
 
-Tests were not run because the PR does not produce a merged tree against current `epic`.
+Tests were not run because the PR does not produce a merged tree against current `production`.
 
 GitHub checks on the PR head were green, but those do not cover the current merge result.
 
@@ -26,13 +26,13 @@ Do not merge until the conflict is resolved and the setup script stops silently 
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: local verification cannot be run on the final merged result.
 
 Suggested fix:
 
-- Rebase or merge current `epic`.
+- Rebase or merge current `production`.
 - Resolve `docs/ai/working-set.md`.
 - Run `bun install --frozen-lockfile && bun run ci:preflight`.
 

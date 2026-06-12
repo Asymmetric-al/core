@@ -133,7 +133,7 @@ The same `vercel.json` files also pin Vercel builds to root Turbo scripts:
 Those commands keep each project app-scoped while letting Turbo reuse the
 monorepo task graph and Vercel Remote Cache.
 
-The app-level branch gate allows only `epic` and `develop` Git deployments,
+The app-level branch gate allows only `production` and `develop` Git deployments,
 explicitly disables retired `main`, and closes all other branches with
 `"*": false`. Vercel project settings should also keep Preview Deployments
 disabled and set build queue behavior to `WAIT_FOR_NAMESPACE_QUEUE`.

@@ -1,6 +1,6 @@
 # Asymmetric.al - Kingdom Impact Platform
 
-A high-performance Next.js 16.2.1 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
+A high-performance Next.js 16.2.6 (App Router) Turborepo monorepo for mission-focused organizations, with three apps (`apps/admin`, `apps/donor`, `apps/missionary`) and shared workspace packages (`packages/*`).
 
 ## Quickstart
 
@@ -91,7 +91,7 @@ Invoke-ScriptAnalyzer -Path .\scripts\setup.ps1, .\scripts\lib\*.ps1
 
 ## Architecture & Tech Stack
 
-- **Framework**: Next.js 16.2.1 (App Router, Turbopack in app configs) — _optimized for performance_
+- **Framework**: Next.js 16.2.6 (App Router, Turbopack in app configs) — _optimized for performance_
 - **UI system**: Tailwind CSS 4 + shadcn/ui (Maia theme) + Base UI
 - **Theme**: Light Zinc aesthetic (Zinc/Zinc), shadcn/ui Maia theme
 - **Database**: Supabase (PostgreSQL)
@@ -179,12 +179,17 @@ Commit both the canonical files and any mirror updates.
 
 **Updating vendored skills from upstream** (maintainers / periodic refresh):
 
-1. Use targeted Skills CLI refreshes such as `npx skills add supabase/agent-skills -y`, `npx skills add anthonyshew/dotfiles -y`, or `npx skills add mattpocock/skills -y`. These update `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
-2. Do **not** use `npx skills check` as a read-only command in this repo. It can mutate `.agents/skills/*` and `skills-lock.json`; treat it like an update flow that requires diff review.
-3. Run the animations.dev installer (`curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash`) when refreshing `emil-design-engineering`; it updates the upstream-installed skill under `~/.cursor/skills/`.
-4. Run `bun run skills:refresh-upstream` for the refresh-script-managed canonical skills, then reconcile repo-specific overlays if the vendor copy overwrote them.
+1. Use targeted Skills CLI refreshes only, such as `npx skills add supabase/agent-skills -y`, `npx skills add anthonyshew/dotfiles -y`, or `npx skills add mattpocock/skills -y`; these update `.agents/skills/*` and `skills-lock.json` for packages tracked by the Skills CLI.
+2. Do **not** use `npx skills check` as a read-only check. In `skills@1.5.7`, that subcommand was observed to update project skills; treat it like `skills update` and review or revert the generated diff.
+3. `curl -s "https://animations.dev/api/activate-design-engineering?email=<maintainer-email>" | bash` — updates the upstream-installed `emil-design-engineering` skill under `~/.cursor/skills/`.
+4. `bun run skills:refresh-upstream` — vendors the refreshed copies into `docs/ai/skills/supabase`, `docs/ai/skills/supabase-postgres-best-practices`, `docs/ai/skills/npm-deps-cleanup`, and `docs/ai/skills/emil-design-engineering` (reconcile any repo-specific notes in those trees if the vendor copy overwrote them; see `scripts/refresh-upstream-skills.mjs`).
 5. Follow `references/upstream.md` for manual-vendored skills such as Resend CLI, Payload CMS, and bendc frontend guidelines.
-6. Run `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+6. `bun run skills:sync` then `bun run skills:verify` — refresh mirrors and confirm a clean tree.
+
+**Updating the vendored Resend CLI skill from upstream** (maintainers / on CLI releases):
+
+1. Replace `docs/ai/skills/resend-cli/` with the `skills/resend-cli/` directory from the desired [`resend/resend-cli`](https://github.com/resend/resend-cli) tag (see `docs/ai/skills/resend-cli/references/upstream.md`).
+2. `bun run skills:sync` then `bun run skills:verify`.
 
 `setup:verify` (run at the end of setup) calls your Supabase URL with the anon key; a **401** means the URL and anon key are not a matching pair for the same project (fix values in `.env.local` and re-run setup).
 

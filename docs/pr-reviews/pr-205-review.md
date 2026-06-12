@@ -1,7 +1,7 @@
 # PR #205 Review - Harden shared Tiptap editor behavior and add comprehensive unit coverage
 
 - URL: https://github.com/Asymmetric-al/core/pull/205
-- Base: `epic`
+- Base: `production`
 - Head: `codex/audit-and-refine-tiptap-editor-implementation`
 - Draft: no
 - GitHub state at review: `BEHIND`, `CHANGES_REQUESTED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

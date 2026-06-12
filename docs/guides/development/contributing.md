@@ -46,7 +46,7 @@ If you use Nia for repo search, follow the canonical policy in [`AGENTS.md#nia-m
 
 ### Before You Code
 
-1. **Pull latest production truth**: `git checkout epic && git pull origin epic`
+1. **Pull latest production truth**: `git checkout production && git pull origin production`
 2. **Create a feature branch**: `git checkout -b al-123-short-title` (include the `AL-###` key)
 3. **Understand the area**: Read relevant code and check `docs/guides/architecture/overview.md`
 
@@ -76,8 +76,8 @@ bun run test:e2e
 
 This repo uses gate jobs as required checks. Gate jobs summarize multiple underlying jobs.
 
-- **`epic` required:** `ci-gate`
-- **`develop` required:** `ci-gate`, `integration-gate`
+- **`production` required:** `ci-gate`
+- **`develop` required:** `ci-gate`, `integration-gate`, `e2e-smoke-gate`
 - **`main`:** retired/protected historical branch; do not open active PRs to it.
 
 For ownership and full review policy, see `docs/guides/development/code-review-and-ownership.md`.

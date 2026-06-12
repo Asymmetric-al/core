@@ -1,7 +1,7 @@
 # PR #208 Review - Harden email integration
 
 - URL: https://github.com/Asymmetric-al/core/pull/208
-- Base: `epic`
+- Base: `production`
 - Head: `codex/resend-audit-remediation`
 - Draft: no
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Command run in `/tmp/core-pr-review`:
 

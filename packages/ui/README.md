@@ -90,6 +90,22 @@ bunx --bun shadcn@latest add <component> --cwd packages/ui
 
 - Do **NOT** run `shadcn init` inside individual apps - the shared config in `packages/ui` is the single integration point.
 
+### Shadcn install checklist
+
+- Run Shadcn commands from the repo root and always target the shared package with `--cwd packages/ui`.
+- Prefer `npx --yes shadcn@latest` for read-only `view`, `search`, `diff`, and registry inspection commands.
+- Run `npx --yes shadcn@latest view <item> --cwd packages/ui` before third-party installs so the source, dependencies, and targets are reviewed first.
+- Use `--dry-run` or `--diff` before overwriting any existing component.
+- Never run `shadcn init` in apps; `packages/ui/components.json` is the shared integration point.
+- Avoid manual `components.json` edits except reviewed registry changes, and run `bun run verify:shadcn-config` after any edit.
+- Do not change presets, themes, Maia, Zinc, or token sourcing without design review.
+- Use semantic tokens (`bg-background`, `text-foreground`, `border-border`, `text-muted-foreground`) instead of raw palette utilities for product surfaces.
+- Keep Maia/Zinc tokens in `packages/ui/styles/globals.css`; apps should only import that stylesheet and add app-local `@source` directives.
+- Prefer `gap-*` over `space-x-*` / `space-y-*` when composing new layouts.
+- Prefer the current shared `Field` / `InputGroup` patterns for form controls.
+- Use the Shadcn MCP when available, but still review CLI `view`, `--dry-run`, and `--diff` output before accepting generated changes.
+- For broad UI edits, run the non-blocking drift report with `bun run verify:shadcn-token-drift`.
+
 ### shadcnuikit registry installs
 
 - Set `REGISTRY_TOKEN` in root `.env.local` (never commit real tokens).
