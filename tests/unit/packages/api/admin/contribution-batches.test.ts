@@ -13,6 +13,7 @@ import {
   summarizeContributionBatchResults,
 } from "../../../../../packages/api/src/admin/contribution-batches/results";
 import {
+  markContributionBatchFailed,
   processContributionBatch,
   processPersistedContributionBatch,
 } from "../../../../../packages/api/src/admin/contribution-batches/process-batch";
@@ -477,6 +478,73 @@ describe("bulk contribution preview and execution", () => {
         finished_at: expect.any(String),
       }),
     );
+  });
+
+  it("marks a batch failed so persistence/processing errors never strand it as running", async () => {
+    const batchUpdates: Array<Record<string, unknown>> = [];
+    const supabaseAdmin = {
+      from() {
+        const builder = {
+          update(payload: Record<string, unknown>) {
+            batchUpdates.push(payload);
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          then<TResult>(
+            onfulfilled: (value: { error: null }) => TResult,
+          ): Promise<TResult> {
+            return Promise.resolve({ error: null }).then(onfulfilled);
+          },
+        };
+        return builder;
+      },
+    };
+
+    await markContributionBatchFailed({
+      supabaseAdmin: supabaseAdmin as never,
+      tenantId: "tenant_1",
+      batchId: "batch_1",
+    });
+
+    expect(batchUpdates[0]).toEqual(
+      expect.objectContaining({
+        status: "failed",
+        finished_at: expect.any(String),
+      }),
+    );
+  });
+
+  it("never throws while marking a batch failed (best-effort cleanup)", async () => {
+    const supabaseAdmin = {
+      from() {
+        const builder = {
+          update() {
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          then<TResult>(
+            onfulfilled: (value: { error: { message: string } }) => TResult,
+          ): Promise<TResult> {
+            return Promise.resolve({
+              error: { message: "connection lost" },
+            }).then(onfulfilled);
+          },
+        };
+        return builder;
+      },
+    };
+
+    await expect(
+      markContributionBatchFailed({
+        supabaseAdmin: supabaseAdmin as never,
+        tenantId: "tenant_1",
+        batchId: "batch_1",
+      }),
+    ).resolves.toBeUndefined();
   });
 });
 

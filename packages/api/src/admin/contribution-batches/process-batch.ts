@@ -90,6 +90,41 @@ function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
+/**
+ * Best-effort terminal marker for a batch whose item persistence or background
+ * processing failed before results could be recorded. Without it, a thrown
+ * error would strand the batch row in `running` forever. Never throws — it is
+ * called from error paths where the original failure must surface, not this
+ * cleanup.
+ */
+export async function markContributionBatchFailed(input: {
+  supabaseAdmin: AdminSupabaseClient;
+  tenantId: string;
+  batchId: string;
+}): Promise<void> {
+  try {
+    const { error } = await input.supabaseAdmin
+      .from("contribution_operation_batches")
+      .update({
+        status: "failed",
+        finished_at: new Date().toISOString(),
+      })
+      .eq("tenant_id", input.tenantId)
+      .eq("id", input.batchId);
+    if (error) {
+      console.error("[contribution-batches] Could not mark batch failed", {
+        batchId: input.batchId,
+        error: error.message,
+      });
+    }
+  } catch (error) {
+    console.error("[contribution-batches] Could not mark batch failed", {
+      batchId: input.batchId,
+      error,
+    });
+  }
+}
+
 export async function processPersistedContributionBatch(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;

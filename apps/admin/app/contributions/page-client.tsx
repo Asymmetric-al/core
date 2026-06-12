@@ -131,14 +131,14 @@ export default function ContributionsPage() {
           </p>
         )}
         {isError ? (
-          <div className="flex flex-col items-center justify-center py-20 text-center bg-white border border-zinc-100 rounded-3xl">
-            <div className="size-16 bg-rose-50 rounded-2xl flex items-center justify-center mb-4 border border-rose-100">
-              <AlertCircle className="size-8 text-rose-500" />
+          <div className="flex flex-col items-center justify-center py-20 text-center bg-card border border-border rounded-3xl">
+            <div className="size-16 bg-destructive/10 rounded-2xl flex items-center justify-center mb-4 border border-destructive/20">
+              <AlertCircle className="size-8 text-destructive" />
             </div>
-            <h3 className="text-lg font-semibold text-zinc-900 uppercase tracking-tight">
+            <h3 className="text-lg font-semibold text-foreground uppercase tracking-tight">
               Load failed
             </h3>
-            <p className="text-sm text-zinc-500 mt-2 max-w-sm font-medium">
+            <p className="text-sm text-muted-foreground mt-2 max-w-sm font-medium">
               {errorMessage}
             </p>
             <Button

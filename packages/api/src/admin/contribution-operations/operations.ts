@@ -285,6 +285,43 @@ async function assertCorrectionReferencesExist(input: {
   }
 }
 
+/**
+ * A correction must state its target explicitly: a non-empty id string changes
+ * the reference and an explicit `null` clears it. Anything else (missing key,
+ * wrong type, empty string) is a malformed payload and must be rejected —
+ * coercing it to `null` would silently clear a gift's financial designation.
+ */
+function requireReferenceIdOrNull(
+  value: unknown,
+  field: string,
+): string | null {
+  if (value === null) {
+    return null;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    return value;
+  }
+  throw new ApiHttpError(
+    400,
+    `${field} must be a non-empty id string or null.`,
+  );
+}
+
+/**
+ * Same contract for fields where omission is a valid "no reference" (an
+ * allocation pair or designation line without a missionary): absent and `null`
+ * both mean cleared, but a present garbage value is still rejected.
+ */
+function optionalReferenceIdOrNull(
+  value: unknown,
+  field: string,
+): string | null {
+  if (value === undefined) {
+    return null;
+  }
+  return requireReferenceIdOrNull(value, field);
+}
+
 function correctionEffectiveValues(
   actionType: ContributionActionType,
   payload: Record<string, unknown>,
@@ -301,8 +338,7 @@ function correctionEffectiveValues(
     actionType === "designation_correction" ||
     actionType === "fund_correction"
   ) {
-    const fundId = payload.fundId;
-    return { fundId: typeof fundId === "string" ? fundId : null };
+    return { fundId: requireReferenceIdOrNull(payload.fundId, "fundId") };
   }
 
   if (actionType === "allocation_correction") {
@@ -330,22 +366,23 @@ function correctionEffectiveValues(
               ? record.id
               : `line-${index + 1}`,
           amountCents,
-          fundId: typeof record.fundId === "string" ? record.fundId : null,
-          missionaryId:
-            typeof record.missionaryId === "string"
-              ? record.missionaryId
-              : null,
+          fundId: optionalReferenceIdOrNull(record.fundId, "fundId"),
+          missionaryId: optionalReferenceIdOrNull(
+            record.missionaryId,
+            "missionaryId",
+          ),
           memo: typeof record.memo === "string" ? record.memo : null,
         };
       });
       return { designationLines: lines };
     }
 
-    const fundId = payload.fundId;
-    const missionaryId = payload.missionaryId;
     return {
-      fundId: typeof fundId === "string" ? fundId : null,
-      missionaryId: typeof missionaryId === "string" ? missionaryId : null,
+      fundId: optionalReferenceIdOrNull(payload.fundId, "fundId"),
+      missionaryId: optionalReferenceIdOrNull(
+        payload.missionaryId,
+        "missionaryId",
+      ),
     };
   }
 

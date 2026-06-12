@@ -23,11 +23,13 @@ import {
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
+import { useQueryClient } from "@tanstack/react-query";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getContributionColumns } from "./columns";
+import { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
@@ -88,13 +90,13 @@ function StatCard({
       transition={{ ...smoothTransition, delay: index * 0.06 }}
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.98 }}
-      className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm cursor-default min-w-[140px]"
+      className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-border bg-card shadow-sm cursor-default min-w-[140px]"
     >
       <div className="flex flex-col">
-        <span className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900">
+        <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
           {value}
         </span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mt-1">
+        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-1">
           {label}
         </span>
       </div>
@@ -214,6 +216,7 @@ export function ContributionsMainBody({
   needsAttentionGroups?: MissionControlNeedsAttentionGroup[];
   onOpenContributionById?: (contributionId: string) => void;
 }) {
+  const queryClient = useQueryClient();
   const [pendingBulkReceiptRows, setPendingBulkReceiptRows] = useState<
     Contribution[]
   >([]);
@@ -324,10 +327,20 @@ export function ContributionsMainBody({
           summary?: { succeeded?: number; failed?: number };
         };
       };
-      toast.success(
-        `Bulk receipt batch ${body.batch?.status ?? "completed"}: ${body.batch?.summary?.succeeded ?? 0} succeeded, ${body.batch?.summary?.failed ?? 0} failed.`,
-      );
+      const batchStatus = body.batch?.status ?? "completed";
+      if (batchStatus === "running") {
+        // Background batches return before any record is processed, so the
+        // zeroed summary would read as "nothing succeeded".
+        toast.success(
+          `Bulk receipt batch started: ${formatSelectedContributionCount(rows.length)} processing in the background.`,
+        );
+      } else {
+        toast.success(
+          `Bulk receipt batch ${batchStatus}: ${body.batch?.summary?.succeeded ?? 0} succeeded, ${body.batch?.summary?.failed ?? 0} failed.`,
+        );
+      }
       setPendingBulkReceiptRows([]);
+      await invalidateContributionOperationQueries(queryClient);
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -338,7 +351,7 @@ export function ContributionsMainBody({
       isBulkReceiptSubmittingRef.current = false;
       setIsBulkReceiptSubmitting(false);
     }
-  }, [pendingBulkReceiptRows]);
+  }, [pendingBulkReceiptRows, queryClient]);
 
   return (
     <div className="space-y-10">
@@ -494,18 +507,18 @@ export function ContributionsMainBody({
             },
           }}
           emptyState={
-            <div className="text-center py-32 bg-zinc-50/50 border-2 border-dashed border-zinc-200 rounded-[2.5rem]">
-              <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
-                <DollarSign className="size-10 text-zinc-200" />
+            <div className="text-center py-32 bg-muted/30 border-2 border-dashed border-border rounded-[2.5rem]">
+              <div className="size-20 bg-card rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-border">
+                <DollarSign className="size-10 text-muted-foreground/40" />
               </div>
-              <h3 className="text-2xl font-semibold text-zinc-900 tracking-tight">
+              <h3 className="text-2xl font-semibold text-foreground tracking-tight">
                 No contributions found
               </h3>
-              <p className="text-sm text-zinc-500 mt-2 font-medium">
+              <p className="text-sm text-muted-foreground mt-2 font-medium">
                 Get started by recording your first contribution or importing
                 from another source.
               </p>
-              <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest text-[10px]">
+              <Button className="mt-8 h-12 px-8 rounded-xl font-semibold uppercase tracking-widest text-[10px]">
                 <Plus className="mr-2 size-4" />
                 Add Contribution
               </Button>
@@ -526,13 +539,13 @@ export function ContributionsPageActions() {
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-semibold uppercase tracking-widest text-[10px] gap-2"
+        className="h-11 px-4 rounded-xl transition-colors font-semibold uppercase tracking-widest text-[10px] gap-2"
         onClick={handleExport}
       >
         <Download className="size-4" />
         Export
       </Button>
-      <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
+      <Button className="h-11 px-6 rounded-xl font-semibold uppercase tracking-widest text-[10px] shadow-lg gap-2">
         <Plus className="size-4" />
         Add Contribution
       </Button>

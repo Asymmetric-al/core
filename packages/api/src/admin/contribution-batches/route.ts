@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { chooseContributionBatchExecutionMode } from "./preview";
 import {
+  markContributionBatchFailed,
   processContributionBatch,
   processPersistedContributionBatch,
 } from "./process-batch";
@@ -129,7 +130,16 @@ export const POST = withOperation(
                 result: {},
               })),
             );
-          if (itemError) throw new Error(itemError.message);
+          if (itemError) {
+            // The batch row already exists as `running`; without this it
+            // would be stranded there forever after the item insert failed.
+            await markContributionBatchFailed({
+              supabaseAdmin,
+              tenantId: auth.tenantId,
+              batchId,
+            });
+            throw new Error(itemError.message);
+          }
           after(async () => {
             try {
               await processPersistedContributionBatch({
@@ -178,6 +188,11 @@ export const POST = withOperation(
               console.error("[contribution-batches] Background batch failed", {
                 batchId,
                 error,
+              });
+              await markContributionBatchFailed({
+                supabaseAdmin,
+                tenantId: auth.tenantId,
+                batchId,
               });
             }
           });
@@ -263,7 +278,7 @@ export const POST_PROCESS_BATCH = withOperation(
       const pathnameParts = new URL(request.url).pathname.split("/");
       const batchId = pathnameParts.at(-2);
       if (typeof batchId !== "string" || batchId.length === 0) {
-        throw new Error("Missing batch id.");
+        throw new ApiHttpError(400, "Missing batch id.");
       }
 
       const batch = await processPersistedContributionBatch({

@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 // file"). Alias Node's own `URL` so source-file reads use a real `file:` URL.
 import { URL as NodeURL, fileURLToPath } from "node:url";
 
+import { QueryProvider } from "@asym/database/providers";
 import {
   act,
   cleanup,
@@ -22,6 +23,15 @@ import type { Contribution } from "../../../../../apps/admin/app/contributions/t
 const selectedRowsRef = { current: [] as unknown[] };
 const toastErrorMock = vi.fn();
 const toastSuccessMock = vi.fn();
+const invalidateContributionOperationQueriesMock = vi.fn();
+
+vi.mock(
+  "../../../../../apps/admin/app/contributions/contribution-detail-overlay",
+  () => ({
+    invalidateContributionOperationQueries:
+      invalidateContributionOperationQueriesMock,
+  }),
+);
 
 vi.mock("@asym/lib/motion", async () => {
   const React = await import("react");
@@ -158,11 +168,13 @@ function makeContribution(overrides: Partial<Contribution> = {}): Contribution {
 function renderMainBody(rows: Contribution[]) {
   selectedRowsRef.current = rows;
   return render(
-    <ContributionsMainBody
-      data={rows}
-      isLoading={false}
-      onSelectContribution={vi.fn()}
-    />,
+    <QueryProvider>
+      <ContributionsMainBody
+        data={rows}
+        isLoading={false}
+        onSelectContribution={vi.fn()}
+      />
+    </QueryProvider>,
   );
 }
 
@@ -451,5 +463,79 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     expect(source).not.toContain("window.confirm");
     expect(source).not.toContain("confirm(");
     expect(source).not.toContain("Send receipts for");
+  });
+
+  it("refreshes shared contribution queries after a successful bulk receipt batch", async () => {
+    stubBatchFetch();
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalled();
+    });
+    // The same freshness helper the detail overlay uses (ADR-CD-032) must run
+    // so the table and needs-attention panel reload after the batch.
+    expect(invalidateContributionOperationQueriesMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("describes background batches honestly instead of claiming zero results", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        batch: {
+          id: "batch_9",
+          status: "running",
+          executionMode: "background",
+          summary: {
+            processed: 0,
+            succeeded: 0,
+            skipped: 0,
+            failed: 0,
+            followUpTasksCreated: 0,
+          },
+        },
+      }),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalled();
+    });
+    const message = toastSuccessMock.mock.calls[0]?.[0] as string;
+    expect(message).toMatch(/background/i);
+    expect(message).not.toMatch(/0 succeeded/);
+  });
+});
+
+describe("contributions surface design tokens", () => {
+  it("uses semantic tokens and explicit transitions (no raw palette, no transition-all)", () => {
+    const paths = [
+      "apps/admin/app/contributions/main-body.tsx",
+      "apps/admin/app/contributions/page-client.tsx",
+    ];
+
+    for (const path of paths) {
+      const source = readRepoFile(path);
+
+      expect(source, `${path} must not use transition-all`).not.toContain(
+        "transition-all",
+      );
+      // Raw light-biased palette classes (bg-white, text-zinc-900, rose
+      // accents) render wrong in dark mode; use semantic tokens instead
+      // (bg-card, text-foreground, text-muted-foreground, destructive).
+      expect(
+        source,
+        `${path} must use semantic color tokens, not raw white/zinc/rose utilities`,
+      ).not.toMatch(/-(?:white|zinc-\d+|rose-\d+)\b/);
+    }
   });
 });

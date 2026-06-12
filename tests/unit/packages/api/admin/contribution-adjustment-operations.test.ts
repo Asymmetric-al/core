@@ -470,6 +470,100 @@ describe("applyContributionCorrection (adjustment records)", () => {
     expect(state.adjustments).toHaveLength(0);
   });
 
+  it("rejects a fund correction whose payload omits fundId instead of silently clearing the designation", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "fund_correction",
+        payload: {},
+        reason: "Malformed client payload",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/fundId/),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("rejects a malformed fundId type instead of treating it as a clear", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "fund_correction",
+        payload: { fundId: 123 },
+        reason: "Malformed client payload",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/fundId/),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("rejects an empty-string fundId instead of writing it to financial truth", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "designation_correction",
+        payload: { fundId: "" },
+        reason: "Malformed client payload",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/fundId/),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("rejects malformed designation-line reference ids instead of nulling them", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "allocation_correction",
+        payload: {
+          designationLines: [{ amountCents: 10_000, fundId: 42 }],
+        },
+        reason: "Malformed client payload",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/fundId/),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
   it("allows a fund correction that clears the designation (null fund)", async () => {
     const state: StubState = {
       adjustments: [],

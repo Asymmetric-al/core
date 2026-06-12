@@ -89,13 +89,20 @@ corrections that require later manual sync to donor-facing records.
 
 ## Phase Boundaries
 
-This change may include hook contracts for notifications, tasks, automations,
-and batches, but it must not implement:
+The initial Contribution Operations Core phase shipped hook contracts only for
+notifications, tasks, automations, and batches. Scope was then expanded inside
+this change, and the later phases are implemented here (see `tasks.md`
+sections 7-10 for the delivered breakdown):
 
-- Email Studio correction template families (PRD 2);
-- the full shared task/Needs Attention product (PRD 3);
-- the automation builder (PRD 4);
-- bulk batch execution (PRD 5).
+- Email Studio correction notification templates and send path (PRD 2);
+- shared Mission Control tasks and Needs Attention (PRD 3);
+- the automation rules read model with fail-closed activation gates (PRD 4);
+- bulk batch execution with persisted batches and background processing
+  (PRD 5).
+
+Remaining gaps stay explicit rather than implied: automation activation fails
+closed until server-side readiness checks exist, and integration telemetry
+reports "not wired yet" until a persisted source is connected.
 
 ## Testing Direction
 
