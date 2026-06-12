@@ -1,3 +1,5 @@
+"use client";
+
 import { resolveCrmRowAction } from "@asym/api/admin/crm/table-preferences";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {

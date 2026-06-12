@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,

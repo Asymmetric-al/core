@@ -1,3 +1,5 @@
+"use client";
+
 import { formatCurrency } from "@asym/lib/utils";
 import {
   crmRecordAvatarTransitionName,

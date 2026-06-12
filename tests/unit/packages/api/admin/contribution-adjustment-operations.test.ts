@@ -6,6 +6,10 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const TENANT_ID = "tenant-1";
 const DONATION_ID = "donation-1";
+// funds.id / missionaries.id are UUID columns, so reference ids must be
+// UUID-shaped to be queryable (a non-UUID id is rejected before the query).
+const FUND_VALID = "11111111-1111-4111-8111-111111111111";
+const FUND_OTHER = "22222222-2222-4222-8222-222222222222";
 
 const donationRow = {
   id: DONATION_ID,
@@ -371,20 +375,20 @@ describe("applyContributionCorrection (adjustment records)", () => {
       adjustments: [],
       donationUpdates: [],
       insertCount: 0,
-      funds: ["fund-valid"],
+      funds: [FUND_VALID],
     };
 
     const result = await applyContributionCorrection({
       ...baseInput(state),
       actionType: "fund_correction",
-      payload: { fundId: "fund-valid" },
+      payload: { fundId: FUND_VALID },
       reason: "Donor redirected the gift",
     });
 
     expect(state.adjustments).toHaveLength(1);
     expect(state.adjustments[0]).toMatchObject({
       adjustment_type: "fund_correction",
-      effective_values: { fundId: "fund-valid" },
+      effective_values: { fundId: FUND_VALID },
     });
     expect(result.status).toBe("applied");
   });
@@ -394,14 +398,14 @@ describe("applyContributionCorrection (adjustment records)", () => {
       adjustments: [],
       donationUpdates: [],
       insertCount: 0,
-      funds: ["fund-valid"],
+      funds: [FUND_VALID],
     };
 
     await expect(
       applyContributionCorrection({
         ...baseInput(state),
         actionType: "fund_correction",
-        payload: { fundId: "fund-from-another-tenant" },
+        payload: { fundId: FUND_OTHER },
         reason: "Typo'd fund id",
       }),
     ).rejects.toMatchObject({
@@ -417,7 +421,7 @@ describe("applyContributionCorrection (adjustment records)", () => {
       adjustments: [],
       donationUpdates: [],
       insertCount: 0,
-      funds: ["fund-valid"],
+      funds: [FUND_VALID],
     };
 
     await expect(
@@ -426,11 +430,37 @@ describe("applyContributionCorrection (adjustment records)", () => {
         actionType: "allocation_correction",
         payload: {
           designationLines: [
-            { amountCents: 10_000, fundId: "fund-valid" },
-            { amountCents: 15_000, fundId: "fund-bogus" },
+            { amountCents: 10_000, fundId: FUND_VALID },
+            { amountCents: 15_000, fundId: FUND_OTHER },
           ],
         },
         reason: "Split the gift",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/unknown fund/i),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("rejects a non-UUID fund id with a clean 400 (never queries the UUID column)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "fund_correction",
+        // Free-text / typo'd id: sending this to a UUID column would raise a
+        // Postgres 22P02 cast error (HTTP 500 leaking the raw value); it must
+        // be rejected as an unknown fund instead.
+        payload: { fundId: "not-a-real-uuid" },
+        reason: "Pasted the wrong thing",
       }),
     ).rejects.toMatchObject({
       status: 400,

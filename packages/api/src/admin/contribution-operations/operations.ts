@@ -205,6 +205,46 @@ function collectCorrectionReferenceIds(
  * later validation. Mirrors the tenant-scoped donor guard in
  * `relinkContributionDonor`.
  */
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function isUuid(value: string): boolean {
+  return UUID_PATTERN.test(value);
+}
+
+/**
+ * Resolve which of `ids` exist in a tenant-scoped UUID-keyed reference table,
+ * returning the ids that do NOT. Only UUID-shaped ids are sent to the query:
+ * `funds.id` / `missionaries.id` are Postgres `UUID` columns, so a non-UUID id
+ * (a typo or free-text value) would raise a 22P02 cast error and surface as a
+ * 500 leaking the raw value — instead, a malformed id is definitionally unknown
+ * and is reported as missing without touching the database.
+ */
+async function findMissingReferenceIds(input: {
+  supabaseAdmin: SupabaseAdmin;
+  table: "funds" | "missionaries";
+  tenantId: string;
+  ids: string[];
+}): Promise<string[]> {
+  const queryableIds = input.ids.filter(isUuid);
+  const { data, error } =
+    queryableIds.length > 0
+      ? await input.supabaseAdmin
+          .from(input.table)
+          .select("id")
+          .eq("tenant_id", input.tenantId)
+          .in("id", queryableIds)
+      : { data: [], error: null };
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  const found = new Set(
+    ((data ?? []) as Array<{ id: string }>).map((row) => row.id),
+  );
+  return input.ids.filter((id) => !found.has(id));
+}
+
 async function assertCorrectionReferencesExist(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -215,18 +255,12 @@ async function assertCorrectionReferencesExist(input: {
   );
 
   if (fundIds.length > 0) {
-    const { data, error } = await input.supabaseAdmin
-      .from("funds")
-      .select("id")
-      .eq("tenant_id", input.tenantId)
-      .in("id", fundIds);
-    if (error) {
-      throw new Error(error.message);
-    }
-    const found = new Set(
-      ((data ?? []) as Array<{ id: string }>).map((row) => row.id),
-    );
-    const missing = fundIds.filter((id) => !found.has(id));
+    const missing = await findMissingReferenceIds({
+      supabaseAdmin: input.supabaseAdmin,
+      table: "funds",
+      tenantId: input.tenantId,
+      ids: fundIds,
+    });
     if (missing.length > 0) {
       throw new ApiHttpError(
         400,
@@ -236,18 +270,12 @@ async function assertCorrectionReferencesExist(input: {
   }
 
   if (missionaryIds.length > 0) {
-    const { data, error } = await input.supabaseAdmin
-      .from("missionaries")
-      .select("id")
-      .eq("tenant_id", input.tenantId)
-      .in("id", missionaryIds);
-    if (error) {
-      throw new Error(error.message);
-    }
-    const found = new Set(
-      ((data ?? []) as Array<{ id: string }>).map((row) => row.id),
-    );
-    const missing = missionaryIds.filter((id) => !found.has(id));
+    const missing = await findMissingReferenceIds({
+      supabaseAdmin: input.supabaseAdmin,
+      table: "missionaries",
+      tenantId: input.tenantId,
+      ids: missionaryIds,
+    });
     if (missing.length > 0) {
       throw new ApiHttpError(
         400,
