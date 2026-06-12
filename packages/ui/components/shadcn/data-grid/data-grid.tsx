@@ -24,11 +24,10 @@ import {
   DEFAULT_COLUMN_WIDTH,
 } from "./types";
 import {
+  createDataTableRowModels,
+  dataTableFeatures,
   flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
   type ColumnDef,
   type HeaderGroup,
   type Row,
@@ -730,7 +729,16 @@ export function DataGrid<TData extends Record<string, unknown>>({
     ],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
+    // Mirrors the v8 setup: only filtering and sorting row models, and only
+    // when their grid config flags are on (the core row model is automatic).
+    rowModels: createDataTableRowModels<TData>({
+      filtering: enableFilter,
+      sorting: enableSort,
+      pagination: false,
+      faceting: false,
+    }),
     data: gridData,
     columns: tableColumns,
     state: {
@@ -739,9 +747,6 @@ export function DataGrid<TData extends Record<string, unknown>>({
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: enableFilter ? getFilteredRowModel() : undefined,
-    getSortedRowModel: enableSort ? getSortedRowModel() : undefined,
   });
 
   const { rows } = table.getRowModel();

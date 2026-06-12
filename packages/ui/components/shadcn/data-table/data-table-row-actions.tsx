@@ -15,16 +15,16 @@ import {
 } from "../dropdown-menu";
 import { getDataTableRowActionKey } from "./data-table-row-action-key";
 
-import type { Row } from "./tanstack";
+import type { Row, RowData } from "./tanstack";
 import type { DataTableInteractiveRowAction } from "./types";
 
-interface DataTableRowActionsProps<TData> {
+interface DataTableRowActionsProps<TData extends RowData> {
   row: Row<TData>;
   actions: DataTableInteractiveRowAction<TData>[];
   className?: string;
 }
 
-export function DataTableRowActions<TData>({
+export function DataTableRowActions<TData extends RowData>({
   row,
   actions,
   className,

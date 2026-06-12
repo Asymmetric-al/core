@@ -16,7 +16,7 @@ import {
   EmptyMedia,
 } from "../empty";
 
-import type { ColumnDef } from "./tanstack";
+import type { ColumnDef, RowData } from "./tanstack";
 import type {
   DataTableConfig,
   DataTableControlledState,
@@ -25,7 +25,7 @@ import type {
   DataTableUrlStateConfig,
 } from "./types";
 
-interface DataTableWrapperProps<TData, TValue> {
+interface DataTableWrapperProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -57,7 +57,7 @@ interface DataTableWrapperProps<TData, TValue> {
   toolbar?: React.ReactNode;
 }
 
-export function DataTableWrapper<TData, TValue>({
+export function DataTableWrapper<TData extends RowData, TValue>({
   columns,
   data,
   filterFields,

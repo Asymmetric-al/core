@@ -18,17 +18,17 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 
-import type { Column } from "./tanstack";
+import type { Column, RowData } from "./tanstack";
 import type { DataTableFilterOption } from "./types";
 
-interface DataTableFacetedFilterProps<TData, TValue> {
+interface DataTableFacetedFilterProps<TData extends RowData, TValue> {
   column?: Column<TData, TValue>;
   title?: string;
   options: DataTableFilterOption[];
   disabled?: boolean;
 }
 
-export function DataTableFacetedFilter<TData, TValue>({
+export function DataTableFacetedFilter<TData extends RowData, TValue>({
   column,
   title,
   options,

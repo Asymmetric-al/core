@@ -9,15 +9,13 @@ import {
   type ColumnFiltersState,
   type SortingState,
   type PaginationState,
+  type RowData,
   type RowSelectionState,
+  type Table,
   type VisibilityState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  useReactTable,
+  createDataTableRowModels,
+  dataTableFeatures,
+  useTable,
   type ColumnDef,
   type TableOptions,
 } from "../tanstack";
@@ -29,7 +27,7 @@ import type {
 import type { Context, InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
 
 interface UseDataTableWithLiveQueryOptions<
-  TData,
+  TData extends RowData,
   TValue,
   TContext extends Context,
 > {
@@ -58,8 +56,8 @@ interface UseDataTableWithLiveQueryOptions<
   onAdvancedFilterChange?: (filter: AdvancedFilterState) => void;
 }
 
-interface UseDataTableWithLiveQueryReturn<TData> {
-  table: ReturnType<typeof useReactTable<TData>>;
+interface UseDataTableWithLiveQueryReturn<TData extends RowData> {
+  table: Table<TData>;
   data: TData[];
   isLoading: boolean;
   error: Error | null;
@@ -82,7 +80,7 @@ interface UseDataTableWithLiveQueryReturn<TData> {
 }
 
 export function useDataTableWithLiveQuery<
-  TData,
+  TData extends RowData,
   TValue = unknown,
   TContext extends Context = Context,
 >({
@@ -185,8 +183,18 @@ export function useDataTableWithLiveQuery<
   }, [advancedFilter, onAdvancedFilterChange]);
 
   const tableOptions: TableOptions<TData> = {
+    features: dataTableFeatures,
+    // The core row model is automatic in v9; disabled flags skip the matching
+    // client-side row model just like the v8 `get*RowModel: undefined` paths.
+    rowModels: createDataTableRowModels<TData>({
+      filtering: enableFiltering,
+      pagination: enablePagination,
+      sorting: enableSorting,
+    }),
     data: filteredData,
-    columns,
+    // Columns with heterogeneous TValue collapse to `unknown` for the engine,
+    // mirroring v8's `ColumnDef<TData, any>[]` table option.
+    columns: columns as ColumnDef<TData, unknown>[],
     state: {
       sorting,
       columnVisibility,
@@ -203,17 +211,9 @@ export function useDataTableWithLiveQuery<
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
-    getPaginationRowModel: enablePagination
-      ? getPaginationRowModel()
-      : undefined,
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   };
 
-  const table = useReactTable(tableOptions);
+  const table = useTable(tableOptions);
 
   const selectedRows = React.useMemo(() => {
     return table.getFilteredSelectedRowModel().rows.map((row) => row.original);
@@ -253,7 +253,7 @@ export function useDataTableWithLiveQuery<
   };
 }
 
-interface UseDataTableWithSupabaseOptions<TData, TValue> {
+interface UseDataTableWithSupabaseOptions<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   tableName: string;
   select?: string;
@@ -276,9 +276,10 @@ interface UseDataTableWithSupabaseOptions<TData, TValue> {
   realtimeEvent?: "INSERT" | "UPDATE" | "DELETE" | "*";
 }
 
-export function useDataTableWithSupabase<TData, TValue = unknown>(
-  _options: UseDataTableWithSupabaseOptions<TData, TValue>,
-) {
+export function useDataTableWithSupabase<
+  TData extends RowData,
+  TValue = unknown,
+>(_options: UseDataTableWithSupabaseOptions<TData, TValue>) {
   console.warn(
     "useDataTableWithSupabase is deprecated. Use useDataTableWithLiveQuery with TanStack DB collections instead.",
   );

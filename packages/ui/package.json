@@ -69,7 +69,7 @@
     "@tanstack/react-db": "^0.1.82",
     "@tanstack/react-form": "1.28.6",
     "@tanstack/react-query": "^5.96.2",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-table": "9.0.0-beta.9",
     "@tanstack/react-virtual": "^3.13.23",
     "@tiptap/core": "^3.22.3",
     "@tiptap/extension-image": "^3.22.3",

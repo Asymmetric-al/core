@@ -6,6 +6,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Avatar, AvatarFallback, AvatarImage } from "../../avatar";
 
+import type { RowData } from "../tanstack";
 import type { AvatarCellProps } from "./types";
 
 const sizeClasses = {
@@ -31,7 +32,7 @@ function getInitials(name: string | undefined): string {
   return (first + last).toUpperCase() || "?";
 }
 
-export function AvatarCell<TData>({
+export function AvatarCell<TData extends RowData>({
   value,
   className,
   name,

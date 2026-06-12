@@ -19,9 +19,9 @@ import {
 } from "../select";
 import { DEFAULT_PAGE_SIZES } from "./types";
 
-import type { Table } from "./tanstack";
+import type { RowData, Table } from "./tanstack";
 
-interface DataTablePaginationProps<TData> {
+interface DataTablePaginationProps<TData extends RowData> {
   table: Table<TData>;
   pageSizes?: readonly number[];
   showSelectedCount?: boolean;
@@ -30,13 +30,15 @@ interface DataTablePaginationProps<TData> {
   urlStatePending?: boolean;
 }
 
-export function DataTablePagination<TData>({
+export function DataTablePagination<TData extends RowData>({
   table,
   pageSizes = DEFAULT_PAGE_SIZES,
   showSelectedCount = true,
   className,
   urlStatePending = false,
 }: DataTablePaginationProps<TData>) {
+  // v9 removed `table.getState()`; `table.state` is the render-read surface.
+  const { pagination } = table.state;
   return (
     <div
       className={cn(
@@ -57,14 +59,14 @@ export function DataTablePagination<TData>({
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium whitespace-nowrap">Rows per page</p>
           <Select
-            value={`${table.getState().pagination.pageSize}`}
+            value={`${pagination.pageSize}`}
             onValueChange={(value) => {
               table.setPageSize(Number(value));
             }}
             disabled={urlStatePending}
           >
             <SelectTrigger className="h-9 w-[72px] rounded-xl">
-              <SelectValue placeholder={table.getState().pagination.pageSize} />
+              <SelectValue placeholder={pagination.pageSize} />
             </SelectTrigger>
             <SelectContent side="top" className="rounded-xl">
               {pageSizes.map((pageSize) => (
@@ -80,8 +82,7 @@ export function DataTablePagination<TData>({
           </Select>
         </div>
         <div className="flex items-center justify-center text-sm font-medium whitespace-nowrap">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount() || 1}
+          Page {pagination.pageIndex + 1} of {table.getPageCount() || 1}
         </div>
         <div className="flex items-center gap-2">
           <Button

@@ -6,9 +6,10 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Checkbox } from "../../checkbox";
 
+import type { RowData } from "../tanstack";
 import type { CheckboxCellProps } from "./types";
 
-export function CheckboxCell<TData>({
+export function CheckboxCell<TData extends RowData>({
   value,
   onValueChange,
   onEditComplete,

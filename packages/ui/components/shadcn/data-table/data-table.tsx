@@ -9,6 +9,7 @@ import type {
   ColumnFiltersState,
   PaginationState,
   Row,
+  RowData,
   RowSelectionState,
   SortingState,
   TableOptions,
@@ -22,7 +23,7 @@ import type {
   DataTableUrlStateConfig,
 } from "./types";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -67,7 +68,7 @@ interface DataTableProps<TData, TValue> {
   };
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData, TValue>({
   urlState,
   ...rest
 }: DataTableProps<TData, TValue>) {

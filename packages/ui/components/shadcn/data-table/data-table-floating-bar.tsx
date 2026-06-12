@@ -15,7 +15,7 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu";
 
-import type { Table } from "./tanstack";
+import type { RowData, Table } from "./tanstack";
 
 interface FloatingActionBarAction<TData> {
   label: string;
@@ -25,13 +25,13 @@ interface FloatingActionBarAction<TData> {
   hideOnMobile?: boolean;
 }
 
-interface DataTableFloatingBarProps<TData> {
+interface DataTableFloatingBarProps<TData extends RowData> {
   table: Table<TData>;
   actions?: FloatingActionBarAction<TData>[];
   className?: string;
 }
 
-export function DataTableFloatingBar<TData>({
+export function DataTableFloatingBar<TData extends RowData>({
   table,
   actions,
   className,

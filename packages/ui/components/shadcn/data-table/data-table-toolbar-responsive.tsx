@@ -42,10 +42,10 @@ import {
   type FilterFieldDefinition,
 } from "./filters/types";
 
-import type { Table } from "./tanstack";
+import type { RowData, Table } from "./tanstack";
 import type { DataTableFilterField } from "./types";
 
-interface DataTableToolbarResponsiveProps<TData> {
+interface DataTableToolbarResponsiveProps<TData extends RowData> {
   table: Table<TData>;
   filterFields?: DataTableFilterField<TData>[];
   advancedFilterFields?: FilterFieldDefinition[];
@@ -68,7 +68,7 @@ interface DataTableToolbarResponsiveProps<TData> {
 const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
 const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
 
-export function DataTableToolbarResponsive<TData>({
+export function DataTableToolbarResponsive<TData extends RowData>({
   table,
   filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   advancedFilterFields = EMPTY_ADVANCED_FILTER_FIELDS,
@@ -89,13 +89,14 @@ export function DataTableToolbarResponsive<TData>({
   const [mobileFiltersOpen, setMobileFiltersOpen] = React.useState(false);
   const [searchOpen, setSearchOpen] = React.useState(false);
   const mobileSearchInputRef = React.useRef<HTMLInputElement>(null);
-  const isFiltered = table.getState().columnFilters.length > 0;
+  // v9 removed `table.getState()`; `table.state` is the render-read surface.
+  const isFiltered = table.state.columnFilters.length > 0;
   const [localFilter, setLocalFilter] = React.useState<AdvancedFilterState>(
     advancedFilter ?? createEmptyFilterState(),
   );
 
   const activeFilterCount = React.useMemo(() => {
-    let count = table.getState().columnFilters.length;
+    let count = table.state.columnFilters.length;
     if (advancedFilter) {
       count += advancedFilter.conditions.length;
     }
@@ -340,7 +341,7 @@ export function DataTableToolbarResponsive<TData>({
   );
 }
 
-interface MobileFiltersDrawerProps<TData> {
+interface MobileFiltersDrawerProps<TData extends RowData> {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   table: Table<TData>;
@@ -354,7 +355,7 @@ interface MobileFiltersDrawerProps<TData> {
   urlStatePending?: boolean;
 }
 
-function MobileFiltersDrawer<TData>({
+function MobileFiltersDrawer<TData extends RowData>({
   open,
   onOpenChange,
   table,

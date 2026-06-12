@@ -9,13 +9,10 @@ import { cn } from "@asym/ui/lib/utils";
 import {
   type ColumnDef,
   type Row,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  type RowData,
+  createDataTableRowModels,
+  dataTableFeatures,
+  useTable,
 } from "./tanstack";
 import { Checkbox } from "../checkbox";
 import { DataTableCardView } from "./data-table-card-view";
@@ -49,12 +46,12 @@ import {
 import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
 import type { DataTableFilterField } from "./types";
 
-type DataTableResponsiveBodyProps<TData, TValue> = Omit<
+type DataTableResponsiveBodyProps<TData extends RowData, TValue> = Omit<
   DataTableResponsiveProps<TData, TValue>,
   "urlState"
 >;
 
-export function DataTableResponsiveInner<TData, TValue>({
+export function DataTableResponsiveInner<TData extends RowData, TValue>({
   tableState,
   columns,
   data,
@@ -164,11 +161,14 @@ export function DataTableResponsiveInner<TData, TValue>({
     [],
   );
 
-  const tableColumns = React.useMemo(() => {
+  const tableColumns = React.useMemo<ColumnDef<TData, unknown>[]>(() => {
+    // Columns with heterogeneous TValue collapse to `unknown` for the engine,
+    // mirroring v8's `ColumnDef<TData, any>[]` table option.
+    const baseColumns = columns as ColumnDef<TData, unknown>[];
     if (enableRowSelection) {
-      return [selectColumn, ...columns];
+      return [selectColumn, ...baseColumns];
     }
-    return columns;
+    return baseColumns;
   }, [columns, enableRowSelection, selectColumn]);
 
   const advancedFilterFn = React.useMemo(() => {
@@ -204,7 +204,15 @@ export function DataTableResponsiveInner<TData, TValue>({
     }
   }, [pageCount, rowCount]);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
+    // The core row model is automatic in v9; manual flags skip the matching
+    // client-side row model just like the v8 `get*RowModel: undefined` paths.
+    rowModels: createDataTableRowModels<TData>({
+      filtering: !manualFiltering,
+      pagination: !manualPagination,
+      sorting: !manualSorting,
+    }),
     data: filteredData,
     columns: tableColumns,
     rowCount: resolvedRowCount,
@@ -223,14 +231,6 @@ export function DataTableResponsiveInner<TData, TValue>({
     onColumnFiltersChange: tableState.handlers.onColumnFiltersChange,
     onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
     onPaginationChange: tableState.handlers.onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: manualPagination
-      ? undefined
-      : getPaginationRowModel(),
-    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   const keyboard = useDataTableKeyboard(table, {

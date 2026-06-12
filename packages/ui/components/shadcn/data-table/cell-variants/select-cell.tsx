@@ -14,9 +14,10 @@ import {
   SelectValue,
 } from "../../select";
 
+import type { RowData } from "../tanstack";
 import type { SelectCellProps } from "./types";
 
-export function SelectCell<TData>({
+export function SelectCell<TData extends RowData>({
   value,
   isEditing = false,
   onValueChange,

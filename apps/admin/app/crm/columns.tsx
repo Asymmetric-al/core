@@ -332,7 +332,10 @@ export function getCrmColumns({
         </div>
       ),
       filterFn: (row, _id, value) => {
-        const tags = row.original.tags ?? [];
+        // TanStack Table v9 types custom filterFns against the broad RowData
+        // shape instead of this table's row type, so narrow it back here.
+        const original = row.original as CrmGridRow;
+        const tags = original.tags ?? [];
         if (!Array.isArray(value) || value.length === 0) return true;
         return value.some((v: string) => tags.includes(v));
       },

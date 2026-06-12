@@ -10,18 +10,15 @@ import {
   type ColumnFiltersState,
   type SortingState,
   type VisibilityState,
+  type RowData,
   type RowSelectionState,
   type PaginationState,
   type Row,
   type TableOptions,
+  createDataTableRowModels,
+  dataTableFeatures,
   flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
+  useTable,
 } from "./tanstack";
 import { Checkbox } from "../checkbox";
 import {
@@ -57,7 +54,10 @@ import type {
 
 const EMPTY_DATA_TABLE_CONFIG: DataTableConfig = {};
 
-export interface DataTableBodyWithTableStateProps<TData, TValue> {
+export interface DataTableBodyWithTableStateProps<
+  TData extends RowData,
+  TValue,
+> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields: DataTableFilterField<TData>[];
@@ -85,7 +85,7 @@ export interface DataTableBodyWithTableStateProps<TData, TValue> {
 
 const EMPTY_DATA_TABLE_INITIAL_STATE: Record<string, never> = {};
 
-export type DataTableBodyShellProps<TData, TValue> = {
+export type DataTableBodyShellProps<TData extends RowData, TValue> = {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -124,7 +124,7 @@ export type DataTableBodyShellProps<TData, TValue> = {
   };
 };
 
-export function DataTableBody<TData, TValue>({
+export function DataTableBody<TData extends RowData, TValue>({
   columns,
   data,
   filterFields = [] as DataTableFilterField<TData>[],
@@ -189,7 +189,7 @@ export function DataTableBody<TData, TValue>({
   );
 }
 
-export function DataTableBodyWithUrl<TData, TValue>({
+export function DataTableBodyWithUrl<TData extends RowData, TValue>({
   columns,
   data,
   filterFields = [] as DataTableFilterField<TData>[],
@@ -260,7 +260,7 @@ export function DataTableBodyWithUrl<TData, TValue>({
   );
 }
 
-export function DataTableBodyWithTableState<TData, TValue>({
+export function DataTableBodyWithTableState<TData extends RowData, TValue>({
   columns,
   data,
   filterFields,
@@ -324,11 +324,14 @@ export function DataTableBodyWithTableState<TData, TValue>({
     [],
   );
 
-  const tableColumns = React.useMemo(() => {
+  const tableColumns = React.useMemo<ColumnDef<TData, unknown>[]>(() => {
+    // Columns with heterogeneous TValue collapse to `unknown` for the engine,
+    // mirroring v8's `ColumnDef<TData, any>[]` table option.
+    const baseColumns = columns as ColumnDef<TData, unknown>[];
     if (enableRowSelection) {
-      return [selectColumn, ...columns];
+      return [selectColumn, ...baseColumns];
     }
-    return columns;
+    return baseColumns;
   }, [columns, enableRowSelection, selectColumn]);
 
   const resolvedRowCount = rowCount ?? undefined;
@@ -347,7 +350,15 @@ export function DataTableBodyWithTableState<TData, TValue>({
     }
   }, [pageCount, rowCount]);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
+    // The core row model is automatic in v9; manual flags skip the matching
+    // client-side row model just like the v8 `get*RowModel: undefined` paths.
+    rowModels: createDataTableRowModels<TData>({
+      filtering: !manualFiltering,
+      pagination: !manualPagination,
+      sorting: !manualSorting,
+    }),
     data,
     columns: tableColumns,
     rowCount: resolvedRowCount,
@@ -366,14 +377,6 @@ export function DataTableBodyWithTableState<TData, TValue>({
     onColumnFiltersChange: tableState.handlers.onColumnFiltersChange,
     onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
     onPaginationChange: tableState.handlers.onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: manualPagination
-      ? undefined
-      : getPaginationRowModel(),
-    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);

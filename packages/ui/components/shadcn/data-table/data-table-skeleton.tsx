@@ -7,9 +7,9 @@ import { cn } from "@asym/ui/lib/utils";
 import { Skeleton } from "../skeleton";
 import { Table as UITable, TableBody, TableCell, TableRow } from "../table";
 
-import type { Table } from "./tanstack";
+import type { RowData, Table } from "./tanstack";
 
-interface DataTableSkeletonProps<TData> {
+interface DataTableSkeletonProps<TData extends RowData> {
   table?: Table<TData>;
   columnCount?: number;
   rowCount?: number;
@@ -17,7 +17,7 @@ interface DataTableSkeletonProps<TData> {
   className?: string;
 }
 
-export function DataTableSkeleton<TData>({
+export function DataTableSkeleton<TData extends RowData>({
   table,
   columnCount = 5,
   rowCount = 10,
@@ -25,7 +25,8 @@ export function DataTableSkeleton<TData>({
   className,
 }: DataTableSkeletonProps<TData>) {
   const columns = table?.getAllColumns().length || columnCount;
-  const rows = table?.getState().pagination.pageSize || rowCount;
+  // v9 removed `table.getState()`; `table.state` is the render-read surface.
+  const rows = table?.state.pagination.pageSize || rowCount;
 
   return (
     <div className={cn("w-full space-y-4", className)}>

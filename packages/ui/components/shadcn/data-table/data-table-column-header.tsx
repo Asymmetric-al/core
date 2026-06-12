@@ -20,17 +20,17 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu";
 
-import type { Column } from "./tanstack";
+import type { Column, RowData } from "./tanstack";
 
 interface DataTableColumnHeaderProps<
-  TData,
+  TData extends RowData,
   TValue,
 > extends React.HTMLAttributes<HTMLDivElement> {
   column: Column<TData, TValue>;
   title: string;
 }
 
-export function DataTableColumnHeader<TData, TValue>({
+export function DataTableColumnHeader<TData extends RowData, TValue>({
   column,
   title,
   className,

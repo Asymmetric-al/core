@@ -4,6 +4,7 @@ import type {
   ColumnFiltersState,
   PaginationState,
   Row,
+  RowData,
   RowSelectionState,
   SortingState,
   VisibilityState,
@@ -19,7 +20,7 @@ import type * as React from "react";
 
 export type ViewMode = "table" | "card";
 
-export interface DataTableResponsiveProps<TData, TValue> {
+export interface DataTableResponsiveProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -98,5 +99,5 @@ export const EMPTY_RESPONSIVE_FILTER_FIELDS: DataTableFilterField<unknown>[] =
 export const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
 export const EMPTY_RESPONSIVE_DATA_TABLE_CONFIG: DataTableConfig = {};
 export const EMPTY_RESPONSIVE_INITIAL_STATE: NonNullable<
-  DataTableResponsiveProps<unknown, unknown>["initialState"]
+  DataTableResponsiveProps<RowData, unknown>["initialState"]
 > = {};

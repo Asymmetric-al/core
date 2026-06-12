@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 
-import type { Table, Row, Column } from "../tanstack";
+import type { Table, Row, RowData, Column } from "../tanstack";
 
 export interface ExportOptions<TData> {
   filename?: string;
@@ -32,7 +32,9 @@ function escapeCSVValue(value: string, delimiter: string): string {
   return stringValue;
 }
 
-function getColumnHeader<TData>(column: Column<TData, unknown>): string {
+function getColumnHeader<TData extends RowData>(
+  column: Column<TData, unknown>,
+): string {
   const columnDef = column.columnDef;
   if (typeof columnDef.header === "string") {
     return columnDef.header;
@@ -43,7 +45,10 @@ function getColumnHeader<TData>(column: Column<TData, unknown>): string {
   return column.id;
 }
 
-function getCellValue<TData>(row: Row<TData>, columnId: string): unknown {
+function getCellValue<TData extends RowData>(
+  row: Row<TData>,
+  columnId: string,
+): unknown {
   const cell = row.getAllCells().find((c) => c.column.id === columnId);
   if (!cell) return "";
   return cell.getValue();
@@ -62,7 +67,7 @@ function formatValue(value: unknown): string {
   return String(value);
 }
 
-export function exportToCSV<TData>(
+export function exportToCSV<TData extends RowData>(
   table: Table<TData>,
   options: ExportOptions<TData> = {},
 ): string {
@@ -139,7 +144,7 @@ export function downloadCSV(
   URL.revokeObjectURL(url);
 }
 
-export function exportTableToCSV<TData>(
+export function exportTableToCSV<TData extends RowData>(
   table: Table<TData>,
   options: ExportOptions<TData> = {},
 ): void {
@@ -152,7 +157,7 @@ export function exportTableToCSV<TData>(
   downloadCSV(csv, filename);
 }
 
-export function getExportableColumns<TData>(
+export function getExportableColumns<TData extends RowData>(
   table: Table<TData>,
 ): ExportColumn[] {
   return table
@@ -164,7 +169,7 @@ export function getExportableColumns<TData>(
     }));
 }
 
-export function getExportRowCount<TData>(
+export function getExportRowCount<TData extends RowData>(
   table: Table<TData>,
   options: { onlySelected?: boolean; onlyFiltered?: boolean } = {},
 ): number {

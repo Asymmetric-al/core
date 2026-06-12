@@ -1,6 +1,6 @@
-import type { Row, Cell } from "../tanstack";
+import type { Row, RowData, Cell } from "../tanstack";
 
-export interface BaseCellProps<TData, TValue = unknown> {
+export interface BaseCellProps<TData extends RowData, TValue = unknown> {
   value: TValue;
   row: Row<TData>;
   cell: Cell<TData, TValue>;
@@ -12,7 +12,7 @@ export interface BaseCellProps<TData, TValue = unknown> {
   disabled?: boolean;
 }
 
-export interface TextCellProps<TData> extends BaseCellProps<
+export interface TextCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   string | null
 > {
@@ -21,7 +21,7 @@ export interface TextCellProps<TData> extends BaseCellProps<
   multiline?: boolean;
 }
 
-export interface NumberCellProps<TData> extends BaseCellProps<
+export interface NumberCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   number | null
 > {
@@ -37,7 +37,7 @@ export interface NumberCellProps<TData> extends BaseCellProps<
   suffix?: string;
 }
 
-export interface DateCellProps<TData> extends BaseCellProps<
+export interface DateCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   Date | string | null
 > {
@@ -57,7 +57,7 @@ export interface SelectOption {
   disabled?: boolean;
 }
 
-export interface SelectCellProps<TData> extends BaseCellProps<
+export interface SelectCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   string | null
 > {
@@ -67,10 +67,9 @@ export interface SelectCellProps<TData> extends BaseCellProps<
   clearable?: boolean;
 }
 
-export interface MultiSelectCellProps<TData> extends BaseCellProps<
-  TData,
-  string[]
-> {
+export interface MultiSelectCellProps<
+  TData extends RowData,
+> extends BaseCellProps<TData, string[]> {
   options: SelectOption[];
   placeholder?: string;
   maxItems?: number;
@@ -93,7 +92,7 @@ export interface BadgeOption {
   className?: string;
 }
 
-export interface BadgeCellProps<TData> extends BaseCellProps<
+export interface BadgeCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   string | null
 > {
@@ -102,7 +101,7 @@ export interface BadgeCellProps<TData> extends BaseCellProps<
   showDot?: boolean;
 }
 
-export interface CheckboxCellProps<TData> extends BaseCellProps<
+export interface CheckboxCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   boolean
 > {
@@ -110,7 +109,7 @@ export interface CheckboxCellProps<TData> extends BaseCellProps<
   indeterminate?: boolean;
 }
 
-export interface AvatarCellProps<TData> extends BaseCellProps<
+export interface AvatarCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   string | null
 > {
@@ -121,14 +120,17 @@ export interface AvatarCellProps<TData> extends BaseCellProps<
   subtitle?: string;
 }
 
-export interface ProgressCellProps<TData> extends BaseCellProps<TData, number> {
+export interface ProgressCellProps<TData extends RowData> extends BaseCellProps<
+  TData,
+  number
+> {
   max?: number;
   showLabel?: boolean;
   variant?: "default" | "success" | "warning" | "destructive";
   size?: "sm" | "md" | "lg";
 }
 
-export interface LinkCellProps<TData> extends BaseCellProps<
+export interface LinkCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   string | null
 > {
@@ -138,13 +140,16 @@ export interface LinkCellProps<TData> extends BaseCellProps<
   showIcon?: boolean;
 }
 
-export interface RatingCellProps<TData> extends BaseCellProps<TData, number> {
+export interface RatingCellProps<TData extends RowData> extends BaseCellProps<
+  TData,
+  number
+> {
   max?: number;
   size?: "sm" | "md" | "lg";
   allowHalf?: boolean;
 }
 
-export interface CurrencyCellProps<TData> extends BaseCellProps<
+export interface CurrencyCellProps<TData extends RowData> extends BaseCellProps<
   TData,
   number | null
 > {
@@ -153,7 +158,7 @@ export interface CurrencyCellProps<TData> extends BaseCellProps<
   showSymbol?: boolean;
 }
 
-export interface CellContext<TData, TValue = unknown> {
+export interface CellContext<TData extends RowData, TValue = unknown> {
   row: Row<TData>;
   cell: Cell<TData, TValue>;
   getValue: () => TValue;

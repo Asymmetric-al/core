@@ -9,9 +9,9 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";
 import { Separator } from "../separator";
 
-import type { Table } from "./tanstack";
+import type { RowData, Table } from "./tanstack";
 
-interface DataTableActionBarProps<TData> {
+interface DataTableActionBarProps<TData extends RowData> {
   table: Table<TData>;
   actions?: {
     label: string;
@@ -22,7 +22,7 @@ interface DataTableActionBarProps<TData> {
   className?: string;
 }
 
-export function DataTableActionBar<TData>({
+export function DataTableActionBar<TData extends RowData>({
   table,
   actions,
   className,
