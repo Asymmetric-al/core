@@ -23,13 +23,11 @@ import {
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
-import { useQueryClient } from "@tanstack/react-query";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getContributionColumns } from "./columns";
-import { invalidateContributionOperationQueries } from "./contribution-detail-overlay";
 import {
   contributionStatusOptions,
   contributionTypeOptions,
@@ -209,14 +207,20 @@ export function ContributionsMainBody({
   onSelectContribution,
   needsAttentionGroups = [],
   onOpenContributionById,
+  onBulkReceiptSuccess,
 }: {
   data: Contribution[];
   isLoading: boolean;
   onSelectContribution: (c: Contribution) => void;
   needsAttentionGroups?: MissionControlNeedsAttentionGroup[];
   onOpenContributionById?: (contributionId: string) => void;
+  /**
+   * Fired after a bulk receipt batch is accepted so the page can refresh the
+   * shared contribution queries (ADR-CD-032), mirroring the detail overlay's
+   * onActionSuccess contract.
+   */
+  onBulkReceiptSuccess?: () => void;
 }) {
-  const queryClient = useQueryClient();
   const [pendingBulkReceiptRows, setPendingBulkReceiptRows] = useState<
     Contribution[]
   >([]);
@@ -340,7 +344,7 @@ export function ContributionsMainBody({
         );
       }
       setPendingBulkReceiptRows([]);
-      await invalidateContributionOperationQueries(queryClient);
+      onBulkReceiptSuccess?.();
     } catch (error) {
       toast.error(
         error instanceof Error
@@ -351,7 +355,7 @@ export function ContributionsMainBody({
       isBulkReceiptSubmittingRef.current = false;
       setIsBulkReceiptSubmitting(false);
     }
-  }, [pendingBulkReceiptRows, queryClient]);
+  }, [pendingBulkReceiptRows, onBulkReceiptSuccess]);
 
   return (
     <div className="space-y-10">

@@ -4,12 +4,16 @@ import { useContributionNeedsAttention } from "@asym/database/hooks";
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, RefreshCw } from "lucide-react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
-import { ContributionDetailOverlay } from "./contribution-detail-overlay";
+import {
+  ContributionDetailOverlay,
+  invalidateContributionOperationQueries,
+} from "./contribution-detail-overlay";
 import { boneyardContributionsFixture, mockContributions } from "./data";
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
@@ -27,6 +31,7 @@ const USE_MOCK_CONTRIBUTIONS_UI =
 export default function ContributionsPage() {
   const contributionsQuery = useAdminContributions();
   const needsAttentionQuery = useContributionNeedsAttention();
+  const queryClient = useQueryClient();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -61,6 +66,16 @@ export default function ContributionsPage() {
   }, []);
 
   const openerElementRef = useRef<HTMLElement | null>(null);
+
+  /**
+   * Bulk receipt batches change receipt state for many rows at once; refresh
+   * the shared queries (ADR-CD-032) and surface the same quiet freshness
+   * indicator single-row actions use.
+   */
+  const handleBulkReceiptSuccess = useCallback(() => {
+    void invalidateContributionOperationQueries(queryClient);
+    markFreshness();
+  }, [markFreshness, queryClient]);
 
   const openGift = useCallback(
     (donationId: string) => {
@@ -179,6 +194,7 @@ export default function ContributionsPage() {
               onOpenContributionById={(contributionId) => {
                 openGift(contributionId);
               }}
+              onBulkReceiptSuccess={handleBulkReceiptSuccess}
             />
           </BoneyardSkeleton>
         )}

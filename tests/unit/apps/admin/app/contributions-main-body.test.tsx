@@ -7,7 +7,6 @@ import { readFileSync } from "node:fs";
 // file"). Alias Node's own `URL` so source-file reads use a real `file:` URL.
 import { URL as NodeURL, fileURLToPath } from "node:url";
 
-import { QueryProvider } from "@asym/database/providers";
 import {
   act,
   cleanup,
@@ -23,15 +22,7 @@ import type { Contribution } from "../../../../../apps/admin/app/contributions/t
 const selectedRowsRef = { current: [] as unknown[] };
 const toastErrorMock = vi.fn();
 const toastSuccessMock = vi.fn();
-const invalidateContributionOperationQueriesMock = vi.fn();
-
-vi.mock(
-  "../../../../../apps/admin/app/contributions/contribution-detail-overlay",
-  () => ({
-    invalidateContributionOperationQueries:
-      invalidateContributionOperationQueriesMock,
-  }),
-);
+const onBulkReceiptSuccessMock = vi.fn();
 
 vi.mock("@asym/lib/motion", async () => {
   const React = await import("react");
@@ -168,13 +159,12 @@ function makeContribution(overrides: Partial<Contribution> = {}): Contribution {
 function renderMainBody(rows: Contribution[]) {
   selectedRowsRef.current = rows;
   return render(
-    <QueryProvider>
-      <ContributionsMainBody
-        data={rows}
-        isLoading={false}
-        onSelectContribution={vi.fn()}
-      />
-    </QueryProvider>,
+    <ContributionsMainBody
+      data={rows}
+      isLoading={false}
+      onSelectContribution={vi.fn()}
+      onBulkReceiptSuccess={onBulkReceiptSuccessMock}
+    />,
   );
 }
 
@@ -465,7 +455,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     expect(source).not.toContain("Send receipts for");
   });
 
-  it("refreshes shared contribution queries after a successful bulk receipt batch", async () => {
+  it("notifies the page after a successful bulk receipt batch so shared queries refresh", async () => {
     stubBatchFetch();
     const view = renderMainBody([makeContribution()]);
 
@@ -475,9 +465,29 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     await waitFor(() => {
       expect(toastSuccessMock).toHaveBeenCalled();
     });
-    // The same freshness helper the detail overlay uses (ADR-CD-032) must run
-    // so the table and needs-attention panel reload after the batch.
-    expect(invalidateContributionOperationQueriesMock).toHaveBeenCalledTimes(1);
+    // The page wires this to invalidateContributionOperationQueries
+    // (ADR-CD-032) so the table and needs-attention panel reload.
+    expect(onBulkReceiptSuccessMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("does not signal bulk receipt success when the batch request fails", async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Batch rejected." }),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith("Batch rejected.");
+    });
+    expect(onBulkReceiptSuccessMock).not.toHaveBeenCalled();
   });
 
   it("describes background batches honestly instead of claiming zero results", async () => {
