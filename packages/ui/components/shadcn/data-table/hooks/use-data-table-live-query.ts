@@ -2,6 +2,8 @@
 
 import { useLiveQuery } from "@tanstack/react-db";
 import { useQueryClient } from "@tanstack/react-query";
+// Sanctioned boundary exception (see ../tanstack.ts): devtools adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import * as React from "react";
 
 import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
@@ -50,6 +52,12 @@ interface UseDataTableWithLiveQueryOptions<
   enablePagination?: boolean;
   pageSize?: number;
   getRowId?: (row: TData) => string;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
@@ -95,6 +103,7 @@ export function useDataTableWithLiveQuery<
   enablePagination = true,
   pageSize = 10,
   getRowId,
+  devtoolsKey,
   onRowSelectionChange,
   onSortingChange,
   onFiltersChange,
@@ -195,6 +204,8 @@ export function useDataTableWithLiveQuery<
     // Columns with heterogeneous TValue collapse to `unknown` for the engine,
     // mirroring v8's `ColumnDef<TData, any>[]` table option.
     columns: columns as ColumnDef<TData, unknown>[],
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     state: {
       sorting,
       columnVisibility,
@@ -214,6 +225,10 @@ export function useDataTableWithLiveQuery<
   };
 
   const table = useTable(tableOptions);
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const selectedRows = React.useMemo(() => {
     return table.getFilteredSelectedRowModel().rows.map((row) => row.original);
