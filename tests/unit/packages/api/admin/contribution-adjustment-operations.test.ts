@@ -564,6 +564,51 @@ describe("applyContributionCorrection (adjustment records)", () => {
     expect(state.adjustments).toHaveLength(0);
   });
 
+  it("rejects a malformed missionaryId on the allocation pair path", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        actionType: "allocation_correction",
+        payload: { fundId: FUND_VALID, missionaryId: 42 },
+        reason: "Malformed client payload",
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: expect.stringMatching(/missionaryId/),
+    });
+
+    expect(state.adjustments).toHaveLength(0);
+  });
+
+  it("allows the allocation pair path to omit missionaryId (no reference)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      donationUpdates: [],
+      insertCount: 0,
+      funds: [FUND_VALID],
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      actionType: "allocation_correction",
+      payload: { fundId: FUND_VALID },
+      reason: "Reassign the fund only",
+    });
+
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.adjustments[0]).toMatchObject({
+      effective_values: { fundId: FUND_VALID, missionaryId: null },
+    });
+    expect(result.status).toBe("applied");
+  });
+
   it("allows a fund correction that clears the designation (null fund)", async () => {
     const state: StubState = {
       adjustments: [],
