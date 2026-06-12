@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect } from "react";
 
-import type { ColumnSizingState, Table, Header } from "@tanstack/react-table";
+import type { ColumnSizingState, Table, Header } from "../tanstack";
 
 export interface ColumnResizingOptions {
   enabled?: boolean;

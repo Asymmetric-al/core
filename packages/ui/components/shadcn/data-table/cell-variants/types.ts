@@ -1,4 +1,4 @@
-import type { Row, Cell } from "@tanstack/react-table";
+import type { Row, Cell } from "../tanstack";
 
 export interface BaseCellProps<TData, TValue = unknown> {
   value: TValue;

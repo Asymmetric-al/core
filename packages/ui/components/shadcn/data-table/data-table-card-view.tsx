@@ -19,8 +19,8 @@ import {
 } from "../dropdown-menu";
 import { getDataTableRowActionKey } from "./data-table-row-action-key";
 
+import type { Row, Table } from "./tanstack";
 import type { DataTableInteractiveRowAction } from "./types";
-import type { Row, Table } from "@tanstack/react-table";
 
 interface DataTableCardViewProps<TData> {
   rows: Row<TData>[];

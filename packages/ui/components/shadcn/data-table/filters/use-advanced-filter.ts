@@ -12,7 +12,7 @@ import {
   deserializeFilter,
 } from "./types";
 
-import type { ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "../tanstack";
 
 export interface UseAdvancedFilterOptions {
   fields: FilterFieldDefinition[];

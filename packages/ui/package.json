@@ -12,6 +12,7 @@
     "./components/shadcn/data-table": "./components/shadcn/data-table/index.ts",
     "./components/shadcn/data-table/*": "./components/shadcn/data-table/*.tsx",
     "./components/shadcn/data-table/types": "./components/shadcn/data-table/types.ts",
+    "./components/shadcn/data-table/tanstack": "./components/shadcn/data-table/tanstack.ts",
     "./components/shadcn/data-grid": "./components/shadcn/data-grid/index.ts",
     "./components/shadcn/data-grid/*": "./components/shadcn/data-grid/*.tsx",
     "./components/shadcn/data-grid/types": "./components/shadcn/data-grid/types.ts",

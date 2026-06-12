@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 
 import type { Task } from "./types";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import type React from "react";
 
 const springTransition = {

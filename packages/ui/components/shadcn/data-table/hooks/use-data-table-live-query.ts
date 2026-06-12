@@ -2,6 +2,9 @@
 
 import { useLiveQuery } from "@tanstack/react-db";
 import { useQueryClient } from "@tanstack/react-query";
+import * as React from "react";
+
+import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
 import {
   type ColumnFiltersState,
   type SortingState,
@@ -17,10 +20,7 @@ import {
   useReactTable,
   type ColumnDef,
   type TableOptions,
-} from "@tanstack/react-table";
-import * as React from "react";
-
-import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
+} from "../tanstack";
 
 import type {
   AdvancedFilterState,

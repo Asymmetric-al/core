@@ -7,7 +7,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { Skeleton } from "../skeleton";
 import { Table as UITable, TableBody, TableCell, TableRow } from "../table";
 
-import type { Table } from "@tanstack/react-table";
+import type { Table } from "./tanstack";
 
 interface DataTableSkeletonProps<TData> {
   table?: Table<TData>;

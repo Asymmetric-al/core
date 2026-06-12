@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import type { Table } from "@tanstack/react-table";
+import type { Table } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
 import { act } from "react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";

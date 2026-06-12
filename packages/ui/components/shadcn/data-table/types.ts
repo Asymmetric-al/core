@@ -9,7 +9,7 @@ import type {
   PaginationState,
   RowSelectionState,
   SortingState,
-} from "@tanstack/react-table";
+} from "./tanstack";
 import type * as React from "react";
 
 export type DataTableFilterVariant =

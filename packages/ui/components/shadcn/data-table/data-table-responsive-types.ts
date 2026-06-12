@@ -1,12 +1,5 @@
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
 import type {
-  DataTableConfig,
-  DataTableFilterField,
-  DataTableInteractiveRowAction,
-  DataTableUrlStateConfig,
-  DataTableControlledState,
-} from "./types";
-import type {
   ColumnDef,
   ColumnFiltersState,
   PaginationState,
@@ -14,7 +7,14 @@ import type {
   RowSelectionState,
   SortingState,
   VisibilityState,
-} from "@tanstack/react-table";
+} from "./tanstack";
+import type {
+  DataTableConfig,
+  DataTableFilterField,
+  DataTableInteractiveRowAction,
+  DataTableUrlStateConfig,
+  DataTableControlledState,
+} from "./types";
 import type * as React from "react";
 
 export type ViewMode = "table" | "card";

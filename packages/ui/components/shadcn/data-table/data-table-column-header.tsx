@@ -20,7 +20,7 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu";
 
-import type { Column } from "@tanstack/react-table";
+import type { Column } from "./tanstack";
 
 interface DataTableColumnHeaderProps<
   TData,

@@ -1,17 +1,6 @@
 "use client";
 
 import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type HeaderGroup,
-  type Row,
-  type SortingState,
-} from "@tanstack/react-table";
-import {
   Plus,
   Trash2,
   Search,
@@ -34,6 +23,17 @@ import {
   DEFAULT_HEADER_HEIGHT,
   DEFAULT_COLUMN_WIDTH,
 } from "./types";
+import {
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getSortedRowModel,
+  useReactTable,
+  type ColumnDef,
+  type HeaderGroup,
+  type Row,
+  type SortingState,
+} from "../data-table/tanstack";
 
 import type {
   DataGridColumn,

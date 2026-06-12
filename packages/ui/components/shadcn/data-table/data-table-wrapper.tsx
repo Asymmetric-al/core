@@ -16,6 +16,7 @@ import {
   EmptyMedia,
 } from "../empty";
 
+import type { ColumnDef } from "./tanstack";
 import type {
   DataTableConfig,
   DataTableControlledState,
@@ -23,7 +24,6 @@ import type {
   DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
-import type { ColumnDef } from "@tanstack/react-table";
 
 interface DataTableWrapperProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

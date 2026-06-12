@@ -1,11 +1,13 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
+import {
+  createBrowserClient,
+  type RealtimeChannel,
+} from "@asym/database/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
-import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "../tanstack";
 
 type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE" | "*";
 

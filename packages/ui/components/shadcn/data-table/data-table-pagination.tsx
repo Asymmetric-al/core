@@ -19,7 +19,7 @@ import {
 } from "../select";
 import { DEFAULT_PAGE_SIZES } from "./types";
 
-import type { Table } from "@tanstack/react-table";
+import type { Table } from "./tanstack";
 
 interface DataTablePaginationProps<TData> {
   table: Table<TData>;

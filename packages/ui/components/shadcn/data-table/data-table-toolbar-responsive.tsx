@@ -42,8 +42,8 @@ import {
   type FilterFieldDefinition,
 } from "./filters/types";
 
+import type { Table } from "./tanstack";
 import type { DataTableFilterField } from "./types";
-import type { Table } from "@tanstack/react-table";
 
 interface DataTableToolbarResponsiveProps<TData> {
   table: Table<TData>;

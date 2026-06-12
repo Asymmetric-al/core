@@ -13,6 +13,7 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
   Dialog,
   DialogContent,
@@ -56,7 +57,6 @@ import {
   TabsList,
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
-import { type ColumnDef } from "@tanstack/react-table";
 import {
   Activity,
   ChevronRight,

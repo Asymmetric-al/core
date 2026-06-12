@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu";
 
-import type { Table } from "@tanstack/react-table";
+import type { Table } from "./tanstack";
 
 interface DataTableViewOptionsProps<TData> {
   table: Table<TData>;

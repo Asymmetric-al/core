@@ -5,13 +5,6 @@ import * as React from "react";
 import { DataTableBody, DataTableBodyWithUrl } from "./data-table-body";
 
 import type {
-  DataTableControlledState,
-  DataTableFilterField,
-  DataTableConfig,
-  DataTableInteractiveRowAction,
-  DataTableUrlStateConfig,
-} from "./types";
-import type {
   ColumnDef,
   ColumnFiltersState,
   PaginationState,
@@ -20,7 +13,14 @@ import type {
   SortingState,
   TableOptions,
   VisibilityState,
-} from "@tanstack/react-table";
+} from "./tanstack";
+import type {
+  DataTableControlledState,
+  DataTableFilterField,
+  DataTableConfig,
+  DataTableInteractiveRowAction,
+  DataTableUrlStateConfig,
+} from "./types";
 
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];

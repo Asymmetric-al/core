@@ -9,7 +9,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { Button } from "../button";
 import { Separator } from "../separator";
 
-import type { Table } from "@tanstack/react-table";
+import type { Table } from "./tanstack";
 
 interface DataTableActionBarProps<TData> {
   table: Table<TData>;

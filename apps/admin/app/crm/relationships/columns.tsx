@@ -7,7 +7,7 @@ import { cn } from "@asym/ui/lib/utils";
 import { format } from "date-fns";
 
 import type { CrmRelationshipRow } from "@asym/database/types";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 
 function formatShortDate(value: string | null | undefined) {
   if (!value) return "—";

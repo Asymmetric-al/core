@@ -2,7 +2,7 @@
 
 import { useCallback, useRef, useState, useMemo } from "react";
 
-import type { Table, Row } from "@tanstack/react-table";
+import type { Table, Row } from "../tanstack";
 
 export interface KeyboardNavigationOptions {
   enabled?: boolean;

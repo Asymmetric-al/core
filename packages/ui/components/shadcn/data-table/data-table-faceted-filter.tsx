@@ -18,8 +18,8 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "../popover";
 import { Separator } from "../separator";
 
+import type { Column } from "./tanstack";
 import type { DataTableFilterOption } from "./types";
-import type { Column } from "@tanstack/react-table";
 
 interface DataTableFacetedFilterProps<TData, TValue> {
   column?: Column<TData, TValue>;

@@ -10,8 +10,8 @@ import { Input } from "../input";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { DataTableViewOptions } from "./data-table-view-options";
 
+import type { Table } from "./tanstack";
 import type { DataTableFilterField } from "./types";
-import type { Table } from "@tanstack/react-table";
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;

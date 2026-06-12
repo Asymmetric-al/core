@@ -1,6 +1,11 @@
 "use client";
 
 import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
+import { Inbox } from "lucide-react";
+import * as React from "react";
+
+import { cn } from "@asym/ui/lib/utils";
+
 import {
   type ColumnDef,
   type Row,
@@ -11,12 +16,7 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from "@tanstack/react-table";
-import { Inbox } from "lucide-react";
-import * as React from "react";
-
-import { cn } from "@asym/ui/lib/utils";
-
+} from "./tanstack";
 import { Checkbox } from "../checkbox";
 import { DataTableCardView } from "./data-table-card-view";
 import { DataTableFloatingBar } from "./data-table-floating-bar";

@@ -1,6 +1,6 @@
 import { format } from "date-fns";
 
-import type { Table, Row, Column } from "@tanstack/react-table";
+import type { Table, Row, Column } from "../tanstack";
 
 export interface ExportOptions<TData> {
   filename?: string;
