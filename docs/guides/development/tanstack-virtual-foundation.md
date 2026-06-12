@@ -6,6 +6,7 @@ This guide defines the repo-standard virtualization contract for tables, grids, 
 
 - Works with `@tanstack/react-virtual@^3.13.23`
 - Authoritative docs: `https://tanstack.com/virtual/latest`
+- Unchanged by the TanStack Table v9 migration: tables now run `@tanstack/react-table@9.0.0-beta.9` behind the boundary module `packages/ui/components/shadcn/data-table/tanstack.ts`, but `react-virtual` stays on v3 and the `VirtualizationConfig` contract below is the same. Virtualization remains a rendering-only layer that never touches engine state (see `docs/guides/development/tanstack-integration.md`).
 - Uses shared hook in `@asym/ui`:
   - `useDataTableVirtualization`
   - `resolveVirtualizationConfig`
