@@ -36,6 +36,7 @@ import {
   sortFns,
   tableFeatures,
 } from "@tanstack/react-table";
+import * as React from "react";
 
 import type {
   Cell as TanStackCell,
@@ -143,6 +144,97 @@ export function createDataTableRowModels<TData extends RowData>({
 }
 
 export { flexRender, useTable, tableFeatures } from "@tanstack/react-table";
+
+/**
+ * Structural type accepted by {@link useSelector}: any TanStack Store atom or
+ * store (readonly or writable) — anything with `get()` plus a `subscribe()`
+ * that returns an unsubscribe handle. `table.atoms.<slice>` and `table.store`
+ * both satisfy it.
+ */
+export interface TableSelectionSource<TValue> {
+  get: () => TValue;
+  subscribe: (listener: (value: TValue) => void) => {
+    unsubscribe: () => void;
+  };
+}
+
+export interface UseSelectorOptions<TSelected> {
+  /** Equality used to skip re-renders when the selection is unchanged. Defaults to `Object.is`. */
+  compare?: (a: TSelected, b: TSelected) => boolean;
+}
+
+/**
+ * Subscribes a component to an atom or store and returns the (optionally
+ * selected) value — the focused-subscription primitive for table chrome.
+ *
+ * API-compatible with `useSelector` from `@tanstack/react-store`, which is
+ * not a direct dependency of `@asym/ui` (it is only a transitive dependency
+ * of `@tanstack/react-table` and is not resolvable from this package under
+ * isolated installs). Implemented locally on `React.useSyncExternalStore` so
+ * components import it from this boundary module instead of
+ * `@tanstack/react-store`; if that package ever becomes a direct dependency,
+ * this can switch to a plain re-export without touching call sites.
+ *
+ * The selector, when provided, should be pure; it is re-run only when the
+ * source snapshot changes identity.
+ *
+ * @example
+ * const pagination = useSelector(table.atoms.pagination);
+ */
+export function useSelector<TSource, TSelected = TSource>(
+  source: TableSelectionSource<TSource>,
+  selector?: (snapshot: TSource) => TSelected,
+  options?: UseSelectorOptions<TSelected>,
+): TSelected {
+  const compare = options?.compare;
+
+  const subscribe = React.useCallback(
+    (onStoreChange: () => void) => {
+      const subscription = source.subscribe(() => {
+        onStoreChange();
+      });
+      return () => {
+        subscription.unsubscribe();
+      };
+    },
+    [source],
+  );
+
+  // Cache the last selection so repeated getSnapshot calls return a stable
+  // reference (React compares snapshots with Object.is to decide whether to
+  // re-render) and so a compare-equal selection keeps its previous identity.
+  const cacheRef = React.useRef<
+    { snapshot: TSource; selected: TSelected } | undefined
+  >(undefined);
+
+  const getSelectedSnapshot = (): TSelected => {
+    const snapshot = source.get();
+    const cached = cacheRef.current;
+    if (cached !== undefined && Object.is(cached.snapshot, snapshot)) {
+      return cached.selected;
+    }
+
+    const selected =
+      selector === undefined
+        ? (snapshot as unknown as TSelected)
+        : selector(snapshot);
+    const isSelectionUnchanged =
+      cached !== undefined &&
+      (compare === undefined
+        ? Object.is(cached.selected, selected)
+        : compare(cached.selected, selected));
+    const stableSelected = isSelectionUnchanged ? cached.selected : selected;
+
+    cacheRef.current = { snapshot, selected: stableSelected };
+    return stableSelected;
+  };
+
+  return React.useSyncExternalStore(
+    subscribe,
+    getSelectedSnapshot,
+    getSelectedSnapshot,
+  );
+}
 
 export {
   columnFacetingFeature,

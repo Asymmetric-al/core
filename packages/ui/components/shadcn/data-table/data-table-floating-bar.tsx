@@ -14,8 +14,19 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import {
+  areChromeTablePropsInterchangeable,
+  EMPTY_TABLE_SELECTION_SOURCE,
+  getTableSliceAtoms,
+} from "./data-table-chrome-memo";
+import { useSelector } from "./tanstack";
 
-import type { RowData, Table } from "./tanstack";
+import type {
+  RowData,
+  RowSelectionState,
+  Table,
+  TableSelectionSource,
+} from "./tanstack";
 
 interface FloatingActionBarAction<TData> {
   label: string;
@@ -31,11 +42,20 @@ interface DataTableFloatingBarProps<TData extends RowData> {
   className?: string;
 }
 
-export function DataTableFloatingBar<TData extends RowData>({
+function DataTableFloatingBarImpl<TData extends RowData>({
   table,
   actions,
   className,
 }: DataTableFloatingBarProps<TData>) {
+  // Focused subscription: row selection is the only table state this bar
+  // renders. The memo comparator below keeps parent broadcasts out; selected
+  // rows and the count re-derive from the live row model on each change.
+  const atoms = getTableSliceAtoms(table);
+  const rowSelectionSource: TableSelectionSource<
+    RowSelectionState | undefined
+  > = atoms?.rowSelection ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(rowSelectionSource);
+
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
 
@@ -155,3 +175,21 @@ export function DataTableFloatingBar<TData extends RowData>({
     </LazyMotion>
   );
 }
+
+const MemoizedDataTableFloatingBar = React.memo(
+  DataTableFloatingBarImpl,
+  (previous, next) =>
+    areChromeTablePropsInterchangeable(previous.table, next.table) &&
+    previous.actions === next.actions &&
+    previous.className === next.className,
+);
+
+/**
+ * Memoized with a table-aware comparator (v9's `useTable` returns a fresh
+ * wrapper object every parent render) so the bar only re-renders when row
+ * selection — the one state slice it subscribes to — actually changes. The
+ * cast restores the generic call signature `React.memo` erases; the public
+ * props are unchanged.
+ */
+export const DataTableFloatingBar =
+  MemoizedDataTableFloatingBar as typeof DataTableFloatingBarImpl;
