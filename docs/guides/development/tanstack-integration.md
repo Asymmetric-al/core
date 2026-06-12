@@ -60,7 +60,7 @@ The boundary exports everything consumers need:
 - **`dataTableFeatures`** — the one explicit `tableFeatures({...})` set (10 features: column faceting, filtering, pinning, resizing, sizing, visibility, global filtering, row pagination, selection, sorting). v9 features are opt-in plugins; `stockFeatures` and `useLegacyTable` are deliberately not used (ADR-2). Adding a capability (e.g. grouping) means adding the feature here — a reviewed boundary change.
 - **`SharedTableFeatures`** — `typeof dataTableFeatures`, the feature generic bound into all shared types.
 - **`createDataTableRowModels({ filtering, sorting, pagination, faceting })`** — the shared row-model bundle for the v9 `rowModels` option; each flag registers the matching client-side row model (all default `true`).
-- **`useTable`, `flexRender`, `useSelector`** — the React entry points. `useSelector` is implemented locally on `React.useSyncExternalStore` (API-compatible with `@tanstack/react-store`'s, which is not a direct dependency).
+- **`useTable`, `flexRender`, `useSelector`** — the React entry points. `useSelector` is re-exported from `@tanstack/react-store` (a direct dependency, matching the store version `@tanstack/react-table` itself uses); import it from the boundary, not from the package.
 - **v8-named type aliases pre-bound to `SharedTableFeatures`** — `ColumnDef<TData, TValue>`, `Table<TData>`, `Row`, `Cell`, `Column`, `Header`, `HeaderGroup`, `TableOptions`, plus `VisibilityState` (the v8 name for v9's `ColumnVisibilityState`). v9 added `TFeatures` as the first generic parameter on most types; the aliases absorb it so consumer signatures keep the v8 shape, and raw `TFeatures` generics appear nowhere in app code (ADR-4).
 
 ### Building a new table on v9

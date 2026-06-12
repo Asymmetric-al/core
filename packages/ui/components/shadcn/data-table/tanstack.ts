@@ -38,7 +38,6 @@ import {
   sortFns,
   tableFeatures,
 } from "@tanstack/react-table";
-import * as React from "react";
 
 import type {
   Cell as TanStackCell,
@@ -152,6 +151,12 @@ export { flexRender, useTable, tableFeatures } from "@tanstack/react-table";
  * store (readonly or writable) — anything with `get()` plus a `subscribe()`
  * that returns an unsubscribe handle. `table.atoms.<slice>` and `table.store`
  * both satisfy it.
+ *
+ * Mirrors `useSelector`'s parameter type in `@tanstack/react-store`, which is
+ * not exported from that package. `@tanstack/store`'s exported `Readable` is
+ * not a substitute: it requires the observer-style `subscribe` overload,
+ * which hand-built sources such as `EMPTY_TABLE_SELECTION_SOURCE` do not
+ * implement.
  */
 export interface TableSelectionSource<TValue> {
   get: () => TValue;
@@ -160,83 +165,22 @@ export interface TableSelectionSource<TValue> {
   };
 }
 
-export interface UseSelectorOptions<TSelected> {
-  /** Equality used to skip re-renders when the selection is unchanged. Defaults to `Object.is`. */
-  compare?: (a: TSelected, b: TSelected) => boolean;
-}
-
 /**
- * Subscribes a component to an atom or store and returns the (optionally
- * selected) value — the focused-subscription primitive for table chrome.
+ * `useSelector` subscribes a component to an atom or store and returns the
+ * (optionally selected) value — the focused-subscription primitive for table
+ * chrome. The selector, when provided, should be pure; pass
+ * `UseSelectorOptions.compare` to skip re-renders on compare-equal
+ * selections.
  *
- * API-compatible with `useSelector` from `@tanstack/react-store`, which is
- * not a direct dependency of `@asym/ui` (it is only a transitive dependency
- * of `@tanstack/react-table` and is not resolvable from this package under
- * isolated installs). Implemented locally on `React.useSyncExternalStore` so
- * components import it from this boundary module instead of
- * `@tanstack/react-store`; if that package ever becomes a direct dependency,
- * this can switch to a plain re-export without touching call sites.
- *
- * The selector, when provided, should be pure; it is re-run only when the
- * source snapshot changes identity.
+ * Re-exported from `@tanstack/react-store` (a direct dependency, matching
+ * the store version `@tanstack/react-table` itself uses) so components keep
+ * importing it from this boundary module rather than the package.
  *
  * @example
  * const pagination = useSelector(table.atoms.pagination);
  */
-export function useSelector<TSource, TSelected = TSource>(
-  source: TableSelectionSource<TSource>,
-  selector?: (snapshot: TSource) => TSelected,
-  options?: UseSelectorOptions<TSelected>,
-): TSelected {
-  const compare = options?.compare;
-
-  const subscribe = React.useCallback(
-    (onStoreChange: () => void) => {
-      const subscription = source.subscribe(() => {
-        onStoreChange();
-      });
-      return () => {
-        subscription.unsubscribe();
-      };
-    },
-    [source],
-  );
-
-  // Cache the last selection so repeated getSnapshot calls return a stable
-  // reference (React compares snapshots with Object.is to decide whether to
-  // re-render) and so a compare-equal selection keeps its previous identity.
-  const cacheRef = React.useRef<
-    { snapshot: TSource; selected: TSelected } | undefined
-  >(undefined);
-
-  const getSelectedSnapshot = (): TSelected => {
-    const snapshot = source.get();
-    const cached = cacheRef.current;
-    if (cached !== undefined && Object.is(cached.snapshot, snapshot)) {
-      return cached.selected;
-    }
-
-    const selected =
-      selector === undefined
-        ? (snapshot as unknown as TSelected)
-        : selector(snapshot);
-    const isSelectionUnchanged =
-      cached !== undefined &&
-      (compare === undefined
-        ? Object.is(cached.selected, selected)
-        : compare(cached.selected, selected));
-    const stableSelected = isSelectionUnchanged ? cached.selected : selected;
-
-    cacheRef.current = { snapshot, selected: stableSelected };
-    return stableSelected;
-  };
-
-  return React.useSyncExternalStore(
-    subscribe,
-    getSelectedSnapshot,
-    getSelectedSnapshot,
-  );
-}
+export { useSelector } from "@tanstack/react-store";
+export type { UseSelectorOptions } from "@tanstack/react-store";
 
 export {
   columnFacetingFeature,
