@@ -17,13 +17,16 @@ describe("ci-build command planning", () => {
 
     const result = resolveTurboBin({
       platform: "win32",
-      exists: (candidate: string) =>
-        existingPaths.has(
-          candidate.replace(/^.*node_modules/, "/repo/node_modules"),
-        ),
+      exists: (candidate: string) => {
+        const normalizedCandidate = candidate
+          .replace(/\\/g, "/")
+          .replace(/^.*node_modules/, "/repo/node_modules");
+        return existingPaths.has(normalizedCandidate);
+      },
     });
 
-    expect(result.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
+    const normalizedResult = result.replace(/\\/g, "/");
+    expect(normalizedResult.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
   });
 
   it("builds shared packages without Turbo on Windows", () => {
