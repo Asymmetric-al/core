@@ -1,5 +1,254 @@
 # Working Set
 
+## Latest update: Statement Studio issue backlog draft
+
+- Date: 2026-06-12
+- Repo: Asymmetric-al/core
+- Goal: Convert the Statement Studio PRD into a tracker-ready vertical-slice issue backlog.
+- Scope:
+  - `docs/guides/features/statement-studio/issues.md`
+  - `docs/guides/features/statement-studio/README.md`
+- Decision:
+  - `issues.md` now contains the draft `SS-00` through `SS-26` issue breakdown with HITL/AFK markers, dependencies, repo label suggestions, user stories, acceptance criteria, and Supabase/frontend/Next.js workflow requirements.
+  - GitHub issues have been published as parent `#310` plus canonical child issues `#312`, `#314`, `#316`, `#318`, `#320`, `#322`, `#324`, `#326`, `#328`, `#330`, `#332`, `#334`, `#336`, `#338`, `#340`, `#342`, `#344`, `#346`, `#348`, `#350`, `#352`, `#354`, `#356`, `#358`, `#360`, `#362`, and `#364`.
+  - Temporary duplicate issues created during publication were closed with comments pointing back to the canonical issue.
+  - `issues.md` now maps local `SS-##` identifiers to real GitHub issue references.
+- Verification planned:
+  - Focused `rg` checks for issue count, workflow requirements, README index entry, and ASCII-safe docs.
+  - Docs-only change; no app tests expected.
+
+## Latest update: Statement Studio PRD source doc
+
+- Date: 2026-06-12
+- Repo: Asymmetric-al/core
+- Goal: Consolidate the approved Statement Studio rebuild direction into a detailed PRD for issue creation.
+- Scope:
+  - `docs/guides/features/statement-studio/prd.md`
+  - `docs/guides/features/statement-studio/README.md`
+- Decision:
+  - `prd.md` is now the issue-source product document for turning Statement Studio into a custom staff-facing Mission Control PDF/statement product.
+  - The PRD preserves the approved north star: no Unlayer dependency for the new product, no email-editor-as-PDF-editor model, Asym-owned JSON templates compiled to pdfx/React PDF, tenant-safe assignments/defaults, robust variables/source maps, private generated artifacts, and clean token-driven shadcn/Maia UX.
+  - The PRD explicitly requires the repo Supabase skill and Supabase CLI for all database/Supabase work, with Supabase Postgres best-practices guidance for schema/RLS/index/query/migration work.
+- Verification planned:
+  - Focused `rg` checks for PRD sections and required terms.
+  - Docs-only change; no app tests expected.
+
+## 2026-06-12 (PDF Studio product rebuild planning)
+
+- Date: 2026-06-12
+- Repo: Asymmetric-al/core
+- Goal: Grill and document a product-ready plan to rebuild Statement Studio / PDF Studio as a staff-facing PDF builder and possible platform PDF generation system before implementation.
+- Primary area:
+  - `docs/guides/features/pdf-studio.md`
+  - `docs/guides/features/email-studio.md`
+  - `openspec/specs/platform-surfaces/spec.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `apps/admin/app/pdf/**`
+  - `packages/api/src/pdf-templates/**`
+  - `packages/config/pdf-studio-native.ts`
+  - `packages/ui/components/studio/**`
+  - `apps/admin/app/reports/**`
+  - `apps/admin/app/support/reports/**`
+  - `apps/admin/features/support-hub/components/reports/**`
+- Stack:
+  - Next.js App Router
+  - React
+  - TypeScript
+  - Supabase Postgres
+  - React Email Editor
+  - legacy Unlayer
+  - PDF render
+  - template pipeline
+- Constraints:
+  - Do not implement yet.
+  - Original product goal: turn Statement Studio (aka PDF Studio) into a fully usable staff-facing product inside Mission Control.
+  - Statement Studio must be the platform's own custom PDF/statement product surface, not Unlayer-based and not an email editor pretending to make PDFs.
+  - Use pdfx and React PDF as deeply as makes sense for the new product model, rendering pipeline, and template system.
+  - Ask one grill question at a time after repo-discoverable answers are researched.
+  - Keep Mission Control as the conceptual home for staff operational depth.
+  - PDF Studio must not own donor, giving, missionary, event, registration, ticketing, report, CMS, CRM, or payment facts.
+  - PDF Studio must be tenant safe across templates, bindings, renders, artifacts, batches, assets, and audit events.
+  - PDF Studio capabilities must be tenant configurable in settings instead of hard-coded to a narrow admin-only model.
+  - PDF-generated documents must stay tenant safe and tenant aware across Mission Control, Missionary Dashboard, and Donor Dashboard.
+  - Standard document jobs need tenant-specific default PDF template assignments, not only allowed-surface metadata.
+  - Admins must be able to set or swap the default template for jobs such as donor receipts, annual tax statements, missionary giving statements, report exports, event badges, and registration receipts while keeping unrelated drafts available.
+  - Template/default usage remains tenant-owned: tenants decide which standard jobs use which templates, while the platform enforces tenant safety and tenant awareness.
+  - Tenant admins must be able to create custom PDF template assignments and map where/how they are used, without requiring platform code changes for every tenant-specific document workflow.
+  - Seeded platform standard jobs should cover the common tenant needs out of the box across member care, finance, donor, missionary, event/conference/registration, task, mobilization, and legal/administrative document flows.
+  - Standard jobs need consistent names, preloaded starter PDF templates, expected routes/surfaces, and prewired render/export entry points where the owning surface exists.
+  - Prefer repo/OpenSpec evidence before external docs; use pdfx source for its component, registry, CLI, theme, and React PDF model.
+- Resolved decisions:
+  - PDF Studio rebuild uses a new canonical `asym_pdf_react_pdf` engine with validated JSON templates compiled to pdfx/React PDF at render time.
+  - Do not store JSX as template source.
+  - Existing `unlayer` and `asym_pdf_document_builder` engines stay legacy/migration paths.
+  - DocRaptor stays only for old HTML output unless an explicit later decision keeps HTML rendering long term.
+  - Persisted templates use an Asym-owned constrained JSON block/tree schema, not raw pdfx registry JSON, JSX, HTML, or direct React component props.
+  - Capability checks should stay flexible and settings-driven, while Supabase RLS remains a simple tenant/membership backup control.
+  - Generated PDFs are exposed through a shared tenant-aware Document Artifact access layer, not direct `pdf_template_artifacts` reads from dashboards.
+  - Mission Control authors/manages/renders; Donor Dashboard and Missionary Dashboard consume only their authorized artifacts through surface-specific portal endpoints.
+  - PDF Studio owns simple binding contracts and layout bindings; domain surfaces own source facts and tenant-scoped context resolvers.
+  - Production renders must use server-built, tenant-scoped DTOs; client-provided `dataContext` is preview-only and non-authoritative.
+  - Document job defaults are tenant-scoped assignments, not global platform defaults; capability settings decide who can change them, and Supabase policies remain simple tenant/membership guardrails.
+  - Production document defaults point to immutable published template versions, never mutable drafts.
+  - Drafts remain available for tenant authors to build, preview, clone, publish, assign, replace, or roll back without changing historical renders.
+  - Render and artifact records must store the exact published template version used so receipts, statements, badges, and report exports remain auditable.
+  - Document jobs should combine platform-defined standard jobs with tenant-defined custom assignments that are constrained to approved surfaces, context contracts, and capability checks.
+- Draft standard document job catalog research:
+  - Naming should use stable dot-separated keys grouped by owning surface, such as `donor.receipt.single`, `donor.statement.annual_giving`, `finance.report.funds`, `support.report.first_response`, `events.badge.attendee`, and `mobilize.candidate.packet`.
+  - Seeded jobs should include a readiness state so current backend-supported jobs can be active while future or mock-only surfaces can ship starter templates and settings metadata without pretending production render context exists.
+  - Evidence-backed active/near-active jobs include donor receipt/annual statement routes, admin CRM report slices, staged gift receipt resend, PDF template categories, Support Hub report slices, Member Care directory/activity/detail data, missionary portal support/donor/task data, and OpenPolicy legal policy PDF generation.
+  - Evidence-backed planned/seeded jobs include Event & Conference Hub badges, registration receipts, tickets, attendee/speaker/session/logistics packets, Mobilize candidate/application/vetting/onboarding packets, Sign Studio packet/audit exports, task-list packets, public annual reports/Form 990, and admin month-end/audit exports.
+  - Each standard job needs: job key, display name, owning surface, allowed route/surface entry points, context contract, default template assignment eligibility, scope shape, confidentiality level, starter template id/version, activation/readiness state, and tenant override rules.
+  - Supabase best-practice posture: keep the platform job catalog small and system-owned; store tenant-specific activation/default/template assignment rows separately with tenant_id, unique tenant/job/scope constraints, simple RLS tenant/membership policies, and richer capability checks in the server layer.
+  - Expanded mission-nonprofit standard job families should include missionary donor rosters, missionary support/giving statements, support gap reports, bookkeeper-readable PDF versions of finance exports, leadership/BI packets, mobilization packets, missionary rosters, fund reports, church/partner rosters, restricted-fund summaries, compliance/legal packets, and mission/event logistics documents.
+  - Bookkeeper jobs should treat CSV/export formats as the operational source where appropriate, with optional PDF render jobs for review, sign-off, board/audit packets, and human-readable summaries.
+  - Christian mission nonprofit edge cases to support out of the box include deputation/support-raising, prayer letters, church partner lists, home assignment/furlough, visa/travel/insurance/safeguarding documents, short-term trip/event waivers, commissioning/certificate documents, field budget/support gap reports, restricted fund rollforwards, grant/proposal packets, and pastoral/member-care confidentiality.
+  - Approved standard job families include `missionary.*`, `bookkeeping.*`, `leadership.*`, `mobilize.*`, `mission_ops.*`, `legal_compliance.*`, and `events.*`, with broad seeded coverage for Christian mission nonprofit workflows.
+  - Starter templates should live in a robust read-only system template library, with tenant activation/default assignment and tenant-owned clone/edit/publish flows.
+  - The starter library should demonstrate the platform's flexibility, including both job-specific mission nonprofit templates and greenfield standard templates such as letterhead, memo, certificate, invoice-style statement, simple report, packet cover sheet, and blank branded document.
+  - All starter templates must be white-label, tenant-brand-token driven, modern, accessible, printable, easy to clone/update, and safe for tenant branding/colors/logos without hard-coded Asym/GiveHope identity.
+  - The starter library must be broad enough that tenants can see the possibilities immediately and jump into editing/assigning templates out of the box.
+  - Approved greenfield starter templates include `letterhead.simple`, `memo.simple`, `report.simple`, `certificate.simple`, `statement.simple`, `packet.cover_sheet`, `blank.branded`, and `form.standard`.
+  - Approved explicit standard starters include:
+    - Donor: `donor.receipt.single`, `donor.statement.annual_giving`, `donor.pledge.summary`.
+    - Finance/Admin: `finance.report.donors`, `finance.report.funds`, `finance.report.missionaries`, `finance.report.reconciliation`, `finance.receipt.staged_gift`.
+    - Reports: `reports.executive_summary`, `reports.board_packet`, `reports.annual_report`, `reports.custom_export`.
+    - Support/Member Care: `support.report.first_response`, `support.report.resolution`, `care.person.profile`, `care.plan`, `care.activity_log`, `care.private_packet`.
+    - Missionary: `missionary.statement.monthly_giving`, `missionary.support_snapshot`, `missionary.donor_list`, `missionary.task_list`.
+    - Events: `events.badge.attendee`, `events.badge.speaker`, `events.registration_receipt`, `events.ticket`, `events.attendance_roster`, `events.session_schedule`.
+    - Mobilize/Tasks/Legal: `mobilize.candidate_packet`, `mobilize.vetting_checklist`, `tasks.assigned_list`, `sign.audit_certificate`.
+  - Approved starter families to expand include:
+    - `missionary.*`: donor roster, full donor contact list, active/lapsed donors, monthly support statement, annual support summary, support gap report, pledge pipeline, thank-you call sheet, ministry update packet, prayer letter, task list.
+    - `bookkeeping.*`: deposit batch cover sheet, donation batch detail, payout reconciliation, refund/dispute log, failed pledge attempts, GL summary, fund allocation report, restricted-fund rollforward, receipt batch manifest.
+    - `leadership.*`: executive KPI packet, board packet, ministry impact report, fundraising forecast, campaign performance, donor retention/lapse report, field/region health report.
+    - `mobilize.*`: candidate packet, application, interview packet, reference request, vetting checklist, onboarding packet, training checklist, deployment checklist.
+    - `mission_ops.*`: missionary roster, field roster, church partner roster, fund report, project budget, visa/travel/insurance packet, home assignment packet.
+    - `legal_compliance.*`: safeguarding policy, gift acceptance policy, conflict-of-interest form, waiver/release, consent form, privacy/terms/cookie policy, audit certificate.
+    - `events.*`: attendee badge, speaker badge, volunteer badge, ticket, registration receipt, check-in roster, rooming list, meal/dietary list, session schedule.
+  - "Ready out of the box" means every starter template is immediately visible, searchable, previewable with safe sample data, cloneable, brandable, and assignable in tenant settings.
+  - Production rendering uses readiness states: `production_ready` when a real tenant-scoped resolver/route exists, `template_ready` when the template and sample preview exist but production rendering is not wired yet, and `requires_setup` when the tenant must enable/configure module fields or choose a scope first.
+  - Approved Supabase model shape: system-owned standard job catalog, system starter template library, tenant job settings, tenant default assignments, tenant-owned templates/versions, and shared tenant-aware document artifacts.
+  - Supabase implementation must follow current best practices: explicit Data API/grant decisions, RLS on exposed tenant-owned tables, `TO authenticated` policies, `USING` plus `WITH CHECK`, indexed policy columns, no `auth.role()` authorization, no `user_metadata` authorization, no browser service-role exposure, and no direct dashboard reads of cross-surface PDF artifact tables.
+  - Current Supabase changelog/docs note that grants/Data API exposure are separate from RLS; new public tables may require explicit opt-in grants, so migrations must set both grants/exposure posture and RLS intentionally.
+  - Approved Supabase exposure boundary: use RLS-protected tenant-owned tables plus intentional grants, prefer server/BFF access for production rendering and sensitive cross-dashboard document reads, keep service-role access server-only, and use `security_invoker=true` for any RLS-dependent views.
+  - Default assignment resolution order: explicit authorized render override, exact scoped default, parent scoped default, tenant-wide standard job default, and system starter template only for preview/setup unless the tenant explicitly activates it for production.
+  - Assignment conflict/scheduling model: each tenant can have only one active default for a given `job_key + scope_kind + scope_id`; enforce with database constraints/indexes plus app validation and audit logs. Default changes affect future renders only, while historical artifacts keep the exact template version used. Scheduled future defaults are allowed, but complex branching should wait for real workflow demand.
+  - PDF template assignment UX must be clean, easy, flexible, and design-token driven. Tenant admins should be able to update, preview, publish, and assign PDFs through polished product UI, not a coding-like or schema-like workflow.
+  - The normal assignment UI should be guided by plain document purposes and scopes, while an advanced tenant-admin path can create custom document purposes, custom scopes, labels, grouping, visibility, and capability overrides within platform-approved surfaces/context contracts.
+  - PDF Studio UI should use the repo's shared Maia/Zinc semantic tokens and existing `@asym/ui`/shadcn patterns, with no app-local theme primitives or hard-coded one-off visual language.
+  - Custom assignment model: tenant admins can create custom document purposes with purpose name, approved surface, scope type, labels, visibility, and capability settings, while the platform restricts them to approved context contracts, tenant-scoped data, and safe render routes.
+  - Preview safety model: all templates support safe synthetic sample previews, while real-data previews require the user's tenant/surface/scope/record permission and use the same server-side resolver path as production rendering. Draft/client-entered preview data is non-authoritative and cannot drive production renders. The UI should clearly label sample vs real data without making normal preview/publish workflows feel difficult.
+  - Publishing workflow: Draft -> Preview -> Publish Version -> optionally Set As Default. Publishing creates an immutable version; default assignment is separate unless the admin chooses a guided "publish and use for..." flow. Validation checks should cover required fields, branding, data contract compatibility, permissions, and tenant scope without heavy deployment ceremony.
+  - Publishing and assignment UI must stay clear, use only the repo's shared design tokens, and state what will change in plain language such as "future donor receipts for this tenant" or "badges for this event."
+  - Rollback/audit model: published versions and default assignment changes keep visible history of actor, timestamp, purpose/scope affected, previous version, new version, and optional change note. Rollback should be an easy saved action such as "Use this previous version again" for future renders only, without rewriting old generated PDFs.
+  - Generated PDF retention model: retain artifacts by document type, tenant policy, and legal need. Tax receipts, annual giving statements, audit certificates, and signed/legal documents default to long retention; event badges, tickets, rosters, exports, and temporary packets can use shorter configurable retention; sensitive care/private packets require strict access, configurable retention, and clear audit trail; draft preview renders are short-lived.
+  - Artifact records should keep metadata even if the file expires, including tenant, job key, scope, recipient/reference, template version, render time, checksum/storage pointer, and retention status.
+  - Tenant admins need manual purge controls, and tenants should be able to configure storage-pressure cleanup that deletes eligible files oldest-first when storage reaches a configured threshold.
+  - Purge safeguards should be fully tenant-configurable and flexible within platform safety rules: tenants can configure retention windows, protected categories, manual purge eligibility, role/capability requirements, audit reasons, storage thresholds, and oldest-first cleanup. Protected/legal/sensitive document classes require explicit tenant policy before deletion, and purges remove stored files while keeping metadata/audit tombstones.
+  - PDF file storage/download model: generated PDFs live in private Supabase Storage buckets with Postgres artifact rows as the source of truth. Downloads use server-checked access with short-lived signed URLs or route-handler streaming for sensitive cases. Public buckets stay out of the generated-PDF path. Object paths, metadata, checksums, retention state, and audit events must be tenant-aware, and purge/delete jobs must use Supabase Storage APIs rather than SQL-only deletes to avoid orphaned files.
+  - PDF Studio variable binding must be much more robust than the current flat support macro merge-variable helper or legacy PDF Studio merge tags. Document jobs need curated, job-scoped variable catalogs that support scalar fields, formatted values, images/assets, QR/barcodes, links, optional fields, fallback values, derived fields, repeatable collections, tables, grouped nested entities, and sensitivity/readiness metadata.
+  - Variable catalogs must cover mission nonprofit edge cases such as fund-associated missionaries, project/fund hero images, missionary profile photos, donor rosters, pledge pipelines, contribution allocations, restricted funds, event attendees/speakers/sessions/rooms/meals, care plans/private notes, tasks, legal signatures, and audit metadata.
+  - The variable UX should remain friendly: searchable grouped pickers, plain labels, descriptions, sample values, required/optional indicators, formatting controls, unavailable-variable warnings, and context-aware suggestions. Normal users should never need SQL, JavaScript, JSON paths, or resolver names to place variables correctly.
+  - Production variable values must still come only from approved tenant-scoped server resolvers and typed DTO/context contracts, with image assets resolved through tenant-safe signed URLs or server streaming as appropriate.
+  - Approved revised variable catalog model: every standard/custom document job has a curated context-contract-backed variable catalog supporting text, numbers, money, dates, images, QR/barcodes, links, tables, repeaters, optional fields, derived fields, and grouped nested records, while normal admins interact through searchable friendly pickers rather than code or raw paths.
+  - Tables/repeaters model: PDF Studio needs first-class table and repeater blocks for donor rosters, gifts, fund allocations, event attendees, schedules, tasks, care activity logs, and similar lists. Tenant admins can choose an approved collection, pick columns, rename headers, sort/group/filter within allowed options, show totals/subtotals, set empty states, and control page-break behavior.
+  - Table/repeater blocks need multiple best-practice design variants by document family: dense finance/bookkeeping tables, polished donor-facing giving statement tables, board/leadership KPI summaries, event rosters/schedules, care/activity logs, and printable operational checklists. Variants must use tenant branding/design tokens and stay easy to customize without code.
+  - Large-list safeguards should warn when output may be too long and offer summary-only, paginated, appendix, or export-link options where appropriate.
+  - Approved template design-system direction: starter templates include reusable white-label, token-driven, print-safe, accessible design patterns for finance/bookkeeping, donor-facing receipts/statements, missionary support materials, leadership/board packets, events/conferences, legal/compliance, care/member-care, and operational checklists.
+  - Edge-case planning must cover mission nonprofit realities such as household vs individual donors, business/church donors, anonymous donors, soft credits, matching gifts, pledges, recurring gifts, split gifts, in-kind gifts, stock/non-cash gifts, refunds/chargebacks, corrected/reissued receipts, voided documents, restricted funds, fiscal vs calendar year, multi-currency, international addresses, translation/localization, offline/check/cash gifts, imported legacy gifts, confidential field locations, redacted missionary/care data, minors/youth events, waivers, insurance/visa/travel packets, meal/accessibility needs, rooming changes, no-show/cancelled registrations, and large batch exports.
+  - Approved edge-case planning model: every standard document job should include an edge-case checklist and safe sample fixtures so resolvers, variable catalogs, starter designs, and tests account for real-world cases without pushing complexity into the normal admin UX.
+  - Edge-case UX must stay clean and easy: hide complexity until needed, surface clear warnings or guided choices only when an admin must decide, and avoid cluttering the primary edit/assign/publish flow.
+  - Testing/fixtures model should be risk-based and not over-engineered: standard PDF jobs get safe fixtures for normal/empty/large/key edge cases, focused render smoke checks, structural checks for required text/sections, tenant-safety resolver tests, and regression coverage for high-risk documents such as receipts, statements, rosters, badges, and legal/audit outputs.
+  - Approved build phasing with Phase 0 added:
+    - Phase 0 audit/research brief: deeply inspect the current PDF Studio/Statement Studio code, docs, migrations, render adapters, feature flags, donor/missionary/admin statement routes, artifact/storage model, tenant/RLS posture, related dashboard surfaces, existing tests, and OpenSpec/platform boundaries. Produce a brief AI-oriented implementation map with exact files, current behavior, reuse candidates, migration risks, gaps, and a recommended first vertical slice.
+    - Phase 1 foundation: schema, RLS, template JSON, versioning, private storage, artifact model, grants, and tenant-safe boundaries.
+    - Phase 2 editor MVP: create/edit/preview/publish a template with safe sample data and clean token-driven UX.
+    - Phase 3 assignments: standard job catalog, tenant defaults, custom assignments, and clear admin UX.
+    - Phase 4 first production jobs: donor receipt, annual giving statement, and missionary monthly statement.
+    - Phase 5 table/repeater jobs: donor list, finance report, event roster/badge, and schedule/roster patterns.
+    - Phase 6 starter library expansion: broad white-label template library, design variants, edge-case fixtures, and custom assignment polish.
+    - Phase 7 batch rendering, retention automation, purge/storage management, governance, and advanced controls.
+  - Phase 0 must think hard and research deeply but document briefly enough that future AI agents can build from it without rereading the entire repo blindly.
+  - Approved Phase 0 audit output shape: one concise AI build brief covering current file map and ownership boundaries; existing PDF Studio/statement routes, adapters, migrations, flags, tests, and docs; reuse/replace/retire recommendations; tenant/RLS/storage risks; donor/missionary/admin/report/event/care/finance PDF opportunities; proposed first vertical slice; and implementation-blocking open questions.
+  - Product north star: Statement Studio/PDF Studio becomes a custom Mission Control staff product using pdfx/React PDF where appropriate, not an Unlayer rebuild, not an email editor, and not a thin wrapper around legacy PDF Studio behavior.
+  - Fully approved Unlayer legacy boundary: Unlayer is not a dependency for the rebuilt Statement Studio. New templates, assignments, publishing, rendering, and defaults must use the new custom pdfx/React PDF path. Existing Unlayer PDF templates may be treated as legacy-only, migrated if useful, or removed altogether if Phase 0 confirms removal is acceptable.
+  - Clean-rebuild scope: treat the work as a clean product replacement rather than a compatibility layer. Phase 0 should identify reusable code/data/tests, but implementation can remove Unlayer-specific UI, config, routes, docs, and env assumptions when the new Statement Studio path replaces them. Keep only what supports tenant-safe templates, versions, assignments, rendering, artifacts, variables, storage, and clean Mission Control UX.
+  - Product naming transition: Statement Studio is the user-facing product name. Avoid leaving users with two competing names or surfaces. Existing `/pdf` routes/internal pdf names can migrate pragmatically after Phase 0, but UI/nav/docs should converge on Statement Studio and generated document job keys should stay purpose-based rather than product-name-based.
+  - First production vertical slice: `donor.statement.annual_giving`, followed by `donor.receipt.single` and `missionary.statement.monthly_giving`, because this proves template versioning, variables, assignment, resolver, render, artifact, storage, and donor-dashboard download.
+  - The first vertical slice does not reduce the scope of the starter library. Statement Studio still needs many out-of-the-box PDF templates across donor, finance, missionary, bookkeeping, leadership, events, mobilization, legal/compliance, care, tasks, operations, and greenfield letterhead/form/report use cases.
+  - Two-track starter catalog: production-ready templates exist only for jobs with tenant-safe resolvers/routes, while broader starter/demo templates can be searchable, previewable with safe sample data, cloneable, brandable, and assignable once the job is wired.
+  - Entire Statement Studio UI/UX must use the repo's design tokens/components and remain clean, easy to use, and easy to follow across catalog browsing, editing, variables, previewing, publishing, assigning, history, rollback, retention, and settings.
+  - Revised Statement Studio IA: Starter Library belongs inside the Templates section, not as a separate top-level section. The top-level app should also include a Variables section for viewing, editing, creating, and mapping tenant-safe variables.
+  - Variables must be treated as a first-class product surface and require deep Phase 0 research against the repo's CRM, CMS, Supabase, donor, missionary, finance, event, care, and report data shapes before implementation.
+  - Variable management should not expose raw tables, SQL, JavaScript, JSON paths, or resolver internals to normal users. It should present approved context-contract variables with clean labels, examples, source provenance, sensitivity, readiness, formatting, and "used by" impact.
+  - Tenant admins should be able to customize variable labels, descriptions, grouping, formatting, fallback values, visibility, sample values, and mappings to approved source fields/relationships. They can create safe custom variables such as static tenant text, branded assets, aliases to approved fields, and simple derived variables using whitelisted no-code transforms.
+  - Platform-owned resolver contracts remain responsible for production data access, especially where variables cross CRM, CMS, and Supabase relationships such as donor -> gifts -> fund -> missionary -> profile/avatar, project/fund -> CMS media, event -> attendee/speaker/badge, care -> redacted/private fields, and legal/signing metadata.
+  - Variable definitions and mappings need version/compatibility handling so published templates do not break when a variable label, mapping, or contract evolves.
+  - Approved Variables section model: add Variables as a top-level Statement Studio section for tenant-safe variable registry management, with many built-in platform options and edge-case coverage. The section should expose approved platform variables, tenant labels/grouping/formatting/fallbacks/sample values, safe custom variables, relationship-aware variables, sensitivity/readiness badges, usage impact, and version compatibility without showing raw SQL, JSON paths, or resolver internals.
+  - Variables must cover many options and edge cases across donor, household, church/business, gifts, pledges, funds, allocations, missionaries, projects, CMS media, branding, statements, receipts, finance, bookkeeping, leadership BI, events, registration, badges, care/member-care, tasks, mobilization, legal/compliance, signing, audit, retention, localization, and tenant settings.
+  - Approved variable organization: group variables into searchable families for tenant/branding, donor/CRM, giving, funds/projects, missionary, finance/bookkeeping, events, care/support, legal/signing, reports/leadership, and system/audit, with examples, sensitivity labels, and available-document-job metadata.
+  - Phase 0 and implementation docs must document where variables map from, including the owning domain, approved resolver/context contract, source tables/collections where useful for engineers, relationships/joins, tenant scope, permission requirements, readiness state, fallbacks, samples, and template/job usage.
+  - Approved variable source-map model: every built-in variable has a source-map record with key, label, family/type, owning domain, approved resolver/context contract, source tables/collections for engineers, required scope, permission/sensitivity rules, fallback/sample behavior, readiness state, used-by jobs/templates, and version compatibility notes.
+  - Additional variable edge cases to plan for: many-to-many relationships, polymorphic records, household/organization rollups, soft credits, matching gifts, imported legacy ids, archived/deleted source records, stale cached values, missing media, expired signed image URLs, redacted field locations, minors, anonymous/private donors, consent restrictions, custom tenant fields, null/unknown values, translated labels/content, currency/timezone/date formatting, corrected/voided records, multi-page table limits, derived aggregate freshness, variable deprecation, renamed variables, and conflicting source ownership.
+  - Approved variable validation model: publishing/assignment validation should catch missing required variables, unavailable variables for a job, broken source mappings, permission/sensitivity conflicts, missing images/assets, empty table/repeater states, deprecated variables, resolver contract version changes, bad formatting/fallback settings, and large-output risks, with plain-language fixes instead of technical errors.
+  - Approved tenant custom variable mapping: tenant admins can fully customize labels, descriptions, grouping, fallbacks, approved source choices, registered custom-field mappings, and simple no-code derived variables while platform guardrails prevent raw SQL, arbitrary joins, arbitrary JavaScript, unsafe resolver access, or cross-tenant references.
+  - Approved custom-field variable model: Statement Studio supports tenant custom fields as variables through a registered custom-field registry for allowed entities such as donor, missionary, fund, project, event attendee, care profile, task, and legal packet. Fields require type, scope, sensitivity, fallback, validation, and compatible-job metadata before becoming available in templates.
+  - Custom-field variables must be well thought out and follow modern best practices: typed schemas, validation, versioning, auditability, explicit ownership, tenant isolation, least-privilege resolver access, and clean UI affordances.
+  - Approved variable governance model: built-in platform variables are read-only except tenant label/group/fallback overrides; tenant custom variables support draft/test/active/archived/deprecated lifecycle states; edits show usage impact; risky type/source/sensitivity changes warn or require new versions; audit history is retained; aliases preserve old templates; deletion is blocked while active templates depend on a variable.
+  - Additional variable best practices: immutable variable keys, semantic versioning for resolver contracts, compatibility aliases for renamed variables, explicit data classification, validation fixtures per variable family, safe sample data, resolution observability, failed-resolution diagnostics, fallback policy checks, deprecation windows, and exportable implementation source maps for AI/engineer audit.
+  - Approved variable resolution timing: production variables resolve at render time on the server from fresh tenant-scoped DTOs. Templates store versioned variable keys, not captured values. Generated artifacts store snapshot/hash/metadata for auditability. Previews use either safe sample data or authorized real-data preview through the same resolver path.
+  - Variable resolution must stay simple, clear, and documented for admins and future AI/engineer implementation work.
+  - Approved documentation set: compact implementation-oriented docs for Phase 0 AI build brief, Statement Studio product plan, data model/RLS/storage plan, variable catalog/source-map plan, UX/IA plan, starter template catalog plan, render/artifact/retention plan, legacy PDF Studio/Unlayer migration/removal notes, and test/fixtures checklist.
+  - Approved documentation location/structure: durable docs should live under `docs/guides/features/statement-studio/` with `README.md`, `phase-0-audit-brief.md`, `product-plan.md`, `data-model.md`, `variables.md`, `starter-template-catalog.md`, `ux-ia.md`, `rendering-artifacts-retention.md`, `legacy-pdf-studio-removal.md`, and `testing-fixtures.md`; `docs/ai/working-set.md` remains scratch/context.
+  - Non-negotiable implementation criteria: do not miss vital product, data, tenant-safety, UX, variable, starter-template, artifact, retention, or legacy-removal concerns; keep all Statement Studio UI clean, easy to use, easy to follow, and built on the repo's shared design tokens/components; do not introduce app-local theme primitives or hard-coded visual language.
+  - Non-negotiable Supabase/database criteria: any database, RLS, Storage, Auth, migration, seed, query, or Supabase client work must load and follow `docs/ai/skills/supabase/SKILL.md`, `docs/ai/rules/backend.md`, and `supabase/AGENTS.md`; Postgres/RLS/schema performance work must also load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`.
+  - Supabase modern best-practice checklist for Statement Studio: explicit grants/Data API exposure decisions, RLS on exposed tenant-owned tables, `TO authenticated` policies with real authorization predicates, `USING` plus `WITH CHECK` for updates, indexed tenant/scope/policy/FK columns, no `auth.role()` authz, no `user_metadata` authz, service role only server-side, private Storage for generated PDFs, Storage API deletes, `security_invoker=true` for RLS-dependent views, and focused migration/type/route verification when implementation changes behavior.
+  - Approved final plan gate: before implementation starts, confirm the Phase 0 audit brief exists; UX/IA uses shared design tokens/components; Supabase/backend rules were loaded for database work; RLS, grants, Storage, indexes, and tenant boundaries are explicit; variable source maps are documented; starter catalog and first vertical slice are clear; legacy Unlayer removal path is clear; tests/fixtures are scoped but sufficient. This should remain a simple checklist, not bureaucracy.
+  - Durable docs created under `docs/guides/features/statement-studio/` after final grill gap pass.
+  - Approved capability model: tenant-configurable capability groups should cover viewing templates, creating/editing drafts, publishing versions, assigning defaults, managing custom assignments, managing variables/custom fields, sample-data preview, real-data preview, production rendering, batch rendering/export, generated PDF viewing/download, retention/purge/storage, and sensitive/private document classes.
+  - Capability safety floors: donors can only access their own donor artifacts, missionaries only access authorized missionary artifacts, care/private/legal documents require elevated permission, and service-role/server-only operations never become client capabilities.
+  - Completeness requirement: Statement Studio must be fully functional across every app and product surface where PDFs are needed. Implementation agents must treat cross-app integration, edge cases, tenant safety, clean UX, variables, defaults, artifacts, retention, and tests as required product work, not optional polish.
+  - Approved cross-app integration map requirement: before implementation is considered complete, document every PDF-producing or PDF-consuming surface across Mission Control/admin, Donor Dashboard, Missionary Dashboard, Reports, Finance/bookkeeping, Contributions/receipts, Events/conferences, Mobilize/tasks, Member Care/support, Legal/signing, and CMS/project/missionary context. For each surface, capture document jobs, default template assignment, variable contract, resolver owner, route/API entry point, artifact access rules, retention class, readiness state, tests/fixtures, and UX entry points.
+- Evidence sources used:
+  - User-provided PDF Studio rebuild prompt
+  - `.agents/skills/grill-with-docs/SKILL.md`
+  - `docs/ai/skills/repo-entry/SKILL.md`
+  - `docs/ai/rules/{general,frontend,backend,openspec,openspec-guardian}.md`
+  - `docs/guides/architecture/data-access-boundary.md`
+  - `docs/ai/rules/frontend.md`
+  - `packages/ui/{README.md,styles/README.md,styles/globals.css}`
+  - Supabase Storage docs for private buckets, serving private assets, access control, and deleting objects.
+  - `apps/admin/features/support-hub/lib/merge-variables.ts`
+  - `packages/config/pdf-studio.ts`
+  - `packages/config/pdf-studio-native.ts`
+  - `packages/api/src/pdf-templates/native-adapter.ts`
+  - Repo search for current PDF Studio, statement, donor statement, and native PDF Studio references.
+  - `packages/api/src/donor-portal/service.ts`
+  - `packages/api/src/admin/crm/detail/service.ts`
+  - `apps/admin/src/cms/collections/{project-pages,missionary-profiles}.ts`
+  - `supabase/migrations/20260515140948_native_pdf_studio_foundation.sql`
+  - `docs/ai/skills/supabase/SKILL.md`
+  - `docs/ai/skills/supabase-postgres-best-practices/SKILL.md`
+  - `docs/ai/skills/supabase-postgres-best-practices/references/{query-missing-indexes,security-rls-basics,security-rls-performance,schema-foreign-key-indexes}.md`
+  - `supabase/AGENTS.md`
+  - Current Supabase RLS, Storage access-control, and Data API grants changelog docs.
+  - `openspec/project.md`
+  - `openspec/specs/platform-surfaces/spec.md`
+  - `packages/config/tiles.ts`
+  - `packages/config/navigation.ts`
+  - `packages/api/src/donor-portal/{receipts,statements,service}.ts`
+  - `packages/api/src/admin/crm/reports/{query,service,export}.ts`
+  - `packages/api/src/admin/contributions/{summary,staged-gifts,types}.ts`
+  - `packages/api/src/missionary-portal/{model,service,tasks,donor}.ts`
+  - `packages/api/src/reads/member-care.ts`
+  - `apps/admin/features/support-hub/lib/report-aggregations.ts`
+  - `packages/database/collections/support-hub.ts`
+  - `apps/admin/app/events/page-client.tsx`
+  - `apps/admin/app/mobilize/mobilize-sections.tsx`
+  - `apps/admin/app/tasks/{types,data,tags,tasks-content}.tsx`
+  - `apps/admin/app/sign/page-client.tsx`
+  - `docs/guides/features/{pdf-studio,care-hub,openpolicy-legal-pages}.md`
+
 ## 2026-05-23 (PR 241 babysit review feedback)
 
 - Date: 2026-05-23
