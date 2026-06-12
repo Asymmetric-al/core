@@ -15,15 +15,22 @@ describe("ci-build command planning", () => {
       "/repo/node_modules/.bin/turbo",
     ]);
 
+    // resolveTurboBin builds candidates with path.join, which uses the HOST
+    // separator — normalize to forward slashes so the test also passes when
+    // run on a Windows machine (not just on the Linux CI runners).
+    const normalize = (value: string) => value.replace(/\\/g, "/");
+
     const result = resolveTurboBin({
       platform: "win32",
       exists: (candidate: string) =>
         existingPaths.has(
-          candidate.replace(/^.*node_modules/, "/repo/node_modules"),
+          normalize(candidate).replace(/^.*node_modules/, "/repo/node_modules"),
         ),
     });
 
-    expect(result.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
+    expect(normalize(result).endsWith("node_modules/.bin/turbo.cmd")).toBe(
+      true,
+    );
   });
 
   it("builds shared packages without Turbo on Windows", () => {
