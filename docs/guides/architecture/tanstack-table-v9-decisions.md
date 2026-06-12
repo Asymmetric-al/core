@@ -103,27 +103,49 @@ exceptions.
 
 ---
 
-## ADR-4: Internal table families via `createTableHook`
+## ADR-4: One shared feature set; families differ by row models and options
 
-**Status:** Proposed
+**Status:** Accepted (2026-06-12) — supersedes the earlier "per-family feature
+sets via `createTableHook`" proposal.
 
-**Decision (expected):** expose per-family feature sets and row-model bundles
-(basic, admin, responsive-admin, CRM, support-inbox, data-grid, virtualized)
-from the shared layer, built on v9 `tableOptions()` /`createTableHook` rather
-than additional bespoke wrappers. App code consumes family hooks/aliases and
-does not thread raw v9 generics (`TFeatures`) through screens.
+**Decision:** the shared layer registers a single explicit feature set
+(`dataTableFeatures`, 10 features) and binds it into the v8-named type aliases
+(`ColumnDef<TData, TValue>`, `Table<TData>`, …). Table families differ through
+`createDataTableRowModels({ filtering, sorting, pagination, faceting })` flags
+(which must mirror the table's `manual*` flags) and through component props —
+not through per-family `TFeatures` types. `createTableHook` factories are
+deferred: `DataTable` / `DataTableResponsive` / `DataGrid` already are the
+family entry points, in component form, and app code consumes them rather than
+raw table hooks.
 
-**Open until implemented:** exact family list and whether `DataTable` /
-`DataTableResponsive` accept feature overrides per instance.
+**Why:**
+
+- Shared chrome components (toolbar, pagination, action bar, headers) are used
+  by every family. Per-family `TFeatures` would force all of them to become
+  generic over the feature type, exploding signatures across ~30 files for a
+  bundle win that row-model tree-shaking already captures (row models are the
+  larger per-table code).
+- v9's silent row-model fallback makes the row-model bundle the safety-critical
+  axis; the flags API keeps it explicit and reviewable per table.
+- `createTableHook`'s payoff (pre-bound hook + column helper + context
+  components) duplicates what the shared components and the boundary aliases
+  already provide. Revisit only if a screen genuinely needs a headless table
+  hook outside the shared components.
+
+**Consequences:** raw v9 generics (`TFeatures`) appear nowhere in app code;
+the bundle ships exactly one feature set; adding a feature is a boundary-module
+change reviewed against ADR-2.
 
 ---
 
 ## ADR-5: DataGrid interaction state stays outside the Table engine
 
-**Status:** Proposed
+**Status:** Accepted (2026-06-12)
 
-**Decision (expected):** the editable DataGrid keeps cell-selection, focus,
-editing, and undo/redo state in its own store outside TanStack Table; the
-Table engine owns only row/column/sort/filter state. Rationale: v9 has no
-cell-editing feature; coupling editing state to engine state would couple
-undo/redo to engine internals that change between majors.
+**Decision:** the editable DataGrid keeps cell-selection, focus, editing, and
+undo/redo state in its own React state outside TanStack Table; the Table
+engine owns only row/column/sort/filter state. The v9 migration preserved this
+split: `data-grid.tsx` runs `useTable` for row processing while its editing
+interactions never touch engine state. Rationale: v9 has no cell-editing
+feature; coupling editing state to engine state would couple undo/redo to
+engine internals that change between majors.
