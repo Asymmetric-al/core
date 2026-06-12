@@ -26,6 +26,7 @@ Use this documentation when planning or implementing:
 ## Documentation Map
 
 - `phase-0-audit-brief.md` - required implementation audit output.
+- `handoff.md` - current PR, issue, skill, and next-agent handoff context.
 - `prd.md` - issue-source PRD covering scope, phases, UX, Supabase posture, variables, starter jobs, integrations, and testing.
 - `issues.md` - draft vertical-slice issue backlog derived from the PRD; publish only after approval.
 - `product-plan.md` - product north star, phases, capabilities, and scope.

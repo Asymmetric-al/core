@@ -1,5 +1,22 @@
 # Working Set
 
+## Latest update: Statement Studio PR handoff
+
+- Date: 2026-06-13
+- Repo: Asymmetric-al/core
+- Goal: Add a fresh-agent handoff document to PR #367 as durable documentation.
+- Scope:
+  - `docs/guides/features/statement-studio/handoff.md`
+  - `docs/guides/features/statement-studio/README.md`
+- Decision:
+  - A handoff document was created in the OS temp directory per the `handoff` skill and mirrored into the Statement Studio docs for PR #367.
+  - The repo handoff points agents to PR #367, parent issue #310, canonical child issues #312 through #364, the PRD, the issue map, and the Phase 0 audit brief.
+  - The handoff avoids duplicating the PRD and issue bodies; it references source artifacts and highlights current state, next work, suggested skills, and verification expectations.
+- Verification planned:
+  - Focused Prettier checks for touched docs.
+  - Required-section checks for the new handoff doc.
+  - Push commit to `codex/statement-studio-prd-issues` and verify PR #367 updates.
+
 ## Latest update: Statement Studio issue backlog draft
 
 - Date: 2026-06-12
