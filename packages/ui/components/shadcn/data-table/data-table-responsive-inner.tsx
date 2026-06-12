@@ -1,6 +1,8 @@
 "use client";
 
 import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
+// Sanctioned boundary exception (see ./tanstack.ts): devtools adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import { Inbox } from "lucide-react";
 import * as React from "react";
 
@@ -78,6 +80,7 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
   tableClassName,
   emptyState,
   toolbar,
+  devtoolsKey,
   initialState = EMPTY_RESPONSIVE_INITIAL_STATE as NonNullable<
     DataTableResponsiveProps<TData, TValue>["initialState"]
   >,
@@ -215,6 +218,8 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
     }),
     data: filteredData,
     columns: tableColumns,
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     rowCount: resolvedRowCount,
     pageCount: resolvedPageCount,
     state: tableState.state,
@@ -232,6 +237,10 @@ export function DataTableResponsiveInner<TData extends RowData, TValue>({
     onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
     onPaginationChange: tableState.handlers.onPaginationChange,
   });
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const keyboard = useDataTableKeyboard(table, {
     enabled: enableKeyboardNavigation && viewMode === "table",

@@ -1,5 +1,8 @@
 "use client";
 
+// Sanctioned boundary exception (see ../data-table/tanstack.ts): devtools
+// adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import {
   Plus,
   Trash2,
@@ -47,6 +50,12 @@ interface DataGridProps<TData extends Record<string, unknown>> {
   config?: DataGridConfig;
   callbacks?: DataGridCallbacks<TData>;
   className?: string;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
 }
 
 const EMPTY_DATA_GRID_CONFIG: DataGridConfig = {};
@@ -529,6 +538,7 @@ export function DataGrid<TData extends Record<string, unknown>>({
   config = EMPTY_DATA_GRID_CONFIG,
   callbacks = EMPTY_DATA_GRID_CALLBACKS as DataGridCallbacks<TData>,
   className,
+  devtoolsKey,
 }: DataGridProps<TData>) {
   const {
     enableSelection = true,
@@ -741,6 +751,8 @@ export function DataGrid<TData extends Record<string, unknown>>({
     }),
     data: gridData,
     columns: tableColumns,
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     state: {
       sorting,
       globalFilter,
@@ -748,6 +760,10 @@ export function DataGrid<TData extends Record<string, unknown>>({
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
   });
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const { rows } = table.getRowModel();
   const {

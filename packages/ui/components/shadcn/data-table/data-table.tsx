@@ -59,6 +59,12 @@ interface DataTableProps<TData extends RowData, TValue> {
   tableClassName?: string;
   emptyState?: React.ReactNode;
   toolbar?: React.ReactNode;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
   initialState?: {
     pagination?: PaginationState;
     sorting?: SortingState;

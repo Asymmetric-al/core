@@ -1,5 +1,7 @@
 "use client";
 
+// Sanctioned boundary exception (see ./tanstack.ts): devtools adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import { Inbox } from "lucide-react";
 import * as React from "react";
 
@@ -81,6 +83,12 @@ export interface DataTableBodyWithTableStateProps<
   emptyState?: React.ReactNode;
   toolbar?: React.ReactNode;
   tableState: UseDataTableStateReturn;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
 }
 
 const EMPTY_DATA_TABLE_INITIAL_STATE: Record<string, never> = {};
@@ -122,6 +130,12 @@ export type DataTableBodyShellProps<TData extends RowData, TValue> = {
     columnVisibility?: VisibilityState;
     rowSelection?: RowSelectionState;
   };
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
 };
 
 export function DataTableBody<TData extends RowData, TValue>({
@@ -152,6 +166,7 @@ export function DataTableBody<TData extends RowData, TValue>({
   initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
     DataTableBodyShellProps<TData, TValue>["initialState"]
   >,
+  devtoolsKey,
 }: DataTableBodyShellProps<TData, TValue>) {
   const toolbarSearchColumnId = searchColumnId ?? searchKey;
 
@@ -185,6 +200,7 @@ export function DataTableBody<TData extends RowData, TValue>({
       emptyState={emptyState}
       toolbar={toolbar}
       tableState={tableState}
+      devtoolsKey={devtoolsKey}
     />
   );
 }
@@ -217,6 +233,7 @@ export function DataTableBodyWithUrl<TData extends RowData, TValue>({
   initialState = EMPTY_DATA_TABLE_INITIAL_STATE as NonNullable<
     DataTableBodyShellProps<TData, TValue>["initialState"]
   >,
+  devtoolsKey,
   urlState,
 }: DataTableBodyShellProps<TData, TValue> & {
   urlState: DataTableUrlStateConfig;
@@ -256,6 +273,7 @@ export function DataTableBodyWithUrl<TData extends RowData, TValue>({
       emptyState={emptyState}
       toolbar={toolbar}
       tableState={tableState}
+      devtoolsKey={devtoolsKey}
     />
   );
 }
@@ -279,6 +297,7 @@ export function DataTableBodyWithTableState<TData extends RowData, TValue>({
   emptyState,
   toolbar,
   tableState,
+  devtoolsKey,
 }: DataTableBodyWithTableStateProps<TData, TValue>) {
   const {
     enableRowSelection = true,
@@ -361,6 +380,8 @@ export function DataTableBodyWithTableState<TData extends RowData, TValue>({
     }),
     data,
     columns: tableColumns,
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     rowCount: resolvedRowCount,
     pageCount: resolvedPageCount,
     getRowId: getRowId ?? tableState.getRowId,
@@ -378,6 +399,10 @@ export function DataTableBodyWithTableState<TData extends RowData, TValue>({
     onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
     onPaginationChange: tableState.handlers.onPaginationChange,
   });
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const tableContainerRef = React.useRef<HTMLDivElement>(null);
   const rows = table.getRowModel().rows;

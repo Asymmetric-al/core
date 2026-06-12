@@ -55,6 +55,12 @@ interface DataTableWrapperProps<TData extends RowData, TValue> {
   className?: string;
   tableClassName?: string;
   toolbar?: React.ReactNode;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
 }
 
 export function DataTableWrapper<TData extends RowData, TValue>({
@@ -78,6 +84,7 @@ export function DataTableWrapper<TData extends RowData, TValue>({
   className,
   tableClassName,
   toolbar,
+  devtoolsKey,
 }: DataTableWrapperProps<TData, TValue>) {
   if (isError) {
     return (
@@ -162,6 +169,7 @@ export function DataTableWrapper<TData extends RowData, TValue>({
         emptyState={customEmptyState}
         tableClassName={tableClassName}
         toolbar={toolbar}
+        devtoolsKey={devtoolsKey}
       />
     </div>
   );

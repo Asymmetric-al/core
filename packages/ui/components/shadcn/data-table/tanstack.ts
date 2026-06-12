@@ -5,8 +5,10 @@
  * through this file instead of importing `@tanstack/react-table` directly, so
  * engine upgrades happen in exactly one place. Exceptions:
  * `packages/database` hooks import the engine-stable state types directly
- * (database cannot depend on `@asym/ui`), and the `declare module` ColumnMeta
- * augmentation in `./types.ts` must keep targeting the real package name.
+ * (database cannot depend on `@asym/ui`), the `declare module` ColumnMeta
+ * augmentation in `./types.ts` must keep targeting the real package name, and
+ * table-creating files import `@tanstack/react-table-devtools` directly (it is
+ * a devtools adapter, not the engine, so it stays out of this boundary).
  *
  * v9 makes features and row models explicit per table instance. This module
  * pins ONE shared feature set (`dataTableFeatures`) covering everything the

@@ -249,6 +249,7 @@ export function TasksTableSection({
         <DataTableWrapper
           columns={columns}
           data={data}
+          devtoolsKey="admin-tasks"
           isLoading={isLoading}
           searchColumnId="title"
           getRowId={(task) => task.id}
