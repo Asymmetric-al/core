@@ -276,19 +276,19 @@ export function WebStudioHeader({
           <TabsList className="bg-transparent h-full p-0 gap-4 border-none">
             <TabsTrigger
               value="content"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
+              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
             >
               Live Content
             </TabsTrigger>
             <TabsTrigger
               value="projects"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
+              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
             >
               Projects
             </TabsTrigger>
             <TabsTrigger
               value="updates"
-              className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
+              className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:text-zinc-900 rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400 shadow-none"
             >
               Updates
             </TabsTrigger>

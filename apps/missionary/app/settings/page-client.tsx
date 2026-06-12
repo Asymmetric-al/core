@@ -2,7 +2,7 @@
 
 import { siteConfig } from "@asym/config/site-client";
 import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -13,6 +13,7 @@ import {
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Mail,
   Gift,
@@ -137,7 +138,7 @@ function NotificationRow({
             onCheckedChange={(checked) =>
               onChange(setting.id, "inApp", checked)
             }
-            className="data-[state=checked]:bg-zinc-900"
+            className="data-checked:bg-zinc-900"
           />
         </div>
         <div className="flex flex-col items-center gap-2">
@@ -149,7 +150,7 @@ function NotificationRow({
             onCheckedChange={(checked) =>
               onChange(setting.id, "email", checked)
             }
-            className="data-[state=checked]:bg-zinc-900"
+            className="data-checked:bg-zinc-900"
           />
         </div>
         <div className="flex flex-col items-center gap-2">
@@ -159,7 +160,7 @@ function NotificationRow({
           <Switch
             checked={setting.sms}
             onCheckedChange={(checked) => onChange(setting.id, "sms", checked)}
-            className="data-[state=checked]:bg-zinc-900"
+            className="data-checked:bg-zinc-900"
           />
         </div>
       </div>
@@ -294,20 +295,18 @@ export default function SettingsPage() {
                   Access your public ministry home page and donor portal.
                 </p>
               </div>
-              <Button
-                variant="outline"
-                className="w-full h-11 rounded-2xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group"
-                asChild
+              <a
+                href={siteConfig.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "w-full h-11 rounded-2xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group",
+                )}
               >
-                <a
-                  href={siteConfig.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Visit Website
-                  <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
-              </Button>
+                Visit Website
+                <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
             </CardContent>
           </Card>
 
@@ -390,7 +389,7 @@ export default function SettingsPage() {
                     Access advanced API tools
                   </p>
                 </div>
-                <Switch className="data-[state=checked]:bg-zinc-900" />
+                <Switch className="data-checked:bg-zinc-900" />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -401,10 +400,7 @@ export default function SettingsPage() {
                     Try new dashboard widgets
                   </p>
                 </div>
-                <Switch
-                  defaultChecked
-                  className="data-[state=checked]:bg-zinc-900"
-                />
+                <Switch defaultChecked className="data-checked:bg-zinc-900" />
               </div>
             </CardContent>
           </Card>

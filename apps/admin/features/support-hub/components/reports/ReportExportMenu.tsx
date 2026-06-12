@@ -39,24 +39,26 @@ export function ReportExportMenu({ series, disabled }: ReportExportMenuProps) {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          disabled={disabled || series.buckets.length === 0}
-          className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider"
-        >
-          <Download className="size-3.5" />
-          Export
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={disabled || series.buckets.length === 0}
+            className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider"
+          />
+        }
+      >
+        <Download className="size-3.5" />
+        Export
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-40">
-        <DropdownMenuItem onSelect={() => handle("csv")}>
+        <DropdownMenuItem onClick={() => handle("csv")}>
           Export as CSV
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={() => handle("json")}>
+        <DropdownMenuItem onClick={() => handle("json")}>
           Export as JSON
         </DropdownMenuItem>
       </DropdownMenuContent>

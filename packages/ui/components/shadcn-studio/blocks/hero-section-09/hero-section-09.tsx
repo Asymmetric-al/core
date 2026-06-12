@@ -5,12 +5,13 @@ import Image from "next/image";
 import Link from "next/link";
 
 import { MotionPreset } from "@asym/ui/components/primitives/motion-preset";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
+import { cn } from "@asym/ui/lib/utils";
 
 const HeroSection = () => {
   return (
@@ -62,14 +63,16 @@ const HeroSection = () => {
               </a>
 
               <Tooltip>
-                <TooltipTrigger asChild>
-                  <a
-                    href="https://github.com/asymmetric-al/core"
-                    target="_blank"
-                    rel="noreferrer"
-                  >
-                    <SquarePlusIcon />
-                  </a>
+                <TooltipTrigger
+                  render={
+                    <a
+                      href="https://github.com/asymmetric-al/core"
+                      target="_blank"
+                      rel="noreferrer"
+                    />
+                  }
+                >
+                  <SquarePlusIcon />
                 </TooltipTrigger>
                 <TooltipContent>
                   Integrate with all your framework
@@ -121,9 +124,15 @@ const HeroSection = () => {
               transition={{ duration: 0.5 }}
               className="flex flex-wrap justify-center gap-4"
             >
-              <Button size="lg" className="rounded-lg text-base" asChild>
-                <Link href="/">Get Started</Link>
-              </Button>
+              <Link
+                href="/"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "rounded-lg text-base",
+                )}
+              >
+                Get Started
+              </Link>
               <Button
                 size="lg"
                 className="bg-primary/10 text-primary hover:bg-primary/20 cursor-pointer rounded-lg font-mono text-base"

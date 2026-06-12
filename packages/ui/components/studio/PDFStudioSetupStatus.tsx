@@ -23,7 +23,7 @@ import {
 import { useState, useMemo } from "react";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -82,17 +82,19 @@ export function PDFStudioSetupStatus({
   if (variant === "badge") {
     return (
       <Dialog>
-        <DialogTrigger asChild>
-          <button
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
-              currentStatus.color,
-              className,
-            )}
-          >
-            <Icon className="size-3" />
-            {currentStatus.label}
-          </button>
+        <DialogTrigger
+          render={
+            <button
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
+                currentStatus.color,
+                className,
+              )}
+            />
+          }
+        >
+          <Icon className="size-3" />
+          {currentStatus.label}
         </DialogTrigger>
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
@@ -120,11 +122,11 @@ export function PDFStudioSetupStatus({
         </div>
         {showSetupButton && status.status !== "white_label" && (
           <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7">
-                <Settings className="size-3.5 mr-1.5" />
-                Setup
-              </Button>
+            <DialogTrigger
+              render={<Button variant="outline" size="sm" className="h-7" />}
+            >
+              <Settings className="size-3.5 mr-1.5" />
+              Setup
             </DialogTrigger>
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
@@ -223,20 +225,22 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       {status.status !== "white_label" && (
         <>
           <Collapsible open={isSetupOpen} onOpenChange={setIsSetupOpen}>
-            <CollapsibleTrigger asChild>
-              <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
-                <div className="flex items-center gap-2">
-                  <Settings className="size-4" />
-                  <span className="text-sm font-medium">
-                    Basic Setup Instructions
-                  </span>
-                </div>
-                {isSetupOpen ? (
-                  <ChevronUp className="size-4" />
-                ) : (
-                  <ChevronDown className="size-4" />
-                )}
-              </button>
+            <CollapsibleTrigger
+              render={
+                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors" />
+              }
+            >
+              <div className="flex items-center gap-2">
+                <Settings className="size-4" />
+                <span className="text-sm font-medium">
+                  Basic Setup Instructions
+                </span>
+              </div>
+              {isSetupOpen ? (
+                <ChevronUp className="size-4" />
+              ) : (
+                <ChevronDown className="size-4" />
+              )}
             </CollapsibleTrigger>
             <CollapsibleContent className="pt-2">
               <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
@@ -299,20 +303,22 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
               open={isWhiteLabelOpen}
               onOpenChange={setIsWhiteLabelOpen}
             >
-              <CollapsibleTrigger asChild>
-                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
-                  <div className="flex items-center gap-2">
-                    <Crown className="size-4" />
-                    <span className="text-sm font-medium">
-                      Upgrade to White-Label
-                    </span>
-                  </div>
-                  {isWhiteLabelOpen ? (
-                    <ChevronUp className="size-4" />
-                  ) : (
-                    <ChevronDown className="size-4" />
-                  )}
-                </button>
+              <CollapsibleTrigger
+                render={
+                  <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors" />
+                }
+              >
+                <div className="flex items-center gap-2">
+                  <Crown className="size-4" />
+                  <span className="text-sm font-medium">
+                    Upgrade to White-Label
+                  </span>
+                </div>
+                {isWhiteLabelOpen ? (
+                  <ChevronUp className="size-4" />
+                ) : (
+                  <ChevronDown className="size-4" />
+                )}
               </CollapsibleTrigger>
               <CollapsibleContent className="pt-2">
                 <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
@@ -402,12 +408,15 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       )}
 
       <div className="flex justify-end">
-        <Button variant="outline" size="sm" asChild>
-          <a href={status.setupUrl} target="_blank" rel="noopener noreferrer">
-            Open Unlayer Dashboard
-            <ExternalLink className="size-3.5 ml-1.5" />
-          </a>
-        </Button>
+        <a
+          href={status.setupUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Open Unlayer Dashboard
+          <ExternalLink className="size-3.5 ml-1.5" />
+        </a>
       </div>
     </div>
   );

@@ -214,15 +214,17 @@ function DataTableCardItem<TData>({
 
                 {rowActions && rowActions.length > 0 ? (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-lg"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      }
+                    >
+                      <MoreHorizontal className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl">
                       {rowActions.map((action, index) => (

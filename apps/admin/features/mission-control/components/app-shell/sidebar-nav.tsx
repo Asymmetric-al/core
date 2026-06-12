@@ -60,7 +60,7 @@ const NavLink = memo(function NavLink({
   if (collapsed) {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{linkContent}</TooltipTrigger>
+        <TooltipTrigger render={linkContent} />
         <TooltipContent
           side="right"
           sideOffset={8}
@@ -193,7 +193,7 @@ export const SidebarNav = memo(function SidebarNav() {
   }, [sidebarCollapsed, setSidebarCollapsed]);
 
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delay={0}>
       <aside
         className={cn(
           "flex flex-col border-r border-border bg-card/80 backdrop-blur-xl transition-[width] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",

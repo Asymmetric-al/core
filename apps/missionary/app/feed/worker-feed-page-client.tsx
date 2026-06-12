@@ -559,10 +559,12 @@ function CommentSection({
                         </span>
                         {canManageComments && (
                           <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button className="text-muted-foreground/50 hover:text-destructive transition-colors">
-                                <MoreHorizontal className="size-3" />
-                              </button>
+                            <DropdownMenuTrigger
+                              render={
+                                <button className="text-muted-foreground/50 hover:text-destructive transition-colors" />
+                              }
+                            >
+                              <MoreHorizontal className="size-3" />
                             </DropdownMenuTrigger>
                             <DropdownMenuContent
                               align="end"
@@ -847,19 +849,16 @@ function PostCard({
             </div>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
-              >
+            <DropdownMenuTrigger
+              render={
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
-                >
-                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
-                </Button>
-              </motion.div>
+                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
+                />
+              }
+            >
+              <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
@@ -1084,18 +1083,18 @@ function SecurityAccessDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleOpenChange}>
-      <DialogTrigger asChild>
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      <DialogTrigger
+        render={
           <Button
             variant="outline"
             size="sm"
-            className="h-9 px-4 text-xs font-medium gap-2"
-          >
-            <ShieldCheck className="size-4" />
-            <span className="hidden sm:inline">Security & Access</span>
-            <span className="sm:hidden">Security</span>
-          </Button>
-        </motion.div>
+            className="h-9 px-4 text-xs font-medium gap-2 hover-scale-subtle"
+          />
+        }
+      >
+        <ShieldCheck className="size-4" />
+        <span className="hidden sm:inline">Security & Access</span>
+        <span className="sm:hidden">Security</span>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden gap-0 rounded-2xl border-border">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
@@ -1446,26 +1445,26 @@ function PostComposerActions({
         </motion.div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+          <DropdownMenuTrigger
+            render={
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
-              >
-                {postPrivacy === "public" ? (
-                  <Globe className="size-3" />
-                ) : postPrivacy === "partners" ? (
-                  <Users className="size-3" />
-                ) : (
-                  <Lock className="size-3" />
-                )}
-                <span className="hidden sm:inline capitalize">
-                  {postPrivacy === "partners" ? "Partners" : postPrivacy}
-                </span>
-                <ChevronDown className="size-2.5 opacity-40" />
-              </Button>
-            </motion.div>
+                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
+              />
+            }
+          >
+            {postPrivacy === "public" ? (
+              <Globe className="size-3" />
+            ) : postPrivacy === "partners" ? (
+              <Users className="size-3" />
+            ) : (
+              <Lock className="size-3" />
+            )}
+            <span className="hidden sm:inline capitalize">
+              {postPrivacy === "partners" ? "Partners" : postPrivacy}
+            </span>
+            <ChevronDown className="size-2.5 opacity-40" />
           </DropdownMenuTrigger>
           <DropdownMenuContent
             align="start"
@@ -1733,13 +1732,13 @@ function FeedPostsTabsSection({
           <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border border-border backdrop-blur-sm">
             <TabsTrigger
               value="published"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors"
             >
               Published
             </TabsTrigger>
             <TabsTrigger
               value="draft"
-              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+              className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-colors flex items-center gap-2"
             >
               Drafts
               <AnimatePresence>

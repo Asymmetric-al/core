@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -9,6 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import { useConfig } from "@payloadcms/ui";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
@@ -118,9 +119,15 @@ function TemplateGalleryViewContent() {
                 {pageTypeFilter}
               </Badge>
               .{" "}
-              <Button variant="link" className="h-auto p-0 text-xs" asChild>
-                <Link href="/web-studio/templates">Clear filter</Link>
-              </Button>
+              <Link
+                href="/web-studio/templates"
+                className={cn(
+                  buttonVariants({ variant: "link" }),
+                  "h-auto p-0 text-xs",
+                )}
+              >
+                Clear filter
+              </Link>
             </p>
           ) : null}
         </div>
@@ -180,13 +187,15 @@ function TemplateGalleryViewContent() {
                           </span>
                         </p>
                       ) : null}
-                      <Button
-                        size="sm"
-                        className="w-full font-semibold uppercase"
-                        asChild
+                      <Link
+                        href={href}
+                        className={cn(
+                          buttonVariants({ size: "sm" }),
+                          "w-full font-semibold uppercase",
+                        )}
                       >
-                        <Link href={href}>Start from template</Link>
-                      </Button>
+                        Start from template
+                      </Link>
                     </CardContent>
                   </Card>
                 );

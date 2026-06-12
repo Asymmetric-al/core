@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -399,14 +399,15 @@ export function FAQPageClient() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
-            <Button
-              className="h-14 px-8 bg-white text-zinc-950 hover:bg-zinc-100 font-semibold text-base rounded-full shadow-lg hover-scale-subtle"
-              asChild
+            <Link
+              href="/contact"
+              className={cn(
+                buttonVariants(),
+                "h-14 px-8 bg-white text-zinc-950 hover:bg-zinc-100 font-semibold text-base rounded-full shadow-lg hover-scale-subtle",
+              )}
             >
-              <Link href="/contact">
-                <Mail className="mr-2 size-5" /> Email Support
-              </Link>
-            </Button>
+              <Mail className="mr-2 size-5" /> Email Support
+            </Link>
             <Button
               variant="outline"
               className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm hover-scale-subtle"

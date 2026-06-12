@@ -405,11 +405,11 @@ export function getContributionColumns({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="size-4" />
-              </Button>
+            <DropdownMenuTrigger
+              render={<Button variant="ghost" className="size-8 p-0" />}
+            >
+              <span className="sr-only">Open menu</span>
+              <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>

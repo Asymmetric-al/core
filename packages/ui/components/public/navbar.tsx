@@ -5,7 +5,8 @@ import { siteConfig } from "@asym/config/site-client";
 import Link from "next/link";
 
 import { NavbarClient } from "./navbar-client";
-import { Button } from "../shadcn/button";
+import { cn } from "../../lib/utils";
+import { buttonVariants } from "../shadcn/button";
 
 const navLinks = siteConfig.nav.main;
 
@@ -42,13 +43,18 @@ function DesktopNav({ isScrolled }: { isScrolled: boolean }) {
           {link.label}
         </Link>
       ))}
-      <Button
-        asChild
-        variant="ghost"
-        className={`rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg ${isScrolled ? "bg-slate-900 text-white" : "bg-white text-slate-900 hover:bg-slate-100"}`}
+      <Link
+        href={siteConfig.nav.cta.href}
+        className={cn(
+          buttonVariants({ variant: "ghost" }),
+          "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
+          isScrolled
+            ? "bg-slate-900 text-white"
+            : "bg-white text-slate-900 hover:bg-slate-100",
+        )}
       >
-        <Link href={siteConfig.nav.cta.href}>{siteConfig.nav.cta.label}</Link>
-      </Button>
+        {siteConfig.nav.cta.label}
+      </Link>
     </div>
   );
 }

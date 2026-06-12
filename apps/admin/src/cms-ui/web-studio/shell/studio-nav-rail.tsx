@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { usePreferences } from "@payloadcms/ui";
 import {
@@ -179,40 +179,40 @@ export function StudioNavRail({ className }: { className?: string }) {
         </Button>
       </div>
       <nav className="flex flex-col gap-1 p-2">
-        <Button
-          variant={
-            pathname.startsWith("/web-studio/templates") ? "secondary" : "ghost"
-          }
-          size="sm"
+        <Link
+          href="/web-studio/templates"
+          title="Templates"
           className={cn(
+            buttonVariants({
+              variant: pathname.startsWith("/web-studio/templates")
+                ? "secondary"
+                : "ghost",
+              size: "sm",
+            }),
             "justify-start gap-2 font-semibold text-xs",
             collapsed && "justify-center px-0",
           )}
-          asChild
         >
-          <Link href="/web-studio/templates" title="Templates">
-            <Sparkles className="size-4 shrink-0" />
-            {!collapsed ? <span>Templates</span> : null}
-          </Link>
-        </Button>
-        <Button
-          variant={
-            pathname.startsWith("/web-studio/missionaries")
-              ? "secondary"
-              : "ghost"
-          }
-          size="sm"
+          <Sparkles className="size-4 shrink-0" />
+          {!collapsed ? <span>Templates</span> : null}
+        </Link>
+        <Link
+          href="/web-studio/missionaries"
+          title="Missionaries"
           className={cn(
+            buttonVariants({
+              variant: pathname.startsWith("/web-studio/missionaries")
+                ? "secondary"
+                : "ghost",
+              size: "sm",
+            }),
             "justify-start gap-2 font-semibold text-xs",
             collapsed && "justify-center px-0",
           )}
-          asChild
         >
-          <Link href="/web-studio/missionaries" title="Missionaries">
-            <Users className="size-4 shrink-0" />
-            {!collapsed ? <span>Missionaries</span> : null}
-          </Link>
-        </Button>
+          <Users className="size-4 shrink-0" />
+          {!collapsed ? <span>Missionaries</span> : null}
+        </Link>
         {enabledCollections.map((collection) => {
           const isActive =
             pathname === collection.listPath ||
@@ -220,37 +220,36 @@ export function StudioNavRail({ className }: { className?: string }) {
           const Icon = collection.icon;
 
           return (
-            <Button
+            <Link
               key={collection.slug}
-              variant={isActive ? "secondary" : "ghost"}
-              size="sm"
+              href={collection.listPath}
+              title={collection.titlePlural}
               className={cn(
+                buttonVariants({
+                  variant: isActive ? "secondary" : "ghost",
+                  size: "sm",
+                }),
                 "justify-start gap-2 font-semibold text-xs",
                 collapsed && "justify-center px-0",
               )}
-              asChild
             >
-              <Link href={collection.listPath} title={collection.titlePlural}>
-                <Icon className="size-4 shrink-0" />
-                {!collapsed ? <span>{collection.titlePlural}</span> : null}
-              </Link>
-            </Button>
+              <Icon className="size-4 shrink-0" />
+              {!collapsed ? <span>{collection.titlePlural}</span> : null}
+            </Link>
           );
         })}
-        <Button
-          variant="ghost"
-          size="sm"
+        <Link
+          href="/"
+          title="Mission Control home"
           className={cn(
+            buttonVariants({ variant: "ghost", size: "sm" }),
             "justify-start gap-2 font-semibold text-xs",
             collapsed && "justify-center px-0",
           )}
-          asChild
         >
-          <Link href="/" title="Mission Control home">
-            <LayoutDashboard className="size-4 shrink-0" />
-            {!collapsed ? <span>Dashboard</span> : null}
-          </Link>
-        </Button>
+          <LayoutDashboard className="size-4 shrink-0" />
+          {!collapsed ? <span>Dashboard</span> : null}
+        </Link>
       </nav>
       {!collapsed && recentDocs.length > 0 ? (
         <div className="border-border border-t px-2 py-3">
@@ -260,17 +259,17 @@ export function StudioNavRail({ className }: { className?: string }) {
           </div>
           <div className="flex flex-col gap-1">
             {recentDocs.map((doc) => (
-              <Button
+              <Link
                 key={`${doc.id}-${doc.href}`}
-                variant="ghost"
-                size="sm"
-                className="justify-start overflow-hidden text-left text-xs"
-                asChild
+                href={doc.href}
+                title={doc.title}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "justify-start overflow-hidden text-left text-xs",
+                )}
               >
-                <Link href={doc.href} title={doc.title}>
-                  <span className="truncate">{doc.title}</span>
-                </Link>
-              </Button>
+                <span className="truncate">{doc.title}</span>
+              </Link>
             ))}
           </div>
         </div>

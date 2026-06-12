@@ -149,14 +149,16 @@ export function AppShell({
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-zinc-200 bg-white/80 px-4 backdrop-blur-md sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
-                >
-                  <Menu className="size-5" />
-                </Button>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
+                  />
+                }
+              >
+                <Menu className="size-5" />
               </SheetTrigger>
               <SheetContent
                 side="left"
@@ -237,18 +239,20 @@ export function AppShell({
             </Button>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
-                >
-                  <Avatar className="size-full rounded-none">
-                    <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
-                      AD
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
+                  />
+                }
+              >
+                <Avatar className="size-full rounded-none">
+                  <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
+                    AD
+                  </AvatarFallback>
+                </Avatar>
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"

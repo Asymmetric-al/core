@@ -1,4 +1,4 @@
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import Link from "next/link";
 
@@ -54,14 +54,16 @@ export function LegalPageShell({
 
             <div className="flex flex-wrap gap-2">
               {legalRoutes.map((route) => (
-                <Button
+                <Link
                   key={route.key}
-                  asChild
-                  size="sm"
-                  variant={route.key === currentRoute ? "default" : "outline"}
+                  href={route.href}
+                  className={buttonVariants({
+                    size: "sm",
+                    variant: route.key === currentRoute ? "default" : "outline",
+                  })}
                 >
-                  <Link href={route.href}>{route.label}</Link>
-                </Button>
+                  {route.label}
+                </Link>
               ))}
             </div>
           </header>

@@ -3,13 +3,14 @@
 import { useDonorPortalSnapshot } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Activity,
   ArrowRight,
@@ -49,15 +50,15 @@ export function DonorDashboardMainBody() {
           </p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
-          <Button
-            variant="outline"
-            className="flex-1 sm:flex-none h-9 rounded-lg border-zinc-100 text-zinc-500 font-semibold uppercase tracking-widest text-[10px] bg-white hover:bg-zinc-50 hover:text-zinc-900 shadow-sm transition-all"
-            asChild
+          <Link
+            href="/donor-dashboard/history"
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "flex-1 sm:flex-none h-9 rounded-lg border-zinc-100 text-zinc-500 font-semibold uppercase tracking-widest text-[10px] bg-white hover:bg-zinc-50 hover:text-zinc-900 shadow-sm",
+            )}
           >
-            <Link href="/donor-dashboard/history">
-              <FileText className="mr-2 size-3.5 text-zinc-400" /> Tax Receipt
-            </Link>
-          </Button>
+            <FileText className="mr-2 size-3.5 text-zinc-400" /> Tax Receipt
+          </Link>
         </div>
       </div>
 
@@ -176,15 +177,15 @@ export function DonorDashboardMainBody() {
                 ))}
               </div>
             </CardContent>
-            <Button
-              variant="ghost"
-              className="w-full h-10 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50/30 hover:bg-zinc-100 hover:text-zinc-900 transition-all rounded-none border-t border-zinc-50 touch-target"
-              asChild
+            <Link
+              href="/donor-dashboard/feed"
+              className={cn(
+                buttonVariants({ variant: "ghost" }),
+                "w-full h-10 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 bg-zinc-50/30 hover:bg-zinc-100 hover:text-zinc-900 rounded-none border-t border-zinc-50 touch-target",
+              )}
             >
-              <Link href="/donor-dashboard/feed">
-                View All Ministry Updates
-              </Link>
-            </Button>
+              View All Ministry Updates
+            </Link>
           </Card>
         </div>
       </div>

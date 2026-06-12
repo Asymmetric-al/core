@@ -54,15 +54,20 @@ export const ProfileMenu = memo(function ProfileMenu() {
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="ghost" className="h-8 gap-2 px-2 hover:bg-secondary">
-          <Avatar className="size-6">
-            <AvatarFallback className="bg-foreground text-background text-[10px] font-medium">
-              {initials}
-            </AvatarFallback>
-          </Avatar>
-          <ChevronDown className="size-3 text-muted-foreground" />
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            className="h-8 gap-2 px-2 hover:bg-secondary"
+          />
+        }
+      >
+        <Avatar className="size-6">
+          <AvatarFallback className="bg-foreground text-background text-[10px] font-medium">
+            {initials}
+          </AvatarFallback>
+        </Avatar>
+        <ChevronDown className="size-3 text-muted-foreground" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="font-normal">

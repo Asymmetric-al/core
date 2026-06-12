@@ -376,15 +376,17 @@ export function getTaskColumns({
         return (
           <div className="flex justify-end">
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  aria-label={`Open actions for ${task.title}`}
-                  variant="ghost"
-                  className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
-                >
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="size-4" />
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    aria-label={`Open actions for ${task.title}`}
+                    variant="ghost"
+                    className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
+                  />
+                }
+              >
+                <span className="sr-only">Open menu</span>
+                <MoreHorizontal className="size-4" />
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"

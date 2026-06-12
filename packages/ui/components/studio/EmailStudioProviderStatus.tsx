@@ -39,7 +39,7 @@ export function EmailStudioProviderStatus({
   if (variant === "badge") {
     return (
       <Tooltip>
-        <TooltipTrigger asChild>{badge}</TooltipTrigger>
+        <TooltipTrigger render={badge} />
         <TooltipContent side="bottom">
           <p>
             {isLegacy

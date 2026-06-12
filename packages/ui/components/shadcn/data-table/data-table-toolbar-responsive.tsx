@@ -256,17 +256,19 @@ export function DataTableToolbarResponsive<TData>({
 
           {enableColumnVisibility && (
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={urlStatePending}
-                  className="h-9 gap-2 rounded-xl"
-                >
-                  <Columns className="size-4" />
-                  <span className="hidden md:inline">Columns</span>
-                  <ChevronDown className="size-3.5 opacity-50" />
-                </Button>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    disabled={urlStatePending}
+                    className="h-9 gap-2 rounded-xl"
+                  />
+                }
+              >
+                <Columns className="size-4" />
+                <span className="hidden md:inline">Columns</span>
+                <ChevronDown className="size-3.5 opacity-50" />
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
                 <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
@@ -369,24 +371,26 @@ function MobileFiltersDrawer<TData>({
 }: MobileFiltersDrawerProps<TData>) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange}>
-      <DrawerTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-9 gap-2 rounded-xl"
-          disabled={urlStatePending}
-        >
-          <SlidersHorizontal className="size-4" />
-          <span>Filters</span>
-          {activeFilterCount > 0 && (
-            <Badge
-              variant="secondary"
-              className="rounded-full px-1.5 py-0 text-xs font-normal"
-            >
-              {activeFilterCount}
-            </Badge>
-          )}
-        </Button>
+      <DrawerTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-9 gap-2 rounded-xl"
+            disabled={urlStatePending}
+          />
+        }
+      >
+        <SlidersHorizontal className="size-4" />
+        <span>Filters</span>
+        {activeFilterCount > 0 && (
+          <Badge
+            variant="secondary"
+            className="rounded-full px-1.5 py-0 text-xs font-normal"
+          >
+            {activeFilterCount}
+          </Badge>
+        )}
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>

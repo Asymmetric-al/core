@@ -1,8 +1,9 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
+import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
@@ -140,9 +141,12 @@ function StandardPageFromTemplateViewContent() {
         {!templateId ? (
           <p className="mt-4 text-destructive text-sm">
             No template selected. Go to{" "}
-            <Button variant="link" className="h-auto p-0" asChild>
-              <Link href="/web-studio/templates">Templates</Link>
-            </Button>
+            <Link
+              href="/web-studio/templates"
+              className={cn(buttonVariants({ variant: "link" }), "h-auto p-0")}
+            >
+              Templates
+            </Link>
             .
           </p>
         ) : null}

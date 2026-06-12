@@ -48,32 +48,34 @@ export function FilterSelectInput({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={listboxId}
-          className={cn(
-            "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 data-[state=open]:border-border data-[state=open]:bg-muted/50",
-            !selectedOption && "text-muted-foreground",
-            className,
-          )}
-        >
-          <span className="truncate">
-            {selectedOption ? (
-              <span className="flex items-center gap-2">
-                {selectedOption.icon && (
-                  <selectedOption.icon className="size-3.5 shrink-0" />
-                )}
-                {selectedOption.label}
-              </span>
-            ) : (
-              (field.placeholder ?? "Select...")
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            className={cn(
+              "h-9 w-[180px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+              !selectedOption && "text-muted-foreground",
+              className,
             )}
-          </span>
-          <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
-        </Button>
+          />
+        }
+      >
+        <span className="truncate">
+          {selectedOption ? (
+            <span className="flex items-center gap-2">
+              {selectedOption.icon && (
+                <selectedOption.icon className="size-3.5 shrink-0" />
+              )}
+              {selectedOption.label}
+            </span>
+          ) : (
+            (field.placeholder ?? "Select...")
+          )}
+        </span>
+        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent
         className="w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
@@ -162,51 +164,53 @@ export function FilterMultiSelectInput({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={listboxId}
-          className={cn(
-            "h-auto min-h-9 w-[240px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 data-[state=open]:border-border data-[state=open]:bg-muted/50",
-            !selectedOptions.length && "text-muted-foreground",
-            className,
-          )}
-        >
-          {selectedOptions.length > 0 ? (
-            <div className="flex flex-wrap gap-1 py-0.5">
-              {selectedOptions.length <= 2 ? (
-                selectedOptions.map((option) => (
-                  <Badge
-                    key={option.value}
-                    variant="secondary"
-                    className="rounded-md px-1.5 py-0 text-xs font-normal"
-                  >
-                    {option.label}
-                    <button
-                      type="button"
-                      onClick={(e) => removeValue(option.value, e)}
-                      className="ml-1 rounded-full hover:bg-muted-foreground/20"
-                    >
-                      <X className="size-3" />
-                    </button>
-                  </Badge>
-                ))
-              ) : (
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            className={cn(
+              "h-auto min-h-9 w-[240px] justify-between rounded-xl border-border/70 bg-background px-3 text-sm font-normal shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50",
+              !selectedOptions.length && "text-muted-foreground",
+              className,
+            )}
+          />
+        }
+      >
+        {selectedOptions.length > 0 ? (
+          <div className="flex flex-wrap gap-1 py-0.5">
+            {selectedOptions.length <= 2 ? (
+              selectedOptions.map((option) => (
                 <Badge
+                  key={option.value}
                   variant="secondary"
                   className="rounded-md px-1.5 py-0 text-xs font-normal"
                 >
-                  {selectedOptions.length} selected
+                  {option.label}
+                  <button
+                    type="button"
+                    onClick={(e) => removeValue(option.value, e)}
+                    className="ml-1 rounded-full hover:bg-muted-foreground/20"
+                  >
+                    <X className="size-3" />
+                  </button>
                 </Badge>
-              )}
-            </div>
-          ) : (
-            <span>{field.placeholder ?? "Select options..."}</span>
-          )}
-          <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
-        </Button>
+              ))
+            ) : (
+              <Badge
+                variant="secondary"
+                className="rounded-md px-1.5 py-0 text-xs font-normal"
+              >
+                {selectedOptions.length} selected
+              </Badge>
+            )}
+          </div>
+        ) : (
+          <span>{field.placeholder ?? "Select options..."}</span>
+        )}
+        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent
         className="w-[260px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"

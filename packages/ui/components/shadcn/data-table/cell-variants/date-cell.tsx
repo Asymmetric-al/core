@@ -64,18 +64,20 @@ export function DateCell<TData>({
   if (isEditing && !disabled) {
     return (
       <Popover open={open} onOpenChange={setOpen}>
-        <PopoverTrigger asChild>
-          <Button
-            variant="outline"
-            className={cn(
-              "h-8 w-full justify-start px-2 text-left text-sm font-normal",
-              !dateValue && "text-muted-foreground",
-              className,
-            )}
-          >
-            <CalendarIcon className="mr-2 size-3.5 shrink-0" />
-            <span className="truncate">{formattedValue ?? placeholder}</span>
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              className={cn(
+                "h-8 w-full justify-start px-2 text-left text-sm font-normal",
+                !dateValue && "text-muted-foreground",
+                className,
+              )}
+            />
+          }
+        >
+          <CalendarIcon className="mr-2 size-3.5 shrink-0" />
+          <span className="truncate">{formattedValue ?? placeholder}</span>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar

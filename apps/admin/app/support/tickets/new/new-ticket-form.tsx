@@ -1,7 +1,7 @@
 "use client";
 
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
@@ -178,9 +178,12 @@ export function NewTicketForm({ contacts, queues }: NewTicketFormProps) {
         <Button disabled={isSubmitting} type="submit">
           {isSubmitting ? "Creating..." : "Create ticket"}
         </Button>
-        <Button asChild variant="outline">
-          <Link href={supportHubRoutes.tickets}>Cancel</Link>
-        </Button>
+        <Link
+          href={supportHubRoutes.tickets}
+          className={buttonVariants({ variant: "outline" })}
+        >
+          Cancel
+        </Link>
       </div>
     </form>
   );

@@ -105,13 +105,15 @@ export function DashboardFooter({
               <Fragment key={`${item.href ?? "current"}-${item.label}`}>
                 <BreadcrumbItem className="gap-1">
                   {item.href ? (
-                    <BreadcrumbLink asChild>
-                      <Link
-                        href={item.href}
-                        className="text-muted-foreground/70 hover:text-foreground transition-colors"
-                      >
-                        {item.label}
-                      </Link>
+                    <BreadcrumbLink
+                      render={
+                        <Link
+                          href={item.href}
+                          className="text-muted-foreground/70 hover:text-foreground transition-colors"
+                        />
+                      }
+                    >
+                      {item.label}
                     </BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage className="text-foreground/80 font-medium">

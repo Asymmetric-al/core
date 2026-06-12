@@ -50,21 +50,23 @@ export function ConversationSnoozeMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-8 gap-1.5 rounded-lg border-zinc-200 px-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
-          aria-label="Snooze conversation"
-        >
-          {isSnoozed ? (
-            <Sunrise className="size-3.5 text-violet-500" />
-          ) : (
-            <Clock className="size-3.5" />
-          )}
-          {isSnoozed ? "Snoozed" : "Snooze"}
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="h-8 gap-1.5 rounded-lg border-zinc-200 px-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
+            aria-label="Snooze conversation"
+          />
+        }
+      >
+        {isSnoozed ? (
+          <Sunrise className="size-3.5 text-violet-500" />
+        ) : (
+          <Clock className="size-3.5" />
+        )}
+        {isSnoozed ? "Snoozed" : "Snooze"}
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
@@ -74,7 +76,7 @@ export function ConversationSnoozeMenu({
         {QUICK_SNOOZE_OPTIONS.map((option) => (
           <DropdownMenuItem
             key={option.label}
-            onSelect={() =>
+            onClick={() =>
               snooze.mutate({
                 conversationId: conversation.id,
                 snoozedUntil: makeDisplayDate(
@@ -91,7 +93,7 @@ export function ConversationSnoozeMenu({
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem
-              onSelect={() =>
+              onClick={() =>
                 unsnooze.mutate({ conversationId: conversation.id })
               }
               className="text-[12px] text-zinc-700"

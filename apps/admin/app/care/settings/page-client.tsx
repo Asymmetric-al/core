@@ -2,7 +2,7 @@
 
 import { siteConfig } from "@asym/config/site-client";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -248,7 +248,7 @@ function AlertPreferencesCard() {
             </div>
             <Switch
               defaultChecked={pref.defaultChecked}
-              className="data-[state=checked]:bg-zinc-900"
+              className="data-checked:bg-zinc-900"
             />
           </div>
         ))}
@@ -327,20 +327,18 @@ function ModuleInfoCard() {
                 {siteConfig.name}
               </span>
             </div>
-            <Button
-              variant="outline"
-              className="w-full h-10 rounded-xl border-zinc-200 text-sm font-semibold text-zinc-900 group"
-              asChild
+            <a
+              href={siteConfig.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "w-full h-10 rounded-xl border-zinc-200 text-sm font-semibold text-zinc-900 group",
+              )}
             >
-              <a
-                href={siteConfig.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Visit Home Page
-                <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            </Button>
+              Visit Home Page
+              <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
           </div>
         </div>
       </CardContent>

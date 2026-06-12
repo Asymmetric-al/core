@@ -19,7 +19,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   DataTableResponsive,
   type DataTableFilterField,
@@ -322,13 +322,13 @@ function DetailDrawer({
               <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
                 <TabsTrigger
                   value="activity"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                  className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
                 >
                   Activity
                 </TabsTrigger>
                 <TabsTrigger
                   value="properties"
-                  className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                  className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
                 >
                   Properties
                 </TabsTrigger>
@@ -809,24 +809,36 @@ export default function MissionControlCRM() {
             <Button className="h-10 gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
               <Plus className="size-3.5" /> New Record
             </Button>
-            <Button variant="outline" className="h-11 gap-2" asChild>
-              <Link href="/crm/relationships">
-                <Network className="h-4 w-4" />
-                Relationships
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-11 gap-2" asChild>
-              <Link href="/crm/notes">
-                <StickyNote className="h-4 w-4" />
-                Notes
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-11 gap-2" asChild>
-              <Link href="/crm/projections">
-                <GitCompareArrows className="h-4 w-4" />
-                Projections
-              </Link>
-            </Button>
+            <Link
+              href="/crm/relationships"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 gap-2",
+              )}
+            >
+              <Network className="h-4 w-4" />
+              Relationships
+            </Link>
+            <Link
+              href="/crm/notes"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 gap-2",
+              )}
+            >
+              <StickyNote className="h-4 w-4" />
+              Notes
+            </Link>
+            <Link
+              href="/crm/projections"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 gap-2",
+              )}
+            >
+              <GitCompareArrows className="h-4 w-4" />
+              Projections
+            </Link>
           </div>
         }
       >

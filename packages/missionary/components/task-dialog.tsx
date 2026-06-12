@@ -143,7 +143,7 @@ export interface TaskDialogProps {
   initialStatus?: TaskStatus;
   onSuccess?: (task: Task) => void;
   onClose?: () => void;
-  trigger?: React.ReactNode;
+  trigger?: React.ReactElement;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -393,29 +393,31 @@ function DatePickerField({
             {label}
           </span>
           <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  "h-12 justify-start rounded-xl border-transparent bg-zinc-50 text-left font-medium transition-all hover:bg-zinc-100",
-                  !field.state.value && "text-zinc-400",
-                )}
-                type="button"
-                variant="outline"
-              >
-                <Icon className="mr-2 size-4" />
-                {field.state.value
-                  ? format(field.state.value, "PPP")
-                  : placeholder}
-                {field.state.value ? (
-                  <X
-                    className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      field.handleChange(null);
-                    }}
-                  />
-                ) : null}
-              </Button>
+            <PopoverTrigger
+              render={
+                <Button
+                  className={cn(
+                    "h-12 justify-start rounded-xl border-transparent bg-zinc-50 text-left font-medium transition-colors hover:bg-zinc-100",
+                    !field.state.value && "text-zinc-400",
+                  )}
+                  type="button"
+                  variant="outline"
+                />
+              }
+            >
+              <Icon className="mr-2 size-4" />
+              {field.state.value
+                ? format(field.state.value, "PPP")
+                : placeholder}
+              {field.state.value ? (
+                <X
+                  className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    field.handleChange(null);
+                  }}
+                />
+              ) : null}
             </PopoverTrigger>
             <PopoverContent align="start" className="w-auto rounded-xl p-0">
               <Calendar
@@ -501,54 +503,56 @@ function DonorSelectorField({
               onOpenChange={onDonorSearchOpenChange}
               open={donorSearchOpen}
             >
-              <PopoverTrigger asChild>
-                <Button
-                  aria-controls={donorListboxId}
-                  aria-expanded={donorSearchOpen}
-                  className={cn(
-                    "h-12 justify-between rounded-xl border-transparent bg-zinc-50 font-medium transition-all hover:bg-zinc-100",
-                    !field.state.value && "text-zinc-400",
-                  )}
-                  role="combobox"
-                  type="button"
-                  variant="outline"
-                >
-                  {selectedDonor ? (
-                    <div className="flex items-center gap-2">
-                      <Avatar className="size-6">
-                        <AvatarImage
-                          src={selectedDonor.avatar_url || undefined}
-                        />
-                        <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
-                          {selectedDonor.name
-                            .split(" ")
-                            .map((name) => name[0])
-                            .join("")
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{selectedDonor.name}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <User className="size-4" />
-                      <span>Select partner (optional)</span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-1">
-                    {field.state.value ? (
-                      <X
-                        className="size-4 text-zinc-400 hover:text-zinc-600"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          field.handleChange("");
-                        }}
+              <PopoverTrigger
+                render={
+                  <Button
+                    aria-controls={donorListboxId}
+                    aria-expanded={donorSearchOpen}
+                    className={cn(
+                      "h-12 justify-between rounded-xl border-transparent bg-zinc-50 font-medium transition-colors hover:bg-zinc-100",
+                      !field.state.value && "text-zinc-400",
+                    )}
+                    role="combobox"
+                    type="button"
+                    variant="outline"
+                  />
+                }
+              >
+                {selectedDonor ? (
+                  <div className="flex items-center gap-2">
+                    <Avatar className="size-6">
+                      <AvatarImage
+                        src={selectedDonor.avatar_url || undefined}
                       />
-                    ) : null}
-                    <ChevronsUpDown className="size-4 opacity-50" />
+                      <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
+                        {selectedDonor.name
+                          .split(" ")
+                          .map((name) => name[0])
+                          .join("")
+                          .slice(0, 2)}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{selectedDonor.name}</span>
                   </div>
-                </Button>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <User className="size-4" />
+                    <span>Select partner (optional)</span>
+                  </div>
+                )}
+
+                <div className="flex items-center gap-1">
+                  {field.state.value ? (
+                    <X
+                      className="size-4 text-zinc-400 hover:text-zinc-600"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        field.handleChange("");
+                      }}
+                    />
+                  ) : null}
+                  <ChevronsUpDown className="size-4 opacity-50" />
+                </div>
               </PopoverTrigger>
 
               <PopoverContent
@@ -769,7 +773,7 @@ export function TaskDialog({
       }}
       open={open}
     >
-      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="max-h-[90vh] overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[600px]">
         <div className="bg-zinc-900 p-8 text-white">
           <DialogTitle className="text-2xl font-black tracking-tight">

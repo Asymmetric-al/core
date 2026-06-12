@@ -612,20 +612,22 @@ function AllPostsFeedPostCard({
                 </div>
 
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <motion.div
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
+                  <motion.div
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
+                        />
+                      }
                     >
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </motion.div>
-                  </DropdownMenuTrigger>
+                      <MoreHorizontal className="size-4" />
+                    </DropdownMenuTrigger>
+                  </motion.div>
                   <DropdownMenuContent
                     align="end"
                     className="w-52 rounded-xl p-1.5"
@@ -1147,7 +1149,7 @@ export function ContentModerationTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="moderation"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             <ShieldAlert className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             Queue
@@ -1168,7 +1170,7 @@ export function ContentModerationTabsSection({
           </TabsTrigger>
           <TabsTrigger
             value="all"
-            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            className="rounded-lg px-3 sm:px-4 py-2 sm:py-2.5 font-semibold text-[9px] sm:text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             <Globe className="size-3.5 sm:h-4 sm:w-4 mr-1.5 sm:mr-2" />
             All Posts
@@ -1211,21 +1213,23 @@ export function ContentModerationTabsSection({
                 )}
               </div>
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <motion.div
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                <motion.div
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-9 sm:h-10 gap-2 rounded-xl"
+                      />
+                    }
                   >
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="h-9 sm:h-10 gap-2 rounded-xl"
-                    >
-                      <Filter className="size-4" />
-                      <span className="hidden sm:inline">Filter</span>
-                    </Button>
-                  </motion.div>
-                </DropdownMenuTrigger>
+                    <Filter className="size-4" />
+                    <span className="hidden sm:inline">Filter</span>
+                  </DropdownMenuTrigger>
+                </motion.div>
                 <DropdownMenuContent
                   align="end"
                   className="w-56 rounded-xl p-1.5"
@@ -1615,69 +1619,75 @@ function ModerationQueuePostCard({
                 </div>
 
                 <div className="flex items-center gap-1 shrink-0">
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider delay={0}>
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 sm:h-9 sm:w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
+                              onClick={() => onActionClick(post.id, "approve")}
+                            />
+                          }
                         >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 sm:h-9 sm:w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
-                            onClick={() => onActionClick(post.id, "approve")}
-                          >
-                            <Check className="size-4" />
-                          </Button>
-                        </motion.div>
-                      </TooltipTrigger>
+                          <Check className="size-4" />
+                        </TooltipTrigger>
+                      </motion.div>
                       <TooltipContent className="rounded-lg">
                         Approve
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider delay={0}>
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 sm:h-9 sm:w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
+                              onClick={() => onActionClick(post.id, "hide")}
+                            />
+                          }
                         >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 sm:h-9 sm:w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
-                            onClick={() => onActionClick(post.id, "hide")}
-                          >
-                            <EyeOff className="size-4" />
-                          </Button>
-                        </motion.div>
-                      </TooltipTrigger>
+                          <EyeOff className="size-4" />
+                        </TooltipTrigger>
+                      </motion.div>
                       <TooltipContent className="rounded-lg">
                         Hide Post
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
 
-                  <TooltipProvider delayDuration={0}>
+                  <TooltipProvider delay={0}>
                     <Tooltip>
-                      <TooltipTrigger asChild>
-                        <motion.div
-                          whileHover={{ scale: 1.1 }}
-                          whileTap={{ scale: 0.9 }}
+                      <motion.div
+                        whileHover={{ scale: 1.1 }}
+                        whileTap={{ scale: 0.9 }}
+                      >
+                        <TooltipTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 sm:h-9 sm:w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
+                              onClick={() => onActionClick(post.id, "delete")}
+                            />
+                          }
                         >
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 sm:h-9 sm:w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
-                            onClick={() => onActionClick(post.id, "delete")}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </motion.div>
-                      </TooltipTrigger>
+                          <Trash2 className="size-4" />
+                        </TooltipTrigger>
+                      </motion.div>
                       <TooltipContent className="rounded-lg">
                         Delete Post
                       </TooltipContent>
@@ -1685,20 +1695,22 @@ function ModerationQueuePostCard({
                   </TooltipProvider>
 
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
+                    <motion.div
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                    >
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 sm:h-9 sm:w-9 rounded-xl"
+                          />
+                        }
                       >
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 sm:h-9 sm:w-9 rounded-xl"
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </motion.div>
-                    </DropdownMenuTrigger>
+                        <MoreHorizontal className="size-4" />
+                      </DropdownMenuTrigger>
+                    </motion.div>
                     <DropdownMenuContent
                       align="end"
                       className="w-48 rounded-xl p-1.5"

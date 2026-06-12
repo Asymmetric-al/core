@@ -1,7 +1,8 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import {
   CreditCard,
   TrendingUp,
@@ -48,14 +49,15 @@ export function WaysToGiveClient() {
                   a recurring monthly partnership.
                 </p>
               </div>
-              <Button
-                className="w-full h-12 text-base font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-lg"
-                asChild
+              <Link
+                href="/workers"
+                className={cn(
+                  buttonVariants(),
+                  "w-full h-12 text-base font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-lg",
+                )}
               >
-                <Link href="/workers">
-                  Give Online <ArrowRight className="ml-2 size-4" />
-                </Link>
-              </Button>
+                Give Online <ArrowRight className="ml-2 size-4" />
+              </Link>
             </CardContent>
           </Card>
 

@@ -5,7 +5,7 @@ import {
   workerTitleTransitionName,
 } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +16,7 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Search,
   MapPin,
@@ -215,23 +216,25 @@ export function WorkersPageClient() {
 
             <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
-                  >
-                    <Filter
-                      className="size-4 text-zinc-400 shrink-0"
-                      aria-hidden="true"
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
                     />
-                    <span className="truncate">
-                      {categoryFilter === "All" ? "Focus" : categoryFilter}
-                    </span>
-                    <ChevronDown
-                      className="size-3 opacity-50 shrink-0"
-                      aria-hidden="true"
-                    />
-                  </Button>
+                  }
+                >
+                  <Filter
+                    className="size-4 text-zinc-400 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">
+                    {categoryFilter === "All" ? "Focus" : categoryFilter}
+                  </span>
+                  <ChevronDown
+                    className="size-3 opacity-50 shrink-0"
+                    aria-hidden="true"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
@@ -255,23 +258,25 @@ export function WorkersPageClient() {
               </DropdownMenu>
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
-                  >
-                    <MapPin
-                      className="size-4 text-zinc-400 shrink-0"
-                      aria-hidden="true"
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
                     />
-                    <span className="truncate">
-                      {regionFilter === "All" ? "Region" : regionFilter}
-                    </span>
-                    <ChevronDown
-                      className="size-3 opacity-50 shrink-0"
-                      aria-hidden="true"
-                    />
-                  </Button>
+                  }
+                >
+                  <MapPin
+                    className="size-4 text-zinc-400 shrink-0"
+                    aria-hidden="true"
+                  />
+                  <span className="truncate">
+                    {regionFilter === "All" ? "Region" : regionFilter}
+                  </span>
+                  <ChevronDown
+                    className="size-3 opacity-50 shrink-0"
+                    aria-hidden="true"
+                  />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
@@ -384,21 +389,24 @@ export function WorkersPageClient() {
             Resources are instantly routed to the highest-priority urgent needs.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-            <Button
-              size="lg"
-              className="h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm sm:text-base font-semibold shadow-xl w-full sm:w-auto"
-              asChild
+            <Link
+              href="/checkout?fund=general"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm sm:text-base font-semibold shadow-xl w-full sm:w-auto",
+              )}
             >
-              <Link href="/checkout?fund=general">Support Urgent Needs</Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-sm sm:text-base font-semibold backdrop-blur-xl w-full sm:w-auto"
-              asChild
+              Support Urgent Needs
+            </Link>
+            <Link
+              href="/about"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-sm sm:text-base font-semibold backdrop-blur-xl w-full sm:w-auto",
+              )}
             >
-              <Link href="/about">How We Verify</Link>
-            </Button>
+              How We Verify
+            </Link>
           </div>
         </div>
       </section>

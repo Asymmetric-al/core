@@ -4,7 +4,7 @@ import { GithubIcon, MenuIcon, SearchIcon, TwitterIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { cn } from "@asym/ui/lib/utils";
 
@@ -88,9 +88,9 @@ const Header = ({ navigationData, className }: HeaderProps) => {
             </Button>
           </div>
 
-          <Button className="lg:ml-4" asChild>
-            <Link href="/">Sign In</Link>
-          </Button>
+          <Link href="/" className={cn(buttonVariants(), "lg:ml-4")}>
+            Sign In
+          </Link>
 
           <MenuDropdown
             align="end"

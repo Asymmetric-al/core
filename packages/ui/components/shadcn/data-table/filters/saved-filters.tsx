@@ -114,32 +114,40 @@ export function SavedFilters({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Popover>
-        <PopoverTrigger asChild>
-          <Button variant="outline" size="sm" className="h-9 gap-2 rounded-xl">
-            <BookmarkIcon className="size-4" />
-            <span className="hidden sm:inline">Saved Views</span>
-            {savedFilters.length > 0 && (
-              <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs">
-                {savedFilters.length}
-              </span>
-            )}
-          </Button>
+        <PopoverTrigger
+          render={
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-2 rounded-xl"
+            />
+          }
+        >
+          <BookmarkIcon className="size-4" />
+          <span className="hidden sm:inline">Saved Views</span>
+          {savedFilters.length > 0 && (
+            <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs">
+              {savedFilters.length}
+            </span>
+          )}
         </PopoverTrigger>
         <PopoverContent className="w-72 p-2" align="start">
           <div className="space-y-1">
             <div className="flex items-center justify-between px-2 py-1">
               <span className="text-sm font-medium">Saved Views</span>
               <Dialog open={saveDialogOpen} onOpenChange={setSaveDialogOpen}>
-                <DialogTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-7 gap-1 text-xs"
-                    disabled={activeCount === 0}
-                  >
-                    <PlusIcon className="size-3" />
-                    Save current
-                  </Button>
+                <DialogTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 gap-1 text-xs"
+                      disabled={activeCount === 0}
+                    />
+                  }
+                >
+                  <PlusIcon className="size-3" />
+                  Save current
                 </DialogTrigger>
                 <DialogContent>
                   <DialogHeader>
@@ -248,14 +256,16 @@ export function SavedFilters({
                           )}
                         </button>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
-                            >
-                              <MoreHorizontalIcon className="size-3" />
-                            </Button>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
+                              />
+                            }
+                          >
+                            <MoreHorizontalIcon className="size-3" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem

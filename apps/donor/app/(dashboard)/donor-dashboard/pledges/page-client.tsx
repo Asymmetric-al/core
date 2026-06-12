@@ -273,14 +273,16 @@ function PledgeCard({
               </div>
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    className="size-8 text-zinc-400 hover:text-zinc-900 -mr-2"
-                  >
-                    <MoreHorizontal className="size-5" />
-                  </Button>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="size-8 text-zinc-400 hover:text-zinc-900 -mr-2"
+                    />
+                  }
+                >
+                  <MoreHorizontal className="size-5" />
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-48">
                   {pledge.status === "Active" ? (
@@ -768,7 +770,7 @@ function MovePledgeAddContent({
             <Switch
               checked={useProfileAddress}
               onCheckedChange={onSetUseProfileAddress}
-              className="data-[state=checked]:bg-zinc-900"
+              className="data-checked:bg-zinc-900"
             />
           </div>
         </div>
@@ -829,9 +831,12 @@ function MovePledgeAddContent({
               />
               <Select
                 value={billingAddress.country}
-                onValueChange={(value) =>
-                  onSetBillingAddress({ ...billingAddress, country: value })
-                }
+                onValueChange={(value) => {
+                  if (value === null) {
+                    return;
+                  }
+                  onSetBillingAddress({ ...billingAddress, country: value });
+                }}
               >
                 <SelectTrigger className="h-10 bg-zinc-50 border-zinc-200 focus:bg-white rounded-lg text-[10px] font-semibold uppercase tracking-widest">
                   <SelectValue placeholder="Country" />
@@ -971,9 +976,10 @@ function EditPledgeDialog({
                       onValueChange={(value) =>
                         onSetEditForm((prev) => ({
                           ...prev,
-                          frequency: isPledgeFrequency(value)
-                            ? value
-                            : prev.frequency,
+                          frequency:
+                            value !== null && isPledgeFrequency(value)
+                              ? value
+                              : prev.frequency,
                         }))
                       }
                     >

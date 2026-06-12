@@ -2,7 +2,7 @@
 
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import {
   ListControls,
@@ -167,16 +167,16 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
           headerClassName="border-0 pb-6"
           actions={
             hasCreatePermission && createHref ? (
-              <Button
-                size="sm"
-                className="font-semibold uppercase tracking-wide"
-                asChild
+              <Link
+                href={createHref}
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "font-semibold uppercase tracking-wide",
+                )}
               >
-                <Link href={createHref}>
-                  <Plus className="mr-2 size-4" />
-                  {studioConfig.createLabel}
-                </Link>
-              </Button>
+                <Plus className="mr-2 size-4" />
+                {studioConfig.createLabel}
+              </Link>
             ) : null
           }
         >

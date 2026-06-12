@@ -19,7 +19,7 @@ import {
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   DropdownMenu,
@@ -435,20 +435,19 @@ function PostCard({
             </div>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
+                  />
+                }
               >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
-                >
-                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
-                </Button>
-              </motion.div>
-            </DropdownMenuTrigger>
+                <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
+              </DropdownMenuTrigger>
+            </motion.div>
             <DropdownMenuContent
               align="end"
               className="rounded-xl border shadow-lg p-2 min-w-[160px]"
@@ -850,7 +849,7 @@ function ComposeCardActions({
             size="sm"
             disabled={isUploading}
             onClick={onAddMedia}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
+            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
           >
             {isUploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -862,27 +861,29 @@ function ComposeCardActions({
         </motion.div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
-              >
-                {visibility === "public" ? (
-                  <Globe className="size-3" />
-                ) : visibility === "partners" ? (
-                  <Users className="size-3" />
-                ) : (
-                  <Lock className="size-3" />
-                )}
-                <span className="hidden sm:inline capitalize">
-                  {visibility === "partners" ? "Partners" : visibility}
-                </span>
-                <ChevronDown className="size-2.5 opacity-40" />
-              </Button>
-            </motion.div>
-          </DropdownMenuTrigger>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+                />
+              }
+            >
+              {visibility === "public" ? (
+                <Globe className="size-3" />
+              ) : visibility === "partners" ? (
+                <Users className="size-3" />
+              ) : (
+                <Lock className="size-3" />
+              )}
+              <span className="hidden sm:inline capitalize">
+                {visibility === "partners" ? "Partners" : visibility}
+              </span>
+              <ChevronDown className="size-2.5 opacity-40" />
+            </DropdownMenuTrigger>
+          </motion.div>
           <DropdownMenuContent
             align="start"
             className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
@@ -1259,13 +1260,13 @@ function OrgUpdatesTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="published"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             Published
           </TabsTrigger>
           <TabsTrigger
             value="draft"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
           >
             Drafts
             <AnimatePresence>
@@ -1458,16 +1459,16 @@ export default function OrgUpdatesPage() {
         density="compact"
         actions={
           <>
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
-              asChild
+            <Link
+              href="/feed"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50",
+              )}
             >
-              <Link href="/feed">
-                <Eye className="mr-2 size-4" />
-                Moderation
-              </Link>
-            </Button>
+              <Eye className="mr-2 size-4" />
+              Moderation
+            </Link>
             <Button
               variant="outline"
               className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"

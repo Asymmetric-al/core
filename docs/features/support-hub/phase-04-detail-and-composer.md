@@ -240,7 +240,7 @@ null })`.
 - Desktop right rail keeps the height of the inbox grid; the composer is
   sticky at the bottom of the rail's own scroll container, not the page.
 - Reduced motion is respected — no transition on tab switching beyond
-  Radix defaults.
+  the Base UI defaults.
 
 ## Quality gates run
 

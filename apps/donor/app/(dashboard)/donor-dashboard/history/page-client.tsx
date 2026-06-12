@@ -3,7 +3,7 @@
 import { useDonorHistoryTransactions } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import {
@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Calendar,
   FileText,
@@ -189,7 +190,15 @@ function HistoryPageHeader({
       </div>
       <div className="flex flex-wrap gap-3">
         <div className="relative w-[140px]">
-          <Select value={yearFilter} onValueChange={onYearFilterChange}>
+          <Select
+            value={yearFilter}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              onYearFilterChange(value);
+            }}
+          >
             <SelectTrigger className="pl-10 bg-white border-zinc-200 shadow-sm">
               <Calendar className="absolute left-3 top-2.5 size-4 text-zinc-500 z-10 pointer-events-none" />
               <SelectValue placeholder="Year" />
@@ -203,17 +212,15 @@ function HistoryPageHeader({
             </SelectContent>
           </Select>
         </div>
-        <Button
-          asChild
-          className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg"
+        <a
+          href={`/api/donor/statements/${yearFilter}`}
+          className={cn(
+            buttonVariants(),
+            "bg-zinc-900 hover:bg-zinc-800 text-white shadow-md font-semibold uppercase tracking-widest text-[10px] h-10 px-6 rounded-lg",
+          )}
         >
-          <a
-            className="inline-flex items-center"
-            href={`/api/donor/statements/${yearFilter}`}
-          >
-            <DownloadCloud className="mr-2 size-4" /> Download Statement
-          </a>
-        </Button>
+          <DownloadCloud className="mr-2 size-4" /> Download Statement
+        </a>
       </div>
     </div>
   );
@@ -320,18 +327,20 @@ function HistoryFiltersToolbar({
       </div>
       <div className="flex gap-2 overflow-x-auto pb-1 sm:pb-0">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
-            >
-              <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
-              {typeFilter !== "All" && (
-                <Badge variant="secondary" className="ml-2 h-4 px-1">
-                  {typeFilter}
-                </Badge>
-              )}
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
+              />
+            }
+          >
+            <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
+            {typeFilter !== "All" && (
+              <Badge variant="secondary" className="ml-2 h-4 px-1">
+                {typeFilter}
+              </Badge>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
@@ -363,18 +372,20 @@ function HistoryFiltersToolbar({
         </DropdownMenu>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
-            >
-              Status{" "}
-              {statusFilter !== "All" && (
-                <Badge variant="secondary" className="ml-2 h-4 px-1">
-                  {statusFilter}
-                </Badge>
-              )}
-            </Button>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="outline"
+                className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
+              />
+            }
+          >
+            Status{" "}
+            {statusFilter !== "All" && (
+              <Badge variant="secondary" className="ml-2 h-4 px-1">
+                {statusFilter}
+              </Badge>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">

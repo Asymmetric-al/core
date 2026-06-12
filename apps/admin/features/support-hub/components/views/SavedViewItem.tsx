@@ -52,21 +52,23 @@ export function SavedViewItem({
         <span className="truncate max-w-[160px] block">{view.name}</span>
       </button>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="size-6 rounded-md text-zinc-400 hover:text-zinc-700"
-            aria-label={`Saved view actions for ${view.name}`}
-          >
-            <MoreHorizontal className="size-3" />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-6 rounded-md text-zinc-400 hover:text-zinc-700"
+              aria-label={`Saved view actions for ${view.name}`}
+            />
+          }
+        >
+          <MoreHorizontal className="size-3" />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem
-            onSelect={(event) => {
-              event.preventDefault();
+            closeOnClick={false}
+            onClick={() => {
               onRename();
             }}
             className="text-[12px]"
@@ -76,8 +78,8 @@ export function SavedViewItem({
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            onSelect={(event) => {
-              event.preventDefault();
+            closeOnClick={false}
+            onClick={() => {
               onDelete();
             }}
             className="text-[12px] text-rose-600 focus:text-rose-600"

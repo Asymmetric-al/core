@@ -161,20 +161,22 @@ function TaskOverviewSection({
 
       <div className="flex flex-wrap items-center gap-2">
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 gap-1.5 rounded-lg text-xs"
-            >
-              <Badge
+          <DropdownMenuTrigger
+            render={
+              <Button
                 variant="outline"
-                className={cn(COMPACT_OUTLINE_BADGE_CLASS, statusColor)}
-              >
-                {statusLabel}
-              </Badge>
-              <ChevronDown className="size-3" />
-            </Button>
+                size="sm"
+                className="h-7 gap-1.5 rounded-lg text-xs"
+              />
+            }
+          >
+            <Badge
+              variant="outline"
+              className={cn(COMPACT_OUTLINE_BADGE_CLASS, statusColor)}
+            >
+              {statusLabel}
+            </Badge>
+            <ChevronDown className="size-3" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="rounded-2xl p-2">
             {TASK_STATUSES.map((status) => (
@@ -199,20 +201,22 @@ function TaskOverviewSection({
         </DropdownMenu>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-7 gap-1.5 rounded-lg text-xs"
-            >
-              <Badge
+          <DropdownMenuTrigger
+            render={
+              <Button
                 variant="outline"
-                className={cn(COMPACT_OUTLINE_BADGE_CLASS, priorityColor)}
-              >
-                {priorityLabel}
-              </Badge>
-              <ChevronDown className="size-3" />
-            </Button>
+                size="sm"
+                className="h-7 gap-1.5 rounded-lg text-xs"
+              />
+            }
+          >
+            <Badge
+              variant="outline"
+              className={cn(COMPACT_OUTLINE_BADGE_CLASS, priorityColor)}
+            >
+              {priorityLabel}
+            </Badge>
+            <ChevronDown className="size-3" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="rounded-2xl p-2">
             {TASK_PRIORITIES.map((priority) => (
@@ -311,26 +315,31 @@ function TaskDueAndAssigneeSection({
           <User className="size-3" /> Assigned To
         </p>
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="h-auto p-0 hover:bg-transparent">
-              {task.assigned_to_name ? (
-                <div className="flex items-center gap-2">
-                  <Avatar className="size-6 border border-border">
-                    <AvatarImage src={task.assigned_to_avatar} />
-                    <AvatarFallback className="text-xs bg-primary text-primary-foreground">
-                      {task.assigned_to_name[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">
-                    {task.assigned_to_name}
-                  </span>
-                </div>
-              ) : (
-                <span className="text-sm text-muted-foreground italic">
-                  Unassigned
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                className="h-auto p-0 hover:bg-transparent"
+              />
+            }
+          >
+            {task.assigned_to_name ? (
+              <div className="flex items-center gap-2">
+                <Avatar className="size-6 border border-border">
+                  <AvatarImage src={task.assigned_to_avatar} />
+                  <AvatarFallback className="text-xs bg-primary text-primary-foreground">
+                    {task.assigned_to_name[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm font-medium">
+                  {task.assigned_to_name}
                 </span>
-              )}
-            </Button>
+              </div>
+            ) : (
+              <span className="text-sm text-muted-foreground italic">
+                Unassigned
+              </span>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent align="start" className="rounded-2xl w-56 p-2">
             {staffMembers.map((staff) => (

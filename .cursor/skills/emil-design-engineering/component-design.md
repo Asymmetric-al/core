@@ -78,7 +78,7 @@ Too much customization: API becomes confusing, maintenance nightmare.
 1. **Variants** - Predefined options (primary, secondary, destructive)
 2. **Size** - Predefined sizes (sm, md, lg)
 3. **className** - Escape hatch for one-off customizations
-4. **asChild** - Render as different element (Radix pattern)
+4. **render** - Render as different element (Base UI pattern; this repo is Base UI only)
 
 ## Props API Design
 
@@ -186,34 +186,30 @@ function Card({ children, header, footer }) {
 </Card>;
 ```
 
-## The `asChild` Pattern
+## The `render` Pattern
 
-Allow rendering as a different element while preserving behavior:
+Allow rendering as a different element while preserving behavior. This repo
+uses Base UI's `render` prop (there is no `asChild` here):
 
 ```jsx
 // Render as button (default)
 <Button>Click me</Button>
 
 // Render as link
-<Button asChild>
-  <a href="/page">Click me</a>
-</Button>
-
-// Render as Next.js Link
-<Button asChild>
-  <Link href="/page">Click me</Link>
+<Button render={<a href="/page" />} nativeButton={false}>
+  Click me
 </Button>
 ```
 
-Implementation using Radix Slot:
+For link-style buttons, prefer styling the link with `buttonVariants`
+instead of rendering `Button` as a link:
 
 ```jsx
-import { Slot } from "@radix-ui/react-slot";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 
-function Button({ asChild, ...props }) {
-  const Comp = asChild ? Slot : "button";
-  return <Comp {...props} />;
-}
+<Link href="/page" className={cn(buttonVariants({ variant: "outline" }))}>
+  Click me
+</Link>;
 ```
 
 ## Forwarding Refs

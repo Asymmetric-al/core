@@ -250,18 +250,20 @@ function DatePickerButton({
 }: DatePickerButtonProps) {
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "h-8 w-[160px] justify-start px-2 text-left text-sm font-normal",
-            !value && "text-muted-foreground",
-            className,
-          )}
-        >
-          <CalendarIcon className="mr-2 size-3.5" />
-          {value ? format(value, "MMM d, yyyy") : placeholder}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            className={cn(
+              "h-8 w-[160px] justify-start px-2 text-left text-sm font-normal",
+              !value && "text-muted-foreground",
+              className,
+            )}
+          />
+        }
+      >
+        <CalendarIcon className="mr-2 size-3.5" />
+        {value ? format(value, "MMM d, yyyy") : placeholder}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar

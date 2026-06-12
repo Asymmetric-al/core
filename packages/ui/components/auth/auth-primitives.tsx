@@ -165,7 +165,7 @@ export function AuthCheckbox({
         defaultChecked={defaultChecked}
         onCheckedChange={(value) => onCheckedChange?.(value === true)}
         disabled={disabled}
-        className="grid size-4 place-items-center rounded-[4px] border border-input bg-background text-primary shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-[state=checked]:border-primary data-[state=checked]:bg-primary data-[state=checked]:text-primary-foreground"
+        className="grid size-4 place-items-center rounded-[4px] border border-input bg-background text-primary shadow-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50 data-checked:border-primary data-checked:bg-primary data-checked:text-primary-foreground"
       />
       <span>{label}</span>
     </label>

@@ -12,7 +12,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
   type ColumnDef,
@@ -932,15 +932,13 @@ export function DonorsPageContent({
             missionaryId={profile.id}
             onSuccess={refreshDonors}
             trigger={
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Button
+                size="sm"
+                className="h-9 px-4 text-xs font-medium hover-scale-subtle"
               >
-                <Button size="sm" className="h-9 px-4 text-xs font-medium">
-                  <Plus className="mr-2 size-4" />
-                  Add Partner
-                </Button>
-              </motion.div>
+                <Plus className="mr-2 size-4" />
+                Add Partner
+              </Button>
             }
           />
         )}
@@ -1009,14 +1007,16 @@ export function DonorsPageContent({
                 </h2>
                 <div className="flex gap-1">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
-                      >
-                        <ArrowDownUp className="size-4" />
-                      </Button>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
+                        />
+                      }
+                    >
+                      <ArrowDownUp className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
@@ -1054,19 +1054,21 @@ export function DonorsPageContent({
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "size-8 rounded-lg",
-                          hasActiveFilters
-                            ? "text-blue-600 bg-blue-50"
-                            : "text-zinc-400 hover:text-zinc-900",
-                        )}
-                      >
-                        <Filter className="size-4" />
-                      </Button>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "size-8 rounded-lg",
+                            hasActiveFilters
+                              ? "text-blue-600 bg-blue-50"
+                              : "text-zinc-400 hover:text-zinc-900",
+                          )}
+                        />
+                      }
+                    >
+                      <Filter className="size-4" />
                     </DropdownMenuTrigger>
                     <DropdownMenuContent
                       align="end"
@@ -1416,43 +1418,45 @@ export function DonorsPageContent({
                           whileTap={{ scale: 0.98 }}
                           className="flex-1 sm:flex-none"
                         >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
-                            asChild
+                          <a
+                            href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}
+                            className={cn(
+                              buttonVariants({
+                                variant: "outline",
+                                size: "sm",
+                              }),
+                              "w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50",
+                            )}
                           >
-                            <a
-                              href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}
-                            >
-                              <Phone className="size-3.5 mr-1.5" /> Call
-                            </a>
-                          </Button>
+                            <Phone className="size-3.5 mr-1.5" /> Call
+                          </a>
                         </motion.div>
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           className="flex-1 sm:flex-none"
                         >
-                          <Button
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl"
-                            asChild
+                          <a
+                            href={`mailto:${selectedDonor.email}`}
+                            className={cn(
+                              buttonVariants({ size: "sm" }),
+                              "w-full h-9 px-4 text-xs font-medium rounded-xl",
+                            )}
                           >
-                            <a href={`mailto:${selectedDonor.email}`}>
-                              <Mail className="size-3.5 mr-1.5" /> Email
-                            </a>
-                          </Button>
+                            <Mail className="size-3.5 mr-1.5" /> Email
+                          </a>
                         </motion.div>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
-                            >
-                              <MoreHorizontal className="size-5" />
-                            </Button>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                              />
+                            }
+                          >
+                            <MoreHorizontal className="size-5" />
                           </DropdownMenuTrigger>
                           <DropdownMenuContent
                             align="end"
@@ -1653,7 +1657,7 @@ export function DonorsPageContent({
                           <TabsTrigger
                             key={tab}
                             value={tab}
-                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-all"
+                            className="rounded-xl data-active:bg-white data-active:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 data-active:text-zinc-900 transition-colors"
                           >
                             {tab === "overview"
                               ? "Overview"
@@ -2045,26 +2049,26 @@ export function DonorsPageContent({
                                       whileHover={{ scale: 1.1 }}
                                       whileTap={{ scale: 0.97 }}
                                     >
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-9 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-xl shrink-0"
-                                        asChild
+                                      <a
+                                        href={
+                                          selectedDonor.website.startsWith(
+                                            "http",
+                                          )
+                                            ? selectedDonor.website
+                                            : `https://${selectedDonor.website}`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={cn(
+                                          buttonVariants({
+                                            variant: "ghost",
+                                            size: "icon",
+                                          }),
+                                          "size-9 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-xl shrink-0",
+                                        )}
                                       >
-                                        <a
-                                          href={
-                                            selectedDonor.website.startsWith(
-                                              "http",
-                                            )
-                                              ? selectedDonor.website
-                                              : `https://${selectedDonor.website}`
-                                          }
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          <ExternalLink className="size-4" />
-                                        </a>
-                                      </Button>
+                                        <ExternalLink className="size-4" />
+                                      </a>
                                     </motion.div>
                                   </motion.div>
                                 )}
@@ -2120,20 +2124,20 @@ export function DonorsPageContent({
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.97 }}
                                       >
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="size-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0"
-                                          asChild
+                                        <a
+                                          href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={cn(
+                                            buttonVariants({
+                                              variant: "ghost",
+                                              size: "icon",
+                                            }),
+                                            "size-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0",
+                                          )}
                                         >
-                                          <a
-                                            href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                          >
-                                            <ExternalLink className="size-4" />
-                                          </a>
-                                        </Button>
+                                          <ExternalLink className="size-4" />
+                                        </a>
                                       </motion.div>
                                     )}
                                   </div>

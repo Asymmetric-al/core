@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import {
   DefaultEditView,
@@ -82,6 +82,8 @@ function isRecentDocPreferenceEntry(
     candidate.title.length > 0
   );
 }
+
+const ghostSmLinkClass = buttonVariants({ variant: "ghost", size: "sm" });
 
 export type NativeCollectionEditViewProps = DocumentViewClientProps & {
   studioCollection: WebStudioCollectionSlug;
@@ -490,26 +492,27 @@ export function NativeCollectionEditView({
                 Workspace
               </Button>
               {collectionSlug ? (
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/web-studio/collections/${collectionSlug}`}>
-                    Back to list
-                  </Link>
-                </Button>
+                <Link
+                  href={`/web-studio/collections/${collectionSlug}`}
+                  className={ghostSmLinkClass}
+                >
+                  Back to list
+                </Link>
               ) : null}
               {versionsHref ? (
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={versionsHref}>Versions</Link>
-                </Button>
+                <Link href={versionsHref} className={ghostSmLinkClass}>
+                  Versions
+                </Link>
               ) : null}
               {apiHref ? (
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={apiHref}>API</Link>
-                </Button>
+                <Link href={apiHref} className={ghostSmLinkClass}>
+                  API
+                </Link>
               ) : null}
               {livePreviewHref ? (
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={livePreviewHref}>Live preview</Link>
-                </Button>
+                <Link href={livePreviewHref} className={ghostSmLinkClass}>
+                  Live preview
+                </Link>
               ) : null}
             </div>
           </div>
@@ -588,30 +591,32 @@ export function NativeCollectionEditView({
                 </ul>
               ) : null}
               {previewSupported && previewURL ? (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="mt-4 w-full"
-                  asChild
+                <a
+                  href={previewURL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "sm" }),
+                    "mt-4 w-full",
+                  )}
                 >
-                  <a href={previewURL} target="_blank" rel="noreferrer">
-                    <ExternalLink className="mr-2 size-4" />
-                    Open preview
-                  </a>
-                </Button>
+                  <ExternalLink className="mr-2 size-4" />
+                  Open preview
+                </a>
               ) : null}
               {publicPreviewURL && data?._status === "published" ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="mt-2 w-full"
-                  asChild
+                <a
+                  href={publicPreviewURL}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={cn(
+                    buttonVariants({ variant: "ghost", size: "sm" }),
+                    "mt-2 w-full",
+                  )}
                 >
-                  <a href={publicPreviewURL} target="_blank" rel="noreferrer">
-                    <ExternalLink className="mr-2 size-4" />
-                    Open published page
-                  </a>
-                </Button>
+                  <ExternalLink className="mr-2 size-4" />
+                  Open published page
+                </a>
               ) : null}
             </aside>
           ) : null}

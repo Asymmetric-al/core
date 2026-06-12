@@ -252,7 +252,7 @@ export default function RootLayout({
         >
           <BoneyardRegistry />
           <QueryProvider>
-            <TooltipProvider delayDuration={0}>
+            <TooltipProvider delay={0}>
               <MotionProvider>
                 <Suspense fallback={null}>
                   <LayoutContent>{children}</LayoutContent>

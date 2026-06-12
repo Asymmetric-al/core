@@ -35,17 +35,19 @@ export function DataTableRowActions<TData>({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn("size-8 rounded-lg", className)}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <MoreHorizontal className="size-4" />
-          <span className="sr-only">Open row actions</span>
-        </Button>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 rounded-lg", className)}
+            onClick={(event) => event.stopPropagation()}
+          />
+        }
+      >
+        <MoreHorizontal className="size-4" />
+        <span className="sr-only">Open row actions</span>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="rounded-xl">
         {actions.map((action, index) => (

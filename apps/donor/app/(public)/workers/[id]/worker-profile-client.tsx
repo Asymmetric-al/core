@@ -9,7 +9,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
@@ -314,13 +314,13 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
               <TabsList className="w-full justify-start border-b border-zinc-200 bg-transparent h-auto p-0 mb-8 gap-8">
                 <TabsTrigger
                   value="story"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-zinc-500 data-[state=active]:text-zinc-900 transition-all hover:text-zinc-700 text-base"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none px-0 py-3 font-semibold text-zinc-500 data-active:text-zinc-900 transition-colors hover:text-zinc-700 text-base"
                 >
                   Our Story
                 </TabsTrigger>
                 <TabsTrigger
                   value="updates"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-zinc-500 data-[state=active]:text-zinc-900 transition-all hover:text-zinc-700 text-base flex items-center gap-2"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none px-0 py-3 font-semibold text-zinc-500 data-active:text-zinc-900 transition-colors hover:text-zinc-700 text-base flex items-center gap-2"
                 >
                   Field Journal{" "}
                   <Badge className="bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-none h-5 px-1.5 text-[10px]">
@@ -459,19 +459,17 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     />
                   </div>
 
-                  <Button
-                    size="lg"
-                    className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle"
-                    asChild
+                  <Link
+                    href={`/checkout?workerId=${worker.id}&amount=${amount}&frequency=${frequency}`}
+                    className={cn(
+                      buttonVariants({ size: "lg" }),
+                      "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle",
+                    )}
                   >
-                    <Link
-                      href={`/checkout?workerId=${worker.id}&amount=${amount}&frequency=${frequency}`}
-                    >
-                      {frequency === "monthly"
-                        ? `Give ${formatCurrency(amount)} Monthly`
-                        : `Give ${formatCurrency(amount)}`}
-                    </Link>
-                  </Button>
+                    {frequency === "monthly"
+                      ? `Give ${formatCurrency(amount)} Monthly`
+                      : `Give ${formatCurrency(amount)}`}
+                  </Link>
 
                   <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
                     <ShieldCheck className="size-3.5 text-emerald-500" /> Secure

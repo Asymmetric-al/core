@@ -55,32 +55,34 @@ export function ConversationLabelMenu({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-8 gap-2 rounded-lg border-zinc-200 bg-white px-2.5 text-[11px] font-medium text-zinc-700",
-            compact && "px-2",
-          )}
-          aria-label="Edit labels"
-        >
-          <Tag className="size-3.5 text-zinc-400" />
-          {compact ? null : (
-            <span>
-              Labels
-              {conversation.labels.length > 0 ? (
-                <Badge
-                  variant="secondary"
-                  className="ml-1 h-4 min-w-[1rem] justify-center rounded-md border-transparent bg-zinc-900 px-1 text-[10px] font-semibold text-white"
-                >
-                  {conversation.labels.length}
-                </Badge>
-              ) : null}
-            </span>
-          )}
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-8 gap-2 rounded-lg border-zinc-200 bg-white px-2.5 text-[11px] font-medium text-zinc-700",
+              compact && "px-2",
+            )}
+            aria-label="Edit labels"
+          />
+        }
+      >
+        <Tag className="size-3.5 text-zinc-400" />
+        {compact ? null : (
+          <span>
+            Labels
+            {conversation.labels.length > 0 ? (
+              <Badge
+                variant="secondary"
+                className="ml-1 h-4 min-w-[1rem] justify-center rounded-md border-transparent bg-zinc-900 px-1 text-[10px] font-semibold text-white"
+              >
+                {conversation.labels.length}
+              </Badge>
+            ) : null}
+          </span>
+        )}
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-0">
         <Command>

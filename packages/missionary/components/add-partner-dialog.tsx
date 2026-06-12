@@ -23,7 +23,7 @@ import {
 export interface AddPartnerDialogProps {
   missionaryId: string;
   onSuccess?: () => void;
-  trigger?: React.ReactNode;
+  trigger?: React.ReactElement;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -101,7 +101,7 @@ export function AddPartnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[500px]">
         <div className="bg-zinc-900 px-8 py-10 text-white">
           <DialogTitle className="text-3xl font-black tracking-tighter">

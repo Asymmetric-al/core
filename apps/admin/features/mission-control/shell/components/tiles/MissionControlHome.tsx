@@ -61,14 +61,16 @@ export function MissionControlHome() {
               </p>
             </div>
             <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-zinc-500 hover:text-zinc-900"
-                >
-                  View all tools
-                </Button>
+              <DialogTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-zinc-500 hover:text-zinc-900"
+                  />
+                }
+              >
+                View all tools
               </DialogTrigger>
               <DialogContent className="max-w-3xl">
                 <DialogHeader>

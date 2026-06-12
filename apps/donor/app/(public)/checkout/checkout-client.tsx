@@ -8,7 +8,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
@@ -386,21 +386,24 @@ function SuccessView({
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button
-              asChild
-              size="lg"
-              className="flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 transition-all font-semibold font-syne text-[11px] uppercase tracking-widest"
+            <Link
+              href="/donor-dashboard"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 font-semibold font-syne text-[11px] uppercase tracking-widest",
+              )}
             >
-              <Link href="/donor-dashboard">Enter Dashboard</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="flex-1 h-20 rounded-3xl border-zinc-100 hover:bg-zinc-50 font-semibold font-syne text-[11px] uppercase tracking-widest"
+              Enter Dashboard
+            </Link>
+            <Link
+              href="/"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "flex-1 h-20 rounded-3xl border-zinc-100 hover:bg-zinc-50 font-semibold font-syne text-[11px] uppercase tracking-widest",
+              )}
             >
-              <Link href="/">Back to Home</Link>
-            </Button>
+              Back to Home
+            </Link>
           </div>
         </div>
       </motion.div>
@@ -731,7 +734,7 @@ function ConfigStep({
           <Switch
             checked={coverFees}
             onCheckedChange={onCoverFeesChange}
-            className="data-[state=checked]:bg-white data-[state=checked]:opacity-100"
+            className="data-checked:bg-white data-checked:opacity-100"
           />
         </div>
       </div>
@@ -1214,12 +1217,15 @@ function CheckoutContent({
           <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
             Target Unspecified
           </h2>
-          <Button
-            asChild
-            className="rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800"
+          <Link
+            href="/workers"
+            className={cn(
+              buttonVariants(),
+              "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
+            )}
           >
-            <Link href="/workers">View Missionaries</Link>
-          </Button>
+            View Missionaries
+          </Link>
         </div>
       </div>
     );

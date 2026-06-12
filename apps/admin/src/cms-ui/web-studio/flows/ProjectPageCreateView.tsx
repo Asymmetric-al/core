@@ -191,8 +191,13 @@ function ProjectPageCreateViewContent() {
               <div className="flex flex-col gap-2">
                 <Label>Fund</Label>
                 <Select
-                  value={field.state.value || undefined}
-                  onValueChange={(v) => field.handleChange(v)}
+                  value={field.state.value || null}
+                  onValueChange={(v) => {
+                    if (v === null) {
+                      return;
+                    }
+                    field.handleChange(v);
+                  }}
                   disabled={fundsQuery.isPending || fundsQuery.isError}
                 >
                   <SelectTrigger>

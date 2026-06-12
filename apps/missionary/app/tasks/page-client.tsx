@@ -414,19 +414,19 @@ function TasksFilterBar({
               <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
                 <TabsTrigger
                   value="active"
-                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
                 >
                   Active
                 </TabsTrigger>
                 <TabsTrigger
                   value="completed"
-                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
                 >
                   Done
                 </TabsTrigger>
                 <TabsTrigger
                   value="all"
-                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                  className="text-[9px] font-semibold uppercase tracking-widest px-4 rounded-lg data-active:bg-white data-active:shadow-sm"
                 >
                   All
                 </TabsTrigger>
@@ -435,14 +435,16 @@ function TasksFilterBar({
           )}
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] gap-2"
-              >
-                <ListFilter className="size-4 text-zinc-400" />
-                Refine
-              </Button>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] gap-2"
+                />
+              }
+            >
+              <ListFilter className="size-4 text-zinc-400" />
+              Refine
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"

@@ -134,15 +134,17 @@ export function LocationTable({
       cell: ({ row }) => (
         <div className="flex justify-end pr-4">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 rounded-lg"
-                aria-label={`Open actions for ${row.original.title}`}
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 rounded-lg"
+                  aria-label={`Open actions for ${row.original.title}`}
+                />
+              }
+            >
+              <MoreHorizontal className="size-4" />
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"

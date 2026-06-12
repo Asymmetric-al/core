@@ -161,7 +161,7 @@ export default function RootLayout({
           <BoneyardRegistry />
           <QueryProvider>
             <MotionProvider>
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delay={0}>
                 <Suspense fallback={null}>
                   <NuqsAdapter>
                     <MissionaryRoleGate>

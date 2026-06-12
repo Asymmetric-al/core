@@ -44,22 +44,24 @@ export const TenantSwitcher = memo(function TenantSwitcher() {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          role="combobox"
-          aria-expanded={open}
-          aria-controls={listboxId}
-          className="h-9 w-48 justify-between"
-        >
-          <div className="flex items-center gap-2 truncate">
-            <Building2 className="size-4 shrink-0" />
-            <span className="truncate">
-              {selectedTenant?.name || "Select tenant..."}
-            </span>
-          </div>
-          <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
-        </Button>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            aria-controls={listboxId}
+            className="h-9 w-48 justify-between"
+          />
+        }
+      >
+        <div className="flex items-center gap-2 truncate">
+          <Building2 className="size-4 shrink-0" />
+          <span className="truncate">
+            {selectedTenant?.name || "Select tenant..."}
+          </span>
+        </div>
+        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
       </PopoverTrigger>
       <PopoverContent className="w-48 p-0">
         <Command>

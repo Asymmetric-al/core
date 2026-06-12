@@ -80,7 +80,12 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
           </Label>
           <Select
             value={state.scopeId || options[0]?.id || ""}
-            onValueChange={(value) => setState({ scopeId: value })}
+            onValueChange={(value) => {
+              if (value === null) {
+                return;
+              }
+              setState({ scopeId: value });
+            }}
           >
             <SelectTrigger className="h-9 min-w-[180px] text-[12px]">
               <SelectValue />

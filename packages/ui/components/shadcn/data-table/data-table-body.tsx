@@ -298,9 +298,10 @@ export function DataTableBodyWithTableState<TData, TValue>({
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+          checked={table.getIsAllPageRowsSelected()}
+          indeterminate={
+            table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected()
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
