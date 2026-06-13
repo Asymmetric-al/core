@@ -18,8 +18,18 @@ export interface ExportColumn {
   header: string;
 }
 
+// CSV formula injection (OWASP): a cell starting with one of these is run as a
+// formula by Excel/Sheets/LibreOffice. Prefix with a single quote so the value
+// is treated as text. Applied to every header and cell before delimiter/quote
+// escaping.
+const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+
+function neutralizeFormula(value: string): string {
+  return FORMULA_TRIGGER.test(value) ? `'${value}` : value;
+}
+
 function escapeCSVValue(value: string, delimiter: string): string {
-  const stringValue = String(value ?? "");
+  const stringValue = neutralizeFormula(String(value ?? ""));
   const needsQuotes =
     stringValue.includes(delimiter) ||
     stringValue.includes('"') ||
