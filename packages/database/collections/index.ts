@@ -11,6 +11,16 @@ export {
   donationsCollection,
   fundsCollection,
   followsCollection,
+  getMissionaryScopedDonorCollections,
+  donorsCollectionPagination,
+  donorActivitiesCollectionPagination,
+  donorPledgesCollectionPagination,
+  postsCollectionPagination,
+  donationsCollectionPagination,
+  postCommentsCollectionPagination,
+  followsCollectionPagination,
+  type BoundedCollectionPagination,
+  type MissionaryScopedDonorCollections,
 } from "./client-db";
 
 export {

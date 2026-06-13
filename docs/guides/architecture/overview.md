@@ -337,7 +337,8 @@ const supabase = createAdminClient();
 
 ### 2. TanStack DB Collections
 
-Collections provide reactive data with optimistic updates:
+Collections provide reactive data with optimistic updates. The snippet below is
+an illustrative join pattern, not a shipped hook:
 
 ```typescript
 import { useLiveQuery, eq } from "@tanstack/react-db";
@@ -346,7 +347,8 @@ import {
   profilesCollection,
 } from "@asym/database/collections";
 
-function usePostsWithAuthors() {
+// Illustrative only — see useMissionaryDonorRows for a real live-query hook.
+function exampleUsePostsWithAuthors() {
   return useLiveQuery((q) =>
     q
       .from({ post: postsCollection })

@@ -335,6 +335,9 @@ type DonorsPageViewModel = {
     selected: Donor | null;
     selectById: (id: string) => void;
     clearSelection: () => void;
+    hasMore: boolean;
+    isLoadingMore: boolean;
+    loadMore: () => void;
   };
   filters: {
     searchTerm: string;
@@ -798,6 +801,9 @@ export function useDonorsPageView(): DonorsPageViewModel {
       selected: selectedDonor,
       selectById: selectDonorById,
       clearSelection: clearSelectedDonor,
+      hasMore: donorsQuery.hasMore,
+      isLoadingMore: donorsQuery.isLoadingMore,
+      loadMore: donorsQuery.loadMore,
     },
     filters: {
       searchTerm,
@@ -887,6 +893,9 @@ export function DonorsPageContent({
     selected: selectedDonor,
     selectById,
     clearSelection,
+    hasMore: hasMoreDonors,
+    isLoadingMore: isLoadingMoreDonors,
+    loadMore: loadMoreDonors,
   } = donors;
   const {
     searchTerm,
@@ -1317,6 +1326,26 @@ export function DonorsPageContent({
                 )}
               </ScrollArea>
             </div>
+            {hasMoreDonors && !error && !isLoading && (
+              <div className="border-t border-zinc-100 p-3 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMoreDonors}
+                  disabled={isLoadingMoreDonors}
+                  className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+                >
+                  {isLoadingMoreDonors ? (
+                    <>
+                      <Loader2 className="size-3.5 mr-2 animate-spin" />
+                      Loading partners
+                    </>
+                  ) : (
+                    "Load more partners"
+                  )}
+                </Button>
+              </div>
+            )}
           </Card>
         </motion.div>
 
