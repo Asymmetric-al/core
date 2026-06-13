@@ -59,10 +59,7 @@ describe("exportToCSV — formula injection neutralization", () => {
 
   it("quotes a formula+delimiter cell after neutralization", () => {
     // '=a,b contains the delimiter so it must be wrapped in quotes.
-    const table = makeTable(
-      [{ id: "val", header: "Val" }],
-      [{ val: "=a,b" }],
-    );
+    const table = makeTable([{ id: "val", header: "Val" }], [{ val: "=a,b" }]);
     const csv = exportToCSV(table);
     expect(csv).toBe(`Val\n"'=a,b"`);
   });

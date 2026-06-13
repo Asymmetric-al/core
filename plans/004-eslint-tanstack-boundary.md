@@ -86,7 +86,7 @@ Key facts that make this safe and precise:
   we exempt it defensively). Verified via
   `grep -rn 'from "@tanstack/react-table"' packages/ui apps` → matches only
   `tanstack.ts`.
-- **No file under `apps/**` imports `@tanstack/react-table` directly** — they
+- **No file under `apps/**`imports`@tanstack/react-table` directly\*\* — they
   all go through the boundary. So the restriction adds zero violations in app
   code today.
 - Table-creating files import `@tanstack/react-table-devtools` (a **different**
@@ -104,14 +104,14 @@ Key facts that make this safe and precise:
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-| ------- | ------- | ------------------- |
-| Install (worktree only) | `bun install --force` | exit 0 |
-| Lint the whole repo | `bun run lint` | exit 0 — **no new violations** |
-| Lint shared UI | `bunx turbo run lint --filter=@asym/ui` | exit 0 |
-| ESLint config verifier | `node scripts/verify-eslint-config.mjs` | exit 0 |
-| Script-verifier tests | `bunx vitest run tests/unit/script-verifiers.test.ts` | all pass |
-| Negative check (see Step 3) | temporary file lint | error reported |
+| Purpose                     | Command                                               | Expected on success            |
+| --------------------------- | ----------------------------------------------------- | ------------------------------ |
+| Install (worktree only)     | `bun install --force`                                 | exit 0                         |
+| Lint the whole repo         | `bun run lint`                                        | exit 0 — **no new violations** |
+| Lint shared UI              | `bunx turbo run lint --filter=@asym/ui`               | exit 0                         |
+| ESLint config verifier      | `node scripts/verify-eslint-config.mjs`               | exit 0                         |
+| Script-verifier tests       | `bunx vitest run tests/unit/script-verifiers.test.ts` | all pass                       |
+| Negative check (see Step 3) | temporary file lint                                   | error reported                 |
 
 ## Scope
 
@@ -208,6 +208,7 @@ This step has no committed artifact; it only proves the guard works.
 ### Step 4: Full-repo lint and config verifier
 
 **Verify**:
+
 - `bun run lint` → exit 0 (no new violations anywhere — confirms no real file
   was relying on a direct engine import).
 - `node scripts/verify-eslint-config.mjs` → exit 0.

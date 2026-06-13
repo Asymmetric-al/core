@@ -38,9 +38,7 @@ import {
   useTable,
 } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
 
-import type {
-  ColumnDef,
-} from "../../../../packages/ui/components/shadcn/data-table/tanstack";
+import type { ColumnDef } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
 
 type Donor = {
   id: string;
@@ -54,9 +52,7 @@ const donors: Donor[] = [
   { id: "d4", name: "Dave" },
 ];
 
-const columns: ColumnDef<Donor>[] = [
-  { accessorKey: "name", header: "Name" },
-];
+const columns: ColumnDef<Donor>[] = [{ accessorKey: "name", header: "Name" }];
 
 // ---------------------------------------------------------------------------
 // jsdom globals — same pattern as data-table-subscriptions.test.tsx
@@ -120,7 +116,7 @@ function SearchFilterHarness({
   const table = useTable({
     features: dataTableFeatures,
     rowModels: createDataTableRowModels<Donor>({
-      filtering: true,    // enableFilter || enableSearch = false || true
+      filtering: true, // enableFilter || enableSearch = false || true
       sorting: false,
       pagination: false,
       faceting: false,

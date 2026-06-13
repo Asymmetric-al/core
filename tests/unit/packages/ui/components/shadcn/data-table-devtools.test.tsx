@@ -11,7 +11,15 @@
  */
 
 import { cleanup, render, screen } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { DataTable } from "../../../../../../packages/ui/components/shadcn/data-table/data-table";
 

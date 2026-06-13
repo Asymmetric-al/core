@@ -17,14 +17,14 @@ implemented by a dispatched executor, adversarially reviewed, then verified by
 the advisor (re-running every done criterion). 5 of 6 landed; 001 was rejected
 after verification proved the finding invalid.
 
-| Plan | Title | Priority | Effort | Status | Commit |
-| ---- | ----- | -------- | ------ | ------ | ------ |
-| 001 | Subscribe action/floating bars to filter state | P1 | S | **REJECTED** | — |
-| 002 | Neutralize CSV formula injection in table export | P1 | S | **DONE** | `94377286` |
-| 003 | Register filter row model when DataGrid search is on | P2 | S | **DONE** | `ad2c38e2` |
-| 004 | Enforce the TanStack Table boundary with no-restricted-imports | P2 | S | **DONE** | `fe399509` |
-| 005 | Dynamically import TanStack devtools so they leave the prod bundle | P3 | S | **DONE** | `ee427d22` |
-| 006 | Drop the unused `_table` param from `useColumnResizing` | P3 | S | **DONE** | `f63d4cf3` |
+| Plan | Title                                                              | Priority | Effort | Status       | Commit     |
+| ---- | ------------------------------------------------------------------ | -------- | ------ | ------------ | ---------- |
+| 001  | Subscribe action/floating bars to filter state                     | P1       | S      | **REJECTED** | —          |
+| 002  | Neutralize CSV formula injection in table export                   | P1       | S      | **DONE**     | `94377286` |
+| 003  | Register filter row model when DataGrid search is on               | P2       | S      | **DONE**     | `ad2c38e2` |
+| 004  | Enforce the TanStack Table boundary with no-restricted-imports     | P2       | S      | **DONE**     | `fe399509` |
+| 005  | Dynamically import TanStack devtools so they leave the prod bundle | P3       | S      | **DONE**     | `ee427d22` |
+| 006  | Drop the unused `_table` param from `useColumnResizing`            | P3       | S      | **DONE**     | `f63d4cf3` |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (rationale)
 
@@ -96,7 +96,7 @@ human decision; they are recorded here, not turned into plans:
 - **`packages/ui/components/shadcn/data-table/types.ts:163` fails the repo's own
   `scripts/verify-eslint-config.mjs`** with "Invalid eslint-disable format". It
   is a block `/* eslint-disable @typescript-eslint/no-unused-vars,
-  unused-imports/no-unused-vars -- … */` on the v9 `ColumnMeta` `declare module`
+unused-imports/no-unused-vars -- … */` on the v9 `ColumnMeta` `declare module`
   augmentation; the verifier's `DISABLE_FORMAT` rejects this shape. Pre-existing
   (untouched by any plan) — surfaced only because plan 004's verification ran
   the script. This corroborates the "branch never ran CI" maintainer action:

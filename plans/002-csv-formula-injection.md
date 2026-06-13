@@ -69,12 +69,12 @@ names (see the rest of `export.ts`). Comments explain non-obvious intent.
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-| ------- | ------- | ------------------- |
-| Install (worktree only) | `bun install --force` | exit 0 |
-| Typecheck | `bunx turbo run typecheck --filter=@asym/ui` | exit 0 |
-| Lint | `bunx turbo run lint --filter=@asym/ui` | exit 0 |
-| Unit tests (scoped) | `bunx vitest run tests/unit/packages/ui` | all pass, including new test |
+| Purpose                 | Command                                      | Expected on success          |
+| ----------------------- | -------------------------------------------- | ---------------------------- |
+| Install (worktree only) | `bun install --force`                        | exit 0                       |
+| Typecheck               | `bunx turbo run typecheck --filter=@asym/ui` | exit 0                       |
+| Lint                    | `bunx turbo run lint --filter=@asym/ui`      | exit 0                       |
+| Unit tests (scoped)     | `bunx vitest run tests/unit/packages/ui`     | all pass, including new test |
 
 ## Scope
 

@@ -166,9 +166,7 @@ function PaginationProbeHarness({
 }: {
   pageSizes: readonly number[];
 }) {
-  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>(
-    {},
-  );
+  const [rowSelection, setRowSelection] = React.useState<RowSelectionState>({});
   const [pagination, setPagination] = React.useState<PaginationState>({
     pageIndex: 0,
     pageSize: 2,

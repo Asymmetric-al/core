@@ -58,12 +58,13 @@ The only caller is the test
 `tests/unit/packages/ui/data-table-column-resizing.test.tsx`:
 
 ```tsx
-import type { Table } from "../../../../packages/ui/components/shadcn/data-table/tanstack";  // line 3
+import type { Table } from "../../../../packages/ui/components/shadcn/data-table/tanstack"; // line 3
 // ...
-const table = {} as Table<Record<string, unknown>>;  // line 15
+const table = {} as Table<Record<string, unknown>>; // line 15
 
 function ColumnSizingProbe() {
-  const { columnSizing } = useColumnResizing(table, {   // line 18
+  const { columnSizing } = useColumnResizing(table, {
+    // line 18
     persistKey: "hydration",
   });
   // ...
@@ -82,12 +83,12 @@ test.
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-| ------- | ------- | ------------------- |
-| Install (worktree only) | `bun install --force` | exit 0 |
-| Typecheck | `bunx turbo run typecheck --filter=@asym/ui` | exit 0 |
-| Lint | `bunx turbo run lint --filter=@asym/ui` | exit 0 |
-| Unit tests (scoped) | `bunx vitest run tests/unit/packages/ui` | all pass |
+| Purpose                 | Command                                      | Expected on success |
+| ----------------------- | -------------------------------------------- | ------------------- |
+| Install (worktree only) | `bun install --force`                        | exit 0              |
+| Typecheck               | `bunx turbo run typecheck --filter=@asym/ui` | exit 0              |
+| Lint                    | `bunx turbo run lint --filter=@asym/ui`      | exit 0              |
+| Unit tests (scoped)     | `bunx vitest run tests/unit/packages/ui`     | all pass            |
 
 ## Scope
 
@@ -137,6 +138,7 @@ step will catch it.)
 ### Step 2: Update the one call site in the test
 
 In `data-table-column-resizing.test.tsx`:
+
 - Change the call to `useColumnResizing({ persistKey: "hydration" })` (drop the
   `table` argument).
 - Delete the now-unused `const table = {} as Table<...>;` (line 15) and the

@@ -22,7 +22,9 @@ describe("admin CRM TanStack cache stability contracts", () => {
   });
 
   it("keys the infinite-grid staging collection by a value fingerprint", () => {
-    const source = readRepoFile("packages/database/hooks/admin-crm-infinite.ts");
+    const source = readRepoFile(
+      "packages/database/hooks/admin-crm-infinite.ts",
+    );
 
     // Fingerprint serializes debounced filters + sorting by value, so
     // identity-only changes do not recreate the local staging collection.

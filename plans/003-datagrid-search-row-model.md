@@ -47,27 +47,27 @@ Config defaults, `data-grid.tsx:549-551`:
 The `useTable` row-model registration, `data-grid.tsx:742-762`:
 
 ```ts
-  const table = useTable({
-    features: dataTableFeatures,
-    // Mirrors the v8 setup: only filtering and sorting row models, and only
-    // when their grid config flags are on (the core row model is automatic).
-    rowModels: createDataTableRowModels<TData>({
-      filtering: enableFilter,
-      sorting: enableSort,
-      pagination: false,
-      faceting: false,
-    }),
-    data: gridData,
-    columns: tableColumns,
-    // Devtools identity: registration is skipped unless a key exists.
-    key: devtoolsKey,
-    state: {
-      sorting,
-      globalFilter,
-    },
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-  });
+const table = useTable({
+  features: dataTableFeatures,
+  // Mirrors the v8 setup: only filtering and sorting row models, and only
+  // when their grid config flags are on (the core row model is automatic).
+  rowModels: createDataTableRowModels<TData>({
+    filtering: enableFilter,
+    sorting: enableSort,
+    pagination: false,
+    faceting: false,
+  }),
+  data: gridData,
+  columns: tableColumns,
+  // Devtools identity: registration is skipped unless a key exists.
+  key: devtoolsKey,
+  state: {
+    sorting,
+    globalFilter,
+  },
+  onSortingChange: setSorting,
+  onGlobalFilterChange: setGlobalFilter,
+});
 ```
 
 `createDataTableRowModels({ filtering })` registers `filteredRowModel`
@@ -81,12 +81,12 @@ filtering).
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-| ------- | ------- | ------------------- |
-| Install (worktree only) | `bun install --force` | exit 0 |
-| Typecheck | `bunx turbo run typecheck --filter=@asym/ui` | exit 0 |
-| Lint | `bunx turbo run lint --filter=@asym/ui` | exit 0 |
-| Unit tests (scoped) | `bunx vitest run tests/unit/packages/ui` | all pass, including new test |
+| Purpose                 | Command                                      | Expected on success          |
+| ----------------------- | -------------------------------------------- | ---------------------------- |
+| Install (worktree only) | `bun install --force`                        | exit 0                       |
+| Typecheck               | `bunx turbo run typecheck --filter=@asym/ui` | exit 0                       |
+| Lint                    | `bunx turbo run lint --filter=@asym/ui`      | exit 0                       |
+| Unit tests (scoped)     | `bunx vitest run tests/unit/packages/ui`     | all pass, including new test |
 
 ## Scope
 

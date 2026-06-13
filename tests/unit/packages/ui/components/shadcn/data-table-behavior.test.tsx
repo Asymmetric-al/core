@@ -16,7 +16,15 @@ import {
   screen,
   within,
 } from "@testing-library/react";
-import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { DataTable } from "../../../../../../packages/ui/components/shadcn/data-table/data-table";
 
@@ -200,9 +208,10 @@ describe("DataTable sorting", () => {
   it("keeps row selection attached to the same row identity after sorting", () => {
     const { container } = renderPeopleTable();
 
-    const malloryCheckbox = within(
-      rowByName(container, "Mallory"),
-    ).getByRole("checkbox", { name: "Select row" });
+    const malloryCheckbox = within(rowByName(container, "Mallory")).getByRole(
+      "checkbox",
+      { name: "Select row" },
+    );
     fireEvent.click(malloryCheckbox);
 
     expect(screen.getByText("1 of 10 row(s) selected")).toBeTruthy();

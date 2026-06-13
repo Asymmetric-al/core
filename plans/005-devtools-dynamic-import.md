@@ -22,7 +22,7 @@
 ## Why this matters
 
 `AdminTanStackDevtools` returns `null` in production, so the devtools never
-*mount* in prod — good. But it imports `@tanstack/react-devtools` and
+_mount_ in prod — good. But it imports `@tanstack/react-devtools` and
 `@tanstack/react-table-devtools` with **static top-level imports**. Devtools
 packages are not reliably side-effect-free, so Webpack/Turbopack may keep them
 in the main client bundle even though the only code path using them is
@@ -78,13 +78,13 @@ the existing dev-only gating intent.
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-| ------- | ------- | ------------------- |
-| Install (worktree only) | `bun install --force` | exit 0 |
-| Typecheck | `bunx turbo run typecheck --filter=@asym/admin` | exit 0 |
-| Lint | `bunx turbo run lint --filter=@asym/admin` | exit 0 |
+| Purpose                 | Command                                         | Expected on success |
+| ----------------------- | ----------------------------------------------- | ------------------- |
+| Install (worktree only) | `bun install --force`                           | exit 0              |
+| Typecheck               | `bunx turbo run typecheck --filter=@asym/admin` | exit 0              |
+| Lint                    | `bunx turbo run lint --filter=@asym/admin`      | exit 0              |
 
-A full production build to *prove* the bundle shrank is out of scope here (heavy,
+A full production build to _prove_ the bundle shrank is out of scope here (heavy,
 may need env) — see Maintenance notes.
 
 ## Scope
@@ -164,6 +164,7 @@ signature unchanged (layout.tsx depends on it).
 ### Step 2: Lint and confirm no static devtools import remains
 
 **Verify**:
+
 - `bunx turbo run lint --filter=@asym/admin` → exit 0.
 - `grep -nE "^import .*@tanstack/react-(devtools|table-devtools)" apps/admin/app/_providers/tanstack-devtools.tsx` → **no matches** (the only references are now inside the dynamic `import(...)` callback).
 - `grep -n "process.env.NODE_ENV" apps/admin/app/_providers/tanstack-devtools.tsx` → the production early-return is still present.
@@ -204,7 +205,7 @@ Stop and report if:
 
 ## Maintenance notes
 
-- To *verify the bundle actually shrank*, a maintainer can run
+- To _verify the bundle actually shrank_, a maintainer can run
   `bunx turbo run build --filter=@asym/admin` and inspect that
   `@tanstack/react-devtools` / `@tanstack/react-table-devtools` appear only in a
   separate async chunk, not the main/shared client bundle. This is deferred out

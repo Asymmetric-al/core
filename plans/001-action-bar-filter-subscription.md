@@ -93,16 +93,15 @@ useSelector(globalFilterSource);
 The action bar's current subscription block, `data-table-action-bar.tsx:44-51`:
 
 ```tsx
-  // Focused subscription: row selection is the only table state this bar
-  // renders. The memo comparator below keeps parent broadcasts out; selected
-  // rows and the count re-derive from the live row model on each change.
-  const atoms = getTableSliceAtoms(table);
-  const rowSelectionSource: TableSelectionSource<
-    RowSelectionState | undefined
-  > = atoms?.rowSelection ?? EMPTY_TABLE_SELECTION_SOURCE;
-  useSelector(rowSelectionSource);
+// Focused subscription: row selection is the only table state this bar
+// renders. The memo comparator below keeps parent broadcasts out; selected
+// rows and the count re-derive from the live row model on each change.
+const atoms = getTableSliceAtoms(table);
+const rowSelectionSource: TableSelectionSource<RowSelectionState | undefined> =
+  atoms?.rowSelection ?? EMPTY_TABLE_SELECTION_SOURCE;
+useSelector(rowSelectionSource);
 
-  const selectedRows = table.getFilteredSelectedRowModel().rows;
+const selectedRows = table.getFilteredSelectedRowModel().rows;
 ```
 
 The floating bar has an identical block at `data-table-floating-bar.tsx:53-59`.
@@ -112,7 +111,7 @@ Both files already import `useSelector` from `./tanstack` and `getTableSliceAtom
 add the `ColumnFiltersState` type import (and the existing `RowSelectionState`,
 `TableSelectionSource` imports stay).
 
-Repo conventions: this is `@asym/ui` shared UI. Comments explain *why* (see the
+Repo conventions: this is `@asym/ui` shared UI. Comments explain _why_ (see the
 density in the exemplar). Follow `docs/ai/rules/frontend.md` and the v9
 subscription rules in `docs/guides/development/tanstack-integration.md`
 ("Memoized table chrome reads state via `useSelector(table.atoms.<slice>)`,
@@ -120,12 +119,12 @@ never `table.state`"). Do NOT read `table.state` in these components.
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-| ------- | ------- | ------------------- |
-| Install (worktree only) | `bun install --force` | exit 0 (use `--force`: Bun isolated-linker quirk on this repo) |
-| Typecheck | `bunx turbo run typecheck --filter=@asym/ui` | exit 0, no errors |
-| Lint | `bunx turbo run lint --filter=@asym/ui` | exit 0 |
-| Unit tests (scoped) | `bunx vitest run tests/unit/packages/ui` | all pass, including new test |
+| Purpose                 | Command                                      | Expected on success                                            |
+| ----------------------- | -------------------------------------------- | -------------------------------------------------------------- |
+| Install (worktree only) | `bun install --force`                        | exit 0 (use `--force`: Bun isolated-linker quirk on this repo) |
+| Typecheck               | `bunx turbo run typecheck --filter=@asym/ui` | exit 0, no errors                                              |
+| Lint                    | `bunx turbo run lint --filter=@asym/ui`      | exit 0                                                         |
+| Unit tests (scoped)     | `bunx vitest run tests/unit/packages/ui`     | all pass, including new test                                   |
 
 If the full `vitest` run flakes with shifting timeouts, prefix with
 `VITEST_MAX_WORKERS=4` (known machine quirk).
@@ -170,16 +169,16 @@ In `data-table-action-bar.tsx`, after the existing `rowSelection` subscription
 `globalFilter` subscriptions mirroring the pagination exemplar:
 
 ```tsx
-  // The selected-row count is derived through the filtered row model, so
-  // filter-state changes must re-render this bar too — otherwise a selected
-  // row that gets filtered out leaves a stale count and stale action payload.
-  const columnFiltersSource: TableSelectionSource<
-    ColumnFiltersState | undefined
-  > = atoms?.columnFilters ?? EMPTY_TABLE_SELECTION_SOURCE;
-  useSelector(columnFiltersSource);
-  const globalFilterSource: TableSelectionSource<unknown> =
-    atoms?.globalFilter ?? EMPTY_TABLE_SELECTION_SOURCE;
-  useSelector(globalFilterSource);
+// The selected-row count is derived through the filtered row model, so
+// filter-state changes must re-render this bar too — otherwise a selected
+// row that gets filtered out leaves a stale count and stale action payload.
+const columnFiltersSource: TableSelectionSource<
+  ColumnFiltersState | undefined
+> = atoms?.columnFilters ?? EMPTY_TABLE_SELECTION_SOURCE;
+useSelector(columnFiltersSource);
+const globalFilterSource: TableSelectionSource<unknown> =
+  atoms?.globalFilter ?? EMPTY_TABLE_SELECTION_SOURCE;
+useSelector(globalFilterSource);
 ```
 
 Add `ColumnFiltersState` to the existing `import type { ... } from "./tanstack"`
