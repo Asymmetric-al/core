@@ -741,10 +741,12 @@ export function DataGrid<TData extends Record<string, unknown>>({
 
   const table = useTable({
     features: dataTableFeatures,
-    // Mirrors the v8 setup: only filtering and sorting row models, and only
-    // when their grid config flags are on (the core row model is automatic).
+    // Mirrors the v8 setup: sorting + filtering row models, gated by their grid
+    // config flags. The global search box runs through the FILTERED row model,
+    // so register it when search is on too — v9 silently no-ops filtering when
+    // the model is absent (ADR-2).
     rowModels: createDataTableRowModels<TData>({
-      filtering: enableFilter,
+      filtering: enableFilter || enableSearch,
       sorting: enableSort,
       pagination: false,
       faceting: false,
