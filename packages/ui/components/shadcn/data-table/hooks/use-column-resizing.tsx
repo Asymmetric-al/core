@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect } from "react";
 
-import type { ColumnSizingState, RowData, Table, Header } from "../tanstack";
+import type { ColumnSizingState, RowData, Header } from "../tanstack";
 
 export interface ColumnResizingOptions {
   enabled?: boolean;
@@ -49,8 +49,7 @@ function removeFromStorage(key: string) {
   } catch {}
 }
 
-export function useColumnResizing<TData extends RowData>(
-  _table: Table<TData>,
+export function useColumnResizing(
   options: ColumnResizingOptions = {},
 ): UseColumnResizingReturn {
   const {

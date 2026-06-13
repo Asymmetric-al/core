@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import type { Table } from "../../../../packages/ui/components/shadcn/data-table/tanstack";
 import { act } from "react";
 import { hydrateRoot, type Root } from "react-dom/client";
 import { renderToString } from "react-dom/server";
@@ -12,10 +11,8 @@ import { useColumnResizing } from "../../../../packages/ui/components/shadcn/dat
   globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }
 ).IS_REACT_ACT_ENVIRONMENT = true;
 
-const table = {} as Table<Record<string, unknown>>;
-
 function ColumnSizingProbe() {
-  const { columnSizing } = useColumnResizing(table, {
+  const { columnSizing } = useColumnResizing({
     persistKey: "hydration",
   });
 
