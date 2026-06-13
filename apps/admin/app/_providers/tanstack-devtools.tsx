@@ -1,7 +1,24 @@
 "use client";
 
-import { TanStackDevtools } from "@tanstack/react-devtools";
-import { tableDevtoolsPlugin } from "@tanstack/react-table-devtools";
+import dynamic from "next/dynamic";
+
+// Devtools packages are loaded only via this dynamic import, so they land in a
+// separate async chunk instead of the admin app's main client bundle. The
+// chunk is fetched only when <DevtoolsShell /> actually renders, which the
+// production early-return below prevents. (`ssr: false` because the devtools
+// are client-only.)
+const DevtoolsShell = dynamic(
+  () =>
+    Promise.all([
+      import("@tanstack/react-devtools"),
+      import("@tanstack/react-table-devtools"),
+    ]).then(([{ TanStackDevtools }, { tableDevtoolsPlugin }]) => ({
+      default: function DevtoolsShellInner() {
+        return <TanStackDevtools plugins={[tableDevtoolsPlugin()]} />;
+      },
+    })),
+  { ssr: false },
+);
 
 /**
  * Dev-only TanStack Devtools shell with the Table plugin.
@@ -10,15 +27,14 @@ import { tableDevtoolsPlugin } from "@tanstack/react-table-devtools";
  * components. Mirrors the `ReactQueryDevtools` gating in
  * `packages/database/providers/query-provider.tsx`.
  *
- * The `NODE_ENV` early return below is what keeps the shell out of
- * production: `TanStackDevtools` from `@tanstack/react-devtools` has no
- * environment gating of its own. The Table plugin's default entry does
- * additionally export no-ops whenever `NODE_ENV !== "development"`.
+ * The devtools packages are imported lazily (see DevtoolsShell) so they stay
+ * out of the production main bundle; the `NODE_ENV` early return additionally
+ * guarantees they never mount in production.
  */
 export function AdminTanStackDevtools() {
   if (process.env.NODE_ENV === "production") {
     return null;
   }
 
-  return <TanStackDevtools plugins={[tableDevtoolsPlugin()]} />;
+  return <DevtoolsShell />;
 }
