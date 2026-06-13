@@ -10,6 +10,11 @@ import {
 
 describe("ci-build command planning", () => {
   it("uses the first available Windows Turbo binary candidate", () => {
+    // resolveTurboBin builds paths with the OS-native separator, so on Windows
+    // `result` and the mocked candidates use "\\". Normalize to forward slashes
+    // so the candidate lookup and the assertion are path-separator agnostic and
+    // pass on both Windows and the Linux CI runner.
+    const toPosixPath = (value: string) => value.replaceAll("\\", "/");
     const existingPaths = new Set([
       "/repo/node_modules/.bin/turbo.cmd",
       "/repo/node_modules/.bin/turbo",
@@ -19,11 +24,16 @@ describe("ci-build command planning", () => {
       platform: "win32",
       exists: (candidate: string) =>
         existingPaths.has(
-          candidate.replace(/^.*node_modules/, "/repo/node_modules"),
+          toPosixPath(candidate).replace(
+            /^.*node_modules/,
+            "/repo/node_modules",
+          ),
         ),
     });
 
-    expect(result.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
+    expect(toPosixPath(result).endsWith("node_modules/.bin/turbo.cmd")).toBe(
+      true,
+    );
   });
 
   it("builds shared packages without Turbo on Windows", () => {
