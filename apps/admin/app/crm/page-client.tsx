@@ -64,6 +64,8 @@ import { PORTAL_BADGE_CLASS, toCrmRecord } from "./types";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
+import { CRM_PAGE_META } from "@/components/table-page-meta";
+
 const EMPTY_CELL_VALUE = "N/A";
 
 function makeDisplayDate(value?: string | number | Date): Date {
@@ -773,9 +775,9 @@ export default function MissionControlCRM() {
   return (
     <>
       <PageShell
-        title="CRM"
-        description="Manage contacts, donors, and partner relationships."
-        density="compact"
+        title={CRM_PAGE_META.title}
+        description={CRM_PAGE_META.description}
+        density={CRM_PAGE_META.density}
         actions={
           <div className="flex items-center gap-3">
             <div className="flex bg-muted p-0.5 rounded-lg border border-border">

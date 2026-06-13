@@ -69,7 +69,9 @@ describe("UI route cleanup contracts", () => {
       expect(wrapperSource, route.name).toContain(
         'import PageClient from "./page-client";',
       );
-      expect(wrapperSource, route.name).toContain("return <PageClient />;");
+      // Admin table routes render the client island behind a Suspense
+      // boundary; other wrappers return it directly. Both stay tiny.
+      expect(wrapperSource, route.name).toMatch(/<PageClient \/>/);
       expect(clientSource, route.name).toMatch(/^"use client";/);
     }
   });
@@ -80,7 +82,9 @@ describe("UI route cleanup contracts", () => {
 
       expect(source, path).not.toMatch(/^["']use client["'];/m);
       expect(source, path).toMatch(/export default function Loading\(\)/);
-      expect(source, path).toMatch(/Skeleton/);
+      // Either direct Skeleton usage or the shared admin table fallback,
+      // which composes DataTableSkeleton internally.
+      expect(source, path).toMatch(/Skeleton|TablePageFallback/);
     }
   });
 
@@ -132,5 +136,47 @@ describe("UI route cleanup contracts", () => {
     const source = readRepoFile("apps/admin/app/reports/page-client.tsx");
 
     expect(source).toMatch(/aria-label="Dismiss report summary"/);
+  });
+});
+
+// Cache Components audit: every admin table route renders its whole-page
+// client island behind a Suspense boundary with a server-rendered loading
+// fallback, so first paint is a skeleton rather than a blank table. Removing
+// the boundary or the fallback from any of these routes must fail here.
+const ADMIN_TABLE_ROUTES = [
+  "apps/admin/app/crm",
+  "apps/admin/app/crm/notes",
+  "apps/admin/app/crm/relationships",
+  "apps/admin/app/crm/projections",
+  "apps/admin/app/contributions",
+  "apps/admin/app/tasks",
+  "apps/admin/app/events",
+] as const;
+
+describe("admin table routes stream behind a Suspense boundary", () => {
+  it("wraps each table island in Suspense with a server loading fallback", () => {
+    for (const route of ADMIN_TABLE_ROUTES) {
+      const pageSource = readRepoFile(`${route}/page.tsx`);
+
+      expect(pageSource, route).not.toMatch(/^["']use client["'];/m);
+      expect(pageSource, route).toMatch(/import \{ Suspense \} from "react"/);
+      expect(pageSource, route).toMatch(/import Loading from "\.\/loading"/);
+      expect(pageSource, route).toMatch(/from "\.\/page-client"/);
+      expect(pageSource, route).toMatch(/<Suspense fallback=\{<Loading \/>\}>/);
+    }
+  });
+
+  it("gives each table route a server-rendered loading skeleton", () => {
+    for (const route of ADMIN_TABLE_ROUTES) {
+      const loadingSource = readRepoFile(`${route}/loading.tsx`);
+
+      expect(loadingSource, route).not.toMatch(/^["']use client["'];/m);
+      expect(loadingSource, route).toMatch(
+        /export default function Loading\(\)/,
+      );
+      // Either the shared `TablePageFallback` (which composes
+      // `DataTableSkeleton`) or a bespoke `Skeleton`-based fallback.
+      expect(loadingSource, route).toMatch(/TablePageFallback|Skeleton/);
+    }
   });
 });

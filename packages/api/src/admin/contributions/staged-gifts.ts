@@ -9,6 +9,7 @@ import {
   queueStagedGiftPostingToTwenty,
   retryStagedGiftPostingToTwenty,
 } from "../../giving/staged-gifts";
+import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -72,6 +73,87 @@ async function appendReviewAudit(input: {
   if (error) {
     throw new Error(error.message);
   }
+}
+
+type StagedGiftAllocationRow = {
+  tenant_id: string;
+  staged_gift_id: string;
+  fund_id: string | null;
+  missionary_id: string | null;
+  amount: number;
+  memo: string | null;
+};
+
+/**
+ * Replace a staged gift's allocation split as a delete-then-insert, restoring
+ * the original rows if the replacement insert fails.
+ *
+ * `staged_gift_allocations` has no route-level transaction (see the giving
+ * guide), so a failed insert after the delete would otherwise leave a
+ * reviewed gift with zero allocations on a money table. We snapshot the
+ * existing rows first and, on insert failure, re-insert them (a compensating
+ * write) before surfacing the original error. If the restore itself fails,
+ * both errors are reported so an operator can reconcile manually.
+ */
+export async function replaceStagedGiftAllocations(input: {
+  supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
+  gift: { id: string; tenantId: string };
+  allocations: z.infer<typeof allocationSchema>[];
+}): Promise<void> {
+  const { supabaseAdmin, gift, allocations } = input;
+
+  const existing = await supabaseAdmin
+    .from("staged_gift_allocations")
+    .select("tenant_id, staged_gift_id, fund_id, missionary_id, amount, memo")
+    .eq("staged_gift_id", gift.id);
+  if (existing.error) {
+    throw new Error(existing.error.message);
+  }
+  const originalRows = (existing.data ?? []) as StagedGiftAllocationRow[];
+
+  const deleteResult = await supabaseAdmin
+    .from("staged_gift_allocations")
+    .delete()
+    .eq("staged_gift_id", gift.id);
+  if (deleteResult.error) {
+    throw new Error(deleteResult.error.message);
+  }
+
+  const replacementRows: StagedGiftAllocationRow[] = allocations.map(
+    (allocation) => ({
+      tenant_id: gift.tenantId,
+      staged_gift_id: gift.id,
+      fund_id: allocation.fundId ?? null,
+      missionary_id: allocation.missionaryId ?? null,
+      amount: allocation.amount,
+      memo: allocation.memo ?? null,
+    }),
+  );
+
+  const insertResult = await supabaseAdmin
+    .from("staged_gift_allocations")
+    .insert(replacementRows);
+  if (!insertResult.error) {
+    return;
+  }
+
+  // Compensating write: the replacement insert failed after the original
+  // rows were deleted. Restore them so the gift is never left without
+  // allocations.
+  if (originalRows.length > 0) {
+    const restore = await supabaseAdmin
+      .from("staged_gift_allocations")
+      .insert(originalRows);
+    if (restore.error) {
+      throw new Error(
+        `Failed to replace staged gift allocations (${insertResult.error.message}); ` +
+          `original allocations could not be restored (${restore.error.message}). ` +
+          `Staged gift ${gift.id} requires manual reconciliation.`,
+      );
+    }
+  }
+
+  throw new Error(insertResult.error.message);
 }
 
 export const GET = withOperation(
@@ -151,29 +233,11 @@ export const PATCH = withOperation(
           );
         }
 
-        const deleteResult = await supabaseAdmin
-          .from("staged_gift_allocations")
-          .delete()
-          .eq("staged_gift_id", gift.id);
-        if (deleteResult.error) {
-          throw new Error(deleteResult.error.message);
-        }
-
-        const insertResult = await supabaseAdmin
-          .from("staged_gift_allocations")
-          .insert(
-            body.allocations.map((allocation) => ({
-              tenant_id: gift.tenantId,
-              staged_gift_id: gift.id,
-              fund_id: allocation.fundId ?? null,
-              missionary_id: allocation.missionaryId ?? null,
-              amount: allocation.amount,
-              memo: allocation.memo ?? null,
-            })),
-          );
-        if (insertResult.error) {
-          throw new Error(insertResult.error.message);
-        }
+        await replaceStagedGiftAllocations({
+          supabaseAdmin,
+          gift: { id: gift.id, tenantId: gift.tenantId },
+          allocations: body.allocations,
+        });
 
         const allocationStatus =
           body.allocations.length > 1 ? "split" : "corrected";
@@ -203,6 +267,8 @@ export const PATCH = withOperation(
         },
       });
 
+      revalidateAdminContributionsCache(auth.tenantId);
+
       return NextResponse.json({ stagedGift: updated.data, requestId });
     } catch (error) {
       return toErrorResponse(error, "Failed to update staged gift.", requestId);
@@ -224,6 +290,8 @@ export const POST_APPROVE = withOperation(
         note: body.note,
         crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ stagedGift, requestId });
     } catch (error) {
@@ -250,6 +318,8 @@ export const POST_RETRY = withOperation(
         note: body.note,
         crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ stagedGift, requestId });
     } catch (error) {
@@ -297,6 +367,8 @@ export const POST_RECEIPT = withOperation(
         supabaseAdmin,
         tenantId: gift.tenantId,
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ receipt, requestId });
     } catch (error) {

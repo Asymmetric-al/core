@@ -29,6 +29,8 @@ import { getCrmRelationshipColumns } from "./columns";
 
 import type { ReactNode } from "react";
 
+import { CRM_RELATIONSHIPS_PAGE_META } from "@/components/table-page-meta";
+
 const DOMAIN_ICON_CLASS = "size-4 text-muted-foreground";
 
 function Metric({
@@ -81,8 +83,8 @@ export default function CrmRelationshipsPageClient() {
 
   return (
     <PageShell
-      title="CRM Relationships"
-      description="Relationship graph, search, and reporting for staff operations."
+      title={CRM_RELATIONSHIPS_PAGE_META.title}
+      description={CRM_RELATIONSHIPS_PAGE_META.description}
       actions={
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2" asChild>

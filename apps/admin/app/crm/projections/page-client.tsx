@@ -26,6 +26,8 @@ import { getCrmProjectionShadowColumns } from "./columns";
 
 import type { ReactNode } from "react";
 
+import { CRM_PROJECTIONS_PAGE_META } from "@/components/table-page-meta";
+
 function Metric({
   icon,
   label,
@@ -72,8 +74,8 @@ export default function CrmProjectionsPageClient() {
 
   return (
     <PageShell
-      title="CRM Projections"
-      description="Shadow-mode projection health across Asym surfaces."
+      title={CRM_PROJECTIONS_PAGE_META.title}
+      description={CRM_PROJECTIONS_PAGE_META.description}
       actions={
         <div className="flex items-center gap-2">
           <Button variant="outline" className="gap-2" asChild>

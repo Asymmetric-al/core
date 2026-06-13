@@ -1,6 +1,7 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { revalidateTag } from "next/cache";
 import { z } from "zod";
+
+import { revalidateMemberCareCache } from "../../shared/cache-tags";
 
 export const threadPostSchema = z.object({
   personnelId: z.string().min(1),
@@ -178,18 +179,6 @@ async function assertMissionaryOwnership(
   }
 }
 
-function revalidateMemberCareTags(tenantId: string): void {
-  try {
-    revalidateTag("member-care", "max");
-    revalidateTag(`member-care:${tenantId}`, "max");
-    revalidateTag("member-care:directory", "max");
-    revalidateTag("member-care:activity", "max");
-    revalidateTag("member-care:private-notes", "max");
-  } catch {
-    // noop outside Next.js runtime
-  }
-}
-
 export type CreateCareThreadPostInput = z.infer<typeof threadPostSchema>;
 export async function createCareThreadPost(
   tenantId: string,
@@ -217,7 +206,7 @@ export async function createCareThreadPost(
     .single();
 
   if (error) throw new Error(error.message || "Failed to create thread post.");
-  revalidateMemberCareTags(tenantId);
+  revalidateMemberCareCache(tenantId);
   return data;
 }
 
@@ -248,7 +237,7 @@ export async function createCarePrivateNote(
     throw new Error(error.message || "Failed to create private note.");
   }
 
-  revalidateMemberCareTags(tenantId);
+  revalidateMemberCareCache(tenantId);
   return data;
 }
 
@@ -284,7 +273,7 @@ export async function upsertCareGoal(
   const { data, error } = await query;
 
   if (error) throw new Error(error.message || "Failed to upsert care goal.");
-  revalidateMemberCareTags(tenantId);
+  revalidateMemberCareCache(tenantId);
   return data;
 }
 
@@ -317,7 +306,7 @@ export async function logCareActivity(
     .single();
 
   if (error) throw new Error(error.message || "Failed to log care activity.");
-  revalidateMemberCareTags(tenantId);
+  revalidateMemberCareCache(tenantId);
   return data;
 }
 
@@ -361,7 +350,7 @@ export async function upsertCareRequirement(
     throw new Error(error.message || "Failed to upsert care requirement.");
   }
 
-  revalidateMemberCareTags(tenantId);
+  revalidateMemberCareCache(tenantId);
   return data;
 }
 
@@ -385,6 +374,6 @@ export async function setManualAttentionFlag(
     throw new Error(error.message || "Failed to set manual attention flag.");
   }
 
-  revalidateMemberCareTags(tenantId);
+  revalidateMemberCareCache(tenantId);
   return data;
 }

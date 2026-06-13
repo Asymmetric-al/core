@@ -15,6 +15,8 @@ import Link from "next/link";
 import { deriveSupportQueueSummaries } from "../support-hub.derived";
 import { supportHubRoutes } from "../support-hub.routes";
 
+import { SUPPORT_TICKETS_PAGE_META } from "@/components/table-page-meta";
+
 interface SupportTicketsPageProps {
   searchParams?: Promise<{
     queueId?: string;
@@ -45,8 +47,8 @@ export default async function SupportTicketsPage({
 
   return (
     <PageShell
-      title="Support Tickets"
-      description="Review Donor Care, Mobilization, and Existing Missionary Support requests."
+      title={SUPPORT_TICKETS_PAGE_META.title}
+      description={SUPPORT_TICKETS_PAGE_META.description}
     >
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2">
