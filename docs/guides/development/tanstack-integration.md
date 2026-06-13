@@ -123,12 +123,16 @@ needs one scope, push the filter into the query with a per-scope collection.
 `getMissionaryScopedDonorCollections(missionaryId)` returns `donors`,
 `donor_activities`, and `donor_pledges` collections (and aggregated pagination)
 scoped to one missionary, memoized per id with scope-qualified ids/query keys
-(`["donors", "missionary", id]`). `donors` and `donor_pledges` filter on their
-`missionary_id` column directly; `donor_activities` has no such column, so it is
-scoped through its `donors` foreign key with an `!inner` embed
-(`donors!inner(missionary_id)`) whose embed-only key is stripped before the row
-reaches the schema. An empty scope builds disabled (`enabled: false`) collections
-that never hit the network.
+(`["donors", "missionary", id]`). `donors` filters on its `missionary_id`
+column directly (it references `profiles(id)` — the namespace the hook is called
+with). `donor_activities` and `donor_pledges` are scoped through their `donors`
+foreign key with an `!inner` embed (`donors!inner(missionary_id)`) whose
+embed-only key is stripped before the row reaches the schema: `donor_activities`
+has no `missionary_id` column, and `donor_pledges.missionary_id` references
+`missionaries(id)` (a different namespace, which is why filtering it by a profile
+id returns nothing), so the donor relationship is the correct scope for both. An
+empty scope builds disabled (`enabled: false`) collections that never hit the
+network.
 
 > **RLS note:** the demo posture in
 > `supabase/migrations/20260216153000_demo_readonly_rls.sql` grants `SELECT`

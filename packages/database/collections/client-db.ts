@@ -464,6 +464,15 @@ const fundSchema = z.object({
   updated_at: z.string().min(1),
 });
 
+// Collection row types inferred from the zod schemas above. Exported so pure
+// view-model helpers (e.g. missionary-donors-model) can type their inputs
+// against the same source of truth without importing the collection runtime.
+export type DonorCollectionRow = SchemaOutput<typeof donorSchema>;
+export type DonorActivityCollectionRow = SchemaOutput<
+  typeof donorActivitySchema
+>;
+export type DonorPledgeCollectionRow = SchemaOutput<typeof donorPledgeSchema>;
+
 /**
  * Fetch windows for collections backed by tables that grow with tenant size.
  * Without a bound these queryFns load entire tables into the browser.
@@ -580,6 +589,10 @@ function buildMissionaryScopedDonorCollections(missionaryId: string | null) {
     enabled,
   });
 
+  // donor_pledges.missionary_id references missionaries(id), not profiles(id),
+  // so filtering it by the missionary's profile id never matches. Scope through
+  // the donor FK instead (same as activities); the donor is already
+  // missionary-scoped, which is the correct relationship for the Partners view.
   const scopedPledgesFetcher = createBoundedTableFetcher<
     SchemaOutput<typeof donorPledgeSchema>
   >({
@@ -587,7 +600,11 @@ function buildMissionaryScopedDonorCollections(missionaryId: string | null) {
     queryKey: ["donor_pledges", "missionary", scopeKey],
     pageSize: SCOPED_DONOR_PLEDGES_PAGE_SIZE,
     orderBy: { column: "start_date", ascending: false },
-    filters: directScope,
+    embedSelect: "donors!inner(missionary_id)",
+    filters: missionaryId
+      ? [{ column: "donors.missionary_id", value: missionaryId }]
+      : [],
+    omitKeys: ["donors"],
     enabled,
   });
 
