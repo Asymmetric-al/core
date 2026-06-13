@@ -273,6 +273,15 @@ const fundSchema = z.object({
   updated_at: z.string().min(1),
 });
 
+// Collection row types inferred from the zod schemas above. Exported so pure
+// view-model helpers (e.g. missionary-donors-model) can type their inputs
+// against the same source of truth without importing the collection runtime.
+export type DonorCollectionRow = SchemaOutput<typeof donorSchema>;
+export type DonorActivityCollectionRow = SchemaOutput<
+  typeof donorActivitySchema
+>;
+export type DonorPledgeCollectionRow = SchemaOutput<typeof donorPledgeSchema>;
+
 function createProfilesCollection() {
   return createCollection(
     queryCollectionOptions({
