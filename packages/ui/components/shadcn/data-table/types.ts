@@ -160,7 +160,7 @@ declare module "@tanstack/react-table" {
   // parameter list (including names) must mirror the upstream declaration
   // exactly or declaration merging fails with TS2428, so the unused
   // TFeatures parameter cannot take a leading underscore.
-  /* eslint-disable @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- TS2428 requires the upstream type parameter list verbatim */
+  /* eslint-disable @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- TODO(AL-000): TS2428 requires the upstream type parameter list verbatim */
   interface ColumnMeta<
     TFeatures extends TableFeatures,
     TData extends RowData,
