@@ -463,6 +463,31 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 | Missionary app          | 4000                                    | `bun run dev:missionary`      |
 | Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`              |
 
+### Dependency install (bun) — known caveat
+
+Toolchain: Bun is the package manager (pinned `bun@1.3.14`, enforced by `scripts/verify/bun-version.sh`). The Cursor Cloud update script runs `bun install` on startup.
+
+`bun install` against the committed `bun.lock` **exits 1** with `error: failed to download @asym/pdf-renderer@vendor/...: ENOENT` / `Failed to install 1 package`. This is a lockfile/bun bug: the committed lock records the `@asym/pdf-renderer` store path **without** the `+<hash>` suffix bun actually uses for that package, so its store dir is never created — every other package installs fine. The fix is to materialize that one package after install:
+
+```bash
+PDF_RENDERER_STORE="node_modules/.bun/@asym+pdf-renderer@vendor+react-pdf-packages+asym-pdf-renderer-0.0.0.tgz/node_modules/@asym/pdf-renderer"
+mkdir -p "$PDF_RENDERER_STORE"
+tar xzf vendor/react-pdf-packages/asym-pdf-renderer-0.0.0.tgz -C "$PDF_RENDERER_STORE" --strip-components=1
+```
+
+The update script performs exactly this, so a freshly started pod is already correct. Do **not** "fix" this by regenerating `bun.lock` (a clean re-resolve bumps 1000+ transitive versions — far out of scope). After the workaround, `require.resolve('@asym/pdf-renderer')` (and `@asym/pdf-studio-adapter` → renderer) resolve, and all three apps boot.
+
+### Running per-app dev servers
+
+`bun run dev:donor` / `dev:admin` / `dev:missionary` use `turbo run dev`, whose `loose` env mode forwards the **shell** environment but does **not** load `.env.local`. If you launch a per-app dev server without the vars in the shell, the app boots but pages return **HTTP 500** (`Invalid environment variables: NEXT_PUBLIC_SUPABASE_URL`). Load the env first, e.g.:
+
+```bash
+set -a; source .env.local; set +a
+bun run dev:donor
+```
+
+`bun run dev:all` and `bun run dev:mission-control` already inject env (`--env-file` / CI-env wrapper), so they don't need this. Donor donation flow: the real form is at `/checkout?fund=general` (or via a missionary profile) — bare `/checkout` shows "Target Unspecified".
+
 ### Mission Control Cloud Agent startup
 
 For a fresh Cursor Cloud Agent or disposable VM that needs the Mission Control Dashboard without live Supabase credentials:
