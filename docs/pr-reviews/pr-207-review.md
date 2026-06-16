@@ -1,7 +1,7 @@
 # PR #207 Review - Add core UI route cleanup guardrails
 
 - URL: https://github.com/Asymmetric-al/core/pull/207
-- Base: `epic`
+- Base: `production`
 - Head: `codex/core-ui-route-cleanup`
 - Draft: no
 - GitHub state at review: `DIRTY`, `CHANGES_REQUESTED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflicts:
 
@@ -25,7 +25,7 @@ Conflicts:
 - `tests/unit/apps/donor/donor-history-tanstack.test.ts`
 - `tests/unit/virtualization-pilots.test.ts`
 
-Tests were not run because the PR does not produce a merged tree against current `epic`.
+Tests were not run because the PR does not produce a merged tree against current `production`.
 
 ## Verdict
 
@@ -33,13 +33,13 @@ Do not merge. The PR is conflict-heavy and combines route cleanup, env behavior,
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
-Impact: the route split touches files that have since changed on `epic`, so the final behavior cannot be reviewed or tested without conflict resolution.
+Impact: the route split touches files that have since changed on `production`, so the final behavior cannot be reviewed or tested without conflict resolution.
 
 Suggested fix:
 
-- Rebase onto current `epic`.
+- Rebase onto current `production`.
 - Resolve all route/test conflicts.
 - Run `bun install --frozen-lockfile && bun run ci:preflight` on the resolved tree.
 

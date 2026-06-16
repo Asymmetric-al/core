@@ -30,7 +30,7 @@ def main() -> None:
 
     def rank(item: dict) -> int:
         b = (item.get("branch") or "").lower()
-        return 0 if b == "epic" else 1
+        return 0 if b == "production" else 1
 
     chosen = sorted(matches, key=rank)[0]
     print(

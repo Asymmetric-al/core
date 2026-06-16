@@ -1,5 +1,6 @@
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
-import { join, basename, relative } from "node:path";
+import { join, basename, relative, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 type RegistryFile = {
   type?: string;
@@ -16,6 +17,13 @@ const REGISTRY_NAMESPACE = "@shadcnuikit";
 const REGISTRY_BASE_URL = "https://shadcnuikit.com/r";
 const SHADCN_CWD = "packages/ui";
 const SHADCN_COMPONENT_PATH = "components/shadcn";
+const SAFE_TARGET_PREFIXES = [
+  "@ui/",
+  "@components/",
+  "@lib/",
+  "@hooks/",
+  "@utils/",
+];
 
 type ParsedArgs = {
   itemInputs: string[];
@@ -114,24 +122,61 @@ async function readTokenFromEnvLocal(): Promise<string | undefined> {
   }
 }
 
-function sanitizeRegistryPayload(payload: RegistryItem): RegistryItem {
+export function isSafeRegistryTarget(target: string): boolean {
+  const trimmed = target.trim();
+
+  if (!trimmed) {
+    return false;
+  }
+
+  if (!SAFE_TARGET_PREFIXES.some((prefix) => trimmed.startsWith(prefix))) {
+    return false;
+  }
+
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith("file:")) {
+    return false;
+  }
+
+  if (trimmed.startsWith("/") || trimmed.startsWith("\\")) {
+    return false;
+  }
+
+  if (/^[a-zA-Z]:[\\/]/.test(trimmed)) {
+    return false;
+  }
+
+  if (trimmed.includes("\\")) {
+    return false;
+  }
+
+  const normalized = trimmed.replaceAll("\\", "/");
+  return (
+    normalized !== ".." &&
+    !normalized.startsWith("../") &&
+    !normalized.includes("/../") &&
+    !normalized.endsWith("/..")
+  );
+}
+
+export function sanitizeRegistryPayload(payload: RegistryItem): RegistryItem {
   const files = payload.files ?? [];
   const sanitizedFiles = files.map((file) => {
     const sanitized: RegistryFile = { ...file };
-    const fileType = sanitized.type ?? "";
     const hasTarget =
       typeof sanitized.target === "string" &&
       sanitized.target.trim().length > 0;
 
     // shadcn v3.8+ validates explicit targets for safety. Some third-party
-    // payloads set targets on non-file/page entries and trigger false positives
-    // on Windows. Keep targets only where the schema requires them.
-    if (
-      hasTarget &&
-      fileType !== "registry:file" &&
-      fileType !== "registry:page"
-    ) {
-      delete sanitized.target;
+    // payloads include paths that are valid for the provider but unsafe for the
+    // local filesystem. Keep only repo aliases and let the CLI validate last.
+    if (hasTarget && typeof sanitized.target === "string") {
+      const target = sanitized.target.trim();
+      if (isSafeRegistryTarget(target)) {
+        sanitized.target = target;
+      } else {
+        delete sanitized.target;
+      }
     }
 
     if (!hasTarget && "target" in sanitized) {
@@ -245,4 +290,8 @@ async function main(): Promise<void> {
   }
 }
 
-await main();
+const executedPath = process.argv[1] ? resolve(process.argv[1]) : null;
+
+if (executedPath === fileURLToPath(import.meta.url)) {
+  await main();
+}

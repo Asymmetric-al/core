@@ -5,6 +5,15 @@ license: MIT
 metadata:
   author: vercel
   version: "1.0.0"
+  owner: "skills-steward"
+  last_updated: 2026-04-04
+  status: "active"
+  upstream:
+    url: "https://skills.sh/vercel-labs/agent-skills/vercel-react-view-transitions"
+    repo: "vercel-labs/agent-skills"
+    path: "skills/react-view-transitions/SKILL.md"
+    ref: "73140fc5b3a214ad3222bcf557b397b3c02d11c1"
+    license: "MIT"
 ---
 
 # React View Transitions

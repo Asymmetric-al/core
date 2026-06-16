@@ -1,7 +1,7 @@
 # PR #218 Review - Add Mission Control Payouts Phase 0 and 1 foundation
 
 - URL: https://github.com/Asymmetric-al/core/pull/218
-- Base: `epic`
+- Base: `production`
 - Head: `payout-phase0-docs`
 - Draft: no
 - GitHub state at review: `DIRTY`, `REVIEW_REQUIRED`
@@ -10,13 +10,13 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflict:
 
 - `docs/ai/working-set.md`
 
-Tests were not run because the PR does not produce a merged tree against current `epic`.
+Tests were not run because the PR does not produce a merged tree against current `production`.
 
 ## Verdict
 
@@ -24,13 +24,13 @@ Do not merge until the conflict is resolved and the payout env/config boundary i
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: no reliable local gate can be run on the final merge result.
 
 Suggested fix:
 
-- Rebase or merge current `epic`.
+- Rebase or merge current `production`.
 - Resolve `docs/ai/working-set.md`.
 - Re-run `bun install --frozen-lockfile && bun run ci:preflight`.
 

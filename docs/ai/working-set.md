@@ -1,5 +1,38 @@
 # Working Set
 
+## 2026-05-23 (PR 241 babysit review feedback)
+
+- Date: 2026-05-23
+- Repo: Asymmetric-al/core
+- Goal: Babysit PR 241 through review feedback by triaging all review threads,
+  CI state, mergeability, and confirmed fixes before pushing directly to
+  `cursor/test-quality-phases-1-3-24c3`.
+- Primary area:
+  - `.github/workflows/ci-integration.yml`
+  - `package.json`
+  - `playwright.config.ts`
+  - `docs/ai/rules/testing.md`
+  - `docs/ci.md`
+  - `tests/e2e/**`
+  - `tests/unit/scripts/**`
+  - `tests/unit/apps/**`
+  - `tests/unit/packages/api/email/**`
+- Stack:
+  - GitHub Actions
+  - Playwright
+  - Vitest
+  - Bun
+  - Turborepo
+  - TypeScript
+  - Next.js 16 App Router
+- Constraints:
+  - Work only on PR 241 head branch.
+  - Commit and push fixes directly to PR 241; do not open a new PR or merge.
+  - Build a PR Review Docket before code fixes.
+  - Keep changes surgical and tied to actionable review feedback.
+  - Confirm CI, mergeability, unresolved threads, branch freshness, and conflicts
+    after the latest push.
+
 ## 2026-05-16 (Monorepo Vercel build controls)
 
 - Date: 2026-05-16

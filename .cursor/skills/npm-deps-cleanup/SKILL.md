@@ -56,6 +56,7 @@ Use the matching command family:
 - Treat `peerDependencies`, `optionalDependencies`, package `bin` usage, test fixtures, and published package manifests as higher risk.
 - Do not remove or inline dependencies used for security, parsing, crypto, Unicode, URL handling, date/time, i18n, or platform compatibility unless the replacement is proven equivalent.
 - Do not change package managers, delete lockfiles, or rewrite workspace structure as part of cleanup.
+- Treat package manager dedupe commands as potentially behavior-changing. They can alter selected transitive versions within allowed ranges, so inspect lockfile diffs and run focused verification before keeping the result.
 - Measure before and after: direct dependency count, lockfile line count or entry count, package count, and estimated `node_modules` size when available.
 
 ## Step 1: Baseline
@@ -101,6 +102,8 @@ Good approaches:
 - Use overrides/resolutions only for transitive dependency convergence or security fixes, and document why.
 
 After deduping, reinstall and inspect both manifest and lockfile diffs.
+
+Then consider the package manager's native lockfile dedupe command: `npm dedupe`, `pnpm dedupe`, or `yarn dedupe` when available. Bun has no direct equivalent; run `bun install` and inspect whether the lockfile converges. Apply these commands carefully because they may change transitive dependency resolution and introduce breakage even without manifest edits.
 
 ## Step 4: Rank Transitive Lockfile Closure
 

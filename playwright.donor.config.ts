@@ -31,9 +31,19 @@ function getWorkerCount(): number {
   return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
 }
 
-const baseURL = normalizeBaseUrl(
-  process.env.PLAYWRIGHT_DONOR_BASE_URL || DEFAULT_BASE_URL,
-);
+export function resolveDonorBaseUrl(
+  env: NodeJS.ProcessEnv = process.env,
+): string {
+  return normalizeBaseUrl(
+    env.PLAYWRIGHT_DONOR_BASE_URL || env.QA_DONOR_BASE_URL || DEFAULT_BASE_URL,
+  );
+}
+
+function hasConfiguredDonorBaseUrl(env: NodeJS.ProcessEnv = process.env) {
+  return Boolean(env.PLAYWRIGHT_DONOR_BASE_URL || env.QA_DONOR_BASE_URL);
+}
+
+const baseURL = resolveDonorBaseUrl();
 
 const isLocalBaseUrl = (() => {
   try {
@@ -45,7 +55,7 @@ const isLocalBaseUrl = (() => {
 })();
 
 const shouldStartLocalWebServer =
-  isLocalBaseUrl && process.env.PLAYWRIGHT_DONOR_BASE_URL == null;
+  isLocalBaseUrl && !hasConfiguredDonorBaseUrl();
 
 export default defineConfig({
   testDir: "./tests/e2e",

@@ -1,7 +1,7 @@
 # PR #190 Review - Support Hub Phase 5 productivity, internal collaboration, and fast actions
 
 - URL: https://github.com/Asymmetric-al/core/pull/190
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/support-hub-phase-5-productivity-1899`
 - Draft: no
 - GitHub state at review: `DIRTY`, `CHANGES_REQUESTED`
@@ -10,13 +10,13 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflict:
 
 - `apps/admin/app/support/page.tsx`
 
-Tests were not run because the PR does not produce a merged tree against current `epic`.
+Tests were not run because the PR does not produce a merged tree against current `production`.
 
 ## Verdict
 
@@ -24,13 +24,13 @@ Do not merge. There is a merge conflict plus real support workflow correctness/s
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: the final Support Hub page composition cannot be reviewed or tested until the conflict is resolved.
 
 Suggested fix:
 
-- Rebase onto current `epic`.
+- Rebase onto current `production`.
 - Resolve `apps/admin/app/support/page.tsx`.
 - Run `bun install --frozen-lockfile && bun run ci:preflight` on the resolved merge tree.
 

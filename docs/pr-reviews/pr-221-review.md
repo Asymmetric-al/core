@@ -1,7 +1,7 @@
 # PR #221 Review - Deepen auth client session module
 
 - URL: https://github.com/Asymmetric-al/core/pull/221
-- Base: `epic`
+- Base: `production`
 - Head: `codex/auth-client-session-module`
 - Draft: no
 - GitHub state at review: `DIRTY`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflict:
 
@@ -26,13 +26,13 @@ Do not merge until the conflict is resolved and the auth behavior change is expl
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: the merge conflict blocks local verification and makes the final diff unknown.
 
 Suggested fix:
 
-- Rebase or merge current `epic`.
+- Rebase or merge current `production`.
 - Resolve `docs/ai/working-set.md` without dropping current task context.
 - Re-run `bun install --frozen-lockfile && bun run ci:preflight` after resolving.
 

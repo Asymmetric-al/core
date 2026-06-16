@@ -4,7 +4,7 @@ import { fileURLToPath } from "node:url";
 
 import { APPS, resolveBuildDecision } from "../vercel/should-ignore-build.mjs";
 
-const TARGET_BRANCH = "epic";
+const TARGET_BRANCH = "production";
 const STAGING_BRANCH = "develop";
 const DEFAULT_REMOTE = "origin";
 const RELEASE_PUSH_ENV = "ASYM_RELEASE_PRODUCTION_PUSH";

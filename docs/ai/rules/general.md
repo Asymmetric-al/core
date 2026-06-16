@@ -11,8 +11,8 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 - **Project name:** Asymmetric.al
 - **Issue key format:** `AL-###`
-- **Production branch:** `epic` is the protected Vercel Production Branch. Use
-  `bun run release:production`; do not push directly to `epic`.
+- **Production branch:** `production` is the protected Vercel Production Branch. Use
+  `bun run release:production`; do not push directly to `production`.
 - **Legacy branch:** `main` may still exist for compatibility, but it is not the
   production branch for this repo.
 - **Tech stack (reference):** Next.js 16.2.x (App Router), React 19, TypeScript 5.9.x (see root `package.json` for exact version), Tailwind CSS 4, Supabase client libraries, package manager `bun`.
@@ -25,6 +25,27 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 - Type: `type:bug | type:feature | type:chore | type:refactor | type:docs`
 
 **Rule:** Exactly one label from each category. Do not mix multiple labels from the same category.
+
+### PR automation labels
+
+`automation:*` labels are machine-owned PR orchestration labels, not part of the
+issue taxonomy above. The PR Signal Coordinator owns these labels and may add or
+remove them when CI, review-bot, and security signals change:
+
+- `automation:signals-pending`
+- `automation:ci-settled`
+- `automation:ci-failed`
+- `automation:greptile-settled`
+- `automation:bugbot-settled`
+- `automation:security-settled`
+- `automation:security-failed`
+- `automation:review-findings`
+- `automation:signal-timeout`
+- `automation:pr-intake-ready`
+
+Do not manually maintain these labels except for emergency reruns or cleanup.
+`automation:pr-intake-ready` means the PR is ready for a settled intake snapshot;
+it does **not** mean the PR is ready to merge.
 
 ### CI gates (must pass before merge)
 
@@ -64,7 +85,7 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 ### PR checklist
 
-- [ ] Branch is not a direct production push to `epic`
+- [ ] Branch is not a direct production push to `production`
 - [ ] CI gates pass (`format:check`, `lint`, `typecheck`, `build`, `test:unit`)
 - [ ] Formatting fixed with `bun run format` and verified with `bun run format:check`
 - [ ] Changes are minimal and scoped
@@ -78,5 +99,5 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 - Skipping the issue or using a non-`AL-###` identifier
 - Applying multiple labels from the same category
-- Pushing directly to `epic`
+- Pushing directly to `production`
 - Editing generated files without need

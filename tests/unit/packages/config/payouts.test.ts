@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -96,11 +98,18 @@ describe("payout feature config", () => {
   });
 
   it("keeps payout resolvers off the shared config barrel", async () => {
-    const configRoot = await import("../../../../packages/config/index");
+    const configRoot = await readFile(
+      new URL("../../../../packages/config/index.ts", import.meta.url),
+      "utf8",
+    );
+    const payoutReexports = [
+      ...configRoot.matchAll(
+        /export\s+(type\s+)?(?:\*|\{[\s\S]*?\})\s+from\s+["']\.\/payouts["'];/g,
+      ),
+    ];
 
-    expect("payoutFeatureConfig" in configRoot).toBe(false);
-    expect("resolvePayoutFeatureConfig" in configRoot).toBe(false);
-    expect("getClientSafePayoutFeatureConfig" in configRoot).toBe(false);
+    expect(payoutReexports).toHaveLength(1);
+    expect(payoutReexports[0]?.[1]).toBe("type ");
   });
 
   it("resolves server env at call time only", () => {

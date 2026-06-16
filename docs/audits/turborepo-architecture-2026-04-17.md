@@ -2,7 +2,7 @@
 
 Scope: whole-repo audit (cron-triggered weekly review). The active branch
 `cursor/turborepo-architecture-review-16a1` has **no diff** against its base
-`epic`, so this report evaluates the current state of `epic` itself rather
+`production`, so this report evaluates the current state of `production` itself rather
 than a specific PR. The findings still aim to be high-signal and actionable
 on a single follow-up PR.
 
@@ -109,7 +109,7 @@ use:
   },
 ```
 
-_(Snapshot aligned with `epic` after workspace Tiptap usage moved to `packages/ui`; root no longer lists `@tiptap/*`.)_
+_(Snapshot aligned with `production` after workspace Tiptap usage moved to `packages/ui`; root no longer lists `@tiptap/*`.)_
 
 None of these are imported by code that lives in the repo root. The
 `@asym/*` workspace deps in the root let root-level test files and
@@ -201,7 +201,7 @@ go through Turbo. The Turbo task is effectively dead config.
 
 - Unit tests never participate in Turbo's cache or task graph. Every CI
   run re-executes the full vitest suite even if only docs changed.
-- `turbo run test:unit --filter=...[origin/epic]` would let CI run only
+- `turbo run test:unit --filter=...[origin/production]` would let CI run only
   affected workspaces. Today, that capability is unreachable because all
   tests live at the repo root and aren't fronted by Turbo.
 - The same pattern applies to `format:check`, `test:e2e*`, and CMS/legal
@@ -656,7 +656,7 @@ The current `vercel.json` files only opt out of branch deploys:
     "deploymentEnabled": {
       "main": false,
       "develop": false,
-      "epic": false
+      "production": false
     }
   }
 }
