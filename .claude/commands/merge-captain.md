@@ -43,11 +43,20 @@ gh pr list --repo Asymmetric-al/core --base develop --state open \
 
 - base is `develop`, state is open, `isDraft` is false (skip drafts);
 - it does **not** carry the `needs-human` label (already escalated — leave it for a human);
-- it carries `automation:pr-intake-ready` **OR** it has been ≥20 min since the last push
-  (so the five machine signals have had time to land — see §2). If the PR Signal Coordinator
-  is active, prefer the label; if labels are stale, fall back to reading check-runs directly.
+- **its review signals are actually present** (never infer "reviewed" from elapsed time alone):
+  - **Preferred:** it carries `automation:pr-intake-ready` (the coordinator confirmed all five
+    signals settled).
+  - **Fallback when the coordinator is inactive** (label never appears): directly read the head
+    commit's check-runs/comments and confirm the advisory reviewers have **actually run** —
+    i.e. Greptile, Cursor Bugbot, and Cursor Security each have a completed check-run **or** a
+    posted comment on the current head. The ≥20-minute-since-last-push window is only a
+    _minimum wait_, never sufficient on its own: if a bot has not yet produced a signal, the PR
+    is **not** ready — wait and re-check next pass; do not process it. Only when CI is terminal
+    **and** every advisory reviewer has produced an observable signal is the PR eligible. This
+    prevents merging before the bots have weighed in when the coordinator is down.
 
-If `$ARGUMENTS` names a PR number, process only that PR (still apply all rules).
+If `$ARGUMENTS` names a PR number, process only that PR (still apply all rules, including the
+"signals actually present" check — never skip review just because a number was given).
 
 Process PRs **oldest-updated first**. Work one PR to a stopping point before moving to the next.
 
@@ -145,7 +154,17 @@ or rebutted on-thread, and the test-gap pass is done. Then:
 
 ## 4. Hard limits (circuit breakers — every robust loop has these)
 
-- **≤ 5 fix-iterations** and **≤ 6 pushes** per PR across all passes. On hitting either, escalate (§6).
+- **≤ 5 fix-iterations** and **≤ 6 pushes** per PR. Each loop invocation is **stateless** (you
+  rebuild the queue from scratch and have no memory of prior passes), so you MUST reconstruct the
+  count from **durable PR state**, never from in-memory pass counting:
+  - Maintain a single pinned tracker comment per PR marked `<!-- merge-captain-state -->` holding
+    a running tally (`fix-iterations: N`, `pushes: M`, plus a one-line note per attempt).
+  - At the **start** of working any PR, read that comment (and cross-check against the count of
+    your own fix commits / pushed shas on the head) to recover the current count; **increment and
+    update the comment in the same pass** as each fix/push.
+  - If the recovered count already meets or exceeds either cap, **escalate immediately** (§6) and
+    do not push again. This makes the caps enforceable across separate `/loop` invocations and
+    across a cold restart on any machine.
 - Never edit `.github/workflows/**`, CI configs, or test configuration to force a green result.
   "Any change that weakens CI is a blocker. Full stop."
 - Never write to `automation:*` labels — those belong to the PR Signal Coordinator.
