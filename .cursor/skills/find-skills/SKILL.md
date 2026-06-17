@@ -27,10 +27,13 @@ The Skills CLI (`npx skills`) is the package manager for the open agent skills e
 - `npx skills find [query]` - Search for skills interactively or by keyword
 - `npx skills add <package>` - Install a skill from GitHub or other sources
 - `npx skills update` / `npx skills upgrade` - Update installed skills
+- `npx skills experimental_install` - Restore project skills from `skills-lock.json`
 
-Do **not** use `npx skills check` as a read-only command in this repo. It has
-been observed to mutate `.agents/skills/*` and `skills-lock.json`; treat it
-like an update workflow that must be reviewed.
+Do **not** use `npx skills check` as a read-only update check in this repo.
+With `skills@1.5.7`, that subcommand is not listed in `npx skills --help` and
+was observed to rewrite `.agents/skills/*` and `skills-lock.json`. Treat it like
+`update`: run it only when you intentionally want to refresh installed skills
+and are prepared to review and revert the full diff.
 
 **Browse skills at:** https://skills.sh/
 

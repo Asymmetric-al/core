@@ -2,7 +2,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-export const PRODUCTION_BRANCH = "epic";
+export const PRODUCTION_BRANCH = "production";
 export const RELEASE_PUSH_ENV = "ASYM_RELEASE_PRODUCTION_PUSH";
 export const RELEASE_REASON_ENV = "ASYM_RELEASE_PRODUCTION_REASON";
 export const EMERGENCY_BYPASS_ENV = "ASYM_PRODUCTION_PUSH_BYPASS_REASON";

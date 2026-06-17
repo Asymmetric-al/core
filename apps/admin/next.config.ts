@@ -34,6 +34,7 @@ const nextConfig: NextConfig = {
     "@asym/ui",
     "@asym/database",
     "@asym/lib",
+    "@asym/mock-data",
     "@asym/config",
     "@asym/auth",
     "@asym/email",

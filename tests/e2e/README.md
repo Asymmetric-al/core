@@ -34,7 +34,20 @@ Playwright config sets this automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see
 
 ## CI behavior
 
-The `test-e2e` job in `.github/workflows/ci-integration.yml` is configured with `continue-on-error: true`, so failures are informational and do not block merges. On failure, CI uploads `playwright-report/` as an artifact for debugging.
+- `test-e2e-smoke` runs `bun run test:e2e:smoke` and is **blocking** on `develop` through the `e2e-smoke-gate` required check.
+- Smoke starts donor and admin, then runs a bounded inventory: donor auth
+  preflight/usability/donate, admin Support Hub, and upload-crop under the
+  donor-auth Playwright project. It is not a substitute for `bun run test:a11y`,
+  `bun run test:perf`, or the broader `bun run test:e2e` when those contracts
+  are touched.
+
+## Deterministic waits
+
+- Prefer `expect.poll` or `page.waitForURL` over `page.waitForTimeout`.
+- Do not stack a fixed sleep after a poll that already waited for the same condition.
+- Unit guard: `tests/unit/e2e/e2e-flake-guards.test.ts` rejects `waitForTimeout` in `tests/e2e/**/*.spec.ts`.
+- `test-e2e` remains configured with `continue-on-error: true` on `develop`, so the full broad suite is informational there. On `production`, `e2e-gate` makes the bounded production-release path required.
+- On failure, CI uploads `playwright-smoke-report/` (smoke job) or `playwright-report/` (full job) as artifacts for debugging.
 
 ## Growth plan - future tests to add
 

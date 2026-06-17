@@ -6,7 +6,7 @@ name: Nia source check
 on:
   push:
     branches:
-      - epic
+      - production
   workflow_dispatch:
 
 jobs:

@@ -15,10 +15,12 @@
 ## Package Consumption Method
 
 Core consumes the Phase 47 React PDF packages through local Bun file
-dependencies under `vendor/react-pdf-packages/*.tgz`. Packages were packed from
-`/Users/blake/Documents/asymmetrical/repos/react-pdf`; no package was
-published. Root `overrides` pin the `@asym/*` transitive package references to
-the same local tarballs so Bun resolves the full graph offline.
+dependencies under `vendor/react-pdf-packages/<package>/`. Packages were packed
+from `/Users/blake/Documents/asymmetrical/repos/react-pdf`; no package was
+published. The packed tarballs remain in `vendor/react-pdf-packages/` as source
+artifacts, while root `overrides` pin the `@asym/*` transitive package
+references to the extracted package directories so Bun resolves the full graph
+offline without CI tarball extraction.
 
 ## Feature Flags
 

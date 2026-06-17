@@ -1,13 +1,13 @@
 # PR #78 Review — Supabase login foundation
 
-**Branch:** `cursor/supabase-login-foundation-6869` → **base:** `epic`  
+**Branch:** `cursor/supabase-login-foundation-6869` → **base:** `production`
 **Link:** https://github.com/Asymmetric-al/core/pull/78
 
 ---
 
 ## Short comment (for PR)
 
-This PR unifies auth around shared Supabase SSR, `createAuthMiddleware`, Base UI login/register, and DB role hardening. The direction is good, but **do not merge to `epic` until** the security and logic items below are addressed. Merge conflicts with `epic` have been resolved in this branch (client.ts, working-set, bun.lock).
+This PR unifies auth around shared Supabase SSR, `createAuthMiddleware`, Base UI login/register, and DB role hardening. The direction is good, but **do not merge to `production` until** the security and logic items below are addressed. Merge conflicts with `production` have been resolved in this branch (client.ts, working-set, bun.lock).
 
 ---
 
@@ -46,12 +46,12 @@ This PR unifies auth around shared Supabase SSR, `createAuthMiddleware`, Base UI
 ## Conflict resolution (this pass)
 
 - **packages/database/supabase/client.ts** — Kept PR: `getSupabasePublicConfig()`, throw when url/key missing (no `clientEnv`).
-- **docs/ai/working-set.md** — Kept epic’s 2026-03-12 section at top, retained PR #78 merge-prep section.
-- **bun.lock** — Kept both HEAD’s `@asym/ui/@base-ui/react` and epic’s `@asym/ui/lucide-react` entries.
+- **docs/ai/working-set.md** — Kept production’s 2026-03-12 section at top, retained PR #78 merge-prep section.
+- **bun.lock** — Kept both HEAD’s `@asym/ui/@base-ui/react` and production’s `@asym/ui/lucide-react` entries.
 
 ---
 
-## Checklist before merging to `epic`
+## Checklist before merging to `production`
 
 - [ ] Middleware uses `request.nextUrl.origin` (or allowlist) for redirects; no `Referer`/`Origin` for host.
 - [ ] Health routes return generic degraded response; log real error server-side only.

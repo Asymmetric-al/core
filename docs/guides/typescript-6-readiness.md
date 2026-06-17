@@ -167,7 +167,7 @@ Bun’s sample tsconfig (ESNext, `module: "Preserve"`, etc.) targets **Bun-first
 ## Internal doc mismatches (recorded)
 
 - `docs/ai/rules/general.md` references **TypeScript 5.9.x** with a pointer to root `package.json` for the exact version (currently **5.9.3**).
-- Default Git branch in automation may be **`epic`** while `general.md` discusses **`main`** as protected; follow **remote default** for branch operations.
+- Default Git branch in automation may be **`production`** while `general.md` discusses **`main`** as protected; follow **remote default** for branch operations.
 
 ## Audit matrix (snapshot)
 

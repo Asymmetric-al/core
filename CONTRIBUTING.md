@@ -11,7 +11,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 
 ## Development workflow (short)
 
-- **Base branches:** use `develop` for staging validation and `epic` only for
+- **Base branches:** use `develop` for staging validation and `production` only for
   an intentional production release. `main` is retired/protected historical
   history and is not an active deploy target.
 - **Package manager:** `bun` pinned via `package.json#packageManager` (currently `bun@1.3.14`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions.
@@ -24,7 +24,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 - **Local PR-readiness gate (matches blocking CI):**
   - `bun run format:check && bun run lint && bun run typecheck && bun run build && bun run test:unit`
 - **Production E2E:** `bun run test:e2e:production-gate` is the bounded
-  release gate required for `epic`; broader `bun run test:e2e` remains useful
+  release gate required for `production`; broader `bun run test:e2e` remains useful
   for local feature validation.
 
 ## Code review and ownership
