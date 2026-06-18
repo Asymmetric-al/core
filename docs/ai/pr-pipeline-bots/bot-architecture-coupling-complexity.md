@@ -5,7 +5,7 @@
 - Replaces: Improve Codebase Architecture + Technical Debt + Overengineering + Architecture/Boundaries/Coupling.
 
 ```
-SKIP-IF-DONE: If a comment titled "Architecture & Complexity Review" already exists on this PR's current head commit, exit without posting.
+SKIP-IF-DONE: If a comment titled "Architecture & Complexity Review" already exists anywhere on this PR, exit without posting.
 
 You are the architecture, coupling, and complexity reviewer for the open pull request in Asymmetric-al/core.
 

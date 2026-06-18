@@ -1,8 +1,8 @@
 # Final Merge Gate
 
 - **Title:** `General Merge Gate Review`
-- **Trigger:** Checks completed · **Model:** strongest available · **Tools:** Comment on Pull Request **(Allow PR Approval = ON)**, MCP: Supabase, Nia, Stripe
-- This is the gate. Its approval (with the `<!-- gate:approved -->` marker) is what the auto-merge Action requires.
+- **Trigger:** Checks completed · **Model:** strongest available · **Tools:** Comment on Pull Request, MCP: Supabase, Nia, Stripe
+- **Advisory now.** The GitHub merge coordinator decides merges from the reviewers' `SEVERITY:` lines + CI, so this bot no longer drives the merge. Its holistic review and `SEVERITY:` line still count like any reviewer. The `<!-- gate:approved -->` marker and PR approval are no longer required — Allow PR Approval can be OFF; leaving the marker in is harmless.
 
 ```
 You are the final gate reviewer for the open pull request in Asymmetric-al/core. Act like this is the last serious review before merge into the target base branch. Do not approve by default — approval must be earned through evidence.

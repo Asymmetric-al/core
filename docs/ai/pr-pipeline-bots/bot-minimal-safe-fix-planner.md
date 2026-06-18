@@ -2,7 +2,7 @@
 
 - **Title:** `Simple Safe-Fix Plan`
 - **Trigger:** Checks completed · **Model:** strongest available · **Tools:** Comment on PR (no approve), MCP: Supabase, Nia, Stripe
-- Feeds the Merge Captain: the Captain implements this plan's blocking items.
+- Feeds the autofix workflow: it implements this plan's blocking items on the PR branch. Its `blocking=N` marker is also what the merge coordinator reads to decide merge vs. fix.
 
 ```
 SKIP-IF-DONE: If a comment titled "Simple Safe-Fix Plan" already exists on this PR's current head commit, exit without posting.

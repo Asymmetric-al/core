@@ -44,7 +44,9 @@ const comments = ghJson(
   [`/repos/${REPO}/issues/${N}/comments?per_page=100`, "--paginate"],
   [],
 );
-const plan = [...comments].reverse().find((c) => /Simple Safe-Fix Plan/i.test(c.body || ""));
+const plan = [...comments]
+  .reverse()
+  .find((c) => /Simple Safe-Fix Plan/i.test(c.body || ""));
 const match = plan && plan.body.match(/<!--\s*fix-plan\s+blocking=(\d+)/i);
 const blocking = match ? Number(match[1]) : null;
 if (blocking === 0) stop("Safe-Fix Plan reports no blocking items");
@@ -55,18 +57,34 @@ const commits = ghJson(
   [`/repos/${REPO}/pulls/${N}/commits?per_page=100`, "--paginate"],
   [],
 );
-const rounds = commits.filter((c) => /\[autofix/i.test(c.commit?.message || "")).length;
+const rounds = commits.filter((c) =>
+  /\[autofix/i.test(c.commit?.message || ""),
+).length;
 if (rounds >= MAX_ROUNDS) {
   gh([
-    "pr", "comment", String(N), "--repo", REPO,
+    "pr",
+    "comment",
+    String(N),
+    "--repo",
+    REPO,
     "--body",
     `⚠️ Autofix reached the ${MAX_ROUNDS}-round cap without converging. Labeling \`needs-human\` so a person can take over.`,
   ]);
-  gh(["issue", "edit", String(N), "--repo", REPO, "--add-label", "needs-human"]);
+  gh([
+    "issue",
+    "edit",
+    String(N),
+    "--repo",
+    REPO,
+    "--add-label",
+    "needs-human",
+  ]);
   stop(`round cap (${MAX_ROUNDS}) reached`);
 }
 
-console.log(`autofix: proceed — round ${rounds + 1}, ${blocking} blocking item(s)`);
+console.log(
+  `autofix: proceed — round ${rounds + 1}, ${blocking} blocking item(s)`,
+);
 out("proceed", "true");
 out("round", String(rounds + 1));
 out("head_ref", pr.head.ref);

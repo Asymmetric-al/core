@@ -1,17 +1,24 @@
-name: Auto-merge gate-approved PRs
+name: Merge coordinator
 
-# Hands-off merge. When the Final Merge Gate approves a PR (its approving review body
-# contains the marker `<!-- gate:approved -->` on the current head), this enables GitHub
-# native auto-merge. GitHub then completes the merge once the required checks
-# (ci-gate, integration-gate) pass. No labels, no per-PR clicks.
+# The GitHub-side brain of the hands-off PR pipeline. On a schedule and on PR activity it
+# evaluates each open develop PR from what the Cursor reviewers post (their `SEVERITY:` lines
+# and the Safe-Fix Plan's `<!-- fix-plan blocking=N -->` marker) plus CI status, then either
+# arms GitHub native auto-merge or dispatches the autofix workflow. See
+# scripts/github/merge-coordinator.mjs and docs/ai/pr-pipeline-bots/RERUN-AND-ACTIVATION.md.
 #
-# Secrets required: PIPELINE_PAT — a fine-grained PAT (contents:write, pull-requests:write)
-# for the II-ricky-bobby-II identity, so the merge commit attributes correctly (passes
-# verify:git-attribution). See docs/ai/pr-pipeline-bots/RERUN-AND-ACTIVATION.md.
+# IMPORTANT: schedule / comment / check events run a workflow from the repo DEFAULT BRANCH
+# (production here). This file must be on production to fire — land it via a develop→production
+# release. It still operates on develop PRs.
+#
+# Secrets required: PIPELINE_PAT — fine-grained PAT (contents:write, pull-requests:write,
+# actions:write to dispatch autofix) for the II-ricky-bobby-II identity, so the merge commit
+# attributes correctly (passes verify:git-attribution).
 
 on:
   pull_request_review:
     types: [submitted]
+  issue_comment:
+    types: [created]
   check_suite:
     types: [completed]
   schedule:
@@ -25,22 +32,25 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  actions: write
 
 concurrency:
-  group: auto-merge
+  group: merge-coordinator
   cancel-in-progress: false
 
 jobs:
-  auto-merge:
+  coordinate:
+    # Skip plain (non-PR) issue comments; everything else evaluates open develop PRs.
+    if: ${{ github.event_name != 'issue_comment' || github.event.issue.pull_request }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
         with:
           persist-credentials: false
-      - name: Arm auto-merge on gate-approved PRs
+      - name: Evaluate open develop PRs
         env:
           GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           INPUT_PR_NUMBER: ${{ inputs.pr_number }}
-          EVENT_PR_NUMBER: ${{ github.event.review.pull_request.number || github.event.check_suite.pull_requests[0].number }}
-        run: node scripts/github/auto-merge-coordinator.mjs
+          EVENT_PR_NUMBER: ${{ github.event.review.pull_request.number || github.event.issue.number || github.event.check_suite.pull_requests[0].number }}
+        run: node scripts/github/merge-coordinator.mjs

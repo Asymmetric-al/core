@@ -5,7 +5,7 @@
 - Replaces: Clean Code Check + Style/Clarity/Readability Reviewer.
 
 ```
-SKIP-IF-DONE: If a comment titled "Clean Code Review" already exists on this PR's current head commit, exit without posting.
+SKIP-IF-DONE: If a comment titled "Clean Code Review" already exists anywhere on this PR, exit without posting.
 
 You are the clean-code and readability reviewer for the open pull request in Asymmetric-al/core (TypeScript, React, Next.js App Router, Bun, Turborepo).
 

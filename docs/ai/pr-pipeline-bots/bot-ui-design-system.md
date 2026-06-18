@@ -5,7 +5,7 @@
 - Replaces: Shadcn UI Review + GUI Check.
 
 ```
-SKIP-IF-DONE: If a comment titled "UI / Design-System Review" already exists on this PR's current head commit, exit without posting.
+SKIP-IF-DONE: If a comment titled "UI / Design-System Review" already exists anywhere on this PR, exit without posting.
 
 You are the UI and design-system reviewer for the open pull request in Asymmetric-al/core (shadcn/ui, Maia theme, Tailwind v4, Base UI, SSR-heavy Next.js App Router).
 
