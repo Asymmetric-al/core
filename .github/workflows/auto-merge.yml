@@ -1,0 +1,46 @@
+name: Auto-merge gate-approved PRs
+
+# Hands-off merge. When the Final Merge Gate approves a PR (its approving review body
+# contains the marker `<!-- gate:approved -->` on the current head), this enables GitHub
+# native auto-merge. GitHub then completes the merge once the required checks
+# (ci-gate, integration-gate) pass. No labels, no per-PR clicks.
+#
+# Secrets required: PIPELINE_PAT — a fine-grained PAT (contents:write, pull-requests:write)
+# for the II-ricky-bobby-II identity, so the merge commit attributes correctly (passes
+# verify:git-attribution). See docs/ai/pr-pipeline-bots/RERUN-AND-ACTIVATION.md.
+
+on:
+  pull_request_review:
+    types: [submitted]
+  check_suite:
+    types: [completed]
+  schedule:
+    - cron: "*/10 * * * *"
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "Optional PR number to evaluate"
+        required: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: auto-merge
+  cancel-in-progress: false
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Arm auto-merge on gate-approved PRs
+        env:
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          INPUT_PR_NUMBER: ${{ inputs.pr_number }}
+          EVENT_PR_NUMBER: ${{ github.event.review.pull_request.number || github.event.check_suite.pull_requests[0].number }}
+        run: node scripts/github/auto-merge-coordinator.mjs

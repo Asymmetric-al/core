@@ -10,7 +10,7 @@ const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX = 2;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS = 5_000;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_CONNECTION_TIMEOUT_MS = 5_000;
 const MIN_PAYLOAD_DATABASE_POOL_MAX = 2;
-const PROTECTED_TARGET_ENVIRONMENTS = new Set(["production", "staging"]);
+const PROTECTED_TARGET_ENVIRONMENTS = new Set(["production", "development"]);
 const DIRECT_SUPABASE_HOST_RE = /^db\.[a-z0-9]+\.supabase\.co$/i;
 const SUPAVISOR_POOLER_HOST_RE = /(?:^|\.)pooler\.supabase\.com$/i;
 

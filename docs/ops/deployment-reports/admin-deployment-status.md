@@ -88,9 +88,9 @@ Checked on 2026-05-10:
 
 The failed deployment reached Next.js compilation and TypeScript successfully, then failed while collecting page data. The relevant failure was:
 
-- `STRIPE_SECRET_KEY is required for staging and production deployments.`
-- `STRIPE_WEBHOOK_SECRET is required for staging and production deployments.`
-- `SENTRY_DSN is required for staging and production deployments.`
+- `STRIPE_SECRET_KEY is required for development and production deployments.`
+- `STRIPE_WEBHOOK_SECRET is required for development and production deployments.`
+- `SENTRY_DSN is required for development and production deployments.`
 - Build error: `Failed to collect page data for /api/admin/comments`
 
 The same log also showed non-blocking warnings:

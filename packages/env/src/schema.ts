@@ -47,7 +47,7 @@ const normalizedTargetEnv = runtimeContext.vercelTargetEnv?.toLowerCase();
 const isProtectedDeployment =
   runtimeContext.vercelEnv === "production" ||
   normalizedTargetEnv === "production" ||
-  normalizedTargetEnv === "staging";
+  normalizedTargetEnv === "development";
 
 const requireInProtectedDeployments = (variableName: string) =>
   z
@@ -57,7 +57,7 @@ const requireInProtectedDeployments = (variableName: string) =>
       if (isProtectedDeployment && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required for staging and production deployments.`,
+          message: `${variableName} is required for development and production deployments.`,
         });
       }
     });
@@ -72,7 +72,7 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
       if (isProtectedDeployment && cloudinaryEnabled && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required when Cloudinary is enabled in staging or production.`,
+          message: `${variableName} is required when Cloudinary is enabled in development or production.`,
         });
       }
     });
@@ -165,7 +165,7 @@ export const env = createEnv({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
-              "SENTRY_DSN is required for staging and production deployments.",
+              "SENTRY_DSN is required for development and production deployments.",
           });
         }
       }),

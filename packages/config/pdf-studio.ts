@@ -10,7 +10,7 @@ export interface UnlayerAccountConfig {
   isConfigured: boolean;
   isWhiteLabel: boolean;
   allowedDomains: string[];
-  environment: "development" | "staging" | "production";
+  environment: "development" | "production";
 }
 
 export interface PDFStudioBrandConfig {
@@ -54,7 +54,7 @@ export interface PDFStudioFullConfig {
   };
 }
 
-function getEnvironment(): "development" | "staging" | "production" {
+function getEnvironment(): "development" | "production" {
   if (typeof window === "undefined") {
     return runtimeEnvFlags.NODE_ENV === "production"
       ? "production"
@@ -65,8 +65,8 @@ function getEnvironment(): "development" | "staging" | "production" {
   if (hostname === "localhost" || hostname === "127.0.0.1") {
     return "development";
   }
-  if (hostname.includes("staging") || hostname.includes("preview")) {
-    return "staging";
+  if (hostname.includes("development") || hostname.includes("preview")) {
+    return "development";
   }
   return "production";
 }
