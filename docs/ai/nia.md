@@ -178,7 +178,7 @@ export NIA_API_URL=<NIA_API_BASE_URL_FROM_NIA_DOCS>/v2
 The script prints the source id but never prints the API key. It fails if Nia
 does not return an exact `asymmetric-al/core` source.
 
-On `epic` pushes, the workflow skips successfully with a notice when
+On `production` pushes, the workflow skips successfully with a notice when
 `NIA_API_KEY` is not configured. Once the repository secret is installed, the
 workflow validates that Nia can resolve the repository source.
 

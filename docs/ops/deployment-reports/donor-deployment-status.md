@@ -5,12 +5,12 @@ Generated: 2026-05-10 Asia/Bangkok
 ## Summary
 
 The `donor` Vercel project is visible under the `asymmetric-al` scope. Live
-Vercel project settings report `productionBranch: epic`, which matches the
+Vercel project settings report `productionBranch: production`, which matches the
 repository's current GitHub default branch. The previous repo-side blocker was
-that `apps/donor/vercel.json` disabled `epic`, so Vercel could not create the
+that `apps/donor/vercel.json` disabled `production`, so Vercel could not create the
 intended Production deployment from the current release branch.
 
-The latest visible `donor` production deployment is stale and failed against an older `epic` commit because the configured root directory did not exist in that historical checkout. In the current `origin/main` tree, `apps/donor` does exist, so the latest failure should not be treated as proof that the current source still has a missing-directory problem.
+The latest visible `donor` production deployment is stale and failed against an older `production` commit because the configured root directory did not exist in that historical checkout. In the current `origin/main` tree, `apps/donor` does exist, so the latest failure should not be treated as proof that the current source still has a missing-directory problem.
 
 This remediation removes that branch-gating conflict, adds verifier coverage for
 the live Vercel Production Branch, adds the missing production Stripe webhook
@@ -26,7 +26,7 @@ release commit.
 - Project ID: `prj_dZG3XkklLVZyqm85FW5Vvv7ph3kL`
 - Scope: `asymmetric-al`
 - Root Directory: `apps/donor`
-- Production Branch: `epic`
+- Production Branch: `production`
 - Framework: Next.js
 - Node.js Version: `24.x`
 - Install Command: `bun install --cwd ../.. --frozen-lockfile`
@@ -40,14 +40,14 @@ release commit.
 - State: `ERROR`
 - Created: `2026-03-11T05:37:00.116Z`
 - Commit metadata: `6c76ce45c10c558c0b9b0a37bd22311a4a868ec7`
-- Ref metadata: `epic`
+- Ref metadata: `production`
 - Latest READY production deployment: `donor-ge3mqb98s-asymmetric-al.vercel.app`
 - Latest READY production commit: `ec2284071fcd55aff8258de033cd5a91aaf40b3a`
 - Latest READY production created: `2026-02-20T08:50:56.960Z`
 
 ## Post-Fix Deployment Attempt
 
-After the branch-gating fix was pushed to `epic`, Vercel created a new
+After the branch-gating fix was pushed to `production`, Vercel created a new
 Production build for the target commit. This proves the repo-side Production
 Branch block and the stale missing-root-directory failure are resolved for the
 current source tree.
@@ -56,7 +56,7 @@ current source tree.
 - Target: `production`
 - State: `ERROR`
 - Commit metadata: `81d718335ab6afc5988e05a84eaeca1e77f27fd5`
-- Ref metadata: `epic`
+- Ref metadata: `production`
 - Build result: failed during Next.js page-data collection because required
   external Production env values are still absent. This attempt happened after
   the targeted `RESEND_API_KEY`, `RESEND_ENCRYPTION_KEY`, and
@@ -75,7 +75,7 @@ Current audit refresh on 2026-05-10 10:53 +07:
 - Target: `production`
 - State: `ERROR`
 - Commit metadata: `75f407526473e263dd8057adfcbbff282ac13052`
-- Ref metadata: `epic`
+- Ref metadata: `production`
 - Readiness verifier result: blocked by the same missing live Stripe and Sentry
   values listed below; no READY Production deployment exists for this commit.
 
@@ -95,7 +95,7 @@ The pre-fix failed `donor` deployment log showed:
 The specified Root Directory "apps/donor" does not exist. Please update your Project Settings.
 ```
 
-That failure came from the older `6c76ce4` `epic` commit. The post-fix
+That failure came from the older `6c76ce4` `production` commit. The post-fix
 deployment for `adb880cc75968edc856b57612dbc62ecd5db428c` reached the Next.js
 build and failed on missing Production env values instead, so the current
 source tree no longer has the old missing-root-directory blocker.
@@ -112,7 +112,7 @@ then failed while collecting page data. The relevant failure was:
 
 ## Remediation Completed In This Branch
 
-- `apps/donor/vercel.json` no longer disables the live Vercel Production Branch, `epic`.
+- `apps/donor/vercel.json` no longer disables the live Vercel Production Branch, `production`.
 - `apps/donor/app/api/webhooks/stripe/route.ts` now exposes `POST /api/webhooks/stripe`.
 - The route delegates to the shared `@asym/api/stripe/webhooks` handler instead of embedding data access in the app route.
 - The shared handler verifies Stripe signatures against the raw request body, records PaymentIntent state changes, and records charge refunds.
@@ -202,14 +202,14 @@ This branch keeps app-level `vercel.json` minimal:
 ```
 
 Vercel's `git.deploymentEnabled` default is `true` for unspecified branches, so
-the live Vercel Production Branch `epic` is now deployable. If the team later
+the live Vercel Production Branch `production` is now deployable. If the team later
 migrates Production to `main`, first update the Vercel Production Branch setting
 for all three projects and then update this file.
 
 GitHub branch-state audit on 2026-05-10:
 
-- GitHub default branch: `epic`
-- Vercel Production Branch: `epic`
+- GitHub default branch: `production`
+- Vercel Production Branch: `production`
 - Production branch protection exists on `main`, but live Vercel production deploys are currently governed by the Vercel project Production Branch setting above.
 
 ## What Must Happen For Donor To Deploy Successfully
@@ -220,7 +220,7 @@ GitHub branch-state audit on 2026-05-10:
    workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://donor.asymmetric.al/api/webhooks/stripe`.
 3. Confirm Supabase production values point to the production project, not preview or staging.
-4. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
+4. Push or merge the approved release commit to `production`, the current Vercel Production Branch.
 5. Confirm Vercel creates a new production deployment from the current production source commit.
 6. Confirm the deployment moves past the stale missing-root-directory error and reaches `READY`.
 7. Run the donor smoke checks from `docs/ops/deploy-checklist.md`, especially:
@@ -241,8 +241,8 @@ vercel list donor --scope asymmetric-al --format=json
 vercel inspect donor-kud1cv6o6-asymmetric-al.vercel.app --scope asymmetric-al --logs
 bun run verify:vercel-production -- --commit <sha>
 git ls-tree -d origin/main apps/donor
-git ls-tree -d origin/epic apps/donor
-git rev-list --left-right --count origin/main...origin/epic
+git ls-tree -d origin/production apps/donor
+git rev-list --left-right --count origin/main...origin/production
 vercel api /v10/projects/donor --scope asymmetric-al --raw
 ```
 

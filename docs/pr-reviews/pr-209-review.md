@@ -1,7 +1,7 @@
 # PR #209 Review - Add canonical repo-entry skill and Skill Routing entry
 
 - URL: https://github.com/Asymmetric-al/core/pull/209
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/add-repo-entry-skill-e45e`
 - Draft: no
 - GitHub state at review: `BEHIND`, `REVIEW_REQUIRED`
@@ -10,7 +10,7 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: clean.
+Local merge into `upstream/production`: clean.
 
 Commands run in `/tmp/core-pr-review`:
 

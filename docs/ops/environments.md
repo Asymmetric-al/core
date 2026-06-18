@@ -6,15 +6,15 @@ This document is the canonical reference for how environments are defined and op
 
 ## 2. Four-Environment Matrix
 
-| Property      | Local                                | Preview                  | Staging                                                                                          | Production                             |
-| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------- |
-| Trigger       | `bun run dev:*`                      | Disabled by default      | Push to `develop`                                                                                | `bun run release:production` to `epic` |
-| URL           | `localhost:3000`                     | `*.vercel.app`           | `staging-admin.asymmetric.al`, `staging-donor.asymmetric.al`, `staging-missionary.asymmetric.al` | `*.asymmetric.al`                      |
-| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated staging project                                                                        | Production project                     |
-| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                        | Live-mode                              |
-| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                       | Configured                             |
-| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                             | **No - real donors, real money**       |
-| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                               | Real data                              |
+| Property      | Local                                | Preview                  | Staging                                                                                          | Production                                   |
+| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| Trigger       | `bun run dev:*`                      | Disabled by default      | Push to `develop`                                                                                | `bun run release:production` to `production` |
+| URL           | `localhost:3000`                     | `*.vercel.app`           | `staging-admin.asymmetric.al`, `staging-donor.asymmetric.al`, `staging-missionary.asymmetric.al` | `*.asymmetric.al`                            |
+| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated staging project                                                                        | Production project                           |
+| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                        | Live-mode                                    |
+| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                       | Configured                                   |
+| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                             | **No - real donors, real money**             |
+| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                               | Real data                                    |
 
 ## 3. Local Development Setup
 
@@ -150,13 +150,13 @@ node -e "import('./scripts/vercel/should-ignore-build.mjs').then(({resolveBuildD
 Each app also keeps source-controlled Git deployment branch gates in
 `apps/*/vercel.json`:
 
-- `epic`: production deployments
+- `production`: production deployments
 - `develop`: staging deployments
 - `main`: explicitly disabled retired history
 - all other branches: no Git deployment creation because `"*": false` closes
   the default auto-deploy path
 
-The local release guard blocks accidental direct pushes to `epic`; use
+The local release guard blocks accidental direct pushes to `production`; use
 `bun run release:production` for production.
 
 Reserve controls if spend still needs tightening:
@@ -200,7 +200,7 @@ display name and keep the project ref unchanged.
 | Environment | Supabase project | Project ref            | Project URL                                | Policy                                |
 | ----------- | ---------------- | ---------------------- | ------------------------------------------ | ------------------------------------- |
 | Staging     | `staging`        | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                   |
-| Production  | `epic`           | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Real donor/auth/payment-adjacent data |
+| Production  | `production`     | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Real donor/auth/payment-adjacent data |
 | Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted    |
 
 Do not point staging at the Vercel-managed Supabase project ref
@@ -344,24 +344,24 @@ that exposure is acceptable.
 
 - Staging deploy trigger: push to `develop`.
 - Production deploy trigger: `bun run release:production` pushes a verified
-  commit to `epic`, the Vercel Production Branch.
+  commit to `production`, the Vercel Production Branch.
 - `main` is retired/protected historical history; do not sync, merge, or deploy
   from it for normal work.
 - To refresh staging parity ahead of QA/demo cycles, realign or merge from
-  `epic` into `develop`; staging should start from production truth.
+  `production` into `develop`; staging should start from production truth.
 - Inngest staging is not integrated yet and remains a future placeholder.
 
 ## 5.7 Production Vercel requirements
 
-Production deploys are currently branch-bound to `epic` in all three live Vercel
+Production deploys are currently branch-bound to `production` in all three live Vercel
 projects. This matches GitHub's current default branch for this repository. Do
-not disable `epic` or `develop` in app-level `vercel.json`; `main` and all
+not disable `production` or `develop` in app-level `vercel.json`; `main` and all
 other Git branches should remain disabled to avoid accidental deployment
 creation.
 
-If the team later migrates Production away from `epic`, change the Vercel
+If the team later migrates Production away from `production`, change the Vercel
 project Production Branch for `admin`, `donor`, and `missionary`, ensure the
-new branch contains the current `epic` lineage, update this guide, and only then
+new branch contains the current `production` lineage, update this guide, and only then
 adjust app-level deployment branch gates.
 
 Set these Vercel variables in the **Production** scope before deploying:
@@ -537,7 +537,7 @@ sequenceDiagram
     Develop->>Vercel: Staging deploy or ignored build (staging-*.asymmetric.al)
     Note over Vercel: Staging Supabase project
 
-    PR->>Prod: Merge approved production release to epic
+    PR->>Prod: Merge approved production release to production
     Dev->>Prod: Or run bun run release:production from a clean release checkout
     Prod->>Vercel: Production deploy or ignored build (*.asymmetric.al)
     Note over Vercel: Production Supabase project

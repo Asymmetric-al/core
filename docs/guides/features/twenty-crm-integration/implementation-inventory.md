@@ -4,7 +4,7 @@
 
 - Date: 2026-05-07
 - Repo: `Asymmetric-al/core`
-- Branch inspected: local `epic`
+- Branch inspected: local `production`
 - Method: direct repo reads and `rg`; Nia was not available in this session.
 - Scope: inventory only. The phase plan is not changed based on this status.
 

@@ -5,9 +5,9 @@ Generated: 2026-05-10 Asia/Bangkok
 ## Summary
 
 The `admin` Vercel project is visible under the `asymmetric-al` scope. Live
-Vercel project settings report `productionBranch: epic`, which matches the
+Vercel project settings report `productionBranch: production`, which matches the
 repository's current GitHub default branch. The previous repo-side blocker was
-that `apps/admin/vercel.json` disabled `epic`, so Vercel could not create the
+that `apps/admin/vercel.json` disabled `production`, so Vercel could not create the
 intended Production deployment from the current release branch.
 
 This remediation removes that branch-gating conflict, adds verifier coverage for
@@ -24,7 +24,7 @@ release commit.
 - Project ID: `prj_SB9DucsrJOT0wF1v43SWMFsSNdn8`
 - Scope: `asymmetric-al`
 - Root Directory: `apps/admin`
-- Production Branch: `epic`
+- Production Branch: `production`
 - Framework: Next.js
 - Node.js Version: `24.x`
 - Install Command: `bun install --cwd ../.. --frozen-lockfile`
@@ -45,7 +45,7 @@ release commit.
 
 ## Post-Fix Deployment Attempt
 
-After the branch-gating fix was pushed to `epic`, Vercel created a new
+After the branch-gating fix was pushed to `production`, Vercel created a new
 Production build for the target commit. This proves the repo-side Production
 Branch block is resolved.
 
@@ -53,7 +53,7 @@ Branch block is resolved.
 - Target: `production`
 - State: `ERROR`
 - Commit metadata: `81d718335ab6afc5988e05a84eaeca1e77f27fd5`
-- Ref metadata: `epic`
+- Ref metadata: `production`
 - Build result: failed during Next.js page-data collection because required
   external Production env values are still absent. This attempt happened after
   the targeted `RESEND_API_KEY`, `RESEND_ENCRYPTION_KEY`, and
@@ -72,7 +72,7 @@ Current audit refresh on 2026-05-10 10:53 +07:
 - Target: `production`
 - State: `ERROR`
 - Commit metadata: `75f407526473e263dd8057adfcbbff282ac13052`
-- Ref metadata: `epic`
+- Ref metadata: `production`
 - Readiness verifier result: blocked by the same missing live Stripe and Sentry
   values listed below; no READY Production deployment exists for this commit.
 
@@ -103,7 +103,7 @@ Those warnings did not stop this deployment. The env validation did.
 
 ## Remediation Completed In This Branch
 
-- `apps/admin/vercel.json` no longer disables the live Vercel Production Branch, `epic`.
+- `apps/admin/vercel.json` no longer disables the live Vercel Production Branch, `production`.
 - `apps/admin/app/api/webhooks/stripe/route.ts` now exposes `POST /api/webhooks/stripe`.
 - The route delegates to the shared `@asym/api/stripe/webhooks` handler instead of embedding data access in the app route.
 - The shared handler verifies Stripe signatures against the raw request body, records PaymentIntent state changes, and records charge refunds.
@@ -203,14 +203,14 @@ This branch keeps app-level `vercel.json` minimal:
 ```
 
 Vercel's `git.deploymentEnabled` default is `true` for unspecified branches, so
-the live Vercel Production Branch `epic` is now deployable. If the team later
+the live Vercel Production Branch `production` is now deployable. If the team later
 migrates Production to `main`, first update the Vercel Production Branch setting
 for all three projects and then update this file.
 
 GitHub branch-state audit on 2026-05-10:
 
-- GitHub default branch: `epic`
-- Vercel Production Branch: `epic`
+- GitHub default branch: `production`
+- Vercel Production Branch: `production`
 - Production branch protection exists on `main`, but live Vercel production deploys are currently governed by the Vercel project Production Branch setting above.
 
 ## What Must Happen For Admin To Deploy Successfully
@@ -221,7 +221,7 @@ GitHub branch-state audit on 2026-05-10:
    workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://admin.asymmetric.al/api/webhooks/stripe`.
 3. Confirm the admin database URL is reachable from Vercel, preferably through Supavisor if direct Supabase DNS fails.
-4. Push or merge the approved release commit to `epic`, the current Vercel Production Branch.
+4. Push or merge the approved release commit to `production`, the current Vercel Production Branch.
 5. Confirm Vercel creates a new production deployment from the current production source commit.
 6. Confirm Vercel reports `READY`.
 7. Run the admin smoke checks from `docs/ops/deploy-checklist.md`, especially:
@@ -240,7 +240,7 @@ vercel list admin --scope asymmetric-al --format=json
 vercel inspect admin-nr1yo6gg4-asymmetric-al.vercel.app --scope asymmetric-al --logs
 bun run verify:vercel-production -- --commit <sha>
 gh api graphql -f query='query { repository(owner:"Asymmetric-al", name:"core") { branchProtectionRules(first:20) { nodes { pattern requiresDeployments requiredDeploymentEnvironments requiredStatusCheckContexts } } } }'
-git rev-list --left-right --count origin/main...origin/epic
+git rev-list --left-right --count origin/main...origin/production
 vercel api /v10/projects/admin --scope asymmetric-al --raw
 ```
 

@@ -1,0 +1,14 @@
+import { PdfEditorPackageName } from "../index.mjs";
+import { CreateUnlayerMigrationReportInput, LegacyPdfTemplateArtifact, LegacyPdfTemplateArtifactSchema, LegacyPdfTemplateReference, LegacyPdfTemplateReferenceSchema, PdfBuilderFeatureFlagContract, PdfBuilderFeatureFlagContractSchema, PdfTemplateEngineSelectionResult, PdfTemplateEngineSelectionResultSchema, UnlayerComparisonDifference, UnlayerComparisonDifferenceSchema, UnlayerHtmlImportRequest, UnlayerHtmlImportRequestSchema, UnlayerMigrationReportV1, UnlayerMigrationReportV1Schema, UnlayerSideBySideComparisonAdapter, UnlayerSideBySideComparisonRequest, UnlayerSideBySideComparisonRequestSchema, UnlayerSideBySideComparisonResult, UnlayerSideBySideComparisonResultSchema, UnlayerUnsupportedFeature, UnlayerUnsupportedFeatureSchema, createUnlayerMigrationReport, selectPdfTemplateEngine } from "@asym/pdf-template-schema";
+
+//#region src/migration/unlayer/index.d.ts
+interface UnlayerMigrationBoundary {
+  readonly packageName: PdfEditorPackageName;
+  readonly sourceEngine: 'unlayer';
+  readonly strategy: 'manual_rebuild_with_report';
+  readonly targetEngine: 'asym_pdf_document_builder';
+}
+declare const unlayerMigrationBoundary: UnlayerMigrationBoundary;
+//#endregion
+export { type CreateUnlayerMigrationReportInput, type LegacyPdfTemplateArtifact, LegacyPdfTemplateArtifactSchema, type LegacyPdfTemplateReference, LegacyPdfTemplateReferenceSchema, type PdfBuilderFeatureFlagContract, PdfBuilderFeatureFlagContractSchema, type PdfTemplateEngineSelectionResult, PdfTemplateEngineSelectionResultSchema, type UnlayerComparisonDifference, UnlayerComparisonDifferenceSchema, type UnlayerHtmlImportRequest, UnlayerHtmlImportRequestSchema, UnlayerMigrationBoundary, type UnlayerMigrationReportV1, UnlayerMigrationReportV1Schema, type UnlayerSideBySideComparisonAdapter, type UnlayerSideBySideComparisonRequest, UnlayerSideBySideComparisonRequestSchema, type UnlayerSideBySideComparisonResult, UnlayerSideBySideComparisonResultSchema, type UnlayerUnsupportedFeature, UnlayerUnsupportedFeatureSchema, createUnlayerMigrationReport, selectPdfTemplateEngine, unlayerMigrationBoundary };
+//# sourceMappingURL=unlayer.d.mts.map

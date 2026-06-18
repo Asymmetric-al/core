@@ -1,7 +1,7 @@
 # Phase 10 Evidence - Studios And Operational Hubs
 
 Date: 2026-05-15
-Branch: `epic`
+Branch: `production`
 Product commit: `7ba815f72b0c752d8a23481fb538c82f67bc5502`
 Product commit message: `feat(pdf-studio): persist mission control templates`
 

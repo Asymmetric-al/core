@@ -3,10 +3,10 @@
 Generated: 2026-05-12
 Phase: 3 - Payments and Giving Pipeline
 Status: complete-local-only
-Branch: epic
-Base branch: origin/epic
+Branch: production
+Base branch: origin/production
 Commit SHA: f4d3831c4991ef9eb64b4cbbe37c5c3f828397f4
-Branch divergence: 0 ahead, 0 behind origin/epic at evidence time
+Branch divergence: 0 ahead, 0 behind origin/production at evidence time
 Readiness source: docs/ops/phase-assessments/2026-05-12_secrets-access-readiness.md
 Readiness source assessment commit: 1c66a3aa31e7da6b096cb66cf8655b778e65ae80
 Current readiness status used: ready for local/dev only
@@ -126,7 +126,7 @@ Baseline before implementation:
 | Command                             | Status | Notes                                                                                   |
 | ----------------------------------- | ------ | --------------------------------------------------------------------------------------- |
 | `git status --short`                | passed | Working tree state was recorded before edits; no secret files were staged or committed. |
-| `git branch --show-current`         | passed | `epic`.                                                                                 |
+| `git branch --show-current`         | passed | `production`.                                                                           |
 | `git rev-parse HEAD`                | passed | `f4d3831c4991ef9eb64b4cbbe37c5c3f828397f4`.                                             |
 | `bun install --frozen-lockfile`     | passed | Dependencies already satisfied.                                                         |
 | `bun run skills:verify`             | passed | Agent skill mirrors verified.                                                           |

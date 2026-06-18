@@ -256,7 +256,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
 
-Do **not** use `npx skills check` as a read-only check in this repo. With current Skills CLI behavior, `check` can update project skills and `skills-lock.json`. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review the generated `.agents/skills` and `skills-lock.json` diff.
+Do **not** use `npx skills check` as a read-only check in this repo. With `skills@1.5.7`, `check` is not listed in `npx skills --help` and was observed to update project skills. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review or revert the generated `.agents/skills` and `skills-lock.json` diff.
 
 To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`.
 
@@ -269,6 +269,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
 **Payload CMS** ([`payloadcms/skills`](https://github.com/payloadcms/skills)) is vendored into `docs/ai/skills/payloadcms-payload/` and `docs/ai/skills/payloadcms-cms-migration/`. Refresh steps live in each skill's `references/upstream.md`; optional Skills CLI install is `npx skills add payloadcms/skills`; these skills are **not** updated by `bun run skills:refresh-upstream` today.
+
+**`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
@@ -295,6 +297,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
+- **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.

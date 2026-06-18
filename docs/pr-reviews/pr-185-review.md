@@ -1,7 +1,7 @@
 # PR #185 Review - Support Hub phase 1 discovery, file map, and parity map
 
 - URL: https://github.com/Asymmetric-al/core/pull/185
-- Base: `epic`
+- Base: `production`
 - Head: `cursor/support-hub-phase-1-discovery-1899`
 - Draft: no
 - GitHub state at review: `DIRTY`, `CHANGES_REQUESTED`
@@ -10,13 +10,13 @@
 
 ## Merge And Tests
 
-Local merge into `upstream/epic`: failed.
+Local merge into `upstream/production`: failed.
 
 Conflict:
 
 - `apps/admin/app/support/page.tsx`
 
-Tests were not run because the PR does not produce a merged tree against current `epic`.
+Tests were not run because the PR does not produce a merged tree against current `production`.
 
 ## Verdict
 
@@ -24,13 +24,13 @@ Do not merge. The PR title and some discussion describe a docs-only discovery pa
 
 ## Findings
 
-### P1 - Current branch cannot merge into `epic`
+### P1 - Current branch cannot merge into `production`
 
 Impact: there is no final merged route tree to test.
 
 Suggested fix:
 
-- Rebase onto current `epic`.
+- Rebase onto current `production`.
 - Resolve `apps/admin/app/support/page.tsx`.
 - Run `bun install --frozen-lockfile && bun run ci:preflight` after conflict resolution.
 
