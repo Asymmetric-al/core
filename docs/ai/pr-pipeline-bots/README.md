@@ -1,9 +1,9 @@
 # PR Pipeline Bots — final roster (paste-ready prompts)
 
-The bots you are running after consolidation: **17 reviewers + 2 gate bots = 19** (the Final Merge
-Gate is now advisory). Merging and fixing are done by two **GitHub Actions**, not a Cursor bot —
-see `RERUN-AND-ACTIVATION.md`. Full prompts for the new/changed ones are in this folder (one file
-each). The 10 kept bots use their existing prompt **plus** the two universal lines below.
+The bots you are running after consolidation: **10 reviewers + 2 gate bots = 12** (7 consolidated +
+3 curated keepers; the Final Merge Gate is now advisory). Merging and fixing are done by two
+**GitHub Actions**, not a Cursor bot — see `RERUN-AND-ACTIVATION.md`. Full prompts for every reviewer
+are in [`ALL-BOT-PROMPTS.md`](./ALL-BOT-PROMPTS.md).
 
 > **Single paste-ready document:** [`ALL-BOT-PROMPTS.md`](./ALL-BOT-PROMPTS.md) collects every
 > reviewer's full prompt, tools, and tier in one openable file. Use it when setting up the bots.
@@ -44,23 +44,21 @@ each). The 10 kept bots use their existing prompt **plus** the two universal lin
 Merging itself is handled by GitHub Actions (`auto-merge.yml` = the merge coordinator, plus
 `autofix.yml`), not by a Cursor bot. The old Slack "Merge Captain" automation has been removed.
 
-## The 10 kept bots (keep existing prompt + the two universal lines)
+## The 3 kept bots (curated from the 10 originals; full tightened prompts in `ALL-BOT-PROMPTS.md`)
 
-For each: change trigger to **Checks completed**, prepend the SKIP-IF-DONE guard (with the title
-shown), append the `SEVERITY:` line, and trim MCPs as noted.
+The other 7 supplied bots were dropped as redundant. For each keeper: set trigger to **Checks
+completed / On Any Completion**, use the tightened prompt (it already includes the guard + `SEVERITY:`
+line), and trim MCPs as noted. Use the working `nia` (not `Nia_MCP`).
 
-| Automation name                    | Comment title                                     | Suggested MCPs                       |
-| ---------------------------------- | ------------------------------------------------- | ------------------------------------ |
-| Find Vulnerabilities               | Vulnerability Check                               | Supabase, Nia                        |
-| Invariant & State-Machine Checker  | Invariant & State-Machine Review                  | Nia (+ Supabase if data)             |
-| Accessibility Regression Checker   | Accessibility Regression Review                   | none (or Nia)                        |
-| Mutation Resistance Checker        | Mutation Resistance Review                        | Supabase, Nia                        |
-| Contract Compatibility Checker     | Contract Compatibility Review                     | Supabase, Nia (+ Stripe if payments) |
-| TypeScript Checker                 | TypeScript Correctness Review                     | Nia, Context7                        |
-| Docs, Setup, Runbook & Consistency | Docs, Setup, Runbook, and Repo-Consistency Review | Nia                                  |
-| Frontend, UX & Client-Behavior     | Frontend, UX, and Client-Behavior Review          | Nia                                  |
-| File by File Semantic Diff         | File by File Semantic Diff Reviewer               | Nia                                  |
-| API Quality Check                  | API Quality Review                                | Supabase, Nia                        |
+| Automation name              | Comment title                       | Tier | MCPs                                 |
+| ---------------------------- | ----------------------------------- | ---- | ------------------------------------ |
+| Find Vulnerabilities         | Vulnerability Check                 | 1    | Supabase, Nia                        |
+| Accessibility Regression     | Accessibility Regression Review     | 2    | Nia                                  |
+| Contract & API Compatibility | Contract & API Compatibility Review | 2    | Supabase, Nia (+ Stripe if payments) |
+
+**Dropped (7):** Invariant & State-Machine, Mutation Resistance, TypeScript Checker, Docs/Setup/Runbook,
+Frontend/UX, File-by-File Semantic Diff, API Quality (merged into Contract & API). Rationale in
+`ALL-BOT-PROMPTS.md`.
 
 ## Deleted (21 originals replaced by the 7 consolidations)
 
