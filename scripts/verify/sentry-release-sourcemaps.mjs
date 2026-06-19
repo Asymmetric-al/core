@@ -82,7 +82,7 @@ export function buildSentryReleaseSourcemapProof({
   const tokenOptions = buildSentryNextConfigOptions({
     SENTRY_AUTH_TOKEN: "redacted-token-present",
     SENTRY_RELEASE: "manual-release",
-    VERCEL_TARGET_ENV: "staging",
+    VERCEL_TARGET_ENV: "development",
     CI: "1",
   });
   checks.push(
@@ -91,7 +91,7 @@ export function buildSentryReleaseSourcemapProof({
       tokenOptions.release.name === "manual-release" &&
       tokenOptions.release.create === true &&
       tokenOptions.release.finalize === true &&
-      tokenOptions.release.deploy?.env === "staging"
+      tokenOptions.release.deploy?.env === "development"
       ? pass(
           "sourcemaps and release creation are enabled when token is present",
         )

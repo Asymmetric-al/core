@@ -99,7 +99,7 @@ function summarizeCoverage(scripts) {
     meta: {
       totalScripts: scripts.length,
       provider: "custom-v8-raw",
-      note: "Staging fallback coverage provider; line/statement/branch totals are not computed.",
+      note: "Development fallback coverage provider; line/statement/branch totals are not computed.",
     },
   };
 }

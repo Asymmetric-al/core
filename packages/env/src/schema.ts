@@ -47,6 +47,11 @@ const normalizedTargetEnv = runtimeContext.vercelTargetEnv?.toLowerCase();
 const isProtectedDeployment =
   runtimeContext.vercelEnv === "production" ||
   normalizedTargetEnv === "production" ||
+  normalizedTargetEnv === "development" ||
+  // Transitional alias: the renamed "development" environment may still report
+  // VERCEL_TARGET_ENV="staging" until the Vercel custom-environment rename lands. Treat it as
+  // protected so required-secret validation (Sentry, Cloudinary) does not silently relax during
+  // the cutover. Safe to remove once infra reports "development".
   normalizedTargetEnv === "staging";
 
 const requireInProtectedDeployments = (variableName: string) =>
@@ -57,7 +62,7 @@ const requireInProtectedDeployments = (variableName: string) =>
       if (isProtectedDeployment && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required for staging and production deployments.`,
+          message: `${variableName} is required for development and production deployments.`,
         });
       }
     });
@@ -72,7 +77,7 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
       if (isProtectedDeployment && cloudinaryEnabled && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required when Cloudinary is enabled in staging or production.`,
+          message: `${variableName} is required when Cloudinary is enabled in development or production.`,
         });
       }
     });
@@ -165,7 +170,7 @@ export const env = createEnv({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
-              "SENTRY_DSN is required for staging and production deployments.",
+              "SENTRY_DSN is required for development and production deployments.",
           });
         }
       }),
