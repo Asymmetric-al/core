@@ -15,10 +15,24 @@
 // carries `<!-- fix-plan blocking=<N> ... -->`. A review's `commit_id` ties it to the exact
 // commit it reviewed, so we know whether the *current* head was reviewed.
 //
-// From those plus CI status it decides, per open develop PR on its current head:
-//   • MERGE  — arm GitHub native auto-merge (merges when required checks pass), or
-//   • FIX    — dispatch the autofix workflow (a headless cursor-agent applies the plan), or
-//   • WAIT   — do nothing; the next CI completion or cron tick re-checks.
+// Decision (per open develop PR on its current head) — see decide():
+//   • MERGE             — arm GitHub native auto-merge (merges when required checks pass)
+//   • UPDATE_BRANCH     — branch is behind develop; merge develop in (no AI)
+//   • RESOLVE_CONFLICTS — branch conflicts with develop; dispatch the rebase agent (pr-rebase.yml)
+//   • DISPATCH_FIX      — a Safe-Fix Plan has blockers; dispatch autofix.yml
+//   • NUDGE_REVIEWS     — CI green but a Tier-1 bot review is missing; re-run CI to re-fire bots
+//   • ESCALATE          — give up *recoverably*: label needs-human + automation:auto-escalated
+//   • CLEAR_ESCALATION  — a prior auto-escalation's blocker cleared; un-park and resume
+//   • WAIT / SKIP       — do nothing this tick
+//
+// Self-healing design (so dispatch failures and missing reviews don't permanently trap a PR):
+//   - dispatches retry inline and, if still failing, just WAIT and retry next tick until a
+//     per-head attempt budget is hit; only then do we escalate, and recoverably.
+//   - "stale" first NUDGES the reviewers (re-runs CI) up to a budget before escalating.
+//   - escalations the coordinator makes carry automation:auto-escalated and are auto-cleared
+//     when the head changes or the PR becomes merge-ready. A human-set needs-human (no marker)
+//     is a hard stop we never touch.
+// Per-head counters live in a single self-updating "<!-- coord-state ... -->" PR comment.
 //
 // Runs inside GitHub Actions where `gh` is preinstalled and authenticated via GH_TOKEN
 // (PIPELINE_PAT). This workflow must live on the repo default branch to fire on schedule /
@@ -29,16 +43,24 @@ import { execFileSync } from "node:child_process";
 const REPO = process.env.GITHUB_REPOSITORY || "Asymmetric-al/core";
 const BASE = "develop";
 const REQUIRED_CHECKS = ["ci-gate", "integration-gate"];
+// Workflow files whose runs we re-trigger to nudge the "on CI completion" review bots.
+const CI_WORKFLOW_PATHS = [
+  ".github/workflows/ci.yml",
+  ".github/workflows/ci-integration.yml",
+];
+
 const SKIP_LABEL = "needs-human";
+// Marks a needs-human the coordinator applied itself (vs. a human). Only auto-applied ones are
+// auto-cleared; a human-set needs-human is a hard stop.
+const AUTO_LABEL = "automation:auto-escalated";
+const STATE_MARKER = "coord-state";
 
 // Only verdicts from the actual review bots are trusted. All our Cursor reviewer automations
 // post as `cursor[bot]`; nobody else can. This is the anti-spoofing guard.
 const TRUSTED_REVIEWER_LOGINS = new Set(["cursor[bot]"]);
 
 // Tier-1 bots re-run on every commit, so a review of the *current* head proves the latest code
-// was bug- and security-checked. We require all three before any merge (matches the Tier-1 set
-// in docs/ai/pr-pipeline-bots). If one isn't configured/posted, the stale-escalation path takes
-// over after STALE_MINUTES rather than merging without it.
+// was bug- and security-checked. We require all three before any merge.
 const BUG_BOT_TITLES = [
   "Critical Bug Check",
   "Pre-Mortem Bug Finder",
@@ -51,10 +73,15 @@ const AUTOFIX_COMMIT = /\[autofix/i;
 // Give the reviewers time to land after CI finishes before we judge "no blockers".
 const SETTLE_MINUTES = 6;
 // If a PR sits unresolved this long (e.g., a review bot hit a usage limit and never posted),
-// stop waiting silently and hand it to a human.
+// stop waiting silently — first nudge the reviewers, then hand it to a human.
 const STALE_MINUTES = 45;
-// Hard stop so the fix loop always terminates.
+// Hard stop so the autofix loop always terminates.
 const MAX_ROUNDS = 3;
+// How many times we'll re-dispatch a failing autofix/rebase for the SAME head before escalating.
+const MAX_FIX_DISPATCH = 3;
+const MAX_REBASE_ROUNDS = 2;
+// How many times we'll re-run CI to re-fire the review bots for the same head.
+const MAX_NUDGES = 2;
 
 function gh(args) {
   return execFileSync("gh", args, { encoding: "utf8" });
@@ -117,8 +144,8 @@ function headCommitDate(headSha) {
 }
 
 // Trusted reviews of the CURRENT head only. `commit_id` is exact, so a Tier-2 review left on an
-// earlier commit (it runs once per PR) is correctly treated as not-fresh after an autofix push,
-// while the per-commit bug bots and planner re-review each head.
+// earlier commit (it runs once per PR) is correctly treated as not-fresh after a push, while
+// the per-commit bug bots and planner re-review each head.
 function freshTrustedReviews(prNumber, headSha) {
   const reviews = ghJson(
     [`/repos/${REPO}/pulls/${prNumber}/reviews?per_page=100`, "--paginate"],
@@ -131,18 +158,13 @@ function freshTrustedReviews(prNumber, headSha) {
   );
 }
 
-// Required-check status for a commit, reading both the Checks API and the legacy Statuses API
-// (ci-gate / integration-gate may be reported by either). Returns whether every required
-// context is green, whether any failed, and the latest completion time we saw.
+// Required-check status for a commit, reading both the Checks API and the legacy Statuses API.
 function requiredCheckState(headSha) {
   const result = new Map();
   let latestCompleted = null;
 
   const noteCompleted = (iso) => {
-    if (
-      iso &&
-      (!latestCompleted || new Date(iso) > new Date(latestCompleted))
-    ) {
+    if (iso && (!latestCompleted || new Date(iso) > new Date(latestCompleted))) {
       latestCompleted = iso;
     }
   };
@@ -156,13 +178,9 @@ function requiredCheckState(headSha) {
     const ok = run.status === "completed" && run.conclusion === "success";
     const failed =
       run.status === "completed" &&
-      [
-        "failure",
-        "timed_out",
-        "cancelled",
-        "action_required",
-        "stale",
-      ].includes(run.conclusion);
+      ["failure", "timed_out", "cancelled", "action_required", "stale"].includes(
+        run.conclusion,
+      );
     result.set(run.name, ok ? "success" : failed ? "failure" : "pending");
     noteCompleted(run.completed_at);
   }
@@ -190,41 +208,240 @@ function requiredCheckState(headSha) {
   };
 }
 
+// ----- per-head state comment (one self-updating comment per PR) -------------------------
+
+function findStateComment(prNumber) {
+  const comments = ghJson(
+    [`/repos/${REPO}/issues/${prNumber}/comments?per_page=100`, "--paginate"],
+    [],
+  );
+  for (const c of comments) {
+    const match = (c.body || "").match(
+      new RegExp(`<!--\\s*${STATE_MARKER}\\s*(\\{[\\s\\S]*?\\})\\s*-->`),
+    );
+    if (match) {
+      try {
+        return { id: c.id, state: JSON.parse(match[1]) };
+      } catch {
+        return { id: c.id, state: {} };
+      }
+    }
+  }
+  return { id: null, state: {} };
+}
+
+function blankCounters(head) {
+  return { head, fixAttempts: 0, rebaseAttempts: 0, nudges: 0 };
+}
+
+// Load counters for THIS head. Counters reset when the head changes; escalatedHead persists so
+// reversibility can detect "head changed since we escalated".
+function loadState(prNumber, head) {
+  const { id, state } = findStateComment(prNumber);
+  const escalatedHead = state.escalatedHead || null;
+  if (state.head !== head) {
+    return { id, ...blankCounters(head), escalatedHead };
+  }
+  return {
+    id,
+    head,
+    fixAttempts: state.fixAttempts || 0,
+    rebaseAttempts: state.rebaseAttempts || 0,
+    nudges: state.nudges || 0,
+    escalatedHead,
+  };
+}
+
+function saveState(prNumber, state) {
+  const payload = {
+    head: state.head,
+    fixAttempts: state.fixAttempts || 0,
+    rebaseAttempts: state.rebaseAttempts || 0,
+    nudges: state.nudges || 0,
+    escalatedHead: state.escalatedHead || null,
+  };
+  const body = `<!-- ${STATE_MARKER} ${JSON.stringify(payload)} -->\n` +
+    `<sub>🤖 merge coordinator state (auto-updated): head \`${String(state.head).slice(0, 9)}\`, ` +
+    `fix ${payload.fixAttempts}/${MAX_FIX_DISPATCH}, rebase ${payload.rebaseAttempts}/${MAX_REBASE_ROUNDS}, ` +
+    `nudges ${payload.nudges}/${MAX_NUDGES}.</sub>`;
+  if (state.id) {
+    gh(["api", `/repos/${REPO}/issues/comments/${state.id}`, "-X", "PATCH", "-f", `body=${body}`]);
+  } else {
+    const created = ghJson([`/repos/${REPO}/issues/${prNumber}/comments`, "-X", "POST", "-f", `body=${body}`]);
+    state.id = created?.id || null;
+  }
+}
+
+// ----- pure decision ---------------------------------------------------------------------
+
+function r(action, reason) {
+  return { action, reason };
+}
+
+// Pure: given a flat state snapshot, decide one action. No side effects, no I/O — unit-tested.
+export function decide(s) {
+  if (!s.candidate) return r("SKIP", "not an open develop PR");
+
+  // Reversible escalation: a needs-human the coordinator set itself is re-checked every run.
+  if (s.autoEscalated) {
+    const changed = !s.escalatedHead || s.head !== s.escalatedHead;
+    if (changed || s.mergeReady) {
+      return r("CLEAR_ESCALATION", "change since auto-escalation; resuming automation");
+    }
+    return r("SKIP", "auto-escalated; nothing new on this head");
+  }
+  // Human-set needs-human is a hard stop.
+  if (s.humanParked) return r("SKIP", "needs-human (human-set)");
+
+  // Merge-conflict / out-of-date handling (idea 1 + 2).
+  if (s.mergeableState === "behind") {
+    return r("UPDATE_BRANCH", "branch behind develop; updating");
+  }
+  if (s.mergeableState === "dirty") {
+    if (s.conflictTooBig) {
+      return r("ESCALATE", "merge conflict too large to auto-resolve");
+    }
+    if (s.rebaseAttempts >= MAX_REBASE_ROUNDS) {
+      return r("ESCALATE", `conflict still present after ${MAX_REBASE_ROUNDS} auto-rebase attempts`);
+    }
+    return r("RESOLVE_CONFLICTS", "merge conflict with develop; dispatching rebase agent");
+  }
+
+  // FIX: a concrete Safe-Fix Plan with blockers on this head.
+  const planBlockingN = s.planBlocking || 0;
+  const needsFix = s.ciAnyFailed || s.activeBlocker || planBlockingN > 0;
+  if (needsFix && planBlockingN > 0) {
+    if (s.rounds >= MAX_ROUNDS) {
+      return r("ESCALATE", `autofix reached the ${MAX_ROUNDS}-round cap`);
+    }
+    if (s.fixAttempts >= MAX_FIX_DISPATCH) {
+      return r("ESCALATE", `autofix could not be dispatched after ${MAX_FIX_DISPATCH} attempts`);
+    }
+    return r("DISPATCH_FIX", `needs fix (${planBlockingN} blocking, round ${s.rounds + 1})`);
+  }
+
+  // MERGE.
+  if (s.mergeReady) return r("MERGE", "merge-ready");
+
+  // STALE: nudge the reviewers before giving up; escalate (recoverably) only after the budget.
+  if (s.minutesStuck >= STALE_MINUTES) {
+    if (s.ciAllGreen && !s.bugBotsFresh && s.nudges < MAX_NUDGES) {
+      return r(
+        "NUDGE_REVIEWS",
+        `bug-bot review missing on current head; re-running CI to re-fire reviewers (nudge ${s.nudges + 1}/${MAX_NUDGES})`,
+      );
+    }
+    return r("ESCALATE", staleReason(s));
+  }
+
+  return r("WAIT", waitReason(s));
+}
+
+function staleReason(s) {
+  if (!s.ciAllGreen) return s.ciAnyFailed ? "CI failing and no Safe-Fix Plan to act on" : "CI still pending";
+  if (!s.bugBotsFresh) return "a Tier-1 review bot never posted on this head (nudges exhausted)";
+  if (s.activeBlocker) return "a blocker is open with no Safe-Fix Plan to act on";
+  return "no merge decision reached in time";
+}
+
+function waitReason(s) {
+  if (!s.ciAllGreen) return s.ciAnyFailed ? "CI failing, waiting for a Safe-Fix Plan" : "CI pending";
+  if (!s.bugBotsFresh) return "waiting for bug-bot review on current head";
+  if (s.activeBlocker) return "blocker open, waiting for a Safe-Fix Plan";
+  if (!s.settled) return "waiting for reviewers to settle";
+  return "waiting";
+}
+
+// ----- side-effecting executors ----------------------------------------------------------
+
 function armMerge(prNumber) {
   try {
     gh(["pr", "merge", String(prNumber), "--repo", REPO, "--auto", "--merge"]);
     return "armed";
   } catch (error) {
     const message = String(error.stderr || error.message || "");
-    if (/already|clean status|not mergeable|enabled/i.test(message))
-      return "noop";
+    if (/already|clean status|not mergeable|enabled/i.test(message)) return "noop";
     throw error;
   }
 }
 
-// Returns true on success. On failure we do NOT pretend it worked — the caller escalates so the
-// PR can never loop silently on a broken dispatch.
-function dispatchAutofix(prNumber) {
-  try {
-    gh([
-      "workflow",
-      "run",
-      "autofix.yml",
-      "--repo",
-      REPO,
-      "-f",
-      `pr_number=${prNumber}`,
-    ]);
-    return true;
-  } catch (error) {
-    console.log(
-      `#${prNumber}: autofix dispatch failed — ${String(error.stderr || error.message || "").trim()}`,
-    );
-    return false;
+function updateBranch(prNumber) {
+  return withRetry(() =>
+    gh(["api", `/repos/${REPO}/pulls/${prNumber}/update-branch`, "-X", "PUT"]),
+  );
+}
+
+function dispatchWorkflow(workflow, prNumber) {
+  return withRetry(() =>
+    gh(["workflow", "run", workflow, "--repo", REPO, "-f", `pr_number=${prNumber}`]),
+  );
+}
+
+// Re-run the head's CI workflow runs so the "on CI completion" Cursor bots re-fire.
+function nudgeReviewers(headSha) {
+  const runs = ghJson(
+    [`/repos/${REPO}/actions/runs?head_sha=${headSha}&per_page=50`, "--paginate"],
+    { workflow_runs: [] },
+  );
+  let rerun = 0;
+  for (const run of runs.workflow_runs || []) {
+    if (!CI_WORKFLOW_PATHS.includes(run.path)) continue;
+    if (run.status !== "completed") continue;
+    try {
+      gh(["api", `/repos/${REPO}/actions/runs/${run.id}/rerun`, "-X", "POST"]);
+      rerun += 1;
+    } catch {
+      /* a run may not be re-runnable; keep going */
+    }
+  }
+  return rerun;
+}
+
+// Try a side effect a few times; transient GitHub/API blips should not trap a PR.
+function withRetry(fn, attempts = 3) {
+  let lastError;
+  for (let i = 0; i < attempts; i += 1) {
+    try {
+      fn();
+      return true;
+    } catch (error) {
+      lastError = error;
+      sleep(2000);
+    }
+  }
+  console.log(`  retry exhausted: ${String(lastError?.stderr || lastError?.message || lastError).trim()}`);
+  return false;
+}
+
+function sleep(ms) {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    /* GitHub Actions: a brief busy-wait between API retries */
   }
 }
 
-function escalateToHuman(prNumber, reason) {
+// Create the machine-owned label if the repo doesn't have it yet, so --add-label never 422s.
+function ensureAutoLabel() {
+  try {
+    gh([
+      "label",
+      "create",
+      AUTO_LABEL,
+      "--repo",
+      REPO,
+      "--color",
+      "FBCA04",
+      "--description",
+      "needs-human applied by the merge coordinator; auto-cleared when the blocker resolves",
+      "--force",
+    ]);
+  } catch {
+    /* label already exists or cannot be created; --add-label will surface a real problem */
+  }
+}
+
+function escalate(prNumber, reason, headSha, state) {
+  ensureAutoLabel();
   gh([
     "pr",
     "comment",
@@ -232,120 +449,150 @@ function escalateToHuman(prNumber, reason) {
     "--repo",
     REPO,
     "--body",
-    `⚠️ Merge coordinator stopping automated handling: ${reason}. Labeling \`${SKIP_LABEL}\`.`,
+    `⚠️ Merge coordinator pausing automated handling: ${reason}. Labeling \`${SKIP_LABEL}\`. ` +
+      `This is auto-recoverable — pushing a new commit (or the blocker clearing) un-parks it.`,
   ]);
+  gh(["issue", "edit", String(prNumber), "--repo", REPO, "--add-label", `${SKIP_LABEL},${AUTO_LABEL}`]);
+  state.escalatedHead = headSha;
+  saveState(prNumber, state);
+}
+
+function clearEscalation(prNumber, state) {
+  gh(["issue", "edit", String(prNumber), "--repo", REPO, "--remove-label", `${SKIP_LABEL},${AUTO_LABEL}`]);
   gh([
-    "issue",
-    "edit",
+    "pr",
+    "comment",
     String(prNumber),
     "--repo",
     REPO,
-    "--add-label",
-    SKIP_LABEL,
+    "--body",
+    "✅ Merge coordinator resuming automated handling — the earlier blocker is no longer present.",
   ]);
+  state.escalatedHead = null;
+  saveState(prNumber, state);
 }
 
-function evaluatePr(number) {
+// ----- gather + run ----------------------------------------------------------------------
+
+function gatherState(number) {
   const pr = ghJson([`/repos/${REPO}/pulls/${number}`], null);
   if (!pr || pr.state !== "open" || pr.draft || pr.base?.ref !== BASE) {
-    console.log(`#${number}: skip (not an open ${BASE} PR)`);
-    return;
+    return { candidate: false };
   }
 
   const issue = ghJson([`/repos/${REPO}/issues/${number}`], {});
-  if (hasLabel(issue, SKIP_LABEL)) {
-    console.log(`#${number}: skip (${SKIP_LABEL})`);
-    return;
-  }
-
   const headSha = pr.head?.sha;
   const headDate = headCommitDate(headSha);
-  if (!headDate) {
-    console.log(`#${number}: skip (could not read head commit date)`);
-    return;
+  if (!headSha || !headDate) {
+    return { candidate: false, reason: "no head" };
   }
 
-  // Trusted bot reviews of THIS head (anti-spoof: cursor[bot] only; exact via commit_id).
   const fresh = freshTrustedReviews(number, headSha);
   const bugBotsFresh = BUG_BOT_TITLES.every((title) =>
-    fresh.some((r) => isTitled(r.body, title)),
+    fresh.some((rv) => isTitled(rv.body, title)),
   );
-  const activeBlocker = fresh.some((r) => isBlocking(severityOf(r.body)));
-
-  const planReview = [...fresh]
-    .reverse()
-    .find((r) => isTitled(r.body, PLAN_TITLE));
+  const activeBlocker = fresh.some((rv) => isBlocking(severityOf(rv.body)));
+  const planReview = [...fresh].reverse().find((rv) => isTitled(rv.body, PLAN_TITLE));
   const planMatch = planReview && planReview.body.match(PLAN_MARKER);
   const planBlocking = planMatch ? Number(planMatch[1]) : null;
 
   const ci = requiredCheckState(headSha);
   const settleAnchor = ci.latestCompleted
-    ? Math.max(
-        new Date(headDate).getTime(),
-        new Date(ci.latestCompleted).getTime(),
-      )
+    ? Math.max(new Date(headDate).getTime(), new Date(ci.latestCompleted).getTime())
     : new Date(headDate).getTime();
   const settled = (Date.now() - settleAnchor) / 60000 >= SETTLE_MINUTES;
+  const minutesStuck = (Date.now() - settleAnchor) / 60000;
 
   const commits = ghJson(
     [`/repos/${REPO}/pulls/${number}/commits?per_page=100`, "--paginate"],
     [],
   );
-  const rounds = commits.filter((c) =>
-    AUTOFIX_COMMIT.test(c.commit?.message || ""),
-  ).length;
+  const rounds = commits.filter((c) => AUTOFIX_COMMIT.test(c.commit?.message || "")).length;
 
-  // MERGE: current code is green, freshly bug-checked, no active blocker, the planner (if it
-  // ran on this head) sees nothing left, and reviewers have had time to weigh in.
   const planClear = planBlocking === null || planBlocking === 0;
-  if (ci.allGreen && bugBotsFresh && !activeBlocker && planClear && settled) {
-    console.log(`#${number}: merge-ready → auto-merge ${armMerge(number)}`);
+  const mergeReady =
+    ci.allGreen && bugBotsFresh && !activeBlocker && planClear && settled;
+
+  const state = loadState(number, headSha);
+
+  return {
+    candidate: true,
+    head: headSha,
+    mergeableState: pr.mergeable_state || null,
+    autoEscalated: hasLabel(issue, SKIP_LABEL) && hasLabel(issue, AUTO_LABEL),
+    humanParked: hasLabel(issue, SKIP_LABEL) && !hasLabel(issue, AUTO_LABEL),
+    escalatedHead: state.escalatedHead,
+    ciAllGreen: ci.allGreen,
+    ciAnyFailed: ci.anyFailed,
+    bugBotsFresh,
+    activeBlocker,
+    planBlocking,
+    settled,
+    minutesStuck,
+    mergeReady,
+    rounds,
+    // Large conflicts must not be auto-resolved; the rebase agent's guard re-checks this too.
+    conflictTooBig: pr.changed_files > 40,
+    fixAttempts: state.fixAttempts,
+    rebaseAttempts: state.rebaseAttempts,
+    nudges: state.nudges,
+    _state: state,
+  };
+}
+
+function evaluatePr(number) {
+  const s = gatherState(number);
+  if (!s.candidate) {
+    console.log(`#${number}: skip (not an open ${BASE} PR)`);
     return;
   }
 
-  // FIX: something is wrong AND there is a concrete plan (on this head) to act on.
-  const needsFix = ci.anyFailed || activeBlocker || (planBlocking || 0) > 0;
-  if (needsFix && (planBlocking || 0) > 0) {
-    if (rounds >= MAX_ROUNDS) {
-      escalateToHuman(number, `autofix reached the ${MAX_ROUNDS}-round cap`);
-      console.log(`#${number}: round cap → ${SKIP_LABEL}`);
+  const { action, reason } = decide(s);
+  const state = s._state;
+
+  switch (action) {
+    case "MERGE":
+      console.log(`#${number}: merge-ready → auto-merge ${armMerge(number)}`);
+      return;
+    case "UPDATE_BRANCH":
+      console.log(`#${number}: ${reason} → ${updateBranch(number) ? "updated" : "update failed (will retry)"}`);
+      return;
+    case "RESOLVE_CONFLICTS":
+      if (dispatchWorkflow("pr-rebase.yml", number)) {
+        state.rebaseAttempts += 1;
+        saveState(number, state);
+        console.log(`#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})`);
+      } else {
+        console.log(`#${number}: rebase dispatch failed — will retry next tick`);
+      }
+      return;
+    case "DISPATCH_FIX":
+      if (dispatchWorkflow("autofix.yml", number)) {
+        state.fixAttempts += 1;
+        saveState(number, state);
+        console.log(`#${number}: ${reason} → dispatched (attempt ${state.fixAttempts}/${MAX_FIX_DISPATCH})`);
+      } else {
+        console.log(`#${number}: autofix dispatch failed — will retry next tick`);
+      }
+      return;
+    case "NUDGE_REVIEWS": {
+      const rerun = nudgeReviewers(s.head);
+      state.nudges += 1;
+      saveState(number, state);
+      console.log(`#${number}: ${reason} → re-ran ${rerun} CI run(s)`);
       return;
     }
-    if (dispatchAutofix(number)) {
-      console.log(
-        `#${number}: needs fix (${planBlocking} blocking, round ${rounds + 1}) → dispatched`,
-      );
-    } else {
-      escalateToHuman(number, "could not dispatch the autofix workflow");
-      console.log(`#${number}: dispatch failed → ${SKIP_LABEL}`);
-    }
-    return;
+    case "ESCALATE":
+      escalate(number, reason, s.head, state);
+      console.log(`#${number}: ${reason} → ${SKIP_LABEL}`);
+      return;
+    case "CLEAR_ESCALATION":
+      clearEscalation(number, state);
+      console.log(`#${number}: ${reason} → cleared ${SKIP_LABEL}`);
+      return;
+    default:
+      console.log(`#${number}: ${reason}`);
   }
-
-  // Don't wait forever: if a head has been stuck well past the settle window, a bot likely
-  // failed to post. Hand it to a human instead of hanging silently.
-  const minutesStuck = (Date.now() - settleAnchor) / 60000;
-  if (minutesStuck >= STALE_MINUTES) {
-    escalateToHuman(
-      number,
-      `no merge decision after ${Math.round(minutesStuck)} min (a review bot may not have posted)`,
-    );
-    console.log(`#${number}: stale → ${SKIP_LABEL}`);
-    return;
-  }
-
-  const why = !ci.allGreen
-    ? ci.anyFailed
-      ? "CI failing, waiting for a Safe-Fix Plan"
-      : "CI pending"
-    : !bugBotsFresh
-      ? "waiting for bug-bot review on current head"
-      : activeBlocker
-        ? "blocker open, waiting for a Safe-Fix Plan"
-        : !settled
-          ? "waiting for reviewers to settle"
-          : "waiting";
-  console.log(`#${number}: ${why}`);
 }
 
 function main() {
@@ -358,4 +605,9 @@ function main() {
   }
 }
 
-main();
+// Only run when invoked directly, so tests can import decide() without side effects.
+const invokedDirectly =
+  process.argv[1] && process.argv[1].endsWith("merge-coordinator.mjs");
+if (invokedDirectly) {
+  main();
+}
