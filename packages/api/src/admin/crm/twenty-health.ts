@@ -10,7 +10,7 @@ type TwentyCrmHealthRouteFlags = Pick<
   "NODE_ENV" | "VERCEL_ENV" | "VERCEL_TARGET_ENV"
 >;
 
-export function isTwentyCrmStagingHealthEnabled(
+export function isTwentyCrmDevelopmentHealthEnabled(
   flags: TwentyCrmHealthRouteFlags = runtimeEnvFlags,
 ): boolean {
   const targetEnv = flags.VERCEL_TARGET_ENV?.toLowerCase();
@@ -20,7 +20,10 @@ export function isTwentyCrmStagingHealthEnabled(
     return false;
   }
 
-  if (targetEnv === "staging") {
+  // Transitional: the renamed "development" environment may still report
+  // VERCEL_TARGET_ENV="staging" until the Vercel custom-environment rename lands. Mirror the
+  // env schema's protected-deploy alias so this health route does not 404 during the cutover.
+  if (targetEnv === "development" || targetEnv === "staging") {
     return true;
   }
 
@@ -31,10 +34,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const requestId = crypto.randomUUID();
   void request.headers.get("x-vercel-id");
 
-  if (!isTwentyCrmStagingHealthEnabled()) {
+  if (!isTwentyCrmDevelopmentHealthEnabled()) {
     return NextResponse.json(
       {
-        error: "Twenty CRM staging health route is not enabled.",
+        error: "Twenty CRM development health route is not enabled.",
         requestId,
       },
       {

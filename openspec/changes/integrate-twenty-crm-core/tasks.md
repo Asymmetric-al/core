@@ -154,7 +154,7 @@
 
 - [x] 12.1 Freeze the Phase 07 production domain catalog and confirm no new CRM
       domains are added during cutover
-- [x] 12.2 Document domain-by-domain cutover gates for staging parity,
+- [x] 12.2 Document domain-by-domain cutover gates for development parity,
       monitoring, rollback rehearsal, backup/restore proof, load/rate-limit
       evidence, security review, support owner, rollback owner, and
       CI/OpenSpec validation

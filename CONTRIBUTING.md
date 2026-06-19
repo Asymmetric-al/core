@@ -11,7 +11,7 @@ Thanks for contributing to asymmetric.al. We welcome pull requests, bug reports,
 
 ## Development workflow (short)
 
-- **Base branches:** use `develop` for staging validation and `production` only for
+- **Base branches:** use `develop` for development validation and `production` only for
   an intentional production release. `main` is retired/protected historical
   history and is not an active deploy target.
 - **Package manager:** `bun` pinned via `package.json#packageManager` (currently `bun@1.3.14`). `bun run setup` and `scripts/setup/*` call `bun run verify:bun-version` so a mismatched local Bun fails fast with upgrade instructions.
