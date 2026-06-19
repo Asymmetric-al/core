@@ -20,10 +20,15 @@ export function isTwentyCrmDevelopmentHealthEnabled(
     return false;
   }
 
-  // Transitional: the renamed "development" environment may still report
-  // VERCEL_TARGET_ENV="staging" until the Vercel custom-environment rename lands. Mirror the
-  // env schema's protected-deploy alias so this health route does not 404 during the cutover.
-  if (targetEnv === "development" || targetEnv === "staging") {
+  // "development" is the built-in local dev target; "core-development" is the hosted Vercel
+  // custom environment for the develop branch (VERCEL_TARGET_ENV="core-development",
+  // VERCEL_ENV="preview"). "staging" is a retained legacy alias kept protected until a Vercel
+  // inventory proves no deployment still reports it (rollbacks / in-flight builds).
+  if (
+    targetEnv === "development" ||
+    targetEnv === "core-development" ||
+    targetEnv === "staging"
+  ) {
     return true;
   }
 
