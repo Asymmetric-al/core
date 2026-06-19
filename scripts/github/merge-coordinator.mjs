@@ -164,7 +164,10 @@ function requiredCheckState(headSha) {
   let latestCompleted = null;
 
   const noteCompleted = (iso) => {
-    if (iso && (!latestCompleted || new Date(iso) > new Date(latestCompleted))) {
+    if (
+      iso &&
+      (!latestCompleted || new Date(iso) > new Date(latestCompleted))
+    ) {
       latestCompleted = iso;
     }
   };
@@ -178,9 +181,13 @@ function requiredCheckState(headSha) {
     const ok = run.status === "completed" && run.conclusion === "success";
     const failed =
       run.status === "completed" &&
-      ["failure", "timed_out", "cancelled", "action_required", "stale"].includes(
-        run.conclusion,
-      );
+      [
+        "failure",
+        "timed_out",
+        "cancelled",
+        "action_required",
+        "stale",
+      ].includes(run.conclusion);
     result.set(run.name, ok ? "success" : failed ? "failure" : "pending");
     noteCompleted(run.completed_at);
   }
@@ -260,14 +267,28 @@ function saveState(prNumber, state) {
     nudges: state.nudges || 0,
     escalatedHead: state.escalatedHead || null,
   };
-  const body = `<!-- ${STATE_MARKER} ${JSON.stringify(payload)} -->\n` +
+  const body =
+    `<!-- ${STATE_MARKER} ${JSON.stringify(payload)} -->\n` +
     `<sub>🤖 merge coordinator state (auto-updated): head \`${String(state.head).slice(0, 9)}\`, ` +
     `fix ${payload.fixAttempts}/${MAX_FIX_DISPATCH}, rebase ${payload.rebaseAttempts}/${MAX_REBASE_ROUNDS}, ` +
     `nudges ${payload.nudges}/${MAX_NUDGES}.</sub>`;
   if (state.id) {
-    gh(["api", `/repos/${REPO}/issues/comments/${state.id}`, "-X", "PATCH", "-f", `body=${body}`]);
+    gh([
+      "api",
+      `/repos/${REPO}/issues/comments/${state.id}`,
+      "-X",
+      "PATCH",
+      "-f",
+      `body=${body}`,
+    ]);
   } else {
-    const created = ghJson([`/repos/${REPO}/issues/${prNumber}/comments`, "-X", "POST", "-f", `body=${body}`]);
+    const created = ghJson([
+      `/repos/${REPO}/issues/${prNumber}/comments`,
+      "-X",
+      "POST",
+      "-f",
+      `body=${body}`,
+    ]);
     state.id = created?.id || null;
   }
 }
@@ -286,7 +307,10 @@ export function decide(s) {
   if (s.autoEscalated) {
     const changed = !s.escalatedHead || s.head !== s.escalatedHead;
     if (changed || s.mergeReady) {
-      return r("CLEAR_ESCALATION", "change since auto-escalation; resuming automation");
+      return r(
+        "CLEAR_ESCALATION",
+        "change since auto-escalation; resuming automation",
+      );
     }
     return r("SKIP", "auto-escalated; nothing new on this head");
   }
@@ -302,9 +326,15 @@ export function decide(s) {
       return r("ESCALATE", "merge conflict too large to auto-resolve");
     }
     if (s.rebaseAttempts >= MAX_REBASE_ROUNDS) {
-      return r("ESCALATE", `conflict still present after ${MAX_REBASE_ROUNDS} auto-rebase attempts`);
+      return r(
+        "ESCALATE",
+        `conflict still present after ${MAX_REBASE_ROUNDS} auto-rebase attempts`,
+      );
     }
-    return r("RESOLVE_CONFLICTS", "merge conflict with develop; dispatching rebase agent");
+    return r(
+      "RESOLVE_CONFLICTS",
+      "merge conflict with develop; dispatching rebase agent",
+    );
   }
 
   // FIX: a concrete Safe-Fix Plan with blockers on this head.
@@ -315,9 +345,15 @@ export function decide(s) {
       return r("ESCALATE", `autofix reached the ${MAX_ROUNDS}-round cap`);
     }
     if (s.fixAttempts >= MAX_FIX_DISPATCH) {
-      return r("ESCALATE", `autofix could not be dispatched after ${MAX_FIX_DISPATCH} attempts`);
+      return r(
+        "ESCALATE",
+        `autofix could not be dispatched after ${MAX_FIX_DISPATCH} attempts`,
+      );
     }
-    return r("DISPATCH_FIX", `needs fix (${planBlockingN} blocking, round ${s.rounds + 1})`);
+    return r(
+      "DISPATCH_FIX",
+      `needs fix (${planBlockingN} blocking, round ${s.rounds + 1})`,
+    );
   }
 
   // MERGE.
@@ -338,14 +374,22 @@ export function decide(s) {
 }
 
 function staleReason(s) {
-  if (!s.ciAllGreen) return s.ciAnyFailed ? "CI failing and no Safe-Fix Plan to act on" : "CI still pending";
-  if (!s.bugBotsFresh) return "a Tier-1 review bot never posted on this head (nudges exhausted)";
-  if (s.activeBlocker) return "a blocker is open with no Safe-Fix Plan to act on";
+  if (!s.ciAllGreen)
+    return s.ciAnyFailed
+      ? "CI failing and no Safe-Fix Plan to act on"
+      : "CI still pending";
+  if (!s.bugBotsFresh)
+    return "a Tier-1 review bot never posted on this head (nudges exhausted)";
+  if (s.activeBlocker)
+    return "a blocker is open with no Safe-Fix Plan to act on";
   return "no merge decision reached in time";
 }
 
 function waitReason(s) {
-  if (!s.ciAllGreen) return s.ciAnyFailed ? "CI failing, waiting for a Safe-Fix Plan" : "CI pending";
+  if (!s.ciAllGreen)
+    return s.ciAnyFailed
+      ? "CI failing, waiting for a Safe-Fix Plan"
+      : "CI pending";
   if (!s.bugBotsFresh) return "waiting for bug-bot review on current head";
   if (s.activeBlocker) return "blocker open, waiting for a Safe-Fix Plan";
   if (!s.settled) return "waiting for reviewers to settle";
@@ -360,7 +404,8 @@ function armMerge(prNumber) {
     return "armed";
   } catch (error) {
     const message = String(error.stderr || error.message || "");
-    if (/already|clean status|not mergeable|enabled/i.test(message)) return "noop";
+    if (/already|clean status|not mergeable|enabled/i.test(message))
+      return "noop";
     throw error;
   }
 }
@@ -373,14 +418,25 @@ function updateBranch(prNumber) {
 
 function dispatchWorkflow(workflow, prNumber) {
   return withRetry(() =>
-    gh(["workflow", "run", workflow, "--repo", REPO, "-f", `pr_number=${prNumber}`]),
+    gh([
+      "workflow",
+      "run",
+      workflow,
+      "--repo",
+      REPO,
+      "-f",
+      `pr_number=${prNumber}`,
+    ]),
   );
 }
 
 // Re-run the head's CI workflow runs so the "on CI completion" Cursor bots re-fire.
 function nudgeReviewers(headSha) {
   const runs = ghJson(
-    [`/repos/${REPO}/actions/runs?head_sha=${headSha}&per_page=50`, "--paginate"],
+    [
+      `/repos/${REPO}/actions/runs?head_sha=${headSha}&per_page=50`,
+      "--paginate",
+    ],
     { workflow_runs: [] },
   );
   let rerun = 0;
@@ -409,7 +465,9 @@ function withRetry(fn, attempts = 3) {
       sleep(2000);
     }
   }
-  console.log(`  retry exhausted: ${String(lastError?.stderr || lastError?.message || lastError).trim()}`);
+  console.log(
+    `  retry exhausted: ${String(lastError?.stderr || lastError?.message || lastError).trim()}`,
+  );
   return false;
 }
 
@@ -452,13 +510,29 @@ function escalate(prNumber, reason, headSha, state) {
     `⚠️ Merge coordinator pausing automated handling: ${reason}. Labeling \`${SKIP_LABEL}\`. ` +
       `This is auto-recoverable — pushing a new commit (or the blocker clearing) un-parks it.`,
   ]);
-  gh(["issue", "edit", String(prNumber), "--repo", REPO, "--add-label", `${SKIP_LABEL},${AUTO_LABEL}`]);
+  gh([
+    "issue",
+    "edit",
+    String(prNumber),
+    "--repo",
+    REPO,
+    "--add-label",
+    `${SKIP_LABEL},${AUTO_LABEL}`,
+  ]);
   state.escalatedHead = headSha;
   saveState(prNumber, state);
 }
 
 function clearEscalation(prNumber, state) {
-  gh(["issue", "edit", String(prNumber), "--repo", REPO, "--remove-label", `${SKIP_LABEL},${AUTO_LABEL}`]);
+  gh([
+    "issue",
+    "edit",
+    String(prNumber),
+    "--repo",
+    REPO,
+    "--remove-label",
+    `${SKIP_LABEL},${AUTO_LABEL}`,
+  ]);
   gh([
     "pr",
     "comment",
@@ -492,13 +566,18 @@ function gatherState(number) {
     fresh.some((rv) => isTitled(rv.body, title)),
   );
   const activeBlocker = fresh.some((rv) => isBlocking(severityOf(rv.body)));
-  const planReview = [...fresh].reverse().find((rv) => isTitled(rv.body, PLAN_TITLE));
+  const planReview = [...fresh]
+    .reverse()
+    .find((rv) => isTitled(rv.body, PLAN_TITLE));
   const planMatch = planReview && planReview.body.match(PLAN_MARKER);
   const planBlocking = planMatch ? Number(planMatch[1]) : null;
 
   const ci = requiredCheckState(headSha);
   const settleAnchor = ci.latestCompleted
-    ? Math.max(new Date(headDate).getTime(), new Date(ci.latestCompleted).getTime())
+    ? Math.max(
+        new Date(headDate).getTime(),
+        new Date(ci.latestCompleted).getTime(),
+      )
     : new Date(headDate).getTime();
   const settled = (Date.now() - settleAnchor) / 60000 >= SETTLE_MINUTES;
   const minutesStuck = (Date.now() - settleAnchor) / 60000;
@@ -507,7 +586,9 @@ function gatherState(number) {
     [`/repos/${REPO}/pulls/${number}/commits?per_page=100`, "--paginate"],
     [],
   );
-  const rounds = commits.filter((c) => AUTOFIX_COMMIT.test(c.commit?.message || "")).length;
+  const rounds = commits.filter((c) =>
+    AUTOFIX_COMMIT.test(c.commit?.message || ""),
+  ).length;
 
   const planClear = planBlocking === null || planBlocking === 0;
   const mergeReady =
@@ -555,24 +636,34 @@ function evaluatePr(number) {
       console.log(`#${number}: merge-ready → auto-merge ${armMerge(number)}`);
       return;
     case "UPDATE_BRANCH":
-      console.log(`#${number}: ${reason} → ${updateBranch(number) ? "updated" : "update failed (will retry)"}`);
+      console.log(
+        `#${number}: ${reason} → ${updateBranch(number) ? "updated" : "update failed (will retry)"}`,
+      );
       return;
     case "RESOLVE_CONFLICTS":
       if (dispatchWorkflow("pr-rebase.yml", number)) {
         state.rebaseAttempts += 1;
         saveState(number, state);
-        console.log(`#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})`);
+        console.log(
+          `#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})`,
+        );
       } else {
-        console.log(`#${number}: rebase dispatch failed — will retry next tick`);
+        console.log(
+          `#${number}: rebase dispatch failed — will retry next tick`,
+        );
       }
       return;
     case "DISPATCH_FIX":
       if (dispatchWorkflow("autofix.yml", number)) {
         state.fixAttempts += 1;
         saveState(number, state);
-        console.log(`#${number}: ${reason} → dispatched (attempt ${state.fixAttempts}/${MAX_FIX_DISPATCH})`);
+        console.log(
+          `#${number}: ${reason} → dispatched (attempt ${state.fixAttempts}/${MAX_FIX_DISPATCH})`,
+        );
       } else {
-        console.log(`#${number}: autofix dispatch failed — will retry next tick`);
+        console.log(
+          `#${number}: autofix dispatch failed — will retry next tick`,
+        );
       }
       return;
     case "NUDGE_REVIEWS": {

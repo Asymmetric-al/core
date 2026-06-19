@@ -57,7 +57,15 @@ function escalate(reason) {
     "--body",
     `⚠️ Auto-rebase declined: ${reason}. Labeling \`needs-human\` so a person can resolve it.`,
   ]);
-  gh(["issue", "edit", String(N), "--repo", REPO, "--add-label", "needs-human,automation:auto-escalated"]);
+  gh([
+    "issue",
+    "edit",
+    String(N),
+    "--repo",
+    REPO,
+    "--add-label",
+    "needs-human,automation:auto-escalated",
+  ]);
   stop(reason);
 }
 
@@ -71,7 +79,10 @@ if ((issue.labels || []).some((l) => (l.name || l) === "needs-human")) {
   stop("needs-human label present");
 }
 
-if (typeof pr.changed_files === "number" && pr.changed_files > MAX_CHANGED_FILES) {
+if (
+  typeof pr.changed_files === "number" &&
+  pr.changed_files > MAX_CHANGED_FILES
+) {
   escalate(`conflict spans ${pr.changed_files} files (> ${MAX_CHANGED_FILES})`);
 }
 
@@ -80,9 +91,13 @@ const commits = ghJson(
   [`/repos/${REPO}/pulls/${N}/commits?per_page=100`, "--paginate"],
   [],
 );
-const rounds = commits.filter((c) => /\[rebase/i.test(c.commit?.message || "")).length;
+const rounds = commits.filter((c) =>
+  /\[rebase/i.test(c.commit?.message || ""),
+).length;
 if (rounds >= MAX_ROUNDS) {
-  escalate(`auto-rebase reached the ${MAX_ROUNDS}-round cap without resolving the conflict`);
+  escalate(
+    `auto-rebase reached the ${MAX_ROUNDS}-round cap without resolving the conflict`,
+  );
 }
 
 console.log(`rebase: proceed — round ${rounds + 1}`);

@@ -52,7 +52,11 @@ describe("merge-coordinator decide()", () => {
   it("escalates instead of auto-resolving a large conflict", () => {
     expect(
       decide(
-        state({ mergeableState: "dirty", mergeReady: false, conflictTooBig: true }),
+        state({
+          mergeableState: "dirty",
+          mergeReady: false,
+          conflictTooBig: true,
+        }),
       ).action,
     ).toBe("ESCALATE");
   });
@@ -60,15 +64,19 @@ describe("merge-coordinator decide()", () => {
   it("escalates after the rebase round cap", () => {
     expect(
       decide(
-        state({ mergeableState: "dirty", mergeReady: false, rebaseAttempts: 2 }),
+        state({
+          mergeableState: "dirty",
+          mergeReady: false,
+          rebaseAttempts: 2,
+        }),
       ).action,
     ).toBe("ESCALATE");
   });
 
   it("dispatches autofix when the plan has blockers", () => {
-    expect(
-      decide(state({ planBlocking: 2, mergeReady: false })).action,
-    ).toBe("DISPATCH_FIX");
+    expect(decide(state({ planBlocking: 2, mergeReady: false })).action).toBe(
+      "DISPATCH_FIX",
+    );
   });
 
   it("escalates after the autofix round cap", () => {
@@ -79,7 +87,8 @@ describe("merge-coordinator decide()", () => {
 
   it("escalates (recoverably) after the dispatch-attempt budget", () => {
     expect(
-      decide(state({ planBlocking: 2, mergeReady: false, fixAttempts: 3 })).action,
+      decide(state({ planBlocking: 2, mergeReady: false, fixAttempts: 3 }))
+        .action,
     ).toBe("ESCALATE");
   });
 
@@ -149,9 +158,8 @@ describe("merge-coordinator decide()", () => {
 
   it("auto-clears an escalation once the PR is merge-ready again", () => {
     expect(
-      decide(
-        state({ autoEscalated: true, escalatedHead: "abc", head: "abc" }),
-      ).action,
+      decide(state({ autoEscalated: true, escalatedHead: "abc", head: "abc" }))
+        .action,
     ).toBe("CLEAR_ESCALATION");
   });
 
