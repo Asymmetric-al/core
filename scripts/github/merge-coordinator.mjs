@@ -35,9 +35,15 @@ const SKIP_LABEL = "needs-human";
 // post as `cursor[bot]`; nobody else can. This is the anti-spoofing guard.
 const TRUSTED_REVIEWER_LOGINS = new Set(["cursor[bot]"]);
 
-// Tier-1 bug bots re-run on every commit, so a review of the *current* head proves the latest
-// code was bug-checked. We require both before any merge.
-const BUG_BOT_TITLES = ["Critical Bug Check", "Pre-Mortem Bug Finder"];
+// Tier-1 bots re-run on every commit, so a review of the *current* head proves the latest code
+// was bug- and security-checked. We require all three before any merge (matches the Tier-1 set
+// in docs/ai/pr-pipeline-bots). If one isn't configured/posted, the stale-escalation path takes
+// over after STALE_MINUTES rather than merging without it.
+const BUG_BOT_TITLES = [
+  "Critical Bug Check",
+  "Pre-Mortem Bug Finder",
+  "Vulnerability Check",
+];
 const PLAN_TITLE = "Simple Safe-Fix Plan";
 const PLAN_MARKER = /<!--\s*fix-plan\s+blocking=(\d+)/i;
 const AUTOFIX_COMMIT = /\[autofix/i;

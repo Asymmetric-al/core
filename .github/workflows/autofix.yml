@@ -77,12 +77,15 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR: ${{ steps.pr.outputs.number }}
         run: |
-          # The planner posts as a PR *review* (cursor[bot]); read reviews, trust only that
-          # author, and write the body to a file OUTSIDE the repo so it is never committed and
-          # never interpolated onto a command line (avoids shell injection from comment text).
+          # The planner posts as a PR *review*. Use the REST reviews API (same contract as the
+          # coordinator: `user.login` is "cursor[bot]" here, whereas `gh pr view --json reviews`
+          # exposes it as "cursor"). Filter to the current head via commit_id. Write the body to a
+          # file OUTSIDE the repo so it is never committed and never interpolated onto a command
+          # line (avoids shell injection from comment text).
           PLAN_FILE="$RUNNER_TEMP/safe-fix-plan.md"
-          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json reviews \
-            --jq '[.reviews[] | select(.author.login=="cursor[bot]") | select(.body|test("Simple Safe-Fix Plan"))] | last | .body' > "$PLAN_FILE"
+          HEAD_SHA="$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)"
+          gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR/reviews?per_page=100" \
+            --jq "[.[] | select(.user.login==\"cursor[bot]\") | select(.commit_id==\"$HEAD_SHA\") | select(.body|test(\"Simple Safe-Fix Plan\"))] | last | .body" > "$PLAN_FILE"
           echo "file=$PLAN_FILE" >> "$GITHUB_OUTPUT"
 
       - name: Apply the Safe-Fix Plan (headless cursor-agent)
