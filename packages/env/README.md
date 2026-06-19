@@ -5,6 +5,7 @@ Shared environment schema package for Asymmetric.al. This package defines the ty
 - `serverEnv`: validated server/runtime variables
 - `clientEnv`: validated `NEXT_PUBLIC_*` variables
 - `runtimeEnvFlags`: deployment context helpers (`NODE_ENV`, `VERCEL_ENV`, `VERCEL_TARGET_ENV`)
+- `isProtectedDeployment` / `resolveDeploymentEnvironment`: canonical Vercel target-environment helpers
 - `env`: full backward-compatible export (same validated source object)
 
 ## Import Examples
@@ -30,7 +31,10 @@ Conditionally required:
 - `STRIPE_WEBHOOK_SECRET`
 - `SENTRY_DSN`
 
-These become required for protected deployments (production or custom development target) and remain optional in local/preview workflows.
+These become required for protected deployments (`production`, hosted
+`core-development`, and retained legacy `staging`) and remain optional in
+local/ordinary preview workflows. Vercel's built-in `development` target is
+local-only (`vercel dev`) and is intentionally not protected.
 
 Cloudinary server/client keys are conditionally required only when Cloudinary is enabled in protected deployments.
 

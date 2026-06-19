@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { isProtectedDeployment } from "../../../packages/env/src/target-env";
 import {
   assertPayloadDatabaseConfiguration,
   DEFAULT_LOCAL_PAYLOAD_DATABASE_URL,
@@ -159,35 +160,41 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue?.message).not.toContain("super-secret");
   });
 
-  it("treats custom development targets as protected deployments", () => {
-    const config = resolvePayloadDatabaseConfig({
+  it("treats Vercel's built-in development target as local-only", () => {
+    const env = {
       PAYLOAD_DATABASE_URI: DIRECT_SUPABASE_URL,
-      VERCEL_ENV: "preview",
+      VERCEL_ENV: "development",
       VERCEL_TARGET_ENV: "development",
-    });
+    };
+    const config = resolvePayloadDatabaseConfig(env);
 
-    expect(config.isProtectedDeployment).toBe(true);
-    expect(config.issue?.code).toBe("direct-supabase-host");
+    expect(isProtectedDeployment(env)).toBe(false);
+    expect(config.isProtectedDeployment).toBe(false);
+    expect(config.issue).toBeNull();
   });
 
   it("treats the retained legacy staging target as a protected deployment", () => {
-    const config = resolvePayloadDatabaseConfig({
+    const env = {
       PAYLOAD_DATABASE_URI: DIRECT_SUPABASE_URL,
       VERCEL_ENV: "preview",
       VERCEL_TARGET_ENV: "staging",
-    });
+    };
+    const config = resolvePayloadDatabaseConfig(env);
 
+    expect(config.isProtectedDeployment).toBe(isProtectedDeployment(env));
     expect(config.isProtectedDeployment).toBe(true);
     expect(config.issue?.code).toBe("direct-supabase-host");
   });
 
   it("treats the core-development custom target as a protected deployment", () => {
-    const config = resolvePayloadDatabaseConfig({
+    const env = {
       PAYLOAD_DATABASE_URI: DIRECT_SUPABASE_URL,
       VERCEL_ENV: "preview",
       VERCEL_TARGET_ENV: "core-development",
-    });
+    };
+    const config = resolvePayloadDatabaseConfig(env);
 
+    expect(config.isProtectedDeployment).toBe(isProtectedDeployment(env));
     expect(config.isProtectedDeployment).toBe(true);
     expect(config.issue?.code).toBe("direct-supabase-host");
   });
