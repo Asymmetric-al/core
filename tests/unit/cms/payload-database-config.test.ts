@@ -170,6 +170,17 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue?.code).toBe("direct-supabase-host");
   });
 
+  it("treats the transitional staging target as a protected deployment", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: DIRECT_SUPABASE_URL,
+      VERCEL_ENV: "preview",
+      VERCEL_TARGET_ENV: "staging",
+    });
+
+    expect(config.isProtectedDeployment).toBe(true);
+    expect(config.issue?.code).toBe("direct-supabase-host");
+  });
+
   it("rejects invalid database URLs in protected deployments without echoing raw values", () => {
     const config = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_URI: "postgresql://postgres:super-secret@",
