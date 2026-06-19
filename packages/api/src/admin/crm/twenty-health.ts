@@ -20,7 +20,10 @@ export function isTwentyCrmDevelopmentHealthEnabled(
     return false;
   }
 
-  if (targetEnv === "development") {
+  // Transitional: the renamed "development" environment may still report
+  // VERCEL_TARGET_ENV="staging" until the Vercel custom-environment rename lands. Mirror the
+  // env schema's protected-deploy alias so this health route does not 404 during the cutover.
+  if (targetEnv === "development" || targetEnv === "staging") {
     return true;
   }
 
