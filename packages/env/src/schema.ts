@@ -47,7 +47,12 @@ const normalizedTargetEnv = runtimeContext.vercelTargetEnv?.toLowerCase();
 const isProtectedDeployment =
   runtimeContext.vercelEnv === "production" ||
   normalizedTargetEnv === "production" ||
-  normalizedTargetEnv === "development";
+  normalizedTargetEnv === "development" ||
+  // Transitional alias: the renamed "development" environment may still report
+  // VERCEL_TARGET_ENV="staging" until the Vercel custom-environment rename lands. Treat it as
+  // protected so required-secret validation (Sentry, Cloudinary) does not silently relax during
+  // the cutover. Safe to remove once infra reports "development".
+  normalizedTargetEnv === "staging";
 
 const requireInProtectedDeployments = (variableName: string) =>
   z
