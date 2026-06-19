@@ -39,14 +39,20 @@ if ((issue.labels || []).some((l) => (l.name || l) === "needs-human")) {
   stop("needs-human label present");
 }
 
-// Require a Safe-Fix Plan with blocking items > 0.
-const comments = ghJson(
-  [`/repos/${REPO}/issues/${N}/comments?per_page=100`, "--paginate"],
+// Require a Safe-Fix Plan with blocking items > 0. The planner posts its plan as a PR *review*
+// (author cursor[bot]), not an issue comment, so read reviews — and only trust cursor[bot] so a
+// hand-written comment can't spoof the fixer into running.
+const TRUSTED = new Set(["cursor[bot]"]);
+const reviews = ghJson(
+  [`/repos/${REPO}/pulls/${N}/reviews?per_page=100`, "--paginate"],
   [],
 );
-const plan = [...comments]
+const plan = [...reviews]
   .reverse()
-  .find((c) => /Simple Safe-Fix Plan/i.test(c.body || ""));
+  .find(
+    (r) =>
+      TRUSTED.has(r.user?.login) && /Simple Safe-Fix Plan/i.test(r.body || ""),
+  );
 const match = plan && plan.body.match(/<!--\s*fix-plan\s+blocking=(\d+)/i);
 const blocking = match ? Number(match[1]) : null;
 if (blocking === 0) stop("Safe-Fix Plan reports no blocking items");

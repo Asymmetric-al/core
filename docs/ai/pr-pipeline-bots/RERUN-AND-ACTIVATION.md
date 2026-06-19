@@ -27,9 +27,10 @@ re-fire. The GitHub coordinator re-reads the verdicts on every tick. That's the 
 ## 2. The two GitHub Actions (the merge brain lives here, not in Cursor)
 
 - `.github/workflows/auto-merge.yml` + `scripts/github/merge-coordinator.mjs` — **the merge
-  coordinator.** Runs on a schedule (every 10 min) and on PR activity (review/comment/check events).
-  For each open develop PR on its current head it reads the reviewers' `SEVERITY:` lines + the
-  Safe-Fix Plan's `blocking=N` + CI, then:
+  coordinator.** Runs on a schedule (every 10 min) and on each CI completion (`check_suite`). For
+  each open develop PR on its current head it reads the **`cursor[bot]` PR reviews** (the bots post
+  verdicts as reviews, not issue comments) — their `SEVERITY:` lines + the Safe-Fix Plan's
+  `blocking=N` — plus CI, then:
   - clean (CI green, bug bots fresh, no Blocker/High, plan clear, settled) → **arm GitHub auto-merge**;
   - blocking items present → **dispatch `autofix.yml`**;
   - otherwise → wait for the next tick.

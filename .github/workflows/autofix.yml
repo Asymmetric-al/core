@@ -69,17 +69,31 @@ jobs:
           curl https://cursor.com/install -fsS | bash
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
+      - name: Fetch the Safe-Fix Plan to a file
+        id: plan
+        if: steps.guard.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          # The planner posts as a PR *review* (cursor[bot]); read reviews, trust only that
+          # author, and write the body to a file OUTSIDE the repo so it is never committed and
+          # never interpolated onto a command line (avoids shell injection from comment text).
+          PLAN_FILE="$RUNNER_TEMP/safe-fix-plan.md"
+          gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json reviews \
+            --jq '[.reviews[] | select(.author.login=="cursor[bot]") | select(.body|test("Simple Safe-Fix Plan"))] | last | .body' > "$PLAN_FILE"
+          echo "file=$PLAN_FILE" >> "$GITHUB_OUTPUT"
+
       - name: Apply the Safe-Fix Plan (headless cursor-agent)
         if: steps.guard.outputs.proceed == 'true'
         env:
           CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
           GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
-          GITHUB_REPOSITORY: ${{ github.repository }}
           PR: ${{ steps.pr.outputs.number }}
+          PLAN_FILE: ${{ steps.plan.outputs.file }}
         run: |
-          PLAN="$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json comments \
-            --jq '[.comments[] | select(.body|test("Simple Safe-Fix Plan"))] | last | .body')"
-          cursor-agent -p "You are fixing PR #$PR in Asymmetric-al/core, already checked out on its own branch. Implement ONLY the BLOCKING items from the Safe-Fix Plan below. Do not widen scope, do not refactor unrelated code, never weaken or delete tests, never edit .github/workflows, never push to production. Make the smallest safe edits. Do NOT commit or push — the workflow commits. If a blocking item is ambiguous or architectural, leave it and note it. SAFE-FIX PLAN:\n\n$PLAN" --model gpt-5.5 --force --print
+          cursor-agent -p "You are fixing PR #$PR in Asymmetric-al/core, already checked out on its own branch. First read the Safe-Fix Plan saved at the path in the PLAN_FILE environment variable, then implement ONLY its BLOCKING items. Do not widen scope, do not refactor unrelated code, never weaken or delete tests, never edit .github/workflows, never push to production. Make the smallest safe edits. Do NOT commit or push — the workflow commits. If a blocking item is ambiguous or architectural, leave it and note it." --model gpt-5.5 --force --print
 
       - name: Commit & push the fix
         if: steps.guard.outputs.proceed == 'true'
