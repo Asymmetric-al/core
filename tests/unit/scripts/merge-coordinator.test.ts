@@ -163,6 +163,21 @@ describe("merge-coordinator decide()", () => {
     ).toBe("CLEAR_ESCALATION");
   });
 
+  it("stays parked (no clear-loop) when an escalation recorded no head", () => {
+    // A guard/workflow escalation adds the labels but no escalatedHead — clearing here would
+    // immediately un-park and loop, so we must SKIP until a real head change.
+    expect(
+      decide(
+        state({
+          autoEscalated: true,
+          escalatedHead: null,
+          head: "abc",
+          mergeReady: false,
+        }),
+      ).action,
+    ).toBe("SKIP");
+  });
+
   it("handles a conflict before trusting a stale merge-ready signal", () => {
     expect(
       decide(state({ mergeableState: "dirty", mergeReady: true })).action,

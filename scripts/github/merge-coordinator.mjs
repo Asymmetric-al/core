@@ -229,14 +229,18 @@ function selfLogin() {
 }
 
 function findStateComment(prNumber) {
+  const self = selfLogin();
+  // Fail safe, not open: if we cannot verify our own identity, trust NO stored state — it would
+  // be unauthenticated and therefore spoofable. Resetting the budgets is safer than honoring a
+  // counter an attacker could have planted.
+  if (!self) return { id: null, state: {} };
   const comments = ghJson(
     [`/repos/${REPO}/issues/${prNumber}/comments?per_page=100`, "--paginate"],
     [],
   );
-  const self = selfLogin();
   for (const c of comments) {
     // Anti-spoof: only trust the marker on a comment we authored.
-    if (self && c.user?.login !== self) continue;
+    if (c.user?.login !== self) continue;
     const match = (c.body || "").match(
       new RegExp(`<!--\\s*${STATE_MARKER}\\s*(\\{[\\s\\S]*?\\})\\s*-->`),
     );
@@ -252,7 +256,14 @@ function findStateComment(prNumber) {
 }
 
 function blankCounters(head) {
-  return { head, fixAttempts: 0, rebaseAttempts: 0, nudges: 0 };
+  return {
+    head,
+    fixAttempts: 0,
+    rebaseAttempts: 0,
+    nudges: 0,
+    inflightFixAt: null,
+    inflightRebaseAt: null,
+  };
 }
 
 // Load counters for THIS head. Counters reset when the head changes; escalatedHead persists so
@@ -269,6 +280,8 @@ function loadState(prNumber, head) {
     fixAttempts: state.fixAttempts || 0,
     rebaseAttempts: state.rebaseAttempts || 0,
     nudges: state.nudges || 0,
+    inflightFixAt: state.inflightFixAt || null,
+    inflightRebaseAt: state.inflightRebaseAt || null,
     escalatedHead,
   };
 }
@@ -279,6 +292,8 @@ function saveState(prNumber, state) {
     fixAttempts: state.fixAttempts || 0,
     rebaseAttempts: state.rebaseAttempts || 0,
     nudges: state.nudges || 0,
+    inflightFixAt: state.inflightFixAt || null,
+    inflightRebaseAt: state.inflightRebaseAt || null,
     escalatedHead: state.escalatedHead || null,
   };
   const body =
@@ -319,14 +334,20 @@ export function decide(s) {
 
   // Reversible escalation: a needs-human the coordinator set itself is re-checked every run.
   if (s.autoEscalated) {
-    const changed = !s.escalatedHead || s.head !== s.escalatedHead;
-    if (changed || s.mergeReady) {
+    if (s.mergeReady) {
+      return r("CLEAR_ESCALATION", "now merge-ready; resuming automation");
+    }
+    // Only treat the head as "changed" when we recorded the escalation head AND it differs. A
+    // NULL escalatedHead means a guard/workflow escalated without recording one — we must NOT
+    // clear (that would immediately un-park and loop); the executor adopts the current head so a
+    // future push is detectable.
+    if (s.escalatedHead && s.head !== s.escalatedHead) {
       return r(
         "CLEAR_ESCALATION",
-        "change since auto-escalation; resuming automation",
+        "new commit since auto-escalation; resuming automation",
       );
     }
-    return r("SKIP", "auto-escalated; nothing new on this head");
+    return r("SKIP", "auto-escalated; parked on this head");
   }
   // Human-set needs-human is a hard stop.
   if (s.humanParked) return r("SKIP", "needs-human (human-set)");
@@ -444,17 +465,16 @@ function dispatchWorkflow(workflow, prNumber) {
   );
 }
 
-// True if a run of this workflow is queued or in progress. The per-PR concurrency group in
-// autofix.yml / pr-rebase.yml already prevents two runs for the SAME PR executing at once, but
-// this stops the coordinator from queueing a redundant second dispatch (and double-counting the
-// attempt) while the first headless agent is still working.
-function workflowRunInFlight(workflow) {
-  const runs = ghJson(
-    [`/repos/${REPO}/actions/workflows/${workflow}/runs?per_page=30`],
-    { workflow_runs: [] },
-  );
-  return (runs.workflow_runs || []).some(
-    (run) => run.status === "queued" || run.status === "in_progress",
+// Per-PR in-flight guard. We record a dispatch timestamp in this PR's own coord-state and treat
+// a dispatch made within the TTL as "still running" so we don't queue a redundant second run (or
+// double-count the attempt). This is scoped to the PR (the state comment is per-PR) — it does NOT
+// block other PRs the way a repo-wide Actions query would. The per-PR concurrency group in
+// autofix.yml / pr-rebase.yml still guarantees same-PR runs never execute concurrently.
+const IN_FLIGHT_TTL_MIN = 20;
+function recentlyDispatched(at) {
+  return (
+    typeof at === "string" &&
+    (Date.now() - new Date(at).getTime()) / 60000 < IN_FLIGHT_TTL_MIN
   );
 }
 
@@ -659,6 +679,13 @@ function evaluatePr(number) {
   const { action, reason } = decide(s);
   const state = s._state;
 
+  // Adopt the current head as the escalation head for a guard/workflow escalation that never
+  // recorded one — so a future push is detectable and we don't immediately un-park (see decide()).
+  if (s.autoEscalated && !s.escalatedHead && action !== "CLEAR_ESCALATION") {
+    state.escalatedHead = s.head;
+    saveState(number, state);
+  }
+
   switch (action) {
     case "MERGE":
       console.log(`#${number}: merge-ready → auto-merge ${armMerge(number)}`);
@@ -669,10 +696,11 @@ function evaluatePr(number) {
       );
       return;
     case "RESOLVE_CONFLICTS":
-      if (workflowRunInFlight("pr-rebase.yml")) {
-        console.log(`#${number}: rebase already in flight — waiting`);
+      if (recentlyDispatched(state.inflightRebaseAt)) {
+        console.log(`#${number}: rebase recently dispatched — waiting`);
       } else if (dispatchWorkflow("pr-rebase.yml", number)) {
         state.rebaseAttempts += 1;
+        state.inflightRebaseAt = new Date().toISOString();
         saveState(number, state);
         console.log(
           `#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})`,
@@ -684,10 +712,11 @@ function evaluatePr(number) {
       }
       return;
     case "DISPATCH_FIX":
-      if (workflowRunInFlight("autofix.yml")) {
-        console.log(`#${number}: autofix already in flight — waiting`);
+      if (recentlyDispatched(state.inflightFixAt)) {
+        console.log(`#${number}: autofix recently dispatched — waiting`);
       } else if (dispatchWorkflow("autofix.yml", number)) {
         state.fixAttempts += 1;
+        state.inflightFixAt = new Date().toISOString();
         saveState(number, state);
         console.log(
           `#${number}: ${reason} → dispatched (attempt ${state.fixAttempts}/${MAX_FIX_DISPATCH})`,
@@ -700,9 +729,22 @@ function evaluatePr(number) {
       return;
     case "NUDGE_REVIEWS": {
       const rerun = nudgeReviewers(s.head);
-      state.nudges += 1;
-      saveState(number, state);
-      console.log(`#${number}: ${reason} → re-ran ${rerun} CI run(s)`);
+      if (rerun > 0) {
+        // Only a real re-fire counts against the budget (a no-op must not burn it).
+        state.nudges += 1;
+        saveState(number, state);
+        console.log(`#${number}: ${reason} → re-ran ${rerun} CI run(s)`);
+      } else {
+        escalate(
+          number,
+          "CI is green but no re-runnable CI run was found to re-fire the reviewers",
+          s.head,
+          state,
+        );
+        console.log(
+          `#${number}: nudge found nothing to re-run → ${SKIP_LABEL}`,
+        );
+      }
       return;
     }
     case "ESCALATE":

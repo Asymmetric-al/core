@@ -124,8 +124,13 @@ jobs:
             exit 0
           fi
           git add -A
-          git commit --no-edit -m "chore: merge develop & resolve conflicts [rebase round ${{ steps.guard.outputs.round }}]" || true
-          git push
+          # Gate the push on a successful commit so a failed/empty commit can't push a partial merge.
+          if git commit --no-edit -m "chore: merge develop & resolve conflicts [rebase round ${{ steps.guard.outputs.round }}]"; then
+            git push
+          else
+            echo "Commit produced nothing (empty index or hook failure) — not pushing."
+            exit 1
+          fi
 
       - name: Push clean merge (no conflicts)
         if: steps.guard.outputs.proceed == 'true' && steps.merge.outputs.conflict == 'false'
