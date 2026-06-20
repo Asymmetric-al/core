@@ -335,16 +335,23 @@ export function decide(s) {
     if (s.mergeReady) {
       return r("CLEAR_ESCALATION", "now merge-ready; resuming automation");
     }
-    // Only treat the head as "changed" when we recorded the escalation head AND it differs. A
-    // NULL escalatedHead means a guard/workflow escalated without recording one — we must NOT
-    // clear (that would immediately un-park and loop); the executor adopts the current head so a
-    // future push is detectable.
+    // We recorded the escalation head and a newer head exists.
     if (s.escalatedHead && s.head !== s.escalatedHead) {
       return r(
         "CLEAR_ESCALATION",
         "new commit since auto-escalation; resuming automation",
       );
     }
+    // A guard/workflow escalation didn't record a head; gatherState derives whether the current
+    // head landed AFTER the escalation (a recovery push) from the needs-human label's add time.
+    if (!s.escalatedHead && s.recoveredSinceEscalation) {
+      return r(
+        "CLEAR_ESCALATION",
+        "commit landed after auto-escalation; resuming automation",
+      );
+    }
+    // Otherwise stay parked. The executor adopts the current head as the escalation head so a
+    // future push is detectable; clearing here would un-park a still-blocked PR and loop.
     return r("SKIP", "auto-escalated; parked on this head");
   }
   // Human-set needs-human is a hard stop.
@@ -650,13 +657,34 @@ function gatherState(number) {
 
   const state = loadState(number, headSha);
 
+  const autoEscalated =
+    hasLabel(issue, SKIP_LABEL) && hasLabel(issue, AUTO_LABEL);
+  // A guard/workflow escalation labels the PR but doesn't record the head in coord-state. If the
+  // current head landed AFTER the needs-human label was applied, it's a recovery push — not the
+  // escalation head — so we should resume rather than adopt it and miss the recovery.
+  let recoveredSinceEscalation = false;
+  if (autoEscalated && !state.escalatedHead) {
+    const events = ghJson(
+      [`/repos/${REPO}/issues/${number}/events?per_page=100`, "--paginate"],
+      [],
+    );
+    const labeledAt = events
+      .filter((e) => e.event === "labeled" && e.label?.name === SKIP_LABEL)
+      .map((e) => e.created_at)
+      .pop();
+    recoveredSinceEscalation = Boolean(
+      labeledAt && new Date(headDate).getTime() > new Date(labeledAt).getTime(),
+    );
+  }
+
   return {
     candidate: true,
     head: headSha,
     mergeableState,
-    autoEscalated: hasLabel(issue, SKIP_LABEL) && hasLabel(issue, AUTO_LABEL),
+    autoEscalated,
     humanParked: hasLabel(issue, SKIP_LABEL) && !hasLabel(issue, AUTO_LABEL),
     escalatedHead: state.escalatedHead,
+    recoveredSinceEscalation,
     ciAllGreen: ci.allGreen,
     ciAnyFailed: ci.anyFailed,
     bugBotsFresh,
@@ -732,22 +760,16 @@ function evaluatePr(number) {
       return;
     case "NUDGE_REVIEWS": {
       const rerun = nudgeReviewers(s.head);
-      if (rerun > 0) {
-        // Only a real re-fire counts against the budget (a no-op must not burn it).
-        state.nudges += 1;
-        saveState(number, state);
-        console.log(`#${number}: ${reason} → re-ran ${rerun} CI run(s)`);
-      } else {
-        escalate(
-          number,
-          "CI is green but no re-runnable CI run was found to re-fire the reviewers",
-          s.head,
-          state,
-        );
-        console.log(
-          `#${number}: nudge found nothing to re-run → ${SKIP_LABEL}`,
-        );
-      }
+      // Consume one nudge whether or not a run was re-fired, then WAIT — do NOT escalate on a
+      // single zero-rerun tick (CI may be mid-run or a path mismatch). Once the nudge budget is
+      // spent, decide()'s stale path escalates on the next tick.
+      state.nudges += 1;
+      saveState(number, state);
+      console.log(
+        rerun > 0
+          ? `#${number}: ${reason} → re-ran ${rerun} CI run(s)`
+          : `#${number}: ${reason} → no completed CI run to re-run; will retry, then escalate at budget`,
+      );
       return;
     }
     case "ESCALATE":
