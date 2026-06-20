@@ -8,8 +8,8 @@ import { appendFileSync } from "node:fs";
 
 const REPO = process.env.GITHUB_REPOSITORY || "Asymmetric-al/core";
 const N = Number(process.env.PR_NUMBER);
-const MAX_ROUNDS = 2;
 // A conflict spanning more than this many files is too risky to auto-resolve — hand to a human.
+// Coarse pre-filter; the workflow re-checks the precise conflicted-path count after merging.
 const MAX_CHANGED_FILES = 40;
 
 function gh(args) {
@@ -86,7 +86,9 @@ if (
   escalate(`conflict spans ${pr.changed_files} files (> ${MAX_CHANGED_FILES})`);
 }
 
-// Round cap: count prior [rebase] commits on the branch.
+// Round NUMBER only (for the commit-message label). The round CAP is owned solely by the merge
+// coordinator's per-head `coord-state.rebaseAttempts` counter — a single source of truth so a
+// dispatched- vs. resolved-count mismatch can't let the loop run past the cap.
 const commits = ghJson(
   [`/repos/${REPO}/pulls/${N}/commits?per_page=100`, "--paginate"],
   [],
@@ -94,11 +96,6 @@ const commits = ghJson(
 const rounds = commits.filter((c) =>
   /\[rebase/i.test(c.commit?.message || ""),
 ).length;
-if (rounds >= MAX_ROUNDS) {
-  escalate(
-    `auto-rebase reached the ${MAX_ROUNDS}-round cap without resolving the conflict`,
-  );
-}
 
 console.log(`rebase: proceed — round ${rounds + 1}`);
 out("proceed", "true");

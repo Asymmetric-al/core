@@ -217,12 +217,26 @@ function requiredCheckState(headSha) {
 
 // ----- per-head state comment (one self-updating comment per PR) -------------------------
 
+// The login the coordinator runs as (PIPELINE_PAT identity). Cached. Used so only the
+// coordinator's OWN state comment is trusted — a collaborator cannot inject a `coord-state`
+// marker to reset the retry budgets.
+let SELF_LOGIN;
+function selfLogin() {
+  if (SELF_LOGIN === undefined) {
+    SELF_LOGIN = ghJson(["/user"], {})?.login || null;
+  }
+  return SELF_LOGIN;
+}
+
 function findStateComment(prNumber) {
   const comments = ghJson(
     [`/repos/${REPO}/issues/${prNumber}/comments?per_page=100`, "--paginate"],
     [],
   );
+  const self = selfLogin();
   for (const c of comments) {
+    // Anti-spoof: only trust the marker on a comment we authored.
+    if (self && c.user?.login !== self) continue;
     const match = (c.body || "").match(
       new RegExp(`<!--\\s*${STATE_MARKER}\\s*(\\{[\\s\\S]*?\\})\\s*-->`),
     );
@@ -427,6 +441,20 @@ function dispatchWorkflow(workflow, prNumber) {
       "-f",
       `pr_number=${prNumber}`,
     ]),
+  );
+}
+
+// True if a run of this workflow is queued or in progress. The per-PR concurrency group in
+// autofix.yml / pr-rebase.yml already prevents two runs for the SAME PR executing at once, but
+// this stops the coordinator from queueing a redundant second dispatch (and double-counting the
+// attempt) while the first headless agent is still working.
+function workflowRunInFlight(workflow) {
+  const runs = ghJson(
+    [`/repos/${REPO}/actions/workflows/${workflow}/runs?per_page=30`],
+    { workflow_runs: [] },
+  );
+  return (runs.workflow_runs || []).some(
+    (run) => run.status === "queued" || run.status === "in_progress",
   );
 }
 
@@ -641,7 +669,9 @@ function evaluatePr(number) {
       );
       return;
     case "RESOLVE_CONFLICTS":
-      if (dispatchWorkflow("pr-rebase.yml", number)) {
+      if (workflowRunInFlight("pr-rebase.yml")) {
+        console.log(`#${number}: rebase already in flight — waiting`);
+      } else if (dispatchWorkflow("pr-rebase.yml", number)) {
         state.rebaseAttempts += 1;
         saveState(number, state);
         console.log(
@@ -654,7 +684,9 @@ function evaluatePr(number) {
       }
       return;
     case "DISPATCH_FIX":
-      if (dispatchWorkflow("autofix.yml", number)) {
+      if (workflowRunInFlight("autofix.yml")) {
+        console.log(`#${number}: autofix already in flight — waiting`);
+      } else if (dispatchWorkflow("autofix.yml", number)) {
         state.fixAttempts += 1;
         saveState(number, state);
         console.log(
