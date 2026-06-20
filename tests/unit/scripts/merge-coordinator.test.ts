@@ -20,9 +20,9 @@ function state(overrides: Record<string, unknown> = {}) {
     minutesStuck: 7,
     mergeReady: true,
     rounds: 0,
-    conflictTooBig: false,
     fixAttempts: 0,
     rebaseAttempts: 0,
+    updateAttempts: 0,
     nudges: 0,
     ...overrides,
   };
@@ -49,13 +49,13 @@ describe("merge-coordinator decide()", () => {
     ).toBe("RESOLVE_CONFLICTS");
   });
 
-  it("escalates instead of auto-resolving a large conflict", () => {
+  it("escalates a behind branch after repeated update failures", () => {
     expect(
       decide(
         state({
-          mergeableState: "dirty",
+          mergeableState: "behind",
           mergeReady: false,
-          conflictTooBig: true,
+          updateAttempts: 3,
         }),
       ).action,
     ).toBe("ESCALATE");

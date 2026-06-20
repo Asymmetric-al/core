@@ -1,16 +1,17 @@
 #!/usr/bin/env node
-// Gate the rebase/conflict-resolver run: eligibility, a size guard (never auto-resolve a huge
-// conflict), and a hard round cap. Writes `proceed`, `round`, and `head_ref` to $GITHUB_OUTPUT.
-// Dispatched by the merge coordinator when an open develop PR's mergeable_state is "dirty".
+// Gate the rebase/conflict-resolver run: eligibility check + the round NUMBER for the commit
+// message. Writes `proceed`, `round`, and `head_ref` to $GITHUB_OUTPUT. Dispatched by the merge
+// coordinator when an open develop PR's mergeable_state is "dirty".
+//
+// Conflict SIZE is decided in one place only — the workflow's precise post-merge conflicted-path
+// count (pr-rebase.yml). The round CAP is decided in one place only — the coordinator's per-head
+// `coord-state.rebaseAttempts`. This guard owns neither, to avoid divergent thresholds.
 
 import { execFileSync } from "node:child_process";
 import { appendFileSync } from "node:fs";
 
 const REPO = process.env.GITHUB_REPOSITORY || "Asymmetric-al/core";
 const N = Number(process.env.PR_NUMBER);
-// A conflict spanning more than this many files is too risky to auto-resolve — hand to a human.
-// Coarse pre-filter; the workflow re-checks the precise conflicted-path count after merging.
-const MAX_CHANGED_FILES = 40;
 
 function gh(args) {
   return execFileSync("gh", args, { encoding: "utf8" });
@@ -31,43 +32,6 @@ function stop(reason) {
   out("proceed", "false");
   process.exit(0);
 }
-function escalate(reason) {
-  try {
-    gh([
-      "label",
-      "create",
-      "automation:auto-escalated",
-      "--repo",
-      REPO,
-      "--color",
-      "FBCA04",
-      "--description",
-      "needs-human applied by the merge pipeline; auto-cleared when the blocker resolves",
-      "--force",
-    ]);
-  } catch {
-    /* label already exists */
-  }
-  gh([
-    "pr",
-    "comment",
-    String(N),
-    "--repo",
-    REPO,
-    "--body",
-    `⚠️ Auto-rebase declined: ${reason}. Labeling \`needs-human\` so a person can resolve it.`,
-  ]);
-  gh([
-    "issue",
-    "edit",
-    String(N),
-    "--repo",
-    REPO,
-    "--add-label",
-    "needs-human,automation:auto-escalated",
-  ]);
-  stop(reason);
-}
 
 const pr = ghJson([`/repos/${REPO}/pulls/${N}`], null);
 if (!pr || pr.state !== "open" || pr.draft || pr.base?.ref !== "develop") {
@@ -77,13 +41,6 @@ if (!pr || pr.state !== "open" || pr.draft || pr.base?.ref !== "develop") {
 const issue = ghJson([`/repos/${REPO}/issues/${N}`], {});
 if ((issue.labels || []).some((l) => (l.name || l) === "needs-human")) {
   stop("needs-human label present");
-}
-
-if (
-  typeof pr.changed_files === "number" &&
-  pr.changed_files > MAX_CHANGED_FILES
-) {
-  escalate(`conflict spans ${pr.changed_files} files (> ${MAX_CHANGED_FILES})`);
 }
 
 // Round NUMBER only (for the commit-message label). The round CAP is owned solely by the merge

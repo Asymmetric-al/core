@@ -86,6 +86,8 @@ jobs:
               gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human,automation:auto-escalated
               echo "conflict=toobig" >> "$GITHUB_OUTPUT"
             else
+              # Record the conflicted path set so we can later verify the agent stayed within it.
+              git diff --name-only --diff-filter=U | sort -u > "$RUNNER_TEMP/conflicted.txt"
               echo "conflict=true" >> "$GITHUB_OUTPUT"
             fi
           fi
@@ -111,17 +113,28 @@ jobs:
           GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
           PR: ${{ steps.pr.outputs.number }}
         run: |
+          escalate() {
+            git merge --abort || true
+            gh label create automation:auto-escalated --repo "$GITHUB_REPOSITORY" --color FBCA04 --description "needs-human applied by the merge pipeline; auto-cleared when the blocker resolves" --force || true
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$1"
+            gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human,automation:auto-escalated
+            exit 0
+          }
           # Any remaining unmerged paths or conflict markers => the agent could not safely resolve.
           # Scan ALL tracked files (including .github) so a bad resolution there can't slip through.
           unmerged="$(git diff --name-only --diff-filter=U)"
           markers="$(git grep -n -e '^<<<<<<< ' -e '^>>>>>>> ' -- . || true)"
           if [ -n "$unmerged" ] || [ -n "$markers" ]; then
             echo "Unresolved conflicts remain — aborting the merge."
-            git merge --abort || true
-            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" \
-              --body "⚠️ Auto-rebase could not fully resolve the conflict with develop. Labeling \`needs-human\`."
-            gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human,automation:auto-escalated
-            exit 0
+            escalate "⚠️ Auto-rebase could not fully resolve the conflict with develop. Labeling \`needs-human\`."
+          fi
+          # Scope guard: the agent must only have touched files that were conflicted. A stray edit
+          # to any other file must NOT ship on the PIPELINE_PAT push.
+          changed="$(git diff --name-only | sort -u)"
+          stray="$(comm -23 <(printf '%s\n' "$changed") "$RUNNER_TEMP/conflicted.txt" | sed '/^$/d')"
+          if [ -n "$stray" ]; then
+            echo "Agent modified files outside the conflict set:"; printf '%s\n' "$stray"
+            escalate "⚠️ Auto-rebase edited files outside the merge conflict; not auto-applying. Labeling \`needs-human\`."
           fi
           git add -A
           # Gate the push on a successful commit so a failed/empty commit can't push a partial merge.

@@ -77,9 +77,12 @@ const SETTLE_MINUTES = 6;
 const STALE_MINUTES = 45;
 // Hard stop so the autofix loop always terminates.
 const MAX_ROUNDS = 3;
-// How many times we'll re-dispatch a failing autofix/rebase for the SAME head before escalating.
+// How many times we'll dispatch autofix/rebase for the SAME head before escalating. Counts every
+// dispatch ATTEMPT (success or failure), so a persistently failing dispatch still reaches the cap.
 const MAX_FIX_DISPATCH = 3;
 const MAX_REBASE_ROUNDS = 2;
+// How many times we'll try to update a behind branch for the same head before escalating.
+const MAX_UPDATE_ATTEMPTS = 3;
 // How many times we'll re-run CI to re-fire the review bots for the same head.
 const MAX_NUDGES = 2;
 
@@ -260,6 +263,7 @@ function blankCounters(head) {
     head,
     fixAttempts: 0,
     rebaseAttempts: 0,
+    updateAttempts: 0,
     nudges: 0,
     inflightFixAt: null,
     inflightRebaseAt: null,
@@ -279,6 +283,7 @@ function loadState(prNumber, head) {
     head,
     fixAttempts: state.fixAttempts || 0,
     rebaseAttempts: state.rebaseAttempts || 0,
+    updateAttempts: state.updateAttempts || 0,
     nudges: state.nudges || 0,
     inflightFixAt: state.inflightFixAt || null,
     inflightRebaseAt: state.inflightRebaseAt || null,
@@ -291,6 +296,7 @@ function saveState(prNumber, state) {
     head: state.head,
     fixAttempts: state.fixAttempts || 0,
     rebaseAttempts: state.rebaseAttempts || 0,
+    updateAttempts: state.updateAttempts || 0,
     nudges: state.nudges || 0,
     inflightFixAt: state.inflightFixAt || null,
     inflightRebaseAt: state.inflightRebaseAt || null,
@@ -354,12 +360,17 @@ export function decide(s) {
 
   // Merge-conflict / out-of-date handling (idea 1 + 2).
   if (s.mergeableState === "behind") {
+    if (s.updateAttempts >= MAX_UPDATE_ATTEMPTS) {
+      return r(
+        "ESCALATE",
+        `branch could not be updated after ${MAX_UPDATE_ATTEMPTS} attempts`,
+      );
+    }
     return r("UPDATE_BRANCH", "branch behind develop; updating");
   }
   if (s.mergeableState === "dirty") {
-    if (s.conflictTooBig) {
-      return r("ESCALATE", "merge conflict too large to auto-resolve");
-    }
+    // Size is decided by the rebase agent's precise post-merge conflicted-path count (the single
+    // source of truth) — not a coarse changed_files heuristic here. We just cap the attempts.
     if (s.rebaseAttempts >= MAX_REBASE_ROUNDS) {
       return r(
         "ESCALATE",
@@ -639,15 +650,25 @@ function gatherState(number) {
   ).length;
 
   const planClear = planBlocking === null || planBlocking === 0;
+  const mergeableState = pr.mergeable_state || null;
+  // Only merge/clear when GitHub itself says the PR is actually mergeable. "behind"/"dirty" are
+  // handled earlier; "blocked" (e.g. unresolved threads) and "unknown" must not arm a merge.
+  const mergeableClean =
+    mergeableState === "clean" || mergeableState === "unstable";
   const mergeReady =
-    ci.allGreen && bugBotsFresh && !activeBlocker && planClear && settled;
+    ci.allGreen &&
+    bugBotsFresh &&
+    !activeBlocker &&
+    planClear &&
+    settled &&
+    mergeableClean;
 
   const state = loadState(number, headSha);
 
   return {
     candidate: true,
     head: headSha,
-    mergeableState: pr.mergeable_state || null,
+    mergeableState,
     autoEscalated: hasLabel(issue, SKIP_LABEL) && hasLabel(issue, AUTO_LABEL),
     humanParked: hasLabel(issue, SKIP_LABEL) && !hasLabel(issue, AUTO_LABEL),
     escalatedHead: state.escalatedHead,
@@ -660,10 +681,9 @@ function gatherState(number) {
     minutesStuck,
     mergeReady,
     rounds,
-    // Large conflicts must not be auto-resolved; the rebase agent's guard re-checks this too.
-    conflictTooBig: pr.changed_files > 40,
     fixAttempts: state.fixAttempts,
     rebaseAttempts: state.rebaseAttempts,
+    updateAttempts: state.updateAttempts,
     nudges: state.nudges,
     _state: state,
   };
@@ -690,40 +710,43 @@ function evaluatePr(number) {
     case "MERGE":
       console.log(`#${number}: merge-ready → auto-merge ${armMerge(number)}`);
       return;
-    case "UPDATE_BRANCH":
+    case "UPDATE_BRANCH": {
+      const updated = updateBranch(number);
+      if (!updated) {
+        // Count failures so a permanently un-updatable branch reaches the escalation cap. A
+        // SUCCESS changes the head, which resets these per-head counters next tick.
+        state.updateAttempts += 1;
+        saveState(number, state);
+      }
       console.log(
-        `#${number}: ${reason} → ${updateBranch(number) ? "updated" : "update failed (will retry)"}`,
+        `#${number}: ${reason} → ${updated ? "updated" : `update failed (${state.updateAttempts}/${MAX_UPDATE_ATTEMPTS})`}`,
       );
       return;
+    }
     case "RESOLVE_CONFLICTS":
       if (recentlyDispatched(state.inflightRebaseAt)) {
         console.log(`#${number}: rebase recently dispatched — waiting`);
-      } else if (dispatchWorkflow("pr-rebase.yml", number)) {
+      } else {
+        // Count the ATTEMPT regardless of outcome so persistent dispatch failures reach the cap.
         state.rebaseAttempts += 1;
-        state.inflightRebaseAt = new Date().toISOString();
+        const ok = dispatchWorkflow("pr-rebase.yml", number);
+        if (ok) state.inflightRebaseAt = new Date().toISOString();
         saveState(number, state);
         console.log(
-          `#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})`,
-        );
-      } else {
-        console.log(
-          `#${number}: rebase dispatch failed — will retry next tick`,
+          `#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})${ok ? "" : " — dispatch failed, counted toward cap"}`,
         );
       }
       return;
     case "DISPATCH_FIX":
       if (recentlyDispatched(state.inflightFixAt)) {
         console.log(`#${number}: autofix recently dispatched — waiting`);
-      } else if (dispatchWorkflow("autofix.yml", number)) {
+      } else {
         state.fixAttempts += 1;
-        state.inflightFixAt = new Date().toISOString();
+        const ok = dispatchWorkflow("autofix.yml", number);
+        if (ok) state.inflightFixAt = new Date().toISOString();
         saveState(number, state);
         console.log(
-          `#${number}: ${reason} → dispatched (attempt ${state.fixAttempts}/${MAX_FIX_DISPATCH})`,
-        );
-      } else {
-        console.log(
-          `#${number}: autofix dispatch failed — will retry next tick`,
+          `#${number}: ${reason} → dispatched (attempt ${state.fixAttempts}/${MAX_FIX_DISPATCH})${ok ? "" : " — dispatch failed, counted toward cap"}`,
         );
       }
       return;
