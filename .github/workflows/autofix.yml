@@ -109,9 +109,10 @@ jobs:
           git add -A
           if git diff --cached --quiet; then
             echo "Autofix produced no changes — escalating to needs-human."
+            gh label create automation:auto-escalated --repo "$GITHUB_REPOSITORY" --color FBCA04 --description "needs-human applied by the merge pipeline; auto-cleared when the blocker resolves" --force || true
             gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" \
-              --body "⚠️ Autofix ran but produced no code changes for the Safe-Fix Plan's blocking items. A person should take a look. Labeling \`needs-human\`."
-            gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human
+              --body "⚠️ Autofix ran but produced no code changes for the Safe-Fix Plan's blocking items. A person should take a look. Labeling \`needs-human\`. (Auto-recoverable: the merge coordinator un-parks it once new commits land or the blocker clears.)"
+            gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human,automation:auto-escalated
           else
             git commit -m "fix: apply Safe-Fix Plan [autofix round ${{ steps.guard.outputs.round }}]"
             git push

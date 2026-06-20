@@ -28,6 +28,25 @@ function stop(reason) {
   out("proceed", "false");
   process.exit(0);
 }
+// Create the machine-owned recovery label if missing, so --add-label never 422s.
+function ensureAutoLabel() {
+  try {
+    gh([
+      "label",
+      "create",
+      "automation:auto-escalated",
+      "--repo",
+      REPO,
+      "--color",
+      "FBCA04",
+      "--description",
+      "needs-human applied by the merge pipeline; auto-cleared when the blocker resolves",
+      "--force",
+    ]);
+  } catch {
+    /* label already exists */
+  }
+}
 
 const pr = ghJson([`/repos/${REPO}/pulls/${N}`], null);
 if (!pr || pr.state !== "open" || pr.draft || pr.base?.ref !== "develop") {
@@ -67,6 +86,7 @@ const rounds = commits.filter((c) =>
   /\[autofix/i.test(c.commit?.message || ""),
 ).length;
 if (rounds >= MAX_ROUNDS) {
+  ensureAutoLabel();
   gh([
     "pr",
     "comment",
@@ -74,8 +94,10 @@ if (rounds >= MAX_ROUNDS) {
     "--repo",
     REPO,
     "--body",
-    `⚠️ Autofix reached the ${MAX_ROUNDS}-round cap without converging. Labeling \`needs-human\` so a person can take over.`,
+    `⚠️ Autofix reached the ${MAX_ROUNDS}-round cap without converging. Labeling \`needs-human\` so a person can take over. (Auto-recoverable: the merge coordinator un-parks it once new commits land or the blocker clears.)`,
   ]);
+  // Apply BOTH labels so the merge coordinator treats this as its own (recoverable) escalation,
+  // not a permanent human-owned stop.
   gh([
     "issue",
     "edit",
@@ -83,7 +105,7 @@ if (rounds >= MAX_ROUNDS) {
     "--repo",
     REPO,
     "--add-label",
-    "needs-human",
+    "needs-human,automation:auto-escalated",
   ]);
   stop(`round cap (${MAX_ROUNDS}) reached`);
 }

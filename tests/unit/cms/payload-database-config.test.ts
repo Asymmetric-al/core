@@ -170,11 +170,22 @@ describe("resolvePayloadDatabaseConfig", () => {
     expect(config.issue?.code).toBe("direct-supabase-host");
   });
 
-  it("treats the transitional staging target as a protected deployment", () => {
+  it("treats the retained legacy staging target as a protected deployment", () => {
     const config = resolvePayloadDatabaseConfig({
       PAYLOAD_DATABASE_URI: DIRECT_SUPABASE_URL,
       VERCEL_ENV: "preview",
       VERCEL_TARGET_ENV: "staging",
+    });
+
+    expect(config.isProtectedDeployment).toBe(true);
+    expect(config.issue?.code).toBe("direct-supabase-host");
+  });
+
+  it("treats the core-development custom target as a protected deployment", () => {
+    const config = resolvePayloadDatabaseConfig({
+      PAYLOAD_DATABASE_URI: DIRECT_SUPABASE_URL,
+      VERCEL_ENV: "preview",
+      VERCEL_TARGET_ENV: "core-development",
     });
 
     expect(config.isProtectedDeployment).toBe(true);

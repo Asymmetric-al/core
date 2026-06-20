@@ -32,13 +32,34 @@ re-fire. The GitHub coordinator re-reads the verdicts on every tick. That's the 
   verdicts as reviews, not issue comments) — their `SEVERITY:` lines + the Safe-Fix Plan's
   `blocking=N` — plus CI, then:
   - clean (CI green, bug bots fresh, no Blocker/High, plan clear, settled) → **arm GitHub auto-merge**;
-  - blocking items present → **dispatch `autofix.yml`**;
+  - branch **behind** develop → **update the branch** (merge develop in; no AI), capped then escalates;
+  - branch **conflicts** with develop (`dirty`) → **escalate to `needs-human`** (recoverable) for a
+    person/agent to rebase — we do **not** auto-resolve conflicts with an automated agent;
+  - Safe-Fix Plan blockers present → **dispatch `autofix.yml`**;
+  - CI green but a Tier-1 bot review is missing past the stale window → **re-run CI to re-fire the
+    reviewers** (a "nudge", capped) before giving up;
   - otherwise → wait for the next tick.
     This is why nothing in Cursor needs to "decide" the merge — the coordinator re-checks as often as
     needed, so clean PRs never stall.
 - `.github/workflows/autofix.yml` + `scripts/github/autofix-guard.mjs` — dispatched by the
   coordinator. A headless `cursor-agent` implements the Safe-Fix Plan's blocking items and commits to
   the PR branch. 3-round cap → `needs-human`; a no-op fix also escalates to `needs-human`.
+
+### Self-healing escalation (no permanent trapdoors)
+
+`needs-human` is no longer a one-way door:
+
+- **Dispatch failures are not terminal.** Launching `autofix.yml` retries inline, and if it still
+  fails the coordinator just waits and retries on the next tick — only after a per-head attempt
+  budget does it escalate (recoverably). Update-branch failures are bounded the same way.
+- **"Stale" first nudges.** If CI is green but a Tier-1 bot never posted, the coordinator re-runs CI
+  to re-fire the reviewers (up to a small budget) before escalating.
+- **Reversible escalation.** Escalations the coordinator makes carry the `automation:auto-escalated`
+  label and are **auto-cleared** when the head changes (someone pushed a fix) or the PR becomes
+  merge-ready. A **human-set** `needs-human` (no marker) is a hard stop the coordinator never touches.
+
+Per-head counters (fix/update/nudge attempts) live in a single self-updating
+`<!-- coord-state … -->` PR comment that resets when the head changes.
 
 > **Why these must live on `production`:** GitHub runs schedule / comment / check-triggered workflows
 > from the **default branch** (here `production`), and `workflow_dispatch` targets need to exist on it
