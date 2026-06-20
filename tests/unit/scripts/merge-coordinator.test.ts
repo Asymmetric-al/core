@@ -11,7 +11,6 @@ function state(overrides: Record<string, unknown> = {}) {
     autoEscalated: false,
     humanParked: false,
     escalatedHead: null,
-    recoveredSinceEscalation: false,
     ciAllGreen: true,
     ciAnyFailed: false,
     bugBotsFresh: true,
@@ -148,21 +147,6 @@ describe("merge-coordinator decide()", () => {
     expect(
       decide(state({ autoEscalated: true, escalatedHead: "abc", head: "abc" }))
         .action,
-    ).toBe("CLEAR_ESCALATION");
-  });
-
-  it("clears a workflow escalation once a recovery commit lands after it", () => {
-    // No escalatedHead recorded (workflow escalation), but a commit landed after the label —
-    // gatherState sets recoveredSinceEscalation, so we must resume, not adopt-and-park.
-    expect(
-      decide(
-        state({
-          autoEscalated: true,
-          escalatedHead: null,
-          recoveredSinceEscalation: true,
-          mergeReady: false,
-        }),
-      ).action,
     ).toBe("CLEAR_ESCALATION");
   });
 

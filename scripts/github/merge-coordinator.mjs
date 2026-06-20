@@ -335,23 +335,17 @@ export function decide(s) {
     if (s.mergeReady) {
       return r("CLEAR_ESCALATION", "now merge-ready; resuming automation");
     }
-    // We recorded the escalation head and a newer head exists.
+    // A recorded escalation head that differs means a new commit landed → resume.
     if (s.escalatedHead && s.head !== s.escalatedHead) {
       return r(
         "CLEAR_ESCALATION",
         "new commit since auto-escalation; resuming automation",
       );
     }
-    // A guard/workflow escalation didn't record a head; gatherState derives whether the current
-    // head landed AFTER the escalation (a recovery push) from the needs-human label's add time.
-    if (!s.escalatedHead && s.recoveredSinceEscalation) {
-      return r(
-        "CLEAR_ESCALATION",
-        "commit landed after auto-escalation; resuming automation",
-      );
-    }
-    // Otherwise stay parked. The executor adopts the current head as the escalation head so a
-    // future push is detectable; clearing here would un-park a still-blocked PR and loop.
+    // A guard/workflow escalation records no head; the executor adopts the current head so a
+    // FUTURE push un-parks it. (If a recovery commit lands in the very same tick as the
+    // escalation it is picked up on the next commit instead — we keep this simple rather than
+    // time-comparing label events.)
     return r("SKIP", "auto-escalated; parked on this head");
   }
   // Human-set needs-human is a hard stop.
@@ -657,34 +651,13 @@ function gatherState(number) {
 
   const state = loadState(number, headSha);
 
-  const autoEscalated =
-    hasLabel(issue, SKIP_LABEL) && hasLabel(issue, AUTO_LABEL);
-  // A guard/workflow escalation labels the PR but doesn't record the head in coord-state. If the
-  // current head landed AFTER the needs-human label was applied, it's a recovery push — not the
-  // escalation head — so we should resume rather than adopt it and miss the recovery.
-  let recoveredSinceEscalation = false;
-  if (autoEscalated && !state.escalatedHead) {
-    const events = ghJson(
-      [`/repos/${REPO}/issues/${number}/events?per_page=100`, "--paginate"],
-      [],
-    );
-    const labeledAt = events
-      .filter((e) => e.event === "labeled" && e.label?.name === SKIP_LABEL)
-      .map((e) => e.created_at)
-      .pop();
-    recoveredSinceEscalation = Boolean(
-      labeledAt && new Date(headDate).getTime() > new Date(labeledAt).getTime(),
-    );
-  }
-
   return {
     candidate: true,
     head: headSha,
     mergeableState,
-    autoEscalated,
+    autoEscalated: hasLabel(issue, SKIP_LABEL) && hasLabel(issue, AUTO_LABEL),
     humanParked: hasLabel(issue, SKIP_LABEL) && !hasLabel(issue, AUTO_LABEL),
     escalatedHead: state.escalatedHead,
-    recoveredSinceEscalation,
     ciAllGreen: ci.allGreen,
     ciAnyFailed: ci.anyFailed,
     bugBotsFresh,
