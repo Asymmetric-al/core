@@ -21,7 +21,6 @@ function state(overrides: Record<string, unknown> = {}) {
     mergeReady: true,
     rounds: 0,
     fixAttempts: 0,
-    rebaseAttempts: 0,
     updateAttempts: 0,
     nudges: 0,
     ...overrides,
@@ -43,10 +42,10 @@ describe("merge-coordinator decide()", () => {
     ).toBe("UPDATE_BRANCH");
   });
 
-  it("dispatches the rebase agent for a conflicting branch", () => {
+  it("escalates a conflicting branch for a human/agent to rebase", () => {
     expect(
       decide(state({ mergeableState: "dirty", mergeReady: false })).action,
-    ).toBe("RESOLVE_CONFLICTS");
+    ).toBe("ESCALATE");
   });
 
   it("escalates a behind branch after repeated update failures", () => {
@@ -56,18 +55,6 @@ describe("merge-coordinator decide()", () => {
           mergeableState: "behind",
           mergeReady: false,
           updateAttempts: 3,
-        }),
-      ).action,
-    ).toBe("ESCALATE");
-  });
-
-  it("escalates after the rebase round cap", () => {
-    expect(
-      decide(
-        state({
-          mergeableState: "dirty",
-          mergeReady: false,
-          rebaseAttempts: 2,
         }),
       ).action,
     ).toBe("ESCALATE");
@@ -181,6 +168,6 @@ describe("merge-coordinator decide()", () => {
   it("handles a conflict before trusting a stale merge-ready signal", () => {
     expect(
       decide(state({ mergeableState: "dirty", mergeReady: true })).action,
-    ).toBe("RESOLVE_CONFLICTS");
+    ).toBe("ESCALATE");
   });
 });

@@ -18,7 +18,6 @@
 // Decision (per open develop PR on its current head) — see decide():
 //   • MERGE             — arm GitHub native auto-merge (merges when required checks pass)
 //   • UPDATE_BRANCH     — branch is behind develop; merge develop in (no AI)
-//   • RESOLVE_CONFLICTS — branch conflicts with develop; dispatch the rebase agent (pr-rebase.yml)
 //   • DISPATCH_FIX      — a Safe-Fix Plan has blockers; dispatch autofix.yml
 //   • NUDGE_REVIEWS     — CI green but a Tier-1 bot review is missing; re-run CI to re-fire bots
 //   • ESCALATE          — give up *recoverably*: label needs-human + automation:auto-escalated
@@ -77,10 +76,9 @@ const SETTLE_MINUTES = 6;
 const STALE_MINUTES = 45;
 // Hard stop so the autofix loop always terminates.
 const MAX_ROUNDS = 3;
-// How many times we'll dispatch autofix/rebase for the SAME head before escalating. Counts every
+// How many times we'll dispatch autofix for the SAME head before escalating. Counts every
 // dispatch ATTEMPT (success or failure), so a persistently failing dispatch still reaches the cap.
 const MAX_FIX_DISPATCH = 3;
-const MAX_REBASE_ROUNDS = 2;
 // How many times we'll try to update a behind branch for the same head before escalating.
 const MAX_UPDATE_ATTEMPTS = 3;
 // How many times we'll re-run CI to re-fire the review bots for the same head.
@@ -262,11 +260,9 @@ function blankCounters(head) {
   return {
     head,
     fixAttempts: 0,
-    rebaseAttempts: 0,
     updateAttempts: 0,
     nudges: 0,
     inflightFixAt: null,
-    inflightRebaseAt: null,
   };
 }
 
@@ -282,11 +278,9 @@ function loadState(prNumber, head) {
     id,
     head,
     fixAttempts: state.fixAttempts || 0,
-    rebaseAttempts: state.rebaseAttempts || 0,
     updateAttempts: state.updateAttempts || 0,
     nudges: state.nudges || 0,
     inflightFixAt: state.inflightFixAt || null,
-    inflightRebaseAt: state.inflightRebaseAt || null,
     escalatedHead,
   };
 }
@@ -295,17 +289,15 @@ function saveState(prNumber, state) {
   const payload = {
     head: state.head,
     fixAttempts: state.fixAttempts || 0,
-    rebaseAttempts: state.rebaseAttempts || 0,
     updateAttempts: state.updateAttempts || 0,
     nudges: state.nudges || 0,
     inflightFixAt: state.inflightFixAt || null,
-    inflightRebaseAt: state.inflightRebaseAt || null,
     escalatedHead: state.escalatedHead || null,
   };
   const body =
     `<!-- ${STATE_MARKER} ${JSON.stringify(payload)} -->\n` +
     `<sub>🤖 merge coordinator state (auto-updated): head \`${String(state.head).slice(0, 9)}\`, ` +
-    `fix ${payload.fixAttempts}/${MAX_FIX_DISPATCH}, rebase ${payload.rebaseAttempts}/${MAX_REBASE_ROUNDS}, ` +
+    `fix ${payload.fixAttempts}/${MAX_FIX_DISPATCH}, update ${payload.updateAttempts}/${MAX_UPDATE_ATTEMPTS}, ` +
     `nudges ${payload.nudges}/${MAX_NUDGES}.</sub>`;
   if (state.id) {
     gh([
@@ -369,18 +361,11 @@ export function decide(s) {
     return r("UPDATE_BRANCH", "branch behind develop; updating");
   }
   if (s.mergeableState === "dirty") {
-    // Size is decided by the rebase agent's precise post-merge conflicted-path count (the single
-    // source of truth) — not a coarse changed_files heuristic here. We just cap the attempts.
-    if (s.rebaseAttempts >= MAX_REBASE_ROUNDS) {
-      return r(
-        "ESCALATE",
-        `conflict still present after ${MAX_REBASE_ROUNDS} auto-rebase attempts`,
-      );
-    }
-    return r(
-      "RESOLVE_CONFLICTS",
-      "merge conflict with develop; dispatching rebase agent",
-    );
+    // A conflicting branch is escalated for a human/agent to rebase — recoverably, so the
+    // reversibility logic un-parks it once the conflict is resolved (a new head lands). We do NOT
+    // auto-resolve conflicts: letting an automated agent edit and push the branch is a
+    // disproportionate risk versus a person resolving it in the normal PR flow.
+    return r("ESCALATE", "branch conflicts with develop; needs a rebase");
   }
 
   // FIX: a concrete Safe-Fix Plan with blockers on this head.
@@ -480,7 +465,7 @@ function dispatchWorkflow(workflow, prNumber) {
 // a dispatch made within the TTL as "still running" so we don't queue a redundant second run (or
 // double-count the attempt). This is scoped to the PR (the state comment is per-PR) — it does NOT
 // block other PRs the way a repo-wide Actions query would. The per-PR concurrency group in
-// autofix.yml / pr-rebase.yml still guarantees same-PR runs never execute concurrently.
+// autofix.yml still guarantees same-PR runs never execute concurrently.
 const IN_FLIGHT_TTL_MIN = 20;
 function recentlyDispatched(at) {
   return (
@@ -682,7 +667,6 @@ function gatherState(number) {
     mergeReady,
     rounds,
     fixAttempts: state.fixAttempts,
-    rebaseAttempts: state.rebaseAttempts,
     updateAttempts: state.updateAttempts,
     nudges: state.nudges,
     _state: state,
@@ -733,20 +717,6 @@ function evaluatePr(number) {
       );
       return;
     }
-    case "RESOLVE_CONFLICTS":
-      if (recentlyDispatched(state.inflightRebaseAt)) {
-        console.log(`#${number}: rebase recently dispatched — waiting`);
-      } else {
-        // Count the ATTEMPT regardless of outcome so persistent dispatch failures reach the cap.
-        state.rebaseAttempts += 1;
-        const ok = dispatchWorkflow("pr-rebase.yml", number);
-        if (ok) state.inflightRebaseAt = new Date().toISOString();
-        saveState(number, state);
-        console.log(
-          `#${number}: ${reason} (attempt ${state.rebaseAttempts}/${MAX_REBASE_ROUNDS})${ok ? "" : " — dispatch failed, counted toward cap"}`,
-        );
-      }
-      return;
     case "DISPATCH_FIX":
       if (recentlyDispatched(state.inflightFixAt)) {
         console.log(`#${number}: autofix recently dispatched — waiting`);

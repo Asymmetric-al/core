@@ -32,8 +32,9 @@ re-fire. The GitHub coordinator re-reads the verdicts on every tick. That's the 
   verdicts as reviews, not issue comments) — their `SEVERITY:` lines + the Safe-Fix Plan's
   `blocking=N` — plus CI, then:
   - clean (CI green, bug bots fresh, no Blocker/High, plan clear, settled) → **arm GitHub auto-merge**;
-  - branch **behind** develop → **update the branch** (merge develop in; no AI);
-  - branch **conflicts** with develop (`dirty`) → **dispatch `pr-rebase.yml`** (size- and round-capped);
+  - branch **behind** develop → **update the branch** (merge develop in; no AI), capped then escalates;
+  - branch **conflicts** with develop (`dirty`) → **escalate to `needs-human`** (recoverable) for a
+    person/agent to rebase — we do **not** auto-resolve conflicts with an automated agent;
   - Safe-Fix Plan blockers present → **dispatch `autofix.yml`**;
   - CI green but a Tier-1 bot review is missing past the stale window → **re-run CI to re-fire the
     reviewers** (a "nudge", capped) before giving up;
@@ -43,26 +44,21 @@ re-fire. The GitHub coordinator re-reads the verdicts on every tick. That's the 
 - `.github/workflows/autofix.yml` + `scripts/github/autofix-guard.mjs` — dispatched by the
   coordinator. A headless `cursor-agent` implements the Safe-Fix Plan's blocking items and commits to
   the PR branch. 3-round cap → `needs-human`; a no-op fix also escalates to `needs-human`.
-- `.github/workflows/pr-rebase.yml` + `scripts/github/pr-rebase-guard.mjs` — dispatched by the
-  coordinator when a PR **conflicts** with develop. It merges develop into the PR branch and a
-  headless `cursor-agent` resolves **only** the conflicted regions, then pushes (re-triggering CI +
-  reviews). Guard rails: a size cap (large conflicts escalate instead of auto-resolving), a 2-round
-  cap, and an abort-on-unresolved fallback.
 
 ### Self-healing escalation (no permanent trapdoors)
 
 `needs-human` is no longer a one-way door:
 
-- **Dispatch failures are not terminal.** Launching `autofix.yml` / `pr-rebase.yml` retries inline,
-  and if it still fails the coordinator just waits and retries on the next tick — only after a
-  per-head attempt budget does it escalate (recoverably).
+- **Dispatch failures are not terminal.** Launching `autofix.yml` retries inline, and if it still
+  fails the coordinator just waits and retries on the next tick — only after a per-head attempt
+  budget does it escalate (recoverably). Update-branch failures are bounded the same way.
 - **"Stale" first nudges.** If CI is green but a Tier-1 bot never posted, the coordinator re-runs CI
   to re-fire the reviewers (up to a small budget) before escalating.
 - **Reversible escalation.** Escalations the coordinator makes carry the `automation:auto-escalated`
   label and are **auto-cleared** when the head changes (someone pushed a fix) or the PR becomes
   merge-ready. A **human-set** `needs-human` (no marker) is a hard stop the coordinator never touches.
 
-Per-head counters (fix/rebase/nudge attempts) live in a single self-updating
+Per-head counters (fix/update/nudge attempts) live in a single self-updating
 `<!-- coord-state … -->` PR comment that resets when the head changes.
 
 > **Why these must live on `production`:** GitHub runs schedule / comment / check-triggered workflows
