@@ -86,8 +86,10 @@ jobs:
               gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human,automation:auto-escalated
               echo "conflict=toobig" >> "$GITHUB_OUTPUT"
             else
-              # Record the conflicted path set so we can later verify the agent stayed within it.
+              # Record the conflicted set + the full post-merge index (file hashes) so we can later
+              # verify the agent only changed conflicted files — staged OR unstaged.
               git diff --name-only --diff-filter=U | sort -u > "$RUNNER_TEMP/conflicted.txt"
+              git ls-files -s > "$RUNNER_TEMP/index-before.txt"
               echo "conflict=true" >> "$GITHUB_OUTPUT"
             fi
           fi
@@ -128,15 +130,13 @@ jobs:
             echo "Unresolved conflicts remain — aborting the merge."
             escalate "⚠️ Auto-rebase could not fully resolve the conflict with develop. Labeling \`needs-human\`."
           fi
-          # Scope guard: the agent must only have touched files that were conflicted. A stray edit
-          # to any other file must NOT ship on the PIPELINE_PAT push.
-          changed="$(git diff --name-only | sort -u)"
-          stray="$(comm -23 <(printf '%s\n' "$changed") "$RUNNER_TEMP/conflicted.txt" | sed '/^$/d')"
-          if [ -n "$stray" ]; then
-            echo "Agent modified files outside the conflict set:"; printf '%s\n' "$stray"
-            escalate "⚠️ Auto-rebase edited files outside the merge conflict; not auto-applying. Labeling \`needs-human\`."
-          fi
           git add -A
+          # Scope guard: the agent must only have CHANGED files that were conflicted. The guard
+          # compares the staged index hashes against the pre-agent snapshot, so it catches BOTH
+          # staged and unstaged stray edits. A stray edit must NOT ship on the PIPELINE_PAT push.
+          if ! node scripts/github/rebase-scope-guard.mjs "$RUNNER_TEMP/index-before.txt" "$RUNNER_TEMP/conflicted.txt"; then
+            escalate "⚠️ Auto-rebase changed files outside the merge conflict; not auto-applying. Labeling \`needs-human\`."
+          fi
           # Gate the push on a successful commit so a failed/empty commit can't push a partial merge.
           if git commit --no-edit -m "chore: merge develop & resolve conflicts [rebase round ${{ steps.guard.outputs.round }}]"; then
             git push

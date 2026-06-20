@@ -690,6 +690,16 @@ function gatherState(number) {
 }
 
 function evaluatePr(number) {
+  // If we cannot verify our own identity (rate limit / token blip / API 5xx), do NOTHING this
+  // tick. Proceeding would read no trusted coord-state and silently reset the per-head retry
+  // budgets — a stuck PR could then dispatch forever while auth is flaky. Wait and retry instead.
+  if (!selfLogin()) {
+    console.log(
+      `#${number}: cannot verify pipeline identity (auth blip) — skipping this tick`,
+    );
+    return;
+  }
+
   const s = gatherState(number);
   if (!s.candidate) {
     console.log(`#${number}: skip (not an open ${BASE} PR)`);
