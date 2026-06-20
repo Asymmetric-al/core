@@ -80,8 +80,8 @@ Observed checks:
 - Secret values printed: no.
 
 Current Vercel inventory shows runtime Sentry DSNs are present by name for
-production and staging. `SENTRY_AUTH_TOKEN` is not present by name in production,
-preview, development, or staging, so production source map upload is documented
+production and development. `SENTRY_AUTH_TOKEN` is not present by name in production,
+preview, development, or development, so production source map upload is documented
 as not configured until the owner provides that build-only token.
 
 ## Vercel Env Name Inventory
@@ -96,13 +96,13 @@ Result: passed.
 
 No values were printed. Name counts:
 
-| Project    | Production | Preview | Development | Staging |
-| ---------- | ---------- | ------- | ----------- | ------- |
-| admin      | 29         | 0       | 2           | 20      |
-| donor      | 15         | 0       | 2           | 15      |
-| missionary | 15         | 0       | 2           | 15      |
+| Project    | Production | Preview | Development | Development |
+| ---------- | ---------- | ------- | ----------- | ----------- |
+| admin      | 29         | 0       | 2           | 20          |
+| donor      | 15         | 0       | 2           | 15          |
+| missionary | 15         | 0       | 2           | 15          |
 
-Production and staging include `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` for all
+Production and development include `SENTRY_DSN` and `NEXT_PUBLIC_SENTRY_DSN` for all
 three projects. `SENTRY_AUTH_TOKEN` is absent from every inventoried
 environment.
 

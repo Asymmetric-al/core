@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { APPS, resolveBuildDecision } from "../vercel/should-ignore-build.mjs";
 
 const TARGET_BRANCH = "production";
-const STAGING_BRANCH = "develop";
+const DEVELOPMENT_BRANCH = "develop";
 const DEFAULT_REMOTE = "origin";
 const RELEASE_PUSH_ENV = "ASYM_RELEASE_PRODUCTION_PUSH";
 const RELEASE_REASON_ENV = "ASYM_RELEASE_PRODUCTION_REASON";
@@ -83,10 +83,10 @@ function assertCleanWorktree() {
 }
 
 function assertReleaseSourceBranch(branch) {
-  if (branch === TARGET_BRANCH || branch === STAGING_BRANCH) return;
+  if (branch === TARGET_BRANCH || branch === DEVELOPMENT_BRANCH) return;
 
   throw new Error(
-    `production release must run from ${STAGING_BRANCH} or ${TARGET_BRANCH}; current branch is ${branch}`,
+    `production release must run from ${DEVELOPMENT_BRANCH} or ${TARGET_BRANCH}; current branch is ${branch}`,
   );
 }
 

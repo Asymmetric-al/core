@@ -61,7 +61,7 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
 - If your change affects user flows, also run:
   - `bun run test:e2e:production-gate`
   - `bun run test:e2e` for broader local coverage when the change needs it
-- Confirm branch target is correct: `develop` for staging validation, `production`
+- Confirm branch target is correct: `develop` for development validation, `production`
   only for an intentional production release, and never `main`.
 
 ## Changing Ownership

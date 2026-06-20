@@ -3,7 +3,7 @@
 ## Purpose
 
 Keep GitHub and Vercel deployment history attributable to Blake's GitHub account
-going forward. This avoids new production or staging deployments showing the
+going forward. This avoids new production or development deployments showing the
 older `abiatarprado` account that GitHub associates with `codex@example.com`.
 
 ## Current Policy
