@@ -151,8 +151,9 @@ describe("contribution operations action executor", () => {
       contributionId: "donation_1",
       donorId: "donor_new",
       expectedRevision: "rev_relink",
-      idempotencyKey:
-        "contribution-action/tenant_1/donation_1/donor_relink/confirm",
+      idempotencyKey: expect.stringMatching(
+        /^contribution-action\/tenant_1\/donation_1\/donor_relink\/confirmation-[0-9a-f]{32}$/,
+      ),
     });
     expect(createCorrectionRecord).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -252,8 +253,9 @@ describe("contribution operations action executor", () => {
       actorProfileId: "profile_1",
       sourceSurface: "contribution_hub",
       expectedRevision: null,
-      idempotencyKey:
-        "correction/tenant_1/donation_1/amount_correction/confirm",
+      idempotencyKey: expect.stringMatching(
+        /^correction\/tenant_1\/donation_1\/amount_correction\/confirmation-[0-9a-f]{32}$/,
+      ),
     });
     expect(createCorrectionRecord).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -263,6 +265,61 @@ describe("contribution operations action executor", () => {
         status: "applied",
       }),
     );
+  });
+
+  it("normalizes and scopes direct correction fallback idempotency keys", async () => {
+    const applyCorrection = vi.fn().mockResolvedValue({
+      before: { amount: 1000 },
+      after: { amount: 1200 },
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+    const sharedDependencies = {
+      applyCorrection,
+      createCorrectionRecord,
+      appendAuditEvent,
+      loadContributionDetail,
+    };
+    const baseInput = {
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.apply_corrections"],
+      sourceSurface: "contribution_hub" as const,
+      contributionId: "donation_1",
+      actionType: "amount_correction" as const,
+      reason: "Corrected imported check amount",
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: sharedDependencies,
+    };
+
+    await executeContributionAction({
+      ...baseInput,
+      confirmationToken: " confirm ",
+      payload: { amount: 1200 },
+    });
+    await executeContributionAction({
+      ...baseInput,
+      confirmationToken: "confirm",
+      payload: { amount: 1200 },
+    });
+    await executeContributionAction({
+      ...baseInput,
+      confirmationToken: "confirm",
+      payload: { amount: 1300 },
+    });
+
+    const idempotencyKeys = applyCorrection.mock.calls.map(
+      ([call]) => call.idempotencyKey,
+    );
+    expect(idempotencyKeys[0]).toMatch(
+      /^correction\/tenant_1\/donation_1\/amount_correction\/confirmation-[0-9a-f]{32}$/,
+    );
+    expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
+    expect(idempotencyKeys[2]).not.toBe(idempotencyKeys[0]);
   });
 
   it("requires an idempotency key before direct generic corrections", async () => {
@@ -618,6 +675,62 @@ describe("contribution operations action executor", () => {
     expect(refundContribution).not.toHaveBeenCalled();
   });
 
+  it("normalizes and scopes direct provider fallback idempotency keys", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: "refund_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+    const sharedDependencies = {
+      refundContribution,
+      createCorrectionRecord,
+      appendAuditEvent,
+      loadContributionDetail,
+    };
+    const baseInput = {
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub" as const,
+      contributionId: "donation_1",
+      actionType: "refund" as const,
+      reason: "Duplicate payment",
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: sharedDependencies,
+    };
+
+    await executeContributionAction({
+      ...baseInput,
+      confirmationToken: " confirm ",
+      payload: { amount: 500 },
+    });
+    await executeContributionAction({
+      ...baseInput,
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+    });
+    await executeContributionAction({
+      ...baseInput,
+      confirmationToken: "confirm",
+      payload: { amount: 700 },
+    });
+
+    const idempotencyKeys = refundContribution.mock.calls.map(
+      ([call]) => call.idempotencyKey,
+    );
+    expect(idempotencyKeys[0]).toMatch(
+      /^contribution-action\/tenant_1\/donation_1\/refund\/confirmation-[0-9a-f]{32}$/,
+    );
+    expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
+    expect(idempotencyKeys[2]).not.toBe(idempotencyKeys[0]);
+  });
+
   it("routes Stripe replay through a dedicated provider adapter and audit trail", async () => {
     const replayStripeEvent = vi.fn().mockResolvedValue({
       provider: "stripe",
@@ -654,8 +767,9 @@ describe("contribution operations action executor", () => {
     expect(replayStripeEvent).toHaveBeenCalledWith({
       contributionId: "donation_1",
       expectedRevision: "rev_replay",
-      idempotencyKey:
-        "contribution-action/tenant_1/donation_1/stripe_replay/confirm",
+      idempotencyKey: expect.stringMatching(
+        /^contribution-action\/tenant_1\/donation_1\/stripe_replay\/confirmation-[0-9a-f]{32}$/,
+      ),
       payload: { stripeEventId: "evt_123" },
       tenantId: "tenant_1",
     });

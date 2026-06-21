@@ -431,19 +431,32 @@ function stableFingerprint(value: unknown): string {
     .slice(0, 32);
 }
 
+function normalizedToken(value: string | null | undefined): string | null {
+  const trimmedValue = value?.trim();
+  return trimmedValue ? trimmedValue : null;
+}
+
+function contributionActionIdempotencyContext(
+  input: ExecuteContributionActionInput,
+) {
+  return {
+    actorProfileId: input.actorProfileId,
+    confirmationToken: normalizedToken(input.confirmationToken),
+    expectedRevision: input.expectedRevision ?? null,
+    payload: input.payload ?? {},
+    reason: input.reason ?? "",
+    sourceSurface: input.sourceSurface,
+    stagedGiftId: input.stagedGiftId ?? null,
+  };
+}
+
 function correctionRequestContext(
   input: ExecuteContributionActionInput,
   extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
 ) {
   return {
-    actorProfileId: input.actorProfileId,
-    confirmationToken: input.confirmationToken?.trim() || null,
-    expectedRevision: input.expectedRevision ?? null,
-    payload: input.payload ?? {},
-    reason: input.reason ?? "",
+    ...contributionActionIdempotencyContext(input),
     receiptDeliveryProposal: extra.receiptDeliveryProposal ?? null,
-    sourceSurface: input.sourceSurface,
-    stagedGiftId: input.stagedGiftId ?? null,
   };
 }
 
@@ -451,13 +464,14 @@ function correctionRequestIdempotencyKey(
   input: ExecuteContributionActionInput,
   extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
 ): string {
-  if (input.idempotencyKey?.trim()) {
-    return input.idempotencyKey;
+  const explicitIdempotencyKey = normalizedToken(input.idempotencyKey);
+  if (explicitIdempotencyKey) {
+    return explicitIdempotencyKey;
   }
 
   const requestContext = correctionRequestContext(input, extra);
 
-  if (input.confirmationToken?.trim()) {
+  if (normalizedToken(input.confirmationToken)) {
     return [
       "correction-request",
       input.tenantId,
@@ -518,27 +532,31 @@ async function createPendingCorrectionRequest<TContribution>(
 }
 
 function providerIdempotencyKey(input: ExecuteContributionActionInput): string {
-  if (input.idempotencyKey?.trim()) {
-    return input.idempotencyKey;
+  const explicitIdempotencyKey = normalizedToken(input.idempotencyKey);
+  if (explicitIdempotencyKey) {
+    return explicitIdempotencyKey;
   }
 
-  if (input.approvedRequestId?.trim()) {
+  const approvedRequestId = normalizedToken(input.approvedRequestId);
+  if (approvedRequestId) {
     return [
       "approved-contribution-action",
       input.tenantId,
       input.contributionId,
       input.actionType,
-      input.approvedRequestId,
+      approvedRequestId,
     ].join("/");
   }
 
-  if (input.confirmationToken?.trim()) {
+  if (normalizedToken(input.confirmationToken)) {
     return [
       "contribution-action",
       input.tenantId,
       input.contributionId,
       input.actionType,
-      input.confirmationToken,
+      `confirmation-${stableFingerprint(
+        contributionActionIdempotencyContext(input),
+      )}`,
     ].join("/");
   }
 
@@ -551,27 +569,31 @@ function providerIdempotencyKey(input: ExecuteContributionActionInput): string {
 function correctionIdempotencyKey(
   input: ExecuteContributionActionInput,
 ): string {
-  if (input.idempotencyKey?.trim()) {
-    return input.idempotencyKey;
+  const explicitIdempotencyKey = normalizedToken(input.idempotencyKey);
+  if (explicitIdempotencyKey) {
+    return explicitIdempotencyKey;
   }
 
-  if (input.approvedRequestId?.trim()) {
+  const approvedRequestId = normalizedToken(input.approvedRequestId);
+  if (approvedRequestId) {
     return [
       "approved-correction",
       input.tenantId,
       input.contributionId,
       input.actionType,
-      input.approvedRequestId,
+      approvedRequestId,
     ].join("/");
   }
 
-  if (input.confirmationToken?.trim()) {
+  if (normalizedToken(input.confirmationToken)) {
     return [
       "correction",
       input.tenantId,
       input.contributionId,
       input.actionType,
-      input.confirmationToken,
+      `confirmation-${stableFingerprint(
+        contributionActionIdempotencyContext(input),
+      )}`,
     ].join("/");
   }
 
