@@ -113,6 +113,16 @@ function retryAvailability(
   });
 }
 
+function isCompletedPaymentStatus(paymentStatus: string | null): boolean {
+  const normalizedStatus = paymentStatus?.toLowerCase() ?? null;
+
+  return (
+    normalizedStatus === "completed" ||
+    normalizedStatus === "succeeded" ||
+    normalizedStatus === "success"
+  );
+}
+
 function receiptAvailability(
   stagedGift: ActionAvailabilityStagedGiftInput,
   paymentStatus: string | null,
@@ -126,7 +136,7 @@ function receiptAvailability(
     });
   }
 
-  if (paymentStatus !== "completed") {
+  if (!isCompletedPaymentStatus(paymentStatus)) {
     return entry("resend_receipt", {
       available: false,
       blockedReason: "The payment is not completed yet.",
@@ -141,7 +151,10 @@ function refundAvailability(
   paymentStatus: string | null,
   refund: NonNullable<BuildContributionActionAvailabilityInput["refund"]>,
 ): ContributionActionAvailability {
-  if (paymentStatus !== "completed" && paymentStatus !== "refunded") {
+  if (
+    !isCompletedPaymentStatus(paymentStatus) &&
+    paymentStatus !== "refunded"
+  ) {
     return entry("refund", {
       available: false,
       blockedReason: "Only completed payments can be refunded.",

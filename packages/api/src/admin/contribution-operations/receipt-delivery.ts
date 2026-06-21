@@ -100,7 +100,10 @@ export function evaluateReceiptDeliveryOptions(input: {
   policy: TenantReceiptDeliveryPolicy;
   donor: ReceiptDeliveryDonorContext;
   actorCapabilities: string[];
-}): { options: ReceiptDeliveryOption[]; defaultChoice: ReceiptDeliveryChoice } {
+}): {
+  options: ReceiptDeliveryOption[];
+  defaultChoice: ReceiptDeliveryChoice | null;
+} {
   const { policy, donor, actorCapabilities } = input;
 
   let emailBlockedReason: string | null = null;
@@ -154,8 +157,7 @@ export function evaluateReceiptDeliveryOptions(input: {
     "email",
   ];
   const defaultChoice =
-    fallbackOrder.find((choice) => availability.get(choice)) ??
-    policy.defaultChoice;
+    fallbackOrder.find((choice) => availability.get(choice)) ?? null;
 
   return { options, defaultChoice };
 }

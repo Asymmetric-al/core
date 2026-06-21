@@ -176,6 +176,42 @@ describe("admin/contribution-operations/receipt-delivery", () => {
     ).not.toThrow();
   });
 
+  it("returns no default choice when every delivery option is unavailable", () => {
+    const policy = resolveTenantReceiptDeliveryPolicy({
+      default_choice: "defer",
+      allow_defer: true,
+      require_delivery_action: true,
+    });
+
+    const evaluated = evaluateReceiptDeliveryOptions({
+      policy,
+      donor: { email: null, doNotEmail: false },
+      actorCapabilities: [],
+    });
+
+    expect(evaluated.options).toEqual([
+      {
+        choice: "email",
+        available: false,
+        blockedReason: "The donor has no email address on file.",
+      },
+      {
+        choice: "pdf",
+        available: false,
+        blockedReason:
+          "Generating updated receipt PDFs requires contributions.manage_receipts.",
+      },
+      {
+        choice: "defer",
+        available: false,
+        blockedReason: expect.stringMatching(
+          /requires email delivery or pdf generation/i,
+        ),
+      },
+    ]);
+    expect(evaluated.defaultChoice).toBeNull();
+  });
+
   it("lets the approver confirm or change the requester proposal", () => {
     const proposal = { choice: "email" as const, deferReason: null };
 

@@ -116,6 +116,28 @@ describe("admin/contribution-operations/action-availability", () => {
     expect(pendingEntry.blockedReason).toMatch(/not completed/i);
   });
 
+  it("normalizes provider success aliases for receipt and refund availability", () => {
+    for (const paymentStatus of ["succeeded", "success"]) {
+      const entries = buildContributionActionAvailability({
+        stagedGift: {
+          id: "staged-1",
+          status: "posted",
+          receiptStatus: "sent",
+          crmPostStatus: "posted",
+        },
+        paymentStatus,
+        refund: {
+          amountCents: 12_00,
+          refundedAmountCents: 0,
+          hasProviderCharge: true,
+        },
+      });
+
+      expect(availabilityFor(entries, "resend_receipt").available).toBe(true);
+      expect(availabilityFor(entries, "refund").available).toBe(true);
+    }
+  });
+
   it("labels every entry with the policy risk level", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: null,
