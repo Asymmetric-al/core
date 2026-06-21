@@ -55,6 +55,7 @@ describe("contribution operations action executor", () => {
 
     expect(sendReceipt).toHaveBeenCalledWith({
       tenantId: "tenant_1",
+      contributionId: "donation_1",
       stagedGiftId: "staged_1",
     });
     expect(appendAuditEvent).toHaveBeenCalledWith(
@@ -73,6 +74,41 @@ describe("contribution operations action executor", () => {
       status: "sent",
       referenceId: "send_1",
     });
+  });
+
+  it("passes contribution identity to staged gift approval adapters", async () => {
+    const approveStagedGift = vi.fn().mockResolvedValue(undefined);
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      tenantId: "tenant_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.apply_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "approve_staged_gift",
+      reason: "Reviewed staging failure",
+      payload: { stagedGiftId: "staged_1" },
+      dependencies: {
+        approveStagedGift,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(approveStagedGift).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      contributionId: "donation_1",
+      stagedGiftId: "staged_1",
+      actorProfileId: "profile_1",
+      note: "Reviewed staging failure",
+    });
+    expect(result.auditEventId).toBe("audit_1");
   });
 
   it("requires the receipt management capability for receipt resends", async () => {
@@ -303,8 +339,12 @@ describe("contribution operations action executor", () => {
     });
     await executeContributionAction({
       ...baseInput,
+      actorProfileId: "profile_2",
       confirmationToken: "confirm",
+      expectedRevision: "rev_retry",
       payload: { amount: 1200 },
+      reason: "Retry after ambiguous provider response",
+      sourceSurface: "api",
     });
     await executeContributionAction({
       ...baseInput,
@@ -712,8 +752,12 @@ describe("contribution operations action executor", () => {
     });
     await executeContributionAction({
       ...baseInput,
+      actorProfileId: "profile_2",
       confirmationToken: "confirm",
+      expectedRevision: "rev_retry",
       payload: { amount: 500 },
+      reason: "Retry after ambiguous provider response",
+      sourceSurface: "api",
     });
     await executeContributionAction({
       ...baseInput,
@@ -729,6 +773,9 @@ describe("contribution operations action executor", () => {
     );
     expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
     expect(idempotencyKeys[2]).not.toBe(idempotencyKeys[0]);
+    expect(
+      refundContribution.mock.calls.map(([call]) => call.confirmationToken),
+    ).toEqual(["confirm", "confirm", "confirm"]);
   });
 
   it("routes Stripe replay through a dedicated provider adapter and audit trail", async () => {
@@ -986,7 +1033,11 @@ describe("contribution operations action executor", () => {
     });
 
     expect(retryDesignationPost).toHaveBeenCalledWith(
-      expect.objectContaining({ allocationId: "alloc_2" }),
+      expect.objectContaining({
+        allocationId: "alloc_2",
+        contributionId: "donation_1",
+        stagedGiftId: "staged_1",
+      }),
     );
     expect(retryStagedGift).not.toHaveBeenCalled();
     expect(appendAuditEvent).toHaveBeenCalledWith(
@@ -997,6 +1048,42 @@ describe("contribution operations action executor", () => {
         }),
       }),
     );
+  });
+
+  it("passes contribution identity to parent staged gift retry adapters", async () => {
+    const retryStagedGift = vi.fn().mockResolvedValue(undefined);
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.retry_crm_post"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "retry_staged_gift",
+      reason: "Retry parent gift post",
+      payload: {
+        stagedGiftId: "staged_1",
+        scope: "parent",
+      },
+      dependencies: {
+        retryStagedGift,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(retryStagedGift).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      contributionId: "donation_1",
+      stagedGiftId: "staged_1",
+      actorProfileId: "profile_1",
+      note: "Retry parent gift post",
+    });
   });
 
   it("surfaces the adapter limitation when child record retries are unsupported", async () => {

@@ -436,8 +436,18 @@ function normalizedToken(value: string | null | undefined): string | null {
   return trimmedValue ? trimmedValue : null;
 }
 
-function contributionActionIdempotencyContext(
+function directMutationIdempotencyContext(
   input: ExecuteContributionActionInput,
+) {
+  return {
+    confirmationToken: normalizedToken(input.confirmationToken),
+    payload: input.payload ?? {},
+  };
+}
+
+function correctionRequestContext(
+  input: ExecuteContributionActionInput,
+  extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
 ) {
   return {
     actorProfileId: input.actorProfileId,
@@ -447,15 +457,6 @@ function contributionActionIdempotencyContext(
     reason: input.reason ?? "",
     sourceSurface: input.sourceSurface,
     stagedGiftId: input.stagedGiftId ?? null,
-  };
-}
-
-function correctionRequestContext(
-  input: ExecuteContributionActionInput,
-  extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
-) {
-  return {
-    ...contributionActionIdempotencyContext(input),
     receiptDeliveryProposal: extra.receiptDeliveryProposal ?? null,
   };
 }
@@ -554,9 +555,7 @@ function providerIdempotencyKey(input: ExecuteContributionActionInput): string {
       input.tenantId,
       input.contributionId,
       input.actionType,
-      `confirmation-${stableFingerprint(
-        contributionActionIdempotencyContext(input),
-      )}`,
+      `confirmation-${stableFingerprint(directMutationIdempotencyContext(input))}`,
     ].join("/");
   }
 
@@ -591,9 +590,7 @@ function correctionIdempotencyKey(
       input.tenantId,
       input.contributionId,
       input.actionType,
-      `confirmation-${stableFingerprint(
-        contributionActionIdempotencyContext(input),
-      )}`,
+      `confirmation-${stableFingerprint(directMutationIdempotencyContext(input))}`,
     ].join("/");
   }
 
@@ -657,6 +654,7 @@ export async function executeContributionAction<TContribution = unknown>(
       const sendReceipt = requireDependency(input.dependencies, "sendReceipt");
       const receipt = await sendReceipt({
         tenantId: input.tenantId,
+        contributionId: input.contributionId,
         stagedGiftId,
       });
       const providerOutcome = {
@@ -693,6 +691,7 @@ export async function executeContributionAction<TContribution = unknown>(
       );
       await approve({
         tenantId: input.tenantId,
+        contributionId: input.contributionId,
         stagedGiftId,
         actorProfileId: input.actorProfileId,
         note: input.reason ?? null,
@@ -739,6 +738,7 @@ export async function executeContributionAction<TContribution = unknown>(
         }
         await retryDesignation({
           tenantId: input.tenantId,
+          contributionId: input.contributionId,
           stagedGiftId,
           allocationId,
           actorProfileId: input.actorProfileId,
@@ -766,6 +766,7 @@ export async function executeContributionAction<TContribution = unknown>(
       const retry = requireDependency(input.dependencies, "retryStagedGift");
       await retry({
         tenantId: input.tenantId,
+        contributionId: input.contributionId,
         stagedGiftId,
         actorProfileId: input.actorProfileId,
         note: input.reason ?? null,
@@ -866,7 +867,9 @@ export async function executeContributionAction<TContribution = unknown>(
         amount,
         reason: input.reason ?? "",
         confirmationToken:
-          input.confirmationToken ?? input.approvedRequestId ?? "",
+          normalizedToken(input.confirmationToken) ??
+          normalizedToken(input.approvedRequestId) ??
+          "",
         expectedRevision: input.expectedRevision ?? null,
         idempotencyKey: providerIdempotencyKey(input),
       });

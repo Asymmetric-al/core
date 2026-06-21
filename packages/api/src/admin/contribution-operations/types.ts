@@ -117,16 +117,19 @@ export interface ContributionActionResult<TContribution = unknown> {
 export interface ContributionActionDependencies<TContribution = unknown> {
   sendReceipt?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
   }) => Promise<{ status: string; sendLogId?: string | null }>;
   approveStagedGift?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
     actorProfileId: string | null;
     note?: string | null;
   }) => Promise<unknown>;
   retryStagedGift?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
     actorProfileId: string | null;
     note?: string | null;
@@ -138,6 +141,7 @@ export interface ContributionActionDependencies<TContribution = unknown> {
    */
   retryDesignationPost?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
     allocationId: string;
     actorProfileId: string | null;
