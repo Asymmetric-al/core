@@ -676,6 +676,41 @@ describe("contribution operations detail read model", () => {
     );
   });
 
+  it("preserves corrected fund ids when fund metadata is not loaded", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput({ fundId: "fund_1" }),
+      funds: [
+        {
+          id: "fund_1",
+          name: "Original Fund",
+          missionary_id: null,
+          goal_amount: 0,
+          start_date: null,
+          end_date: null,
+        },
+      ],
+      adjustments: [
+        adjustmentInput({
+          adjustmentType: "fund_correction",
+          effectiveValues: { fundId: "fund_2" },
+        }),
+      ],
+    });
+
+    expect(detail.effective.fundId).toBe("fund_2");
+    expect(detail.designations.lines[0]).toMatchObject({
+      fundId: "fund_2",
+      fundName: "General Fund",
+    });
+    expect(detail.shared.designationSummary).toMatchObject({
+      fundId: "fund_2",
+      fundName: "General Fund",
+    });
+    expect(detail.designations.issues).toEqual([
+      expect.stringMatching(/unknown fund/i),
+    ]);
+  });
+
   it("labels refunds against the effective corrected amount", () => {
     const detail = buildContributionDetail({
       donation: donationInput({

@@ -86,7 +86,7 @@ export function buildContributionCrmPostState(input: {
   const parent = {
     status: parentStatus,
     twentyRecordId:
-      input.stagedGiftTwentyRecordId ?? parentLink?.twentyRecordId ?? null,
+      parentLink?.twentyRecordId ?? input.stagedGiftTwentyRecordId ?? null,
     lastError: parentLink?.lastError ?? null,
   };
 

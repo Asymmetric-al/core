@@ -84,14 +84,14 @@ describe("admin/contribution-operations/crm-post-state", () => {
 
     const staleAggregate = buildContributionCrmPostState({
       stagedGiftCrmPostStatus: "posted",
-      stagedGiftTwentyRecordId: "twenty-parent",
+      stagedGiftTwentyRecordId: "twenty-stale-parent",
       links: [
         {
           id: "link-parent",
           scope: "parent",
           allocationId: null,
           linkStatus: "failed",
-          twentyRecordId: "twenty-parent",
+          twentyRecordId: "twenty-current-parent",
           lastError: "Twenty rejected the parent record.",
         },
       ],
@@ -99,6 +99,7 @@ describe("admin/contribution-operations/crm-post-state", () => {
     });
 
     expect(staleAggregate.parent.status).toBe("failed");
+    expect(staleAggregate.parent.twentyRecordId).toBe("twenty-current-parent");
     expect(staleAggregate.failedScopes).toEqual([{ scope: "parent" }]);
   });
 

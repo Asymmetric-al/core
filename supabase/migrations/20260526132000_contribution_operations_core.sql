@@ -104,9 +104,11 @@ DECLARE
     row_data JSONB;
     row_tenant_id UUID;
     row_donation_id UUID;
+    row_staged_gift_id UUID;
     ref_id UUID;
     ref_tenant_id UUID;
     ref_donation_id UUID;
+    ref_staged_gift_id UUID;
 BEGIN
     row_data := to_jsonb(NEW);
     row_tenant_id := (row_data ->> 'tenant_id')::uuid;
@@ -128,7 +130,8 @@ BEGIN
         row_data ? 'staged_gift_id'
         AND (row_data ->> 'staged_gift_id') IS NOT NULL
     THEN
-        ref_id := (row_data ->> 'staged_gift_id')::uuid;
+        row_staged_gift_id := (row_data ->> 'staged_gift_id')::uuid;
+        ref_id := row_staged_gift_id;
         SELECT sg.tenant_id, sg.donation_id
         INTO ref_tenant_id, ref_donation_id
         FROM public.staged_gifts AS sg
@@ -151,13 +154,33 @@ BEGIN
 
     IF row_data ? 'correction_id' AND (row_data ->> 'correction_id') IS NOT NULL THEN
         ref_id := (row_data ->> 'correction_id')::uuid;
-        SELECT cc.tenant_id
-        INTO ref_tenant_id
+        SELECT cc.tenant_id, cc.donation_id, cc.staged_gift_id
+        INTO ref_tenant_id, ref_donation_id, ref_staged_gift_id
         FROM public.contribution_corrections AS cc
         WHERE cc.id = ref_id;
 
         IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
             RAISE EXCEPTION 'contribution operation correction tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation correction donation mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS DISTINCT FROM row_staged_gift_id
+        THEN
+            RAISE EXCEPTION 'contribution operation correction staged gift mismatch'
                 USING ERRCODE = '23514';
         END IF;
     END IF;
@@ -167,13 +190,33 @@ BEGIN
         AND (row_data ->> 'audit_event_id') IS NOT NULL
     THEN
         ref_id := (row_data ->> 'audit_event_id')::uuid;
-        SELECT ae.tenant_id
-        INTO ref_tenant_id
+        SELECT ae.tenant_id, ae.donation_id, ae.staged_gift_id
+        INTO ref_tenant_id, ref_donation_id, ref_staged_gift_id
         FROM public.contribution_operation_audit_events AS ae
         WHERE ae.id = ref_id;
 
         IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
             RAISE EXCEPTION 'contribution operation audit event tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation audit event donation mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS DISTINCT FROM row_staged_gift_id
+        THEN
+            RAISE EXCEPTION 'contribution operation audit event staged gift mismatch'
                 USING ERRCODE = '23514';
         END IF;
     END IF;
