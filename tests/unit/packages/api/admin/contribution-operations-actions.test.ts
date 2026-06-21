@@ -344,6 +344,58 @@ describe("contribution operations action executor", () => {
     expect(validateApprovedCorrectionRequest).not.toHaveBeenCalled();
   });
 
+  it("requires provider capabilities before applying approved provider requests", async () => {
+    const validateApprovedCorrectionRequest = vi.fn();
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "approver_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.approve_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "refund",
+        reason: "Approved refund request",
+        confirmationToken: "confirm",
+        approvedRequestId: "request_refund",
+        payload: { amount: 500 },
+        dependencies: {
+          validateApprovedCorrectionRequest,
+          refundContribution: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/run_refunds/);
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "approver_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.approve_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "stripe_replay",
+        reason: "Approved replay request",
+        confirmationToken: "confirm",
+        approvedRequestId: "request_replay",
+        payload: { stripeEventId: "evt_123" },
+        dependencies: {
+          validateApprovedCorrectionRequest,
+          replayStripeEvent: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/use_provider_actions/);
+
+    expect(validateApprovedCorrectionRequest).not.toHaveBeenCalled();
+  });
+
   it("requires approved request validation before bypassing request creation", async () => {
     await expect(
       executeContributionAction({

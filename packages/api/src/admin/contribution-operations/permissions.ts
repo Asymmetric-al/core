@@ -1,4 +1,3 @@
-import { isHighRiskContributionAction } from "./policy";
 import { ApiHttpError } from "../../shared/http-errors";
 
 import type { ContributionActionType, ContributionPermission } from "./types";
@@ -53,11 +52,15 @@ export function assertContributionActionPermission(
   auth: AuthenticatedContext,
   actionType: ContributionActionType,
 ): void {
-  if (!isHighRiskContributionAction(actionType)) {
+  const requiredCapability =
+    CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+  const capabilities = resolveContributionCapabilities(auth);
+
+  if (capabilities.includes(requiredCapability)) {
     return;
   }
 
-  assertContributionPermission(auth, "finance:manage_contributions");
+  throw new ApiHttpError(403, `Forbidden: requires ${requiredCapability}`);
 }
 
 /**
@@ -77,6 +80,27 @@ export type ContributionCapability =
   | "contributions.manage_settings"
   | "contributions.manage_table_preferences"
   | "crm.gift_history.manage_view_defaults";
+
+const CONTRIBUTION_ACTION_REQUIRED_CAPABILITY: Record<
+  ContributionActionType,
+  ContributionCapability
+> = {
+  resend_receipt: "contributions.manage_receipts",
+  approve_staged_gift: "contributions.apply_corrections",
+  retry_staged_gift: "contributions.retry_crm_post",
+  crm_repost: "contributions.retry_crm_post",
+  metadata_update: "contributions.apply_corrections",
+  refund: "contributions.run_refunds",
+  stripe_replay: "contributions.use_provider_actions",
+  donor_relink: "contributions.apply_corrections",
+  amount_correction: "contributions.apply_corrections",
+  designation_correction: "contributions.apply_corrections",
+  fund_correction: "contributions.apply_corrections",
+  allocation_correction: "contributions.apply_corrections",
+  receipt_correction: "contributions.apply_corrections",
+  statement_correction: "contributions.apply_corrections",
+  payment_state_correction: "contributions.apply_corrections",
+};
 
 const DONOR_CARE_CAPABILITIES: ContributionCapability[] = [
   "contributions.view_detail",

@@ -25,7 +25,7 @@ function authContext(
 }
 
 describe("contribution operations permissions", () => {
-  it("allows finance staff to perform high-risk contribution actions", () => {
+  it("allows finance staff to perform direct correction actions", () => {
     const auth = authContext({
       memberships: [
         {
@@ -41,7 +41,7 @@ describe("contribution operations permissions", () => {
       hasContributionPermission(auth, "finance:manage_contributions"),
     ).toBe(true);
     expect(() =>
-      assertContributionActionPermission(auth, "refund"),
+      assertContributionActionPermission(auth, "amount_correction"),
     ).not.toThrow();
   });
 
@@ -69,15 +69,29 @@ describe("contribution operations permissions", () => {
       hasContributionPermission(auth, "finance:manage_contributions"),
     ).toBe(false);
     expect(() => assertContributionActionPermission(auth, "refund")).toThrow(
-      "finance:manage_contributions",
+      "contributions.run_refunds",
     );
   });
 
-  it("allows low-risk contribution actions for staff roles", () => {
-    const auth = authContext({ role: "staff", profileRole: "staff" });
+  it("requires granular capability for low-risk contribution actions", () => {
+    const nonMember = authContext({ role: "staff", profileRole: "staff" });
+    const financeStaff = authContext({
+      memberships: [
+        {
+          tenantId: "tenant_1",
+          role: "staff",
+          staffRole: "finance",
+          isActive: true,
+        },
+      ],
+    });
 
     expect(() =>
-      assertContributionActionPermission(auth, "resend_receipt"),
+      assertContributionActionPermission(nonMember, "resend_receipt"),
+    ).toThrow("contributions.manage_receipts");
+
+    expect(() =>
+      assertContributionActionPermission(financeStaff, "resend_receipt"),
     ).not.toThrow();
   });
 

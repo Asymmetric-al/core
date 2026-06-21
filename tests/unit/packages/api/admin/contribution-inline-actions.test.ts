@@ -130,6 +130,34 @@ describe("admin/contribution-operations/inline-actions", () => {
     });
   });
 
+  it("deduplicates provider replay when availability already includes it", () => {
+    const staleReplayEntry = {
+      actionType: "stripe_replay",
+      available: false,
+      blockedReason: "Stale projected availability",
+      nextStep: "Reload contribution detail",
+      riskLevel: "high",
+    } satisfies ReturnType<typeof availabilityFor>[number];
+
+    const inline = buildInlineContributionActions({
+      availability: [...availabilityFor(), staleReplayEntry],
+      providerPaymentIntentId: "pi_1",
+      viewerCapabilities: ALL_CAPABILITIES,
+    });
+
+    const replayEntries = inline.entries.filter(
+      (entry) => entry.actionType === "stripe_replay",
+    );
+
+    expect(replayEntries).toEqual([
+      expect.objectContaining({
+        actionType: "stripe_replay",
+        available: true,
+        blockedReason: null,
+      }),
+    ]);
+  });
+
   it("includes high-risk correction operations as request entries", () => {
     const inline = buildInlineContributionActions({
       availability: availabilityFor(),

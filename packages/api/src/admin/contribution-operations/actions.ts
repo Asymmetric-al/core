@@ -131,6 +131,41 @@ function hasLegacyDirectActionPermission(
   );
 }
 
+function providerCapabilityForApprovedRequest(
+  actionType: ContributionActionType,
+): string | null {
+  if (actionType === "refund") {
+    return DIRECT_ACTION_CAPABILITY.refund;
+  }
+
+  if (actionType === "stripe_replay") {
+    return DIRECT_ACTION_CAPABILITY.stripe_replay;
+  }
+
+  return null;
+}
+
+function assertApprovedRequestCapabilities(
+  input: Pick<
+    ExecuteContributionActionInput,
+    "actorCapabilities" | "actionType"
+  >,
+) {
+  if (!hasActorCapability(input, APPROVE_CORRECTION_CAPABILITY)) {
+    throw new ApiHttpError(
+      403,
+      `Forbidden: requires ${APPROVE_CORRECTION_CAPABILITY}`,
+    );
+  }
+
+  const providerCapability = providerCapabilityForApprovedRequest(
+    input.actionType,
+  );
+  if (providerCapability && !hasActorCapability(input, providerCapability)) {
+    throw new ApiHttpError(403, `Forbidden: requires ${providerCapability}`);
+  }
+}
+
 function isApprovalRequestAction(actionType: ContributionActionType): boolean {
   return (
     actionType === "refund" ||
@@ -151,14 +186,8 @@ function assertActorPermissions(
   options: { requiresApproval: boolean },
 ) {
   if (input.approvedRequestId) {
-    if (hasActorCapability(input, APPROVE_CORRECTION_CAPABILITY)) {
-      return;
-    }
-
-    throw new ApiHttpError(
-      403,
-      `Forbidden: requires ${APPROVE_CORRECTION_CAPABILITY}`,
-    );
+    assertApprovedRequestCapabilities(input);
+    return;
   }
 
   if (hasLegacyDirectActionPermission(input)) {
@@ -213,14 +242,8 @@ function assertCanExecuteDirectly(
   capability: string,
 ) {
   if (input.approvedRequestId) {
-    if (hasActorCapability(input, APPROVE_CORRECTION_CAPABILITY)) {
-      return;
-    }
-
-    throw new ApiHttpError(
-      403,
-      `Forbidden: requires ${APPROVE_CORRECTION_CAPABILITY}`,
-    );
+    assertApprovedRequestCapabilities(input);
+    return;
   }
 
   if (hasLegacyDirectActionPermission(input)) {

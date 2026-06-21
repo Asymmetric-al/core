@@ -95,7 +95,8 @@ export function buildInlineContributionActions(
     (
       entry,
     ): entry is ContributionActionAvailability & CrmGiftInlineActionEntry =>
-      isInlineContributionActionType(entry.actionType),
+      isInlineContributionActionType(entry.actionType) &&
+      entry.actionType !== "stripe_replay",
   );
 
   const allEntries: CrmGiftInlineActionEntry[] = [
