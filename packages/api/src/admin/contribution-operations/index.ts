@@ -2,6 +2,7 @@ export {
   buildContributionActionAvailability,
   type ContributionActionAvailability,
 } from "./action-availability";
+export { executeContributionAction } from "./actions";
 export {
   assertCanDecideCorrectionRequest,
   correctionRequiresApproval,
@@ -18,6 +19,20 @@ export {
   type CrmPostLinkInput,
 } from "./crm-post-state";
 export { buildContributionDetail } from "./detail-read-model";
+export {
+  buildInlineContributionActions,
+  INLINE_ACTION_CAPABILITY,
+  isInlineContributionActionType,
+  pickNextBestInlineContributionAction,
+  type BuildInlineContributionActionsInput,
+} from "./inline-actions";
+export {
+  assertContributionActionPermission,
+  assertContributionPermission,
+  hasContributionPermission,
+  resolveContributionCapabilities,
+  type ContributionCapability,
+} from "./permissions";
 export {
   getContributionActionPolicy,
   getContributionActionRiskLevel,
