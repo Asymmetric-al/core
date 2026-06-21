@@ -533,80 +533,97 @@ export async function processCorrectionApprovalSla(input: {
 
   let remindersSent = 0;
   let escalationsSent = 0;
+  const failures: Array<{ requestId: string; message: string }> = [];
 
   for (const row of (data ?? []) as JsonRecord[]) {
     const requestId = asString(row.id) ?? "";
-    const createdAt = asString(row.created_at) ?? now;
-    const sla = evaluatePendingApprovalSla({
-      status: asString(row.status) ?? "pending",
-      createdAt,
-      lastReminderAt: asString(row.last_reminder_at),
-      escalatedAt: asString(row.escalated_at),
-      reminderHours: input.policy.reminderHours,
-      escalationHours: input.policy.escalationHours,
-      now,
-    });
-
-    if (sla.reminderDue) {
-      const reminderRound = Math.floor(
-        (new Date(now).getTime() - new Date(createdAt).getTime()) /
-          (input.policy.reminderHours * 60 * 60 * 1000),
-      );
-      const plan = planApprovalNotifications({
-        requestId,
-        settings,
-        eligibleApprovers,
-        existingTaskId: "task-exists",
-        kind: "reminder",
-        dedupeSuffix: `round-${reminderRound}`,
+    try {
+      const createdAt = asString(row.created_at) ?? now;
+      const sla = evaluatePendingApprovalSla({
+        status: asString(row.status) ?? "pending",
+        createdAt,
+        lastReminderAt: asString(row.last_reminder_at),
+        escalatedAt: asString(row.escalated_at),
+        reminderHours: input.policy.reminderHours,
+        escalationHours: input.policy.escalationHours,
+        now,
       });
-      const reminderCount = await insertApprovalNotifications(
-        input.supabaseAdmin,
-        input.tenantId,
-        requestId,
-        plan.notifications,
-        { reminderRound },
-      );
-      remindersSent += reminderCount;
 
-      if (plan.notifications.length > 0) {
-        const { error: reminderError } = await input.supabaseAdmin
-          .from("contribution_correction_requests")
-          .update({ last_reminder_at: now, updated_at: now })
-          .eq("tenant_id", input.tenantId)
-          .eq("id", requestId);
-        if (reminderError) {
-          throw new Error(reminderError.message);
+      if (sla.reminderDue) {
+        const reminderRound = Math.floor(
+          (new Date(now).getTime() - new Date(createdAt).getTime()) /
+            (input.policy.reminderHours * 60 * 60 * 1000),
+        );
+        const plan = planApprovalNotifications({
+          requestId,
+          settings,
+          eligibleApprovers,
+          existingTaskId: "task-exists",
+          kind: "reminder",
+          dedupeSuffix: `round-${reminderRound}`,
+        });
+        const reminderCount = await insertApprovalNotifications(
+          input.supabaseAdmin,
+          input.tenantId,
+          requestId,
+          plan.notifications,
+          { reminderRound },
+        );
+        remindersSent += reminderCount;
+
+        if (plan.notifications.length > 0) {
+          const { error: reminderError } = await input.supabaseAdmin
+            .from("contribution_correction_requests")
+            .update({ last_reminder_at: now, updated_at: now })
+            .eq("tenant_id", input.tenantId)
+            .eq("id", requestId);
+          if (reminderError) {
+            throw new Error(reminderError.message);
+          }
         }
       }
-    }
 
-    if (sla.escalationDue) {
-      const plan = planApprovalNotifications({
-        requestId,
-        settings,
-        eligibleApprovers,
-        existingTaskId: "task-exists",
-        kind: "escalation",
-      });
-      const escalationCount = await insertApprovalNotifications(
-        input.supabaseAdmin,
-        input.tenantId,
-        requestId,
-        plan.notifications,
-        { escalatedAt: now },
-      );
-      escalationsSent += escalationCount;
+      if (sla.escalationDue) {
+        const plan = planApprovalNotifications({
+          requestId,
+          settings,
+          eligibleApprovers,
+          existingTaskId: "task-exists",
+          kind: "escalation",
+        });
+        const escalationCount = await insertApprovalNotifications(
+          input.supabaseAdmin,
+          input.tenantId,
+          requestId,
+          plan.notifications,
+          { escalatedAt: now },
+        );
+        escalationsSent += escalationCount;
 
-      const { error: escalationError } = await input.supabaseAdmin
-        .from("contribution_correction_requests")
-        .update({ escalated_at: now, updated_at: now })
-        .eq("tenant_id", input.tenantId)
-        .eq("id", requestId);
-      if (escalationError) {
-        throw new Error(escalationError.message);
+        const { error: escalationError } = await input.supabaseAdmin
+          .from("contribution_correction_requests")
+          .update({ escalated_at: now, updated_at: now })
+          .eq("tenant_id", input.tenantId)
+          .eq("id", requestId);
+        if (escalationError) {
+          throw new Error(escalationError.message);
+        }
       }
+    } catch (error) {
+      failures.push({
+        requestId: requestId || "unknown",
+        message: error instanceof Error ? error.message : String(error),
+      });
     }
+  }
+
+  if (failures.length > 0) {
+    const details = failures
+      .map((failure) => `${failure.requestId}: ${failure.message}`)
+      .join("; ");
+    throw new Error(
+      `Failed to process ${failures.length} correction approval SLA request(s): ${details}`,
+    );
   }
 
   return { remindersSent, escalationsSent };

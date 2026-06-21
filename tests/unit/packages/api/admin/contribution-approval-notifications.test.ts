@@ -17,6 +17,8 @@ const REQUEST_ID = "request-1";
 
 interface StubState {
   request: Record<string, unknown>;
+  requests: Array<Record<string, unknown>>;
+  failingRequestUpdateIds: Set<string>;
   lostApprovalTaskUpdateTo: string | null;
   approvalSettings: Record<string, unknown> | null;
   approvers: Array<Record<string, unknown>>;
@@ -29,7 +31,9 @@ interface StubState {
   auditEvents: Array<Record<string, unknown>>;
 }
 
-function pendingRequest(): Record<string, unknown> {
+function pendingRequest(
+  overrides: Record<string, unknown> = {},
+): Record<string, unknown> {
   return {
     id: REQUEST_ID,
     tenant_id: TENANT_ID,
@@ -53,12 +57,16 @@ function pendingRequest(): Record<string, unknown> {
     escalated_at: null,
     created_at: "2026-06-01T00:00:00.000Z",
     updated_at: "2026-06-01T00:00:00.000Z",
+    ...overrides,
   };
 }
 
 function stubState(): StubState {
+  const request = pendingRequest();
   return {
-    request: pendingRequest(),
+    request,
+    requests: [request],
+    failingRequestUpdateIds: new Set(),
     lostApprovalTaskUpdateTo: null,
     approvalSettings: null,
     approvers: [{ id: "approver-1" }, { id: "approver-2" }],
@@ -146,35 +154,52 @@ class QueryBuilder {
           !Array.isArray(this.payload)
             ? (this.payload as Record<string, unknown>)
             : {};
+        const targetRequest =
+          this.state.requests.find((row) => row.id === this.idFilter) ??
+          this.state.request;
+        const targetRequestId =
+          typeof targetRequest.id === "string" ? targetRequest.id : "";
+        if (this.state.failingRequestUpdateIds.has(targetRequestId)) {
+          return {
+            data: null,
+            error: { message: `failed to update ${targetRequestId}` },
+          };
+        }
         if (
           "approval_task_id" in payload &&
           this.state.lostApprovalTaskUpdateTo
         ) {
-          this.state.request.approval_task_id =
-            this.state.lostApprovalTaskUpdateTo;
+          targetRequest.approval_task_id = this.state.lostApprovalTaskUpdateTo;
           return { data: [], error: null };
         }
 
-        Object.assign(this.state.request, this.payload);
+        Object.assign(targetRequest, this.payload);
         return {
           data: [
             {
-              id: this.state.request.id,
-              approval_task_id: this.state.request.approval_task_id,
+              id: targetRequest.id,
+              approval_task_id: targetRequest.approval_task_id,
             },
           ],
           error: null,
         };
       }
 
-      if (this.maybeSingleResult || this.idFilter) {
+      if (this.idFilter) {
+        const row =
+          this.state.requests.find((request) => request.id === this.idFilter) ??
+          this.state.request;
+        return { data: { ...row }, error: null };
+      }
+
+      if (this.maybeSingleResult) {
         return { data: { ...this.state.request }, error: null };
       }
 
       const rows =
         this.statusFilter === "pending"
-          ? [this.state.request].filter((row) => row.status === "pending")
-          : [this.state.request];
+          ? this.state.requests.filter((row) => row.status === "pending")
+          : this.state.requests;
       return { data: rows.map((row) => ({ ...row })), error: null };
     }
 
@@ -765,5 +790,39 @@ describe("admin/contribution-operations/approval-notifications", () => {
     expect(state.approvalNotifications).toHaveLength(2);
     expect(state.request.last_reminder_at).toBe("2026-06-04T00:30:00.000Z");
     expect(state.request.escalated_at).toBe("2026-06-04T01:00:00.000Z");
+  });
+
+  it("continues processing later SLA rows when one request update fails", async () => {
+    const state = stubState();
+    const secondRequest = pendingRequest({
+      id: "request-2",
+      donation_id: "donation-2",
+    });
+    state.requests.push(secondRequest);
+    state.failingRequestUpdateIds.add(REQUEST_ID);
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    await expect(
+      processCorrectionApprovalSla({
+        supabaseAdmin: createStub(state),
+        tenantId: TENANT_ID,
+        policy: { reminderHours: 24, escalationHours: 72 },
+        now: "2026-06-02T01:00:00.000Z",
+      }),
+    ).rejects.toThrow(
+      "Failed to process 1 correction approval SLA request(s): request-1: failed to update request-1",
+    );
+
+    expect(state.request.last_reminder_at).toBeNull();
+    expect(secondRequest.last_reminder_at).toBe("2026-06-02T01:00:00.000Z");
+    expect(
+      state.approvalNotifications.filter(
+        (notification) => notification.correction_request_id === "request-2",
+      ),
+    ).toHaveLength(2);
   });
 });
