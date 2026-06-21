@@ -83,7 +83,18 @@ describe("contribution operations permissions", () => {
 
   it("resolves granular capabilities backing staff-friendly roles", () => {
     const donorCare = resolveContributionCapabilities(
-      authContext({ role: "staff", profileRole: "staff" }),
+      authContext({
+        role: "staff",
+        profileRole: "staff",
+        memberships: [
+          {
+            tenantId: "tenant_1",
+            role: "staff",
+            staffRole: "development",
+            isActive: true,
+          },
+        ],
+      }),
     );
     expect(donorCare).toContain("contributions.view_detail");
     expect(donorCare).toContain("contributions.request_corrections");
@@ -118,5 +129,13 @@ describe("contribution operations permissions", () => {
     );
     expect(superAdmin).toContain("contributions.manage_settings");
     expect(superAdmin).toContain("crm.gift_history.manage_view_defaults");
+  });
+
+  it("does not grant contribution capabilities without tenant membership", () => {
+    const capabilities = resolveContributionCapabilities(
+      authContext({ role: "staff", profileRole: "staff", memberships: [] }),
+    );
+
+    expect(capabilities).toEqual([]);
   });
 });

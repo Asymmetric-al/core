@@ -73,19 +73,51 @@ function assertReasonAndConfirmation(
   }
 }
 
+const LEGACY_MANAGE_PERMISSION = "finance:manage_contributions" as const;
+const REQUEST_CORRECTION_CAPABILITY = "contributions.request_corrections";
+
 /**
- * Granular capability that satisfies the legacy broad permission per
- * high-risk action (ADR-CD-024 capability split).
+ * Granular capability required to execute an action immediately. Approval
+ * request creation is handled separately for approval-gated corrections.
  */
-const HIGH_RISK_CAPABILITY: Partial<Record<ContributionActionType, string>> = {
+const DIRECT_ACTION_CAPABILITY: Record<ContributionActionType, string> = {
+  resend_receipt: "contributions.manage_receipts",
+  approve_staged_gift: "contributions.apply_corrections",
+  retry_staged_gift: "contributions.retry_crm_post",
+  crm_repost: "contributions.retry_crm_post",
+  metadata_update: "contributions.apply_corrections",
   refund: "contributions.run_refunds",
   stripe_replay: "contributions.use_provider_actions",
   donor_relink: "contributions.apply_corrections",
   amount_correction: "contributions.apply_corrections",
   designation_correction: "contributions.apply_corrections",
   fund_correction: "contributions.apply_corrections",
+  allocation_correction: "contributions.apply_corrections",
+  receipt_correction: "contributions.apply_corrections",
+  statement_correction: "contributions.apply_corrections",
   payment_state_correction: "contributions.apply_corrections",
 };
+
+function hasLegacyManagePermission(
+  input: Pick<ExecuteContributionActionInput, "actorPermissions">,
+): boolean {
+  return input.actorPermissions.includes(LEGACY_MANAGE_PERMISSION);
+}
+
+function hasActorCapability(
+  input: Pick<ExecuteContributionActionInput, "actorCapabilities">,
+  capability: string,
+): boolean {
+  return (input.actorCapabilities ?? []).includes(capability);
+}
+
+function isApprovalRequestAction(actionType: ContributionActionType): boolean {
+  return (
+    actionType === "refund" ||
+    actionType === "donor_relink" ||
+    isCorrectionAction(actionType)
+  );
+}
 
 function assertActorPermissions(
   input: Pick<
@@ -93,37 +125,64 @@ function assertActorPermissions(
     "actorPermissions" | "actorCapabilities" | "actionType"
   >,
   policy: ReturnType<typeof getContributionActionPolicy>,
+  options: { requiresApproval: boolean },
 ) {
-  if (!policy.requiredPermission) {
+  if (hasLegacyManagePermission(input)) {
     return;
   }
 
-  if (input.actorPermissions.includes(policy.requiredPermission)) {
+  const directCapability = DIRECT_ACTION_CAPABILITY[input.actionType];
+  if (hasActorCapability(input, directCapability)) {
     return;
   }
 
-  const acceptedCapability = HIGH_RISK_CAPABILITY[input.actionType];
+  if (isApprovalRequestAction(input.actionType)) {
+    if (hasActorCapability(input, REQUEST_CORRECTION_CAPABILITY)) {
+      return;
+    }
+
+    throw new ApiHttpError(
+      403,
+      `Forbidden: requires ${
+        options.requiresApproval
+          ? REQUEST_CORRECTION_CAPABILITY
+          : directCapability
+      }`,
+    );
+  }
+
+  throw new ApiHttpError(
+    403,
+    `Forbidden: requires ${policy.requiredPermission ?? directCapability}`,
+  );
+}
+
+function assertCanRequestCorrection(input: ExecuteContributionActionInput) {
   if (
-    acceptedCapability &&
-    (input.actorCapabilities ?? []).includes(acceptedCapability)
-  ) {
-    return;
-  }
-
-  // Correction/refund requests are gated separately by the request capability.
-  if (
-    (isCorrectionAction(input.actionType) || input.actionType === "refund") &&
-    (input.actorCapabilities ?? []).includes(
-      "contributions.request_corrections",
-    )
+    hasLegacyManagePermission(input) ||
+    hasActorCapability(input, REQUEST_CORRECTION_CAPABILITY)
   ) {
     return;
   }
 
   throw new ApiHttpError(
     403,
-    `Forbidden: requires ${policy.requiredPermission}`,
+    `Forbidden: requires ${REQUEST_CORRECTION_CAPABILITY}`,
   );
+}
+
+function assertCanExecuteDirectly(
+  input: ExecuteContributionActionInput,
+  capability: string,
+) {
+  if (
+    hasLegacyManagePermission(input) ||
+    hasActorCapability(input, capability)
+  ) {
+    return;
+  }
+
+  throw new ApiHttpError(403, `Forbidden: requires ${capability}`);
 }
 
 async function loadCanonicalContribution<TContribution>(
@@ -224,6 +283,81 @@ function isCorrectionAction(actionType: ContributionActionType): boolean {
   );
 }
 
+function requiresCorrectionApproval(input: ExecuteContributionActionInput) {
+  const approvalPolicy =
+    input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
+
+  return (
+    !input.approvedRequestId &&
+    correctionRequiresApproval({
+      actionType: input.actionType,
+      policy: approvalPolicy,
+    })
+  );
+}
+
+async function createPendingCorrectionRequest<TContribution>(
+  input: ExecuteContributionActionInput<TContribution>,
+  extra: { receiptDeliveryProposal?: Record<string, unknown> | null } = {},
+): Promise<ContributionActionResult<TContribution>> {
+  assertCanRequestCorrection(input);
+
+  const createCorrectionRequest = requireDependency(
+    input.dependencies,
+    "createCorrectionRequest",
+  );
+  const correctionRequestId = await createCorrectionRequest({
+    tenantId: input.tenantId,
+    contributionId: input.contributionId,
+    actionType: input.actionType,
+    payload: input.payload ?? {},
+    reason: input.reason ?? "",
+    requestedByProfileId: input.actorProfileId,
+    sourceSurface: input.sourceSurface,
+    expectedRevision: input.expectedRevision ?? null,
+    idempotencyKey: input.idempotencyKey ?? null,
+    ...extra,
+  });
+  const auditEventId = await appendAuditEvent(
+    input,
+    auditInput(input, {
+      downstreamEffects: {
+        correctionRequestId,
+        approvalStatus: "pending_approval",
+      },
+    }),
+  );
+
+  return {
+    canonicalContribution: await loadCanonicalContribution(input),
+    auditEventId,
+    correctionRequestId,
+    approvalStatus: "pending_approval",
+    taskIds: [],
+  };
+}
+
+function providerIdempotencyKey(input: ExecuteContributionActionInput): string {
+  if (input.idempotencyKey?.trim()) {
+    return input.idempotencyKey;
+  }
+
+  if (input.confirmationToken?.trim()) {
+    return [
+      "contribution-action",
+      input.tenantId,
+      input.contributionId,
+      input.actionType,
+      input.confirmationToken,
+    ].join("/");
+  }
+
+  throw new ApiHttpError(
+    400,
+    `An idempotency key is required for ${input.actionType}.`,
+  );
+}
+
 async function sendCorrectionNotification(
   input: ExecuteContributionActionInput,
   result: {
@@ -260,8 +394,13 @@ export async function executeContributionAction<TContribution = unknown>(
     organizationSettings: input.organizationSettings,
     userPreferences: input.userPreferences,
   });
+  const actionRequiresApproval =
+    isApprovalRequestAction(input.actionType) &&
+    requiresCorrectionApproval(input);
 
-  assertActorPermissions(input, policy);
+  assertActorPermissions(input, policy, {
+    requiresApproval: actionRequiresApproval,
+  });
   assertReasonAndConfirmation(input, policy);
 
   switch (input.actionType) {
@@ -405,6 +544,13 @@ export async function executeContributionAction<TContribution = unknown>(
 
     case "donor_relink": {
       const donorId = requireStringPayload(input.payload, "donorId");
+
+      if (requiresCorrectionApproval(input)) {
+        return createPendingCorrectionRequest(input);
+      }
+
+      assertCanExecuteDirectly(input, DIRECT_ACTION_CAPABILITY.donor_relink);
+
       const relinkDonor = requireDependency(input.dependencies, "relinkDonor");
       const relink = await relinkDonor({
         tenantId: input.tenantId,
@@ -449,71 +595,11 @@ export async function executeContributionAction<TContribution = unknown>(
       // Refunds follow the same tenant approval policy as other high-risk
       // corrections (ADR-CD-005 / ADR-CD-025): create a request unless the
       // gate is suppressed or this apply comes from an approved request.
-      const refundApprovalPolicy =
-        input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
-      const refundRequiresApproval =
-        !input.approvedRequestId &&
-        correctionRequiresApproval({
-          actionType: "refund",
-          policy: refundApprovalPolicy,
-        });
-
-      if (refundRequiresApproval) {
-        const canRequest =
-          input.actorPermissions.includes("finance:manage_contributions") ||
-          (input.actorCapabilities ?? []).includes(
-            "contributions.request_corrections",
-          );
-        if (!canRequest) {
-          throw new ApiHttpError(
-            403,
-            "Forbidden: requires contributions.request_corrections",
-          );
-        }
-
-        const createCorrectionRequest = requireDependency(
-          input.dependencies,
-          "createCorrectionRequest",
-        );
-        const correctionRequestId = await createCorrectionRequest({
-          tenantId: input.tenantId,
-          contributionId: input.contributionId,
-          actionType: "refund",
-          payload: input.payload ?? {},
-          reason: input.reason ?? "",
-          requestedByProfileId: input.actorProfileId,
-          sourceSurface: input.sourceSurface,
-          expectedRevision: input.expectedRevision ?? null,
-          idempotencyKey: input.idempotencyKey ?? null,
-        });
-        const auditEventId = await appendAuditEvent(
-          input,
-          auditInput(input, {
-            downstreamEffects: {
-              correctionRequestId,
-              approvalStatus: "pending_approval",
-            },
-          }),
-        );
-
-        return {
-          canonicalContribution: await loadCanonicalContribution(input),
-          auditEventId,
-          correctionRequestId,
-          approvalStatus: "pending_approval",
-          taskIds: [],
-        };
+      if (requiresCorrectionApproval(input)) {
+        return createPendingCorrectionRequest(input);
       }
 
-      const canRunRefund =
-        input.actorPermissions.includes("finance:manage_contributions") ||
-        (input.actorCapabilities ?? []).includes("contributions.run_refunds");
-      if (!canRunRefund) {
-        throw new ApiHttpError(
-          403,
-          "Forbidden: requires contributions.run_refunds",
-        );
-      }
+      assertCanExecuteDirectly(input, DIRECT_ACTION_CAPABILITY.refund);
 
       const refund = requireDependency(
         input.dependencies,
@@ -525,6 +611,8 @@ export async function executeContributionAction<TContribution = unknown>(
         amount,
         reason: input.reason ?? "",
         confirmationToken: input.confirmationToken ?? "",
+        expectedRevision: input.expectedRevision ?? null,
+        idempotencyKey: providerIdempotencyKey(input),
       });
       const correctionId = await createCorrectionRecord(
         input,
@@ -563,6 +651,12 @@ export async function executeContributionAction<TContribution = unknown>(
     }
 
     case "stripe_replay": {
+      if (requiresCorrectionApproval(input)) {
+        return createPendingCorrectionRequest(input);
+      }
+
+      assertCanExecuteDirectly(input, DIRECT_ACTION_CAPABILITY.stripe_replay);
+
       const replayStripeEvent = requireDependency(
         input.dependencies,
         "replayStripeEvent",
@@ -614,45 +708,8 @@ export async function executeContributionAction<TContribution = unknown>(
           );
         }
 
-        const approvalPolicy =
-          input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
-        const hasLegacyManagePermission = input.actorPermissions.includes(
-          "finance:manage_contributions",
-        );
-        const requiresApproval =
-          !input.approvedRequestId &&
-          correctionRequiresApproval({
-            actionType: input.actionType,
-            policy: approvalPolicy,
-          });
-
-        if (requiresApproval) {
-          const canRequest =
-            hasLegacyManagePermission ||
-            (input.actorCapabilities ?? []).includes(
-              "contributions.request_corrections",
-            );
-          if (!canRequest) {
-            throw new ApiHttpError(
-              403,
-              "Forbidden: requires contributions.request_corrections",
-            );
-          }
-
-          const createCorrectionRequest = requireDependency(
-            input.dependencies,
-            "createCorrectionRequest",
-          );
-          const correctionRequestId = await createCorrectionRequest({
-            tenantId: input.tenantId,
-            contributionId: input.contributionId,
-            actionType: input.actionType,
-            payload: input.payload ?? {},
-            reason: input.reason,
-            requestedByProfileId: input.actorProfileId,
-            sourceSurface: input.sourceSurface,
-            expectedRevision: input.expectedRevision ?? null,
-            idempotencyKey: input.idempotencyKey ?? null,
+        if (requiresCorrectionApproval(input)) {
+          return createPendingCorrectionRequest(input, {
             receiptDeliveryProposal:
               input.payload &&
               typeof input.payload.receiptDelivery === "object" &&
@@ -660,36 +717,12 @@ export async function executeContributionAction<TContribution = unknown>(
                 ? (input.payload.receiptDelivery as Record<string, unknown>)
                 : null,
           });
-          const auditEventId = await appendAuditEvent(
-            input,
-            auditInput(input, {
-              downstreamEffects: {
-                correctionRequestId,
-                approvalStatus: "pending_approval",
-              },
-            }),
-          );
-
-          return {
-            canonicalContribution: await loadCanonicalContribution(input),
-            auditEventId,
-            correctionRequestId,
-            approvalStatus: "pending_approval",
-            taskIds: [],
-          };
         }
 
-        const canApply =
-          hasLegacyManagePermission ||
-          (input.actorCapabilities ?? []).includes(
-            "contributions.apply_corrections",
-          );
-        if (!canApply) {
-          throw new ApiHttpError(
-            403,
-            "Forbidden: requires contributions.apply_corrections",
-          );
-        }
+        assertCanExecuteDirectly(
+          input,
+          DIRECT_ACTION_CAPABILITY[input.actionType],
+        );
 
         const applyCorrection = requireDependency(
           input.dependencies,

@@ -40,6 +40,7 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: [],
+      actorCapabilities: ["contributions.manage_receipts"],
       sourceSurface: "donor_crm_record",
       contributionId: "donation_1",
       actionType: "resend_receipt",
@@ -73,6 +74,26 @@ describe("contribution operations action executor", () => {
     });
   });
 
+  it("requires the receipt management capability for receipt resends", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.view_detail"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "resend_receipt",
+        payload: { stagedGiftId: "staged_1" },
+        dependencies: {
+          sendReceipt: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/manage_receipts/);
+  });
+
   it("creates correction and audit records for donor relinking", async () => {
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -95,6 +116,7 @@ describe("contribution operations action executor", () => {
       reason: "Merged duplicate donor",
       confirmationToken: "confirm",
       payload: { donorId: "donor_new" },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
         createCorrectionRecord,
         appendAuditEvent,
@@ -122,6 +144,45 @@ describe("contribution operations action executor", () => {
     );
     expect(result.correctionId).toBe("correction_1");
     expect(result.auditEventId).toBe("audit_1");
+  });
+
+  it("routes donor relinks through correction requests under default approval policy", async () => {
+    const relinkDonor = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_7");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "donor_relink",
+      reason: "Merged duplicate donor",
+      confirmationToken: "confirm",
+      payload: { donorId: "donor_new" },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: {
+        relinkDonor,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(relinkDonor).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "donor_relink",
+        payload: { donorId: "donor_new" },
+      }),
+    );
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionRequestId).toBe("request_7");
   });
 
   it("applies amount corrections before writing correction and audit records", async () => {
@@ -200,6 +261,8 @@ describe("contribution operations action executor", () => {
       reason: "Duplicate payment",
       confirmationToken: "confirm",
       payload: { amount: 500 },
+      expectedRevision: "rev_1",
+      idempotencyKey: "refund-key-1",
       approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
         refundContribution,
@@ -221,6 +284,8 @@ describe("contribution operations action executor", () => {
     expect(refundContribution).toHaveBeenCalledWith(
       expect.objectContaining({
         confirmationToken: "confirm",
+        expectedRevision: "rev_1",
+        idempotencyKey: "refund-key-1",
       }),
     );
     expect(result.providerOutcome?.status).toBe("failed");
@@ -248,6 +313,7 @@ describe("contribution operations action executor", () => {
       reason: "Recover missing webhook",
       confirmationToken: "confirm",
       payload: { stripeEventId: "evt_123" },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
         replayStripeEvent,
         createCorrectionRecord,
@@ -271,6 +337,45 @@ describe("contribution operations action executor", () => {
       }),
     );
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
+  });
+
+  it("routes Stripe replay through correction requests under default approval policy", async () => {
+    const replayStripeEvent = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_8");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "stripe_replay",
+      reason: "Recover missing webhook",
+      confirmationToken: "confirm",
+      payload: { stripeEventId: "evt_123" },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: {
+        replayStripeEvent,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(replayStripeEvent).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "stripe_replay",
+        payload: { stripeEventId: "evt_123" },
+      }),
+    );
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionRequestId).toBe("request_8");
   });
 
   it("routes refunds through correction requests under default approval policy", async () => {
@@ -333,6 +438,26 @@ describe("contribution operations action executor", () => {
     ).rejects.toThrow(/run_refunds/);
   });
 
+  it("requires the CRM retry capability for staged gift retries", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.view_detail"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "retry_staged_gift",
+        payload: { stagedGiftId: "staged_1" },
+        dependencies: {
+          retryStagedGift: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/retry_crm_post/);
+  });
+
   it("retries a single designation child record without reposting unrelated lines", async () => {
     const retryDesignationPost = vi.fn().mockResolvedValue(undefined);
     const retryStagedGift = vi.fn();
@@ -345,6 +470,7 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: [],
+      actorCapabilities: ["contributions.retry_crm_post"],
       sourceSurface: "donor_crm_record",
       contributionId: "donation_1",
       actionType: "retry_staged_gift",
@@ -381,6 +507,7 @@ describe("contribution operations action executor", () => {
         tenantId: "tenant_1",
         actorProfileId: "profile_1",
         actorPermissions: [],
+        actorCapabilities: ["contributions.retry_crm_post"],
         sourceSurface: "donor_crm_record",
         contributionId: "donation_1",
         actionType: "retry_staged_gift",

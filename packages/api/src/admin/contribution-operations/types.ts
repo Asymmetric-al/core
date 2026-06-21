@@ -195,6 +195,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     amount: number;
     reason: string;
     confirmationToken: string;
+    expectedRevision?: string | null;
+    idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
   appendAuditEvent?: (
     input: ContributionOperationAuditEventInput,
