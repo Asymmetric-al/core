@@ -27,7 +27,26 @@ CREATE TABLE IF NOT EXISTS public.contribution_corrections (
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     donation_id UUID NOT NULL REFERENCES public.donations(id) ON DELETE CASCADE,
     staged_gift_id UUID REFERENCES public.staged_gifts(id) ON DELETE SET NULL,
-    correction_type TEXT NOT NULL,
+    correction_type TEXT NOT NULL
+        CHECK (
+            correction_type IN (
+                'resend_receipt',
+                'approve_staged_gift',
+                'retry_staged_gift',
+                'crm_repost',
+                'metadata_update',
+                'refund',
+                'donor_relink',
+                'amount_correction',
+                'designation_correction',
+                'fund_correction',
+                'allocation_correction',
+                'receipt_correction',
+                'statement_correction',
+                'payment_state_correction',
+                'stripe_replay'
+            )
+        ),
     status TEXT NOT NULL DEFAULT 'applied'
         CHECK (status IN ('pending', 'applied', 'failed', 'voided')),
     reason TEXT NOT NULL,

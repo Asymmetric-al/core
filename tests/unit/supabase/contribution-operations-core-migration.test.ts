@@ -2,6 +2,8 @@ import { readFileSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
+import { CONTRIBUTION_ACTION_TYPES } from "../../../packages/api/src/admin/contribution-operations/types";
+
 const migrationSql = readFileSync(
   new URL(
     "../../../supabase/migrations/20260526132000_contribution_operations_core.sql",
@@ -52,5 +54,27 @@ describe("contribution operations core migration", () => {
     expect(migrationSql).toContain(
       "SELECT ae.tenant_id, ae.donation_id, ae.staged_gift_id",
     );
+  });
+
+  it("constrains contribution correction types to the operation action contract", () => {
+    const correctionTypeStart = migrationSql.indexOf(
+      "correction_type TEXT NOT NULL",
+    );
+    const statusStart = migrationSql.indexOf(
+      "status TEXT NOT NULL DEFAULT 'applied'",
+    );
+    const correctionTypeConstraint = migrationSql.slice(
+      correctionTypeStart,
+      statusStart,
+    );
+
+    expect(correctionTypeStart).toBeGreaterThanOrEqual(0);
+    expect(statusStart).toBeGreaterThan(correctionTypeStart);
+    expect(correctionTypeConstraint).toContain("CHECK (");
+    expect(correctionTypeConstraint).toContain("correction_type IN");
+
+    for (const actionType of CONTRIBUTION_ACTION_TYPES) {
+      expect(correctionTypeConstraint).toContain(`'${actionType}'`);
+    }
   });
 });
