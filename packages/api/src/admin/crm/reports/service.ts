@@ -223,6 +223,7 @@ async function buildSyncFailureRows(
       .from("donation_crm_links")
       .select("id, link_status, updated_at")
       .eq("tenant_id", tenantId)
+      .eq("scope", "parent")
       .in("link_status", ["queued", "failed"])
       .limit(250),
   ]);

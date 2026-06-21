@@ -303,6 +303,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
           {
             id: "link-1",
             link_status: "queued",
+            scope: "parent",
             tenant_id: "tenant-1",
             updated_at: "2026-05-10T00:00:00.000Z",
           },
