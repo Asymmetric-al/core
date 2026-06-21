@@ -952,7 +952,7 @@ describe("contribution operations action executor", () => {
     expect(result.correctionId).toBeFalsy();
   });
 
-  it("derives stable idempotency for pending correction requests without confirmation tokens", async () => {
+  it("derives context-specific idempotency for pending correction requests without confirmation tokens", async () => {
     const applyCorrection = vi.fn();
     const createCorrectionRequest = vi.fn().mockResolvedValue("request_2");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -987,16 +987,57 @@ describe("contribution operations action executor", () => {
         loadContributionDetail,
       },
     });
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_2",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "allocation_correction",
+      reason: "Same allocation requested by another staff member",
+      payload: {
+        allocations: [
+          { fundId: "fund_2", amount: 500 },
+          { amount: 250, fundId: "fund_3" },
+        ],
+      },
+      approvalPolicy: resolveCorrectionApprovalPolicy({
+        ownership_mode: "separation_of_duties",
+        suppressed_gates: [],
+        stronger_approval_categories: ["allocation_correction"],
+      }),
+      dependencies: {
+        applyCorrection,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
 
     expect(applyCorrection).not.toHaveBeenCalled();
-    expect(createCorrectionRequest).toHaveBeenCalledWith(
+    expect(createCorrectionRequest).toHaveBeenNthCalledWith(
+      1,
       expect.objectContaining({
         actionType: "allocation_correction",
         idempotencyKey: expect.stringMatching(
-          /^correction-request\/tenant_1\/donation_1\/allocation_correction\/payload-[0-9a-f]{32}$/,
+          /^correction-request\/tenant_1\/donation_1\/allocation_correction\/context-[0-9a-f]{32}$/,
         ),
       }),
     );
+    expect(createCorrectionRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        actionType: "allocation_correction",
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/allocation_correction\/context-[0-9a-f]{32}$/,
+        ),
+      }),
+    );
+    const firstKey = createCorrectionRequest.mock.calls[0]?.[0]?.idempotencyKey;
+    const secondKey =
+      createCorrectionRequest.mock.calls[1]?.[0]?.idempotencyKey;
+    expect(secondKey).not.toBe(firstKey);
   });
 
   it("requires the request capability to open a correction request", async () => {

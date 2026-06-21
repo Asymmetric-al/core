@@ -424,17 +424,16 @@ function stableSerialize(value: unknown): string {
   return `{${serializedEntries.join(",")}}`;
 }
 
-function payloadFingerprint(
-  payload: Record<string, unknown> | undefined,
-): string {
+function stableFingerprint(value: unknown): string {
   return createHash("sha256")
-    .update(stableSerialize(payload ?? {}))
+    .update(stableSerialize(value))
     .digest("hex")
     .slice(0, 32);
 }
 
 function correctionRequestIdempotencyKey(
   input: ExecuteContributionActionInput,
+  extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
 ): string {
   if (input.idempotencyKey?.trim()) {
     return input.idempotencyKey;
@@ -450,12 +449,22 @@ function correctionRequestIdempotencyKey(
     ].join("/");
   }
 
+  const requestContext = {
+    actorProfileId: input.actorProfileId,
+    expectedRevision: input.expectedRevision ?? null,
+    payload: input.payload ?? {},
+    reason: input.reason ?? "",
+    receiptDeliveryProposal: extra.receiptDeliveryProposal ?? null,
+    sourceSurface: input.sourceSurface,
+    stagedGiftId: input.stagedGiftId ?? null,
+  };
+
   return [
     "correction-request",
     input.tenantId,
     input.contributionId,
     input.actionType,
-    `payload-${payloadFingerprint(input.payload)}`,
+    `context-${stableFingerprint(requestContext)}`,
   ].join("/");
 }
 
@@ -478,7 +487,7 @@ async function createPendingCorrectionRequest<TContribution>(
     requestedByProfileId: input.actorProfileId,
     sourceSurface: input.sourceSurface,
     expectedRevision: input.expectedRevision ?? null,
-    idempotencyKey: correctionRequestIdempotencyKey(input),
+    idempotencyKey: correctionRequestIdempotencyKey(input, extra),
     ...extra,
   });
   const auditEventId = await appendAuditEvent(
