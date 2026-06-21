@@ -57,6 +57,8 @@ export interface ContributionCorrectionRequest {
   appliedAdjustmentId: string | null;
   approvalTaskId: string | null;
   followUpTaskId: string | null;
+  lastReminderAt: string | null;
+  escalatedAt: string | null;
   createdAt: string;
 }
 
@@ -85,6 +87,8 @@ function mapCorrectionRequestRow(
     appliedAdjustmentId: asString(row.applied_adjustment_id),
     approvalTaskId: asString(row.approval_task_id),
     followUpTaskId: asString(row.follow_up_task_id),
+    lastReminderAt: asString(row.last_reminder_at),
+    escalatedAt: asString(row.escalated_at),
     createdAt: asString(row.created_at) ?? new Date(0).toISOString(),
   };
 }
@@ -278,6 +282,27 @@ export interface DecideCorrectionRequestOutcome {
   idempotentReplay?: boolean;
 }
 
+async function recordCorrectionDecisionOutcome(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  request: ContributionCorrectionRequest;
+  decision: "approved" | "rejected";
+  decisionReason: string | null;
+  recordOutcome?: DecideCorrectionRequestInput["recordOutcome"];
+}): Promise<void> {
+  if (!input.recordOutcome) {
+    return;
+  }
+
+  await input.recordOutcome({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    request: input.request,
+    decision: input.decision,
+    decisionReason: input.decisionReason,
+  });
+}
+
 /**
  * Approves or rejects a pending correction request (ADR-CD-027).
  *
@@ -296,6 +321,16 @@ export async function decideContributionCorrectionRequest(
       (request.status === "approved" && input.decision === "approve") ||
       (request.status === "rejected" && input.decision === "reject");
     if (sameOutcome) {
+      const replayDecision =
+        request.status === "approved" ? "approved" : "rejected";
+      await recordCorrectionDecisionOutcome({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        request,
+        decision: replayDecision,
+        decisionReason: request.decisionReason,
+        recordOutcome: input.recordOutcome,
+      });
       return { request, idempotentReplay: true };
     }
     throw new ApiHttpError(
@@ -370,15 +405,14 @@ export async function decideContributionCorrectionRequest(
 
     const decidedRequest = await loadContributionCorrectionRequest(input);
 
-    if (input.recordOutcome) {
-      await input.recordOutcome({
-        supabaseAdmin: input.supabaseAdmin,
-        tenantId: input.tenantId,
-        request: decidedRequest,
-        decision: "rejected",
-        decisionReason,
-      });
-    }
+    await recordCorrectionDecisionOutcome({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      request: decidedRequest,
+      decision: "rejected",
+      decisionReason,
+      recordOutcome: input.recordOutcome,
+    });
 
     return {
       request: decidedRequest,
@@ -476,15 +510,14 @@ export async function decideContributionCorrectionRequest(
 
   const decidedRequest = await loadContributionCorrectionRequest(input);
 
-  if (input.recordOutcome) {
-    await input.recordOutcome({
-      supabaseAdmin: input.supabaseAdmin,
-      tenantId: input.tenantId,
-      request: decidedRequest,
-      decision: "approved",
-      decisionReason: input.reason?.trim() || null,
-    });
-  }
+  await recordCorrectionDecisionOutcome({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    request: decidedRequest,
+    decision: "approved",
+    decisionReason: input.reason?.trim() || null,
+    recordOutcome: input.recordOutcome,
+  });
 
   return {
     request: decidedRequest,
