@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   buildContributionActionAvailability,
   type ContributionActionAvailability,
@@ -311,15 +313,81 @@ function donorVisibleStatus(
   return "Processing" as const;
 }
 
-function refundStatus(
-  donation: Pick<ContributionDetailDonationInput, "amount" | "refundAmount">,
-) {
-  if (donation.refundAmount <= 0) {
+function refundStatus(input: {
+  amountCents: number;
+  refundedAmountCents: number;
+}) {
+  if (input.refundedAmountCents <= 0) {
     return "none" as const;
   }
-  return donation.refundAmount >= donation.amount
+  return input.refundedAmountCents >= input.amountCents
     ? ("refunded" as const)
     : ("partial_refund" as const);
+}
+
+function effectiveValuesRevisionPayload(
+  values: ContributionAdjustmentRecord["effectiveValues"],
+): Record<string, unknown> {
+  const payload: Record<string, unknown> = {};
+
+  if (values.amountCents !== undefined) {
+    payload.amountCents = values.amountCents;
+  }
+  if (values.fundId !== undefined) {
+    payload.fundId = values.fundId;
+  }
+  if (values.missionaryId !== undefined) {
+    payload.missionaryId = values.missionaryId;
+  }
+  if (values.paymentStatus !== undefined) {
+    payload.paymentStatus = values.paymentStatus;
+  }
+  if (values.designationLines !== undefined) {
+    payload.designationLines = values.designationLines.map((line) => ({
+      id: line.id,
+      amountCents: line.amountCents,
+      fundId: line.fundId,
+      missionaryId: line.missionaryId,
+      memo: line.memo,
+    }));
+  }
+
+  return payload;
+}
+
+function buildContributionRevision(input: {
+  donationUpdatedAt: string;
+  adjustments: ContributionAdjustmentRecord[];
+}): string {
+  const adjustmentFingerprint = [...input.adjustments]
+    .sort((left, right) => {
+      const createdAtDiff =
+        new Date(left.createdAt).getTime() -
+        new Date(right.createdAt).getTime();
+      if (createdAtDiff !== 0) {
+        return createdAtDiff;
+      }
+      return left.id.localeCompare(right.id);
+    })
+    .map((adjustment) => ({
+      id: adjustment.id,
+      adjustmentType: adjustment.adjustmentType,
+      status: adjustment.status,
+      effectiveValues: effectiveValuesRevisionPayload(
+        adjustment.effectiveValues,
+      ),
+      reason: adjustment.reason,
+      actorProfileId: adjustment.actorProfileId,
+      sourceSurface: adjustment.sourceSurface,
+      createdAt: adjustment.createdAt,
+    }));
+
+  const adjustmentHash = createHash("sha256")
+    .update(JSON.stringify(adjustmentFingerprint))
+    .digest("hex")
+    .slice(0, 16);
+
+  return `${input.donationUpdatedAt}#${input.adjustments.length}#${adjustmentHash}`;
 }
 
 export function buildContributionDetail(
@@ -445,6 +513,13 @@ export function buildContributionDetail(
     ],
   });
 
+  const crmPostState = buildContributionCrmPostState({
+    stagedGiftCrmPostStatus: stagedGift?.crmPostStatus ?? null,
+    stagedGiftTwentyRecordId: stagedGift?.twentyRecordId ?? null,
+    links: input.crmLinks ?? [],
+    designationLineCount: designations.lines.length,
+  });
+
   return {
     shared,
     id: donation.id,
@@ -494,7 +569,10 @@ export function buildContributionDetail(
       statementStatus: null,
     },
     refund: {
-      status: refundStatus(donation),
+      status: refundStatus({
+        amountCents: effective.amountCents,
+        refundedAmountCents: donation.refundAmount,
+      }),
       amount: donation.refundAmount,
       refundedAt: donation.refundedAt,
     },
@@ -512,12 +590,7 @@ export function buildContributionDetail(
     crm: {
       postStatus: stagedGift?.crmPostStatus ?? null,
       twentyRecordId: stagedGift?.twentyRecordId ?? null,
-      ...buildContributionCrmPostState({
-        stagedGiftCrmPostStatus: stagedGift?.crmPostStatus ?? null,
-        stagedGiftTwentyRecordId: stagedGift?.twentyRecordId ?? null,
-        links: input.crmLinks ?? [],
-        designationLineCount: designations.lines.length,
-      }),
+      ...crmPostState,
     },
     auditEvents: input.auditEvents ?? [],
     corrections: input.corrections ?? [],
@@ -529,7 +602,10 @@ export function buildContributionDetail(
       materiallyDiffers: effectiveResult.materiallyDiffers,
     },
     adjustments,
-    revision: `${donation.updatedAt}#${adjustments.length}`,
+    revision: buildContributionRevision({
+      donationUpdatedAt: donation.updatedAt,
+      adjustments,
+    }),
     actionAvailability: buildContributionActionAvailability({
       stagedGift: stagedGift
         ? {
@@ -539,7 +615,8 @@ export function buildContributionDetail(
             crmPostStatus: stagedGift.crmPostStatus,
           }
         : null,
-      paymentStatus: donation.status,
+      paymentStatus: effective.paymentStatus,
+      hasCrmPostFailure: crmPostState.failedScopes.length > 0,
       refund: {
         amountCents: effective.amountCents,
         refundedAmountCents: donation.refundAmount,
@@ -550,12 +627,12 @@ export function buildContributionDetail(
     batches: [],
     donorVisible: {
       status: donorVisibleStatus(
-        donation.status,
+        effective.paymentStatus,
         donation.refundAmount,
-        donation.amount,
+        effective.amountCents,
       ),
       historyUpdatedImmediately: true,
-      amount: donation.amount,
+      amount: effective.amountCents,
       currency,
     },
   };

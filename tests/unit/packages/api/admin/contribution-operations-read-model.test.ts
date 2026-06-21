@@ -2,6 +2,79 @@ import { describe, expect, it } from "vitest";
 
 import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
 
+type ContributionDetailInputForTest = Parameters<
+  typeof buildContributionDetail
+>[0];
+type ContributionAdjustmentForTest = NonNullable<
+  ContributionDetailInputForTest["adjustments"]
+>[number];
+type ContributionDetailForTest = ReturnType<typeof buildContributionDetail>;
+
+function donationInput(
+  overrides: Partial<ContributionDetailInputForTest["donation"]> = {},
+): ContributionDetailInputForTest["donation"] {
+  return {
+    id: "donation_test",
+    tenantId: "tenant_1",
+    donorId: "donor_1",
+    missionaryId: null,
+    fundId: "fund_1",
+    amount: 10_000,
+    currency: "usd",
+    status: "completed",
+    donationType: "one_time",
+    paymentMethod: "card",
+    isRecurring: false,
+    recurringInterval: null,
+    notes: null,
+    stripePaymentIntentId: "pi_test",
+    stripeChargeId: "ch_test",
+    giftDate: "2026-05-20",
+    campaignId: null,
+    pledgeId: null,
+    processedAt: null,
+    completedAt: "2026-05-20T00:00:00.000Z",
+    failedAt: null,
+    errorCode: null,
+    errorMessage: null,
+    refundedAt: null,
+    refundAmount: 0,
+    source: "online",
+    createdAt: "2026-05-20T00:00:00.000Z",
+    updatedAt: "2026-05-21T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function adjustmentInput(
+  overrides: Partial<ContributionAdjustmentForTest> = {},
+): ContributionAdjustmentForTest {
+  return {
+    id: "adj_test",
+    adjustmentType: "amount_correction",
+    status: "applied",
+    effectiveValues: { amountCents: 9_000 },
+    reason: "test correction",
+    actorProfileId: "profile_1",
+    sourceSurface: "contribution_hub",
+    createdAt: "2026-05-21T00:00:00.000Z",
+    ...overrides,
+  };
+}
+
+function availabilityFor(
+  detail: ContributionDetailForTest,
+  actionType: string,
+) {
+  const entry = detail.actionAvailability.find(
+    (candidate) => candidate.actionType === actionType,
+  );
+  if (!entry) {
+    throw new Error(`No availability entry for ${actionType}`);
+  }
+  return entry;
+}
+
 describe("contribution operations detail read model", () => {
   it("builds canonical staff and donor-visible contribution truth", () => {
     const detail = buildContributionDetail({
@@ -581,6 +654,121 @@ describe("contribution operations detail read model", () => {
 
     // Adjustment history and version metadata are part of the contract.
     expect(detail.adjustments).toHaveLength(2);
-    expect(detail.revision).toBe("2026-05-21T00:00:00.000Z#2");
+    expect(detail.revision).toMatch(
+      /^2026-05-21T00:00:00\.000Z#2#[a-f0-9]{16}$/,
+    );
+  });
+
+  it("labels refunds against the effective corrected amount", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput({
+        amount: 10_000,
+        refundAmount: 7_500,
+        refundedAt: "2026-05-22T00:00:00.000Z",
+      }),
+      adjustments: [
+        adjustmentInput({
+          id: "adj_amount",
+          effectiveValues: { amountCents: 7_500 },
+        }),
+      ],
+    });
+
+    expect(detail.effective.amountCents).toBe(7_500);
+    expect(detail.refund.status).toBe("refunded");
+    expect(detail.donorVisible.status).toBe("Refunded");
+    expect(detail.donorVisible.amount).toBe(7_500);
+  });
+
+  it("gates actions and donor-visible status from effective payment status", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput({
+        status: "completed",
+        stripeChargeId: "ch_test",
+      }),
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+        reviewReason: null,
+        twentyRecordId: null,
+      },
+      adjustments: [
+        adjustmentInput({
+          id: "adj_payment_status",
+          adjustmentType: "payment_status_correction",
+          effectiveValues: { paymentStatus: "failed" },
+        }),
+      ],
+    });
+
+    expect(detail.payment.status).toBe("failed");
+    expect(detail.shared.paymentStatus).toBe("failed");
+    expect(detail.donorVisible.status).toBe("Failed");
+    expect(availabilityFor(detail, "resend_receipt")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/not completed/i),
+    });
+    expect(availabilityFor(detail, "refund")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/completed payments/i),
+    });
+  });
+
+  it("makes retry available when CRM link state exposes failed scopes", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput(),
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+        reviewReason: null,
+        twentyRecordId: "twenty_parent",
+      },
+      crmLinks: [
+        {
+          id: "link_child",
+          scope: "designation",
+          allocationId: "alloc_1",
+          linkStatus: "failed",
+          twentyRecordId: null,
+          lastError: "Twenty rejected the designation record.",
+        },
+      ],
+    });
+
+    expect(detail.crm.failedScopes).toEqual([
+      { scope: "designation", allocationId: "alloc_1" },
+    ]);
+    expect(availabilityFor(detail, "retry_staged_gift").available).toBe(true);
+  });
+
+  it("changes revision when adjustment state changes with the same donation timestamp and count", () => {
+    const donation = donationInput({
+      updatedAt: "2026-05-21T00:00:00.000Z",
+    });
+    const adjustment = adjustmentInput({
+      id: "adj_same_count",
+      effectiveValues: { amountCents: 8_000 },
+    });
+
+    const applied = buildContributionDetail({
+      donation,
+      adjustments: [adjustment],
+    });
+    const reversed = buildContributionDetail({
+      donation,
+      adjustments: [{ ...adjustment, status: "reversed" }],
+    });
+
+    expect(applied.revision).toMatch(
+      /^2026-05-21T00:00:00\.000Z#1#[a-f0-9]{16}$/,
+    );
+    expect(reversed.revision).toMatch(
+      /^2026-05-21T00:00:00\.000Z#1#[a-f0-9]{16}$/,
+    );
+    expect(reversed.revision).not.toBe(applied.revision);
   });
 });

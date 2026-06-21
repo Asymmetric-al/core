@@ -117,9 +117,14 @@ export function evaluateReceiptDeliveryOptions(input: {
     ? null
     : `Generating updated receipt PDFs requires ${policy.pdfCapability}.`;
 
-  const deferBlockedReason = policy.allowDefer
-    ? null
-    : "Deferring the updated receipt is not allowed; this organization requires a receipt action for receipt-affecting corrections.";
+  let deferBlockedReason: string | null = null;
+  if (policy.requireDeliveryAction) {
+    deferBlockedReason =
+      "Deferring the updated receipt is not allowed; this organization requires email delivery or PDF generation for receipt-affecting corrections.";
+  } else if (!policy.allowDefer) {
+    deferBlockedReason =
+      "Deferring the updated receipt is not allowed; this organization requires a receipt action for receipt-affecting corrections.";
+  }
 
   const options: ReceiptDeliveryOption[] = [
     {

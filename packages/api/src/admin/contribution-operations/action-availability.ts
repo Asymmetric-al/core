@@ -27,6 +27,8 @@ export interface ActionAvailabilityStagedGiftInput {
 export interface BuildContributionActionAvailabilityInput {
   stagedGift: ActionAvailabilityStagedGiftInput | null;
   paymentStatus: string | null;
+  /** Unified CRM post state from parent/child links, not just staged columns. */
+  hasCrmPostFailure?: boolean;
   /** Refund context: original amount, refunded so far, provider charge. */
   refund?: {
     amountCents: number;
@@ -91,11 +93,13 @@ function approveAvailability(
 
 function retryAvailability(
   stagedGift: ActionAvailabilityStagedGiftInput,
+  hasCrmPostFailure: boolean,
 ): ContributionActionAvailability {
   const retryable =
     stagedGift.status === "failed" ||
     stagedGift.crmPostStatus === "failed" ||
-    stagedGift.crmPostStatus === "blocked";
+    stagedGift.crmPostStatus === "blocked" ||
+    hasCrmPostFailure;
 
   if (retryable) {
     return entry("retry_staged_gift", { available: true });
@@ -171,6 +175,7 @@ export function buildContributionActionAvailability(
   input: BuildContributionActionAvailabilityInput,
 ): ContributionActionAvailability[] {
   const { stagedGift, paymentStatus } = input;
+  const hasCrmPostFailure = input.hasCrmPostFailure ?? false;
   const refund = input.refund ?? {
     amountCents: 0,
     refundedAmountCents: 0,
@@ -188,7 +193,7 @@ export function buildContributionActionAvailability(
 
   return [
     approveAvailability(stagedGift),
-    retryAvailability(stagedGift),
+    retryAvailability(stagedGift, hasCrmPostFailure),
     receiptAvailability(stagedGift, paymentStatus),
     refundAvailability(paymentStatus, refund),
   ];

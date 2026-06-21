@@ -59,6 +59,49 @@ describe("admin/contribution-operations/crm-post-state", () => {
     expect(state.failedScopes).toEqual([{ scope: "parent" }]);
   });
 
+  it("uses parent link failures when the staged gift aggregate is unset or stale", () => {
+    const state = buildContributionCrmPostState({
+      stagedGiftCrmPostStatus: null,
+      stagedGiftTwentyRecordId: null,
+      links: [
+        {
+          id: "link-parent",
+          scope: "parent",
+          allocationId: null,
+          linkStatus: "failed",
+          twentyRecordId: null,
+          lastError: "Twenty rejected the parent record.",
+        },
+      ],
+      designationLineCount: 1,
+    });
+
+    expect(state.parent).toMatchObject({
+      status: "failed",
+      lastError: "Twenty rejected the parent record.",
+    });
+    expect(state.failedScopes).toEqual([{ scope: "parent" }]);
+
+    const staleAggregate = buildContributionCrmPostState({
+      stagedGiftCrmPostStatus: "posted",
+      stagedGiftTwentyRecordId: "twenty-parent",
+      links: [
+        {
+          id: "link-parent",
+          scope: "parent",
+          allocationId: null,
+          linkStatus: "failed",
+          twentyRecordId: "twenty-parent",
+          lastError: "Twenty rejected the parent record.",
+        },
+      ],
+      designationLineCount: 1,
+    });
+
+    expect(staleAggregate.parent.status).toBe("failed");
+    expect(staleAggregate.failedScopes).toEqual([{ scope: "parent" }]);
+  });
+
   it("surfaces line-specific child failures so retries target only that line", () => {
     const state = buildContributionCrmPostState({
       stagedGiftCrmPostStatus: "posted",

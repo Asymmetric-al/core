@@ -75,9 +75,14 @@ export function buildContributionCrmPostState(input: {
     input.links.find((link) => link.scope === "parent") ?? null;
   const childLinks = input.links.filter((link) => link.scope === "designation");
 
-  const parentStatus = normalizeSharedCrmPostStatus(
+  const aggregateParentStatus = normalizeSharedCrmPostStatus(
     input.stagedGiftCrmPostStatus,
   );
+  const parentLinkStatus = normalizeLinkStatus(parentLink?.linkStatus ?? null);
+  const parentStatus =
+    parentLinkStatus === "failed" || parentLinkStatus === "blocked"
+      ? parentLinkStatus
+      : (aggregateParentStatus ?? parentLinkStatus);
   const parent = {
     status: parentStatus,
     twentyRecordId:

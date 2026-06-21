@@ -135,6 +135,47 @@ describe("admin/contribution-operations/receipt-delivery", () => {
     ).toThrowError(/manage_receipts/);
   });
 
+  it("rejects defer when tenant policy requires an email or PDF action", () => {
+    const policy = resolveTenantReceiptDeliveryPolicy({
+      default_choice: "defer",
+      allow_defer: true,
+      require_delivery_action: true,
+    });
+    const donor = { email: "donor@example.com", doNotEmail: false };
+
+    const evaluated = evaluateReceiptDeliveryOptions({
+      policy,
+      donor,
+      actorCapabilities: [MANAGE_RECEIPTS],
+    });
+
+    expect(
+      evaluated.options.find((option) => option.choice === "defer"),
+    ).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/requires email delivery or pdf/i),
+    });
+    expect(evaluated.defaultChoice).toBe("pdf");
+
+    expect(() =>
+      validateReceiptDeliverySelection({
+        policy,
+        donor,
+        actorCapabilities: [MANAGE_RECEIPTS],
+        selection: { choice: "defer", deferReason: "Handle later" },
+      }),
+    ).toThrowError(/requires email delivery or PDF generation/i);
+
+    expect(() =>
+      validateReceiptDeliverySelection({
+        policy,
+        donor,
+        actorCapabilities: [MANAGE_RECEIPTS],
+        selection: { choice: "pdf" },
+      }),
+    ).not.toThrow();
+  });
+
   it("lets the approver confirm or change the requester proposal", () => {
     const proposal = { choice: "email" as const, deferReason: null };
 

@@ -73,6 +73,21 @@ describe("admin/contribution-operations/action-availability", () => {
     );
   });
 
+  it("allows retry when unified CRM post state reports link-derived failures", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+      },
+      paymentStatus: "completed",
+      hasCrmPostFailure: true,
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+  });
+
   it("blocks receipt sends for suppressed receipts and uncompleted payments", () => {
     const suppressed = buildContributionActionAvailability({
       stagedGift: {
