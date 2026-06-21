@@ -358,6 +358,13 @@ function effectiveValuesRevisionPayload(
 function buildContributionRevision(input: {
   donationUpdatedAt: string;
   adjustments: ContributionAdjustmentRecord[];
+  stagedGift: ContributionDetailInput["stagedGift"];
+  crmLinks: CrmPostLinkInput[];
+  corrections: NonNullable<ContributionDetailInput["corrections"]>;
+  correctionRequests: NonNullable<
+    ContributionDetailInput["correctionRequests"]
+  >;
+  auditEvents: NonNullable<ContributionDetailInput["auditEvents"]>;
 }): string {
   const adjustmentFingerprint = [...input.adjustments]
     .sort((left, right) => {
@@ -381,9 +388,90 @@ function buildContributionRevision(input: {
       sourceSurface: adjustment.sourceSurface,
       createdAt: adjustment.createdAt,
     }));
+  const workflowFingerprint = {
+    stagedGift: input.stagedGift
+      ? {
+          id: input.stagedGift.id,
+          status: input.stagedGift.status,
+          receiptStatus: input.stagedGift.receiptStatus,
+          crmPostStatus: input.stagedGift.crmPostStatus,
+          reviewReason: input.stagedGift.reviewReason,
+          twentyRecordId: input.stagedGift.twentyRecordId,
+        }
+      : null,
+    crmLinks: [...input.crmLinks]
+      .sort((left, right) => {
+        const scopeDiff = left.scope.localeCompare(right.scope);
+        if (scopeDiff !== 0) {
+          return scopeDiff;
+        }
+        const allocationDiff = (left.allocationId ?? "").localeCompare(
+          right.allocationId ?? "",
+        );
+        if (allocationDiff !== 0) {
+          return allocationDiff;
+        }
+        return left.id.localeCompare(right.id);
+      })
+      .map((link) => ({
+        id: link.id,
+        scope: link.scope,
+        allocationId: link.allocationId,
+        linkStatus: link.linkStatus,
+        twentyRecordId: link.twentyRecordId,
+        lastError: link.lastError,
+      })),
+    corrections: [...input.corrections]
+      .sort((left, right) => left.id.localeCompare(right.id))
+      .map((correction) => ({
+        id: correction.id,
+        correctionType: correction.correctionType,
+        status: correction.status,
+      })),
+    correctionRequests: [...input.correctionRequests]
+      .sort((left, right) => {
+        const createdAtDiff =
+          new Date(left.createdAt).getTime() -
+          new Date(right.createdAt).getTime();
+        if (createdAtDiff !== 0) {
+          return createdAtDiff;
+        }
+        return left.id.localeCompare(right.id);
+      })
+      .map((request) => ({
+        id: request.id,
+        actionType: request.actionType,
+        status: request.status,
+        reason: request.reason,
+        requestedByProfileId: request.requestedByProfileId,
+        createdAt: request.createdAt,
+      })),
+    auditEvents: [...input.auditEvents]
+      .sort((left, right) => {
+        const createdAtDiff =
+          new Date(left.createdAt).getTime() -
+          new Date(right.createdAt).getTime();
+        if (createdAtDiff !== 0) {
+          return createdAtDiff;
+        }
+        return left.id.localeCompare(right.id);
+      })
+      .map((event) => ({
+        id: event.id,
+        actionType: event.actionType,
+        sourceSurface: event.sourceSurface,
+        reason: event.reason,
+        createdAt: event.createdAt,
+      })),
+  };
 
   const adjustmentHash = createHash("sha256")
-    .update(JSON.stringify(adjustmentFingerprint))
+    .update(
+      JSON.stringify({
+        adjustments: adjustmentFingerprint,
+        workflow: workflowFingerprint,
+      }),
+    )
     .digest("hex")
     .slice(0, 16);
 
@@ -615,6 +703,11 @@ export function buildContributionDetail(
     revision: buildContributionRevision({
       donationUpdatedAt: donation.updatedAt,
       adjustments,
+      stagedGift,
+      crmLinks: input.crmLinks ?? [],
+      corrections: input.corrections ?? [],
+      correctionRequests: input.correctionRequests ?? [],
+      auditEvents: input.auditEvents ?? [],
     }),
     actionAvailability: buildContributionActionAvailability({
       stagedGift: stagedGift

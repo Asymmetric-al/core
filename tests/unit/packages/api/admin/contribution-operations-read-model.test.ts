@@ -823,4 +823,68 @@ describe("contribution operations detail read model", () => {
     );
     expect(reversed.revision).not.toBe(applied.revision);
   });
+
+  it("changes revision when staged gift workflow state changes", () => {
+    const donation = donationInput({
+      updatedAt: "2026-05-21T00:00:00.000Z",
+    });
+    const pending = buildContributionDetail({
+      donation,
+      stagedGift: {
+        id: "staged_1",
+        status: "pending_review",
+        receiptStatus: "pending",
+        crmPostStatus: "queued",
+        reviewReason: null,
+        twentyRecordId: null,
+      },
+    });
+    const posted = buildContributionDetail({
+      donation,
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+        reviewReason: null,
+        twentyRecordId: "twenty_1",
+      },
+    });
+
+    expect(posted.revision).not.toBe(pending.revision);
+  });
+
+  it("changes revision when CRM links change", () => {
+    const donation = donationInput({
+      updatedAt: "2026-05-21T00:00:00.000Z",
+    });
+    const queued = buildContributionDetail({
+      donation,
+      crmLinks: [
+        {
+          id: "link_parent",
+          scope: "parent",
+          allocationId: null,
+          linkStatus: "queued",
+          twentyRecordId: null,
+          lastError: null,
+        },
+      ],
+    });
+    const failed = buildContributionDetail({
+      donation,
+      crmLinks: [
+        {
+          id: "link_parent",
+          scope: "parent",
+          allocationId: null,
+          linkStatus: "failed",
+          twentyRecordId: null,
+          lastError: "Twenty rejected the parent record.",
+        },
+      ],
+    });
+
+    expect(failed.revision).not.toBe(queued.revision);
+  });
 });

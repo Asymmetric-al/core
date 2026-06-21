@@ -1,7 +1,9 @@
 import { isHighRiskContributionAction } from "./policy";
+import {
+  CONTRIBUTION_ACTION_TYPES,
+  type ContributionActionType,
+} from "./types";
 import { ApiHttpError } from "../../shared/http-errors";
-
-import type { ContributionActionType } from "./types";
 
 /**
  * Tenant-configurable correction approval policy (ADR-CD-005 / ADR-CD-025).
@@ -42,11 +44,14 @@ const OWNERSHIP_MODES: CorrectionApprovalOwnershipMode[] = [
   "one_approver",
   "separation_of_duties",
 ];
+const CONTRIBUTION_ACTION_TYPE_SET = new Set<string>(CONTRIBUTION_ACTION_TYPES);
 
 function normalizeActionTypes(
   values: string[] | null | undefined,
 ): ContributionActionType[] {
-  return (values ?? []).filter(Boolean) as ContributionActionType[];
+  return (values ?? []).filter((value): value is ContributionActionType =>
+    CONTRIBUTION_ACTION_TYPE_SET.has(value),
+  );
 }
 
 export function resolveCorrectionApprovalPolicy(

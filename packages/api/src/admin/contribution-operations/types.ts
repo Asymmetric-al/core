@@ -1,22 +1,25 @@
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ReceiptDeliveryOutcome } from "./receipt-delivery";
 
-export type ContributionActionType =
-  | "resend_receipt"
-  | "approve_staged_gift"
-  | "retry_staged_gift"
-  | "crm_repost"
-  | "metadata_update"
-  | "refund"
-  | "donor_relink"
-  | "amount_correction"
-  | "designation_correction"
-  | "fund_correction"
-  | "allocation_correction"
-  | "receipt_correction"
-  | "statement_correction"
-  | "payment_state_correction"
-  | "stripe_replay";
+export const CONTRIBUTION_ACTION_TYPES = [
+  "resend_receipt",
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "crm_repost",
+  "metadata_update",
+  "refund",
+  "donor_relink",
+  "amount_correction",
+  "designation_correction",
+  "fund_correction",
+  "allocation_correction",
+  "receipt_correction",
+  "statement_correction",
+  "payment_state_correction",
+  "stripe_replay",
+] as const;
+
+export type ContributionActionType = (typeof CONTRIBUTION_ACTION_TYPES)[number];
 
 export type ContributionSourceSurface =
   | "contribution_hub"

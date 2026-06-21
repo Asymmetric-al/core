@@ -56,6 +56,20 @@ describe("admin/contribution-operations/approval-policy", () => {
     ).toBe(false);
   });
 
+  it("ignores unknown configured action types", () => {
+    const policy = resolveCorrectionApprovalPolicy({
+      ownership_mode: "separation_of_duties",
+      suppressed_gates: ["not_a_real_action", "amount_correction"],
+      stronger_approval_categories: [
+        "unknown_stronger_action",
+        "fund_correction",
+      ],
+    });
+
+    expect(policy.suppressedGates).toEqual(["amount_correction"]);
+    expect(policy.strongerApprovalCategories).toEqual(["fund_correction"]);
+  });
+
   it("blocks requesters from approving their own request under separation of duties", () => {
     const policy = resolveCorrectionApprovalPolicy(null);
 
