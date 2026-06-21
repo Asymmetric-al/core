@@ -51,8 +51,12 @@ export function assertContributionPermission(
 export function assertContributionActionPermission(
   auth: AuthenticatedContext,
   actionType: ContributionActionType,
+  options: { mode?: "direct" | "request" } = {},
 ): void {
-  const requiredCapabilities = requiredCapabilitiesForAction(actionType);
+  const requiredCapabilities = requiredCapabilitiesForAction(
+    actionType,
+    options,
+  );
   const actorCapabilities = resolveContributionCapabilities(auth);
 
   if (
@@ -115,10 +119,14 @@ const INLINE_CORRECTION_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
 
 function requiredCapabilitiesForAction(
   actionType: ContributionActionType,
+  options: { mode?: "direct" | "request" },
 ): ContributionCapability[] {
   const directCapability = CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
 
-  if (INLINE_CORRECTION_REQUEST_ACTION_TYPES.has(actionType)) {
+  if (
+    options.mode === "request" &&
+    INLINE_CORRECTION_REQUEST_ACTION_TYPES.has(actionType)
+  ) {
     return [directCapability, "contributions.request_corrections"];
   }
 

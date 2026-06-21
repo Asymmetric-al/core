@@ -262,6 +262,32 @@ describe("contribution operations action executor", () => {
     );
   });
 
+  it("requires an idempotency key before direct generic corrections", async () => {
+    const applyCorrection = vi.fn();
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.apply_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "allocation_correction",
+        reason: "Split between two funds",
+        payload: { allocations: [{ fundId: "fund_2", amount: 500 }] },
+        dependencies: {
+          applyCorrection,
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/idempotency key/);
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+  });
+
   it("validates approved correction requests and applies the persisted payload", async () => {
     const validateApprovedCorrectionRequest = vi.fn().mockResolvedValue({
       payload: { amount: 1200 },
@@ -287,7 +313,6 @@ describe("contribution operations action executor", () => {
       contributionId: "donation_1",
       actionType: "amount_correction",
       reason: "Caller supplied override",
-      confirmationToken: "confirm",
       approvedRequestId: "request_1",
       payload: { amount: 9999 },
       dependencies: {
@@ -313,6 +338,8 @@ describe("contribution operations action executor", () => {
       expect.objectContaining({
         payload: { amount: 1200 },
         reason: "Approved correction request",
+        idempotencyKey:
+          "approved-correction/tenant_1/donation_1/amount_correction/request_1",
       }),
     );
   });
@@ -394,6 +421,55 @@ describe("contribution operations action executor", () => {
     ).rejects.toThrow(/use_provider_actions/);
 
     expect(validateApprovedCorrectionRequest).not.toHaveBeenCalled();
+  });
+
+  it("uses the approved request id as the idempotency key for approved provider applies", async () => {
+    const validateApprovedCorrectionRequest = vi.fn().mockResolvedValue({
+      payload: { amount: 500 },
+      reason: "Approved refund request",
+    });
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: "refund_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "approver_1",
+      actorPermissions: [],
+      actorCapabilities: [
+        "contributions.approve_corrections",
+        "contributions.run_refunds",
+      ],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      approvedRequestId: "request_refund",
+      payload: { amount: 999 },
+      dependencies: {
+        validateApprovedCorrectionRequest,
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(refundContribution).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amount: 500,
+        reason: "Approved refund request",
+        confirmationToken: "request_refund",
+        idempotencyKey:
+          "approved-contribution-action/tenant_1/donation_1/refund/request_refund",
+      }),
+    );
   });
 
   it("requires approved request validation before bypassing request creation", async () => {

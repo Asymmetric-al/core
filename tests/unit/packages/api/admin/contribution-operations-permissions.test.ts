@@ -95,7 +95,7 @@ describe("contribution operations permissions", () => {
     ).not.toThrow();
   });
 
-  it("allows donor-care staff to request inline correction actions", () => {
+  it("allows donor-care staff to request inline correction actions only in request mode", () => {
     const donorCare = authContext({
       memberships: [
         {
@@ -109,9 +109,16 @@ describe("contribution operations permissions", () => {
 
     expect(() =>
       assertContributionActionPermission(donorCare, "amount_correction"),
+    ).toThrow("contributions.apply_corrections");
+    expect(() =>
+      assertContributionActionPermission(donorCare, "amount_correction", {
+        mode: "request",
+      }),
     ).not.toThrow();
     expect(() =>
-      assertContributionActionPermission(donorCare, "fund_correction"),
+      assertContributionActionPermission(donorCare, "fund_correction", {
+        mode: "request",
+      }),
     ).not.toThrow();
     expect(() =>
       assertContributionActionPermission(donorCare, "resend_receipt"),
@@ -125,7 +132,9 @@ describe("contribution operations permissions", () => {
     const nonMember = authContext({ role: "staff", profileRole: "staff" });
 
     expect(() =>
-      assertContributionActionPermission(nonMember, "amount_correction"),
+      assertContributionActionPermission(nonMember, "amount_correction", {
+        mode: "request",
+      }),
     ).toThrow(
       "contributions.apply_corrections or contributions.request_corrections",
     );

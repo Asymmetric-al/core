@@ -54,7 +54,7 @@ function requirePositiveSafeIntegerPayload(
 function assertReasonAndConfirmation(
   input: Pick<
     ExecuteContributionActionInput,
-    "reason" | "confirmationToken" | "actionType"
+    "reason" | "confirmationToken" | "approvedRequestId" | "actionType"
   >,
   policy: ReturnType<typeof getContributionActionPolicy>,
 ) {
@@ -66,6 +66,10 @@ function assertReasonAndConfirmation(
   }
 
   if (policy.requiresConfirmation && !input.confirmationToken?.trim()) {
+    if (input.approvedRequestId?.trim()) {
+      return;
+    }
+
     throw new ApiHttpError(
       400,
       `A confirmation token is required for ${input.actionType}.`,
@@ -450,9 +454,52 @@ function providerIdempotencyKey(input: ExecuteContributionActionInput): string {
     return input.idempotencyKey;
   }
 
+  if (input.approvedRequestId?.trim()) {
+    return [
+      "approved-contribution-action",
+      input.tenantId,
+      input.contributionId,
+      input.actionType,
+      input.approvedRequestId,
+    ].join("/");
+  }
+
   if (input.confirmationToken?.trim()) {
     return [
       "contribution-action",
+      input.tenantId,
+      input.contributionId,
+      input.actionType,
+      input.confirmationToken,
+    ].join("/");
+  }
+
+  throw new ApiHttpError(
+    400,
+    `An idempotency key is required for ${input.actionType}.`,
+  );
+}
+
+function correctionIdempotencyKey(
+  input: ExecuteContributionActionInput,
+): string {
+  if (input.idempotencyKey?.trim()) {
+    return input.idempotencyKey;
+  }
+
+  if (input.approvedRequestId?.trim()) {
+    return [
+      "approved-correction",
+      input.tenantId,
+      input.contributionId,
+      input.actionType,
+      input.approvedRequestId,
+    ].join("/");
+  }
+
+  if (input.confirmationToken?.trim()) {
+    return [
+      "correction",
       input.tenantId,
       input.contributionId,
       input.actionType,
@@ -728,7 +775,8 @@ export async function executeContributionAction<TContribution = unknown>(
         contributionId: input.contributionId,
         amount,
         reason: input.reason ?? "",
-        confirmationToken: input.confirmationToken ?? "",
+        confirmationToken:
+          input.confirmationToken ?? input.approvedRequestId ?? "",
         expectedRevision: input.expectedRevision ?? null,
         idempotencyKey: providerIdempotencyKey(input),
       });
@@ -848,6 +896,7 @@ export async function executeContributionAction<TContribution = unknown>(
           input.dependencies,
           "applyCorrection",
         );
+        const idempotencyKey = correctionIdempotencyKey(input);
         const correction = await applyCorrection({
           tenantId: input.tenantId,
           contributionId: input.contributionId,
@@ -858,11 +907,7 @@ export async function executeContributionAction<TContribution = unknown>(
           sourceSurface: input.sourceSurface,
           actorCapabilities: input.actorCapabilities,
           expectedRevision: input.expectedRevision ?? null,
-          idempotencyKey:
-            input.idempotencyKey ??
-            (input.confirmationToken
-              ? `correction/${input.tenantId}/${input.contributionId}/${input.actionType}/${input.confirmationToken}`
-              : null),
+          idempotencyKey,
         });
 
         if (correction.idempotentReplay) {
