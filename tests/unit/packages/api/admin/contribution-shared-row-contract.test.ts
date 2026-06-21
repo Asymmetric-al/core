@@ -96,6 +96,7 @@ describe("admin/contribution-shared/row-contract", () => {
         id: "fund-2",
         name: "Martinez Family Support",
         missionary_id: "missionary-1",
+        missionary_name: "John Martinez",
       },
       missionary: null,
       stagedGift: null,
@@ -105,6 +106,7 @@ describe("admin/contribution-shared/row-contract", () => {
       fundId: "fund-2",
       fundName: "Martinez Family Support",
       missionaryId: "missionary-1",
+      missionaryName: "John Martinez",
     });
   });
 

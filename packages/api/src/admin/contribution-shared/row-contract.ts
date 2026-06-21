@@ -83,6 +83,7 @@ export interface BuildSharedContributionRowFieldsInput {
     id: string;
     name: string | null;
     missionary_id?: string | null;
+    missionary_name?: string | null;
   } | null;
   missionary: { id: string; display_name: string | null } | null;
   stagedGift: SharedContributionStagedGiftInput | null;
@@ -318,7 +319,10 @@ export function buildSharedContributionRowFields(
             donation.missionary_id ??
             fund?.missionary_id ??
             null,
-          missionaryName: missionary?.display_name?.trim() || null,
+          missionaryName:
+            missionary?.display_name?.trim() ||
+            fund?.missionary_name?.trim() ||
+            null,
           lineCount: 1,
         },
     paymentStatus:
