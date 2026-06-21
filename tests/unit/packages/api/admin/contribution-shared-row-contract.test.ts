@@ -110,6 +110,31 @@ describe("admin/contribution-shared/row-contract", () => {
     });
   });
 
+  it("keeps fallback missionary id and name consistent when donation and fund missionaries differ", () => {
+    const shared = buildSharedContributionRowFields({
+      donation: makeDonation({
+        fund_id: "fund-2",
+        missionary_id: "donation-missionary-123",
+      }),
+      donor: null,
+      profile: null,
+      fund: {
+        id: "fund-2",
+        name: "Martinez Family Support",
+        missionary_id: "fund-missionary-999",
+        missionary_name: "Fund Missionary Name",
+      },
+      missionary: null,
+      stagedGift: null,
+    });
+
+    // Id resolves from the donation; the name must never come from a different missionary.
+    expect(shared.designationSummary.missionaryId).toBe(
+      "donation-missionary-123",
+    );
+    expect(shared.designationSummary.missionaryName).toBeNull();
+  });
+
   it("falls back to General Fund, created_at gift date, and Anonymous donor", () => {
     const shared = buildSharedContributionRowFields({
       donation: makeDonation({

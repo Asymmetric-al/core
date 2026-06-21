@@ -294,6 +294,38 @@ export function deriveSharedDonorName(
   return "Anonymous";
 }
 
+/**
+ * Lightweight designation summary used when no allocation lines are loaded. Resolves a
+ * single missionary id first, then takes the name from whichever source supplied that id,
+ * so the displayed missionary id and name can never disagree (mirrors `designation-set.ts`).
+ */
+function buildFallbackDesignationSummary(input: {
+  donation: Pick<SharedContributionDonationInput, "fund_id" | "missionary_id">;
+  fund: BuildSharedContributionRowFieldsInput["fund"];
+  missionary: BuildSharedContributionRowFieldsInput["missionary"];
+}): SharedContributionDesignationSummary {
+  const { donation, fund, missionary } = input;
+  const missionaryId =
+    missionary?.id ?? donation.missionary_id ?? fund?.missionary_id ?? null;
+
+  let missionaryName: string | null = null;
+  if (missionaryId !== null) {
+    if (missionary?.id === missionaryId) {
+      missionaryName = missionary.display_name?.trim() || null;
+    } else if (fund?.missionary_id === missionaryId) {
+      missionaryName = fund.missionary_name?.trim() || null;
+    }
+  }
+
+  return {
+    fundId: fund?.id ?? donation.fund_id,
+    fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
+    missionaryId,
+    missionaryName,
+    lineCount: 1,
+  };
+}
+
 export function buildSharedContributionRowFields(
   input: BuildSharedContributionRowFieldsInput,
 ): SharedContributionRowFields {
@@ -309,22 +341,7 @@ export function buildSharedContributionRowFields(
     donorName: deriveSharedDonorName(donor, profile),
     designationSummary: input.designationSet
       ? summarizeContributionDesignationSet(input.designationSet)
-      : {
-          fundId: fund?.id ?? donation.fund_id,
-          fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
-          // Mirror designation-set: a missionary fund carries its missionary, so fall
-          // back to it when neither the missionary input nor the donation supplies one.
-          missionaryId:
-            missionary?.id ??
-            donation.missionary_id ??
-            fund?.missionary_id ??
-            null,
-          missionaryName:
-            missionary?.display_name?.trim() ||
-            fund?.missionary_name?.trim() ||
-            null,
-          lineCount: 1,
-        },
+      : buildFallbackDesignationSummary({ donation, fund, missionary }),
     paymentStatus:
       refundState === "refunded"
         ? "refunded"
