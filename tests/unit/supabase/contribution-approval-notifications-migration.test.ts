@@ -37,6 +37,20 @@ describe("contribution approval notification migration", () => {
     );
   });
 
+  it("constrains correction request task links", () => {
+    for (const constraintName of [
+      "contribution_correction_requests_approval_task_id_fkey",
+      "contribution_correction_requests_follow_up_task_id_fkey",
+    ]) {
+      expect(migrationSql).toContain(`ADD CONSTRAINT ${constraintName}`);
+    }
+
+    expect(migrationSql).toContain(
+      "REFERENCES public.mission_control_tasks(id)",
+    );
+    expect(migrationSql).toContain("ON DELETE SET NULL");
+  });
+
   it("locks approval notification tables to service role access", () => {
     expect(migrationSql).toContain(
       "ALTER TABLE public.contribution_approval_notification_settings ENABLE ROW LEVEL SECURITY",
@@ -54,6 +68,7 @@ describe("contribution approval notification migration", () => {
 
   it("enforces tenant ownership for approval notification references", () => {
     for (const triggerName of [
+      "enforce_contribution_correction_requests_tenant_refs",
       "enforce_contribution_approval_settings_tenant_refs",
       "enforce_contribution_approval_preferences_tenant_refs",
       "enforce_contribution_approval_notifications_tenant_refs",
@@ -63,7 +78,9 @@ describe("contribution approval notification migration", () => {
 
     for (const referencedTable of [
       "public.profiles",
+      "public.contribution_adjustments",
       "public.contribution_correction_requests",
+      "public.mission_control_tasks",
     ]) {
       expect(migrationSql).toContain(`FROM ${referencedTable}`);
     }
@@ -72,7 +89,13 @@ describe("contribution approval notification migration", () => {
       "contribution operation profile tenant mismatch",
       "contribution operation recipient profile tenant mismatch",
       "contribution operation updater profile tenant mismatch",
+      "contribution operation requester profile tenant mismatch",
+      "contribution operation decider profile tenant mismatch",
+      "contribution operation applied adjustment tenant mismatch",
+      "contribution operation applied adjustment donation mismatch",
       "contribution operation correction request tenant mismatch",
+      "contribution operation approval task tenant mismatch",
+      "contribution operation follow-up task tenant mismatch",
     ]) {
       expect(migrationSql).toContain(mismatchMessage);
     }

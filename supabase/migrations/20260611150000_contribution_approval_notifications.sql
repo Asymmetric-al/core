@@ -41,6 +41,30 @@ CREATE TABLE IF NOT EXISTS public.contribution_approval_notifications (
 CREATE INDEX IF NOT EXISTS idx_contribution_approval_notifications_request
     ON public.contribution_approval_notifications (tenant_id, correction_request_id, created_at DESC);
 
+DO $$
+BEGIN
+    ALTER TABLE public.contribution_correction_requests
+        ADD CONSTRAINT contribution_correction_requests_approval_task_id_fkey
+        FOREIGN KEY (approval_task_id)
+        REFERENCES public.mission_control_tasks(id)
+        ON DELETE SET NULL;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END;
+$$;
+
+DO $$
+BEGIN
+    ALTER TABLE public.contribution_correction_requests
+        ADD CONSTRAINT contribution_correction_requests_follow_up_task_id_fkey
+        FOREIGN KEY (follow_up_task_id)
+        REFERENCES public.mission_control_tasks(id)
+        ON DELETE SET NULL;
+EXCEPTION
+    WHEN duplicate_object THEN NULL;
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.enforce_contribution_operation_tenant_refs()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -98,6 +122,38 @@ BEGIN
 
         IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
             RAISE EXCEPTION 'contribution operation updater profile tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'requested_by_profile_id'
+        AND (row_data ->> 'requested_by_profile_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'requested_by_profile_id')::uuid;
+        SELECT p.tenant_id
+        INTO ref_tenant_id
+        FROM public.profiles AS p
+        WHERE p.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation requester profile tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'decided_by_profile_id'
+        AND (row_data ->> 'decided_by_profile_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'decided_by_profile_id')::uuid;
+        SELECT p.tenant_id
+        INTO ref_tenant_id
+        FROM public.profiles AS p
+        WHERE p.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation decider profile tenant mismatch'
                 USING ERRCODE = '23514';
         END IF;
     END IF;
@@ -175,6 +231,32 @@ BEGIN
     END IF;
 
     IF
+        row_data ? 'applied_adjustment_id'
+        AND (row_data ->> 'applied_adjustment_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'applied_adjustment_id')::uuid;
+        SELECT ca.tenant_id, ca.donation_id
+        INTO ref_tenant_id, ref_donation_id
+        FROM public.contribution_adjustments AS ca
+        WHERE ca.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation applied adjustment tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation applied adjustment donation mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
         row_data ? 'correction_request_id'
         AND (row_data ->> 'correction_request_id') IS NOT NULL
     THEN
@@ -186,6 +268,38 @@ BEGIN
 
         IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
             RAISE EXCEPTION 'contribution operation correction request tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'approval_task_id'
+        AND (row_data ->> 'approval_task_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'approval_task_id')::uuid;
+        SELECT mct.tenant_id
+        INTO ref_tenant_id
+        FROM public.mission_control_tasks AS mct
+        WHERE mct.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation approval task tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'follow_up_task_id'
+        AND (row_data ->> 'follow_up_task_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'follow_up_task_id')::uuid;
+        SELECT mct.tenant_id
+        INTO ref_tenant_id
+        FROM public.mission_control_tasks AS mct
+        WHERE mct.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation follow-up task tenant mismatch'
                 USING ERRCODE = '23514';
         END IF;
     END IF;
@@ -229,6 +343,22 @@ BEGIN
     RETURN NEW;
 END;
 $function$;
+
+DROP TRIGGER IF EXISTS enforce_contribution_correction_requests_tenant_refs
+    ON public.contribution_correction_requests;
+
+CREATE TRIGGER enforce_contribution_correction_requests_tenant_refs
+    BEFORE INSERT OR UPDATE OF
+        tenant_id,
+        donation_id,
+        requested_by_profile_id,
+        decided_by_profile_id,
+        applied_adjustment_id,
+        approval_task_id,
+        follow_up_task_id
+    ON public.contribution_correction_requests
+    FOR EACH ROW
+    EXECUTE FUNCTION public.enforce_contribution_operation_tenant_refs();
 
 DROP TRIGGER IF EXISTS enforce_contribution_approval_settings_tenant_refs
     ON public.contribution_approval_notification_settings;
