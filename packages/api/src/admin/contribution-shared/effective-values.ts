@@ -130,4 +130,3 @@ export function deriveEffectiveContribution(input: {
     materiallyDiffers: changedFields.length > 0,
   };
 }
-

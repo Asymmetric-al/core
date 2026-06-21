@@ -221,4 +221,3 @@ export function summarizeContributionDesignationSet(
     lineCount: set.lines.length,
   };
 }
-

@@ -256,4 +256,3 @@ describe("admin/contribution-shared/designation-set", () => {
     });
   });
 });
-
