@@ -1,6 +1,10 @@
-import { loadContributionCorrectionRequest } from "./correction-requests";
+import {
+  loadContributionCorrectionRequest,
+  loadCorrectionApprovalPolicy,
+} from "./correction-requests";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
+import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionCorrectionRequest } from "./correction-requests";
 import type { ContributionOperationAuditEventInput } from "./types";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -8,6 +12,10 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 type SupabaseAdmin = AdminSupabaseClient;
 
 type JsonRecord = Record<string, unknown>;
+type EligibleApprover = {
+  profileId: string;
+  preference: ApproverNotificationPreference;
+};
 
 function isRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
@@ -194,9 +202,7 @@ async function loadApprovalNotificationSettings(
 async function listEligibleApprovers(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
-): Promise<
-  Array<{ profileId: string; preference: ApproverNotificationPreference }>
-> {
+): Promise<EligibleApprover[]> {
   const [approversResult, preferencesResult] = await Promise.all([
     supabaseAdmin
       .from("profiles")
@@ -234,6 +240,23 @@ async function listEligibleApprovers(
         preferencesByProfile.get(profileId) ??
         resolveApproverNotificationPreference(null),
     }));
+}
+
+function filterEligibleApproversForRequest(input: {
+  eligibleApprovers: EligibleApprover[];
+  requestedByProfileId: string | null;
+  ownershipMode: CorrectionApprovalPolicy["ownershipMode"];
+}): EligibleApprover[] {
+  if (
+    input.ownershipMode !== "separation_of_duties" ||
+    !input.requestedByProfileId
+  ) {
+    return input.eligibleApprovers;
+  }
+
+  return input.eligibleApprovers.filter(
+    (approver) => approver.profileId !== input.requestedByProfileId,
+  );
 }
 
 async function insertApprovalNotifications(
@@ -346,14 +369,16 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     };
   }
 
-  const settings = await loadApprovalNotificationSettings(
-    input.supabaseAdmin,
-    input.tenantId,
-  );
-  const eligibleApprovers = await listEligibleApprovers(
-    input.supabaseAdmin,
-    input.tenantId,
-  );
+  const [settings, policy, allEligibleApprovers] = await Promise.all([
+    loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
+    loadCorrectionApprovalPolicy(input),
+    listEligibleApprovers(input.supabaseAdmin, input.tenantId),
+  ]);
+  const eligibleApprovers = filterEligibleApproversForRequest({
+    eligibleApprovers: allEligibleApprovers,
+    requestedByProfileId: request.requestedByProfileId,
+    ownershipMode: policy.ownershipMode,
+  });
 
   const plan = planApprovalNotifications({
     requestId: request.id,
@@ -513,7 +538,7 @@ export async function processCorrectionApprovalSla(input: {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_correction_requests")
     .select(
-      "id, donation_id, action_type, source_surface, status, created_at, last_reminder_at, escalated_at",
+      "id, donation_id, action_type, source_surface, status, requested_by_profile_id, created_at, last_reminder_at, escalated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("status", "pending");
@@ -522,14 +547,11 @@ export async function processCorrectionApprovalSla(input: {
     throw new Error(error.message);
   }
 
-  const settings = await loadApprovalNotificationSettings(
-    input.supabaseAdmin,
-    input.tenantId,
-  );
-  const eligibleApprovers = await listEligibleApprovers(
-    input.supabaseAdmin,
-    input.tenantId,
-  );
+  const [settings, policy, allEligibleApprovers] = await Promise.all([
+    loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
+    loadCorrectionApprovalPolicy(input),
+    listEligibleApprovers(input.supabaseAdmin, input.tenantId),
+  ]);
 
   let remindersSent = 0;
   let escalationsSent = 0;
@@ -550,6 +572,11 @@ export async function processCorrectionApprovalSla(input: {
       });
 
       if (sla.reminderDue) {
+        const eligibleApprovers = filterEligibleApproversForRequest({
+          eligibleApprovers: allEligibleApprovers,
+          requestedByProfileId: asString(row.requested_by_profile_id),
+          ownershipMode: policy.ownershipMode,
+        });
         const reminderRound = Math.floor(
           (new Date(now).getTime() - new Date(createdAt).getTime()) /
             (input.policy.reminderHours * 60 * 60 * 1000),
@@ -582,6 +609,11 @@ export async function processCorrectionApprovalSla(input: {
       }
 
       if (sla.escalationDue) {
+        const eligibleApprovers = filterEligibleApproversForRequest({
+          eligibleApprovers: allEligibleApprovers,
+          requestedByProfileId: asString(row.requested_by_profile_id),
+          ownershipMode: policy.ownershipMode,
+        });
         const plan = planApprovalNotifications({
           requestId,
           settings,

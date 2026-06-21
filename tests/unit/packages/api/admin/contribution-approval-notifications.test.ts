@@ -20,6 +20,7 @@ interface StubState {
   requests: Array<Record<string, unknown>>;
   failingRequestUpdateIds: Set<string>;
   lostApprovalTaskUpdateTo: string | null;
+  approvalPolicy: Record<string, unknown> | null;
   approvalSettings: Record<string, unknown> | null;
   approvers: Array<Record<string, unknown>>;
   preferences: Array<Record<string, unknown>>;
@@ -68,6 +69,7 @@ function stubState(): StubState {
     requests: [request],
     failingRequestUpdateIds: new Set(),
     lostApprovalTaskUpdateTo: null,
+    approvalPolicy: null,
     approvalSettings: null,
     approvers: [{ id: "approver-1" }, { id: "approver-2" }],
     preferences: [],
@@ -205,6 +207,10 @@ class QueryBuilder {
 
     if (this.table === "contribution_approval_notification_settings") {
       return { data: this.state.approvalSettings, error: null };
+    }
+
+    if (this.table === "contribution_approval_policies") {
+      return { data: this.state.approvalPolicy, error: null };
     }
 
     if (this.table === "profiles") {
@@ -581,6 +587,62 @@ describe("admin/contribution-operations/approval-notifications", () => {
     });
   });
 
+  it("does not notify the requester as an approver under separation of duties", async () => {
+    const state = stubState();
+    state.approvers = [{ id: "requester-1" }, { id: "approver-1" }];
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    const outcome = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+    });
+
+    expect(outcome).toEqual({
+      approvalTaskId: "task-1",
+      notificationsCreated: 1,
+    });
+    expect(state.approvalNotifications).toEqual([
+      expect.objectContaining({
+        recipient_profile_id: "approver-1",
+        channel: "in_app",
+        kind: "approval_requested",
+      }),
+    ]);
+  });
+
+  it("allows requester notifications when the ownership policy permits one approver", async () => {
+    const state = stubState();
+    state.approvers = [{ id: "requester-1" }];
+    state.approvalPolicy = {
+      ownership_mode: "one_approver",
+    };
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    const outcome = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+    });
+
+    expect(outcome.notificationsCreated).toBe(1);
+    expect(state.approvalNotifications).toEqual([
+      expect.objectContaining({
+        recipient_profile_id: "requester-1",
+        channel: "in_app",
+        kind: "approval_requested",
+      }),
+    ]);
+  });
+
   it("uses the persisted approval task when a concurrent caller wins the link update", async () => {
     const state = stubState();
     state.lostApprovalTaskUpdateTo = "task-winner";
@@ -708,6 +770,35 @@ describe("admin/contribution-operations/approval-notifications", () => {
     expect(
       state.approvalNotifications.map((notification) => notification.kind),
     ).toEqual(["reminder", "reminder", "escalation", "escalation"]);
+  });
+
+  it("excludes the requester from SLA reminder and escalation notifications", async () => {
+    const state = stubState();
+    state.approvers = [{ id: "requester-1" }, { id: "approver-1" }];
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    const outcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-04T01:00:00.000Z",
+    });
+
+    expect(outcome).toEqual({ remindersSent: 1, escalationsSent: 1 });
+    expect(state.approvalNotifications).toEqual([
+      expect.objectContaining({
+        recipient_profile_id: "approver-1",
+        kind: "reminder",
+      }),
+      expect.objectContaining({
+        recipient_profile_id: "approver-1",
+        kind: "escalation",
+      }),
+    ]);
   });
 
   it("marks reminder and escalation handled even when no notifications are deliverable", async () => {
