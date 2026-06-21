@@ -365,6 +365,22 @@ describe("admin/contribution-operations/approval-notifications", () => {
     expect(replay.createTask).toBe(false);
   });
 
+  it("does not plan an approval task when no approver is eligible", () => {
+    const settings = resolveApprovalNotificationSettings(null);
+
+    const plan = planApprovalNotifications({
+      requestId: "request-1",
+      settings,
+      eligibleApprovers: [],
+      existingTaskId: null,
+    });
+
+    expect(plan).toEqual({
+      createTask: false,
+      notifications: [],
+    });
+  });
+
   it("delivers per preferences without letting preferences widen who is notified", () => {
     const settings = resolveApprovalNotificationSettings({
       create_approval_task: true,
@@ -613,6 +629,31 @@ describe("admin/contribution-operations/approval-notifications", () => {
         kind: "approval_requested",
       }),
     ]);
+  });
+
+  it("does not create an approval task when requester filtering leaves no approvers", async () => {
+    const state = stubState();
+    state.approvers = [{ id: "requester-1" }];
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    const outcome = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+    });
+
+    expect(outcome).toEqual({
+      approvalTaskId: null,
+      notificationsCreated: 0,
+    });
+    expect(state.request.approval_task_id).toBeNull();
+    expect(state.tasks).toHaveLength(0);
+    expect(state.approvalNotifications).toHaveLength(0);
+    expect(state.auditEvents).toHaveLength(0);
   });
 
   it("allows requester notifications when the ownership policy permits one approver", async () => {

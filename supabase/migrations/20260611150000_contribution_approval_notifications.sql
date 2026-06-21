@@ -41,6 +41,34 @@ CREATE TABLE IF NOT EXISTS public.contribution_approval_notifications (
 CREATE INDEX IF NOT EXISTS idx_contribution_approval_notifications_request
     ON public.contribution_approval_notifications (tenant_id, correction_request_id, created_at DESC);
 
+UPDATE public.contribution_correction_requests AS cr
+SET
+    approval_task_id = NULL,
+    updated_at = NOW()
+WHERE
+    cr.approval_task_id IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1
+        FROM public.mission_control_tasks AS mct
+        WHERE
+            mct.id = cr.approval_task_id
+            AND mct.tenant_id = cr.tenant_id
+    );
+
+UPDATE public.contribution_correction_requests AS cr
+SET
+    follow_up_task_id = NULL,
+    updated_at = NOW()
+WHERE
+    cr.follow_up_task_id IS NOT NULL
+    AND NOT EXISTS (
+        SELECT 1
+        FROM public.mission_control_tasks AS mct
+        WHERE
+            mct.id = cr.follow_up_task_id
+            AND mct.tenant_id = cr.tenant_id
+    );
+
 DO $$
 BEGIN
     ALTER TABLE public.contribution_correction_requests

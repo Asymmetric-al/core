@@ -82,9 +82,9 @@ export interface PlannedApprovalNotification {
 }
 
 /**
- * Plans approval-request delivery for eligible approvers only. Preference
- * rows for anyone outside `eligibleApprovers` are ignored by construction,
- * so notification preferences cannot widen who may approve.
+ * Plans approval-request delivery for eligible approvers only. Task creation
+ * also requires at least one eligible approver, otherwise a queue-only task
+ * could be created that no one is allowed to complete.
  */
 export function planApprovalNotifications(input: {
   requestId: string;
@@ -127,6 +127,7 @@ export function planApprovalNotifications(input: {
     createTask:
       kind === "approval_requested" &&
       input.settings.createApprovalTask &&
+      input.eligibleApprovers.length > 0 &&
       !input.existingTaskId,
     notifications,
   };

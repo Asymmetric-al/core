@@ -38,6 +38,13 @@ describe("contribution approval notification migration", () => {
   });
 
   it("constrains correction request task links", () => {
+    expect(migrationSql).toContain(
+      "UPDATE public.contribution_correction_requests AS cr",
+    );
+    expect(migrationSql).toContain("cr.approval_task_id IS NOT NULL");
+    expect(migrationSql).toContain("cr.follow_up_task_id IS NOT NULL");
+    expect(migrationSql).toContain("mct.tenant_id = cr.tenant_id");
+
     for (const constraintName of [
       "contribution_correction_requests_approval_task_id_fkey",
       "contribution_correction_requests_follow_up_task_id_fkey",
