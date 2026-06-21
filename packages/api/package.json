@@ -32,6 +32,8 @@
     "./admin/users": "./src/admin/users.ts",
     "./admin/contribution-shared": "./src/admin/contribution-shared/index.ts",
     "./admin/contribution-operations": "./src/admin/contribution-operations/index.ts",
+    "./admin/contribution-batches": "./src/admin/contribution-batches/index.ts",
+    "./admin/contribution-batches/route": "./src/admin/contribution-batches/route.ts",
     "./admin/mission-control-tasks": "./src/admin/mission-control-tasks/index.ts",
     "./admin/contributions": "./src/admin/contributions/index.ts",
     "./admin/contributions/reconcile": "./src/admin/contributions/reconcile.ts",
