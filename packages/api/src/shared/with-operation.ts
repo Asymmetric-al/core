@@ -18,12 +18,17 @@ type AdminSupabaseClient = Exclude<
   null
 >;
 
+export interface OperationRouteContext {
+  params?: Promise<Record<string, string | string[] | undefined>>;
+}
+
 export interface OperationContext {
   supabaseAdmin: AdminSupabaseClient;
   auth: AuthenticatedContext;
   audit: ReturnType<typeof createAuditLogger>;
   request: NextRequest;
   requestId: string;
+  routeContext?: OperationRouteContext;
 }
 
 export interface OperationOptions {
@@ -107,8 +112,14 @@ async function normalizeHandlerErrorResponse(
 export function withOperation(
   handler: (ctx: OperationContext) => Promise<NextResponse>,
   options?: OperationOptions,
-): (request: NextRequest) => Promise<NextResponse> {
-  return async function operationHandler(request: NextRequest) {
+): (
+  request: NextRequest,
+  routeContext?: OperationRouteContext,
+) => Promise<NextResponse> {
+  return async function operationHandler(
+    request: NextRequest,
+    routeContext?: OperationRouteContext,
+  ) {
     const requestId = crypto.randomUUID();
 
     try {
@@ -142,6 +153,7 @@ export function withOperation(
         audit,
         request,
         requestId,
+        routeContext,
       });
 
       return normalizeHandlerErrorResponse(response, requestId);
