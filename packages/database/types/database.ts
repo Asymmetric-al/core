@@ -405,6 +405,44 @@ export interface ContributionAdjustment {
   created_at: string;
 }
 
+export interface ContributionApprovalPolicy {
+  tenant_id: string;
+  ownership_mode:
+    | "no_approval_required"
+    | "one_approver"
+    | "separation_of_duties";
+  suppressed_gates: string[];
+  stronger_approval_categories: string[];
+  reminder_hours: number;
+  escalation_hours: number | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionCorrectionRequest {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  action_type: string;
+  payload: Record<string, unknown>;
+  reason: string;
+  requested_by_profile_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  status: "pending" | "approved" | "rejected" | "superseded";
+  expected_revision: string | null;
+  idempotency_key: string | null;
+  receipt_delivery_proposal: Record<string, unknown>;
+  decided_by_profile_id: string | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  applied_adjustment_id: string | null;
+  approval_task_id: string | null;
+  follow_up_task_id: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export type ContributionNotificationMode =
   | "auto_notify"
   | "always_ask"

@@ -80,7 +80,9 @@ export type {
 } from "./crm-reports";
 export type {
   ContributionAdjustment,
+  ContributionApprovalPolicy,
   ContributionCorrection,
+  ContributionCorrectionRequest,
   ContributionCorrectionType,
   ContributionCorrectionStatus,
   ContributionNotificationDecision,

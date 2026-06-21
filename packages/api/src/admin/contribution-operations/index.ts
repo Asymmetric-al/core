@@ -18,6 +18,14 @@ export {
   type CrmPostFailedScope,
   type CrmPostLinkInput,
 } from "./crm-post-state";
+export {
+  createContributionCorrectionRequestInSupabase,
+  decideContributionCorrectionRequest,
+  loadContributionCorrectionRequest,
+  loadCorrectionApprovalPolicy,
+  type ContributionCorrectionRequest,
+  type CorrectionRequestStatus,
+} from "./correction-requests";
 export { buildContributionDetail } from "./detail-read-model";
 export {
   buildInlineContributionActions,
