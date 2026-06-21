@@ -230,4 +230,30 @@ describe("admin/contribution-shared/designation-set", () => {
       lineCount: 2,
     });
   });
+
+  it("derives missionary identity from a missionary fund when the allocation omits it", () => {
+    const set = buildContributionDesignationSet({
+      donation,
+      effectiveAmountCents: 30_000,
+      allocations: [
+        {
+          id: "alloc-1",
+          amount: 30_000,
+          fund_id: "fund-2",
+          missionary_id: null,
+          memo: null,
+        },
+      ],
+      funds,
+      missionaries,
+    });
+
+    expect(set.lines[0]).toMatchObject({
+      fundId: "fund-2",
+      fundType: "missionary",
+      missionaryId: "missionary-1",
+      missionaryName: "John Martinez",
+    });
+  });
 });
+

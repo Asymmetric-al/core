@@ -61,7 +61,10 @@ export function mapContributionAdjustmentRow(
     id: typeof row.id === "string" ? row.id : "",
     adjustmentType:
       typeof row.adjustment_type === "string" ? row.adjustment_type : "unknown",
-    status: row.status === "reversed" ? "reversed" : "applied",
+    // Fail closed: only an explicit "applied" status affects effective values. The DB
+    // CHECK constrains status to ('applied','reversed'); treating any unexpected value as
+    // not-applied means an unapproved/unknown row can never change displayed financial truth.
+    status: row.status === "applied" ? "applied" : "reversed",
     effectiveValues:
       typeof row.effective_values === "object" && row.effective_values !== null
         ? (row.effective_values as ContributionAdjustmentEffectiveValues)
@@ -127,3 +130,4 @@ export function deriveEffectiveContribution(input: {
     materiallyDiffers: changedFields.length > 0,
   };
 }
+

@@ -133,14 +133,20 @@ export function buildContributionDesignationSet(
         );
       }
 
+      // Preserve missionary identity: prefer the allocation's own missionary, but a
+      // missionary fund already carries its missionary relationship, so fall back to it
+      // when the allocation leaves missionary_id null.
+      const missionaryId =
+        allocation.missionary_id ?? fund?.missionary_id ?? null;
+
       return buildLine({
         id: allocation.id,
         amountCents: allocation.amount,
         currencyCode,
         fund,
         fundId: allocation.fund_id,
-        missionaryId: allocation.missionary_id,
-        missionaryName: resolveMissionaryName(allocation.missionary_id),
+        missionaryId,
+        missionaryName: resolveMissionaryName(missionaryId),
         memo: allocation.memo,
         issues,
       });
@@ -150,6 +156,9 @@ export function buildContributionDesignationSet(
       ? (input.funds.get(input.donation.fund_id) ?? null)
       : null;
 
+    const missionaryId =
+      input.donation.missionary_id ?? fund?.missionary_id ?? null;
+
     lines = [
       buildLine({
         id: `donation:${input.donation.id}`,
@@ -157,8 +166,8 @@ export function buildContributionDesignationSet(
         currencyCode,
         fund,
         fundId: input.donation.fund_id,
-        missionaryId: input.donation.missionary_id,
-        missionaryName: resolveMissionaryName(input.donation.missionary_id),
+        missionaryId,
+        missionaryName: resolveMissionaryName(missionaryId),
         memo: null,
         issues,
       }),
@@ -212,3 +221,4 @@ export function summarizeContributionDesignationSet(
     lineCount: set.lines.length,
   };
 }
+
