@@ -42,6 +42,34 @@ describe("DataTableRowActions", () => {
     ).toBeTruthy();
   });
 
+  it("falls back to the default label when getAriaLabel returns whitespace", () => {
+    render(
+      <DataTableRowActions
+        row={mockRow}
+        actions={actions}
+        getAriaLabel={() => "   "}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Open row actions" }),
+    ).toBeTruthy();
+  });
+
+  it("falls back to the default label when getAriaLabel returns an empty string", () => {
+    render(
+      <DataTableRowActions
+        row={mockRow}
+        actions={actions}
+        getAriaLabel={() => ""}
+      />,
+    );
+
+    expect(
+      screen.getByRole("button", { name: "Open row actions" }),
+    ).toBeTruthy();
+  });
+
   it("marks the decorative menu icon as aria-hidden", () => {
     const { container } = render(
       <DataTableRowActions row={mockRow} actions={actions} />,
