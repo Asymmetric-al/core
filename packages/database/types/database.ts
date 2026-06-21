@@ -301,6 +301,23 @@ export type ContributionOperationSourceSurface =
   | "bulk_action"
   | "api";
 
+export type ContributionCorrectionType =
+  | "resend_receipt"
+  | "approve_staged_gift"
+  | "retry_staged_gift"
+  | "crm_repost"
+  | "metadata_update"
+  | "refund"
+  | "donor_relink"
+  | "amount_correction"
+  | "designation_correction"
+  | "fund_correction"
+  | "allocation_correction"
+  | "receipt_correction"
+  | "statement_correction"
+  | "payment_state_correction"
+  | "stripe_replay";
+
 export type ContributionCorrectionStatus =
   | "pending"
   | "applied"
@@ -330,7 +347,7 @@ export interface ContributionCorrection {
   tenant_id: string;
   donation_id: string;
   staged_gift_id: string | null;
-  correction_type: string;
+  correction_type: ContributionCorrectionType;
   status: ContributionCorrectionStatus;
   reason: string;
   source_surface: ContributionOperationSourceSurface;
