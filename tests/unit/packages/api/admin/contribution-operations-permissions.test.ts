@@ -95,6 +95,42 @@ describe("contribution operations permissions", () => {
     ).not.toThrow();
   });
 
+  it("allows donor-care staff to request inline correction actions", () => {
+    const donorCare = authContext({
+      memberships: [
+        {
+          tenantId: "tenant_1",
+          role: "staff",
+          staffRole: "development",
+          isActive: true,
+        },
+      ],
+    });
+
+    expect(() =>
+      assertContributionActionPermission(donorCare, "amount_correction"),
+    ).not.toThrow();
+    expect(() =>
+      assertContributionActionPermission(donorCare, "fund_correction"),
+    ).not.toThrow();
+    expect(() =>
+      assertContributionActionPermission(donorCare, "resend_receipt"),
+    ).toThrow("contributions.manage_receipts");
+    expect(() =>
+      assertContributionActionPermission(donorCare, "donor_relink"),
+    ).toThrow("contributions.apply_corrections");
+  });
+
+  it("still blocks correction request actions without tenant staff membership", () => {
+    const nonMember = authContext({ role: "staff", profileRole: "staff" });
+
+    expect(() =>
+      assertContributionActionPermission(nonMember, "amount_correction"),
+    ).toThrow(
+      "contributions.apply_corrections or contributions.request_corrections",
+    );
+  });
+
   it("resolves granular capabilities backing staff-friendly roles", () => {
     const donorCare = resolveContributionCapabilities(
       authContext({

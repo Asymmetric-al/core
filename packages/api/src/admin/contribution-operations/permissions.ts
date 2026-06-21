@@ -52,15 +52,21 @@ export function assertContributionActionPermission(
   auth: AuthenticatedContext,
   actionType: ContributionActionType,
 ): void {
-  const requiredCapability =
-    CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
-  const capabilities = resolveContributionCapabilities(auth);
+  const requiredCapabilities = requiredCapabilitiesForAction(actionType);
+  const actorCapabilities = resolveContributionCapabilities(auth);
 
-  if (capabilities.includes(requiredCapability)) {
+  if (
+    requiredCapabilities.some((capability) =>
+      actorCapabilities.includes(capability),
+    )
+  ) {
     return;
   }
 
-  throw new ApiHttpError(403, `Forbidden: requires ${requiredCapability}`);
+  throw new ApiHttpError(
+    403,
+    `Forbidden: requires ${formatRequiredCapabilities(requiredCapabilities)}`,
+  );
 }
 
 /**
@@ -101,6 +107,29 @@ const CONTRIBUTION_ACTION_REQUIRED_CAPABILITY: Record<
   statement_correction: "contributions.apply_corrections",
   payment_state_correction: "contributions.apply_corrections",
 };
+
+const INLINE_CORRECTION_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
+  "amount_correction",
+  "fund_correction",
+]);
+
+function requiredCapabilitiesForAction(
+  actionType: ContributionActionType,
+): ContributionCapability[] {
+  const directCapability = CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+
+  if (INLINE_CORRECTION_REQUEST_ACTION_TYPES.has(actionType)) {
+    return [directCapability, "contributions.request_corrections"];
+  }
+
+  return [directCapability];
+}
+
+function formatRequiredCapabilities(
+  capabilities: ContributionCapability[],
+): string {
+  return capabilities.join(" or ");
+}
 
 const DONOR_CARE_CAPABILITIES: ContributionCapability[] = [
   "contributions.view_detail",
