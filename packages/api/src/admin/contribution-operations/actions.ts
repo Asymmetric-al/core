@@ -75,6 +75,7 @@ function assertReasonAndConfirmation(
 
 const LEGACY_MANAGE_PERMISSION = "finance:manage_contributions" as const;
 const REQUEST_CORRECTION_CAPABILITY = "contributions.request_corrections";
+const APPROVE_CORRECTION_CAPABILITY = "contributions.approve_corrections";
 
 /**
  * Granular capability required to execute an action immediately. Approval
@@ -111,6 +112,25 @@ function hasActorCapability(
   return (input.actorCapabilities ?? []).includes(capability);
 }
 
+function legacyManageCoversDirectAction(
+  actionType: ContributionActionType,
+): boolean {
+  return actionType !== "refund" && actionType !== "stripe_replay";
+}
+
+function hasLegacyDirectActionPermission(
+  input: Pick<
+    ExecuteContributionActionInput,
+    "actorPermissions" | "actionType" | "approvedRequestId"
+  >,
+): boolean {
+  return (
+    !input.approvedRequestId &&
+    legacyManageCoversDirectAction(input.actionType) &&
+    hasLegacyManagePermission(input)
+  );
+}
+
 function isApprovalRequestAction(actionType: ContributionActionType): boolean {
   return (
     actionType === "refund" ||
@@ -122,12 +142,26 @@ function isApprovalRequestAction(actionType: ContributionActionType): boolean {
 function assertActorPermissions(
   input: Pick<
     ExecuteContributionActionInput,
-    "actorPermissions" | "actorCapabilities" | "actionType"
+    | "actorPermissions"
+    | "actorCapabilities"
+    | "actionType"
+    | "approvedRequestId"
   >,
   policy: ReturnType<typeof getContributionActionPolicy>,
   options: { requiresApproval: boolean },
 ) {
-  if (hasLegacyManagePermission(input)) {
+  if (input.approvedRequestId) {
+    if (hasActorCapability(input, APPROVE_CORRECTION_CAPABILITY)) {
+      return;
+    }
+
+    throw new ApiHttpError(
+      403,
+      `Forbidden: requires ${APPROVE_CORRECTION_CAPABILITY}`,
+    );
+  }
+
+  if (hasLegacyDirectActionPermission(input)) {
     return;
   }
 
@@ -178,10 +212,22 @@ function assertCanExecuteDirectly(
   input: ExecuteContributionActionInput,
   capability: string,
 ) {
-  if (
-    hasLegacyManagePermission(input) ||
-    hasActorCapability(input, capability)
-  ) {
+  if (input.approvedRequestId) {
+    if (hasActorCapability(input, APPROVE_CORRECTION_CAPABILITY)) {
+      return;
+    }
+
+    throw new ApiHttpError(
+      403,
+      `Forbidden: requires ${APPROVE_CORRECTION_CAPABILITY}`,
+    );
+  }
+
+  if (hasLegacyDirectActionPermission(input)) {
+    return;
+  }
+
+  if (hasActorCapability(input, capability)) {
     return;
   }
 
@@ -331,7 +377,7 @@ async function applyApprovedCorrectionRequest<TContribution>(
   return {
     ...input,
     payload: approvedRequest.payload,
-    reason: input.reason ?? approvedRequest.reason ?? null,
+    reason: approvedRequest.reason ?? null,
   };
 }
 
@@ -603,6 +649,8 @@ export async function executeContributionAction<TContribution = unknown>(
         tenantId: input.tenantId,
         contributionId: input.contributionId,
         donorId,
+        expectedRevision: input.expectedRevision ?? null,
+        idempotencyKey: providerIdempotencyKey(input),
       });
       const correctionId = await createCorrectionRecord(
         input,

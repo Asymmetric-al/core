@@ -147,6 +147,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     tenantId: string;
     contributionId: string;
     donorId: string;
+    expectedRevision?: string | null;
+    idempotencyKey: string;
   }) => Promise<{
     before?: Record<string, unknown> | null;
     after?: Record<string, unknown> | null;

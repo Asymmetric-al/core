@@ -16,6 +16,7 @@ describe("contribution operations action executor", () => {
         tenantId: "tenant_1",
         actorProfileId: "profile_1",
         actorPermissions: ["finance:manage_contributions"],
+        actorCapabilities: ["contributions.run_refunds"],
         sourceSurface: "contribution_hub",
         contributionId: "donation_1",
         actionType: "refund",
@@ -134,6 +135,7 @@ describe("contribution operations action executor", () => {
       actionType: "donor_relink",
       reason: "Merged duplicate donor",
       confirmationToken: "confirm",
+      expectedRevision: "rev_relink",
       payload: { donorId: "donor_new" },
       approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
@@ -148,6 +150,9 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       contributionId: "donation_1",
       donorId: "donor_new",
+      expectedRevision: "rev_relink",
+      idempotencyKey:
+        "contribution-action/tenant_1/donation_1/donor_relink/confirm",
     });
     expect(createCorrectionRecord).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -277,10 +282,11 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "approver_1",
       actorPermissions: [],
-      actorCapabilities: ["contributions.apply_corrections"],
+      actorCapabilities: ["contributions.approve_corrections"],
       sourceSurface: "contribution_hub",
       contributionId: "donation_1",
       actionType: "amount_correction",
+      reason: "Caller supplied override",
       confirmationToken: "confirm",
       approvedRequestId: "request_1",
       payload: { amount: 9999 },
@@ -299,7 +305,7 @@ describe("contribution operations action executor", () => {
       actionType: "amount_correction",
       approvedRequestId: "request_1",
       actorProfileId: "approver_1",
-      actorCapabilities: ["contributions.apply_corrections"],
+      actorCapabilities: ["contributions.approve_corrections"],
       expectedRevision: null,
       requestedPayload: { amount: 9999 },
     });
@@ -311,13 +317,40 @@ describe("contribution operations action executor", () => {
     );
   });
 
-  it("requires approved request validation before bypassing request creation", async () => {
+  it("requires the approval capability before applying an approved request", async () => {
+    const validateApprovedCorrectionRequest = vi.fn();
+
     await expect(
       executeContributionAction({
         tenantId: "tenant_1",
         actorProfileId: "approver_1",
         actorPermissions: [],
         actorCapabilities: ["contributions.apply_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "amount_correction",
+        confirmationToken: "confirm",
+        approvedRequestId: "request_1",
+        payload: { amount: 1200 },
+        dependencies: {
+          validateApprovedCorrectionRequest,
+          applyCorrection: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/approve_corrections/);
+
+    expect(validateApprovedCorrectionRequest).not.toHaveBeenCalled();
+  });
+
+  it("requires approved request validation before bypassing request creation", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "approver_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.approve_corrections"],
         sourceSurface: "contribution_hub",
         contributionId: "donation_1",
         actionType: "amount_correction",
@@ -350,6 +383,7 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.run_refunds"],
       sourceSurface: "contribution_hub",
       contributionId: "donation_1",
       actionType: "refund",
@@ -394,6 +428,7 @@ describe("contribution operations action executor", () => {
         tenantId: "tenant_1",
         actorProfileId: "profile_1",
         actorPermissions: ["finance:manage_contributions"],
+        actorCapabilities: ["contributions.run_refunds"],
         sourceSurface: "contribution_hub",
         contributionId: "donation_1",
         actionType: "refund",
@@ -429,6 +464,7 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.use_provider_actions"],
       sourceSurface: "contribution_hub",
       contributionId: "donation_1",
       actionType: "stripe_replay",
@@ -562,6 +598,50 @@ describe("contribution operations action executor", () => {
         },
       }),
     ).rejects.toThrow(/run_refunds/);
+  });
+
+  it("does not let the legacy permission bypass direct provider capabilities", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: ["finance:manage_contributions"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "refund",
+        reason: "Duplicate payment",
+        confirmationToken: "confirm",
+        payload: { amount: 500 },
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        dependencies: {
+          refundContribution: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/run_refunds/);
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: ["finance:manage_contributions"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "stripe_replay",
+        reason: "Recover missing webhook",
+        confirmationToken: "confirm",
+        payload: { stripeEventId: "evt_123" },
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        dependencies: {
+          replayStripeEvent: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/use_provider_actions/);
   });
 
   it("requires the CRM retry capability for staged gift retries", async () => {
