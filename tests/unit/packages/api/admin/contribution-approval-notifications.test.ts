@@ -647,7 +647,11 @@ describe("admin/contribution-operations/approval-notifications", () => {
       decisionReason: null,
     });
 
-    expect(state.tasks[0]).toMatchObject({ status: "completed" });
+    expect(state.tasks[0]).toMatchObject({
+      status: "completed",
+      completed_at: expect.any(String),
+      updated_at: expect.any(String),
+    });
     expect(state.approvalNotifications).toEqual([
       expect.objectContaining({
         recipient_profile_id: "requester-1",
@@ -681,7 +685,7 @@ describe("admin/contribution-operations/approval-notifications", () => {
     ).toEqual(["reminder", "reminder", "escalation", "escalation"]);
   });
 
-  it("does not stamp SLA timestamps when no notifications were delivered", async () => {
+  it("marks escalation handled even when no escalation notifications are deliverable", async () => {
     const state = stubState();
     state.approvalSettings = {
       create_approval_task: true,
@@ -699,6 +703,67 @@ describe("admin/contribution-operations/approval-notifications", () => {
     expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
     expect(state.approvalNotifications).toHaveLength(0);
     expect(state.request.last_reminder_at).toBeNull();
+    expect(state.request.escalated_at).toBe("2026-06-04T01:00:00.000Z");
+  });
+
+  it("stamps reminder SLA state when a retry dedupes existing notifications", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+    state.approvalNotifications.push(
+      {
+        dedupe_key:
+          "correction-request/request-1/reminder/in_app/approver-1/round-1",
+      },
+      {
+        dedupe_key:
+          "correction-request/request-1/reminder/in_app/approver-2/round-1",
+      },
+    );
+
+    const outcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-02T01:00:00.000Z",
+    });
+
+    expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
+    expect(state.approvalNotifications).toHaveLength(2);
+    expect(state.request.last_reminder_at).toBe("2026-06-02T01:00:00.000Z");
     expect(state.request.escalated_at).toBeNull();
+  });
+
+  it("stamps escalation SLA state when a retry dedupes existing notifications", async () => {
+    const state = stubState();
+    state.request.last_reminder_at = "2026-06-04T00:30:00.000Z";
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+    state.approvalNotifications.push(
+      {
+        dedupe_key: "correction-request/request-1/escalation/in_app/approver-1",
+      },
+      {
+        dedupe_key: "correction-request/request-1/escalation/in_app/approver-2",
+      },
+    );
+
+    const outcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-04T01:00:00.000Z",
+    });
+
+    expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
+    expect(state.approvalNotifications).toHaveLength(2);
+    expect(state.request.last_reminder_at).toBe("2026-06-04T00:30:00.000Z");
+    expect(state.request.escalated_at).toBe("2026-06-04T01:00:00.000Z");
   });
 });

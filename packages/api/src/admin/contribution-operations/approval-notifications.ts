@@ -461,11 +461,13 @@ export async function recordCorrectionApprovalOutcome(input: {
   decisionReason: string | null;
 }): Promise<void> {
   if (input.request.approvalTaskId) {
+    const completedAt = new Date().toISOString();
     const { error } = await input.supabaseAdmin
       .from("mission_control_tasks")
       .update({
         status: "completed",
-        updated_at: new Date().toISOString(),
+        completed_at: completedAt,
+        updated_at: completedAt,
       })
       .eq("tenant_id", input.tenantId)
       .eq("id", input.request.approvalTaskId);
@@ -567,7 +569,7 @@ export async function processCorrectionApprovalSla(input: {
       );
       remindersSent += reminderCount;
 
-      if (reminderCount > 0) {
+      if (plan.notifications.length > 0) {
         const { error: reminderError } = await input.supabaseAdmin
           .from("contribution_correction_requests")
           .update({ last_reminder_at: now, updated_at: now })
@@ -596,15 +598,13 @@ export async function processCorrectionApprovalSla(input: {
       );
       escalationsSent += escalationCount;
 
-      if (escalationCount > 0) {
-        const { error: escalationError } = await input.supabaseAdmin
-          .from("contribution_correction_requests")
-          .update({ escalated_at: now, updated_at: now })
-          .eq("tenant_id", input.tenantId)
-          .eq("id", requestId);
-        if (escalationError) {
-          throw new Error(escalationError.message);
-        }
+      const { error: escalationError } = await input.supabaseAdmin
+        .from("contribution_correction_requests")
+        .update({ escalated_at: now, updated_at: now })
+        .eq("tenant_id", input.tenantId)
+        .eq("id", requestId);
+      if (escalationError) {
+        throw new Error(escalationError.message);
       }
     }
   }
