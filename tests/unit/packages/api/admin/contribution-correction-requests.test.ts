@@ -455,4 +455,37 @@ describe("decideContributionCorrectionRequest", () => {
       }),
     ).rejects.toMatchObject({ status: 409 });
   });
+
+  it("reruns idempotent outcome handling when a same-decision replay recovers follow-through", async () => {
+    const state: StubState = { request: pendingRequest(), auditInserts: [] };
+    state.request.status = "approved";
+    state.request.decision_reason = "Approved after finance review";
+    const dependencies = approverDependencies(state);
+    const recordOutcome = vi.fn().mockResolvedValue(undefined);
+
+    const outcome = await decideContributionCorrectionRequest({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      decision: "approve",
+      deciderProfileId: "approver-1",
+      deciderCapabilities: ["contributions.approve_corrections"],
+      dependencies,
+      recordOutcome,
+    });
+
+    expect(outcome.idempotentReplay).toBe(true);
+    expect(dependencies.applyCorrection).not.toHaveBeenCalled();
+    expect(state.auditInserts).toHaveLength(0);
+    expect(recordOutcome).toHaveBeenCalledWith(
+      expect.objectContaining({
+        decision: "approved",
+        decisionReason: "Approved after finance review",
+        request: expect.objectContaining({
+          id: REQUEST_ID,
+          status: "approved",
+        }),
+      }),
+    );
+  });
 });
