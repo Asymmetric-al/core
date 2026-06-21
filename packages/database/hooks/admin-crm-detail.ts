@@ -7,8 +7,16 @@ import type {
   CrmDonorDetailResponse,
 } from "@asym/database/types";
 
-const CRM_DETAIL_QUERY_KEY = ["admin", "crm", "records", "detail"] as const;
-const CRM_RECORDS_QUERY_KEY = ["admin", "crm", "records"] as const;
+export const ADMIN_CRM_RECORD_DETAIL_QUERY_KEY = [
+  "admin",
+  "crm",
+  "records",
+  "detail",
+] as const;
+export const ADMIN_CRM_RECORDS_QUERY_KEY = ["admin", "crm", "records"] as const;
+
+const CRM_DETAIL_QUERY_KEY = ADMIN_CRM_RECORD_DETAIL_QUERY_KEY;
+const CRM_RECORDS_QUERY_KEY = ADMIN_CRM_RECORDS_QUERY_KEY;
 
 async function parseJsonError(response: Response, fallback: string) {
   const payload = (await response.json().catch(() => null)) as {
