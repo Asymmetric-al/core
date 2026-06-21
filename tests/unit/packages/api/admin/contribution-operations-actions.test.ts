@@ -94,6 +94,25 @@ describe("contribution operations action executor", () => {
     ).rejects.toThrow(/manage_receipts/);
   });
 
+  it("rejects metadata updates until the mutation adapter exists", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.apply_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "metadata_update",
+        payload: { note: "internal note" },
+        dependencies: {
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/metadata_update is not implemented/);
+  });
+
   it("creates correction and audit records for donor relinking", async () => {
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -238,6 +257,82 @@ describe("contribution operations action executor", () => {
     );
   });
 
+  it("validates approved correction requests and applies the persisted payload", async () => {
+    const validateApprovedCorrectionRequest = vi.fn().mockResolvedValue({
+      payload: { amount: 1200 },
+      reason: "Approved correction request",
+    });
+    const applyCorrection = vi.fn().mockResolvedValue({
+      before: { amount: 1000 },
+      after: { amount: 1200 },
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      amount: { value: 1200 },
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "approver_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.apply_corrections"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      confirmationToken: "confirm",
+      approvedRequestId: "request_1",
+      payload: { amount: 9999 },
+      dependencies: {
+        validateApprovedCorrectionRequest,
+        applyCorrection,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(validateApprovedCorrectionRequest).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      approvedRequestId: "request_1",
+      actorProfileId: "approver_1",
+      actorCapabilities: ["contributions.apply_corrections"],
+      expectedRevision: null,
+      requestedPayload: { amount: 9999 },
+    });
+    expect(applyCorrection).toHaveBeenCalledWith(
+      expect.objectContaining({
+        payload: { amount: 1200 },
+        reason: "Approved correction request",
+      }),
+    );
+  });
+
+  it("requires approved request validation before bypassing request creation", async () => {
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "approver_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.apply_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "amount_correction",
+        confirmationToken: "confirm",
+        approvedRequestId: "request_1",
+        payload: { amount: 1200 },
+        dependencies: {
+          applyCorrection: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/validateApprovedCorrectionRequest/);
+  });
+
   it("records failed provider outcomes for refund attempts", async () => {
     const refundContribution = vi.fn().mockResolvedValue({
       provider: "stripe",
@@ -291,6 +386,33 @@ describe("contribution operations action executor", () => {
     expect(result.providerOutcome?.status).toBe("failed");
   });
 
+  it("rejects fractional refund amounts before calling the provider", async () => {
+    const refundContribution = vi.fn();
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: ["finance:manage_contributions"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "refund",
+        reason: "Duplicate payment",
+        confirmationToken: "confirm",
+        payload: { amount: 12.34 },
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        dependencies: {
+          refundContribution,
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/positive safe integer/);
+
+    expect(refundContribution).not.toHaveBeenCalled();
+  });
+
   it("routes Stripe replay through a dedicated provider adapter and audit trail", async () => {
     const replayStripeEvent = vi.fn().mockResolvedValue({
       provider: "stripe",
@@ -312,6 +434,7 @@ describe("contribution operations action executor", () => {
       actionType: "stripe_replay",
       reason: "Recover missing webhook",
       confirmationToken: "confirm",
+      expectedRevision: "rev_replay",
       payload: { stripeEventId: "evt_123" },
       approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
@@ -324,6 +447,9 @@ describe("contribution operations action executor", () => {
 
     expect(replayStripeEvent).toHaveBeenCalledWith({
       contributionId: "donation_1",
+      expectedRevision: "rev_replay",
+      idempotencyKey:
+        "contribution-action/tenant_1/donation_1/stripe_replay/confirm",
       payload: { stripeEventId: "evt_123" },
       tenantId: "tenant_1",
     });

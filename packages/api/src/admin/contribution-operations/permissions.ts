@@ -14,10 +14,12 @@ function hasFinanceStaffMembership(auth: AuthenticatedContext): boolean {
   );
 }
 
-function hasActiveTenantMembership(auth: AuthenticatedContext): boolean {
+function hasActiveStaffMembership(auth: AuthenticatedContext): boolean {
   return auth.memberships.some(
     (membership) =>
-      membership.isActive && membership.tenantId === auth.tenantId,
+      membership.isActive &&
+      membership.tenantId === auth.tenantId &&
+      membership.role === "staff",
   );
 }
 
@@ -117,7 +119,7 @@ export function resolveContributionCapabilities(
     return [...FINANCE_STAFF_CAPABILITIES];
   }
 
-  if (hasActiveTenantMembership(auth)) {
+  if (hasActiveStaffMembership(auth)) {
     return [...DONOR_CARE_CAPABILITIES];
   }
 

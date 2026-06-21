@@ -174,6 +174,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     tenantId: string;
     contributionId: string;
     payload: Record<string, unknown>;
+    expectedRevision?: string | null;
+    idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
   sendCorrectionNotification?: (input: {
     tenantId: string;
@@ -222,6 +224,25 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     /** Requester's proposed updated receipt delivery action (ADR-CD-030). */
     receiptDeliveryProposal?: Record<string, unknown> | null;
   }) => Promise<string>;
+  /**
+   * Validates that an approved request can be applied and returns the
+   * persisted payload/reason. The implementation must verify tenant,
+   * contribution, action type, approved status, ownership policy, and payload
+   * consistency before the executor bypasses request creation.
+   */
+  validateApprovedCorrectionRequest?: (input: {
+    tenantId: string;
+    contributionId: string;
+    actionType: ContributionActionType;
+    approvedRequestId: string;
+    actorProfileId: string | null;
+    actorCapabilities?: string[];
+    expectedRevision?: string | null;
+    requestedPayload: Record<string, unknown>;
+  }) => Promise<{
+    payload: Record<string, unknown>;
+    reason?: string | null;
+  }>;
 }
 
 export interface ExecuteContributionActionInput<TContribution = unknown> {

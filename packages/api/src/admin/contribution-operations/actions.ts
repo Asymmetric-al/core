@@ -40,13 +40,13 @@ function requireStringPayload(
   return value;
 }
 
-function requireNumberPayload(
+function requirePositiveSafeIntegerPayload(
   payload: Record<string, unknown> | undefined,
   key: string,
 ): number {
   const value = payload?.[key];
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
-    throw new ApiHttpError(400, `${key} must be a positive number.`);
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
+    throw new ApiHttpError(400, `${key} must be a positive safe integer.`);
   }
   return value;
 }
@@ -137,7 +137,10 @@ function assertActorPermissions(
   }
 
   if (isApprovalRequestAction(input.actionType)) {
-    if (hasActorCapability(input, REQUEST_CORRECTION_CAPABILITY)) {
+    if (
+      options.requiresApproval &&
+      hasActorCapability(input, REQUEST_CORRECTION_CAPABILITY)
+    ) {
       return;
     }
 
@@ -296,6 +299,42 @@ function requiresCorrectionApproval(input: ExecuteContributionActionInput) {
   );
 }
 
+async function applyApprovedCorrectionRequest<TContribution>(
+  input: ExecuteContributionActionInput<TContribution>,
+): Promise<ExecuteContributionActionInput<TContribution>> {
+  if (!input.approvedRequestId) {
+    return input;
+  }
+
+  if (!isApprovalRequestAction(input.actionType)) {
+    throw new ApiHttpError(
+      400,
+      "approvedRequestId is only valid for approval-gated contribution actions.",
+    );
+  }
+
+  const validateApprovedCorrectionRequest = requireDependency(
+    input.dependencies,
+    "validateApprovedCorrectionRequest",
+  );
+  const approvedRequest = await validateApprovedCorrectionRequest({
+    tenantId: input.tenantId,
+    contributionId: input.contributionId,
+    actionType: input.actionType,
+    approvedRequestId: input.approvedRequestId,
+    actorProfileId: input.actorProfileId,
+    actorCapabilities: input.actorCapabilities,
+    expectedRevision: input.expectedRevision ?? null,
+    requestedPayload: input.payload ?? {},
+  });
+
+  return {
+    ...input,
+    payload: approvedRequest.payload,
+    reason: input.reason ?? approvedRequest.reason ?? null,
+  };
+}
+
 async function createPendingCorrectionRequest<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
   extra: { receiptDeliveryProposal?: Record<string, unknown> | null } = {},
@@ -387,20 +426,21 @@ async function sendCorrectionNotification(
 }
 
 export async function executeContributionAction<TContribution = unknown>(
-  input: ExecuteContributionActionInput<TContribution>,
+  rawInput: ExecuteContributionActionInput<TContribution>,
 ): Promise<ContributionActionResult<TContribution>> {
   const policy = getContributionActionPolicy({
-    actionType: input.actionType,
-    organizationSettings: input.organizationSettings,
-    userPreferences: input.userPreferences,
+    actionType: rawInput.actionType,
+    organizationSettings: rawInput.organizationSettings,
+    userPreferences: rawInput.userPreferences,
   });
   const actionRequiresApproval =
-    isApprovalRequestAction(input.actionType) &&
-    requiresCorrectionApproval(input);
+    isApprovalRequestAction(rawInput.actionType) &&
+    requiresCorrectionApproval(rawInput);
 
-  assertActorPermissions(input, policy, {
+  assertActorPermissions(rawInput, policy, {
     requiresApproval: actionRequiresApproval,
   });
+  const input = await applyApprovedCorrectionRequest(rawInput);
   assertReasonAndConfirmation(input, policy);
 
   switch (input.actionType) {
@@ -542,6 +582,13 @@ export async function executeContributionAction<TContribution = unknown>(
       };
     }
 
+    case "metadata_update": {
+      throw new ApiHttpError(
+        501,
+        "metadata_update is not implemented by the contribution action executor yet.",
+      );
+    }
+
     case "donor_relink": {
       const donorId = requireStringPayload(input.payload, "donorId");
 
@@ -590,7 +637,7 @@ export async function executeContributionAction<TContribution = unknown>(
     }
 
     case "refund": {
-      const amount = requireNumberPayload(input.payload, "amount");
+      const amount = requirePositiveSafeIntegerPayload(input.payload, "amount");
 
       // Refunds follow the same tenant approval policy as other high-risk
       // corrections (ADR-CD-005 / ADR-CD-025): create a request unless the
@@ -665,6 +712,8 @@ export async function executeContributionAction<TContribution = unknown>(
         tenantId: input.tenantId,
         contributionId: input.contributionId,
         payload: input.payload ?? {},
+        expectedRevision: input.expectedRevision ?? null,
+        idempotencyKey: providerIdempotencyKey(input),
       });
       const correctionId = await createCorrectionRecord(
         input,

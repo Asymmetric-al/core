@@ -138,4 +138,38 @@ describe("contribution operations permissions", () => {
 
     expect(capabilities).toEqual([]);
   });
+
+  it("does not grant contribution capabilities to non-staff memberships", () => {
+    const donorCapabilities = resolveContributionCapabilities(
+      authContext({
+        role: "donor",
+        profileRole: "donor",
+        memberships: [
+          {
+            tenantId: "tenant_1",
+            role: "donor",
+            staffRole: null,
+            isActive: true,
+          },
+        ],
+      }),
+    );
+    const missionaryCapabilities = resolveContributionCapabilities(
+      authContext({
+        role: "missionary",
+        profileRole: "missionary",
+        memberships: [
+          {
+            tenantId: "tenant_1",
+            role: "missionary",
+            staffRole: null,
+            isActive: true,
+          },
+        ],
+      }),
+    );
+
+    expect(donorCapabilities).toEqual([]);
+    expect(missionaryCapabilities).toEqual([]);
+  });
 });
