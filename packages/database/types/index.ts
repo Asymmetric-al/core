@@ -79,6 +79,7 @@ export type {
   CrmReportSlice,
 } from "./crm-reports";
 export type {
+  ContributionAdjustment,
   ContributionCorrection,
   ContributionCorrectionType,
   ContributionCorrectionStatus,

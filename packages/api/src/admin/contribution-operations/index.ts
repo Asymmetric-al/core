@@ -26,6 +26,12 @@ export {
   pickNextBestInlineContributionAction,
   type BuildInlineContributionActionsInput,
 } from "./inline-actions";
+export { applyContributionCorrection } from "./operations";
+export {
+  assertAllowedPaymentStateCorrectionStatus,
+  isAllowedPaymentStateCorrectionStatus,
+  type PaymentStateCorrectionStatus,
+} from "./payment-status-allowlist";
 export {
   assertContributionActionPermission,
   assertContributionPermission,

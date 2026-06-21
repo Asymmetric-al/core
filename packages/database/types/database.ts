@@ -389,6 +389,22 @@ export interface ContributionOperationAuditEvent {
   created_at: string;
 }
 
+export interface ContributionAdjustment {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  correction_id: string | null;
+  adjustment_type: string;
+  status: "applied" | "reversed";
+  effective_values: Record<string, unknown>;
+  reason: string;
+  actor_profile_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  base_revision: string | null;
+  idempotency_key: string | null;
+  created_at: string;
+}
+
 export type ContributionNotificationMode =
   | "auto_notify"
   | "always_ask"
