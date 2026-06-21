@@ -92,6 +92,11 @@ export interface StagedGiftPostingInput extends StagedGiftActionInput {
   crmConfig: CrmSyncRuntimeConfig;
 }
 
+export interface StagedGiftDesignationPostingInput extends StagedGiftPostingInput {
+  allocationId: string;
+  contributionId: string;
+}
+
 export interface ReconciliationFinding {
   id: string;
   reason: string;
@@ -524,6 +529,33 @@ export async function retryStagedGiftPostingToTwenty(
   }
 
   return queueStagedGiftPostingToTwenty(input);
+}
+
+export async function retryStagedGiftDesignationPostingToTwenty(
+  input: StagedGiftDesignationPostingInput,
+): Promise<never> {
+  const gift = await loadStagedGiftById(input);
+  if (gift.donationId !== input.contributionId) {
+    throw new ApiHttpError(404, "Staged gift not found for contribution.");
+  }
+
+  const allocation = await input.supabaseAdmin
+    .from("staged_gift_allocations")
+    .select("id")
+    .eq("tenant_id", input.tenantId)
+    .eq("staged_gift_id", input.stagedGiftId)
+    .eq("id", input.allocationId)
+    .maybeSingle();
+  requireNoError(allocation.error, "Failed to read staged gift allocation.");
+
+  if (!isJsonRecord(allocation.data)) {
+    throw new ApiHttpError(404, "Designation allocation not found.");
+  }
+
+  throw new ApiHttpError(
+    501,
+    "The connected CRM adapter does not support posting designation child records yet. Retry the parent gift record instead, or resolve the line in the CRM directly.",
+  );
 }
 
 async function insertReconciliationRun(input: {

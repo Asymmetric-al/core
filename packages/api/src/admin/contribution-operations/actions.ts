@@ -623,6 +623,8 @@ async function createPendingCorrectionRequest<TContribution>(
 ): Promise<ContributionActionResult<TContribution>> {
   assertCanRequestCorrection(input);
 
+  const payload = await resolvePendingCorrectionPayload(input);
+  const requestInput = { ...input, payload };
   const createCorrectionRequest = requireDependency(
     input.dependencies,
     "createCorrectionRequest",
@@ -631,12 +633,12 @@ async function createPendingCorrectionRequest<TContribution>(
     tenantId: input.tenantId,
     contributionId: input.contributionId,
     actionType: input.actionType,
-    payload: input.payload ?? {},
+    payload,
     reason: input.reason ?? "",
     requestedByProfileId: input.actorProfileId,
     sourceSurface: input.sourceSurface,
     expectedRevision: input.expectedRevision ?? null,
-    idempotencyKey: correctionRequestIdempotencyKey(input, extra),
+    idempotencyKey: correctionRequestIdempotencyKey(requestInput, extra),
     ...extra,
   });
   const auditEventId = await appendAuditEvent(
@@ -656,6 +658,43 @@ async function createPendingCorrectionRequest<TContribution>(
     approvalStatus: "pending_approval",
     taskIds: [],
   };
+}
+
+async function resolvePendingCorrectionPayload(
+  input: ExecuteContributionActionInput,
+): Promise<Record<string, unknown>> {
+  const payload = input.payload ?? {};
+  if (input.actionType !== "stripe_replay") {
+    return payload;
+  }
+
+  const payloadEventId =
+    typeof payload.stripeEventId === "string" &&
+    payload.stripeEventId.trim().length > 0
+      ? payload.stripeEventId.trim()
+      : null;
+  if (payloadEventId) {
+    return { ...payload, stripeEventId: payloadEventId };
+  }
+
+  const resolveReplayStripeEventId = requireDependency(
+    input.dependencies,
+    "resolveReplayStripeEventId",
+  );
+  const stripeEventId = await resolveReplayStripeEventId({
+    tenantId: input.tenantId,
+    contributionId: input.contributionId,
+    payload,
+  });
+
+  if (!stripeEventId) {
+    throw new ApiHttpError(
+      404,
+      "No stored provider event to replay for this gift.",
+    );
+  }
+
+  return { ...payload, stripeEventId };
 }
 
 function providerIdempotencyKey(input: ExecuteContributionActionInput): string {

@@ -950,6 +950,47 @@ describe("contribution operations action executor", () => {
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
   });
 
+  it("allows Stripe replay dependencies to derive the provider event id server-side", async () => {
+    const replayStripeEvent = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "queued_for_replay",
+      referenceId: "evt_latest",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.use_provider_actions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "stripe_replay",
+      reason: "Recover missing webhook",
+      confirmationToken: "confirm",
+      payload: {},
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        replayStripeEvent,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(replayStripeEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contributionId: "donation_1",
+        payload: {},
+        tenantId: "tenant_1",
+      }),
+    );
+  });
+
   it("routes Stripe replay through correction requests under default approval policy", async () => {
     const replayStripeEvent = vi.fn();
     const createCorrectionRequest = vi.fn().mockResolvedValue("request_8");
@@ -990,6 +1031,50 @@ describe("contribution operations action executor", () => {
     );
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionRequestId).toBe("request_8");
+  });
+
+  it("freezes derived Stripe replay event ids when opening approval requests", async () => {
+    const replayStripeEvent = vi.fn();
+    const resolveReplayStripeEventId = vi.fn().mockResolvedValue("evt_frozen");
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_8");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "stripe_replay",
+      reason: "Recover missing webhook",
+      confirmationToken: "confirm",
+      payload: {},
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: {
+        replayStripeEvent,
+        resolveReplayStripeEventId,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(replayStripeEvent).not.toHaveBeenCalled();
+    expect(resolveReplayStripeEventId).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      contributionId: "donation_1",
+      payload: {},
+    });
+    expect(createCorrectionRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "stripe_replay",
+        payload: { stripeEventId: "evt_frozen" },
+      }),
+    );
   });
 
   it("routes refunds through correction requests under default approval policy", async () => {

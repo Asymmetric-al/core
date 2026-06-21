@@ -8,6 +8,10 @@ import {
 } from "./receipt-delivery";
 import { sendStagedGiftReceipt } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
+import {
+  loadStripeRawEventForReplay,
+  markStripeRawEventForReplay,
+} from "../../stripe/replay";
 import { mapContributionAdjustmentRow } from "../contribution-shared/effective-values";
 
 import type { ContributionDetail } from "./detail-read-model";
@@ -283,6 +287,14 @@ async function loadContributionOperationDetail(input: {
     allocationMissionaries: [],
     crmLinks: [],
   });
+}
+
+export async function loadContributionDetailFromSupabase(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  contributionId: string;
+}): Promise<ContributionDetail> {
+  return loadContributionOperationDetail(input);
 }
 
 function isUuid(value: string): boolean {
@@ -807,4 +819,23 @@ export async function applyContributionCorrection(input: {
     idempotentReplay: false,
     receiptOutcome,
   };
+}
+
+export async function replayStripeEventThroughContributionOperations(input: {
+  contributionId: string;
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  stripeEventId: string;
+}) {
+  const rawEvent = await loadStripeRawEventForReplay({
+    supabaseAdmin: input.supabaseAdmin,
+    donationId: input.contributionId,
+    stripeEventId: input.stripeEventId,
+    tenantId: input.tenantId,
+  });
+  await markStripeRawEventForReplay({
+    supabaseAdmin: input.supabaseAdmin,
+    rawEventId: rawEvent.id,
+  });
+  return rawEvent;
 }
