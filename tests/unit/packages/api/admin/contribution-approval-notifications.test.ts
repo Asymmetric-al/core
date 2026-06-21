@@ -710,7 +710,7 @@ describe("admin/contribution-operations/approval-notifications", () => {
     ).toEqual(["reminder", "reminder", "escalation", "escalation"]);
   });
 
-  it("marks escalation handled even when no escalation notifications are deliverable", async () => {
+  it("marks reminder and escalation handled even when no notifications are deliverable", async () => {
     const state = stubState();
     state.approvalSettings = {
       create_approval_task: true,
@@ -727,8 +727,39 @@ describe("admin/contribution-operations/approval-notifications", () => {
 
     expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
     expect(state.approvalNotifications).toHaveLength(0);
-    expect(state.request.last_reminder_at).toBeNull();
+    expect(state.request.last_reminder_at).toBe("2026-06-04T01:00:00.000Z");
     expect(state.request.escalated_at).toBe("2026-06-04T01:00:00.000Z");
+  });
+
+  it("does not immediately reprocess an undeliverable reminder cycle", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: false,
+      email_enabled: false,
+    };
+
+    const firstOutcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-02T01:00:00.000Z",
+    });
+    const lastReminderAt = state.request.last_reminder_at;
+
+    const secondOutcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-02T02:00:00.000Z",
+    });
+
+    expect(firstOutcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
+    expect(secondOutcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
+    expect(state.approvalNotifications).toHaveLength(0);
+    expect(lastReminderAt).toBe("2026-06-02T01:00:00.000Z");
+    expect(state.request.last_reminder_at).toBe(lastReminderAt);
+    expect(state.request.escalated_at).toBeNull();
   });
 
   it("stamps reminder SLA state when a retry dedupes existing notifications", async () => {

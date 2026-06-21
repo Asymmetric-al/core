@@ -571,15 +571,13 @@ export async function processCorrectionApprovalSla(input: {
         );
         remindersSent += reminderCount;
 
-        if (plan.notifications.length > 0) {
-          const { error: reminderError } = await input.supabaseAdmin
-            .from("contribution_correction_requests")
-            .update({ last_reminder_at: now, updated_at: now })
-            .eq("tenant_id", input.tenantId)
-            .eq("id", requestId);
-          if (reminderError) {
-            throw new Error(reminderError.message);
-          }
+        const { error: reminderError } = await input.supabaseAdmin
+          .from("contribution_correction_requests")
+          .update({ last_reminder_at: now, updated_at: now })
+          .eq("tenant_id", input.tenantId)
+          .eq("id", requestId);
+        if (reminderError) {
+          throw new Error(reminderError.message);
         }
       }
 
