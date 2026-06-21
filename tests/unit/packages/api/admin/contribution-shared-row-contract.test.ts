@@ -87,6 +87,27 @@ describe("admin/contribution-shared/row-contract", () => {
     });
   });
 
+  it("derives missionary identity from a missionary fund when no missionary input is given", () => {
+    const shared = buildSharedContributionRowFields({
+      donation: makeDonation({ fund_id: "fund-2", missionary_id: null }),
+      donor: null,
+      profile: null,
+      fund: {
+        id: "fund-2",
+        name: "Martinez Family Support",
+        missionary_id: "missionary-1",
+      },
+      missionary: null,
+      stagedGift: null,
+    });
+
+    expect(shared.designationSummary).toMatchObject({
+      fundId: "fund-2",
+      fundName: "Martinez Family Support",
+      missionaryId: "missionary-1",
+    });
+  });
+
   it("falls back to General Fund, created_at gift date, and Anonymous donor", () => {
     const shared = buildSharedContributionRowFields({
       donation: makeDonation({

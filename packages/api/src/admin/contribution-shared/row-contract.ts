@@ -79,7 +79,11 @@ export interface BuildSharedContributionRowFieldsInput {
   donation: SharedContributionDonationInput;
   donor: SharedContributionDonorInput | null;
   profile: SharedContributionProfileInput | null;
-  fund: { id: string; name: string | null } | null;
+  fund: {
+    id: string;
+    name: string | null;
+    missionary_id?: string | null;
+  } | null;
   missionary: { id: string; display_name: string | null } | null;
   stagedGift: SharedContributionStagedGiftInput | null;
   corrections?: SharedContributionCorrectionInput[];
@@ -307,7 +311,13 @@ export function buildSharedContributionRowFields(
       : {
           fundId: fund?.id ?? donation.fund_id,
           fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
-          missionaryId: missionary?.id ?? donation.missionary_id,
+          // Mirror designation-set: a missionary fund carries its missionary, so fall
+          // back to it when neither the missionary input nor the donation supplies one.
+          missionaryId:
+            missionary?.id ??
+            donation.missionary_id ??
+            fund?.missionary_id ??
+            null,
           missionaryName: missionary?.display_name?.trim() || null,
           lineCount: 1,
         },
