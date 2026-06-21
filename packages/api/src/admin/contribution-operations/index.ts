@@ -11,6 +11,20 @@ export {
   type CorrectionApprovalPolicy,
 } from "./approval-policy";
 export {
+  ensureCorrectionApprovalWorkflow,
+  evaluatePendingApprovalSla,
+  planApprovalNotifications,
+  processCorrectionApprovalSla,
+  recordCorrectionApprovalOutcome,
+  resolveApprovalNotificationSettings,
+  resolveApproverNotificationPreference,
+  type ApprovalNotificationSettings,
+  type ApprovalNotificationSettingsRow,
+  type ApproverNotificationPreference,
+  type PendingApprovalSlaState,
+  type PlannedApprovalNotification,
+} from "./approval-notifications";
+export {
   buildContributionCrmPostState,
   CRM_CHILD_RECORDS_UNSUPPORTED_MESSAGE,
   type ContributionCrmPostState,

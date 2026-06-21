@@ -57,6 +57,8 @@ export interface ContributionCorrectionRequest {
   appliedAdjustmentId: string | null;
   approvalTaskId: string | null;
   followUpTaskId: string | null;
+  lastReminderAt: string | null;
+  escalatedAt: string | null;
   createdAt: string;
 }
 
@@ -85,6 +87,8 @@ function mapCorrectionRequestRow(
     appliedAdjustmentId: asString(row.applied_adjustment_id),
     approvalTaskId: asString(row.approval_task_id),
     followUpTaskId: asString(row.follow_up_task_id),
+    lastReminderAt: asString(row.last_reminder_at),
+    escalatedAt: asString(row.escalated_at),
     createdAt: asString(row.created_at) ?? new Date(0).toISOString(),
   };
 }

@@ -439,8 +439,42 @@ export interface ContributionCorrectionRequest {
   applied_adjustment_id: string | null;
   approval_task_id: string | null;
   follow_up_task_id: string | null;
+  last_reminder_at: string | null;
+  escalated_at: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface ContributionApprovalNotificationSettings {
+  tenant_id: string;
+  create_approval_task: boolean;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotificationPreference {
+  id: string;
+  tenant_id: string;
+  profile_id: string;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotification {
+  id: string;
+  tenant_id: string;
+  correction_request_id: string;
+  recipient_profile_id: string | null;
+  channel: "in_app" | "email";
+  kind: "approval_requested" | "reminder" | "escalation" | "outcome";
+  dedupe_key: string;
+  payload: Record<string, unknown>;
+  created_at: string;
 }
 
 export type ContributionNotificationMode =

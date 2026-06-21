@@ -80,6 +80,9 @@ export type {
 } from "./crm-reports";
 export type {
   ContributionAdjustment,
+  ContributionApprovalNotification,
+  ContributionApprovalNotificationPreference,
+  ContributionApprovalNotificationSettings,
   ContributionApprovalPolicy,
   ContributionCorrection,
   ContributionCorrectionRequest,
