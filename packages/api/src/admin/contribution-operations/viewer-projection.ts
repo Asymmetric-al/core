@@ -29,8 +29,9 @@ export type ViewerProjectedContributionDetail = ContributionDetail & {
 
 export function stripeReplayAvailability(
   paymentIntentId: string | null,
+  chargeId: string | null,
 ): ContributionActionAvailability {
-  if (!paymentIntentId) {
+  if (!paymentIntentId && !chargeId) {
     return {
       actionType: "stripe_replay",
       available: false,
@@ -93,7 +94,7 @@ export function projectContributionDetailForViewer(
       ...detail.actionAvailability.filter(
         (entry) => entry.actionType !== "stripe_replay",
       ),
-      stripeReplayAvailability(paymentIntentId),
+      stripeReplayAvailability(paymentIntentId, chargeId),
     ],
     providerProof: {
       paymentIntentId,

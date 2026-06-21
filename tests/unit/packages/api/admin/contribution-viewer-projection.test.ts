@@ -96,6 +96,7 @@ describe("admin/contribution-operations/viewer-projection", () => {
   it("blocks webhook replay with a clear reason when no provider events exist", () => {
     const detail = makeDetail();
     detail.payment.stripe.paymentIntentId = null;
+    detail.payment.stripe.chargeId = null;
 
     const projected = projectContributionDetailForViewer(detail, [
       "contributions.use_provider_actions",
@@ -106,5 +107,24 @@ describe("admin/contribution-operations/viewer-projection", () => {
     );
     expect(replayEntry?.available).toBe(false);
     expect(replayEntry?.blockedReason).toMatch(/no provider payment events/i);
+  });
+
+  it("allows webhook replay when only a charge id is available", () => {
+    const detail = makeDetail();
+    detail.payment.stripe.paymentIntentId = null;
+    detail.payment.stripe.chargeId = "ch_only";
+
+    const projected = projectContributionDetailForViewer(detail, [
+      "contributions.use_provider_actions",
+    ]);
+
+    const replayEntry = projected.actionAvailability.find(
+      (entry) => entry.actionType === "stripe_replay",
+    );
+    expect(replayEntry?.available).toBe(true);
+    expect(projected.providerProof?.dashboardUrls).toMatchObject({
+      paymentIntent: null,
+      charge: "https://dashboard.stripe.com/charges/ch_only",
+    });
   });
 });

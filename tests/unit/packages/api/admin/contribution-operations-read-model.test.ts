@@ -525,6 +525,23 @@ describe("contribution operations detail read model", () => {
     expect(linked.recurring.providerRecurrenceWithoutAgreement).toBe(false);
     expect(linked.shared.recurringLinkState).toBe("agreement_linked");
 
+    const linkedWithoutLoadedAgreement = buildContributionDetail({
+      donation: {
+        ...base,
+        isRecurring: true,
+        recurringInterval: "month",
+        pledgeId: "pledge_1",
+      },
+    });
+    expect(linkedWithoutLoadedAgreement.recurring.agreement).toBeNull();
+    expect(linkedWithoutLoadedAgreement.recurring.isRecurring).toBe(true);
+    expect(
+      linkedWithoutLoadedAgreement.recurring.providerRecurrenceWithoutAgreement,
+    ).toBe(false);
+    expect(linkedWithoutLoadedAgreement.shared.recurringLinkState).toBe(
+      "agreement_linked",
+    );
+
     const providerOnly = buildContributionDetail({
       donation: {
         ...base,

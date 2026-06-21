@@ -519,6 +519,19 @@ export function buildContributionDetail(
     links: input.crmLinks ?? [],
     designationLineCount: designations.lines.length,
   });
+  const hasLoadedRecurringAgreement = input.recurringAgreement != null;
+  const hasInternalRecurringLink = Boolean(
+    donation.pledgeId || hasLoadedRecurringAgreement,
+  );
+  const isRecurringGift = Boolean(
+    donation.isRecurring ||
+    donation.recurringInterval ||
+    hasInternalRecurringLink,
+  );
+  const providerRecurrenceWithoutAgreement = Boolean(
+    (donation.isRecurring || donation.recurringInterval) &&
+    !hasInternalRecurringLink,
+  );
 
   return {
     shared,
@@ -577,14 +590,11 @@ export function buildContributionDetail(
       refundedAt: donation.refundedAt,
     },
     recurring: {
-      isRecurring: Boolean(donation.isRecurring || donation.recurringInterval),
+      isRecurring: isRecurringGift,
       interval: donation.recurringInterval,
       pledgeId: donation.pledgeId,
       agreement: input.recurringAgreement ?? null,
-      providerRecurrenceWithoutAgreement: Boolean(
-        (donation.isRecurring || donation.recurringInterval) &&
-        !input.recurringAgreement,
-      ),
+      providerRecurrenceWithoutAgreement,
     },
     stagedGift: stagedGift ?? null,
     crm: {

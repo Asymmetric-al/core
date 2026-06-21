@@ -103,18 +103,20 @@ AS $function$
 DECLARE
     row_data JSONB;
     row_tenant_id UUID;
+    row_donation_id UUID;
     ref_id UUID;
     ref_tenant_id UUID;
+    ref_donation_id UUID;
 BEGIN
     row_data := to_jsonb(NEW);
     row_tenant_id := (row_data ->> 'tenant_id')::uuid;
 
     IF row_data ? 'donation_id' AND (row_data ->> 'donation_id') IS NOT NULL THEN
-        ref_id := (row_data ->> 'donation_id')::uuid;
+        row_donation_id := (row_data ->> 'donation_id')::uuid;
         SELECT d.tenant_id
         INTO ref_tenant_id
         FROM public.donations AS d
-        WHERE d.id = ref_id;
+        WHERE d.id = row_donation_id;
 
         IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
             RAISE EXCEPTION 'contribution operation donation tenant mismatch'
@@ -127,13 +129,22 @@ BEGIN
         AND (row_data ->> 'staged_gift_id') IS NOT NULL
     THEN
         ref_id := (row_data ->> 'staged_gift_id')::uuid;
-        SELECT sg.tenant_id
-        INTO ref_tenant_id
+        SELECT sg.tenant_id, sg.donation_id
+        INTO ref_tenant_id, ref_donation_id
         FROM public.staged_gifts AS sg
         WHERE sg.id = ref_id;
 
         IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
             RAISE EXCEPTION 'contribution operation staged gift tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation staged gift donation mismatch'
                 USING ERRCODE = '23514';
         END IF;
     END IF;

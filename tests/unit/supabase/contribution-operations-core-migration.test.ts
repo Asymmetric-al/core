@@ -34,10 +34,13 @@ describe("contribution operations core migration", () => {
     for (const mismatchMessage of [
       "contribution operation donation tenant mismatch",
       "contribution operation staged gift tenant mismatch",
+      "contribution operation staged gift donation mismatch",
       "contribution operation correction tenant mismatch",
       "contribution operation audit event tenant mismatch",
     ]) {
       expect(migrationSql).toContain(mismatchMessage);
     }
+
+    expect(migrationSql).toContain("SELECT sg.tenant_id, sg.donation_id");
   });
 });
