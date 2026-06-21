@@ -7,6 +7,20 @@ import {
 } from "../../../../../packages/api/src/admin/contribution-operations/permissions";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
+import type { ContributionActionType } from "../../../../../packages/api/src/admin/contribution-operations/types";
+
+const APPROVAL_REQUEST_ACTION_TYPES = [
+  "refund",
+  "stripe_replay",
+  "donor_relink",
+  "amount_correction",
+  "designation_correction",
+  "fund_correction",
+  "allocation_correction",
+  "receipt_correction",
+  "statement_correction",
+  "payment_state_correction",
+] satisfies ContributionActionType[];
 
 function authContext(
   overrides: Partial<AuthenticatedContext>,
@@ -95,7 +109,7 @@ describe("contribution operations permissions", () => {
     ).not.toThrow();
   });
 
-  it("allows donor-care staff to request inline correction actions only in request mode", () => {
+  it("allows donor-care staff to request approval-gated actions only in request mode", () => {
     const donorCare = authContext({
       memberships: [
         {
@@ -107,25 +121,25 @@ describe("contribution operations permissions", () => {
       ],
     });
 
-    expect(() =>
-      assertContributionActionPermission(donorCare, "amount_correction"),
-    ).toThrow("contributions.apply_corrections");
-    expect(() =>
-      assertContributionActionPermission(donorCare, "amount_correction", {
-        mode: "request",
-      }),
-    ).not.toThrow();
-    expect(() =>
-      assertContributionActionPermission(donorCare, "fund_correction", {
-        mode: "request",
-      }),
-    ).not.toThrow();
+    for (const actionType of APPROVAL_REQUEST_ACTION_TYPES) {
+      expect(() =>
+        assertContributionActionPermission(donorCare, actionType),
+      ).toThrow();
+      expect(() =>
+        assertContributionActionPermission(donorCare, actionType, {
+          mode: "request",
+        }),
+      ).not.toThrow();
+    }
+
     expect(() =>
       assertContributionActionPermission(donorCare, "resend_receipt"),
     ).toThrow("contributions.manage_receipts");
     expect(() =>
-      assertContributionActionPermission(donorCare, "donor_relink"),
-    ).toThrow("contributions.apply_corrections");
+      assertContributionActionPermission(donorCare, "resend_receipt", {
+        mode: "request",
+      }),
+    ).toThrow("contributions.manage_receipts");
   });
 
   it("still blocks correction request actions without tenant staff membership", () => {

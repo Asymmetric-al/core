@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildContributionActionAvailability } from "../../../../../packages/api/src/admin/contribution-operations/action-availability";
+import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
 import {
   buildInlineContributionActions,
   pickNextBestInlineContributionAction,
@@ -32,6 +33,12 @@ const FINANCE_STAFF_CAPABILITIES = [
   "contributions.manage_receipts",
   "contributions.retry_crm_post",
 ];
+
+const APPROVAL_SUPPRESSED_POLICY = resolveCorrectionApprovalPolicy({
+  ownership_mode: "no_approval_required",
+  suppressed_gates: [],
+  stronger_approval_categories: [],
+});
 
 const postedStagedGift = {
   id: "staged-1",
@@ -189,6 +196,18 @@ describe("admin/contribution-operations/inline-actions", () => {
       "amount_correction",
       "fund_correction",
     ]);
+  });
+
+  it("hides request-only correction entries when approval policy allows direct apply", () => {
+    const inline = buildInlineContributionActions({
+      availability: availabilityFor(),
+      providerPaymentIntentId: "pi_1",
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      viewerCapabilities: DONOR_CARE_CAPABILITIES,
+    });
+
+    expect(inline.entries).toEqual([]);
+    expect(inline.nextBestActionType).toBeNull();
   });
 
   it("filters refund and provider actions away from finance staff", () => {

@@ -112,9 +112,17 @@ const CONTRIBUTION_ACTION_REQUIRED_CAPABILITY: Record<
   payment_state_correction: "contributions.apply_corrections",
 };
 
-const INLINE_CORRECTION_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
+const APPROVAL_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
+  "refund",
+  "stripe_replay",
+  "donor_relink",
   "amount_correction",
+  "designation_correction",
   "fund_correction",
+  "allocation_correction",
+  "receipt_correction",
+  "statement_correction",
+  "payment_state_correction",
 ]);
 
 function requiredCapabilitiesForAction(
@@ -125,7 +133,7 @@ function requiredCapabilitiesForAction(
 
   if (
     options.mode === "request" &&
-    INLINE_CORRECTION_REQUEST_ACTION_TYPES.has(actionType)
+    APPROVAL_REQUEST_ACTION_TYPES.has(actionType)
   ) {
     return [directCapability, "contributions.request_corrections"];
   }

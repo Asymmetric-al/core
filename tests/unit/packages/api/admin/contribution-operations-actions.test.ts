@@ -202,6 +202,8 @@ describe("contribution operations action executor", () => {
     expect(createCorrectionRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         actionType: "donor_relink",
+        idempotencyKey:
+          "correction-request/tenant_1/donation_1/donor_relink/confirm",
         payload: { donorId: "donor_new" },
       }),
     );
@@ -308,7 +310,10 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "approver_1",
       actorPermissions: [],
-      actorCapabilities: ["contributions.approve_corrections"],
+      actorCapabilities: [
+        "contributions.approve_corrections",
+        "contributions.apply_corrections",
+      ],
       sourceSurface: "contribution_hub",
       contributionId: "donation_1",
       actionType: "amount_correction",
@@ -330,7 +335,10 @@ describe("contribution operations action executor", () => {
       actionType: "amount_correction",
       approvedRequestId: "request_1",
       actorProfileId: "approver_1",
-      actorCapabilities: ["contributions.approve_corrections"],
+      actorCapabilities: [
+        "contributions.approve_corrections",
+        "contributions.apply_corrections",
+      ],
       expectedRevision: null,
       requestedPayload: { amount: 9999 },
     });
@@ -371,7 +379,7 @@ describe("contribution operations action executor", () => {
     expect(validateApprovedCorrectionRequest).not.toHaveBeenCalled();
   });
 
-  it("requires provider capabilities before applying approved provider requests", async () => {
+  it("requires the direct apply capability before applying approved donor relinks", async () => {
     const validateApprovedCorrectionRequest = vi.fn();
 
     await expect(
@@ -380,6 +388,36 @@ describe("contribution operations action executor", () => {
         actorProfileId: "approver_1",
         actorPermissions: [],
         actorCapabilities: ["contributions.approve_corrections"],
+        sourceSurface: "contribution_hub",
+        contributionId: "donation_1",
+        actionType: "donor_relink",
+        approvedRequestId: "request_relink",
+        payload: { donorId: "donor_new" },
+        dependencies: {
+          validateApprovedCorrectionRequest,
+          relinkDonor: vi.fn(),
+          createCorrectionRecord: vi.fn(),
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/apply_corrections/);
+
+    expect(validateApprovedCorrectionRequest).not.toHaveBeenCalled();
+  });
+
+  it("requires provider capabilities before applying approved provider requests", async () => {
+    const validateApprovedCorrectionRequest = vi.fn();
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "approver_1",
+        actorPermissions: [],
+        actorCapabilities: [
+          "contributions.approve_corrections",
+          "contributions.apply_corrections",
+        ],
         sourceSurface: "contribution_hub",
         contributionId: "donation_1",
         actionType: "refund",
@@ -478,7 +516,10 @@ describe("contribution operations action executor", () => {
         tenantId: "tenant_1",
         actorProfileId: "approver_1",
         actorPermissions: [],
-        actorCapabilities: ["contributions.approve_corrections"],
+        actorCapabilities: [
+          "contributions.approve_corrections",
+          "contributions.apply_corrections",
+        ],
         sourceSurface: "contribution_hub",
         contributionId: "donation_1",
         actionType: "amount_correction",
@@ -661,6 +702,8 @@ describe("contribution operations action executor", () => {
     expect(createCorrectionRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         actionType: "stripe_replay",
+        idempotencyKey:
+          "correction-request/tenant_1/donation_1/stripe_replay/confirm",
         payload: { stripeEventId: "evt_123" },
       }),
     );
@@ -698,7 +741,10 @@ describe("contribution operations action executor", () => {
 
     expect(refundContribution).not.toHaveBeenCalled();
     expect(createCorrectionRequest).toHaveBeenCalledWith(
-      expect.objectContaining({ actionType: "refund" }),
+      expect.objectContaining({
+        actionType: "refund",
+        idempotencyKey: "correction-request/tenant_1/donation_1/refund/confirm",
+      }),
     );
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionRequestId).toBe("request_9");
@@ -893,6 +939,8 @@ describe("contribution operations action executor", () => {
         tenantId: "tenant_1",
         contributionId: "donation_1",
         actionType: "amount_correction",
+        idempotencyKey:
+          "correction-request/tenant_1/donation_1/amount_correction/confirm",
         payload: { amount: 1500 },
         reason: "Donor reported the wrong amount",
         requestedByProfileId: "profile_1",
@@ -902,6 +950,53 @@ describe("contribution operations action executor", () => {
     expect(result.correctionRequestId).toBe("request_1");
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionId).toBeFalsy();
+  });
+
+  it("derives stable idempotency for pending correction requests without confirmation tokens", async () => {
+    const applyCorrection = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_2");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "allocation_correction",
+      reason: "Split between two funds",
+      payload: {
+        allocations: [
+          { fundId: "fund_2", amount: 500 },
+          { amount: 250, fundId: "fund_3" },
+        ],
+      },
+      approvalPolicy: resolveCorrectionApprovalPolicy({
+        ownership_mode: "separation_of_duties",
+        suppressed_gates: [],
+        stronger_approval_categories: ["allocation_correction"],
+      }),
+      dependencies: {
+        applyCorrection,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalledWith(
+      expect.objectContaining({
+        actionType: "allocation_correction",
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/allocation_correction\/payload-[0-9a-f]{32}$/,
+        ),
+      }),
+    );
   });
 
   it("requires the request capability to open a correction request", async () => {

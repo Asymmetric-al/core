@@ -1,7 +1,12 @@
+import {
+  correctionRequiresApproval,
+  resolveCorrectionApprovalPolicy,
+} from "./approval-policy";
 import { getContributionActionRiskLevel } from "./policy";
 import { stripeReplayAvailability } from "./viewer-projection";
 
 import type { ContributionActionAvailability } from "./action-availability";
+import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionCapability } from "./permissions";
 import type {
   CrmGiftInlineActionEntry,
@@ -85,6 +90,11 @@ export interface BuildInlineContributionActionsInput {
   /** Provider payment proof drives replay availability (ADR-CD-015). */
   providerPaymentIntentId: string | null;
   providerChargeId?: string | null;
+  /**
+   * Tenant correction approval policy. When omitted, use the same conservative
+   * default as the executor so request-only inline actions do not overpromise.
+   */
+  approvalPolicy?: CorrectionApprovalPolicy | null;
   viewerCapabilities: string[];
 }
 
@@ -98,10 +108,18 @@ export function buildInlineContributionActions(
       isInlineContributionActionType(entry.actionType) &&
       entry.actionType !== "stripe_replay",
   );
+  const approvalPolicy =
+    input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
+  const correctionRequestEntries = (
+    ["amount_correction", "fund_correction"] as const
+  )
+    .filter((actionType) =>
+      correctionRequiresApproval({ actionType, policy: approvalPolicy }),
+    )
+    .map(correctionRequestEntry);
 
   const allEntries: CrmGiftInlineActionEntry[] = [
-    correctionRequestEntry("amount_correction"),
-    correctionRequestEntry("fund_correction"),
+    ...correctionRequestEntries,
     ...workflowEntries,
     {
       ...stripeReplayAvailability(

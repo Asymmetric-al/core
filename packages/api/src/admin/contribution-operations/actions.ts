@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 import {
   correctionRequiresApproval,
   resolveCorrectionApprovalPolicy,
@@ -135,18 +137,10 @@ function hasLegacyDirectActionPermission(
   );
 }
 
-function providerCapabilityForApprovedRequest(
+function directCapabilityForApprovedRequest(
   actionType: ContributionActionType,
-): string | null {
-  if (actionType === "refund") {
-    return DIRECT_ACTION_CAPABILITY.refund;
-  }
-
-  if (actionType === "stripe_replay") {
-    return DIRECT_ACTION_CAPABILITY.stripe_replay;
-  }
-
-  return null;
+): string {
+  return DIRECT_ACTION_CAPABILITY[actionType];
 }
 
 function assertApprovedRequestCapabilities(
@@ -162,11 +156,9 @@ function assertApprovedRequestCapabilities(
     );
   }
 
-  const providerCapability = providerCapabilityForApprovedRequest(
-    input.actionType,
-  );
-  if (providerCapability && !hasActorCapability(input, providerCapability)) {
-    throw new ApiHttpError(403, `Forbidden: requires ${providerCapability}`);
+  const directCapability = directCapabilityForApprovedRequest(input.actionType);
+  if (!hasActorCapability(input, directCapability)) {
+    throw new ApiHttpError(403, `Forbidden: requires ${directCapability}`);
   }
 }
 
@@ -408,6 +400,65 @@ async function applyApprovedCorrectionRequest<TContribution>(
   };
 }
 
+function stableSerialize(value: unknown): string {
+  if (value === undefined) {
+    return '"__undefined__"';
+  }
+
+  if (value === null || typeof value !== "object") {
+    return JSON.stringify(value);
+  }
+
+  if (Array.isArray(value)) {
+    return `[${value.map(stableSerialize).join(",")}]`;
+  }
+
+  const entries = Object.entries(value as Record<string, unknown>)
+    .filter(([, entryValue]) => entryValue !== undefined)
+    .sort(([leftKey], [rightKey]) => leftKey.localeCompare(rightKey));
+  const serializedEntries = entries.map(
+    ([key, entryValue]) =>
+      `${JSON.stringify(key)}:${stableSerialize(entryValue)}`,
+  );
+
+  return `{${serializedEntries.join(",")}}`;
+}
+
+function payloadFingerprint(
+  payload: Record<string, unknown> | undefined,
+): string {
+  return createHash("sha256")
+    .update(stableSerialize(payload ?? {}))
+    .digest("hex")
+    .slice(0, 32);
+}
+
+function correctionRequestIdempotencyKey(
+  input: ExecuteContributionActionInput,
+): string {
+  if (input.idempotencyKey?.trim()) {
+    return input.idempotencyKey;
+  }
+
+  if (input.confirmationToken?.trim()) {
+    return [
+      "correction-request",
+      input.tenantId,
+      input.contributionId,
+      input.actionType,
+      input.confirmationToken,
+    ].join("/");
+  }
+
+  return [
+    "correction-request",
+    input.tenantId,
+    input.contributionId,
+    input.actionType,
+    `payload-${payloadFingerprint(input.payload)}`,
+  ].join("/");
+}
+
 async function createPendingCorrectionRequest<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
   extra: { receiptDeliveryProposal?: Record<string, unknown> | null } = {},
@@ -427,7 +478,7 @@ async function createPendingCorrectionRequest<TContribution>(
     requestedByProfileId: input.actorProfileId,
     sourceSurface: input.sourceSurface,
     expectedRevision: input.expectedRevision ?? null,
-    idempotencyKey: input.idempotencyKey ?? null,
+    idempotencyKey: correctionRequestIdempotencyKey(input),
     ...extra,
   });
   const auditEventId = await appendAuditEvent(
