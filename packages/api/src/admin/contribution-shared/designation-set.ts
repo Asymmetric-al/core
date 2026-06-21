@@ -100,7 +100,7 @@ function buildLine(input: {
     id: input.id,
     amountCents: input.amountCents,
     currencyCode: input.currencyCode,
-    fundId: fund?.id ?? null,
+    fundId: fund?.id ?? input.fundId,
     fundName: fund?.name?.trim() || SHARED_GENERAL_FUND_NAME,
     fundType: deriveFundType(fund),
     missionaryId: input.missionaryId,
