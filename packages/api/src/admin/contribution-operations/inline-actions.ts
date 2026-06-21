@@ -41,6 +41,10 @@ export const INLINE_ACTION_CAPABILITY: Record<
 const INLINE_REQUEST_CAPABILITY: ContributionCapability =
   "contributions.request_corrections";
 
+const INLINE_CORRECTION_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>(
+  ["amount_correction", "fund_correction"],
+);
+
 const INLINE_APPROVAL_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>([
   "amount_correction",
   "fund_correction",
@@ -131,13 +135,17 @@ export interface BuildInlineContributionActionsInput {
 export function buildInlineContributionActions(
   input: BuildInlineContributionActionsInput,
 ): CrmGiftInlineActions {
-  const workflowEntries = input.availability.filter(
-    (
-      entry,
-    ): entry is ContributionActionAvailability & CrmGiftInlineActionEntry =>
-      isInlineContributionActionType(entry.actionType) &&
-      entry.actionType !== "stripe_replay",
-  );
+  const workflowEntries = input.availability
+    .filter(
+      (
+        entry,
+      ): entry is ContributionActionAvailability & CrmGiftInlineActionEntry =>
+        isInlineContributionActionType(entry.actionType) &&
+        entry.actionType !== "stripe_replay",
+    )
+    .filter(
+      (entry) => !INLINE_CORRECTION_REQUEST_ACTION_TYPES.has(entry.actionType),
+    );
   const approvalPolicy =
     input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
   const correctionRequestEntries = (

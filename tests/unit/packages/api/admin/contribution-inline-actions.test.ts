@@ -165,6 +165,52 @@ describe("admin/contribution-operations/inline-actions", () => {
     ]);
   });
 
+  it("deduplicates correction request entries when availability already includes them", () => {
+    const staleAmountCorrection = {
+      actionType: "amount_correction",
+      available: false,
+      blockedReason: "Stale projected availability",
+      nextStep: "Reload contribution detail",
+      riskLevel: "high",
+    } satisfies ReturnType<typeof availabilityFor>[number];
+    const staleFundCorrection = {
+      actionType: "fund_correction",
+      available: false,
+      blockedReason: "Stale projected availability",
+      nextStep: "Reload contribution detail",
+      riskLevel: "high",
+    } satisfies ReturnType<typeof availabilityFor>[number];
+
+    const inline = buildInlineContributionActions({
+      availability: [
+        ...availabilityFor(),
+        staleAmountCorrection,
+        staleFundCorrection,
+      ],
+      providerPaymentIntentId: "pi_1",
+      viewerCapabilities: ALL_CAPABILITIES,
+    });
+
+    const correctionEntries = inline.entries.filter(
+      (entry) =>
+        entry.actionType === "amount_correction" ||
+        entry.actionType === "fund_correction",
+    );
+
+    expect(correctionEntries).toEqual([
+      expect.objectContaining({
+        actionType: "amount_correction",
+        available: true,
+        blockedReason: null,
+      }),
+      expect.objectContaining({
+        actionType: "fund_correction",
+        available: true,
+        blockedReason: null,
+      }),
+    ]);
+  });
+
   it("includes high-risk correction operations as request entries", () => {
     const inline = buildInlineContributionActions({
       availability: availabilityFor(),

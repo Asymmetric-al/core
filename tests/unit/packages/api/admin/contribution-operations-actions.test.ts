@@ -945,12 +945,7 @@ describe("contribution operations action executor", () => {
       createCorrectionRecord.mock.calls[0]?.[0]?.providerOutcome;
 
     expect(correctionProviderOutcome).not.toHaveProperty("raw");
-    expect(correctionProviderOutcome?.errorMessage).toBe(
-      "Provider action failed. Check provider logs for details.",
-    );
-    expect(correctionProviderOutcome?.errorMessage).not.toContain(
-      "donor@example.com",
-    );
+    expect(correctionProviderOutcome?.errorMessage).toBeNull();
     expect(result.providerOutcome).not.toHaveProperty("raw");
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
   });

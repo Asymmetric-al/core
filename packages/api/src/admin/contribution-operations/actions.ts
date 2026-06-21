@@ -455,7 +455,10 @@ function sanitizeProviderOutcome(
   }
 
   if ("errorMessage" in outcome) {
-    sanitized.errorMessage = outcome.errorMessage ? redactedErrorMessage : null;
+    sanitized.errorMessage =
+      outcome.errorMessage && isFailedProviderOutcome(outcome)
+        ? redactedErrorMessage
+        : null;
   }
 
   return sanitized;
