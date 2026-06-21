@@ -352,6 +352,28 @@ async function dismissUnlinkedApprovalTask(input: {
   }
 }
 
+async function markPendingCorrectionRequestSlaCycle(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  requestId: string;
+  field: "last_reminder_at" | "escalated_at";
+  now: string;
+}): Promise<boolean> {
+  const { data, error } = await input.supabaseAdmin
+    .from("contribution_correction_requests")
+    .update({ [input.field]: input.now, updated_at: input.now })
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.requestId)
+    .eq("status", "pending")
+    .select("id");
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return Array.isArray(data) && data.length > 0;
+}
+
 /**
  * Ensures the durable approval task and approver notifications exist for a
  * pending correction request. Safe to call repeatedly: the task is keyed by
@@ -411,6 +433,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
       })
       .eq("tenant_id", input.tenantId)
       .eq("id", request.id)
+      .eq("status", "pending")
       .is("approval_task_id", null)
       .select("approval_task_id");
     if (error) {
@@ -433,11 +456,22 @@ export async function ensureCorrectionApprovalWorkflow(input: {
       });
       const currentRequest = await loadContributionCorrectionRequest(input);
       approvalTaskId = currentRequest.approvalTaskId;
+      if (currentRequest.status !== "pending") {
+        return { approvalTaskId, notificationsCreated: 0 };
+      }
       if (!approvalTaskId) {
         throw new Error(
           "Failed to link contribution correction request to an approval task.",
         );
       }
+    }
+  }
+
+  if (plan.notifications.length > 0) {
+    const currentRequest = await loadContributionCorrectionRequest(input);
+    approvalTaskId = currentRequest.approvalTaskId ?? approvalTaskId;
+    if (currentRequest.status !== "pending") {
+      return { approvalTaskId, notificationsCreated: 0 };
     }
   }
 
@@ -590,6 +624,16 @@ export async function processCorrectionApprovalSla(input: {
           kind: "reminder",
           dedupeSuffix: `round-${reminderRound}`,
         });
+        const reminderClaimed = await markPendingCorrectionRequestSlaCycle({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          requestId,
+          field: "last_reminder_at",
+          now,
+        });
+        if (!reminderClaimed) {
+          continue;
+        }
         const reminderCount = await insertApprovalNotifications(
           input.supabaseAdmin,
           input.tenantId,
@@ -598,15 +642,6 @@ export async function processCorrectionApprovalSla(input: {
           { reminderRound },
         );
         remindersSent += reminderCount;
-
-        const { error: reminderError } = await input.supabaseAdmin
-          .from("contribution_correction_requests")
-          .update({ last_reminder_at: now, updated_at: now })
-          .eq("tenant_id", input.tenantId)
-          .eq("id", requestId);
-        if (reminderError) {
-          throw new Error(reminderError.message);
-        }
       }
 
       if (sla.escalationDue) {
@@ -622,6 +657,16 @@ export async function processCorrectionApprovalSla(input: {
           existingTaskId: "task-exists",
           kind: "escalation",
         });
+        const escalationClaimed = await markPendingCorrectionRequestSlaCycle({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          requestId,
+          field: "escalated_at",
+          now,
+        });
+        if (!escalationClaimed) {
+          continue;
+        }
         const escalationCount = await insertApprovalNotifications(
           input.supabaseAdmin,
           input.tenantId,
@@ -630,15 +675,6 @@ export async function processCorrectionApprovalSla(input: {
           { escalatedAt: now },
         );
         escalationsSent += escalationCount;
-
-        const { error: escalationError } = await input.supabaseAdmin
-          .from("contribution_correction_requests")
-          .update({ escalated_at: now, updated_at: now })
-          .eq("tenant_id", input.tenantId)
-          .eq("id", requestId);
-        if (escalationError) {
-          throw new Error(escalationError.message);
-        }
       }
     } catch (error) {
       failures.push({

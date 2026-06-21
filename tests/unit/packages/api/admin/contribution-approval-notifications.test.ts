@@ -20,6 +20,8 @@ interface StubState {
   requests: Array<Record<string, unknown>>;
   failingRequestUpdateIds: Set<string>;
   lostApprovalTaskUpdateTo: string | null;
+  statusBeforeApprovalTaskUpdate: string | null;
+  statusBeforeSlaUpdateIds: Map<string, string>;
   approvalPolicy: Record<string, unknown> | null;
   approvalSettings: Record<string, unknown> | null;
   approvers: Array<Record<string, unknown>>;
@@ -69,6 +71,8 @@ function stubState(): StubState {
     requests: [request],
     failingRequestUpdateIds: new Set(),
     lostApprovalTaskUpdateTo: null,
+    statusBeforeApprovalTaskUpdate: null,
+    statusBeforeSlaUpdateIds: new Map(),
     approvalPolicy: null,
     approvalSettings: null,
     approvers: [{ id: "approver-1" }, { id: "approver-2" }],
@@ -166,6 +170,27 @@ class QueryBuilder {
             data: null,
             error: { message: `failed to update ${targetRequestId}` },
           };
+        }
+        if (
+          "approval_task_id" in payload &&
+          this.state.statusBeforeApprovalTaskUpdate
+        ) {
+          targetRequest.status = this.state.statusBeforeApprovalTaskUpdate;
+          this.state.statusBeforeApprovalTaskUpdate = null;
+        }
+        if (
+          ("last_reminder_at" in payload || "escalated_at" in payload) &&
+          this.state.statusBeforeSlaUpdateIds.has(targetRequestId)
+        ) {
+          targetRequest.status =
+            this.state.statusBeforeSlaUpdateIds.get(targetRequestId);
+          this.state.statusBeforeSlaUpdateIds.delete(targetRequestId);
+        }
+        if (
+          this.statusFilter !== null &&
+          targetRequest.status !== this.statusFilter
+        ) {
+          return { data: [], error: null };
         }
         if (
           "approval_task_id" in payload &&
@@ -709,6 +734,32 @@ describe("admin/contribution-operations/approval-notifications", () => {
     });
   });
 
+  it("dismisses a created task and skips notifications when the request is decided during workflow setup", async () => {
+    const state = stubState();
+    state.statusBeforeApprovalTaskUpdate = "approved";
+
+    const outcome = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+    });
+
+    expect(outcome).toEqual({
+      approvalTaskId: null,
+      notificationsCreated: 0,
+    });
+    expect(state.request.status).toBe("approved");
+    expect(state.request.approval_task_id).toBeNull();
+    expect(state.tasks[0]).toMatchObject({
+      id: "task-1",
+      status: "dismissed",
+      dismissed_reason:
+        "Duplicate approval task superseded by concurrent workflow setup.",
+    });
+    expect(state.approvalNotifications).toHaveLength(0);
+    expect(state.auditEvents).toHaveLength(0);
+  });
+
   it("does not duplicate audit events on a pure workflow replay", async () => {
     const state = stubState();
     state.request.approval_task_id = "task-existing";
@@ -840,6 +891,29 @@ describe("admin/contribution-operations/approval-notifications", () => {
         kind: "escalation",
       }),
     ]);
+  });
+
+  it("skips SLA notifications when the request is decided before the cycle is claimed", async () => {
+    const state = stubState();
+    state.statusBeforeSlaUpdateIds.set(REQUEST_ID, "approved");
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    const outcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-04T01:00:00.000Z",
+    });
+
+    expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
+    expect(state.request.status).toBe("approved");
+    expect(state.request.last_reminder_at).toBeNull();
+    expect(state.request.escalated_at).toBeNull();
+    expect(state.approvalNotifications).toHaveLength(0);
   });
 
   it("marks reminder and escalation handled even when no notifications are deliverable", async () => {
