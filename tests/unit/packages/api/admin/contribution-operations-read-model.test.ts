@@ -270,7 +270,7 @@ describe("contribution operations detail read model", () => {
       }),
       expect.objectContaining({
         actionType: "refund",
-        available: false,
+        available: true,
       }),
     ]);
 
@@ -765,6 +765,30 @@ describe("contribution operations detail read model", () => {
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: false,
       blockedReason: expect.stringMatching(/completed payments/i),
+    });
+  });
+
+  it("allows refunds when Stripe proof has only a payment intent id", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput({
+        stripePaymentIntentId: "pi_only",
+        stripeChargeId: null,
+      }),
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+        reviewReason: null,
+        twentyRecordId: null,
+      },
+    });
+
+    expect(detail.payment.stripe.paymentIntentId).toBe("pi_only");
+    expect(detail.payment.stripe.chargeId).toBeNull();
+    expect(availabilityFor(detail, "refund")).toMatchObject({
+      available: true,
+      blockedReason: null,
     });
   });
 

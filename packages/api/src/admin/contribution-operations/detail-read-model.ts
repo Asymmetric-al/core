@@ -723,7 +723,9 @@ export function buildContributionDetail(
       refund: {
         amountCents: effective.amountCents,
         refundedAmountCents: donation.refundAmount,
-        hasProviderCharge: Boolean(donation.stripeChargeId),
+        hasProviderCharge: Boolean(
+          donation.stripeChargeId || donation.stripePaymentIntentId,
+        ),
       },
     }),
     tasks: [],
