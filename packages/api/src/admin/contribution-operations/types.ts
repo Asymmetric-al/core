@@ -183,6 +183,11 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     expectedRevision?: string | null;
     idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
+  resolveReplayStripeEventId?: (input: {
+    tenantId: string;
+    contributionId: string;
+    payload: Record<string, unknown>;
+  }) => Promise<string | null>;
   sendCorrectionNotification?: (input: {
     tenantId: string;
     actionType: ContributionActionType;
