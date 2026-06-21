@@ -516,6 +516,7 @@ export interface ContributionNotificationSetting {
 export interface ContributionNotificationEvent {
   id: string;
   tenant_id: string;
+  idempotency_key: string;
   operation_audit_event_id: string | null;
   correction_id: string | null;
   action_type: string;
