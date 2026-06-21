@@ -117,16 +117,19 @@ export interface ContributionActionResult<TContribution = unknown> {
 export interface ContributionActionDependencies<TContribution = unknown> {
   sendReceipt?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
   }) => Promise<{ status: string; sendLogId?: string | null }>;
   approveStagedGift?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
     actorProfileId: string | null;
     note?: string | null;
   }) => Promise<unknown>;
   retryStagedGift?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
     actorProfileId: string | null;
     note?: string | null;
@@ -138,6 +141,7 @@ export interface ContributionActionDependencies<TContribution = unknown> {
    */
   retryDesignationPost?: (input: {
     tenantId: string;
+    contributionId: string;
     stagedGiftId: string;
     allocationId: string;
     actorProfileId: string | null;
@@ -147,6 +151,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     tenantId: string;
     contributionId: string;
     donorId: string;
+    expectedRevision?: string | null;
+    idempotencyKey: string;
   }) => Promise<{
     before?: Record<string, unknown> | null;
     after?: Record<string, unknown> | null;
@@ -174,6 +180,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     tenantId: string;
     contributionId: string;
     payload: Record<string, unknown>;
+    expectedRevision?: string | null;
+    idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
   sendCorrectionNotification?: (input: {
     tenantId: string;
@@ -195,6 +203,8 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     amount: number;
     reason: string;
     confirmationToken: string;
+    expectedRevision?: string | null;
+    idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
   appendAuditEvent?: (
     input: ContributionOperationAuditEventInput,
@@ -220,6 +230,25 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     /** Requester's proposed updated receipt delivery action (ADR-CD-030). */
     receiptDeliveryProposal?: Record<string, unknown> | null;
   }) => Promise<string>;
+  /**
+   * Validates that an approved request can be applied and returns the
+   * persisted payload/reason. The implementation must verify tenant,
+   * contribution, action type, approved status, ownership policy, and payload
+   * consistency before the executor bypasses request creation.
+   */
+  validateApprovedCorrectionRequest?: (input: {
+    tenantId: string;
+    contributionId: string;
+    actionType: ContributionActionType;
+    approvedRequestId: string;
+    actorProfileId: string | null;
+    actorCapabilities?: string[];
+    expectedRevision?: string | null;
+    requestedPayload: Record<string, unknown>;
+  }) => Promise<{
+    payload: Record<string, unknown>;
+    reason?: string | null;
+  }>;
 }
 
 export interface ExecuteContributionActionInput<TContribution = unknown> {
