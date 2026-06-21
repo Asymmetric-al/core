@@ -36,10 +36,16 @@ function requireStringPayload(
   key: string,
 ): string {
   const value = payload?.[key];
-  if (typeof value !== "string" || value.trim().length === 0) {
+  if (typeof value !== "string") {
     throw new ApiHttpError(400, `${key} is required.`);
   }
-  return value;
+
+  const trimmedValue = value.trim();
+  if (trimmedValue.length === 0) {
+    throw new ApiHttpError(400, `${key} is required.`);
+  }
+
+  return trimmedValue;
 }
 
 function requirePositiveSafeIntegerPayload(
@@ -336,6 +342,29 @@ function isFailedProviderOutcome(
     outcome?.status === "canceled" ||
     outcome?.status === "requires_action"
   );
+}
+
+function sanitizeProviderOutcome(
+  outcome: ContributionProviderOutcome,
+): ContributionProviderOutcome {
+  const sanitized: ContributionProviderOutcome = {
+    provider: outcome.provider,
+    status: outcome.status,
+  };
+
+  if ("referenceId" in outcome) {
+    sanitized.referenceId = outcome.referenceId ?? null;
+  }
+
+  if ("errorCode" in outcome) {
+    sanitized.errorCode = outcome.errorCode ?? null;
+  }
+
+  if ("errorMessage" in outcome) {
+    sanitized.errorMessage = outcome.errorMessage ?? null;
+  }
+
+  return sanitized;
 }
 
 function isCorrectionAction(actionType: ContributionActionType): boolean {
@@ -861,18 +890,20 @@ export async function executeContributionAction<TContribution = unknown>(
         input.dependencies,
         "refundContribution",
       );
-      const providerOutcome = await refund({
-        tenantId: input.tenantId,
-        contributionId: input.contributionId,
-        amount,
-        reason: input.reason ?? "",
-        confirmationToken:
-          normalizedToken(input.confirmationToken) ??
-          normalizedToken(input.approvedRequestId) ??
-          "",
-        expectedRevision: input.expectedRevision ?? null,
-        idempotencyKey: providerIdempotencyKey(input),
-      });
+      const providerOutcome = sanitizeProviderOutcome(
+        await refund({
+          tenantId: input.tenantId,
+          contributionId: input.contributionId,
+          amount,
+          reason: input.reason ?? "",
+          confirmationToken:
+            normalizedToken(input.confirmationToken) ??
+            normalizedToken(input.approvedRequestId) ??
+            "",
+          expectedRevision: input.expectedRevision ?? null,
+          idempotencyKey: providerIdempotencyKey(input),
+        }),
+      );
       const correctionId = await createCorrectionRecord(
         input,
         correctionInput(input, {
@@ -920,13 +951,15 @@ export async function executeContributionAction<TContribution = unknown>(
         input.dependencies,
         "replayStripeEvent",
       );
-      const providerOutcome = await replayStripeEvent({
-        tenantId: input.tenantId,
-        contributionId: input.contributionId,
-        payload: input.payload ?? {},
-        expectedRevision: input.expectedRevision ?? null,
-        idempotencyKey: providerIdempotencyKey(input),
-      });
+      const providerOutcome = sanitizeProviderOutcome(
+        await replayStripeEvent({
+          tenantId: input.tenantId,
+          contributionId: input.contributionId,
+          payload: input.payload ?? {},
+          expectedRevision: input.expectedRevision ?? null,
+          idempotencyKey: providerIdempotencyKey(input),
+        }),
+      );
       const correctionId = await createCorrectionRecord(
         input,
         correctionInput(input, {

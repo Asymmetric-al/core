@@ -45,7 +45,7 @@ describe("contribution operations action executor", () => {
       sourceSurface: "donor_crm_record",
       contributionId: "donation_1",
       actionType: "resend_receipt",
-      payload: { stagedGiftId: "staged_1" },
+      payload: { stagedGiftId: " staged_1 " },
       dependencies: {
         sendReceipt,
         appendAuditEvent,
@@ -93,7 +93,7 @@ describe("contribution operations action executor", () => {
       contributionId: "donation_1",
       actionType: "approve_staged_gift",
       reason: "Reviewed staging failure",
-      payload: { stagedGiftId: "staged_1" },
+      payload: { stagedGiftId: " staged_1 " },
       dependencies: {
         approveStagedGift,
         appendAuditEvent,
@@ -172,7 +172,7 @@ describe("contribution operations action executor", () => {
       reason: "Merged duplicate donor",
       confirmationToken: "confirm",
       expectedRevision: "rev_relink",
-      payload: { donorId: "donor_new" },
+      payload: { donorId: " donor_new " },
       approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       dependencies: {
         createCorrectionRecord,
@@ -194,11 +194,13 @@ describe("contribution operations action executor", () => {
     expect(createCorrectionRecord).toHaveBeenCalledWith(
       expect.objectContaining({
         correctionType: "donor_relink",
+        afterSummary: { donorId: "donor_new" },
         reason: "Merged duplicate donor",
       }),
     );
     expect(appendAuditEvent).toHaveBeenCalledWith(
       expect.objectContaining({
+        afterSummary: { donorId: "donor_new" },
         correctionId: "correction_1",
         reason: "Merged duplicate donor",
       }),
@@ -639,6 +641,7 @@ describe("contribution operations action executor", () => {
       status: "failed",
       errorCode: "card_error",
       errorMessage: "Refund failed",
+      raw: { cardholderName: "Sensitive Name" },
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -677,6 +680,14 @@ describe("contribution operations action executor", () => {
         }),
       }),
     );
+    const correctionProviderOutcome =
+      createCorrectionRecord.mock.calls[0]?.[0]?.providerOutcome;
+    const auditProviderOutcome =
+      appendAuditEvent.mock.calls[0]?.[0]?.providerOutcome;
+
+    expect(correctionProviderOutcome).not.toHaveProperty("raw");
+    expect(auditProviderOutcome).not.toHaveProperty("raw");
+    expect(result.providerOutcome).not.toHaveProperty("raw");
     expect(refundContribution).toHaveBeenCalledWith(
       expect.objectContaining({
         confirmationToken: "confirm",
@@ -783,6 +794,7 @@ describe("contribution operations action executor", () => {
       provider: "stripe",
       status: "queued_for_replay",
       referenceId: "evt_123",
+      raw: { customerEmail: "donor@example.com" },
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -829,6 +841,11 @@ describe("contribution operations action executor", () => {
         }),
       }),
     );
+    const correctionProviderOutcome =
+      createCorrectionRecord.mock.calls[0]?.[0]?.providerOutcome;
+
+    expect(correctionProviderOutcome).not.toHaveProperty("raw");
+    expect(result.providerOutcome).not.toHaveProperty("raw");
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
   });
 
@@ -1020,9 +1037,9 @@ describe("contribution operations action executor", () => {
       contributionId: "donation_1",
       actionType: "retry_staged_gift",
       payload: {
-        stagedGiftId: "staged_1",
+        stagedGiftId: " staged_1 ",
         scope: "designation",
-        allocationId: "alloc_2",
+        allocationId: " alloc_2 ",
       },
       dependencies: {
         retryDesignationPost,
@@ -1067,7 +1084,7 @@ describe("contribution operations action executor", () => {
       actionType: "retry_staged_gift",
       reason: "Retry parent gift post",
       payload: {
-        stagedGiftId: "staged_1",
+        stagedGiftId: " staged_1 ",
         scope: "parent",
       },
       dependencies: {
