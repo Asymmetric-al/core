@@ -185,7 +185,7 @@ describe("admin/contribution-operations/inline-actions", () => {
     }
   });
 
-  it("filters entries by viewer capability (donor-care sees corrections only)", () => {
+  it("allows donor-care staff to request approval-gated inline actions", () => {
     const inline = buildInlineContributionActions({
       availability: availabilityFor(),
       providerPaymentIntentId: "pi_1",
@@ -195,6 +195,8 @@ describe("admin/contribution-operations/inline-actions", () => {
     expect(inline.entries.map((entry) => entry.actionType).sort()).toEqual([
       "amount_correction",
       "fund_correction",
+      "refund",
+      "stripe_replay",
     ]);
   });
 
@@ -210,10 +212,11 @@ describe("admin/contribution-operations/inline-actions", () => {
     expect(inline.nextBestActionType).toBeNull();
   });
 
-  it("filters refund and provider actions away from finance staff", () => {
+  it("filters refund and provider actions away from finance staff when approval is suppressed", () => {
     const inline = buildInlineContributionActions({
       availability: availabilityFor(),
       providerPaymentIntentId: "pi_1",
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
       viewerCapabilities: FINANCE_STAFF_CAPABILITIES,
     });
 

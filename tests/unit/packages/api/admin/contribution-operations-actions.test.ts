@@ -202,8 +202,9 @@ describe("contribution operations action executor", () => {
     expect(createCorrectionRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         actionType: "donor_relink",
-        idempotencyKey:
-          "correction-request/tenant_1/donation_1/donor_relink/confirm",
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/donor_relink\/confirmation-[0-9a-f]{32}$/,
+        ),
         payload: { donorId: "donor_new" },
       }),
     );
@@ -702,8 +703,9 @@ describe("contribution operations action executor", () => {
     expect(createCorrectionRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         actionType: "stripe_replay",
-        idempotencyKey:
-          "correction-request/tenant_1/donation_1/stripe_replay/confirm",
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/stripe_replay\/confirmation-[0-9a-f]{32}$/,
+        ),
         payload: { stripeEventId: "evt_123" },
       }),
     );
@@ -743,7 +745,9 @@ describe("contribution operations action executor", () => {
     expect(createCorrectionRequest).toHaveBeenCalledWith(
       expect.objectContaining({
         actionType: "refund",
-        idempotencyKey: "correction-request/tenant_1/donation_1/refund/confirm",
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/refund\/confirmation-[0-9a-f]{32}$/,
+        ),
       }),
     );
     expect(result.approvalStatus).toBe("pending_approval");
@@ -939,8 +943,9 @@ describe("contribution operations action executor", () => {
         tenantId: "tenant_1",
         contributionId: "donation_1",
         actionType: "amount_correction",
-        idempotencyKey:
-          "correction-request/tenant_1/donation_1/amount_correction/confirm",
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/amount_correction\/confirmation-[0-9a-f]{32}$/,
+        ),
         payload: { amount: 1500 },
         reason: "Donor reported the wrong amount",
         requestedByProfileId: "profile_1",
@@ -950,6 +955,73 @@ describe("contribution operations action executor", () => {
     expect(result.correctionRequestId).toBe("request_1");
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionId).toBeFalsy();
+  });
+
+  it("includes request context in confirmation-token correction request idempotency", async () => {
+    const applyCorrection = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_2");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const sharedDependencies = {
+      applyCorrection,
+      createCorrectionRequest,
+      appendAuditEvent,
+      loadContributionDetail,
+    };
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Donor reported the wrong amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: sharedDependencies,
+    });
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_2",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Different requester with the same acknowledgement token",
+      confirmationToken: "confirm",
+      payload: { amount: 1500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: sharedDependencies,
+    });
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/amount_correction\/confirmation-[0-9a-f]{32}$/,
+        ),
+      }),
+    );
+    expect(createCorrectionRequest).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        idempotencyKey: expect.stringMatching(
+          /^correction-request\/tenant_1\/donation_1\/amount_correction\/confirmation-[0-9a-f]{32}$/,
+        ),
+      }),
+    );
+    const firstKey = createCorrectionRequest.mock.calls[0]?.[0]?.idempotencyKey;
+    const secondKey =
+      createCorrectionRequest.mock.calls[1]?.[0]?.idempotencyKey;
+    expect(secondKey).not.toBe(firstKey);
   });
 
   it("derives context-specific idempotency for pending correction requests without confirmation tokens", async () => {

@@ -431,6 +431,22 @@ function stableFingerprint(value: unknown): string {
     .slice(0, 32);
 }
 
+function correctionRequestContext(
+  input: ExecuteContributionActionInput,
+  extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
+) {
+  return {
+    actorProfileId: input.actorProfileId,
+    confirmationToken: input.confirmationToken?.trim() || null,
+    expectedRevision: input.expectedRevision ?? null,
+    payload: input.payload ?? {},
+    reason: input.reason ?? "",
+    receiptDeliveryProposal: extra.receiptDeliveryProposal ?? null,
+    sourceSurface: input.sourceSurface,
+    stagedGiftId: input.stagedGiftId ?? null,
+  };
+}
+
 function correctionRequestIdempotencyKey(
   input: ExecuteContributionActionInput,
   extra: { receiptDeliveryProposal?: Record<string, unknown> | null },
@@ -439,25 +455,17 @@ function correctionRequestIdempotencyKey(
     return input.idempotencyKey;
   }
 
+  const requestContext = correctionRequestContext(input, extra);
+
   if (input.confirmationToken?.trim()) {
     return [
       "correction-request",
       input.tenantId,
       input.contributionId,
       input.actionType,
-      input.confirmationToken,
+      `confirmation-${stableFingerprint(requestContext)}`,
     ].join("/");
   }
-
-  const requestContext = {
-    actorProfileId: input.actorProfileId,
-    expectedRevision: input.expectedRevision ?? null,
-    payload: input.payload ?? {},
-    reason: input.reason ?? "",
-    receiptDeliveryProposal: extra.receiptDeliveryProposal ?? null,
-    sourceSurface: input.sourceSurface,
-    stagedGiftId: input.stagedGiftId ?? null,
-  };
 
   return [
     "correction-request",

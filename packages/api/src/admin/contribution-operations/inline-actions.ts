@@ -8,6 +8,7 @@ import { stripeReplayAvailability } from "./viewer-projection";
 import type { ContributionActionAvailability } from "./action-availability";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionCapability } from "./permissions";
+import type { ContributionActionType } from "./types";
 import type {
   CrmGiftInlineActionEntry,
   CrmGiftInlineActions,
@@ -36,6 +37,16 @@ export const INLINE_ACTION_CAPABILITY: Record<
   refund: "contributions.run_refunds",
   stripe_replay: "contributions.use_provider_actions",
 };
+
+const INLINE_REQUEST_CAPABILITY: ContributionCapability =
+  "contributions.request_corrections";
+
+const INLINE_APPROVAL_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>([
+  "amount_correction",
+  "fund_correction",
+  "refund",
+  "stripe_replay",
+]);
 
 /**
  * Only low-risk workflow actions are ever promoted to the row's single
@@ -67,6 +78,25 @@ function correctionRequestEntry(
     nextStep: null,
     riskLevel: getContributionActionRiskLevel(actionType),
   };
+}
+
+function requiredCapabilitiesForInlineAction(
+  actionType: CrmGiftInlineActionType,
+  approvalPolicy: CorrectionApprovalPolicy,
+): ContributionCapability[] {
+  const directCapability = INLINE_ACTION_CAPABILITY[actionType];
+  const canRequestApproval =
+    INLINE_APPROVAL_REQUEST_ACTION_TYPES.has(actionType) &&
+    correctionRequiresApproval({
+      actionType: actionType as ContributionActionType,
+      policy: approvalPolicy,
+    });
+
+  if (!canRequestApproval || directCapability === INLINE_REQUEST_CAPABILITY) {
+    return [directCapability];
+  }
+
+  return [directCapability, INLINE_REQUEST_CAPABILITY];
 }
 
 export function pickNextBestInlineContributionAction(
@@ -131,10 +161,13 @@ export function buildInlineContributionActions(
   ];
 
   const entries = allEntries.filter((entry) => {
-    const requiredCapability = INLINE_ACTION_CAPABILITY[entry.actionType];
-    return requiredCapability
-      ? input.viewerCapabilities.includes(requiredCapability)
-      : false;
+    const requiredCapabilities = requiredCapabilitiesForInlineAction(
+      entry.actionType,
+      approvalPolicy,
+    );
+    return requiredCapabilities.some((capability) =>
+      input.viewerCapabilities.includes(capability),
+    );
   });
 
   return {
