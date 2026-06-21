@@ -32,6 +32,7 @@ interface DataTableCardViewProps<TData> {
   enableRowSelection?: boolean;
   onRowClick?: (row: Row<TData>) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   renderCard?: (row: Row<TData>) => React.ReactNode;
   className?: string;
 }
@@ -46,6 +47,7 @@ export function DataTableCardView<TData>({
   enableRowSelection = true,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
   renderCard,
   className,
 }: DataTableCardViewProps<TData>) {
@@ -78,6 +80,7 @@ export function DataTableCardView<TData>({
             enableRowSelection={enableRowSelection}
             onRowClick={onRowClick}
             rowActions={rowActions}
+            getRowActionAriaLabel={getRowActionAriaLabel}
           />
         );
       })}
@@ -105,6 +108,7 @@ interface DataTableCardItemProps<TData> {
   enableRowSelection?: boolean;
   onRowClick?: (row: Row<TData>) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
 }
 
 function DataTableCardItem<TData>({
@@ -117,6 +121,7 @@ function DataTableCardItem<TData>({
   enableRowSelection = true,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
 }: DataTableCardItemProps<TData>) {
   const original = row.original as Record<string, unknown>;
   const isSelected = row.getIsSelected();
@@ -219,9 +224,12 @@ function DataTableCardItem<TData>({
                         variant="ghost"
                         size="icon"
                         className="size-8 rounded-lg"
+                        aria-label={
+                          getRowActionAriaLabel?.(row) ?? "Open row actions"
+                        }
                         onClick={(e) => e.stopPropagation()}
                       >
-                        <MoreHorizontal className="size-4" />
+                        <MoreHorizontal className="size-4" aria-hidden="true" />
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="rounded-xl">

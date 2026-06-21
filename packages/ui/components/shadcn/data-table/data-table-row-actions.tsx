@@ -22,16 +22,20 @@ interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
   actions: DataTableInteractiveRowAction<TData>[];
   className?: string;
+  getAriaLabel?: (row: Row<TData>) => string;
 }
 
 export function DataTableRowActions<TData>({
   row,
   actions,
   className,
+  getAriaLabel,
 }: DataTableRowActionsProps<TData>) {
   if (actions.length === 0) {
     return null;
   }
+
+  const triggerLabel = getAriaLabel?.(row) ?? "Open row actions";
 
   return (
     <DropdownMenu>
@@ -41,10 +45,10 @@ export function DataTableRowActions<TData>({
           variant="ghost"
           size="icon"
           className={cn("size-8 rounded-lg", className)}
+          aria-label={triggerLabel}
           onClick={(event) => event.stopPropagation()}
         >
-          <MoreHorizontal className="size-4" />
-          <span className="sr-only">Open row actions</span>
+          <MoreHorizontal className="size-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="rounded-xl">
