@@ -305,6 +305,29 @@ async function appendApprovalAuditEvent(input: {
   return asString(data.id) ?? "";
 }
 
+async function dismissUnlinkedApprovalTask(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  taskId: string;
+}): Promise<void> {
+  const now = new Date().toISOString();
+  const { error } = await input.supabaseAdmin
+    .from("mission_control_tasks")
+    .update({
+      status: "dismissed",
+      dismissed_at: now,
+      dismissed_reason:
+        "Duplicate approval task superseded by concurrent workflow setup.",
+      updated_at: now,
+    })
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.taskId);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
 /**
  * Ensures the durable approval task and approver notifications exist for a
  * pending correction request. Safe to call repeatedly: the task is keyed by
@@ -340,6 +363,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
   });
 
   let approvalTaskId = request.approvalTaskId;
+  let approvalTaskLinked = false;
   if (plan.createTask) {
     const createdTask = await createMissionControlTaskInSupabase({
       supabaseAdmin: input.supabaseAdmin,
@@ -353,7 +377,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     });
     approvalTaskId = createdTask.taskId;
 
-    const { error } = await input.supabaseAdmin
+    const { data, error } = await input.supabaseAdmin
       .from("contribution_correction_requests")
       .update({
         approval_task_id: approvalTaskId,
@@ -361,9 +385,33 @@ export async function ensureCorrectionApprovalWorkflow(input: {
       })
       .eq("tenant_id", input.tenantId)
       .eq("id", request.id)
-      .is("approval_task_id", null);
+      .is("approval_task_id", null)
+      .select("approval_task_id");
     if (error) {
       throw new Error(error.message);
+    }
+
+    const updatedRow = Array.isArray(data) ? data[0] : null;
+    const updatedApprovalTaskId = isRecord(updatedRow)
+      ? asString(updatedRow.approval_task_id)
+      : null;
+
+    if (updatedApprovalTaskId) {
+      approvalTaskId = updatedApprovalTaskId;
+      approvalTaskLinked = updatedApprovalTaskId === createdTask.taskId;
+    } else {
+      await dismissUnlinkedApprovalTask({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        taskId: createdTask.taskId,
+      });
+      const currentRequest = await loadContributionCorrectionRequest(input);
+      approvalTaskId = currentRequest.approvalTaskId;
+      if (!approvalTaskId) {
+        throw new Error(
+          "Failed to link contribution correction request to an approval task.",
+        );
+      }
     }
   }
 
@@ -378,22 +426,24 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     },
   );
 
-  await appendApprovalAuditEvent({
-    supabaseAdmin: input.supabaseAdmin,
-    event: {
-      tenantId: input.tenantId,
-      actorProfileId: null,
-      contributionId: request.donationId,
-      actionType: request.actionType,
-      sourceSurface: request.sourceSurface,
-      reason: null,
-      downstreamEffects: {
-        correctionRequestId: request.id,
-        approvalTaskId,
-        approverNotifications: notificationsCreated,
+  if (approvalTaskLinked || notificationsCreated > 0) {
+    await appendApprovalAuditEvent({
+      supabaseAdmin: input.supabaseAdmin,
+      event: {
+        tenantId: input.tenantId,
+        actorProfileId: null,
+        contributionId: request.donationId,
+        actionType: request.actionType,
+        sourceSurface: request.sourceSurface,
+        reason: null,
+        downstreamEffects: {
+          correctionRequestId: request.id,
+          approvalTaskId,
+          approverNotifications: notificationsCreated,
+        },
       },
-    },
-  });
+    });
+  }
 
   return { approvalTaskId, notificationsCreated };
 }
@@ -508,21 +558,24 @@ export async function processCorrectionApprovalSla(input: {
         kind: "reminder",
         dedupeSuffix: `round-${reminderRound}`,
       });
-      remindersSent += await insertApprovalNotifications(
+      const reminderCount = await insertApprovalNotifications(
         input.supabaseAdmin,
         input.tenantId,
         requestId,
         plan.notifications,
         { reminderRound },
       );
+      remindersSent += reminderCount;
 
-      const { error: reminderError } = await input.supabaseAdmin
-        .from("contribution_correction_requests")
-        .update({ last_reminder_at: now, updated_at: now })
-        .eq("tenant_id", input.tenantId)
-        .eq("id", requestId);
-      if (reminderError) {
-        throw new Error(reminderError.message);
+      if (reminderCount > 0) {
+        const { error: reminderError } = await input.supabaseAdmin
+          .from("contribution_correction_requests")
+          .update({ last_reminder_at: now, updated_at: now })
+          .eq("tenant_id", input.tenantId)
+          .eq("id", requestId);
+        if (reminderError) {
+          throw new Error(reminderError.message);
+        }
       }
     }
 
@@ -534,21 +587,24 @@ export async function processCorrectionApprovalSla(input: {
         existingTaskId: "task-exists",
         kind: "escalation",
       });
-      escalationsSent += await insertApprovalNotifications(
+      const escalationCount = await insertApprovalNotifications(
         input.supabaseAdmin,
         input.tenantId,
         requestId,
         plan.notifications,
         { escalatedAt: now },
       );
+      escalationsSent += escalationCount;
 
-      const { error: escalationError } = await input.supabaseAdmin
-        .from("contribution_correction_requests")
-        .update({ escalated_at: now, updated_at: now })
-        .eq("tenant_id", input.tenantId)
-        .eq("id", requestId);
-      if (escalationError) {
-        throw new Error(escalationError.message);
+      if (escalationCount > 0) {
+        const { error: escalationError } = await input.supabaseAdmin
+          .from("contribution_correction_requests")
+          .update({ escalated_at: now, updated_at: now })
+          .eq("tenant_id", input.tenantId)
+          .eq("id", requestId);
+        if (escalationError) {
+          throw new Error(escalationError.message);
+        }
       }
     }
   }

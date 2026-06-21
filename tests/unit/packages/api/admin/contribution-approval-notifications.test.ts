@@ -17,6 +17,7 @@ const REQUEST_ID = "request-1";
 
 interface StubState {
   request: Record<string, unknown>;
+  lostApprovalTaskUpdateTo: string | null;
   approvalSettings: Record<string, unknown> | null;
   approvers: Array<Record<string, unknown>>;
   preferences: Array<Record<string, unknown>>;
@@ -58,6 +59,7 @@ function pendingRequest(): Record<string, unknown> {
 function stubState(): StubState {
   return {
     request: pendingRequest(),
+    lostApprovalTaskUpdateTo: null,
     approvalSettings: null,
     approvers: [{ id: "approver-1" }, { id: "approver-2" }],
     preferences: [],
@@ -138,8 +140,31 @@ class QueryBuilder {
   } {
     if (this.table === "contribution_correction_requests") {
       if (this.operation === "update") {
+        const payload =
+          typeof this.payload === "object" &&
+          this.payload !== null &&
+          !Array.isArray(this.payload)
+            ? (this.payload as Record<string, unknown>)
+            : {};
+        if (
+          "approval_task_id" in payload &&
+          this.state.lostApprovalTaskUpdateTo
+        ) {
+          this.state.request.approval_task_id =
+            this.state.lostApprovalTaskUpdateTo;
+          return { data: [], error: null };
+        }
+
         Object.assign(this.state.request, this.payload);
-        return { data: [{ id: this.state.request.id }], error: null };
+        return {
+          data: [
+            {
+              id: this.state.request.id,
+              approval_task_id: this.state.request.approval_task_id,
+            },
+          ],
+          error: null,
+        };
       }
 
       if (this.maybeSingleResult || this.idFilter) {
@@ -531,6 +556,59 @@ describe("admin/contribution-operations/approval-notifications", () => {
     });
   });
 
+  it("uses the persisted approval task when a concurrent caller wins the link update", async () => {
+    const state = stubState();
+    state.lostApprovalTaskUpdateTo = "task-winner";
+
+    const outcome = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+    });
+
+    expect(outcome.approvalTaskId).toBe("task-winner");
+    expect(state.request.approval_task_id).toBe("task-winner");
+    expect(state.tasks[0]).toMatchObject({
+      id: "task-1",
+      status: "dismissed",
+      dismissed_reason:
+        "Duplicate approval task superseded by concurrent workflow setup.",
+    });
+    expect(state.auditEvents[0]).toMatchObject({
+      downstream_effects: expect.objectContaining({
+        approvalTaskId: "task-winner",
+      }),
+    });
+  });
+
+  it("does not duplicate audit events on a pure workflow replay", async () => {
+    const state = stubState();
+    state.request.approval_task_id = "task-existing";
+    state.approvalNotifications.push(
+      {
+        dedupe_key:
+          "correction-request/request-1/approval_requested/in_app/approver-1",
+      },
+      {
+        dedupe_key:
+          "correction-request/request-1/approval_requested/in_app/approver-2",
+      },
+    );
+
+    const outcome = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+    });
+
+    expect(outcome).toEqual({
+      approvalTaskId: "task-existing",
+      notificationsCreated: 0,
+    });
+    expect(state.tasks).toHaveLength(0);
+    expect(state.auditEvents).toHaveLength(0);
+  });
+
   it("records approval outcomes by completing tasks and notifying the requester", async () => {
     const state = stubState();
     state.request.approval_task_id = "task-1";
@@ -601,5 +679,26 @@ describe("admin/contribution-operations/approval-notifications", () => {
     expect(
       state.approvalNotifications.map((notification) => notification.kind),
     ).toEqual(["reminder", "reminder", "escalation", "escalation"]);
+  });
+
+  it("does not stamp SLA timestamps when no notifications were delivered", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: false,
+      email_enabled: false,
+    };
+
+    const outcome = await processCorrectionApprovalSla({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      policy: { reminderHours: 24, escalationHours: 72 },
+      now: "2026-06-04T01:00:00.000Z",
+    });
+
+    expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
+    expect(state.approvalNotifications).toHaveLength(0);
+    expect(state.request.last_reminder_at).toBeNull();
+    expect(state.request.escalated_at).toBeNull();
   });
 });
