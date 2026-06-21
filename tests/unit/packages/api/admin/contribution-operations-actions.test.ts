@@ -111,6 +111,45 @@ describe("contribution operations action executor", () => {
     expect(result.auditEventId).toBe("audit_1");
   });
 
+  it("normalizes top-level staged gift IDs before calling staged adapters", async () => {
+    const retryStagedGift = vi.fn().mockResolvedValue(undefined);
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      tenantId: "tenant_1",
+    });
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.retry_crm_post"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      stagedGiftId: " staged_1 ",
+      actionType: "retry_staged_gift",
+      reason: "Retry parent gift post",
+      payload: { scope: "parent" },
+      dependencies: {
+        retryStagedGift,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(retryStagedGift).toHaveBeenCalledWith(
+      expect.objectContaining({
+        contributionId: "donation_1",
+        stagedGiftId: "staged_1",
+      }),
+    );
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        stagedGiftId: "staged_1",
+      }),
+    );
+  });
+
   it("requires the receipt management capability for receipt resends", async () => {
     await expect(
       executeContributionAction({
@@ -249,6 +288,60 @@ describe("contribution operations action executor", () => {
     );
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionRequestId).toBe("request_7");
+  });
+
+  it("uses normalized donor IDs for direct fallback idempotency keys", async () => {
+    const relinkDonor = vi.fn().mockResolvedValue({
+      before: { donorId: "donor_old" },
+      after: { donorId: "donor_new" },
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      donor: { id: "donor_new" },
+    });
+    const sharedDependencies = {
+      relinkDonor,
+      createCorrectionRecord,
+      appendAuditEvent,
+      loadContributionDetail,
+    };
+    const baseInput = {
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.apply_corrections"],
+      sourceSurface: "contribution_hub" as const,
+      contributionId: "donation_1",
+      actionType: "donor_relink" as const,
+      reason: "Merged duplicate donor",
+      confirmationToken: "confirm",
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: sharedDependencies,
+    };
+
+    await executeContributionAction({
+      ...baseInput,
+      payload: { donorId: " donor_new " },
+    });
+    await executeContributionAction({
+      ...baseInput,
+      payload: { donorId: "donor_new" },
+    });
+    await executeContributionAction({
+      ...baseInput,
+      payload: { donorId: "donor_other" },
+    });
+
+    const idempotencyKeys = relinkDonor.mock.calls.map(
+      ([call]) => call.idempotencyKey,
+    );
+    expect(idempotencyKeys[0]).toMatch(
+      /^contribution-action\/tenant_1\/donation_1\/donor_relink\/confirmation-[0-9a-f]{32}$/,
+    );
+    expect(idempotencyKeys[1]).toBe(idempotencyKeys[0]);
+    expect(idempotencyKeys[2]).not.toBe(idempotencyKeys[0]);
   });
 
   it("applies amount corrections before writing correction and audit records", async () => {
@@ -640,7 +733,7 @@ describe("contribution operations action executor", () => {
       provider: "stripe",
       status: "failed",
       errorCode: "card_error",
-      errorMessage: "Refund failed",
+      errorMessage: "Refund failed for donor@example.com",
       raw: { cardholderName: "Sensitive Name" },
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
@@ -688,6 +781,12 @@ describe("contribution operations action executor", () => {
     expect(correctionProviderOutcome).not.toHaveProperty("raw");
     expect(auditProviderOutcome).not.toHaveProperty("raw");
     expect(result.providerOutcome).not.toHaveProperty("raw");
+    expect(correctionProviderOutcome?.errorMessage).toBe(
+      "Provider action failed. Check provider logs for details.",
+    );
+    expect(correctionProviderOutcome?.errorMessage).not.toContain(
+      "donor@example.com",
+    );
     expect(refundContribution).toHaveBeenCalledWith(
       expect.objectContaining({
         confirmationToken: "confirm",
@@ -794,6 +893,7 @@ describe("contribution operations action executor", () => {
       provider: "stripe",
       status: "queued_for_replay",
       referenceId: "evt_123",
+      errorMessage: "Replay queued for donor@example.com",
       raw: { customerEmail: "donor@example.com" },
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
@@ -845,6 +945,12 @@ describe("contribution operations action executor", () => {
       createCorrectionRecord.mock.calls[0]?.[0]?.providerOutcome;
 
     expect(correctionProviderOutcome).not.toHaveProperty("raw");
+    expect(correctionProviderOutcome?.errorMessage).toBe(
+      "Provider action failed. Check provider logs for details.",
+    );
+    expect(correctionProviderOutcome?.errorMessage).not.toContain(
+      "donor@example.com",
+    );
     expect(result.providerOutcome).not.toHaveProperty("raw");
     expect(result.providerOutcome?.referenceId).toBe("evt_123");
   });

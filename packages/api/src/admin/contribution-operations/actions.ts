@@ -48,6 +48,98 @@ function requireStringPayload(
   return trimmedValue;
 }
 
+function normalizeOptionalStringValue(
+  value: string | null | undefined,
+  key: string,
+): string | null | undefined {
+  if (value == null) {
+    return value;
+  }
+
+  const trimmedValue = value.trim();
+  if (trimmedValue.length === 0) {
+    throw new ApiHttpError(400, `${key} is required.`);
+  }
+
+  return trimmedValue;
+}
+
+function normalizeStringPayloadField(
+  payload: Record<string, unknown> | undefined,
+  key: string,
+): Record<string, unknown> | undefined {
+  if (!payload || !(key in payload)) {
+    return payload;
+  }
+
+  const normalizedValue = requireStringPayload(payload, key);
+  if (payload[key] === normalizedValue) {
+    return payload;
+  }
+
+  return {
+    ...payload,
+    [key]: normalizedValue,
+  };
+}
+
+function normalizeActionPayload(
+  input: ExecuteContributionActionInput,
+): Record<string, unknown> | undefined {
+  let normalizedPayload = input.payload;
+
+  if (
+    input.actionType === "resend_receipt" ||
+    input.actionType === "approve_staged_gift" ||
+    input.actionType === "retry_staged_gift" ||
+    input.actionType === "crm_repost"
+  ) {
+    normalizedPayload = normalizeStringPayloadField(
+      normalizedPayload,
+      "stagedGiftId",
+    );
+  }
+
+  if (
+    input.actionType === "retry_staged_gift" ||
+    input.actionType === "crm_repost"
+  ) {
+    normalizedPayload = normalizeStringPayloadField(
+      normalizedPayload,
+      "allocationId",
+    );
+  }
+
+  if (input.actionType === "donor_relink") {
+    normalizedPayload = normalizeStringPayloadField(
+      normalizedPayload,
+      "donorId",
+    );
+  }
+
+  if (input.actionType === "stripe_replay") {
+    normalizedPayload = normalizeStringPayloadField(
+      normalizedPayload,
+      "stripeEventId",
+    );
+  }
+
+  return normalizedPayload;
+}
+
+function normalizeActionInput<TContribution>(
+  input: ExecuteContributionActionInput<TContribution>,
+): ExecuteContributionActionInput<TContribution> {
+  return {
+    ...input,
+    stagedGiftId: normalizeOptionalStringValue(
+      input.stagedGiftId,
+      "stagedGiftId",
+    ),
+    payload: normalizeActionPayload(input),
+  };
+}
+
 function requirePositiveSafeIntegerPayload(
   payload: Record<string, unknown> | undefined,
   key: string,
@@ -347,6 +439,8 @@ function isFailedProviderOutcome(
 function sanitizeProviderOutcome(
   outcome: ContributionProviderOutcome,
 ): ContributionProviderOutcome {
+  const redactedErrorMessage =
+    "Provider action failed. Check provider logs for details.";
   const sanitized: ContributionProviderOutcome = {
     provider: outcome.provider,
     status: outcome.status,
@@ -361,7 +455,7 @@ function sanitizeProviderOutcome(
   }
 
   if ("errorMessage" in outcome) {
-    sanitized.errorMessage = outcome.errorMessage ?? null;
+    sanitized.errorMessage = outcome.errorMessage ? redactedErrorMessage : null;
   }
 
   return sanitized;
@@ -672,7 +766,9 @@ export async function executeContributionAction<TContribution = unknown>(
   assertActorPermissions(rawInput, policy, {
     requiresApproval: actionRequiresApproval,
   });
-  const input = await applyApprovedCorrectionRequest(rawInput);
+  const input = normalizeActionInput(
+    await applyApprovedCorrectionRequest(rawInput),
+  );
   assertReasonAndConfirmation(input, policy);
 
   switch (input.actionType) {
