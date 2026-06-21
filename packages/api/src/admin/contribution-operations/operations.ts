@@ -20,6 +20,7 @@ import type {
   ContributionActionType,
   ContributionSourceSurface,
 } from "./types";
+import type { DesignationFundInput } from "../contribution-shared/designation-set";
 import type {
   ContributionAdjustmentEffectiveValues,
   ContributionAdjustmentRecord,
@@ -108,6 +109,62 @@ async function loadContributionAdjustments(input: {
   return ((data ?? []) as JsonRecord[]).map(mapContributionAdjustmentRow);
 }
 
+function collectAdjustmentFundIds(input: {
+  donationFundId: string | null;
+  adjustments: ContributionAdjustmentRecord[];
+}) {
+  const fundIds = new Set<string>();
+  const addFundId = (value: unknown) => {
+    if (typeof value === "string" && value.trim().length > 0) {
+      fundIds.add(value);
+    }
+  };
+
+  addFundId(input.donationFundId);
+
+  for (const adjustment of input.adjustments) {
+    addFundId(adjustment.effectiveValues.fundId);
+
+    for (const line of adjustment.effectiveValues.designationLines ?? []) {
+      addFundId(line.fundId);
+    }
+  }
+
+  return [...fundIds];
+}
+
+async function loadDesignationFunds(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  fundIds: string[];
+}): Promise<DesignationFundInput[]> {
+  const queryableIds = input.fundIds.filter(isUuid);
+
+  if (queryableIds.length === 0) {
+    return [];
+  }
+
+  const { data, error } = await input.supabaseAdmin
+    .from("funds")
+    .select("id, name, missionary_id, goal_amount, start_date, end_date")
+    .eq("tenant_id", input.tenantId)
+    .in("id", queryableIds);
+
+  assertNoError(error, "Failed to load contribution fund metadata.");
+
+  return ((data ?? []) as JsonRecord[]).map((row) => ({
+    id: asString(row.id) ?? "",
+    name: asString(row.name),
+    missionary_id: asString(row.missionary_id),
+    goal_amount:
+      typeof row.goal_amount === "number" && Number.isFinite(row.goal_amount)
+        ? row.goal_amount
+        : null,
+    start_date: asString(row.start_date),
+    end_date: asString(row.end_date),
+  }));
+}
+
 async function loadContributionOperationDetail(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -171,6 +228,21 @@ async function loadContributionOperationDetail(input: {
         twentyRecordId: asString(stagedGiftResult.data.twenty_record_id),
       }
     : null;
+  const allocationFunds = await loadDesignationFunds({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    fundIds: collectAdjustmentFundIds({
+      donationFundId: donation.fundId,
+      adjustments,
+    }),
+  });
+  const primaryFund =
+    donation.fundId !== null
+      ? (allocationFunds.find((fund) => fund.id === donation.fundId) ?? {
+          id: donation.fundId,
+          name: null,
+        })
+      : null;
 
   return buildContributionDetail({
     donation,
@@ -185,7 +257,7 @@ async function loadContributionOperationDetail(input: {
           organization: null,
         }
       : null,
-    fund: donation.fundId ? { id: donation.fundId, name: null } : null,
+    fund: primaryFund,
     missionary: donation.missionaryId
       ? { id: donation.missionaryId, name: null }
       : null,
@@ -207,7 +279,7 @@ async function loadContributionOperationDetail(input: {
     correctionRequests: [],
     adjustments,
     allocations: [],
-    allocationFunds: [],
+    allocationFunds,
     allocationMissionaries: [],
     crmLinks: [],
   });
@@ -432,6 +504,7 @@ function summarizeEffectiveDetail(detail: ContributionDetail) {
     amount: detail.effective.amountCents,
     donorId: detail.donor?.id ?? null,
     fundId: detail.effective.fundId,
+    designationName: detail.shared.designationSummary.fundName,
     missionaryId: detail.effective.missionaryId,
     status: detail.effective.paymentStatus,
   };

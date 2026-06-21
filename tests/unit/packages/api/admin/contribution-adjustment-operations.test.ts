@@ -32,7 +32,7 @@ interface StubState {
   donor?: Record<string, unknown> | null;
   policy?: Record<string, unknown> | null;
   snapshots?: Array<Record<string, unknown>>;
-  funds?: string[];
+  funds?: Array<string | { id: string; name?: string | null }>;
   missionaries?: string[];
 }
 
@@ -100,8 +100,22 @@ class QueryBuilder {
     if (this.table === "funds") {
       const valid = this.state.funds ?? [];
       const rows = this.inValues
-        .filter((id) => valid.includes(id as string))
-        .map((id) => ({ id }));
+        .map((id) => {
+          const fund = valid.find((item) =>
+            typeof item === "string" ? item === id : item.id === id,
+          );
+
+          if (!fund) {
+            return null;
+          }
+
+          return typeof fund === "string"
+            ? { id: fund, name: null }
+            : { id: fund.id, name: fund.name ?? null };
+        })
+        .filter((row): row is { id: string; name: string | null } =>
+          Boolean(row),
+        );
       return { data: rows, error: null };
     }
     if (this.table === "missionaries") {
@@ -400,7 +414,7 @@ describe("applyContributionCorrection", () => {
     const state: StubState = {
       adjustments: [],
       insertCount: 0,
-      funds: [FUND_VALID],
+      funds: [{ id: FUND_VALID, name: "Clean Water Initiative" }],
     };
 
     const result = await applyContributionCorrection({
@@ -415,6 +429,18 @@ describe("applyContributionCorrection", () => {
       adjustment_type: "fund_correction",
       effective_values: { fundId: FUND_VALID },
     });
+    expect(result.before).toEqual(
+      expect.objectContaining({
+        fundId: null,
+        designationName: "General Fund",
+      }),
+    );
+    expect(result.after).toEqual(
+      expect.objectContaining({
+        fundId: FUND_VALID,
+        designationName: "Clean Water Initiative",
+      }),
+    );
     expect(result.status).toBe("applied");
   });
 

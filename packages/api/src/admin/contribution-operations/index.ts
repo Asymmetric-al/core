@@ -48,6 +48,32 @@ export {
   pickNextBestInlineContributionAction,
   type BuildInlineContributionActionsInput,
 } from "./inline-actions";
+export {
+  getContributionNotificationPolicy,
+  isContributionNotificationSuppressionReasonRequired,
+  type ContributionNotificationDecision,
+  type ContributionNotificationMode,
+} from "./notifications/policy";
+export {
+  sendContributionCorrectionNotification,
+  type ContributionCorrectionNotificationEvent,
+  type ContributionCorrectionNotificationInput,
+  type ContributionCorrectionNotificationLogResult,
+  type ContributionCorrectionNotificationSettings,
+  type ContributionCorrectionNotificationTaskInput,
+  type ContributionCorrectionNotificationTemplate,
+} from "./notifications/send";
+export {
+  logContributionNotificationEvent,
+  sendContributionCorrectionNotificationFromSupabase,
+} from "./notifications/store";
+export {
+  isContributionCorrectionTemplateFamily,
+  isContributionCorrectionTemplateVariantForFamily,
+  resolveContributionCorrectionTemplateVariant,
+  validateContributionCorrectionTemplate,
+  type ContributionCorrectionTemplateVariantRef,
+} from "./notifications/templates";
 export { applyContributionCorrection } from "./operations";
 export {
   assertAllowedPaymentStateCorrectionStatus,
