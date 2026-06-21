@@ -52,6 +52,36 @@ describe("contribution approval notification migration", () => {
     );
   });
 
+  it("enforces tenant ownership for approval notification references", () => {
+    for (const triggerName of [
+      "enforce_contribution_approval_settings_tenant_refs",
+      "enforce_contribution_approval_preferences_tenant_refs",
+      "enforce_contribution_approval_notifications_tenant_refs",
+    ]) {
+      expect(migrationSql).toContain(`CREATE TRIGGER ${triggerName}`);
+    }
+
+    for (const referencedTable of [
+      "public.profiles",
+      "public.contribution_correction_requests",
+    ]) {
+      expect(migrationSql).toContain(`FROM ${referencedTable}`);
+    }
+
+    for (const mismatchMessage of [
+      "contribution operation profile tenant mismatch",
+      "contribution operation recipient profile tenant mismatch",
+      "contribution operation updater profile tenant mismatch",
+      "contribution operation correction request tenant mismatch",
+    ]) {
+      expect(migrationSql).toContain(mismatchMessage);
+    }
+
+    expect(migrationSql).toContain(
+      "EXECUTE FUNCTION public.enforce_contribution_operation_tenant_refs()",
+    );
+  });
+
   it("indexes request lookups for approval workflow surfaces", () => {
     expect(migrationSql).toContain(
       "CREATE INDEX IF NOT EXISTS idx_contribution_approval_notifications_request",

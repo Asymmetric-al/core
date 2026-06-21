@@ -41,6 +41,229 @@ CREATE TABLE IF NOT EXISTS public.contribution_approval_notifications (
 CREATE INDEX IF NOT EXISTS idx_contribution_approval_notifications_request
     ON public.contribution_approval_notifications (tenant_id, correction_request_id, created_at DESC);
 
+CREATE OR REPLACE FUNCTION public.enforce_contribution_operation_tenant_refs()
+RETURNS TRIGGER
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO public
+AS $function$
+DECLARE
+    row_data JSONB;
+    row_tenant_id UUID;
+    row_donation_id UUID;
+    row_staged_gift_id UUID;
+    ref_id UUID;
+    ref_tenant_id UUID;
+    ref_donation_id UUID;
+    ref_staged_gift_id UUID;
+BEGIN
+    row_data := to_jsonb(NEW);
+    row_tenant_id := (row_data ->> 'tenant_id')::uuid;
+
+    IF row_data ? 'profile_id' AND (row_data ->> 'profile_id') IS NOT NULL THEN
+        ref_id := (row_data ->> 'profile_id')::uuid;
+        SELECT p.tenant_id
+        INTO ref_tenant_id
+        FROM public.profiles AS p
+        WHERE p.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation profile tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'recipient_profile_id'
+        AND (row_data ->> 'recipient_profile_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'recipient_profile_id')::uuid;
+        SELECT p.tenant_id
+        INTO ref_tenant_id
+        FROM public.profiles AS p
+        WHERE p.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation recipient profile tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF row_data ? 'updated_by' AND (row_data ->> 'updated_by') IS NOT NULL THEN
+        ref_id := (row_data ->> 'updated_by')::uuid;
+        SELECT p.tenant_id
+        INTO ref_tenant_id
+        FROM public.profiles AS p
+        WHERE p.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation updater profile tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF row_data ? 'donation_id' AND (row_data ->> 'donation_id') IS NOT NULL THEN
+        row_donation_id := (row_data ->> 'donation_id')::uuid;
+        SELECT d.tenant_id
+        INTO ref_tenant_id
+        FROM public.donations AS d
+        WHERE d.id = row_donation_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation donation tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'staged_gift_id'
+        AND (row_data ->> 'staged_gift_id') IS NOT NULL
+    THEN
+        row_staged_gift_id := (row_data ->> 'staged_gift_id')::uuid;
+        ref_id := row_staged_gift_id;
+        SELECT sg.tenant_id, sg.donation_id
+        INTO ref_tenant_id, ref_donation_id
+        FROM public.staged_gifts AS sg
+        WHERE sg.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation staged gift tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation staged gift donation mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF row_data ? 'correction_id' AND (row_data ->> 'correction_id') IS NOT NULL THEN
+        ref_id := (row_data ->> 'correction_id')::uuid;
+        SELECT cc.tenant_id, cc.donation_id, cc.staged_gift_id
+        INTO ref_tenant_id, ref_donation_id, ref_staged_gift_id
+        FROM public.contribution_corrections AS cc
+        WHERE cc.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation correction tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation correction donation mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS DISTINCT FROM row_staged_gift_id
+        THEN
+            RAISE EXCEPTION 'contribution operation correction staged gift mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'correction_request_id'
+        AND (row_data ->> 'correction_request_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'correction_request_id')::uuid;
+        SELECT cr.tenant_id
+        INTO ref_tenant_id
+        FROM public.contribution_correction_requests AS cr
+        WHERE cr.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation correction request tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    IF
+        row_data ? 'audit_event_id'
+        AND (row_data ->> 'audit_event_id') IS NOT NULL
+    THEN
+        ref_id := (row_data ->> 'audit_event_id')::uuid;
+        SELECT ae.tenant_id, ae.donation_id, ae.staged_gift_id
+        INTO ref_tenant_id, ref_donation_id, ref_staged_gift_id
+        FROM public.contribution_operation_audit_events AS ae
+        WHERE ae.id = ref_id;
+
+        IF FOUND AND ref_tenant_id IS DISTINCT FROM row_tenant_id THEN
+            RAISE EXCEPTION 'contribution operation audit event tenant mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_donation_id IS NOT NULL
+            AND ref_donation_id IS NOT NULL
+            AND ref_donation_id IS DISTINCT FROM row_donation_id
+        THEN
+            RAISE EXCEPTION 'contribution operation audit event donation mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+
+        IF
+            FOUND
+            AND row_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS NOT NULL
+            AND ref_staged_gift_id IS DISTINCT FROM row_staged_gift_id
+        THEN
+            RAISE EXCEPTION 'contribution operation audit event staged gift mismatch'
+                USING ERRCODE = '23514';
+        END IF;
+    END IF;
+
+    RETURN NEW;
+END;
+$function$;
+
+DROP TRIGGER IF EXISTS enforce_contribution_approval_settings_tenant_refs
+    ON public.contribution_approval_notification_settings;
+
+CREATE TRIGGER enforce_contribution_approval_settings_tenant_refs
+    BEFORE INSERT OR UPDATE OF
+        tenant_id,
+        updated_by
+    ON public.contribution_approval_notification_settings
+    FOR EACH ROW
+    EXECUTE FUNCTION public.enforce_contribution_operation_tenant_refs();
+
+DROP TRIGGER IF EXISTS enforce_contribution_approval_preferences_tenant_refs
+    ON public.contribution_approval_notification_preferences;
+
+CREATE TRIGGER enforce_contribution_approval_preferences_tenant_refs
+    BEFORE INSERT OR UPDATE OF
+        tenant_id,
+        profile_id
+    ON public.contribution_approval_notification_preferences
+    FOR EACH ROW
+    EXECUTE FUNCTION public.enforce_contribution_operation_tenant_refs();
+
+DROP TRIGGER IF EXISTS enforce_contribution_approval_notifications_tenant_refs
+    ON public.contribution_approval_notifications;
+
+CREATE TRIGGER enforce_contribution_approval_notifications_tenant_refs
+    BEFORE INSERT OR UPDATE OF
+        tenant_id,
+        correction_request_id,
+        recipient_profile_id
+    ON public.contribution_approval_notifications
+    FOR EACH ROW
+    EXECUTE FUNCTION public.enforce_contribution_operation_tenant_refs();
+
 ALTER TABLE public.contribution_correction_requests
     ADD COLUMN IF NOT EXISTS last_reminder_at TIMESTAMPTZ,
     ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
