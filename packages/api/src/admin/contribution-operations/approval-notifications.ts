@@ -12,6 +12,10 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 type SupabaseAdmin = AdminSupabaseClient;
 
 type JsonRecord = Record<string, unknown>;
+type ApprovalSlaDeliveryResult = {
+  notificationsCreated: number;
+  stamped: boolean;
+};
 type EligibleApprover = {
   profileId: string;
   preference: ApproverNotificationPreference;
@@ -23,6 +27,17 @@ function isRecord(value: unknown): value is JsonRecord {
 
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
+function parseRpcObject<T extends Record<string, unknown>>(
+  value: unknown,
+): T | null {
+  if (!value) return null;
+  if (Array.isArray(value)) {
+    const first = value[0];
+    return first && typeof first === "object" ? (first as T) : null;
+  }
+  return typeof value === "object" ? (value as T) : null;
 }
 
 /**
@@ -352,26 +367,49 @@ async function dismissUnlinkedApprovalTask(input: {
   }
 }
 
-async function markPendingCorrectionRequestSlaCycle(input: {
+async function ensurePendingCorrectionRequestSlaNotifications(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   requestId: string;
   field: "last_reminder_at" | "escalated_at";
   now: string;
-}): Promise<boolean> {
-  const { data, error } = await input.supabaseAdmin
-    .from("contribution_correction_requests")
-    .update({ [input.field]: input.now, updated_at: input.now })
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.requestId)
-    .eq("status", "pending")
-    .select("id");
+  notifications: PlannedApprovalNotification[];
+  payload: Record<string, unknown>;
+}): Promise<ApprovalSlaDeliveryResult> {
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "ensure_contribution_approval_sla_notifications",
+    {
+      p_tenant_id: input.tenantId,
+      p_correction_request_id: input.requestId,
+      p_sla_field: input.field,
+      p_sla_timestamp: input.now,
+      p_notifications: input.notifications.map((notification) => ({
+        recipient_profile_id: notification.recipientProfileId,
+        channel: notification.channel,
+        kind: notification.kind,
+        dedupe_key: notification.dedupeKey,
+      })),
+      p_payload: input.payload,
+    },
+  );
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return Array.isArray(data) && data.length > 0;
+  const result = parseRpcObject<{
+    notifications_created?: unknown;
+    stamped?: unknown;
+  }>(data);
+  const notificationsCreated =
+    typeof result?.notifications_created === "number"
+      ? result.notifications_created
+      : 0;
+
+  return {
+    notificationsCreated,
+    stamped: result?.stamped === true,
+  };
 }
 
 /**
@@ -624,24 +662,20 @@ export async function processCorrectionApprovalSla(input: {
           kind: "reminder",
           dedupeSuffix: `round-${reminderRound}`,
         });
-        const reminderClaimed = await markPendingCorrectionRequestSlaCycle({
-          supabaseAdmin: input.supabaseAdmin,
-          tenantId: input.tenantId,
-          requestId,
-          field: "last_reminder_at",
-          now,
-        });
-        if (!reminderClaimed) {
+        const reminderDelivery =
+          await ensurePendingCorrectionRequestSlaNotifications({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            requestId,
+            field: "last_reminder_at",
+            now,
+            notifications: plan.notifications,
+            payload: { reminderRound },
+          });
+        if (!reminderDelivery.stamped) {
           continue;
         }
-        const reminderCount = await insertApprovalNotifications(
-          input.supabaseAdmin,
-          input.tenantId,
-          requestId,
-          plan.notifications,
-          { reminderRound },
-        );
-        remindersSent += reminderCount;
+        remindersSent += reminderDelivery.notificationsCreated;
       }
 
       if (sla.escalationDue) {
@@ -657,24 +691,20 @@ export async function processCorrectionApprovalSla(input: {
           existingTaskId: "task-exists",
           kind: "escalation",
         });
-        const escalationClaimed = await markPendingCorrectionRequestSlaCycle({
-          supabaseAdmin: input.supabaseAdmin,
-          tenantId: input.tenantId,
-          requestId,
-          field: "escalated_at",
-          now,
-        });
-        if (!escalationClaimed) {
+        const escalationDelivery =
+          await ensurePendingCorrectionRequestSlaNotifications({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            requestId,
+            field: "escalated_at",
+            now,
+            notifications: plan.notifications,
+            payload: { escalatedAt: now },
+          });
+        if (!escalationDelivery.stamped) {
           continue;
         }
-        const escalationCount = await insertApprovalNotifications(
-          input.supabaseAdmin,
-          input.tenantId,
-          requestId,
-          plan.notifications,
-          { escalatedAt: now },
-        );
-        escalationsSent += escalationCount;
+        escalationsSent += escalationDelivery.notificationsCreated;
       }
     } catch (error) {
       failures.push({

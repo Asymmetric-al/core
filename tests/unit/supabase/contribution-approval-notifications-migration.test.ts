@@ -120,4 +120,19 @@ describe("contribution approval notification migration", () => {
       "ON public.contribution_approval_notifications (tenant_id, correction_request_id, created_at DESC)",
     );
   });
+
+  it("atomically persists SLA notifications and stamps pending requests", () => {
+    expect(migrationSql).toContain(
+      "CREATE OR REPLACE FUNCTION public.ensure_contribution_approval_sla_notifications",
+    );
+    expect(migrationSql).toContain("FOR UPDATE");
+    expect(migrationSql).toContain(
+      "ON CONFLICT (tenant_id, dedupe_key) DO NOTHING",
+    );
+    expect(migrationSql).toContain("last_reminder_at = p_sla_timestamp");
+    expect(migrationSql).toContain("escalated_at = p_sla_timestamp");
+    expect(migrationSql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.ensure_contribution_approval_sla_notifications",
+    );
+  });
 });

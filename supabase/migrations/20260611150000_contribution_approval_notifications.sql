@@ -426,6 +426,114 @@ ALTER TABLE public.contribution_correction_requests
     ADD COLUMN IF NOT EXISTS last_reminder_at TIMESTAMPTZ,
     ADD COLUMN IF NOT EXISTS escalated_at TIMESTAMPTZ;
 
+CREATE OR REPLACE FUNCTION public.ensure_contribution_approval_sla_notifications(
+    p_tenant_id UUID,
+    p_correction_request_id UUID,
+    p_sla_field TEXT,
+    p_sla_timestamp TIMESTAMPTZ,
+    p_notifications JSONB,
+    p_payload JSONB DEFAULT '{}'::jsonb
+)
+RETURNS TABLE (
+    notifications_created INTEGER,
+    stamped BOOLEAN
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path TO public
+AS $function$
+DECLARE
+    notification_row JSONB;
+    notification_rows JSONB := COALESCE(p_notifications, '[]'::jsonb);
+    created_count INTEGER := 0;
+    inserted_count INTEGER := 0;
+    updated_count INTEGER := 0;
+BEGIN
+    IF p_sla_field NOT IN ('last_reminder_at', 'escalated_at') THEN
+        RAISE EXCEPTION 'invalid contribution approval SLA field'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF p_sla_timestamp IS NULL THEN
+        RAISE EXCEPTION 'contribution approval SLA timestamp is required'
+            USING ERRCODE = '22004';
+    END IF;
+
+    IF jsonb_typeof(notification_rows) <> 'array' THEN
+        RAISE EXCEPTION 'contribution approval SLA notifications must be an array'
+            USING ERRCODE = '22023';
+    END IF;
+
+    PERFORM 1
+    FROM public.contribution_correction_requests
+    WHERE
+        tenant_id = p_tenant_id
+        AND id = p_correction_request_id
+        AND status = 'pending'
+    FOR UPDATE;
+
+    IF NOT FOUND THEN
+        notifications_created := 0;
+        stamped := FALSE;
+        RETURN NEXT;
+        RETURN;
+    END IF;
+
+    FOR notification_row IN
+        SELECT value
+        FROM jsonb_array_elements(notification_rows)
+    LOOP
+        INSERT INTO public.contribution_approval_notifications (
+            tenant_id,
+            correction_request_id,
+            recipient_profile_id,
+            channel,
+            kind,
+            dedupe_key,
+            payload
+        )
+        VALUES (
+            p_tenant_id,
+            p_correction_request_id,
+            NULLIF(notification_row ->> 'recipient_profile_id', '')::uuid,
+            notification_row ->> 'channel',
+            notification_row ->> 'kind',
+            notification_row ->> 'dedupe_key',
+            COALESCE(p_payload, '{}'::jsonb)
+        )
+        ON CONFLICT (tenant_id, dedupe_key) DO NOTHING;
+
+        GET DIAGNOSTICS inserted_count = ROW_COUNT;
+        created_count := created_count + inserted_count;
+    END LOOP;
+
+    IF p_sla_field = 'last_reminder_at' THEN
+        UPDATE public.contribution_correction_requests
+        SET
+            last_reminder_at = p_sla_timestamp,
+            updated_at = p_sla_timestamp
+        WHERE
+            tenant_id = p_tenant_id
+            AND id = p_correction_request_id
+            AND status = 'pending';
+    ELSE
+        UPDATE public.contribution_correction_requests
+        SET
+            escalated_at = p_sla_timestamp,
+            updated_at = p_sla_timestamp
+        WHERE
+            tenant_id = p_tenant_id
+            AND id = p_correction_request_id
+            AND status = 'pending';
+    END IF;
+
+    GET DIAGNOSTICS updated_count = ROW_COUNT;
+    notifications_created := created_count;
+    stamped := updated_count > 0;
+    RETURN NEXT;
+END;
+$function$;
+
 ALTER TABLE public.contribution_approval_notification_settings ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_approval_notification_preferences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.contribution_approval_notifications ENABLE ROW LEVEL SECURITY;
@@ -433,7 +541,23 @@ ALTER TABLE public.contribution_approval_notifications ENABLE ROW LEVEL SECURITY
 REVOKE ALL ON TABLE public.contribution_approval_notification_settings FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_approval_notification_preferences FROM anon, authenticated;
 REVOKE ALL ON TABLE public.contribution_approval_notifications FROM anon, authenticated;
+REVOKE ALL ON FUNCTION public.ensure_contribution_approval_sla_notifications(
+    UUID,
+    UUID,
+    TEXT,
+    TIMESTAMPTZ,
+    JSONB,
+    JSONB
+) FROM PUBLIC, anon, authenticated;
 
 GRANT ALL ON TABLE public.contribution_approval_notification_settings TO service_role;
 GRANT ALL ON TABLE public.contribution_approval_notification_preferences TO service_role;
 GRANT ALL ON TABLE public.contribution_approval_notifications TO service_role;
+GRANT EXECUTE ON FUNCTION public.ensure_contribution_approval_sla_notifications(
+    UUID,
+    UUID,
+    TEXT,
+    TIMESTAMPTZ,
+    JSONB,
+    JSONB
+) TO service_role;

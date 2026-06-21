@@ -19,6 +19,7 @@ interface StubState {
   request: Record<string, unknown>;
   requests: Array<Record<string, unknown>>;
   failingRequestUpdateIds: Set<string>;
+  failingSlaNotificationRequestIds: Set<string>;
   lostApprovalTaskUpdateTo: string | null;
   statusBeforeApprovalTaskUpdate: string | null;
   statusBeforeSlaUpdateIds: Map<string, string>;
@@ -70,6 +71,7 @@ function stubState(): StubState {
     request,
     requests: [request],
     failingRequestUpdateIds: new Set(),
+    failingSlaNotificationRequestIds: new Set(),
     lostApprovalTaskUpdateTo: null,
     statusBeforeApprovalTaskUpdate: null,
     statusBeforeSlaUpdateIds: new Map(),
@@ -339,10 +341,99 @@ class QueryBuilder {
   }
 }
 
+function resolveApprovalSlaNotificationsRpc(
+  state: StubState,
+  params: Record<string, unknown>,
+): { data: unknown; error: { message: string } | null } {
+  const requestId =
+    typeof params.p_correction_request_id === "string"
+      ? params.p_correction_request_id
+      : REQUEST_ID;
+  const targetRequest =
+    state.requests.find((row) => row.id === requestId) ?? state.request;
+
+  if (state.statusBeforeSlaUpdateIds.has(requestId)) {
+    targetRequest.status = state.statusBeforeSlaUpdateIds.get(requestId);
+    state.statusBeforeSlaUpdateIds.delete(requestId);
+  }
+
+  if (targetRequest.status !== "pending") {
+    return {
+      data: [{ notifications_created: 0, stamped: false }],
+      error: null,
+    };
+  }
+
+  if (state.failingRequestUpdateIds.has(requestId)) {
+    return {
+      data: null,
+      error: { message: `failed to update ${requestId}` },
+    };
+  }
+
+  if (state.failingSlaNotificationRequestIds.has(requestId)) {
+    return {
+      data: null,
+      error: { message: `failed to persist SLA notifications ${requestId}` },
+    };
+  }
+
+  const notifications = Array.isArray(params.p_notifications)
+    ? (params.p_notifications as Array<Record<string, unknown>>)
+    : [];
+  let notificationsCreated = 0;
+
+  for (const notification of notifications) {
+    const existing = state.approvalNotifications.some(
+      (stored) => stored.dedupe_key === notification.dedupe_key,
+    );
+    if (existing) {
+      continue;
+    }
+
+    state.approvalNotifications.push({
+      id: `notification-${state.approvalNotifications.length + 1}`,
+      tenant_id: params.p_tenant_id,
+      correction_request_id: requestId,
+      recipient_profile_id: notification.recipient_profile_id,
+      channel: notification.channel,
+      kind: notification.kind,
+      dedupe_key: notification.dedupe_key,
+      payload: params.p_payload,
+    });
+    notificationsCreated += 1;
+  }
+
+  if (params.p_sla_field === "last_reminder_at") {
+    targetRequest.last_reminder_at = params.p_sla_timestamp;
+  }
+  if (params.p_sla_field === "escalated_at") {
+    targetRequest.escalated_at = params.p_sla_timestamp;
+  }
+  targetRequest.updated_at = params.p_sla_timestamp;
+
+  return {
+    data: [{ notifications_created: notificationsCreated, stamped: true }],
+    error: null,
+  };
+}
+
 function createStub(state: StubState): AdminSupabaseClient {
   return {
     from(table: string) {
       return new QueryBuilder(table, state);
+    },
+    rpc(name: string, params: Record<string, unknown>) {
+      if (name === "ensure_contribution_approval_sla_notifications") {
+        return Promise.resolve(
+          resolveApprovalSlaNotificationsRpc(state, params),
+        );
+      }
+
+      return Promise.resolve({
+        data: null,
+        error: { message: `Unhandled RPC ${name}` },
+      });
     },
   } as unknown as AdminSupabaseClient;
 }
@@ -893,7 +984,7 @@ describe("admin/contribution-operations/approval-notifications", () => {
     ]);
   });
 
-  it("skips SLA notifications when the request is decided before the cycle is claimed", async () => {
+  it("skips SLA notifications when the request is decided before atomic delivery", async () => {
     const state = stubState();
     state.statusBeforeSlaUpdateIds.set(REQUEST_ID, "approved");
     state.approvalSettings = {
@@ -912,6 +1003,57 @@ describe("admin/contribution-operations/approval-notifications", () => {
     expect(outcome).toEqual({ remindersSent: 0, escalationsSent: 0 });
     expect(state.request.status).toBe("approved");
     expect(state.request.last_reminder_at).toBeNull();
+    expect(state.request.escalated_at).toBeNull();
+    expect(state.approvalNotifications).toHaveLength(0);
+  });
+
+  it("does not stamp reminder state when notification delivery fails", async () => {
+    const state = stubState();
+    state.failingSlaNotificationRequestIds.add(REQUEST_ID);
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    await expect(
+      processCorrectionApprovalSla({
+        supabaseAdmin: createStub(state),
+        tenantId: TENANT_ID,
+        policy: { reminderHours: 24, escalationHours: null },
+        now: "2026-06-02T01:00:00.000Z",
+      }),
+    ).rejects.toThrow(
+      "Failed to process 1 correction approval SLA request(s): request-1: failed to persist SLA notifications request-1",
+    );
+
+    expect(state.request.last_reminder_at).toBeNull();
+    expect(state.request.escalated_at).toBeNull();
+    expect(state.approvalNotifications).toHaveLength(0);
+  });
+
+  it("does not stamp escalation state when notification delivery fails", async () => {
+    const state = stubState();
+    state.request.last_reminder_at = "2026-06-04T00:30:00.000Z";
+    state.failingSlaNotificationRequestIds.add(REQUEST_ID);
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+
+    await expect(
+      processCorrectionApprovalSla({
+        supabaseAdmin: createStub(state),
+        tenantId: TENANT_ID,
+        policy: { reminderHours: 24, escalationHours: 72 },
+        now: "2026-06-04T01:00:00.000Z",
+      }),
+    ).rejects.toThrow(
+      "Failed to process 1 correction approval SLA request(s): request-1: failed to persist SLA notifications request-1",
+    );
+
+    expect(state.request.last_reminder_at).toBe("2026-06-04T00:30:00.000Z");
     expect(state.request.escalated_at).toBeNull();
     expect(state.approvalNotifications).toHaveLength(0);
   });
