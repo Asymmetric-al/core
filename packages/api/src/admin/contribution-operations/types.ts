@@ -21,12 +21,16 @@ export const CONTRIBUTION_ACTION_TYPES = [
 
 export type ContributionActionType = (typeof CONTRIBUTION_ACTION_TYPES)[number];
 
+export const CONTRIBUTION_SOURCE_SURFACES = [
+  "contribution_hub",
+  "donor_crm_record",
+  "automation",
+  "bulk_action",
+  "api",
+] as const;
+
 export type ContributionSourceSurface =
-  | "contribution_hub"
-  | "donor_crm_record"
-  | "automation"
-  | "bulk_action"
-  | "api";
+  (typeof CONTRIBUTION_SOURCE_SURFACES)[number];
 
 export type ContributionRiskLevel = "low" | "medium" | "high";
 

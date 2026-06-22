@@ -110,6 +110,7 @@ export {
   type TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 export {
+  projectContributionActionResultForViewer,
   projectContributionDetailForViewer,
   stripeReplayAvailability,
   type ContributionProviderProof,
@@ -131,6 +132,10 @@ export type {
   ContributionRiskLevel,
   ContributionSourceSurface,
   ExecuteContributionActionInput,
+} from "./types";
+export {
+  CONTRIBUTION_ACTION_TYPES,
+  CONTRIBUTION_SOURCE_SURFACES,
 } from "./types";
 export type {
   ContributionDetail,

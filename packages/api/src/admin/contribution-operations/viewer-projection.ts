@@ -1,5 +1,9 @@
 import type { ContributionActionAvailability } from "./action-availability";
 import type { ContributionDetail } from "./detail-read-model";
+import type {
+  ContributionActionResult,
+  ContributionProviderOutcome,
+} from "./types";
 
 /**
  * Role-gated provider proof (ADR-CD-014 / ADR-CD-015).
@@ -110,5 +114,62 @@ export function projectContributionDetailForViewer(
           : null,
       },
     },
+  };
+}
+
+/**
+ * Strip raw provider identifiers from a provider outcome for viewers lacking
+ * contributions.use_provider_actions. `referenceId` (e.g. a Stripe `re_`/`pi_`
+ * id), `raw` (the provider payload), and `errorMessage` (which can embed ids)
+ * are removed; the non-sensitive provider/status/errorCode workflow fields are
+ * kept so the UI can still show what happened.
+ */
+function redactProviderOutcomeForViewer(
+  outcome: ContributionProviderOutcome | null | undefined,
+): ContributionProviderOutcome | null | undefined {
+  if (!outcome) {
+    return outcome;
+  }
+
+  return {
+    provider: outcome.provider,
+    status: outcome.status,
+    errorCode: outcome.errorCode ?? null,
+    referenceId: null,
+  };
+}
+
+/**
+ * Apply the same viewer projection the GET detail endpoint uses to an action
+ * result before returning it (ADR-CD-014). Without this, a viewer lacking
+ * contributions.use_provider_actions would receive raw Stripe identifiers on
+ * result.canonicalContribution and result.providerOutcome.
+ */
+export function projectContributionActionResultForViewer<
+  TResult extends ContributionActionResult,
+>(result: TResult, viewerCapabilities: string[]): TResult {
+  const hasProviderAccess = viewerCapabilities.includes(
+    "contributions.use_provider_actions",
+  );
+
+  const canonical = result.canonicalContribution;
+  const projected: TResult =
+    canonical && typeof canonical === "object"
+      ? {
+          ...result,
+          canonicalContribution: projectContributionDetailForViewer(
+            canonical as ContributionDetail,
+            viewerCapabilities,
+          ),
+        }
+      : result;
+
+  if (hasProviderAccess || result.providerOutcome == null) {
+    return projected;
+  }
+
+  return {
+    ...projected,
+    providerOutcome: redactProviderOutcomeForViewer(result.providerOutcome),
   };
 }
