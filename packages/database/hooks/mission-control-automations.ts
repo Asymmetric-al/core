@@ -25,6 +25,7 @@ export interface MissionControlAutomationSummary {
   totalRules: number;
   activeRules: number;
   pausedRules: number;
+  readyRules: number;
   draftRules: number;
   executions24h: number;
   failedRuns24h: number;
