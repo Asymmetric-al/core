@@ -59,16 +59,14 @@
 
 ## Verification notes
 
-- Targeted PRD1 unit tests passed.
-- Targeted admin app tests passed:
-  `tests/unit/apps/admin/app/contributions-page.test.tsx` and
-  `tests/unit/apps/admin/tanstack-surface-imports.test.ts`.
-- `bun run verify:data-boundary` passed.
-- `bun run lint`, `bun run typecheck`, `bun run format:check`, and
-  `bun run build` passed.
-- Full `bun run test:unit` was executed; all PRD1 tests passed and the only
-  failing file was unrelated CMS auth strategy tests timing out in
-  `tests/unit/cms/supabase-strategy.test.ts`.
+- Implementation landed through split PRs #386-#404 after this docs package
+  was parked until code completion.
+- Each code slice passed the required GitHub `ci-gate` and `integration-gate`
+  before merge, with blocking review conversations resolved.
+- Local slice verification included focused unit tests, scoped lint/typecheck,
+  and full `bun run ci:preflight` on the final automation UI slice.
+- OpenSpec validation passed with
+  `bunx @fission-ai/openspec@latest validate mission-control-contribution-operations --strict`.
 
 ## 7. PRD 2 Email Studio Donor Correction Notifications
 
