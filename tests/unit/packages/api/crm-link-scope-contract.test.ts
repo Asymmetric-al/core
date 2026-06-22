@@ -110,7 +110,7 @@ describe("CRM donation link parent-scope contract", () => {
   it("keeps CRM detail and report readers scoped to parent links", () => {
     const detail = sourceSection(
       crmDetailSource,
-      "const linkResult =",
+      "const [linkResult, allocationsResult] =",
       "assertNoError(linkResult.error",
     );
     const report = sourceSection(
