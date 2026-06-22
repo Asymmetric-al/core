@@ -45,17 +45,17 @@ action.
 - Support full and partial refund requests through Stripe while recording
   provider outcome honestly.
 - Update donor-visible state from the same persisted truth.
-- Provide hook points for PRD 2 notifications, PRD 3 tasks/Needs Attention,
-  PRD 4 automations, and PRD 5 batches without implementing those full systems.
+- Provide stable integration surfaces for the PRD 2 notifications, PRD 3
+  tasks/Needs Attention, PRD 4 automations, and PRD 5 batch implementations
+  delivered through the split PR sequence.
 
 ## Non-goals
 
 - Do not move payment execution away from Stripe.
 - Do not move contribution truth into Payload or Twenty.
-- Do not build Email Studio templates; PRD 2 owns that.
-- Do not build the full shared task system; PRD 3 owns that.
-- Do not build automation builder; PRD 4 owns that.
-- Do not build bulk action execution; PRD 5 owns that.
+- Do not move PRD 2 Email Studio templates, PRD 3 shared tasks, PRD 4
+  automation builder, or PRD 5 bulk execution ownership into the core module;
+  those shipped responsibilities remain owned by their PRD-specific slices.
 - Do not replace the donor portal.
 
 ## User stories

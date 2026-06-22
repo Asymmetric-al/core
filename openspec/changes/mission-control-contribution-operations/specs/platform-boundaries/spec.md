@@ -111,6 +111,10 @@ records actor, tenant, contribution, source surface, action type, timestamp,
 reason when required, safe before/after summary, related provider identifiers,
 related tasks, related batches, and downstream effects.
 
+Provider identifiers MAY be persisted in server-side audit metadata, but
+staff-facing audit reads, action results, exports, and summaries MUST omit or
+redact them unless the viewer has `contributions.use_provider_actions`.
+
 The audit trail MUST make clear whether an action came from the Contribution
 Hub, donor CRM record, automation, or future batch execution.
 

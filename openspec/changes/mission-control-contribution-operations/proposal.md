@@ -33,8 +33,9 @@ traceable and trustworthy.
 - Contribution truth does not move to Twenty, Payload, or a public/donor
   surface.
 - Stripe remains payment execution authority.
-- Email template implementation, shared task product, automation builder, and
-  bulk batch engine remain separate PRDs and only hook into this core.
+- Email template implementation, shared Mission Control tasks, automation
+  builder, and bulk batch engine are owned by PRDs 2-5 and were delivered
+  through split PRs #394-#405 after the core contract landed.
 - App route handlers remain thin; business logic remains in `packages/api`.
 
 ## Expected Outcome
