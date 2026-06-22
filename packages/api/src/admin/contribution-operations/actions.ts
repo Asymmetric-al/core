@@ -365,6 +365,34 @@ async function loadCanonicalContribution<TContribution>(
   }) as Promise<TContribution>;
 }
 
+function getCanonicalStagedGiftId(contribution: unknown): string | null {
+  if (!contribution || typeof contribution !== "object") {
+    return null;
+  }
+
+  const stagedGift = (contribution as { stagedGift?: unknown }).stagedGift;
+  if (!stagedGift || typeof stagedGift !== "object") {
+    return null;
+  }
+
+  const stagedGiftId = (stagedGift as { id?: unknown }).id;
+  return typeof stagedGiftId === "string" && stagedGiftId.trim()
+    ? stagedGiftId.trim()
+    : null;
+}
+
+async function assertStagedGiftBelongsToContribution<TContribution>(
+  input: ExecuteContributionActionInput<TContribution>,
+  stagedGiftId: string,
+) {
+  const canonicalContribution = await loadCanonicalContribution(input);
+  const canonicalStagedGiftId = getCanonicalStagedGiftId(canonicalContribution);
+
+  if (canonicalStagedGiftId !== stagedGiftId) {
+    throw new ApiHttpError(404, "Staged gift not found for contribution.");
+  }
+}
+
 function auditInput(
   input: ExecuteContributionActionInput,
   extra: Partial<ContributionOperationAuditEventInput> = {},
@@ -818,6 +846,7 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
+      await assertStagedGiftBelongsToContribution(input, stagedGiftId);
       const sendReceipt = requireDependency(input.dependencies, "sendReceipt");
       const receipt = await sendReceipt({
         tenantId: input.tenantId,
@@ -852,6 +881,7 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
+      await assertStagedGiftBelongsToContribution(input, stagedGiftId);
       const approve = requireDependency(
         input.dependencies,
         "approveStagedGift",
@@ -885,6 +915,7 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
+      await assertStagedGiftBelongsToContribution(input, stagedGiftId);
       const retryScope =
         input.payload?.scope === "designation" ? "designation" : "parent";
 
