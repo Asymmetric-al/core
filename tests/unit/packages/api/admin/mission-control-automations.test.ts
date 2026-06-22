@@ -280,7 +280,7 @@ describe("mission control automation preview and evaluation", () => {
         name: "Receipt follow-up",
         mode: "advanced",
         trigger: { kind: "contribution_issue_created" },
-        conditions: [],
+        conditions: [{ kind: "always" }],
         actions: [{ kind: "create_task", issueType: "receipt_failed" }],
         runMode: "automatic",
         enabled: true,
@@ -288,6 +288,28 @@ describe("mission control automation preview and evaluation", () => {
       record: {
         id: "record_1",
         eventKind: "contribution_action_completed",
+        issueType: "receipt_failed",
+      },
+    });
+
+    expect(result).toEqual({ matches: false, plannedActions: [] });
+  });
+
+  it("does not match advanced rules without explicit conditions", () => {
+    const result = evaluateAutomationRule({
+      rule: {
+        id: "rule_1",
+        name: "Receipt follow-up",
+        mode: "advanced",
+        trigger: { kind: "contribution_issue_created" },
+        conditions: [],
+        actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+        runMode: "automatic",
+        enabled: true,
+      },
+      record: {
+        id: "record_1",
+        eventKind: "contribution_issue_created",
         issueType: "receipt_failed",
       },
     });
@@ -324,6 +346,30 @@ describe("mission control automation preview and evaluation", () => {
     ).rejects.toMatchObject({
       status: 400,
       message: "Automation activation requires a fresh preview.",
+    });
+  });
+
+  it("rejects active lifecycle status when the rule is disabled", async () => {
+    await expect(
+      saveMissionControlAutomationRule({
+        tenantId: "tenant_1",
+        actorProfileId: "actor_1",
+        rule: {
+          id: "rule_active_disabled",
+          name: "Contradictory active rule",
+          mode: "advanced",
+          trigger: { kind: "contribution_issue_created" },
+          conditions: [],
+          actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+          runMode: "automatic",
+          enabled: false,
+          activationStatus: "active",
+        },
+        supabaseAdmin: {} as never,
+      }),
+    ).rejects.toMatchObject({
+      status: 400,
+      message: "Active automation status requires the rule to be enabled.",
     });
   });
 
@@ -405,7 +451,7 @@ describe("mission control automation preview and evaluation", () => {
         name: "Notify donor",
         mode: "advanced",
         trigger: { kind: "contribution_action_completed" },
-        conditions: [],
+        conditions: [{ kind: "always" }],
         actions: [
           {
             kind: "send_donor_notification",
@@ -437,7 +483,7 @@ describe("mission control automation preview and evaluation", () => {
         name: "Amount correction review",
         mode: "advanced",
         trigger: { kind: "contribution_action_completed" },
-        conditions: [],
+        conditions: [{ kind: "always" }],
         actions: [
           {
             kind: "contribution_action",
@@ -524,6 +570,12 @@ describe("mission control automation dashboard summary", () => {
             enabled: false,
             activation_status: "ready",
           }),
+          automationRuleRow({
+            id: "rule_disabled_active",
+            name: "Invalid disabled active rule",
+            enabled: false,
+            activation_status: "active",
+          }),
         ],
       },
       mission_control_automation_activity_logs: { data: [] },
@@ -535,7 +587,7 @@ describe("mission control automation dashboard summary", () => {
     });
 
     expect(dashboard.summary).toMatchObject({
-      totalRules: 4,
+      totalRules: 5,
       activeRules: 1,
       draftRules: 1,
       pausedRules: 1,

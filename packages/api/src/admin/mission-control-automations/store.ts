@@ -71,7 +71,7 @@ function countRuleSummary(
   let readyRules = 0;
 
   for (const rule of automationRules) {
-    if (rule.enabled || rule.activationStatus === "active") {
+    if (rule.enabled && rule.activationStatus === "active") {
       activeRules += 1;
       continue;
     }
@@ -119,6 +119,28 @@ function resolveActivationStatusForSave(
   }
 
   return rule.id ? undefined : "draft";
+}
+
+function assertActiveStatusReady(input: {
+  rule: AutomationRule;
+  activationStatus: AutomationActivationStatus | undefined;
+  activationReady: AutomationActivationReadiness | undefined;
+}) {
+  if (input.activationStatus !== "active") {
+    return;
+  }
+
+  if (!input.rule.enabled) {
+    throw new ApiHttpError(
+      400,
+      "Active automation status requires the rule to be enabled.",
+    );
+  }
+
+  const readinessFailure = getActivationReadinessFailure(input.activationReady);
+  if (readinessFailure) {
+    throw new ApiHttpError(400, readinessFailure);
+  }
 }
 
 export async function listMissionControlAutomationRules(input: {
@@ -199,15 +221,12 @@ export async function saveMissionControlAutomationRule(input: {
   activationReady?: AutomationActivationReadiness;
 }) {
   const rule = automationRuleSchema.parse(input.rule);
-  if (rule.enabled) {
-    const readinessFailure = getActivationReadinessFailure(
-      input.activationReady,
-    );
-    if (readinessFailure) {
-      throw new ApiHttpError(400, readinessFailure);
-    }
-  }
   const activationStatus = resolveActivationStatusForSave(rule);
+  assertActiveStatusReady({
+    rule,
+    activationStatus,
+    activationReady: input.activationReady,
+  });
   const payload = {
     tenant_id: input.tenantId,
     name: rule.name,

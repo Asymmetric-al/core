@@ -31,6 +31,7 @@ export function evaluateAutomationRule(input: {
   const matches =
     input.rule.enabled !== false &&
     triggerMatches(input.rule, input.record) &&
+    input.rule.conditions.length > 0 &&
     input.rule.conditions.every((condition) =>
       conditionMatches(condition, input.record),
     );
