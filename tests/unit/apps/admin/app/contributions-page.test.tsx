@@ -706,6 +706,47 @@ describe("apps/admin/app/contributions/page", () => {
     );
   });
 
+  it("renders deep-linked detail source and anonymous state from shared row fields", async () => {
+    const donationId = "00000000-0000-4000-8000-000000000129";
+    mockSearch = `gift=${donationId}`;
+    const detailPayload = makeDetailPayload(donationId, "Source Donor");
+    detailPayload.contribution.gift.source = "mail";
+    detailPayload.contribution.shared.donorId = null;
+
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => detailPayload,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    expect(await view.findByText("Anonymous Donor")).toBeTruthy();
+    expect(view.getByText("Mail")).toBeTruthy();
+  });
+
+  it("strips invalid gift query params before fetching detail", async () => {
+    mockSearch = "status=completed&gift=not-a-uuid";
+    const fetchMock = vi.fn();
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    renderContributionsPage();
+
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenCalledWith(
+        "/contributions?status=completed",
+        { scroll: false },
+      );
+    });
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("smart close removes only the gift selection from route state", async () => {
     const donationId = "00000000-0000-4000-8000-000000000125";
     mockSearch = `status=completed&gift=${donationId}`;

@@ -12,6 +12,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import {
   ContributionDetailOverlay,
+  isContributionGiftParam,
   invalidateContributionOperationQueries,
 } from "./contribution-detail-overlay";
 import { boneyardContributionsFixture, mockContributions } from "./data";
@@ -36,15 +37,19 @@ export default function ContributionsPage() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const giftParam = searchParams.get("gift");
+  const selectedGiftParam = isContributionGiftParam(giftParam)
+    ? giftParam
+    : null;
+  const hasInvalidGiftParam = giftParam != null && selectedGiftParam == null;
   const [selectedDonationId, setSelectedDonationId] = useState<string | null>(
-    () => giftParam,
+    () => selectedGiftParam,
   );
   const [showFreshness, setShowFreshness] = useState(false);
   const freshnessTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    setSelectedDonationId(giftParam);
-  }, [giftParam]);
+    setSelectedDonationId(selectedGiftParam);
+  }, [selectedGiftParam]);
 
   useEffect(() => {
     return () => {
@@ -109,6 +114,20 @@ export default function ContributionsPage() {
     openerElementRef.current = null;
     window.setTimeout(() => opener?.focus(), 0);
   }, [pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (!hasInvalidGiftParam) {
+      return;
+    }
+
+    setSelectedDonationId(null);
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("gift");
+    const query = params.toString();
+    router.replace(query ? `${pathname}?${query}` : pathname, {
+      scroll: false,
+    });
+  }, [hasInvalidGiftParam, pathname, router, searchParams]);
 
   const isError = contributionsQuery.isError;
   const isPagePending = contributionsQuery.isPending;

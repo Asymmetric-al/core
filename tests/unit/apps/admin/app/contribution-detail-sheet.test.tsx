@@ -64,6 +64,46 @@ describe("ContributionDetailSheet a11y", () => {
   });
 });
 
+describe("ContributionDetailSheet loading and error states", () => {
+  it("keeps the sheet open while contribution details are loading", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={null}
+        isOpen
+        isLoading
+        onClose={vi.fn()}
+      />,
+    );
+
+    expect(view.getByRole("status").textContent).toMatch(
+      /loading contribution details/i,
+    );
+    expect(
+      view.getByRole("button", { name: /close contribution details/i }),
+    ).toBeTruthy();
+  });
+
+  it("renders inline fetch failures with retry instead of unmounting", () => {
+    const onRetry = vi.fn();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={null}
+        isOpen
+        errorMessage="Could not load contribution detail."
+        onClose={vi.fn()}
+        onRetry={onRetry}
+      />,
+    );
+
+    expect(view.getByText("Could not load contribution detail.")).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /retry/i }));
+
+    expect(onRetry).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
   const noStagedGiftAvailability = [
     {

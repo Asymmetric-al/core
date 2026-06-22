@@ -9,6 +9,14 @@ const APPROVAL_SUPPRESSED_POLICY = resolveCorrectionApprovalPolicy({
   stronger_approval_categories: [],
 });
 
+function makeCanonicalContribution(stagedGiftId = "staged_1") {
+  return {
+    id: "donation_1",
+    tenantId: "tenant_1",
+    stagedGift: { id: stagedGiftId },
+  };
+}
+
 describe("contribution operations action executor", () => {
   it("rejects high-risk actions without reason and confirmation", async () => {
     await expect(
@@ -32,10 +40,9 @@ describe("contribution operations action executor", () => {
       sendLogId: "send_1",
     });
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
-    const loadContributionDetail = vi.fn().mockResolvedValue({
-      id: "donation_1",
-      tenantId: "tenant_1",
-    });
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
 
     const result = await executeContributionAction({
       tenantId: "tenant_1",
@@ -79,10 +86,9 @@ describe("contribution operations action executor", () => {
   it("passes contribution identity to staged gift approval adapters", async () => {
     const approveStagedGift = vi.fn().mockResolvedValue(undefined);
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
-    const loadContributionDetail = vi.fn().mockResolvedValue({
-      id: "donation_1",
-      tenantId: "tenant_1",
-    });
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
 
     const result = await executeContributionAction({
       tenantId: "tenant_1",
@@ -114,10 +120,9 @@ describe("contribution operations action executor", () => {
   it("normalizes top-level staged gift IDs before calling staged adapters", async () => {
     const retryStagedGift = vi.fn().mockResolvedValue(undefined);
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
-    const loadContributionDetail = vi.fn().mockResolvedValue({
-      id: "donation_1",
-      tenantId: "tenant_1",
-    });
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
 
     await executeContributionAction({
       tenantId: "tenant_1",
@@ -149,6 +154,86 @@ describe("contribution operations action executor", () => {
       }),
     );
   });
+
+  it.each([
+    {
+      actionType: "resend_receipt" as const,
+      actorCapabilities: ["contributions.manage_receipts"],
+      dependencies: {
+        sendReceipt: vi.fn(),
+        appendAuditEvent: vi.fn(),
+      },
+    },
+    {
+      actionType: "approve_staged_gift" as const,
+      actorCapabilities: ["contributions.apply_corrections"],
+      dependencies: {
+        approveStagedGift: vi.fn(),
+        appendAuditEvent: vi.fn(),
+      },
+      reason: "Reviewed staging failure",
+    },
+    {
+      actionType: "retry_staged_gift" as const,
+      actorCapabilities: ["contributions.retry_crm_post"],
+      dependencies: {
+        retryStagedGift: vi.fn(),
+        appendAuditEvent: vi.fn(),
+      },
+      payload: { stagedGiftId: "staged_other", scope: "parent" },
+      reason: "Retry parent gift post",
+    },
+  ])(
+    "rejects $actionType when the staged gift does not belong to the contribution",
+    async ({
+      actionType,
+      actorCapabilities,
+      dependencies,
+      payload,
+      reason,
+    }) => {
+      const loadContributionDetail = vi
+        .fn()
+        .mockResolvedValue(makeCanonicalContribution("staged_expected"));
+      const actionDependencies = {
+        ...dependencies,
+        loadContributionDetail,
+      };
+
+      await expect(
+        executeContributionAction({
+          tenantId: "tenant_1",
+          actorProfileId: "profile_1",
+          actorPermissions: [],
+          actorCapabilities,
+          sourceSurface: "donor_crm_record",
+          contributionId: "donation_1",
+          actionType,
+          reason,
+          payload: payload ?? { stagedGiftId: "staged_other" },
+          dependencies: actionDependencies,
+        }),
+      ).rejects.toThrow(/staged gift not found for contribution/i);
+
+      expect(loadContributionDetail).toHaveBeenCalledWith({
+        tenantId: "tenant_1",
+        contributionId: "donation_1",
+      });
+      expect(actionDependencies.appendAuditEvent).not.toHaveBeenCalled();
+      for (const adapterKey of [
+        "sendReceipt",
+        "approveStagedGift",
+        "retryStagedGift",
+      ] as const) {
+        const adapter = (
+          actionDependencies as Record<typeof adapterKey, unknown>
+        )[adapterKey];
+        if (adapter) {
+          expect(adapter).not.toHaveBeenCalled();
+        }
+      }
+    },
+  );
 
   it("requires the receipt management capability for receipt resends", async () => {
     await expect(
@@ -1210,9 +1295,9 @@ describe("contribution operations action executor", () => {
     const retryDesignationPost = vi.fn().mockResolvedValue(undefined);
     const retryStagedGift = vi.fn();
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
-    const loadContributionDetail = vi.fn().mockResolvedValue({
-      id: "donation_1",
-    });
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
 
     await executeContributionAction({
       tenantId: "tenant_1",
@@ -1256,9 +1341,9 @@ describe("contribution operations action executor", () => {
   it("passes contribution identity to parent staged gift retry adapters", async () => {
     const retryStagedGift = vi.fn().mockResolvedValue(undefined);
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
-    const loadContributionDetail = vi.fn().mockResolvedValue({
-      id: "donation_1",
-    });
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
 
     await executeContributionAction({
       tenantId: "tenant_1",
@@ -1307,7 +1392,9 @@ describe("contribution operations action executor", () => {
         dependencies: {
           retryStagedGift: vi.fn(),
           appendAuditEvent: vi.fn(),
-          loadContributionDetail: vi.fn(),
+          loadContributionDetail: vi
+            .fn()
+            .mockResolvedValue(makeCanonicalContribution()),
         },
       }),
     ).rejects.toThrow(/does not support posting designation child records/i);

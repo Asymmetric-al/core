@@ -11,7 +11,6 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { toast } from "sonner";
 
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
@@ -31,6 +30,13 @@ export const ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY = [
 
 export function contributionDetailQueryKey(donationId: string) {
   return [...ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY, donationId] as const;
+}
+
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+export function isContributionGiftParam(value: string | null): value is string {
+  return Boolean(value && UUID_PATTERN.test(value));
 }
 
 /**
@@ -62,7 +68,7 @@ export async function invalidateContributionOperationQueries(
 
 async function fetchContributionDetail(donationId: string) {
   const response = await fetch(
-    `/api/admin/contribution-operations/${donationId}`,
+    `/api/admin/contribution-operations/${encodeURIComponent(donationId)}`,
     { headers: { accept: "application/json" } },
   );
 
@@ -80,10 +86,14 @@ async function fetchContributionDetail(donationId: string) {
 }
 
 export function useContributionDetail(donationId: string | null) {
+  const validDonationId = isContributionGiftParam(donationId)
+    ? donationId
+    : null;
+
   return useQuery({
-    enabled: Boolean(donationId),
-    queryFn: () => fetchContributionDetail(donationId!),
-    queryKey: contributionDetailQueryKey(donationId ?? "none"),
+    enabled: Boolean(validDonationId),
+    queryFn: () => fetchContributionDetail(validDonationId!),
+    queryKey: contributionDetailQueryKey(validDonationId ?? "none"),
     refetchOnWindowFocus: false,
     staleTime: 30_000,
   });
@@ -99,7 +109,7 @@ async function postContributionOperation(input: {
     body: JSON.stringify({
       actionType: input.actionType,
       contributionId: input.contributionId,
-      payload: { stagedGiftId: input.stagedGiftId },
+      payload: {},
       sourceSurface: input.sourceSurface,
       stagedGiftId: input.stagedGiftId,
     }),
@@ -139,6 +149,29 @@ function paymentMethodFromDetail(
   return "Other";
 }
 
+function sourceFromDetail(detail: ContributionDetail): Contribution["source"] {
+  switch (detail.gift.source) {
+    case "mobile":
+    case "Mobile":
+      return "Mobile";
+    case "in_person":
+    case "in-person":
+    case "In-person":
+      return "In-person";
+    case "mail":
+    case "Mail":
+      return "Mail";
+    case "phone":
+    case "Phone":
+      return "Phone";
+    case "import":
+    case "Import":
+      return "Import";
+    default:
+      return "Online";
+  }
+}
+
 export function contributionFromDetail(
   detail: ContributionDetail,
 ): Contribution {
@@ -173,7 +206,7 @@ export function contributionFromDetail(
     subStatus: null,
     type: contributionTypeFromDetail(detail),
     paymentMethod: paymentMethodFromDetail(detail),
-    source: "Online",
+    source: sourceFromDetail(detail),
     fundId: shared.designationSummary.fundId,
     fundCode: shared.designationSummary.fundId,
     fundName: shared.designationSummary.fundName,
@@ -212,7 +245,7 @@ export function contributionFromDetail(
     processorTransactionId: detail.payment.stripe.paymentIntentId,
     notes: null,
     notesPreview: null,
-    isAnonymous: detail.donor === null,
+    isAnonymous: shared.donorId == null,
   };
 }
 
@@ -237,7 +270,10 @@ export function ContributionDetailOverlay({
   onActionSuccess?: () => void;
 }) {
   const queryClient = useQueryClient();
-  const detailQuery = useContributionDetail(donationId);
+  const validDonationId = isContributionGiftParam(donationId)
+    ? donationId
+    : null;
+  const detailQuery = useContributionDetail(validDonationId);
 
   /**
    * Stale-save recovery (ADR-CD-022): when the server rejects a save
@@ -255,18 +291,6 @@ export function ContributionDetailOverlay({
       });
     }
   };
-
-  const detailError = detailQuery.error;
-  useEffect(() => {
-    if (detailQuery.isError && donationId) {
-      toast.error(
-        detailError instanceof Error
-          ? detailError.message
-          : "Could not open contribution.",
-      );
-      onClose();
-    }
-  }, [detailQuery.isError, detailError, donationId, onClose]);
 
   const approveMutation = useMutation({
     mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
@@ -330,15 +354,27 @@ export function ContributionDetailOverlay({
   const contribution = detailQuery.data
     ? contributionFromDetail(detailQuery.data)
     : null;
+  const detailErrorMessage =
+    donationId && !validDonationId
+      ? "Invalid contribution link."
+      : detailQuery.isError
+        ? detailQuery.error instanceof Error
+          ? detailQuery.error.message
+          : "Could not load contribution detail."
+        : null;
 
   return (
     <ContributionDetailSheet
-      contribution={donationId ? contribution : null}
+      contribution={contribution}
       actionAvailability={detailQuery.data?.actionAvailability}
       designations={detailQuery.data?.designations}
+      errorMessage={detailErrorMessage}
       providerProof={detailQuery.data?.providerProof ?? null}
       recurring={detailQuery.data?.recurring}
+      isLoading={Boolean(validDonationId && detailQuery.isPending)}
+      isOpen={Boolean(donationId)}
       onClose={onClose}
+      onRetry={validDonationId ? () => void detailQuery.refetch() : undefined}
       onApproveStagedGift={(stagedGiftId, contributionId) =>
         approveMutation.mutate({ contributionId, stagedGiftId })
       }

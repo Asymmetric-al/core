@@ -79,19 +79,23 @@ const receiptStatusConfig: Record<
 > = {
   sent: {
     icon: CircleCheck,
-    className: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    className:
+      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
   },
   pending: {
     icon: Clock,
-    className: "bg-zinc-50 text-zinc-500 border-zinc-200",
+    className:
+      "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
   },
   failed: {
     icon: XCircle,
-    className: "bg-red-50 text-red-700 border-red-200",
+    className:
+      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
   },
   not_sent: {
     icon: Clock,
-    className: "bg-zinc-50 text-zinc-500 border-zinc-200",
+    className:
+      "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
   },
 };
 
