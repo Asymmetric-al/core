@@ -6,6 +6,13 @@ import {
 
 import type { AutomationRecord, AutomationRule } from "./types";
 
+function triggerMatches(
+  rule: AutomationRule,
+  record: AutomationRecord,
+): boolean {
+  return record.eventKind === rule.trigger.kind;
+}
+
 function conditionMatches(
   condition: AutomationRule["conditions"][number],
   record: AutomationRecord,
@@ -23,6 +30,7 @@ export function evaluateAutomationRule(input: {
 }) {
   const matches =
     input.rule.enabled !== false &&
+    triggerMatches(input.rule, input.record) &&
     input.rule.conditions.every((condition) =>
       conditionMatches(condition, input.record),
     );

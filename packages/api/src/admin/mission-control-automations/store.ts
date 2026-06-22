@@ -1,4 +1,9 @@
+import {
+  getActivationReadinessFailure,
+  type AutomationActivationReadiness,
+} from "./preview";
 import { automationRuleSchema } from "./schemas";
+import { ApiHttpError } from "../../shared/http-errors";
 
 import type {
   AutomationActivationStatus,
@@ -58,11 +63,12 @@ function countRuleSummary(
   automationRules: AutomationRule[],
 ): Pick<
   MissionControlAutomationSummary,
-  "activeRules" | "draftRules" | "pausedRules" | "totalRules"
+  "activeRules" | "draftRules" | "pausedRules" | "readyRules" | "totalRules"
 > {
   let activeRules = 0;
   let draftRules = 0;
   let pausedRules = 0;
+  let readyRules = 0;
 
   for (const rule of automationRules) {
     if (rule.enabled || rule.activationStatus === "active") {
@@ -78,6 +84,11 @@ function countRuleSummary(
       continue;
     }
 
+    if (rule.activationStatus === "ready") {
+      readyRules += 1;
+      continue;
+    }
+
     if (rule.activationStatus === "draft") {
       draftRules += 1;
     }
@@ -87,12 +98,27 @@ function countRuleSummary(
     totalRules: automationRules.length,
     activeRules,
     pausedRules,
+    readyRules,
     draftRules,
   };
 }
 
 function activityLogHasFailures(row: JsonRecord): boolean {
   return Array.isArray(row.failures) && row.failures.length > 0;
+}
+
+function resolveActivationStatusForSave(
+  rule: AutomationRule,
+): AutomationActivationStatus | undefined {
+  if (rule.enabled) {
+    return "active";
+  }
+
+  if (rule.activationStatus) {
+    return rule.activationStatus;
+  }
+
+  return rule.id ? undefined : "draft";
 }
 
 export async function listMissionControlAutomationRules(input: {
@@ -170,25 +196,18 @@ export async function saveMissionControlAutomationRule(input: {
   tenantId: string;
   actorProfileId: string | null;
   rule: AutomationRule;
-  activationReady?: {
-    hasFreshPreview: boolean;
-    hasSuccessfulTestRun: boolean;
-    activityLogConfigured: boolean;
-  };
+  activationReady?: AutomationActivationReadiness;
 }) {
   const rule = automationRuleSchema.parse(input.rule);
   if (rule.enabled) {
-    const ready = input.activationReady;
-    if (!ready?.hasFreshPreview) {
-      throw new Error("Automation activation requires a fresh preview.");
-    }
-    if (!ready.hasSuccessfulTestRun) {
-      throw new Error("Automation activation requires a successful test run.");
-    }
-    if (!ready.activityLogConfigured) {
-      throw new Error("Automation activation requires activity log setup.");
+    const readinessFailure = getActivationReadinessFailure(
+      input.activationReady,
+    );
+    if (readinessFailure) {
+      throw new ApiHttpError(400, readinessFailure);
     }
   }
+  const activationStatus = resolveActivationStatusForSave(rule);
   const payload = {
     tenant_id: input.tenantId,
     name: rule.name,
@@ -198,9 +217,9 @@ export async function saveMissionControlAutomationRule(input: {
     actions: rule.actions,
     run_mode: rule.runMode,
     enabled: rule.enabled,
-    activation_status: rule.enabled ? "active" : "draft",
     updated_by: input.actorProfileId,
     updated_at: new Date().toISOString(),
+    ...(activationStatus ? { activation_status: activationStatus } : {}),
   };
 
   const query = rule.id

@@ -51,13 +51,44 @@ export interface AutomationRule {
 
 export interface AutomationRecord {
   id: string;
+  eventKind: AutomationTrigger["kind"];
   issueType?: string;
 }
+
+export type PlannedAutomationAction =
+  | {
+      kind: "contribution_action";
+      service: "contribution_operations";
+      method: "executeContributionAction";
+      input: {
+        actionType: AutomationContributionActionType;
+        contributionId: string;
+      };
+    }
+  | {
+      kind: "send_donor_notification";
+      service: "email_studio_notifications";
+      method: "sendContributionCorrectionNotification";
+      input: {
+        actionType: AutomationDonorNotificationActionType;
+        contributionId: string;
+      };
+    }
+  | {
+      kind: "create_task";
+      service: "mission_control_tasks";
+      method: "createMissionControlTask";
+      input: {
+        issueType: MissionControlIssueType;
+        contributionId: string;
+      };
+    };
 
 export interface MissionControlAutomationSummary {
   totalRules: number;
   activeRules: number;
   pausedRules: number;
+  readyRules: number;
   draftRules: number;
   executions24h: number;
   failedRuns24h: number;

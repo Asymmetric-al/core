@@ -35,6 +35,7 @@ type QueryCall = {
   table: string;
   selected?: string;
   filters: Array<[string, string, unknown]>;
+  mutation?: { kind: "insert" | "update"; payload: unknown };
   orderBy?: { column: string; ascending?: boolean };
   limitCount?: number;
 };
@@ -42,6 +43,7 @@ type QueryCall = {
 class MissionControlAutomationsQueryStub {
   readonly filters: Array<[string, string, unknown]> = [];
   selected?: string;
+  mutation?: QueryCall["mutation"];
   orderBy?: { column: string; ascending?: boolean };
   limitCount?: number;
 
@@ -63,6 +65,16 @@ class MissionControlAutomationsQueryStub {
     return this;
   }
 
+  insert(payload: unknown): this {
+    this.mutation = { kind: "insert", payload };
+    return this;
+  }
+
+  update(payload: unknown): this {
+    this.mutation = { kind: "update", payload };
+    return this;
+  }
+
   gte(column: string, value: unknown): this {
     this.filters.push(["gte", column, value]);
     return this;
@@ -80,6 +92,13 @@ class MissionControlAutomationsQueryStub {
 
   limit(count: number): Promise<QueryResult> {
     this.limitCount = count;
+    return Promise.resolve({
+      data: this.result.data ?? null,
+      error: this.result.error ?? null,
+    });
+  }
+
+  single(): Promise<QueryResult> {
     return Promise.resolve({
       data: this.result.data ?? null,
       error: this.result.error ?? null,
@@ -204,13 +223,35 @@ describe("mission control automation schemas", () => {
       }),
     ).toThrow();
   });
+
+  it("allows provider-backed donor notifications without widening contribution execution", () => {
+    expect(() =>
+      automationRuleSchema.parse({
+        name: "Refund notification",
+        mode: "advanced",
+        trigger: { kind: "contribution_action_completed" },
+        conditions: [],
+        actions: [{ kind: "send_donor_notification", actionType: "refund" }],
+        runMode: "review_first",
+        enabled: false,
+      }),
+    ).not.toThrow();
+  });
 });
 
 describe("mission control automation preview and evaluation", () => {
   it("previews matching records and proposed task actions without mutation", async () => {
     const fetchCandidates = vi.fn().mockResolvedValue([
-      { id: "record_1", issueType: "receipt_failed" },
-      { id: "record_2", issueType: "crm_post_failed" },
+      {
+        id: "record_1",
+        eventKind: "contribution_issue_created",
+        issueType: "receipt_failed",
+      },
+      {
+        id: "record_2",
+        eventKind: "contribution_issue_created",
+        issueType: "crm_post_failed",
+      },
     ]);
 
     const preview = await createAutomationPreview({
@@ -226,10 +267,32 @@ describe("mission control automation preview and evaluation", () => {
     expect(preview.proposedChanges[0]).toEqual(
       expect.objectContaining({
         recordId: "record_1",
-        action: "mission_control_tasks",
+        action: "create_task",
       }),
     );
     expect(fetchCandidates).toHaveBeenCalled();
+  });
+
+  it("does not match records from the wrong trigger kind", () => {
+    const result = evaluateAutomationRule({
+      rule: {
+        id: "rule_1",
+        name: "Receipt follow-up",
+        mode: "advanced",
+        trigger: { kind: "contribution_issue_created" },
+        conditions: [],
+        actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+        runMode: "automatic",
+        enabled: true,
+      },
+      record: {
+        id: "record_1",
+        eventKind: "contribution_action_completed",
+        issueType: "receipt_failed",
+      },
+    });
+
+    expect(result).toEqual({ matches: false, plannedActions: [] });
   });
 
   it("blocks activation until preview and test run are complete", () => {
@@ -258,7 +321,81 @@ describe("mission control automation preview and evaluation", () => {
         },
         supabaseAdmin: {} as never,
       }),
-    ).rejects.toThrow("preview");
+    ).rejects.toMatchObject({
+      status: 400,
+      message: "Automation activation requires a fresh preview.",
+    });
+  });
+
+  it("preserves provided non-active lifecycle status on disabled updates", async () => {
+    const { calls, supabaseAdmin } =
+      createMissionControlAutomationsSupabaseStub({
+        mission_control_automation_rules: {
+          data: automationRuleRow({
+            id: "rule_ready",
+            activation_status: "ready",
+          }),
+        },
+      });
+
+    const savedRule = await saveMissionControlAutomationRule({
+      tenantId: "tenant_1",
+      actorProfileId: "actor_1",
+      rule: {
+        id: "rule_ready",
+        name: "Ready rule",
+        mode: "advanced",
+        trigger: { kind: "contribution_issue_created" },
+        conditions: [],
+        actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+        runMode: "automatic",
+        enabled: false,
+        activationStatus: "ready",
+      },
+      supabaseAdmin,
+    });
+
+    const updatePayload = calls.find(
+      (call) => call.table === "mission_control_automation_rules",
+    )?.mutation?.payload as Record<string, unknown> | undefined;
+
+    expect(updatePayload).toMatchObject({ activation_status: "ready" });
+    expect(savedRule.activationStatus).toBe("ready");
+  });
+
+  it("does not overwrite lifecycle status on disabled updates when status is omitted", async () => {
+    const { calls, supabaseAdmin } =
+      createMissionControlAutomationsSupabaseStub({
+        mission_control_automation_rules: {
+          data: automationRuleRow({
+            id: "rule_paused",
+            activation_status: "paused",
+          }),
+        },
+      });
+
+    const savedRule = await saveMissionControlAutomationRule({
+      tenantId: "tenant_1",
+      actorProfileId: "actor_1",
+      rule: {
+        id: "rule_paused",
+        name: "Paused rule",
+        mode: "advanced",
+        trigger: { kind: "contribution_issue_created" },
+        conditions: [],
+        actions: [{ kind: "create_task", issueType: "receipt_failed" }],
+        runMode: "automatic",
+        enabled: false,
+      },
+      supabaseAdmin,
+    });
+
+    const updatePayload = calls.find(
+      (call) => call.table === "mission_control_automation_rules",
+    )?.mutation?.payload as Record<string, unknown> | undefined;
+
+    expect(updatePayload).not.toHaveProperty("activation_status");
+    expect(savedRule.activationStatus).toBe("paused");
   });
 
   it("plans donor email actions through Email Studio notification service only", () => {
@@ -278,7 +415,11 @@ describe("mission control automation preview and evaluation", () => {
         runMode: "review_first",
         enabled: true,
       },
-      record: { id: "record_1", issueType: "refund" },
+      record: {
+        id: "record_1",
+        eventKind: "contribution_action_completed",
+        issueType: "refund",
+      },
     });
 
     expect(result.plannedActions).toEqual([
@@ -306,7 +447,11 @@ describe("mission control automation preview and evaluation", () => {
         runMode: "review_first",
         enabled: true,
       },
-      record: { id: "donation_1", issueType: "correction_review" },
+      record: {
+        id: "donation_1",
+        eventKind: "contribution_action_completed",
+        issueType: "correction_review",
+      },
     });
 
     expect(result.plannedActions).toEqual([
@@ -373,6 +518,12 @@ describe("mission control automation dashboard summary", () => {
             enabled: false,
             activation_status: "paused",
           }),
+          automationRuleRow({
+            id: "rule_ready",
+            name: "Ready rule",
+            enabled: false,
+            activation_status: "ready",
+          }),
         ],
       },
       mission_control_automation_activity_logs: { data: [] },
@@ -384,10 +535,11 @@ describe("mission control automation dashboard summary", () => {
     });
 
     expect(dashboard.summary).toMatchObject({
-      totalRules: 3,
+      totalRules: 4,
       activeRules: 1,
       draftRules: 1,
       pausedRules: 1,
+      readyRules: 1,
       executions24h: 0,
       failedRuns24h: 0,
       activityLogBacked: true,
@@ -492,6 +644,7 @@ describe("mission control automation dashboard summary", () => {
       totalRules: 0,
       activeRules: 0,
       pausedRules: 0,
+      readyRules: 0,
       draftRules: 0,
       executions24h: 0,
       failedRuns24h: 0,

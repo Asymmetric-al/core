@@ -1,5 +1,7 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ApiHttpError } from "../../../../../packages/api/src/shared/http-errors";
+
 import type { NextRequest } from "next/server";
 
 const getAdminClientMock = vi.fn();
@@ -186,6 +188,30 @@ describe("mission control automation POST route", () => {
       }),
     );
     expect(saveInput).not.toHaveProperty("activationReady");
+  });
+
+  it("surfaces store activation readiness failures as client errors", async () => {
+    saveMissionControlAutomationRuleMock.mockRejectedValueOnce(
+      new ApiHttpError(400, "Automation activation requires a fresh preview."),
+    );
+    const POST = await loadPostRoute();
+
+    const response = await POST(
+      createJsonRequest({
+        rule: {
+          ...validAutomationRule,
+          enabled: true,
+        },
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        error: "Automation activation requires a fresh preview.",
+        requestId: expect.any(String),
+      }),
+    );
   });
 
   it("keeps invalid JSON responses on the existing 400 path", async () => {

@@ -2,6 +2,12 @@ import { evaluateAutomationRule } from "./evaluator";
 
 import type { AutomationRecord, AutomationRule } from "./types";
 
+export interface AutomationActivationReadiness {
+  hasFreshPreview: boolean;
+  hasSuccessfulTestRun: boolean;
+  activityLogConfigured: boolean;
+}
+
 export async function createAutomationPreview(input: {
   rule: AutomationRule;
   fetchCandidates: () => Promise<AutomationRecord[]>;
@@ -28,15 +34,9 @@ export async function createAutomationPreview(input: {
 
     matchedRecords.push({ id: record.id });
     for (const action of evaluation.plannedActions) {
-      const actionName =
-        "kind" in action && typeof action.kind === "string"
-          ? action.kind
-          : "service" in action && typeof action.service === "string"
-            ? action.service
-            : "unknown";
       proposedChanges.push({
         recordId: record.id,
-        action: actionName,
+        action: action.kind,
         details: action,
       });
     }
@@ -50,18 +50,25 @@ export async function createAutomationPreview(input: {
   };
 }
 
-export function ensureActivationReady(input: {
-  hasFreshPreview: boolean;
-  hasSuccessfulTestRun: boolean;
-  activityLogConfigured: boolean;
-}) {
-  if (!input.hasFreshPreview) {
-    throw new Error("Automation activation requires a fresh preview.");
+export function getActivationReadinessFailure(
+  input: AutomationActivationReadiness | undefined,
+): string | null {
+  if (!input?.hasFreshPreview) {
+    return "Automation activation requires a fresh preview.";
   }
   if (!input.hasSuccessfulTestRun) {
-    throw new Error("Automation activation requires a successful test run.");
+    return "Automation activation requires a successful test run.";
   }
   if (!input.activityLogConfigured) {
-    throw new Error("Automation activation requires activity log setup.");
+    return "Automation activation requires activity log setup.";
+  }
+
+  return null;
+}
+
+export function ensureActivationReady(input: AutomationActivationReadiness) {
+  const failure = getActivationReadinessFailure(input);
+  if (failure) {
+    throw new Error(failure);
   }
 }

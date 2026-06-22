@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import type { ContributionActionType } from "../contribution-operations/types";
 
+// Keep direct automation execution aligned with the currently supported
+// contribution operations route actions.
 export const AUTOMATION_CONTRIBUTION_ACTION_TYPES = [
   "resend_receipt",
   "crm_repost",
@@ -12,6 +14,8 @@ export const AUTOMATION_CONTRIBUTION_ACTION_TYPES = [
   "stripe_replay",
 ] as const satisfies readonly ContributionActionType[];
 
+// Donor notifications can describe provider-backed outcomes without granting
+// automation permission to execute those provider-backed operations.
 export const AUTOMATION_DONOR_NOTIFICATION_ACTION_TYPES = [
   "refund",
   "amount_correction",
