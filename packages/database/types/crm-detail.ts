@@ -47,10 +47,10 @@ export interface CrmGiftInlineActions {
 
 export interface CrmGiftHistoryRow {
   /**
-   * Future shared contribution row contract fields (ADR-CD-032 display parity).
-   * Optional until the CRM/detail service slice starts populating them.
+   * Shared contribution row contract fields (ADR-CD-032 display parity).
+   * Populated by the CRM/detail service for every gift-history row.
    */
-  shared?: SharedContributionRowFields;
+  shared: SharedContributionRowFields;
   id: string;
   donationId: string;
   stagedGiftId: string | null;
@@ -115,16 +115,23 @@ export interface CrmDonorDetailResponse {
   donor: {
     id: string;
     name: string | null;
+    title: string | null;
     email: string | null;
     phone: string | null;
     organization: string | null;
+    location: string | null;
     status: string | null;
     type: string | null;
     profileId: string | null;
     missionaryId: string | null;
     notesPreview: string | null;
+    tags: string[];
+    avatarUrl: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
   };
   giftHistory: CrmGiftHistoryRow[];
+  giftHistoryTruncated: boolean;
   timeline: CrmTimelineEntry[];
   duplicateWarnings: CrmDuplicateWarning[];
   support: CrmSupportSummary;
