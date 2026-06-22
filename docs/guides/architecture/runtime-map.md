@@ -181,3 +181,12 @@ commit when the deployment exposes a non-`unknown` commit.
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | missionary | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                      |
+
+Contribution operation routes added after the main table to avoid reflowing the
+full inventory around long dynamic path names.
+
+| App   | Route family                                                                  | Runtime policy                        | Reason                                    |
+| ----- | ----------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------- |
+| admin | `/api/admin/contribution-operations/[contributionId]`                         | Node.js (no `runtime` segment export) | Contribution operation detail             |
+| admin | `/api/admin/contribution-operations/actions`                                  | Node.js (no `runtime` segment export) | Contribution operation action executor    |
+| admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |
