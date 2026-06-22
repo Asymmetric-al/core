@@ -472,6 +472,7 @@ export async function queueStagedGiftPostingToTwenty(
     .eq("tenant_id", gift.tenantId)
     .eq("staged_gift_id", gift.id)
     .eq("crm_provider", "twenty")
+    .eq("scope", "parent")
     .maybeSingle();
   requireNoError(linked.error, "Failed to read donation CRM link.");
 
@@ -493,6 +494,7 @@ export async function queueStagedGiftPostingToTwenty(
         tenant_id: gift.tenantId,
         donation_id: gift.donationId,
         staged_gift_id: gift.id,
+        scope: "parent",
         crm_provider: "twenty",
         twenty_object_name: "giftSummaries",
         link_status: "queued",

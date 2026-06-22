@@ -309,6 +309,7 @@ export async function getAdminCrmDonorDetail(input: {
             "id, donation_id, staged_gift_id, link_status, twenty_record_id",
           )
           .eq("tenant_id", input.tenantId)
+          .eq("scope", "parent")
           .in("staged_gift_id", stagedGiftIds)
       : { data: [], error: null };
   assertNoError(linkResult.error, "Failed to load donation CRM links.");

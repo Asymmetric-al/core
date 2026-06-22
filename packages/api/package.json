@@ -46,6 +46,8 @@
     "./admin/crm/gateway": "./src/admin/crm/gateway.ts",
     "./admin/crm/twenty-health": "./src/admin/crm/twenty-health.ts",
     "./admin/crm/detail": "./src/admin/crm/detail/index.ts",
+    "./admin/crm/table-preferences": "./src/admin/crm/table-preferences/index.ts",
+    "./admin/crm/table-preferences/route": "./src/admin/crm/table-preferences/route.ts",
     "./admin/crm/notes": "./src/admin/crm/notes/index.ts",
     "./admin/crm/projections": "./src/admin/crm/projections/index.ts",
     "./admin/crm/reports": "./src/admin/crm/reports/index.ts",
