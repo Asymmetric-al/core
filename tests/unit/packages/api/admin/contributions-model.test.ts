@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import { buildSharedContributionRowFields } from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
 import { buildContributionGridRow } from "../../../../../packages/api/src/admin/contributions/model";
 
 describe("api/admin/contributions/model", () => {
@@ -119,5 +120,90 @@ describe("api/admin/contributions/model", () => {
     expect(row.source).toBe("Import");
     expect(row.fundName).toBe("General Fund");
     expect(row.receiptStatus).toBe("pending");
+  });
+
+  it("embeds the shared contribution row contract and mirrors overlapping fields", () => {
+    const donation = {
+      id: "donation-3",
+      donor_id: "donor-1",
+      missionary_id: "missionary-1",
+      fund_id: "fund-1",
+      amount: 50_000,
+      currency: "usd",
+      status: "completed",
+      donation_type: "one_time",
+      payment_method: "card",
+      is_recurring: false,
+      recurring_interval: null,
+      notes: null,
+      stripe_payment_intent_id: "pi_900",
+      gift_date: "2026-05-01",
+      campaign_id: null,
+      pledge_id: null,
+      processed_at: null,
+      completed_at: "2026-05-01T09:00:00.000Z",
+      failed_at: null,
+      error_code: null,
+      error_message: null,
+      stripe_charge_id: "ch_900",
+      refunded_at: null,
+      refund_amount: 5_000,
+      source: "online",
+      created_at: "2026-05-01T08:00:00.000Z",
+      updated_at: "2026-05-01T08:30:00.000Z",
+    };
+    const donor = {
+      id: "donor-1",
+      name: "Alice Johnson",
+      email: "alice@example.com",
+      phone: null,
+      type: null,
+      location: null,
+      organization: null,
+      notes: null,
+    };
+    const fund = { id: "fund-1", name: "Clean Water Initiative" };
+    const missionary = { id: "missionary-1", display_name: "John Martinez" };
+    const stagedGift = {
+      id: "staged-1",
+      status: "posted",
+      review_reason: null,
+      receipt_status: "sent",
+      receipt_send_log_id: null,
+      crm_post_status: "posted",
+    };
+    const corrections = [{ status: "pending" }];
+
+    const row = buildContributionGridRow({
+      donation,
+      donor,
+      profile: null,
+      fund,
+      missionary,
+      stagedGift,
+      corrections,
+    });
+
+    expect(row.shared).toEqual(
+      buildSharedContributionRowFields({
+        donation,
+        donor,
+        profile: null,
+        fund,
+        missionary,
+        stagedGift,
+        corrections,
+      }),
+    );
+
+    expect(row.amount).toBe(row.shared.amountCents);
+    expect(row.date).toBe(row.shared.giftDate);
+    expect(row.status).toBe(row.shared.paymentStatus);
+    expect(row.receiptStatus).toBe(row.shared.receiptStatus);
+    expect(row.crmPostStatus).toBe(row.shared.crmPostStatus);
+    expect(row.fundName).toBe(row.shared.designationSummary.fundName);
+    expect(row.donorName).toBe(row.shared.donorName);
+    expect(row.shared.refundState).toBe("partial_refund");
+    expect(row.shared.correctionState).toBe("pending");
   });
 });

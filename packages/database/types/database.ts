@@ -389,6 +389,94 @@ export interface ContributionOperationAuditEvent {
   created_at: string;
 }
 
+export interface ContributionAdjustment {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  correction_id: string | null;
+  adjustment_type: string;
+  status: "applied" | "reversed";
+  effective_values: Record<string, unknown>;
+  reason: string;
+  actor_profile_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  base_revision: string | null;
+  idempotency_key: string | null;
+  created_at: string;
+}
+
+export interface ContributionApprovalPolicy {
+  tenant_id: string;
+  ownership_mode:
+    | "no_approval_required"
+    | "one_approver"
+    | "separation_of_duties";
+  suppressed_gates: string[];
+  stronger_approval_categories: string[];
+  reminder_hours: number;
+  escalation_hours: number | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionCorrectionRequest {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  action_type: string;
+  payload: Record<string, unknown>;
+  reason: string;
+  requested_by_profile_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  status: "pending" | "approved" | "rejected" | "superseded";
+  expected_revision: string | null;
+  idempotency_key: string | null;
+  receipt_delivery_proposal: Record<string, unknown>;
+  decided_by_profile_id: string | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  applied_adjustment_id: string | null;
+  approval_task_id: string | null;
+  follow_up_task_id: string | null;
+  last_reminder_at: string | null;
+  escalated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotificationSettings {
+  tenant_id: string;
+  create_approval_task: boolean;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotificationPreference {
+  id: string;
+  tenant_id: string;
+  profile_id: string;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotification {
+  id: string;
+  tenant_id: string;
+  correction_request_id: string;
+  recipient_profile_id: string | null;
+  channel: "in_app" | "email";
+  kind: "approval_requested" | "reminder" | "escalation" | "outcome";
+  dedupe_key: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
 export type ContributionNotificationMode =
   | "auto_notify"
   | "always_ask"
@@ -428,6 +516,7 @@ export interface ContributionNotificationSetting {
 export interface ContributionNotificationEvent {
   id: string;
   tenant_id: string;
+  idempotency_key: string;
   operation_audit_event_id: string | null;
   correction_id: string | null;
   action_type: string;
