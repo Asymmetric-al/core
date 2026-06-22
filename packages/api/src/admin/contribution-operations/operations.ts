@@ -16,6 +16,7 @@ import {
   deriveEffectiveContribution,
   mapContributionAdjustmentRow,
 } from "../contribution-shared/effective-values";
+import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
 
 import type { CrmPostLinkInput } from "./crm-post-state";
 import type { ContributionDetail } from "./detail-read-model";
@@ -146,53 +147,6 @@ async function maybeFetchTenantRow(input: {
   return isRecord(data) ? data : null;
 }
 
-function profileDisplayName(profile: unknown): string | null {
-  const profileRecord = isRecord(profile) ? profile : {};
-  const firstLastName = [
-    asString(profileRecord.first_name),
-    asString(profileRecord.last_name),
-  ]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-
-  return (
-    asString(profileRecord.display_name) ??
-    asString(profileRecord.full_name) ??
-    asString(firstLastName) ??
-    asString(profileRecord.email)
-  );
-}
-
-async function fetchMissionaryLabel(input: {
-  supabaseAdmin: SupabaseAdmin;
-  tenantId: string;
-  missionaryId: string | null;
-}): Promise<{ id: string; name: string | null } | null> {
-  if (!input.missionaryId || !isUuid(input.missionaryId)) {
-    return null;
-  }
-
-  const { data, error } = await input.supabaseAdmin
-    .from("missionaries")
-    .select(
-      "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
-    )
-    .eq("tenant_id", input.tenantId)
-    .eq("id", input.missionaryId)
-    .maybeSingle();
-
-  assertNoError(error, "Failed to load missionary.");
-  if (!isRecord(data)) {
-    return null;
-  }
-
-  return {
-    id: asString(data.id) ?? input.missionaryId,
-    name: profileDisplayName(data.profile),
-  };
-}
-
 function uniqueReferenceIds(ids: Array<string | null | undefined>): string[] {
   return Array.from(
     new Set(
@@ -286,7 +240,9 @@ async function loadDesignationSetData(input: {
   const missionaries = ((missionariesResult.data ?? []) as JsonRecord[]).map(
     (row) => ({
       id: asString(row.id) ?? "",
-      display_name: profileDisplayName(row.profile),
+      display_name: resolveContributionProfileLabel(
+        isRecord(row.profile) ? row.profile : null,
+      ),
     }),
   );
 
@@ -364,7 +320,6 @@ async function loadContributionOperationDetail(input: {
 
   const [
     donorRow,
-    missionary,
     stagedGiftResult,
     auditResult,
     correctionResult,
@@ -379,11 +334,6 @@ async function loadContributionOperationDetail(input: {
       id: donation.donorId,
       select:
         "id, profile_id, name, email, phone, mobile, location, organization",
-    }),
-    fetchMissionaryLabel({
-      supabaseAdmin: input.supabaseAdmin,
-      tenantId: input.tenantId,
-      missionaryId: donation.missionaryId,
     }),
     input.supabaseAdmin
       .from("staged_gifts")
@@ -457,22 +407,17 @@ async function loadContributionOperationDetail(input: {
       }
     : null;
 
+  const pledgeFundId = pledgeRow ? asString(pledgeRow.fund_id) : null;
   const designationData = await loadDesignationSetData({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     stagedGiftId: stagedGift?.id ?? null,
     donationFundId: donation.fundId,
-    extraFundIds: effectiveReferences.fundIds,
+    extraFundIds: [...effectiveReferences.fundIds, pledgeFundId],
     extraMissionaryIds: effectiveReferences.missionaryIds,
   });
-  const pledgeFund = pledgeRow
-    ? await maybeFetchTenantRow({
-        supabaseAdmin: input.supabaseAdmin,
-        table: "funds",
-        tenantId: input.tenantId,
-        id: asString(pledgeRow.fund_id),
-        select: "id, name",
-      })
+  const pledgeFund = pledgeFundId
+    ? (designationData.funds.find((fund) => fund.id === pledgeFundId) ?? null)
     : null;
   const primaryFund =
     donation.fundId !== null
@@ -481,6 +426,12 @@ async function loadContributionOperationDetail(input: {
           name: null,
         })
       : null;
+  const primaryMissionary = effectivePreview.effective.missionaryId
+    ? (designationData.missionaries.find(
+        (missionary) =>
+          missionary.id === effectivePreview.effective.missionaryId,
+      ) ?? null)
+    : null;
 
   return buildContributionDetail({
     donation,
@@ -508,11 +459,9 @@ async function loadContributionOperationDetail(input: {
           }
         : null,
     fund: primaryFund,
-    missionary:
-      missionary ??
-      (donation.missionaryId
-        ? { id: donation.missionaryId, name: null }
-        : null),
+    missionary: primaryMissionary
+      ? { id: primaryMissionary.id, name: primaryMissionary.display_name }
+      : null,
     stagedGift,
     auditEvents: ((auditResult.data ?? []) as JsonRecord[]).map((event) => ({
       id: asString(event.id) ?? "",

@@ -17,6 +17,10 @@ export {
   type OriginalContributionValues,
 } from "./effective-values";
 export {
+  resolveContributionProfileLabel,
+  type ContributionProfileLabelInput,
+} from "./profile-label";
+export {
   buildContributionDesignationSet,
   deriveFundType,
   summarizeContributionDesignationSet,
