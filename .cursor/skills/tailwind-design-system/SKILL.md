@@ -734,12 +734,8 @@ export function ThemeToggle() {
 
 ```typescript
 // lib/utils.ts
-import { type ClassValue, clsx } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cnfast";
+export type { ClassValue } from "cnfast";
 
 // Focus ring utility
 export const focusRing = cn(

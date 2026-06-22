@@ -4,7 +4,9 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-if ! command -v bun >/dev/null 2>&1; then
+BUN_BIN="${BUN_BIN:-bun}"
+
+if ! command -v "$BUN_BIN" >/dev/null 2>&1; then
   echo "error: bun is not installed or not on PATH." >&2
   echo "Install Bun from https://bun.sh/docs/installation" >&2
   exit 1
@@ -16,7 +18,7 @@ if [[ ! -f "$package_json" ]]; then
   exit 1
 fi
 
-expected_raw="$(bun -e "
+expected_raw="$("$BUN_BIN" -e "
 const fs = require('node:fs');
 const pkg = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
 const pm = pkg.packageManager;
@@ -32,7 +34,7 @@ if (!match) {
 process.stdout.write(match[1]);
 " "$package_json")"
 
-installed_raw="$(bun --version 2>/dev/null | tr -d '[:space:]')"
+installed_raw="$("$BUN_BIN" --version 2>/dev/null | tr -d '[:space:]')"
 installed="${installed_raw#v}"
 expected="${expected_raw#v}"
 

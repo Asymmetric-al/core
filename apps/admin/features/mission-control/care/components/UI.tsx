@@ -1,4 +1,4 @@
-import { clsx, type ClassValue } from "clsx";
+import { cn } from "@asym/ui/lib/utils";
 import {
   format,
   isSameDay,
@@ -10,7 +10,6 @@ import {
 import { X, ChevronLeft, ChevronRight, ChevronDown, Check } from "lucide-react";
 import Image, { type ImageLoader } from "next/image";
 import React, { useState, useEffect, useRef } from "react";
-import { twMerge } from "tailwind-merge";
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
@@ -19,10 +18,6 @@ function makeDisplayDate(value?: string | number | Date): Date {
 }
 
 const passthroughImageLoader: ImageLoader = ({ src }) => src;
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?:

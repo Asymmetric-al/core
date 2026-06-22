@@ -11,6 +11,7 @@ import {
 describe("ci-build command planning", () => {
   it("uses the first available Windows Turbo binary candidate", () => {
     const existingPaths = new Set([
+      "/repo/node_modules/.bin/turbo.exe",
       "/repo/node_modules/.bin/turbo.cmd",
       "/repo/node_modules/.bin/turbo",
     ]);
@@ -19,11 +20,15 @@ describe("ci-build command planning", () => {
       platform: "win32",
       exists: (candidate: string) =>
         existingPaths.has(
-          candidate.replace(/^.*node_modules/, "/repo/node_modules"),
+          candidate
+            .replaceAll("\\", "/")
+            .replace(/^.*node_modules/, "/repo/node_modules"),
         ),
     });
 
-    expect(result.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
+    expect(
+      result.replaceAll("\\", "/").endsWith("node_modules/.bin/turbo.exe"),
+    ).toBe(true);
   });
 
   it("builds shared packages without Turbo on Windows", () => {

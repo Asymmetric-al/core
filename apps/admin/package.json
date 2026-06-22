@@ -23,8 +23,8 @@
     "@asym/email": "workspace:*",
     "@asym/env": "workspace:*",
     "@asym/lib": "workspace:*",
-    "@asym/mock-data": "workspace:*",
     "@asym/missionary": "workspace:*",
+    "@asym/mock-data": "workspace:*",
     "@asym/pdf-editor": "file:../../vendor/react-pdf-packages/asym-pdf-editor",
     "@asym/pdf-renderer": "file:../../vendor/react-pdf-packages/asym-pdf-renderer",
     "@asym/pdf-template-schema": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
@@ -49,7 +49,6 @@
     "@tanstack/react-query": "^5.96.2",
     "@tanstack/react-table": "^8.21.3",
     "boneyard-js": "^1.7.6",
-    "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "lucide-animated": "^1.0.0",
     "lucide-react": "^0.575.0",
@@ -63,7 +62,6 @@
     "recharts": "^2.15.4",
     "sharp": "^0.34.5",
     "sonner": "^2.0.7",
-    "tailwind-merge": "^3.4.0",
     "zod": "^4.3.6"
   },
   "devDependencies": {
