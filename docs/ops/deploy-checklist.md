@@ -4,7 +4,7 @@ Use this checklist for production deploys to the current Vercel Production
 Branch. As of 2026-05-16, all three live Vercel projects (`admin`, `donor`, and
 `missionary`) use `production` as the Production Branch. The normal production path is
 `bun run release:production`; see [Production Release Guide](./production-release.md).
-If a release also affects staging validation, run the same checks against
+If a release also affects development validation, run the same checks against
 `develop` before production. `main` is retired/protected historical history and
 is not a deploy target.
 
@@ -18,7 +18,7 @@ is not a deploy target.
 - [ ] GitHub branch protection requires `ci-gate` on `production`; `ci-gate`,
       `integration-gate`, and `e2e-smoke-gate` on `develop`
 - [ ] Migrations reviewed (additive-only, or expand-then-contract followed)
-- [ ] Migrations tested on staging first
+- [ ] Migrations tested on development first
 - [ ] Vercel project Production Branch matches the intended release branch for all 3 projects
 - [ ] The app-level `vercel.json` files allow only `production` and `develop` Git
       deployments

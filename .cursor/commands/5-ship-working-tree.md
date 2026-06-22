@@ -1,7 +1,7 @@
 # 5-ship-working-tree
 
 **Name:** `5-ship-working-tree`  
-**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct **CODEOWNERS reviewer(s)** (only) immediately, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures. **Additional reviewer routing happens later via Greptile-triggered GitHub Action** using `.github/reviewers.yml`.
+**Purpose:** Turn **local, uncommitted changes** into a clean feature branch + (draft) PR, request the correct **CODEOWNERS reviewer(s)** (only) immediately, push to GitHub, and **watch CI checks** until pass/fail—then notify the user and offer troubleshooting on failures. Additional **human** reviewer routing is retired; merge happens autonomously via the **Merge Captain** pipeline (see `docs/guides/development/merge-captain-pipeline.md`).
 
 **Applies when:** You have meaningful local changes (staged/unstaged/untracked) that you want shipped via PR.  
 **Do not use when:** You are mid-rebase/merge, you suspect secrets are present, or you need a multi-commit / multi-PR breakdown.
@@ -486,7 +486,7 @@ Optional but recommended:
 **Important:** CODEOWNERS does not always auto-request reviews unless repo settings/branch protection require it. Always explicitly request reviewers.
 
 **Goal:** Request **only** the relevant **CODEOWNER(s)** (prefer individuals).  
-This command **must not** request an additional reviewer—reviewer routing happens later via GitHub Actions after Greptile posts.
+This command **must not** request an additional human reviewer—`develop` has no required review and merges autonomously via the Merge Captain pipeline once required checks pass.
 
 #### 11.1) Resolve CODEOWNERS (source-of-truth)
 
@@ -537,19 +537,18 @@ Watch checks:
 gh pr checks --watch
 ```
 
-Greptile (async reviewer routing):
+Greptile (async review):
 
 - **Do not block/wait** for Greptile inside Cursor.
-- When Greptile submits its PR review, GitHub Actions (`.github/workflows/greptile-informer.yml`) will:
-  - read Greptile’s **Confidence Score (1–5)** (if present),
-  - combine it with PR file/line heuristics,
-  - and request **1 additional reviewer** from `.github/reviewers.yml`.
-- It will also post a short comment documenting the decision.
+- Greptile reviews asynchronously and chains a Codex review automatically.
+- Additional **human** reviewer routing is retired: `develop` has no required review and merges
+  autonomously via the **Merge Captain** pipeline once required checks pass. See
+  `docs/guides/development/merge-captain-pipeline.md`.
 
 Optional one-time check:
 
 ```bash
-gh pr view --comments | rg -n "greptile|Reviewer routing|Assigned additional reviewer|difficulty" || true
+gh pr view --comments | rg -n "greptile|codex|Merge Captain|automation:" || true
 ```
 
 On **success**:
