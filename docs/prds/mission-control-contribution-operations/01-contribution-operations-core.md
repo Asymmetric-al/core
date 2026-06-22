@@ -1,10 +1,10 @@
 # PRD 1: Mission Control Contribution Operations Core
 
-## Suggested issue
+## Delivered split status
 
-- Title: Build Mission Control Contribution Operations Core
-- Labels: `type:feature`, `status:ready`, `complexity:hard`,
-  `ready-for-agent`
+Delivered through split PRs #386-#405. Do not create a new
+`status:ready` implementation issue from this historical PRD unless a follow-up
+gap is identified against the shipped code.
 
 ## Problem statement
 
@@ -13,14 +13,11 @@ experience. Staff must be able to manage gifts from both the Contribution Hub
 and the donor CRM record without creating duplicate gift truth, duplicate
 schemas, or disconnected workflows.
 
-The repo already has a contribution list, contribution detail sheet, CRM donor
-gift history, staged gift actions, receipt resend, CRM post retry, Stripe raw
-event replay helpers, refund webhook handling, and staged gift audit events.
-Those are foundations, but they do not yet form one complete contribution
-operations hub with canonical detail, correction framework, refund action
-handling, official document operations, recurring-gift context, reason prompts,
-permission checks, shared audit, and extension hooks for notifications, tasks,
-Needs Attention, automation, and batches.
+The repo had a contribution list, contribution detail sheet, CRM donor gift
+history, staged gift actions, receipt resend, CRM post retry, Stripe raw event
+replay helpers, refund webhook handling, and staged gift audit events. Those
+foundations have now been consolidated into the split contribution-operations
+implementation referenced above.
 
 ## Solution
 
@@ -71,9 +68,12 @@ action.
 - As finance admin, I see donor, gift, designation, payment, receipt, refund,
   recurring, CRM, and audit context in one contribution detail.
 - As finance admin, I can search by donor name, donor address/location, phone,
-  date range, Stripe identifiers, payment method, payment type, safe last-four,
-  status, receipt state, refund state, designation, fund, missionary, project,
-  campaign, batch, and contribution fields when available.
+  date range, payment method, payment type, safe last-four, status, receipt
+  state, refund state, designation, fund, missionary, project, campaign, batch,
+  and contribution fields when available.
+- As a provider-authorized operator, I can search or inspect Stripe
+  PaymentIntent, charge, refund, webhook, and replay identifiers only when I
+  have `contributions.use_provider_actions`.
 - As finance admin, I can see the full audit trail, including whether an action
   came from CRM or Contribution Hub.
 - As finance admin, harmless metadata edits save directly.
@@ -148,7 +148,9 @@ The contribution detail read model includes, when available:
 - amount, currency, gross, net, fee, tax-deductible amount;
 - payment type and payment method;
 - safe last-four/brand/bank label;
-- Stripe PaymentIntent, charge, refund, webhook, and replay context;
+- Stripe PaymentIntent, charge, refund, webhook, and replay context only for
+  viewers with `contributions.use_provider_actions`; other viewers receive safe
+  payment summaries and safe last-four/brand/bank labels;
 - fund, designation, missionary, project, campaign, and allocation context;
 - receipt and statement state;
 - refund state;

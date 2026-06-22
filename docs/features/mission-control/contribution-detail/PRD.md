@@ -205,7 +205,9 @@ The UI must be polished and consistent with Mission Control: shared `@asym/ui` p
 - Missionary portal redesign.
 - Full reporting system redesign.
 - A generic automation/rules builder.
-- A full shared task product beyond hook contracts and linked approval/follow-up tasks needed for contribution operations.
+- A generic shared task product beyond contribution-operations approval,
+  follow-up, and Needs Attention work. The required contribution task model is
+  owned by PRD 3 in `docs/prds/mission-control-contribution-operations/`.
 - Shared/team/published named CRM gift-history views.
 - View ownership transfer, share-by-link, or shared-view conflict resolution.
 - A separate internal CRM copy or replication workflow between CRM donor gift history and Contributions Hub.

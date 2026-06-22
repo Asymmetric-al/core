@@ -15,19 +15,28 @@ gift, task, notification, automation, or batch truth.
 
 ## Repo grounding
 
-Relevant current implementation areas:
+Shipped contribution-operations implementation areas:
 
 - `apps/admin/app/contributions/*`
 - `packages/api/src/admin/contributions/*`
+- `packages/api/src/admin/contribution-operations/*`
+- `packages/api/src/admin/contribution-batches/*`
+- `packages/api/src/admin/mission-control-tasks/*`
+- `packages/api/src/admin/mission-control-automations/*`
+- `packages/api/src/admin/crm/table-preferences/*`
 - `packages/api/src/giving/staged-gifts.ts`
 - `packages/api/src/giving/receipts.ts`
 - `packages/api/src/admin/crm/detail/service.ts`
+- `packages/api/src/admin/crm/detail/gift-history.ts`
 - `packages/api/src/stripe/*`
 - `packages/api/src/donor-portal/*`
-- `apps/admin/app/tasks/*`
-- `packages/api/src/missionary-portal/tasks.ts`
 - `packages/email/*`
 - `packages/api/src/email/*`
+
+Prior art only, not the shared contribution task boundary:
+
+- `apps/admin/app/tasks/*`
+- `packages/api/src/missionary-portal/tasks.ts`
 
 ## Cross-cutting rules
 

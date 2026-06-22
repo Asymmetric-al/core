@@ -16,7 +16,10 @@ System-wide product intent may also live under `openspec/specs/` and `openspec/c
    - Its **`docs/adr/`** — ADRs that touch the area you're about to work in
 3. Optional repo-wide rulebooks under `docs/ai/rules/` and feature docs under `docs/features/` when the task spans more than one context.
 
-If a mapped file does not exist yet, **proceed silently**. Don't flag absence upfront. The producer skill (`/grill-with-docs`) creates context lazily when terms or decisions are actually resolved.
+If a mapped file is missing, treat that as a documentation integrity issue for
+the current task instead of silently inventing context. The producer skill
+(`/grill-with-docs`) can create a new context lazily, but any new context must be
+registered in `CONTEXT-MAP.md` in the same change.
 
 ## File structure (this repo)
 

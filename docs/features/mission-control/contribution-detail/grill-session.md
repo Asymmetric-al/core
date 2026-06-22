@@ -68,7 +68,7 @@ Twenty / CRM post status is **downstream workflow**, not payment ledger.
 
 ### CRM gift history row shape (`CrmGiftHistoryRow`)
 
-Thinner than `ContributionGridRow`: amount, fund/missionary names, receipt + crm post status, `canResendReceipt`, IDs. Resend uses same staged-gift receipt API path (via CRM page mutation).
+Thinner than `ContributionGridRow`: amount, fund/missionary names, receipt and CRM post status, IDs, and shared inline action availability. Resend uses the shared contribution operation contract.
 
 ### Staged gift audit
 

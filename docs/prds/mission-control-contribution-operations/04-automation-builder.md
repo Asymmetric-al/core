@@ -1,10 +1,10 @@
 # PRD 4: Mission Control Automation Builder
 
-## Suggested issue
+## Delivered split status
 
-- Title: Build Mission Control Automation Builder
-- Labels: `type:feature`, `status:ready`, `complexity:hard`,
-  `ready-for-agent`
+Delivered through split PRs #401 and #404. Do not create a new `status:ready`
+implementation issue from this historical PRD unless a follow-up gap is
+identified against the shipped code.
 
 ## Problem statement
 

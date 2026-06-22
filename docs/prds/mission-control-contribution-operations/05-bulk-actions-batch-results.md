@@ -1,10 +1,10 @@
 # PRD 5: Bulk Contribution Actions and Batch Results
 
-## Suggested issue
+## Delivered split status
 
-- Title: Build bulk contribution actions and batch results
-- Labels: `type:feature`, `status:ready`, `complexity:hard`,
-  `ready-for-agent`
+Delivered through split PR #398. Do not create a new `status:ready`
+implementation issue from this historical PRD unless a follow-up gap is
+identified against the shipped code.
 
 ## Problem statement
 
@@ -54,9 +54,10 @@ Summary counts:
 - failed
 - follow-up tasks created
 
-CSV export includes contribution ID, donor name, donor email where allowed,
-amount, currency, action, status, skip reason, failure reason, audit event ID,
-task ID, and timestamp.
+CSV export includes contribution ID, donor name, donor email only for operators
+with `contributions.manage_receipts`, amount, currency, action, status, skip
+reason, failure reason, audit event ID, task ID, and timestamp. Export rows must
+leave donor email blank or redacted for operators without that capability.
 
 ## Important failures
 

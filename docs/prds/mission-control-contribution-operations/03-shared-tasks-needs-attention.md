@@ -1,10 +1,10 @@
 # PRD 3: Shared Mission Control Tasks and Needs Attention
 
-## Suggested issue
+## Delivered split status
 
-- Title: Build shared Mission Control tasks and Needs Attention
-- Labels: `type:feature`, `status:ready`, `complexity:hard`,
-  `ready-for-agent`
+Delivered through split PR #394. Do not create a new `status:ready`
+implementation issue from this historical PRD unless a follow-up gap is
+identified against the shipped code.
 
 ## Problem statement
 
@@ -117,7 +117,7 @@ Test behavior and queue visibility:
 - linked records for donor, contribution, audit, notification, batch, and
   provider action.
 
-## Definition of done
+## Delivered acceptance criteria
 
 - A shared Mission Control task model exists.
 - Contribution failure/follow-up cases can create linked tasks.

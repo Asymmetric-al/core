@@ -1,10 +1,10 @@
 # PRD 2: Email Studio Donor Correction Notifications
 
-## Suggested issue
+## Delivered split status
 
-- Title: Build Email Studio donor correction notification templates
-- Labels: `type:feature`, `status:ready`, `complexity:hard`,
-  `ready-for-agent`
+Delivered through split PRs #395-#396. Do not create a new `status:ready`
+implementation issue from this historical PRD unless a follow-up gap is
+identified against the shipped code.
 
 ## Problem statement
 

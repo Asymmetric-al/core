@@ -59,12 +59,13 @@
 
 ## Verification notes
 
-- Implementation landed through split PRs #386-#404 after this docs package
+- Implementation landed through split PRs #386-#405 after this docs package
   was parked until code completion.
 - Each code slice passed the required GitHub `ci-gate` and `integration-gate`
   before merge, with blocking review conversations resolved.
 - Local slice verification included focused unit tests, scoped lint/typecheck,
-  and full `bun run ci:preflight` on the final automation UI slice.
+  and full `bun run ci:preflight` on the final automation UI and CRM cleanup
+  slices.
 - OpenSpec validation passed with
   `bunx @fission-ai/openspec@latest validate mission-control-contribution-operations --strict`.
 

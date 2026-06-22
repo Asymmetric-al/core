@@ -12,14 +12,14 @@ bun run typecheck && bun run test:unit && bun run build`.
 
 ## Execution order & status
 
-| Plan | Title                                                      | Priority | Effort | Risk | Depends on | Status |
-| ---- | ---------------------------------------------------------- | -------- | ------ | ---- | ---------- | ------ |
-| 001  | Remove dead resend-receipt hook + canResendReceipt field   | P2       | S      | LOW  | none       | DONE   |
-| 002  | Redact Stripe IDs in POST /actions result                  | P1       | S      | LOW  | none       | DONE   |
-| 003  | Validate fund/missionary IDs in corrections                | P1       | M      | MED  | none       | DONE   |
-| 004  | Make inline stripe_replay derive its event id server-side  | P2       | M      | LOW  | none       | DONE   |
-| 005  | Share the CRM view-settings patch util (in @asym/database) | P2       | M      | LOW  | none       | DONE   |
-| 006  | Extract components from the crm/page-client god-file       | P3       | L      | MED  | 001, 005   | DONE   |
+| Plan | Title                                                      | Priority | Effort | Risk | Depends on | Status | Landed in  |
+| ---- | ---------------------------------------------------------- | -------- | ------ | ---- | ---------- | ------ | ---------- |
+| 001  | Remove dead resend-receipt hook + canResendReceipt field   | P2       | S      | LOW  | none       | DONE   | split #405 |
+| 002  | Redact Stripe IDs in POST /actions result                  | P1       | S      | LOW  | none       | DONE   | split #391 |
+| 003  | Validate fund/missionary IDs in corrections                | P1       | M      | MED  | none       | DONE   | split #392 |
+| 004  | Make inline stripe_replay derive its event id server-side  | P2       | M      | LOW  | none       | DONE   | split #397 |
+| 005  | Share the CRM view-settings patch util (in @asym/database) | P2       | M      | LOW  | none       | DONE   | split #399 |
+| 006  | Extract components from the crm/page-client god-file       | P3       | L      | MED  | 001, 005   | DONE   | split #403 |
 
 Status values: TODO | IN PROGRESS | DONE | BLOCKED (reason) | REJECTED (reason)
 

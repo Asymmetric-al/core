@@ -89,10 +89,10 @@ corrections that require later manual sync to donor-facing records.
 
 ## Phase Boundaries
 
-The initial Contribution Operations Core phase shipped hook contracts only for
-notifications, tasks, automations, and batches. Scope was then expanded inside
-this change, and the later phases are implemented here (see `tasks.md`
-sections 7-10 for the delivered breakdown):
+The initial Contribution Operations Core phase shipped hook contracts for
+notifications, tasks, automations, and batches. The later phases were delivered
+through the dependent split PRs after this OpenSpec package was kept open until
+code completion (see `tasks.md` sections 7-10 for the delivered breakdown):
 
 - Email Studio correction notification templates and send path (PRD 2);
 - shared Mission Control tasks and Needs Attention (PRD 3);
