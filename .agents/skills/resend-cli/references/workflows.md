@@ -204,9 +204,9 @@ resend webhooks listen \
 resend login --key re_prod_xxx
 # When prompted, name it "production"
 
-# Add staging profile
+# Add development profile
 resend auth switch  # or create via login
-resend login --key re_staging_xxx
+resend login --key re_development_xxx
 
 # List profiles
 resend auth list
@@ -215,13 +215,13 @@ resend auth list
 resend auth switch production
 
 # Use a profile for a single command
-resend emails list --profile staging
+resend emails list --profile development
 
 # Rename profile
 resend auth rename old-name new-name
 
 # Remove profile
-resend auth remove staging
+resend auth remove development
 ```
 
 ---
