@@ -5,6 +5,7 @@ import { executeContributionAction } from "./actions";
 import { recordCorrectionApprovalOutcome } from "./approval-notifications";
 import {
   decideContributionCorrectionRequest,
+  loadContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { createContributionActionDependencies } from "./dependencies";
@@ -14,113 +15,84 @@ import {
   resolveContributionCapabilities,
 } from "./permissions";
 import { loadContributionDetailFromSupabase } from "./store";
-import { projectContributionDetailForViewer } from "./viewer-projection";
+import {
+  CONTRIBUTION_ACTION_TYPES,
+  CONTRIBUTION_SOURCE_SURFACES,
+  type ContributionActionType,
+  type ContributionPermission,
+} from "./types";
+import {
+  projectContributionActionResultForViewer,
+  projectContributionDetailForViewer,
+} from "./viewer-projection";
 import {
   ApiHttpError,
   ensureJsonBody,
   toErrorResponse,
 } from "../../shared/http-errors";
-import { withOperation } from "../../shared/with-operation";
+import {
+  withOperation,
+  type OperationRouteContext,
+} from "../../shared/with-operation";
 
-import type { ContributionDetail } from "./detail-read-model";
-import type {
-  ContributionActionResult,
-  ContributionActionType,
-  ContributionPermission,
-  ContributionProviderOutcome,
-  ContributionSourceSurface,
-} from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 
 export { replayStripeEventThroughContributionOperations };
+export { projectContributionActionResultForViewer };
 
-/**
- * Strip raw provider identifiers from a provider outcome for viewers lacking
- * contributions.use_provider_actions. `referenceId` (e.g. a Stripe `re_`/`pi_`
- * id), `raw` (the provider payload), and `errorMessage` (which can embed ids)
- * are removed; the non-sensitive provider/status/errorCode workflow fields are
- * kept so the UI can still show what happened.
- */
-function redactProviderOutcomeForViewer(
-  outcome: ContributionProviderOutcome | null | undefined,
-): ContributionProviderOutcome | null | undefined {
-  if (!outcome) {
-    return outcome;
-  }
-
-  return {
-    provider: outcome.provider,
-    status: outcome.status,
-    errorCode: outcome.errorCode ?? null,
-    referenceId: null,
-  };
-}
-
-/**
- * Apply the same viewer projection the GET detail endpoint uses to an action
- * result before returning it (ADR-CD-014). Without this, a viewer lacking
- * contributions.use_provider_actions (e.g. donor-care invoking resend_receipt,
- * or finance-staff running a suppressed-approval refund) would receive raw
- * Stripe identifiers carried on the result -- both on
- * result.canonicalContribution (which the GET endpoint nulls) and on
- * result.providerOutcome (the live refund/charge id and raw provider payload).
- */
-export function projectContributionActionResultForViewer<
-  TResult extends ContributionActionResult,
->(result: TResult, viewerCapabilities: string[]): TResult {
-  const hasProviderAccess = viewerCapabilities.includes(
-    "contributions.use_provider_actions",
-  );
-
-  const canonical = result.canonicalContribution;
-  const projected: TResult =
-    canonical && typeof canonical === "object"
-      ? {
-          ...result,
-          canonicalContribution: projectContributionDetailForViewer(
-            canonical as ContributionDetail,
-            viewerCapabilities,
-          ),
-        }
-      : result;
-
-  if (hasProviderAccess || result.providerOutcome == null) {
-    return projected;
-  }
-
-  return {
-    ...projected,
-    providerOutcome: redactProviderOutcomeForViewer(result.providerOutcome),
-  };
-}
-
-const actionTypeSchema = z.enum([
-  "resend_receipt",
-  "approve_staged_gift",
-  "retry_staged_gift",
-  "crm_repost",
+const UNSUPPORTED_ROUTE_ACTION_TYPES = new Set<ContributionActionType>([
   "metadata_update",
   "refund",
   "donor_relink",
-  "amount_correction",
-  "designation_correction",
-  "fund_correction",
-  "allocation_correction",
-  "receipt_correction",
-  "statement_correction",
-  "payment_state_correction",
-  "stripe_replay",
 ]);
 
-const sourceSurfaceSchema = z.enum([
-  "contribution_hub",
-  "donor_crm_record",
-  "automation",
-  "bulk_action",
-  "api",
-]);
+export function isContributionRouteActionSupported(
+  actionType: ContributionActionType,
+): boolean {
+  return !UNSUPPORTED_ROUTE_ACTION_TYPES.has(actionType);
+}
 
-const actionRequestSchema = z.object({
+function unsupportedRouteActionMessage(
+  actionType: ContributionActionType,
+): string {
+  switch (actionType) {
+    case "metadata_update":
+      return "metadata_update is not supported by this route yet.";
+    case "refund":
+      return "refund is not supported by this route until provider refund dependencies are wired.";
+    case "donor_relink":
+      return "donor_relink is not supported by this route until donor relink dependencies are wired.";
+    default:
+      return `${actionType} is not supported by this route.`;
+  }
+}
+
+export function assertContributionRouteActionSupported(
+  actionType: ContributionActionType,
+): void {
+  if (isContributionRouteActionSupported(actionType)) {
+    return;
+  }
+
+  throw new ApiHttpError(501, unsupportedRouteActionMessage(actionType));
+}
+
+const actionTypeSchema = z
+  .enum(CONTRIBUTION_ACTION_TYPES)
+  .superRefine((actionType, ctx) => {
+    if (isContributionRouteActionSupported(actionType)) {
+      return;
+    }
+
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: unsupportedRouteActionMessage(actionType),
+    });
+  });
+
+const sourceSurfaceSchema = z.enum(CONTRIBUTION_SOURCE_SURFACES);
+
+export const actionRequestSchema = z.object({
   contributionId: z.string().uuid(),
   stagedGiftId: z.string().uuid().nullable().optional(),
   actionType: actionTypeSchema,
@@ -132,11 +104,19 @@ const actionRequestSchema = z.object({
   payload: z.record(z.string(), z.unknown()).default({}),
 });
 
-function getContributionIdFromPath(request: Request): string | null {
-  const pathname = new URL(request.url).pathname;
-  const segments = pathname.split("/").filter(Boolean);
-  const index = segments.indexOf("contribution-operations");
-  return index >= 0 ? (segments[index + 1] ?? null) : null;
+async function getRouteParam(
+  routeContext: OperationRouteContext | undefined,
+  paramName: string,
+  missingMessage: string,
+): Promise<string> {
+  const params = await routeContext?.params;
+  const value = params?.[paramName];
+  const resolved = Array.isArray(value) ? value[0] : value;
+  if (!resolved) {
+    throw new ApiHttpError(400, missingMessage);
+  }
+
+  return resolved;
 }
 
 function actorPermissionsFromAuth(
@@ -148,12 +128,13 @@ function actorPermissionsFromAuth(
 }
 
 export const GET = withOperation(
-  async ({ request, supabaseAdmin, auth, requestId }) => {
+  async ({ supabaseAdmin, auth, requestId, routeContext }) => {
     try {
-      const contributionId = getContributionIdFromPath(request);
-      if (!contributionId) {
-        throw new ApiHttpError(400, "Missing contribution id.");
-      }
+      const contributionId = await getRouteParam(
+        routeContext,
+        "contributionId",
+        "Missing contribution id.",
+      );
 
       const detail = await loadContributionDetailFromSupabase({
         supabaseAdmin,
@@ -191,10 +172,10 @@ export const POST = withOperation(
         actorPermissions: actorPermissionsFromAuth(auth),
         actorCapabilities: resolveContributionCapabilities(auth),
         approvalPolicy,
-        sourceSurface: body.sourceSurface as ContributionSourceSurface,
+        sourceSurface: body.sourceSurface,
         contributionId: body.contributionId,
         stagedGiftId: body.stagedGiftId ?? null,
-        actionType: body.actionType as ContributionActionType,
+        actionType: body.actionType,
         reason: body.reason ?? null,
         confirmationToken: body.confirmationToken ?? null,
         expectedRevision: body.expectedRevision ?? null,
@@ -220,7 +201,7 @@ export const POST = withOperation(
   { roles: ["staff", "admin", "super_admin"] },
 );
 
-const decisionRequestSchema = z.object({
+export const decisionRequestSchema = z.object({
   decision: z.enum(["approve", "reject"]),
   reason: z.string().max(1000).nullable().optional(),
   receiptDelivery: z
@@ -232,22 +213,25 @@ const decisionRequestSchema = z.object({
     .optional(),
 });
 
-function getCorrectionRequestIdFromPath(request: Request): string | null {
-  const pathname = new URL(request.url).pathname;
-  const segments = pathname.split("/").filter(Boolean);
-  const index = segments.indexOf("correction-requests");
-  return index >= 0 ? (segments[index + 1] ?? null) : null;
-}
-
 export const POST_CORRECTION_REQUEST_DECISION = withOperation(
-  async ({ request, supabaseAdmin, auth, requestId }) => {
+  async ({ request, supabaseAdmin, auth, requestId, routeContext }) => {
     try {
-      const correctionRequestId = getCorrectionRequestIdFromPath(request);
-      if (!correctionRequestId) {
-        throw new ApiHttpError(400, "Missing correction request id.");
-      }
+      const correctionRequestId = await getRouteParam(
+        routeContext,
+        "requestId",
+        "Missing correction request id.",
+      );
 
       const body = decisionRequestSchema.parse(await ensureJsonBody(request));
+      if (body.decision === "approve") {
+        const correctionRequest = await loadContributionCorrectionRequest({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          requestId: correctionRequestId,
+        });
+        assertContributionRouteActionSupported(correctionRequest.actionType);
+      }
+
       const outcome = await decideContributionCorrectionRequest({
         supabaseAdmin,
         tenantId: auth.tenantId,

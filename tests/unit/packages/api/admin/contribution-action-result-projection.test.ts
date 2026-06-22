@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
-import { projectContributionActionResultForViewer } from "../../../../../packages/api/src/admin/contribution-operations/route";
+import { projectContributionActionResultForViewer } from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
 
 import type { ContributionActionResult } from "../../../../../packages/api/src/admin/contribution-operations/types";
 
