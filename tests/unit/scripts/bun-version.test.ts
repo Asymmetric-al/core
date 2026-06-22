@@ -82,26 +82,34 @@ function stripWslStartupWarning(stderr: string) {
 }
 
 describe("bun version guard", () => {
-  it("accepts the installed Bun when it matches packageManager", () => {
-    const result = runGuardWithFakeBun("1.3.14");
-    const stderr = stripWslStartupWarning(result.stderr);
+  it(
+    "accepts the installed Bun when it matches packageManager",
+    () => {
+      const result = runGuardWithFakeBun("1.3.14");
+      const stderr = stripWslStartupWarning(result.stderr);
 
-    expect(result.status).toBe(0);
-    expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
-    expect(stderr).toBe("");
-  }, bashTestTimeout);
+      expect(result.status).toBe(0);
+      expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
+      expect(stderr).toBe("");
+    },
+    bashTestTimeout,
+  );
 
-  it("fails fast when the Bun binary does not match packageManager", () => {
-    const result = runGuardWithFakeBun("1.3.4");
-    const stderr = stripWslStartupWarning(result.stderr);
+  it(
+    "fails fast when the Bun binary does not match packageManager",
+    () => {
+      const result = runGuardWithFakeBun("1.3.4");
+      const stderr = stripWslStartupWarning(result.stderr);
 
-    expect(result.status).toBe(1);
-    expect(stderr).toContain("error: Bun version mismatch.");
-    expect(stderr).toContain(
-      "expected (package.json packageManager): bun@1.3.14",
-    );
-    expect(stderr).toContain(
-      "installed (bun --version):              bun@1.3.4",
-    );
-  }, bashTestTimeout);
+      expect(result.status).toBe(1);
+      expect(stderr).toContain("error: Bun version mismatch.");
+      expect(stderr).toContain(
+        "expected (package.json packageManager): bun@1.3.14",
+      );
+      expect(stderr).toContain(
+        "installed (bun --version):              bun@1.3.4",
+      );
+    },
+    bashTestTimeout,
+  );
 });
