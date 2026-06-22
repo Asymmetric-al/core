@@ -66,6 +66,8 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/member-care/private-notes`                         | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/requirements`                          | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/thread`                                | Node.js (no `runtime` segment export) | Admin client                                  |
+| admin      | `/api/admin/mission-control/automations`                       | Node.js (no `runtime` segment export) | Mission Control automations, admin client     |
+| admin      | `/api/admin/mission-control/needs-attention`                   | Node.js (no `runtime` segment export) | Mission Control task attention dashboard      |
 | admin      | `/api/admin/missionaries`                                      | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/org-settings`                                      | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
