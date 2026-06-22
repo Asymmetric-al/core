@@ -85,9 +85,6 @@ export function buildCrmGiftHistoryRow(
     providerPaymentIntentId: input.provider?.stripePaymentIntentId ?? null,
     viewerCapabilities: input.viewerCapabilities ?? [],
   });
-  const receiptAvailability = availability.find(
-    (entry) => entry.actionType === "resend_receipt",
-  );
 
   return {
     shared,
@@ -105,7 +102,6 @@ export function buildCrmGiftHistoryRow(
     fundName: shared.designationSummary.fundName,
     missionaryId: shared.designationSummary.missionaryId,
     missionaryName: shared.designationSummary.missionaryName,
-    canResendReceipt: receiptAvailability?.available ?? false,
     stagedGiftId: stagedGift?.id ?? null,
     twentyRecordId: stagedGift?.twenty_record_id ?? null,
     inlineActions,

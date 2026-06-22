@@ -67,7 +67,6 @@ export interface CrmGiftHistoryRow {
   fundName: string | null;
   missionaryId: string | null;
   missionaryName: string | null;
-  canResendReceipt: boolean;
   /** Inline operation parity with contribution detail (issue #270). */
   inlineActions?: CrmGiftInlineActions;
 }
