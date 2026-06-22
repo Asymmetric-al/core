@@ -5,6 +5,7 @@ import {
   type CrmSortField,
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
+import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
 
 import type { AdminCrmListResponse } from "./types";
 import type {
@@ -135,7 +136,7 @@ async function fetchMissionaryNames(
 
   const { data, error } = await supabaseAdmin
     .from("profiles")
-    .select("id, display_name, full_name, first_name, last_name")
+    .select("id, display_name, full_name, first_name, last_name, email")
     .in("id", missionaryProfileIds);
 
   if (error) {
@@ -150,12 +151,9 @@ async function fetchMissionaryNames(
       full_name: string | null;
       first_name: string | null;
       last_name: string | null;
+      email: string | null;
     };
-    const name =
-      r.display_name?.trim() ||
-      r.full_name?.trim() ||
-      [r.first_name, r.last_name].filter(Boolean).join(" ").trim() ||
-      null;
+    const name = resolveContributionProfileLabel(r);
     if (name) {
       map.set(r.id, name);
     }
