@@ -5,6 +5,8 @@ import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { ReactNode } from "react";
+
 type ContributionsPageComponent =
   typeof import("../../../../../apps/admin/app/contributions/page").default;
 type InvalidateContributionOperationQueries =
@@ -71,6 +73,24 @@ vi.mock(
 
 vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
+}));
+
+vi.mock("@asym/ui/components/boneyard-skeleton", () => ({
+  BoneyardSkeleton: ({
+    children,
+    fallback,
+    loading,
+    name,
+  }: {
+    children: ReactNode;
+    fallback?: ReactNode;
+    loading?: boolean;
+    name?: string;
+  }) => (
+    <div data-boneyard={name} data-testid={`boneyard-${name ?? "unnamed"}`}>
+      {loading ? fallback : children}
+    </div>
+  ),
 }));
 
 let ContributionsPage: ContributionsPageComponent;
@@ -251,19 +271,15 @@ async function loadEnvSensitiveModules() {
   process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
 
-  const [
-    contributionsPageModule,
-    pageClientModule,
-    dataModule,
-    useAdminContributionsModule,
-    databaseHooksModule,
-  ] = await Promise.all([
-    import("../../../../../apps/admin/app/contributions/page"),
-    import("../../../../../apps/admin/app/contributions/page-client"),
-    import("../../../../../apps/admin/app/contributions/data"),
-    import("../../../../../apps/admin/app/contributions/use-admin-contributions"),
-    import("@asym/database/hooks"),
-  ]);
+  const useAdminContributionsModule =
+    await import("../../../../../apps/admin/app/contributions/use-admin-contributions");
+  const databaseHooksModule = await import("@asym/database/hooks");
+  const dataModule =
+    await import("../../../../../apps/admin/app/contributions/data");
+  const pageClientModule =
+    await import("../../../../../apps/admin/app/contributions/page-client");
+  const contributionsPageModule =
+    await import("../../../../../apps/admin/app/contributions/page");
 
   ContributionsPage = contributionsPageModule.default;
   invalidateContributionOperationQueries =
