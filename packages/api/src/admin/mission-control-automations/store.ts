@@ -1,3 +1,5 @@
+import { resolveMissionControlAutomationLifecycle } from "@asym/database/mission-control-automations";
+
 import {
   getActivationReadinessFailure,
   type AutomationActivationReadiness,
@@ -63,35 +65,43 @@ function countRuleSummary(
   automationRules: AutomationRule[],
 ): Pick<
   MissionControlAutomationSummary,
-  "activeRules" | "draftRules" | "pausedRules" | "readyRules" | "totalRules"
+  | "activeRules"
+  | "draftRules"
+  | "invalidRules"
+  | "pausedRules"
+  | "readyRules"
+  | "totalRules"
 > {
   let activeRules = 0;
   let draftRules = 0;
+  let invalidRules = 0;
   let pausedRules = 0;
   let readyRules = 0;
 
   for (const rule of automationRules) {
-    if (rule.enabled && rule.activationStatus === "active") {
+    const lifecycle = resolveMissionControlAutomationLifecycle(rule);
+
+    if (lifecycle.summaryBucket === "activeRules") {
       activeRules += 1;
       continue;
     }
 
-    if (
-      rule.activationStatus === "paused" ||
-      rule.activationStatus === "disabled"
-    ) {
+    if (lifecycle.summaryBucket === "invalidRules") {
+      invalidRules += 1;
+      continue;
+    }
+
+    if (lifecycle.summaryBucket === "pausedRules") {
       pausedRules += 1;
       continue;
     }
 
-    if (rule.activationStatus === "ready") {
+    if (lifecycle.summaryBucket === "readyRules") {
       readyRules += 1;
       continue;
     }
 
-    if (rule.activationStatus === "draft") {
-      draftRules += 1;
-    }
+    draftRules += 1;
   }
 
   return {
@@ -100,6 +110,7 @@ function countRuleSummary(
     pausedRules,
     readyRules,
     draftRules,
+    invalidRules,
   };
 }
 

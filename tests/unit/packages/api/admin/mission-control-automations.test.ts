@@ -592,11 +592,19 @@ describe("mission control automation dashboard summary", () => {
       draftRules: 1,
       pausedRules: 1,
       readyRules: 1,
+      invalidRules: 1,
       executions24h: 0,
       failedRuns24h: 0,
       activityLogBacked: true,
       integrationHealthBacked: false,
     });
+    expect(
+      dashboard.summary.activeRules +
+        dashboard.summary.draftRules +
+        dashboard.summary.invalidRules +
+        dashboard.summary.pausedRules +
+        dashboard.summary.readyRules,
+    ).toBe(dashboard.summary.totalRules);
     expect(dashboard.automationRules[0]).toHaveProperty(
       "activationStatus",
       "active",
@@ -698,6 +706,7 @@ describe("mission control automation dashboard summary", () => {
       pausedRules: 0,
       readyRules: 0,
       draftRules: 0,
+      invalidRules: 0,
       executions24h: 0,
       failedRuns24h: 0,
       activityLogBacked: true,

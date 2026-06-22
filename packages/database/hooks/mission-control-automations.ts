@@ -2,12 +2,9 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-export type MissionControlAutomationActivationStatus =
-  | "draft"
-  | "ready"
-  | "active"
-  | "paused"
-  | "disabled";
+import type { MissionControlAutomationActivationStatus } from "@asym/database/mission-control-automations";
+
+export type { MissionControlAutomationActivationStatus };
 
 export interface MissionControlAutomationRuleDto {
   id?: string;
@@ -27,6 +24,7 @@ export interface MissionControlAutomationSummary {
   pausedRules: number;
   readyRules: number;
   draftRules: number;
+  invalidRules: number;
   executions24h: number;
   failedRuns24h: number;
   activityLogBacked: boolean;
