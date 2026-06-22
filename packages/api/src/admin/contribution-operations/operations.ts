@@ -12,8 +12,12 @@ import {
   loadStripeRawEventForReplay,
   markStripeRawEventForReplay,
 } from "../../stripe/replay";
-import { mapContributionAdjustmentRow } from "../contribution-shared/effective-values";
+import {
+  deriveEffectiveContribution,
+  mapContributionAdjustmentRow,
+} from "../contribution-shared/effective-values";
 
+import type { CrmPostLinkInput } from "./crm-post-state";
 import type { ContributionDetail } from "./detail-read-model";
 import type {
   ReceiptDeliveryOutcome,
@@ -24,7 +28,10 @@ import type {
   ContributionActionType,
   ContributionSourceSurface,
 } from "./types";
-import type { DesignationFundInput } from "../contribution-shared/designation-set";
+import type {
+  DesignationAllocationInput,
+  DesignationFundInput,
+} from "../contribution-shared/designation-set";
 import type {
   ContributionAdjustmentEffectiveValues,
   ContributionAdjustmentRecord,
@@ -47,6 +54,10 @@ function asString(value: unknown): string | null {
 
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
+}
+
+function asNullableNumber(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
 function assertNoError(
@@ -113,59 +124,207 @@ async function loadContributionAdjustments(input: {
   return ((data ?? []) as JsonRecord[]).map(mapContributionAdjustmentRow);
 }
 
-function collectAdjustmentFundIds(input: {
-  donationFundId: string | null;
-  adjustments: ContributionAdjustmentRecord[];
-}) {
-  const fundIds = new Set<string>();
-  const addFundId = (value: unknown) => {
-    if (typeof value === "string" && value.trim().length > 0) {
-      fundIds.add(value);
-    }
-  };
-
-  addFundId(input.donationFundId);
-
-  for (const adjustment of input.adjustments) {
-    addFundId(adjustment.effectiveValues.fundId);
-
-    for (const line of adjustment.effectiveValues.designationLines ?? []) {
-      addFundId(line.fundId);
-    }
-  }
-
-  return [...fundIds];
-}
-
-async function loadDesignationFunds(input: {
+async function maybeFetchTenantRow(input: {
   supabaseAdmin: SupabaseAdmin;
+  table: string;
   tenantId: string;
-  fundIds: string[];
-}): Promise<DesignationFundInput[]> {
-  const queryableIds = input.fundIds.filter(isUuid);
-
-  if (queryableIds.length === 0) {
-    return [];
+  id: string | null;
+  select: string;
+}): Promise<JsonRecord | null> {
+  if (!input.id) {
+    return null;
   }
 
   const { data, error } = await input.supabaseAdmin
-    .from("funds")
-    .select("id, name, missionary_id, goal_amount, start_date, end_date")
+    .from(input.table)
+    .select(input.select)
     .eq("tenant_id", input.tenantId)
-    .in("id", queryableIds);
+    .eq("id", input.id)
+    .maybeSingle();
 
-  assertNoError(error, "Failed to load contribution fund metadata.");
+  assertNoError(error, `Failed to load ${input.table}.`);
+  return isRecord(data) ? data : null;
+}
 
-  return ((data ?? []) as JsonRecord[]).map((row) => ({
+function profileDisplayName(profile: unknown): string | null {
+  const profileRecord = isRecord(profile) ? profile : {};
+  const firstLastName = [
+    asString(profileRecord.first_name),
+    asString(profileRecord.last_name),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return (
+    asString(profileRecord.display_name) ??
+    asString(profileRecord.full_name) ??
+    asString(firstLastName) ??
+    asString(profileRecord.email)
+  );
+}
+
+async function fetchMissionaryLabel(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  missionaryId: string | null;
+}): Promise<{ id: string; name: string | null } | null> {
+  if (!input.missionaryId || !isUuid(input.missionaryId)) {
+    return null;
+  }
+
+  const { data, error } = await input.supabaseAdmin
+    .from("missionaries")
+    .select(
+      "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
+    )
+    .eq("tenant_id", input.tenantId)
+    .eq("id", input.missionaryId)
+    .maybeSingle();
+
+  assertNoError(error, "Failed to load missionary.");
+  if (!isRecord(data)) {
+    return null;
+  }
+
+  return {
+    id: asString(data.id) ?? input.missionaryId,
+    name: profileDisplayName(data.profile),
+  };
+}
+
+function uniqueReferenceIds(ids: Array<string | null | undefined>): string[] {
+  return Array.from(
+    new Set(
+      ids.filter((id): id is string => typeof id === "string" && id !== ""),
+    ),
+  );
+}
+
+async function loadDesignationSetData(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  stagedGiftId: string | null;
+  donationFundId: string | null;
+  extraFundIds: Array<string | null | undefined>;
+  extraMissionaryIds: Array<string | null | undefined>;
+}): Promise<{
+  allocations: DesignationAllocationInput[];
+  funds: DesignationFundInput[];
+  missionaries: Array<{ id: string; display_name: string | null }>;
+}> {
+  const allocationsResult = input.stagedGiftId
+    ? await input.supabaseAdmin
+        .from("staged_gift_allocations")
+        .select("id, amount, fund_id, missionary_id, memo")
+        .eq("tenant_id", input.tenantId)
+        .eq("staged_gift_id", input.stagedGiftId)
+        .order("created_at", { ascending: true })
+    : { data: [], error: null };
+
+  assertNoError(allocationsResult.error, "Failed to load designation lines.");
+
+  const allocations = ((allocationsResult.data ?? []) as JsonRecord[]).map(
+    (row) => ({
+      id: asString(row.id) ?? "",
+      amount: asNumber(row.amount),
+      fund_id: asString(row.fund_id),
+      missionary_id: asString(row.missionary_id),
+      memo: asString(row.memo),
+    }),
+  );
+
+  const fundIds = uniqueReferenceIds([
+    input.donationFundId,
+    ...input.extraFundIds,
+    ...allocations.map((allocation) => allocation.fund_id),
+  ]);
+  const missionaryIds = uniqueReferenceIds([
+    ...input.extraMissionaryIds,
+    ...allocations.map((allocation) => allocation.missionary_id),
+  ]);
+  const queryableFundIds = fundIds.filter(isUuid);
+  const queryableMissionaryIds = missionaryIds.filter(isUuid);
+
+  const [fundsResult, missionariesResult] = await Promise.all([
+    queryableFundIds.length > 0
+      ? input.supabaseAdmin
+          .from("funds")
+          .select("id, name, missionary_id, goal_amount, start_date, end_date")
+          .eq("tenant_id", input.tenantId)
+          .in("id", queryableFundIds)
+      : Promise.resolve({ data: [], error: null }),
+    queryableMissionaryIds.length > 0
+      ? input.supabaseAdmin
+          .from("missionaries")
+          .select(
+            "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
+          )
+          .eq("tenant_id", input.tenantId)
+          .in("id", queryableMissionaryIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+
+  assertNoError(
+    fundsResult.error,
+    "Failed to load contribution fund metadata.",
+  );
+  assertNoError(
+    missionariesResult.error,
+    "Failed to load contribution missionary metadata.",
+  );
+
+  const funds = ((fundsResult.data ?? []) as JsonRecord[]).map((row) => ({
     id: asString(row.id) ?? "",
     name: asString(row.name),
     missionary_id: asString(row.missionary_id),
-    goal_amount:
-      typeof row.goal_amount === "number" && Number.isFinite(row.goal_amount)
-        ? row.goal_amount
-        : null,
+    goal_amount: asNullableNumber(row.goal_amount),
     start_date: asString(row.start_date),
     end_date: asString(row.end_date),
+  }));
+
+  const missionaries = ((missionariesResult.data ?? []) as JsonRecord[]).map(
+    (row) => ({
+      id: asString(row.id) ?? "",
+      display_name: profileDisplayName(row.profile),
+    }),
+  );
+
+  return { allocations, funds, missionaries };
+}
+
+type EffectiveContributionDesignationLines = NonNullable<
+  ContributionAdjustmentEffectiveValues["designationLines"]
+> | null;
+
+function collectEffectiveReferenceIds(input: {
+  effective: { fundId: string | null; missionaryId: string | null };
+  effectiveDesignationLines: EffectiveContributionDesignationLines | null;
+}): {
+  fundIds: Array<string | null | undefined>;
+  missionaryIds: Array<string | null | undefined>;
+} {
+  const fundIds: Array<string | null | undefined> = [input.effective.fundId];
+  const missionaryIds: Array<string | null | undefined> = [
+    input.effective.missionaryId,
+  ];
+
+  for (const line of input.effectiveDesignationLines ?? []) {
+    fundIds.push(line.fundId);
+    missionaryIds.push(line.missionaryId);
+  }
+
+  return { fundIds, missionaryIds };
+}
+
+function mapCrmLinks(rows: unknown): CrmPostLinkInput[] {
+  return ((rows ?? []) as JsonRecord[]).map((link) => ({
+    id: asString(link.id) ?? "",
+    scope: link.scope === "designation" ? "designation" : "parent",
+    allocationId: asString(link.allocation_id),
+    linkStatus: asString(link.link_status),
+    twentyRecordId: asString(link.twenty_record_id),
+    lastError: asString(link.last_error),
   }));
 }
 
@@ -188,32 +347,92 @@ async function loadContributionOperationDetail(input: {
   }
 
   const donation = normalizeDonation(donationResult.data);
-  const [adjustments, stagedGiftResult, auditResult, correctionResult] =
-    await Promise.all([
-      loadContributionAdjustments(input),
-      input.supabaseAdmin
-        .from("staged_gifts")
-        .select(
-          "id, donation_id, status, review_reason, receipt_status, crm_post_status, twenty_record_id",
-        )
-        .eq("tenant_id", input.tenantId)
-        .eq("donation_id", input.contributionId)
-        .maybeSingle(),
-      input.supabaseAdmin
-        .from("contribution_operation_audit_events")
-        .select("id, operation, source_surface, reason, created_at")
-        .eq("tenant_id", input.tenantId)
-        .eq("donation_id", input.contributionId)
-        .order("created_at", { ascending: false })
-        .limit(50),
-      input.supabaseAdmin
-        .from("contribution_corrections")
-        .select("id, correction_type, status")
-        .eq("tenant_id", input.tenantId)
-        .eq("donation_id", input.contributionId)
-        .order("created_at", { ascending: false })
-        .limit(50),
-    ]);
+  const adjustments = await loadContributionAdjustments(input);
+  const effectivePreview = deriveEffectiveContribution({
+    original: {
+      amountCents: donation.amount,
+      fundId: donation.fundId,
+      missionaryId: donation.missionaryId,
+      paymentStatus: donation.status ?? "pending",
+    },
+    adjustments,
+  });
+  const effectiveReferences = collectEffectiveReferenceIds({
+    effective: effectivePreview.effective,
+    effectiveDesignationLines: effectivePreview.effectiveDesignationLines,
+  });
+
+  const [
+    donorRow,
+    missionary,
+    stagedGiftResult,
+    auditResult,
+    correctionResult,
+    correctionRequestResult,
+    crmLinksResult,
+    pledgeRow,
+  ] = await Promise.all([
+    maybeFetchTenantRow({
+      supabaseAdmin: input.supabaseAdmin,
+      table: "donors",
+      tenantId: input.tenantId,
+      id: donation.donorId,
+      select:
+        "id, profile_id, name, email, phone, mobile, location, organization",
+    }),
+    fetchMissionaryLabel({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      missionaryId: donation.missionaryId,
+    }),
+    input.supabaseAdmin
+      .from("staged_gifts")
+      .select(
+        "id, donation_id, status, review_reason, receipt_status, crm_post_status, twenty_record_id",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .maybeSingle(),
+    input.supabaseAdmin
+      .from("contribution_operation_audit_events")
+      .select("id, operation, source_surface, reason, created_at")
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("contribution_corrections")
+      .select("id, correction_type, status")
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("contribution_correction_requests")
+      .select(
+        "id, action_type, status, reason, requested_by_profile_id, created_at",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .order("created_at", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("donation_crm_links")
+      .select(
+        "id, scope, allocation_id, link_status, twenty_record_id, last_error",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donation_id", input.contributionId)
+      .order("created_at", { ascending: true }),
+    maybeFetchTenantRow({
+      supabaseAdmin: input.supabaseAdmin,
+      table: "donor_pledges",
+      tenantId: input.tenantId,
+      id: donation.pledgeId,
+      select:
+        "id, status, frequency, amount, currency, fund_id, missionary_id, next_payment_date, next_charge_at, stripe_subscription_id",
+    }),
+  ]);
 
   assertNoError(stagedGiftResult.error, "Failed to load staged gift.");
   assertNoError(auditResult.error, "Failed to load contribution audit.");
@@ -221,6 +440,11 @@ async function loadContributionOperationDetail(input: {
     correctionResult.error,
     "Failed to load contribution corrections.",
   );
+  assertNoError(
+    correctionRequestResult.error,
+    "Failed to load correction requests.",
+  );
+  assertNoError(crmLinksResult.error, "Failed to load CRM record links.");
 
   const stagedGift = isRecord(stagedGiftResult.data)
     ? {
@@ -232,17 +456,27 @@ async function loadContributionOperationDetail(input: {
         twentyRecordId: asString(stagedGiftResult.data.twenty_record_id),
       }
     : null;
-  const allocationFunds = await loadDesignationFunds({
+
+  const designationData = await loadDesignationSetData({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
-    fundIds: collectAdjustmentFundIds({
-      donationFundId: donation.fundId,
-      adjustments,
-    }),
+    stagedGiftId: stagedGift?.id ?? null,
+    donationFundId: donation.fundId,
+    extraFundIds: effectiveReferences.fundIds,
+    extraMissionaryIds: effectiveReferences.missionaryIds,
   });
+  const pledgeFund = pledgeRow
+    ? await maybeFetchTenantRow({
+        supabaseAdmin: input.supabaseAdmin,
+        table: "funds",
+        tenantId: input.tenantId,
+        id: asString(pledgeRow.fund_id),
+        select: "id, name",
+      })
+    : null;
   const primaryFund =
     donation.fundId !== null
-      ? (allocationFunds.find((fund) => fund.id === donation.fundId) ?? {
+      ? (designationData.funds.find((fund) => fund.id === donation.fundId) ?? {
           id: donation.fundId,
           name: null,
         })
@@ -250,21 +484,35 @@ async function loadContributionOperationDetail(input: {
 
   return buildContributionDetail({
     donation,
-    donor: donation.donorId
+    donor: donorRow
       ? {
-          id: donation.donorId,
-          profileId: null,
-          name: null,
-          email: null,
-          phone: null,
-          location: null,
-          organization: null,
+          id: asString(donorRow.id) ?? donation.donorId ?? "",
+          profileId: asString(donorRow.profile_id),
+          name: asString(donorRow.name),
+          email: asString(donorRow.email),
+          phone: asString(donorRow.phone),
+          mobile: asString(donorRow.mobile),
+          location: asString(donorRow.location),
+          organization: asString(donorRow.organization),
         }
-      : null,
+      : donation.donorId
+        ? {
+            id: donation.donorId,
+            profileId: null,
+            name: null,
+            email: null,
+            phone: null,
+            mobile: null,
+            location: null,
+            organization: null,
+          }
+        : null,
     fund: primaryFund,
-    missionary: donation.missionaryId
-      ? { id: donation.missionaryId, name: null }
-      : null,
+    missionary:
+      missionary ??
+      (donation.missionaryId
+        ? { id: donation.missionaryId, name: null }
+        : null),
     stagedGift,
     auditEvents: ((auditResult.data ?? []) as JsonRecord[]).map((event) => ({
       id: asString(event.id) ?? "",
@@ -280,12 +528,37 @@ async function loadContributionOperationDetail(input: {
         status: asString(correction.status) ?? "pending",
       }),
     ),
-    correctionRequests: [],
+    correctionRequests: (
+      (correctionRequestResult.data ?? []) as JsonRecord[]
+    ).map((request) => ({
+      id: asString(request.id) ?? "",
+      actionType: asString(request.action_type) ?? "unknown",
+      status: asString(request.status) ?? "pending",
+      reason: asString(request.reason) ?? "",
+      requestedByProfileId: asString(request.requested_by_profile_id),
+      createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
+    })),
     adjustments,
-    allocations: [],
-    allocationFunds,
-    allocationMissionaries: [],
-    crmLinks: [],
+    allocations: designationData.allocations,
+    allocationFunds: designationData.funds,
+    allocationMissionaries: designationData.missionaries,
+    crmLinks: mapCrmLinks(crmLinksResult.data),
+    recurringAgreement: pledgeRow
+      ? {
+          id: asString(pledgeRow.id) ?? donation.pledgeId ?? "",
+          status: asString(pledgeRow.status),
+          frequency: asString(pledgeRow.frequency),
+          amountCents: asNumber(pledgeRow.amount),
+          currencyCode: (asString(pledgeRow.currency) ?? "usd").toUpperCase(),
+          fundId: asString(pledgeRow.fund_id),
+          fundName: pledgeFund ? asString(pledgeFund.name) : null,
+          missionaryId: asString(pledgeRow.missionary_id),
+          nextExpectedGiftAt:
+            asString(pledgeRow.next_charge_at) ??
+            asString(pledgeRow.next_payment_date),
+          stripeSubscriptionId: asString(pledgeRow.stripe_subscription_id),
+        }
+      : null,
   });
 }
 
