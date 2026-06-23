@@ -3,16 +3,12 @@
 ## Overview
 
 Two workflow files run on every PR to `develop` and `production`, and on every push to
-`develop` and `production`. A third production-only workflow validates that
-release PRs into `production` come from `develop`. A fourth workflow coordinates
-PR automation labels after CI, review-bot, and security signals settle:
+`develop` and `production`:
 
-| Workflow              | File                                          | Branches                                | Jobs                                            | Target time               |
-| --------------------- | --------------------------------------------- | --------------------------------------- | ----------------------------------------------- | ------------------------- |
-| Fast checks           | `.github/workflows/ci.yml`                    | PRs + pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
-| Integration + E2E     | `.github/workflows/ci-integration.yml`        | PRs + pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
-| Release source        | `.github/workflows/release-source.yml`        | PRs to `production`                     | `release-source-gate`                           | < 1 min                   |
-| PR signal coordinator | `.github/workflows/pr-signal-coordinator.yml` | PR events + check/review/comment events | automation label reconciliation                 | < 1 min                   |
+| Workflow          | File                                   | Branches                                | Jobs                                            | Target time               |
+| ----------------- | -------------------------------------- | --------------------------------------- | ----------------------------------------------- | ------------------------- |
+| Fast checks       | `.github/workflows/ci.yml`             | PRs + pushes on `develop`, `production` | `format → lint → typecheck → build → test-unit` | < 4 min with remote cache |
+| Integration + E2E | `.github/workflows/ci-integration.yml` | PRs + pushes on `develop`, `production` | `migrate → smoke → test-e2e-smoke → test-e2e`   | ~5–25 min                 |
 
 Current workflow semantics:
 
@@ -21,64 +17,15 @@ Current workflow semantics:
 - `test-e2e-smoke` is **blocking on `develop`** through `e2e-smoke-gate` and `integration-gate`.
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
 - `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and
-  branch protection must require `release-source-gate`, `ci-gate`,
-  `integration-gate`, and `e2e-gate` before production release PRs can merge.
-- `release-source-gate` blocks production PRs to `production` unless the source branch
-  is `develop` in this repository.
-- `pr-signal-coordinator.yml` never checks out PR head code and never uses
-  `pull_request_target`. It only reads GitHub metadata from the trusted workflow
-  checkout and reconciles `automation:*` labels.
+  branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`
+  before production release PRs can merge.
 - `main` is retired and protected historical history; active workflows do not
   treat it as development or production.
-
-## PR signal coordinator
-
-`scripts/github/pr-signal-coordinator.mjs` is the source of truth for
-automation label decisions. The workflow runs on PR updates, completed check
-runs, review events, issue comments, a 10-minute schedule, and manual dispatch.
-
-Machine-owned labels:
-
-- `automation:signals-pending` — waiting for prerequisite PR automation signals.
-- `automation:ci-settled` — required checks reached terminal state.
-- `automation:ci-failed` — at least one required check failed.
-- `automation:greptile-settled` — Greptile signal settled or timed out.
-- `automation:bugbot-settled` — Cursor Bugbot signal settled or timed out.
-- `automation:security-settled` — Cursor Security Reviewer settled or timed out.
-- `automation:security-failed` — security reviewer failed, found issues, or timed out.
-- `automation:review-findings` — Greptile or Bugbot findings are present.
-- `automation:signal-timeout` — an expected bot signal did not arrive in time.
-- `automation:pr-intake-ready` — all prerequisite signals are terminal and the
-  Cursor PR Intake Coordinator may run.
 
 Required checks:
 
 - `develop`: `ci-gate`, `integration-gate`
-- `production`: `release-source-gate`, `ci-gate`, `integration-gate`, `e2e-gate`
-
-On `opened`, `reopened`, `synchronize`, and `ready_for_review`, the coordinator
-removes stale `automation:*` labels and reapplies `automation:signals-pending`.
-The default missing-signal grace window is 20 minutes. Missing Greptile or
-Bugbot marks the signal settled plus `automation:signal-timeout`; missing Cursor
-Security also applies `automation:security-failed`.
-
-Debug locally with a dry run:
-
-```bash
-node scripts/github/pr-signal-coordinator.mjs \
-  --repo Asymmetric-al/core \
-  --pr-number <number> \
-  --dry-run \
-  --json
-```
-
-To create or refresh the GitHub labels without processing a PR:
-
-```bash
-node scripts/github/pr-signal-coordinator.mjs \
-  --repo Asymmetric-al/core \
-  --ensure-labels-only
-```
+- `production`: `ci-gate`, `integration-gate`, `e2e-gate`
 
 ### Bun toolchain
 
@@ -307,8 +254,8 @@ The workflow files are the source of truth for execution. Branch protection shou
 
 ### Required checks by branch
 
-- `develop`: `ci-gate`, `integration-gate`, and `e2e-smoke-gate` are enforced; the full `CI Integration / test-e2e` job remains visible but intentionally non-blocking.
-- `production`: `release-source-gate`, `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
+- `develop`: `ci-gate` and `integration-gate` are enforced; the full `CI Integration / test-e2e` job remains visible but intentionally non-blocking.
+- `production`: `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
 - `main`: retired/protected historical branch only; do not treat it as production or development in this repo.
 
 ### GitHub branch rule guidance
@@ -316,8 +263,8 @@ The workflow files are the source of truth for execution. Branch protection shou
 1. Go to _Settings → Branches → Branch protection rules_.
 2. Keep rules for `production` and `develop`.
 3. Enable **Require status checks to pass before merging**.
-4. Require `release-source-gate`, `ci-gate`, `integration-gate`, and `e2e-gate` on `production`.
-5. Require `ci-gate`, `integration-gate`, and `e2e-smoke-gate` on `develop`.
+4. Require `ci-gate`, `integration-gate`, and `e2e-gate` on `production`.
+5. Require `ci-gate` and `integration-gate` on `develop`.
 6. Disable force pushes on both branches.
 7. For `develop`, leave `CI Integration / test-e2e` optional if you want the current "signal, not blocker" behavior to remain intact.
 
