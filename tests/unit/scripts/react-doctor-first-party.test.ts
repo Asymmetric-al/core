@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   createReactDoctorCommand,
+  createSpawnCommand,
   REACT_DOCTOR_TARGETS,
   runReactDoctorTargets,
 } from "../../../scripts/react-doctor-first-party.mjs";
@@ -16,7 +17,7 @@ describe("react-doctor first-party wrapper", () => {
     expect(REACT_DOCTOR_TARGETS).not.toContain("packages");
   });
 
-  it("builds the expected React Doctor command", () => {
+  it("builds the expected React Doctor command with current CLI flags", () => {
     expect(
       createReactDoctorCommand("apps/admin", [
         "--full",
@@ -25,16 +26,66 @@ describe("react-doctor first-party wrapper", () => {
         "none",
       ]).args,
     ).toEqual([
-      "x",
-      "--bun",
+      "--yes",
       "react-doctor@latest",
       "apps/admin",
       "--verbose",
-      "--full",
-      "--offline",
-      "--fail-on",
+      "--scope",
+      "full",
+      "--no-score",
+      "--blocking",
       "none",
     ]);
+  });
+
+  it("normalizes equals-style fail-on flags", () => {
+    expect(
+      createReactDoctorCommand("packages/ui", ["--fail-on=none"]).args,
+    ).toEqual([
+      "--yes",
+      "react-doctor@latest",
+      "packages/ui",
+      "--verbose",
+      "--blocking=none",
+    ]);
+  });
+
+  it("keeps current React Doctor flags unchanged", () => {
+    expect(
+      createReactDoctorCommand("packages/ui", [
+        "--scope",
+        "full",
+        "--blocking",
+        "none",
+      ]).args,
+    ).toEqual([
+      "--yes",
+      "react-doctor@latest",
+      "packages/ui",
+      "--verbose",
+      "--scope",
+      "full",
+      "--blocking",
+      "none",
+    ]);
+  });
+
+  it("wraps npx through cmd.exe on Windows", () => {
+    expect(
+      createSpawnCommand(
+        { command: "npx", args: ["--yes", "react-doctor@latest"] },
+        { platform: "win32", comSpec: "C:\\Windows\\System32\\cmd.exe" },
+      ),
+    ).toEqual({
+      command: "C:\\Windows\\System32\\cmd.exe",
+      args: ["/d", "/s", "/c", "npx", "--yes", "react-doctor@latest"],
+    });
+  });
+
+  it("spawns the command directly outside Windows", () => {
+    const command = { command: "npx", args: ["--yes", "react-doctor@latest"] };
+
+    expect(createSpawnCommand(command, { platform: "linux" })).toBe(command);
   });
 
   it("stops at the first failing target", () => {
@@ -46,7 +97,7 @@ describe("react-doctor first-party wrapper", () => {
     expect(
       runReactDoctorTargets({
         targets: ["apps/admin", "apps/donor", "apps/missionary"],
-        extraArgs: ["--full"],
+        extraArgs: ["--scope", "full"],
         cwd: "/repo",
         spawn,
       }),
