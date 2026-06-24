@@ -15,6 +15,7 @@ const SOURCE_EXTENSIONS = new Set([
 ]);
 const IGNORE_DIRECTORIES = new Set([
   ".git",
+  ".claude",
   ".nia-sync",
   ".nia_sync_local",
   ".next",
