@@ -32,6 +32,14 @@
       "types": "./collections/index.ts",
       "default": "./collections/index.ts"
     },
+    "./collections/supabase-collection": {
+      "types": "./collections/supabase-collection.ts",
+      "default": "./collections/supabase-collection.ts"
+    },
+    "./collections/query-once": {
+      "types": "./collections/query-once.ts",
+      "default": "./collections/query-once.ts"
+    },
     "./collections/support-workspace": {
       "types": "./collections/support-workspace.ts",
       "default": "./collections/support-workspace.ts"
@@ -65,6 +73,7 @@
   },
   "dependencies": {
     "@asym/env": "workspace:*",
+    "@supabase-labs/tanstack-db": "^0.0.1",
     "@supabase/ssr": "^0.8.0",
     "@supabase/supabase-js": "^2.89.0",
     "@tanstack/db": "^0.6.4",

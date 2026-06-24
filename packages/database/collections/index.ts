@@ -1,6 +1,19 @@
 "use client";
 
 export {
+  createSupabaseCollection,
+  defineSupabaseCollection,
+  resolveSupabaseCollectionRealtime,
+} from "./supabase-collection";
+export type {
+  LazySupabaseCollection,
+  SupabaseCollectionConfig,
+  SupabaseCollectionKey,
+  SupabaseCollectionMetadata,
+  SupabaseCollectionRealtimeOption,
+} from "./supabase-collection";
+
+export {
   profilesCollection,
   missionariesCollection,
   donorsCollection,
