@@ -79,9 +79,7 @@ describe("admin/crm/gift-history-row-model", () => {
       },
     });
 
-    expect(pendingResult.map((row) => row.id)).toEqual([
-      "pending-correction",
-    ]);
+    expect(pendingResult.map((row) => row.id)).toEqual(["pending-correction"]);
     expect(needsAttentionResult.map((row) => row.id)).toEqual([
       "pending-correction",
       "failed-crm-post",
