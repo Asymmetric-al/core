@@ -56,7 +56,12 @@ function StandardPageFromTemplateViewContent() {
     [routes.api],
   );
 
-  const tenantsQuery = useQuery(
+  const {
+    data: tenants,
+    error: tenantsError,
+    isError: tenantsIsError,
+    isPending: tenantsIsPending,
+  } = useQuery(
     buildTenantsQuery({
       apiRoute: routes.api,
       serverURL,
@@ -160,8 +165,8 @@ function StandardPageFromTemplateViewContent() {
                 <TenantSelectField
                   label="Tenant"
                   field={field}
-                  options={tenantsQuery.data ?? []}
-                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  options={tenants ?? []}
+                  disabled={tenantsIsPending || tenantsIsError}
                   placeholder="Select tenant"
                 />
               )}
@@ -202,9 +207,9 @@ function StandardPageFromTemplateViewContent() {
               {submitError}
             </p>
           ) : null}
-          {tenantsQuery.isError ? (
+          {tenantsIsError ? (
             <p className="text-destructive text-sm">
-              {(tenantsQuery.error as Error).message}
+              {(tenantsError as Error).message}
             </p>
           ) : null}
 

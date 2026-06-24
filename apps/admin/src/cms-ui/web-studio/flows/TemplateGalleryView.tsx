@@ -74,7 +74,12 @@ function TemplateGalleryViewContent() {
     config: { routes, serverURL },
   } = useConfig();
 
-  const templatesQuery = useQuery({
+  const {
+    data: templates,
+    error: templatesError,
+    isError: templatesIsError,
+    isPending: templatesIsPending,
+  } = useQuery({
     queryKey: ["web-studio", "page-templates", serverURL, routes.api],
     queryFn: async () => {
       const res = await fetch(
@@ -92,12 +97,12 @@ function TemplateGalleryViewContent() {
   });
 
   const filtered = useMemo(() => {
-    const docs = templatesQuery.data ?? [];
+    const docs = templates ?? [];
     if (!pageTypeFilter) {
       return docs;
     }
     return docs.filter((d) => d.pageType === pageTypeFilter);
-  }, [pageTypeFilter, templatesQuery.data]);
+  }, [pageTypeFilter, templates]);
 
   return (
     <StudioLayout sectionLabel="Templates" currentLabel="Gallery">
@@ -125,15 +130,14 @@ function TemplateGalleryViewContent() {
           ) : null}
         </div>
 
-        {templatesQuery.isError ? (
+        {templatesIsError ? (
           <p className="text-destructive text-sm">
-            {(templatesQuery.error as Error)?.message ??
-              "Could not load templates."}
+            {(templatesError as Error)?.message ?? "Could not load templates."}
           </p>
         ) : null}
 
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {templatesQuery.isPending
+          {templatesIsPending
             ? Array.from({ length: 6 }).map((_, i) => (
                 <Card key={i} className="animate-pulse border-border">
                   <CardHeader>
@@ -193,7 +197,7 @@ function TemplateGalleryViewContent() {
               })}
         </div>
 
-        {!templatesQuery.isPending && filtered.length === 0 ? (
+        {!templatesIsPending && filtered.length === 0 ? (
           <p className="text-muted-foreground text-sm">
             No templates match this filter. Create templates in the Page
             Templates collection or adjust the query string.

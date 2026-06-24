@@ -20,7 +20,12 @@ type MissionaryRow = {
 };
 
 export function MissionariesHubView() {
-  const missionariesQuery = useQuery({
+  const {
+    data: missionaries,
+    error: missionariesError,
+    isError: missionariesIsError,
+    isPending: missionariesIsPending,
+  } = useQuery({
     queryKey: ["web-studio", "admin-missionaries-hub"],
     queryFn: async () => {
       const res = await fetch("/api/admin/missionaries?limit=200", {
@@ -47,9 +52,9 @@ export function MissionariesHubView() {
           </p>
         </div>
 
-        {missionariesQuery.isError ? (
+        {missionariesIsError ? (
           <p className="text-destructive text-sm">
-            {(missionariesQuery.error as Error).message}
+            {(missionariesError as Error).message}
           </p>
         ) : null}
 
@@ -63,7 +68,7 @@ export function MissionariesHubView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missionariesQuery.isPending ? (
+              {missionariesIsPending ? (
                 <TableRow>
                   <TableCell
                     colSpan={3}
@@ -73,7 +78,7 @@ export function MissionariesHubView() {
                   </TableCell>
                 </TableRow>
               ) : (
-                (missionariesQuery.data ?? []).map((m) => {
+                (missionaries ?? []).map((m) => {
                   const label =
                     m.profile?.full_name?.trim() ||
                     m.profile?.display_name?.trim() ||

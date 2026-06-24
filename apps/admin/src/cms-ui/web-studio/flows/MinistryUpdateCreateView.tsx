@@ -67,14 +67,27 @@ function MinistryUpdateCreateViewContent() {
       }),
     [routes.api],
   );
-  const { isSuperAdmin, tenantsQuery } = useSuperAdminTenantOptions();
+  const {
+    isSuperAdmin,
+    tenantsQuery: {
+      data: tenants,
+      error: tenantsError,
+      isError: tenantsIsError,
+      isPending: tenantsIsPending,
+    },
+  } = useSuperAdminTenantOptions();
 
   const profilesUrl = `${serverURL}${formatAdminURL({
     apiRoute: routes.api,
     path: "/missionary-profiles",
   })}?limit=200&pagination=false&depth=0&draft=true`;
 
-  const profilesQuery = useQuery({
+  const {
+    data: profiles,
+    error: profilesError,
+    isError: profilesIsError,
+    isPending: profilesIsPending,
+  } = useQuery({
     queryKey: ["web-studio", "missionary-profiles", profilesUrl],
     queryFn: async () => {
       const res = await fetch(profilesUrl, { credentials: "include" });
@@ -185,8 +198,8 @@ function MinistryUpdateCreateViewContent() {
                 <TenantSelectField
                   label="Tenant"
                   field={field}
-                  options={tenantsQuery.data ?? []}
-                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  options={tenants ?? []}
+                  disabled={tenantsIsPending || tenantsIsError}
                   placeholder="Select tenant"
                 />
               )}
@@ -200,13 +213,13 @@ function MinistryUpdateCreateViewContent() {
                 <Select
                   value={field.state.value || undefined}
                   onValueChange={(v) => field.handleChange(v)}
-                  disabled={profilesQuery.isPending || profilesQuery.isError}
+                  disabled={profilesIsPending || profilesIsError}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select profile" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(profilesQuery.data ?? []).map((p) => (
+                    {(profiles ?? []).map((p) => (
                       <SelectItem key={String(p.id)} value={String(p.id)}>
                         {p.fullName ?? p.slug ?? String(p.id)}
                       </SelectItem>
@@ -244,14 +257,14 @@ function MinistryUpdateCreateViewContent() {
             )}
           </form.Field>
 
-          {profilesQuery.isError ? (
+          {profilesIsError ? (
             <p className="text-destructive text-sm">
-              {(profilesQuery.error as Error).message}
+              {(profilesError as Error).message}
             </p>
           ) : null}
-          {tenantsQuery.isError && isSuperAdmin ? (
+          {tenantsIsError && isSuperAdmin ? (
             <p className="text-destructive text-sm">
-              {(tenantsQuery.error as Error).message}
+              {(tenantsError as Error).message}
             </p>
           ) : null}
 
