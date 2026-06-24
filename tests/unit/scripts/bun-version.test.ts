@@ -1,5 +1,6 @@
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import path from "node:path";
+import process from "node:process";
 import { spawnSync } from "node:child_process";
 
 import { describe, expect, it } from "vitest";
@@ -77,7 +78,10 @@ function fakeBunEnv(fakeBinDir: string): NodeJS.ProcessEnv {
   };
 }
 
-describe("bun version guard", () => {
+const describeBunVersionGuard =
+  process.platform === "win32" ? describe.skip : describe;
+
+describeBunVersionGuard("bun version guard", () => {
   it("accepts Bun when it matches packageManager", () => {
     const fakeBinDir = createFakeBun("1.3.14");
 
