@@ -1,5 +1,6 @@
 // Client-safe barrel: pure preference resolution only. Server handlers live
 // in ./route (route export path) and persistence in ./service (route-only).
+export { deriveGiftHistoryRows } from "./gift-history-row-model";
 export {
   CRM_GIFT_HISTORY_TABLE_ID,
   CRM_ROW_ACTION_SCHEMA_VERSION,
