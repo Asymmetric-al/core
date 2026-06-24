@@ -613,6 +613,7 @@ export function MapControls({
         {showZoom && (
           <>
             <button
+              type="button"
               onClick={handleZoomIn}
               className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
               title="Zoom In"
@@ -620,6 +621,7 @@ export function MapControls({
               <ZoomInIcon />
             </button>
             <button
+              type="button"
               onClick={handleZoomOut}
               className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
               title="Zoom Out"
@@ -630,6 +632,7 @@ export function MapControls({
         )}
         {showGeolocate && (
           <button
+            type="button"
             onClick={handleGeolocate}
             className="border-border/60 hover:bg-accent p-2.5 transition-colors border-b"
             title="Find My Location"
@@ -639,6 +642,7 @@ export function MapControls({
         )}
         {showFullscreen && (
           <button
+            type="button"
             onClick={handleFullscreen}
             className="hover:bg-accent p-2.5 transition-colors"
             title="Toggle Fullscreen"
@@ -666,6 +670,7 @@ export function MapStyleToggle({
   return (
     <MapOverlay position={position} className={cn(className)}>
       <button
+        type="button"
         onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
         className="bg-popover/90 border-border/80 ring-border/40 hover:bg-accent flex size-10 items-center justify-center rounded-2xl border shadow-lg ring-1 backdrop-blur-xl transition-all"
       >
