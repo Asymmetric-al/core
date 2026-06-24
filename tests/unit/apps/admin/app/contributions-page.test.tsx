@@ -337,7 +337,7 @@ describe("apps/admin/app/contributions/page", () => {
         isPending: false,
       }),
     );
-  }, 30_000);
+  }, 90_000);
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");

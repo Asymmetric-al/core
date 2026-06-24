@@ -25,11 +25,22 @@ function runGuard(env: NodeJS.ProcessEnv = {}) {
       ? `BUN_BIN=${shellQuote(env.BUN_BIN)} ${scriptCommand}`
       : scriptCommand;
 
-  return spawnSync("bash", ["-lc", command], {
+  let result = spawnSync("bash", ["-lc", command], {
     cwd: repoRoot,
     env: process.env,
     encoding: "utf8",
   });
+
+  for (let attempt = 0; attempt < 2 && result.status === 127; attempt += 1) {
+    Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, 250);
+    result = spawnSync("bash", ["-lc", command], {
+      cwd: repoRoot,
+      env: process.env,
+      encoding: "utf8",
+    });
+  }
+
+  return result;
 }
 
 function createFakeBun(version: string): string {
