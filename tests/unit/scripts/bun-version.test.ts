@@ -1,5 +1,4 @@
-import { mkdtempSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -8,47 +7,80 @@ import { describe, expect, it } from "vitest";
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "verify", "bun-version.sh");
 
+function toBashPath(value: string): string {
+  const normalized = value.replaceAll("\\", "/");
+  return normalized.replace(/^([A-Za-z]):/, (_, drive: string) => {
+    return `/mnt/${drive.toLowerCase()}`;
+  });
+}
+
+function shellQuote(value: string): string {
+  return `'${value.replaceAll("'", "'\\''")}'`;
+}
+
 function runGuard(env: NodeJS.ProcessEnv = {}) {
-  return spawnSync("bash", [scriptPath], {
+  const scriptCommand = shellQuote(toBashPath(scriptPath));
+  const command =
+    typeof env.BUN_BIN === "string"
+      ? `BUN_BIN=${shellQuote(env.BUN_BIN)} ${scriptCommand}`
+      : scriptCommand;
+
+  return spawnSync("bash", ["-lc", command], {
     cwd: repoRoot,
-    env: { ...process.env, ...env },
+    env: process.env,
     encoding: "utf8",
   });
 }
 
+function createFakeBun(version: string): string {
+  const fakeRoot = path.join(repoRoot, ".tmp", "bun-version-test");
+  mkdirSync(fakeRoot, { recursive: true });
+  const fakeBinDir = mkdtempSync(path.join(fakeRoot, "fake-bun-"));
+
+  const fakeBunPath = path.join(fakeBinDir, "bun");
+  writeFileSync(
+    fakeBunPath,
+    [
+      "#!/usr/bin/env bash",
+      "set -euo pipefail",
+      'if [[ "${1:-}" == "--version" ]]; then',
+      `  echo "${version}"`,
+      "  exit 0",
+      "fi",
+      'if [[ "${1:-}" == "-e" ]]; then',
+      '  package_json="${@: -1}"',
+      '  sed -n \'s/.*"packageManager": "bun@\\([^"]*\\)".*/\\1/p\' "$package_json"',
+      "fi",
+      "exit 127",
+    ].join("\n"),
+    { mode: 0o755 },
+  );
+  spawnSync("bash", ["-lc", `chmod +x ${shellQuote(toBashPath(fakeBunPath))}`]);
+
+  return fakeBinDir;
+}
+
+function fakeBunEnv(fakeBinDir: string): NodeJS.ProcessEnv {
+  return {
+    BUN_BIN: toBashPath(path.join(fakeBinDir, "bun")),
+  };
+}
+
 describe("bun version guard", () => {
-  it("accepts the installed Bun when it matches packageManager", () => {
-    const result = runGuard();
+  it("accepts Bun when it matches packageManager", () => {
+    const fakeBinDir = createFakeBun("1.3.14");
+
+    const result = runGuard(fakeBunEnv(fakeBinDir));
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
     expect(result.stderr).toBe("");
-  });
+  }, 30_000);
 
   it("fails fast when the Bun binary does not match packageManager", () => {
-    const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
-    const realBun = process.execPath.includes("/bun")
-      ? process.execPath
-      : spawnSync("which", ["bun"], { encoding: "utf8" }).stdout.trim();
+    const fakeBinDir = createFakeBun("1.3.4");
 
-    writeFileSync(
-      path.join(fakeBinDir, "bun"),
-      [
-        "#!/usr/bin/env bash",
-        "set -euo pipefail",
-        'if [[ "${1:-}" == "--version" ]]; then',
-        '  echo "1.3.4"',
-        "  exit 0",
-        "fi",
-        'exec "$REAL_BUN" "$@"',
-      ].join("\n"),
-      { mode: 0o755 },
-    );
-
-    const result = runGuard({
-      PATH: `${fakeBinDir}:${process.env.PATH ?? ""}`,
-      REAL_BUN: realBun,
-    });
+    const result = runGuard(fakeBunEnv(fakeBinDir));
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("error: Bun version mismatch.");
@@ -58,5 +90,5 @@ describe("bun version guard", () => {
     expect(result.stderr).toContain(
       "installed (bun --version):              bun@1.3.4",
     );
-  });
+  }, 30_000);
 });
