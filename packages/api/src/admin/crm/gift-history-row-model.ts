@@ -1,7 +1,7 @@
 import {
   hasSharedContributionIssue,
   matchesSharedContributionFilter,
-} from "../../contribution-shared";
+} from "../contribution-shared";
 
 import type {
   CrmGiftHistoryFiltersSortSettings,

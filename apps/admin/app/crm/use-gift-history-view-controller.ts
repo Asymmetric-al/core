@@ -1,8 +1,8 @@
 "use client";
 
+import { deriveGiftHistoryRows } from "@asym/api/admin/crm/gift-history-row-model";
 import {
   CRM_GIFT_HISTORY_TABLE_ID,
-  deriveGiftHistoryRows,
   previewCrmViewSettingsReset,
   resolveCrmGiftHistoryViewSettings,
 } from "@asym/api/admin/crm/table-preferences";

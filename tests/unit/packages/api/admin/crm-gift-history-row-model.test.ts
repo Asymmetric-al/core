@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveGiftHistoryRows } from "../../../../../packages/api/src/admin/crm/table-preferences/gift-history-row-model";
+import { deriveGiftHistoryRows } from "../../../../../packages/api/src/admin/crm/gift-history-row-model";
 
 import type {
   CrmGiftHistoryFiltersSortSettings,
@@ -15,7 +15,7 @@ const defaultFiltersSort: CrmGiftHistoryFiltersSortSettings = {
   issue: "all",
 };
 
-describe("admin/crm/table-preferences/gift-history-row-model", () => {
+describe("admin/crm/gift-history-row-model", () => {
   it("filters by payment status and sorts the remaining gifts", () => {
     const rows = [
       giftRow({
