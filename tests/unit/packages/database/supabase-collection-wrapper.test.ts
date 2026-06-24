@@ -53,7 +53,7 @@ describe("Supabase collection wrapper", () => {
   it("keeps raw Supabase SDK imports out of the wrapper source", () => {
     const source = readFileSync(wrapperPath, "utf8");
 
-    expect(source).not.toContain("from \"@supabase/supabase-js\"");
+    expect(source).not.toContain('from "@supabase/supabase-js"');
     expect(source).not.toContain("from '@supabase/supabase-js'");
   });
 
