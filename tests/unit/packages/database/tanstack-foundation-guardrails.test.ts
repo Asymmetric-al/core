@@ -34,4 +34,12 @@ describe("TanStack foundation guardrails", () => {
     expect(clientDbSource).not.toMatch(/@ts-nocheck/);
     expect(hooksSource).not.toMatch(/@ts-nocheck/);
   });
+
+  it("keeps legacy client-db as a compatibility barrel", () => {
+    const clientDbSource = readFileSync(clientDbPath, "utf8");
+
+    expect(clientDbSource).not.toContain("queryCollectionOptions");
+    expect(clientDbSource).not.toContain("supabase.from");
+    expect(clientDbSource).not.toContain("fetchTableRows");
+  });
 });

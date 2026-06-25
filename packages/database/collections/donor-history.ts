@@ -6,6 +6,9 @@ import { z } from "zod";
 
 import { getQueryClient } from "../providers/query-client";
 
+// Route-backed transition collection. Donor history needs receipt/payment
+// redaction from the donor portal server read model until the live query shape
+// can prove equivalent behavior without exposing finance internals.
 function cloneValue<T>(value: T): T {
   return structuredClone(value);
 }

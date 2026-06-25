@@ -70,9 +70,19 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 - Do not apply shadcn/studio MCP rules for manual UI edits.
 - If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `AGENTS.md#nia-mcp-usage-always-repo-scoped` and `docs/ai/nia.md`).
 
-### State management
+### Browser data and state management
 
-- **Server state:** TanStack Query v5 (`useQuery`, `useMutation`). Use array keys (e.g., `['users', id]`). Invalidate queries on mutation success.
+- **Browser-visible Supabase table data:** TanStack DB Supabase collections via
+  `@asym/database/hooks` are the default. Use live queries for joins, filters,
+  feeds, lists, dashboards, and tables when practical.
+- **Server read models / non-collection async state:** TanStack Query v5
+  (`useQuery`, `useMutation`). Use array keys (e.g., `['users', id]`).
+  Invalidate queries on mutation success when Realtime is not the sync path.
+- **Simple RLS-authorized single-table writes:** use collection mutations when
+  optimistic UI makes sense.
+- **Privileged writes:** use Server Actions, `packages/api`, or thin route
+  handlers for payments, receipts, email, webhooks, audit, role changes,
+  reporting, RPC counters, and multi-table workflows.
 - **Client state:** `useState`/`useReducer` for local state; React Context for global UI state.
 - **Do not use Zustand.** It is not installed.
 
@@ -91,9 +101,10 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
-5. Use TanStack Query for async data and invalidate on mutations.
-6. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
-7. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
+5. Use `@asym/database/hooks` for browser-visible Supabase table data.
+6. Use TanStack Query for server read models and non-collection async data; invalidate on mutations when Realtime is not the sync path.
+7. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
+8. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
 
 ## Checklists
 
@@ -104,7 +115,9 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 - [ ] New/refactored primitives follow Base UI first policy
 - [ ] New direct app-level Radix imports include a short justification comment
 - [ ] Tailwind uses tokens (no arbitrary values)
-- [ ] TanStack Query used for async server data
+- [ ] Browser table reads go through `@asym/database/hooks` or collection exports
+- [ ] TanStack Query used for server read models or non-collection async data
+- [ ] Privileged mutations stay server-command owned
 - [ ] Complex client forms use TanStack Form + Zod
 - [ ] Simple/native/server-only forms use native `<form>`, `next/form`, or server actions intentionally
 

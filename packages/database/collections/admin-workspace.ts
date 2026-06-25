@@ -7,6 +7,9 @@ import { z } from "zod";
 import { getQueryClient } from "../providers/query-client";
 import { adminSurfaceQueryKeys } from "../query-keys";
 
+// Local-only transition collections for admin workspace demo surfaces. New
+// product-backed admin data should use Supabase table collections or server
+// read models instead of adding more mutable in-memory seed collections here.
 function cloneValue<T>(value: T): T {
   return structuredClone(value);
 }

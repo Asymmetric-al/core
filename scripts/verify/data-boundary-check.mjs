@@ -20,6 +20,16 @@ const bannedAppSourcePatterns = [
   "TWENTY_WEBHOOK_SECRET",
   "NEXT_PUBLIC_TWENTY_",
 ];
+const bannedRawSupabaseAppImports = ["@supabase/supabase-js"];
+const bannedBrowserSupabaseAppImports = [
+  "@asym/database/supabase/client",
+  "@asym/database/supabase\"",
+  "@asym/database/supabase'",
+];
+const appSupabaseImportAllowlist = new Set([
+  "apps/admin/lib/authenticated-fetch.ts",
+  "apps/admin/src/cms/auth/supabase-strategy.ts",
+]);
 const SOURCE_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs"]);
 
 function toRepoRelative(filePath) {
@@ -110,6 +120,32 @@ function collectViolations(filePath, bannedPatterns) {
   return violations;
 }
 
+function collectAppSupabaseViolations(filePath) {
+  const relativePath = toRepoRelative(filePath);
+  if (appSupabaseImportAllowlist.has(relativePath)) {
+    return [];
+  }
+
+  const lines = readFileSync(filePath, "utf8").split(/\r?\n/);
+  const violations = [];
+
+  for (const [index, line] of lines.entries()) {
+    const matchedRawImport = bannedRawSupabaseAppImports.find((importPath) =>
+      line.includes(importPath),
+    );
+    const matchedBrowserImport = bannedBrowserSupabaseAppImports.find(
+      (importPath) => line.includes(importPath),
+    );
+    if (!matchedRawImport && !matchedBrowserImport) {
+      continue;
+    }
+
+    violations.push(`${relativePath}:${index + 1}:${line.trim()}`);
+  }
+
+  return violations;
+}
+
 const apiRouteFiles = collectApiRouteFiles();
 const appSourceFiles = collectAppSourceFiles();
 
@@ -131,6 +167,9 @@ const apiRouteViolations = apiRouteFiles.flatMap((filePath) =>
 );
 const appTwentyViolations = appSourceFiles.flatMap((filePath) =>
   collectViolations(filePath, bannedAppSourcePatterns),
+);
+const appSupabaseViolations = appSourceFiles.flatMap((filePath) =>
+  collectAppSupabaseViolations(filePath),
 );
 
 if (apiRouteViolations.length > 0) {
@@ -163,6 +202,21 @@ if (appTwentyViolations.length > 0) {
   process.exit(1);
 }
 
+if (appSupabaseViolations.length > 0) {
+  console.error(
+    "Browser Supabase data-boundary violations detected in apps/**/*.{ts,tsx,js,jsx,mjs}:",
+  );
+  console.error(appSupabaseViolations.join("\n"));
+  console.error("");
+  console.error(
+    "App browser table reads should go through @asym/database/hooks or approved collection exports.",
+  );
+  console.error(
+    "Raw @supabase/supabase-js imports are forbidden in app source; browser Supabase auth helpers require an explicit allowlist entry.",
+  );
+  process.exit(1);
+}
+
 console.log(
-  "Data access boundary check passed: no direct Supabase imports in app API routes and no raw Twenty access in app source.",
+  "Data access boundary check passed: no direct Supabase imports in app API routes, no raw Twenty access, and no unapproved browser Supabase app imports.",
 );
