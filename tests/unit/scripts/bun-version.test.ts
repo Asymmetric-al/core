@@ -29,7 +29,10 @@ function resolveBunPath(): string {
     return process.execPath;
   }
 
-  const command = process.platform === "win32" ? "where.exe" : "which";
+  const command =
+    process.platform === "win32"
+      ? "C:\\Windows\\System32\\where.exe"
+      : "which";
   const result = spawnSync(command, ["bun"], { encoding: "utf8" });
   const firstMatch = result.stdout?.split(/\r?\n/).find(Boolean);
 
@@ -117,7 +120,11 @@ function runGuard(env: NodeJS.ProcessEnv = {}) {
 
 describe("bun version guard", () => {
   it("accepts the installed Bun when it matches packageManager", () => {
-    const result = runGuard();
+    const realBun = toBashPath(resolveBunPath());
+    const result = runGuard({
+      BUN_VERSION_GUARD_BUN: realBun,
+      REAL_BUN: realBun,
+    });
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
