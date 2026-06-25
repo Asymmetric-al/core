@@ -1,5 +1,5 @@
 {
-  "$schema": "https://turbo.build/schema.v2.json",
+  "$schema": "https://v2-10-0.turborepo.dev/schema.json",
   "envMode": "loose",
   "globalEnv": [
     "NODE_ENV",
