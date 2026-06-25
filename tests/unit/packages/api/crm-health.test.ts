@@ -98,30 +98,46 @@ describe("Twenty CRM health proof", () => {
     expect(JSON.stringify(health)).not.toContain("twenty-webhook-secret");
   });
 
-  it("keeps the staging health route disabled in production target envs", async () => {
+  it("keeps the development health route disabled in production target envs", async () => {
     process.env = {
       ...originalEnv,
       SKIP_ENV_VALIDATION: "1",
     };
-    const { isTwentyCrmStagingHealthEnabled } =
+    const { isTwentyCrmDevelopmentHealthEnabled } =
       await import("../../../../packages/api/src/admin/crm/twenty-health");
 
     expect(
-      isTwentyCrmStagingHealthEnabled({
+      isTwentyCrmDevelopmentHealthEnabled({
         NODE_ENV: "production",
         VERCEL_ENV: "production",
         VERCEL_TARGET_ENV: "production",
       }),
     ).toBe(false);
     expect(
-      isTwentyCrmStagingHealthEnabled({
+      isTwentyCrmDevelopmentHealthEnabled({
+        NODE_ENV: "production",
+        VERCEL_ENV: "preview",
+        VERCEL_TARGET_ENV: "development",
+      }),
+    ).toBe(true);
+    // Retained legacy staging alias (kept protected until a Vercel inventory clears it).
+    expect(
+      isTwentyCrmDevelopmentHealthEnabled({
         NODE_ENV: "production",
         VERCEL_ENV: "preview",
         VERCEL_TARGET_ENV: "staging",
       }),
     ).toBe(true);
+    // Hosted develop environment: Vercel custom env "core-development" (VERCEL_ENV="preview").
     expect(
-      isTwentyCrmStagingHealthEnabled({
+      isTwentyCrmDevelopmentHealthEnabled({
+        NODE_ENV: "production",
+        VERCEL_ENV: "preview",
+        VERCEL_TARGET_ENV: "core-development",
+      }),
+    ).toBe(true);
+    expect(
+      isTwentyCrmDevelopmentHealthEnabled({
         NODE_ENV: "development",
         VERCEL_ENV: undefined,
         VERCEL_TARGET_ENV: undefined,
