@@ -95,11 +95,11 @@ describe("boneyard maintenance contract", () => {
         existsSync(join(repoRoot, legacyRegistryPath)),
         legacyRegistryPath,
       ).toBe(false);
-      expect(registrySource, registryPath).toContain(
-        'import { registerBones } from "boneyard-js";',
+      expect(registrySource, registryPath).toMatch(
+        /import\s+{\s*registerBones\s*}\s+from\s+['"]boneyard-js['"]/,
       );
-      expect(registrySource, registryPath).toContain(
-        'import { configureBoneyard } from "boneyard-js/react";',
+      expect(registrySource, registryPath).toMatch(
+        /import\s+{\s*configureBoneyard\s*}\s+from\s+['"]boneyard-js\/react['"]/,
       );
     }
   });
@@ -143,6 +143,28 @@ describe("boneyard maintenance contract", () => {
 
     for (const { path, label } of captureRoutes) {
       expectsNoindexRobots(readRepoFile(path), label);
+    }
+  });
+
+  it("renders public boneyard capture routes in snapshot mode", () => {
+    const captureRoutes = [
+      "apps/donor/app/boneyard/donor-dashboard/page-client.tsx",
+      "apps/admin/app/boneyard/contributions/page-client.tsx",
+      "apps/missionary/app/boneyard/tasks/page-client.tsx",
+    ];
+
+    for (const path of captureRoutes) {
+      const source = readRepoFile(path);
+
+      expect(source, path).toContain("<BoneyardSkeleton");
+      expect(
+        source,
+        `${path}: capture route must expose fixture content`,
+      ).toMatch(/loading=\{false\}/);
+      expect(
+        source,
+        `${path}: capture route must not render an empty shell`,
+      ).not.toMatch(/loading=\{true\}/);
     }
   });
 });
