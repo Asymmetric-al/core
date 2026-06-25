@@ -15,7 +15,6 @@ const DEFAULT_ENVIRONMENTS = Object.freeze([
   "production",
   "preview",
   "development",
-  "staging",
 ]);
 
 function run(command, args, options = {}) {
