@@ -29,7 +29,7 @@ Current workflow semantics:
   `pull_request_target`. It only reads GitHub metadata from the trusted workflow
   checkout and reconciles `automation:*` labels.
 - `main` is retired and protected historical history; active workflows do not
-  treat it as staging or production.
+  treat it as development or production.
 
 ## PR signal coordinator
 
@@ -235,7 +235,7 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 ### `test-unit` (needs: `build`)
 
 - _What it checks:_ Runs `bun run test:unit` (Vitest with coverage enabled, targets `tests/unit/**/*.test.ts(x)`, `environment: "node"`).
-- _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). Current staging output includes `coverage-summary.json`, `coverage-final.json`, `v8-raw-coverage.json`, and `coverage-warnings.log`.
+- _Artifacts:_ Uploads generated `coverage/` as `unit-test-coverage` (`if-no-files-found: ignore`, retained for 7 days). Current development output includes `coverage-summary.json`, `coverage-final.json`, `v8-raw-coverage.json`, and `coverage-warnings.log`.
 - _Why it exists:_ Validates pure logic, utilities, and shared package behaviour without a browser or network.
 - _Debug locally:_ Run `bun run test:unit` to execute unit tests and generate coverage output in `coverage/`. For watch mode: `bunx vitest`.
 
@@ -309,7 +309,7 @@ The workflow files are the source of truth for execution. Branch protection shou
 
 - `develop`: `ci-gate`, `integration-gate`, and `e2e-smoke-gate` are enforced; the full `CI Integration / test-e2e` job remains visible but intentionally non-blocking.
 - `production`: `release-source-gate`, `ci-gate`, `integration-gate`, and `e2e-gate` are enforced; production release is handled by `bun run release:production`.
-- `main`: retired/protected historical branch only; do not treat it as production or staging in this repo.
+- `main`: retired/protected historical branch only; do not treat it as production or development in this repo.
 
 ### GitHub branch rule guidance
 

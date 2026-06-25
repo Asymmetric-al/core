@@ -17,9 +17,9 @@ Production CRM posting was not enabled. No real donor, payment, gift, or CRM
 records were mutated. No Phase 5 implementation was started.
 
 Final status is complete-with-owner-accepted-risk. The production/admin
-`TWENTY_API_KEY` was configured by adding the existing Vercel sensitive staging
+`TWENTY_API_KEY` was configured by adding the existing Vercel sensitive development
 env entry to the Production target through a metadata-only Vercel API edit. The
-secret value was not read, printed, copied, or regenerated, and the staging
+secret value was not read, printed, copied, or regenerated, and the development
 custom-environment association was preserved.
 
 ## Phase 4 Evidence Commit/Push
@@ -56,7 +56,7 @@ Values set or verified without printing secrets:
 
 - `TWENTY_API_URL`: present in production/admin.
 - `TWENTY_WEBHOOK_SECRET`: present in production/admin.
-- `TWENTY_API_KEY`: present in production/admin and staging as the same Vercel
+- `TWENTY_API_KEY`: present in production/admin and development as the same Vercel
   sensitive env entry.
 - `CRM_SYNC_INBOUND_ENABLED`: present as disabled.
 - `CRM_SYNC_OUTBOUND_ENABLED`: present as disabled.
@@ -65,10 +65,10 @@ Values set or verified without printing secrets:
 - `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS`: present as repo default `300`.
 
 The production/admin `TWENTY_API_KEY` was set without reading the secret value.
-Vercel CLI/API checks showed the staging value is a `sensitive` env entry whose
+Vercel CLI/API checks showed the development value is a `sensitive` env entry whose
 decrypted value is not retrievable after creation. A temporary dummy env var
 proved Vercel accepts metadata-only target edits without sending a value. The
-same metadata-only edit was then applied to `TWENTY_API_KEY`, preserving staging
+same metadata-only edit was then applied to `TWENTY_API_KEY`, preserving development
 and adding Production targeting.
 
 Admin redeployed: yes. Earlier production deployment
@@ -98,7 +98,7 @@ Secrets printed: no.
 
 Twenty UI check:
 
-- Existing webhook list shows `staging-admin.asymmetric.al`.
+- Existing webhook list shows `development-admin.asymmetric.al`.
 - No production `admin.asymmetric.al` webhook was created, because adding it
   would start production provider delivery and live write behavior remains
   gated for later owner-approved cutover.
@@ -154,7 +154,7 @@ HTTP 200.
 ## Remaining Owner Decisions
 
 - Keep the current Twenty webhook secret as owner-accepted residual risk, or
-  approve a deliberate future rotation with staging and production delivery
+  approve a deliberate future rotation with development and production delivery
   verification.
 
 ## Final Status

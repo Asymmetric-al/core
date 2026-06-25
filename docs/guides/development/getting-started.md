@@ -101,7 +101,7 @@ If you see Next.js lockfile/workspace-root warnings, follow `Multiple lockfile w
 
 Twenty CRM Phase 4 uses the Cloud REST base `https://api.twenty.com/rest`.
 `TWENTY_WORKSPACE_ID` remains optional in the current client, and no
-`NEXT_PUBLIC_TWENTY_*` variables should exist. To verify a staging/admin
+`NEXT_PUBLIC_TWENTY_*` variables should exist. To verify a development/admin
 runtime without exposing secrets, run `bun run verify:twenty-crm-health` from a
 server-side shell with the Twenty env vars loaded; it reads metadata only and
 checks that the existing `giftSummaries` object has the expected fields.
