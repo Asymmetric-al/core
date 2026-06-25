@@ -78,7 +78,7 @@ Runtime/config evidence:
 - Raw Twenty access remains server-side behind `packages/api`.
 - A new Twenty API key was created in the Twenty Cloud UI with name
   `phase-3-provider-proof-20260514`; value was not printed or committed.
-- Staging admin runtime was redeployed after the server-side `TWENTY_API_KEY`
+- Development admin runtime was redeployed after the server-side `TWENTY_API_KEY`
   was added.
 - Temporary local secret material was removed after proof and the clipboard was
   cleared.
@@ -124,7 +124,7 @@ Gift object metadata:
 Gift-post/link proof:
 
 ```txt
-runtime target: Supabase staging
+runtime target: Supabase development
 tenant slug: give-hope
 temporary label: PHASE3_PROOF_DELETE_20260513175115
 donation id: 4c42ef0b-d5d9-481e-a6c7-cd01065e3945
@@ -141,7 +141,7 @@ twenty record marker: stripePaymentIntentId and stripeChargeId include PHASE3_PR
 donation_crm_links id: 63adbf54-50f5-4c06-9ac1-981ab93e46ff
 donation_crm_links status: queued
 donation_crm_links outbound job reference: present
-cleanup status: temporary staging rows and the temporary Twenty record remain marked PHASE3_PROOF_DELETE for audit/cleanup
+cleanup status: temporary development rows and the temporary Twenty record remain marked PHASE3_PROOF_DELETE for audit/cleanup
 result: passed
 ```
 
@@ -221,18 +221,18 @@ Result:
 - Target was local/disposable, not production.
 - The disposable container was stopped after verification.
 
-Staging schema proof for Twenty gift-post/link:
+Development schema proof for Twenty gift-post/link:
 
-- Target Supabase project: staging, project ref `uarazyactrqlxzmeygmr`.
+- Target Supabase project: development, project ref `uarazyactrqlxzmeygmr`.
 - Production Supabase was not used for proof data.
-- The local Supabase CLI link was explicitly reset to staging before final
+- The local Supabase CLI link was explicitly reset to development before final
   schema application.
-- Applied these additive Phase 3 REST/schema-cache migrations to staging:
+- Applied these additive Phase 3 REST/schema-cache migrations to development:
   - `20260512190000_phase_03_giving_pipeline.sql`
   - `20260513173739_expose_phase_03_service_tables_to_rest.sql`
   - `20260513173841_reload_postgrest_schema_for_phase_03.sql`
   - `20260513173938_add_phase_03_rest_visibility_deny_policies.sql`
-- Verified staging REST/service-role access to:
+- Verified development REST/service-role access to:
   - `stripe_raw_events`
   - `staged_gifts`
   - `staged_gift_allocations`
@@ -249,9 +249,9 @@ Security note:
   `WITH CHECK (false)`.
 - Browser sessions do not receive row access to Phase 3 finance tables.
 
-During staging preparation, a stale local Supabase CLI temp-link risk was
-observed and corrected before the final staging apply. All proof writes were
-performed against staging only. No production donor, payment, or CRM data was
+During development preparation, a stale local Supabase CLI temp-link risk was
+observed and corrected before the final development apply. All proof writes were
+performed against development only. No production donor, payment, or CRM data was
 mutated.
 
 Remaining Supabase blocker: none for Phase 3.
@@ -262,7 +262,7 @@ Provider-backed runtime proof is covered by:
 
 - Resend deployed app-route test-send and signed webhook ingestion.
 - Twenty Cloud server-side package/gateway metadata read.
-- Twenty staging gift queue, outbound job success, and `donation_crm_links`
+- Twenty development gift queue, outbound job success, and `donation_crm_links`
   creation.
 - Build route inventory for Phase 3 admin routes:
   - `/api/admin/contributions`
@@ -345,7 +345,7 @@ None for Phase 3.
 Follow-up cleanup outside Phase 3:
 
 - Remove or archive the temporary Twenty record
-  `f7bd4680-5d66-4d58-b15f-c5d206a706fa` and staging proof rows labeled
+  `f7bd4680-5d66-4d58-b15f-c5d206a706fa` and development proof rows labeled
   `PHASE3_PROOF_DELETE_20260513175115` when the owner no longer wants them for
   audit evidence.
 - Treat Sentry sourcemap upload as Phase 11 observability work unless a future

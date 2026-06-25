@@ -37,10 +37,10 @@ Twenty Cloud:
 - `asymStagedGiftId`: `4dea1e22-74f1-4727-a83b-e7f138b87f46`
 - Marker search count: 1
 
-Supabase staging project:
+Supabase development project:
 
 - Project ref: `uarazyactrqlxzmeygmr`
-- Target: staging only
+- Target: development only
 - Marker: `PHASE3_PROOF_DELETE_20260513175115`
 
 Rows found:
@@ -59,7 +59,7 @@ Rows found:
 ## Actions Taken
 
 - Confirmed the final Phase 3 evidence status is `complete`.
-- Queried Supabase staging with a temporary service-role key stored only in
+- Queried Supabase development with a temporary service-role key stored only in
   `/tmp`; the temporary key file was deleted immediately after lookup.
 - Queried Twenty Cloud with the approved Phase 3 API key for read-only record
   confirmation; the key was not written to files or evidence, and the clipboard
@@ -72,7 +72,7 @@ Rows found:
 ## Verification
 
 - Twenty Cloud marker search returned exactly one `giftSummaries` record.
-- Supabase staging search returned exactly one marked proof donation and one
+- Supabase development search returned exactly one marked proof donation and one
   related staged gift/link/job set.
 - The temporary proof rows are clearly marked directly or by child relationship
   to the marked staged gift/outbound job.
@@ -80,14 +80,14 @@ Rows found:
 - No real donor records were changed.
 - No real payment records were changed.
 - No real CRM records were changed.
-- Only staging proof records with marker
+- Only development proof records with marker
   `PHASE3_PROOF_DELETE_20260513175115` were inspected.
 
 ## Remaining Cleanup, If Any
 
 None required for Phase 3.
 
-Optional future cleanup can delete the single Twenty record and its staging
+Optional future cleanup can delete the single Twenty record and its development
 proof row set if the owner no longer wants the audit trail retained. Do not
 delete the `giftSummaries` object schema, migrations, tables, or object
 definitions without a separate explicit approval.
