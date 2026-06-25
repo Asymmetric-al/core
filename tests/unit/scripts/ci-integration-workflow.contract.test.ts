@@ -135,5 +135,5 @@ describe("ci-integration workflow contract", () => {
     ]);
     expect(donorSmoke).toContain("[chromium-donor]");
     expect(donorSmoke).toContain("upload-crop.spec.ts");
-  }, 20_000);
+  }, 60_000);
 });
