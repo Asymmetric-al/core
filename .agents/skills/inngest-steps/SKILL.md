@@ -24,7 +24,7 @@ export default inngest.createFunction(
     await step.run("a", () => console.log("a"));
     await step.run("b", () => console.log("b"));
     await step.run("c", () => console.log("c"));
-  },
+  }
 );
 
 // ✅ CORRECT - logs once each
@@ -35,7 +35,7 @@ export default inngest.createFunction(
     await step.run("a", () => console.log("a"));
     await step.run("b", () => console.log("b"));
     await step.run("c", () => console.log("c"));
-  },
+  }
 );
 ```
 
@@ -114,14 +114,14 @@ await step.sleepUntil("wait-for-scheduled-time", scheduledTime);
 const approval = await step.waitForEvent("wait-for-approval", {
   event: "app/invoice.approved",
   timeout: "7d",
-  match: "data.invoiceId", // Simple matching
+  match: "data.invoiceId" // Simple matching
 });
 
 // Expression-based matching (CEL syntax)
 const subscription = await step.waitForEvent("wait-for-subscription", {
   event: "app/subscription.created",
   timeout: "30d",
-  if: "event.data.userId == async.data.userId && async.data.plan == 'pro'",
+  if: "event.data.userId == async.data.userId && async.data.plan == 'pro'"
 });
 
 // Handle timeout
@@ -147,7 +147,7 @@ if (!approval) {
 
 ### Expression Syntax
 
-In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../references/expressions.md) for full syntax, operators, and patterns.
+In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../inngest/references/expressions.md) for full syntax, operators, and patterns.
 
 ## step.waitForSignal()
 
@@ -159,7 +159,7 @@ const taskId = "task-" + crypto.randomUUID();
 const signal = await step.waitForSignal("wait-for-task-completion", {
   signal: taskId,
   timeout: "1h",
-  onConflict: "replace", // Required: "replace" overwrites pending signal, "fail" throws an error
+  onConflict: "replace" // Required: "replace" overwrites pending signal, "fail" throws an error
 });
 
 // Send signal elsewhere via Inngest API or SDK
@@ -179,13 +179,13 @@ Fan out to other functions without waiting for results.
 // Trigger other functions
 await step.sendEvent("notify-systems", {
   name: "user/profile.updated",
-  data: { userId: user.id, changes: profileChanges },
+  data: { userId: user.id, changes: profileChanges }
 });
 
 // Multiple events at once
 await step.sendEvent("batch-notifications", [
   { name: "billing/invoice.created", data: { invoiceId } },
-  { name: "email/invoice.send", data: { email: user.email, invoiceId } },
+  { name: "email/invoice.send", data: { email: user.email, invoiceId } }
 ]);
 ```
 
@@ -200,13 +200,13 @@ const computeSquare = inngest.createFunction(
   { id: "compute-square", triggers: [{ event: "calculate/square" }] },
   async ({ event }) => {
     return { result: event.data.number * event.data.number };
-  },
+  }
 );
 
 // Invoke and use result
 const square = await step.invoke("get-square", {
   function: computeSquare,
-  data: { number: 4 },
+  data: { number: 4 }
 });
 
 console.log(square.result); // 16, fully typed!
@@ -216,12 +216,12 @@ import { referenceFunction } from "inngest";
 
 const externalFn = referenceFunction({
   appId: "other-app",
-  functionId: "other-fn",
+  functionId: "other-fn"
 });
 
 const result = await step.invoke("call-external", {
   function: externalFn,
-  data: { key: "value" },
+  data: { key: "value" }
 });
 ```
 
@@ -286,22 +286,22 @@ const createSubscription = step.run("create-subscription", async () => {
 const [emailId, crmRecord, subscription] = await Promise.all([
   sendEmail,
   updateCRM,
-  createSubscription,
+  createSubscription
 ]);
 
 // Parallel steps are optimized by default in v4
 export default inngest.createFunction(
   {
     id: "parallel-heavy-function",
-    triggers: [{ event: "process/batch" }],
+    triggers: [{ event: "process/batch" }]
   },
   async ({ event, step }) => {
     const results = await Promise.all(
       event.data.items.map((item, i) =>
-        step.run(`process-item-${i}`, () => processItem(item)),
-      ),
+        step.run(`process-item-${i}`, () => processItem(item))
+      )
     );
-  },
+  }
 );
 
 // ⚠️ Promise.race() behavior with v4's optimized parallelism:
@@ -309,7 +309,7 @@ export default inngest.createFunction(
 const winner = await group.parallel(async () => {
   return Promise.race([
     step.run("fast-service", () => callFastService()),
-    step.run("slow-service", () => callSlowService()),
+    step.run("slow-service", () => callSlowService())
   ]);
 });
 
@@ -333,15 +333,15 @@ export default inngest.createFunction(
     // Process chunks in parallel
     const results = await Promise.all(
       chunks.map((chunk, index) =>
-        step.run(`process-chunk-${index}`, () => processChunk(chunk)),
-      ),
+        step.run(`process-chunk-${index}`, () => processChunk(chunk))
+      )
     );
 
     // Combine results
     await step.run("combine-results", () => {
       return aggregateResults(results);
     });
-  },
+  }
 );
 ```
 

@@ -6,6 +6,7 @@ function createSocialIcon(displayName: string, paths: ReactNode): LucideIcon {
   const Icon = forwardRef<SVGSVGElement, LucideProps>(
     (
       {
+        absoluteStrokeWidth: _absoluteStrokeWidth,
         color = "currentColor",
         size = 24,
         strokeWidth = 2,

@@ -38,7 +38,7 @@ Create a shared client file that you'll import throughout your codebase:
 import { Inngest } from "inngest";
 
 export const inngest = new Inngest({
-  id: "my-app", // Unique identifier for your application (hyphenated slug)
+  id: "my-app" // Unique identifier for your application (hyphenated slug)
 });
 // IMPORTANT: v4 defaults to Cloud mode. For local dev, set INNGEST_DEV=1 env var.
 // Without it, your serve endpoint will return 500 ("In cloud mode but no signing key").
@@ -67,15 +67,15 @@ const signupCompleted = eventType("user/signup.completed", {
   schema: z.object({
     userId: z.string(),
     email: z.string(),
-    plan: z.enum(["free", "pro"]),
-  }),
+    plan: z.enum(["free", "pro"])
+  })
 });
 
 const orderPlaced = eventType("order/placed", {
   schema: z.object({
     orderId: z.string(),
-    amount: z.number(),
-  }),
+    amount: z.number()
+  })
 });
 
 export const inngest = new Inngest({ id: "my-app" });
@@ -85,7 +85,7 @@ inngest.createFunction(
   { id: "handle-signup", triggers: [signupCompleted] },
   async ({ event }) => {
     event.data.userId; /* typed as string */
-  },
+  }
 );
 
 // Use event types when sending events:
@@ -93,8 +93,8 @@ await inngest.send(
   signupCompleted.create({
     userId: "user_123",
     email: "user@example.com",
-    plan: "pro",
-  }),
+    plan: "pro"
+  })
 );
 ```
 
@@ -137,7 +137,6 @@ Or in `package.json` scripts:
 ```
 
 **Symptoms of missing INNGEST_DEV:**
-
 - GET `/api/inngest` returns `{"code":"internal_server_error"}`
 - Server logs: "In cloud mode but no signing key found"
 - Dev server can't sync with your app
@@ -166,7 +165,7 @@ import { myFunction } from "../../../inngest/functions";
 
 export const { GET, POST, PUT } = serve({
   client: inngest,
-  functions: [myFunction],
+  functions: [myFunction]
 });
 ```
 
@@ -178,7 +177,7 @@ import { myFunction } from "../../inngest/functions";
 
 export default serve({
   client: inngest,
-  functions: [myFunction],
+  functions: [myFunction]
 });
 ```
 
@@ -196,8 +195,8 @@ app.use(
   "/api/inngest",
   serve({
     client: inngest,
-    functions: [myFunction],
-  }),
+    functions: [myFunction]
+  })
 );
 ```
 
@@ -227,7 +226,7 @@ import { myFunction } from "./inngest/functions";
   const connection = await connect({
     apps: [{ client: inngest, functions: [myFunction] }],
     instanceId: process.env.HOSTNAME, // Unique worker identifier
-    maxWorkerConcurrency: 10, // Max concurrent steps
+    maxWorkerConcurrency: 10 // Max concurrent steps
   });
 
   console.log("Worker connected:", connection.state);

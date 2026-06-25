@@ -4,6 +4,8 @@
       skills, routing, and MCP support.
 - [x] 1.2 Keep the proposal explicit that product runtime Inngest integration is
       out of scope.
+- [x] 1.3 Document the bundled non-Inngest repo hygiene changes separately from
+      the Inngest agent-tooling scope.
 
 ## 2. Official Skills
 
@@ -35,3 +37,5 @@
       `bunx @fission-ai/openspec@latest validate add-inngest-agent-tools --strict`.
 - [x] 4.5 Confirm the mirror-only vibeship `inngest` skill no longer remains as
       the active `inngest` mirror content.
+- [x] 4.6 Verify vendored Inngest skill markdown references remain local and
+      readable.

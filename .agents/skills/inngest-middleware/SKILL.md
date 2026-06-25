@@ -36,8 +36,8 @@ const inngest = new Inngest({
   id: "my-app",
   middleware: [
     loggingMiddleware, // Runs 1st
-    errorMiddleware, // Runs 2nd
-  ],
+    errorMiddleware // Runs 2nd
+  ]
 });
 
 inngest.createFunction(
@@ -45,13 +45,13 @@ inngest.createFunction(
     id: "example",
     middleware: [
       authMiddleware, // Runs 3rd
-      metricsMiddleware, // Runs 4th
+      metricsMiddleware // Runs 4th
     ],
-    triggers: [{ event: "test" }],
+    triggers: [{ event: "test" }]
   },
   async () => {
     /* function code */
-  },
+  }
 );
 ```
 
@@ -79,14 +79,14 @@ const loggingMiddleware = new InngestMiddleware({
             logger.info("Function starting", {
               functionId: fn.id,
               eventName: ctx.event.name,
-              runId: ctx.runId,
+              runId: ctx.runId
             });
           },
 
           afterExecution() {
             logger.info("Function completed", {
               functionId: fn.id,
-              runId: ctx.runId,
+              runId: ctx.runId
             });
           },
 
@@ -94,12 +94,12 @@ const loggingMiddleware = new InngestMiddleware({
             // Log function output
             logger.debug("Function output", {
               functionId: fn.id,
-              output: result.data,
+              output: result.data
             });
 
             // Return unmodified result
             return { result };
-          },
+          }
         };
       },
 
@@ -109,16 +109,16 @@ const loggingMiddleware = new InngestMiddleware({
           transformInput({ payloads }) {
             logger.info("Sending events", {
               count: payloads.length,
-              events: payloads.map((p) => p.name),
+              events: payloads.map((p) => p.name)
             });
 
             // Spread to convert readonly array to mutable array
             return { payloads: [...payloads] };
-          },
+          }
         };
-      },
+      }
     };
-  },
+  }
 });
 ```
 
@@ -182,9 +182,9 @@ const inngest = new Inngest({
   id: "my-app",
   middleware: [
     encryptionMiddleware({
-      key: process.env.ENCRYPTION_KEY,
-    }),
-  ],
+      key: process.env.ENCRYPTION_KEY
+    })
+  ]
 });
 ```
 
@@ -206,7 +206,7 @@ Sentry.init({
 
 const inngest = new Inngest({
   id: "my-app",
-  middleware: [sentryMiddleware()],
+  middleware: [sentryMiddleware()]
 });
 ```
 
@@ -229,7 +229,7 @@ const metricsMiddleware = new InngestMiddleware({
             startTime = Date.now();
             metrics.increment("inngest.step.started", {
               function: fn.id,
-              event: ctx.event.name,
+              event: ctx.event.name
             });
           },
 
@@ -237,7 +237,7 @@ const metricsMiddleware = new InngestMiddleware({
             const duration = Date.now() - startTime;
             metrics.histogram("inngest.step.duration", duration, {
               function: fn.id,
-              event: ctx.event.name,
+              event: ctx.event.name
             });
           },
 
@@ -245,15 +245,15 @@ const metricsMiddleware = new InngestMiddleware({
             const status = result.error ? "error" : "success";
             metrics.increment("inngest.step.completed", {
               function: fn.id,
-              status: status,
+              status: status
             });
 
             return { result };
-          },
+          }
         };
-      },
+      }
     };
-  },
+  }
 });
 ```
 
@@ -306,11 +306,11 @@ const robustMiddleware = new InngestMiddleware({
               // Return original result on middleware failure
               return { result };
             }
-          },
+          }
         };
-      },
+      }
     };
-  },
+  }
 });
 ```
 
