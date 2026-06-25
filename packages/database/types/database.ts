@@ -294,6 +294,441 @@ export interface DonationWithDetails extends Donation {
   fund: Fund | null;
 }
 
+export type ContributionOperationSourceSurface =
+  | "contribution_hub"
+  | "donor_crm_record"
+  | "automation"
+  | "bulk_action"
+  | "api";
+
+export type ContributionCorrectionType =
+  | "resend_receipt"
+  | "approve_staged_gift"
+  | "retry_staged_gift"
+  | "crm_repost"
+  | "metadata_update"
+  | "refund"
+  | "donor_relink"
+  | "amount_correction"
+  | "designation_correction"
+  | "fund_correction"
+  | "allocation_correction"
+  | "receipt_correction"
+  | "statement_correction"
+  | "payment_state_correction"
+  | "stripe_replay";
+
+export type ContributionCorrectionStatus =
+  | "pending"
+  | "applied"
+  | "failed"
+  | "voided";
+
+export interface ContributionOperationPromptSettings {
+  tenant_id: string;
+  default_reason_mode: "optional" | "required";
+  allow_user_reason_prompt_reduction: boolean;
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+export interface ContributionOperationUserPreference {
+  id: string;
+  tenant_id: string;
+  profile_id: string;
+  reduce_reason_prompts: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionCorrection {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  staged_gift_id: string | null;
+  correction_type: ContributionCorrectionType;
+  status: ContributionCorrectionStatus;
+  reason: string;
+  source_surface: ContributionOperationSourceSurface;
+  actor_profile_id: string | null;
+  before_summary: Record<string, unknown>;
+  after_summary: Record<string, unknown>;
+  provider_outcome: Record<string, unknown>;
+  donor_visible_effect: Record<string, unknown>;
+  receipt_effect: Record<string, unknown>;
+  statement_effect: Record<string, unknown>;
+  audit_event_id: string | null;
+  created_at: string;
+  applied_at: string | null;
+  failed_at: string | null;
+}
+
+export interface ContributionOperationAuditEvent {
+  id: string;
+  tenant_id: string;
+  actor_profile_id: string | null;
+  donation_id: string | null;
+  staged_gift_id: string | null;
+  donor_id: string | null;
+  correction_id: string | null;
+  operation: string;
+  resource_type: string;
+  resource_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  reason: string | null;
+  confirmation_label: string | null;
+  policy_snapshot: Record<string, unknown>;
+  before_snapshot: Record<string, unknown>;
+  after_snapshot: Record<string, unknown>;
+  provider_outcome: Record<string, unknown>;
+  downstream_effects: Record<string, unknown>;
+  related_task_ids: string[];
+  related_batch_id: string | null;
+  correlation_id: string;
+  created_at: string;
+}
+
+export interface ContributionAdjustment {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  correction_id: string | null;
+  adjustment_type: string;
+  status: "applied" | "reversed";
+  effective_values: Record<string, unknown>;
+  reason: string;
+  actor_profile_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  base_revision: string | null;
+  idempotency_key: string | null;
+  created_at: string;
+}
+
+export interface ContributionApprovalPolicy {
+  tenant_id: string;
+  ownership_mode:
+    | "no_approval_required"
+    | "one_approver"
+    | "separation_of_duties";
+  suppressed_gates: string[];
+  stronger_approval_categories: string[];
+  reminder_hours: number;
+  escalation_hours: number | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionCorrectionRequest {
+  id: string;
+  tenant_id: string;
+  donation_id: string;
+  action_type: string;
+  payload: Record<string, unknown>;
+  reason: string;
+  requested_by_profile_id: string | null;
+  source_surface: ContributionOperationSourceSurface;
+  status: "pending" | "approved" | "rejected" | "superseded";
+  expected_revision: string | null;
+  idempotency_key: string | null;
+  receipt_delivery_proposal: Record<string, unknown>;
+  decided_by_profile_id: string | null;
+  decided_at: string | null;
+  decision_reason: string | null;
+  applied_adjustment_id: string | null;
+  approval_task_id: string | null;
+  follow_up_task_id: string | null;
+  last_reminder_at: string | null;
+  escalated_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotificationSettings {
+  tenant_id: string;
+  create_approval_task: boolean;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotificationPreference {
+  id: string;
+  tenant_id: string;
+  profile_id: string;
+  in_app_enabled: boolean;
+  email_enabled: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionApprovalNotification {
+  id: string;
+  tenant_id: string;
+  correction_request_id: string;
+  recipient_profile_id: string | null;
+  channel: "in_app" | "email";
+  kind: "approval_requested" | "reminder" | "escalation" | "outcome";
+  dedupe_key: string;
+  payload: Record<string, unknown>;
+  created_at: string;
+}
+
+export type ContributionNotificationMode =
+  | "auto_notify"
+  | "always_ask"
+  | "staff_chooses";
+
+export type ContributionNotificationDecision =
+  | "sent"
+  | "suppressed"
+  | "blocked"
+  | "failed"
+  | "not_required";
+
+export interface EmailTemplateSystemBinding {
+  id: string;
+  tenant_id: string;
+  template_id: string;
+  family_key: string;
+  variant_key: string;
+  required_merge_tags: string[];
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ContributionNotificationSetting {
+  id: string;
+  tenant_id: string;
+  action_type: string;
+  mode: ContributionNotificationMode;
+  suppression_reason_required: boolean;
+  task_assignment_mode: "actor_only" | "queue_only" | "actor_and_queue";
+  created_at: string;
+  updated_at: string;
+  updated_by: string | null;
+}
+
+export interface ContributionNotificationEvent {
+  id: string;
+  tenant_id: string;
+  idempotency_key: string;
+  operation_audit_event_id: string | null;
+  correction_id: string | null;
+  action_type: string;
+  template_id: string | null;
+  template_version_id: string | null;
+  template_family: string | null;
+  template_variant: string | null;
+  template_version: number | null;
+  decision: ContributionNotificationDecision;
+  policy_snapshot: Record<string, unknown>;
+  suppression_reason: string | null;
+  personal_note_present: boolean;
+  recipient_donor_id: string | null;
+  recipient_email: string | null;
+  email_send_log_id: string | null;
+  provider_status: string | null;
+  provider_message_id: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  task_ids: string[];
+  created_at: string;
+  sent_at: string | null;
+}
+
+export type MissionControlTaskStatus =
+  | "open"
+  | "in_progress"
+  | "completed"
+  | "dismissed"
+  | "suppressed";
+export type MissionControlTaskUrgency = "normal" | "high" | "critical";
+export type MissionControlAttentionStatus =
+  | "open"
+  | "resolved"
+  | "dismissed"
+  | "suppressed";
+
+export interface MissionControlQueue {
+  id: string;
+  tenant_id: string;
+  key: string;
+  name: string;
+  description: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MissionControlTask {
+  id: string;
+  tenant_id: string;
+  title: string;
+  description: string | null;
+  status: MissionControlTaskStatus;
+  urgency: MissionControlTaskUrgency;
+  queue_id: string | null;
+  assignee_profile_id: string | null;
+  source_module: string;
+  issue_type: string;
+  created_by_profile_id: string | null;
+  created_by_kind: "human" | "system";
+  due_at: string | null;
+  completed_at: string | null;
+  dismissed_at: string | null;
+  dismissed_reason: string | null;
+  suppressed_at: string | null;
+  suppressed_reason: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MissionControlTaskLink {
+  id: string;
+  tenant_id: string;
+  task_id: string;
+  record_type: string;
+  record_id: string;
+  relationship: string | null;
+  metadata: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface MissionControlAttentionItem {
+  id: string;
+  tenant_id: string;
+  dedupe_key: string;
+  issue_type: string;
+  urgency: MissionControlTaskUrgency;
+  status: MissionControlAttentionStatus;
+  task_id: string | null;
+  summary: string;
+  details: Record<string, unknown>;
+  first_seen_at: string;
+  last_seen_at: string;
+  resolved_at: string | null;
+  dismissed_at: string | null;
+  suppressed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export type MissionControlAutomationMode = "simple" | "advanced";
+export type MissionControlAutomationRunMode = "automatic" | "review_first";
+
+export interface MissionControlAutomationRule {
+  id: string;
+  tenant_id: string;
+  name: string;
+  description: string | null;
+  mode: MissionControlAutomationMode;
+  trigger: Record<string, unknown>;
+  conditions: unknown[];
+  actions: unknown[];
+  run_mode: MissionControlAutomationRunMode;
+  reviewer_policy: Record<string, unknown>;
+  failure_policy: Record<string, unknown>;
+  activity_log_policy: Record<string, unknown>;
+  enabled: boolean;
+  activation_status: string;
+  version: number;
+  last_preview_id: string | null;
+  last_test_run_id: string | null;
+  created_by: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  disabled_at: string | null;
+  disabled_by: string | null;
+}
+
+export interface MissionControlAutomationActivityLog {
+  id: string;
+  tenant_id: string;
+  rule_id: string | null;
+  run_id: string | null;
+  trigger: Record<string, unknown>;
+  matched_records: unknown[];
+  attempted_actions: unknown[];
+  completed_actions: unknown[];
+  skipped_actions: unknown[];
+  failures: unknown[];
+  notifications: unknown[];
+  created_tasks: string[];
+  actor_profile_id: string | null;
+  actor_kind: "human" | "system";
+  created_at: string;
+}
+
+export type ContributionOperationBatchStatus =
+  | "running"
+  | "complete"
+  | "complete_with_issues"
+  | "failed"
+  | "cancelled";
+export type ContributionOperationBatchExecutionMode =
+  | "immediate"
+  | "background";
+export type ContributionOperationBatchItemStatus =
+  | "pending"
+  | "running"
+  | "succeeded"
+  | "skipped"
+  | "failed";
+
+export interface ContributionOperationBatch {
+  id: string;
+  tenant_id: string;
+  operation: string;
+  risk_level: "low" | "high";
+  source_surface: string;
+  selection_snapshot: Record<string, unknown>;
+  preview_snapshot: Record<string, unknown>;
+  preview_skipped: boolean;
+  confirmation_snapshot: Record<string, unknown>;
+  reason: string | null;
+  status: ContributionOperationBatchStatus;
+  execution_mode: ContributionOperationBatchExecutionMode;
+  total_count: number;
+  processed_count: number;
+  succeeded_count: number;
+  skipped_count: number;
+  failed_count: number;
+  follow_up_task_count: number;
+  created_by_profile_id: string | null;
+  activity_audit_event_id: string | null;
+  created_at: string;
+  started_at: string | null;
+  finished_at: string | null;
+  cancelled_at: string | null;
+}
+
+export interface ContributionOperationBatchItem {
+  id: string;
+  batch_id: string;
+  tenant_id: string;
+  record_index: number;
+  resource_type: string;
+  resource_id: string | null;
+  donation_id: string | null;
+  staged_gift_id: string | null;
+  status: ContributionOperationBatchItemStatus;
+  skip_reason: string | null;
+  error_code: string | null;
+  error_message: string | null;
+  payload: Record<string, unknown>;
+  result: Record<string, unknown>;
+  operation_audit_event_id: string | null;
+  task_id: string | null;
+  processed_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Campaign {
   id: string;
   tenant_id: string;

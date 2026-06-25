@@ -1,3 +1,9 @@
+import type {
+  SharedContributionCorrectionState,
+  SharedContributionRefundState,
+  SharedContributionRowFields,
+} from "./contribution-shared";
+
 export type CrmTimelineEntryKind =
   | "gift"
   | "receipt"
@@ -6,7 +12,45 @@ export type CrmTimelineEntryKind =
   | "activity"
   | "support";
 
+/**
+ * Contribution operations that can be surfaced inline from CRM gift rows.
+ * Inline operations are alternate UI affordances over the same shared
+ * operation contracts as contribution detail, never separate business logic.
+ */
+export type CrmGiftInlineActionType =
+  | "approve_staged_gift"
+  | "retry_staged_gift"
+  | "resend_receipt"
+  | "refund"
+  | "amount_correction"
+  | "fund_correction"
+  | "stripe_replay";
+
+export interface CrmGiftInlineActionEntry {
+  actionType: CrmGiftInlineActionType;
+  available: boolean;
+  blockedReason: string | null;
+  nextStep: string | null;
+  riskLevel: "low" | "medium" | "high";
+}
+
+export interface CrmGiftInlineActions {
+  /**
+   * Server-computed single next-best action for the row. Only low-risk
+   * workflow actions are ever promoted; high-risk operations stay behind the
+   * grouped menu. Null when nothing is actionable for this viewer.
+   */
+  nextBestActionType: CrmGiftInlineActionType | null;
+  /** Capability-filtered entries; blocked ones keep their server reasons. */
+  entries: CrmGiftInlineActionEntry[];
+}
+
 export interface CrmGiftHistoryRow {
+  /**
+   * Shared contribution row contract fields (ADR-CD-032 display parity).
+   * Populated by the CRM/detail service for every gift-history row.
+   */
+  shared: SharedContributionRowFields;
   id: string;
   donationId: string;
   stagedGiftId: string | null;
@@ -16,12 +60,15 @@ export interface CrmGiftHistoryRow {
   paymentStatus: string | null;
   receiptStatus: string | null;
   crmPostStatus: string | null;
+  refundState?: SharedContributionRefundState;
+  correctionState?: SharedContributionCorrectionState;
   twentyRecordId: string | null;
   fundId: string | null;
   fundName: string | null;
   missionaryId: string | null;
   missionaryName: string | null;
-  canResendReceipt: boolean;
+  /** Inline operation parity with contribution detail (issue #270). */
+  inlineActions?: CrmGiftInlineActions;
 }
 
 export interface CrmTimelineEntry {
@@ -67,16 +114,23 @@ export interface CrmDonorDetailResponse {
   donor: {
     id: string;
     name: string | null;
+    title: string | null;
     email: string | null;
     phone: string | null;
     organization: string | null;
+    location: string | null;
     status: string | null;
     type: string | null;
     profileId: string | null;
     missionaryId: string | null;
     notesPreview: string | null;
+    tags: string[];
+    avatarUrl: string | null;
+    createdAt: string | null;
+    updatedAt: string | null;
   };
   giftHistory: CrmGiftHistoryRow[];
+  giftHistoryTruncated: boolean;
   timeline: CrmTimelineEntry[];
   duplicateWarnings: CrmDuplicateWarning[];
   support: CrmSupportSummary;
