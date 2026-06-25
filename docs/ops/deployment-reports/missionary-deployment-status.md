@@ -105,9 +105,9 @@ source tree no longer has the old missing-root-directory blocker.
 The post-fix deployment reached Next.js compilation and TypeScript successfully,
 then failed while collecting page data. The relevant failure was:
 
-- `STRIPE_SECRET_KEY is required for staging and production deployments.`
-- `STRIPE_WEBHOOK_SECRET is required for staging and production deployments.`
-- `SENTRY_DSN is required for staging and production deployments.`
+- `STRIPE_SECRET_KEY is required for development and production deployments.`
+- `STRIPE_WEBHOOK_SECRET is required for development and production deployments.`
+- `SENTRY_DSN is required for development and production deployments.`
 - Build error: `Failed to collect page data for /api/missionaries/[id]/metrics`
 
 ## Remediation Completed In This Branch
@@ -219,7 +219,7 @@ GitHub branch-state audit on 2026-05-10:
    Stripe webhook signing secret, then run the guarded
    `Sync Vercel Production Env` workflow first as a dry-run and then as a write.
 2. Create or verify the live Stripe webhook endpoint for `https://missionary.asymmetric.al/api/webhooks/stripe`.
-3. Confirm Supabase production values point to the production project, not preview or staging.
+3. Confirm Supabase production values point to the production project, not preview or development.
 4. Push or merge the approved release commit to `production`, the current Vercel Production Branch.
 5. Confirm Vercel creates a new production deployment from the current production source commit.
 6. Confirm the deployment moves past the stale missing-root-directory error and reaches `READY`.
