@@ -152,6 +152,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     steps:
       - uses: actions/checkout@v6
+      - name: Install system dependencies (canvas)
+        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}

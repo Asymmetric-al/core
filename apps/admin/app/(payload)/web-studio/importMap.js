@@ -1,37 +1,31 @@
-/* eslint-disable import-x/no-duplicates, import-x/order -- TODO(AL-000): auto-generated Payload import map */
-import { RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e } from "@payloadcms/richtext-lexical/rsc";
-import { RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e } from "@payloadcms/richtext-lexical/rsc";
-import { LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e } from "@payloadcms/richtext-lexical/rsc";
-import { InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { UploadFeatureClient as UploadFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { BlockquoteFeatureClient as BlockquoteFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { RelationshipFeatureClient as RelationshipFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { LinkFeatureClient as LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { ChecklistFeatureClient as ChecklistFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { OrderedListFeatureClient as OrderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { UnorderedListFeatureClient as UnorderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { IndentFeatureClient as IndentFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { AlignFeatureClient as AlignFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { HeadingFeatureClient as HeadingFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { ParagraphFeatureClient as ParagraphFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { InlineCodeFeatureClient as InlineCodeFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { SuperscriptFeatureClient as SuperscriptFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { SubscriptFeatureClient as SubscriptFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864 } from "@payloadcms/richtext-lexical/client";
-import { PagesNativeEditView as PagesNativeEditView_d2240ecf8805c7d12a67f984df1014cc } from "../../../src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx";
-import { PagesNativeListView as PagesNativeListView_dab9c45d6a71ea658c503a573240982c } from "../../../src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx";
-import { PageTemplatesNativeEditView as PageTemplatesNativeEditView_84d26b7ab75fcdc7408c195c58424a29 } from "../../../src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx";
-import { PageTemplatesNativeListView as PageTemplatesNativeListView_e95bd28ce8d6da532d7ff2d818d9c42f } from "../../../src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx";
-import { MissionaryGivingPagesNativeEditView as MissionaryGivingPagesNativeEditView_19739b4172f6fb48f13053fa282ad7c8 } from "../../../src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx";
-import { MissionaryGivingPagesNativeListView as MissionaryGivingPagesNativeListView_5d19d7eaa982bbdd573e1959d386d198 } from "../../../src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx";
-import { ProjectPagesNativeEditView as ProjectPagesNativeEditView_4e33fe2c932ea64c5dec3a2eb647e157 } from "../../../src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx";
-import { ProjectPagesNativeListView as ProjectPagesNativeListView_2274f73ac126e7283c3deebcd3aaa6ea } from "../../../src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx";
-import { NavigationNativeEditView as NavigationNativeEditView_89733a0d11a108be918b6cb74b6e73aa } from "../../../src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx";
-import { NavigationNativeListView as NavigationNativeListView_2a580cedc1cf71d6ae56d8fa0fc5ec54 } from "../../../src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx";
+import {
+  InlineToolbarFeatureClient as InlineToolbarFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  HorizontalRuleFeatureClient as HorizontalRuleFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  UploadFeatureClient as UploadFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  BlockquoteFeatureClient as BlockquoteFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  RelationshipFeatureClient as RelationshipFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  LinkFeatureClient as LinkFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  ChecklistFeatureClient as ChecklistFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  OrderedListFeatureClient as OrderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  UnorderedListFeatureClient as UnorderedListFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  IndentFeatureClient as IndentFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  AlignFeatureClient as AlignFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  HeadingFeatureClient as HeadingFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  ParagraphFeatureClient as ParagraphFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  InlineCodeFeatureClient as InlineCodeFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  SuperscriptFeatureClient as SuperscriptFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  SubscriptFeatureClient as SubscriptFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  StrikethroughFeatureClient as StrikethroughFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  UnderlineFeatureClient as UnderlineFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  BoldFeatureClient as BoldFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+  ItalicFeatureClient as ItalicFeatureClient_e70f5e05f09f93e00b997edb1ef0c864,
+} from "@payloadcms/richtext-lexical/client";
+import {
+  LexicalDiffComponent as LexicalDiffComponent_44fe37237e0ebf4470c9990d8cb7b07e,
+  RscEntryLexicalField as RscEntryLexicalField_44fe37237e0ebf4470c9990d8cb7b07e,
+  RscEntryLexicalCell as RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,
+} from "@payloadcms/richtext-lexical/rsc";
+
 import { MissionaryProfilesNativeEditView as MissionaryProfilesNativeEditView_b032f05f7b7b0c88f3b1b93bca43a08b } from "../../../src/cms-ui/web-studio/missionary-profiles/document/MissionaryProfilesNativeEditView.tsx";
 import { MissionaryProfilesNativeListView as MissionaryProfilesNativeListView_b8dc187b9406e8cface2d31cc33b69b2 } from "../../../src/cms-ui/web-studio/missionary-profiles/list/MissionaryProfilesNativeListView.tsx";
 import { MinistryUpdatesNativeEditView as MinistryUpdatesNativeEditView_2988c36246e97a895fa609e04a1355de } from "../../../src/cms-ui/web-studio/ministry-updates/document/MinistryUpdatesNativeEditView.tsx";
@@ -50,9 +44,18 @@ import { StandardPageFromTemplateView as StandardPageFromTemplateView_49a7f949c7
 import { ProjectPageCreateView as ProjectPageCreateView_94786e79bca1b62db27cfe5aaeb47d59 } from "../../../src/cms-ui/web-studio/flows/ProjectPageCreateView.tsx";
 import { MinistryUpdateCreateView as MinistryUpdateCreateView_d83db835455a052213c8588bac1de0d2 } from "../../../src/cms-ui/web-studio/flows/MinistryUpdateCreateView.tsx";
 import { CollectionCards as CollectionCards_ab83ff7e88da8d3530831f296ec4756a } from "@payloadcms/ui/rsc";
+import { MissionaryGivingPagesNativeEditView as MissionaryGivingPagesNativeEditView_19739b4172f6fb48f13053fa282ad7c8 } from "../../../src/cms-ui/web-studio/missionary-giving-pages/document/MissionaryGivingPagesNativeEditView.tsx";
+import { MissionaryGivingPagesNativeListView as MissionaryGivingPagesNativeListView_5d19d7eaa982bbdd573e1959d386d198 } from "../../../src/cms-ui/web-studio/missionary-giving-pages/list/MissionaryGivingPagesNativeListView.tsx";
+import { NavigationNativeEditView as NavigationNativeEditView_89733a0d11a108be918b6cb74b6e73aa } from "../../../src/cms-ui/web-studio/navigation/document/NavigationNativeEditView.tsx";
+import { NavigationNativeListView as NavigationNativeListView_2a580cedc1cf71d6ae56d8fa0fc5ec54 } from "../../../src/cms-ui/web-studio/navigation/list/NavigationNativeListView.tsx";
+import { PageTemplatesNativeEditView as PageTemplatesNativeEditView_84d26b7ab75fcdc7408c195c58424a29 } from "../../../src/cms-ui/web-studio/page-templates/document/PageTemplatesNativeEditView.tsx";
+import { PageTemplatesNativeListView as PageTemplatesNativeListView_e95bd28ce8d6da532d7ff2d818d9c42f } from "../../../src/cms-ui/web-studio/page-templates/list/PageTemplatesNativeListView.tsx";
+import { PagesNativeEditView as PagesNativeEditView_d2240ecf8805c7d12a67f984df1014cc } from "../../../src/cms-ui/web-studio/pages/document/PagesNativeEditView.tsx";
+import { PagesNativeListView as PagesNativeListView_dab9c45d6a71ea658c503a573240982c } from "../../../src/cms-ui/web-studio/pages/list/PagesNativeListView.tsx";
+import { ProjectPagesNativeEditView as ProjectPagesNativeEditView_4e33fe2c932ea64c5dec3a2eb647e157 } from "../../../src/cms-ui/web-studio/project-pages/document/ProjectPagesNativeEditView.tsx";
+import { ProjectPagesNativeListView as ProjectPagesNativeListView_2274f73ac126e7283c3deebcd3aaa6ea } from "../../../src/cms-ui/web-studio/project-pages/list/ProjectPagesNativeListView.tsx";
 
 /** @type import('payload').ImportMap */
-/** @type {Record<string, unknown>} */
 export const importMap = {
   "@payloadcms/richtext-lexical/rsc#RscEntryLexicalCell":
     RscEntryLexicalCell_44fe37237e0ebf4470c9990d8cb7b07e,

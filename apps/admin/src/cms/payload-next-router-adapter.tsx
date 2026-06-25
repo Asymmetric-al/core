@@ -1,7 +1,7 @@
 "use client";
 
 import { RouterAdapterContext } from "@payloadcms/ui";
-import NextLinkImport from "next/link.js";
+import Link from "next/link";
 import {
   useParams as useNextParams,
   usePathname as useNextPathname,
@@ -13,21 +13,6 @@ import React from "react";
 import type { RouterAdapterContextValue } from "@payloadcms/ui";
 import type { LinkAdapterProps } from "payload";
 
-type LinkComponent = React.FC<
-  {
-    children?: React.ReactNode;
-    href: string;
-    prefetch?: boolean;
-    ref?: React.Ref<HTMLAnchorElement>;
-    replace?: boolean;
-    scroll?: boolean;
-  } & Omit<React.AnchorHTMLAttributes<HTMLAnchorElement>, "href">
->;
-
-const NextLink: LinkComponent = ("default" in NextLinkImport
-  ? NextLinkImport.default
-  : NextLinkImport) as unknown as LinkComponent;
-
 const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
   children,
   href,
@@ -38,7 +23,7 @@ const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
   ...rest
 }) => {
   return (
-    <NextLink
+    <Link
       href={href}
       prefetch={prefetch}
       ref={ref}
@@ -47,17 +32,29 @@ const NextLinkAdapter: React.FC<LinkAdapterProps> = ({
       {...rest}
     >
       {children}
-    </NextLink>
+    </Link>
   );
 };
 
 export const NextRouterAdapter: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
+  return (
+    <React.Suspense fallback={null}>
+      <NextRouterAdapterProvider>{children}</NextRouterAdapterProvider>
+    </React.Suspense>
+  );
+};
+
+function NextRouterAdapterProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const nextRouter = useNextRouter();
   const pathname = useNextPathname();
   const searchParams = useNextSearchParams();
-  const params = useNextParams();
+  const nextParams = useNextParams();
 
   const router = React.useMemo<RouterAdapterContextValue["router"]>(
     () => ({
@@ -68,11 +65,12 @@ export const NextRouterAdapter: React.FC<{ children: React.ReactNode }> = ({
     }),
     [nextRouter],
   );
+  const params = React.useMemo(() => normalizeParams(nextParams), [nextParams]);
 
   const value = React.useMemo<RouterAdapterContextValue>(
     () => ({
       Link: NextLinkAdapter,
-      params: params as Record<string, string | string[]>,
+      params,
       pathname,
       router,
       searchParams,
@@ -81,4 +79,26 @@ export const NextRouterAdapter: React.FC<{ children: React.ReactNode }> = ({
   );
 
   return <RouterAdapterContext value={value}>{children}</RouterAdapterContext>;
-};
+}
+
+function normalizeParams(
+  params: ReturnType<typeof useNextParams>,
+): RouterAdapterContextValue["params"] {
+  const normalized: RouterAdapterContextValue["params"] = {};
+
+  for (const [key, value] of Object.entries(params)) {
+    if (typeof value === "string") {
+      normalized[key] = value;
+      continue;
+    }
+
+    if (
+      Array.isArray(value) &&
+      value.every((entry) => typeof entry === "string")
+    ) {
+      normalized[key] = value;
+    }
+  }
+
+  return normalized;
+}
