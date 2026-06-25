@@ -7,6 +7,7 @@ import {
   type ContributionAdjustmentRecord,
   type EffectiveContributionResult,
 } from "../../contribution-shared/effective-values";
+import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
@@ -110,6 +111,7 @@ interface LabelRow {
     full_name?: string | null;
     first_name?: string | null;
     last_name?: string | null;
+    email?: string | null;
   } | null;
 }
 
@@ -170,14 +172,7 @@ function previewNotes(notes: string | null): string | null {
 }
 
 function profileName(row: LabelRow): string | null {
-  const profile = row.profile ?? {};
-  return (
-    profile.display_name?.trim() ||
-    profile.full_name?.trim() ||
-    [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim() ||
-    row.name?.trim() ||
-    null
-  );
+  return resolveContributionProfileLabel(row.profile, row.name ?? null);
 }
 
 function getLabel(
@@ -203,7 +198,7 @@ async function fetchLabels(
 
   const select =
     table === "missionaries"
-      ? "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name)"
+      ? "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)"
       : "id, name";
   const { data, error } = await supabaseAdmin
     .from(table)
