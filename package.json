@@ -44,7 +44,7 @@
     "typecheck:donor": "turbo run typecheck --filter=@asym/donor",
     "check": "bun run lint && bun run typecheck && bun run test:unit",
     "test": "bun run test:unit",
-    "test:unit": "vitest run --coverage",
+    "test:unit": "vitest run --coverage --maxWorkers=4 --maxConcurrency=2",
     "test:unit:feedback": "node scripts/verify/unit-feedback.mjs",
     "test:unit:cms": "vitest run tests/unit/cms",
     "test:e2e": "node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test --grep-invert \"@perf|@manual|@cms\"",
