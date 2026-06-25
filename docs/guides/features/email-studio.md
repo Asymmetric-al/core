@@ -39,7 +39,7 @@ Primary files:
 
 ```env
 NEXT_PUBLIC_EMAIL_STUDIO_BUILDER=react_email
-NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED=true
+NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED=false
 ```
 
 Email Studio uses React Email Editor exclusively — `getEmailStudioBuilderConfig()` always returns `react_email`. The `NEXT_PUBLIC_EMAIL_STUDIO_BUILDER` and `NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED` flags remain in the env schema but no longer switch the email editor.

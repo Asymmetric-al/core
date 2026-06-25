@@ -22,7 +22,7 @@ export function EmailStudioProviderStatus({
 }: EmailStudioProviderStatusProps) {
   const badge = (
     <Badge variant="default" className="h-7 gap-1.5 rounded-md px-2">
-      <BadgeCheck className="h-3.5 w-3.5" />
+      <BadgeCheck />
       React Email
     </Badge>
   );
@@ -33,7 +33,7 @@ export function EmailStudioProviderStatus({
         <TooltipTrigger asChild>{badge}</TooltipTrigger>
         <TooltipContent side="bottom">
           <p>
-            New templates use React Email Editor and the existing Resend
+            Email Studio uses React Email Editor; sending still uses the Resend
             delivery layer.
           </p>
         </TooltipContent>
@@ -43,7 +43,7 @@ export function EmailStudioProviderStatus({
 
   return (
     <div className="flex items-center gap-2 rounded-md border bg-background px-3 py-2 text-sm">
-      <Mail className="h-4 w-4 text-primary" />
+      <Mail />
       <span className="font-medium">React Email</span>
       <span className="text-muted-foreground">
         Editor runtime separate from Resend sending

@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  type EmailBuilderKind,
   type EmailStudioEditorHandle,
   type EmailStudioExportResult,
 } from "@asym/email/email-builder-types";
@@ -13,7 +12,7 @@ export interface EmailStudioEditorProps {
   initialDesign?: Record<string, unknown> | string | null;
   templateId?: string | null;
   className?: string;
-  onReady?: (builder: EmailBuilderKind) => void;
+  onReady?: () => void;
   onDesignUpdate?: (design: Record<string, unknown>) => void;
   onExport?: (result: EmailStudioExportResult) => void;
 }
@@ -39,7 +38,7 @@ export const EmailStudioEditor = forwardRef<
       initialDesign={initialDesign}
       templateId={templateId}
       className={className}
-      onReady={() => onReady?.("react_email")}
+      onReady={onReady}
       onDesignUpdate={onDesignUpdate}
       onExport={onExport}
     />
