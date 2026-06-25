@@ -95,7 +95,7 @@ describe("bun version guard", () => {
     30000,
   );
 
-  itIfBashCanRunBun(
+  itIfFakeBunCanShadowPath(
     "fails fast when the Bun binary does not match packageManager",
     () => {
       const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
