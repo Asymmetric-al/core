@@ -145,7 +145,7 @@ The implementation is not production-complete until Phase 07 evidence exists. Th
   - `docs/guides/operations/twenty-crm-cutover.md`
 - Verified:
   - Operations runbook exists.
-  - Phase 07 requires domain ledger, staging parity, backup/restore proof, monitoring, rollback rehearsal, support owner, rollback owner, and go/no-go record.
+  - Phase 07 requires domain ledger, development parity, backup/restore proof, monitoring, rollback rehearsal, support owner, rollback owner, and go/no-go record.
 - Remaining proof:
   - No production domain evidence exists in this repo snapshot. Do not call Phase 07 production-complete.
 
@@ -228,12 +228,12 @@ Browser smoke:
 ## Failed Or Missing Requirements
 
 1. Production cutover evidence is absent. Phase 07 remains `operations-ready, production evidence pending`.
-2. Live configured Mission Control mode with real `TWENTY_*` production/staging credentials was not run against a durable staging Twenty instance. The local Twenty proof used an isolated proof workspace and local proof credentials only.
+2. Live configured Mission Control mode with real `TWENTY_*` production/development credentials was not run against a durable development Twenty instance. The local Twenty proof used an isolated proof workspace and local proof credentials only.
 
 ## Recommended Follow-Up Fixes
 
-1. Keep Phase 07 blocked until each production domain has a dated evidence note with staging parity, backup/restore proof, monitoring, rollback rehearsal, support owner, rollback owner, and go/no-go result.
-2. When staging `TWENTY_*` credentials exist, run the Mission Control configured-mode smoke against those credentials and append the evidence to this report.
+1. Keep Phase 07 blocked until each production domain has a dated evidence note with development parity, backup/restore proof, monitoring, rollback rehearsal, support owner, rollback owner, and go/no-go result.
+2. When development `TWENTY_*` credentials exist, run the Mission Control configured-mode smoke against those credentials and append the evidence to this report.
 
 ## Production Evidence Status
 

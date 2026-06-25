@@ -8,6 +8,11 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
 import {
+  getContributionCorrectionTemplateBinding,
+  isContributionCorrectionTemplateFamily,
+  validateContributionCorrectionTemplate,
+} from "./contribution-correction-template-validation";
+import {
   createEmailTemplate,
   deleteEmailTemplate,
   duplicateEmailTemplate,
@@ -17,6 +22,7 @@ import {
   requireEmailTemplate,
   restoreEmailTemplateVersion,
   updateEmailTemplate,
+  type EmailTemplateRow,
 } from "./template-store";
 import {
   ApiHttpError,
@@ -54,6 +60,8 @@ function validateTemplateMergeTags(input: {
   textContent?: string | null;
   defaultSubject?: string | null;
   defaultPreheader?: string | null;
+  editorMetadata?: Record<string, unknown>;
+  isActive?: boolean;
 }) {
   const validation = validateMergeTags(
     [
@@ -63,6 +71,81 @@ function validateTemplateMergeTags(input: {
       input.defaultPreheader ?? "",
     ].join("\n"),
   );
+
+  if (!validation.valid) {
+    throw new ApiHttpError(400, validation.errors.join("; "));
+  }
+
+  validateEmailTemplateForActivation(input);
+}
+
+function patchNeedsEffectiveValidation(
+  patch: z.infer<typeof templatePatchSchema>,
+) {
+  return (
+    patch.htmlContent !== undefined ||
+    patch.textContent !== undefined ||
+    patch.editorMetadata !== undefined ||
+    patch.isActive !== undefined
+  );
+}
+
+function buildEffectiveTemplateValidationInput(
+  patch: z.infer<typeof templatePatchSchema>,
+  current: EmailTemplateRow,
+) {
+  return {
+    htmlContent:
+      patch.htmlContent !== undefined
+        ? patch.htmlContent
+        : current.html_content,
+    textContent:
+      patch.textContent !== undefined
+        ? patch.textContent
+        : current.text_content,
+    defaultSubject:
+      patch.defaultSubject !== undefined
+        ? patch.defaultSubject
+        : current.default_subject,
+    defaultPreheader:
+      patch.defaultPreheader !== undefined
+        ? patch.defaultPreheader
+        : current.default_preheader,
+    editorMetadata:
+      patch.editorMetadata !== undefined
+        ? patch.editorMetadata
+        : current.editor_metadata,
+    isActive: patch.isActive !== undefined ? patch.isActive : current.is_active,
+  };
+}
+
+export function validateEmailTemplateForActivation(input: {
+  htmlContent?: string | null;
+  textContent?: string | null;
+  editorMetadata?: Record<string, unknown>;
+  isActive?: boolean;
+}) {
+  const binding = getContributionCorrectionTemplateBinding(
+    input.editorMetadata,
+  );
+  if (!binding) {
+    return;
+  }
+
+  if (!isContributionCorrectionTemplateFamily(binding.family)) {
+    throw new ApiHttpError(
+      400,
+      "Unknown contribution correction template family.",
+    );
+  }
+
+  const validation = validateContributionCorrectionTemplate({
+    family: binding.family,
+    variant: binding.variant,
+    html: input.htmlContent ?? "",
+    text: input.textContent ?? "",
+    active: input.isActive !== false,
+  });
 
   if (!validation.valid) {
     throw new ApiHttpError(400, validation.errors.join("; "));
@@ -140,6 +223,18 @@ export async function PATCH_TEMPLATE(
     const body = templatePatchSchema.parse(await ensureJsonBody(request));
 
     validateTemplateMergeTags(body);
+
+    if (patchNeedsEffectiveValidation(body)) {
+      const current = await readEmailTemplate(ctx.tenantId, templateId);
+
+      if (!current) {
+        throw new ApiHttpError(404, "Email template not found");
+      }
+
+      validateTemplateMergeTags(
+        buildEffectiveTemplateValidationInput(body, current),
+      );
+    }
 
     const result = await updateEmailTemplate({
       tenantId: ctx.tenantId,

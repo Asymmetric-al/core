@@ -1,6 +1,12 @@
 "use client";
 
-import { formatCurrency, getInitials } from "@asym/lib/utils";
+import {
+  formatSharedContributionAmount,
+  SHARED_PAYMENT_STATUS_LABELS,
+  SHARED_RECEIPT_STATUS_LABELS,
+  type SharedContributionReceiptStatus,
+} from "@asym/api/admin/contribution-shared";
+import { getInitials } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
@@ -29,10 +35,7 @@ import {
   Eye,
   FileText,
   Globe,
-  Mail,
   MoreHorizontal,
-  Receipt,
-  RefreshCcw,
   RotateCcw,
   XCircle,
 } from "lucide-react";
@@ -70,11 +73,30 @@ const statusConfig: Record<
   },
 };
 
-const statusLabels: Record<ContributionStatus, string> = {
-  completed: "Completed",
-  pending: "Pending",
-  failed: "Failed",
-  refunded: "Refunded",
+const receiptStatusConfig: Record<
+  SharedContributionReceiptStatus,
+  { icon: typeof CircleCheck; className: string }
+> = {
+  sent: {
+    icon: CircleCheck,
+    className:
+      "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-400 dark:border-emerald-800",
+  },
+  pending: {
+    icon: Clock,
+    className:
+      "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
+  },
+  failed: {
+    icon: XCircle,
+    className:
+      "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/50 dark:text-red-400 dark:border-red-800",
+  },
+  not_sent: {
+    icon: Clock,
+    className:
+      "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
+  },
 };
 
 const paymentMethodIcons: Record<PaymentMethod, typeof CreditCard> = {
@@ -156,7 +178,10 @@ export function getContributionColumns({
       ),
       cell: ({ row }) => (
         <div className="text-right font-semibold text-foreground tabular-nums">
-          {formatCurrency(row.original.amountGross)}
+          {formatSharedContributionAmount(
+            row.original.shared.amountCents,
+            row.original.shared.currencyCode,
+          )}
         </div>
       ),
       enableSorting: true,
@@ -205,7 +230,7 @@ export function getContributionColumns({
             )}
           >
             <Icon className="size-3" />
-            {statusLabels[status]}
+            {SHARED_PAYMENT_STATUS_LABELS[status]}
           </Badge>
         );
       },
@@ -237,7 +262,7 @@ export function getContributionColumns({
       cell: ({ row }) => (
         <div className="flex flex-col">
           <span className="text-sm font-medium text-foreground">
-            {row.original.fundName || "General Fund"}
+            {row.original.shared.designationSummary.fundName}
           </span>
           <span className="text-xs text-muted-foreground">
             {row.original.fundCode || "GENERAL"}
@@ -306,22 +331,16 @@ export function getContributionColumns({
         <DataTableColumnHeader column={column} title="Receipt" />
       ),
       cell: ({ row }) => {
-        const sent = row.original.receiptSent;
-        return sent ? (
+        const receiptStatus = row.original.shared.receiptStatus;
+        const config = receiptStatusConfig[receiptStatus];
+        const Icon = config.icon;
+        return (
           <Badge
             variant="outline"
-            className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 text-xs"
+            className={cn("gap-1 text-xs", config.className)}
           >
-            <CircleCheck className="size-3" />
-            Sent
-          </Badge>
-        ) : (
-          <Badge
-            variant="outline"
-            className="gap-1 bg-zinc-50 text-zinc-500 border-zinc-200 text-xs"
-          >
-            <Clock className="size-3" />
-            Pending
+            <Icon className="size-3" />
+            {SHARED_RECEIPT_STATUS_LABELS[receiptStatus]}
           </Badge>
         );
       },
@@ -359,7 +378,10 @@ export function getContributionColumns({
       cell: ({ row }) => (
         <div className="text-right font-semibold text-foreground tabular-nums">
           {row.original.amountNet != null
-            ? formatCurrency(row.original.amountNet)
+            ? formatSharedContributionAmount(
+                row.original.amountNet,
+                row.original.shared.currencyCode,
+              )
             : "Unavailable"}
         </div>
       ),
@@ -402,13 +424,19 @@ export function getContributionColumns({
       id: "actions",
       cell: ({ row }) => {
         const contribution = row.original;
+        const donorName = contribution.isAnonymous
+          ? "Anonymous"
+          : contribution.donorName;
 
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="size-8 p-0">
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="size-4" />
+              <Button
+                variant="ghost"
+                className="size-8 p-0"
+                aria-label={`Contribution actions for ${donorName}`}
+              >
+                <MoreHorizontal className="size-4" aria-hidden="true" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-48">
@@ -430,20 +458,6 @@ export function getContributionColumns({
                 <Eye className="mr-2 size-4" />
                 View Details
               </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Mail className="mr-2 size-4" />
-                Email Donor
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Receipt className="mr-2 size-4" />
-                Send Receipt
-              </DropdownMenuItem>
-              {contribution.status === "failed" && (
-                <DropdownMenuItem>
-                  <RefreshCcw className="mr-2 size-4" />
-                  Retry Payment
-                </DropdownMenuItem>
-              )}
             </DropdownMenuContent>
           </DropdownMenu>
         );

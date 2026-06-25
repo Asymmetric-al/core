@@ -19,7 +19,7 @@ archive-only
 
 - Phase 3 proof marker: `PHASE3_PROOF_DELETE_20260513175115`
 - Twenty Cloud `giftSummaries` temporary proof record: `f7bd4680-5d66-4d58-b15f-c5d206a706fa`
-- Supabase staging proof records documented by Phase 3 evidence:
+- Supabase development proof records documented by Phase 3 evidence:
   - `staged_gifts`: `4dea1e22-74f1-4727-a83b-e7f138b87f46`
   - `donation_crm_links`: `63adbf54-50f5-4c06-9ac1-981ab93e46ff`
   - outbound job reference: `6c480a63-d08a-431a-bd1d-ceb7abbd75d3`
