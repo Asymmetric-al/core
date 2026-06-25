@@ -44,6 +44,15 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
     }
   }, [activeKind, agents, inboxes, labels]);
 
+  const selectedScopeId = state.scopeId || options[0]?.id || "";
+
+  React.useEffect(() => {
+    if (state.scopeId || !selectedScopeId) {
+      return;
+    }
+    setState({ scopeId: selectedScopeId });
+  }, [selectedScopeId, setState, state.scopeId]);
+
   return (
     <div className="flex items-end gap-2">
       {!lockKind ? (
@@ -79,7 +88,7 @@ export function ReportScopeSelect({ lockKind }: ReportScopeSelectProps) {
             {activeKind.charAt(0).toUpperCase() + activeKind.slice(1)}
           </Label>
           <Select
-            value={state.scopeId || options[0]?.id || ""}
+            value={selectedScopeId}
             onValueChange={(value) => {
               if (value === null) {
                 return;
