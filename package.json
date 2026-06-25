@@ -212,7 +212,14 @@
     "@asym/pdf-renderer": "file:vendor/react-pdf-packages/asym-pdf-renderer",
     "@asym/pdf-studio-adapter": "file:vendor/react-pdf-packages/asym-pdf-studio-adapter",
     "@asym/pdf-template-schema": "file:vendor/react-pdf-packages/asym-pdf-template-schema",
-    "@tanstack/db": "0.6.4"
+    "@payloadcms/db-postgres": "4.0.0-internal.1f9ae9a",
+    "@payloadcms/email-resend": "4.0.0-internal.1f9ae9a",
+    "@payloadcms/next": "4.0.0-internal.1f9ae9a",
+    "@payloadcms/richtext-lexical": "4.0.0-internal.1f9ae9a",
+    "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
+    "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
+    "@tanstack/db": "0.6.4",
+    "payload": "4.0.0-internal.1f9ae9a"
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [

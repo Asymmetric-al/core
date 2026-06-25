@@ -27,6 +27,10 @@ let fetchPublishedCmsUpdates: (
   limit?: number,
   hostOverride?: string,
 ) => Promise<Array<Record<string, unknown>>>;
+let fetchPublishedCmsUpdatesResult: (
+  limit?: number,
+  hostOverride?: string,
+) => Promise<unknown>;
 let fetchPublishedMissionaryGivingPageResult: (
   missionaryId: string,
   hostOverride?: string,
@@ -50,6 +54,7 @@ beforeAll(async () => {
   buildPublicCmsPagePath = donorModule.buildPublicCmsPagePath;
   fetchPublishedCmsPageResult = donorModule.fetchPublishedCmsPageResult;
   fetchPublishedCmsUpdates = donorModule.fetchPublishedCmsUpdates;
+  fetchPublishedCmsUpdatesResult = donorModule.fetchPublishedCmsUpdatesResult;
   fetchPublishedMissionaryGivingPageResult =
     donorModule.fetchPublishedMissionaryGivingPageResult;
   fetchPublishedProjectPageResult = donorModule.fetchPublishedProjectPageResult;
@@ -378,6 +383,29 @@ describe("donor CMS content helpers", () => {
         }),
       ),
     );
+
+    await expect(
+      fetchPublishedCmsUpdates(5, "alpha.example.org"),
+    ).resolves.toEqual([]);
+  });
+
+  it("classifies public CMS update failures as structured CMS response failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "Tenant not found" }), {
+          status: 404,
+        }),
+      ),
+    );
+
+    await expect(
+      fetchPublishedCmsUpdatesResult(5, "alpha.example.org"),
+    ).resolves.toEqual({
+      status: "unavailable",
+      statusCode: 404,
+      error: "Tenant not found",
+    });
 
     await expect(
       fetchPublishedCmsUpdates(5, "alpha.example.org"),
