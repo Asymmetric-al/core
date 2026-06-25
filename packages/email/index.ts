@@ -56,6 +56,14 @@ export {
 } from "./merge-tags";
 
 export {
+  CONTRIBUTION_CORRECTION_MERGE_TAG_CATEGORY,
+  CONTRIBUTION_CORRECTION_TEMPLATE_FAMILIES,
+  getContributionCorrectionRequiredTags,
+  type ContributionCorrectionTemplateFamily,
+  type ContributionCorrectionTemplateVariant,
+} from "./contribution-correction-tags";
+
+export {
   parseMergeTags,
   renderMergeTags,
   renderTemplateForRecipient,

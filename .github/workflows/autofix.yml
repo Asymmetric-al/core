@@ -1,0 +1,119 @@
+name: Autofix PR from Safe-Fix Plan
+
+# Dispatched by the merge coordinator (scripts/github/merge-coordinator.mjs) when an open
+# develop PR has a "Simple Safe-Fix Plan" with blocking items. A headless cursor-agent
+# implements ONLY those blocking items and commits them to the PR's OWN branch (keeps the PR
+# one reviewable unit). The push re-triggers CI + the Tier-1 review bots + the planner; the
+# coordinator then re-evaluates the fixed head. Bounded by a 3-round cap; a no-op fix
+# escalates to `needs-human` so the loop cannot spin.
+#
+# Dispatch-only: the coordinator is the single trigger (avoids double-firing). This file must
+# live on the repo default branch (production) to be dispatchable. See RERUN-AND-ACTIVATION.md.
+#
+# Secrets required:
+#   PIPELINE_PAT   — fine-grained PAT (contents:write, pull-requests:write) for the
+#                    II-ricky-bobby-II identity. Used for checkout + push so the fix commit
+#                    re-triggers CI/reviews (GITHUB_TOKEN pushes do NOT re-trigger workflows).
+#   CURSOR_API_KEY — from Cursor → Settings → API keys (headless agent auth).
+
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: "PR number to fix"
+        required: true
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: autofix-${{ github.event.inputs.pr_number }}
+  cancel-in-progress: false
+
+jobs:
+  autofix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve PR number
+        id: pr
+        run: echo "number=${{ github.event.inputs.pr_number }}" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.PIPELINE_PAT }}
+
+      - name: Eligibility + round cap
+        id: guard
+        env:
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: node scripts/github/autofix-guard.mjs
+
+      - name: Check out the PR branch
+        if: steps.guard.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+        run: gh pr checkout ${{ steps.pr.outputs.number }} --repo ${{ github.repository }}
+
+      - uses: oven-sh/setup-bun@v2
+        if: steps.guard.outputs.proceed == 'true'
+        with:
+          bun-version: "1.3.14"
+
+      - name: Install Cursor CLI
+        if: steps.guard.outputs.proceed == 'true'
+        run: |
+          curl https://cursor.com/install -fsS | bash
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Fetch the Safe-Fix Plan to a file
+        id: plan
+        if: steps.guard.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          # The planner posts as a PR *review*. Use the REST reviews API (same contract as the
+          # coordinator: `user.login` is "cursor[bot]" here, whereas `gh pr view --json reviews`
+          # exposes it as "cursor"). Filter to the current head via commit_id. Write the body to a
+          # file OUTSIDE the repo so it is never committed and never interpolated onto a command
+          # line (avoids shell injection from comment text).
+          PLAN_FILE="$RUNNER_TEMP/safe-fix-plan.md"
+          HEAD_SHA="$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json headRefOid --jq .headRefOid)"
+          gh api "/repos/$GITHUB_REPOSITORY/pulls/$PR/reviews?per_page=100" \
+            --jq "[.[] | select(.user.login==\"cursor[bot]\") | select(.commit_id==\"$HEAD_SHA\") | select(.body|test(\"Simple Safe-Fix Plan\"))] | last | .body" > "$PLAN_FILE"
+          echo "file=$PLAN_FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Apply the Safe-Fix Plan (headless cursor-agent)
+        if: steps.guard.outputs.proceed == 'true'
+        env:
+          CURSOR_API_KEY: ${{ secrets.CURSOR_API_KEY }}
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+          PR: ${{ steps.pr.outputs.number }}
+          PLAN_FILE: ${{ steps.plan.outputs.file }}
+        run: |
+          cursor-agent -p "You are fixing PR #$PR in Asymmetric-al/core, already checked out on its own branch. First read the Safe-Fix Plan saved at the path in the PLAN_FILE environment variable, then implement ONLY its BLOCKING items. Do not widen scope, do not refactor unrelated code, never weaken or delete tests, never edit .github/workflows, never push to production. Make the smallest safe edits. Do NOT commit or push — the workflow commits. If a blocking item is ambiguous or architectural, leave it and note it." --model gpt-5.5 --force --print
+
+      - name: Commit & push the fix
+        if: steps.guard.outputs.proceed == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.PIPELINE_PAT }}
+          PR: ${{ steps.pr.outputs.number }}
+        run: |
+          git config user.name "Blake"
+          git config user.email "116130409+II-ricky-bobby-II@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "Autofix produced no changes — escalating to needs-human."
+            gh label create automation:auto-escalated --repo "$GITHUB_REPOSITORY" --color FBCA04 --description "needs-human applied by the merge pipeline; auto-cleared when the blocker resolves" --force || true
+            gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" \
+              --body "⚠️ Autofix ran but produced no code changes for the Safe-Fix Plan's blocking items. A person should take a look. Labeling \`needs-human\`. (Auto-recoverable: the merge coordinator un-parks it once new commits land or the blocker clears.)"
+            gh issue edit "$PR" --repo "$GITHUB_REPOSITORY" --add-label needs-human,automation:auto-escalated
+          else
+            git commit -m "fix: apply Safe-Fix Plan [autofix round ${{ steps.guard.outputs.round }}]"
+            git push
+          fi

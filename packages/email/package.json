@@ -11,6 +11,7 @@
     "./types": "./types.ts",
     "./email-studio-types": "./email-studio-types.ts",
     "./email-builder-types": "./email-builder-types.ts",
+    "./contribution-correction-tags": "./contribution-correction-tags.ts",
     "./merge-tags": "./merge-tags.ts",
     "./merge-tag-render": "./merge-tag-render.ts",
     "./legacy/unlayer-types": "./legacy/unlayer-types.ts"

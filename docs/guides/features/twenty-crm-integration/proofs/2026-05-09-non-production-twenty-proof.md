@@ -8,7 +8,7 @@ Environment: isolated local Docker Compose stack, project `asymtwentyproof`, scr
 
 This proof used the official Twenty Docker Compose topology from `twentyhq/twenty` with the server exposed locally on `http://127.0.0.1:55440`.
 
-The initial webhook receiver attempt used Twenty's default `OUTBOUND_HTTP_SAFE_MODE_ENABLED=true`, which blocks private/internal IP webhook targets. The final webhook signing pass used the same isolated local stack with `OUTBOUND_HTTP_SAFE_MODE_ENABLED=false` for the server and worker so a local receiver at `http://host.docker.internal:55445/twenty-webhook` could capture the request. Production and shared staging should keep outbound safe mode enabled and use a routable HTTPS receiver.
+The initial webhook receiver attempt used Twenty's default `OUTBOUND_HTTP_SAFE_MODE_ENABLED=true`, which blocks private/internal IP webhook targets. The final webhook signing pass used the same isolated local stack with `OUTBOUND_HTTP_SAFE_MODE_ENABLED=false` for the server and worker so a local receiver at `http://host.docker.internal:55445/twenty-webhook` could capture the request. Production and shared development should keep outbound safe mode enabled and use a routable HTTPS receiver.
 
 Services proven:
 

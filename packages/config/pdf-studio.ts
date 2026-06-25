@@ -10,7 +10,7 @@ export interface UnlayerAccountConfig {
   isConfigured: boolean;
   isWhiteLabel: boolean;
   allowedDomains: string[];
-  environment: "development" | "staging" | "production";
+  environment: "development" | "production";
 }
 
 export interface PDFStudioBrandConfig {
@@ -54,8 +54,14 @@ export interface PDFStudioFullConfig {
   };
 }
 
-function getEnvironment(): "development" | "staging" | "production" {
+function getEnvironment(): "development" | "production" {
+  // On the server, prefer Vercel's environment signal. NODE_ENV is "production" for ALL Vercel
+  // deployments (preview/staging included), so it cannot distinguish them from production.
   if (typeof window === "undefined") {
+    const vercelEnv = runtimeEnvFlags.VERCEL_ENV;
+    if (vercelEnv) {
+      return vercelEnv === "production" ? "production" : "development";
+    }
     return runtimeEnvFlags.NODE_ENV === "production"
       ? "production"
       : "development";
@@ -65,8 +71,14 @@ function getEnvironment(): "development" | "staging" | "production" {
   if (hostname === "localhost" || hostname === "127.0.0.1") {
     return "development";
   }
-  if (hostname.includes("staging") || hostname.includes("preview")) {
-    return "staging";
+  // Treat dev/staging/preview hosts as non-production. The staging→development rename dropped
+  // the legacy "staging" match, which let staging hosts fall through to "production".
+  if (
+    hostname.includes("development") ||
+    hostname.includes("staging") ||
+    hostname.includes("preview")
+  ) {
+    return "development";
   }
   return "production";
 }
