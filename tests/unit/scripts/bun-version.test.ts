@@ -30,9 +30,7 @@ function resolveBunPath(): string {
   }
 
   const command =
-    process.platform === "win32"
-      ? "C:\\Windows\\System32\\where.exe"
-      : "which";
+    process.platform === "win32" ? "C:\\Windows\\System32\\where.exe" : "which";
   const result = spawnSync(command, ["bun"], { encoding: "utf8" });
   const firstMatch = result.stdout?.split(/\r?\n/).find(Boolean);
 
