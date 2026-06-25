@@ -23,7 +23,7 @@ const bannedAppSourcePatterns = [
 const bannedRawSupabaseAppImports = ["@supabase/supabase-js"];
 const bannedBrowserSupabaseAppImports = [
   "@asym/database/supabase/client",
-  "@asym/database/supabase\"",
+  '@asym/database/supabase"',
   "@asym/database/supabase'",
 ];
 const appSupabaseImportAllowlist = new Set([

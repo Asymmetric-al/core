@@ -16,12 +16,15 @@ describe("canonical TanStack DB Supabase migration", () => {
   it("uses duplicate-safe realtime publication checks", () => {
     expect(migrationSql).toContain("pg_publication_tables");
     expect(migrationSql).toContain("supabase_realtime");
-    expect(migrationSql).toContain("ALTER PUBLICATION supabase_realtime ADD TABLE");
+    expect(migrationSql).toContain(
+      "ALTER PUBLICATION supabase_realtime ADD TABLE",
+    );
   });
 
   it("keeps finance and server-only tables out of the realtime allowlist", () => {
     const realtimeBlock =
-      migrationSql.match(/FOREACH realtime_table IN ARRAY ARRAY\[[\s\S]*?\]/)
+      migrationSql
+        .match(/FOREACH realtime_table IN ARRAY ARRAY\[[\s\S]*?\]/)
         ?.at(0) ?? "";
 
     expect(realtimeBlock).not.toContain("donations");
