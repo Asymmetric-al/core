@@ -46,9 +46,9 @@ await inngest.send({
     amount: 1000,
     metadata: {
       accountId: "acct_1J5g2n2eZvKYlo2C0Z1Z2Z3Z",
-      accountName: "Acme.ai"
-    }
-  }
+      accountName: "Acme.ai",
+    },
+  },
 });
 ```
 
@@ -95,8 +95,8 @@ await inngest.send({
   name: "storefront/cart.checkout.completed",
   data: {
     cartId: "ed12c8bde",
-    items: ["item1", "item2"]
-  }
+    items: ["item1", "item2"],
+  },
 });
 ```
 
@@ -132,8 +132,8 @@ await inngest.send({
   ts: oneHourFromNow, // Deliver in 1 hour
   data: {
     userId: "user_123",
-    trialExpiresAt: "2024-02-15T12:00:00Z"
-  }
+    trialExpiresAt: "2024-02-15T12:00:00Z",
+  },
 });
 ```
 
@@ -145,13 +145,13 @@ const events = [
   {
     name: "user/action.performed",
     ts: 1640995200000, // Earlier
-    data: { action: "login" }
+    data: { action: "login" },
   },
   {
     name: "user/action.performed",
     ts: 1640995260000, // Later
-    data: { action: "purchase" }
-  }
+    data: { action: "purchase" },
+  },
 ];
 
 await inngest.send(events);
@@ -170,8 +170,8 @@ await inngest.send({
   data: {
     userId: "user_123",
     email: "user@example.com",
-    plan: "pro"
-  }
+    plan: "pro",
+  },
 });
 
 // Multiple functions respond to same event
@@ -181,10 +181,10 @@ const sendWelcomeEmail = inngest.createFunction(
     await step.run("send-email", async () => {
       return sendEmail({
         to: event.data.email,
-        template: "welcome"
+        template: "welcome",
       });
     });
-  }
+  },
 );
 
 const createTrialSubscription = inngest.createFunction(
@@ -193,10 +193,10 @@ const createTrialSubscription = inngest.createFunction(
     await step.run("create-subscription", async () => {
       return stripe.subscriptions.create({
         customer: event.data.stripeCustomerId,
-        trial_period_days: 14
+        trial_period_days: 14,
       });
     });
-  }
+  },
 );
 
 const addToCrm = inngest.createFunction(
@@ -205,10 +205,10 @@ const addToCrm = inngest.createFunction(
     await step.run("crm-sync", async () => {
       return crm.contacts.create({
         email: event.data.email,
-        plan: event.data.plan
+        plan: event.data.plan,
       });
     });
-  }
+  },
 );
 ```
 
@@ -225,13 +225,16 @@ In expressions, `event` = the **original** triggering event, `async` = the **new
 
 ```typescript
 const orchestrateOnboarding = inngest.createFunction(
-  { id: "orchestrate-onboarding", triggers: [{ event: "user/signup.completed" }] },
+  {
+    id: "orchestrate-onboarding",
+    triggers: [{ event: "user/signup.completed" }],
+  },
   async ({ event, step }) => {
     // Fan out to multiple services
     await step.sendEvent("fan-out", [
       { name: "email/welcome.send", data: event.data },
       { name: "subscription/trial.create", data: event.data },
-      { name: "crm/contact.add", data: event.data }
+      { name: "crm/contact.add", data: event.data },
     ]);
 
     // Wait for all to complete
@@ -239,25 +242,25 @@ const orchestrateOnboarding = inngest.createFunction(
       step.waitForEvent("email-sent", {
         event: "email/welcome.sent",
         timeout: "5m",
-        if: `event.data.userId == async.data.userId`
+        if: `event.data.userId == async.data.userId`,
       }),
       step.waitForEvent("subscription-created", {
         event: "subscription/trial.created",
         timeout: "5m",
-        if: `event.data.userId == async.data.userId`
+        if: `event.data.userId == async.data.userId`,
       }),
       step.waitForEvent("crm-synced", {
         event: "crm/contact.added",
         timeout: "5m",
-        if: `event.data.userId == async.data.userId`
-      })
+        if: `event.data.userId == async.data.userId`,
+      }),
     ]);
 
     // Complete onboarding
     await step.run("complete-onboarding", async () => {
       return completeUserOnboarding(event.data.userId);
     });
-  }
+  },
 );
 ```
 
@@ -280,7 +283,10 @@ Inngest emits system events for function lifecycle monitoring:
 
 ```typescript
 const handleFailures = inngest.createFunction(
-  { id: "handle-failed-functions", triggers: [{ event: "inngest/function.failed" }] },
+  {
+    id: "handle-failed-functions",
+    triggers: [{ event: "inngest/function.failed" }],
+  },
   async ({ event, step }) => {
     const { function_id, run_id, error } = event.data;
 
@@ -289,7 +295,7 @@ const handleFailures = inngest.createFunction(
         functionId: function_id,
         runId: run_id,
         error: error.message,
-        stack: error.stack
+        stack: error.stack,
       });
     });
 
@@ -299,7 +305,7 @@ const handleFailures = inngest.createFunction(
         return alerting.sendAlert({
           title: `Critical function failed: ${function_id}`,
           severity: "high",
-          runId: run_id
+          runId: run_id,
         });
       });
     }
@@ -310,11 +316,11 @@ const handleFailures = inngest.createFunction(
         return inngest.send({
           name: "retry/function.requested",
           ts: Date.now() + 5 * 60 * 1000, // Retry in 5 minutes
-          data: { originalRunId: run_id }
+          data: { originalRunId: run_id },
         });
       });
     }
-  }
+  },
 );
 ```
 
@@ -327,7 +333,7 @@ const handleFailures = inngest.createFunction(
 import { Inngest } from "inngest";
 
 export const inngest = new Inngest({
-  id: "my-app"
+  id: "my-app",
 });
 // You must set INNGEST_EVENT_KEY environment variable in production
 ```
@@ -343,9 +349,9 @@ const result = await inngest.send({
     amount: 2500,
     items: [
       { id: "item_1", quantity: 2 },
-      { id: "item_2", quantity: 1 }
-    ]
-  }
+      { id: "item_2", quantity: 1 },
+    ],
+  },
 });
 
 // Returns event IDs for tracking
@@ -364,8 +370,8 @@ const events = orderItems.map((item) => ({
     itemId: item.id,
     orderId: orderId,
     quantity: item.quantity,
-    warehouseId: item.warehouseId
-  }
+    warehouseId: item.warehouseId,
+  },
 }));
 
 // Send all at once (up to 512kb)
@@ -384,10 +390,10 @@ inngest.createFunction(
       name: "fulfillment/order.received",
       data: {
         orderId: event.data.orderId,
-        priority: event.data.customerTier === "premium" ? "high" : "normal"
-      }
+        priority: event.data.customerTier === "premium" ? "high" : "normal",
+      },
     });
-  }
+  },
 );
 ```
 
@@ -404,14 +410,14 @@ await inngest.send({
     userId: "user_123",
     changes: {
       email: "new@example.com",
-      preferences: { theme: "dark" }
+      preferences: { theme: "dark" },
     },
     // New field in v2 schema
     auditInfo: {
       changedBy: "user_456",
-      reason: "user_requested"
-    }
-  }
+      reason: "user_requested",
+    },
+  },
 });
 ```
 
@@ -433,24 +439,24 @@ await inngest.send({
     // Context for different consumers
     subscription: {
       id: "sub_789",
-      plan: "pro_monthly"
+      plan: "pro_monthly",
     },
     invoice: {
       id: "inv_012",
-      number: "INV-2024-001"
+      number: "INV-2024-001",
     },
 
     // Metadata for debugging
     paymentMethod: {
       type: "card",
       last4: "4242",
-      brand: "visa"
+      brand: "visa",
     },
     metadata: {
       source: "stripe_webhook",
-      environment: "production"
-    }
-  }
+      environment: "production",
+    },
+  },
 });
 ```
 

@@ -24,13 +24,13 @@ Stream updates from durable Inngest functions to live UIs. Use channels and topi
 
 ## When to use Realtime
 
-| Problem shape | Pattern |
-|---|---|
-| Order status page animates as durable workflow steps complete | Per-run channel, publish per step, client subscribes |
-| AI agent streams tokens to a chat UI | Per-conversation channel, publish chunks, stream to browser |
-| Log tail for a long-running job | Single channel, log topic, append to UI |
-| Human-in-the-loop approval | Channel + waitForEvent, publish prompt, wait for response |
-| Admin dashboard with live order list | Global admin channel, fan-out from each function |
+| Problem shape                                                 | Pattern                                                     |
+| ------------------------------------------------------------- | ----------------------------------------------------------- |
+| Order status page animates as durable workflow steps complete | Per-run channel, publish per step, client subscribes        |
+| AI agent streams tokens to a chat UI                          | Per-conversation channel, publish chunks, stream to browser |
+| Log tail for a long-running job                               | Single channel, log topic, append to UI                     |
+| Human-in-the-loop approval                                    | Channel + waitForEvent, publish prompt, wait for response   |
+| Admin dashboard with live order list                          | Global admin channel, fan-out from each function            |
 
 ## Architecture
 
@@ -46,8 +46,8 @@ Channels are pure data — no class hierarchy, no zod runtime required (but reco
 
 ```typescript
 // src/inngest/channels.ts
-import { channel } from 'inngest/realtime';
-import { z } from 'zod';
+import { channel } from "inngest/realtime";
+import { z } from "zod";
 
 // Per-run channel: each fulfill-order run publishes step updates to its own channel.
 export const orderChannel = channel({
@@ -56,7 +56,7 @@ export const orderChannel = channel({
     step: {
       schema: z.object({
         name: z.string(),
-        status: z.enum(['running', 'complete', 'failed']),
+        status: z.enum(["running", "complete", "failed"]),
         output: z.record(z.string(), z.unknown()).optional(),
         ts: z.number(),
       }),
@@ -66,13 +66,13 @@ export const orderChannel = channel({
 
 // Global admin channel: fan-out for cross-cutting visibility.
 export const adminChannel = channel({
-  name: 'admin',
+  name: "admin",
   topics: {
     order: {
       schema: z.object({
         orderId: z.string(),
         step: z.string(),
-        status: z.enum(['running', 'complete', 'failed']),
+        status: z.enum(["running", "complete", "failed"]),
         ts: z.number(),
       }),
     },
@@ -81,6 +81,7 @@ export const adminChannel = channel({
 ```
 
 **Two channel name shapes:**
+
 - `name: 'admin'` — static channel, accessed as `adminChannel.order` (topic ref)
 - `name: (id) => 'channel:${id}'` — parametric, accessed as `orderChannel(id).step` (call the channel def with the id, then access topic)
 
@@ -90,11 +91,11 @@ Inngest v4 ships realtime support natively — **no middleware required.** But w
 
 ### Which publish method to use
 
-| Where you are | Use this | Why |
-|---|---|---|
-| **Outside a step** (top-level handler code, between `step.run` calls) | `step.realtime.publish(id, topicRef, data)` | Wraps the publish in its own step so it's durable, deduplicated by `id`, and retry-safe. |
-| **Inside a step** (inside the callback passed to `step.run`) | `inngest.realtime.publish(topicRef, data)` | You're already inside a memoized step. `step.realtime.publish` would create a step inside a step. The bare client publish is the right call here. |
-| **Outside a function** (one-off route, script, etc.) | `inngest.realtime.publish(topicRef, data)` | Allowed, but **not retry-safe** — your client receiver must handle duplicates. |
+| Where you are                                                         | Use this                                    | Why                                                                                                                                               |
+| --------------------------------------------------------------------- | ------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Outside a step** (top-level handler code, between `step.run` calls) | `step.realtime.publish(id, topicRef, data)` | Wraps the publish in its own step so it's durable, deduplicated by `id`, and retry-safe.                                                          |
+| **Inside a step** (inside the callback passed to `step.run`)          | `inngest.realtime.publish(topicRef, data)`  | You're already inside a memoized step. `step.realtime.publish` would create a step inside a step. The bare client publish is the right call here. |
+| **Outside a function** (one-off route, script, etc.)                  | `inngest.realtime.publish(topicRef, data)`  | Allowed, but **not retry-safe** — your client receiver must handle duplicates.                                                                    |
 
 The 90% rule: if you're writing handler code and you reach for `publish`, use `step.realtime.publish`. If you're writing code inside a `step.run` block and you reach for `publish`, use `inngest.realtime.publish`.
 
@@ -102,14 +103,14 @@ The 90% rule: if you're writing handler code and you reach for `publish`, use `s
 
 ```typescript
 // src/inngest/functions/fulfill-order.ts
-import { inngest } from '../client';
-import { orderChannel, adminChannel } from '../channels';
+import { inngest } from "../client";
+import { orderChannel, adminChannel } from "../channels";
 
 export const fulfillOrder = inngest.createFunction(
   {
-    id: 'fulfill-order',
+    id: "fulfill-order",
     retries: 3,
-    triggers: [{ event: 'store/order.placed' }],
+    triggers: [{ event: "store/order.placed" }],
   },
   async ({ event, step }) => {
     const { orderId, customerEmail, lineItems } = event.data;
@@ -117,7 +118,7 @@ export const fulfillOrder = inngest.createFunction(
     // Outside any step.run — use step.realtime.publish for a durable wrapper.
     const emit = async (
       name: string,
-      status: 'running' | 'complete' | 'failed',
+      status: "running" | "complete" | "failed",
       output?: Record<string, unknown>,
     ) => {
       const ts = Date.now();
@@ -133,30 +134,32 @@ export const fulfillOrder = inngest.createFunction(
       );
     };
 
-    await emit('capture-payment', 'running');
+    await emit("capture-payment", "running");
 
     // Inside step.run — use inngest.realtime.publish (already in a memoized step).
-    const payment = await step.run('capture-payment', async () => {
-      const intent = await stripe.paymentIntents.create({ /* ... */ });
+    const payment = await step.run("capture-payment", async () => {
+      const intent = await stripe.paymentIntents.create({
+        /* ... */
+      });
 
       // Stream a partial update mid-step. No step-in-step wrapping needed.
       await inngest.realtime.publish(orderChannel(orderId).step, {
-        name: 'capture-payment',
-        status: 'running',
-        output: { stage: 'intent-created', intentId: intent.id },
+        name: "capture-payment",
+        status: "running",
+        output: { stage: "intent-created", intentId: intent.id },
         ts: Date.now(),
       });
 
       return await stripe.paymentIntents.confirm(intent.id);
     });
 
-    await emit('capture-payment', 'complete', payment);
+    await emit("capture-payment", "complete", payment);
 
-    await emit('reserve-inventory', 'running');
-    const inventory = await step.run('reserve-inventory', async () => {
+    await emit("reserve-inventory", "running");
+    const inventory = await step.run("reserve-inventory", async () => {
       // ...
     });
-    await emit('reserve-inventory', 'complete', inventory);
+    await emit("reserve-inventory", "complete", inventory);
 
     // ...
   },
@@ -171,11 +174,11 @@ In Next.js App Router, use a Server Action to securely mint a short-lived token 
 
 ```typescript
 // src/app/orders/[orderId]/actions.ts
-'use server';
+"use server";
 
-import { getClientSubscriptionToken } from 'inngest/react';
-import { inngest } from '@/inngest/client';
-import { orderChannel } from '@/inngest/channels';
+import { getClientSubscriptionToken } from "inngest/react";
+import { inngest } from "@/inngest/client";
+import { orderChannel } from "@/inngest/channels";
 
 export async function fetchOrderSubscriptionToken(orderId: string) {
   // ⚠ AUTHORIZATION GATE: verify the current user owns this orderId
@@ -190,7 +193,7 @@ export async function fetchOrderSubscriptionToken(orderId: string) {
 
   return getClientSubscriptionToken(inngest, {
     channel: orderChannel(orderId),
-    topics: ['step'],
+    topics: ["step"],
   });
 }
 ```
@@ -235,13 +238,13 @@ export function OrderStatusClient({ orderId }: { orderId: string }) {
 
 **Useful options on the hook:**
 
-| Option | Default | Use it when |
-|---|---|---|
-| `enabled` | `true` | Delay the subscription until you have an ID (e.g., `enabled: !!runId`). |
-| `bufferInterval` | `0` | Batch updates from a fast stream so React doesn't re-render per message. |
-| `pauseOnHidden` | `false` | Pause the stream when the tab isn't visible (saves bandwidth). |
-| `autoCloseOnTerminal` | `true` | Disconnect when the run completes — turn off to keep the stream open for fan-out channels. |
-| `historyLimit` | unbounded | Cap how many messages are retained in `messages.all`. |
+| Option                | Default   | Use it when                                                                                |
+| --------------------- | --------- | ------------------------------------------------------------------------------------------ |
+| `enabled`             | `true`    | Delay the subscription until you have an ID (e.g., `enabled: !!runId`).                    |
+| `bufferInterval`      | `0`       | Batch updates from a fast stream so React doesn't re-render per message.                   |
+| `pauseOnHidden`       | `false`   | Pause the stream when the tab isn't visible (saves bandwidth).                             |
+| `autoCloseOnTerminal` | `true`    | Disconnect when the run completes — turn off to keep the stream open for fan-out channels. |
+| `historyLimit`        | unbounded | Cap how many messages are retained in `messages.all`.                                      |
 
 The hook returns `messages.byTopic` (latest per topic), `messages.all` (full history), `messages.last` (most recent), and `messages.delta` (new since last render).
 
@@ -253,18 +256,18 @@ The `useRealtime` hook covers the React case. If you're not using React, or you 
 
 ```typescript
 // src/app/orders/[orderId]/actions.ts
-'use server';
+"use server";
 
-import { getSubscriptionToken } from 'inngest/realtime';
-import { inngest } from '@/inngest/client';
-import { orderChannel } from '@/inngest/channels';
+import { getSubscriptionToken } from "inngest/realtime";
+import { inngest } from "@/inngest/client";
+import { orderChannel } from "@/inngest/channels";
 
 export async function fetchOrderSubscriptionTokenLowLevel(orderId: string) {
   // ⚠ AUTHORIZATION GATE: same as Step 3 — verify ownership before minting.
 
   const token = await getSubscriptionToken(inngest, {
     channel: orderChannel(orderId),
-    topics: ['step'],
+    topics: ["step"],
   });
 
   // ⚠ CRITICAL: strip the ChannelInstance from the response.
@@ -274,7 +277,7 @@ export async function fetchOrderSubscriptionTokenLowLevel(orderId: string) {
   // boundary, so return ONLY primitives.
   return {
     channel: orderChannel(orderId).name as string,
-    topics: ['step'] as const,
+    topics: ["step"] as const,
     key: token.key,
     apiBaseUrl: token.apiBaseUrl,
   };
@@ -285,11 +288,11 @@ export async function fetchOrderSubscriptionTokenLowLevel(orderId: string) {
 
 ```typescript
 // src/components/OrderStatusManual.tsx
-'use client';
+"use client";
 
-import * as React from 'react';
-import { subscribe } from 'inngest/realtime';
-import { fetchOrderSubscriptionTokenLowLevel } from '@/app/orders/[orderId]/actions';
+import * as React from "react";
+import { subscribe } from "inngest/realtime";
+import { fetchOrderSubscriptionTokenLowLevel } from "@/app/orders/[orderId]/actions";
 
 export function OrderStatusManual({ orderId }: { orderId: string }) {
   const [messages, setMessages] = React.useState<unknown[]>([]);
@@ -318,7 +321,7 @@ export function OrderStatusManual({ orderId }: { orderId: string }) {
 
     return () => {
       cancelled = true;
-      sub?.close?.('unmount');
+      sub?.close?.("unmount");
     };
   }, [orderId]);
 
@@ -332,11 +335,14 @@ Subscribe inside a Next.js API route and pipe the stream to the client via SSE:
 
 ```typescript
 // src/app/api/orders/[orderId]/stream/route.ts
-import { inngest } from '@/inngest/client';
-import { subscribe } from 'inngest/realtime';
-import { orderChannel } from '@/inngest/channels';
+import { inngest } from "@/inngest/client";
+import { subscribe } from "inngest/realtime";
+import { orderChannel } from "@/inngest/channels";
 
-export async function GET(req: Request, { params }: { params: { orderId: string } }) {
+export async function GET(
+  req: Request,
+  { params }: { params: { orderId: string } },
+) {
   // ⚠ AUTHORIZATION GATE: same rule as the server-action token mint above.
   // Authenticate the request and confirm the caller owns params.orderId
   // before opening the SSE stream. Skipping this leaks every order's
@@ -345,14 +351,14 @@ export async function GET(req: Request, { params }: { params: { orderId: string 
   const stream = await subscribe({
     app: inngest,
     channel: orderChannel(params.orderId),
-    topics: ['step'],
+    topics: ["step"],
   });
 
   return new Response(stream.getEncodedStream(), {
     headers: {
-      'Content-Type': 'text/event-stream',
-      'Cache-Control': 'no-cache',
-      Connection: 'keep-alive',
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
     },
   });
 }
@@ -365,30 +371,29 @@ Client consumes via `fetch().getReader()` rather than the `subscribe()` callback
 Combine `step.realtime.publish` with `step.waitForEvent`:
 
 ```typescript
-import crypto from 'crypto';
+import crypto from "crypto";
 
 export const reviewWorkflow = inngest.createFunction(
-  { id: 'review-workflow', triggers: [{ event: 'review/start' }] },
+  { id: "review-workflow", triggers: [{ event: "review/start" }] },
   async ({ event, step }) => {
-    const confirmationId = await step.run('gen-id', () => crypto.randomUUID());
+    const confirmationId = await step.run("gen-id", () => crypto.randomUUID());
 
     // Publish a prompt — the client subscribes and renders an approval UI
-    await step.realtime.publish(
-      'publish-prompt',
-      reviewChannel.message,
-      { message: 'Confirm to proceed?', confirmationId },
-    );
+    await step.realtime.publish("publish-prompt", reviewChannel.message, {
+      message: "Confirm to proceed?",
+      confirmationId,
+    });
 
     // Wait up to 15 minutes for the user to send the matching event back
-    const confirmation = await step.waitForEvent('await-confirmation', {
-      event: 'review/confirmation',
-      timeout: '15m',
+    const confirmation = await step.waitForEvent("await-confirmation", {
+      event: "review/confirmation",
+      timeout: "15m",
       if: `async.data.confirmationId == "${confirmationId}"`,
     });
 
     if (!confirmation) {
       // user didn't respond — abort or escalate
-      return { decision: 'timed_out' };
+      return { decision: "timed_out" };
     }
     // continue workflow...
   },
@@ -402,6 +407,7 @@ The `confirmationId` links the published prompt to the matching reply, so the wo
 ### Don't use `@inngest/realtime` on v4
 
 The standalone `@inngest/realtime` package is for Inngest v3 only. On v4, all realtime APIs are in the SDK subpath `inngest/realtime`. Mixing them produces:
+
 - `TypeError: Cls is not a constructor` on `PUT /api/inngest` (v3 middleware class signature mismatch)
 - 401 Unauthorized on subscription tokens
 - TypeScript errors casting middleware

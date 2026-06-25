@@ -112,7 +112,7 @@ app.use(
     functions,
     signingKey: process.env.INNGEST_SIGNING_KEY,
     baseUrl: process.env.INNGEST_BASE_URL,
-  })
+  }),
 );
 
 // New v4
@@ -145,13 +145,13 @@ Triggers move into the first argument's options object.
 inngest.createFunction(
   { id: "send-welcome" },
   { event: "user/created" },
-  async ({ event, step }) => {}
+  async ({ event, step }) => {},
 );
 
 // New v4
 inngest.createFunction(
   { id: "send-welcome", triggers: [{ event: "user/created" }] },
-  async ({ event, step }) => {}
+  async ({ event, step }) => {},
 );
 ```
 
@@ -160,7 +160,7 @@ Cron triggers move the same way:
 ```typescript
 inngest.createFunction(
   { id: "nightly-sync", triggers: [{ cron: "0 2 * * *" }] },
-  async ({ step }) => {}
+  async ({ step }) => {},
 );
 ```
 
@@ -198,7 +198,7 @@ await inngest.send(userCreated.create({ userId, email }));
 
 inngest.createFunction(
   { id: "on-user-created", triggers: [userCreated] },
-  async ({ event }) => {}
+  async ({ event }) => {},
 );
 
 await step.waitForEvent("wait-for-invoice", {

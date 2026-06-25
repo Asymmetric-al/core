@@ -80,7 +80,7 @@ export const summarizeTicket = inngest.createFunction(
   {
     id: "summarize-ticket",
     triggers: [{ event: "support/ticket.created" }],
-    concurrency: [{ key: "event.data.accountId", limit: 2 }]
+    concurrency: [{ key: "event.data.accountId", limit: 2 }],
   },
   async ({ event, step }) => {
     const ticket = await step.run("load-ticket", () => {
@@ -90,7 +90,7 @@ export const summarizeTicket = inngest.createFunction(
     const writer = createAgent({
       name: "support-summary-writer",
       system: "Write a concise support-ticket summary with next actions.",
-      model: openai({ model: "gpt-4o" })
+      model: openai({ model: "gpt-4o" }),
     });
 
     const { output } = await writer.run(JSON.stringify(ticket));
@@ -100,7 +100,7 @@ export const summarizeTicket = inngest.createFunction(
     });
 
     return { ticketId: event.data.ticketId };
-  }
+  },
 );
 ```
 
@@ -134,7 +134,7 @@ Use a durable wait instead of polling a database or keeping state in memory.
 const approval = await step.waitForEvent("wait-for-approval", {
   event: "support/reply.approved",
   timeout: "3d",
-  match: "data.ticketId"
+  match: "data.ticketId",
 });
 
 if (!approval) {
@@ -147,7 +147,7 @@ if (!approval) {
 await step.run("send-reply", () => {
   return sendSupportReply({
     ticketId: event.data.ticketId,
-    approvalId: approval.data.approvalId
+    approvalId: approval.data.approvalId,
   });
 });
 ```

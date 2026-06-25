@@ -24,21 +24,21 @@ const traditional = inngest.createFunction(
 
     // Step 3: HTTP request to Inngest → response → complete
     return await step.run("save", () => save(processed));
-  }
+  },
 );
 
 // Checkpointed execution: Steps run immediately, periodic checkpoints
 const checkpointed = inngest.createFunction(
   {
     id: "checkpointed-execution",
-    triggers: [{ event: "process/checkpointed" }]
+    triggers: [{ event: "process/checkpointed" }],
   },
   async ({ event, step }) => {
     // All steps run immediately, checkpoints sent periodically
     const data = await step.run("fetch-data", () => fetchData());
     const processed = await step.run("process", () => process(data));
     return await step.run("save", () => save(processed));
-  }
+  },
 );
 ```
 
@@ -53,25 +53,25 @@ import { Inngest } from "inngest";
 
 // Checkpointing is enabled by default - no configuration needed
 export const inngest = new Inngest({
-  id: "my-app"
+  id: "my-app",
 });
 
 // Functions automatically use checkpointing
 const realTimeFunction = inngest.createFunction(
   {
     id: "real-time-function",
-    triggers: [{ event: "realtime/process" }]
+    triggers: [{ event: "realtime/process" }],
   },
   async ({ event, step }) => {
     // Steps execute immediately with periodic checkpointing
     const result1 = await step.run("immediate-step-1", () =>
-      process1(event.data)
+      process1(event.data),
     );
     const result2 = await step.run("immediate-step-2", () => process2(result1));
     const result3 = await step.run("immediate-step-3", () => process3(result2));
 
     return { result: result3 };
-  }
+  },
 );
 
 // Configure maxRuntime for serverless environments
@@ -80,14 +80,14 @@ const serverlessFunction = inngest.createFunction(
     id: "serverless-function",
     triggers: [{ event: "realtime/serverless" }],
     checkpointing: {
-      maxRuntime: "4m45s" // Leave buffer before platform timeout
-    }
+      maxRuntime: "4m45s", // Leave buffer before platform timeout
+    },
   },
   async ({ event, step }) => {
     // Steps execute immediately with checkpointing
     const result = await step.run("process", () => process(event.data));
     return { result };
-  }
+  },
 );
 
 // Disable checkpointing for a specific function if needed
@@ -95,13 +95,13 @@ const noCheckpointFunction = inngest.createFunction(
   {
     id: "no-checkpoint-function",
     triggers: [{ event: "legacy/process" }],
-    checkpointing: false
+    checkpointing: false,
   },
   async ({ event, step }) => {
     // Uses traditional step-by-step orchestration
     const result = await step.run("process", () => process(event.data));
     return { result };
-  }
+  },
 );
 ```
 
@@ -145,8 +145,8 @@ const advancedCheckpointing = inngest.createFunction(
       bufferedSteps: 3, // Default: 1 (no buffering)
 
       // Maximum time to wait before checkpointing buffered steps
-      maxInterval: "10s" // Default: immediate
-    }
+      maxInterval: "10s", // Default: immediate
+    },
   },
   async ({ event, step }) => {
     // With bufferedSteps: 3, first 3 steps execute without checkpointing
@@ -161,7 +161,7 @@ const advancedCheckpointing = inngest.createFunction(
     // Checkpoint sent after step 6
 
     return { result: step6 };
-  }
+  },
 );
 ```
 
@@ -174,12 +174,12 @@ const vercelFunction = inngest.createFunction(
     id: "vercel-optimized",
     triggers: [{ event: "process/vercel" }],
     checkpointing: {
-      maxRuntime: "4m45s" // Leave 15s buffer for cleanup
-    }
+      maxRuntime: "4m45s", // Leave 15s buffer for cleanup
+    },
   },
   async ({ event, step }) => {
     /* ... */
-  }
+  },
 );
 
 // AWS Lambda (15-minute timeout)
@@ -188,12 +188,12 @@ const lambdaFunction = inngest.createFunction(
     id: "lambda-optimized",
     triggers: [{ event: "process/lambda" }],
     checkpointing: {
-      maxRuntime: "14m30s" // Leave 30s buffer
-    }
+      maxRuntime: "14m30s", // Leave 30s buffer
+    },
   },
   async ({ event, step }) => {
     /* ... */
-  }
+  },
 );
 
 // Long-running server (unlimited)
@@ -204,12 +204,12 @@ const serverFunction = inngest.createFunction(
     checkpointing: {
       maxRuntime: "0", // Unlimited
       bufferedSteps: 5, // More aggressive buffering
-      maxInterval: "30s"
-    }
+      maxInterval: "30s",
+    },
   },
   async ({ event, step }) => {
     /* ... */
-  }
+  },
 );
 ```
 
@@ -225,8 +225,8 @@ const aiWorkflow = inngest.createFunction(
     checkpointing: {
       maxRuntime: "10m",
       bufferedSteps: 2,
-      maxInterval: "5s"
-    }
+      maxInterval: "5s",
+    },
   },
   async ({ event, step }) => {
     // Immediate execution for real-time feel
@@ -250,12 +250,12 @@ const aiWorkflow = inngest.createFunction(
     await step.run("send-realtime-response", () => {
       return websocketService.send(event.data.userId, {
         result: postprocessed,
-        resultId: saved.id
+        resultId: saved.id,
       });
     });
 
     return { resultId: saved.id };
-  }
+  },
 );
 ```
 
@@ -269,8 +269,8 @@ const dataProcessingPipeline = inngest.createFunction(
     checkpointing: {
       maxRuntime: "15m",
       bufferedSteps: 10, // High buffering for throughput
-      maxInterval: "60s" // Less frequent checkpoints
-    }
+      maxInterval: "60s", // Less frequent checkpoints
+    },
   },
   async ({ event, step }) => {
     const batchId = event.data.batchId;
@@ -308,9 +308,9 @@ const dataProcessingPipeline = inngest.createFunction(
     return {
       batchId,
       itemsProcessed: allResults.length,
-      processingTime: Date.now() - event.ts
+      processingTime: Date.now() - event.ts,
     };
-  }
+  },
 );
 ```
 
@@ -324,8 +324,8 @@ const interactiveWorkflow = inngest.createFunction(
     checkpointing: {
       maxRuntime: "5m",
       bufferedSteps: 1, // Immediate checkpoints for user feedback
-      maxInterval: "2s"
-    }
+      maxInterval: "2s",
+    },
   },
   async ({ event, step }) => {
     const userId = event.data.userId;
@@ -334,7 +334,7 @@ const interactiveWorkflow = inngest.createFunction(
     await step.run("send-progress-update", () => {
       return notificationService.send(userId, {
         message: "Processing started...",
-        progress: 10
+        progress: 10,
       });
     });
 
@@ -344,7 +344,7 @@ const interactiveWorkflow = inngest.createFunction(
 
       notificationService.send(userId, {
         message: result.valid ? "Request validated" : "Validation failed",
-        progress: 25
+        progress: 25,
       });
 
       return result;
@@ -358,14 +358,14 @@ const interactiveWorkflow = inngest.createFunction(
     const processedData = await step.run("main-processing", () => {
       notificationService.send(userId, {
         message: "Processing your request...",
-        progress: 50
+        progress: 50,
       });
 
       const result = performMainProcessing(event.data);
 
       notificationService.send(userId, {
         message: "Processing complete",
-        progress: 90
+        progress: 90,
       });
 
       return result;
@@ -376,14 +376,14 @@ const interactiveWorkflow = inngest.createFunction(
       notificationService.send(userId, {
         message: "Workflow completed successfully!",
         progress: 100,
-        result: processedData
+        result: processedData,
       });
 
       return logWorkflowCompletion(userId, processedData);
     });
 
     return { success: true, result: processedData };
-  }
+  },
 );
 ```
 
@@ -396,7 +396,7 @@ const interactiveWorkflow = inngest.createFunction(
 const idealForCheckpointing = inngest.createFunction(
   {
     id: "ideal-checkpointing",
-    triggers: [{ event: "realtime/user.request" }]
+    triggers: [{ event: "realtime/user.request" }],
   },
   async ({ event, step }) => {
     // Fast operations that benefit from immediate execution
@@ -405,7 +405,7 @@ const idealForCheckpointing = inngest.createFunction(
     const response = await step.run("respond", () => sendResponse(processed));
 
     return response;
-  }
+  },
 );
 
 // ❌ NOT ideal for checkpointing: Very long-running steps
@@ -413,7 +413,7 @@ const notIdealForCheckpointing = inngest.createFunction(
   {
     id: "not-ideal-checkpointing",
     triggers: [{ event: "batch/long.process" }],
-    checkpointing: false // Disable for very long-running steps
+    checkpointing: false, // Disable for very long-running steps
   },
   async ({ event, step }) => {
     // Very long-running operations
@@ -426,7 +426,7 @@ const notIdealForCheckpointing = inngest.createFunction(
     });
 
     return processed;
-  }
+  },
 );
 ```
 
@@ -438,8 +438,8 @@ const highFrequencyConfig = {
   checkpointing: {
     maxRuntime: "1m",
     bufferedSteps: 1, // Immediate checkpoints
-    maxInterval: "1s"
-  }
+    maxInterval: "1s",
+  },
 };
 
 // Medium complexity workflows
@@ -447,8 +447,8 @@ const mediumComplexityConfig = {
   checkpointing: {
     maxRuntime: "5m",
     bufferedSteps: 3, // Balance performance and safety
-    maxInterval: "10s"
-  }
+    maxInterval: "10s",
+  },
 };
 
 // High-throughput batch processing
@@ -456,8 +456,8 @@ const highThroughputConfig = {
   checkpointing: {
     maxRuntime: "10m",
     bufferedSteps: 10, // Maximize performance
-    maxInterval: "30s"
-  }
+    maxInterval: "30s",
+  },
 };
 ```
 

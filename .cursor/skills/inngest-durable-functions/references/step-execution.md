@@ -37,7 +37,7 @@ const importContacts = inngest.createFunction(
     });
 
     return { results };
-  }
+  },
 );
 ```
 
@@ -53,10 +53,10 @@ const importContacts = inngest.createFunction(
 async ({ event, step }) => {
   // These are DIFFERENT executions even with same ID
   const userData = await step.run("fetch-data", () =>
-    fetchUser(event.data.userId)
+    fetchUser(event.data.userId),
   );
   const orderData = await step.run("fetch-data", () =>
-    fetchOrders(event.data.userId)
+    fetchOrders(event.data.userId),
   );
 
   // Inngest internally tracks: fetch-data[0] and fetch-data[1]
@@ -127,7 +127,7 @@ const robustProcess = inngest.createFunction(
     await step.run("save-results", async () => {
       return await database.save(processed);
     });
-  }
+  },
 );
 ```
 
@@ -147,11 +147,11 @@ const parallelProcess = inngest.createFunction(
     const [profile, orders, preferences] = await Promise.all([
       step.run("fetch-profile", () => getUserProfile(userData.id)),
       step.run("fetch-orders", () => getUserOrders(userData.id)),
-      step.run("fetch-preferences", () => getUserPreferences(userData.id))
+      step.run("fetch-preferences", () => getUserPreferences(userData.id)),
     ]);
 
     return { profile, orders, preferences };
-  }
+  },
 );
 ```
 
@@ -182,7 +182,7 @@ const conditionalSteps = inngest.createFunction(
     await step.run("send-welcome-email", () => {
       return sendWelcomeEmail(user.email);
     });
-  }
+  },
 );
 ```
 
@@ -206,7 +206,7 @@ const dynamicSteps = inngest.createFunction(
     }
 
     return { processedCount: results.length, results };
-  }
+  },
 );
 ```
 
@@ -226,7 +226,7 @@ const tooGranular = inngest.createFunction(
     const b = await step.run("step-2", () => simpleOperation2(a));
     const c = await step.run("step-3", () => simpleOperation3(b));
     // 3 atomic requests for simple operations
-  }
+  },
 );
 
 // ✅ BETTER: Logical grouping
@@ -243,7 +243,7 @@ const betterGrouping = inngest.createFunction(
     const result = await step.run("save-to-database", () => {
       return database.save(processedData);
     });
-  }
+  },
 );
 ```
 
@@ -280,7 +280,7 @@ const goodPatterns = inngest.createFunction(
     const processedData = {
       ...userData,
       email: event.data.email.toLowerCase(),
-      fullName: `${userData.firstName} ${userData.lastName}`
+      fullName: `${userData.firstName} ${userData.lastName}`,
     };
 
     // ✅ Step: Database operation
@@ -289,7 +289,7 @@ const goodPatterns = inngest.createFunction(
     });
 
     return { userId: savedUser.id };
-  }
+  },
 );
 ```
 
@@ -338,7 +338,7 @@ await step.run("create-record", () => {
   return database.create({
     id: Math.random(), // Different on retry!
     timestamp: Date.now(), // Different on retry!
-    data: event.data
+    data: event.data,
   });
 });
 
@@ -347,7 +347,7 @@ await step.run("create-record", () => {
   return database.create({
     id: event.data.userId + "-" + event.data.timestamp,
     timestamp: event.data.timestamp,
-    data: event.data
+    data: event.data,
   });
 });
 ```

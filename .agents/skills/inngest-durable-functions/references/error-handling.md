@@ -12,7 +12,11 @@ Comprehensive guide to handling errors, configuring retries, and building resili
 
 ```typescript
 const errorHandlingExample = inngest.createFunction(
-  { id: "error-handling-demo", retries: 3, triggers: [{ event: "demo/error-handling" }] },
+  {
+    id: "error-handling-demo",
+    retries: 3,
+    triggers: [{ event: "demo/error-handling" }],
+  },
   async ({ event, step }) => {
     try {
       // This step can error and retry up to 3 times
@@ -29,7 +33,7 @@ const errorHandlingExample = inngest.createFunction(
         return logFailureAndNotify(error.message);
       });
     }
-  }
+  },
 );
 ```
 
@@ -42,7 +46,7 @@ const customRetries = inngest.createFunction(
   {
     id: "custom-retries",
     retries: 10, // Each step gets up to 10 retries (11 total attempts)
-    triggers: [{ event: "critical/task" }]
+    triggers: [{ event: "critical/task" }],
   },
   async ({ event, step, attempt }) => {
     // attempt is 0-indexed: 0, 1, 2, ..., 10
@@ -56,7 +60,7 @@ const customRetries = inngest.createFunction(
         return await backupService.process(event.data);
       }
     });
-  }
+  },
 );
 ```
 
@@ -64,7 +68,11 @@ const customRetries = inngest.createFunction(
 
 ```typescript
 const independentRetries = inngest.createFunction(
-  { id: "independent-retries", retries: 4, triggers: [{ event: "multi/step.process" }] },
+  {
+    id: "independent-retries",
+    retries: 4,
+    triggers: [{ event: "multi/step.process" }],
+  },
   async ({ event, step }) => {
     // Step 1: Can retry up to 4 times independently
     const userData = await step.run("fetch-user", async () => {
@@ -83,7 +91,7 @@ const independentRetries = inngest.createFunction(
 
     // If any step fails all retries, it becomes a "failed step"
     // Other steps are unaffected
-  }
+  },
 );
 ```
 
@@ -123,7 +131,7 @@ const smartErrorHandling = inngest.createFunction(
     await step.run("process-user-data", async () => {
       return await processUserData(user);
     });
-  }
+  },
 );
 ```
 
@@ -164,7 +172,7 @@ const commonNonRetriableErrors = inngest.createFunction(
       }
       return processResource(resource);
     });
-  }
+  },
 );
 ```
 
@@ -190,7 +198,7 @@ const respectRateLimit = inngest.createFunction(
 
           throw new RetryAfterError(
             "API rate limit exceeded",
-            new Date(Date.now() + retryAfterMs)
+            new Date(Date.now() + retryAfterMs),
           );
         }
 
@@ -202,7 +210,7 @@ const respectRateLimit = inngest.createFunction(
         throw error; // Regular retry for other errors
       }
     });
-  }
+  },
 );
 ```
 
@@ -240,7 +248,7 @@ const dynamicRetryStrategy = inngest.createFunction(
         throw error; // Use default retry timing
       }
     });
-  }
+  },
 );
 ```
 
@@ -273,12 +281,12 @@ const fallbackPattern = inngest.createFunction(
       return await analytics.track("service-usage", {
         eventId: event.id,
         serviceUsed: service,
-        success: true
+        success: true,
       });
     });
 
     return { result, serviceUsed: service };
-  }
+  },
 );
 ```
 
@@ -301,7 +309,7 @@ const processWithFailureHandler = inngest.createFunction(
         eventName: event.name,
         runId,
         error: error.message,
-        eventData: event.data
+        eventData: event.data,
       });
 
       // Send alert
@@ -310,9 +318,9 @@ const processWithFailureHandler = inngest.createFunction(
         functionId: "process-with-failure-handler",
         runId,
         error: error.message,
-        eventData: event.data
+        eventData: event.data,
       });
-    }
+    },
   },
   async ({ event, step }) => {
     // This might fail after retries
@@ -321,7 +329,7 @@ const processWithFailureHandler = inngest.createFunction(
     });
 
     return result;
-  }
+  },
 );
 ```
 
@@ -331,12 +339,15 @@ const processWithFailureHandler = inngest.createFunction(
 
 ```typescript
 const structuredErrorLogging = inngest.createFunction(
-  { id: "structured-error-logging", triggers: [{ event: "process/with-logging" }] },
+  {
+    id: "structured-error-logging",
+    triggers: [{ event: "process/with-logging" }],
+  },
   async ({ event, step, logger }) => {
     const baseContext = {
       eventName: event.name,
       eventId: event.id,
-      userId: event.data.userId
+      userId: event.data.userId,
     };
 
     try {
@@ -345,7 +356,7 @@ const structuredErrorLogging = inngest.createFunction(
           logger.info("Starting API call", {
             ...baseContext,
             step: "api-call-with-logging",
-            endpoint: event.data.endpoint
+            endpoint: event.data.endpoint,
           });
 
           const response = await externalAPI.call(event.data);
@@ -354,7 +365,7 @@ const structuredErrorLogging = inngest.createFunction(
             ...baseContext,
             step: "api-call-with-logging",
             responseStatus: response.status,
-            responseSize: JSON.stringify(response.data).length
+            responseSize: JSON.stringify(response.data).length,
           });
 
           return response.data;
@@ -366,9 +377,9 @@ const structuredErrorLogging = inngest.createFunction(
               message: error.message,
               code: error.code,
               status: error.response?.status,
-              headers: error.response?.headers
+              headers: error.response?.headers,
             },
-            retryAttempt: step.attempt || 0
+            retryAttempt: step.attempt || 0,
           };
 
           logger.error("API call failed", errorContext);
@@ -384,12 +395,12 @@ const structuredErrorLogging = inngest.createFunction(
       logger.error("Step failed after all retries", {
         ...baseContext,
         finalError: stepFailure.message,
-        totalAttempts: (stepFailure.attempt || 0) + 1
+        totalAttempts: (stepFailure.attempt || 0) + 1,
       });
 
       throw stepFailure;
     }
-  }
+  },
 );
 ```
 

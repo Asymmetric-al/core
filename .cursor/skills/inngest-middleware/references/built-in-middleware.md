@@ -21,17 +21,19 @@ const inngest = new Inngest({
   middleware: [
     encryptionMiddleware({
       key: process.env.ENCRYPTION_KEY, // Encryption key from environment
-    })
-  ]
+    }),
+  ],
 });
 ```
 
 **What gets encrypted by default:**
+
 - All step data
 - All function output
 - Event data in the `data.encrypted` field (customizable via `eventEncryptionField`)
 
 **Additional options:**
+
 - `eventEncryptionField`: Customize which event data field to encrypt (default: `data.encrypted`)
 - `decryptOnly`: Disable encryption while maintaining decryption for migration scenarios
 - `fallbackDecryptionKeys`: Array of previous keys for key rotation support
@@ -41,7 +43,7 @@ const inngest = new Inngest({
 encryptionMiddleware({
   key: process.env.NEW_ENCRYPTION_KEY,
   fallbackDecryptionKeys: [process.env.OLD_ENCRYPTION_KEY],
-})
+});
 ```
 
 ### Custom Encryption Implementation
@@ -92,7 +94,7 @@ const createCustomEncryptionMiddleware = (encryptionKey: string) => {
               if (ctx.event.data.encrypted_fields) {
                 const decryptedFields = {};
                 for (const [key, encryptedValue] of Object.entries(
-                  ctx.event.data.encrypted_fields
+                  ctx.event.data.encrypted_fields,
                 )) {
                   decryptedFields[key] = decrypt(encryptedValue as string);
                 }
@@ -104,10 +106,10 @@ const createCustomEncryptionMiddleware = (encryptionKey: string) => {
                       data: {
                         ...ctx.event.data,
                         ...decryptedFields,
-                        encrypted_fields: undefined // Remove encrypted versions
-                      }
-                    }
-                  }
+                        encrypted_fields: undefined, // Remove encrypted versions
+                      },
+                    },
+                  },
                 };
               }
               return {};
@@ -117,7 +119,7 @@ const createCustomEncryptionMiddleware = (encryptionKey: string) => {
               // Encrypt sensitive output fields
               if (result.data?.sensitiveData) {
                 const encrypted = encrypt(
-                  JSON.stringify(result.data.sensitiveData)
+                  JSON.stringify(result.data.sensitiveData),
                 );
                 return {
                   result: {
@@ -125,24 +127,24 @@ const createCustomEncryptionMiddleware = (encryptionKey: string) => {
                     data: {
                       ...result.data,
                       encrypted_output: encrypted,
-                      sensitiveData: undefined // Remove plaintext
-                    }
-                  }
+                      sensitiveData: undefined, // Remove plaintext
+                    },
+                  },
                 };
               }
               return { result };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 
 // Usage
 const inngest = new Inngest({
   id: "my-app",
-  middleware: [createCustomEncryptionMiddleware(process.env.ENCRYPTION_KEY)]
+  middleware: [createCustomEncryptionMiddleware(process.env.ENCRYPTION_KEY)],
 });
 ```
 
@@ -168,11 +170,12 @@ Sentry.init({
 
 const inngest = new Inngest({
   id: "my-app",
-  middleware: [sentryMiddleware()]
+  middleware: [sentryMiddleware()],
 });
 ```
 
 **What it provides:**
+
 - Captures exceptions for reporting
 - Adds tracing to each function run
 - Includes context like function ID and event names with each exception and trace
@@ -199,8 +202,8 @@ const createCustomSentryMiddleware = (sentryConfig: {
         tracesSampleRate: sentryConfig.sampleRate || 0.1,
         integrations: [
           // Add custom integrations
-          new Sentry.Integrations.Http({ tracing: true })
-        ]
+          new Sentry.Integrations.Http({ tracing: true }),
+        ],
       });
 
       return {
@@ -220,23 +223,23 @@ const createCustomSentryMiddleware = (sentryConfig: {
                   eventData: ctx.event.data,
                   runId: ctx.runId,
                   attempt: ctx.attempt,
-                  timestamp: ctx.event.ts
+                  timestamp: ctx.event.ts,
                 });
 
                 scope.setUser({
                   id: ctx.event.user?.id || "unknown",
-                  email: ctx.event.user?.email
+                  email: ctx.event.user?.email,
                 });
               });
 
               // Start Sentry transaction
               const transaction = Sentry.startTransaction({
                 name: `inngest.function.${fn.id}`,
-                op: "function.execution"
+                op: "function.execution",
               });
 
               Sentry.getCurrentHub().configureScope((scope) =>
-                scope.setSpan(transaction)
+                scope.setSpan(transaction),
               );
             },
 
@@ -257,7 +260,7 @@ const createCustomSentryMiddleware = (sentryConfig: {
                     scope.setContext("step", {
                       id: step.id,
                       name: step.displayName,
-                      attempt: step.attempt
+                      attempt: step.attempt,
                     });
                   }
 
@@ -265,7 +268,7 @@ const createCustomSentryMiddleware = (sentryConfig: {
                   scope.setContext("errorDetails", {
                     stepOutput: result.data,
                     errorMessage: result.error.message,
-                    errorStack: result.error.stack
+                    errorStack: result.error.stack,
                   });
 
                   Sentry.captureException(result.error);
@@ -278,13 +281,13 @@ const createCustomSentryMiddleware = (sentryConfig: {
                   Sentry.addBreadcrumb({
                     message: warning,
                     level: "warning",
-                    category: "inngest.warning"
+                    category: "inngest.warning",
                   });
                 });
               }
 
               return { result };
-            }
+            },
           };
         },
 
@@ -298,17 +301,17 @@ const createCustomSentryMiddleware = (sentryConfig: {
                 category: "inngest.send_event",
                 data: {
                   eventCount: payloads.length,
-                  eventNames: payloads.map((p) => p.name)
-                }
+                  eventNames: payloads.map((p) => p.name),
+                },
               });
 
               // Spread to convert readonly array to mutable
               return { payloads: [...payloads] };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 
@@ -319,9 +322,9 @@ const inngest = new Inngest({
     createCustomSentryMiddleware({
       dsn: process.env.SENTRY_DSN,
       environment: process.env.NODE_ENV,
-      sampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0
-    })
-  ]
+      sampleRate: process.env.NODE_ENV === "production" ? 0.1 : 1.0,
+    }),
+  ],
 });
 ```
 
@@ -346,17 +349,17 @@ const createErrorTrackingMiddleware = (config: {
         method: "POST",
         headers: {
           Authorization: `Bearer ${config.apiKey}`,
-          "Content-Type": "application/json"
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           error: {
             message: error.message,
             stack: error.stack,
-            name: error.name
+            name: error.name,
           },
           context,
-          timestamp: new Date().toISOString()
-        })
+          timestamp: new Date().toISOString(),
+        }),
       });
     } catch (reportingError) {
       console.error("Failed to report error:", reportingError);
@@ -377,16 +380,16 @@ const createErrorTrackingMiddleware = (config: {
                   runId: ctx.runId,
                   attempt: ctx.attempt,
                   step: step?.displayName,
-                  eventData: ctx.event.data
+                  eventData: ctx.event.data,
                 });
               }
 
               return { result };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 ```
@@ -406,7 +409,7 @@ const inngest = new Inngest({
     // Order matters - dependencies first (built-in export from "inngest")
     dependencyInjectionMiddleware({
       db: new PrismaClient(),
-      redis: createRedisClient()
+      redis: createRedisClient(),
     }),
 
     // Then encryption for data protection (from "@inngest/middleware-encryption")
@@ -415,8 +418,8 @@ const inngest = new Inngest({
     }),
 
     // Finally error tracking (from "@inngest/middleware-sentry")
-    sentryMiddleware()
-  ]
+    sentryMiddleware(),
+  ],
 });
 ```
 

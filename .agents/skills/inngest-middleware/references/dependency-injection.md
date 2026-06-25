@@ -17,15 +17,15 @@ const inngest = new Inngest({
   middleware: [
     dependencyInjectionMiddleware({
       openai: new OpenAI({
-        apiKey: process.env.OPENAI_API_KEY
+        apiKey: process.env.OPENAI_API_KEY,
       }),
       db: new PrismaClient(),
       redis: createClient({
         host: process.env.REDIS_HOST,
-        port: process.env.REDIS_PORT
-      })
-    })
-  ]
+        port: process.env.REDIS_PORT,
+      }),
+    }),
+  ],
 });
 
 // Functions automatically get injected dependencies
@@ -35,21 +35,21 @@ inngest.createFunction(
     // All dependencies available in function context
     const summary = await openai.chat.completions.create({
       messages: [{ role: "user", content: event.data.content }],
-      model: "gpt-4"
+      model: "gpt-4",
     });
 
     await db.document.update({
       where: { id: event.data.documentId },
-      data: { summary: summary.choices[0].message.content }
+      data: { summary: summary.choices[0].message.content },
     });
 
     // Cache the result
     await redis.setex(
       `summary:${event.data.documentId}`,
       3600,
-      summary.choices[0].message.content
+      summary.choices[0].message.content,
     );
-  }
+  },
 );
 ```
 
@@ -70,13 +70,13 @@ const createDependencyMiddleware = (deps: Record<string, any>) => {
           return {
             transformInput() {
               return {
-                ctx: deps // Inject dependencies into context
+                ctx: deps, // Inject dependencies into context
               };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 
@@ -86,17 +86,17 @@ const inngest = new Inngest({
   middleware: [
     createDependencyMiddleware({
       stripe: new Stripe(process.env.STRIPE_SECRET_KEY, {
-        apiVersion: "2023-10-16"
+        apiVersion: "2023-10-16",
       }),
       analytics: createAnalyticsClient({
-        apiKey: process.env.ANALYTICS_API_KEY
+        apiKey: process.env.ANALYTICS_API_KEY,
       }),
       notifications: createNotificationService({
         apiKey: process.env.NOTIFICATION_API_KEY,
-        from: process.env.FROM_EMAIL
-      })
-    })
-  ]
+        from: process.env.FROM_EMAIL,
+      }),
+    }),
+  ],
 });
 
 // Function with injected dependencies
@@ -107,22 +107,22 @@ inngest.createFunction(
     const paymentIntent = await stripe.paymentIntents.create({
       amount: event.data.amount,
       currency: "usd",
-      customer: event.data.customerId
+      customer: event.data.customerId,
     });
 
     // Track analytics
     await analytics.track("payment_processed", {
       userId: event.data.userId,
-      amount: event.data.amount
+      amount: event.data.amount,
     });
 
     // Send confirmation
     await notifications.send({
       to: event.data.userEmail,
       template: "payment_confirmation",
-      data: { amount: event.data.amount }
+      data: { amount: event.data.amount },
     });
-  }
+  },
 );
 ```
 
@@ -217,7 +217,7 @@ const createLazyDependencyMiddleware = () => {
                   get openai() {
                     if (!openai) {
                       openai = new OpenAI({
-                        apiKey: process.env.OPENAI_API_KEY
+                        apiKey: process.env.OPENAI_API_KEY,
                       });
                     }
                     return openai;
@@ -226,18 +226,18 @@ const createLazyDependencyMiddleware = () => {
                   get stripe() {
                     if (!stripe) {
                       stripe = new Stripe(process.env.STRIPE_SECRET_KEY, {
-                        apiVersion: "2023-10-16"
+                        apiVersion: "2023-10-16",
                       });
                     }
                     return stripe;
-                  }
-                }
+                  },
+                },
               };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 ```
@@ -260,19 +260,19 @@ const createScopedDependencyMiddleware = () => {
                 ctx: {
                   logger: createLogger({
                     runId: ctx.runId,
-                    functionId: ctx.function.id
+                    functionId: ctx.function.id,
                   }),
                   tracer: createTracer({
                     traceId: ctx.runId,
-                    service: ctx.function.id
-                  })
-                }
+                    service: ctx.function.id,
+                  }),
+                },
               };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 ```
@@ -304,14 +304,14 @@ const createConditionalDependencyMiddleware = () => {
                     : createMockAnalytics(),
                   cache: isProduction
                     ? createRedisClient()
-                    : createMemoryCache()
-                }
+                    : createMemoryCache(),
+                },
               };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 ```
@@ -353,14 +353,14 @@ const robustDependencyMiddleware = new InngestMiddleware({
               ctx: {
                 get db() {
                   return getDatabase();
-                }
-              }
+                },
+              },
             };
-          }
+          },
         };
-      }
+      },
     };
-  }
+  },
 });
 ```
 
@@ -379,15 +379,15 @@ const createTestableMiddleware = (overrides: Record<string, any> = {}) => {
               return {
                 ctx: {
                   db: overrides.db || createDatabaseClient(),
-                  openai: overrides.openai || new OpenAI()
+                  openai: overrides.openai || new OpenAI(),
                   // Add more dependencies as needed
-                }
+                },
               };
-            }
+            },
           };
-        }
+        },
       };
-    }
+    },
   });
 };
 
@@ -397,6 +397,6 @@ const mockOpenAI = createMockOpenAI();
 
 const testMiddleware = createTestableMiddleware({
   db: mockDb,
-  openai: mockOpenAI
+  openai: mockOpenAI,
 });
 ```

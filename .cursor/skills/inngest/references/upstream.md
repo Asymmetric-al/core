@@ -5,19 +5,19 @@ vendored into `docs/ai/skills/inngest-*`.
 
 ## Sources
 
-| Skill | Repository | Source path | Commit SHA | License |
-| ----- | ---------- | ----------- | ---------- | ------- |
-| `inngest-setup` | `inngest/inngest-skills` | `skills/inngest-setup/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-events` | `inngest/inngest-skills` | `skills/inngest-events/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-durable-functions` | `inngest/inngest-skills` | `skills/inngest-durable-functions/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-steps` | `inngest/inngest-skills` | `skills/inngest-steps/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-flow-control` | `inngest/inngest-skills` | `skills/inngest-flow-control/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-middleware` | `inngest/inngest-skills` | `skills/inngest-middleware/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-realtime` | `inngest/inngest-skills` | `skills/inngest-realtime/SKILL.md` | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
-| `inngest-brownfield-audit` | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-brownfield-audit/SKILL.md` | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT |
-| `inngest-agents` | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-agents/SKILL.md` | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT |
-| `inngest-v3-v4-migration` | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-v3-v4-migration/SKILL.md` | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT |
-| `inngest-api` | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-api/SKILL.md` | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT |
+| Skill                       | Repository                     | Source path                                                | Commit SHA                                 | License    |
+| --------------------------- | ------------------------------ | ---------------------------------------------------------- | ------------------------------------------ | ---------- |
+| `inngest-setup`             | `inngest/inngest-skills`       | `skills/inngest-setup/SKILL.md`                            | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-events`            | `inngest/inngest-skills`       | `skills/inngest-events/SKILL.md`                           | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-durable-functions` | `inngest/inngest-skills`       | `skills/inngest-durable-functions/SKILL.md`                | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-steps`             | `inngest/inngest-skills`       | `skills/inngest-steps/SKILL.md`                            | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-flow-control`      | `inngest/inngest-skills`       | `skills/inngest-flow-control/SKILL.md`                     | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-middleware`        | `inngest/inngest-skills`       | `skills/inngest-middleware/SKILL.md`                       | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-realtime`          | `inngest/inngest-skills`       | `skills/inngest-realtime/SKILL.md`                         | `c1996f94a1c39a10a56bb848a2ce7701bfe7346d` | Apache-2.0 |
+| `inngest-brownfield-audit`  | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-brownfield-audit/SKILL.md` | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT        |
+| `inngest-agents`            | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-agents/SKILL.md`           | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT        |
+| `inngest-v3-v4-migration`   | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-v3-v4-migration/SKILL.md`  | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT        |
+| `inngest-api`               | `inngest/inngest-codex-plugin` | `plugins/inngest/skills/inngest-api/SKILL.md`              | `6e550e39970dcc989d7b0c0b6c4aa44dc0f56c3e` | MIT        |
 
 The `inngest` skill in this repository is a repo-local router that replaces an
 older mirror-only unofficial skill. It is not copied from upstream.
@@ -25,9 +25,9 @@ older mirror-only unofficial skill. It is not copied from upstream.
 The official Claude Code plugin was reviewed for install instructions and MCP
 behavior:
 
-| Repository | Commit SHA | License |
-| ---------- | ---------- | ------- |
-| `inngest/inngest-claude-code-plugin` | `bf1b06ea9de8790c679ed54f3ef04e1334d3fb96` | MIT |
+| Repository                           | Commit SHA                                 | License |
+| ------------------------------------ | ------------------------------------------ | ------- |
+| `inngest/inngest-claude-code-plugin` | `bf1b06ea9de8790c679ed54f3ef04e1334d3fb96` | MIT     |
 
 ## License Text
 

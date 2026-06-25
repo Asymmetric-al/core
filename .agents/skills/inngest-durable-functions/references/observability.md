@@ -16,7 +16,7 @@ import { Inngest } from "inngest";
 
 const inngest = new Inngest({
   id: "my-app",
-  middleware: [extendedTraces]
+  middleware: [extendedTraces],
 });
 ```
 
@@ -32,14 +32,14 @@ const extendedTraces = extendedTracesMiddleware({
 
   // Custom instrumentations
   instrumentations: [
-    new PrismaInstrumentation()
+    new PrismaInstrumentation(),
     // Add other custom instrumentations
-  ]
+  ],
 });
 
 export const inngest = new Inngest({
   id: "my-app",
-  middleware: [extendedTraces]
+  middleware: [extendedTraces],
 });
 ```
 
@@ -52,17 +52,17 @@ import { extendedTracesMiddleware } from "inngest/experimental";
 // Initialize Sentry first
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
-  tracesSampleRate: 1.0
+  tracesSampleRate: 1.0,
 });
 
 // Extended traces will extend Sentry's provider
 const extendedTraces = extendedTracesMiddleware({
-  behaviour: "auto" // Will extend Sentry's existing provider
+  behaviour: "auto", // Will extend Sentry's existing provider
 });
 
 export const inngest = new Inngest({
   id: "my-app",
-  middleware: [extendedTraces]
+  middleware: [extendedTraces],
 });
 ```
 
@@ -72,7 +72,7 @@ export const inngest = new Inngest({
 import { Inngest } from "inngest";
 import {
   extendedTracesMiddleware,
-  InngestSpanProcessor
+  InngestSpanProcessor,
 } from "inngest/experimental";
 import { BasicTracerProvider } from "@opentelemetry/sdk-trace-base";
 import { NodeSDK } from "@opentelemetry/auto-instrumentations-node";
@@ -82,16 +82,16 @@ export const inngest = new Inngest({
   id: "my-app",
   middleware: [
     extendedTracesMiddleware({
-      behaviour: "off" // Don't auto-instrument
-    })
-  ]
+      behaviour: "off", // Don't auto-instrument
+    }),
+  ],
 });
 
 // Manually create and configure provider
 const provider = new BasicTracerProvider({
   spanProcessors: [
-    new InngestSpanProcessor(inngest) // Add Inngest span processor
-  ]
+    new InngestSpanProcessor(inngest), // Add Inngest span processor
+  ],
 });
 
 // Register the provider
@@ -99,7 +99,7 @@ provider.register();
 
 // Initialize Node SDK with custom provider
 const sdk = new NodeSDK({
-  traceExporter: yourTraceExporter
+  traceExporter: yourTraceExporter,
 });
 
 sdk.start();
@@ -175,12 +175,12 @@ const logger = winston.createLogger({
   format: winston.format.combine(
     winston.format.timestamp(),
     winston.format.errors({ stack: true }),
-    winston.format.json()
+    winston.format.json(),
   ),
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: "app.log" })
-  ]
+    new winston.transports.File({ filename: "app.log" }),
+  ],
 });
 
 // Enable extended traces
@@ -189,7 +189,7 @@ const extendedTraces = extendedTracesMiddleware();
 export const inngest = new Inngest({
   id: "my-app",
   logger, // Pass logger to client
-  middleware: [extendedTraces]
+  middleware: [extendedTraces],
 });
 ```
 
@@ -202,12 +202,12 @@ const observableFunction = inngest.createFunction(
     // Logger automatically includes function metadata when using .child()
     logger.info("Function started", {
       eventData: event.data,
-      runId
+      runId,
     });
 
     const userData = await step.run("fetch-user-data", async () => {
       logger.info("Fetching user data", {
-        userId: event.data.userId
+        userId: event.data.userId,
       });
 
       const data = await userService.getUser(event.data.userId);
@@ -215,7 +215,7 @@ const observableFunction = inngest.createFunction(
       logger.info("User data fetched", {
         userId: data.id,
         userType: data.type,
-        dataSize: JSON.stringify(data).length
+        dataSize: JSON.stringify(data).length,
       });
 
       return data;
@@ -230,7 +230,7 @@ const observableFunction = inngest.createFunction(
 
         logger.info("Data processing completed", {
           processingTime: Date.now() - startTime,
-          resultSize: processed.length
+          resultSize: processed.length,
         });
 
         return processed;
@@ -238,7 +238,7 @@ const observableFunction = inngest.createFunction(
         logger.error("Data processing failed", {
           processingTime: Date.now() - startTime,
           error: error.message,
-          userId: userData.id
+          userId: userData.id,
         });
         throw error;
       }
@@ -247,11 +247,11 @@ const observableFunction = inngest.createFunction(
     logger.info("Function completed successfully", {
       totalExecutionTime: Date.now() - event.ts,
       stepsExecuted: 2,
-      resultCount: result.length
+      resultCount: result.length,
     });
 
     return result;
-  }
+  },
 );
 ```
 
@@ -267,7 +267,7 @@ const correlatedLogging = inngest.createFunction(
       correlationId,
       userId: event.data.userId,
       requestId: event.data.requestId,
-      runId
+      runId,
     };
 
     logger.info("Starting correlated process", baseContext);
@@ -276,19 +276,19 @@ const correlatedLogging = inngest.createFunction(
       logger.info("Calling external API", {
         ...baseContext,
         step: "external-api-call",
-        endpoint: "/api/user-data"
+        endpoint: "/api/user-data",
       });
 
       try {
         const response = await externalAPI.getUserData(event.data.userId, {
-          headers: { "X-Correlation-ID": correlationId }
+          headers: { "X-Correlation-ID": correlationId },
         });
 
         logger.info("External API call successful", {
           ...baseContext,
           step: "external-api-call",
           responseStatus: response.status,
-          responseTime: response.responseTime
+          responseTime: response.responseTime,
         });
 
         return response.data;
@@ -297,7 +297,7 @@ const correlatedLogging = inngest.createFunction(
           ...baseContext,
           step: "external-api-call",
           error: error.message,
-          statusCode: error.status
+          statusCode: error.status,
         });
         throw error;
       }
@@ -307,25 +307,25 @@ const correlatedLogging = inngest.createFunction(
       logger.info("Performing database operation", {
         ...baseContext,
         step: "database-operation",
-        operation: "upsert"
+        operation: "upsert",
       });
 
       const result = await database.users.upsert({
         id: event.data.userId,
         data: step1Result,
-        correlationId // Include in database record
+        correlationId, // Include in database record
       });
 
       logger.info("Database operation completed", {
         ...baseContext,
         step: "database-operation",
         recordId: result.id,
-        operation: "upsert"
+        operation: "upsert",
       });
 
       return result;
     });
-  }
+  },
 );
 ```
 
@@ -351,7 +351,7 @@ const customTracing = inngest.createFunction(
             span.setAttributes({
               "user.id": event.data.userId,
               "operation.type": "data-processing",
-              "input.size": JSON.stringify(event.data).length
+              "input.size": JSON.stringify(event.data).length,
             });
 
             // Simulate some work with nested spans
@@ -359,20 +359,20 @@ const customTracing = inngest.createFunction(
               "data-transformation",
               async (childSpan) => {
                 childSpan.setAttributes({
-                  "transformation.type": "normalize"
+                  "transformation.type": "normalize",
                 });
 
                 const result = await transformData(event.data);
 
                 childSpan.setAttributes({
-                  "transformation.output_records": result.length
+                  "transformation.output_records": result.length,
                 });
 
                 childSpan.setStatus({ code: SpanStatusCode.OK });
                 childSpan.end();
 
                 return result;
-              }
+              },
             );
 
             // Another nested operation
@@ -381,26 +381,26 @@ const customTracing = inngest.createFunction(
               async (childSpan) => {
                 childSpan.setAttributes({
                   "db.operation": "bulk_insert",
-                  "db.table": "processed_data"
+                  "db.table": "processed_data",
                 });
 
                 const saveResult = await database.bulkInsert(processedData);
 
                 childSpan.setAttributes({
-                  "db.records_inserted": saveResult.insertedCount
+                  "db.records_inserted": saveResult.insertedCount,
                 });
 
                 childSpan.setStatus({ code: SpanStatusCode.OK });
                 childSpan.end();
 
                 return saveResult;
-              }
+              },
             );
 
             // Add result attributes to main span
             span.setAttributes({
               "result.records_processed": processedData.length,
-              "result.records_saved": savedData.insertedCount
+              "result.records_saved": savedData.insertedCount,
             });
 
             span.setStatus({ code: SpanStatusCode.OK });
@@ -410,18 +410,18 @@ const customTracing = inngest.createFunction(
             span.recordException(error);
             span.setStatus({
               code: SpanStatusCode.ERROR,
-              message: error.message
+              message: error.message,
             });
             throw error;
           } finally {
             span.end();
           }
-        }
+        },
       );
     });
 
     return result;
-  }
+  },
 );
 ```
 
@@ -436,22 +436,22 @@ const datadogLogger = winston.createLogger({
   level: "info",
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.json()
+    winston.format.json(),
   ),
   transports: [
     new winston.transports.Console(),
     new winston.transports.Http({
       host: "http-intake.logs.datadoghq.com",
       path: `/api/v2/logs?dd-api-key=${process.env.DD_API_KEY}&ddsource=inngest&service=my-app&ddtags=env:${process.env.NODE_ENV}`,
-      ssl: true
-    })
-  ]
+      ssl: true,
+    }),
+  ],
 });
 
 export const inngest = new Inngest({
   id: "my-app",
   logger: datadogLogger,
-  middleware: [extendedTracesMiddleware()]
+  middleware: [extendedTracesMiddleware()],
 });
 ```
 
@@ -473,7 +473,7 @@ const healthCheck = inngest.createFunction(
   { id: "health-check", triggers: [{ cron: "*/5 * * * *" }] }, // Every 5 minutes
   async ({ step, logger }) => {
     const healthStatus = {
-      services: {}
+      services: {},
     };
 
     // Check database connectivity
@@ -486,7 +486,7 @@ const healthCheck = inngest.createFunction(
         } catch (error) {
           return { status: "unhealthy", error: error.message };
         }
-      }
+      },
     );
 
     // Check external API connectivity
@@ -498,38 +498,38 @@ const healthCheck = inngest.createFunction(
           const response = await externalAPI.healthCheck();
           return {
             status: "healthy",
-            apiStatus: response.status
+            apiStatus: response.status,
           };
         } catch (error) {
           return { status: "unhealthy", error: error.message };
         }
-      }
+      },
     );
 
     // Send health status to monitoring
     await step.run("report-health-status", async () => {
       const overallHealth = Object.values(healthStatus.services).every(
-        (service) => service.status === "healthy"
+        (service) => service.status === "healthy",
       )
         ? "healthy"
         : "degraded";
 
       await monitoringService.reportHealth({
         ...healthStatus,
-        overallStatus: overallHealth
+        overallStatus: overallHealth,
       });
 
       if (overallHealth === "degraded") {
         await alertingService.send({
           level: "warning",
           message: "System health check detected issues",
-          healthStatus
+          healthStatus,
         });
       }
     });
 
     return healthStatus;
-  }
+  },
 );
 ```
 
@@ -548,7 +548,7 @@ const debugFunction = inngest.createFunction(
     if (isDebugMode) {
       logger.debug("Debug mode enabled", {
         eventData: event.data,
-        environment: process.env.NODE_ENV
+        environment: process.env.NODE_ENV,
       });
     }
 
@@ -556,7 +556,7 @@ const debugFunction = inngest.createFunction(
       if (isDebugMode) {
         logger.debug("Starting debug operation", {
           input: event.data,
-          timestamp: Date.now()
+          timestamp: Date.now(),
         });
       }
 
@@ -566,7 +566,7 @@ const debugFunction = inngest.createFunction(
         if (isDebugMode) {
           logger.debug("Operation completed", {
             result: result,
-            executionTime: Date.now() - startTime
+            executionTime: Date.now() - startTime,
           });
         }
 
@@ -575,14 +575,14 @@ const debugFunction = inngest.createFunction(
         logger.error("Operation failed", {
           error: error.message,
           stack: isDebugMode ? error.stack : undefined,
-          input: event.data
+          input: event.data,
         });
         throw error;
       }
     });
 
     return result;
-  }
+  },
 );
 ```
 

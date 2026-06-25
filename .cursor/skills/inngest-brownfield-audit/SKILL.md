@@ -99,17 +99,17 @@ generated/vendor folders.
 
 ## Brownfield Decision Matrix
 
-| Existing shape | Inngest fit | Primary primitives |
-|---|---|---|
-| HTTP handler does slow side effects before responding | Emit event, return fast | `inngest.send`, event trigger, `step.run` |
-| Webhook must acknowledge quickly but process reliably | Verify signature, emit idempotent event | Event ID, `step.run`, retries |
-| Cron job loses progress midway | Cron-triggered durable function | Cron trigger, page-level `step.run`, flow control |
-| Polling loop waits for external async work | Durable wait or durable poll | `step.waitForEvent`, `step.sleep`, `step.run` |
-| Large fan-out exceeds request/serverless limits | Split orchestration and item work | `step.sendEvent`, per-item function, concurrency |
-| External API hits 429s | Move limits to function config | `throttle`, `rateLimit`, `concurrency` |
-| Human review can take days | Persist the wait in Inngest | `step.waitForEvent`, timeout, realtime |
-| AI agent/tool loop needs retry-safe progress | One step per tool/model boundary | `step.ai`, `step.run`, `step.sleep`, realtime |
-| Existing queue only hides fragile work | Replace queue boundary gradually | Event trigger, idempotency, function-level retries |
+| Existing shape                                        | Inngest fit                             | Primary primitives                                 |
+| ----------------------------------------------------- | --------------------------------------- | -------------------------------------------------- |
+| HTTP handler does slow side effects before responding | Emit event, return fast                 | `inngest.send`, event trigger, `step.run`          |
+| Webhook must acknowledge quickly but process reliably | Verify signature, emit idempotent event | Event ID, `step.run`, retries                      |
+| Cron job loses progress midway                        | Cron-triggered durable function         | Cron trigger, page-level `step.run`, flow control  |
+| Polling loop waits for external async work            | Durable wait or durable poll            | `step.waitForEvent`, `step.sleep`, `step.run`      |
+| Large fan-out exceeds request/serverless limits       | Split orchestration and item work       | `step.sendEvent`, per-item function, concurrency   |
+| External API hits 429s                                | Move limits to function config          | `throttle`, `rateLimit`, `concurrency`             |
+| Human review can take days                            | Persist the wait in Inngest             | `step.waitForEvent`, timeout, realtime             |
+| AI agent/tool loop needs retry-safe progress          | One step per tool/model boundary        | `step.ai`, `step.run`, `step.sleep`, realtime      |
+| Existing queue only hides fragile work                | Replace queue boundary gradually        | Event trigger, idempotency, function-level retries |
 
 ## Integration Plan Format
 

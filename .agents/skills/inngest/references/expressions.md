@@ -20,8 +20,8 @@ cancelOn: [
   {
     event: "order/cancelled",
     // event = original "order/created", async = new "order/cancelled"
-    if: "event.data.orderId == async.data.orderId"
-  }
+    if: "event.data.orderId == async.data.orderId",
+  },
 ];
 
 // step.waitForEvent example:
@@ -30,7 +30,7 @@ await step.waitForEvent("wait-for-subscription", {
   event: "app/subscription.created",
   timeout: "30d",
   // event = original "user/signup.completed", async = new "app/subscription.created"
-  if: "event.data.userId == async.data.userId"
+  if: "event.data.userId == async.data.userId",
 });
 ```
 

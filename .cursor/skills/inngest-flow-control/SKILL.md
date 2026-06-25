@@ -32,12 +32,12 @@ inngest.createFunction(
   {
     id: "process-images",
     concurrency: 5,
-    triggers: [{ event: "media/image.uploaded" }]
+    triggers: [{ event: "media/image.uploaded" }],
   },
   async ({ event, step }) => {
     // Only 5 steps can execute simultaneously
     await step.run("resize", () => resizeImage(event.data.imageUrl));
-  }
+  },
 );
 ```
 
@@ -52,15 +52,15 @@ inngest.createFunction(
     concurrency: [
       {
         key: "event.data.user_id",
-        limit: 1
-      }
+        limit: 1,
+      },
     ],
-    triggers: [{ event: "user/profile.updated" }]
+    triggers: [{ event: "user/profile.updated" }],
   },
   async ({ event, step }) => {
     // Only 1 step per user can execute at once
     // Prevents race conditions in user-specific operations
-  }
+  },
 );
 ```
 
@@ -74,14 +74,14 @@ inngest.createFunction(
       {
         scope: "account",
         key: `"openai"`,
-        limit: 60
-      }
+        limit: 60,
+      },
     ],
-    triggers: [{ event: "ai/summary.requested" }]
+    triggers: [{ event: "ai/summary.requested" }],
   },
   async ({ event, step }) => {
     // Share 60 concurrent OpenAI calls across all functions
-  }
+  },
 );
 ```
 
@@ -105,14 +105,14 @@ inngest.createFunction(
       limit: 10, // 10 function starts
       period: "60s", // per minute
       burst: 5, // plus 5 immediate bursts
-      key: "event.data.customer_id" // per customer
+      key: "event.data.customer_id", // per customer
     },
-    triggers: [{ event: "crm/contact.updated" }]
+    triggers: [{ event: "crm/contact.updated" }],
   },
   async ({ event, step }) => {
     // Respects CRM API rate limits: 10 calls/min per customer
     await step.run("sync", () => crmApi.updateContact(event.data));
-  }
+  },
 );
 ```
 
@@ -136,14 +136,14 @@ inngest.createFunction(
     rateLimit: {
       limit: 1,
       period: "4h",
-      key: "event.data.webhook_id"
+      key: "event.data.webhook_id",
     },
-    triggers: [{ event: "webhook/data.received" }]
+    triggers: [{ event: "webhook/data.received" }],
   },
   async ({ event, step }) => {
     // Process each webhook only once per 4 hours
     // Prevents duplicate webhook spam
-  }
+  },
 );
 ```
 
@@ -164,15 +164,15 @@ inngest.createFunction(
     debounce: {
       period: "5m", // Wait 5min after last edit
       key: "event.data.document_id",
-      timeout: "30m" // Force save after 30min max
+      timeout: "30m", // Force save after 30min max
     },
-    triggers: [{ event: "document/content.changed" }]
+    triggers: [{ event: "document/content.changed" }],
   },
   async ({ event, step }) => {
     // Saves document only after user stops editing
     // Uses the LAST event received
     await step.run("save", () => saveDocument(event.data));
-  }
+  },
 );
 ```
 
@@ -192,13 +192,13 @@ inngest.createFunction(
     id: "process-order",
     priority: {
       // VIP users get priority up to 120 seconds ahead
-      run: "event.data.user_tier == 'vip' ? 120 : 0"
+      run: "event.data.user_tier == 'vip' ? 120 : 0",
     },
-    triggers: [{ event: "order/placed" }]
+    triggers: [{ event: "order/placed" }],
   },
   async ({ event, step }) => {
     // VIP orders jump ahead in the queue
-  }
+  },
 );
 ```
 
@@ -213,16 +213,16 @@ inngest.createFunction(
         event.data.severity == 'critical' ? 300 :
         event.data.severity == 'high' ? 120 :
         event.data.user_plan == 'enterprise' ? 60 : 0
-      `
+      `,
     },
-    triggers: [{ event: "support/ticket.created" }]
+    triggers: [{ event: "support/ticket.created" }],
   },
   async ({ event, step }) => {
     // Critical tickets get highest priority (300s ahead)
     // High severity: 120s ahead
     // Enterprise users: 60s ahead
     // Everyone else: normal priority
-  }
+  },
 );
 ```
 
@@ -238,14 +238,14 @@ inngest.createFunction(
     id: "data-backup",
     singleton: {
       key: "event.data.database_id",
-      mode: "skip"
+      mode: "skip",
     },
-    triggers: [{ event: "backup/requested" }]
+    triggers: [{ event: "backup/requested" }],
   },
   async ({ event, step }) => {
     // Skip new backups if one is already running for this database
     await step.run("backup", () => performBackup(event.data.database_id));
-  }
+  },
 );
 ```
 
@@ -257,14 +257,14 @@ inngest.createFunction(
     id: "realtime-sync",
     singleton: {
       key: "event.data.user_id",
-      mode: "cancel"
+      mode: "cancel",
     },
-    triggers: [{ event: "user/data.changed" }]
+    triggers: [{ event: "user/data.changed" }],
   },
   async ({ event, step }) => {
     // Cancel previous sync and start with latest data
     await step.run("sync", () => syncUserData(event.data));
-  }
+  },
 );
 ```
 
@@ -281,20 +281,20 @@ inngest.createFunction(
       timeout: "30s", // Or 30 seconds, whichever first
       // `key` groups events into separate batches per unique value
       // This is different from expressions `if` which filters events
-      key: "event.data.campaign_id" // Batch per campaign
+      key: "event.data.campaign_id", // Batch per campaign
     },
-    triggers: [{ event: "email/send.queued" }]
+    triggers: [{ event: "email/send.queued" }],
   },
   async ({ events, step }) => {
     // Process array of events together
     const emails = events.map((evt) => ({
       to: evt.data.email,
       subject: evt.data.subject,
-      body: evt.data.body
+      body: evt.data.body,
     }));
 
     await step.run("send-batch", () => emailService.sendBulk(emails));
-  }
+  },
 );
 ```
 
@@ -310,24 +310,24 @@ inngest.createFunction(
     throttle: {
       limit: 50,
       period: "60s",
-      key: `"gpu-cluster"`
+      key: `"gpu-cluster"`,
     },
     // Per-user concurrency for fairness
     concurrency: [
       {
         key: "event.data.user_id",
-        limit: 3
-      }
+        limit: 3,
+      },
     ],
     // VIP users get priority
     priority: {
-      run: "event.data.plan == 'pro' ? 60 : 0"
+      run: "event.data.plan == 'pro' ? 60 : 0",
     },
-    triggers: [{ event: "ai/image.generate" }]
+    triggers: [{ event: "ai/image.generate" }],
   },
   async ({ event, step }) => {
     // Combines multiple flow controls for optimal resource usage
-  }
+  },
 );
 ```
 
