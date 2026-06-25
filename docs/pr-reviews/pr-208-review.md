@@ -63,7 +63,7 @@ Suggested fix:
 
 ### P2 - `.env.example` omits required Resend server variables
 
-Evidence: `.env.example` lists `RESEND_API_KEY` but not `RESEND_WEBHOOK_SECRET` or `RESEND_ENCRYPTION_KEY`, while `packages/env/src/schema.ts` validates both for staging/production.
+Evidence: `.env.example` lists `RESEND_API_KEY` but not `RESEND_WEBHOOK_SECRET` or `RESEND_ENCRYPTION_KEY`, while `packages/env/src/schema.ts` validates both for development/production.
 
 Impact: deploy setup can pass docs review but fail env validation.
 
