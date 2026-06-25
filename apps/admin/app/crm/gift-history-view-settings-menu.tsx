@@ -164,16 +164,16 @@ export function GiftHistoryViewSettingsMenu({
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Reset view settings</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuItem onSelect={() => onRequestReset("columns")}>
+            <DropdownMenuItem onClick={() => onRequestReset("columns")}>
               Reset columns…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("filtersSort")}>
+            <DropdownMenuItem onClick={() => onRequestReset("filtersSort")}>
               Reset filters & sort…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("pinnedAction")}>
+            <DropdownMenuItem onClick={() => onRequestReset("pinnedAction")}>
               Reset pinned row action…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("all")}>
+            <DropdownMenuItem onClick={() => onRequestReset("all")}>
               Reset all view settings…
             </DropdownMenuItem>
           </DropdownMenuSubContent>

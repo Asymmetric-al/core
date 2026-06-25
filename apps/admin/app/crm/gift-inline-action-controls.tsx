@@ -129,7 +129,7 @@ export function GiftInlineActionControls({
                     entry.available ? undefined : "text-muted-foreground"
                   }
                   disabled={!entry.available}
-                  onSelect={() => {
+                  onClick={() => {
                     if (entry.available) {
                       onRunOperation(definition);
                     }

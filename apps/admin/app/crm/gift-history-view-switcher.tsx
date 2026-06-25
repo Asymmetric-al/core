@@ -84,28 +84,28 @@ export function GiftHistoryViewSwitcher({
           </DropdownMenuLabel>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onSaveCurrentAs}>
+        <DropdownMenuItem onClick={onSaveCurrentAs}>
           Save current as view…
         </DropdownMenuItem>
         {activeView ? (
           <>
-            <DropdownMenuItem onSelect={() => onRename(activeView)}>
+            <DropdownMenuItem onClick={() => onRename(activeView)}>
               Rename “{activeView.name}”…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDuplicate(activeView)}>
+            <DropdownMenuItem onClick={() => onDuplicate(activeView)}>
               Duplicate
             </DropdownMenuItem>
             {activeView.isDefault ? null : (
-              <DropdownMenuItem onSelect={() => onSetDefault(activeView)}>
+              <DropdownMenuItem onClick={() => onSetDefault(activeView)}>
                 Set as default
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onSelect={() => onResetToSaved(activeView)}>
+            <DropdownMenuItem onClick={() => onResetToSaved(activeView)}>
               Reset to saved view
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
-              onSelect={() => onDelete(activeView)}
+              onClick={() => onDelete(activeView)}
             >
               Delete view…
             </DropdownMenuItem>
