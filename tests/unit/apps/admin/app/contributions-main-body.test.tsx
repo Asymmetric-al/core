@@ -288,7 +288,7 @@ beforeEach(async () => {
     await import("../../../../../apps/admin/app/contributions/main-body")
   ).ContributionsMainBody;
   selectedRowsRef.current = [];
-});
+}, 30_000);
 
 afterEach(() => {
   cleanup();

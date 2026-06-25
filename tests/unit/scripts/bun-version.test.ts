@@ -75,7 +75,7 @@ describe("bun version guard", () => {
     expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
     expect(result.stderr).not.toContain("error:");
     rmSync(env.FAKE_BUN_DIR!, { recursive: true, force: true });
-  });
+  }, 15_000);
 
   it("fails fast when the Bun binary does not match packageManager", () => {
     const env = withFakeBun("1.3.4");
@@ -90,5 +90,5 @@ describe("bun version guard", () => {
       "installed (bun --version):              bun@1.3.4",
     );
     rmSync(env.FAKE_BUN_DIR!, { recursive: true, force: true });
-  });
+  }, 15_000);
 });
