@@ -30,6 +30,6 @@ describe("bun version guard", () => {
     expect(source).toContain("error: Bun version mismatch.");
     expect(source).toContain("expected (package.json packageManager)");
     expect(source).toContain("installed (bun --version)");
-    expect(source).toContain('exit 1');
+    expect(source).toContain("exit 1");
   });
 });
