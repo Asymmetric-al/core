@@ -1,14 +1,9 @@
 import { type AuthenticatedContext } from "@asym/auth/context";
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 
 import { resolveDonorPortalContext } from "./service";
 import { withOperation } from "../shared/with-operation";
-import { STRIPE_API_VERSION } from "../stripe/api-version";
-
-function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
-}
+import { createStripeClient } from "../stripe/client";
 
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
@@ -45,7 +40,7 @@ export const POST = withOperation(
       );
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const session = await stripe.billingPortal.sessions.create({
       customer: donor.stripe_customer_id,
       return_url: new URL("/donor-dashboard/wallet", request.url).toString(),

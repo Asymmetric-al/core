@@ -45,6 +45,13 @@ Related donation status transitions:
   - customer creation uses `<idempotencyKey>:customer`
   - PaymentIntent creation uses `<idempotencyKey>:payment_intent`
 
+## Stripe API Version
+
+Server-side Stripe clients use the shared `STRIPE_API_VERSION` pin in
+`packages/api/src/stripe/api-version.ts`. When upgrading the Stripe SDK, confirm
+the Stripe Dashboard account default and production webhook endpoint API version
+match the repo pin before deploying.
+
 ## Processing Endpoints
 
 ### Donor request path

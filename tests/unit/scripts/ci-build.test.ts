@@ -19,15 +19,11 @@ describe("ci-build command planning", () => {
       platform: "win32",
       exists: (candidate: string) =>
         existingPaths.has(
-          candidate
-            .replace(/\\/g, "/")
-            .replace(/^.*node_modules/, "/repo/node_modules"),
+          candidate.replace(/^.*node_modules/, "/repo/node_modules"),
         ),
     });
 
-    expect(
-      result.replace(/\\/g, "/").endsWith("node_modules/.bin/turbo.cmd"),
-    ).toBe(true);
+    expect(result.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
   });
 
   it("builds shared packages without Turbo on Windows", () => {

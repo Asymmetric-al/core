@@ -5,7 +5,6 @@ import {
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
@@ -13,11 +12,7 @@ import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
-import { STRIPE_API_VERSION } from "../stripe/api-version";
-
-function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
-}
+import { createStripeClient } from "../stripe/client";
 
 function parseRpcObject<T extends Record<string, unknown>>(
   value: unknown,
@@ -57,7 +52,7 @@ export const POST = withOperation(
       );
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const amountInCents = Math.round(amount * 100);
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
 
