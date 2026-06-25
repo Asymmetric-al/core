@@ -59,7 +59,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           TURBO_SCM_BASE: origin/${{ github.base_ref }}
-        run: bunx turbo run lint --affected --filter=./apps/* --filter=./packages/*
+        run: bunx turbo run lint --affected --filter=./apps/* --filter=./packages/* --filter=./tooling/*
       - name: Run full lint on protected branch pushes
         if: github.event_name != 'pull_request'
         run: bun run lint
@@ -92,7 +92,7 @@ jobs:
         if: github.event_name == 'pull_request'
         env:
           TURBO_SCM_BASE: origin/${{ github.base_ref }}
-        run: bunx turbo run typecheck --affected --filter=./apps/* --filter=./packages/*
+        run: bunx turbo run typecheck --affected --filter=./apps/* --filter=./packages/* --filter=./tooling/*
       - name: Run full typecheck on protected branch pushes
         if: github.event_name != 'pull_request'
         run: bun run typecheck
