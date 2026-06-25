@@ -5,6 +5,7 @@ import {
   type ContributionSortField,
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
+import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
 
 import type {
   AdminContributionsListResponse,
@@ -507,14 +508,7 @@ export async function listAdminContributions(
       missionary: missionaryProfile
         ? {
             id: missionary?.id ?? donation.missionary_id ?? "",
-            display_name:
-              (missionaryProfile.display_name ??
-                missionaryProfile.full_name ??
-                [missionaryProfile.first_name, missionaryProfile.last_name]
-                  .filter(Boolean)
-                  .join(" ")
-                  .trim()) ||
-              missionaryProfile.email,
+            display_name: resolveContributionProfileLabel(missionaryProfile),
           }
         : null,
       stagedGift: stagedGift ?? null,

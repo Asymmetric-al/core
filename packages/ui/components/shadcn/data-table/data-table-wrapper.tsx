@@ -23,7 +23,7 @@ import type {
   DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, Row } from "@tanstack/react-table";
 
 interface DataTableWrapperProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
@@ -46,6 +46,7 @@ interface DataTableWrapperProps<TData, TValue> {
   onRetry?: () => void;
   onRowClick?: (row: TData) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   emptyState?: {
     title?: string;
     description?: string;
@@ -74,6 +75,7 @@ export function DataTableWrapper<TData, TValue>({
   onRetry,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
   emptyState,
   className,
   tableClassName,
@@ -159,6 +161,7 @@ export function DataTableWrapper<TData, TValue>({
         urlState={urlState}
         onRowClick={onRowClick ? (row) => onRowClick(row.original) : undefined}
         rowActions={rowActions}
+        getRowActionAriaLabel={getRowActionAriaLabel}
         emptyState={customEmptyState}
         tableClassName={tableClassName}
         toolbar={toolbar}

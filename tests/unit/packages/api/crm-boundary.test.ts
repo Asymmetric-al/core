@@ -125,7 +125,7 @@ describe("Twenty CRM package and app boundary", () => {
     ).toBe('export { GET } from "@asym/api/admin/crm/gateway";');
     expect(
       readRepoFile(
-        "apps/admin/app/api/admin/crm/gateway/staging-health/route.ts",
+        "apps/admin/app/api/admin/crm/gateway/development-health/route.ts",
       ).trim(),
     ).toBe('export { GET } from "@asym/api/admin/crm/twenty-health";');
     expect(

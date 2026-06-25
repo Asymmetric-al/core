@@ -10,7 +10,17 @@ const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX = 2;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS = 5_000;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_CONNECTION_TIMEOUT_MS = 5_000;
 const MIN_PAYLOAD_DATABASE_POOL_MAX = 2;
-const PROTECTED_TARGET_ENVIRONMENTS = new Set(["production", "staging"]);
+// Protected Vercel target environments. "development" is the built-in local dev target;
+// "core-development" is the hosted Vercel custom environment for the develop branch
+// (VERCEL_TARGET_ENV="core-development", VERCEL_ENV="preview"). "staging" is a retained legacy
+// alias kept protected until a Vercel inventory proves no deployment still reports it. Matches
+// packages/env/src/schema.ts and packages/api/src/admin/crm/twenty-health.ts.
+const PROTECTED_TARGET_ENVIRONMENTS = new Set([
+  "production",
+  "development",
+  "core-development",
+  "staging",
+]);
 const DIRECT_SUPABASE_HOST_RE = /^db\.[a-z0-9]+\.supabase\.co$/i;
 const SUPAVISOR_POOLER_HOST_RE = /(?:^|\.)pooler\.supabase\.com$/i;
 
