@@ -48,6 +48,7 @@ function getExpectation(
 
   if (target === "missionary") {
     return {
+      allowHiddenHeading: true,
       heading: "Mission Tasks",
       path: "/boneyard/tasks",
       skeletonName: "missionary-tasks-list",
