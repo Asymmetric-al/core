@@ -66,6 +66,7 @@ vi.mock("sonner", () => ({
 
 const DONOR_RECORD_ID = "record-donor-1";
 const DONATION_ID = "00000000-0000-4000-8000-00000000d001";
+const crmPageSetupTimeout = process.platform === "win32" ? 120_000 : 30_000;
 
 const crmGridRow = {
   id: DONOR_RECORD_ID,
@@ -446,7 +447,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutate: vi.fn(),
     });
-  }, 30_000);
+  }, crmPageSetupTimeout);
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
     mockSearch = `donor=${DONOR_RECORD_ID}`;

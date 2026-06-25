@@ -32,6 +32,8 @@ const ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE = [
   "detail",
 ] as const;
 const ADMIN_CRM_RECORDS_QUERY_KEY_VALUE = ["admin", "crm", "records"] as const;
+const loadEnvSensitiveModulesTimeout =
+  process.platform === "win32" ? 120_000 : 30_000;
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE,
@@ -337,7 +339,7 @@ describe("apps/admin/app/contributions/page", () => {
         isPending: false,
       }),
     );
-  }, 30_000);
+  }, loadEnvSensitiveModulesTimeout);
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");

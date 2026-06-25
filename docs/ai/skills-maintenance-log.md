@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-05-23
+Last updated: 2026-06-26
 
 ## Scope
 
@@ -23,9 +23,10 @@ Asymmetric-al/core agent skill system:
   into `.cursor/skills/*`.
 - `scripts/verify-skills-sync.mjs` runs the sync script and fails on tracked or
   untracked mirror drift.
-- `scripts/refresh-upstream-skills.mjs` vendors only `supabase`,
-  `supabase-postgres-best-practices`, `npm-deps-cleanup`, and
-  `emil-design-engineering` into `docs/ai/skills/*`.
+- `scripts/refresh-upstream-skills.mjs` vendors `supabase`,
+  `supabase-postgres-best-practices`, `npm-deps-cleanup`,
+  `emil-design-engineering`, Cursor Team Kit skills, and the Babysitter
+  `babysit` skill into `docs/ai/skills/*`.
 
 ## Baseline
 
@@ -39,6 +40,44 @@ Branch: `chore/skills-upstream-refresh` from `origin/production`.
   Current local repository files are the evidence source for this refresh.
 
 ## Refresh Log
+
+Completed 2026-06-26:
+
+- Updated `docs/ai/working-set.md` with the Cursor Team Kit and Babysitter
+  skill-vendoring scope.
+- Verified upstream branches:
+  - `cursor/plugins` default branch `main` at
+    `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`.
+  - `a5c-ai/babysitter-cursor` default branch `develop` at
+    `67f78eaae0935c93fb0ff5b51f471d819eab0134`.
+- Vendored all current Cursor Team Kit skills from
+  `cursor-team-kit/skills/*` into `docs/ai/skills/*`:
+  `check-compiler-errors`, `control-cli`, `control-ui`, `deslop`, `fix-ci`,
+  `fix-merge-conflicts`, `get-pr-comments`, `loop-on-ci`,
+  `make-pr-easy-to-review`, `new-branch-and-pr`, `pr-review-canvas`,
+  `review-and-ship`, `run-smoke-tests`,
+  `thermo-nuclear-code-quality-review`, `verify-this`, `weekly-review`,
+  `what-did-i-get-done`, and `workflow-from-chats`.
+- Vendored Babysitter `skills/babysit/SKILL.md` into
+  `docs/ai/skills/babysit/`, plus upstream `versions.json` because the
+  preserved `SKILL.md` reads `${PLUGIN_ROOT}/versions.json` to choose the SDK
+  version.
+- Added `references/upstream.md` to every new canonical skill directory with
+  `source_name`, `source_url`, `source_type: github`, `upstream_path`,
+  `skills_lock_hash`, `last_reviewed`, reviewed commit, and refresh steps.
+- Updated `skills-lock.json` with 19 new `sourceType: "github"` entries using
+  SHA-256 hashes of the upstream `SKILL.md` bytes.
+- Extended `scripts/refresh-upstream-skills.mjs` with safe GitHub temp-clone
+  source groups for Cursor Team Kit and Babysitter. The script now validates
+  skill slugs, verifies upstream `SKILL.md` exists before deleting canonical
+  targets, preserves `references/upstream.md`, regenerates metadata, copies
+  configured support files, and updates matching lockfile entries.
+- Copied Cursor Team Kit companion agents into `.cursor/agents/ci-watcher.md`
+  and `.cursor/agents/thermo-nuclear-code-quality-review.md`.
+- Intentionally did not vendor Cursor Team Kit upstream `.cursor/rules`
+  (`no-inline-imports.mdc`, `typescript-exhaustive-switch.mdc`) because no
+  skill depends on them and both are `alwaysApply` repo-wide Cursor behavior
+  changes.
 
 Completed 2026-05-23:
 
@@ -89,6 +128,18 @@ Completed 2026-05-23:
   shell-aware for Windows command execution.
 
 ## Resulting Inventory
+
+After the 2026-06-26 addition:
+
+- Canonical skills: 62 under `docs/ai/skills/*`.
+- Runtime mirror skills: 122 under `.agents/skills/*` and `.cursor/skills/*`.
+- New Cursor Team Kit canonical skills: 18.
+- New Babysitter canonical skills: 1.
+- Skills lock entries: 75 in `skills-lock.json`.
+- Cursor Team Kit companion agents: 2 under `.cursor/agents/`.
+- Cursor Team Kit upstream rules: found and intentionally not vendored.
+
+After the 2026-05-23 refresh:
 
 - Canonical skills: 42 under `docs/ai/skills/*`.
 - Runtime mirror skills: 102 under `.agents/skills/*`.

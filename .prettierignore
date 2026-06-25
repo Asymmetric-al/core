@@ -42,6 +42,7 @@ apps/admin/payload-types.ts
 # generated and auxiliary agent artifacts
 .tmp
 .agent
+.claude
 .agents
 .next-docs
 .nia-sync

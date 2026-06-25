@@ -5,6 +5,7 @@ import { defineConfig } from "vitest/config";
 
 const rootDir = fileURLToPath(new URL(".", import.meta.url));
 const srcPath = fileURLToPath(new URL("./src", import.meta.url));
+const isWindows = process.platform === "win32";
 
 export default defineConfig({
   plugins: [react()],
@@ -29,6 +30,8 @@ export default defineConfig({
       "packages/auth/**/*.test.ts",
     ],
     environment: "node",
+    hookTimeout: isWindows ? 120_000 : 10_000,
+    testTimeout: isWindows ? 60_000 : 5_000,
     env: {
       SKIP_ENV_VALIDATION: "1",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",

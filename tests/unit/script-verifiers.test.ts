@@ -5,6 +5,7 @@ import path from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
+const verifierTimeout = process.platform === "win32" ? 60_000 : 20_000;
 const tempRoots: string[] = [];
 const isolatedGitEnv = Object.fromEntries(
   Object.entries(process.env).filter(([key]) => !key.startsWith("GIT_")),
@@ -372,31 +373,43 @@ describe("verify-workspace-contract", () => {
 });
 
 describe("verify-skills-sync", () => {
-  it("fails when sync would generate untracked mirror files", async () => {
-    const tempRoot = await createSkillsVerifyRepo();
+  it(
+    "fails when sync would generate untracked mirror files",
+    async () => {
+      const tempRoot = await createSkillsVerifyRepo();
 
-    expect(() =>
-      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
-    ).toThrow(/Skill mirror drift detected/);
-  }, 20_000);
+      expect(() =>
+        runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+      ).toThrow(/Skill mirror drift detected/);
+    },
+    verifierTimeout,
+  );
 
-  it("supports worktree-style relative gitdir files", async () => {
-    const tempRoot = await createSkillsVerifyRelativeWorktreeRepo();
+  it(
+    "supports worktree-style relative gitdir files",
+    async () => {
+      const tempRoot = await createSkillsVerifyRelativeWorktreeRepo();
 
-    expect(runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs")).toContain(
-      "agent skill sync complete",
-    );
-  }, 20_000);
+      expect(
+        runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+      ).toContain("agent skill sync complete");
+    },
+    verifierTimeout,
+  );
 
-  it("prints repo context when .git discovery fails", async () => {
-    const tempRoot = await createTempRepo("skills-verify-missing-git");
-    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
-    await copyScript(tempRoot, "scripts/verify-skills-sync.mjs");
+  it(
+    "prints repo context when .git discovery fails",
+    async () => {
+      const tempRoot = await createTempRepo("skills-verify-missing-git");
+      await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+      await copyScript(tempRoot, "scripts/verify-skills-sync.mjs");
 
-    expect(() =>
-      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
-    ).toThrow(/repoRoot:/);
-  }, 20_000);
+      expect(() =>
+        runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+      ).toThrow(/repoRoot:/);
+    },
+    verifierTimeout,
+  );
 });
 
 describe("sync-agent-skills", () => {

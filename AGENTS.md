@@ -264,6 +264,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`emil-design-engineering`** is not in `skills-lock.json`; refresh it with the animations.dev installer into `~/.cursor/skills/`, then the same `skills:refresh-upstream` → `skills:sync` / `skills:verify` loop (see root `README.md`). Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`.
 
+**Cursor Team Kit** (`cursor/plugins`, `cursor-team-kit/skills/*`) and **Babysitter** (`a5c-ai/babysitter-cursor`, `skills/babysit`) are repo-local vendored skills refreshed directly from GitHub by `bun run skills:refresh-upstream`; see each skill's `references/upstream.md`. Cursor Team Kit companion agents are vendored under `.cursor/agents/`; upstream always-on Cursor rules are intentionally not vendored because no skill depends on them and they would change repo-wide Cursor behavior.
+
 **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). Refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
@@ -299,6 +301,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
+- **Cursor Team Kit PR/CI/review workflows:** load the matching canonical skill under `docs/ai/skills/<skill-name>/SKILL.md` when explicitly requested or when its trigger matches: `check-compiler-errors`, `control-cli`, `control-ui`, `deslop`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `loop-on-ci`, `make-pr-easy-to-review`, `new-branch-and-pr`, `pr-review-canvas`, `review-and-ship`, `run-smoke-tests`, `thermo-nuclear-code-quality-review`, `verify-this`, `weekly-review`, `what-did-i-get-done`, `workflow-from-chats`.
+- **Babysitter orchestration:** `docs/ai/skills/babysit/SKILL.md` when the user asks to babysit, orchestrate a run/process, or explicitly calls `/babysit`.
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
