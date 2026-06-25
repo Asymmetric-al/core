@@ -4,7 +4,13 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$REPO_ROOT"
 
-if ! command -v bun >/dev/null 2>&1; then
+if [[ -n "${BUN_VERSION_GUARD_BIN:-}" ]]; then
+  bun_cmd="$BUN_VERSION_GUARD_BIN"
+elif command -v bun >/dev/null 2>&1; then
+  bun_cmd="bun"
+elif command -v bun.exe >/dev/null 2>&1; then
+  bun_cmd="bun.exe"
+else
   echo "error: bun is not installed or not on PATH." >&2
   echo "Install Bun from https://bun.sh/docs/installation" >&2
   exit 1
@@ -16,23 +22,15 @@ if [[ ! -f "$package_json" ]]; then
   exit 1
 fi
 
-expected_raw="$(bun -e "
-const fs = require('node:fs');
-const pkg = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
-const pm = pkg.packageManager;
-if (!pm || typeof pm !== 'string') {
-  process.stderr.write('error: package.json is missing packageManager\\n');
-  process.exit(2);
-}
-const match = pm.match(/^bun@(.+)$/);
-if (!match) {
-  process.stderr.write('error: packageManager must look like bun@<version>, got: ' + pm + '\\n');
-  process.exit(2);
-}
-process.stdout.write(match[1]);
-" "$package_json")"
+package_json_contents="$(<"$package_json")"
+if [[ ! "$package_json_contents" =~ \"packageManager\"[[:space:]]*:[[:space:]]*\"bun@([^\"]+)\" ]]; then
+  echo "error: packageManager must look like bun@<version> in $package_json" >&2
+  exit 2
+fi
 
-installed_raw="$(bun --version 2>/dev/null | tr -d '[:space:]')"
+expected_raw="${BASH_REMATCH[1]}"
+
+installed_raw="$("$bun_cmd" --version 2>/dev/null | tr -d '[:space:]')"
 installed="${installed_raw#v}"
 expected="${expected_raw#v}"
 
