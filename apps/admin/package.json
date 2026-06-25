@@ -10,10 +10,10 @@
     "start": "next start",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
-    "cms:migrate": "payload migrate",
-    "cms:migrate:create": "payload migrate:create",
-    "cms:migrate:status": "payload migrate:status",
-    "cms:importmap": "payload generate:importmap && node ../../scripts/dev/postprocess-payload-importmap.mjs"
+    "cms:migrate": "node ../../scripts/cms/run-payload-command.mjs migrate",
+    "cms:migrate:create": "node ../../scripts/cms/run-payload-command.mjs migrate:create",
+    "cms:migrate:status": "node ../../scripts/cms/run-payload-command.mjs migrate:status",
+    "cms:importmap": "node ../../scripts/cms/generate-importmap.mjs"
   },
   "dependencies": {
     "@asym/api": "workspace:*",

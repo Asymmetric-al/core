@@ -1,6 +1,8 @@
 {
   "$schema": "https://v2-10-0.turborepo.dev/schema.json",
   "envMode": "loose",
+  "cacheMaxAge": "14d",
+  "cacheMaxSize": "10GB",
   "globalEnv": [
     "NODE_ENV",
     "VERCEL",
@@ -10,9 +12,6 @@
     "VERCEL_GIT_COMMIT_SHA"
   ],
   "tasks": {
-    "transit": {
-      "dependsOn": ["^transit"]
-    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": [
@@ -50,7 +49,6 @@
       "inputs": ["$TURBO_DEFAULT$", ".env", ".env.*"]
     },
     "lint": {
-      "dependsOn": ["transit"],
       "outputs": [],
       "passThroughEnv": [
         "CI",
@@ -61,34 +59,9 @@
       ]
     },
     "typecheck": {
-      "dependsOn": ["transit"],
+      "dependsOn": ["^typecheck"],
       "outputs": ["tsconfig.tsbuildinfo", "*.tsbuildinfo", "**/*.tsbuildinfo"],
       "passThroughEnv": ["CI", "NODE_OPTIONS", "FORCE_COLOR", "NO_COLOR"]
-    },
-    "test": {
-      "dependsOn": ["transit"],
-      "outputs": ["coverage/**"],
-      "cache": false,
-      "passThroughEnv": [
-        "CI",
-        "NODE_OPTIONS",
-        "VITEST_*",
-        "DEBUG",
-        "FORCE_COLOR",
-        "NO_COLOR"
-      ]
-    },
-    "test:unit": {
-      "dependsOn": ["transit"],
-      "outputs": ["coverage/**"],
-      "passThroughEnv": [
-        "CI",
-        "NODE_OPTIONS",
-        "VITEST_*",
-        "DEBUG",
-        "FORCE_COLOR",
-        "NO_COLOR"
-      ]
     },
     "dev": {
       "cache": false,
@@ -122,6 +95,128 @@
     },
     "generate:icons": {
       "cache": false
+    },
+    "cms:migrate": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_ENV",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "DATABASE_URL",
+        "PAYLOAD_*",
+        "SUPABASE_*",
+        "NEXT_PUBLIC_SUPABASE_*",
+        "RESEND_API_KEY",
+        "DONOR_APP_URL",
+        "NEXT_PUBLIC_DONOR_URL",
+        "CMS_*"
+      ]
+    },
+    "cms:migrate:create": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_ENV",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "DATABASE_URL",
+        "PAYLOAD_*",
+        "SUPABASE_*",
+        "NEXT_PUBLIC_SUPABASE_*",
+        "RESEND_API_KEY",
+        "DONOR_APP_URL",
+        "NEXT_PUBLIC_DONOR_URL",
+        "CMS_*"
+      ]
+    },
+    "cms:migrate:status": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_ENV",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "DATABASE_URL",
+        "PAYLOAD_*",
+        "SUPABASE_*",
+        "NEXT_PUBLIC_SUPABASE_*",
+        "RESEND_API_KEY",
+        "DONOR_APP_URL",
+        "NEXT_PUBLIC_DONOR_URL",
+        "CMS_*"
+      ]
+    },
+    "cms:importmap": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_ENV",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "DATABASE_URL",
+        "PAYLOAD_*",
+        "SUPABASE_*",
+        "NEXT_PUBLIC_SUPABASE_*",
+        "RESEND_API_KEY",
+        "DONOR_APP_URL",
+        "NEXT_PUBLIC_DONOR_URL",
+        "CMS_*"
+      ]
+    },
+    "legal:validate": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "TERM"
+      ]
+    },
+    "legal:generate:md": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "TERM"
+      ]
+    },
+    "legal:generate:html": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "TERM"
+      ]
+    },
+    "legal:generate:pdf": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "TERM"
+      ]
+    },
+    "legal:generate:all": {
+      "cache": false,
+      "passThroughEnv": [
+        "CI",
+        "NODE_OPTIONS",
+        "FORCE_COLOR",
+        "NO_COLOR",
+        "TERM"
+      ]
     },
     "setup": {
       "cache": false

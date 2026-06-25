@@ -42,6 +42,8 @@ jobs:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Install system dependencies (canvas)
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
@@ -53,7 +55,14 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - run: bun run lint
+      - name: Run affected lint on pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          TURBO_SCM_BASE: origin/${{ github.base_ref }}
+        run: bunx turbo run lint --affected --filter=./apps/* --filter=./packages/*
+      - name: Run full lint on protected branch pushes
+        if: github.event_name != 'pull_request'
+        run: bun run lint
       - name: Check data access boundary
         run: bun run verify:data-boundary
       - run: bun run verify:workspace-contract
@@ -66,6 +75,8 @@ jobs:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
       - name: Install system dependencies (canvas)
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
       - uses: oven-sh/setup-bun@v2
@@ -77,7 +88,14 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - run: bun run typecheck
+      - name: Run affected typecheck on pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          TURBO_SCM_BASE: origin/${{ github.base_ref }}
+        run: bunx turbo run typecheck --affected --filter=./apps/* --filter=./packages/*
+      - name: Run full typecheck on protected branch pushes
+        if: github.event_name != 'pull_request'
+        run: bun run typecheck
 
   build:
     runs-on: ubuntu-latest
