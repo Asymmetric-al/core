@@ -60,7 +60,11 @@ if (!match) {
 process.stdout.write(match[1]);
 " package.json)"
 
-installed_raw="$("$bun_cmd" --version 2>/dev/null | tr -d '[:space:]')"
+if [[ -n "${BUN_VERSION_GUARD_INSTALLED_VERSION:-}" ]]; then
+  installed_raw="${BUN_VERSION_GUARD_INSTALLED_VERSION}"
+else
+  installed_raw="$("$bun_cmd" --version 2>/dev/null | tr -d '[:space:]')"
+fi
 installed="${installed_raw#v}"
 expected="${expected_raw#v}"
 
