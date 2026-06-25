@@ -1,4 +1,5 @@
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import { spawnSync } from "node:child_process";
 
@@ -45,11 +46,9 @@ function createFakeBun(version: string): {
   realBun: string;
 } {
   const realBun = toBashPath(resolveBunPath());
-  const fakeBinDir = path.join(repoRoot, ".tmp", "bun-version-test");
+  const fakeBinDir = mkdtempSync(path.join(tmpdir(), "bun-version-test-"));
   const fakeBunPath = path.join(fakeBinDir, "bun");
 
-  rmSync(fakeBinDir, { force: true, recursive: true });
-  mkdirSync(fakeBinDir, { recursive: true });
   writeFileSync(
     fakeBunPath,
     [
