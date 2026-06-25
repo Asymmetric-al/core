@@ -1,7 +1,7 @@
 ## 1. OpenSpec
 
-- [x] 1.1 Create an agent-tooling-only OpenSpec change for official Inngest
-      skills, routing, and MCP support.
+- [x] 1.1 Create an OpenSpec change for official Inngest agent skills,
+      routing, and MCP support.
 - [x] 1.2 Keep the proposal explicit that product runtime Inngest integration is
       out of scope.
 - [x] 1.3 Document the bundled non-Inngest repo hygiene changes separately from
