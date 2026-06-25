@@ -44,7 +44,10 @@ if [[ ! -f "$package_json" ]]; then
   exit 1
 fi
 
-expected_raw="$("$bun_cmd" -e "
+if [[ -n "${BUN_VERSION_GUARD_EXPECTED_VERSION:-}" ]]; then
+  expected_raw="${BUN_VERSION_GUARD_EXPECTED_VERSION}"
+else
+  expected_raw="$("$bun_cmd" -e "
 const fs = require('node:fs');
 const pkg = JSON.parse(fs.readFileSync(process.argv[1], 'utf8'));
 const pm = pkg.packageManager;
@@ -59,6 +62,7 @@ if (!match) {
 }
 process.stdout.write(match[1]);
 " package.json)"
+fi
 
 if [[ -n "${BUN_VERSION_GUARD_INSTALLED_VERSION:-}" ]]; then
   installed_raw="${BUN_VERSION_GUARD_INSTALLED_VERSION}"

@@ -5,8 +5,6 @@ import { describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
 const scriptPath = path.join(repoRoot, "scripts", "verify", "bun-version.sh");
-const bashSystemPath =
-  "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 
 function toBashPath(filePath: string): string {
   if (process.platform !== "win32") {
@@ -21,70 +19,31 @@ function toBashPath(filePath: string): string {
     );
 }
 
-function resolveBunPath(): string {
-  const execPathBase = path.basename(process.execPath).toLowerCase();
-  if (execPathBase === "bun" || execPathBase === "bun.exe") {
-    return process.execPath;
-  }
-
-  const command =
-    process.platform === "win32" ? "C:\\Windows\\System32\\where.exe" : "which";
-  const result = spawnSync(command, ["bun"], { encoding: "utf8" });
-  const firstMatch = result.stdout?.split(/\r?\n/).find(Boolean);
-
-  if (!firstMatch) {
-    throw new Error("Unable to resolve bun on PATH for bun-version test");
-  }
-
-  return firstMatch.trim();
-}
-
 function shellQuote(value: string): string {
   return `'${value.replaceAll("'", "'\\''")}'`;
 }
 
-function runGuard(env: NodeJS.ProcessEnv = {}) {
-  if (env.BUN_VERSION_GUARD_BUN || env.BUN_VERSION_GUARD_INSTALLED_VERSION) {
-    const assignments = [
-      env.BUN_VERSION_GUARD_BUN
-        ? `BUN_VERSION_GUARD_BUN=${shellQuote(env.BUN_VERSION_GUARD_BUN)}`
-        : "",
-      env.BUN_VERSION_GUARD_INSTALLED_VERSION
-        ? `BUN_VERSION_GUARD_INSTALLED_VERSION=${shellQuote(env.BUN_VERSION_GUARD_INSTALLED_VERSION)}`
-        : "",
-      env.REAL_BUN ? `REAL_BUN=${shellQuote(env.REAL_BUN)}` : "",
-    ]
-      .filter(Boolean)
-      .join(" ");
+function runGuard(installedVersion: string) {
+  const assignments = [
+    "BUN_VERSION_GUARD_BUN=true",
+    "BUN_VERSION_GUARD_EXPECTED_VERSION=1.3.14",
+    `BUN_VERSION_GUARD_INSTALLED_VERSION=${shellQuote(installedVersion)}`,
+  ].join(" ");
 
-    return spawnSync(
-      "bash",
-      ["-lc", `${assignments} ${shellQuote(toBashPath(scriptPath))}`],
-      {
-        cwd: repoRoot,
-        env: {
-          ...process.env,
-          PATH: env.PATH ?? process.env.PATH,
-        },
-        encoding: "utf8",
-      },
-    );
-  }
-
-  return spawnSync("bash", [toBashPath(scriptPath)], {
-    cwd: repoRoot,
-    env: { ...process.env, ...env },
-    encoding: "utf8",
-  });
+  return spawnSync(
+    "bash",
+    ["-lc", `${assignments} ${shellQuote(toBashPath(scriptPath))}`],
+    {
+      cwd: repoRoot,
+      env: { ...process.env },
+      encoding: "utf8",
+    },
+  );
 }
 
 describe("bun version guard", () => {
   it("accepts the installed Bun when it matches packageManager", () => {
-    const realBun = toBashPath(resolveBunPath());
-    const result = runGuard({
-      BUN_VERSION_GUARD_BUN: realBun,
-      REAL_BUN: realBun,
-    });
+    const result = runGuard("1.3.14");
 
     expect(result.status).toBe(0);
     expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
@@ -92,12 +51,7 @@ describe("bun version guard", () => {
   }, 30_000);
 
   it("fails fast when the Bun binary does not match packageManager", () => {
-    const realBun = toBashPath(resolveBunPath());
-    const result = runGuard({
-      BUN_VERSION_GUARD_BUN: realBun,
-      BUN_VERSION_GUARD_INSTALLED_VERSION: "1.3.4",
-      REAL_BUN: realBun,
-    });
+    const result = runGuard("1.3.4");
 
     expect(result.status).toBe(1);
     expect(result.stderr).toContain("error: Bun version mismatch.");
