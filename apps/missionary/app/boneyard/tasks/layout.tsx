@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
   title: "Boneyard tasks",
-  description: "Archived or deferred tasks kept out of the main list.",
+  description: "Capture route for the missionary tasks skeleton snapshot.",
   robots: {
     index: false,
     follow: false,

@@ -1,9 +1,20 @@
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 
 import { describe, expect, it } from "vitest";
 
 const repoRoot = join(import.meta.dirname, "../../..");
+
+const boneyardApps = ["admin", "donor", "missionary"] as const;
+
+const expectedBoneyardBuildScriptOrigins = {
+  "boneyard:admin": "http://localhost:3030",
+  "boneyard:missionary": "http://localhost:4000",
+  "boneyard:donor": "http://localhost:3000",
+  "boneyard:admin:force": "http://localhost:3030",
+  "boneyard:missionary:force": "http://localhost:4000",
+  "boneyard:donor:force": "http://localhost:3000",
+} as const;
 
 function readRepoFile(relativePath: string): string {
   return readFileSync(join(repoRoot, relativePath), "utf8");
@@ -23,11 +34,11 @@ function boneyardBuildScripts(
 }
 
 function expectsNoindexRobots(source: string, label: string): void {
-  expect(source, `${label}: robots.index must be false`).toMatch(
-    /index:\s*false/,
+  expect(source, `${label}: robots block must disable indexing`).toMatch(
+    /robots:\s*{[\s\S]*index:\s*false[\s\S]*follow:\s*false/,
   );
-  expect(source, `${label}: robots.follow must be false`).toMatch(
-    /follow:\s*false/,
+  expect(source, `${label}: googleBot block must disable indexing`).toMatch(
+    /googleBot:\s*{[\s\S]*index:\s*false[\s\S]*follow:\s*false/,
   );
 }
 
@@ -57,14 +68,39 @@ describe("boneyard maintenance contract", () => {
     const buildScripts = Object.entries(scripts).filter(([, command]) =>
       command.includes("boneyard-js build"),
     );
+    const expectedNames = Object.keys(expectedBoneyardBuildScriptOrigins);
 
-    expect(buildScripts.length).toBe(6);
+    expect(buildScripts.map(([name]) => name).toSorted()).toEqual(
+      expectedNames.toSorted(),
+    );
 
     for (const [name, command] of buildScripts) {
-      expect(command, name).toMatch(
-        /boneyard-js build http:\/\/localhost:(3030|4000|3000)/,
-      );
+      const origin =
+        expectedBoneyardBuildScriptOrigins[
+          name as keyof typeof expectedBoneyardBuildScriptOrigins
+        ];
+
+      expect(command, name).toContain(`boneyard-js build ${origin}`);
       expect(command, name).not.toMatch(/\/boneyard\//);
+    }
+  });
+
+  it("keeps one TypeScript Boneyard registry per app", () => {
+    for (const app of boneyardApps) {
+      const registryPath = `apps/${app}/bones/registry.ts`;
+      const legacyRegistryPath = `apps/${app}/bones/registry.js`;
+      const registrySource = readRepoFile(registryPath);
+
+      expect(
+        existsSync(join(repoRoot, legacyRegistryPath)),
+        legacyRegistryPath,
+      ).toBe(false);
+      expect(registrySource, registryPath).toContain(
+        'import { registerBones } from "boneyard-js";',
+      );
+      expect(registrySource, registryPath).toContain(
+        'import { configureBoneyard } from "boneyard-js/react";',
+      );
     }
   });
 

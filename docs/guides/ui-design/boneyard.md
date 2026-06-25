@@ -14,7 +14,7 @@
 
 1. **Simple placeholders** — keep using `@asym/ui/components/shadcn/skeleton` (`Skeleton`).
 2. **High-fidelity loading** — wrap the stable layout region in `BoneyardSkeleton` from `@asym/ui/components/boneyard-skeleton`, set a unique `name`, optional `fixture`, and `fallback` (usually the existing manual skeleton).
-3. **Register bones at runtime** — each app imports its generated `bones/registry.js` once via `app/_providers/boneyard-registry.tsx` in the root layout (client-only; do not import the registry from server-only files).
+3. **Register bones at runtime** — each app imports its generated `bones/registry.ts` once via `app/_providers/boneyard-registry.tsx` in the root layout (client-only; do not import the registry from server-only files).
 4. **Capture** — with the app dev server running, from repo root:
    - Admin: `bun run boneyard:admin` → `http://localhost:3030` (port **3030**; origin only — routes come from `apps/admin/boneyard.config.json`).
    - Missionary: `bun run boneyard:missionary` → `http://localhost:4000`.
@@ -85,7 +85,7 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 
 ## Known limitations (align with upstream behavior)
 
-- **Client boundary** — `BoneyardSkeleton` and generated `registry.js` are client-only; first paint may wait until `containerWidth > 0` (ResizeObserver).
+- **Client boundary** — `BoneyardSkeleton` and generated `registry.ts` are client-only; first paint may wait until `containerWidth > 0` (ResizeObserver).
 - **Breakpoints** — responsive bone selection uses **viewport** width (`window.innerWidth`), not the measured container width; avoid narrow nested panels for first rollout.
 - **Motion** — increase `wait` in `boneyard.config.json` if captures catch mid-animation.
 - **Charts / dense SVG** — avoid or add aggressive `excludeSelectors` for chart internals.
@@ -95,7 +95,7 @@ The attribute is **not** honored unless listed in `snapshotConfig.excludeSelecto
 
 - [ ] Chose a unique `name` for each skeleton in the app.
 - [ ] Provided `fallback` for missing or stale bones.
-- [ ] Capture scripts use explicit URLs with correct port.
+- [ ] Capture scripts use origin-only URLs with correct port.
 - [ ] After global style changes, ran `--force` if skeletons look wrong.
 - [ ] Did not import `bones/registry` from a server-only module.
 - [ ] `/boneyard/*` pages use fixture data only (no real PII or authenticated data paths).
