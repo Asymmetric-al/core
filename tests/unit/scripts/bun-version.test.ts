@@ -11,6 +11,31 @@ function toBashPath(filePath: string): string {
     return filePath;
   }
 
+  const result = spawnSync(
+    "bash",
+    [
+      "-lc",
+      [
+        'win_path="$1"',
+        "if command -v cygpath >/dev/null 2>&1; then",
+        '  cygpath -u "$win_path"',
+        "else",
+        '  path="${win_path//\\\\//}"',
+        '  drive="${path:0:1}"',
+        '  rest="${path:3}"',
+        '  printf "/mnt/%s/%s" "${drive,,}" "$rest"',
+        "fi",
+      ].join("\n"),
+      "bash-path",
+      filePath,
+    ],
+    { encoding: "utf8" },
+  );
+
+  if (result.status === 0 && result.stdout.trim()) {
+    return result.stdout.trim();
+  }
+
   return filePath
     .replaceAll("\\", "/")
     .replace(
@@ -32,7 +57,10 @@ function runGuard(installedVersion: string) {
 
   return spawnSync(
     "bash",
-    ["-lc", `${assignments} ${shellQuote(toBashPath(scriptPath))}`],
+    [
+      "-lc",
+      `cd ${shellQuote(toBashPath(repoRoot))} && ${assignments} bash scripts/verify/bun-version.sh`,
+    ],
     {
       cwd: repoRoot,
       env: { ...process.env },
