@@ -79,6 +79,8 @@ function canRunBunVersionGuard(): boolean {
 }
 
 const itIfBashCanRunBun = canRunBunVersionGuard() ? it : it.skip;
+const itIfFakeBunCanShadowPath =
+  process.platform === "win32" ? it.skip : itIfBashCanRunBun;
 
 describe("bun version guard", () => {
   itIfBashCanRunBun(
