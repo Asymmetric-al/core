@@ -52,6 +52,17 @@ Server-side Stripe clients use the shared `STRIPE_API_VERSION` pin in
 the Stripe Dashboard account default and production webhook endpoint API version
 match the repo pin before deploying.
 
+Pre-deploy checklist for Stripe API-version changes:
+
+- Confirm the Stripe Dashboard account default API version matches the repo pin.
+- Confirm the production webhook endpoint API version matches the repo pin.
+- Run a staging donor checkout payment end-to-end.
+- Replay one test/staging donation saga outbox row from the admin contribution
+  replay tooling before using replay against production data.
+- Verify the billing portal opens for a donor with a Stripe customer.
+- Deliver a signed Stripe webhook smoke event and confirm duplicate delivery is
+  ignored rather than reprocessed.
+
 ## Processing Endpoints
 
 ### Donor request path

@@ -149,10 +149,11 @@
         "@openpolicy/sdk": "0.0.17",
         "@radix-ui/react-tabs": "^1.1.13",
         "@sentry/nextjs": "^10.32.1",
+        "@stripe/react-stripe-js": "^6.5.0",
         "@stripe/stripe-js": "^9.7.0",
         "@tanstack/react-query": "^5.96.2",
         "@tanstack/react-table": "^8.21.3",
-        "boneyard-js": "^1.8.1",
+        "boneyard-js": "^1.7.6",
         "date-fns": "^4.1.0",
         "lucide-react": "^0.575.0",
         "motion": "^12.34.2",
@@ -1397,6 +1398,8 @@
     "@stablelib/base64": ["@stablelib/base64@1.0.1", "", {}, "sha512-1bnPQqSxSuc3Ii6MhBysoWCg58j97aUjuCSZrGSmDxNqtytIi0k8utUenAwTZN4V5mXXYGsVUI9zeBqy+jBOSQ=="],
 
     "@standard-schema/spec": ["@standard-schema/spec@1.0.0", "", {}, "sha512-m2bOd0f2RT9k8QJx1JN85cZYyH1RqFBdlwtkSlf4tBDYLCiiZnv1fIIwacK6cqwXavOydf0NPToMQgpKq+dVlA=="],
+
+    "@stripe/react-stripe-js": ["@stripe/react-stripe-js@6.6.0", "", { "dependencies": { "prop-types": "^15.7.2" }, "peerDependencies": { "@stripe/stripe-js": ">=9.5.0 <10.0.0", "react": ">=16.8.0 <20.0.0", "react-dom": ">=16.8.0 <20.0.0" } }, "sha512-utODPiu2/JGjCnh5BX1M1F2uyjCwDKum4Bo8CeWdTCNOlzM0980YadzBMe7YoIwjfu3uadX4PMe3L2SderejqA=="],
 
     "@stripe/stripe-js": ["@stripe/stripe-js@9.7.0", "", {}, "sha512-r1ElolvWXM4aYnZZVHvKW3EDL8JcwEuIgTuWxlB5lvC+YsvjkQ0gX35x9d8dTDubX395fViLVqkaolVs1PmIQQ=="],
 
