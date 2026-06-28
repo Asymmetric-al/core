@@ -44,9 +44,9 @@ async ({ event, step }) => {
 **Every Inngest function has these hard limits:**
 
 - **Maximum 1,000 steps** per function run
-- **Maximum 4MB** returned data for each step
-- **Maximum 32MB** combined function run state including, event data, step output, and function output
-- Each step = separate HTTP request (~50-100ms overhead)
+- **Maximum 4MB** output per individual step (each `step.run()` return value)
+- **Maximum 32MB** total persisted run state (event payload, all memoized step outputs, and final function output combined)
+- In v4's checkpointing execution model, completed steps are memoized in run state — they are not necessarily a separate HTTP request on every replay (~50-100ms overhead still applies when a step actually executes)
 
 If you're hitting these limits, break your function into smaller functions connected via `step.invoke()` or `step.sendEvent()`.
 
@@ -317,10 +317,11 @@ const reliableFunction = inngest.createFunction(
     retries: 10, // Up to 10 retries per step
   },
   async ({ event, step, attempt }) => {
-    // `attempt` is the function-level attempt counter (0-indexed)
-    // It tracks retries for the currently executing step, not the overall function
+    // `attempt` is the zero-indexed function-level retry counter (`ctx.attempt`).
+    // It counts how many times Inngest has retried this function invocation — not
+    // per-step retries and not a step-local counter.
     if (attempt > 5) {
-      // Different logic for later attempts of the current step
+      // Different logic for later function-level attempts
     }
   },
 );

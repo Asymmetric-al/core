@@ -7,7 +7,7 @@ import {
   usePathname as useNextPathname,
   useRouter as useNextRouter,
   useSearchParams as useNextSearchParams,
-} from "next/navigation.js";
+} from "next/navigation";
 import React from "react";
 
 import type { RouterAdapterContextValue } from "@payloadcms/ui";
