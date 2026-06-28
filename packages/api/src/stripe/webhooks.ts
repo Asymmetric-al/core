@@ -1,7 +1,7 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 
+import { createStripeClient } from "./client";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -13,7 +13,8 @@ import {
   stageGiftFromStripeDonation,
 } from "../giving/staged-gifts";
 
-const STRIPE_API_VERSION = "2025-02-24.acacia";
+import type Stripe from "stripe";
+
 const TERMINAL_PAID_STATUSES = new Set(["completed", "refunded"]);
 
 type SupabaseAdminClient = NonNullable<
@@ -45,10 +46,6 @@ interface StripeWebhookOutcome {
 interface StripeWebhookProcessingContext {
   rawEventId?: string | null;
   stripeEventId?: string | null;
-}
-
-function getStripeClient(secretKey: string) {
-  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
 }
 
 export function getStripeObjectId(
@@ -316,7 +313,7 @@ export async function POST(request: NextRequest) {
   }
 
   const rawBody = await request.text();
-  const stripe = getStripeClient(secretKey);
+  const stripe = createStripeClient(secretKey);
   let event: Stripe.Event;
 
   try {

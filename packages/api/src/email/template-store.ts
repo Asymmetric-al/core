@@ -1,5 +1,11 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { getContributionCorrectionRequiredTags } from "@asym/email/contribution-correction-tags";
 
+import {
+  getContributionCorrectionTemplateBinding,
+  isContributionCorrectionTemplateFamily,
+  isContributionCorrectionTemplateVariantForFamily,
+} from "./contribution-correction-template-validation";
 import { ApiHttpError } from "../shared/http-errors";
 
 import type { EmailBuilderKind } from "@asym/email/email-builder-types";
@@ -7,6 +13,7 @@ import type { EmailTemplateCategory } from "@asym/email/types";
 
 const EMAIL_TEMPLATES_TABLE = "email_templates";
 const EMAIL_TEMPLATE_VERSIONS_TABLE = "email_template_versions";
+const EMAIL_TEMPLATE_SYSTEM_BINDINGS_TABLE = "email_template_system_bindings";
 
 const TEMPLATE_COLUMNS = [
   "id",
@@ -153,6 +160,7 @@ function isStorageMissing(error: { code?: string; message?: string }): boolean {
   const message = error.message?.toLowerCase() ?? "";
   return (
     (message.includes(EMAIL_TEMPLATES_TABLE) ||
+      message.includes(EMAIL_TEMPLATE_SYSTEM_BINDINGS_TABLE) ||
       message.includes(EMAIL_TEMPLATE_VERSIONS_TABLE)) &&
     (error.code === "PGRST205" ||
       error.code === "42P01" ||
@@ -160,6 +168,90 @@ function isStorageMissing(error: { code?: string; message?: string }): boolean {
       message.includes("could not find the table") ||
       message.includes("does not exist"))
   );
+}
+
+function getValidContributionCorrectionBinding(
+  metadata: Record<string, unknown>,
+) {
+  const binding = getContributionCorrectionTemplateBinding(metadata);
+
+  if (!binding || !isContributionCorrectionTemplateFamily(binding.family)) {
+    return null;
+  }
+
+  const variantRef = {
+    family: binding.family,
+    variant: binding.variant,
+  };
+
+  return isContributionCorrectionTemplateVariantForFamily(variantRef)
+    ? variantRef
+    : null;
+}
+
+async function deactivateContributionCorrectionTemplateBindings(input: {
+  supabaseAdmin: AdminSupabaseClient;
+  tenantId: string;
+  templateId: string;
+}) {
+  const { error } = await input.supabaseAdmin
+    .from(EMAIL_TEMPLATE_SYSTEM_BINDINGS_TABLE)
+    .update({
+      is_active: false,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("tenant_id", input.tenantId)
+    .eq("template_id", input.templateId);
+
+  if (error) throwSupabaseError(error);
+}
+
+async function syncContributionCorrectionTemplateBinding(input: {
+  supabaseAdmin: AdminSupabaseClient;
+  template: EmailTemplateRow;
+  previousTemplate?: EmailTemplateRow | null;
+}) {
+  const binding = getValidContributionCorrectionBinding(
+    input.template.editor_metadata,
+  );
+  const previousBinding = input.previousTemplate
+    ? getValidContributionCorrectionBinding(
+        input.previousTemplate.editor_metadata,
+      )
+    : null;
+
+  if (!binding && !previousBinding) {
+    return;
+  }
+
+  await deactivateContributionCorrectionTemplateBindings({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.template.tenant_id,
+    templateId: input.template.id,
+  });
+
+  if (!input.template.is_active || !binding) {
+    return;
+  }
+
+  const { error } = await input.supabaseAdmin
+    .from(EMAIL_TEMPLATE_SYSTEM_BINDINGS_TABLE)
+    .upsert(
+      {
+        tenant_id: input.template.tenant_id,
+        template_id: input.template.id,
+        family_key: binding.family,
+        variant_key: binding.variant,
+        required_merge_tags: getContributionCorrectionRequiredTags(binding),
+        is_active: true,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict: "tenant_id,family_key,variant_key",
+      },
+    );
+
+  if (error) throwSupabaseError(error);
 }
 
 function normalizeStorageError(error: {
@@ -336,6 +428,10 @@ export async function createEmailTemplate(input: {
     template,
     input.profileId,
   );
+  await syncContributionCorrectionTemplateBinding({
+    supabaseAdmin,
+    template,
+  });
   return { template, version };
 }
 
@@ -365,6 +461,11 @@ export async function updateEmailTemplate(input: {
     template,
     input.profileId,
   );
+  await syncContributionCorrectionTemplateBinding({
+    supabaseAdmin,
+    template,
+    previousTemplate: current,
+  });
   return { template, version };
 }
 
@@ -380,6 +481,11 @@ export async function deleteEmailTemplate(
     .eq("id", templateId);
 
   if (error) throwSupabaseError(error);
+  await deactivateContributionCorrectionTemplateBindings({
+    supabaseAdmin,
+    tenantId,
+    templateId,
+  });
 }
 
 export async function duplicateEmailTemplate(input: {
@@ -482,5 +588,10 @@ export async function restoreEmailTemplateVersion(input: {
     template,
     input.profileId,
   );
+  await syncContributionCorrectionTemplateBinding({
+    supabaseAdmin,
+    template,
+    previousTemplate: current,
+  });
   return { template, version };
 }
