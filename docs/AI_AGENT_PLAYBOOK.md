@@ -23,6 +23,25 @@
   `docs/ai/skills/<name>/references/upstream.md`; preserve repo overlays before
   syncing mirrors.
 
+## Official Inngest agent tooling
+
+- Official Inngest skills are vendored canonically under
+  `docs/ai/skills/inngest-*`, with `docs/ai/skills/inngest/SKILL.md` as the
+  router.
+- These skills are for agent guidance and integration work. They do not mean
+  product runtime Inngest has been adopted in `apps/*` or `packages/*`.
+- Refresh Inngest skills with `bun run skills:refresh-inngest`, then run
+  `bun run skills:sync` and `bun run skills:verify`.
+- The Inngest dev-server MCP is configured as `inngest-dev` in root `.mcp.json`
+  and `.cursor/mcp.json`. Start the Inngest dev server first; if it falls back
+  from port `8288` to `8289` or another port, update the MCP URL to match.
+- Claude Code users who want the full official plugin can run
+  `/plugin marketplace add inngest/inngest-claude-code-plugin`, then
+  `/plugin install inngest@inngest-claude-code-plugin`.
+- Codex users can use the generated `.agents/skills/inngest-*` mirrors. If they
+  need the full upstream plugin, clone `inngest/inngest-codex-plugin` outside
+  the repo and run `/plugin install <path>/plugins/inngest`.
+
 ## Monorepo scoping (pick the right app first)
 
 - Admin app: `apps/admin` (`@asym/admin`)

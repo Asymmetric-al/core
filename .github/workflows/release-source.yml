@@ -1,53 +1,49 @@
-name: Release Source
+name: Release Source Gate
 
 on:
   pull_request:
-    branches:
-      - production
-    types:
-      - opened
-      - synchronize
-      - reopened
-      - ready_for_review
+    branches: [production]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  push:
+    branches: [production]
 
 permissions:
   contents: read
-  pull-requests: read
 
 jobs:
   release-source-gate:
     name: release-source-gate
     runs-on: ubuntu-latest
     steps:
-      - name: Verify production PR source
+      - name: Require develop as production release source
         env:
           BASE_REF: ${{ github.base_ref }}
+          EVENT_NAME: ${{ github.event_name }}
           HEAD_REF: ${{ github.head_ref }}
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
           REPOSITORY: ${{ github.repository }}
-          IS_DRAFT: ${{ github.event.pull_request.draft }}
+        shell: bash
         run: |
           set -euo pipefail
 
-          echo "Base ref: ${BASE_REF}"
-          echo "Head ref: ${HEAD_REF}"
-          echo "Head repo: ${HEAD_REPO}"
-          echo "Repository: ${REPOSITORY}"
-          echo "Draft: ${IS_DRAFT}"
+          if [[ "${EVENT_NAME}" != "pull_request" ]]; then
+            echo "Non-PR production branch event accepted."
+            exit 0
+          fi
 
-          if [ "${BASE_REF}" != "production" ]; then
-            echo "release-source-gate only applies to PRs targeting production."
+          if [[ "${BASE_REF}" != "production" ]]; then
+            echo "::error::release-source-gate only validates production PRs targeting production."
             exit 1
           fi
 
-          if [ "${HEAD_REPO}" != "${REPOSITORY}" ]; then
-            echo "Production release PRs must originate from this repository."
+          if [[ "${HEAD_REF}" != "develop" ]]; then
+            echo "::error::Production release PRs to production must come from develop; got ${HEAD_REF}."
             exit 1
           fi
 
-          if [ "${HEAD_REF}" != "develop" ]; then
-            echo "Production release PRs must be opened from develop to production."
+          if [[ "${HEAD_REPO}" != "${REPOSITORY}" ]]; then
+            echo "::error::Production release PRs to production must come from develop in ${REPOSITORY}; got ${HEAD_REPO}."
             exit 1
           fi
 
-          echo "release-source-gate passed: develop -> production."
+          echo "Production release source accepted: ${HEAD_REPO}:${HEAD_REF} -> ${BASE_REF}."

@@ -1,3 +1,8 @@
+---
+name: moai-library-shadcn
+description: "Build consistent, accessible UI with shadcn/ui components, Tailwind tokens, and composable primitives. Use whenever selecting, installing, composing, or customizing shadcn/ui in this repo, including registry items, themes, and component wrappers. Prefer the base-ui skill when the UI is intentionally built only with Base UI primitives."
+---
+
 # shadcn/ui Design System - Skill
 
 **Name:** `moai-library-shadcn`

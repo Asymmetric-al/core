@@ -113,7 +113,7 @@ Current evidence:
   the deployed production gateway route returned `404` because the CRM gateway
   smoke route is intentionally disabled in protected production deployments.
 - Production `admin` env pull lists no `TWENTY_*` variables.
-- Custom `staging` env pull lists `TWENTY_API_URL` and
+- Custom `development` env pull lists `TWENTY_API_URL` and
   `TWENTY_WEBHOOK_SECRET`, but `TWENTY_API_KEY` is present with an empty value.
 - `TWENTY_API_URL`, `TWENTY_API_KEY`, `TWENTY_WEBHOOK_SECRET`, and
   `TWENTY_WORKSPACE_ID` were not present in local `.env.local`.
@@ -124,7 +124,7 @@ Current evidence:
 Still required:
 
 1. Set/provide a non-empty restricted server-side `TWENTY_API_KEY` in a safe
-   staging/proof runtime, or provide a restricted key to Codex.
+   development/proof runtime, or provide a restricted key to Codex.
 2. Run harmless metadata read through the package/admin gateway.
 3. Run approved non-production gift-posting fixture and confirm link-record
    creation.

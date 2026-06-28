@@ -12,7 +12,7 @@ import {
 const DEFAULT_REPO = "Asymmetric-al/core";
 const DEFAULT_SCOPE = "asymmetric-al";
 const PRODUCTION_BRANCH = "production";
-const STAGING_BRANCH = "develop";
+const DEVELOPMENT_BRANCH = "develop";
 const REQUIRED_BUILD_QUEUE_CONFIGURATION = "WAIT_FOR_NAMESPACE_QUEUE";
 
 export const EXPECTED_IGNORE_COMMANDS = Object.freeze({
@@ -66,7 +66,7 @@ export function validateLocalVercelConfig({ project, config }) {
   const onlyExpectedBranches =
     enabledBranches.length === 2 &&
     enabledBranches.includes(PRODUCTION_BRANCH) &&
-    enabledBranches.includes(STAGING_BRANCH);
+    enabledBranches.includes(DEVELOPMENT_BRANCH);
 
   requireCheck(
     checks,
@@ -82,8 +82,8 @@ export function validateLocalVercelConfig({ project, config }) {
   );
   requireCheck(
     checks,
-    isBranchDeploymentEnabled(config, STAGING_BRANCH),
-    `${project.project} allows ${STAGING_BRANCH} deployments`,
+    isBranchDeploymentEnabled(config, DEVELOPMENT_BRANCH),
+    `${project.project} allows ${DEVELOPMENT_BRANCH} deployments`,
     JSON.stringify(config?.git?.deploymentEnabled ?? null),
   );
   requireCheck(
@@ -384,15 +384,18 @@ async function main() {
           args.repo,
           PRODUCTION_BRANCH,
         ),
-        requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
+        requiredContexts: ["ci-gate", "integration-gate", "e2e-gate", "release-source-gate"],
         forbiddenContexts: ["e2e-smoke-gate"],
       }),
     );
     checks.push(
       ...validateGitHubBranchProtection({
-        branch: STAGING_BRANCH,
-        protection: readGitHubProtection(args.repo, STAGING_BRANCH),
-        branchRule: readGitHubBranchProtectionRule(args.repo, STAGING_BRANCH),
+        branch: DEVELOPMENT_BRANCH,
+        protection: readGitHubProtection(args.repo, DEVELOPMENT_BRANCH),
+        branchRule: readGitHubBranchProtectionRule(
+          args.repo,
+          DEVELOPMENT_BRANCH,
+        ),
         requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
         forbiddenContexts: ["e2e-gate"],
       }),

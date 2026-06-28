@@ -56,6 +56,12 @@ class FakeQuery {
     return this;
   }
 
+  upsert(payload: unknown) {
+    this.action = "upsert";
+    this.payload = payload;
+    return this;
+  }
+
   select(columns: string) {
     this.selected = columns;
     return this;
@@ -275,6 +281,75 @@ describe("email template store", () => {
         version: 2,
         html_content: "<p>Updated</p>",
         text_content: "Updated",
+      }),
+    });
+  });
+
+  it("upserts contribution correction system bindings when activating templates", async () => {
+    const correctionMetadata = {
+      contributionCorrection: {
+        family: "refund_notification",
+        variant: "refund_completed",
+      },
+    };
+    const currentTemplate = templateRow({
+      is_active: false,
+      version: 1,
+      editor_metadata: correctionMetadata,
+    });
+    const updatedTemplate = templateRow({
+      is_active: true,
+      version: 2,
+      editor_metadata: correctionMetadata,
+    });
+    const insertedVersion = versionRow({
+      id: "version_2",
+      version: 2,
+      editor_metadata: correctionMetadata,
+    });
+    const { client, records } = createFakeSupabase([
+      { data: currentTemplate },
+      { data: updatedTemplate },
+      { data: insertedVersion },
+      { data: null },
+      { data: null },
+    ]);
+    getAdminClientMock.mockReturnValue({ client });
+
+    await updateEmailTemplate({
+      tenantId: "tenant_1",
+      profileId: "profile_1",
+      templateId: "template_1",
+      patch: {
+        isActive: true,
+      },
+    });
+
+    expect(records[3]).toMatchObject({
+      table: "email_template_system_bindings",
+      action: "update",
+      payload: expect.objectContaining({
+        is_active: false,
+      }),
+      filters: [
+        ["tenant_id", "tenant_1"],
+        ["template_id", "template_1"],
+      ],
+    });
+    expect(records[4]).toMatchObject({
+      table: "email_template_system_bindings",
+      action: "upsert",
+      payload: expect.objectContaining({
+        tenant_id: "tenant_1",
+        template_id: "template_1",
+        family_key: "refund_notification",
+        variant_key: "refund_completed",
+        required_merge_tags: expect.arrayContaining([
+          "full_name",
+          "refund_amount",
+          "donor_portal_link",
+        ]),
+        is_active: true,
       }),
     });
   });
