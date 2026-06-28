@@ -2,7 +2,7 @@
 
 /**
  * Side-effect import: registers captured bone JSON with the Boneyard runtime.
- * Generated output overwrites `bones/registry.js` when you run the capture script.
+ * Generated output overwrites `bones/registry.ts` when you run the capture script.
  */
 import "../../bones/registry";
 
