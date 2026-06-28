@@ -45,6 +45,46 @@ Related donation status transitions:
   - customer creation uses `<idempotencyKey>:customer`
   - PaymentIntent creation uses `<idempotencyKey>:payment_intent`
 
+## Stripe API Version
+
+Server-side Stripe clients use the shared `STRIPE_API_VERSION` pin in
+`packages/api/src/stripe/api-version.ts`. When upgrading the Stripe SDK, confirm
+the Stripe Dashboard account default and production webhook endpoint API version
+match the repo pin before deploying.
+
+Pre-deploy checklist for Stripe API-version changes:
+
+- Confirm the Stripe Dashboard account default API version matches the repo pin.
+- Confirm the production webhook endpoint API version matches the repo pin.
+- Run a staging donor checkout payment end-to-end.
+- Replay one test/staging donation saga outbox row from the admin contribution
+  replay tooling before using replay against production data.
+- Verify the billing portal opens for a donor with a Stripe customer.
+- Deliver a signed Stripe webhook smoke event and confirm duplicate delivery is
+  ignored rather than reprocessed.
+
+## Admin contribution replay
+
+`POST /api/admin/contributions/replay` (staff/admin) can replay one target at a
+time: a stored Stripe raw event, a donation saga outbox row, a staged gift, or a
+receipt send log.
+
+Stripe clients created for replay use the shared `createStripeClient` factory and
+therefore the repo pin (`STRIPE_API_VERSION`, currently `2026-05-27.dahlia`).
+
+- **Donation saga outbox replay** (`donationSagaOutboxId`): calls
+  `processDonationSagaOutboxEvent` with a live Stripe client. Customer and
+  PaymentIntent creation run against Stripe at the pinned API version. Use only
+  in staging or after validating one row in a lower environment.
+- **Stripe raw event replay** (`stripeEventId`): re-processes the stored webhook
+  payload through `handleStripeWebhookEvent`. It does not re-fetch the event from
+  Stripe; side effects depend on the stored JSON and current DB idempotency
+  guards (for example `claim_stripe_raw_event`).
+
+Before replaying production rows after an API-version bump, complete the
+pre-deploy checklist above and confirm Dashboard + webhook endpoint versions
+match the repo pin.
+
 ## Processing Endpoints
 
 ### Donor request path
