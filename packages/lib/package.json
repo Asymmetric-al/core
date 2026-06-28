@@ -59,7 +59,7 @@
     "clsx": "^2.1.1",
     "html-react-parser": "^5.2.17",
     "isomorphic-dompurify": "^2.36.0",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "1.17.0",
     "motion": "^12.34.2",
     "next": "16.2.6",
     "react": "19.2.3",
