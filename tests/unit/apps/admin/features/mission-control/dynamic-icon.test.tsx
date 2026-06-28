@@ -35,9 +35,7 @@ describe("DynamicIcon", () => {
     expect(empty.container.querySelector("svg.lucide-settings")).toBeTruthy();
     empty.unmount();
 
-    const missing = render(
-      <DynamicIcon name={null as unknown as string} />,
-    );
+    const missing = render(<DynamicIcon name={null as unknown as string} />);
     expect(missing.container.querySelector("svg.lucide-settings")).toBeTruthy();
     missing.unmount();
   });
