@@ -25,11 +25,23 @@
       "skillPath": "skills/cms-migration/SKILL.md",
       "computedHash": "306502bcc7ab9d0bb2328e8711d5ec65c48fa3cf6af52fd9a2e7f2e4d116eeb3"
     },
+    "codebase-design": {
+      "source": "mattpocock/skills",
+      "sourceType": "github",
+      "skillPath": "skills/engineering/codebase-design/SKILL.md",
+      "computedHash": "c20e6e42a3034e553b1919fe94cf0928f0ff3c693fd5df802998dce7a4724eaf"
+    },
     "components-build": {
       "source": "nolly-studio/components-build-skill",
       "sourceType": "github",
       "skillPath": "skills/components-build/SKILL.md",
       "computedHash": "ef827017f8483932b644935f8b69a7a5a8a862b5f2a818b9e688503e0ffede0c"
+    },
+    "create-agent": {
+      "source": "ikindacodes/ship-eve",
+      "sourceType": "github",
+      "skillPath": "skills/create-agent/SKILL.md",
+      "computedHash": "c8575147679edca4064025fe922032a00732b6bb208ae2a8f51a7b2d783df6da"
     },
     "deploy-to-vercel": {
       "source": "vercel-labs/agent-skills",
@@ -55,6 +67,12 @@
       "skillPath": "skills/email-best-practices/SKILL.md",
       "computedHash": "d0d264878e1201196115a47106e0def3282e6be1a5a2b231e2ef39a4641203da"
     },
+    "eve": {
+      "source": "vercel/eve",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "79a1e606ecf33eed33c1f3adc1cc266de391e19aa9237ca37e4f3aa3fba6b228"
+    },
     "grill-me": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -78,6 +96,12 @@
       "sourceType": "github",
       "skillPath": "skills/idempotency-handling/SKILL.md",
       "computedHash": "282a4585f756e098318a3d778e7480cb61e90617c290b79d2fd206845e7f82b6"
+    },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": ".agents/skills/impeccable/SKILL.md",
+      "computedHash": "53feeb8610c5317002aa81df280ee5a11aacfb8e2d90212997f966dec7d04f19"
     },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
@@ -126,6 +150,12 @@
       "sourceType": "github",
       "skillPath": "skills/payload/SKILL.md",
       "computedHash": "4a17a9529d4533545edb8191159c9134120774acdd042172877291a25929e7a1"
+    },
+    "playwright-best-practices": {
+      "source": "currents-dev/playwright-best-practices-skill",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "996c8cafaa0b6bcb1a6de785a63fb4a3dfe794f17584ff82daedec9e3eaacad3"
     },
     "playwright-skill": {
       "source": "testdino-hq/playwright-skill",
@@ -185,7 +215,7 @@
       "source": "mattpocock/skills",
       "sourceType": "github",
       "skillPath": "skills/misc/setup-pre-commit/SKILL.md",
-      "computedHash": "872f4037cb7e6e0e340d4175c086550072959925dffc87b160d1a30dc9f63bbd"
+      "computedHash": "f2ce8663857d919cf7e4146cd716b0aee1757b85123b758e6e7d98fcbaf14054"
     },
     "shadcn": {
       "source": "shadcn-ui/ui",
