@@ -14,13 +14,24 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
   - `<!-- BEGIN:nextjs-agent-rules --> ... <!-- END:nextjs-agent-rules -->`
   - `<!-- NEXT-AGENTS-MD-START --> ... <!-- NEXT-AGENTS-MD-END -->`
 
+### Claude Code project assets
+
+Claude Code discovers project skills, slash commands, and subagents from `.claude/`, and MCP servers from the repo-root `.mcp.json`.
+
+- `.claude/skills/`, `.claude/commands/`, and `.claude/agents/` are **generated mirrors** — do not hand-edit them. Edit the canonical source, then run `bun run skills:sync`:
+  - **Skills** → canonical `docs/ai/skills/*/SKILL.md` (plus ecosystem installs under `.agents/skills/`). Ecosystem-packaged `SKILL.md` files mirrored into `.claude/skills/` should include YAML frontmatter (`name`, `description`) when Claude Code discovery requires it; canonical `docs/ai/skills/*/SKILL.md` files are synced as-is (body-only is OK until promoted).
+  - **Commands** → `.cursor/commands/*.md`.
+  - **Subagents** → `.cursor/agents/*.md`.
+- `.mcp.json` (repo root) is read directly by Claude Code (`next-devtools`, `shadcn`) — no mirror needed.
+- `bun run skills:verify` (pre-push and CI) fails on drift between the canonical sources and the `.cursor/`, `.agents/`, and `.claude/` mirrors. `.claude/skills/` is Prettier-ignored like the other bundled skill libraries; `.claude/commands/` and `.claude/agents/` are format-checked.
+
 ## Source-of-truth order
 
 Use this order when instructions conflict:
 
 1. **OpenSpec (when `openspec/` exists in the repo):** `openspec/specs/` = merged product intent; `openspec/changes/` = proposed changes not yet folded into specs.
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
-3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
+3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
 4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
 5. **MCP/runtime and official CLI facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), official TanStack CLI/Intent output for TanStack work, plus any other MCP servers enabled in the agent.
 6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
@@ -255,7 +266,7 @@ Load rulebooks before editing files in their domain.
 
 ## Skill Routing (Deterministic)
 
-Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/` and `.agents/skills/`.
+Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/`.
 
 - **Repo entry / instruction map (default orientation for repo work):** `docs/ai/skills/repo-entry/SKILL.md`
 
