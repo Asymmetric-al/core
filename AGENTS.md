@@ -19,7 +19,7 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
 Claude Code discovers project skills, slash commands, and subagents from `.claude/`, and MCP servers from the repo-root `.mcp.json`.
 
 - `.claude/skills/`, `.claude/commands/`, and `.claude/agents/` are **generated mirrors** — do not hand-edit them. Edit the canonical source, then run `bun run skills:sync`:
-  - **Skills** → canonical `docs/ai/skills/*/SKILL.md` (plus ecosystem installs under `.agents/skills/`). Every `SKILL.md` needs YAML frontmatter (`name`, `description`) or Claude Code cannot discover it.
+  - **Skills** → canonical `docs/ai/skills/*/SKILL.md` (plus ecosystem installs under `.agents/skills/`). Ecosystem-packaged `SKILL.md` files mirrored into `.claude/skills/` should include YAML frontmatter (`name`, `description`) when Claude Code discovery requires it; canonical `docs/ai/skills/*/SKILL.md` files are synced as-is (body-only is OK until promoted).
   - **Commands** → `.cursor/commands/*.md`.
   - **Subagents** → `.cursor/agents/*.md`.
 - `.mcp.json` (repo root) is read directly by Claude Code (`next-devtools`, `shadcn`) — no mirror needed.
