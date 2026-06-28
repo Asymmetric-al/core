@@ -103,8 +103,11 @@ describe("ci-integration workflow contract", () => {
   });
 
   it("keeps the blocking smoke job on the shared Bun install contract", () => {
+    const smoke = jobBlock(workflow, "smoke");
     const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
 
+    expect(smoke).toContain("nohup bun run --cwd apps/donor dev");
+    expect(smoke).toContain("/tmp/donor-dev.log");
     expect(testE2eSmoke).toContain("bun-version: ${{ env.BUN_VERSION }}");
     expect(testE2eSmoke).toContain("run: bun ci --no-cache --backend=copyfile");
     expect(testE2eSmoke).not.toContain('bun-version: "1.3.4"');

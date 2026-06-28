@@ -1,4 +1,4 @@
-﻿import {
+import {
   Accessibility,
   Activity,
   AlertCircle,
