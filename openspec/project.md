@@ -42,7 +42,7 @@ docs aligned when behavior or naming changes.
 - Task runner: Turborepo (`turbo` 2.9.x)
 - Framework: Next.js `16.2.6` across all Next.js workspaces
 - React: `19.2.x`
-- TypeScript: `5.9.x`
+- TypeScript: `6.0.x`
 - Styling: Tailwind CSS `v4`, Base UI, shadcn/ui Maia theme
 - Data and auth: Supabase
 - Payments: Stripe
