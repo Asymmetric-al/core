@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#289
+
 ## What to build
 
 Add reusable product work claims and a dispatch recovery scan so manual replay,

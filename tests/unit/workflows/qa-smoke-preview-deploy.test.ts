@@ -32,7 +32,15 @@ describe("qa smoke preview deployment workflow", () => {
 
   it("checks out the PR head SHA and deploys preview targets only", () => {
     expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
-    expect(workflow).toContain("vercel@latest deploy --yes --target=preview");
+    expect(workflow).toContain(
+      "vercel@latest --cwd apps/admin deploy --yes --target=preview",
+    );
+    expect(workflow).toContain(
+      "vercel@latest --cwd apps/donor deploy --yes --target=preview",
+    );
+    expect(workflow).toContain(
+      "vercel@latest --cwd apps/missionary deploy --yes --target=preview",
+    );
     expect(workflow).not.toContain("--prod");
     expect(workflow).not.toContain("--target=production");
   });

@@ -147,7 +147,7 @@ async function PayloadEmbeddedLayout({ children }: Props) {
       languageCode={languageCode}
       languageOptions={buildLanguageOptions(payload.config)}
       locale={req.locale ?? undefined}
-      permissions={req.user ? permissions : (null as never)}
+      permissions={permissions}
       serverFunction={serverFunction}
       theme={getPayloadTheme({
         config: payload.config,

@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#290
+
 ## What to build
 
 Move the retryable one-time donation saga recovery path onto Inngest while

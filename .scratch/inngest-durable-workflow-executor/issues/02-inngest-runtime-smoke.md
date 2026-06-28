@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#287
+
 ## What to build
 
 Add the smallest runtime integration that proves this repo can serve Inngest

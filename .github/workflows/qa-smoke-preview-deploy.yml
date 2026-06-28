@@ -22,6 +22,7 @@ concurrency:
 
 env:
   BUN_VERSION: "1.3.14"
+  NODE_VERSION: "24.15.0"
 
 jobs:
   deploy:
@@ -99,6 +100,11 @@ jobs:
         with:
           ref: ${{ steps.gate.outputs.head_sha }}
           fetch-depth: 1
+
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        if: steps.gate.outputs.should_run == 'true'
+        with:
+          node-version: ${{ env.NODE_VERSION }}
 
       - name: Resolve affected preview surfaces
         if: steps.gate.outputs.should_run == 'true'
@@ -243,7 +249,7 @@ jobs:
           stdout_file="$(mktemp)"
           stderr_file="$(mktemp)"
 
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest --cwd apps/admin deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
             echo "::error::Vercel preview deployment failed for admin. Inspect Vercel dashboard build logs."
             exit 1
           fi
@@ -279,7 +285,7 @@ jobs:
           stdout_file="$(mktemp)"
           stderr_file="$(mktemp)"
 
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest --cwd apps/donor deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
             echo "::error::Vercel preview deployment failed for donor. Inspect Vercel dashboard build logs."
             exit 1
           fi
@@ -315,7 +321,7 @@ jobs:
           stdout_file="$(mktemp)"
           stderr_file="$(mktemp)"
 
-          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
+          if ! VERCEL_FORCE_NO_COLOR=1 bunx vercel@latest --cwd apps/missionary deploy --yes --target=preview --project "${VERCEL_PROJECT_ID}" --token "${VERCEL_TOKEN}" >"${stdout_file}" 2>"${stderr_file}"; then
             echo "::error::Vercel preview deployment failed for missionary. Inspect Vercel dashboard build logs."
             exit 1
           fi

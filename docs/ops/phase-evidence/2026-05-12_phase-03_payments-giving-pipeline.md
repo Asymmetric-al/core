@@ -115,7 +115,7 @@ Provider/dashboard status:
 
 - Stripe secrets are required for live webhook proof; dashboard endpoints and event subscriptions were not verified in this implementation pass.
 - Resend secrets are required for production receipt delivery and webhook ingestion; verified domain and webhook events were not verified in this implementation pass.
-- Twenty staging/proof credentials are required before gift posting can be considered deployment-ready; `TWENTY_WORKSPACE_ID` remains a known missing item from readiness.
+- Twenty development/proof credentials are required before gift posting can be considered deployment-ready; `TWENTY_WORKSPACE_ID` remains a known missing item from readiness.
 - `DATABASE_URL` is required only for the disposable migration verifier in this pass and was missing.
 - Sentry runtime DSNs are the Phase 3 observability requirement. Sourcemap upload and `SENTRY_AUTH_TOKEN` are Phase 11 observability work unless a build/deploy explicitly fails because sourcemap upload is required.
 
@@ -191,7 +191,7 @@ Missing provider proofs:
   - `charge.refunded`
 - Resend verified sending domain and webhook endpoint:
   - `https://admin.asymmetric.al/api/email/webhooks/resend`
-- Twenty staging/proof workspace ID and project-scoped API credentials.
+- Twenty development/proof workspace ID and project-scoped API credentials.
 - Disposable Supabase migration verifier database URL.
 - Sentry runtime DSN proof; sourcemap upload is Phase 11 observability work unless a build/deploy explicitly requires it.
 - Vercel project production env and deployment proof for affected apps.

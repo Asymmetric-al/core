@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#291
+
 ## What to build
 
 Route verified and durably stored Stripe webhook records into workflow

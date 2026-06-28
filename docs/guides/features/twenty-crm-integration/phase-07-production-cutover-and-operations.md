@@ -2,7 +2,7 @@
 
 ## Trigger
 
-Use this phase only after the integration is stable in staging, shadow mode has passed, and every domain has a tested rollback path.
+Use this phase only after the integration is stable in development, shadow mode has passed, and every domain has a tested rollback path.
 
 ## Goal
 
@@ -38,7 +38,7 @@ does not make target surfaces depend on Twenty without their domain-specific
 cutover evidence.
 
 Production cutover is domain-gated. A domain can be considered production-live
-only after its row in the domain ledger has recorded staging parity, monitoring,
+only after its row in the domain ledger has recorded development parity, monitoring,
 rollback rehearsal, backup/restore proof, load/rate-limit evidence, security
 review, support owner, rollback owner, and CI/OpenSpec validation.
 
@@ -82,7 +82,7 @@ move to Twenty.
 
 ## Workflow
 
-1. Confirm staging parity and rollback for the domain.
+1. Confirm development parity and rollback for the domain.
 2. Freeze schema changes for the cutover window.
 3. Enable production sync in a paused or read-only mode.
 4. Run final import or replay.
@@ -101,7 +101,7 @@ system used for release evidence. The note must include:
 
 - Domain name and frozen catalog order.
 - Cutover date, operator, support owner, and rollback owner.
-- Staging parity result and timestamp.
+- Development parity result and timestamp.
 - Production backup id plus restore target id.
 - Backup/restore proof with counts, sample records, and restore duration.
 - Final import or replay command and result.

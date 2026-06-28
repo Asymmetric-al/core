@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#297
+
 ## What to build
 
 Add bulk Support Hub message move behavior with per-item safeguards, partial

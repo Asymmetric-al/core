@@ -28,7 +28,7 @@ describe("Sentry release and sourcemap verifier", () => {
     const options = buildSentryNextConfigOptions({
       SENTRY_AUTH_TOKEN: "redacted-token",
       SENTRY_RELEASE: "release-1",
-      VERCEL_TARGET_ENV: "staging",
+      VERCEL_TARGET_ENV: "development",
       CI: "1",
     });
 
@@ -36,7 +36,7 @@ describe("Sentry release and sourcemap verifier", () => {
     expect(options.release.name).toBe("release-1");
     expect(options.release.create).toBe(true);
     expect(options.release.finalize).toBe(true);
-    expect(options.release.deploy).toEqual({ env: "staging" });
+    expect(options.release.deploy).toEqual({ env: "development" });
     expect(options.sourcemaps.disable).toBe(false);
     expect(options.widenClientFileUpload).toBe(true);
   });
