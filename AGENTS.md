@@ -272,6 +272,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
+**`eve`**, **`create-agent`**, **`impeccable`**, and **`playwright-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`).
+
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
@@ -280,6 +282,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
+- **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
 - **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
@@ -298,6 +301,9 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
+- **Playwright E2E/component/API testing patterns:** `docs/ai/skills/playwright-best-practices/SKILL.md` (subordinate to `docs/ai/rules/testing.md`)
+- **Durable backend AI agents ([vercel/eve](https://github.com/vercel/eve)):** `docs/ai/skills/eve/SKILL.md`
+- **Scaffold a new eve agent from an interview ([ikindacodes/ship-eve](https://github.com/ikindacodes/ship-eve)):** `docs/ai/skills/create-agent/SKILL.md` (pair with **eve**)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
@@ -316,6 +322,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 | **to-prd**                                    | `docs/ai/skills/to-prd/SKILL.md` — PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec.      |
 | **to-issues**                                 | `docs/ai/skills/to-issues/SKILL.md` — PRD → issues (**skills.sh “prd-to-issues”** naming maps here).                                                        |
 | **improve-codebase-architecture**             | `docs/ai/skills/improve-codebase-architecture/SKILL.md` — Architecture deepening.                                                                           |
+| **codebase-design**                           | `docs/ai/skills/codebase-design/SKILL.md` — Deep-module design vocabulary and seam placement.                                                               |
 | **tdd**                                       | `docs/ai/skills/tdd/SKILL.md` — Red-green-refactor + references.                                                                                            |
 | **qa**, **request-refactor-plan**             | `docs/ai/skills/qa/SKILL.md`, `docs/ai/skills/request-refactor-plan/SKILL.md` — Vendored from upstream **`skills/deprecated/`** (not on default CLI list).  |
 | **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Vendored from **`skills/misc/`**.                               |
