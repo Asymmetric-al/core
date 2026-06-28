@@ -29,6 +29,7 @@ export default defineConfig({
       "packages/auth/**/*.test.ts",
     ],
     environment: "node",
+    ...(process.platform === "win32" ? { maxWorkers: 4 } : {}),
     env: {
       SKIP_ENV_VALIDATION: "1",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
