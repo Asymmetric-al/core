@@ -57,6 +57,7 @@ function run(command, args) {
 }
 
 run(process.execPath, ["scripts/sync-agent-skills.mjs"]);
+run(process.execPath, ["scripts/verify/inngest-skill-references.mjs"]);
 
 const diffResult = spawnSync(
   "git",

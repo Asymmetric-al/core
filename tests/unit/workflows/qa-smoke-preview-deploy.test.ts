@@ -71,6 +71,14 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).toContain("# Headless PR Preview Smoke QA");
   });
 
+  it("uses the shared Bun version and portable install backend", () => {
+    expect(workflow).toContain('BUN_VERSION: "1.3.14"');
+    expect(workflow).toContain("bun-version: ${{ env.BUN_VERSION }}");
+    expect(workflow).toContain("bun ci --no-cache --backend=copyfile");
+    expect(workflow).not.toContain('bun-version: "1.3.4"');
+    expect(workflow).not.toContain("bun install --frozen-lockfile");
+  });
+
   it("does not use bypass query parameters", () => {
     expect(workflow).not.toContain("x-vercel-set-bypass-cookie");
     expect(workflow).not.toContain("?x-vercel-protection-bypass");

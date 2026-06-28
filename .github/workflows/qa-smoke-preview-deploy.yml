@@ -20,6 +20,9 @@ concurrency:
   group: qa-smoke-preview-${{ github.event.pull_request.number || inputs.pr_number }}
   cancel-in-progress: true
 
+env:
+  BUN_VERSION: "1.3.14"
+
 jobs:
   deploy:
     name: label-gated-preview-smoke
@@ -126,7 +129,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
         if: steps.scope.outputs.any == 'true'
         with:
-          bun-version: "1.3.4"
+          bun-version: ${{ env.BUN_VERSION }}
 
       - name: Mask deployment secrets
         if: steps.scope.outputs.any == 'true'
@@ -411,7 +414,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          bun install --frozen-lockfile
+          bun ci --no-cache --backend=copyfile
           bunx playwright install --with-deps chromium
 
       - name: Run headless preview smoke QA
