@@ -152,6 +152,28 @@ export function getAppBuildStep(
   ]);
 }
 
+export function getRequestedApps(args = [], apps = NEXT_APPS) {
+  const appFlagIndex = args.indexOf("--app");
+  if (appFlagIndex === -1) {
+    return apps;
+  }
+
+  const requestedId = args.at(appFlagIndex + 1);
+  if (!requestedId) {
+    throw new Error("Missing app id after --app.");
+  }
+
+  const requestedApp = apps.find((app) => app.id === requestedId);
+  if (!requestedApp) {
+    const validIds = apps.map((app) => app.id).join(", ");
+    throw new Error(
+      `Unknown app "${requestedId}". Expected one of: ${validIds}.`,
+    );
+  }
+
+  return [requestedApp];
+}
+
 function run(command, args, label) {
   console.log(`==> CI build: ${label}`);
   const result = spawnSync(command, args, {
@@ -257,14 +279,22 @@ function clearStaleNextLocks() {
   }
 }
 
-function main() {
+function main(args = process.argv.slice(2)) {
+  let requestedApps;
+  try {
+    requestedApps = getRequestedApps(args);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : error);
+    process.exit(1);
+  }
+
   for (const step of getSharedPackageBuildSteps()) {
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();
   }
 
-  for (const app of NEXT_APPS) {
+  for (const app of requestedApps) {
     const step = getAppBuildStep(app);
     clearStaleNextLocks();
     run(step.command, step.args, step.label);

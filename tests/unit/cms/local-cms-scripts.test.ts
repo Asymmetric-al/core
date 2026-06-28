@@ -15,6 +15,12 @@ import {
   createLexicalRichText,
   createLocalPageLayout,
 } from "../../../scripts/cms/lib/local-data.mjs";
+import {
+  assertPayloadRuntimeRequirements,
+  compareNodeVersions,
+  isPayloadV4Version,
+  parseNodeVersion,
+} from "../../../scripts/cms/lib/payload-runtime.mjs";
 
 function readEnvValue(filePath: string, key: string) {
   const line = fs
@@ -26,6 +32,39 @@ function readEnvValue(filePath: string, key: string) {
 }
 
 describe("local CMS setup scripts", () => {
+  it("guards Payload 4 CMS commands behind the required Node runtime", () => {
+    expect(parseNodeVersion("v24.15.0")).toEqual({
+      major: 24,
+      minor: 15,
+      patch: 0,
+    });
+    expect(compareNodeVersions("24.15.0", "24.14.9")).toBe(1);
+    expect(compareNodeVersions("24.15.0", "24.15.0")).toBe(0);
+    expect(compareNodeVersions("24.14.0", "24.15.0")).toBe(-1);
+    expect(isPayloadV4Version("4.0.0-internal.1f9ae9a")).toBe(true);
+    expect(isPayloadV4Version("^3.84.1")).toBe(false);
+
+    expect(() =>
+      assertPayloadRuntimeRequirements({
+        nodeVersion: "24.14.0",
+        payloadVersion: "4.0.0-internal.1f9ae9a",
+      }),
+    ).toThrow(/requires Node\.js 24\.15\.0\+/);
+
+    expect(() =>
+      assertPayloadRuntimeRequirements({
+        nodeVersion: "24.15.0",
+        payloadVersion: "4.0.0-internal.1f9ae9a",
+      }),
+    ).not.toThrow();
+    expect(() =>
+      assertPayloadRuntimeRequirements({
+        nodeVersion: "24.11.1",
+        payloadVersion: "^3.84.1",
+      }),
+    ).not.toThrow();
+  });
+
   it("parses Supabase status env output for local key repair", () => {
     const parsed = parseSupabaseStatusOutput(`
       API URL: http://127.0.0.1:54321

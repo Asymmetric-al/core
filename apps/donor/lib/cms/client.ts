@@ -10,6 +10,7 @@ import type {
   PublicCmsPage,
   PublicCmsPageDescriptor,
   PublicCmsPageReadResult,
+  PublicCmsReadCachePolicy,
 } from "@asym/lib/cms/public-page";
 
 /** @deprecated Use `PublicCmsPage` from `@asym/lib/cms/public-page` */
@@ -36,10 +37,37 @@ async function getForwardedHost(hostOverride?: string) {
   );
 }
 
-async function fetchCmsJSON<T>(
+type PublicCmsUpdate = Record<string, unknown>;
+
+export type PublicCmsUpdatesReadResult =
+  | {
+      status: "found";
+      statusCode: 200;
+      updates: PublicCmsUpdate[];
+    }
+  | {
+      status: "unavailable";
+      statusCode: number;
+      error: string;
+    };
+
+type PublicCmsJsonReadResult =
+  | {
+      status: "ok";
+      statusCode: number;
+      body: unknown;
+    }
+  | {
+      status: "error";
+      statusCode: number;
+      error: string;
+    };
+
+async function fetchPublicCmsJSON(
   path: string,
-  hostOverride?: string,
-): Promise<T | null> {
+  hostOverride: string | undefined,
+  buildCachePolicy: (tenantHost: string) => PublicCmsReadCachePolicy,
+): Promise<PublicCmsJsonReadResult> {
   const cmsURL = getCmsBaseUrl();
   const tenantHost = await getForwardedHost(hostOverride);
 
@@ -48,19 +76,29 @@ async function fetchCmsJSON<T>(
       headers: {
         "x-forwarded-host": tenantHost,
       },
-      next: {
-        revalidate: 60,
-        tags: buildGenericPublicCmsCacheTags(tenantHost),
-      },
+      next: buildCachePolicy(tenantHost),
     });
+    const body = await response.json().catch(() => null);
 
     if (!response.ok) {
-      return null;
+      return {
+        status: "error",
+        statusCode: response.status,
+        error: readCmsError(body),
+      };
     }
 
-    return (await response.json()) as T;
+    return {
+      status: "ok",
+      statusCode: response.status,
+      body,
+    };
   } catch {
-    return null;
+    return {
+      status: "error",
+      statusCode: 503,
+      error: "CMS unavailable",
+    };
   }
 }
 
@@ -120,11 +158,44 @@ export async function fetchPublishedCmsUpdates(
   limit = 5,
   hostOverride?: string,
 ) {
-  const payload = await fetchCmsJSON<{
-    updates: Array<Record<string, unknown>>;
-  }>(`/api/cms/public/updates?limit=${limit}`, hostOverride);
+  const result = await fetchPublishedCmsUpdatesResult(limit, hostOverride);
 
-  return payload?.updates ?? [];
+  return result.status === "found" ? result.updates : [];
+}
+
+export async function fetchPublishedCmsUpdatesResult(
+  limit = 5,
+  hostOverride?: string,
+): Promise<PublicCmsUpdatesReadResult> {
+  const result = await fetchPublicCmsJSON(
+    `/api/cms/public/updates?limit=${limit}`,
+    hostOverride,
+    buildPublicCmsUpdatesCachePolicy,
+  );
+
+  if (result.status === "error") {
+    return {
+      status: "unavailable",
+      statusCode: result.statusCode,
+      error: result.error,
+    };
+  }
+
+  const updates = readPublicCmsUpdates(result.body);
+
+  if (!updates) {
+    return {
+      status: "unavailable",
+      statusCode: 502,
+      error: "Invalid CMS response",
+    };
+  }
+
+  return {
+    status: "found",
+    statusCode: 200,
+    updates,
+  };
 }
 
 export async function fetchPublishedMissionaryGivingPage(
@@ -181,35 +252,19 @@ async function fetchPublishedCmsPageLikeResult(
     };
   }
 
-  const cmsURL = getCmsBaseUrl();
-  const tenantHost = await getForwardedHost(hostOverride);
   const path = buildPublicCmsReadPath(descriptor);
+  const result = await fetchPublicCmsJSON(path, hostOverride, (tenantHost) =>
+    buildPublicCmsReadCachePolicy(descriptor, tenantHost),
+  );
 
-  try {
-    const response = await fetch(`${cmsURL}${path}`, {
-      headers: {
-        "x-forwarded-host": tenantHost,
-      },
-      next: buildPublicCmsReadCachePolicy(descriptor, tenantHost),
-    });
-
-    return cmsReadResultFromResponse(response);
-  } catch {
-    return {
-      status: "unavailable",
-      statusCode: 503,
-      error: "CMS unavailable",
-    };
-  }
+  return cmsReadResultFromJsonResult(result);
 }
 
-async function cmsReadResultFromResponse(
-  response: Response,
-): Promise<PublicCmsPageReadResult> {
-  const body = await response.json().catch(() => null);
-
-  if (response.ok) {
-    if (!isPublicCmsPublishedPagePayload(body)) {
+function cmsReadResultFromJsonResult(
+  result: PublicCmsJsonReadResult,
+): PublicCmsPageReadResult {
+  if (result.status === "ok") {
+    if (!isPublicCmsPublishedPagePayload(result.body)) {
       return {
         status: "unavailable",
         statusCode: 502,
@@ -220,33 +275,32 @@ async function cmsReadResultFromResponse(
     return {
       status: "found",
       statusCode: 200,
-      page: body.page,
-      tenant: body.tenant,
+      page: result.body.page,
+      tenant: result.body.tenant,
     };
   }
 
-  const error = readCmsError(body);
-
-  if (response.status === 400) {
+  if (result.statusCode === 400) {
     return {
       status: "bad-request",
       statusCode: 400,
-      error,
+      error: result.error,
     };
   }
 
-  if (response.status === 404) {
+  if (result.statusCode === 404) {
     return {
-      status: error === "Tenant not found" ? "tenant-not-found" : "not-found",
+      status:
+        result.error === "Tenant not found" ? "tenant-not-found" : "not-found",
       statusCode: 404,
-      error,
+      error: result.error,
     };
   }
 
   return {
     status: "unavailable",
-    statusCode: response.status,
-    error,
+    statusCode: result.statusCode,
+    error: result.error,
   };
 }
 
@@ -259,6 +313,34 @@ function readCmsError(body: unknown) {
   }
 
   return "Failed to fetch page content";
+}
+
+function readPublicCmsUpdates(value: unknown) {
+  if (!value || typeof value !== "object") {
+    return null;
+  }
+
+  const updates = (value as { updates?: unknown }).updates;
+  if (!Array.isArray(updates)) {
+    return null;
+  }
+
+  return updates.filter(isPublicCmsUpdateRecord);
+}
+
+function isPublicCmsUpdateRecord(
+  value: unknown,
+): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function buildPublicCmsUpdatesCachePolicy(
+  tenantHost: string,
+): PublicCmsReadCachePolicy {
+  return {
+    revalidate: 60,
+    tags: buildGenericPublicCmsCacheTags(tenantHost),
+  };
 }
 
 function buildGenericPublicCmsCacheTags(tenantHost: string) {
