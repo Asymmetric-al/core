@@ -49,7 +49,12 @@ const branchProtection = {
   allow_force_pushes: { enabled: true },
   required_status_checks: {
     strict: true,
-    contexts: ["ci-gate", "integration-gate", "e2e-gate", "release-source-gate"],
+    contexts: [
+      "ci-gate",
+      "integration-gate",
+      "e2e-gate",
+      "release-source-gate",
+    ],
   },
   required_pull_request_reviews: {
     required_approving_review_count: 1,
@@ -166,7 +171,12 @@ describe("deployment discipline verifier", () => {
       branch: "production",
       protection: branchProtection,
       branchRule: branchProtectionRule,
-      requiredContexts: ["ci-gate", "integration-gate", "e2e-gate", "release-source-gate"],
+      requiredContexts: [
+        "ci-gate",
+        "integration-gate",
+        "e2e-gate",
+        "release-source-gate",
+      ],
       forbiddenContexts: ["e2e-smoke-gate"],
     });
 
@@ -209,7 +219,12 @@ describe("deployment discipline verifier", () => {
       branchRule: {
         allowsForcePushes: true,
       },
-      requiredContexts: ["ci-gate", "integration-gate", "e2e-gate", "release-source-gate"],
+      requiredContexts: [
+        "ci-gate",
+        "integration-gate",
+        "e2e-gate",
+        "release-source-gate",
+      ],
     });
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
