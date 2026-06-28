@@ -63,6 +63,28 @@ Pre-deploy checklist for Stripe API-version changes:
 - Deliver a signed Stripe webhook smoke event and confirm duplicate delivery is
   ignored rather than reprocessed.
 
+## Admin contribution replay
+
+`POST /api/admin/contributions/replay` (staff/admin) can replay one target at a
+time: a stored Stripe raw event, a donation saga outbox row, a staged gift, or a
+receipt send log.
+
+Stripe clients created for replay use the shared `createStripeClient` factory and
+therefore the repo pin (`STRIPE_API_VERSION`, currently `2026-05-27.dahlia`).
+
+- **Donation saga outbox replay** (`donationSagaOutboxId`): calls
+  `processDonationSagaOutboxEvent` with a live Stripe client. Customer and
+  PaymentIntent creation run against Stripe at the pinned API version. Use only
+  in staging or after validating one row in a lower environment.
+- **Stripe raw event replay** (`stripeEventId`): re-processes the stored webhook
+  payload through `handleStripeWebhookEvent`. It does not re-fetch the event from
+  Stripe; side effects depend on the stored JSON and current DB idempotency
+  guards (for example `claim_stripe_raw_event`).
+
+Before replaying production rows after an API-version bump, complete the
+pre-deploy checklist above and confirm Dashboard + webhook endpoint versions
+match the repo pin.
+
 ## Processing Endpoints
 
 ### Donor request path
