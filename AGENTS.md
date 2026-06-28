@@ -209,6 +209,15 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
 
+## Inngest dev MCP (agent tooling)
+
+This repo configures the official Inngest dev-server MCP endpoint in root `.mcp.json` (also mirrored to `.cursor/mcp.json` for Cursor).
+
+- **Requirement:** An Inngest dev server must be running before the MCP endpoint is useful (for example, `npx inngest-cli@latest dev` from the app that owns an Inngest runtime integration).
+- **Default URL:** `http://127.0.0.1:8288/mcp`. If port `8288` is occupied, the dev server may use `8289` or another fallback port; update the MCP URL to match the active server.
+- **Scope:** This is agent tooling only. It does not mean this repo has adopted Inngest product runtime code, dependencies, or env vars.
+- **Claude Code:** The official Claude Code plugin can provide its own Inngest tooling and MCP wiring; repo MCP config is available when the client reads `.mcp.json`.
+
 ### TanStack CLI and Intent
 
 For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
@@ -272,6 +281,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
+**Official Inngest agent skills** (`docs/ai/skills/inngest-*`) are vendored from [`inngest/inngest-skills`](https://github.com/inngest/inngest-skills) and [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin). Refresh them with `bun run skills:refresh-inngest`, then `bun run skills:sync` and `bun run skills:verify`; source SHAs and licenses are documented in `docs/ai/skills/inngest/references/upstream.md`. These skills are agent tooling for integration work, not evidence of product runtime adoption. Use `docs/ai/skills/inngest/SKILL.md` as the router when unsure which Inngest skill applies.
+
 **`eve`**, **`create-agent`**, **`impeccable`**, and **`playwright-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`).
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
@@ -301,6 +312,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
+- **Inngest durable workflows and agent tooling:** load `docs/ai/skills/inngest/SKILL.md` when choosing a route. Use `docs/ai/skills/inngest-brownfield-audit/SKILL.md` before changing existing app workflows or fragile background work. Use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly adding Inngest runtime to an app. Use `docs/ai/skills/inngest-events/SKILL.md`, `docs/ai/skills/inngest-durable-functions/SKILL.md`, `docs/ai/skills/inngest-steps/SKILL.md`, `docs/ai/skills/inngest-flow-control/SKILL.md`, `docs/ai/skills/inngest-middleware/SKILL.md`, and `docs/ai/skills/inngest-realtime/SKILL.md` based on the feature area. Use `docs/ai/skills/inngest-agents/SKILL.md` for durable AI agent workflows, `docs/ai/skills/inngest-v3-v4-migration/SKILL.md` only if v3 usage is found, and `docs/ai/skills/inngest-api/SKILL.md` only for Inngest API or CLI operations. These tools are subordinate to OpenSpec, `AGENTS.md`, repo-local rulebooks, Next.js version docs, and runtime evidence.
 - **Playwright E2E/component/API testing patterns:** `docs/ai/skills/playwright-best-practices/SKILL.md` (subordinate to `docs/ai/rules/testing.md`)
 - **Durable backend AI agents ([vercel/eve](https://github.com/vercel/eve)):** `docs/ai/skills/eve/SKILL.md`
 - **Scaffold a new eve agent from an interview ([ikindacodes/ship-eve](https://github.com/ikindacodes/ship-eve)):** `docs/ai/skills/create-agent/SKILL.md` (pair with **eve**)
@@ -309,6 +321,12 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
 **Extra Cursor-packaged skills:** optional mirror-only ecosystem installs under **`.agents/skills/<name>/`** and **`.cursor/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+
+**Inngest plugins for agent clients:**
+
+- **Codex:** The repo mirrors official Inngest skills into `.agents/skills/` through `bun run skills:sync`. If a Codex session needs the full upstream plugin, clone [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin) outside the repo and run `/plugin install <path>/plugins/inngest`. Do not vendor the plugin examples, evals, or assets into this repo unless a future Codex discovery rule requires a repo-local plugin path.
+- **Claude Code:** Keep `CLAUDE.md` as `@AGENTS.md`. To install the full official Claude Code plugin, run `/plugin marketplace add inngest/inngest-claude-code-plugin`, then `/plugin install inngest@inngest-claude-code-plugin`.
+- **Cursor:** Cursor receives the official skills through generated `.cursor/skills/` mirrors and the `inngest-dev` server in `.cursor/mcp.json`.
 
 **Mattpocock pack** ([github.com/mattpocock/skills](https://github.com/mattpocock/skills)) — routed through canonical `docs/ai/skills/` copies:
 
