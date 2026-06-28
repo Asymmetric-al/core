@@ -6,15 +6,15 @@ This document is the canonical reference for how environments are defined and op
 
 ## 2. Four-Environment Matrix
 
-| Property      | Local                                | Preview                  | Staging                                                                                          | Production                                   |
-| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------ | -------------------------------------------- |
-| Trigger       | `bun run dev:*`                      | Disabled by default      | Push to `develop`                                                                                | `bun run release:production` to `production` |
-| URL           | `localhost:3000`                     | `*.vercel.app`           | `staging-admin.asymmetric.al`, `staging-donor.asymmetric.al`, `staging-missionary.asymmetric.al` | `*.asymmetric.al`                            |
-| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated staging project                                                                        | Production project                           |
-| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                        | Live-mode                                    |
-| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                       | Configured                                   |
-| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                             | **No - real donors, real money**             |
-| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                               | Real data                                    |
+| Property      | Local                                | Preview                  | Development                                                                                                  | Production                                   |
+| ------------- | ------------------------------------ | ------------------------ | ------------------------------------------------------------------------------------------------------------ | -------------------------------------------- |
+| Trigger       | `bun run dev:*`                      | Disabled by default      | Push to `develop`                                                                                            | `bun run release:production` to `production` |
+| URL           | `localhost:3000`                     | `*.vercel.app`           | `development-admin.asymmetric.al`, `development-donor.asymmetric.al`, `development-missionary.asymmetric.al` | `*.asymmetric.al`                            |
+| Supabase      | `bun run supabase -- start` (Docker) | Shared preview project   | Dedicated development project                                                                                | Production project                           |
+| Stripe        | Test-mode                            | Test-mode                | Test-mode                                                                                                    | Live-mode                                    |
+| Sentry        | Optional (DSN may be unset)          | Optional                 | Configured                                                                                                   | Configured                                   |
+| Safe to break | Yes - fully disposable               | Yes - isolated test data | Mostly - recoverable                                                                                         | **No - real donors, real money**             |
+| Seed data     | Local seed script                    | Shared test data         | Demo data (periodically refreshed)                                                                           | Real data                                    |
 
 ## 3. Local Development Setup
 
@@ -151,7 +151,7 @@ Each app also keeps source-controlled Git deployment branch gates in
 `apps/*/vercel.json`:
 
 - `production`: production deployments
-- `develop`: staging deployments
+- `develop`: development deployments
 - `main`: explicitly disabled retired history
 - all other branches: no Git deployment creation because `"*": false` closes
   the default auto-deploy path
@@ -178,63 +178,63 @@ Official references:
 - [Turborepo remote caching](https://turborepo.dev/docs/core-concepts/remote-caching)
 - [Turborepo CI setup](https://turborepo.dev/docs/guides/ci-vendors)
 
-## 5. Staging Environment Setup (`develop`)
+## 5. Development Environment Setup (`develop`)
 
-Staging is branch-bound to `develop` using Vercel Custom Environments and remains isolated from both preview and production infrastructure.
+Development is branch-bound to `develop` using Vercel Custom Environments and remains isolated from both preview and production infrastructure.
 
-### 5.1 Canonical staging URLs
+### 5.1 Canonical development URLs
 
-| App        | Vercel project | Staging URL                                |
-| ---------- | -------------- | ------------------------------------------ |
-| Admin      | `admin`        | `https://staging-admin.asymmetric.al`      |
-| Donor      | `donor`        | `https://staging-donor.asymmetric.al`      |
-| Missionary | `missionary`   | `https://staging-missionary.asymmetric.al` |
+| App        | Vercel project | Development URL                                |
+| ---------- | -------------- | ---------------------------------------------- |
+| Admin      | `admin`        | `https://development-admin.asymmetric.al`      |
+| Donor      | `donor`        | `https://development-donor.asymmetric.al`      |
+| Missionary | `missionary`   | `https://development-missionary.asymmetric.al` |
 
-### 5.2 Staging Supabase project
+### 5.2 Development Supabase project
 
-The canonical staging database is the visible Supabase project in the normal
+The canonical development database is the visible Supabase project in the normal
 Asymmetrical Supabase organization. Its dashboard display name should be
-`staging`; if the Supabase dashboard still shows `develop`, rename only the
+`development`; if the Supabase dashboard still shows `develop`, rename only the
 display name and keep the project ref unchanged.
 
 | Environment | Supabase project | Project ref            | Project URL                                | Policy                                |
 | ----------- | ---------------- | ---------------------- | ------------------------------------------ | ------------------------------------- |
-| Staging     | `staging`        | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                   |
+| Development | `development`    | `pnmlrbgjiqzzsthsoikm` | `https://pnmlrbgjiqzzsthsoikm.supabase.co` | Demo/test data only                   |
 | Production  | `production`     | `btewedpsxwsjczvmegby` | `https://btewedpsxwsjczvmegby.supabase.co` | Real donor/auth/payment-adjacent data |
 | Deleted     | Vercel-managed   | `uarazyactrqlxzmeygmr` | `https://uarazyactrqlxzmeygmr.supabase.co` | Exported, verified unused, deleted    |
 
-Do not point staging at the Vercel-managed Supabase project ref
+Do not point development at the Vercel-managed Supabase project ref
 `uarazyactrqlxzmeygmr`. It was created by the Vercel/Supabase integration and
 is intentionally retired in favor of the team-owned Supabase project above.
 
 Cleanup state from the 2026-05-15 environment cutover:
 
-- `pnmlrbgjiqzzsthsoikm` received all repo migrations and the staging/demo seed.
+- `pnmlrbgjiqzzsthsoikm` received all repo migrations and the development/demo seed.
 - `uarazyactrqlxzmeygmr` was exported, verified absent from active
-  production/staging Vercel env pulls, and deleted.
+  production/development Vercel env pulls, and deleted.
 - Completed exports are stored outside the repo at
   `/Users/blake/Documents/asymmetrical/ops-backups/core-supabase-cleanup-2026-05-15T08-05-59-447Z`.
 - Remaining Supabase dashboard cleanup: rename display name `develop` to
-  `staging`.
+  `development`.
 
-Configured staging Auth redirect URLs in the `pnmlrbgjiqzzsthsoikm` Supabase
+Configured development Auth redirect URLs in the `pnmlrbgjiqzzsthsoikm` Supabase
 Auth config:
 
-- `https://staging-admin.asymmetric.al/**`
-- `https://staging-donor.asymmetric.al/**`
-- `https://staging-missionary.asymmetric.al/**`
+- `https://development-admin.asymmetric.al/**`
+- `https://development-donor.asymmetric.al/**`
+- `https://development-missionary.asymmetric.al/**`
 
 Access policy: do not recover or share existing passwords. Inventory
 admin-capable Auth users in Supabase and use Supabase invite/reset-password
-flows for staging access.
+flows for development access.
 
-### 5.3 Vercel `staging` custom environment (all 3 projects)
+### 5.3 Vercel `development` custom environment (all 3 projects)
 
 For each Vercel project (`admin`, `donor`, `missionary`):
 
-1. Create custom environment `staging`.
-2. Assign branch `develop` to `staging`.
-3. Set variables in **staging scope only** (not Preview/Production):
+1. Create custom environment `development`.
+2. Assign branch `develop` to `development`.
+3. Set variables in **development scope only** (not Preview/Production):
 
 | Variable                             |
 | ------------------------------------ |
@@ -259,97 +259,97 @@ For each Vercel project (`admin`, `donor`, `missionary`):
 | `CLOUDINARY_API_SECRET`              |
 | `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`  |
 
-Supabase-specific staging values must resolve to project ref
+Supabase-specific development values must resolve to project ref
 `pnmlrbgjiqzzsthsoikm`:
 
-| Variable                        | Admin | Donor | Missionary | Notes                                                |
-| ------------------------------- | ----- | ----- | ---------- | ---------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`      | Yes   | Yes   | Yes        | `https://pnmlrbgjiqzzsthsoikm.supabase.co`           |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes   | Yes   | Yes        | Client-safe key from the staging Supabase project    |
-| `SUPABASE_SERVICE_ROLE_KEY`     | Yes   | Yes   | Yes        | Server-only key from the staging Supabase project    |
-| `SUPABASE_DB_URL`               | Yes   | Yes   | Yes        | Supavisor session-pooler URL for staging Postgres    |
-| `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Admin CMS database URL; same staging Postgres target |
+| Variable                        | Admin | Donor | Missionary | Notes                                                    |
+| ------------------------------- | ----- | ----- | ---------- | -------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`      | Yes   | Yes   | Yes        | `https://pnmlrbgjiqzzsthsoikm.supabase.co`               |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Yes   | Yes   | Yes        | Client-safe key from the development Supabase project    |
+| `SUPABASE_SERVICE_ROLE_KEY`     | Yes   | Yes   | Yes        | Server-only key from the development Supabase project    |
+| `SUPABASE_DB_URL`               | Yes   | Yes   | Yes        | Supavisor session-pooler URL for development Postgres    |
+| `PAYLOAD_DATABASE_URI`          | Yes   | No    | No         | Admin CMS database URL; same development Postgres target |
 
-Trigger staging deploys by pushing to `develop`.
+Trigger development deploys by pushing to `develop`.
 
-Verify the staging Supabase/Vercel map without printing secrets:
+Verify the development Supabase/Vercel map without printing secrets:
 
 ```bash
-bun run verify:vercel-env-inventory -- --environments production,staging
+bun run verify:vercel-env-inventory -- --environments production,development
 ```
 
 Expected refs:
 
 - Production remains `btewedpsxwsjczvmegby`.
-- Staging is `pnmlrbgjiqzzsthsoikm`.
+- Development is `pnmlrbgjiqzzsthsoikm`.
 - No active Vercel environment variable should reference `uarazyactrqlxzmeygmr`.
 
 ### 5.4 DNS + domains
 
-Assign these domains to each project's `staging` environment and point DNS CNAME records to Vercel:
+Assign these domains to each project's `development` environment and point DNS CNAME records to Vercel:
 
-- `staging-admin.asymmetric.al` -> `admin`
-- `staging-donor.asymmetric.al` -> `donor`
-- `staging-missionary.asymmetric.al` -> `missionary`
+- `development-admin.asymmetric.al` -> `admin`
+- `development-donor.asymmetric.al` -> `donor`
+- `development-missionary.asymmetric.al` -> `missionary`
 
 ### 5.5 Stripe webhooks (test mode)
 
-Use Stripe test-mode endpoints per staging app:
+Use Stripe test-mode endpoints per development app:
 
-| App        | Endpoint URL                                                   |
-| ---------- | -------------------------------------------------------------- |
-| Admin      | `https://staging-admin.asymmetric.al/api/webhooks/stripe`      |
-| Donor      | `https://staging-donor.asymmetric.al/api/webhooks/stripe`      |
-| Missionary | `https://staging-missionary.asymmetric.al/api/webhooks/stripe` |
+| App        | Endpoint URL                                                       |
+| ---------- | ------------------------------------------------------------------ |
+| Admin      | `https://development-admin.asymmetric.al/api/webhooks/stripe`      |
+| Donor      | `https://development-donor.asymmetric.al/api/webhooks/stripe`      |
+| Missionary | `https://development-missionary.asymmetric.al/api/webhooks/stripe` |
 
-If the staging domain is protected by Vercel Authentication, Stripe cannot
+If the development domain is protected by Vercel Authentication, Stripe cannot
 reach the endpoint directly. A protected endpoint returns Vercel `401`
 before the Next.js route runs, which Stripe records as a failed delivery.
 
-Preferred protected-staging setup:
+Preferred protected-development setup:
 
 1. In the Vercel project for the app, generate a Protection Bypass for
-   Automation secret for staging webhook automation.
+   Automation secret for development webhook automation.
 2. In Stripe test mode, configure the endpoint URL with the bypass query
    parameter:
 
    ```text
-   https://staging-<app>.asymmetric.al/api/webhooks/stripe?x-vercel-protection-bypass=<VERCEL_AUTOMATION_BYPASS_SECRET>
+   https://development-<app>.asymmetric.al/api/webhooks/stripe?x-vercel-protection-bypass=<VERCEL_AUTOMATION_BYPASS_SECRET>
    ```
 
 3. Do not add `x-vercel-set-bypass-cookie` to Stripe webhook URLs; Stripe
    needs a one-request server-to-server bypass, not a browser cookie.
 4. Copy the Stripe endpoint signing secret into that app's
-   `STRIPE_WEBHOOK_SECRET` in Vercel `staging` scope, then redeploy if either
+   `STRIPE_WEBHOOK_SECRET` in Vercel `development` scope, then redeploy if either
    the webhook signing secret or the Vercel bypass secret changed.
 5. Verify without exposing secrets:
 
    ```bash
-   curl -i -X POST "https://staging-<app>.asymmetric.al/api/webhooks/stripe" \
+   curl -i -X POST "https://development-<app>.asymmetric.al/api/webhooks/stripe" \
      -H "content-type: application/json" \
      --data "{}"
    ```
 
-   Without a bypass parameter, protected staging should return Vercel `401`.
+   Without a bypass parameter, protected development should return Vercel `401`.
    With the bypass parameter and no Stripe signature, the request should reach
    the app and return JSON `400` with `Missing Stripe signature.` A real Stripe
    test event should then return `2xx` and appear as delivered in Stripe
    Workbench.
 
-Alternative: add the staging custom domain as a Vercel Deployment Protection
-Exception. This makes the entire staging domain public, so only use it when
+Alternative: add the development custom domain as a Vercel Deployment Protection
+Exception. This makes the entire development domain public, so only use it when
 that exposure is acceptable.
 
-### 5.6 Staging sync policy and Inngest note
+### 5.6 Development sync policy and Inngest note
 
-- Staging deploy trigger: push to `develop`.
+- Development deploy trigger: push to `develop`.
 - Production deploy trigger: `bun run release:production` pushes a verified
   commit to `production`, the Vercel Production Branch.
 - `main` is retired/protected historical history; do not sync, merge, or deploy
   from it for normal work.
-- To refresh staging parity ahead of QA/demo cycles, realign or merge from
-  `production` into `develop`; staging should start from production truth.
-- Inngest staging is not integrated yet and remains a future placeholder.
+- To refresh development parity ahead of QA/demo cycles, realign or merge from
+  `production` into `develop`; development should start from production truth.
+- Inngest development is not integrated yet and remains a future placeholder.
 
 ## 5.7 Production Vercel requirements
 
@@ -454,7 +454,7 @@ bun run verify:vercel-env-inventory
 ```
 
 Use this before provider or observability work to confirm which names exist in
-Production, Preview, Development, and the `staging` custom environment without
+Production, Preview, Development, and the `development` custom environment without
 printing secrets.
 
 After the real provider values exist as GitHub repository secrets, sync them to
@@ -533,9 +533,9 @@ sequenceDiagram
     PR->>Vercel: Preview deploy or ignored build (*.vercel.app)
     Note over Vercel: Preview Supabase project
 
-    PR->>Develop: Merge/push validated staging work
-    Develop->>Vercel: Staging deploy or ignored build (staging-*.asymmetric.al)
-    Note over Vercel: Staging Supabase project
+    PR->>Develop: Merge/push validated development work
+    Develop->>Vercel: Development deploy or ignored build (development-*.asymmetric.al)
+    Note over Vercel: Development Supabase project
 
     PR->>Prod: Merge approved production release to production
     Dev->>Prod: Or run bun run release:production from a clean release checkout
@@ -552,7 +552,7 @@ ignored build rather than spend build minutes on all three apps.
 
 ## 7. Playwright `baseURL` Configuration
 
-E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configured in [playwright.config.ts](../../playwright.config.ts). In CI, set `PLAYWRIGHT_BASE_URL` to a preview or staging URL to run tests against deployed infrastructure instead of localhost.
+E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configured in [playwright.config.ts](../../playwright.config.ts). In CI, set `PLAYWRIGHT_BASE_URL` to a preview or development URL to run tests against deployed infrastructure instead of localhost.
 
 ## 8. Credential Rotation Schedule
 
@@ -561,7 +561,7 @@ E2E tests can target different environments using `PLAYWRIGHT_BASE_URL`, configu
 | Preview     | Supabase           | Quarterly                 | Regenerate in Supabase dashboard -> update Vercel env vars (preview scope) |
 | Preview     | Stripe             | Quarterly                 | Roll test-mode keys in Stripe dashboard -> update Vercel env vars          |
 | Preview     | Sentry             | Quarterly                 | Regenerate DSN -> update Vercel env vars                                   |
-| Staging     | All services       | Quarterly                 | Same process, staging scope                                                |
+| Development | All services       | Quarterly                 | Same process, development scope                                            |
 | Production  | Supabase           | Quarterly + on compromise | Same process, production scope. Coordinate with team.                      |
 | Production  | Stripe             | Quarterly + on compromise | Rolling live keys causes brief webhook verification downtime               |
 | Production  | Sentry, Cloudinary | Quarterly + on compromise | Same process                                                               |
@@ -572,7 +572,7 @@ Every rotation window must cover all six services: Supabase, Stripe, Sentry, Clo
 ## 9. If an Environment Is Compromised
 
 1. **Immediately rotate** all credentials for the affected environment in each service dashboard, following the schedule above.
-2. **Update Vercel environment variables** for the affected scope (preview/staging/production) across all three projects: `admin`, `donor`, and `missionary`.
+2. **Update Vercel environment variables** for the affected scope (preview/development/production) across all three projects: `admin`, `donor`, and `missionary`.
 3. **Redeploy** all three apps so new credentials are loaded.
 4. **For production compromises**, coordinate with the full team before rotating Stripe live keys (brief webhook downtime expected), and notify affected users if any data was exposed.
 5. **Audit access logs** in Supabase, Stripe, and Sentry for the affected incident window.

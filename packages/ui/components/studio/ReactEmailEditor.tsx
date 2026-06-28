@@ -118,7 +118,7 @@ export const ReactEmailEditor = forwardRef<
 
       const result: EmailStudioExportResult = {
         builder: "react_email",
-        builderVersion: "1.3.8",
+        builderVersion: "1.5.3",
         design,
         html: email.html,
         text: email.text,
@@ -252,7 +252,12 @@ export const ReactEmailEditor = forwardRef<
             <div className="rounded-xl border border-primary/20 bg-primary/10 p-4 text-primary">
               <Mail className="h-8 w-8" />
             </div>
-            <div className="w-full space-y-2">
+            <div
+              aria-label="Loading email editor"
+              aria-live="polite"
+              className="w-full space-y-2"
+              role="status"
+            >
               <div className="flex items-center justify-center gap-2 text-sm font-medium">
                 <Loader2 className="h-4 w-4 animate-spin text-primary" />
                 Loading email editor…

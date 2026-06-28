@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   type LucideIcon,
   type LucideProps,
@@ -54,6 +55,7 @@ const LAZY_ICON_MAP = new Map<
 );
 
 function isLucideIconComponent(name: string | LucideIcon): name is LucideIcon {
+  if (name == null) return false;
   return typeof name !== "string";
 }
 
@@ -63,10 +65,7 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
 
     if (!name) return null;
 
-    return resolveDynamicIconKebabName(
-      name,
-      dynamicIconImports as Record<string, unknown>,
-    ) as keyof typeof dynamicIconImports | null;
+    return resolveDynamicIconKebabName(name, dynamicIconImports);
   }, [name]);
   const lazyIconComponent = kebabName
     ? (LAZY_ICON_MAP.get(kebabName) ?? null)
@@ -78,17 +77,16 @@ export function DynamicIcon({ name, fallback, ...props }: DynamicIconProps) {
   }
 
   if (!lazyIconComponent) {
+    if (process.env.NODE_ENV === "development" && typeof name === "string") {
+      console.warn(`[DynamicIcon] Unknown icon name: "${name}"`);
+    }
     return <Settings {...props} />;
   }
 
   const lazyIconElement = React.createElement(lazyIconComponent, props);
 
   return (
-    <Suspense
-      fallback={
-        fallback || <div className="size-4 animate-pulse bg-zinc-200 rounded" />
-      }
-    >
+    <Suspense fallback={fallback || <Skeleton className="size-4 rounded" />}>
       {lazyIconElement}
     </Suspense>
   );

@@ -479,6 +479,7 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
         .eq("tenant_id", input.job.tenantId)
         .eq("staged_gift_id", stagedGiftId)
         .eq("crm_provider", "twenty")
+        .eq("scope", "parent")
         .maybeSingle();
       requireNoError(existing.error, "Failed to read donation CRM link.");
 
@@ -509,6 +510,7 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
               ? input.job.payload.asymDonationId
               : null,
           staged_gift_id: stagedGiftId,
+          scope: "parent",
           crm_provider: "twenty",
           twenty_object_name: input.job.twentyObjectName,
           twenty_record_id: input.twentyRecordId,
@@ -554,6 +556,7 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
         .eq("tenant_id", input.job.tenantId)
         .eq("staged_gift_id", stagedGiftId)
         .eq("crm_provider", "twenty")
+        .eq("scope", "parent")
         .maybeSingle();
       requireNoError(existing.error, "Failed to read donation CRM link.");
 
@@ -609,6 +612,7 @@ export function createSupabaseCrmSyncStore(clientInput: unknown): CrmSyncStore {
           "id,donation_id,staged_gift_id,link_status,twenty_record_id,metadata",
         )
         .eq("tenant_id", input.tenantId)
+        .eq("scope", "parent")
         .in("link_status", ["queued", "failed"]);
 
       requireNoError(orphanLinks.error, "Failed to read orphan CRM links.");

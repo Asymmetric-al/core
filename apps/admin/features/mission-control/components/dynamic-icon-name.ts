@@ -5,17 +5,17 @@ export function pascalToKebab(str: string): string {
     .toLowerCase();
 }
 
-export function resolveDynamicIconKebabName(
+export function resolveDynamicIconKebabName<T extends Record<string, unknown>>(
   name: string,
-  importKeys: Record<string, unknown>,
-): string | null {
+  importKeys: T,
+): Extract<keyof T, string> | null {
   if (name in importKeys) {
-    return name;
+    return name as Extract<keyof T, string>;
   }
 
   const converted = pascalToKebab(name);
   if (converted in importKeys) {
-    return converted;
+    return converted as Extract<keyof T, string>;
   }
 
   return null;

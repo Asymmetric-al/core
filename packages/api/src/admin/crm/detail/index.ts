@@ -6,6 +6,7 @@ import { requireCrmAccess } from "../../../crm/auth/access";
 import { resolveCrmSyncRuntimeConfig } from "../../../crm/sync/config";
 import { ApiHttpError, toErrorResponse } from "../../../shared/http-errors";
 import { withOperation } from "../../../shared/with-operation";
+import { resolveContributionCapabilities } from "../../contribution-operations/permissions";
 
 function getRecordIdFromPath(request: Request) {
   const pathname = new URL(request.url).pathname;
@@ -35,6 +36,7 @@ export const GET = withOperation(
         role: actor.role,
         supabaseAdmin,
         tenantId: actor.tenantId,
+        viewerCapabilities: resolveContributionCapabilities(auth),
       });
 
       return NextResponse.json({ ...response, requestId });
