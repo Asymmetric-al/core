@@ -25,9 +25,9 @@ describe("ci-build command planning", () => {
         ),
     });
 
-    expect(
-      result.replaceAll("\\", "/").endsWith("node_modules/.bin/turbo.cmd"),
-    ).toBe(true);
+    expect(result.replaceAll("\\", "/")).toMatch(
+      /node_modules\/\.bin\/turbo\.cmd$/,
+    );
   });
 
   it("builds shared packages without Turbo on Windows", () => {

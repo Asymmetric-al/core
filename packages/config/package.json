@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "@asym/env": "workspace:*",
-    "lucide-react": "^0.575.0"
+    "lucide-react": "1.17.0"
   },
   "devDependencies": {
     "@asym/typescript-config": "workspace:*",
