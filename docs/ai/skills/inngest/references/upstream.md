@@ -47,7 +47,9 @@ bun run skills:verify
 ```
 
 The refresh script downloads only the official `SKILL.md` files listed above.
-It does not vendor Codex plugin evals, examples, assets, or product runtime code.
+It also downloads the referenced markdown files needed by those skills so local
+links stay readable and `bun run skills:verify` can catch reference drift. It
+does not vendor Codex plugin evals, examples, assets, or product runtime code.
 It applies one repo overlay to `inngest-agents` so the upstream companion
 example path points at `inngest/inngest-codex-plugin` instead of implying a
 local example directory exists.

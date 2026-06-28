@@ -41,5 +41,8 @@ runtime Inngest integration.
 #### Scenario: No app runtime integration exists
 
 - WHEN the repo has no current product Inngest usage
-- THEN adding official agent tooling MUST NOT add runtime packages, app code,
-  database migrations, or Inngest environment requirements
+- THEN adding official agent tooling MUST NOT add Inngest runtime packages,
+  Inngest product app code, database migrations, or Inngest environment
+  requirements
+- AND any non-Inngest app, package, CI, or test hygiene bundled into the same PR
+  MUST be documented separately from Inngest runtime adoption

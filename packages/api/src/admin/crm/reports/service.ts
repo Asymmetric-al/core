@@ -1,4 +1,5 @@
 import { ApiHttpError } from "../../../shared/http-errors";
+import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
 
 import type { AdminCrmReportParams } from "./query";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -34,6 +35,7 @@ interface LabelRow {
     full_name?: string | null;
     first_name?: string | null;
     last_name?: string | null;
+    email?: string | null;
   } | null;
 }
 
@@ -73,12 +75,8 @@ function matchesSearch(label: string, search: string | null) {
 }
 
 function profileName(row: LabelRow): string {
-  const profile = row.profile ?? {};
   return (
-    profile.display_name?.trim() ||
-    profile.full_name?.trim() ||
-    [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim() ||
-    row.name?.trim() ||
+    resolveContributionProfileLabel(row.profile, row.name ?? null) ??
     "Unassigned"
   );
 }
@@ -136,7 +134,7 @@ async function fetchMissionaryLabels(
   const { data, error } = await supabaseAdmin
     .from("missionaries")
     .select(
-      "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name)",
+      "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
     )
     .in("id", ids);
   assertNoError(error, "Failed to load missionary labels.");
@@ -223,6 +221,7 @@ async function buildSyncFailureRows(
       .from("donation_crm_links")
       .select("id, link_status, updated_at")
       .eq("tenant_id", tenantId)
+      .eq("scope", "parent")
       .in("link_status", ["queued", "failed"])
       .limit(250),
   ]);

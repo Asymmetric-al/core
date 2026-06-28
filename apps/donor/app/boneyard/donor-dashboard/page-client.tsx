@@ -17,7 +17,7 @@ export default function BoneyardDonorDashboardCapturePage() {
       <h1 className="sr-only">Donor dashboard</h1>
       <BoneyardSkeleton
         name="donor-dashboard-main"
-        loading={true}
+        loading={false}
         fallback={<DashboardSkeleton />}
         fixture={fixture}
         snapshotConfig={{

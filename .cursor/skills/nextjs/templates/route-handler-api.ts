@@ -185,9 +185,14 @@ export async function WEBHOOK(request: Request) {
   }
 
   // Verify webhook signature (example with Stripe)
-  let event
+  type PaymentIntent = { id: string }
+  type StripeWebhookEvent = {
+    type: string
+    data?: { object?: PaymentIntent }
+  }
+  let event: StripeWebhookEvent
   try {
-    event = JSON.parse(body)
+    event = JSON.parse(body) as StripeWebhookEvent
     // In production: stripe.webhooks.constructEvent(body, signature, secret)
   } catch (err) {
     return NextResponse.json(
@@ -211,12 +216,12 @@ export async function WEBHOOK(request: Request) {
   return NextResponse.json({ received: true })
 }
 
-async function handlePaymentSuccess(paymentIntent: any) {
+async function handlePaymentSuccess(paymentIntent: PaymentIntent) {
   console.log('Payment succeeded:', paymentIntent.id)
   // Update database, send confirmation email, etc.
 }
 
-async function handlePaymentFailure(paymentIntent: any) {
+async function handlePaymentFailure(paymentIntent: PaymentIntent) {
   console.log('Payment failed:', paymentIntent.id)
   // Notify user, log error, etc.
 }

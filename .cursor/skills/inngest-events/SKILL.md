@@ -221,7 +221,7 @@ const addToCrm = inngest.createFunction(
 
 ### Advanced Fan-Out with `waitForEvent`
 
-In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../references/expressions.md) for full details.
+In expressions, `event` = the **original** triggering event, `async` = the **new** event being matched. See [Expression Syntax Reference](../inngest/references/expressions.md) for full details.
 
 ```typescript
 const orchestrateOnboarding = inngest.createFunction(
