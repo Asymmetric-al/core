@@ -74,10 +74,17 @@ Create a systematic plan:
 - Use **container queries** for components, viewport queries for page layouts. A card in a narrow sidebar can stay compact while the same card in a main content area expands automatically:
 
 ```css
-.card-container { container-type: inline-size; }
-.card { display: grid; gap: var(--space-md); }
+.card-container {
+  container-type: inline-size;
+}
+.card {
+  display: grid;
+  gap: var(--space-md);
+}
 @container (min-width: 400px) {
-  .card { grid-template-columns: 120px 1fr; }
+  .card {
+    grid-template-columns: 120px 1fr;
+  }
 }
 ```
 
@@ -92,13 +99,13 @@ Create a systematic plan:
 - Use the fewest dimensions needed for clear hierarchy. Space alone can be enough; generous whitespace around an element draws the eye. Some of the most polished designs achieve rhythm with just space and weight. Add color or size contrast only when simpler means aren't sufficient.
 - The best hierarchy combines 2–3 dimensions at once. A heading that's larger, bolder, AND has more space above it reads as primary without trying:
 
-| Tool | Strong Hierarchy | Weak Hierarchy |
-|------|------------------|----------------|
-| **Size** | 3:1 ratio or more | <2:1 ratio |
-| **Weight** | Bold vs Regular | Medium vs Regular |
-| **Color** | High contrast | Similar tones |
-| **Position** | Top/left (primary) | Bottom/right |
-| **Space** | Surrounded by white space | Crowded |
+| Tool         | Strong Hierarchy          | Weak Hierarchy    |
+| ------------ | ------------------------- | ----------------- |
+| **Size**     | 3:1 ratio or more         | <2:1 ratio        |
+| **Weight**   | Bold vs Regular           | Medium vs Regular |
+| **Color**    | High contrast             | Similar tones     |
+| **Position** | Top/left (primary)        | Bottom/right      |
+| **Space**    | Surrounded by white space | Crowded           |
 
 - Be aware of reading flow: in LTR languages, the eye naturally scans top-left to bottom-right, but primary action placement depends on context (e.g., bottom-right in dialogs, top in navigation).
 - Create clear content groupings through proximity and separation.
@@ -115,13 +122,20 @@ Create a systematic plan:
 - Touch targets must be 44×44px minimum even when the visual element is smaller. Expand the hit area with padding or a pseudo-element:
 
 ```css
-.icon-button { width: 24px; height: 24px; position: relative; }
+.icon-button {
+  width: 24px;
+  height: 24px;
+  position: relative;
+}
 .icon-button::before {
-  content: ''; position: absolute; inset: -10px;
+  content: "";
+  position: absolute;
+  inset: -10px;
 }
 ```
 
 **NEVER**:
+
 - Use arbitrary spacing values outside your scale
 - Make all spacing equal (variety creates hierarchy)
 - Wrap everything in cards (not everything needs a container)
@@ -145,17 +159,31 @@ When the rhythm and hierarchy land, hand off to `$impeccable polish` for the fin
 Each variant MUST declare a `density` param. Drive all spacing tokens in the variant's scoped CSS through `calc(var(--p-density, 1) * <base>)`: paddings, gaps, column widths. Users slide from airy to packed and see layout re-breathe with no regeneration.
 
 ```json
-{"id":"density","kind":"range","min":0.6,"max":1.4,"step":0.05,"default":1,"label":"Density"}
+{
+  "id": "density",
+  "kind": "range",
+  "min": 0.6,
+  "max": 1.4,
+  "step": 0.05,
+  "default": 1,
+  "label": "Density"
+}
 ```
 
 For variants whose topology genuinely changes (stacked vs. side-by-side, grid vs. bento), use a `steps` param whose scoped CSS branches via `:scope[data-p-structure="X"]`. One structure param + one density param is a powerful combo; resist adding a third.
 
 ```json
-{"id":"structure","kind":"steps","default":"grid","label":"Structure","options":[
-  {"value":"stacked","label":"Stacked"},
-  {"value":"grid","label":"Grid"},
-  {"value":"bento","label":"Bento"}
-]}
+{
+  "id": "structure",
+  "kind": "steps",
+  "default": "grid",
+  "label": "Structure",
+  "options": [
+    { "value": "stacked", "label": "Stacked" },
+    { "value": "grid", "label": "Grid" },
+    { "value": "bento", "label": "Bento" }
+  ]
+}
 ```
 
 See `reference/live.md` for the full params contract.

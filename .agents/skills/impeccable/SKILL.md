@@ -36,6 +36,7 @@ Produce ready-to-ship, production-grade code, not prototypes or starting points.
 - Use `text-wrap: balance` on h1–h3 for even line lengths; `text-wrap: pretty` on long prose to reduce orphans.
 
 One hard typographic ceiling you currently miss:
+
 - Display letter-spacing ≥ -0.04em. Your default of -0.05 to -0.085em on display H1s makes the letters touch and reads as cramped. -0.02 to -0.03em is plenty for tight grotesque display; -0.04em is the floor.
 
 #### Layout
@@ -47,6 +48,7 @@ One hard typographic ceiling you currently miss:
 - Build a semantic z-index scale (dropdown → sticky → modal-backdrop → modal → toast → tooltip). Never arbitrary values like 999 or 9999.
 
 #### Motion
+
 - Motion should be intentional, and not be an afterthought. consider it as part of the build.
 - Don't animate CSS layout properties unless truly needed.
 - Ease out with exponential curves (ease-out-quart / quint / expo). No bounce, no elastic.
@@ -106,31 +108,31 @@ If someone could look at this interface and say "AI made that" without doubt, it
 
 ## Commands
 
-| Command | Category | Description | Reference |
-|---|---|---|---|
-| `craft [feature]` | Build | Shape, then build a feature end-to-end | [reference/craft.md](reference/craft.md) |
-| `shape [feature]` | Build | Plan UX/UI before writing code | [reference/shape.md](reference/shape.md) |
-| `init` | Build | Set up project context: PRODUCT.md, DESIGN.md, live config, next steps | [reference/init.md](reference/init.md) |
-| `document` | Build | Generate DESIGN.md from existing project code | [reference/document.md](reference/document.md) |
-| `extract [target]` | Build | Pull reusable tokens and components into design system | [reference/extract.md](reference/extract.md) |
-| `critique [target]` | Evaluate | UX design review with heuristic scoring | [reference/critique.md](reference/critique.md) |
-| `audit [target]` | Evaluate | Technical quality checks (a11y, perf, responsive) | [reference/audit.md](reference/audit.md) |
-| `polish [target]` | Refine | Final quality pass before shipping | [reference/polish.md](reference/polish.md) |
-| `bolder [target]` | Refine | Amplify safe or bland designs | [reference/bolder.md](reference/bolder.md) |
-| `quieter [target]` | Refine | Tone down aggressive or overstimulating designs | [reference/quieter.md](reference/quieter.md) |
-| `distill [target]` | Refine | Strip to essence, remove complexity | [reference/distill.md](reference/distill.md) |
-| `harden [target]` | Refine | Production-ready: errors, i18n, edge cases | [reference/harden.md](reference/harden.md) |
-| `onboard [target]` | Refine | Design first-run flows, empty states, activation | [reference/onboard.md](reference/onboard.md) |
-| `animate [target]` | Enhance | Add purposeful animations and motion | [reference/animate.md](reference/animate.md) |
-| `colorize [target]` | Enhance | Add strategic color to monochromatic UIs | [reference/colorize.md](reference/colorize.md) |
-| `typeset [target]` | Enhance | Improve typography hierarchy and fonts | [reference/typeset.md](reference/typeset.md) |
-| `layout [target]` | Enhance | Fix spacing, rhythm, and visual hierarchy | [reference/layout.md](reference/layout.md) |
-| `delight [target]` | Enhance | Add personality and memorable touches | [reference/delight.md](reference/delight.md) |
-| `overdrive [target]` | Enhance | Push past conventional limits | [reference/overdrive.md](reference/overdrive.md) |
-| `clarify [target]` | Fix | Improve UX copy, labels, and error messages | [reference/clarify.md](reference/clarify.md) |
-| `adapt [target]` | Fix | Adapt for different devices and screen sizes | [reference/adapt.md](reference/adapt.md) |
-| `optimize [target]` | Fix | Diagnose and fix UI performance | [reference/optimize.md](reference/optimize.md) |
-| `live` | Iterate | Visual variant mode: pick elements in the browser, generate alternatives | [reference/live.md](reference/live.md) |
+| Command              | Category | Description                                                              | Reference                                        |
+| -------------------- | -------- | ------------------------------------------------------------------------ | ------------------------------------------------ |
+| `craft [feature]`    | Build    | Shape, then build a feature end-to-end                                   | [reference/craft.md](reference/craft.md)         |
+| `shape [feature]`    | Build    | Plan UX/UI before writing code                                           | [reference/shape.md](reference/shape.md)         |
+| `init`               | Build    | Set up project context: PRODUCT.md, DESIGN.md, live config, next steps   | [reference/init.md](reference/init.md)           |
+| `document`           | Build    | Generate DESIGN.md from existing project code                            | [reference/document.md](reference/document.md)   |
+| `extract [target]`   | Build    | Pull reusable tokens and components into design system                   | [reference/extract.md](reference/extract.md)     |
+| `critique [target]`  | Evaluate | UX design review with heuristic scoring                                  | [reference/critique.md](reference/critique.md)   |
+| `audit [target]`     | Evaluate | Technical quality checks (a11y, perf, responsive)                        | [reference/audit.md](reference/audit.md)         |
+| `polish [target]`    | Refine   | Final quality pass before shipping                                       | [reference/polish.md](reference/polish.md)       |
+| `bolder [target]`    | Refine   | Amplify safe or bland designs                                            | [reference/bolder.md](reference/bolder.md)       |
+| `quieter [target]`   | Refine   | Tone down aggressive or overstimulating designs                          | [reference/quieter.md](reference/quieter.md)     |
+| `distill [target]`   | Refine   | Strip to essence, remove complexity                                      | [reference/distill.md](reference/distill.md)     |
+| `harden [target]`    | Refine   | Production-ready: errors, i18n, edge cases                               | [reference/harden.md](reference/harden.md)       |
+| `onboard [target]`   | Refine   | Design first-run flows, empty states, activation                         | [reference/onboard.md](reference/onboard.md)     |
+| `animate [target]`   | Enhance  | Add purposeful animations and motion                                     | [reference/animate.md](reference/animate.md)     |
+| `colorize [target]`  | Enhance  | Add strategic color to monochromatic UIs                                 | [reference/colorize.md](reference/colorize.md)   |
+| `typeset [target]`   | Enhance  | Improve typography hierarchy and fonts                                   | [reference/typeset.md](reference/typeset.md)     |
+| `layout [target]`    | Enhance  | Fix spacing, rhythm, and visual hierarchy                                | [reference/layout.md](reference/layout.md)       |
+| `delight [target]`   | Enhance  | Add personality and memorable touches                                    | [reference/delight.md](reference/delight.md)     |
+| `overdrive [target]` | Enhance  | Push past conventional limits                                            | [reference/overdrive.md](reference/overdrive.md) |
+| `clarify [target]`   | Fix      | Improve UX copy, labels, and error messages                              | [reference/clarify.md](reference/clarify.md)     |
+| `adapt [target]`     | Fix      | Adapt for different devices and screen sizes                             | [reference/adapt.md](reference/adapt.md)         |
+| `optimize [target]`  | Fix      | Diagnose and fix UI performance                                          | [reference/optimize.md](reference/optimize.md)   |
+| `live`               | Iterate  | Visual variant mode: pick elements in the browser, generate alternatives | [reference/live.md](reference/live.md)           |
 
 Plus three management commands: `pin <command>`, `unpin <command>`, and `hooks <on|off|status|...>`, detailed below.
 
@@ -149,6 +151,7 @@ Plus three management commands: `pin <command>`, `unpin <command>`, and `hooks <
    **If `scan.targets` is non-empty, run `node .agents/skills/impeccable/scripts/detect.mjs --json <scan.targets joined by spaces>` once** (the bundled detector over local files: no network, no npx). `scan.via` tells you what they are: `git-changes` (the markup/style files in your dirty tree, the most relevant set), `source-dir` (e.g. `src`, `app`), `html`, or `root`. Fold the hits into your picks: many quality / contrast hits → `audit` or `polish`; a specific slop family → the matching command (gradient text or eyebrows → `quieter` / `typeset`, flat or gray palette → `colorize`, and so on). It's a real, current signal that beats guessing. If detect errors or the tree is large and slow, skip it and recommend the user run `audit` themselves; never block the suggestion on it.
 
    Keep it to 2-3 pointed picks with the exact command to type. The menu stays the fallback; the recommendation is the lede.
+
 2. **First word matches a command** (table above OR `pin` / `unpin` / `hooks`): load its reference file and follow its instructions. Everything after the command name is the target.
 3. **First word doesn't match, but the intent clearly maps to one command** (e.g. "fix the spacing" → `layout`, "rewrite this error message" → `clarify`, "the colors feel flat" → `colorize`): load that command's reference and proceed as if invoked. If two commands could fit, ask once which.
 4. **No clear command match**: general design invocation. Apply the setup steps, the General rules, and the loaded register reference, using the full argument as context.

@@ -16,10 +16,14 @@
  * Output JSON: { discarded: N, entries: [...discardedEntries], totalCount: N }
  */
 
-import { readBuffer, removeEntries, truncateBuffer } from './live/manual-edits-buffer.mjs';
+import {
+  readBuffer,
+  removeEntries,
+  truncateBuffer,
+} from "./live/manual-edits-buffer.mjs";
 
 function argVal(args, name) {
-  const prefix = name + '=';
+  const prefix = name + "=";
   for (const a of args) {
     if (a === name) return true;
     if (a.startsWith(prefix)) return a.slice(prefix.length);
@@ -28,12 +32,12 @@ function argVal(args, name) {
 }
 
 const args = process.argv.slice(2);
-if (args.includes('--help') || args.includes('-h')) {
-  console.log('Usage: node live-discard-manual-edits.mjs [--page-url=<url>]');
+if (args.includes("--help") || args.includes("-h")) {
+  console.log("Usage: node live-discard-manual-edits.mjs [--page-url=<url>]");
   process.exit(0);
 }
 
-const pageUrlFilter = argVal(args, '--page-url');
+const pageUrlFilter = argVal(args, "--page-url");
 const cwd = process.cwd();
 
 let discarded;

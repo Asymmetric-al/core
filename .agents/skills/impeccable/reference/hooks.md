@@ -16,16 +16,16 @@ On **Cursor**, `preToolUse` checks proposed Write/Edit/Shell write content and d
 
 The first argument is the action. Defaults to `status`.
 
-| Action | What it does |
-|---|---|
-| `status` | Print current state, shared/local config paths, ignored rules / files / values, env override. |
-| `on` | Set `enabled: true` in `.impeccable/config.json`, record local hook consent as accepted, and install/repair provider hook manifests when the skill is installed. |
-| `off` | Set `enabled: false` in `.impeccable/config.json`. |
-| `ignore-rule <id>` | Append `<id>` to `detector.ignoreRules`; for `overused-font`, requires `--all-values`. |
-| `ignore-file <glob>` | Append `<glob>` to `detector.ignoreFiles`. |
-| `ignore-value <id> <value> [--shared] [--reason "..."]` | Append a rule/value suppression to shared `.impeccable/config.json`. |
-| `ignore-value <id> <value> --local [--reason "..."]` | Append a private rule/value suppression to `.impeccable/config.local.json`. |
-| `reset` | Delete the project config, dedup cache, and Cursor pending queue. |
+| Action                                                  | What it does                                                                                                                                                     |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `status`                                                | Print current state, shared/local config paths, ignored rules / files / values, env override.                                                                    |
+| `on`                                                    | Set `enabled: true` in `.impeccable/config.json`, record local hook consent as accepted, and install/repair provider hook manifests when the skill is installed. |
+| `off`                                                   | Set `enabled: false` in `.impeccable/config.json`.                                                                                                               |
+| `ignore-rule <id>`                                      | Append `<id>` to `detector.ignoreRules`; for `overused-font`, requires `--all-values`.                                                                           |
+| `ignore-file <glob>`                                    | Append `<glob>` to `detector.ignoreFiles`.                                                                                                                       |
+| `ignore-value <id> <value> [--shared] [--reason "..."]` | Append a rule/value suppression to shared `.impeccable/config.json`.                                                                                             |
+| `ignore-value <id> <value> --local [--reason "..."]`    | Append a private rule/value suppression to `.impeccable/config.local.json`.                                                                                      |
+| `reset`                                                 | Delete the project config, dedup cache, and Cursor pending queue.                                                                                                |
 
 ## Flow
 

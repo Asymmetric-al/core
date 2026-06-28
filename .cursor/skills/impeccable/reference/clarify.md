@@ -2,7 +2,6 @@
 
 Find the unclear, confusing, or poorly written interface text and rewrite it. Vague copy creates support tickets and abandonment; specific copy gets users through the task.
 
-
 ---
 
 ## Assess Current Copy
@@ -42,6 +41,7 @@ Create a strategy for clearer communication:
 Refine text across these common areas:
 
 ### Error Messages
+
 **Bad**: "Error 403: Forbidden"
 **Good**: "You don't have permission to view this page. Contact your admin for access."
 
@@ -49,6 +49,7 @@ Refine text across these common areas:
 **Good**: "Email addresses need an @ symbol. Try: name@example.com"
 
 **Principles**:
+
 - Explain what went wrong in plain language
 - Suggest how to fix it
 - Don't blame the user
@@ -56,6 +57,7 @@ Refine text across these common areas:
 - Link to help/support if applicable
 
 ### Form Labels & Instructions
+
 **Bad**: "DOB (MM/DD/YYYY)"
 **Good**: "Date of birth" (with placeholder showing format)
 
@@ -63,6 +65,7 @@ Refine text across these common areas:
 **Good**: "Your email address" or "Company name"
 
 **Principles**:
+
 - Use clear, specific labels (not generic placeholders)
 - Show format expectations with examples
 - Explain why you're asking (when not obvious)
@@ -70,69 +73,83 @@ Refine text across these common areas:
 - Keep required field indicators clear
 
 ### Button & CTA Text
+
 **Bad**: "Click here" | "Submit" | "OK"
 **Good**: "Create account" | "Save changes" | "Got it, thanks"
 
 **Principles**:
+
 - Describe the action specifically
 - Use active voice (verb + noun)
 - Match user's mental model
 - Be specific ("Save" is better than "OK")
 
 ### Help Text & Tooltips
+
 **Bad**: "This is the username field"
 **Good**: "Choose a username. You can change this later in Settings."
 
 **Principles**:
+
 - Add value (don't just repeat the label)
 - Answer the implicit question ("What is this?" or "Why do you need this?")
 - Keep it brief but complete
 - Link to detailed docs if needed
 
 ### Empty States
+
 **Bad**: "No items"
 **Good**: "No projects yet. Create your first project to get started."
 
 **Principles**:
+
 - Explain why it's empty (if not obvious)
 - Show next action clearly
 - Make it welcoming, not dead-end
 
 ### Success Messages
+
 **Bad**: "Success"
 **Good**: "Settings saved! Your changes will take effect immediately."
 
 **Principles**:
+
 - Confirm what happened
 - Explain what happens next (if relevant)
 - Be brief but complete
 - Match the user's emotional moment (celebrate big wins)
 
 ### Loading States
+
 **Bad**: "Loading..." (for 30+ seconds)
 **Good**: "Analyzing your data... this usually takes 30-60 seconds"
 
 **Principles**:
+
 - Set expectations (how long?)
 - Explain what's happening (when it's not obvious)
 - Show progress when possible
 - Offer escape hatch if appropriate ("Cancel")
 
 ### Confirmation Dialogs
+
 **Bad**: "Are you sure?"
 **Good**: "Delete 'Project Alpha'? This can't be undone."
 
 **Principles**:
+
 - State the specific action
 - Explain consequences (especially for destructive actions)
 - Use clear button labels ("Delete project" not "Yes")
 - Don't overuse confirmations (only for risky actions)
 
 ### Navigation & Wayfinding
+
 **Bad**: Generic labels like "Items" | "Things" | "Stuff"
 **Good**: Specific labels like "Your projects" | "Team members" | "Settings"
 
 **Principles**:
+
 - Be specific and descriptive
 - Use language users understand (not internal jargon)
 - Make hierarchy clear
@@ -150,6 +167,7 @@ Every piece of copy should follow these rules:
 6. **Be consistent**: Use same terms throughout (don't vary for variety)
 
 **NEVER**:
+
 - Use jargon without explanation
 - Blame users ("You made an error" → "This field is required")
 - Be vague ("Something went wrong" without explanation)
@@ -185,15 +203,16 @@ The sections below were previously `ux-writing.md` and live inline now so the cl
 
 **Never use "OK", "Submit", or "Yes/No".** These are lazy and ambiguous. Use specific verb + object patterns:
 
-| Bad | Good | Why |
-|-----|------|-----|
-| OK | Save changes | Says what will happen |
-| Submit | Create account | Outcome-focused |
-| Yes | Delete message | Confirms the action |
-| Cancel | Keep editing | Clarifies what "cancel" means |
-| Click here | Download PDF | Describes the destination |
+| Bad        | Good           | Why                           |
+| ---------- | -------------- | ----------------------------- |
+| OK         | Save changes   | Says what will happen         |
+| Submit     | Create account | Outcome-focused               |
+| Yes        | Delete message | Confirms the action           |
+| Cancel     | Keep editing   | Clarifies what "cancel" means |
+| Click here | Download PDF   | Describes the destination     |
 
 **For destructive actions**, name the destruction:
+
 - "Delete" not "Remove" (delete is permanent, remove implies recoverable)
 - "Delete 5 items" not "Delete selected" (show the count)
 
@@ -203,13 +222,13 @@ Every error message should answer: (1) What happened? (2) Why? (3) How to fix it
 
 ##### Error Message Templates
 
-| Situation | Template |
-|-----------|----------|
-| **Format error** | "[Field] needs to be [format]. Example: [example]" |
-| **Missing required** | "Please enter [what's missing]" |
-| **Permission denied** | "You don't have access to [thing]. [What to do instead]" |
-| **Network error** | "We couldn't reach [thing]. Check your connection and [action]." |
-| **Server error** | "Something went wrong on our end. We're looking into it. [Alternative action]" |
+| Situation             | Template                                                                       |
+| --------------------- | ------------------------------------------------------------------------------ |
+| **Format error**      | "[Field] needs to be [format]. Example: [example]"                             |
+| **Missing required**  | "Please enter [what's missing]"                                                |
+| **Permission denied** | "You don't have access to [thing]. [What to do instead]"                       |
+| **Network error**     | "We couldn't reach [thing]. Check your connection and [action]."               |
+| **Server error**      | "Something went wrong on our end. We're looking into it. [Alternative action]" |
 
 ##### Don't Blame the User
 
@@ -224,12 +243,12 @@ Empty states are onboarding moments: (1) Acknowledge briefly, (2) Explain the va
 **Voice** is your brand's personality, consistent everywhere.
 **Tone** adapts to the moment.
 
-| Moment | Tone Shift |
-|--------|------------|
-| Success | Celebratory, brief: "Done! Your changes are live." |
-| Error | Empathetic, helpful: "That didn't work. Here's what to try..." |
-| Loading | Reassuring: "Saving your work..." |
-| Destructive confirm | Serious, clear: "Delete this project? This can't be undone." |
+| Moment              | Tone Shift                                                     |
+| ------------------- | -------------------------------------------------------------- |
+| Success             | Celebratory, brief: "Done! Your changes are live."             |
+| Error               | Empathetic, helpful: "That didn't work. Here's what to try..." |
+| Loading             | Reassuring: "Saving your work..."                              |
+| Destructive confirm | Serious, clear: "Delete this project? This can't be undone."   |
 
 **Never use humor for errors.** Users are already frustrated. Be helpful, not cute.
 
@@ -243,12 +262,12 @@ Empty states are onboarding moments: (1) Acknowledge briefly, (2) Explain the va
 
 German text is ~30% longer than English. Allocate space:
 
-| Language | Expansion |
-|----------|-----------|
-| German | +30% |
-| French | +20% |
-| Finnish | +30-40% |
-| Chinese | -30% (fewer chars, but same width) |
+| Language | Expansion                          |
+| -------- | ---------------------------------- |
+| German   | +30%                               |
+| French   | +20%                               |
+| Finnish  | +30-40%                            |
+| Chinese  | -30% (fewer chars, but same width) |
 
 ##### Translation-Friendly Patterns
 
@@ -258,12 +277,12 @@ Keep numbers separate ("New messages: 3" not "You have 3 new messages"). Use ful
 
 Pick one term and stick with it:
 
-| Inconsistent | Consistent |
-|--------------|------------|
-| Delete / Remove / Trash | Delete |
-| Settings / Preferences / Options | Settings |
-| Sign in / Log in / Enter | Sign in |
-| Create / Add / New | Create |
+| Inconsistent                     | Consistent |
+| -------------------------------- | ---------- |
+| Delete / Remove / Trash          | Delete     |
+| Settings / Preferences / Options | Settings   |
+| Sign in / Log in / Enter         | Sign in    |
+| Create / Add / New               | Create     |
 
 Build a terminology glossary and enforce it. Variety creates confusion.
 

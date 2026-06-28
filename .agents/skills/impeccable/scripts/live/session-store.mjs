@@ -1,10 +1,16 @@
-import fs from 'node:fs';
-import path from 'node:path';
-import { getLegacyLiveSessionsDir, getLiveSessionsDir } from '../lib/impeccable-paths.mjs';
+import fs from "node:fs";
+import path from "node:path";
+import {
+  getLegacyLiveSessionsDir,
+  getLiveSessionsDir,
+} from "../lib/impeccable-paths.mjs";
 
-const COMPLETED_PHASES = new Set(['completed', 'discarded']);
+const COMPLETED_PHASES = new Set(["completed", "discarded"]);
 
-export function createLiveSessionStore({ cwd = process.cwd(), sessionId } = {}) {
+export function createLiveSessionStore({
+  cwd = process.cwd(),
+  sessionId,
+} = {}) {
   const rootDir = getLiveSessionsDir(cwd);
   const legacyRootDir = getLegacyLiveSessionsDir(cwd);
   fs.mkdirSync(rootDir, { recursive: true });
@@ -47,20 +53,28 @@ export function createLiveSessionStore({ cwd = process.cwd(), sessionId } = {}) 
         ts: new Date().toISOString(),
         event: normalized,
       };
-      fs.appendFileSync(journalPath, JSON.stringify(entry) + '\n');
+      fs.appendFileSync(journalPath, JSON.stringify(entry) + "\n");
       const next = applyEvent(prior.snapshot, entry, prior.diagnostics);
-      snapshotCache.set(normalized.id, { snapshot: next, diagnostics: next.diagnostics || [], nextSeq: seq + 1 });
+      snapshotCache.set(normalized.id, {
+        snapshot: next,
+        diagnostics: next.diagnostics || [],
+        nextSeq: seq + 1,
+      });
       writeSnapshot(snapshotPath, next);
       return next;
     },
     getSnapshot(id = sessionId, opts = {}) {
-      if (!id) throw new Error('session id required');
+      if (!id) throw new Error("session id required");
       const journalPath = getReadableJournalPath(id);
       const snapshotPath = getSnapshotPath(rootDir, id);
       const rebuilt = rebuildSnapshotFromJournal(journalPath, id);
       snapshotCache.set(id, rebuilt);
       writeSnapshot(snapshotPath, rebuilt.snapshot);
-      if (!opts.includeCompleted && COMPLETED_PHASES.has(rebuilt.snapshot.phase)) return null;
+      if (
+        !opts.includeCompleted &&
+        COMPLETED_PHASES.has(rebuilt.snapshot.phase)
+      )
+        return null;
       return rebuilt.snapshot;
     },
     listActiveSessions() {
@@ -68,7 +82,7 @@ export function createLiveSessionStore({ cwd = process.cwd(), sessionId } = {}) 
       for (const dir of [legacyRootDir, rootDir]) {
         if (!fs.existsSync(dir)) continue;
         for (const name of fs.readdirSync(dir)) {
-          if (name.endsWith('.jsonl')) ids.add(name.slice(0, -'.jsonl'.length));
+          if (name.endsWith(".jsonl")) ids.add(name.slice(0, -".jsonl".length));
         }
       }
       return [...ids]
@@ -80,30 +94,33 @@ export function createLiveSessionStore({ cwd = process.cwd(), sessionId } = {}) 
 }
 
 function normalizeEvent(event, fallbackId) {
-  if (!event || typeof event !== 'object') throw new Error('event object required');
+  if (!event || typeof event !== "object")
+    throw new Error("event object required");
   const id = event.id || fallbackId;
-  if (!id || typeof id !== 'string') throw new Error('event id required');
-  if (!event.type || typeof event.type !== 'string') throw new Error('event type required');
+  if (!id || typeof id !== "string") throw new Error("event id required");
+  if (!event.type || typeof event.type !== "string")
+    throw new Error("event type required");
   return { ...event, id };
 }
 
 function getJournalPath(rootDir, id) {
-  return path.join(rootDir, safeSessionId(id) + '.jsonl');
+  return path.join(rootDir, safeSessionId(id) + ".jsonl");
 }
 
 function getSnapshotPath(rootDir, id) {
-  return path.join(rootDir, safeSessionId(id) + '.snapshot.json');
+  return path.join(rootDir, safeSessionId(id) + ".snapshot.json");
 }
 
 function safeSessionId(id) {
-  if (!/^[A-Za-z0-9_-]{1,128}$/.test(id)) throw new Error('invalid session id: ' + id);
+  if (!/^[A-Za-z0-9_-]{1,128}$/.test(id))
+    throw new Error("invalid session id: " + id);
   return id;
 }
 
 function baseSnapshot(id) {
   return {
     id,
-    phase: 'new',
+    phase: "new",
     pageUrl: null,
     sourceFile: null,
     previewFile: null,
@@ -131,18 +148,20 @@ function rebuildSnapshotFromJournal(journalPath, id) {
   let nextSeq = 1;
   if (!fs.existsSync(journalPath)) return { snapshot, diagnostics, nextSeq };
 
-  const lines = fs.readFileSync(journalPath, 'utf-8').split('\n');
+  const lines = fs.readFileSync(journalPath, "utf-8").split("\n");
   for (let i = 0; i < lines.length; i++) {
     const line = lines[i];
     if (!line.trim()) continue;
     try {
       const entry = JSON.parse(line);
-      if (!entry || typeof entry !== 'object') throw new Error('entry is not object');
-      if (Number.isInteger(entry.seq)) nextSeq = Math.max(nextSeq, entry.seq + 1);
+      if (!entry || typeof entry !== "object")
+        throw new Error("entry is not object");
+      if (Number.isInteger(entry.seq))
+        nextSeq = Math.max(nextSeq, entry.seq + 1);
       snapshot = applyEvent(snapshot, entry);
     } catch (err) {
       diagnostics.push({
-        error: 'journal_parse_failed',
+        error: "journal_parse_failed",
         line: i + 1,
         message: err.message,
       });
@@ -168,34 +187,46 @@ function applyEvent(snapshot, entry, inheritedDiagnostics = []) {
   }
 
   switch (event.type) {
-    case 'generate':
-      next.phase = 'generate_requested';
+    case "generate":
+      next.phase = "generate_requested";
       next.pageUrl = event.pageUrl ?? next.pageUrl;
       next.expectedVariants = event.count ?? next.expectedVariants;
       next.pendingEventSeq = entry.seq ?? next.pendingEventSeq;
       next.pendingEvent = toPendingEvent(event);
-      if (event.screenshotPath) upsertArtifact(next.annotationArtifacts, { type: 'screenshot', path: event.screenshotPath });
+      if (event.screenshotPath)
+        upsertArtifact(next.annotationArtifacts, {
+          type: "screenshot",
+          path: event.screenshotPath,
+        });
       break;
-    case 'variants_ready':
-    case 'agent_done':
-      next.phase = event.carbonize === true ? 'carbonize_required' : 'variants_ready';
+    case "variants_ready":
+    case "agent_done":
+      next.phase =
+        event.carbonize === true ? "carbonize_required" : "variants_ready";
       next.sourceFile = event.sourceFile ?? event.file ?? next.sourceFile;
       next.previewFile = event.previewFile ?? next.previewFile;
       next.previewMode = event.previewMode ?? next.previewMode;
-      next.arrivedVariants = event.arrivedVariants ?? (next.expectedVariants || next.arrivedVariants || 0);
+      next.arrivedVariants =
+        event.arrivedVariants ??
+        (next.expectedVariants || next.arrivedVariants || 0);
       next.pendingEventSeq = null;
       next.pendingEvent = null;
       if (event.carbonize === true) {
         next.diagnostics.push({
-          error: 'carbonize_cleanup_required',
+          error: "carbonize_cleanup_required",
           file: event.file || null,
-          message: 'Accepted variant still has carbonize markers that must be folded into source CSS.',
+          message:
+            "Accepted variant still has carbonize markers that must be folded into source CSS.",
         });
       }
       break;
-    case 'checkpoint':
+    case "checkpoint":
       if (COMPLETED_PHASES.has(next.phase)) {
-        next.diagnostics.push({ error: 'checkpoint_after_terminal_ignored', phase: event.phase ?? null, revision: event.revision ?? null });
+        next.diagnostics.push({
+          error: "checkpoint_after_terminal_ignored",
+          phase: event.phase ?? null,
+          revision: event.revision ?? null,
+        });
         break;
       }
       if ((event.revision ?? 0) >= (next.checkpointRevision ?? 0)) {
@@ -209,31 +240,34 @@ function applyEvent(snapshot, entry, inheritedDiagnostics = []) {
         next.previewMode = event.previewMode ?? next.previewMode;
         if (event.paramValues) next.paramValues = { ...event.paramValues };
       } else {
-        next.diagnostics.push({ error: 'stale_checkpoint_ignored', revision: event.revision });
+        next.diagnostics.push({
+          error: "stale_checkpoint_ignored",
+          revision: event.revision,
+        });
       }
       break;
-    case 'accept':
-    case 'accept_intent':
-      next.phase = 'accept_requested';
+    case "accept":
+    case "accept_intent":
+      next.phase = "accept_requested";
       next.visibleVariant = Number(event.variantId ?? next.visibleVariant);
       if (event.paramValues) next.paramValues = { ...event.paramValues };
       next.pendingEventSeq = entry.seq ?? next.pendingEventSeq;
       next.pendingEvent = toPendingEvent(event);
       break;
-    case 'manual_edit_apply':
-      next.phase = 'manual_edit_apply_requested';
+    case "manual_edit_apply":
+      next.phase = "manual_edit_apply_requested";
       next.pageUrl = event.pageUrl ?? next.pageUrl;
       next.pendingEventSeq = entry.seq ?? next.pendingEventSeq;
       next.pendingEvent = toPendingEvent(event);
       break;
-    case 'steer':
-      next.phase = 'steer_requested';
+    case "steer":
+      next.phase = "steer_requested";
       next.pageUrl = event.pageUrl ?? next.pageUrl;
       next.pendingEventSeq = entry.seq ?? next.pendingEventSeq;
       next.pendingEvent = toPendingEvent(event);
       break;
-    case 'steer_done':
-      next.phase = 'steer_done';
+    case "steer_done":
+      next.phase = "steer_done";
       next.sourceFile = event.sourceFile ?? event.file ?? next.sourceFile;
       next.previewFile = event.previewFile ?? next.previewFile;
       next.previewMode = event.previewMode ?? next.previewMode;
@@ -241,32 +275,35 @@ function applyEvent(snapshot, entry, inheritedDiagnostics = []) {
       next.pendingEventSeq = null;
       next.pendingEvent = null;
       break;
-    case 'discard':
-      next.phase = 'discard_requested';
+    case "discard":
+      next.phase = "discard_requested";
       next.pendingEventSeq = entry.seq ?? next.pendingEventSeq;
       next.pendingEvent = toPendingEvent(event);
       break;
-    case 'discarded':
-      next.phase = 'discarded';
+    case "discarded":
+      next.phase = "discarded";
       next.pendingEventSeq = null;
       next.pendingEvent = null;
       break;
-    case 'complete':
-      next.phase = 'completed';
+    case "complete":
+      next.phase = "completed";
       next.sourceFile = event.sourceFile ?? event.file ?? next.sourceFile;
       next.previewFile = event.previewFile ?? next.previewFile;
       next.previewMode = event.previewMode ?? next.previewMode;
       next.pendingEventSeq = null;
       next.pendingEvent = null;
       break;
-    case 'agent_error':
-      next.phase = 'agent_error';
+    case "agent_error":
+      next.phase = "agent_error";
       next.pendingEventSeq = null;
       next.pendingEvent = null;
-      next.diagnostics.push({ error: 'agent_error', message: event.message || 'unknown agent error' });
+      next.diagnostics.push({
+        error: "agent_error",
+        message: event.message || "unknown agent error",
+      });
       break;
     default:
-      next.diagnostics.push({ error: 'unknown_event_type', type: event.type });
+      next.diagnostics.push({ error: "unknown_event_type", type: event.type });
       break;
   }
   return next;
@@ -279,11 +316,16 @@ function toPendingEvent(event) {
 }
 
 function upsertArtifact(artifacts, artifact) {
-  if (!artifacts.some((existing) => existing.path === artifact.path && existing.type === artifact.type)) {
+  if (
+    !artifacts.some(
+      (existing) =>
+        existing.path === artifact.path && existing.type === artifact.type,
+    )
+  ) {
     artifacts.push(artifact);
   }
 }
 
 function writeSnapshot(snapshotPath, snapshot) {
-  fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2) + '\n');
+  fs.writeFileSync(snapshotPath, JSON.stringify(snapshot, null, 2) + "\n");
 }

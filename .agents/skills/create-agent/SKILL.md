@@ -36,17 +36,17 @@ Interview the user until you have a shared, implementable picture of the agent.
 
 ### What to cover (in rough order)
 
-| Area | Goal |
-|------|------|
-| Purpose | One sentence: what job does this agent do? |
-| Users & entry | Who talks to it, and through what channel(s)? |
-| Core loop | Typical turn: user says X → agent does Y → user sees Z |
-| Eve surfaces | Which slots matter? (`tools`, `skills`, `channels`, `connections`, `subagents`, `schedules`, `hooks`, `sandbox`, `evals`) |
-| Tools & data | Named capabilities, inputs/outputs, real APIs vs connections |
-| Scope | What is deliberately out of scope for v1? |
-| Model | Preferred model string (default: `openai/gpt-4.1-mini` via AI Gateway) |
-| Secrets | Env vars needed for real integrations (always include `AI_GATEWAY_API_KEY`) |
-| Location | Project directory name and whether it lives inside an existing monorepo |
+| Area          | Goal                                                                                                                      |
+| ------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| Purpose       | One sentence: what job does this agent do?                                                                                |
+| Users & entry | Who talks to it, and through what channel(s)?                                                                             |
+| Core loop     | Typical turn: user says X → agent does Y → user sees Z                                                                    |
+| Eve surfaces  | Which slots matter? (`tools`, `skills`, `channels`, `connections`, `subagents`, `schedules`, `hooks`, `sandbox`, `evals`) |
+| Tools & data  | Named capabilities, inputs/outputs, real APIs vs connections                                                              |
+| Scope         | What is deliberately out of scope for v1?                                                                                 |
+| Model         | Preferred model string (default: `openai/gpt-4.1-mini` via AI Gateway)                                                    |
+| Secrets       | Env vars needed for real integrations (always include `AI_GATEWAY_API_KEY`)                                               |
+| Location      | Project directory name and whether it lives inside an existing monorepo                                                   |
 
 Stop interviewing when you can fill every section of [EVE-BRIEF template](reference.md#eve-brief-template) without guessing.
 
@@ -83,10 +83,10 @@ After `eve` is installed, **must** read bundled docs at `node_modules/eve/docs/`
 
 Before scaffolding, inspect the repo:
 
-| Situation | Action |
-|-----------|--------|
-| No `agent/` directory anywhere | `npx eve@latest init <dir>` (standalone) or `npx eve@latest init .` (add to existing app) |
-| One existing eve agent | Mirror its project structure (package.json scripts, tsconfig, env pattern) |
+| Situation                      | Action                                                                                           |
+| ------------------------------ | ------------------------------------------------------------------------------------------------ |
+| No `agent/` directory anywhere | `npx eve@latest init <dir>` (standalone) or `npx eve@latest init .` (add to existing app)        |
+| One existing eve agent         | Mirror its project structure (package.json scripts, tsconfig, env pattern)                       |
 | Multiple eve agents (monorepo) | Inventory siblings; mirror naming, workspace deps, and folder conventions from the nearest agent |
 
 Do not assume a specific monorepo shape. Discover conventions from the codebase. See [reference.md](reference.md#repo-layouts).

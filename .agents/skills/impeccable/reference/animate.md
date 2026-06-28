@@ -49,6 +49,7 @@ Create a purposeful animation plan:
 Add motion systematically across these categories:
 
 ### Entrance Animations
+
 - **Hero section**: Dramatic entrance for primary content (scale, parallax, or creative effects)
 - **Modal/drawer entry**: Smooth slide + fade, backdrop fade, focus management
 - **List rhythm**: Sibling stagger is legitimate for cards-in-a-grid or list-items-appearing. Whole-section fade-on-scroll is not a list and is not legitimate. Cap total stagger time: 10 items at 50ms each = 500ms total. For more items, reduce per-item delay or cap the staggered count.
@@ -56,6 +57,7 @@ Add motion systematically across these categories:
   Use CSS custom properties for clean stagger: `animation-delay: calc(var(--i, 0) * 50ms)` with `style="--i: 0"`, `style="--i: 1"`, etc. on each item.
 
 ### Micro-interactions
+
 - **Button feedback**:
   - Hover: Subtle scale (1.02-1.05), color shift, shadow increase
   - Click: Quick scale down then up (0.95 → 1), ripple effect
@@ -68,6 +70,7 @@ Add motion systematically across these categories:
 - **Like/favorite**: Scale + rotation, particle effects, color transition
 
 ### State Transitions
+
 - **Show/hide**: Fade + slide (not instant), appropriate timing (200-300ms)
 - **Expand/collapse**: Height transition with overflow handling, icon rotation
 - **Loading states**: Skeleton screen fades, spinner animations, progress bars
@@ -75,18 +78,21 @@ Add motion systematically across these categories:
 - **Enable/disable**: Opacity transitions, cursor changes
 
 ### Navigation & Flow
+
 - **Page transitions**: Crossfade between routes, shared element transitions
 - **Tab switching**: Slide indicator, content fade/slide
 - **Carousel/slider**: Smooth transforms, snap points, momentum
 - **Scroll effects**: Parallax layers, sticky headers with state changes, scroll progress indicators
 
 ### Feedback & Guidance
+
 - **Hover hints**: Tooltip fade-ins, cursor changes, element highlights
 - **Drag & drop**: Lift effect (shadow + scale), drop zone highlights, smooth repositioning
 - **Copy/paste**: Brief highlight flash on paste, "copied" confirmation
 - **Focus flow**: Highlight path through form or workflow
 
 ### Delight Moments
+
 - **Empty states**: Subtle floating animations on illustrations
 - **Completed actions**: Confetti, check mark flourish, success celebrations
 - **Easter eggs**: Hidden interactions for discovery
@@ -100,19 +106,20 @@ Use appropriate techniques for each animation:
 
 **Duration: the 100/300/500 rule.** Timing matters more than easing for "feels right":
 
-| Duration | Use Case | Examples |
-|----------|----------|----------|
-| **100–150ms** | Instant feedback | Button press, toggle, color change |
-| **200–300ms** | State changes | Menu open, tooltip, hover state |
-| **300–500ms** | Layout changes | Accordion, modal, drawer |
-| **500–800ms** | Entrance animations | Page load, hero reveal |
+| Duration      | Use Case            | Examples                           |
+| ------------- | ------------------- | ---------------------------------- |
+| **100–150ms** | Instant feedback    | Button press, toggle, color change |
+| **200–300ms** | State changes       | Menu open, tooltip, hover state    |
+| **300–500ms** | Layout changes      | Accordion, modal, drawer           |
+| **500–800ms** | Entrance animations | Page load, hero reveal             |
 
 **Easing curves (use these, not CSS defaults):**
+
 ```css
 /* Recommended: natural deceleration */
---ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);    /* Smooth */
---ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);   /* Slightly snappier */
---ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);     /* Confident, decisive */
+--ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1); /* Smooth */
+--ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1); /* Slightly snappier */
+--ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1); /* Confident, decisive */
 
 /* AVOID: feel dated and tacky */
 /* bounce: cubic-bezier(0.34, 1.56, 0.64, 1); */
@@ -122,6 +129,7 @@ Use appropriate techniques for each animation:
 **Exit animations are faster than entrances.** Use ~75% of enter duration.
 
 ### CSS Animations
+
 ```css
 /* Prefer for simple, declarative animations */
 - transitions for state changes
@@ -131,6 +139,7 @@ Use appropriate techniques for each animation:
 ```
 
 ### JavaScript Animation
+
 ```javascript
 /* Use for complex, interactive animations */
 - Web Animations API for programmatic control
@@ -151,6 +160,7 @@ Transform and opacity are reliable defaults, not the whole palette. Premium inte
 The hard rule isn't "transform and opacity only." It's: avoid animating layout-driving properties casually (`width`, `height`, `top`, `left`, margins), keep expensive effects bounded to small or isolated areas, and verify smoothness in-browser on target viewports.
 
 ### Performance
+
 - **Layout safety**: Avoid casual animation of layout-driving properties (`width`, `height`, `top`, `left`, margins)
 - **will-change**: Add sparingly for known expensive animations only (e.g. on `:hover` or an `.animating` class), never preemptively across the whole page
 - **Scroll triggers**: Use Intersection Observer instead of scroll event listeners; unobserve after the animation fires once
@@ -159,7 +169,7 @@ The hard rule isn't "transform and opacity only." It's: avoid animating layout-d
 
 ### Perceived Performance
 
-Nobody cares how fast your site *is*, only how fast it feels. The 80ms threshold: anything under ~80ms feels instant because our brains buffer sensory input for that long to synchronize perception. Target this for micro-interactions.
+Nobody cares how fast your site _is_, only how fast it feels. The 80ms threshold: anything under ~80ms feels instant because our brains buffer sensory input for that long to synchronize perception. Target this for micro-interactions.
 
 - **Preemptive start**: Begin transitions immediately while loading (iOS app zoom, skeleton UI). Users perceive work happening.
 - **Early completion**: Show content progressively, don't wait for everything (progressive images, streaming HTML, skeleton fade-ins).
@@ -168,6 +178,7 @@ Nobody cares how fast your site *is*, only how fast it feels. The 80ms threshold
 - **Caution**: Too-fast responses can decrease perceived value for complex operations (search, analysis). Sometimes a brief delay signals "real work" is happening.
 
 ### Accessibility
+
 ```css
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -179,6 +190,7 @@ Nobody cares how fast your site *is*, only how fast it feels. The 80ms threshold
 ```
 
 **NEVER**:
+
 - Use bounce or elastic easing curves; they feel dated and draw attention to the animation itself
 - Animate layout properties casually (`width`, `height`, `top`, `left`, margins) when transform, FLIP, or grid-based techniques would work
 - Use durations over 500ms for feedback (it feels laggy)
