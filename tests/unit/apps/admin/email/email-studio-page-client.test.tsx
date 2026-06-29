@@ -91,11 +91,13 @@ vi.mock("@asym/ui/components/shadcn/dropdown-menu", () => ({
   DropdownMenuItem: ({
     children,
     onClick,
+    disabled,
   }: {
     children: React.ReactNode;
     onClick?: () => void;
+    disabled?: boolean;
   }) => (
-    <button type="button" onClick={onClick}>
+    <button type="button" onClick={onClick} disabled={disabled}>
       {children}
     </button>
   ),
