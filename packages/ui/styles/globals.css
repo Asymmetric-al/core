@@ -993,17 +993,17 @@
 /* Scoped classes; pair with @asym/ui RouteMainViewTransitionBoundary         */
 /* -------------------------------------------------------------------------- */
 
-::view-transition-old(asym-vt-route-exit),
-::view-transition-new(asym-vt-route-enter) {
+::view-transition-old(.asym-vt-route-exit),
+::view-transition-new(.asym-vt-route-enter) {
   animation-duration: var(--duration-route);
   animation-timing-function: var(--ease-out-soft);
 }
 
-::view-transition-old(asym-vt-route-exit) {
+::view-transition-old(.asym-vt-route-exit) {
   animation-name: asym-vt-route-fade-out;
 }
 
-::view-transition-new(asym-vt-route-enter) {
+::view-transition-new(.asym-vt-route-enter) {
   animation-name: asym-vt-route-fade-in;
 }
 
@@ -1029,17 +1029,17 @@
   }
 }
 
-::view-transition-old(asym-vt-share-morph),
-::view-transition-new(asym-vt-share-morph) {
+::view-transition-old(.asym-vt-share-morph),
+::view-transition-new(.asym-vt-share-morph) {
   animation-duration: var(--duration-shared);
   animation-timing-function: var(--ease-out-soft);
 }
 
-::view-transition-old(asym-vt-share-morph) {
+::view-transition-old(.asym-vt-share-morph) {
   animation-name: asym-vt-share-out;
 }
 
-::view-transition-new(asym-vt-share-morph) {
+::view-transition-new(.asym-vt-share-morph) {
   animation-name: asym-vt-share-in;
 }
 
