@@ -326,11 +326,11 @@ export function TaskRow({
               variant="ghost"
               size="icon"
               className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
-            />
+            >
+              <MoreHorizontal className="size-4" />
+            </Button>
           }
-        >
-          <MoreHorizontal className="size-4" />
-        </DropdownMenuTrigger>
+        />
         <DropdownMenuContent
           align="end"
           className="rounded-xl border-zinc-200 p-1.5 shadow-xl min-w-[160px]"

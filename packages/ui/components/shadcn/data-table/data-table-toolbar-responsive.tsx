@@ -378,20 +378,20 @@ function MobileFiltersDrawer<TData>({
             size="sm"
             className="h-9 gap-2 rounded-xl"
             disabled={urlStatePending}
-          />
-        }
-      >
-        <SlidersHorizontal className="size-4" />
-        <span>Filters</span>
-        {activeFilterCount > 0 && (
-          <Badge
-            variant="secondary"
-            className="rounded-full px-1.5 py-0 text-xs font-normal"
           >
-            {activeFilterCount}
-          </Badge>
-        )}
-      </DrawerTrigger>
+            <SlidersHorizontal className="size-4" />
+            <span>Filters</span>
+            {activeFilterCount > 0 && (
+              <Badge
+                variant="secondary"
+                className="rounded-full px-1.5 py-0 text-xs font-normal"
+              >
+                {activeFilterCount}
+              </Badge>
+            )}
+          </Button>
+        }
+      />
       <DrawerContent>
         <DrawerHeader>
           <DrawerTitle>Filters</DrawerTitle>

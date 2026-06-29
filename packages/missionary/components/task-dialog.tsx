@@ -402,23 +402,23 @@ function DatePickerField({
                   )}
                   type="button"
                   variant="outline"
-                />
+                >
+                  <Icon className="mr-2 size-4" />
+                  {field.state.value
+                    ? format(field.state.value, "PPP")
+                    : placeholder}
+                  {field.state.value ? (
+                    <X
+                      className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        field.handleChange(null);
+                      }}
+                    />
+                  ) : null}
+                </Button>
               }
-            >
-              <Icon className="mr-2 size-4" />
-              {field.state.value
-                ? format(field.state.value, "PPP")
-                : placeholder}
-              {field.state.value ? (
-                <X
-                  className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    field.handleChange(null);
-                  }}
-                />
-              ) : null}
-            </PopoverTrigger>
+            />
             <PopoverContent align="start" className="w-auto rounded-xl p-0">
               <Calendar
                 mode="single"
@@ -515,45 +515,45 @@ function DonorSelectorField({
                     role="combobox"
                     type="button"
                     variant="outline"
-                  />
-                }
-              >
-                {selectedDonor ? (
-                  <div className="flex items-center gap-2">
-                    <Avatar className="size-6">
-                      <AvatarImage
-                        src={selectedDonor.avatar_url || undefined}
-                      />
-                      <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
-                        {selectedDonor.name
-                          .split(" ")
-                          .map((name) => name[0])
-                          .join("")
-                          .slice(0, 2)}
-                      </AvatarFallback>
-                    </Avatar>
-                    <span>{selectedDonor.name}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <User className="size-4" />
-                    <span>Select partner (optional)</span>
-                  </div>
-                )}
+                  >
+                    {selectedDonor ? (
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-6">
+                          <AvatarImage
+                            src={selectedDonor.avatar_url || undefined}
+                          />
+                          <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
+                            {selectedDonor.name
+                              .split(" ")
+                              .map((name) => name[0])
+                              .join("")
+                              .slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{selectedDonor.name}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <User className="size-4" />
+                        <span>Select partner (optional)</span>
+                      </div>
+                    )}
 
-                <div className="flex items-center gap-1">
-                  {field.state.value ? (
-                    <X
-                      className="size-4 text-zinc-400 hover:text-zinc-600"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        field.handleChange("");
-                      }}
-                    />
-                  ) : null}
-                  <ChevronsUpDown className="size-4 opacity-50" />
-                </div>
-              </PopoverTrigger>
+                    <div className="flex items-center gap-1">
+                      {field.state.value ? (
+                        <X
+                          className="size-4 text-zinc-400 hover:text-zinc-600"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            field.handleChange("");
+                          }}
+                        />
+                      ) : null}
+                      <ChevronsUpDown className="size-4 opacity-50" />
+                    </div>
+                  </Button>
+                }
+              />
 
               <PopoverContent
                 align="start"

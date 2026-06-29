@@ -142,11 +142,11 @@ export function TaskRow({
                   variant="ghost"
                   size="icon"
                   className="size-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
-                />
+                >
+                  <MoreHorizontal className="size-5" />
+                </Button>
               }
-            >
-              <MoreHorizontal className="size-5" />
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent
               align="end"
               className="rounded-2xl border-[oklch(0.915_0.003_265)] p-2 shadow-2xl min-w-[180px]"
