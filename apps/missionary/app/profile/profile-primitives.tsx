@@ -9,6 +9,12 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+} from "@asym/ui/components/shadcn/icons";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
@@ -26,10 +32,6 @@ import {
   Smartphone,
   Monitor,
   Loader2,
-  Facebook,
-  Instagram,
-  Twitter,
-  Youtube,
   Globe,
   Check,
   ExternalLink,

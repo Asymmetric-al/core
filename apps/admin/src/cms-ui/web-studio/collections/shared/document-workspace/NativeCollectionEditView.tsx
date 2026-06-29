@@ -36,7 +36,6 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import Image from "next/image";
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { buildNativeDocumentStateItems } from "./editor-state";
@@ -45,6 +44,7 @@ import {
   buildWebStudioAuthenticatedPreviewPath,
   resolveDonorOrigin,
 } from "../../../adapters/preview-url";
+import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
@@ -435,7 +435,7 @@ export function NativeCollectionEditView({
           <div className="flex flex-col gap-3 lg:flex-row lg:items-start lg:justify-between">
             <div className="min-w-0 space-y-2">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate font-semibold text-2xl text-foreground tracking-tight uppercase sm:text-3xl">
+                <h1 className="truncate font-semibold text-foreground text-xl tracking-tight sm:text-2xl">
                   {heading}
                 </h1>
                 {workspace.showSlugChip && slugOrIdentifier ? (
@@ -532,7 +532,7 @@ export function NativeCollectionEditView({
               "lg:grid lg:grid-cols-[minmax(0,1fr)_min(320px,32%)] lg:gap-6",
           )}
         >
-          <div className="payload-native-edit min-w-0 rounded-xl border border-border bg-card shadow-sm">
+          <div className="payload-native-edit min-w-0 rounded-lg border border-border bg-card shadow-sm">
             <NativeDocumentStateStrip items={stateItems} />
             <DefaultEditView
               {...props}
@@ -546,7 +546,7 @@ export function NativeCollectionEditView({
             />
           </div>
           {workspace.inspectorOpen ? (
-            <aside className="mt-6 hidden rounded-xl border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
+            <aside className="mt-6 hidden rounded-lg border border-border bg-muted/30 p-4 text-muted-foreground text-xs lg:mt-0 lg:block">
               <p className="mb-2 font-semibold text-foreground uppercase tracking-wide">
                 Inspector
               </p>
@@ -630,8 +630,8 @@ const stateToneClass: Record<NativeDocumentStateTone, string> = {
   danger: "border-destructive/30 bg-destructive/10 text-destructive",
   info: "border-primary/25 bg-primary/10 text-primary",
   muted: "border-border bg-muted/40 text-muted-foreground",
-  success: "border-emerald-500/25 bg-emerald-500/10 text-emerald-700",
-  warning: "border-amber-500/25 bg-amber-500/10 text-amber-700",
+  success: "border-chart-2/25 bg-chart-2/10 text-chart-2",
+  warning: "border-chart-4/25 bg-chart-4/10 text-chart-4",
 };
 
 function NativeDocumentStateStrip({

@@ -10,6 +10,8 @@
 
 - Bun (see root `packageManager` in `package.json`)
 - Docker (for local Supabase) — see root `AGENTS.md` Supabase section
+- Node.js `24.15.0+` for Payload 4 CMS CLI commands (`cms:migrate`,
+  `cms:migrate:status`, `cms:importmap`)
 - Node-compatible environment for Playwright when running E2E
 
 ---

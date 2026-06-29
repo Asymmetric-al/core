@@ -7,8 +7,6 @@ import { cn } from "@asym/ui/lib/utils";
 import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 import { z } from "zod";
@@ -19,6 +17,7 @@ import {
   buildTenantsQuery,
   isSuperAdminUser,
 } from "./tenant-picker";
+import { Link, useRouter, useSearchParams } from "../routing";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 

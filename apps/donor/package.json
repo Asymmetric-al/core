@@ -31,14 +31,15 @@
     "@next/env": "16.2.6",
     "@openpolicy/react": "0.0.17",
     "@openpolicy/sdk": "0.0.17",
+    "@radix-ui/react-tabs": "^1.1.13",
     "@sentry/nextjs": "^10.32.1",
-    "@stripe/react-stripe-js": "^3.10.0",
-    "@stripe/stripe-js": "^5.10.0",
+    "@stripe/react-stripe-js": "^6.5.0",
+    "@stripe/stripe-js": "^9.7.0",
     "@tanstack/react-query": "^5.96.2",
     "@tanstack/react-table": "^8.21.3",
-    "boneyard-js": "^1.7.6",
+    "boneyard-js": "^1.8.1",
     "date-fns": "^4.1.0",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "1.17.0",
     "motion": "^12.34.2",
     "next": "16.2.6",
     "next-themes": "^0.4.6",
@@ -46,7 +47,7 @@
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "recharts": "^2.15.4",
-    "stripe": "^17.7.0"
+    "stripe": "22.2.0"
   },
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",

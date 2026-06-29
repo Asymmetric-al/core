@@ -8,13 +8,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@asym/ui/components/shadcn/breadcrumb";
-import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth } from "@payloadcms/ui";
-import { ChevronLeft, Search } from "lucide-react";
-import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
+import { Link } from "../routing";
 
 type StudioTopBarProps = {
   sectionLabel?: string;
@@ -91,20 +91,6 @@ export function StudioTopBar({
             ) : null}
           </BreadcrumbList>
         </Breadcrumb>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="hidden gap-2 sm:inline-flex"
-          disabled
-          title="Command palette (coming soon)"
-        >
-          <Search className="size-4" />
-          <span className="font-semibold text-[10px] uppercase tracking-wider">
-            Search
-          </span>
-        </Button>
 
         <div className="ml-auto flex items-center gap-2">
           <span className="hidden max-w-[12rem] truncate text-muted-foreground text-xs sm:inline">

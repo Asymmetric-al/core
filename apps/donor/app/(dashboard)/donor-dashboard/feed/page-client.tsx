@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Facebook, Linkedin, Twitter } from "@asym/ui/components/shadcn/icons";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
@@ -29,9 +30,6 @@ import {
   Send,
   ImageOff,
   Link as LinkIcon,
-  Facebook,
-  Twitter,
-  Linkedin,
   Mail,
   Check,
   BookmarkCheck,

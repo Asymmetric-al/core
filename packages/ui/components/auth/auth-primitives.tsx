@@ -67,7 +67,10 @@ export function AuthCardHeader({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn("space-y-2 px-6 pt-8 pb-2 text-center", className)}
+      className={cn(
+        "relative z-10 space-y-2 px-6 pt-8 pb-2 text-center",
+        className,
+      )}
       {...props}
     />
   );
@@ -98,7 +101,12 @@ export function AuthCardContent({
   className,
   ...props
 }: React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn("space-y-4 px-6 pb-8", className)} {...props} />;
+  return (
+    <div
+      className={cn("relative z-10 space-y-4 px-6 pb-8", className)}
+      {...props}
+    />
+  );
 }
 
 export const AuthInput = React.forwardRef<

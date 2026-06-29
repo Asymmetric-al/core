@@ -17,10 +17,41 @@ const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, "..");
 
 const sourceRoot = path.join(repoRoot, "docs", "ai", "skills");
+
+// Canonical skill targets. `docs/ai/skills/*` is overlaid into each of these,
+// stale canonical dirs are pruned via the manifest, and each gets its own
+// `.repo-canonical-skills.json`. `.claude/skills` is included so Claude Code
+// discovers project skills the same way Cursor and the .agents runtime do.
 const targetRoots = [
   path.join(repoRoot, ".agents", "skills"),
   path.join(repoRoot, ".cursor", "skills"),
+  path.join(repoRoot, ".claude", "skills"),
 ];
+
+// Mirror destinations for the full `.agents/skills` set (canonical + ecosystem
+// installs). `.agents/skills` is the mirror source, so it is intentionally not
+// listed here.
+const skillMirrorRoots = [
+  path.join(repoRoot, ".cursor", "skills"),
+  path.join(repoRoot, ".claude", "skills"),
+];
+
+// Whole-directory mirrors for Claude Code. The source is the Cursor copy
+// (already format-checked), and the target is fully replaced on each sync so
+// deletions propagate and no stale files linger.
+const treeMirrors = [
+  {
+    label: "commands",
+    sourceRoot: path.join(repoRoot, ".cursor", "commands"),
+    targetRoot: path.join(repoRoot, ".claude", "commands"),
+  },
+  {
+    label: "agents",
+    sourceRoot: path.join(repoRoot, ".cursor", "agents"),
+    targetRoot: path.join(repoRoot, ".claude", "agents"),
+  },
+];
+
 const CANONICAL_MANIFEST_FILENAME = ".repo-canonical-skills.json";
 const CANONICAL_MANIFEST_VERSION = 1;
 
@@ -202,56 +233,113 @@ async function syncCanonicalSkill(skillName) {
   }
 }
 
-async function mirrorAgentSkillToCursor(skillName) {
-  assertSafeCanonicalSkillDirName(skillName, "agent→cursor mirror");
+async function mirrorAgentSkill(skillName, mirrorRoots) {
+  assertSafeCanonicalSkillDirName(skillName, "agent skill mirror");
   const sourceDir = path.join(repoRoot, ".agents", "skills", skillName);
-  const targetDir = path.join(repoRoot, ".cursor", "skills", skillName);
 
-  try {
-    // If the source directory already resolves to the cursor path (junction/symlink),
-    // skip to avoid copying a directory onto itself.
-    const [sourceResolved, targetResolved] = await Promise.all([
-      realpath(sourceDir),
-      realpath(targetDir),
-    ]);
-    if (sourceResolved === targetResolved) {
-      console.log(
-        `skipped ${skillName}: source already mapped to cursor skill path`,
-      );
-      return;
+  for (const mirrorRoot of mirrorRoots) {
+    assertMirrorSkillDirUnderRoot(mirrorRoot, skillName);
+    const targetDir = path.join(mirrorRoot, skillName);
+
+    try {
+      // If the source directory already resolves to the target path
+      // (junction/symlink), skip to avoid copying a directory onto itself.
+      const [sourceResolved, targetResolved] = await Promise.all([
+        realpath(sourceDir),
+        realpath(targetDir),
+      ]);
+      if (sourceResolved === targetResolved) {
+        console.log(
+          `skipped ${skillName}: source already mapped to ${path.relative(repoRoot, targetDir)}`,
+        );
+        continue;
+      }
+    } catch {
+      // Ignore realpath failures here; overlayDirectory will report actionable errors.
     }
-  } catch {
-    // Ignore realpath failures here; overlayDirectory will report actionable errors.
+
+    try {
+      await overlayDirectory(sourceDir, targetDir);
+      console.log(
+        `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
+      );
+    } catch (error) {
+      const errorCode =
+        typeof error === "object" && error !== null && "code" in error
+          ? String(error.code)
+          : "";
+
+      if (errorCode === "EINVAL") {
+        console.log(
+          `skipped ${skillName}: source already mapped to ${path.relative(repoRoot, targetDir)}`,
+        );
+        continue;
+      }
+
+      if (errorCode === "ENOENT") {
+        console.warn(`skipped ${skillName}: source missing`);
+        continue;
+      }
+
+      console.warn(`skipped ${skillName}: source unreadable`);
+      if (error instanceof Error) {
+        console.warn(error.message);
+      }
+    }
   }
+}
+
+async function mirrorDirectoryTree(sourceRoot, targetRoot, label) {
+  let entries;
 
   try {
-    await overlayDirectory(sourceDir, targetDir);
-    console.log(
-      `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
-    );
+    entries = await readdir(sourceRoot, { withFileTypes: true });
   } catch (error) {
     const errorCode =
       typeof error === "object" && error !== null && "code" in error
         ? String(error.code)
         : "";
 
-    if (errorCode === "EINVAL") {
-      console.log(
-        `skipped ${skillName}: source already mapped to cursor skill path`,
+    if (errorCode === "ENOENT") {
+      console.warn(
+        `skipped ${label} mirror: source missing ${path.relative(repoRoot, sourceRoot)}`,
       );
       return;
     }
 
-    if (errorCode === "ENOENT") {
-      console.warn(`skipped ${skillName}: source missing`);
+    throw new Error(
+      `Unable to read ${label} mirror source: ${path.relative(repoRoot, sourceRoot)}`,
+      { cause: error },
+    );
+  }
+
+  // Skip self-copy when the source already resolves to the target.
+  try {
+    const [sourceResolved, targetResolved] = await Promise.all([
+      realpath(sourceRoot),
+      realpath(targetRoot),
+    ]);
+    if (sourceResolved === targetResolved) {
+      console.log(`skipped ${label} mirror: source already mapped to target`);
       return;
     }
-
-    console.warn(`skipped ${skillName}: source unreadable`);
-    if (error instanceof Error) {
-      console.warn(error.message);
-    }
+  } catch {
+    // Target may not exist yet; continue with a full rebuild.
   }
+
+  // Full replace so deletions in the source propagate and no stale files remain.
+  await rm(targetRoot, { recursive: true, force: true });
+  await mkdir(targetRoot, { recursive: true });
+  for (const entry of entries) {
+    await cp(
+      path.join(sourceRoot, entry.name),
+      path.join(targetRoot, entry.name),
+      { recursive: true, force: true },
+    );
+  }
+  console.log(
+    `mirrored ${label} (${entries.length}) -> ${path.relative(repoRoot, targetRoot)}`,
+  );
 }
 
 async function listAgentSkillsForMirror() {
@@ -291,11 +379,20 @@ async function main() {
     await writeCanonicalManifest(targetRoot, canonicalSkills);
   }
 
-  const agentToCursorMirrorSkills = await listAgentSkillsForMirror();
+  const agentMirrorSkills = await listAgentSkillsForMirror();
 
-  for (const skillName of agentToCursorMirrorSkills) {
-    await mirrorAgentSkillToCursor(skillName);
+  for (const skillName of agentMirrorSkills) {
+    await mirrorAgentSkill(skillName, skillMirrorRoots);
   }
+
+  for (const mirror of treeMirrors) {
+    await mirrorDirectoryTree(
+      mirror.sourceRoot,
+      mirror.targetRoot,
+      mirror.label,
+    );
+  }
+
   console.log("agent skill sync complete");
 }
 
