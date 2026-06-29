@@ -133,7 +133,7 @@ function MonthlyGivingChart({
 }) {
   if (rechartsFailed) {
     return (
-      <p className="text-sm text-zinc-500">
+      <p role="status" className="text-sm text-muted-foreground">
         The chart couldn&apos;t load. Refresh the page to try again.
       </p>
     );

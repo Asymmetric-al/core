@@ -684,9 +684,15 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
             ? query.is("assignee_agent_id", null)
             : query.eq("assignee_agent_id", filter.assigneeAgentId);
       }
-      const { data, error } = await query;
+      const SUPPORT_CONVERSATIONS_LIST_CAP = 2000;
+      const { data, error } = await query.limit(SUPPORT_CONVERSATIONS_LIST_CAP);
       assertDb(error, "support_conversations.select");
       const rows = (data ?? []) as unknown as SupabaseRow[];
+      if (rows.length === SUPPORT_CONVERSATIONS_LIST_CAP) {
+        console.warn(
+          "support-hub: support_conversations list hit row cap; results may be truncated before in-memory filters.",
+        );
+      }
 
       const [snapshot, labelsById] = await Promise.all([
         tenantSnapshot(),
