@@ -29,10 +29,11 @@ Three small, confirmed defects in client components:
    with `console.error` only — if the chunk fails to load (flaky network,
    deploy skew), the chart area shows a loading placeholder **forever** with
    no message and no retry.
+
 - The missionary feed's follower-request item schedules a 1.5s + 0.4s
-   `setTimeout` chain after a successful API call with no cleanup — if the
-   item unmounts first (navigation, list refresh), the timers still fire and
-   call `setStatus`/`onResolve` on an unmounted component.
+  `setTimeout` chain after a successful API call with no cleanup — if the
+  item unmounts first (navigation, list refresh), the timers still fire and
+  call `setStatus`/`onResolve` on an unmounted component.
 
 Each fix is small and mechanical; they are bundled because all three are
 client-resilience fixes with the same verification gates.
@@ -165,14 +166,14 @@ const [rechartsFailed, setRechartsFailed] = useState(false);
 ```
 
 - In the `.catch`, keep the `console.error` and add
-   `if (isMounted) setRechartsFailed(true);`.
+  `if (isMounted) setRechartsFailed(true);`.
 
 - Where the component currently renders its loading placeholder while
-   `rechartsModule` is `null` (find the `rechartsModule` consumers in each
-   file), render a quiet failure message instead when `rechartsFailed` is
-   true — match each page's existing empty/error styling (both files have
-   muted text classes; copy a nearby pattern, e.g. the zinc muted-text
-   classes already used on those pages):
+  `rechartsModule` is `null` (find the `rechartsModule` consumers in each
+  file), render a quiet failure message instead when `rechartsFailed` is
+  true — match each page's existing empty/error styling (both files have
+  muted text classes; copy a nearby pattern, e.g. the zinc muted-text
+  classes already used on those pages):
 
 ```tsx
 {rechartsFailed ? (
@@ -224,10 +225,10 @@ timersRef.current.push(collapseTimer);
 ```
 
 - Double-submit guard: read the JSX below line 175 and confirm the
-   approve/ignore buttons are disabled (or hidden) whenever
-   `status !== "pending"`. If they are not, add `disabled={status !== "pending"}`
-   to both buttons. If they already are, state that in your report and change
-   nothing.
+  approve/ignore buttons are disabled (or hidden) whenever
+  `status !== "pending"`. If they are not, add `disabled={status !== "pending"}`
+  to both buttons. If they already are, state that in your report and change
+  nothing.
 
 **Verify**: `bunx turbo run typecheck --filter=@asym/missionary-app` → exit 0
 and `bunx turbo run lint --filter=@asym/missionary-app` → exit 0.

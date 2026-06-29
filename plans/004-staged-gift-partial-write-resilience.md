@@ -235,12 +235,12 @@ if (isJsonRecord(existing.data)) {
 ```
 
 - Apply the same repair in the 23505 duplicate branch (lines 305–313)
-   before returning the duplicate row.
+  before returning the duplicate row.
 
 - Replace the fresh-insert allocation block (lines 318–330) with a call to
-   `ensureInitialAllocation(...)` so there is exactly one code path that
-   writes allocations. (On the fresh path the existence check is one extra
-   cheap indexed read per new gift; correctness uniformity is worth it.)
+  `ensureInitialAllocation(...)` so there is exactly one code path that
+  writes allocations. (On the fresh path the existence check is one extra
+  cheap indexed read per new gift; correctness uniformity is worth it.)
 
 **Verify**: `bunx turbo run typecheck --filter=@asym/api` → exit 0.
 
@@ -260,8 +260,8 @@ Apply the same explicit check in the 23505 branch instead of
 `(duplicate.data ?? {})`.
 
 - Make the audit write non-fatal — it is observability, and failing the
-   webhook here causes a retry that (because of the early return) will never
-   re-attempt the audit row anyway. Wrap the `appendGiftAuditEvent` call:
+  webhook here causes a retry that (because of the early return) will never
+  re-attempt the audit row anyway. Wrap the `appendGiftAuditEvent` call:
 
 ```ts
 try {
@@ -293,10 +293,12 @@ mock that records calls per table). Cases:
    `stageGiftFromStripeDonation` where the `staged_gift_allocations` insert
    rejects → function throws; second call (existing gift found, zero
    allocation rows) → inserts the allocation and returns the gift.
+
 - **Retry does not duplicate allocation**: existing gift found AND an
-   allocation row exists → no `staged_gift_allocations` insert issued.
+  allocation row exists → no `staged_gift_allocations` insert issued.
 - **Zero-amount gift**: `donation.amount === 0` → no allocation read or
-   insert on any path.
+  insert on any path.
+
 4. **Audit failure does not throw**: `staged_gift_audit_events` insert
    rejects → function still returns the staged gift.
 5. **Insert returns no row** → function throws
