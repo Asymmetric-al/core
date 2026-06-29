@@ -16,6 +16,12 @@ WHERE NOT EXISTS (
   WHERE existing.staged_gift_id = sga.staged_gift_id
     AND existing.is_initial = true
 )
+
+    AND (
+      SELECT COUNT(*)
+      FROM public.staged_gift_allocations counted
+      WHERE counted.staged_gift_id = sga.staged_gift_id
+    ) = 1
 AND sga.id = (
   SELECT candidate.id
   FROM public.staged_gift_allocations candidate

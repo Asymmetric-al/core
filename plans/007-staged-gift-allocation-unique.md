@@ -218,8 +218,7 @@ COMMIT;
 ```
 
 Backfill note: the `UPDATE` marks the earliest allocation per
-`staged_gift_id` as `is_initial = true` when none are flagged. Admin split
-rows stay `false`. Operators should size the migration window for a full-table
+`staged_gift_id` as `is_initial = true` when none are flagged **and the gift has exactly one allocation row** (multi-row admin splits stay all `false`). Operators should size the migration window for a full-table
 write and transient row locks on `staged_gift_allocations` during apply.
 
 **Verify**: the SQL is syntactically valid (review it against the table
