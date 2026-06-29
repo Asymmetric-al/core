@@ -164,7 +164,7 @@ advisor/007-staged-gift-allocation-unique 4126f0a4`.
 
 ### Step 1: Create the migration (exact SQL — do not improvise)
 
-Create `supabase/migrations/20260611120000_staged_gift_allocation_initial_unique.sql`:
+Create `supabase/migrations/20260611130000_staged_gift_allocation_initial_unique.sql`:
 
 ```sql
 BEGIN;
@@ -174,6 +174,24 @@ BEGIN;
 -- so they are never constrained by the partial unique index below.
 ALTER TABLE public.staged_gift_allocations
   ADD COLUMN IF NOT EXISTS is_initial BOOLEAN NOT NULL DEFAULT false;
+
+-- Pre-migration webhook rows were the sole allocation per gift; mark the earliest
+-- row per gift as initial when none are flagged yet (admin splits stay false).
+UPDATE public.staged_gift_allocations sga
+SET is_initial = true
+WHERE NOT EXISTS (
+  SELECT 1
+  FROM public.staged_gift_allocations existing
+  WHERE existing.staged_gift_id = sga.staged_gift_id
+    AND existing.is_initial = true
+)
+AND sga.id = (
+  SELECT candidate.id
+  FROM public.staged_gift_allocations candidate
+  WHERE candidate.staged_gift_id = sga.staged_gift_id
+  ORDER BY candidate.created_at ASC NULLS LAST, candidate.id ASC
+  LIMIT 1
+);
 
 -- At most one initial allocation per staged gift. Backstops the
 -- concurrent-webhook double-insert race in ensureInitialAllocation
@@ -186,7 +204,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS staged_gift_allocations_initial_unique
 COMMIT;
 ```
 
-Create the rollback `supabase/migrations/rollback_20260611120000_staged_gift_allocation_initial_unique.sql`:
+Create the rollback `supabase/migrations/rollback_20260611130000_staged_gift_allocation_initial_unique.sql`:
 
 ```sql
 BEGIN;
@@ -199,10 +217,10 @@ ALTER TABLE public.staged_gift_allocations
 COMMIT;
 ```
 
-Backfill note (intended): existing allocation rows keep `is_initial = false`.
-The index only constrains future initial inserts; pre-existing gifts are
-already singular and the helper's existence check still covers their retries.
-No backfill.
+Backfill note: the `UPDATE` marks the earliest allocation per
+`staged_gift_id` as `is_initial = true` when none are flagged. Admin split
+rows stay `false`. Operators should size the migration window for a full-table
+write and transient row locks on `staged_gift_allocations` during apply.
 
 **Verify**: the SQL is syntactically valid (review it against the table
 definition above — column name `staged_gift_id` exists, type matches). If
@@ -278,7 +296,7 @@ on all changed files all pass.
 
 Machine-checkable. ALL must hold:
 
-- [ ] `supabase/migrations/20260611120000_staged_gift_allocation_initial_unique.sql` and its `rollback_` counterpart exist and contain the exact SQL above
+- [ ] `supabase/migrations/20260611130000_staged_gift_allocation_initial_unique.sql` and its `rollback_` counterpart exist and contain the exact SQL above
 - [ ] `grep -n "is_initial: true" packages/api/src/giving/staged-gifts.ts` returns one match (in `ensureInitialAllocation`)
 - [ ] `grep -n '"23505"' packages/api/src/giving/staged-gifts.ts` shows the new concurrent-loser guard in `ensureInitialAllocation` (in addition to the existing one in `stageGiftFromStripeDonation`)
 - [ ] `bunx turbo run typecheck --filter=@asym/api` exits 0
@@ -309,6 +327,6 @@ Stop and report back (do not improvise) if:
 - If a future change lets a gift have **no** initial allocation legitimately
   (e.g. zero-amount gifts already skip — that path returns early), the index
   is unaffected (it constrains only rows where `is_initial`).
-- Reviewer should scrutinize: the migration is forward-only (no backfill), the
-  admin split path is genuinely untouched, and `is_initial: true` appears only
-  in `ensureInitialAllocation`.
+- Reviewer should scrutinize: the migration backfill semantics (earliest row per
+  gift only; admin splits stay `false`), the admin split path is genuinely
+  untouched, and `is_initial: true` appears only in `ensureInitialAllocation`.
