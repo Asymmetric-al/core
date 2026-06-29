@@ -276,6 +276,8 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
 
+**Personal/global slash-command use (optional):** The canonical skills under `docs/ai/skills/` can also be copied into your personal `~/.claude/skills/` to expose them as `/<name>` slash commands in Claude Code across **all** your projects. This is separate from how skills load **inside** this repo (AGENTS.md routing) and from the repo mirrors (`.agents/skills/`, `.cursor/skills/`); it is a per-developer convenience, not a repo requirement, and there is no repo script for it today. Copy each `docs/ai/skills/<name>/` directory (including its `references/`) to `~/.claude/skills/<name>/`; the copies are point-in-time snapshots that do **not** auto-update, so re-copy after refreshing the canonical skills. Three skills — `setup-matt-pocock-skills`, `ubiquitous-language`, `zoom-out` — carry `disable-model-invocation: true`, so they stay user-invocable via `/` but are not auto-invoked by the model.
+
 Do **not** use `npx skills check` as a read-only check in this repo. With `skills@1.5.7`, `check` is not listed in `npx skills --help` and was observed to update project skills. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review or revert the generated `.agents/skills` and `skills-lock.json` diff.
 
 To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-skills -y` (updates the lockfile), then `bun run skills:refresh-upstream`, reconcile any **This repository** / workflow sections in `docs/ai/skills/supabase/SKILL.md` and `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` if the vendor copy overwrote them, then `bun run skills:sync` and `bun run skills:verify`.
@@ -291,6 +293,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 **Payload CMS** ([`payloadcms/skills`](https://github.com/payloadcms/skills)) is vendored into `docs/ai/skills/payloadcms-payload/` and `docs/ai/skills/payloadcms-cms-migration/`. Refresh steps live in each skill's `references/upstream.md`; optional Skills CLI install is `npx skills add payloadcms/skills`; these skills are **not** updated by `bun run skills:refresh-upstream` today.
 
 **`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
+
+**`improve`** ([`shadcn/improve`](https://github.com/shadcn/improve)) is in `docs/ai/skills/improve/`. Refresh via `npx skills add shadcn/improve -y`, then **delete any project-level `.claude/skills/improve` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/improve/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/improve/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
 **Official Inngest agent skills** (`docs/ai/skills/inngest-*`) are vendored from [`inngest/inngest-skills`](https://github.com/inngest/inngest-skills) and [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin). Refresh them with `bun run skills:refresh-inngest`, then `bun run skills:sync` and `bun run skills:verify`; source SHAs and licenses are documented in `docs/ai/skills/inngest/references/upstream.md`. These skills are agent tooling for integration work, not evidence of product runtime adoption. Use `docs/ai/skills/inngest/SKILL.md` as the router when unsure which Inngest skill applies.
 
@@ -322,6 +326,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
+- **Audit any codebase (bugs, security, perf, tests, tech debt, migrations, DX), suggest features/roadmap, or write self-contained handoff plans for another agent to execute ([`shadcn/improve`](https://github.com/shadcn/improve)):** `docs/ai/skills/improve/SKILL.md` — strictly read-only on source code; writes only to `plans/`. Invoke `/improve` (composes with `quick`/`deep`, `branch`, `next`, `plan <desc>`, `review-plan`, `execute`, `reconcile`, `--issues`).
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
 - **Inngest durable workflows and agent tooling:** load `docs/ai/skills/inngest/SKILL.md` when choosing a route. Use `docs/ai/skills/inngest-brownfield-audit/SKILL.md` before changing existing app workflows or fragile background work. Use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly adding Inngest runtime to an app. Use `docs/ai/skills/inngest-events/SKILL.md`, `docs/ai/skills/inngest-durable-functions/SKILL.md`, `docs/ai/skills/inngest-steps/SKILL.md`, `docs/ai/skills/inngest-flow-control/SKILL.md`, `docs/ai/skills/inngest-middleware/SKILL.md`, and `docs/ai/skills/inngest-realtime/SKILL.md` based on the feature area. Use `docs/ai/skills/inngest-agents/SKILL.md` for durable AI agent workflows, `docs/ai/skills/inngest-v3-v4-migration/SKILL.md` only if v3 usage is found, and `docs/ai/skills/inngest-api/SKILL.md` only for Inngest API or CLI operations. These tools are subordinate to OpenSpec, `AGENTS.md`, repo-local rulebooks, Next.js version docs, and runtime evidence.
 - **Playwright E2E/component/API testing patterns:** `docs/ai/skills/playwright-best-practices/SKILL.md` (subordinate to `docs/ai/rules/testing.md`)
@@ -494,13 +499,13 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 ### Services overview
 
-| Service                 | Port                                    | Start command                 |
-| ----------------------- | --------------------------------------- | ----------------------------- |
-| Donor app               | 3000                                    | `bun run dev:donor`           |
-| Admin app               | 3030                                    | `bun run dev:admin`           |
-| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control` |
-| Missionary app          | 4000                                    | `bun run dev:missionary`      |
-| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`              |
+| Service                 | Port                                    | Start command                                                                                                                      |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Donor app               | 3000                                    | `node scripts/run-with-ci-env.mjs -- bun run dev:donor` (cloud); `bun run dev:donor` when root `.env.local` is loaded in the shell |
+| Admin app               | 3030                                    | `bun run dev:admin`                                                                                                                |
+| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control`                                                                                                      |
+| Missionary app          | 4000                                    | `bun run dev:missionary`                                                                                                           |
+| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`                                                                                                                   |
 
 ### Mission Control Cloud Agent startup
 
@@ -512,6 +517,16 @@ bun run dev:mission-control
 ```
 
 Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
+
+### Donor app in cloud sandboxes
+
+After `bun run setup:mission-control:cloud`, start the donor dev server with the same CI env wrapper Turbo uses for admin and E2E (plain `bun run dev:donor` can return HTTP 500 because `NEXT_PUBLIC_*` vars from root `.env.local` are not always forwarded to the Turbo child):
+
+```bash
+node scripts/run-with-ci-env.mjs -- bun run dev:donor
+```
+
+Then open `http://localhost:3000`. For all three apps with one command, use `bun run dev:all` (loads `--env-file=.env.local`).
 
 ### Local Supabase startup
 
