@@ -57,12 +57,12 @@ export function AppHeader({ title }: AppHeaderProps) {
                 variant="ghost"
                 size="icon"
                 className="size-8 touch-target"
-              />
+              >
+                <LifeBuoy className="size-4" />
+                <span className="sr-only">Help</span>
+              </Button>
             }
-          >
-            <LifeBuoy className="size-4" />
-            <span className="sr-only">Help</span>
-          </DropdownMenuTrigger>
+          />
           <DropdownMenuContent align="end">
             <DropdownMenuItem render={<Link href="/help/about" />}>
               About
@@ -76,13 +76,13 @@ export function AppHeader({ title }: AppHeaderProps) {
                 variant="ghost"
                 size="icon"
                 className="size-8 touch-target"
-              />
+              >
+                <Sun className="size-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
+                <Moon className="absolute size-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
+                <span className="sr-only">Toggle theme</span>
+              </Button>
             }
-          >
-            <Sun className="size-4 rotate-0 scale-100 transition-transform dark:-rotate-90 dark:scale-0" />
-            <Moon className="absolute size-4 rotate-90 scale-0 transition-transform dark:rotate-0 dark:scale-100" />
-            <span className="sr-only">Toggle theme</span>
-          </DropdownMenuTrigger>
+          />
           <DropdownMenuContent align="end">
             <DropdownMenuItem onClick={() => setTheme("light")}>
               Light

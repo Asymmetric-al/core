@@ -356,11 +356,11 @@ function ToolbarButton({
               disabled && "opacity-40",
               className,
             )}
-          />
+          >
+            {children}
+          </Toggle>
         }
-      >
-        {children}
-      </TooltipTrigger>
+      />
       <TooltipContent side="top" className="text-xs">
         <p>{tooltip}</p>
       </TooltipContent>
@@ -430,11 +430,11 @@ function LinkButton({
                   )}
                 />
               }
-            />
+            >
+              <LinkIcon className="size-3.5" />
+            </PopoverTrigger>
           }
-        >
-          <LinkIcon className="size-3.5" />
-        </TooltipTrigger>
+        />
         <TooltipContent side="top" className="text-xs">
           Link
         </TooltipContent>
@@ -499,11 +499,11 @@ function ImageClickButton({ onClick }: { onClick: () => void }) {
             className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
             type="button"
             onClick={onClick}
-          />
+          >
+            <ImageIcon className="size-3.5" />
+          </Button>
         }
-      >
-        <ImageIcon className="size-3.5" />
-      </TooltipTrigger>
+      />
       <TooltipContent side="top" className="text-xs">
         Image
       </TooltipContent>
@@ -564,11 +564,11 @@ function ImageButton({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={isUploading}
-            />
+            >
+              <ImageIcon className="size-3.5" />
+            </Button>
           }
-        >
-          <ImageIcon className="size-3.5" />
-        </TooltipTrigger>
+        />
         <TooltipContent side="top" className="text-xs">
           {isUploading ? "Uploading..." : "Image"}
         </TooltipContent>

@@ -53,11 +53,11 @@ export function GiftHistoryViewSwitcher({
             size="sm"
             className="h-8 max-w-36 gap-1 truncate text-xs"
             aria-label="Gift history views"
-          />
+          >
+            {label}
+          </Button>
         }
-      >
-        {label}
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-64">
         {views.length > 0 ? (
           <DropdownMenuRadioGroup

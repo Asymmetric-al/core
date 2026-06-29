@@ -378,12 +378,12 @@ export function getColumns({
                   <Button
                     variant="ghost"
                     className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
-                  />
+                  >
+                    <span className="sr-only">Open menu</span>
+                    <MoreHorizontal className="size-4" />
+                  </Button>
                 }
-              >
-                <span className="sr-only">Open menu</span>
-                <MoreHorizontal className="size-4" />
-              </DropdownMenuTrigger>
+              />
               <DropdownMenuContent
                 align="end"
                 className="w-48 rounded-2xl border-border p-2"

@@ -332,16 +332,16 @@ function HistoryFiltersToolbar({
               <Button
                 variant="outline"
                 className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
-              />
+              >
+                <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
+                {typeFilter !== "All" && (
+                  <Badge variant="secondary" className="ml-2 h-4 px-1">
+                    {typeFilter}
+                  </Badge>
+                )}
+              </Button>
             }
-          >
-            <SlidersHorizontal className="mr-2 size-3.5" /> Type{" "}
-            {typeFilter !== "All" && (
-              <Badge variant="secondary" className="ml-2 h-4 px-1">
-                {typeFilter}
-              </Badge>
-            )}
-          </DropdownMenuTrigger>
+          />
           <DropdownMenuContent align="end">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Filter by Type
@@ -377,16 +377,16 @@ function HistoryFiltersToolbar({
               <Button
                 variant="outline"
                 className="h-10 border-zinc-200 bg-white text-zinc-700 shadow-sm text-[10px] font-semibold uppercase tracking-widest px-4 rounded-lg"
-              />
+              >
+                Status{" "}
+                {statusFilter !== "All" && (
+                  <Badge variant="secondary" className="ml-2 h-4 px-1">
+                    {statusFilter}
+                  </Badge>
+                )}
+              </Button>
             }
-          >
-            Status{" "}
-            {statusFilter !== "All" && (
-              <Badge variant="secondary" className="ml-2 h-4 px-1">
-                {statusFilter}
-              </Badge>
-            )}
-          </DropdownMenuTrigger>
+          />
           <DropdownMenuContent align="end">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Filter by Status

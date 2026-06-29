@@ -361,11 +361,11 @@ const PostActions = ({
                 aria-label="Share post"
                 whileTap={{ scale: 0.9 }}
                 className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
-              />
+              >
+                <Share2 className="size-4" strokeWidth={1.5} />
+              </motion.button>
             }
-          >
-            <Share2 className="size-4" strokeWidth={1.5} />
-          </DropdownMenuTrigger>
+          />
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Share Update
@@ -664,11 +664,11 @@ const PostCard: React.FC<{
                   variant="ghost"
                   size="icon"
                   className="text-zinc-300 hover:text-zinc-600 hover:bg-transparent -mr-2"
-                />
+                >
+                  <MoreHorizontal className="size-5" />
+                </Button>
               }
-            >
-              <MoreHorizontal className="size-5" />
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest">
                 Mute Updates

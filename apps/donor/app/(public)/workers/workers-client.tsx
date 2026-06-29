@@ -221,21 +221,21 @@ export function WorkersPageClient() {
                     <Button
                       variant="outline"
                       className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
-                    />
+                    >
+                      <Filter
+                        className="size-4 text-zinc-400 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">
+                        {categoryFilter === "All" ? "Focus" : categoryFilter}
+                      </span>
+                      <ChevronDown
+                        className="size-3 opacity-50 shrink-0"
+                        aria-hidden="true"
+                      />
+                    </Button>
                   }
-                >
-                  <Filter
-                    className="size-4 text-zinc-400 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span className="truncate">
-                    {categoryFilter === "All" ? "Focus" : categoryFilter}
-                  </span>
-                  <ChevronDown
-                    className="size-3 opacity-50 shrink-0"
-                    aria-hidden="true"
-                  />
-                </DropdownMenuTrigger>
+                />
                 <DropdownMenuContent
                   align="end"
                   className="w-56 p-2 rounded-xl"
@@ -263,21 +263,21 @@ export function WorkersPageClient() {
                     <Button
                       variant="outline"
                       className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
-                    />
+                    >
+                      <MapPin
+                        className="size-4 text-zinc-400 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">
+                        {regionFilter === "All" ? "Region" : regionFilter}
+                      </span>
+                      <ChevronDown
+                        className="size-3 opacity-50 shrink-0"
+                        aria-hidden="true"
+                      />
+                    </Button>
                   }
-                >
-                  <MapPin
-                    className="size-4 text-zinc-400 shrink-0"
-                    aria-hidden="true"
-                  />
-                  <span className="truncate">
-                    {regionFilter === "All" ? "Region" : regionFilter}
-                  </span>
-                  <ChevronDown
-                    className="size-3 opacity-50 shrink-0"
-                    aria-hidden="true"
-                  />
-                </DropdownMenuTrigger>
+                />
                 <DropdownMenuContent
                   align="end"
                   className="w-56 p-2 rounded-xl"

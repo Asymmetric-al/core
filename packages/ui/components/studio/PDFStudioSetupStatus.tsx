@@ -90,12 +90,12 @@ export function PDFStudioSetupStatus({
                 currentStatus.color,
                 className,
               )}
-            />
+            >
+              <Icon className="size-3" />
+              {currentStatus.label}
+            </button>
           }
-        >
-          <Icon className="size-3" />
-          {currentStatus.label}
-        </DialogTrigger>
+        />
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>PDF Studio Configuration</DialogTitle>
@@ -123,11 +123,13 @@ export function PDFStudioSetupStatus({
         {showSetupButton && status.status !== "white_label" && (
           <Dialog>
             <DialogTrigger
-              render={<Button variant="outline" size="sm" className="h-7" />}
-            >
-              <Settings className="size-3.5 mr-1.5" />
-              Setup
-            </DialogTrigger>
+              render={
+                <Button variant="outline" size="sm" className="h-7">
+                  <Settings className="size-3.5 mr-1.5" />
+                  Setup
+                </Button>
+              }
+            />
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>PDF Studio Configuration</DialogTitle>
@@ -227,21 +229,21 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           <Collapsible open={isSetupOpen} onOpenChange={setIsSetupOpen}>
             <CollapsibleTrigger
               render={
-                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors" />
+                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
+                  <div className="flex items-center gap-2">
+                    <Settings className="size-4" />
+                    <span className="text-sm font-medium">
+                      Basic Setup Instructions
+                    </span>
+                  </div>
+                  {isSetupOpen ? (
+                    <ChevronUp className="size-4" />
+                  ) : (
+                    <ChevronDown className="size-4" />
+                  )}
+                </button>
               }
-            >
-              <div className="flex items-center gap-2">
-                <Settings className="size-4" />
-                <span className="text-sm font-medium">
-                  Basic Setup Instructions
-                </span>
-              </div>
-              {isSetupOpen ? (
-                <ChevronUp className="size-4" />
-              ) : (
-                <ChevronDown className="size-4" />
-              )}
-            </CollapsibleTrigger>
+            />
             <CollapsibleContent className="pt-2">
               <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
                 {PDF_STUDIO_SETUP_INSTRUCTIONS.steps.map((step) => (
@@ -305,21 +307,21 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
             >
               <CollapsibleTrigger
                 render={
-                  <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors" />
+                  <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <Crown className="size-4" />
+                      <span className="text-sm font-medium">
+                        Upgrade to White-Label
+                      </span>
+                    </div>
+                    {isWhiteLabelOpen ? (
+                      <ChevronUp className="size-4" />
+                    ) : (
+                      <ChevronDown className="size-4" />
+                    )}
+                  </button>
                 }
-              >
-                <div className="flex items-center gap-2">
-                  <Crown className="size-4" />
-                  <span className="text-sm font-medium">
-                    Upgrade to White-Label
-                  </span>
-                </div>
-                {isWhiteLabelOpen ? (
-                  <ChevronUp className="size-4" />
-                ) : (
-                  <ChevronDown className="size-4" />
-                )}
-              </CollapsibleTrigger>
+              />
               <CollapsibleContent className="pt-2">
                 <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
                   {PDF_STUDIO_SETUP_INSTRUCTIONS.whiteLabelSteps.map((step) => (

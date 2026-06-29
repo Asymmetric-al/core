@@ -55,21 +55,21 @@ export function DataTableColumnHeader<TData, TValue>({
               variant="ghost"
               size="sm"
               className="-ml-3 h-8 gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
-            />
+            >
+              <span className="uppercase tracking-wide">{title}</span>
+              {column.getCanSort() && column.getIsSorted() === "desc" ? (
+                <ArrowDown className="size-3.5" aria-hidden="true" />
+              ) : column.getIsSorted() === "asc" ? (
+                <ArrowUp className="size-3.5" aria-hidden="true" />
+              ) : (
+                <ChevronsUpDown
+                  className="size-3.5 opacity-50"
+                  aria-hidden="true"
+                />
+              )}
+            </Button>
           }
-        >
-          <span className="uppercase tracking-wide">{title}</span>
-          {column.getCanSort() && column.getIsSorted() === "desc" ? (
-            <ArrowDown className="size-3.5" aria-hidden="true" />
-          ) : column.getIsSorted() === "asc" ? (
-            <ArrowUp className="size-3.5" aria-hidden="true" />
-          ) : (
-            <ChevronsUpDown
-              className="size-3.5 opacity-50"
-              aria-hidden="true"
-            />
-          )}
-        </DropdownMenuTrigger>
+        />
         <DropdownMenuContent align="start" className="min-w-36 rounded-xl">
           {column.getCanSort() && (
             <>

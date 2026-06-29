@@ -440,12 +440,12 @@ function TasksFilterBar({
                 <Button
                   variant="outline"
                   className="h-11 rounded-xl border-zinc-200 font-semibold uppercase tracking-widest text-[10px] gap-2"
-                />
+                >
+                  <ListFilter className="size-4 text-zinc-400" />
+                  Refine
+                </Button>
               }
-            >
-              <ListFilter className="size-4 text-zinc-400" />
-              Refine
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"

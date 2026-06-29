@@ -155,11 +155,11 @@ export function AppShell({
                     variant="ghost"
                     size="icon"
                     className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
-                  />
+                  >
+                    <Menu className="size-5" />
+                  </Button>
                 }
-              >
-                <Menu className="size-5" />
-              </SheetTrigger>
+              />
               <SheetContent
                 side="left"
                 className="w-72 p-0 border-r border-zinc-200"
@@ -245,15 +245,15 @@ export function AppShell({
                     variant="ghost"
                     size="icon"
                     className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
-                  />
+                  >
+                    <Avatar className="size-full rounded-none">
+                      <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
+                        AD
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
                 }
-              >
-                <Avatar className="size-full rounded-none">
-                  <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
-                    AD
-                  </AvatarFallback>
-                </Avatar>
-              </DropdownMenuTrigger>
+              />
               <DropdownMenuContent
                 align="end"
                 className="w-56 rounded-2xl border-zinc-200 p-2 shadow-xl"

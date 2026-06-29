@@ -47,12 +47,12 @@ export function ReportExportMenu({ series, disabled }: ReportExportMenuProps) {
             size="sm"
             disabled={disabled || series.buckets.length === 0}
             className="h-9 gap-1.5 rounded-lg px-3 text-[11px] font-bold uppercase tracking-wider"
-          />
+          >
+            <Download className="size-3.5" />
+            Export
+          </Button>
         }
-      >
-        <Download className="size-3.5" />
-        Export
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-40">
         <DropdownMenuItem onClick={() => handle("csv")}>
           Export as CSV

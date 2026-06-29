@@ -1013,11 +1013,11 @@ export function DonorsPageContent({
                           variant="ghost"
                           size="icon"
                           className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
-                        />
+                        >
+                          <ArrowDownUp className="size-4" />
+                        </Button>
                       }
-                    >
-                      <ArrowDownUp className="size-4" />
-                    </DropdownMenuTrigger>
+                    />
                     <DropdownMenuContent
                       align="end"
                       className="w-48 rounded-xl border-zinc-100 shadow-xl"
@@ -1065,11 +1065,11 @@ export function DonorsPageContent({
                               ? "text-blue-600 bg-blue-50"
                               : "text-zinc-400 hover:text-zinc-900",
                           )}
-                        />
+                        >
+                          <Filter className="size-4" />
+                        </Button>
                       }
-                    >
-                      <Filter className="size-4" />
-                    </DropdownMenuTrigger>
+                    />
                     <DropdownMenuContent
                       align="end"
                       className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
@@ -1453,11 +1453,11 @@ export function DonorsPageContent({
                                 variant="ghost"
                                 size="icon"
                                 className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
-                              />
+                              >
+                                <MoreHorizontal className="size-5" />
+                              </Button>
                             }
-                          >
-                            <MoreHorizontal className="size-5" />
-                          </DropdownMenuTrigger>
+                          />
                           <DropdownMenuContent
                             align="end"
                             className="rounded-xl border-zinc-100 shadow-xl"

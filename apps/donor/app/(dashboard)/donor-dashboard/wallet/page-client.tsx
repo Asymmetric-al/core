@@ -744,11 +744,11 @@ function MethodCard({
                     variant="ghost"
                     size="icon"
                     className="size-10 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-50 rounded-full"
-                  />
+                  >
+                    <MoreHorizontal className="size-5" />
+                  </Button>
                 }
-              >
-                <MoreHorizontal className="size-5" />
-              </DropdownMenuTrigger>
+              />
               <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
                 <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 px-2 py-1.5">
                   Manage Method

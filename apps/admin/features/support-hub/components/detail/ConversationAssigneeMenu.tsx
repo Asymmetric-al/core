@@ -48,28 +48,28 @@ export function ConversationAssigneeMenu({
             aria-label={
               assignee ? `Assigned to ${assignee.name}` : "Unassigned"
             }
-          />
+          >
+            {assignee ? (
+              <Avatar className="size-5 border border-zinc-100">
+                <AvatarImage
+                  src={assignee.avatarUrl ?? undefined}
+                  alt={assignee.name}
+                />
+                <AvatarFallback className="text-[10px] font-semibold">
+                  {assignee.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-amber-300 text-amber-600">
+                <UserRound className="size-3" />
+              </span>
+            )}
+            <span className="truncate text-[12px]">
+              {assignee?.name ?? "Unassigned"}
+            </span>
+          </Button>
         }
-      >
-        {assignee ? (
-          <Avatar className="size-5 border border-zinc-100">
-            <AvatarImage
-              src={assignee.avatarUrl ?? undefined}
-              alt={assignee.name}
-            />
-            <AvatarFallback className="text-[10px] font-semibold">
-              {assignee.name.charAt(0)}
-            </AvatarFallback>
-          </Avatar>
-        ) : (
-          <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-amber-300 text-amber-600">
-            <UserRound className="size-3" />
-          </span>
-        )}
-        <span className="truncate text-[12px]">
-          {assignee?.name ?? "Unassigned"}
-        </span>
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
           Assign conversation

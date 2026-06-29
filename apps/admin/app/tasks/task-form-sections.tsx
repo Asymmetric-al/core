@@ -248,14 +248,14 @@ function TaskDueDateSection({ form }: { form: TaskFormApi }) {
                         )}
                         type="button"
                         variant="outline"
-                      />
+                      >
+                        <CalendarIcon className="mr-2 size-4" />
+                        {field.state.value
+                          ? format(field.state.value, "PPP")
+                          : "Pick a date"}
+                      </Button>
                     }
-                  >
-                    <CalendarIcon className="mr-2 size-4" />
-                    {field.state.value
-                      ? format(field.state.value, "PPP")
-                      : "Pick a date"}
-                  </PopoverTrigger>
+                  />
                   <PopoverContent
                     align="start"
                     className="w-auto rounded-2xl p-0"
@@ -391,12 +391,12 @@ function TaskLinkedRecordSection({
                       className="w-full justify-start rounded-xl text-sm text-muted-foreground"
                       type="button"
                       variant="outline"
-                    />
+                    >
+                      <Plus className="mr-2 size-4" />
+                      Link a donor, missionary, or contact…
+                    </Button>
                   }
-                >
-                  <Plus className="mr-2 size-4" />
-                  Link a donor, missionary, or contact…
-                </PopoverTrigger>
+                />
                 <PopoverContent
                   align="start"
                   className="w-[400px] rounded-2xl p-0"
@@ -682,12 +682,12 @@ function TaskTagsSection({
                       size="sm"
                       type="button"
                       variant="outline"
-                    />
+                    >
+                      <Plus className="mr-2 size-4" />
+                      Add tags…
+                    </Button>
                   }
-                >
-                  <Plus className="mr-2 size-4" />
-                  Add tags…
-                </PopoverTrigger>
+                />
                 <PopoverContent
                   align="start"
                   className="w-[320px] rounded-2xl p-0"

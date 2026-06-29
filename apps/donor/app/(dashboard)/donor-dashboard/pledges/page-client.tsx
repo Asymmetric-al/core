@@ -279,11 +279,11 @@ function PledgeCard({
                       variant="ghost"
                       size="icon"
                       className="size-8 text-zinc-400 hover:text-zinc-900 -mr-2"
-                    />
+                    >
+                      <MoreHorizontal className="size-5" />
+                    </Button>
                   }
-                >
-                  <MoreHorizontal className="size-5" />
-                </DropdownMenuTrigger>
+                />
                 <DropdownMenuContent align="end" className="w-48">
                   {pledge.status === "Active" ? (
                     <DropdownMenuItem

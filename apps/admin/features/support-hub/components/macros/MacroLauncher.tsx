@@ -44,12 +44,12 @@ export function MacroLauncher({
                 : "h-8 gap-1.5 rounded-lg px-2 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
             }
             aria-label="Open macros"
-          />
+          >
+            <Wand2 className="size-3.5" />
+            {compact ? null : "Macros"}
+          </Button>
         }
-      >
-        <Wand2 className="size-3.5" />
-        {compact ? null : "Macros"}
-      </PopoverTrigger>
+      />
       <PopoverContent align="end" className="w-80 p-0">
         <RunMacroPopover
           conversation={conversation}

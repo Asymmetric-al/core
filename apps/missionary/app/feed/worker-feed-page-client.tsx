@@ -561,11 +561,11 @@ function CommentSection({
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               render={
-                                <button className="text-muted-foreground/50 hover:text-destructive transition-colors" />
+                                <button className="text-muted-foreground/50 hover:text-destructive transition-colors">
+                                  <MoreHorizontal className="size-3" />
+                                </button>
                               }
-                            >
-                              <MoreHorizontal className="size-3" />
-                            </DropdownMenuTrigger>
+                            />
                             <DropdownMenuContent
                               align="end"
                               className="rounded-xl p-1 shadow-lg border-border"
@@ -855,11 +855,11 @@ function PostCard({
                   variant="ghost"
                   size="icon"
                   className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
-                />
+                >
+                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
+                </Button>
               }
-            >
-              <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent
               align="end"
               className="rounded-xl border-border shadow-lg p-2 min-w-[160px] sm:min-w-[180px]"
@@ -1089,13 +1089,13 @@ function SecurityAccessDialog({
             variant="outline"
             size="sm"
             className="h-9 px-4 text-xs font-medium gap-2 hover-scale-subtle"
-          />
+          >
+            <ShieldCheck className="size-4" />
+            <span className="hidden sm:inline">Security & Access</span>
+            <span className="sm:hidden">Security</span>
+          </Button>
         }
-      >
-        <ShieldCheck className="size-4" />
-        <span className="hidden sm:inline">Security & Access</span>
-        <span className="sm:hidden">Security</span>
-      </DialogTrigger>
+      />
       <DialogContent className="sm:max-w-[520px] p-0 overflow-hidden gap-0 rounded-2xl border-border">
         <DialogHeader className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
           <div className="flex items-center gap-3">
@@ -1451,21 +1451,21 @@ function PostComposerActions({
                 variant="ghost"
                 size="sm"
                 className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border hover-scale-subtle"
-              />
+              >
+                {postPrivacy === "public" ? (
+                  <Globe className="size-3" />
+                ) : postPrivacy === "partners" ? (
+                  <Users className="size-3" />
+                ) : (
+                  <Lock className="size-3" />
+                )}
+                <span className="hidden sm:inline capitalize">
+                  {postPrivacy === "partners" ? "Partners" : postPrivacy}
+                </span>
+                <ChevronDown className="size-2.5 opacity-40" />
+              </Button>
             }
-          >
-            {postPrivacy === "public" ? (
-              <Globe className="size-3" />
-            ) : postPrivacy === "partners" ? (
-              <Users className="size-3" />
-            ) : (
-              <Lock className="size-3" />
-            )}
-            <span className="hidden sm:inline capitalize">
-              {postPrivacy === "partners" ? "Partners" : postPrivacy}
-            </span>
-            <ChevronDown className="size-2.5 opacity-40" />
-          </DropdownMenuTrigger>
+          />
           <DropdownMenuContent
             align="start"
             className="rounded-xl border-border shadow-lg p-1.5 min-w-[160px]"

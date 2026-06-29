@@ -58,16 +58,16 @@ export function ConversationSnoozeMenu({
             size="sm"
             className="h-8 gap-1.5 rounded-lg border-zinc-200 px-2.5 text-[11px] font-bold uppercase tracking-wider text-zinc-600"
             aria-label="Snooze conversation"
-          />
+          >
+            {isSnoozed ? (
+              <Sunrise className="size-3.5 text-violet-500" />
+            ) : (
+              <Clock className="size-3.5" />
+            )}
+            {isSnoozed ? "Snoozed" : "Snooze"}
+          </Button>
         }
-      >
-        {isSnoozed ? (
-          <Sunrise className="size-3.5 text-violet-500" />
-        ) : (
-          <Clock className="size-3.5" />
-        )}
-        {isSnoozed ? "Snoozed" : "Snooze"}
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-48">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
           Snooze until

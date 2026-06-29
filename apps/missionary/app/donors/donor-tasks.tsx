@@ -236,11 +236,11 @@ export function DonorTasks({
                             variant="ghost"
                             size="icon"
                             className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
-                          />
+                          >
+                            <MoreHorizontal className="size-4" />
+                          </Button>
                         }
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </DropdownMenuTrigger>
+                      />
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem
                           onClick={() => {

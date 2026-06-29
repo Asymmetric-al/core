@@ -47,12 +47,12 @@ export function DataTableViewOptions<TData>({
               "ml-auto hidden h-9 lg:flex gap-2 rounded-xl",
               className,
             )}
-          />
+          >
+            <Settings2 className="size-4" aria-hidden="true" />
+            View
+          </Button>
         }
-      >
-        <Settings2 className="size-4" aria-hidden="true" />
-        View
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-48 rounded-xl">
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />

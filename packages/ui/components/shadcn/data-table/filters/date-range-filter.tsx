@@ -247,12 +247,12 @@ export function DateRangeFilter({
               !displayValue && "text-muted-foreground",
               className,
             )}
-          />
+          >
+            <CalendarIcon className="mr-2 size-3.5" />
+            {displayValue ?? placeholder}
+          </Button>
         }
-      >
-        <CalendarIcon className="mr-2 size-3.5" />
-        {displayValue ?? placeholder}
-      </PopoverTrigger>
+      />
       <PopoverContent className="w-auto p-0" align={align}>
         <div className="flex">
           <div className="border-r p-2 w-[140px]">

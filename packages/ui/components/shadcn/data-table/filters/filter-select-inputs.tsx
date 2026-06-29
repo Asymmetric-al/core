@@ -60,23 +60,23 @@ export function FilterSelectInput({
               !selectedOption && "text-muted-foreground",
               className,
             )}
-          />
-        }
-      >
-        <span className="truncate">
-          {selectedOption ? (
-            <span className="flex items-center gap-2">
-              {selectedOption.icon && (
-                <selectedOption.icon className="size-3.5 shrink-0" />
+          >
+            <span className="truncate">
+              {selectedOption ? (
+                <span className="flex items-center gap-2">
+                  {selectedOption.icon && (
+                    <selectedOption.icon className="size-3.5 shrink-0" />
+                  )}
+                  {selectedOption.label}
+                </span>
+              ) : (
+                (field.placeholder ?? "Select...")
               )}
-              {selectedOption.label}
             </span>
-          ) : (
-            (field.placeholder ?? "Select...")
-          )}
-        </span>
-        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
-      </PopoverTrigger>
+            <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+          </Button>
+        }
+      />
       <PopoverContent
         className="w-[220px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         align="start"
@@ -176,42 +176,42 @@ export function FilterMultiSelectInput({
               !selectedOptions.length && "text-muted-foreground",
               className,
             )}
-          />
-        }
-      >
-        {selectedOptions.length > 0 ? (
-          <div className="flex flex-wrap gap-1 py-0.5">
-            {selectedOptions.length <= 2 ? (
-              selectedOptions.map((option) => (
-                <Badge
-                  key={option.value}
-                  variant="secondary"
-                  className="rounded-md px-1.5 py-0 text-xs font-normal"
-                >
-                  {option.label}
-                  <button
-                    type="button"
-                    onClick={(e) => removeValue(option.value, e)}
-                    className="ml-1 rounded-full hover:bg-muted-foreground/20"
+          >
+            {selectedOptions.length > 0 ? (
+              <div className="flex flex-wrap gap-1 py-0.5">
+                {selectedOptions.length <= 2 ? (
+                  selectedOptions.map((option) => (
+                    <Badge
+                      key={option.value}
+                      variant="secondary"
+                      className="rounded-md px-1.5 py-0 text-xs font-normal"
+                    >
+                      {option.label}
+                      <button
+                        type="button"
+                        onClick={(e) => removeValue(option.value, e)}
+                        className="ml-1 rounded-full hover:bg-muted-foreground/20"
+                      >
+                        <X className="size-3" />
+                      </button>
+                    </Badge>
+                  ))
+                ) : (
+                  <Badge
+                    variant="secondary"
+                    className="rounded-md px-1.5 py-0 text-xs font-normal"
                   >
-                    <X className="size-3" />
-                  </button>
-                </Badge>
-              ))
+                    {selectedOptions.length} selected
+                  </Badge>
+                )}
+              </div>
             ) : (
-              <Badge
-                variant="secondary"
-                className="rounded-md px-1.5 py-0 text-xs font-normal"
-              >
-                {selectedOptions.length} selected
-              </Badge>
+              <span>{field.placeholder ?? "Select options..."}</span>
             )}
-          </div>
-        ) : (
-          <span>{field.placeholder ?? "Select options..."}</span>
-        )}
-        <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
-      </PopoverTrigger>
+            <ChevronsUpDown className="ml-2 size-3.5 shrink-0 opacity-50" />
+          </Button>
+        }
+      />
       <PopoverContent
         className="w-[260px] overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         align="start"

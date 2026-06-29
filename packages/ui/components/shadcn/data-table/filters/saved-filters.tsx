@@ -120,17 +120,17 @@ export function SavedFilters({
               variant="outline"
               size="sm"
               className="h-9 gap-2 rounded-xl"
-            />
+            >
+              <BookmarkIcon className="size-4" />
+              <span className="hidden sm:inline">Saved Views</span>
+              {savedFilters.length > 0 && (
+                <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs">
+                  {savedFilters.length}
+                </span>
+              )}
+            </Button>
           }
-        >
-          <BookmarkIcon className="size-4" />
-          <span className="hidden sm:inline">Saved Views</span>
-          {savedFilters.length > 0 && (
-            <span className="rounded-full bg-muted px-1.5 py-0.5 text-xs">
-              {savedFilters.length}
-            </span>
-          )}
-        </PopoverTrigger>
+        />
         <PopoverContent className="w-72 p-2" align="start">
           <div className="space-y-1">
             <div className="flex items-center justify-between px-2 py-1">
@@ -143,12 +143,12 @@ export function SavedFilters({
                       size="sm"
                       className="h-7 gap-1 text-xs"
                       disabled={activeCount === 0}
-                    />
+                    >
+                      <PlusIcon className="size-3" />
+                      Save current
+                    </Button>
                   }
-                >
-                  <PlusIcon className="size-3" />
-                  Save current
-                </DialogTrigger>
+                />
                 <DialogContent>
                   <DialogHeader>
                     <DialogTitle>Save View</DialogTitle>
@@ -262,11 +262,11 @@ export function SavedFilters({
                                 variant="ghost"
                                 size="icon"
                                 className="size-7 shrink-0 opacity-0 group-hover:opacity-100"
-                              />
+                              >
+                                <MoreHorizontalIcon className="size-3" />
+                              </Button>
                             }
-                          >
-                            <MoreHorizontalIcon className="size-3" />
-                          </DropdownMenuTrigger>
+                          />
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem
                               onClick={() => onApplyFilter(filter.filter)}

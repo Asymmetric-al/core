@@ -80,11 +80,11 @@ export const MobileSidebar = memo(function MobileSidebar() {
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger
         render={
-          <Button variant="ghost" size="icon" className="size-9 lg:hidden" />
+          <Button variant="ghost" size="icon" className="size-9 lg:hidden">
+            <Menu className="size-5" />
+          </Button>
         }
-      >
-        <Menu className="size-5" />
-      </SheetTrigger>
+      />
       <SheetContent side="left" className="w-72 p-0">
         <SheetHeader className="flex h-14 flex-row items-center border-b border-border px-4">
           <Link

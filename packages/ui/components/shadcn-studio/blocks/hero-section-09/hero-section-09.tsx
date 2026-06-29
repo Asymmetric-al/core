@@ -69,11 +69,11 @@ const HeroSection = () => {
                       href="https://github.com/asymmetric-al/core"
                       target="_blank"
                       rel="noreferrer"
-                    />
+                    >
+                      <SquarePlusIcon />
+                    </a>
                   }
-                >
-                  <SquarePlusIcon />
-                </TooltipTrigger>
+                />
                 <TooltipContent>
                   Integrate with all your framework
                 </TooltipContent>

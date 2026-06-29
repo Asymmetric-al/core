@@ -58,12 +58,12 @@ export function DataTableRowActions<TData>({
             className={cn("size-8 rounded-lg", className)}
             aria-label={triggerLabel}
             onClick={(event) => event.stopPropagation()}
-          />
+          >
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+            <span className="sr-only">Open row actions</span>
+          </Button>
         }
-      >
-        <MoreHorizontal className="size-4" aria-hidden="true" />
-        <span className="sr-only">Open row actions</span>
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="rounded-xl">
         {actions.map((action, index) => (
           <React.Fragment key={getDataTableRowActionKey(action, index)}>

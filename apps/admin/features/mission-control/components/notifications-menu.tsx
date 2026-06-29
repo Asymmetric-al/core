@@ -67,15 +67,15 @@ export const NotificationsMenu = memo(function NotificationsMenu() {
     <DropdownMenu>
       <DropdownMenuTrigger
         render={
-          <Button variant="ghost" size="icon" className="relative size-8" />
+          <Button variant="ghost" size="icon" className="relative size-8">
+            <Bell className="size-4" />
+            <span className="absolute right-1 top-1 flex size-2">
+              <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75 [@media(prefers-reduced-motion:reduce)]:animate-none" />
+              <span className="relative inline-flex size-2 rounded-full bg-primary" />
+            </span>
+          </Button>
         }
-      >
-        <Bell className="size-4" />
-        <span className="absolute right-1 top-1 flex size-2">
-          <span className="absolute inline-flex size-full animate-ping rounded-full bg-primary opacity-75 [@media(prefers-reduced-motion:reduce)]:animate-none" />
-          <span className="relative inline-flex size-2 rounded-full bg-primary" />
-        </span>
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-80">
         <DropdownMenuLabel className="flex items-center justify-between py-2">
           <span className="text-sm font-semibold">Notifications</span>

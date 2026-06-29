@@ -110,11 +110,11 @@ export function GiftInlineActionControls({
               size="icon"
               className="size-8 text-muted-foreground"
               aria-label="More gift actions"
-            />
+            >
+              <MoreHorizontal className="size-4" aria-hidden="true" />
+            </Button>
           }
-        >
-          <MoreHorizontal className="size-4" aria-hidden="true" />
-        </DropdownMenuTrigger>
+        />
         <DropdownMenuContent align="end" className="w-64">
           {groups.map((group, index) => (
             <DropdownMenuGroup key={group.category}>

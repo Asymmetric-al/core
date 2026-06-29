@@ -73,12 +73,12 @@ export function DateCell<TData>({
                 !dateValue && "text-muted-foreground",
                 className,
               )}
-            />
+            >
+              <CalendarIcon className="mr-2 size-3.5 shrink-0" />
+              <span className="truncate">{formattedValue ?? placeholder}</span>
+            </Button>
           }
-        >
-          <CalendarIcon className="mr-2 size-3.5 shrink-0" />
-          <span className="truncate">{formattedValue ?? placeholder}</span>
-        </PopoverTrigger>
+        />
         <PopoverContent className="w-auto p-0" align="start">
           <Calendar
             mode="single"

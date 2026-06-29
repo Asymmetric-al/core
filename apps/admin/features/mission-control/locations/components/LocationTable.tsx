@@ -141,11 +141,11 @@ export function LocationTable({
                   size="icon"
                   className="size-8 rounded-lg"
                   aria-label={`Open actions for ${row.original.title}`}
-                />
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
               }
-            >
-              <MoreHorizontal className="size-4" />
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent
               align="end"
               className="w-40 rounded-xl border-zinc-100 shadow-xl"

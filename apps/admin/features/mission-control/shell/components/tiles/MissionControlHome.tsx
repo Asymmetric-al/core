@@ -67,11 +67,11 @@ export function MissionControlHome() {
                     variant="ghost"
                     size="sm"
                     className="text-zinc-500 hover:text-zinc-900"
-                  />
+                  >
+                    View all tools
+                  </Button>
                 }
-              >
-                View all tools
-              </DialogTrigger>
+              />
               <DialogContent className="max-w-3xl">
                 <DialogHeader>
                   <DialogTitle>Mission Control Tools</DialogTitle>

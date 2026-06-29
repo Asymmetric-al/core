@@ -189,15 +189,15 @@ export function StudioNavRail({ className }: { className?: string }) {
                       ? "Expand studio navigation"
                       : "Collapse studio navigation"
                   }
-                />
+                >
+                  {collapsed ? (
+                    <PanelLeft className="size-4" />
+                  ) : (
+                    <PanelLeftClose className="size-4" />
+                  )}
+                </Button>
               }
-            >
-              {collapsed ? (
-                <PanelLeft className="size-4" />
-              ) : (
-                <PanelLeftClose className="size-4" />
-              )}
-            </TooltipTrigger>
+            />
             <TooltipContent side="right">
               {collapsed ? "Expand navigation" : "Collapse navigation"}
             </TooltipContent>
@@ -296,11 +296,11 @@ function NavRailLink({
             variant={active ? "secondary" : "ghost"}
             size="sm"
             className={cn("justify-center gap-2 px-0 font-semibold text-xs")}
-          />
+          >
+            <Icon className="size-4 shrink-0" />
+          </Button>
         }
-      >
-        <Icon className="size-4 shrink-0" />
-      </TooltipTrigger>
+      />
       <TooltipContent side="right">{title}</TooltipContent>
     </Tooltip>
   );

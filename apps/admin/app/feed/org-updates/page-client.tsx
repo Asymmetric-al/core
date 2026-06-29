@@ -442,11 +442,11 @@ function PostCard({
                     variant="ghost"
                     size="icon"
                     className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
-                  />
+                  >
+                    <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
+                  </Button>
                 }
-              >
-                <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
-              </DropdownMenuTrigger>
+              />
             </motion.div>
             <DropdownMenuContent
               align="end"
@@ -868,21 +868,21 @@ function ComposeCardActions({
                   variant="ghost"
                   size="sm"
                   className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
-                />
+                >
+                  {visibility === "public" ? (
+                    <Globe className="size-3" />
+                  ) : visibility === "partners" ? (
+                    <Users className="size-3" />
+                  ) : (
+                    <Lock className="size-3" />
+                  )}
+                  <span className="hidden sm:inline capitalize">
+                    {visibility === "partners" ? "Partners" : visibility}
+                  </span>
+                  <ChevronDown className="size-2.5 opacity-40" />
+                </Button>
               }
-            >
-              {visibility === "public" ? (
-                <Globe className="size-3" />
-              ) : visibility === "partners" ? (
-                <Users className="size-3" />
-              ) : (
-                <Lock className="size-3" />
-              )}
-              <span className="hidden sm:inline capitalize">
-                {visibility === "partners" ? "Partners" : visibility}
-              </span>
-              <ChevronDown className="size-2.5 opacity-40" />
-            </DropdownMenuTrigger>
+            />
           </motion.div>
           <DropdownMenuContent
             align="start"

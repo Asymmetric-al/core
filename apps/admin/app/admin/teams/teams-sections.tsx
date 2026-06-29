@@ -545,11 +545,11 @@ function TeamManagementSheet({
                       variant="outline"
                       size="sm"
                       className="h-9 px-4 text-xs font-semibold border-zinc-200 shadow-none"
-                    />
+                    >
+                      Cancel
+                    </Button>
                   }
-                >
-                  Cancel
-                </SheetClose>
+                />
                 <Button
                   size="sm"
                   className="h-9 px-6 text-xs font-semibold bg-zinc-900 text-white shadow-lg shadow-zinc-200"
@@ -674,11 +674,11 @@ export function TeamsTableCard({
                     size="sm"
                     className="h-8 hover:bg-zinc-200/50 font-semibold text-zinc-600 gap-1"
                     onClick={() => onSelectTeam(row.original)}
-                  />
+                  >
+                    Manage <ChevronRight className="size-4" />
+                  </Button>
                 }
-              >
-                Manage <ChevronRight className="size-4" />
-              </SheetTrigger>
+              />
               <TeamManagementSheet
                 selectedTeam={selectedTeam}
                 members={members}
@@ -817,11 +817,11 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                         variant="ghost"
                         size="icon"
                         className="size-8 text-zinc-400 hover:text-zinc-900"
-                      />
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </Button>
                     }
-                  >
-                    <MoreHorizontal className="size-4" />
-                  </DropdownMenuTrigger>
+                  />
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel className="font-semibold text-xs">
                       User Options

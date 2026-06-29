@@ -54,12 +54,12 @@ export function ConversationStatusMenu({
               "h-8 gap-1.5 rounded-lg px-2.5 text-[11px] font-bold uppercase tracking-wider",
               STATUS_TRIGGER_TONES[conversation.status],
             )}
-          />
+          >
+            {STATUS_LABELS[conversation.status]}
+            <ChevronDown className="size-3 opacity-70" />
+          </Button>
         }
-      >
-        {STATUS_LABELS[conversation.status]}
-        <ChevronDown className="size-3 opacity-70" />
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
           Set status

@@ -110,11 +110,11 @@ export function DataTableFloatingBar<TData>({
                           variant="ghost"
                           size="icon"
                           className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background"
-                        />
+                        >
+                          <MoreHorizontal className="size-4" />
+                        </Button>
                       }
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </DropdownMenuTrigger>
+                    />
                     <DropdownMenuContent align="end" className="rounded-xl">
                       {overflowActions.map((action, index) => (
                         <React.Fragment key={action.label}>

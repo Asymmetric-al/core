@@ -263,13 +263,13 @@ export function DataTableToolbarResponsive<TData>({
                     size="sm"
                     disabled={urlStatePending}
                     className="h-9 gap-2 rounded-xl"
-                  />
+                  >
+                    <Columns className="size-4" />
+                    <span className="hidden md:inline">Columns</span>
+                    <ChevronDown className="size-3.5 opacity-50" />
+                  </Button>
                 }
-              >
-                <Columns className="size-4" />
-                <span className="hidden md:inline">Columns</span>
-                <ChevronDown className="size-3.5 opacity-50" />
-              </DropdownMenuTrigger>
+              />
               <DropdownMenuContent align="end" className="w-56 rounded-xl">
                 <DropdownMenuLabel className="font-normal text-xs text-muted-foreground">
                   Toggle columns

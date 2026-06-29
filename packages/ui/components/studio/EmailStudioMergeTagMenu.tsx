@@ -50,12 +50,12 @@ export function EmailStudioMergeTagMenu({
             size="sm"
             className="gap-1.5"
             disabled={disabled}
-          />
+          >
+            <Braces className="h-3.5 w-3.5" />
+            Merge tag
+          </Button>
         }
-      >
-        <Braces className="h-3.5 w-3.5" />
-        Merge tag
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>Insert merge tag</DropdownMenuLabel>
         <div className="px-2 pb-2">

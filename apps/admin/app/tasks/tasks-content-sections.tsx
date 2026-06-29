@@ -202,12 +202,12 @@ export function TasksFilterSection({
                 <Button
                   variant="outline"
                   className="h-11 gap-2 rounded-xl border-zinc-200 text-xs font-semibold"
-                />
+                >
+                  <ListFilter className="size-4 text-zinc-500" />
+                  Display
+                </Button>
               }
-            >
-              <ListFilter className="size-4 text-zinc-500" />
-              Display
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"

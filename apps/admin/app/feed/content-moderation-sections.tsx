@@ -622,11 +622,11 @@ function AllPostsFeedPostCard({
                           variant="ghost"
                           size="icon"
                           className="size-8 sm:h-9 sm:w-9 shrink-0 rounded-xl"
-                        />
+                        >
+                          <MoreHorizontal className="size-4" />
+                        </Button>
                       }
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </DropdownMenuTrigger>
+                    />
                   </motion.div>
                   <DropdownMenuContent
                     align="end"
@@ -1223,12 +1223,12 @@ export function ContentModerationTabsSection({
                         variant="outline"
                         size="sm"
                         className="h-9 sm:h-10 gap-2 rounded-xl"
-                      />
+                      >
+                        <Filter className="size-4" />
+                        <span className="hidden sm:inline">Filter</span>
+                      </Button>
                     }
-                  >
-                    <Filter className="size-4" />
-                    <span className="hidden sm:inline">Filter</span>
-                  </DropdownMenuTrigger>
+                  />
                 </motion.div>
                 <DropdownMenuContent
                   align="end"
@@ -1705,11 +1705,11 @@ function ModerationQueuePostCard({
                             variant="ghost"
                             size="icon"
                             className="size-8 sm:h-9 sm:w-9 rounded-xl"
-                          />
+                          >
+                            <MoreHorizontal className="size-4" />
+                          </Button>
                         }
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </DropdownMenuTrigger>
+                      />
                     </motion.div>
                     <DropdownMenuContent
                       align="end"

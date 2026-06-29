@@ -46,45 +46,45 @@ export function DataTableFacetedFilter<TData, TValue>({
             size="sm"
             disabled={disabled}
             className="h-9 rounded-xl border-dashed border-border/70 bg-background px-3 shadow-sm hover:bg-muted/40 aria-expanded:border-border aria-expanded:bg-muted/50"
-          />
-        }
-      >
-        <PlusCircle className="mr-2 size-4" />
-        {title}
-        {selectedValues?.size > 0 && (
-          <>
-            <Separator orientation="vertical" className="mx-2 h-4" />
-            <Badge
-              variant="secondary"
-              className="rounded-lg px-1.5 font-normal lg:hidden"
-            >
-              {selectedValues.size}
-            </Badge>
-            <div className="hidden gap-x-1 lg:flex">
-              {selectedValues.size > 2 ? (
+          >
+            <PlusCircle className="mr-2 size-4" />
+            {title}
+            {selectedValues?.size > 0 && (
+              <>
+                <Separator orientation="vertical" className="mx-2 h-4" />
                 <Badge
                   variant="secondary"
-                  className="rounded-lg px-1.5 font-normal"
+                  className="rounded-lg px-1.5 font-normal lg:hidden"
                 >
-                  {selectedValues.size} selected
+                  {selectedValues.size}
                 </Badge>
-              ) : (
-                options
-                  .filter((option) => selectedValues.has(option.value))
-                  .map((option) => (
+                <div className="hidden gap-x-1 lg:flex">
+                  {selectedValues.size > 2 ? (
                     <Badge
                       variant="secondary"
-                      key={option.value}
                       className="rounded-lg px-1.5 font-normal"
                     >
-                      {option.label}
+                      {selectedValues.size} selected
                     </Badge>
-                  ))
-              )}
-            </div>
-          </>
-        )}
-      </PopoverTrigger>
+                  ) : (
+                    options
+                      .filter((option) => selectedValues.has(option.value))
+                      .map((option) => (
+                        <Badge
+                          variant="secondary"
+                          key={option.value}
+                          className="rounded-lg px-1.5 font-normal"
+                        >
+                          {option.label}
+                        </Badge>
+                      ))
+                  )}
+                </div>
+              </>
+            )}
+          </Button>
+        }
+      />
       <PopoverContent
         className="w-56 overflow-hidden rounded-2xl border border-border/60 bg-popover p-0 shadow-xl"
         align="start"

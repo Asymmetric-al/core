@@ -169,20 +169,22 @@ function NavSection({
                               ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
                               : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
                           )}
-                        />
+                        >
+                          <AppIcon
+                            icon={item.icon}
+                            animated={isActive}
+                            className={cn(
+                              "size-4 shrink-0",
+                              isActive ? "text-zinc-800" : "text-zinc-500",
+                            )}
+                          />
+                          <span className="text-[13px] truncate">
+                            {item.title}
+                          </span>
+                          <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                        </SidebarMenuButton>
                       }
-                    >
-                      <AppIcon
-                        icon={item.icon}
-                        animated={isActive}
-                        className={cn(
-                          "size-4 shrink-0",
-                          isActive ? "text-zinc-800" : "text-zinc-500",
-                        )}
-                      />
-                      <span className="text-[13px] truncate">{item.title}</span>
-                      <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
-                    </CollapsibleTrigger>
+                    />
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         {item.items.map((sub) => {

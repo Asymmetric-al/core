@@ -508,70 +508,64 @@ export function ProfileHeaderActions({
       <Tooltip>
         <TooltipTrigger
           render={
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            />
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCopyLink}
+                className="h-9 px-3 text-xs font-medium"
+              >
+                <AnimatePresence mode="wait">
+                  {copiedLink ? (
+                    <motion.div
+                      key="check"
+                      initial={{ scale: 0.95, rotate: -90, opacity: 0 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
+                      transition={springTransition}
+                    >
+                      <Check className="size-4 text-emerald-600" />
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="copy"
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
+                      transition={springTransition}
+                    >
+                      <Copy className="size-4" />
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </Button>
+            </motion.div>
           }
-        >
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={handleCopyLink}
-            className="h-9 px-3 text-xs font-medium"
-          >
-            <AnimatePresence mode="wait">
-              {copiedLink ? (
-                <motion.div
-                  key="check"
-                  initial={{ scale: 0.95, rotate: -90, opacity: 0 }}
-                  animate={{ scale: 1, rotate: 0 }}
-                  exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
-                  transition={springTransition}
-                >
-                  <Check className="size-4 text-emerald-600" />
-                </motion.div>
-              ) : (
-                <motion.div
-                  key="copy"
-                  initial={{ scale: 0.95, opacity: 0 }}
-                  animate={{ scale: 1 }}
-                  exit={{ scale: 0.95, opacity: 0 }}
-                  transition={springTransition}
-                >
-                  <Copy className="size-4" />
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </Button>
-        </TooltipTrigger>
+        />
         <TooltipContent>Copy profile link</TooltipContent>
       </Tooltip>
 
       <Tooltip>
         <TooltipTrigger
           render={
-            <motion.div
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-            />
+            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+              <a
+                href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "sm" }),
+                  "h-9 px-3 text-xs font-medium",
+                )}
+              >
+                <Eye className="mr-1.5 size-4" />
+                <span className="hidden sm:inline">View Public Page</span>
+                <span className="sm:hidden">View</span>
+                <ExternalLink className="ml-1 size-3 opacity-50" />
+              </a>
+            </motion.div>
           }
-        >
-          <a
-            href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className={cn(
-              buttonVariants({ variant: "outline", size: "sm" }),
-              "h-9 px-3 text-xs font-medium",
-            )}
-          >
-            <Eye className="mr-1.5 size-4" />
-            <span className="hidden sm:inline">View Public Page</span>
-            <span className="sm:hidden">View</span>
-            <ExternalLink className="ml-1 size-3 opacity-50" />
-          </a>
-        </TooltipTrigger>
+        />
         <TooltipContent>View your public profile</TooltipContent>
       </Tooltip>
 

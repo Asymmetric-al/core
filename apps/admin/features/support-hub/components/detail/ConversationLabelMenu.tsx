@@ -66,24 +66,24 @@ export function ConversationLabelMenu({
               compact && "px-2",
             )}
             aria-label="Edit labels"
-          />
+          >
+            <Tag className="size-3.5 text-zinc-400" />
+            {compact ? null : (
+              <span>
+                Labels
+                {conversation.labels.length > 0 ? (
+                  <Badge
+                    variant="secondary"
+                    className="ml-1 h-4 min-w-[1rem] justify-center rounded-md border-transparent bg-zinc-900 px-1 text-[10px] font-semibold text-white"
+                  >
+                    {conversation.labels.length}
+                  </Badge>
+                ) : null}
+              </span>
+            )}
+          </Button>
         }
-      >
-        <Tag className="size-3.5 text-zinc-400" />
-        {compact ? null : (
-          <span>
-            Labels
-            {conversation.labels.length > 0 ? (
-              <Badge
-                variant="secondary"
-                className="ml-1 h-4 min-w-[1rem] justify-center rounded-md border-transparent bg-zinc-900 px-1 text-[10px] font-semibold text-white"
-              >
-                {conversation.labels.length}
-              </Badge>
-            ) : null}
-          </span>
-        )}
-      </PopoverTrigger>
+      />
       <PopoverContent align="end" className="w-64 p-0">
         <Command>
           <CommandInput placeholder="Search labels..." className="h-9" />

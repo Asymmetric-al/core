@@ -49,11 +49,11 @@ export function GiftHistoryViewSettingsMenu({
             size="icon"
             className="size-8 text-muted-foreground"
             aria-label="Gift history view settings"
-          />
+          >
+            <Settings2 className="size-4" aria-hidden="true" />
+          </Button>
         }
-      >
-        <Settings2 className="size-4" aria-hidden="true" />
-      </DropdownMenuTrigger>
+      />
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Columns

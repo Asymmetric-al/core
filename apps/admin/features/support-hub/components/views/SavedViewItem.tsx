@@ -60,11 +60,11 @@ export function SavedViewItem({
               size="icon"
               className="size-6 rounded-md text-zinc-400 hover:text-zinc-700"
               aria-label={`Saved view actions for ${view.name}`}
-            />
+            >
+              <MoreHorizontal className="size-3" />
+            </Button>
           }
-        >
-          <MoreHorizontal className="size-3" />
-        </DropdownMenuTrigger>
+        />
         <DropdownMenuContent align="end" className="w-40">
           <DropdownMenuItem
             closeOnClick={false}

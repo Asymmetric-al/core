@@ -460,11 +460,11 @@ function PDFStudioHeaderSection({
                   className="size-7 p-0"
                   onClick={onUndo}
                   disabled={!isEditorReady}
-                />
+                >
+                  <Undo2 className="size-3.5" />
+                </Button>
               }
-            >
-              <Undo2 className="size-3.5" />
-            </TooltipTrigger>
+            />
             <TooltipContent side="bottom">
               <p>Undo</p>
               <Kbd className="ml-1.5">⌘Z</Kbd>
@@ -479,11 +479,11 @@ function PDFStudioHeaderSection({
                   className="size-7 p-0"
                   onClick={onRedo}
                   disabled={!isEditorReady}
-                />
+                >
+                  <Redo2 className="size-3.5" />
+                </Button>
               }
-            >
-              <Redo2 className="size-3.5" />
-            </TooltipTrigger>
+            />
             <TooltipContent side="bottom">
               <p>Redo</p>
               <Kbd className="ml-1.5">⌘⇧Z</Kbd>
@@ -510,14 +510,14 @@ function PDFStudioHeaderSection({
                   <ToggleGroupItem
                     value="desktop"
                     className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-                  />
+                  >
+                    <Monitor className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Desktop
+                    </span>
+                  </ToggleGroupItem>
                 }
-              >
-                <Monitor className="size-3.5" />
-                <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                  Desktop
-                </span>
-              </TooltipTrigger>
+              />
               <TooltipContent side="bottom">Desktop preview</TooltipContent>
             </Tooltip>
             <Tooltip>
@@ -526,14 +526,14 @@ function PDFStudioHeaderSection({
                   <ToggleGroupItem
                     value="mobile"
                     className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
-                  />
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Mobile
+                    </span>
+                  </ToggleGroupItem>
                 }
-              >
-                <Smartphone className="size-3.5" />
-                <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                  Mobile
-                </span>
-              </TooltipTrigger>
+              />
               <TooltipContent side="bottom">Mobile preview</TooltipContent>
             </Tooltip>
           </ToggleGroup>
@@ -557,18 +557,18 @@ function PDFStudioHeaderSection({
                       size="sm"
                       className="h-8 gap-1.5"
                       disabled={!isEditorReady || isExporting}
-                    />
+                    >
+                      {isExporting ? (
+                        <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      ) : (
+                        <Download className="size-3.5" />
+                      )}
+                      <span className="hidden sm:inline text-xs font-medium">
+                        Export
+                      </span>
+                    </Button>
                   }
-                >
-                  {isExporting ? (
-                    <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <Download className="size-3.5" />
-                  )}
-                  <span className="hidden sm:inline text-xs font-medium">
-                    Export
-                  </span>
-                </DropdownMenuTrigger>
+                />
               }
             />
             <TooltipContent side="bottom">Export options</TooltipContent>
@@ -617,10 +617,12 @@ function PDFStudioHeaderSection({
 
         <DropdownMenu>
           <DropdownMenuTrigger
-            render={<Button variant="ghost" size="sm" className="size-8 p-0" />}
-          >
-            <MoreHorizontal className="size-4" />
-          </DropdownMenuTrigger>
+            render={
+              <Button variant="ghost" size="sm" className="size-8 p-0">
+                <MoreHorizontal className="size-4" />
+              </Button>
+            }
+          />
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onNewTemplate}>
               <Plus className="size-4 mr-2" />

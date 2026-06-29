@@ -259,12 +259,12 @@ function DatePickerButton({
               !value && "text-muted-foreground",
               className,
             )}
-          />
+          >
+            <CalendarIcon className="mr-2 size-3.5" />
+            {value ? format(value, "MMM d, yyyy") : placeholder}
+          </Button>
         }
-      >
-        <CalendarIcon className="mr-2 size-3.5" />
-        {value ? format(value, "MMM d, yyyy") : placeholder}
-      </PopoverTrigger>
+      />
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
           mode="single"
