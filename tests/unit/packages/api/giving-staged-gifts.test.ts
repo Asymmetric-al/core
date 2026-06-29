@@ -266,6 +266,56 @@ describe("stageGiftFromStripeDonation resilience", () => {
     expect(allocationsInsertCount).toBe(0);
   });
 
+  it("inserts initial allocation when only admin-split rows exist (is_initial false)", async () => {
+    let allocationsInsertCount = 0;
+    let sawInitialFilter = false;
+
+    const supabaseAdmin = {
+      from: vi.fn((table: string) => {
+        const chain: Record<string, unknown> = {};
+        chain.eq = vi.fn((column: string, value: unknown) => {
+          if (table === "staged_gift_allocations" && column === "is_initial") {
+            sawInitialFilter = value === true;
+          }
+          return chain;
+        });
+        chain.limit = vi.fn(() => chain);
+        chain.select = vi.fn(() => chain);
+        chain.insert = vi.fn(() => {
+          if (table === "staged_gift_allocations") {
+            allocationsInsertCount += 1;
+          }
+          return chain;
+        });
+
+        chain.single = vi.fn(() =>
+          Promise.resolve({ data: stagedGiftDbRow, error: null }),
+        );
+
+        chain.maybeSingle = vi.fn(() => {
+          if (table === "staged_gifts") {
+            return Promise.resolve({ data: stagedGiftDbRow, error: null });
+          }
+          if (table === "staged_gift_allocations") {
+            // Admin split only — no row with is_initial=true
+            return Promise.resolve({ data: null, error: null });
+          }
+          return Promise.resolve({ data: null, error: null });
+        });
+
+        return chain;
+      }),
+    } as never;
+
+    await stageGiftFromStripeDonation({
+      ...baseStageInput,
+      supabaseAdmin,
+    });
+
+    expect(sawInitialFilter).toBe(true);
+    expect(allocationsInsertCount).toBe(1);
+  });
+
   it("skips allocation read and insert entirely for zero-amount gift", async () => {
     let allocationsCallCount = 0;
     let allocationsInsertCount = 0;

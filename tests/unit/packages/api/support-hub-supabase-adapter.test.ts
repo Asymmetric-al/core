@@ -41,31 +41,6 @@ import { supabaseSupportHubAdapter } from "../../../../packages/api/src/admin/su
 function createQueryMock(resolveWith: { data: unknown; error: null | object }) {
   const mock: Record<string, ReturnType<typeof vi.fn>> = {};
 
-  const chainable = () => {
-    const methods = [
-      "select",
-      "eq",
-      "is",
-      "in",
-      "order",
-      "limit",
-      "maybeSingle",
-      "single",
-      "insert",
-      "update",
-      "upsert",
-      "delete",
-      "filter",
-    ];
-    for (const name of methods) {
-      mock[name] = vi.fn().mockReturnValue(queryBuilder);
-    }
-    // The last step in a read chain is awaited — resolve with the fixture.
-    // In supabase-js the builder is a thenable; vitest awaits the mock.
-    // We make the builder itself a promise by adding then/catch.
-    return queryBuilder;
-  };
-
   // Build the object first, then attach methods that reference it.
   const queryBuilder: Record<string, unknown> = {};
   const methods = [

@@ -29,9 +29,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-import { STATUS_COLORS } from "./types";
-
-import type { Transaction } from "./types";
+import { STATUS_COLORS, type Transaction } from "./types";
 
 import { makeDisplayDate } from "@/lib/dates";
 

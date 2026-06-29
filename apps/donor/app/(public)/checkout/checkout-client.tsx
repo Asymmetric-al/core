@@ -32,6 +32,7 @@ import Link from "next/link";
 import React, { useMemo, useState, useSyncExternalStore } from "react";
 
 import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
+import { getFieldWorkerById } from "@/lib/mock-data";
 
 function subscribeToToday() {
   return () => {};
@@ -41,7 +42,6 @@ function subscribeToToday() {
 function useClientTodayDateInputValue(): string {
   return useSyncExternalStore(subscribeToToday, todayDateInputValue, () => "");
 }
-import { getFieldWorkerById } from "@/lib/mock-data";
 
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = "one-time" | "monthly";
