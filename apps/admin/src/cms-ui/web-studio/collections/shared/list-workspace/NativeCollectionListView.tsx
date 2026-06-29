@@ -179,12 +179,10 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
               <Button
                 size="sm"
                 className="font-semibold uppercase tracking-wide"
-                asChild
+                render={<Link href={createHref} />}
               >
-                <Link href={createHref}>
-                  <Plus className="mr-2 size-4" />
-                  {studioConfig.createLabel}
-                </Link>
+                <Plus className="mr-2 size-4" />
+                {studioConfig.createLabel}
               </Button>
             ) : null
           }

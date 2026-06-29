@@ -165,7 +165,7 @@ export function StudioNavRail({ className }: { className?: string }) {
       data-collapsed={collapsed ? "true" : "false"}
       data-hydrated={hydrated ? "true" : "false"}
     >
-      <TooltipProvider delayDuration={200}>
+      <TooltipProvider delay={200}>
         <div className="flex items-center justify-between gap-1 border-border border-b p-2">
           {!collapsed ? (
             <span className="px-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wide">
@@ -175,26 +175,28 @@ export function StudioNavRail({ className }: { className?: string }) {
             <span className="sr-only">Web Studio navigation</span>
           )}
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0"
-                onClick={() => void persistCollapsed(!collapsed)}
-                aria-pressed={collapsed}
-                aria-label={
-                  collapsed
-                    ? "Expand studio navigation"
-                    : "Collapse studio navigation"
-                }
-              >
-                {collapsed ? (
-                  <PanelLeft className="size-4" />
-                ) : (
-                  <PanelLeftClose className="size-4" />
-                )}
-              </Button>
+            <TooltipTrigger
+              render={
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 shrink-0"
+                  onClick={() => void persistCollapsed(!collapsed)}
+                  aria-pressed={collapsed}
+                  aria-label={
+                    collapsed
+                      ? "Expand studio navigation"
+                      : "Collapse studio navigation"
+                  }
+                />
+              }
+            >
+              {collapsed ? (
+                <PanelLeft className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
             </TooltipTrigger>
             <TooltipContent side="right">
               {collapsed ? "Expand navigation" : "Collapse navigation"}
@@ -253,11 +255,9 @@ export function StudioNavRail({ className }: { className?: string }) {
                 variant="ghost"
                 size="sm"
                 className="justify-start overflow-hidden text-left text-xs"
-                asChild
+                render={<Link href={doc.href} title={doc.title} />}
               >
-                <Link href={doc.href} title={doc.title}>
-                  <span className="truncate">{doc.title}</span>
-                </Link>
+                <span className="truncate">{doc.title}</span>
               </Button>
             ))}
           </div>
@@ -274,30 +274,33 @@ function NavRailLink({
   icon: Icon,
   title,
 }: NavRailLinkProps) {
-  const button = (
-    <Button
-      variant={active ? "secondary" : "ghost"}
-      size="sm"
-      className={cn(
-        "justify-start gap-2 font-semibold text-xs",
-        collapsed && "justify-center px-0",
-      )}
-      asChild
-    >
-      <Link href={href} title={title}>
-        <Icon className="size-4 shrink-0" />
-        {!collapsed ? <span>{title}</span> : null}
-      </Link>
-    </Button>
-  );
-
   if (!collapsed) {
-    return button;
+    return (
+      <Button
+        variant={active ? "secondary" : "ghost"}
+        size="sm"
+        className="justify-start gap-2 font-semibold text-xs"
+        render={<Link href={href} title={title} />}
+      >
+        <Icon className="size-4 shrink-0" />
+        <span>{title}</span>
+      </Button>
+    );
   }
 
   return (
     <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
+      <TooltipTrigger
+        render={
+          <Button
+            variant={active ? "secondary" : "ghost"}
+            size="sm"
+            className={cn("justify-center gap-2 px-0 font-semibold text-xs")}
+          />
+        }
+      >
+        <Icon className="size-4 shrink-0" />
+      </TooltipTrigger>
       <TooltipContent side="right">{title}</TooltipContent>
     </Tooltip>
   );

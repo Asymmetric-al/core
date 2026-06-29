@@ -143,12 +143,15 @@ function MissionariesHubTableRows({
           {missionary.id}
         </TableCell>
         <TableCell className="text-right">
-          <Button size="sm" asChild>
-            <Link
-              href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
-            >
-              Create giving page
-            </Link>
+          <Button
+            size="sm"
+            render={
+              <Link
+                href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
+              />
+            }
+          >
+            Create giving page
           </Button>
         </TableCell>
       </TableRow>
