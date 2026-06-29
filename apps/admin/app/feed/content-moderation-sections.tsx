@@ -1632,11 +1632,11 @@ function ModerationQueuePostCard({
                               size="icon"
                               className="size-8 sm:h-9 sm:w-9 text-emerald-600 hover:bg-emerald-100 rounded-xl"
                               onClick={() => onActionClick(post.id, "approve")}
-                            />
+                            >
+                              <Check className="size-4" />
+                            </Button>
                           }
-                        >
-                          <Check className="size-4" />
-                        </TooltipTrigger>
+                        />
                       </motion.div>
                       <TooltipContent className="rounded-lg">
                         Approve
@@ -1657,11 +1657,11 @@ function ModerationQueuePostCard({
                               size="icon"
                               className="size-8 sm:h-9 sm:w-9 text-amber-600 hover:bg-amber-100 rounded-xl"
                               onClick={() => onActionClick(post.id, "hide")}
-                            />
+                            >
+                              <EyeOff className="size-4" />
+                            </Button>
                           }
-                        >
-                          <EyeOff className="size-4" />
-                        </TooltipTrigger>
+                        />
                       </motion.div>
                       <TooltipContent className="rounded-lg">
                         Hide Post
@@ -1682,11 +1682,11 @@ function ModerationQueuePostCard({
                               size="icon"
                               className="size-8 sm:h-9 sm:w-9 text-rose-600 hover:bg-rose-100 rounded-xl"
                               onClick={() => onActionClick(post.id, "delete")}
-                            />
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
                           }
-                        >
-                          <Trash2 className="size-4" />
-                        </TooltipTrigger>
+                        />
                       </motion.div>
                       <TooltipContent className="rounded-lg">
                         Delete Post

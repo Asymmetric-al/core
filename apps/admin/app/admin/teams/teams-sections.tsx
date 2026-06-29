@@ -223,12 +223,12 @@ export function TeamsPageActions() {
     <Dialog>
       <DialogTrigger
         render={
-          <Button className="h-11 rounded-xl bg-zinc-900 font-semibold uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800" />
+          <Button className="h-11 rounded-xl bg-zinc-900 font-semibold uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
+            <Plus className="mr-2 size-4" />
+            Create Team
+          </Button>
         }
-      >
-        <Plus className="mr-2 size-4" />
-        Create Team
-      </DialogTrigger>
+      />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
