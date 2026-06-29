@@ -14,13 +14,24 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
   - `<!-- BEGIN:nextjs-agent-rules --> ... <!-- END:nextjs-agent-rules -->`
   - `<!-- NEXT-AGENTS-MD-START --> ... <!-- NEXT-AGENTS-MD-END -->`
 
+### Claude Code project assets
+
+Claude Code discovers project skills, slash commands, and subagents from `.claude/`, and MCP servers from the repo-root `.mcp.json`.
+
+- `.claude/skills/`, `.claude/commands/`, and `.claude/agents/` are **generated mirrors** — do not hand-edit them. Edit the canonical source, then run `bun run skills:sync`:
+  - **Skills** → canonical `docs/ai/skills/*/SKILL.md` (plus ecosystem installs under `.agents/skills/`). Ecosystem-packaged `SKILL.md` files mirrored into `.claude/skills/` should include YAML frontmatter (`name`, `description`) when Claude Code discovery requires it; canonical `docs/ai/skills/*/SKILL.md` files are synced as-is (body-only is OK until promoted).
+  - **Commands** → `.cursor/commands/*.md`.
+  - **Subagents** → `.cursor/agents/*.md`.
+- `.mcp.json` (repo root) is read directly by Claude Code (`next-devtools`, `shadcn`) — no mirror needed.
+- `bun run skills:verify` (pre-push and CI) fails on drift between the canonical sources and the `.cursor/`, `.agents/`, and `.claude/` mirrors. `.claude/skills/` is Prettier-ignored like the other bundled skill libraries; `.claude/commands/` and `.claude/agents/` are format-checked.
+
 ## Source-of-truth order
 
 Use this order when instructions conflict:
 
 1. **OpenSpec (when `openspec/` exists in the repo):** `openspec/specs/` = merged product intent; `openspec/changes/` = proposed changes not yet folded into specs.
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
-3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
+3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
 4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
 5. **MCP/runtime and official CLI facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), official TanStack CLI/Intent output for TanStack work, plus any other MCP servers enabled in the agent.
 6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
@@ -209,6 +220,15 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
 
+## Inngest dev MCP (agent tooling)
+
+This repo configures the official Inngest dev-server MCP endpoint in root `.mcp.json` (also mirrored to `.cursor/mcp.json` for Cursor).
+
+- **Requirement:** An Inngest dev server must be running before the MCP endpoint is useful (for example, `npx inngest-cli@latest dev` from the app that owns an Inngest runtime integration).
+- **Default URL:** `http://127.0.0.1:8288/mcp`. If port `8288` is occupied, the dev server may use `8289` or another fallback port; update the MCP URL to match the active server.
+- **Scope:** This is agent tooling only. It does not mean this repo has adopted Inngest product runtime code, dependencies, or env vars.
+- **Claude Code:** The official Claude Code plugin can provide its own Inngest tooling and MCP wiring; repo MCP config is available when the client reads `.mcp.json`.
+
 ### TanStack CLI and Intent
 
 For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
@@ -246,7 +266,7 @@ Load rulebooks before editing files in their domain.
 
 ## Skill Routing (Deterministic)
 
-Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/` and `.agents/skills/`.
+Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/`.
 
 - **Repo entry / instruction map (default orientation for repo work):** `docs/ai/skills/repo-entry/SKILL.md`
 
@@ -255,6 +275,8 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 **Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`).
 
 To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
+
+**Personal/global slash-command use (optional):** The canonical skills under `docs/ai/skills/` can also be copied into your personal `~/.claude/skills/` to expose them as `/<name>` slash commands in Claude Code across **all** your projects. This is separate from how skills load **inside** this repo (AGENTS.md routing) and from the repo mirrors (`.agents/skills/`, `.cursor/skills/`); it is a per-developer convenience, not a repo requirement, and there is no repo script for it today. Copy each `docs/ai/skills/<name>/` directory (including its `references/`) to `~/.claude/skills/<name>/`; the copies are point-in-time snapshots that do **not** auto-update, so re-copy after refreshing the canonical skills. Three skills — `setup-matt-pocock-skills`, `ubiquitous-language`, `zoom-out` — carry `disable-model-invocation: true`, so they stay user-invocable via `/` but are not auto-invoked by the model.
 
 Do **not** use `npx skills check` as a read-only check in this repo. With `skills@1.5.7`, `check` is not listed in `npx skills --help` and was observed to update project skills. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review or revert the generated `.agents/skills` and `skills-lock.json` diff.
 
@@ -272,6 +294,12 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
 
+**`improve`** ([`shadcn/improve`](https://github.com/shadcn/improve)) is in `docs/ai/skills/improve/`. Refresh via `npx skills add shadcn/improve -y`, then **delete any project-level `.claude/skills/improve` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/improve/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/improve/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
+
+**Official Inngest agent skills** (`docs/ai/skills/inngest-*`) are vendored from [`inngest/inngest-skills`](https://github.com/inngest/inngest-skills) and [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin). Refresh them with `bun run skills:refresh-inngest`, then `bun run skills:sync` and `bun run skills:verify`; source SHAs and licenses are documented in `docs/ai/skills/inngest/references/upstream.md`. These skills are agent tooling for integration work, not evidence of product runtime adoption. Use `docs/ai/skills/inngest/SKILL.md` as the router when unsure which Inngest skill applies.
+
+**`eve`**, **`create-agent`**, **`impeccable`**, and **`playwright-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`).
+
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
@@ -280,6 +308,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
+- **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
 - **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
 - **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
@@ -297,12 +326,23 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
+- **Audit any codebase (bugs, security, perf, tests, tech debt, migrations, DX), suggest features/roadmap, or write self-contained handoff plans for another agent to execute ([`shadcn/improve`](https://github.com/shadcn/improve)):** `docs/ai/skills/improve/SKILL.md` — strictly read-only on source code; writes only to `plans/`. Invoke `/improve` (composes with `quick`/`deep`, `branch`, `next`, `plan <desc>`, `review-plan`, `execute`, `reconcile`, `--issues`).
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
+- **Inngest durable workflows and agent tooling:** load `docs/ai/skills/inngest/SKILL.md` when choosing a route. Use `docs/ai/skills/inngest-brownfield-audit/SKILL.md` before changing existing app workflows or fragile background work. Use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly adding Inngest runtime to an app. Use `docs/ai/skills/inngest-events/SKILL.md`, `docs/ai/skills/inngest-durable-functions/SKILL.md`, `docs/ai/skills/inngest-steps/SKILL.md`, `docs/ai/skills/inngest-flow-control/SKILL.md`, `docs/ai/skills/inngest-middleware/SKILL.md`, and `docs/ai/skills/inngest-realtime/SKILL.md` based on the feature area. Use `docs/ai/skills/inngest-agents/SKILL.md` for durable AI agent workflows, `docs/ai/skills/inngest-v3-v4-migration/SKILL.md` only if v3 usage is found, and `docs/ai/skills/inngest-api/SKILL.md` only for Inngest API or CLI operations. These tools are subordinate to OpenSpec, `AGENTS.md`, repo-local rulebooks, Next.js version docs, and runtime evidence.
+- **Playwright E2E/component/API testing patterns:** `docs/ai/skills/playwright-best-practices/SKILL.md` (subordinate to `docs/ai/rules/testing.md`)
+- **Durable backend AI agents ([vercel/eve](https://github.com/vercel/eve)):** `docs/ai/skills/eve/SKILL.md`
+- **Scaffold a new eve agent from an interview ([ikindacodes/ship-eve](https://github.com/ikindacodes/ship-eve)):** `docs/ai/skills/create-agent/SKILL.md` (pair with **eve**)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
 **Extra Cursor-packaged skills:** optional mirror-only ecosystem installs under **`.agents/skills/<name>/`** and **`.cursor/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+
+**Inngest plugins for agent clients:**
+
+- **Codex:** The repo mirrors official Inngest skills into `.agents/skills/` through `bun run skills:sync`. If a Codex session needs the full upstream plugin, clone [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin) outside the repo and run `/plugin install <path>/plugins/inngest`. Do not vendor the plugin examples, evals, or assets into this repo unless a future Codex discovery rule requires a repo-local plugin path.
+- **Claude Code:** Keep `CLAUDE.md` as `@AGENTS.md`. To install the full official Claude Code plugin, run `/plugin marketplace add inngest/inngest-claude-code-plugin`, then `/plugin install inngest@inngest-claude-code-plugin`.
+- **Cursor:** Cursor receives the official skills through generated `.cursor/skills/` mirrors and the `inngest-dev` server in `.cursor/mcp.json`.
 
 **Mattpocock pack** ([github.com/mattpocock/skills](https://github.com/mattpocock/skills)) — routed through canonical `docs/ai/skills/` copies:
 
@@ -316,6 +356,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 | **to-prd**                                    | `docs/ai/skills/to-prd/SKILL.md` — PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec.      |
 | **to-issues**                                 | `docs/ai/skills/to-issues/SKILL.md` — PRD → issues (**skills.sh “prd-to-issues”** naming maps here).                                                        |
 | **improve-codebase-architecture**             | `docs/ai/skills/improve-codebase-architecture/SKILL.md` — Architecture deepening.                                                                           |
+| **codebase-design**                           | `docs/ai/skills/codebase-design/SKILL.md` — Deep-module design vocabulary and seam placement.                                                               |
 | **tdd**                                       | `docs/ai/skills/tdd/SKILL.md` — Red-green-refactor + references.                                                                                            |
 | **qa**, **request-refactor-plan**             | `docs/ai/skills/qa/SKILL.md`, `docs/ai/skills/request-refactor-plan/SKILL.md` — Vendored from upstream **`skills/deprecated/`** (not on default CLI list).  |
 | **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Vendored from **`skills/misc/`**.                               |
@@ -458,13 +499,13 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 ### Services overview
 
-| Service                 | Port                                    | Start command                 |
-| ----------------------- | --------------------------------------- | ----------------------------- |
-| Donor app               | 3000                                    | `bun run dev:donor`           |
-| Admin app               | 3030                                    | `bun run dev:admin`           |
-| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control` |
-| Missionary app          | 4000                                    | `bun run dev:missionary`      |
-| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`              |
+| Service                 | Port                                    | Start command                                                                                                                      |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Donor app               | 3000                                    | `node scripts/run-with-ci-env.mjs -- bun run dev:donor` (cloud); `bun run dev:donor` when root `.env.local` is loaded in the shell |
+| Admin app               | 3030                                    | `bun run dev:admin`                                                                                                                |
+| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control`                                                                                                      |
+| Missionary app          | 4000                                    | `bun run dev:missionary`                                                                                                           |
+| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`                                                                                                                   |
 
 ### Mission Control Cloud Agent startup
 
@@ -476,6 +517,16 @@ bun run dev:mission-control
 ```
 
 Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
+
+### Donor app in cloud sandboxes
+
+After `bun run setup:mission-control:cloud`, start the donor dev server with the same CI env wrapper Turbo uses for admin and E2E (plain `bun run dev:donor` can return HTTP 500 because `NEXT_PUBLIC_*` vars from root `.env.local` are not always forwarded to the Turbo child):
+
+```bash
+node scripts/run-with-ci-env.mjs -- bun run dev:donor
+```
+
+Then open `http://localhost:3000`. For all three apps with one command, use `bun run dev:all` (loads `--env-file=.env.local`).
 
 ### Local Supabase startup
 
@@ -524,7 +575,7 @@ Standard commands documented in `AGENTS.md` monorepo rules section:
 ## Review guidelines (for automated code-review bots)
 
 These guidelines apply to automated reviewers (Codex, Greptile, Cursor Bugbot/Security, and any
-agent acting as a reviewer) and to the **Merge Captain** pipeline that triages their findings. The
+agent acting as a reviewer). The
 goal is signal over noise: real bugs surface, nits do not bury them.
 
 **Severity — rate findings into these tiers:**
@@ -544,6 +595,6 @@ goal is signal over noise: real bugs surface, nits do not bury them.
 - After the first review round, re-reviews should raise only **new** P0/P1 findings — suppress
   fresh nits — to avoid fix→new-nit loops.
 - Merge safety is enforced by GitHub required checks, not by review bots; a passing/failing review
-  is advisory. See `docs/guides/development/merge-captain-pipeline.md`.
+  is advisory. See `docs/ai/pr-pipeline-bots/RERUN-AND-ACTIVATION.md`.
 
 <!-- NEXT-AGENTS-MD-START -->[Next.js Docs Index]|root: ./.next-docs|STOP. What you remember about Next.js is WRONG for this project. Always search docs and read before any task.|If docs missing, run this command first: npx @next/codemod agents-md --output AGENTS.md|01-app/01-getting-started:{01-installation.mdx,02-project-structure.mdx,03-layouts-and-pages.mdx,04-linking-and-navigating.mdx,05-server-and-client-components.mdx,06-cache-components.mdx,07-fetching-data.mdx,08-updating-data.mdx,09-caching-and-revalidating.mdx,10-error-handling.mdx,11-css.mdx,12-images.mdx,13-fonts.mdx,14-metadata-and-og-images.mdx,15-route-handlers.mdx,16-proxy.mdx,17-deploying.mdx,18-upgrading.mdx}|01-app/02-guides:{analytics.mdx,authentication.mdx,backend-for-frontend.mdx,caching.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,data-security.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,json-ld.mdx,lazy-loading.mdx,local-development.mdx,mcp.mdx,mdx.mdx,memory-usage.mdx,multi-tenant.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,prefetching.mdx,production-checklist.mdx,progressive-web-apps.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,single-page-applications.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx,videos.mdx}|01-app/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|01-app/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|01-app/02-guides/upgrading:{codemods.mdx,version-14.mdx,version-15.mdx,version-16.mdx}|01-app/03-api-reference:{07-edge.mdx,08-turbopack.mdx}|01-app/03-api-reference/01-directives:{use-cache-private.mdx,use-cache-remote.mdx,use-cache.mdx,use-client.mdx,use-server.mdx}|01-app/03-api-reference/02-components:{font.mdx,form.mdx,image.mdx,link.mdx,script.mdx}|01-app/03-api-reference/03-file-conventions/01-metadata:{app-icons.mdx,manifest.mdx,opengraph-image.mdx,robots.mdx,sitemap.mdx}|01-app/03-api-reference/03-file-conventions:{default.mdx,dynamic-routes.mdx,error.mdx,forbidden.mdx,instrumentation-client.mdx,instrumentation.mdx,intercepting-routes.mdx,layout.mdx,loading.mdx,mdx-components.mdx,not-found.mdx,page.mdx,parallel-routes.mdx,proxy.mdx,public-folder.mdx,route-groups.mdx,route-segment-config.mdx,route.mdx,src-folder.mdx,template.mdx,unauthorized.mdx}|01-app/03-api-reference/04-functions:{after.mdx,cacheLife.mdx,cacheTag.mdx,connection.mdx,cookies.mdx,draft-mode.mdx,fetch.mdx,forbidden.mdx,generate-image-metadata.mdx,generate-metadata.mdx,generate-sitemaps.mdx,generate-static-params.mdx,generate-viewport.mdx,headers.mdx,image-response.mdx,next-request.mdx,next-response.mdx,not-found.mdx,permanentRedirect.mdx,redirect.mdx,refresh.mdx,revalidatePath.mdx,revalidateTag.mdx,unauthorized.mdx,unstable_cache.mdx,unstable_noStore.mdx,unstable_rethrow.mdx,updateTag.mdx,use-link-status.mdx,use-params.mdx,use-pathname.mdx,use-report-web-vitals.mdx,use-router.mdx,use-search-params.mdx,use-selected-layout-segment.mdx,use-selected-layout-segments.mdx,userAgent.mdx}|01-app/03-api-reference/05-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,appDir.mdx,assetPrefix.mdx,authInterrupts.mdx,basePath.mdx,browserDebugInfoInTerminal.mdx,cacheComponents.mdx,cacheHandlers.mdx,cacheLife.mdx,compress.mdx,crossOrigin.mdx,cssChunking.mdx,devIndicators.mdx,distDir.mdx,env.mdx,expireTime.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,htmlLimitedBots.mdx,httpAgentOptions.mdx,images.mdx,incrementalCacheHandlerPath.mdx,inlineCss.mdx,isolatedDevBuild.mdx,logging.mdx,mdxRs.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactCompiler.mdx,reactMaxHeadersLength.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,sassOptions.mdx,serverActions.mdx,serverComponentsHmrCache.mdx,serverExternalPackages.mdx,staleTimes.mdx,staticGeneration.mdx,taint.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,turbopackFileSystemCache.mdx,typedRoutes.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,viewTransition.mdx,webVitalsAttribution.mdx,webpack.mdx}|01-app/03-api-reference/05-config:{02-typescript.mdx,03-eslint.mdx}|01-app/03-api-reference/06-cli:{create-next-app.mdx,next.mdx}|02-pages/01-getting-started:{01-installation.mdx,02-project-structure.mdx,04-images.mdx,05-fonts.mdx,06-css.mdx,11-deploying.mdx}|02-pages/02-guides:{analytics.mdx,authentication.mdx,babel.mdx,ci-build-caching.mdx,content-security-policy.mdx,css-in-js.mdx,custom-server.mdx,debugging.mdx,draft-mode.mdx,environment-variables.mdx,forms.mdx,incremental-static-regeneration.mdx,instrumentation.mdx,internationalization.mdx,lazy-loading.mdx,mdx.mdx,multi-zones.mdx,open-telemetry.mdx,package-bundling.mdx,post-css.mdx,preview-mode.mdx,production-checklist.mdx,redirecting.mdx,sass.mdx,scripts.mdx,self-hosting.mdx,static-exports.mdx,tailwind-v3-css.mdx,third-party-libraries.mdx}|02-pages/02-guides/migrating:{app-router-migration.mdx,from-create-react-app.mdx,from-vite.mdx}|02-pages/02-guides/testing:{cypress.mdx,jest.mdx,playwright.mdx,vitest.mdx}|02-pages/02-guides/upgrading:{codemods.mdx,version-10.mdx,version-11.mdx,version-12.mdx,version-13.mdx,version-14.mdx,version-9.mdx}|02-pages/03-building-your-application/01-routing:{01-pages-and-layouts.mdx,02-dynamic-routes.mdx,03-linking-and-navigating.mdx,05-custom-app.mdx,06-custom-document.mdx,07-api-routes.mdx,08-custom-error.mdx}|02-pages/03-building-your-application/02-rendering:{01-server-side-rendering.mdx,02-static-site-generation.mdx,04-automatic-static-optimization.mdx,05-client-side-rendering.mdx}|02-pages/03-building-your-application/03-data-fetching:{01-get-static-props.mdx,02-get-static-paths.mdx,03-forms-and-mutations.mdx,03-get-server-side-props.mdx,05-client-side.mdx}|02-pages/03-building-your-application/06-configuring:{12-error-handling.mdx}|02-pages/04-api-reference:{06-edge.mdx,08-turbopack.mdx}|02-pages/04-api-reference/01-components:{font.mdx,form.mdx,head.mdx,image-legacy.mdx,image.mdx,link.mdx,script.mdx}|02-pages/04-api-reference/02-file-conventions:{instrumentation.mdx,proxy.mdx,public-folder.mdx,src-folder.mdx}|02-pages/04-api-reference/03-functions:{get-initial-props.mdx,get-server-side-props.mdx,get-static-paths.mdx,get-static-props.mdx,next-request.mdx,next-response.mdx,use-report-web-vitals.mdx,use-router.mdx,userAgent.mdx}|02-pages/04-api-reference/04-config/01-next-config-js:{adapterPath.mdx,allowedDevOrigins.mdx,assetPrefix.mdx,basePath.mdx,bundlePagesRouterDependencies.mdx,compress.mdx,crossOrigin.mdx,devIndicators.mdx,distDir.mdx,env.mdx,exportPathMap.mdx,generateBuildId.mdx,generateEtags.mdx,headers.mdx,httpAgentOptions.mdx,images.mdx,isolatedDevBuild.mdx,onDemandEntries.mdx,optimizePackageImports.mdx,output.mdx,pageExtensions.mdx,poweredByHeader.mdx,productionBrowserSourceMaps.mdx,proxyClientMaxBodySize.mdx,reactStrictMode.mdx,redirects.mdx,rewrites.mdx,serverExternalPackages.mdx,trailingSlash.mdx,transpilePackages.mdx,turbopack.mdx,typescript.mdx,urlImports.mdx,useLightningcss.mdx,webVitalsAttribution.mdx,webpack.mdx}|02-pages/04-api-reference/04-config:{01-typescript.mdx,02-eslint.mdx}|02-pages/04-api-reference/05-cli:{create-next-app.mdx,next.mdx}|03-architecture:{accessibility.mdx,fast-refresh.mdx,nextjs-compiler.mdx,supported-browsers.mdx}|04-community:{01-contribution-guide.mdx,02-rspack.mdx}<!-- NEXT-AGENTS-MD-END -->

@@ -724,10 +724,10 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
         .select("*")
         .eq("tenant_id", tenantId())
         .eq("conversation_id", conversationId)
-        .order("posted_at", { ascending: true })
+        .order("posted_at", { ascending: false })
         .limit(2000);
       assertDb(error, "support_messages.select");
-      const messages = (data ?? []) as unknown as SupabaseRow[];
+      const messages = ((data ?? []) as unknown as SupabaseRow[]).reverse();
 
       if (messages.length === 0) return [];
 

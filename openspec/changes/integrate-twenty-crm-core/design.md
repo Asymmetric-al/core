@@ -110,7 +110,7 @@ Use an isolated Twenty proof environment with:
 - Redis container.
 - Dedicated Postgres 16 database for Twenty.
 - Local Docker volume for first proof storage, then optional S3-compatible
-  storage smoke if staging will require external storage.
+  storage smoke if development will require external storage.
 - A public webhook receiver URL only for the non-production proof, using a
   disposable endpoint or tunnel.
 
@@ -576,7 +576,7 @@ missionary workspace, or public website authority transfer.
 
 Each domain must move through the same production gate:
 
-1. Staging parity is green for counts, links, duplicates, webhook lag,
+1. Development parity is green for counts, links, duplicates, webhook lag,
    outbound queue lag, projection lag, failed jobs, and dead letters.
 2. Twenty and Asym CRM schema changes are frozen for the cutover window.
 3. A dedicated Twenty Postgres backup is taken and restored into an isolated

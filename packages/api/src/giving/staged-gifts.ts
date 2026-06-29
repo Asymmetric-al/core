@@ -92,6 +92,11 @@ export interface StagedGiftPostingInput extends StagedGiftActionInput {
   crmConfig: CrmSyncRuntimeConfig;
 }
 
+export interface StagedGiftDesignationPostingInput extends StagedGiftPostingInput {
+  allocationId: string;
+  contributionId: string;
+}
+
 export interface ReconciliationFinding {
   id: string;
   reason: string;
@@ -254,13 +259,39 @@ export async function loadStagedGiftById(input: {
   return toStagedGiftRow(data);
 }
 
+type StagedGiftAllocationSnapshot = {
+  amount: number;
+  fundId: string | null;
+  missionaryId: string | null;
+};
+
+function allocationFromDonation(
+  donation: DonationForStaging,
+): StagedGiftAllocationSnapshot {
+  return {
+    amount: donation.amount,
+    fundId: donation.fund_id,
+    missionaryId: donation.missionary_id,
+  };
+}
+
+function allocationFromStagedGift(
+  gift: StagedGiftRow,
+): StagedGiftAllocationSnapshot {
+  return {
+    amount: gift.amount,
+    fundId: gift.fundId,
+    missionaryId: gift.missionaryId,
+  };
+}
+
 async function ensureInitialAllocation(input: {
   supabaseAdmin: SupabaseAdminClient;
   tenantId: string;
   stagedGiftId: string;
-  donation: DonationForStaging;
+  allocation: StagedGiftAllocationSnapshot;
 }) {
-  if (!(input.donation.amount > 0)) {
+  if (!(input.allocation.amount > 0)) {
     return;
   }
 
@@ -268,6 +299,7 @@ async function ensureInitialAllocation(input: {
     .from("staged_gift_allocations")
     .select("id")
     .eq("staged_gift_id", input.stagedGiftId)
+    .eq("is_initial", true)
     .limit(1)
     .maybeSingle();
   requireNoError(existing.error, "Failed to read staged gift allocations.");
@@ -280,9 +312,9 @@ async function ensureInitialAllocation(input: {
     .insert({
       tenant_id: input.tenantId,
       staged_gift_id: input.stagedGiftId,
-      fund_id: input.donation.fund_id,
-      missionary_id: input.donation.missionary_id,
-      amount: input.donation.amount,
+      fund_id: input.allocation.fundId,
+      missionary_id: input.allocation.missionaryId,
+      amount: input.allocation.amount,
       memo: "Initial allocation from Stripe payment intent.",
       is_initial: true,
     });
@@ -309,7 +341,7 @@ export async function stageGiftFromStripeDonation(
       supabaseAdmin: input.supabaseAdmin,
       tenantId: existingGift.tenantId,
       stagedGiftId: existingGift.id,
-      donation: input.donation,
+      allocation: allocationFromStagedGift(existingGift),
     });
     return existingGift;
   }
@@ -363,7 +395,7 @@ export async function stageGiftFromStripeDonation(
       supabaseAdmin: input.supabaseAdmin,
       tenantId: duplicateGift.tenantId,
       stagedGiftId: duplicateGift.id,
-      donation: input.donation,
+      allocation: allocationFromStagedGift(duplicateGift),
     });
     return duplicateGift;
   }
@@ -378,7 +410,7 @@ export async function stageGiftFromStripeDonation(
     supabaseAdmin: input.supabaseAdmin,
     tenantId,
     stagedGiftId: stagedGift.id,
-    donation: input.donation,
+    allocation: allocationFromDonation(input.donation),
   });
 
   try {
@@ -523,6 +555,7 @@ export async function queueStagedGiftPostingToTwenty(
     .eq("tenant_id", gift.tenantId)
     .eq("staged_gift_id", gift.id)
     .eq("crm_provider", "twenty")
+    .eq("scope", "parent")
     .maybeSingle();
   requireNoError(linked.error, "Failed to read donation CRM link.");
 
@@ -544,6 +577,7 @@ export async function queueStagedGiftPostingToTwenty(
         tenant_id: gift.tenantId,
         donation_id: gift.donationId,
         staged_gift_id: gift.id,
+        scope: "parent",
         crm_provider: "twenty",
         twenty_object_name: "giftSummaries",
         link_status: "queued",
@@ -580,6 +614,33 @@ export async function retryStagedGiftPostingToTwenty(
   }
 
   return queueStagedGiftPostingToTwenty(input);
+}
+
+export async function retryStagedGiftDesignationPostingToTwenty(
+  input: StagedGiftDesignationPostingInput,
+): Promise<never> {
+  const gift = await loadStagedGiftById(input);
+  if (gift.donationId !== input.contributionId) {
+    throw new ApiHttpError(404, "Staged gift not found for contribution.");
+  }
+
+  const allocation = await input.supabaseAdmin
+    .from("staged_gift_allocations")
+    .select("id")
+    .eq("tenant_id", input.tenantId)
+    .eq("staged_gift_id", input.stagedGiftId)
+    .eq("id", input.allocationId)
+    .maybeSingle();
+  requireNoError(allocation.error, "Failed to read staged gift allocation.");
+
+  if (!isJsonRecord(allocation.data)) {
+    throw new ApiHttpError(404, "Designation allocation not found.");
+  }
+
+  throw new ApiHttpError(
+    501,
+    "The connected CRM adapter does not support posting designation child records yet. Retry the parent gift record instead, or resolve the line in the CRM directly.",
+  );
 }
 
 async function insertReconciliationRun(input: {

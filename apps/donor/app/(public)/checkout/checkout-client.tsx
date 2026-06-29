@@ -29,7 +29,7 @@ import {
   Shield,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 
 import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
@@ -406,6 +406,7 @@ function SuccessView({
 function MonthlyScheduleSection({
   endDate,
   hasEndDate,
+  minStartDate,
   onEndDateChange,
   onHasEndDateChange,
   onStartDateChange,
@@ -415,6 +416,7 @@ function MonthlyScheduleSection({
 }: {
   endDate: string;
   hasEndDate: boolean;
+  minStartDate: string;
   onEndDateChange: (value: string) => void;
   onHasEndDateChange: (value: boolean) => void;
   onStartDateChange: (value: string) => void;
@@ -473,7 +475,7 @@ function MonthlyScheduleSection({
                     id="start-date"
                     type="date"
                     value={startDate}
-                    min={todayDateInputValue()}
+                    min={minStartDate}
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
                   />
@@ -526,6 +528,7 @@ function ConfigStep({
   endDate,
   frequency,
   hasEndDate,
+  minStartDate,
   onAmountSelect,
   onCoverFeesChange,
   onCustomAmountChange,
@@ -545,6 +548,7 @@ function ConfigStep({
   endDate: string;
   frequency: Frequency;
   hasEndDate: boolean;
+  minStartDate: string;
   onAmountSelect: (value: number) => void;
   onCoverFeesChange: (value: boolean) => void;
   onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -673,6 +677,7 @@ function ConfigStep({
           <MonthlyScheduleSection
             endDate={endDate}
             hasEndDate={hasEndDate}
+            minStartDate={minStartDate}
             onEndDateChange={onEndDateChange}
             onHasEndDateChange={onHasEndDateChange}
             onStartDateChange={onStartDateChange}
@@ -1112,9 +1117,20 @@ function CheckoutContent({
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
-    startDate: todayDateInputValue(),
+    startDate: "",
     step: "config",
   }));
+  const [minStartDate, setMinStartDate] = useState(() => todayDateInputValue());
+  useEffect(() => {
+    const today = todayDateInputValue();
+    setMinStartDate(today);
+    setCheckoutState((prev) => {
+      if (!prev.startDate || prev.startDate < today) {
+        return { ...prev, startDate: today };
+      }
+      return prev;
+    });
+  }, []);
   const {
     amount,
     coverFees,
@@ -1254,6 +1270,7 @@ function CheckoutContent({
                   onEndDateChange={setEndDate}
                   onFrequencyChange={setFrequency}
                   onHasEndDateChange={setHasEndDate}
+                  minStartDate={minStartDate}
                   onNext={handleNext}
                   onStartDateChange={setStartDate}
                   onToggleScheduleConfig={() =>

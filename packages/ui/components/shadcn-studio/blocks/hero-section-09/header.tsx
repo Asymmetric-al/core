@@ -1,10 +1,15 @@
 "use client";
 
-import { GithubIcon, MenuIcon, SearchIcon, TwitterIcon } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { Button } from "@asym/ui/components/shadcn/button";
+import {
+  GithubIcon,
+  MenuIcon,
+  SearchIcon,
+  TwitterIcon,
+} from "@asym/ui/components/shadcn/icons";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { cn } from "@asym/ui/lib/utils";
 

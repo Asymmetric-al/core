@@ -13,11 +13,12 @@ permissions:
 jobs:
   release-source-gate:
     name: release-source-gate
+    if: github.event_name != 'pull_request' || github.event.pull_request.base.ref == 'production'
     runs-on: ubuntu-latest
     steps:
       - name: Require develop as production release source
         env:
-          BASE_REF: ${{ github.base_ref }}
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.ref_name }}
           EVENT_NAME: ${{ github.event_name }}
           HEAD_REF: ${{ github.head_ref }}
           HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
@@ -32,8 +33,8 @@ jobs:
           fi
 
           if [[ "${BASE_REF}" != "production" ]]; then
-            echo "::error::release-source-gate only validates production PRs targeting production."
-            exit 1
+            echo "Skipping release-source-gate for PRs targeting ${BASE_REF}."
+            exit 0
           fi
 
           if [[ "${HEAD_REF}" != "develop" ]]; then

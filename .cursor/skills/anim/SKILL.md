@@ -1,3 +1,8 @@
+---
+name: anim
+description: "Tasteful, subtle web UI animation following Emil Kowalski / animations.dev principles. Use when adding or reviewing interface motion — hover and press feedback, entrances and exits, modals, toasts, menus, loading and skeleton states, staggered reveals, page or view transitions — so motion stays refined and purposeful, not decorative. Covers CSS, Web Animations, and React timing/easing. Pair with the motion skill for motion/react API specifics."
+---
+
 # Tasteful Web Animation — Skill
 
 **Name:** `anim`

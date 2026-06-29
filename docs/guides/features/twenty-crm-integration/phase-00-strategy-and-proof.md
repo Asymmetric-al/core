@@ -14,7 +14,7 @@ Make the integration decision explicit, document ownership, and prove Twenty can
 - Ownership matrix for CRM, CMS, finance, care, auth, and public surfaces.
 - Deep integration definition.
 - Twenty source review and official-doc review.
-- Twenty deployment proof in local or staging infrastructure.
+- Twenty deployment proof in local or development infrastructure.
 - API and webhook smoke tests against a non-production Twenty instance.
 - Supabase Postgres versus dedicated Postgres decision for Twenty.
 

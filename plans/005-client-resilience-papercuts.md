@@ -29,7 +29,7 @@ Three small, confirmed defects in client components:
    with `console.error` only — if the chunk fails to load (flaky network,
    deploy skew), the chart area shows a loading placeholder **forever** with
    no message and no retry.
-2. The missionary feed's follower-request item schedules a 1.5s + 0.4s
+- The missionary feed's follower-request item schedules a 1.5s + 0.4s
    `setTimeout` chain after a successful API call with no cleanup — if the
    item unmounts first (navigation, list refresh), the timers still fire and
    call `setStatus`/`onResolve` on an unmounted component.
@@ -164,10 +164,10 @@ In each of the two donor files:
 const [rechartsFailed, setRechartsFailed] = useState(false);
 ```
 
-2. In the `.catch`, keep the `console.error` and add
+- In the `.catch`, keep the `console.error` and add
    `if (isMounted) setRechartsFailed(true);`.
 
-3. Where the component currently renders its loading placeholder while
+- Where the component currently renders its loading placeholder while
    `rechartsModule` is `null` (find the `rechartsModule` consumers in each
    file), render a quiet failure message instead when `rechartsFailed` is
    true — match each page's existing empty/error styling (both files have
@@ -210,7 +210,7 @@ useEffect(() => {
 
 (Add `useRef`/`useEffect` to the existing React imports if missing.)
 
-2. Store both timeouts:
+- Store both timeouts:
 
 ```ts
 const collapseTimer = setTimeout(() => {
@@ -223,7 +223,7 @@ const collapseTimer = setTimeout(() => {
 timersRef.current.push(collapseTimer);
 ```
 
-3. Double-submit guard: read the JSX below line 175 and confirm the
+- Double-submit guard: read the JSX below line 175 and confirm the
    approve/ignore buttons are disabled (or hidden) whenever
    `status !== "pending"`. If they are not, add `disabled={status !== "pending"}`
    to both buttons. If they already are, state that in your report and change
