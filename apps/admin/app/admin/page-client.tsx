@@ -96,9 +96,9 @@ const SECURITY_TIPS = [
     text: "Review audit logs weekly for unusual access patterns.",
   },
   {
-    id: "separate-staging",
+    id: "separate-development",
     order: 4,
-    text: "Maintain separate staging environments for testing.",
+    text: "Maintain separate development environments for testing.",
   },
 ];
 

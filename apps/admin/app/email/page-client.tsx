@@ -185,8 +185,6 @@ function emailStudioUiReducer(
 
 interface EmailStudioHeaderProps {
   metadata: EmailMetadata;
-  builder: EmailBuilderKind;
-  legacyUnlayerEnabled: boolean;
   hasUnsavedChanges: boolean;
   isEditorReady: boolean;
   isSaving: boolean;
@@ -206,8 +204,6 @@ interface EmailStudioHeaderProps {
 
 function EmailStudioHeader({
   metadata,
-  builder,
-  legacyUnlayerEnabled,
   hasUnsavedChanges,
   isEditorReady,
   isSaving,
@@ -237,11 +233,7 @@ function EmailStudioHeader({
         </div>
 
         <div className="hidden md:block">
-          <EmailStudioProviderStatus
-            builder={builder}
-            legacyUnlayerEnabled={legacyUnlayerEnabled}
-            variant="badge"
-          />
+          <EmailStudioProviderStatus variant="badge" />
         </div>
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
@@ -376,7 +368,7 @@ function EmailStudioHeader({
             <TooltipContent side="bottom">Export options</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuItem onClick={onExportHtml}>
+            <DropdownMenuItem disabled={!isEditorReady} onClick={onExportHtml}>
               <FileCode className="size-4 mr-2" />
               Export as HTML
               <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
@@ -388,7 +380,7 @@ function EmailStudioHeader({
               Export as PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onTestSend}>
+            <DropdownMenuItem disabled={!isEditorReady} onClick={onTestSend}>
               <Send className="size-4 mr-2" />
               Send Test Email
             </DropdownMenuItem>
@@ -484,12 +476,14 @@ function EmailStudioHeader({
 }
 
 function EmailSaveDialog({
+  isSaving,
   open,
   onOpenChange,
   metadata,
   setMetadata,
   onConfirmSave,
 }: {
+  isSaving: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   metadata: EmailMetadata;
@@ -569,7 +563,10 @@ function EmailSaveDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={onConfirmSave} disabled={!metadata.name.trim()}>
+          <Button
+            onClick={onConfirmSave}
+            disabled={!metadata.name.trim() || isSaving}
+          >
             <Save className="size-4 mr-2" />
             Save Template
           </Button>
@@ -785,7 +782,7 @@ function EmailTemplatePickerDialog({
                     <div className="mt-0.5 text-xs text-muted-foreground">
                       {template.builder === "react_email"
                         ? "React Email"
-                        : "Legacy Unlayer"}{" "}
+                        : "Legacy (read-only)"}{" "}
                       · v{template.version}
                     </div>
                   </div>
@@ -915,13 +912,12 @@ export default function EmailStudio() {
     emailStudioUiReducer,
     INITIAL_EMAIL_STUDIO_UI_STATE,
   );
-  const [builder, setBuilder] = useState<EmailBuilderKind>(
-    runtimeConfig.builder.defaultBuilder,
-  );
   const [initialDesign, setInitialDesign] = useState<Record<string, unknown>>(
     EMPTY_REACT_EMAIL_DESIGN,
   );
   const [previewResult, setPreviewResult] =
+    useState<EmailStudioExportResult | null>(null);
+  const [legacyPreviewResult, setLegacyPreviewResult] =
     useState<EmailStudioExportResult | null>(null);
   const [showTestSendDialog, setShowTestSendDialog] = useState(false);
   const [testToEmail, setTestToEmail] = useState("");
@@ -947,6 +943,8 @@ export default function EmailStudio() {
     isFullscreen,
     copiedHtml,
   } = ui;
+  const isLegacyReadOnly = legacyPreviewResult !== null;
+  const canEditCurrentTemplate = isEditorReady && !isLegacyReadOnly;
 
   const handleUndo = useCallback(() => {
     editorRef.current?.undo();
@@ -957,11 +955,19 @@ export default function EmailStudio() {
   }, []);
 
   const handleSaveClick = useCallback(() => {
+    if (isLegacyReadOnly) {
+      toast.info("Legacy templates are read-only in Email Studio");
+      return;
+    }
     if (!editorRef.current) return;
     dispatchUi({ type: "set_show_save_dialog", value: true });
-  }, []);
+  }, [isLegacyReadOnly]);
 
   const handleExportHtml = useCallback(async () => {
+    if (isLegacyReadOnly) {
+      toast.info("Legacy templates are preview-only in Email Studio");
+      return;
+    }
     if (!editorRef.current) return;
     try {
       const data = await editorRef.current.exportEmail({
@@ -973,12 +979,12 @@ export default function EmailStudio() {
     } catch {
       toast.error("Failed to export HTML");
     }
-  }, [metadata.preheader, metadata.subject, studioConfig]);
+  }, [isLegacyReadOnly, metadata.preheader, metadata.subject, studioConfig]);
 
   const handleKeyDown = useEffectEvent((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault();
-      if (isEditorReady && !isSaving) {
+      if (canEditCurrentTemplate && !isSaving) {
         handleSaveClick();
       }
     }
@@ -992,7 +998,9 @@ export default function EmailStudio() {
     }
     if ((e.metaKey || e.ctrlKey) && e.key === "e") {
       e.preventDefault();
-      handleExportHtml();
+      if (canEditCurrentTemplate) {
+        handleExportHtml();
+      }
     }
     if (e.key === "Escape" && isFullscreen) {
       dispatchUi({ type: "set_fullscreen", value: false });
@@ -1004,19 +1012,16 @@ export default function EmailStudio() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleEditorReady = useCallback(
-    (readyBuilder: EmailBuilderKind) => {
-      setBuilder(readyBuilder);
-      dispatchUi({ type: "editor_ready", config: runtimeConfig });
-    },
-    [runtimeConfig],
-  );
+  const handleEditorReady = useCallback(() => {
+    dispatchUi({ type: "editor_ready", config: runtimeConfig });
+  }, [runtimeConfig]);
 
   const handleDesignUpdate = useCallback(() => {
     dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
 
   const handleConfirmSave = useCallback(async () => {
+    if (isSaving || isLegacyReadOnly) return;
     if (!editorRef.current) return;
 
     dispatchUi({ type: "set_show_save_dialog", value: false });
@@ -1051,7 +1056,7 @@ export default function EmailStudio() {
     } finally {
       dispatchUi({ type: "set_saving", value: false });
     }
-  }, [metadata, studioConfig]);
+  }, [isLegacyReadOnly, isSaving, metadata, studioConfig]);
 
   const handleCopyHtml = useCallback(() => {
     navigator.clipboard.writeText(exportedHtml);
@@ -1078,10 +1083,16 @@ export default function EmailStudio() {
 
   const handlePreview = useCallback(
     async (device: PreviewDevice) => {
-      if (!editorRef.current) return;
       dispatchUi({ type: "set_preview_device", value: device });
 
       try {
+        if (legacyPreviewResult) {
+          setPreviewResult(legacyPreviewResult);
+          return;
+        }
+
+        if (!editorRef.current) return;
+
         const result = await editorRef.current.exportEmail({
           subject: metadata.subject,
           preheader: metadata.preheader,
@@ -1092,10 +1103,12 @@ export default function EmailStudio() {
         toast.error("Failed to generate preview");
       }
     },
-    [metadata.preheader, metadata.subject, studioConfig],
+    [legacyPreviewResult, metadata.preheader, metadata.subject, studioConfig],
   );
 
   const handleNewTemplate = useCallback(() => {
+    setLegacyPreviewResult(null);
+    setPreviewResult(null);
     setMetadata({
       id: null,
       name: "Untitled Email",
@@ -1106,10 +1119,9 @@ export default function EmailStudio() {
       editorRef.current.loadDesign(EMPTY_REACT_EMAIL_DESIGN);
     }
     setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
-    setBuilder(runtimeConfig.builder.defaultBuilder);
     dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New template created");
-  }, [runtimeConfig.builder.defaultBuilder]);
+  }, []);
 
   const handleInsertMergeTag = useCallback((key: string) => {
     editorRef.current?.insertMergeTag?.(key);
@@ -1117,9 +1129,13 @@ export default function EmailStudio() {
   }, []);
 
   const handleOpenTestSend = useCallback(() => {
+    if (isLegacyReadOnly) {
+      toast.info("Legacy templates are preview-only in Email Studio");
+      return;
+    }
     if (!editorRef.current) return;
     setShowTestSendDialog(true);
-  }, []);
+  }, [isLegacyReadOnly]);
 
   const handleOpenTemplatePicker = useCallback(async () => {
     setShowTemplatePicker(true);
@@ -1137,28 +1153,59 @@ export default function EmailStudio() {
 
   const handleSelectTemplate = useCallback(
     (template: EmailTemplateListEntry) => {
-      const isSameBuilder = template.builder === builder;
+      // Legacy Unlayer templates can no longer be edited in Email Studio.
+      // Open them read-only by previewing their cached HTML/text so the
+      // content stays viewable and safe from accidental overwrite.
+      if (template.builder !== "react_email") {
+        const legacyResult: EmailStudioExportResult = {
+          builder: template.builder,
+          builderVersion: template.builder_version ?? "",
+          design: template.design_json,
+          html: template.html_content ?? "",
+          text: template.text_content ?? "",
+          subject: template.default_subject ?? "",
+          preheader: template.default_preheader ?? "",
+        };
+
+        setLegacyPreviewResult(legacyResult);
+        setPreviewResult(legacyResult);
+        setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
+        setMetadata({
+          id: template.id,
+          name: template.name,
+          subject: template.default_subject ?? "",
+          preheader: template.default_preheader ?? "",
+        });
+        dispatchUi({ type: "set_unsaved_changes", value: false });
+        setShowTemplatePicker(false);
+        toast.info("Legacy template opened read-only", {
+          description:
+            "Legacy templates can't be edited in React Email. Showing a preview.",
+        });
+        return;
+      }
+
+      setLegacyPreviewResult(null);
+      setPreviewResult(null);
       setInitialDesign(template.design_json);
-      setBuilder(template.builder);
       setMetadata({
         id: template.id,
         name: template.name,
         subject: template.default_subject ?? "",
         preheader: template.default_preheader ?? "",
       });
-      if (isSameBuilder) {
-        editorRef.current?.loadDesign(template.design_json);
-      }
+      editorRef.current?.loadDesign(template.design_json);
       dispatchUi({ type: "set_unsaved_changes", value: false });
       setShowTemplatePicker(false);
       toast.success("Template opened", {
         description: template.name,
       });
     },
-    [builder],
+    [],
   );
 
   const handleSendTestEmail = useCallback(async () => {
+    if (isLegacyReadOnly || isSendingTest) return;
     if (!editorRef.current) return;
     setIsSendingTest(true);
     try {
@@ -1184,12 +1231,12 @@ export default function EmailStudio() {
     } finally {
       setIsSendingTest(false);
     }
-  }, [metadata, studioConfig, testToEmail]);
+  }, [isLegacyReadOnly, isSendingTest, metadata, studioConfig, testToEmail]);
 
   return (
     <div
       className={cn(
-        "flex flex-col bg-background",
+        "flex flex-col bg-background transition-colors duration-300 motion-reduce:transition-none",
         isFullscreen
           ? "fixed inset-0 z-50 overflow-hidden"
           : "flex-1 min-h-0 overflow-hidden",
@@ -1197,10 +1244,8 @@ export default function EmailStudio() {
     >
       <EmailStudioHeader
         metadata={metadata}
-        builder={builder}
-        legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
         hasUnsavedChanges={hasUnsavedChanges}
-        isEditorReady={isEditorReady}
+        isEditorReady={canEditCurrentTemplate}
         isSaving={isSaving}
         previewDevice={previewDevice}
         isFullscreen={isFullscreen}
@@ -1217,20 +1262,39 @@ export default function EmailStudio() {
       />
 
       <div className="flex-1 relative overflow-hidden bg-muted/30">
-        <EmailStudioEditor
-          key={`${builder}:${metadata.id ?? "draft"}`}
-          builder={builder}
-          legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
-          initialDesign={initialDesign}
-          templateId={metadata.id}
-          onReady={handleEditorReady}
-          onDesignUpdate={handleDesignUpdate}
-          ref={editorRef}
-          className="absolute inset-0"
-        />
+        {isLegacyReadOnly ? (
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div
+              aria-label="Legacy template selected read-only"
+              aria-live="polite"
+              className="max-w-md rounded-xl border bg-background p-6 text-center shadow-sm"
+              role="status"
+            >
+              <p className="text-sm font-medium text-foreground">
+                Legacy template selected read-only
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {metadata.name} can be previewed here, but Save, Export, and
+                Test Send are disabled to prevent overwriting a legacy template
+                with React Email editor content.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <EmailStudioEditor
+            key={metadata.id ?? "draft"}
+            initialDesign={initialDesign}
+            templateId={metadata.id}
+            onReady={handleEditorReady}
+            onDesignUpdate={handleDesignUpdate}
+            ref={editorRef}
+            className="absolute inset-0"
+          />
+        )}
       </div>
 
       <EmailSaveDialog
+        isSaving={isSaving}
         open={showSaveDialog}
         onOpenChange={(open) =>
           dispatchUi({ type: "set_show_save_dialog", value: open })
@@ -1259,8 +1323,8 @@ export default function EmailStudio() {
         }}
         html={previewResult?.html ?? ""}
         text={previewResult?.text ?? ""}
-        subject={metadata.subject}
-        preheader={metadata.preheader}
+        subject={previewResult?.subject ?? metadata.subject}
+        preheader={previewResult?.preheader ?? metadata.preheader}
       />
 
       <EmailTestSendDialog

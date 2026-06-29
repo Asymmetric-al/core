@@ -1,7 +1,7 @@
 import { resendAdapter } from "@payloadcms/email-resend";
 import { vercelBlobStorage } from "@payloadcms/storage-vercel-blob";
 
-import type { EmailAdapter, Plugin } from "payload";
+import type { EmailAdapter } from "payload";
 
 export const WEB_STUDIO_MEDIA_BLOB_PREFIX = "web-studio/media";
 export const DEFAULT_PAYLOAD_EMAIL_FROM_ADDRESS = "noreply@asymmetric.al";
@@ -33,9 +33,9 @@ export function resolvePayloadEmailAdapter(
   });
 }
 
-export function createPayloadStoragePlugins(
+export function createPayloadStorageAdapters(
   env: PayloadRuntimeEnv = process.env as PayloadRuntimeEnv,
-): Plugin[] {
+) {
   return [
     vercelBlobStorage({
       clientUploads: {

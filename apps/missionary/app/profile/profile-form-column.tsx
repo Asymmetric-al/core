@@ -8,6 +8,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+} from "@asym/ui/components/shadcn/icons";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
@@ -19,10 +25,6 @@ import {
   Upload,
   User,
   ImageIcon,
-  Instagram,
-  Facebook,
-  Twitter,
-  Youtube,
   Link as LinkIcon,
   Info,
 } from "lucide-react";

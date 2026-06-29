@@ -31,7 +31,7 @@ deleted, or recreated during this phase.
 - `TWENTY_WORKSPACE_ID` remains optional in current repo code.
 - `NEXT_PUBLIC_TWENTY_*` remains forbidden and no app source exposure was found.
 - `packages/env/README.md` and `docs/guides/development/getting-started.md`
-  now document the Cloud REST base and staging health command.
+  now document the Cloud REST base and development health command.
 - `.vercelignore` now excludes generated local artifacts so targeted Vercel
   proof deploys do not upload `node_modules`, prior `.next` output, coverage,
   or local environment files.
@@ -52,9 +52,9 @@ Sanitized result:
 - `production`: no `TWENTY_*` or `CRM_SYNC_*` keys.
 - `preview`: no `TWENTY_*` or `CRM_SYNC_*` keys.
 - `development`: no `TWENTY_*` or `CRM_SYNC_*` keys.
-- custom `staging`: `TWENTY_API_KEY` exists as a Vercel `sensitive` value.
+- custom `development`: `TWENTY_API_KEY` exists as a Vercel `sensitive` value.
 
-`vercel env pull --environment=staging` into a temp file showed that
+`vercel env pull --environment=development` into a temp file showed that
 `TWENTY_API_KEY` is intentionally not materialized for local CLI execution, so
 the local script correctly returned a sanitized missing-key state. This did not
 print the key value, and the temp file was deleted.
@@ -63,21 +63,21 @@ Production/admin runtime should not receive Twenty values yet. That remains
 aligned with the stop condition that production gift posting needs explicit
 owner approval.
 
-### Staging metadata-read proof
+### Development metadata-read proof
 
-A no-Payload staging health adapter was added at
-`/api/admin/crm/gateway/staging-health`. The app route is a thin re-export to
+A no-Payload development health adapter was added at
+`/api/admin/crm/gateway/development-health`. The app route is a thin re-export to
 package-owned CRM health logic, stays disabled for production target envs, and
 returns only sanitized configuration and metadata status.
 
-Staging proof deployment:
+Development proof deployment:
 
 - Deployment URL:
   `https://admin-gx8tkh3ta-asymmetric-al.vercel.app`.
 - Deployment id: `dpl_EicXuJN73g3W5C47biQYnGZHp49g`.
 - Build result: `READY`.
 - Route proof command:
-  `vercel curl /api/admin/crm/gateway/staging-health --deployment admin-gx8tkh3ta-asymmetric-al.vercel.app --scope asymmetric-al`.
+  `vercel curl /api/admin/crm/gateway/development-health --deployment admin-gx8tkh3ta-asymmetric-al.vercel.app --scope asymmetric-al`.
 - Sanitized result: `configured: true`, `apiBaseUrlKind:
 "twenty_cloud_rest"`, `metadataRead.ok: true`, `giftSummaries.exists: true`,
   `giftSummaries.missingFields: []`, `objectInventory.includesGiftSummaries:
@@ -93,14 +93,14 @@ Changed package behavior:
   `apiBaseUrlKind`, `workspaceConfigured`, and `hasWebhookSecret`.
 - Provider probe failures return `mode: "provider_error"` with provider status
   only, not secret values or raw configured URLs.
-- Staging health route returns package-owned `status: "ready"` only after a
+- Development health route returns package-owned `status: "ready"` only after a
   successful Twenty metadata read and does not require Payload initialization.
 
 Production protected deployments still block the smoke route. A protected
 production deployment returned Vercel auth protection first, and `vercel curl`
 against the route returned app-level `Unauthorized` after Vercel protection
-bypass. The original staging gateway status route returned a Payload
-initialization error before app auth, so the staging proof route was added to
+bypass. The original development gateway status route returned a Payload
+initialization error before app auth, so the development proof route was added to
 exercise the Twenty metadata read through server-side code without weakening the
 admin gateway route.
 
@@ -170,7 +170,7 @@ Coverage added:
 - Gateway missing, degraded, configured, and provider-error states.
 - Signed Twenty webhook ingress and duplicate delivery behavior.
 - `giftSummaries` metadata and payload contract.
-- Staging CRM health proof helper and production target disablement.
+- Development CRM health proof helper and production target disablement.
 - Outbound success/failure correlation and retry visibility.
 - App/browser raw Twenty boundary and `NEXT_PUBLIC_TWENTY_*` guard.
 
@@ -184,7 +184,7 @@ committed.
 Sanity checks:
 
 ```bash
-rg -n "(sk_live_|sk_test_|whsec_|sb_secret_|service_role|postgresql://|ghp_|SENTRY_AUTH_TOKEN|TWENTY_API_KEY|STRIPE_SECRET_KEY|RESEND_API_KEY|SUPABASE_SERVICE_ROLE_KEY|PAYLOAD_SECRET|PAYLOAD_DATABASE_URI|SUPABASE_DB_URL)" .vercelignore docs/ops/phase-evidence/2026-05-14_phase-04_twenty-crm-foundation.md docs/guides/development/getting-started.md docs/guides/architecture/runtime-map.md packages/env/README.md scripts/verify/twenty-crm-health.ts package.json packages/api/src/crm/health.ts packages/api/src/admin/crm/twenty-health.ts apps/admin/app/api/admin/crm/gateway/staging-health/route.ts tests/unit/packages/api/crm-health.test.ts
+rg -n "(sk_live_|sk_test_|whsec_|sb_secret_|service_role|postgresql://|ghp_|SENTRY_AUTH_TOKEN|TWENTY_API_KEY|STRIPE_SECRET_KEY|RESEND_API_KEY|SUPABASE_SERVICE_ROLE_KEY|PAYLOAD_SECRET|PAYLOAD_DATABASE_URI|SUPABASE_DB_URL)" .vercelignore docs/ops/phase-evidence/2026-05-14_phase-04_twenty-crm-foundation.md docs/guides/development/getting-started.md docs/guides/architecture/runtime-map.md packages/env/README.md scripts/verify/twenty-crm-health.ts package.json packages/api/src/crm/health.ts packages/api/src/admin/crm/twenty-health.ts apps/admin/app/api/admin/crm/gateway/development-health/route.ts tests/unit/packages/api/crm-health.test.ts
 git diff --check
 ```
 

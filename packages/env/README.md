@@ -30,7 +30,7 @@ Conditionally required:
 - `STRIPE_WEBHOOK_SECRET`
 - `SENTRY_DSN`
 
-These become required for protected deployments (production or custom staging target) and remain optional in local/preview workflows.
+These become required for protected deployments (production or custom development target) and remain optional in local/preview workflows.
 
 Cloudinary server/client keys are conditionally required only when Cloudinary is enabled in protected deployments.
 
@@ -53,12 +53,12 @@ gateway/sync phases:
 Do not add `NEXT_PUBLIC_TWENTY_*` variables. Browser and app source must use
 Asym API contracts, not raw Twenty credentials.
 
-For staging-only CRM health proof, run `bun run verify:twenty-crm-health` from
+For development-only CRM health proof, run `bun run verify:twenty-crm-health` from
 a server runtime or shell where the server-only Twenty variables are present.
 The script prints sanitized configuration state, object inventory, and
 `giftSummaries` field gaps without printing credential values.
-The admin app also exposes a staging-only
-`/api/admin/crm/gateway/staging-health` adapter for protected Vercel proof
+The admin app also exposes a development-only
+`/api/admin/crm/gateway/development-health` adapter for protected Vercel proof
 deployments. It returns 404 for production target envs and only reports
 sanitized metadata-read status.
 

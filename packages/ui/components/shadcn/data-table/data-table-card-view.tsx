@@ -1,23 +1,15 @@
 "use client";
 
-import { MoreHorizontal, ChevronRight } from "lucide-react";
+import { ChevronRight } from "lucide-react";
 import Image from "next/image";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
 import { Badge } from "../badge";
-import { Button } from "../button";
 import { Card, CardContent } from "../card";
 import { Checkbox } from "../checkbox";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "../dropdown-menu";
-import { getDataTableRowActionKey } from "./data-table-row-action-key";
+import { DataTableRowActions } from "./data-table-row-actions";
 
 import type { DataTableInteractiveRowAction } from "./types";
 import type { Row, Table } from "@tanstack/react-table";
@@ -32,6 +24,7 @@ interface DataTableCardViewProps<TData> {
   enableRowSelection?: boolean;
   onRowClick?: (row: Row<TData>) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   renderCard?: (row: Row<TData>) => React.ReactNode;
   className?: string;
 }
@@ -46,6 +39,7 @@ export function DataTableCardView<TData>({
   enableRowSelection = true,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
   renderCard,
   className,
 }: DataTableCardViewProps<TData>) {
@@ -78,6 +72,7 @@ export function DataTableCardView<TData>({
             enableRowSelection={enableRowSelection}
             onRowClick={onRowClick}
             rowActions={rowActions}
+            getRowActionAriaLabel={getRowActionAriaLabel}
           />
         );
       })}
@@ -105,6 +100,7 @@ interface DataTableCardItemProps<TData> {
   enableRowSelection?: boolean;
   onRowClick?: (row: Row<TData>) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
 }
 
 function DataTableCardItem<TData>({
@@ -117,6 +113,7 @@ function DataTableCardItem<TData>({
   enableRowSelection = true,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
 }: DataTableCardItemProps<TData>) {
   const original = row.original as Record<string, unknown>;
   const isSelected = row.getIsSelected();
@@ -131,6 +128,12 @@ function DataTableCardItem<TData>({
   const badgeValue = badgeField ? String(original[badgeField] ?? "") : "";
   const avatarValue = avatarField ? String(original[avatarField] ?? "") : "";
   const isRowClickable = Boolean(onRowClick);
+  const primaryLabelValue = primaryValue.trim();
+  const contextualRowActionAriaLabel = primaryLabelValue
+    ? () => `Row actions for ${primaryLabelValue}`
+    : undefined;
+  const rowActionAriaLabel =
+    getRowActionAriaLabel ?? contextualRowActionAriaLabel;
 
   const handleCardKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
     if (!onRowClick) {
@@ -212,45 +215,11 @@ function DataTableCardItem<TData>({
                 )}
 
                 {rowActions && rowActions.length > 0 ? (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-lg"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="rounded-xl">
-                      {rowActions.map((action, index) => (
-                        <React.Fragment
-                          key={getDataTableRowActionKey(action, index)}
-                        >
-                          {action.variant === "destructive" && index > 0 && (
-                            <DropdownMenuSeparator />
-                          )}
-                          <DropdownMenuItem
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              action.onClick(row.original);
-                            }}
-                            className={cn(
-                              "rounded-lg",
-                              action.variant === "destructive" &&
-                                "text-destructive focus:text-destructive",
-                            )}
-                          >
-                            {action.icon && (
-                              <action.icon className="size-4 mr-2" />
-                            )}
-                            {action.label}
-                          </DropdownMenuItem>
-                        </React.Fragment>
-                      ))}
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <DataTableRowActions
+                    row={row}
+                    actions={rowActions}
+                    getAriaLabel={rowActionAriaLabel}
+                  />
                 ) : (
                   onRowClick && (
                     <ChevronRight className="size-4 text-muted-foreground" />
@@ -278,6 +247,7 @@ interface DataTableMobileViewProps<TData> {
   avatarField?: string;
   onRowClick?: (row: Row<TData>) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   renderCard?: (row: Row<TData>) => React.ReactNode;
   className?: string;
 }
@@ -291,6 +261,7 @@ export function DataTableMobileView<TData>({
   avatarField,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
   renderCard,
   className,
 }: DataTableMobileViewProps<TData>) {
@@ -307,6 +278,7 @@ export function DataTableMobileView<TData>({
       enableRowSelection={true}
       onRowClick={onRowClick}
       rowActions={rowActions}
+      getRowActionAriaLabel={getRowActionAriaLabel}
       renderCard={renderCard}
       className={className}
     />

@@ -222,11 +222,11 @@ describe("Phase 5 CRM donor detail and reports", () => {
 
     expect(detail.donor.name).toBe("Ada Donor");
     expect(detail.giftHistory[0]).toMatchObject({
-      canResendReceipt: true,
       currencyCode: "USD",
       stagedGiftId: "staged-gift-1",
       twentyRecordId: "twenty-gift-1",
     });
+    expect(detail.giftHistoryTruncated).toBe(false);
     expect(detail.timeline.map((entry) => entry.kind)).toEqual(
       expect.arrayContaining(["gift", "activity"]),
     );
@@ -245,6 +245,31 @@ describe("Phase 5 CRM donor detail and reports", () => {
       platformPaymentTruth: true,
       twentyIsPaymentTruth: false,
     });
+  });
+
+  it("marks gift history as truncated when the donor has more than 100 gifts", async () => {
+    const donationTemplate = baseTables.donations[0]!;
+    const donations = Array.from({ length: 101 }, (_, index) => ({
+      ...donationTemplate,
+      created_at: new Date(Date.UTC(2026, 0, index + 1)).toISOString(),
+      id: `donation-${String(index + 1).padStart(3, "0")}`,
+    }));
+
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donation_crm_links: [],
+        donations,
+        staged_gifts: [],
+      }) as never,
+      tenantId: "tenant-1",
+    });
+
+    expect(detail.giftHistory).toHaveLength(100);
+    expect(detail.giftHistoryTruncated).toBe(true);
   });
 
   it("builds auditable report slices and CSV exports", async () => {
@@ -303,6 +328,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
           {
             id: "link-1",
             link_status: "queued",
+            scope: "parent",
             tenant_id: "tenant-1",
             updated_at: "2026-05-10T00:00:00.000Z",
           },

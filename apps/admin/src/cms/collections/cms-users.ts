@@ -10,6 +10,7 @@ import type { CollectionConfig } from "payload";
 
 export const CmsUsers: CollectionConfig = {
   slug: CMS_USERS_SLUG,
+  versions: false,
   admin: {
     useAsTitle: "email",
   },
