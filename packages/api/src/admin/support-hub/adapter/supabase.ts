@@ -719,15 +719,24 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
       return hydrateConversation(await oneRow("support_conversations", id));
     },
     async listMessages(conversationId) {
-      const { data, error } = await client()
-        .from("support_messages")
-        .select("*")
-        .eq("tenant_id", tenantId())
-        .eq("conversation_id", conversationId)
-        .order("posted_at", { ascending: false })
-        .limit(2000);
-      assertDb(error, "support_messages.select");
-      const messages = ((data ?? []) as unknown as SupabaseRow[]).reverse();
+      const pageSize = 1000;
+      const messagesDesc: SupabaseRow[] = [];
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await client()
+          .from("support_messages")
+          .select("*")
+          .eq("tenant_id", tenantId())
+          .eq("conversation_id", conversationId)
+          .order("posted_at", { ascending: false })
+          .range(offset, offset + pageSize - 1);
+        assertDb(error, "support_messages.select");
+        const page = (data ?? []) as unknown as SupabaseRow[];
+        messagesDesc.push(...page);
+        if (page.length < pageSize) {
+          break;
+        }
+      }
+      const messages = messagesDesc.reverse();
 
       if (messages.length === 0) return [];
 

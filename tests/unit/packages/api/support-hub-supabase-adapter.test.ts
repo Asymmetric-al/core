@@ -50,6 +50,7 @@ function createQueryMock(resolveWith: { data: unknown; error: null | object }) {
     "in",
     "order",
     "limit",
+    "range",
     "maybeSingle",
     "single",
     "insert",
@@ -130,6 +131,68 @@ describe("supabaseSupportHubAdapter — SQL filters", () => {
       // If attachments were fetched, from would be called a second time.
       const tablesCalled = fromSpy.mock.calls.map((c) => c[0]);
       expect(tablesCalled).not.toContain("support_message_attachments");
+    });
+
+    it("pages support_messages with range until a short page is returned", async () => {
+      const firstPage = Array.from({ length: 1000 }, (_, index) => ({
+        id: `msg-${index}`,
+        tenant_id: TENANT,
+        conversation_id: "conv-big",
+        type: "email",
+        direction: "inbound",
+        is_private: false,
+        delivery_state: "delivered",
+        author: {
+          id: "donor:a@b.com",
+          role: "donor",
+          name: "A",
+          email: "a@b.com",
+          avatarUrl: null,
+        },
+        body: { text: "hello", html: null },
+        email_headers: null,
+        outbound_send_log_id: null,
+        inbound_email_id: null,
+        posted_at: "2026-01-01T00:00:00.000Z",
+        created_at: "2026-01-01T00:00:00.000Z",
+        updated_at: "2026-01-01T00:00:00.000Z",
+      }));
+      const secondPage = [
+        {
+          ...firstPage[0],
+          id: "msg-1000",
+        },
+      ];
+
+      let page = 0;
+      const qbMessages = createQueryMock({ data: [], error: null });
+      qbMessages.range.mockImplementation(() => {
+        page += 1;
+        const data = page === 1 ? firstPage : secondPage;
+        return Object.assign(qbMessages, {
+          then: (resolve: (v: unknown) => void) => {
+            resolve({ data, error: null });
+            return Promise.resolve({ data, error: null });
+          },
+        });
+      });
+
+      const fromSpy = vi.fn().mockImplementation((table: string) => {
+        if (table === "support_messages") return qbMessages;
+        if (table === "support_message_attachments") {
+          return createQueryMock({ data: [], error: null });
+        }
+        return createQueryMock({ data: [], error: null });
+      });
+      setClient(fromSpy);
+
+      const messages = await runWithSupportHubTenant(TENANT, () =>
+        supabaseSupportHubAdapter.conversations.listMessages("conv-big"),
+      );
+
+      expect(qbMessages.range).toHaveBeenCalledWith(0, 999);
+      expect(qbMessages.range).toHaveBeenCalledWith(1000, 1999);
+      expect(messages).toHaveLength(1001);
     });
 
     it("fetches attachments via .in('message_id', [...]) with only returned message ids", async () => {
