@@ -171,6 +171,10 @@ Nia keywords:
 - chatwoot
 - documenso
 
+Agent tooling note: official Inngest agent skills are vendored under
+`docs/ai/skills/inngest-*` for integration planning and implementation work.
+This does not move Inngest out of planned/referenced product status.
+
 ## "When user mentions X, include these stack tags"
 
 - "auth/login/session" -> Supabase Auth, RLS, Next.js

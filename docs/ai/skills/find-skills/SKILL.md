@@ -68,6 +68,14 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 - **Optional Skills CLI install:** `npx skills add payloadcms/skills`.
 - **Pair with:** `docs/ai/rules/backend.md` for server and data boundaries.
 
+**Example — Inngest agent tooling:** durable workflow and agent integration work
+is covered by official skills vendored under `docs/ai/skills/inngest-*`, with
+`docs/ai/skills/inngest/SKILL.md` as the router. Use
+`docs/ai/skills/inngest-brownfield-audit/SKILL.md` before changing existing app
+workflows, and use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly
+adding product runtime Inngest. Refresh with `bun run skills:refresh-inngest`,
+then `bun run skills:sync` and `bun run skills:verify`.
+
 ## How to Help Users Find Skills
 
 ### Step 1: Understand What They Need

@@ -76,6 +76,7 @@ export function DataTableResponsiveInner<TData, TValue>({
   enableVirtualization,
   floatingBarActions,
   rowActions,
+  getRowActionAriaLabel,
   mobileCardConfig,
   className,
   tableClassName,
@@ -333,6 +334,7 @@ export function DataTableResponsiveInner<TData, TValue>({
             enableRowSelection={enableRowSelection}
             onRowClick={onRowClick}
             rowActions={rowActions}
+            getRowActionAriaLabel={getRowActionAriaLabel}
             renderCard={mobileCardConfig?.renderCard}
           />
         )}
