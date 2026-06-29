@@ -285,7 +285,9 @@ describe("EmailStudio page", () => {
     ).toBeTruthy();
 
     const saveButton = screen.getByRole("button", { name: /^save$/i });
-    const exportButton = screen.getByRole("button", { name: /^export as html/i });
+    const exportButton = screen.getByRole("button", {
+      name: /^export as html/i,
+    });
     expect((saveButton as HTMLButtonElement).disabled).toBe(true);
     expect((exportButton as HTMLButtonElement).disabled).toBe(true);
 
