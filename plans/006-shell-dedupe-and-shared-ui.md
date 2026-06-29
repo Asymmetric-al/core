@@ -272,7 +272,7 @@ Delete:
 For each of the five admin components, confirm zero importers (grep both the
 alias path and bare-name forms):
 
-```
+```shell
 grep -rn "components/app-shell\"\|components/app-header\"\|components/app-sidebar\"\|components/page-header\"\|components/dashboard-footer\"" apps/admin tests packages --include="*.ts" --include="*.tsx"
 ```
 
