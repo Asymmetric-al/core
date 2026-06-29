@@ -29,9 +29,18 @@ import {
   Shield,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo, useState, useSyncExternalStore } from "react";
 
 import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
+
+function subscribeToToday() {
+  return () => {};
+}
+
+/** Client-local YYYY-MM-DD; empty on the server to avoid SSR timezone drift. */
+function useClientTodayDateInputValue(): string {
+  return useSyncExternalStore(subscribeToToday, todayDateInputValue, () => "");
+}
 import { getFieldWorkerById } from "@/lib/mock-data";
 
 type Step = "config" | "details" | "payment" | "success";
@@ -1120,17 +1129,7 @@ function CheckoutContent({
     startDate: "",
     step: "config",
   }));
-  const [minStartDate, setMinStartDate] = useState(() => todayDateInputValue());
-  useEffect(() => {
-    const today = todayDateInputValue();
-    setMinStartDate(today);
-    setCheckoutState((prev) => {
-      if (!prev.startDate || prev.startDate < today) {
-        return { ...prev, startDate: today };
-      }
-      return prev;
-    });
-  }, []);
+  const minStartDate = useClientTodayDateInputValue();
   const {
     amount,
     coverFees,
@@ -1145,6 +1144,10 @@ function CheckoutContent({
     startDate,
     step,
   } = checkoutState;
+  const effectiveStartDate =
+    startDate && (!minStartDate || startDate >= minStartDate)
+      ? startDate
+      : minStartDate;
 
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
@@ -1277,7 +1280,7 @@ function CheckoutContent({
                     setShowScheduleConfig(!showScheduleConfig)
                   }
                   showScheduleConfig={showScheduleConfig}
-                  startDate={startDate}
+                  startDate={effectiveStartDate}
                 />
               )}
 
@@ -1322,7 +1325,7 @@ function CheckoutContent({
               coverFees={coverFees}
               fees={calculatedFees}
               total={total}
-              startDate={startDate}
+              startDate={effectiveStartDate}
               endDate={hasEndDate ? endDate : null}
             />
           </aside>
