@@ -22,7 +22,7 @@
     "@dnd-kit/sortable": "^10.0.0",
     "@dnd-kit/utilities": "^3.2.2",
     "date-fns": "^4.1.0",
-    "lucide-react": "^0.575.0",
+    "lucide-react": "1.17.0",
     "motion": "^12.34.2",
     "next": "16.2.6",
     "react": "19.2.3",

@@ -3,6 +3,7 @@ import { spawnSync } from "node:child_process";
 import nextEnv from "@next/env";
 
 import { LOCAL_DATABASE_URL, LOCAL_PAYLOAD_SECRET } from "./lib/local-data.mjs";
+import { assertPayloadRuntimeRequirements } from "./lib/payload-runtime.mjs";
 import { queryJson } from "./lib/postgres.mjs";
 import { adminAppDir, repoRoot } from "./lib/paths.mjs";
 
@@ -15,6 +16,13 @@ if (args.length === 0) {
   console.error(
     "Usage: node scripts/cms/run-payload-command.mjs <payload args...>",
   );
+  process.exit(1);
+}
+
+try {
+  assertPayloadRuntimeRequirements();
+} catch (cause) {
+  console.error(cause instanceof Error ? cause.message : cause);
   process.exit(1);
 }
 

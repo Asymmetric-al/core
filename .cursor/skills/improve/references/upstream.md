@@ -4,7 +4,7 @@ source_url: https://github.com/shadcn/improve
 source_type: github
 upstream_path: skills/improve/SKILL.md
 skills_lock_hash: 992d71e2ed2a83e7f25d8522d069f090e2ea16286ec29ea86f84cfa05c0c2430
-last_reviewed: 2026-06-11
+last_reviewed: 2026-06-10
 ---
 
 # Upstream: improve

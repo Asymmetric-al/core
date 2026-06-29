@@ -30,7 +30,7 @@ export default function BoneyardContributionsCapturePage() {
     >
       <BoneyardSkeleton
         name="admin-contributions-content"
-        loading={true}
+        loading={false}
         fixture={skeletonContent}
         snapshotConfig={{
           excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],

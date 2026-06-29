@@ -41,8 +41,12 @@ apps/admin/payload-types.ts
 
 # generated and auxiliary agent artifacts
 .tmp
+.tmp-pw-artifact
+.tmp-pw-trace
 .agent
 .agents
+.claude/worktrees
+.claude/worktrees.bak-push
 .next-docs
 .nia-sync
 .traycer
@@ -53,6 +57,7 @@ vendor/react-pdf-packages/*/
 # keep command docs but skip bundled skill libraries
 .cursor/skills
 .cursor/mcp.json
+.claude/skills
 
 # Local Supabase CLI temp state
 supabase/.temp/

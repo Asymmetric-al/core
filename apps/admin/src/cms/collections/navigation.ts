@@ -12,6 +12,7 @@ import type { CollectionConfig } from "payload";
 
 export const Navigation: CollectionConfig = {
   slug: "navigation",
+  versions: false,
   admin: {
     defaultColumns: ["label", "tenant", "updatedAt"],
     useAsTitle: "label",
