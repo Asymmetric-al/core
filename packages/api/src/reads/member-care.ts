@@ -419,7 +419,8 @@ async function readGoalRows(tenantId: string, missionaryId?: string) {
     .from("member_care_goals")
     .select("id, missionary_id, title, status, target_date")
     .eq("tenant_id", tenantId)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .limit(1000);
 
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
@@ -431,7 +432,13 @@ async function readGoalRows(tenantId: string, missionaryId?: string) {
     throw new Error(toErrorMessage(error, "Failed to read member care goals."));
   }
 
-  return (data ?? []) as GoalRow[];
+  const rows = (data ?? []) as GoalRow[];
+  if (rows.length === 1000) {
+    console.warn(
+      "member-care: member_care_goals query hit its row limit; results may be truncated.",
+    );
+  }
+  return rows;
 }
 
 async function readRequirementRows(tenantId: string, missionaryId?: string) {
@@ -440,7 +447,8 @@ async function readRequirementRows(tenantId: string, missionaryId?: string) {
     .from("member_care_requirements")
     .select("id, missionary_id, activity_type, interval_days, notes")
     .eq("tenant_id", tenantId)
-    .order("updated_at", { ascending: false });
+    .order("updated_at", { ascending: false })
+    .limit(1000);
 
   if (missionaryId) {
     query = query.eq("missionary_id", missionaryId);
@@ -454,7 +462,13 @@ async function readRequirementRows(tenantId: string, missionaryId?: string) {
     );
   }
 
-  return (data ?? []) as RequirementRow[];
+  const rows = (data ?? []) as RequirementRow[];
+  if (rows.length === 1000) {
+    console.warn(
+      "member-care: member_care_requirements query hit its row limit; results may be truncated.",
+    );
+  }
+  return rows;
 }
 
 async function readPrivateNoteRows(
@@ -470,7 +484,8 @@ async function readPrivateNoteRows(
       "id, missionary_id, author_user_id, author_name_snapshot, content, created_at",
     )
     .eq("tenant_id", tenantId)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .limit(500);
 
   if (!actorIsSuperAdmin) {
     query = query.eq("author_user_id", actorUserId);
@@ -488,7 +503,13 @@ async function readPrivateNoteRows(
     );
   }
 
-  return (data ?? []) as PrivateNoteRow[];
+  const rows = (data ?? []) as PrivateNoteRow[];
+  if (rows.length === 500) {
+    console.warn(
+      "member-care: member_care_private_notes query hit its row limit; results may be truncated.",
+    );
+  }
+  return rows;
 }
 
 function applyGoalsAndRequirements(
@@ -576,6 +597,14 @@ export async function readMemberCareActivities(
 export async function readMemberCareDashboardSnapshot(
   tenantId: string,
 ): Promise<MemberCareDashboardSnapshot> {
+  "use cache";
+
+  applyCache([
+    "member-care",
+    `member-care:${tenantId}`,
+    "member-care:dashboard",
+  ]);
+
   const [directoryRows, activityRows, goalRows, requirementRows] =
     await Promise.all([
       readDirectoryRows(tenantId),
