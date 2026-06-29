@@ -1,5 +1,6 @@
 import {
   makeDisplayDate,
+  resolveEffectiveStartDate,
   todayDateInputValue,
 } from "../../../../apps/donor/lib/dates";
 import { describe, expect, it } from "vitest";
@@ -58,5 +59,29 @@ describe("todayDateInputValue", () => {
     const now = new Date();
     const expected = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
     expect(value).toBe(expected);
+  });
+});
+
+describe("resolveEffectiveStartDate", () => {
+  it("uses minStartDate during SSR when min is empty and user start is unset", () => {
+    expect(resolveEffectiveStartDate("", "")).toBe("");
+  });
+
+  it("clamps a past start date up to minStartDate after client mount", () => {
+    expect(resolveEffectiveStartDate("2026-01-01", "2026-06-11")).toBe(
+      "2026-06-11",
+    );
+  });
+
+  it("keeps a future start date when it is on or after minStartDate", () => {
+    expect(resolveEffectiveStartDate("2026-07-01", "2026-06-11")).toBe(
+      "2026-07-01",
+    );
+  });
+
+  it("keeps today when start date equals minStartDate", () => {
+    expect(resolveEffectiveStartDate("2026-06-11", "2026-06-11")).toBe(
+      "2026-06-11",
+    );
   });
 });

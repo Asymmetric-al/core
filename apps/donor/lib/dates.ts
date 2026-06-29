@@ -32,3 +32,19 @@ export function todayDateInputValue(): string {
   const day = String(now.getDate()).padStart(2, "0");
   return `${now.getFullYear()}-${month}-${day}`;
 }
+
+/**
+ * Resolve the recurring gift start date shown in checkout.
+ *
+ * During SSR/hydration `minStartDate` is empty; once the client mounts it becomes
+ * today's local date. User input is kept only when it is on or after that minimum.
+ */
+export function resolveEffectiveStartDate(
+  startDate: string,
+  minStartDate: string,
+): string {
+  if (startDate && (!minStartDate || startDate >= minStartDate)) {
+    return startDate;
+  }
+  return minStartDate;
+}

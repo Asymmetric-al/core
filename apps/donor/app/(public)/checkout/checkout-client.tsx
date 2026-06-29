@@ -31,7 +31,11 @@ import {
 import Link from "next/link";
 import React, { useMemo, useState, useSyncExternalStore } from "react";
 
-import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
+import {
+  makeDisplayDate,
+  resolveEffectiveStartDate,
+  todayDateInputValue,
+} from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
 
 function subscribeToToday() {
@@ -1144,10 +1148,7 @@ function CheckoutContent({
     startDate,
     step,
   } = checkoutState;
-  const effectiveStartDate =
-    startDate && (!minStartDate || startDate >= minStartDate)
-      ? startDate
-      : minStartDate;
+  const effectiveStartDate = resolveEffectiveStartDate(startDate, minStartDate);
 
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
