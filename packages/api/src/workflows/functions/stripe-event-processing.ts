@@ -43,7 +43,9 @@ export const stripeEventProcessing = inngest.createFunction(
         return;
       }
 
-      const supabaseAdmin = requireWorkflowAdminClient("stripe_event_on_failure");
+      const supabaseAdmin = requireWorkflowAdminClient(
+        "stripe_event_on_failure",
+      );
       await recordStripeRawEventFailureIfStillProcessing({
         supabaseAdmin,
         rawEventId,
