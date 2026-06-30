@@ -16,7 +16,16 @@ CREATE TABLE IF NOT EXISTS public.support_bulk_move_operations (
   ),
   retry_of UUID,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT support_bulk_move_operations_tenant_id_id_key UNIQUE (tenant_id, id),
+  CONSTRAINT support_bulk_move_operations_destination_inbox_fk
+    FOREIGN KEY (tenant_id, destination_inbox_id)
+    REFERENCES public.support_inboxes (tenant_id, id)
+    ON DELETE RESTRICT,
+  CONSTRAINT support_bulk_move_operations_retry_of_fkey
+    FOREIGN KEY (tenant_id, retry_of)
+    REFERENCES public.support_bulk_move_operations (tenant_id, id)
+    ON DELETE SET NULL
 );
 
 COMMENT ON TABLE public.support_bulk_move_operations IS

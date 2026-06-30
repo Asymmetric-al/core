@@ -15,7 +15,11 @@ CREATE TABLE IF NOT EXISTS public.support_inbound_routes (
   created_by_profile_id UUID,
   disabled_at TIMESTAMPTZ,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  CONSTRAINT support_inbound_routes_inbox_fk
+    FOREIGN KEY (tenant_id, inbox_id)
+    REFERENCES public.support_inboxes (tenant_id, id)
+    ON DELETE CASCADE
 );
 
 COMMENT ON TABLE public.support_inbound_routes IS
