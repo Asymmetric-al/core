@@ -255,7 +255,7 @@ describe("dispatch recovery scan (#289)", () => {
 describe("workflow work claims migration", () => {
   const migration = readFileSync(
     new URL(
-      "../../../../../supabase/migrations/20260611140000_workflow_work_claims.sql",
+      "../../../../../supabase/migrations/20260611181000_workflow_work_claims.sql",
       import.meta.url,
     ),
     "utf8",

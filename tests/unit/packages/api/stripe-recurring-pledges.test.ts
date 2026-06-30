@@ -37,18 +37,28 @@ function pledgeRow(overrides: Record<string, unknown> = {}) {
   };
 }
 
+/** API 2026-05-27.dahlia: period end lives on subscription items. */
+function subscriptionFixture(
+  overrides: Record<string, unknown> = {},
+  currentPeriodEnd = 1_780_000_000,
+) {
+  return {
+    items: { data: [{ current_period_end: currentPeriodEnd }] },
+    ...overrides,
+  } as unknown as Stripe.Subscription;
+}
+
 describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
   it("updates the pledge from a subscription lifecycle event", async () => {
     const mock = createPledgeClientMock(pledgeRow());
 
     const outcome = await updateSubscriptionPledge({
       supabaseAdmin: mock.client,
-      subscription: {
+      subscription: subscriptionFixture({
         id: "sub_1",
         status: "active",
         pause_collection: null,
-        current_period_end: 1_780_000_000,
-      } as unknown as Stripe.Subscription,
+      }),
       eventType: "customer.subscription.updated",
     });
 
@@ -107,12 +117,11 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
 
     const outcome = await updateSubscriptionPledge({
       supabaseAdmin: mock.client,
-      subscription: {
+      subscription: subscriptionFixture({
         id: "sub_1",
         status: "active",
         pause_collection: null,
-        current_period_end: 1_780_000_000,
-      } as unknown as Stripe.Subscription,
+      }),
       eventType: "customer.subscription.updated",
     });
 
