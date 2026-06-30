@@ -1,7 +1,7 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { getStripeClient } from "./client";
+import { createStripeClient } from "./client";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -359,7 +359,7 @@ export async function POST(request: NextRequest) {
   }
 
   const rawBody = await request.text();
-  const stripe = getStripeClient(secretKey);
+  const stripe = createStripeClient(secretKey);
   let event: Stripe.Event;
 
   try {

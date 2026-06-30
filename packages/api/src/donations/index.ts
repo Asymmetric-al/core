@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
-import { getStripeClient } from "../stripe/client";
+import { createStripeClient } from "../stripe/client";
 
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
@@ -173,7 +173,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
       stripe,

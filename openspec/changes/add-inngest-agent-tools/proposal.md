@@ -19,11 +19,14 @@ adopted Inngest.
 - Add the Inngest dev-server MCP endpoint to the repo MCP configs with a note
   that the URL must match the active dev-server port.
 - Document upstream sources, commit SHAs, licenses, and refresh steps.
+- Keep the bundled non-Inngest repo hygiene explicit: CI/Bun workflow alignment,
+  shared social icon compatibility, and related tests are included in this PR
+  but do not represent product Inngest adoption.
 
 ## What Does Not Change
 
-- No product app code, runtime packages, database migrations, or Inngest
-  environment variables are added.
+- No product Inngest app code, Inngest runtime packages, database migrations, or
+  Inngest environment variables are added.
 - No full Codex plugin bundle, eval fixtures, examples, or assets are vendored.
 - `CLAUDE.md` stays as `@AGENTS.md`.
 - Inngest remains planned or referenced for product code until a separate

@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#286
+
 ## What to build
 
 Create the OpenSpec change and implementation scope for adopting Inngest as the

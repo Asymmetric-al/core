@@ -669,11 +669,34 @@ async function bumpConversationAfterMessage(
 export const supabaseSupportHubAdapter: SupportHubAdapter = {
   conversations: {
     async list(filter: SupportConversationFilter) {
-      const [rows, snapshot, labelsById] = await Promise.all([
-        allRows("support_conversations", "*", {
-          column: "updated_at",
-          ascending: false,
-        }),
+      let query = client()
+        .from("support_conversations")
+        .select("*")
+        .eq("tenant_id", tenantId())
+        .order("updated_at", { ascending: false });
+      if (filter.inboxId) {
+        query = query.eq("inbox_id", filter.inboxId);
+      }
+      if (filter.status && filter.status !== "all") {
+        query = query.eq("status", filter.status);
+      }
+      if (filter.assigneeAgentId !== undefined) {
+        query =
+          filter.assigneeAgentId === null
+            ? query.is("assignee_agent_id", null)
+            : query.eq("assignee_agent_id", filter.assigneeAgentId);
+      }
+      const SUPPORT_CONVERSATIONS_LIST_CAP = 2000;
+      const { data, error } = await query.limit(SUPPORT_CONVERSATIONS_LIST_CAP);
+      assertDb(error, "support_conversations.select");
+      const rows = (data ?? []) as unknown as SupabaseRow[];
+      if (rows.length === SUPPORT_CONVERSATIONS_LIST_CAP) {
+        console.warn(
+          "support-hub: support_conversations list hit row cap; results may be truncated before in-memory filters.",
+        );
+      }
+
+      const [snapshot, labelsById] = await Promise.all([
         tenantSnapshot(),
         conversationLabelsById(),
       ]);
@@ -682,23 +705,6 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
       );
 
       return conversations.filter((conversation) => {
-        if (filter.inboxId && conversation.inboxId !== filter.inboxId) {
-          return false;
-        }
-        if (
-          filter.status &&
-          filter.status !== "all" &&
-          conversation.status !== filter.status
-        ) {
-          return false;
-        }
-        if (filter.assigneeAgentId !== undefined) {
-          if (filter.assigneeAgentId === null) {
-            if (conversation.assignee !== null) return false;
-          } else if (conversation.assignee?.id !== filter.assigneeAgentId) {
-            return false;
-          }
-        }
         if (filter.q && filter.q.trim().length > 0) {
           const needle = filter.q.toLowerCase();
           const haystack = [
@@ -721,15 +727,40 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
       return hydrateConversation(await oneRow("support_conversations", id));
     },
     async listMessages(conversationId) {
-      const rows = await allRows("support_messages", "*", {
-        column: "posted_at",
-      });
-      const messages = rows.filter(
-        (row) => String(row.conversation_id) === conversationId,
-      );
+      const pageSize = 1000;
+      const messagesDesc: SupabaseRow[] = [];
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await client()
+          .from("support_messages")
+          .select("*")
+          .eq("tenant_id", tenantId())
+          .eq("conversation_id", conversationId)
+          .order("posted_at", { ascending: false })
+          .range(offset, offset + pageSize - 1);
+        assertDb(error, "support_messages.select");
+        const page = (data ?? []) as unknown as SupabaseRow[];
+        messagesDesc.push(...page);
+        if (page.length < pageSize) {
+          break;
+        }
+      }
+      const messages = messagesDesc.reverse();
+
       if (messages.length === 0) return [];
 
-      const attachmentRows = await allRows("support_message_attachments");
+      const messageIds = messages.map((row) => String(row.id));
+      const attachmentRows: SupabaseRow[] = [];
+      for (let i = 0; i < messageIds.length; i += 100) {
+        const chunk = messageIds.slice(i, i + 100);
+        const { data: chunkData, error: chunkError } = await client()
+          .from("support_message_attachments")
+          .select("*")
+          .eq("tenant_id", tenantId())
+          .in("message_id", chunk);
+        assertDb(chunkError, "support_message_attachments.select");
+        attachmentRows.push(...((chunkData ?? []) as unknown as SupabaseRow[]));
+      }
+
       const attachmentsByMessage = new Map<
         string,
         SupportMessageAttachment[]
@@ -1349,13 +1380,16 @@ async function findThreadedConversation(input: {
   ].filter((value): value is string => Boolean(value));
 
   if (headerCandidates.length > 0) {
-    const messages = await allRows("support_messages");
-    const matchedMessage = messages.find((message) => {
-      const headers = asJsonRecord(message.email_headers);
-      const messageId = asString(headers.messageId);
-      return messageId ? headerCandidates.includes(messageId) : false;
-    });
-    const conversationId = asString(matchedMessage?.conversation_id);
+    const { data, error } = await client()
+      .from("support_messages")
+      .select("conversation_id, email_headers")
+      .eq("tenant_id", tenantId())
+      .in("email_headers->>messageId", headerCandidates)
+      .limit(1);
+    assertDb(error, "support_messages.thread_lookup");
+    const conversationId = asString(
+      (data?.[0] as SupabaseRow | undefined)?.conversation_id,
+    );
     if (conversationId) {
       return supabaseSupportHubAdapter.conversations.get(conversationId);
     }

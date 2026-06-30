@@ -313,7 +313,7 @@ Total new tests: **~47**. Workspace total: **528 across 121 files** (was 481 / 1
    - Wire `routeInboundToSupportHub()` into `packages/api/src/email/webhooks/resend.ts`'s `email.received` branch.
    - Replace the in-memory seed in `packages/database/collections/support-hub.ts` with a build-time fixture that only loads in `NODE_ENV !== "production"`.
 3. Provider secrets needed for live email: `RESEND_API_KEY` (already configured), `RESEND_INBOUND_DOMAIN` (Phase 8).
-4. Migration steps: `supabase db push` against staging → smoke against staging → production push during a low-traffic window.
+4. Migration steps: `supabase db push` against development → smoke against development → production push during a low-traffic window.
 
 ## Continuity for Phase 8+
 

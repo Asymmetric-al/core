@@ -41,7 +41,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
@@ -96,7 +96,7 @@ jobs:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
         run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
@@ -105,15 +105,23 @@ jobs:
       - name: Install dependencies
         run: bun ci --no-cache --backend=copyfile
       - name: Start donor app
-        run: bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 &
+        run: |
+          nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &
+          echo $! > /tmp/donor-dev.pid
       - name: Wait for health endpoint
         run: |
-          for i in $(seq 1 60); do
+          for i in $(seq 1 120); do
             if curl -sf http://127.0.0.1:3005/api/health >/dev/null; then
+              echo "Health endpoint ready after ${i}s"
               exit 0
             fi
-            if [ "$i" -eq 60 ]; then
+            if [ "$i" -eq 120 ]; then
               echo "Timed out waiting for health endpoint"
+              echo "--- donor dev log (tail) ---"
+              tail -n 100 /tmp/donor-dev.log || true
+              echo "--- curl verbose ---"
+              curl -v http://127.0.0.1:3005/api/health || true
+              kill "$(cat /tmp/donor-dev.pid)" 2>/dev/null || true
               exit 1
             fi
             sleep 1
@@ -152,7 +160,9 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - name: Install system dependencies (canvas)
+        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install PostgreSQL client
@@ -270,7 +280,7 @@ jobs:
       DEMO_DONOR_EMAIL: ${{ secrets.DEMO_DONOR_EMAIL }}
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install PostgreSQL client

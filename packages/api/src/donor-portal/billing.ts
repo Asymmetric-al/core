@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { resolveDonorPortalContext } from "./service";
 import { withOperation } from "../shared/with-operation";
-import { getStripeClient } from "../stripe/client";
+import { createStripeClient } from "../stripe/client";
 
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
@@ -40,7 +40,7 @@ export const POST = withOperation(
       );
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const session = await stripe.billingPortal.sessions.create({
       customer: donor.stripe_customer_id,
       return_url: new URL("/donor-dashboard/wallet", request.url).toString(),

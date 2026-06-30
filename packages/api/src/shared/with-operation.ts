@@ -18,12 +18,17 @@ type AdminSupabaseClient = Exclude<
   null
 >;
 
+export interface OperationRouteContext {
+  params?: Promise<Record<string, string | string[] | undefined>>;
+}
+
 export interface OperationContext {
   supabaseAdmin: AdminSupabaseClient;
   auth: AuthenticatedContext;
   audit: ReturnType<typeof createAuditLogger>;
   request: NextRequest;
   requestId: string;
+  routeContext?: OperationRouteContext;
 }
 
 export interface OperationOptions {
@@ -104,7 +109,9 @@ async function normalizeHandlerErrorResponse(
   }
 }
 
-export function withOperation<RouteContext = unknown>(
+export function withOperation<
+  RouteContext extends OperationRouteContext = OperationRouteContext,
+>(
   handler: (
     ctx: OperationContext,
     routeContext?: RouteContext,
@@ -152,6 +159,7 @@ export function withOperation<RouteContext = unknown>(
           audit,
           request,
           requestId,
+          routeContext,
         },
         routeContext,
       );

@@ -1,0 +1,50 @@
+name: Release Source Gate
+
+on:
+  pull_request:
+    branches: [production]
+    types: [opened, synchronize, reopened, ready_for_review, edited]
+  push:
+    branches: [production]
+
+permissions:
+  contents: read
+
+jobs:
+  release-source-gate:
+    name: release-source-gate
+    if: github.event_name != 'pull_request' || github.event.pull_request.base.ref == 'production'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require develop as production release source
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref || github.ref_name }}
+          EVENT_NAME: ${{ github.event_name }}
+          HEAD_REF: ${{ github.head_ref }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.full_name }}
+          REPOSITORY: ${{ github.repository }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          if [[ "${EVENT_NAME}" != "pull_request" ]]; then
+            echo "Non-PR production branch event accepted."
+            exit 0
+          fi
+
+          if [[ "${BASE_REF}" != "production" ]]; then
+            echo "Skipping release-source-gate for PRs targeting ${BASE_REF}."
+            exit 0
+          fi
+
+          if [[ "${HEAD_REF}" != "develop" ]]; then
+            echo "::error::Production release PRs to production must come from develop; got ${HEAD_REF}."
+            exit 1
+          fi
+
+          if [[ "${HEAD_REPO}" != "${REPOSITORY}" ]]; then
+            echo "::error::Production release PRs to production must come from develop in ${REPOSITORY}; got ${HEAD_REPO}."
+            exit 1
+          fi
+
+          echo "Production release source accepted: ${HEAD_REPO}:${HEAD_REF} -> ${BASE_REF}."

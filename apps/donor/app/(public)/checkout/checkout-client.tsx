@@ -30,14 +30,18 @@ import {
   Shield,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useSyncExternalStore } from "react";
 
+import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
+function subscribeToToday() {
+  return () => {};
+}
+
+/** Client-local YYYY-MM-DD; empty on the server to avoid SSR timezone drift. */
+function useClientTodayDateInputValue(): string {
+  return useSyncExternalStore(subscribeToToday, todayDateInputValue, () => "");
 }
 
 type Step = "config" | "details" | "payment" | "success";
@@ -430,6 +434,7 @@ function SuccessView({
 function MonthlyScheduleSection({
   endDate,
   hasEndDate,
+  minStartDate,
   onEndDateChange,
   onHasEndDateChange,
   onStartDateChange,
@@ -439,6 +444,7 @@ function MonthlyScheduleSection({
 }: {
   endDate: string;
   hasEndDate: boolean;
+  minStartDate: string;
   onEndDateChange: (value: string) => void;
   onHasEndDateChange: (value: boolean) => void;
   onStartDateChange: (value: string) => void;
@@ -497,7 +503,7 @@ function MonthlyScheduleSection({
                     id="start-date"
                     type="date"
                     value={startDate}
-                    min={makeDisplayDate().toISOString().split("T")[0]}
+                    min={minStartDate}
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
                   />
@@ -550,6 +556,7 @@ function ConfigStep({
   endDate,
   frequency,
   hasEndDate,
+  minStartDate,
   onAmountSelect,
   onCoverFeesChange,
   onCustomAmountChange,
@@ -569,6 +576,7 @@ function ConfigStep({
   endDate: string;
   frequency: Frequency;
   hasEndDate: boolean;
+  minStartDate: string;
   onAmountSelect: (value: number) => void;
   onCoverFeesChange: (value: boolean) => void;
   onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
@@ -697,6 +705,7 @@ function ConfigStep({
           <MonthlyScheduleSection
             endDate={endDate}
             hasEndDate={hasEndDate}
+            minStartDate={minStartDate}
             onEndDateChange={onEndDateChange}
             onHasEndDateChange={onHasEndDateChange}
             onStartDateChange={onStartDateChange}
@@ -1136,9 +1145,10 @@ function CheckoutContent({
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
-    startDate: makeDisplayDate().toISOString().split("T")[0] ?? "",
+    startDate: "",
     step: "config",
   }));
+  const minStartDate = useClientTodayDateInputValue();
   const {
     amount,
     coverFees,
@@ -1153,6 +1163,10 @@ function CheckoutContent({
     startDate,
     step,
   } = checkoutState;
+  const effectiveStartDate =
+    startDate && (!minStartDate || startDate >= minStartDate)
+      ? startDate
+      : minStartDate;
 
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
@@ -1279,13 +1293,14 @@ function CheckoutContent({
                   onEndDateChange={setEndDate}
                   onFrequencyChange={setFrequency}
                   onHasEndDateChange={setHasEndDate}
+                  minStartDate={minStartDate}
                   onNext={handleNext}
                   onStartDateChange={setStartDate}
                   onToggleScheduleConfig={() =>
                     setShowScheduleConfig(!showScheduleConfig)
                   }
                   showScheduleConfig={showScheduleConfig}
-                  startDate={startDate}
+                  startDate={effectiveStartDate}
                 />
               )}
 
@@ -1330,7 +1345,7 @@ function CheckoutContent({
               coverFees={coverFees}
               fees={calculatedFees}
               total={total}
-              startDate={startDate}
+              startDate={effectiveStartDate}
               endDate={hasEndDate ? endDate : null}
             />
           </aside>

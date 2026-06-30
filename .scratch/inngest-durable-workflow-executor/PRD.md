@@ -4,6 +4,10 @@ Status: ready-for-agent
 
 Last updated: 2026-06-08
 
+## GitHub issue
+
+Parent planning issue: #285
+
 ## Problem Statement
 
 Asymmetric.al needs durable background workflow execution for donations, Stripe

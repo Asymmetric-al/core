@@ -11,7 +11,7 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
-import { getStripeClient } from "../../stripe/client";
+import { createStripeClient } from "../../stripe/client";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -54,7 +54,7 @@ function getStripeForReplay() {
     );
   }
 
-  return getStripeClient(secretKey);
+  return createStripeClient(secretKey);
 }
 
 export const POST = withOperation(

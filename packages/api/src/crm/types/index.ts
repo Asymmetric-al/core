@@ -17,7 +17,10 @@ export type CrmAction =
   | "crm.person.create"
   | "crm.person.update"
   | "crm.sync.replay"
-  | "crm.sync.reconcile";
+  | "crm.sync.reconcile"
+  | "crm.table_preferences.read"
+  | "crm.table_preferences.write"
+  | "crm.table_preferences.manage_defaults";
 
 export type CrmResourceType =
   | "crm_gateway"

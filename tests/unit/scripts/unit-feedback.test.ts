@@ -77,7 +77,7 @@ AssertionError: expected 'import PageClient from "./page-client";' to match /use
         stderr: "",
       },
       coverageCaveat:
-        "Staging fallback coverage provider; line/statement/branch totals are not computed. totalScripts: 0.",
+        "Development fallback coverage provider; line/statement/branch totals are not computed. totalScripts: 0.",
       failures: [
         {
           testFile: "tests/unit/example.test.ts",

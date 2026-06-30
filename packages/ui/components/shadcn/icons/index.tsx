@@ -239,7 +239,14 @@ import {
   type LucideProps,
 } from "lucide-react";
 
-import { Github, Twitter } from "./social-icons";
+import {
+  Facebook,
+  Github,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Youtube,
+} from "../../icons/brand-social";
 
 // Main registry - simple re-exports
 export {
@@ -322,6 +329,7 @@ export {
   ExternalLink,
   Eye,
   EyeOff,
+  Facebook,
   FileCheck,
   FileCode,
   FileDown,
@@ -339,6 +347,7 @@ export {
   FolderOpen,
   FolderSearch,
   Gift,
+  Github,
   Globe,
   GraduationCap,
   Grid,
@@ -357,6 +366,7 @@ export {
   ImagePlus,
   Inbox,
   Info,
+  Instagram,
   Italic,
   Key,
   Landmark,
@@ -372,6 +382,7 @@ export {
   Link,
   Link2,
   Link2Off,
+  Linkedin,
   List,
   ListFilter,
   ListOrdered,
@@ -461,6 +472,7 @@ export {
   TrendingDown,
   TrendingUp,
   TriangleAlert,
+  Twitter,
   Underline,
   Undo,
   Undo2,
@@ -478,19 +490,11 @@ export {
   Wifi,
   X,
   XCircle,
+  Youtube,
   Zap,
   type LucideIcon,
   type LucideProps,
 };
-
-export {
-  Facebook,
-  Github,
-  Instagram,
-  Linkedin,
-  Twitter,
-  Youtube,
-} from "./social-icons";
 
 // Unified Aliases (modernizing common aliases)
 // Use specific names for clarity in the UI components
