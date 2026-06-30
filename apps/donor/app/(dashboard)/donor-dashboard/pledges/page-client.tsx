@@ -64,11 +64,7 @@ import {
 } from "lucide-react";
 import React, { useState } from "react";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
+import { makeDisplayDate } from "@/lib/dates";
 
 function makeDisplayTimestamp(): number {
   return globalThis.Date.now();

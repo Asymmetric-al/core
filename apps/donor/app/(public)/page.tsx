@@ -11,12 +11,7 @@ import {
 import type { Metadata } from "next";
 
 import { fetchPublishedCmsUpdates } from "@/lib/cms/client";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
+import { makeDisplayDate } from "@/lib/dates";
 
 export const metadata: Metadata = pageMetadata.home;
 

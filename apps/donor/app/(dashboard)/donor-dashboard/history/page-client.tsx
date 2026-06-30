@@ -127,10 +127,20 @@ function HistoryChartFallback() {
 }
 
 function MonthlyGivingChart({
+  rechartsFailed,
   rechartsModule,
 }: {
+  rechartsFailed: boolean;
   rechartsModule: RechartsModule | null;
 }) {
+  if (rechartsFailed) {
+    return (
+      <p role="status" className="text-sm text-muted-foreground">
+        The chart couldn&apos;t load. Refresh the page to try again.
+      </p>
+    );
+  }
+
   if (!rechartsModule) {
     return <HistoryChartFallback />;
   }
@@ -224,12 +234,14 @@ function HistoryPageHeader({
 function HistoryStatsColumn({
   filteredTransactionCount,
   receiptCount,
+  rechartsFailed,
   rechartsModule,
   totalGiven,
   yearFilter,
 }: {
   filteredTransactionCount: number;
   receiptCount: number;
+  rechartsFailed: boolean;
   rechartsModule: RechartsModule | null;
   totalGiven: number;
   yearFilter: string;
@@ -257,7 +269,10 @@ function HistoryStatsColumn({
           </p>
 
           <div className="h-24 w-full">
-            <MonthlyGivingChart rechartsModule={rechartsModule} />
+            <MonthlyGivingChart
+              rechartsFailed={rechartsFailed}
+              rechartsModule={rechartsModule}
+            />
           </div>
         </CardContent>
       </Card>
@@ -470,6 +485,7 @@ export default function DonorHistoryPage() {
   const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
     null,
   );
+  const [rechartsFailed, setRechartsFailed] = useState(false);
   const transactionsQuery = useDonorHistoryTransactions();
   const { searchTerm, statusFilter, typeFilter, yearFilter } = filters;
   const transactions = useMemo(
@@ -494,6 +510,7 @@ export default function DonorHistoryPage() {
       })
       .catch((error) => {
         console.error("Failed to load Recharts for donor history:", error);
+        if (isMounted) setRechartsFailed(true);
       });
 
     return () => {
@@ -549,6 +566,7 @@ export default function DonorHistoryPage() {
         <HistoryStatsColumn
           filteredTransactionCount={filteredTransactions.length}
           receiptCount={receiptCount}
+          rechartsFailed={rechartsFailed}
           rechartsModule={rechartsModule}
           totalGiven={totalGiven}
           yearFilter={yearFilter}

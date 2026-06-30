@@ -2,6 +2,7 @@
 
 import { motion } from "@asym/lib/motion";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -17,8 +18,6 @@ import {
   Send,
   Sparkles,
 } from "@asym/ui/components/shadcn/icons";
-
-import { PageHeader } from "@/components/page-header";
 
 const features = [
   {

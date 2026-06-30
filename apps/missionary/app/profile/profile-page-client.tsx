@@ -5,6 +5,7 @@ import {
   MISSIONARY_SETTINGS_HEADER_VT_NAME,
   useWithinViewTransitionRouteLayer,
 } from "@asym/lib/view-transitions";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { AlertCircle } from "lucide-react";
 
@@ -19,8 +20,6 @@ import {
   staggerContainer,
 } from "./profile-primitives";
 import { useProfilePageView } from "./use-profile-page-view";
-
-import { PageHeader } from "@/components/page-header";
 
 export function ProfilePageClient() {
   const vm = useProfilePageView();

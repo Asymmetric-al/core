@@ -5,6 +5,7 @@ import {
   MISSIONARY_SETTINGS_HEADER_VT_NAME,
   useWithinViewTransitionRouteLayer,
 } from "@asym/lib/view-transitions";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -33,8 +34,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import * as React from "react";
-
-import { PageHeader } from "@/components/page-header";
 
 interface NotificationSetting {
   id: string;

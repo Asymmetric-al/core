@@ -3,6 +3,7 @@
 
 import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
   AvatarFallback,
@@ -70,7 +71,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { toast } from "sonner";
 
 import { buildSecurityDialogState, SECURITY_OPTIONS } from "./feed-model";
@@ -87,8 +88,6 @@ import type {
   Visibility,
 } from "./feed-model";
 import type { MediaItem } from "@asym/database/types";
-
-import { PageHeader } from "@/components/page-header";
 
 const RichTextEditor = dynamic(
   () =>
@@ -143,6 +142,17 @@ function FollowerRequestItem({
     "pending" | "processing" | "approved" | "ignored" | "collapsing"
   >("pending");
 
+  const timersRef = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  useEffect(() => {
+    const timers = timersRef.current;
+    return () => {
+      for (const timer of timers) {
+        clearTimeout(timer);
+      }
+    };
+  }, []);
+
   const handleAction = async (action: "approve" | "ignore") => {
     setStatus("processing");
 
@@ -159,12 +169,14 @@ function FollowerRequestItem({
 
       setStatus(action === "approve" ? "approved" : "ignored");
 
-      setTimeout(() => {
+      const collapseTimer = setTimeout(() => {
         setStatus("collapsing");
-        setTimeout(() => {
+        const resolveTimer = setTimeout(() => {
           onResolve(request.id, action === "approve");
         }, 400);
+        timersRef.current.push(resolveTimer);
       }, 1500);
+      timersRef.current.push(collapseTimer);
     } catch (error) {
       console.error("Error resolving request:", error);
       setStatus("pending");

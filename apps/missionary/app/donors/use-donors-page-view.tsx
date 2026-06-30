@@ -6,6 +6,7 @@ import { invalidateSupabaseTableQuery } from "@asym/database/query-keys";
 import { useAuth } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
   AvatarFallback,
@@ -129,8 +130,6 @@ import type {
   RecurringStatus,
 } from "./donor-types";
 import type { Profile } from "@asym/database/types";
-
-import { PageHeader } from "@/components/page-header";
 
 function currentDisplayDate(): Date {
   return new globalThis.Date();
