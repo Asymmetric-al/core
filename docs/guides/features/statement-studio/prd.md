@@ -9,6 +9,10 @@ The product must use pdfx and React PDF as deeply as makes sense while keeping
 the saved template format Asym-owned, tenant-safe, versioned, auditable, and
 usable by non-technical tenant admins.
 
+**Render-stack note:** Statement Studio's target production path is pdfx + React PDF.
+Reconcile with the in-flight native PDF Studio + DocRaptor stack documented in
+`docs/guides/features/pdf-studio.md` during Phase 0 (#312) before cutover.
+
 ## Triggers
 
 Use this PRD when creating issues, planning implementation, reviewing scope, or
