@@ -38,18 +38,22 @@ interface QueryIr {
         collection: { id: string };
       }
     | { type: string };
-  where: QueryExpression[];
-  orderBy: Array<{
+  where?: QueryExpression[];
+  orderBy?: Array<{
     expression: QueryExpression;
     compareOptions: { direction: "asc" | "desc" };
   }>;
   select?: Record<string, QueryExpression>;
+  fnSelect?: unknown;
+  fnWhere?: unknown;
+  fnHaving?: unknown;
   join?: unknown[];
   groupBy?: unknown[];
   having?: unknown[];
   distinct?: boolean;
   limit?: number;
   offset?: number;
+  singleResult?: boolean;
 }
 
 interface SupabaseReadResult {
@@ -170,6 +174,9 @@ function applyWhere(
 
 function hasServerOnlyFeatures(query: QueryIr): boolean {
   return Boolean(
+    query.fnSelect !== undefined ||
+    query.fnWhere !== undefined ||
+    query.fnHaving !== undefined ||
     query.groupBy?.length ||
     query.having?.length ||
     Object.values(query.select ?? {}).some(
@@ -206,11 +213,11 @@ async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
   let supabaseQuery = supabase
     .from(getSourceTableName(query))
     .select("*") as unknown as SupabaseReadQuery;
-  for (const whereExpression of query.where) {
+  for (const whereExpression of query.where ?? []) {
     supabaseQuery = applyWhere(supabaseQuery, whereExpression);
   }
 
-  for (const order of query.orderBy) {
+  for (const order of query.orderBy ?? []) {
     const columnName = getColumnName(order.expression);
     supabaseQuery = supabaseQuery.order(columnName, {
       ascending: order.compareOptions.direction === "asc",
@@ -229,6 +236,10 @@ async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
   const { data, error } = await supabaseQuery;
   if (error) {
     throw error;
+  }
+
+  if (query.singleResult) {
+    return data?.[0] as Awaited<ReturnType<typeof supabaseQueryOnce<TCallback>>>;
   }
 
   return (data ?? []) as Awaited<
