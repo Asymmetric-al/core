@@ -124,7 +124,10 @@ function createScanClientMock(options: ScanClientOptions) {
       onFulfilled?: (value: { data: null; error: null }) => unknown,
       onRejected?: (reason: unknown) => unknown,
     ) =>
-      Promise.resolve({ data: null, error: null }).then(onFulfilled, onRejected),
+      Promise.resolve({ data: null, error: null }).then(
+        onFulfilled,
+        onRejected,
+      ),
   }));
   const update = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue({
@@ -223,10 +226,7 @@ describe("dispatch recovery scan (#289)", () => {
     // All exhausted rows dead-letter in ONE batched update.
     expect(mock.updateIn).toHaveBeenCalledTimes(2);
     expect(mock.updateIn).toHaveBeenCalledWith("id", [exhausted.id]);
-    expect(mock.updateIn).toHaveBeenCalledWith("status", [
-      "pending",
-      "failed",
-    ]);
+    expect(mock.updateIn).toHaveBeenCalledWith("status", ["pending", "failed"]);
   });
 
   it("keeps claims tenant-scoped when scanning work from multiple tenants", async () => {
