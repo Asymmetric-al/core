@@ -8,14 +8,16 @@ import {
 import type Stripe from "stripe";
 
 const PLEDGE_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const TENANT_ID = "11111111-1111-4111-8111-111111111111";
 
 function createPledgeClientMock(pledgeRow: Record<string, unknown> | null) {
   const updates: Record<string, unknown>[] = [];
   const maybeSingle = vi
     .fn()
     .mockResolvedValue({ data: pledgeRow, error: null });
-  const selectEq = vi.fn(() => ({ maybeSingle }));
-  const select = vi.fn(() => ({ eq: selectEq }));
+  const tenantEq = vi.fn(() => ({ maybeSingle }));
+  const subscriptionEq = vi.fn(() => ({ eq: tenantEq, maybeSingle }));
+  const select = vi.fn(() => ({ eq: subscriptionEq }));
   const updateEq = vi.fn().mockResolvedValue({ error: null });
   const update = vi.fn((values: Record<string, unknown>) => {
     updates.push(values);
@@ -23,13 +25,19 @@ function createPledgeClientMock(pledgeRow: Record<string, unknown> | null) {
   });
   const from = vi.fn(() => ({ select, update }));
 
-  return { client: { from } as never, updates, selectEq, from };
+  return {
+    client: { from } as never,
+    updates,
+    subscriptionEq,
+    tenantEq,
+    from,
+  };
 }
 
 function pledgeRow(overrides: Record<string, unknown> = {}) {
   return {
     id: PLEDGE_ID,
-    tenant_id: "11111111-1111-4111-8111-111111111111",
+    tenant_id: TENANT_ID,
     status: "active",
     failed_charge_count: 0,
     payments_completed: 4,
@@ -69,10 +77,31 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
     });
     expect(mock.updates[0]).toMatchObject({ status: "active" });
     expect(mock.updates[0]?.next_charge_at).toMatch(/^2026-/);
-    expect(mock.selectEq).toHaveBeenCalledWith(
+    expect(mock.subscriptionEq).toHaveBeenCalledWith(
       "stripe_subscription_id",
       "sub_1",
     );
+  });
+
+  it("scopes pledge lookup to the stored tenant when provided", async () => {
+    const mock = createPledgeClientMock(pledgeRow());
+
+    await updateSubscriptionPledge({
+      supabaseAdmin: mock.client,
+      subscription: subscriptionFixture({
+        id: "sub_1",
+        status: "active",
+        pause_collection: null,
+      }),
+      eventType: "customer.subscription.updated",
+      tenantId: TENANT_ID,
+    });
+
+    expect(mock.subscriptionEq).toHaveBeenCalledWith(
+      "stripe_subscription_id",
+      "sub_1",
+    );
+    expect(mock.tenantEq).toHaveBeenCalledWith("tenant_id", TENANT_ID);
   });
 
   it("cancels the pledge when the subscription is deleted", async () => {
@@ -83,13 +112,14 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
       subscription: {
         id: "sub_1",
         status: "canceled",
+        canceled_at: 1_700_000_000,
       } as unknown as Stripe.Subscription,
       eventType: "customer.subscription.deleted",
     });
 
     expect(outcome.action).toBe("pledge_cancelled");
     expect(mock.updates[0]).toMatchObject({ status: "cancelled" });
-    expect(mock.updates[0]?.end_date).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+    expect(mock.updates[0]?.end_date).toBe("2023-11-14");
   });
 
   it("marks the pledge paused when Stripe pauses collection", async () => {
@@ -158,6 +188,7 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
       invoice: {
         id: "in_1",
         subscription: "sub_1",
+        status_transitions: { paid_at: 1_700_000_000 },
       } as unknown as Stripe.Invoice,
       outcome: "paid",
     });
@@ -167,8 +198,8 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
       status: "active",
       failed_charge_count: 0,
       payments_completed: 5,
+      last_charge_at: "2023-11-14T22:13:20.000Z",
     });
-    expect(mock.updates[0]?.last_charge_at).toBeTruthy();
   });
 
   it("never reactivates a cancelled pledge from a late invoice payment", async () => {
@@ -210,7 +241,7 @@ describe("recurring donation lifecycle through Stripe Billing (#291)", () => {
     });
 
     expect(outcome.handled).toBe(true);
-    expect(mock.selectEq).toHaveBeenCalledWith(
+    expect(mock.subscriptionEq).toHaveBeenCalledWith(
       "stripe_subscription_id",
       "sub_basil",
     );

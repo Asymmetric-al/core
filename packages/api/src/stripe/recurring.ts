@@ -84,15 +84,35 @@ function getSubscriptionCurrentPeriodEnd(
   return maxEnd;
 }
 
+function pledgeLookupTenantId(
+  explicitTenantId: string | null | undefined,
+  metadata: Stripe.Metadata | null | undefined,
+): string | null {
+  if (explicitTenantId && explicitTenantId.length > 0) {
+    return explicitTenantId;
+  }
+
+  const fromMetadata = metadata?.tenant_id;
+  return typeof fromMetadata === "string" && fromMetadata.length > 0
+    ? fromMetadata
+    : null;
+}
+
 async function findPledgeBySubscriptionId(
   supabaseAdmin: SupabaseAdminClient,
   subscriptionId: string,
+  tenantId?: string | null,
 ): Promise<PledgeRow | null> {
-  const { data, error } = await supabaseAdmin
+  let query = supabaseAdmin
     .from("donor_pledges")
     .select("id, tenant_id, status, failed_charge_count, payments_completed")
-    .eq("stripe_subscription_id", subscriptionId)
-    .maybeSingle();
+    .eq("stripe_subscription_id", subscriptionId);
+
+  if (tenantId) {
+    query = query.eq("tenant_id", tenantId);
+  }
+
+  const { data, error } = await query.maybeSingle();
 
   if (error) {
     throw new Error(`pledge_lookup_failed: ${error.message}`);
@@ -105,10 +125,16 @@ export async function updateSubscriptionPledge(params: {
   supabaseAdmin: SupabaseAdminClient;
   subscription: Stripe.Subscription;
   eventType: "customer.subscription.updated" | "customer.subscription.deleted";
+  tenantId?: string | null;
 }): Promise<StripeWebhookOutcome> {
+  const tenantId = pledgeLookupTenantId(
+    params.tenantId,
+    params.subscription.metadata,
+  );
   const pledge = await findPledgeBySubscriptionId(
     params.supabaseAdmin,
     params.subscription.id,
+    tenantId,
   );
 
   if (!pledge) {
@@ -140,7 +166,10 @@ export async function updateSubscriptionPledge(params: {
   const patch: Record<string, unknown> = { status };
 
   if (isDeleted) {
-    patch.end_date = new Date().toISOString().slice(0, 10);
+    const canceledAtIso = toIsoFromEpochSeconds(
+      params.subscription.canceled_at ?? params.subscription.ended_at,
+    );
+    patch.end_date = (canceledAtIso ?? new Date().toISOString()).slice(0, 10);
   } else {
     const nextChargeAt = toIsoFromEpochSeconds(
       getSubscriptionCurrentPeriodEnd(params.subscription),
@@ -188,6 +217,7 @@ export async function updateInvoicePledge(params: {
   supabaseAdmin: SupabaseAdminClient;
   invoice: Stripe.Invoice;
   outcome: "paid" | "failed";
+  tenantId?: string | null;
 }): Promise<StripeWebhookOutcome> {
   const subscriptionId = getInvoiceSubscriptionId(params.invoice);
 
@@ -199,9 +229,14 @@ export async function updateInvoicePledge(params: {
     };
   }
 
+  const tenantId = pledgeLookupTenantId(
+    params.tenantId,
+    params.invoice.metadata,
+  );
   const pledge = await findPledgeBySubscriptionId(
     params.supabaseAdmin,
     subscriptionId,
+    tenantId,
   );
 
   if (!pledge) {
@@ -213,6 +248,8 @@ export async function updateInvoicePledge(params: {
   }
 
   const nowIso = new Date().toISOString();
+  const paidAtIso =
+    toIsoFromEpochSeconds(params.invoice.status_transitions?.paid_at) ?? nowIso;
 
   const patch: Record<string, unknown> =
     params.outcome === "paid"
@@ -221,8 +258,8 @@ export async function updateInvoicePledge(params: {
           // after customer.subscription.deleted must never reactivate a
           // cancelled pledge. Counters still record the collection.
           ...(pledge.status === "cancelled" ? {} : { status: "active" }),
-          last_charge_at: nowIso,
-          last_charge_attempt: nowIso,
+          last_charge_at: paidAtIso,
+          last_charge_attempt: paidAtIso,
           failed_charge_count: 0,
           payments_completed: (pledge.payments_completed ?? 0) + 1,
         }

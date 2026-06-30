@@ -73,6 +73,7 @@ export function isWorkflowDispatchedStripeEventType(
 interface StripeWebhookProcessingContext {
   rawEventId?: string | null;
   stripeEventId?: string | null;
+  tenantId?: string | null;
 }
 
 export function getStripeObjectId(
@@ -318,18 +319,21 @@ export async function handleStripeWebhookEvent(
         supabaseAdmin,
         subscription: event.data.object as Stripe.Subscription,
         eventType: event.type,
+        tenantId: context.tenantId,
       });
     case "invoice.paid":
       return updateInvoicePledge({
         supabaseAdmin,
         invoice: event.data.object as Stripe.Invoice,
         outcome: "paid",
+        tenantId: context.tenantId,
       });
     case "invoice.payment_failed":
       return updateInvoicePledge({
         supabaseAdmin,
         invoice: event.data.object as Stripe.Invoice,
         outcome: "failed",
+        tenantId: context.tenantId,
       });
     default:
       return {
@@ -445,6 +449,7 @@ export async function POST(request: NextRequest) {
     const outcome = await handleStripeWebhookEvent(supabaseAdmin, event, {
       rawEventId: storedEvent.id,
       stripeEventId: event.id,
+      tenantId: storedEvent.tenantId,
     });
     await completeStripeRawEvent({
       supabaseAdmin,

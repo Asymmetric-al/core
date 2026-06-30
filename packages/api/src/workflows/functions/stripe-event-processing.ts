@@ -71,6 +71,7 @@ export const stripeEventProcessing = inngest.createFunction(
           {
             rawEventId: claim.rawEvent.id,
             stripeEventId: claim.rawEvent.stripeEventId,
+            tenantId: envelope.tenantId ?? claim.rawEvent.tenantId,
           },
         );
 
