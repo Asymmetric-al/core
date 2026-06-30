@@ -44,7 +44,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 // import Logo from "@asym/ui/components/shadcn-studio/logo";
-// import { DashboardFooter } from "@/components/dashboard-footer";
 
 const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },

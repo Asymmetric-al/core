@@ -1,3 +1,5 @@
+import { CONTRIBUTION_CORRECTION_MERGE_TAG_CATEGORY } from "./contribution-correction-tags";
+
 export type MergeTagValueType =
   | "string"
   | "currency"
@@ -151,6 +153,7 @@ export const DEFAULT_MERGE_TAG_REGISTRY: MergeTagRegistry = {
       },
     ],
   },
+  contribution_correction: CONTRIBUTION_CORRECTION_MERGE_TAG_CATEGORY,
   missionary: {
     label: "Missionary",
     tags: [

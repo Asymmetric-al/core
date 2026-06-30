@@ -187,7 +187,7 @@ later production cutover phase can make any target surface depend on them.
 
 Production CRM domains backed by Twenty MUST be cut over one domain at a time
 from the approved Phase 07 catalog. A domain MUST NOT remain production-live
-until staging parity, production monitoring, rollback rehearsal,
+until development parity, production monitoring, rollback rehearsal,
 backup/restore proof, load and rate-limit evidence, security review, support
 ownership, rollback ownership, and CI/OpenSpec validation are recorded.
 
@@ -209,7 +209,7 @@ Supabase platform database.
 
 - GIVEN a Phase 07 CRM domain is ready for production activation
 - WHEN the operator reviews the cutover evidence
-- THEN the evidence includes staging parity, monitoring, rollback rehearsal,
+- THEN the evidence includes development parity, monitoring, rollback rehearsal,
   backup/restore proof, load and rate-limit result, security review, support
   owner, rollback owner, and CI/OpenSpec validation
 - AND reads are enabled before writes

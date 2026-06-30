@@ -1,5 +1,6 @@
 "use client";
 
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   ChartCard,
   KpiTile,
@@ -25,8 +26,6 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import * as React from "react";
-
-import { PageHeader } from "@/components/page-header";
 
 type LooseChartProps = Record<string, unknown> & { children?: React.ReactNode };
 type RechartsComponentName =

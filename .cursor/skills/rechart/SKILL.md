@@ -1,3 +1,8 @@
+---
+name: rechart
+description: "Build responsive, readable charts with Recharts using correct data mapping and composition. Use whenever creating charts with Recharts — LineChart, BarChart, AreaChart, PieChart, wrapped in ResponsiveContainer with a fixed-height parent. Not for charts built with other libraries."
+---
+
 # Recharts — Skill
 
 **Name:** `recharts`
