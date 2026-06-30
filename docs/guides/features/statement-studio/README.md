@@ -28,7 +28,7 @@ Use this documentation when planning or implementing:
 - `phase-0-audit-brief.md` - required implementation audit output.
 - `handoff.md` - current PR, issue, skill, and next-agent handoff context.
 - `prd.md` - issue-source PRD covering scope, phases, UX, Supabase posture, variables, starter jobs, integrations, and testing.
-- `issues.md` - draft vertical-slice issue backlog derived from the PRD; publish only after approval.
+- `issues.md` - published vertical-slice map (#310 parent, #312–#364) with archival draft bodies.
 - `product-plan.md` - product north star, phases, capabilities, and scope.
 - `data-model.md` - database, RLS, Storage, grants, artifacts, and defaults.
 - `variables.md` - variable registry, source maps, custom variables, validation, and governance.

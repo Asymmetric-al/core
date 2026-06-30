@@ -1,12 +1,16 @@
 # Statement Studio Issue Breakdown
 
-This is the draft issue breakdown for implementing Statement Studio from the
-PRD. It is intentionally issue-tracker ready, but it has not been published to
-GitHub yet because the `to-issues` workflow requires approval of the proposed
-granularity, dependencies, and HITL/AFK split first.
+This is the canonical issue map for implementing Statement Studio from the PRD.
+GitHub issues **#310** (parent) and **#312–#364** (slices **SS-00** through
+**SS-26**) were published on 2026-06-12. Use the GitHub issue numbers for
+implementation work; keep `SS-##` draft IDs here for cross-reference with the
+PRD and planning docs.
 
-Use the local `SS-##` identifiers only inside this draft. Replace them with
-real issue references when publishing.
+**HITL** (human-in-the-loop): slices that need product, legal, care, or legacy
+removal decisions before an agent implements them alone.
+
+**AFK** (away-from-keyboard): slices an agent can implement after reading the PRD
+and dependencies, subject to normal review.
 
 ## Published GitHub Issues
 
@@ -68,9 +72,10 @@ Use it for:
 1. Read the Statement Studio PRD first.
 2. Read Phase 0 and supporting Statement Studio docs before implementation.
 3. Use the issue overview to confirm slice granularity and dependencies.
-4. Publish issues only after approval of this breakdown.
-5. When publishing, create blocker issues first so later issues can reference
-   real tracker IDs.
+4. Track work on the published GitHub issues in the table below; open new issues
+   only when the PRD changes materially (use the `to-issues` skill).
+5. When adding new slices, create blocker issues first so later issues can
+   reference real tracker IDs.
 6. Apply exactly one repo label from each issue-label category:
    complexity, status, and type.
 7. For any database, RLS, Storage, Auth, migration, seed, or Supabase client
@@ -134,7 +139,8 @@ This breakdown is grounded in:
 
 ## Approval Questions
 
-Before publishing these as tracker issues:
+Resolved for the 2026-06-12 publication (#310, #312–#364). Revisit only if the
+PRD scope changes:
 
 - Does this granularity feel right, or should some family slices be split more?
 - Are the blockers correct, especially for generated artifacts, retention, and
@@ -145,6 +151,10 @@ Before publishing these as tracker issues:
   into more production-ready issues before implementation starts?
 
 ## Issue Drafts
+
+Archival copy of the original slice specs. **GitHub issues #312–#364 are the
+source of truth** for titles, labels, and acceptance criteria; update trackers
+there first, then sync this section only when the PRD breakdown changes.
 
 ### SS-00: Phase 0 Statement Studio audit and first-slice confirmation
 

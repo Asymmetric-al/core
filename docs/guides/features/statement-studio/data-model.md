@@ -26,7 +26,9 @@ Recommended model shape:
 - `tenant_document_template_assignments`: tenant default mapping for job plus optional scope.
 - `pdf_templates` or future renamed tenant template table: tenant-owned template records.
 - `pdf_template_versions` or future renamed version table: immutable draft/published/archive versions.
-- `document_artifacts`: generated PDF artifact records shared safely across app surfaces.
+- `document_artifacts` (conceptual; may align with existing `pdf_template_artifacts` /
+  `pdf_template_renders` from `20260515140948_native_pdf_studio_foundation.sql`):
+  generated PDF artifact records shared safely across app surfaces.
 - `document_artifact_events`: audit history for render, download, purge, retention, rollback, and assignment changes.
 - `document_variable_catalog`: platform variable definitions.
 - `tenant_document_variables`: tenant labels, grouping, fallbacks, visibility, custom variables, and mappings.
@@ -39,18 +41,22 @@ Default assignment resolution order:
 
 1. Authorized one-off render override.
 2. Exact scoped default.
-3. Parent scoped default.
+3. Parent scoped default (for example event-scoped default when rendering a
+   session-scoped job: walk `scope_kind` hierarchy defined in Phase 0).
 4. Tenant-wide default for the standard job key.
 5. System starter template only for preview/setup unless tenant explicitly activates it.
 
-Each tenant can have only one active default for the same `job_key + scope_kind + scope_id`. Enforce this with constraints/indexes plus app validation and audit logs.
+Each tenant can have only one active default for the same
+`tenant_id + job_key + scope_kind + coalesce(scope_id, '')`. Treat NULL
+`scope_id` as tenant-wide scope in uniqueness checks. Enforce with partial
+unique indexes plus app validation and audit logs.
 
 ## Supabase Best Practices
 
 - Make Data API exposure and grants explicit.
 - Enable RLS on exposed tenant-owned tables.
 - Use `TO authenticated` policies with real authorization predicates.
-- Use `USING` and `WITH CHECK` for updates.
+- Use `USING` and `WITH CHECK` for insert and update mutation policies.
 - Index tenant, scope, policy, and foreign-key columns.
 - Avoid `auth.role()` authorization.
 - Do not authorize from `user_metadata`.

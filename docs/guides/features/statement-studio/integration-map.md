@@ -65,3 +65,4 @@ Use this doc before marking Statement Studio implementation complete, and whenev
 - [ ] Every surface has retention classification.
 - [ ] Every surface has tests/fixtures.
 - [ ] Donor and missionary dashboard downloads are connected through portal boundaries, not direct artifact reads.
+- [ ] Mission Control/admin, reports, finance, events, care, legal/signing, and CMS PDF surfaces are verified—not only donor/missionary portals.

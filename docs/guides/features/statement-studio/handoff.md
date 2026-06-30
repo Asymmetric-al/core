@@ -24,35 +24,15 @@ verification state without rereading the full conversation.
 ## Current State
 
 - Repository: `Asymmetric-al/core`
-- Branch: `codex/statement-studio-prd-issues`
-- PR: [#367 - Document Statement Studio rebuild plan](https://github.com/Asymmetric-al/core/pull/367)
-- PR state at handoff time: open draft PR against `develop`
-- Baseline commit before this handoff doc:
-  `e6e31d58 Document Statement Studio rebuild plan`
+- Planning PR: [#367 - Document Statement Studio rebuild plan](https://github.com/Asymmetric-al/core/pull/367) (docs-only; verify mergeability and required CI on GitHub before merge)
 - Parent planning issue:
   [#310 - AL-310: PRD - Statement Studio rebuild and implementation backlog](https://github.com/Asymmetric-al/core/issues/310)
-- Canonical implementation issues: `#312` through `#364` on even numbers,
+- Canonical implementation issues: `#312` through `#364` (even numbers),
   mapping to `SS-00` through `SS-26`
 - Temporary duplicate issues from automated publishing were closed with comments
   pointing to the canonical issue.
-
-Remote checks for the baseline PR commit passed:
-
-- `format`
-- `lint`
-- `typecheck`
-- `build`
-- `test-unit`
-- `migrate`
-- `smoke`
-- `test-e2e-smoke`
-- `test-e2e`
-- `ci-gate`
-- `e2e-smoke-gate`
-- `integration-gate`
-- `reconcile`
-
-The workflow reported `e2e-gate` as skipped after the completed E2E pass.
+- Rebase PR #367 onto latest `develop` and confirm `gh pr checks --required`
+  before treating docs as merge-ready.
 
 ## Source Artifacts
 
@@ -140,7 +120,7 @@ For implementation changes:
   rendering, artifact access, and UI smoke paths based on the slice.
 - Let GitHub Actions settle and inspect failures directly.
 
-## Security And Privacy Notes
+## Security and privacy notes
 
 This handoff intentionally contains no secrets, tokens, credentials, donor
 personal data, missionary personal data, or tenant private records. Keep future

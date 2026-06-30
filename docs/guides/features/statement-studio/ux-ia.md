@@ -68,3 +68,6 @@ Variable workflow:
 - [ ] Many variables remain searchable/filterable/grouped.
 - [ ] No coding-like mapping UI for normal admins.
 - [ ] Sensitive/private document flows are visibly guarded.
+- [ ] Keyboard navigation and focus order work for primary flows (templates, variables, assignments).
+- [ ] Overlays use shared dialog/sheet primitives with focus trap and escape dismiss.
+- [ ] Motion respects `prefers-reduced-motion`.

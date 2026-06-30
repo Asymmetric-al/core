@@ -57,7 +57,8 @@ Tenant admins can create or customize:
 - Registered custom fields for approved entities.
 - Simple no-code derived variables such as concatenate, format date, format currency, conditional fallback, sum, count, and approved filters.
 
-Do not allow raw SQL, arbitrary joins, arbitrary JavaScript, unsafe resolver access, or cross-tenant references.
+Do not allow raw SQL, arbitrary joins, arbitrary JSON path expressions, arbitrary
+JavaScript, unsafe resolver access, or cross-tenant references.
 
 ## Edge Cases
 

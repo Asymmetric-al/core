@@ -14,10 +14,12 @@ Use this doc when auditing, removing, replacing, or migrating legacy PDF Studio 
 4. Keep only code that serves the new tenant-safe Statement Studio architecture.
 5. Remove user-facing confusion between PDF Studio and Statement Studio.
 6. Update docs, env examples, tests, and route references.
+7. Keep the Unlayer allowlist verification script in sync when removing legacy paths.
 
 ## Approved Boundary
 
-- New templates, assignments, publishing, rendering, and defaults use the custom pdfx/React PDF path.
+- New templates, assignments, publishing, rendering, and defaults use the custom pdfx/React PDF path (Statement Studio target state).
+- Reconcile with in-flight native PDF Studio + DocRaptor work in `docs/guides/features/pdf-studio.md` during Phase 0; do not run two production render stacks without an explicit migration decision.
 - Unlayer is legacy-only and not a dependency.
 - Existing Unlayer PDF templates may be migrated if useful or removed if Phase 0 confirms removal is acceptable.
 - The rebuild is a clean product replacement, not a compatibility layer.
