@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAppBuildStep,
   getProcessListCommand,
+  getRequestedApps,
   getSharedPackageBuildSteps,
   getSleepCommand,
   resolveTurboBin,
@@ -17,16 +18,17 @@ describe("ci-build command planning", () => {
 
     const result = resolveTurboBin({
       platform: "win32",
-      exists: (candidate: string) => {
-        const normalizedCandidate = candidate
-          .replace(/\\/g, "/")
-          .replace(/^.*node_modules/, "/repo/node_modules");
-        return existingPaths.has(normalizedCandidate);
-      },
+      exists: (candidate: string) =>
+        existingPaths.has(
+          candidate
+            .replaceAll("\\", "/")
+            .replace(/^.*node_modules/, "/repo/node_modules"),
+        ),
     });
 
-    const normalizedResult = result.replace(/\\/g, "/");
-    expect(normalizedResult.endsWith("node_modules/.bin/turbo.cmd")).toBe(true);
+    expect(result.replaceAll("\\", "/")).toMatch(
+      /node_modules\/\.bin\/turbo\.cmd$/,
+    );
   });
 
   it("builds shared packages without Turbo on Windows", () => {
@@ -108,6 +110,42 @@ describe("ci-build command planning", () => {
         "build",
       ],
     });
+  });
+
+  it("selects one app when --app is provided", () => {
+    const apps = [
+      {
+        id: "admin",
+        filter: "@asym/admin",
+        cwd: "apps/admin",
+        nextDir: "apps/admin/.next",
+      },
+      {
+        id: "donor",
+        filter: "@asym/donor",
+        cwd: "apps/donor",
+        nextDir: "apps/donor/.next",
+      },
+    ];
+
+    expect(getRequestedApps(["--app", "admin"], apps)).toEqual([apps[0]]);
+    expect(getRequestedApps([], apps)).toEqual(apps);
+  });
+
+  it("rejects unknown app ids", () => {
+    expect(() =>
+      getRequestedApps(
+        ["--app", "unknown"],
+        [
+          {
+            id: "admin",
+            filter: "@asym/admin",
+            cwd: "apps/admin",
+            nextDir: "apps/admin/.next",
+          },
+        ],
+      ),
+    ).toThrow('Unknown app "unknown". Expected one of: admin.');
   });
 
   it("uses native Windows process and sleep commands for lock coordination", () => {

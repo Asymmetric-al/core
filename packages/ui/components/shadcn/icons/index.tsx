@@ -78,7 +78,6 @@ import {
   ExternalLink,
   Eye,
   EyeOff,
-  Facebook,
   FileCheck,
   FileCode,
   FileDown,
@@ -96,7 +95,6 @@ import {
   FolderOpen,
   FolderSearch,
   Gift,
-  Github,
   Globe,
   GraduationCap,
   Grid,
@@ -115,7 +113,6 @@ import {
   ImagePlus,
   Inbox,
   Info,
-  Instagram,
   Italic,
   Key,
   Landmark,
@@ -131,7 +128,6 @@ import {
   Link,
   Link2,
   Link2Off,
-  Linkedin,
   List,
   ListFilter,
   ListOrdered,
@@ -221,7 +217,6 @@ import {
   TrendingDown,
   TrendingUp,
   TriangleAlert,
-  Twitter,
   Underline,
   Undo,
   Undo2,
@@ -239,11 +234,19 @@ import {
   Wifi,
   X,
   XCircle,
-  Youtube,
   Zap,
   type LucideIcon,
   type LucideProps,
 } from "lucide-react";
+
+import {
+  Facebook,
+  Github,
+  Instagram,
+  Linkedin,
+  Twitter,
+  Youtube,
+} from "../../icons/brand-social";
 
 // Main registry - simple re-exports
 export {
