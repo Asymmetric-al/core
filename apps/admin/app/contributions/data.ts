@@ -1,3 +1,5 @@
+import { normalizeSharedPaymentStatus } from "@asym/api/admin/contribution-shared";
+
 import type { Contribution } from "./types";
 
 /** Live-query page reads from TanStack DB; keep empty for typing / fallbacks. */
@@ -48,7 +50,7 @@ function boneyardRow(
         missionaryName: row.missionaryName ?? null,
         lineCount: 1,
       },
-      paymentStatus: row.status,
+      paymentStatus: normalizeSharedPaymentStatus(row.status),
       receiptStatus,
       crmPostStatus: row.crmPostStatus ?? null,
       refundState: "none",

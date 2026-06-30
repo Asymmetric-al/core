@@ -49,6 +49,41 @@ function toIsoFromEpochSeconds(
   return new Date(value * 1000).toISOString();
 }
 
+function subscriptionReferenceToId(
+  reference: string | { id?: string } | null | undefined,
+): string | null {
+  if (typeof reference === "string" && reference.length > 0) {
+    return reference;
+  }
+  if (
+    reference &&
+    typeof reference === "object" &&
+    typeof reference.id === "string"
+  ) {
+    return reference.id;
+  }
+  return null;
+}
+
+/** API 2026-05-27.dahlia: period end lives on subscription items, not Subscription. */
+function getSubscriptionCurrentPeriodEnd(
+  subscription: Stripe.Subscription,
+): number | null {
+  const items = subscription.items?.data ?? [];
+  let maxEnd: number | null = null;
+
+  for (const item of items) {
+    const end = item.current_period_end;
+    if (typeof end === "number" && Number.isFinite(end)) {
+      if (maxEnd === null || end > maxEnd) {
+        maxEnd = end;
+      }
+    }
+  }
+
+  return maxEnd;
+}
+
 async function findPledgeBySubscriptionId(
   supabaseAdmin: SupabaseAdminClient,
   subscriptionId: string,
@@ -108,7 +143,7 @@ export async function updateSubscriptionPledge(params: {
     patch.end_date = new Date().toISOString().slice(0, 10);
   } else {
     const nextChargeAt = toIsoFromEpochSeconds(
-      params.subscription.current_period_end,
+      getSubscriptionCurrentPeriodEnd(params.subscription),
     );
     if (nextChargeAt) {
       patch.next_charge_at = nextChargeAt;
@@ -132,44 +167,21 @@ export async function updateSubscriptionPledge(params: {
 }
 
 function getInvoiceSubscriptionId(invoice: Stripe.Invoice): string | null {
-  const subscription = invoice.subscription;
-  if (typeof subscription === "string" && subscription.length > 0) {
-    return subscription;
-  }
-  if (
-    subscription &&
-    typeof subscription === "object" &&
-    typeof subscription.id === "string"
-  ) {
-    return subscription.id;
+  const fromParent = subscriptionReferenceToId(
+    invoice.parent?.subscription_details?.subscription,
+  );
+  if (fromParent) {
+    return fromParent;
   }
 
-  // Webhook payload shape follows the ENDPOINT's pinned API version, not the
-  // SDK's. API version 2025-03-31.basil moved the reference to
-  // invoice.parent.subscription_details.subscription; the pinned stripe@17
-  // types predate that shape, hence the local cast.
-  const parent = (
-    invoice as {
-      parent?: {
-        subscription_details?: {
-          subscription?: string | { id?: string } | null;
-        } | null;
-      } | null;
+  // Legacy webhook payloads (pre-basil) may still carry top-level subscription.
+  const legacySubscription = (
+    invoice as Stripe.Invoice & {
+      subscription?: string | { id?: string } | null;
     }
-  ).parent;
-  const parentSubscription = parent?.subscription_details?.subscription;
-  if (typeof parentSubscription === "string" && parentSubscription.length > 0) {
-    return parentSubscription;
-  }
-  if (
-    parentSubscription &&
-    typeof parentSubscription === "object" &&
-    typeof parentSubscription.id === "string"
-  ) {
-    return parentSubscription.id;
-  }
+  ).subscription;
 
-  return null;
+  return subscriptionReferenceToId(legacySubscription);
 }
 
 export async function updateInvoicePledge(params: {
