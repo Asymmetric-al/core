@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { describeDonationPaymentStatus } from "@asym/lib/payments/payment-status-language";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -322,14 +323,28 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 function SuccessView({
   donorInfo,
   frequency,
+  paymentMethod,
   total,
   workerTitle,
 }: {
   donorInfo: DonorInfo;
   frequency: Frequency;
+  paymentMethod: PaymentMethod;
   total: number;
   workerTitle: string;
 }) {
+  // ACH Direct Debit is a delayed-notification rail: the donor authorized the
+  // debit, but payment finality arrives later from Stripe. Keep the language
+  // honest while the visual treatment stays identical across payment methods.
+  const achStatus =
+    paymentMethod === "ach"
+      ? describeDonationPaymentStatus({
+          state: "processing",
+          rail: "ach_debit",
+          audience: "donor",
+        })
+      : null;
+
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
       <motion.div
@@ -357,10 +372,12 @@ function SuccessView({
           </motion.div>
 
           <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
-            Contribution Logged.
+            {achStatus ? "Bank Transfer Started." : "Contribution Logged."}
           </h1>
           <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
-            Thank you for your support
+            {achStatus
+              ? "Processing — not yet collected"
+              : "Thank you for your support"}
           </p>
         </div>
 
@@ -381,7 +398,9 @@ function SuccessView({
           </div>
 
           <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
-            A secure receipt has been sent to{" "}
+            {achStatus
+              ? `${achStatus.message} A confirmation has been sent to `
+              : "A secure receipt has been sent to "}
             <span className="text-zinc-950 font-semibold">
               {donorInfo.email}
             </span>
@@ -1244,6 +1263,7 @@ function CheckoutContent({
       <SuccessView
         donorInfo={donorInfo}
         frequency={frequency}
+        paymentMethod={paymentMethod}
         total={total}
         workerTitle={worker?.title || "our global mission"}
       />
