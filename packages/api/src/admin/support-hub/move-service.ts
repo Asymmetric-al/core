@@ -389,19 +389,27 @@ export async function bulkMoveSupportConversations(
   // Retries skip this write entirely: retryFailedBulkMove merges the retried
   // items into the original batch row and owns that single update.
   if (!options.isRetry) {
-    await client.from("support_bulk_move_operations").upsert(
-      {
-        id: batchOperationId,
-        tenant_id: input.tenantId,
-        destination_inbox_id: input.destinationInboxId,
-        reason,
-        created_by_profile_id: input.actorProfileId,
-        items,
-        status: failed === 0 ? "completed" : "partial",
-        retry_of: null,
-      },
-      { onConflict: "id" },
-    );
+    const { error: upsertError } = await client
+      .from("support_bulk_move_operations")
+      .upsert(
+        {
+          id: batchOperationId,
+          tenant_id: input.tenantId,
+          destination_inbox_id: input.destinationInboxId,
+          reason,
+          created_by_profile_id: input.actorProfileId,
+          items,
+          status: failed === 0 ? "completed" : "partial",
+          retry_of: null,
+        },
+        { onConflict: "id" },
+      );
+
+    if (upsertError) {
+      throw new Error(
+        `bulk_move_operation_persist_failed: ${upsertError.message}`,
+      );
+    }
   }
 
   return {
@@ -476,7 +484,7 @@ export async function retryFailedBulkMove(
         // back to the original batch via batchOperationId + isRetry.
         reason: String(batchRow.reason),
         actorProfileId: input.actorProfileId,
-        confirmResolved: input.confirmResolved ?? true,
+        confirmResolved: input.confirmResolved ?? false,
       },
       { batchOperationId: input.batchOperationId, isRetry: true },
     );
