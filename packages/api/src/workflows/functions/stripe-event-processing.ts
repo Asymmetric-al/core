@@ -5,6 +5,7 @@ import {
   completeStripeRawEvent,
   getRawPayloadEvent,
   recordStripeRawEventFailure,
+  recordStripeRawEventFailureIfStillProcessing,
 } from "../../stripe/event-store";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
 import { runStripeEventRecoveryScan } from "../adapters/stripe-events";
@@ -28,6 +29,27 @@ export const stripeEventProcessing = inngest.createFunction(
     triggers: [{ event: STRIPE_EVENT_PROCESS_EVENT }],
     retries: 3,
     concurrency: [{ key: "event.data.tenantId", limit: 5 }],
+    onFailure: async ({ event, error }) => {
+      const original = event.data.event?.data;
+      let rawEventId: string | undefined;
+
+      try {
+        rawEventId = parseWorkflowEnvelopeOrThrow(original).subject.id;
+      } catch {
+        return;
+      }
+
+      if (!rawEventId) {
+        return;
+      }
+
+      const supabaseAdmin = requireWorkflowAdminClient("stripe_event_on_failure");
+      await recordStripeRawEventFailureIfStillProcessing({
+        supabaseAdmin,
+        rawEventId,
+        error: error ?? new Error("stripe_event_processing_exhausted"),
+      });
+    },
   },
   async ({ event, step }) => {
     const envelope = parseWorkflowEnvelopeOrThrow(event.data);
