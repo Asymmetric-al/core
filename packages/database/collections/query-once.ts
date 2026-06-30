@@ -189,27 +189,20 @@ function hasServerOnlyFeatures(query: QueryIr): boolean {
   );
 }
 
-function assertSimpleReadShape(query: QueryIr): void {
-  if (query.join?.length) {
-    throw new Error("queryOnce simple reads do not support joins.");
-  }
-
-  if (query.select !== undefined) {
-    throw new Error("queryOnce simple reads return full rows only.");
-  }
-
-  if (query.distinct) {
-    throw new Error("queryOnce simple reads do not support distinct.");
-  }
+function isSimpleSupabaseRead(query: QueryIr): boolean {
+  return Boolean(
+    query.from.type === "collectionRef" &&
+      query.select === undefined &&
+      !query.join?.length &&
+      !query.distinct &&
+      !hasServerOnlyFeatures(query),
+  );
 }
 
 async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
-  callback: TCallback,
+  query: QueryIr,
   supabase: QueryOnceSupabaseClient,
 ): Promise<Awaited<ReturnType<typeof supabaseQueryOnce<TCallback>>>> {
-  const query = getQuery(callback);
-  assertSimpleReadShape(query);
-
   let supabaseQuery = supabase
     .from(getSourceTableName(query))
     .select("*") as unknown as SupabaseReadQuery;
@@ -256,12 +249,15 @@ export async function querySupabaseCollectionOnce<
   const client = supabase ?? (await createClient());
   const query = getQuery(callback);
 
-  if (hasServerOnlyFeatures(query)) {
+  if (!isSimpleSupabaseRead(query)) {
     return supabaseQueryOnce(
       callback,
       client as QueryOnceSupabaseClient,
     ) as Promise<Awaited<ReturnType<typeof supabaseQueryOnce<TCallback>>>>;
   }
 
-  return executeSimpleSupabaseRead(callback, client as QueryOnceSupabaseClient);
+  return executeSimpleSupabaseRead<TCallback>(
+    query,
+    client as QueryOnceSupabaseClient,
+  );
 }

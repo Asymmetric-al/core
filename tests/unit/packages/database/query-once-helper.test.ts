@@ -223,6 +223,53 @@ describe("querySupabaseCollectionOnce", () => {
     expect(result).toBeUndefined();
   });
 
+  it("materializes the query once and executes simple reads with the first query IR", async () => {
+    const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
+    const firstQuery = createCollectionQuery({
+      where: [
+        {
+          type: "func",
+          name: "eq",
+          args: [
+            { type: "ref", path: ["post", "id"] },
+            { type: "val", value: "post-1" },
+          ],
+        },
+      ],
+    });
+    const secondQuery = createCollectionQuery({
+      from: {
+        type: "collectionRef",
+        collection: { id: "comments" },
+      },
+      where: [
+        {
+          type: "func",
+          name: "eq",
+          args: [
+            { type: "ref", path: ["comment", "id"] },
+            { type: "val", value: "comment-1" },
+          ],
+        },
+      ],
+    });
+    const queryQueue = [firstQuery, secondQuery];
+    const callback = vi.fn(() => ({
+      _getQuery: () => queryQueue.shift(),
+    })) as unknown as QueryOnceCallback;
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toEqual([{ id: "post-1" }]);
+    expect(callback).toHaveBeenCalledTimes(1);
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["eq", "id", "post-1"],
+    ]);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
+  });
+
   it.each(["fnSelect", "fnWhere", "fnHaving"])(
     "delegates %s queries to upstream queryOnce",
     async (functionalClause) => {
@@ -241,6 +288,52 @@ describe("querySupabaseCollectionOnce", () => {
         querySupabaseCollectionOnce(callback, client),
       ).rejects.toThrow(`${functionalClause} delegated`);
 
+      expect(calls).toEqual([]);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+    },
+  );
+
+  const delegatedQueryCases: Array<[string, Record<string, unknown>]> = [
+    [
+      "projection selects",
+      createCollectionQuery({
+        select: {
+          id: { type: "ref", path: ["post", "id"] },
+        },
+      }),
+    ],
+    [
+      "joins",
+      createCollectionQuery({
+        join: [
+          {
+            type: "join",
+          },
+        ],
+      }),
+    ],
+    [
+      "distinct reads",
+      createCollectionQuery({
+        distinct: true,
+      }),
+    ],
+  ];
+
+  it.each(delegatedQueryCases)(
+    "delegates %s to upstream queryOnce",
+    async (_name, query) => {
+      const delegatedResult = [{ id: "delegated-row" }];
+      supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+      const { calls, client } = createSupabaseStub([
+        { id: "unsafe-unfiltered-row" },
+      ]);
+      const callback = createQueryCallback(query);
+
+      const result = await querySupabaseCollectionOnce(callback, client);
+
+      expect(result).toBe(delegatedResult);
       expect(calls).toEqual([]);
       expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
       expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
