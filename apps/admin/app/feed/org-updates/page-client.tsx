@@ -2,6 +2,7 @@
 
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import {
   BrandAvatar,
   BrandLogo,
@@ -252,7 +253,7 @@ function FeedSettingsSheet({
                 <label
                   htmlFor="all_donors"
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
                     visibility === "all_donors"
                       ? "border-foreground bg-muted/50"
                       : "border-border hover:bg-muted/30",
@@ -280,7 +281,7 @@ function FeedSettingsSheet({
                 <label
                   htmlFor="followers_only"
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
                     visibility === "followers_only"
                       ? "border-foreground bg-muted/50"
                       : "border-border hover:bg-muted/30",
@@ -386,7 +387,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card"
+        className="overflow-hidden border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-shadow rounded-2xl sm:rounded-3xl bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -443,7 +444,7 @@ function PostCard({
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-all"
+                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
                 >
                   <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
                 </Button>
@@ -566,7 +567,7 @@ function DraftCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
+        className="overflow-hidden border [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-shadow rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 min-w-0 space-y-3">
@@ -850,7 +851,7 @@ function ComposeCardActions({
             size="sm"
             disabled={isUploading}
             onClick={onAddMedia}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
+            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
           >
             {isUploading ? (
               <Loader2 className="size-3 animate-spin" />
@@ -867,7 +868,7 @@ function ComposeCardActions({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-all"
+                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
               >
                 {visibility === "public" ? (
                   <Globe className="size-3" />
@@ -1061,7 +1062,7 @@ function ComposeCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 transition-all"
+            className="flex-1 min-w-0"
           >
             <RichTextEditor
               value={postContent}
@@ -1109,12 +1110,7 @@ function LoadingState() {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center py-16 sm:py-24 gap-4"
     >
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-      >
-        <Loader2 className="size-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
-      </motion.div>
+      <Loader2 className="spinner-essential size-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1243,6 +1239,10 @@ function OrgUpdatesTabsSection({
   onDelete: (postId: string) => void;
   onTogglePin: (postId: string) => void;
 }) {
+  // Suppress the cards' first-mount stagger when the route VT owns the page
+  // entrance; AnimatePresence still animates later add/remove/pin (popLayout).
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <Tabs
       defaultValue="published"
@@ -1259,13 +1259,13 @@ function OrgUpdatesTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="published"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             Published
           </TabsTrigger>
           <TabsTrigger
             value="draft"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-all flex items-center gap-2"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
           >
             Drafts
             <AnimatePresence>
@@ -1299,7 +1299,7 @@ function OrgUpdatesTabsSection({
       <TabsContent value="published" className="mt-0">
         <LayoutGroup>
           <motion.div layout className="space-y-6 sm:space-y-8">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={!withinRouteVt}>
               {isLoading ? (
                 <LoadingState />
               ) : posts.length > 0 ? (
@@ -1328,7 +1328,7 @@ function OrgUpdatesTabsSection({
       <TabsContent value="draft" className="mt-0">
         <LayoutGroup>
           <motion.div layout className="space-y-4 sm:space-y-6">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={!withinRouteVt}>
               {drafts.length > 0 ? (
                 drafts.map((draft, index) => (
                   <DraftCard

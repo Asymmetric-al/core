@@ -4,8 +4,8 @@ import type {} from "react/experimental";
 
 import { useReducedMotion } from "@asym/lib/motion";
 import {
-  clientDocumentSupportsViewTransitions,
   isViewTransitionsFeatureEnabled,
+  useSupportsViewTransitions,
 } from "@asym/lib/view-transitions";
 import { ViewTransition } from "react";
 
@@ -25,9 +25,10 @@ export function SharedNamedViewTransition({
   className,
 }: SharedNamedViewTransitionProps) {
   const reduceMotion = useReducedMotion();
+  const supportsViewTransitions = useSupportsViewTransitions();
   const enabled =
     isViewTransitionsFeatureEnabled() &&
-    clientDocumentSupportsViewTransitions() &&
+    supportsViewTransitions &&
     reduceMotion !== true;
 
   if (!enabled) {
