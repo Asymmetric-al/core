@@ -1,9 +1,13 @@
 "use client";
 
-import { useReducedMotion } from "@asym/lib/motion";
+import {
+  useReducedMotion,
+  LazyMotion,
+  domAnimation,
+  motion as m,
+} from "@asym/lib/motion";
 import { propsHeroEntrance, STAGGER_TIGHT } from "@asym/lib/motion-presets";
 import { Activity, ArrowRight, Users, Zap } from "lucide-react";
-import { LazyMotion, domAnimation, m } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 

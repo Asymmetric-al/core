@@ -213,7 +213,7 @@ const PreviewContent = ({
               .map((project) => (
                 <div
                   key={project.id}
-                  className="rounded-xl bg-white shadow-sm border border-zinc-100 overflow-hidden hover:shadow-md transition-shadow"
+                  className="rounded-xl bg-white shadow-sm border border-zinc-100 overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow"
                 >
                   <div
                     className={cn(
@@ -415,7 +415,7 @@ export function WebStudioEditorPanel({
               {projects.map((project) => (
                 <div
                   key={project.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 transition-all group"
+                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-200 bg-white hover:border-blue-300 hover:bg-blue-50/20 transition-colors group"
                 >
                   <div className="flex items-center gap-4 text-left">
                     <div className="size-10 rounded-lg bg-zinc-100 flex items-center justify-center text-zinc-400 group-hover:bg-blue-50 group-hover:text-blue-600 transition-colors">
@@ -465,7 +465,7 @@ export function WebStudioEditorPanel({
               {PREVIEW_UPDATES.map((update) => (
                 <div
                   key={`${update.type}-${update.title}`}
-                  className="p-4 rounded-xl border border-zinc-200 bg-white hover:border-blue-300 transition-all group"
+                  className="p-4 rounded-xl border border-zinc-200 bg-white hover:border-blue-300 transition-colors group"
                 >
                   <div className="flex justify-between items-start">
                     <div className="space-y-1">
@@ -530,7 +530,7 @@ export function WebStudioPreviewRail({
             type="button"
             onClick={() => onPreviewModeChange("mobile")}
             className={cn(
-              "p-1.5 rounded-md transition-all",
+              "p-1.5 rounded-md transition-[color,background-color,box-shadow]",
               previewMode === "mobile"
                 ? "bg-white shadow-sm text-blue-600"
                 : "text-zinc-500 hover:text-zinc-900",
@@ -542,7 +542,7 @@ export function WebStudioPreviewRail({
             type="button"
             onClick={() => onPreviewModeChange("desktop")}
             className={cn(
-              "p-1.5 rounded-md transition-all",
+              "p-1.5 rounded-md transition-[color,background-color,box-shadow]",
               previewMode === "desktop"
                 ? "bg-white shadow-sm text-blue-600"
                 : "text-zinc-500 hover:text-zinc-900",

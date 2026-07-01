@@ -1,9 +1,13 @@
 "use client";
 
-import { useReducedMotion } from "@asym/lib/motion";
+import {
+  useReducedMotion,
+  LazyMotion,
+  domAnimation,
+  motion as m,
+} from "@asym/lib/motion";
 import { transitionStandard } from "@asym/lib/motion-presets";
 import { type LucideIcon } from "lucide-react";
-import { LazyMotion, domAnimation, m } from "motion/react";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";

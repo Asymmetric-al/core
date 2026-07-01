@@ -71,7 +71,7 @@ export default function SignStudioPage() {
       </Card>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
+        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-blue-500/10 text-blue-600">
               <FileText className="size-5" />
@@ -90,7 +90,7 @@ export default function SignStudioPage() {
           </CardContent>
         </Card>
 
-        <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
+        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-amber-500/10 text-amber-600">
               <Send className="size-5" />
@@ -107,7 +107,7 @@ export default function SignStudioPage() {
           </CardContent>
         </Card>
 
-        <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
+        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-600">
               <CheckCircle className="size-5" />
@@ -124,7 +124,7 @@ export default function SignStudioPage() {
           </CardContent>
         </Card>
 
-        <Card className="group cursor-pointer transition-all hover:shadow-md hover:border-primary/30">
+        <Card className="group cursor-pointer transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover:border-primary/30">
           <CardHeader className="pb-3">
             <div className="flex size-10 items-center justify-center rounded-lg bg-violet-500/10 text-violet-600">
               <Download className="size-5" />

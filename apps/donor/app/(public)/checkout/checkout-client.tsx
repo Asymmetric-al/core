@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { describeDonationPaymentStatus } from "@asym/lib/payments/payment-status-language";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -292,7 +293,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
           <div className="flex flex-col items-center gap-2">
             <div
               className={cn(
-                "h-1.5 rounded-full transition-all duration-700 ease-[0.22, 1, 0.36, 1]",
+                "h-1.5 rounded-full transition-[width,background-color] duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
                 currentIdx === idx
                   ? "bg-zinc-900 w-12"
                   : currentIdx > idx
@@ -322,14 +323,28 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 function SuccessView({
   donorInfo,
   frequency,
+  paymentMethod,
   total,
   workerTitle,
 }: {
   donorInfo: DonorInfo;
   frequency: Frequency;
+  paymentMethod: PaymentMethod;
   total: number;
   workerTitle: string;
 }) {
+  // ACH Direct Debit is a delayed-notification rail: the donor authorized the
+  // debit, but payment finality arrives later from Stripe. Keep the language
+  // honest while the visual treatment stays identical across payment methods.
+  const achStatus =
+    paymentMethod === "ach"
+      ? describeDonationPaymentStatus({
+          state: "processing",
+          rail: "ach_debit",
+          audience: "donor",
+        })
+      : null;
+
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
       <motion.div
@@ -357,10 +372,12 @@ function SuccessView({
           </motion.div>
 
           <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
-            Contribution Logged.
+            {achStatus ? "Bank Transfer Started." : "Contribution Logged."}
           </h1>
           <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
-            Thank you for your support
+            {achStatus
+              ? "Processing — not yet collected"
+              : "Thank you for your support"}
           </p>
         </div>
 
@@ -381,7 +398,9 @@ function SuccessView({
           </div>
 
           <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
-            A secure receipt has been sent to{" "}
+            {achStatus
+              ? `${achStatus.message} A confirmation has been sent to `
+              : "A secure receipt has been sent to "}
             <span className="text-zinc-950 font-semibold">
               {donorInfo.email}
             </span>
@@ -393,7 +412,7 @@ function SuccessView({
             <Button
               asChild
               size="lg"
-              className="flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 transition-all font-semibold font-syne text-[11px] uppercase tracking-widest"
+              className="flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 transition-colors font-semibold font-syne text-[11px] uppercase tracking-widest"
             >
               <Link href="/donor-dashboard">Enter Dashboard</Link>
             </Button>
@@ -605,7 +624,7 @@ function ConfigStep({
               role="radio"
               aria-checked={frequency === "one-time"}
               className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all duration-500",
+                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,box-shadow]",
                 frequency === "one-time"
                   ? "bg-white text-zinc-950 shadow-md"
                   : "text-zinc-400 hover:text-zinc-600",
@@ -618,7 +637,7 @@ function ConfigStep({
               role="radio"
               aria-checked={frequency === "monthly"}
               className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all duration-500 relative",
+                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,box-shadow] relative",
                 frequency === "monthly"
                   ? "bg-white text-zinc-900 shadow-md"
                   : "text-zinc-400 hover:text-zinc-600",
@@ -673,7 +692,7 @@ function ConfigStep({
               value={customAmount}
               onChange={onCustomAmountChange}
               className={cn(
-                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-semibold font-syne transition-all duration-500 outline-none border-2",
+                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-semibold font-syne transition-colors outline-none border-2",
                 customAmount
                   ? "border-zinc-950 bg-white"
                   : "border-zinc-50 bg-zinc-50 focus:border-zinc-200",
@@ -698,7 +717,7 @@ function ConfigStep({
 
         <div
           className={cn(
-            "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-all duration-500",
+            "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-colors",
             coverFees
               ? "bg-zinc-900 border-zinc-900 text-white"
               : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200",
@@ -858,7 +877,7 @@ function DetailsStep({
             !donorInfo.firstName || !donorInfo.lastName || !donorInfo.email
           }
           size="lg"
-          className="flex-1 h-20 text-xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all uppercase tracking-widest"
+          className="flex-1 h-20 text-xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-colors uppercase tracking-widest"
         >
           Continue to Payment
         </Button>
@@ -913,7 +932,7 @@ function PaymentStep({
             aria-selected={paymentMethod === "card"}
             onClick={() => onPaymentMethodChange("card")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,box-shadow]",
               paymentMethod === "card"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
@@ -926,7 +945,7 @@ function PaymentStep({
             aria-selected={paymentMethod === "ach"}
             onClick={() => onPaymentMethodChange("ach")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,box-shadow]",
               paymentMethod === "ach"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
@@ -939,7 +958,7 @@ function PaymentStep({
             aria-selected={paymentMethod === "wallet"}
             onClick={() => onPaymentMethodChange("wallet")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,box-shadow]",
               paymentMethod === "wallet"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
@@ -1244,6 +1263,7 @@ function CheckoutContent({
       <SuccessView
         donorInfo={donorInfo}
         frequency={frequency}
+        paymentMethod={paymentMethod}
         total={total}
         workerTitle={worker?.title || "our global mission"}
       />

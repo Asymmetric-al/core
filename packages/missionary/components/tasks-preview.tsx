@@ -50,7 +50,7 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
           {tasks.map((task) => (
             <div
               key={task.id}
-              className="group flex cursor-pointer items-start gap-4 p-4 transition-all hover:bg-zinc-50/50"
+              className="group flex cursor-pointer items-start gap-4 p-4 transition-colors hover:bg-zinc-50/50"
             >
               <div
                 className={`mt-1.5 size-1.5 shrink-0 rounded-full ${task.priority === "high" ? "bg-rose-500" : "bg-amber-500"}`}

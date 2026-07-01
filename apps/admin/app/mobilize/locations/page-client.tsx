@@ -126,7 +126,7 @@ export default function LocationsPage() {
                 >
                   <MarkerContent>
                     <div
-                      className={`size-6 rounded-full border-4 border-white shadow-xl flex items-center justify-center transition-transform hover:scale-125 ${
+                      className={`size-6 rounded-full border-4 border-white shadow-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 ${
                         loc.type === "missionary"
                           ? "bg-zinc-900"
                           : loc.type === "project"

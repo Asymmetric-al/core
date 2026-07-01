@@ -55,14 +55,14 @@ export function TabsClient({ storyContent, updatesContent }: TabsClientProps) {
 
       <TabsContent
         value="story"
-        className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-200"
       >
         {storyContent}
       </TabsContent>
 
       <TabsContent
         value="updates"
-        className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
+        className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-200"
       >
         {updatesContent}
       </TabsContent>

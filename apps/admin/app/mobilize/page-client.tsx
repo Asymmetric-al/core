@@ -2,6 +2,7 @@
 
 import { useMobilizeCandidates } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Plus } from "lucide-react";
@@ -23,6 +24,8 @@ export default function Mobilize() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState<MobilizeTab>("all");
   const [isAddSheetOpen, setIsAddSheetOpen] = useState(false);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const candidatesQuery = useMobilizeCandidates();
   const allCandidates = useMemo(
     () => candidatesQuery.data ?? [],
@@ -72,7 +75,7 @@ export default function Mobilize() {
       }
     >
       <motion.div
-        initial={{ opacity: 0 }}
+        initial={withinRouteVt ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.4 }}
         className="space-y-6"

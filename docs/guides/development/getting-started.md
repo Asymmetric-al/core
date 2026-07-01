@@ -230,7 +230,7 @@ import { SITE_CONFIG, NAVIGATION } from "@asym/config";
 import { env } from "@asym/env";
 
 // App-specific feature components (within an app)
-import { TilePage, SidebarNav } from "@/features/mission-control";
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 
 // App-specific components (within an app)
 import { DashboardLayout } from "@/components/layouts";
@@ -240,7 +240,8 @@ import { DashboardLayout } from "@/components/layouts";
 
 ```typescript
 // apps/admin/app/(admin)/mc/my-page/page.tsx
-import { PageHeader, TilePage } from '@/features/mission-control'
+import { PageHeader } from '@/features/mission-control/components/patterns/page-header'
+import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -306,7 +307,7 @@ touch apps/donor/app/\(donor\)/donor-dashboard/my-page/page.tsx
 
 ```typescript
 // apps/admin/app/(admin)/mc/my-page/page.tsx
-import { TilePage } from '@/features/mission-control'
+import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -334,9 +335,9 @@ export default function MyPage() {
 
 Edit the appropriate navigation file:
 
-- **Admin:** `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
-- **Missionary:** `apps/missionary/features/missionary/components/app-shell/sidebar-nav.tsx`
-- **Donor:** `apps/donor/features/donor/components/app-shell/sidebar-nav.tsx`
+- **Admin:** `apps/admin/app/mc-shell.tsx` (shell + sidebar navigation)
+- **Missionary:** `apps/missionary/components/app-sidebar.tsx`
+- **Donor:** `apps/donor/features/donor/components/DonorSubNav.tsx`
 
 ## Adding a New Component
 
