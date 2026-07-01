@@ -980,7 +980,11 @@ export function DonorsPageContent({
         <StatCard
           label="Recurring Donations"
           value={activePledgeCount}
-          subtext={`${formatCurrency(monthlyPledgeTotal)}/mo`}
+          subtext={
+            hasMoreDonors
+              ? `${formatCurrency(monthlyPledgeTotal)}/mo (loaded window)`
+              : `${formatCurrency(monthlyPledgeTotal)}/mo`
+          }
           icon={Repeat}
           iconBg="bg-blue-50 border-blue-100"
           iconColor="text-blue-600"
@@ -991,7 +995,11 @@ export function DonorsPageContent({
         <StatCard
           label="Needs Attention"
           value={atRiskCount + lapsedCount}
-          subtext={`${atRiskCount} at risk, ${lapsedCount} lapsed`}
+          subtext={
+            hasMoreDonors
+              ? `${atRiskCount} at risk, ${lapsedCount} lapsed (loaded window)`
+              : `${atRiskCount} at risk, ${lapsedCount} lapsed`
+          }
           icon={AlertCircle}
           iconBg="bg-amber-50 border-amber-100"
           iconColor="text-amber-600"

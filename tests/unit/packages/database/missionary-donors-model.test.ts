@@ -244,4 +244,40 @@ describe("buildMissionaryDonorRows", () => {
 
     expect(rows[0].activities[0].status).toBe("Failed");
   });
+
+  it.each([
+    ["organization", "Organization"],
+    ["foundation", "Organization"],
+  ] as const)("normalizes donor type %s to %s", (type, expected) => {
+    const donor = makeDonor({
+      missionary_id: MISSIONARY_PROFILE_ID,
+      type,
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [],
+      pledges: [],
+    });
+
+    expect(rows[0].type).toBe(expected);
+  });
+
+  it("normalizes done activity status to Completed", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const activity = makeActivity({
+      donor_id: donor.id,
+      status: "done",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [activity],
+      pledges: [],
+    });
+
+    expect(rows[0].activities[0].status).toBe("Completed");
+  });
 });
