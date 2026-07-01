@@ -31,6 +31,17 @@ type QueryExpression =
   | QueryValueExpression
   | { type: string; [key: string]: unknown };
 
+type SimpleFilterOperator =
+  | "eq"
+  | "neq"
+  | "gt"
+  | "gte"
+  | "lt"
+  | "lte"
+  | "isNull"
+  | "in"
+  | "inArray";
+
 interface QueryIr {
   from:
     | {
@@ -120,6 +131,99 @@ function getValue(expression: unknown): unknown {
   return expression.value;
 }
 
+function isColumnRefExpression(
+  expression: unknown,
+): expression is QueryRefExpression {
+  return (
+    typeof expression === "object" &&
+    expression !== null &&
+    "type" in expression &&
+    expression.type === "ref" &&
+    "path" in expression &&
+    Array.isArray(expression.path)
+  );
+}
+
+function isValueExpression(
+  expression: unknown,
+): expression is QueryValueExpression {
+  return (
+    typeof expression === "object" &&
+    expression !== null &&
+    "type" in expression &&
+    expression.type === "val" &&
+    "value" in expression
+  );
+}
+
+function isFunctionExpression(
+  expression: QueryExpression,
+): expression is QueryFunctionExpression {
+  return (
+    typeof expression === "object" &&
+    expression !== null &&
+    "type" in expression &&
+    expression.type === "func" &&
+    "name" in expression &&
+    typeof expression.name === "string" &&
+    "args" in expression &&
+    Array.isArray(expression.args)
+  );
+}
+
+function isSimpleFilterOperator(
+  operator: string,
+): operator is SimpleFilterOperator {
+  return [
+    "eq",
+    "neq",
+    "gt",
+    "gte",
+    "lt",
+    "lte",
+    "isNull",
+    "in",
+    "inArray",
+  ].includes(operator);
+}
+
+function canApplyWhere(expression: QueryExpression): boolean {
+  if (!isFunctionExpression(expression)) {
+    return false;
+  }
+
+  if (expression.name === "and") {
+    return expression.args.every(canApplyWhere);
+  }
+
+  if (!isSimpleFilterOperator(expression.name)) {
+    return false;
+  }
+
+  const [columnRef, literalValue] = expression.args;
+  if (!isColumnRefExpression(columnRef)) {
+    return false;
+  }
+
+  if (expression.name === "isNull") {
+    return expression.args.length === 1;
+  }
+
+  if (expression.args.length !== 2) {
+    return false;
+  }
+
+  if (!isValueExpression(literalValue)) {
+    return false;
+  }
+
+  if (expression.name === "in" || expression.name === "inArray") {
+    return Array.isArray(literalValue.value);
+  }
+
+  return true;
+}
+
 function applyWhere(
   query: SupabaseReadQuery,
   expression: QueryExpression,
@@ -146,6 +250,11 @@ function applyWhere(
 
   const [columnRef, literalValue] = expression.args;
   const columnName = getColumnName(columnRef);
+
+  if (expression.name === "isNull") {
+    return query.is(columnName, null);
+  }
+
   const value = getValue(literalValue);
 
   switch (expression.name) {
@@ -161,8 +270,8 @@ function applyWhere(
       return query.lt(columnName, value);
     case "lte":
       return query.lte(columnName, value);
-    case "isNull":
-      return query.is(columnName, null);
+    case "in":
+      return query.in(columnName, value as readonly unknown[]);
     case "inArray":
       return query.in(columnName, value as readonly unknown[]);
     default:
@@ -193,6 +302,8 @@ function isSimpleSupabaseRead(query: QueryIr): boolean {
   return Boolean(
     query.from.type === "collectionRef" &&
       query.select === undefined &&
+      (query.where ?? []).every(canApplyWhere) &&
+      (query.offset === undefined || query.limit !== undefined) &&
       !query.join?.length &&
       !query.distinct &&
       !hasServerOnlyFeatures(query),
@@ -221,8 +332,8 @@ async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
     supabaseQuery = supabaseQuery.limit(query.limit);
   }
 
-  if (query.offset !== undefined) {
-    const end = query.offset + (query.limit ?? 1000) - 1;
+  if (query.offset !== undefined && query.limit !== undefined) {
+    const end = query.offset + query.limit - 1;
     supabaseQuery = supabaseQuery.range(query.offset, end);
   }
 

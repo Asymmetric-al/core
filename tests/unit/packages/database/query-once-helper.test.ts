@@ -14,8 +14,10 @@ type QueryCall =
   | ["from", string]
   | ["select", string]
   | ["eq", string, unknown]
+  | ["in", string, readonly unknown[]]
   | ["order", string, { ascending: boolean }]
-  | ["limit", number];
+  | ["limit", number]
+  | ["range", number, number];
 
 function createSupabaseStub(data: unknown[]) {
   const calls: QueryCall[] = [];
@@ -28,12 +30,20 @@ function createSupabaseStub(data: unknown[]) {
       calls.push(["eq", column, value]);
       return this;
     },
+    in(column: string, value: readonly unknown[]) {
+      calls.push(["in", column, value]);
+      return this;
+    },
     order(column: string, options: { ascending: boolean }) {
       calls.push(["order", column, options]);
       return this;
     },
     limit(value: number) {
       calls.push(["limit", value]);
+      return this;
+    },
+    range(from: number, to: number) {
+      calls.push(["range", from, to]);
       return this;
     },
     then(
@@ -133,6 +143,34 @@ describe("querySupabaseCollectionOnce", () => {
       ["select", "*"],
       ["eq", "id", "post-1"],
     ]);
+  });
+
+  it('translates TanStack Func("in", ...) filters to Supabase in filters', async () => {
+    const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        where: [
+          {
+            type: "func",
+            name: "in",
+            args: [
+              { type: "ref", path: ["post", "status"] },
+              { type: "val", value: ["published", "scheduled"] },
+            ],
+          },
+        ],
+      }),
+    );
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toEqual([{ id: "post-1" }]);
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["in", "status", ["published", "scheduled"]],
+    ]);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
   it("runs ordered reads without requiring where", async () => {
@@ -293,6 +331,124 @@ describe("querySupabaseCollectionOnce", () => {
       expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
     },
   );
+
+  const unsupportedWhereCases: Array<[string, Record<string, unknown>]> = [
+    [
+      "or",
+      {
+        type: "func",
+        name: "or",
+        args: [
+          {
+            type: "func",
+            name: "eq",
+            args: [
+              { type: "ref", path: ["post", "id"] },
+              { type: "val", value: "post-1" },
+            ],
+          },
+          {
+            type: "func",
+            name: "eq",
+            args: [
+              { type: "ref", path: ["post", "id"] },
+              { type: "val", value: "post-2" },
+            ],
+          },
+        ],
+      },
+    ],
+    [
+      "like",
+      {
+        type: "func",
+        name: "like",
+        args: [
+          { type: "ref", path: ["post", "title"] },
+          { type: "val", value: "%update%" },
+        ],
+      },
+    ],
+    [
+      "ilike",
+      {
+        type: "func",
+        name: "ilike",
+        args: [
+          { type: "ref", path: ["post", "title"] },
+          { type: "val", value: "%update%" },
+        ],
+      },
+    ],
+    [
+      "not",
+      {
+        type: "func",
+        name: "not",
+        args: [
+          {
+            type: "func",
+            name: "eq",
+            args: [
+              { type: "ref", path: ["post", "id"] },
+              { type: "val", value: "post-1" },
+            ],
+          },
+        ],
+      },
+    ],
+    [
+      "isUndefined",
+      {
+        type: "func",
+        name: "isUndefined",
+        args: [{ type: "ref", path: ["post", "deleted_at"] }],
+      },
+    ],
+  ];
+
+  it.each(unsupportedWhereCases)(
+    "delegates unsupported %s filters to upstream queryOnce",
+    async (_name, whereExpression) => {
+      const delegatedResult = [{ id: "delegated-row" }];
+      supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+      const { calls, client } = createSupabaseStub([
+        { id: "unsafe-unfiltered-row" },
+      ]);
+      const callback = createQueryCallback(
+        createCollectionQuery({
+          where: [whereExpression],
+        }),
+      );
+
+      const result = await querySupabaseCollectionOnce(callback, client);
+
+      expect(result).toBe(delegatedResult);
+      expect(calls).toEqual([]);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+    },
+  );
+
+  it("delegates offset-only reads without injecting a synthetic 1000-row range", async () => {
+    const delegatedResult = [{ id: "delegated-row" }];
+    supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+    const { calls, client } = createSupabaseStub([
+      { id: "unsafe-unfiltered-row" },
+    ]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        offset: 250,
+      }),
+    );
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toBe(delegatedResult);
+    expect(calls).toEqual([]);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+  });
 
   const delegatedQueryCases: Array<[string, Record<string, unknown>]> = [
     [
