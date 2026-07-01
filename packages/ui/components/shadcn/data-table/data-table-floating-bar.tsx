@@ -27,6 +27,7 @@ import {
 import { useSelector } from "./tanstack";
 
 import type {
+  ColumnFiltersState,
   RowData,
   RowSelectionState,
   Table,
@@ -52,14 +53,20 @@ function DataTableFloatingBarImpl<TData extends RowData>({
   actions,
   className,
 }: DataTableFloatingBarProps<TData>) {
-  // Focused subscription: row selection is the only table state this bar
-  // renders. The memo comparator below keeps parent broadcasts out; selected
-  // rows and the count re-derive from the live row model on each change.
+  // Focused subscriptions: the memo comparator below keeps parent broadcasts out,
+  // so every state slice this chrome reads needs its own subscription.
   const atoms = getTableSliceAtoms(table);
   const rowSelectionSource: TableSelectionSource<
     RowSelectionState | undefined
   > = atoms?.rowSelection ?? EMPTY_TABLE_SELECTION_SOURCE;
   useSelector(rowSelectionSource);
+  const columnFiltersSource: TableSelectionSource<
+    ColumnFiltersState | undefined
+  > = atoms?.columnFilters ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(columnFiltersSource);
+  const globalFilterSource: TableSelectionSource<unknown> =
+    atoms?.globalFilter ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(globalFilterSource);
 
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
