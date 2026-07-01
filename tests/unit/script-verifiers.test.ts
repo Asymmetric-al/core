@@ -97,6 +97,7 @@ async function createSkillsVerifyRepo() {
   const tempRoot = await createTempRepo("skills-verify");
   await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
   await copyScript(tempRoot, "scripts/verify-skills-sync.mjs");
+  await copyScript(tempRoot, "scripts/verify/inngest-skill-references.mjs");
 
   await mkdir(path.join(tempRoot, "docs/ai/skills/sample-skill"), {
     recursive: true,
@@ -168,6 +169,7 @@ async function createSkillsVerifyRelativeWorktreeRepo() {
   await mkdir(mainRoot, { recursive: true });
   await copyScript(mainRoot, "scripts/sync-agent-skills.mjs");
   await copyScript(mainRoot, "scripts/verify-skills-sync.mjs");
+  await copyScript(mainRoot, "scripts/verify/inngest-skill-references.mjs");
 
   await mkdir(path.join(mainRoot, "docs/ai/skills/sample-skill"), {
     recursive: true,
@@ -392,6 +394,7 @@ describe("verify-skills-sync", () => {
     const tempRoot = await createTempRepo("skills-verify-missing-git");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
     await copyScript(tempRoot, "scripts/verify-skills-sync.mjs");
+    await copyScript(tempRoot, "scripts/verify/inngest-skill-references.mjs");
 
     expect(() =>
       runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),

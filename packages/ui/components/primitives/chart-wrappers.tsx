@@ -98,7 +98,7 @@ export function ChartCard({
             {emptyCTA}
           </div>
         ) : (
-          <div className="size-full animate-in fade-in duration-500">
+          <div className="size-full animate-in fade-in duration-300">
             {children}
           </div>
         )}

@@ -128,7 +128,7 @@ export default function SignStudioPublicSigningPage({
                   type="button"
                   onClick={() => setIsSignatureModalOpen(true)}
                   className={cn(
-                    "w-64 h-16 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-all relative overflow-hidden group",
+                    "w-64 h-16 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors relative overflow-hidden group",
                     signature
                       ? "border-emerald-500 bg-emerald-50/30"
                       : "border-blue-500 border-dashed bg-blue-50/50 hover:bg-blue-50",

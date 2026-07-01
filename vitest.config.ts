@@ -29,12 +29,17 @@ export default defineConfig({
       "packages/auth/**/*.test.ts",
     ],
     environment: "node",
+    ...(process.platform === "win32" ? { maxWorkers: 4 } : {}),
     env: {
       SKIP_ENV_VALIDATION: "1",
       NEXT_PUBLIC_SUPABASE_URL: "http://127.0.0.1:54321",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
     },
+    testTimeout: 20_000,
+    hookTimeout: 60_000,
     clearMocks: true,
+    hookTimeout: 120_000,
+    testTimeout: 20_000,
     /** TipTap React ships ESM subpaths; inline so `vi.mock` replaces the same module graph under coverage. */
     server: {
       deps: {

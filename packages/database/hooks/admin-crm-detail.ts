@@ -7,8 +7,16 @@ import type {
   CrmDonorDetailResponse,
 } from "@asym/database/types";
 
-const CRM_DETAIL_QUERY_KEY = ["admin", "crm", "records", "detail"] as const;
-const CRM_RECORDS_QUERY_KEY = ["admin", "crm", "records"] as const;
+export const ADMIN_CRM_RECORD_DETAIL_QUERY_KEY = [
+  "admin",
+  "crm",
+  "records",
+  "detail",
+] as const;
+export const ADMIN_CRM_RECORDS_QUERY_KEY = ["admin", "crm", "records"] as const;
+
+const CRM_DETAIL_QUERY_KEY = ADMIN_CRM_RECORD_DETAIL_QUERY_KEY;
+const CRM_RECORDS_QUERY_KEY = ADMIN_CRM_RECORDS_QUERY_KEY;
 
 async function parseJsonError(response: Response, fallback: string) {
   const payload = (await response.json().catch(() => null)) as {
@@ -74,32 +82,6 @@ async function createLinkedCrmNote(input: {
   return (await response.json()) as AdminCrmNoteCreateResponse;
 }
 
-async function resendStagedGiftReceipt(input: { stagedGiftId: string }) {
-  const response = await fetch(
-    `/api/admin/contributions/staged-gifts/${input.stagedGiftId}/receipt`,
-    {
-      body: JSON.stringify({}),
-      credentials: "same-origin",
-      headers: {
-        Accept: "application/json",
-        "Content-Type": "application/json",
-      },
-      method: "POST",
-    },
-  );
-
-  if (!response.ok) {
-    throw new Error(
-      await parseJsonError(
-        response,
-        `Failed to resend receipt (${response.status})`,
-      ),
-    );
-  }
-
-  return (await response.json()) as { receipt: unknown; requestId?: string };
-}
-
 export function useAdminCrmRecordDetail(recordId: string | null) {
   return useQuery({
     enabled: Boolean(recordId),
@@ -132,27 +114,6 @@ export function useCreateLinkedCrmNote(recordId: string | null) {
     },
     scope: {
       id: recordId ? `crm-note:${recordId}` : "crm-note",
-    },
-  });
-}
-
-export function useResendCrmGiftReceipt(recordId: string | null) {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: resendStagedGiftReceipt,
-    onSuccess: async () => {
-      await Promise.all([
-        queryClient.invalidateQueries({
-          queryKey: CRM_DETAIL_QUERY_KEY,
-        }),
-        queryClient.invalidateQueries({
-          queryKey: CRM_RECORDS_QUERY_KEY,
-        }),
-      ]);
-    },
-    scope: {
-      id: recordId ? `crm-receipt:${recordId}` : "crm-receipt",
     },
   });
 }

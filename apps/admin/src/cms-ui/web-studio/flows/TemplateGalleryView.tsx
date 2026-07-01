@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -9,14 +9,23 @@ import {
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { cn } from "@asym/ui/lib/utils";
 import { useConfig } from "@payloadcms/ui";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { useSearchParams } from "next/navigation";
+import { FileSearch } from "lucide-react";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo } from "react";
 
 import { PAGE_TEMPLATES_SLUG } from "../../../cms/constants";
+import { Link, useSearchParams } from "../routing";
 import { StudioLayout } from "../shell/studio-layout";
 
 type TemplateDoc = {
@@ -118,9 +127,15 @@ function TemplateGalleryViewContent() {
                 {pageTypeFilter}
               </Badge>
               .{" "}
-              <Button variant="link" className="h-auto p-0 text-xs" asChild>
-                <Link href="/web-studio/templates">Clear filter</Link>
-              </Button>
+              <Link
+                href="/web-studio/templates"
+                className={cn(
+                  buttonVariants({ variant: "link", size: "sm" }),
+                  "h-auto p-0 text-xs",
+                )}
+              >
+                Clear filter
+              </Link>
             </p>
           ) : null}
         </div>
@@ -135,11 +150,14 @@ function TemplateGalleryViewContent() {
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {templatesQuery.isPending
             ? Array.from({ length: 6 }).map((_, i) => (
-                <Card key={i} className="animate-pulse border-border">
+                <Card key={i} className="border-border">
                   <CardHeader>
-                    <div className="h-5 w-2/3 rounded bg-muted" />
-                    <div className="mt-2 h-4 w-full rounded bg-muted" />
+                    <Skeleton className="h-5 w-2/3" />
+                    <Skeleton className="mt-2 h-4 w-full" />
                   </CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-8 w-full" />
+                  </CardContent>
                 </Card>
               ))
             : filtered.map((template) => {
@@ -180,13 +198,15 @@ function TemplateGalleryViewContent() {
                           </span>
                         </p>
                       ) : null}
-                      <Button
-                        size="sm"
-                        className="w-full font-semibold uppercase"
-                        asChild
+                      <Link
+                        href={href}
+                        className={cn(
+                          buttonVariants({ size: "sm" }),
+                          "w-full font-semibold uppercase",
+                        )}
                       >
-                        <Link href={href}>Start from template</Link>
-                      </Button>
+                        Start from template
+                      </Link>
                     </CardContent>
                   </Card>
                 );
@@ -194,10 +214,18 @@ function TemplateGalleryViewContent() {
         </div>
 
         {!templatesQuery.isPending && filtered.length === 0 ? (
-          <p className="text-muted-foreground text-sm">
-            No templates match this filter. Create templates in the Page
-            Templates collection or adjust the query string.
-          </p>
+          <Empty className="mt-6 border border-border">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <FileSearch className="size-5" />
+              </EmptyMedia>
+              <EmptyTitle>No templates found</EmptyTitle>
+              <EmptyDescription>
+                Create templates in the Page Templates collection or adjust the
+                current filter.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
         ) : null}
       </div>
     </StudioLayout>

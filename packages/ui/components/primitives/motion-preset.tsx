@@ -1,18 +1,18 @@
 "use client";
 
 import { useReducedMotion } from "@asym/lib/motion";
-import { transitionStandard } from "@asym/lib/motion-presets";
 import {
   AnimatePresence,
   LazyMotion,
   domAnimation,
-  m,
+  motion as m,
   useInView,
   type HTMLMotionProps,
   type UseInViewOptions,
   type Transition,
   type Variant,
-} from "motion/react";
+} from "@asym/lib/motion";
+import { transitionStandard } from "@asym/lib/motion-presets";
 import * as React from "react";
 
 type MotionComponent = keyof typeof m;

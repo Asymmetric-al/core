@@ -46,7 +46,7 @@ export function NativeDocumentWorkspaceSettingsDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-black uppercase tracking-tight">
+          <DialogTitle className="font-semibold tracking-tight">
             {sectionLabel} workspace
           </DialogTitle>
           <DialogDescription>

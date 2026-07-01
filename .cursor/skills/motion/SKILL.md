@@ -1,3 +1,8 @@
+---
+name: motion
+description: "Implement smooth, accessible animations with motion/react (Framer Motion) in React. Use when adding animations, gestures, or layout transitions with motion, AnimatePresence, useScroll, and related APIs. Requires a 'use client' boundary; not for strictly server-rendered components or when no animation is needed."
+---
+
 # Motion (Framer Motion) — Skill
 
 **Name:** `motion`

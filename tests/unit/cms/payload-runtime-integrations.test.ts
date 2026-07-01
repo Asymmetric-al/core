@@ -4,7 +4,7 @@ import {
   DEFAULT_PAYLOAD_EMAIL_FROM_ADDRESS,
   DEFAULT_PAYLOAD_EMAIL_FROM_NAME,
   WEB_STUDIO_MEDIA_BLOB_PREFIX,
-  createPayloadStoragePlugins,
+  createPayloadStorageAdapters,
   resolvePayloadEmailAdapter,
 } from "../../../apps/admin/src/cms/payload-runtime-integrations";
 
@@ -47,18 +47,22 @@ describe("Payload runtime integrations", () => {
   });
 
   it("leaves upload collections untouched when no Blob token is configured", () => {
-    const [plugin] = createPayloadStoragePlugins({});
+    const [adapter] = createPayloadStorageAdapters({});
     const baseConfig = createUploadConfig();
 
-    expect(plugin(baseConfig)).toBe(baseConfig);
+    expect(adapter.init(baseConfig)).toBe(baseConfig);
+    expect(adapter).toMatchObject({
+      collections: ["media"],
+      name: "vercel-blob",
+    });
   });
 
   it("uses Vercel Blob for Web Studio media uploads when the token is configured", () => {
-    const [plugin] = createPayloadStoragePlugins({
+    const [adapter] = createPayloadStorageAdapters({
       BLOB_READ_WRITE_TOKEN: VALID_VERCEL_BLOB_TOKEN,
     });
 
-    const config = plugin(createUploadConfig());
+    const config = adapter.init(createUploadConfig());
     const media = config.collections?.find(
       (collection) => collection.slug === "media",
     );

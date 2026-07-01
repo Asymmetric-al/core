@@ -54,7 +54,7 @@ truth, missionary workspace authority, or Supabase Auth authority.
 ## Cutover Workflow
 
 1. Confirm the domain is in the Phase 07 frozen catalog.
-2. Confirm staging parity is green for counts, links, duplicate candidates,
+2. Confirm development parity is green for counts, links, duplicate candidates,
    webhook lag, outbound queue lag, projection lag, failed jobs, and dead
    letters.
 3. Freeze Twenty schema changes and Asym CRM schema changes for the cutover
@@ -79,7 +79,7 @@ truth, missionary workspace authority, or Supabase Auth authority.
 
 - [ ] Domain name and frozen catalog order are recorded.
 - [ ] Operator, support owner, and rollback owner are named.
-- [ ] Staging parity is recorded with timestamp.
+- [ ] Development parity is recorded with timestamp.
 - [ ] Dedicated Twenty backup id is recorded.
 - [ ] Restore target id and restore duration are recorded.
 - [ ] Count comparison covers Asym source rows, Twenty rows, link rows,
@@ -257,7 +257,7 @@ order by action, status;
 ### Twenty Upgrade
 
 1. Pin the target Twenty image tag or source commit.
-2. Rehearse the upgrade in staging with the same dedicated database topology.
+2. Rehearse the upgrade in development with the same dedicated database topology.
 3. Take a production backup before upgrade.
 4. Restore the backup into an isolated target and validate.
 5. Upgrade one environment at a time.

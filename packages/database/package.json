@@ -55,6 +55,10 @@
     "./query-keys": {
       "types": "./query-keys.ts",
       "default": "./query-keys.ts"
+    },
+    "./mission-control-automations": {
+      "types": "./mission-control-automations.ts",
+      "default": "./mission-control-automations.ts"
     }
   },
   "scripts": {
