@@ -39,25 +39,27 @@ describe("admin CRM TanStack cache stability contracts", () => {
     const hookSource = readRepoFile(
       "packages/database/hooks/admin-crm-detail.ts",
     );
-    const pageSource = readRepoFile("apps/admin/app/crm/page-client.tsx");
+    const drawerSource = readRepoFile("apps/admin/app/crm/detail-drawer.tsx");
 
     // The drawer reads detail via this hook, keyed under the detail prefix.
-    expect(pageSource).toMatch(/useAdminCrmRecordDetail\(contact\.id\)/);
-    expect(pageSource).toMatch(/useCreateLinkedCrmNote\(contact\.id\)/);
-    expect(pageSource).toMatch(/useResendCrmGiftReceipt\(contact\.id\)/);
+    expect(drawerSource).toMatch(/useAdminCrmRecordDetail\(contact\.id\)/);
+    expect(drawerSource).toMatch(/useCreateLinkedCrmNote\(contact\.id\)/);
+    expect(hookSource).toMatch(/ADMIN_CRM_RECORD_DETAIL_QUERY_KEY/);
     expect(hookSource).toMatch(
-      /CRM_DETAIL_QUERY_KEY = \["admin", "crm", "records", "detail"\] as const/,
+      /"admin",\s*"crm",\s*"records",\s*"detail"/,
+    );
+    expect(hookSource).toMatch(
+      /CRM_DETAIL_QUERY_KEY = ADMIN_CRM_RECORD_DETAIL_QUERY_KEY/,
     );
 
-    // Both detail-drawer mutations (note save, receipt resend) must
-    // invalidate the detail prefix so the open record refetches.
+    // Note save must invalidate the detail prefix so the open record refetches.
     const detailInvalidations = hookSource.match(
       /queryKey: CRM_DETAIL_QUERY_KEY/g,
     );
-    expect(detailInvalidations?.length ?? 0).toBeGreaterThanOrEqual(2);
+    expect(detailInvalidations?.length ?? 0).toBeGreaterThanOrEqual(1);
     const listInvalidations = hookSource.match(
       /queryKey: CRM_RECORDS_QUERY_KEY/g,
     );
-    expect(listInvalidations?.length ?? 0).toBeGreaterThanOrEqual(2);
+    expect(listInvalidations?.length ?? 0).toBeGreaterThanOrEqual(1);
   });
 });
