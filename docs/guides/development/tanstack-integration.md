@@ -109,9 +109,11 @@ the browser. `packages/database/collections/client-db.ts` bounds `donors`,
   the window by one page and invalidates the fetcher's configured query key.
 
 Consuming hooks pass continuation through rather than re-implement it.
-`useMissionaryDonorRows` reads `hasMore` via `useSyncExternalStore` over the
-aggregated pagination and returns `hasMore` / `isLoadingMore` / `loadMore`; the
-missionary donors page renders a "Load more partners" affordance from them.
+`useMissionaryDonorRows` reads `hasMore` via `useSyncExternalStore` over
+`donorsPagination` (donors window only) so the "Load more partners" affordance
+matches partner rows, while `loadMore` fans out through aggregated `pagination`
+(donors + activities + pledges). It returns `hasMore` / `isLoadingMore` /
+`loadMore`; the missionary donors page renders the affordance from them.
 Collection contracts (`id`, `queryKey`, `schema`, `getKey`, mutation handlers)
 stay unchanged; only the fetch is windowed.
 

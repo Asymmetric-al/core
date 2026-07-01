@@ -207,4 +207,41 @@ describe("buildMissionaryDonorRows", () => {
       }),
     ).toEqual([]);
   });
+
+  it("normalizes lowercase donor row enums to presentation-case types and statuses", () => {
+    const donor = makeDonor({
+      missionary_id: MISSIONARY_PROFILE_ID,
+      type: "church",
+      status: "at_risk",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [],
+      pledges: [],
+    });
+
+    expect(rows[0]).toMatchObject({
+      type: "Church",
+      status: "At Risk",
+    });
+  });
+
+  it("normalizes lowercase failed activity status for the UI", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const activity = makeActivity({
+      donor_id: donor.id,
+      status: "failed",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [activity],
+      pledges: [],
+    });
+
+    expect(rows[0].activities[0].status).toBe("Failed");
+  });
 });

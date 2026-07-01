@@ -80,6 +80,7 @@ describe("createBoundedTableFetcher", () => {
   const invalidateQueries = vi.fn(() => Promise.resolve());
 
   beforeEach(() => {
+    vi.clearAllMocks();
     getQueryClientMock.mockReturnValue({ invalidateQueries });
   });
 

@@ -956,9 +956,13 @@ export function DonorsPageContent({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total Partners"
-          value={donorRows.length}
-          subtext={`${activeCount} active`}
+          label={hasMoreDonors ? "Partners loaded" : "Total Partners"}
+          value={hasMoreDonors ? `${donorRows.length}+` : donorRows.length}
+          subtext={
+            hasMoreDonors
+              ? `${activeCount} active in loaded window`
+              : `${activeCount} active`
+          }
           icon={Users}
           iconBg="bg-zinc-50 border-zinc-100"
           iconColor="text-zinc-900"
@@ -967,7 +971,7 @@ export function DonorsPageContent({
         <StatCard
           label="Total Given"
           value={formatCurrency(totalGiven)}
-          subtext="Lifetime"
+          subtext={hasMoreDonors ? "Lifetime (loaded window)" : "Lifetime"}
           icon={Heart}
           iconBg="bg-emerald-50 border-emerald-100"
           iconColor="text-emerald-600"

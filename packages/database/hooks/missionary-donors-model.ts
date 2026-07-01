@@ -96,21 +96,51 @@ export interface MissionaryDonorRow {
 function normalizeDonorType(
   value: string | null | undefined,
 ): MissionaryDonorRow["type"] {
-  if (value === "Organization" || value === "Church") {
-    return value;
+  switch (value?.toLowerCase()) {
+    case "organization":
+    case "foundation":
+      return "Organization";
+    case "church":
+      return "Church";
+    default:
+      return "Individual";
   }
-
-  return "Individual";
 }
 
 function normalizeDonorStatus(
   value: string | null | undefined,
 ): MissionaryDonorRow["status"] {
-  if (value === "Lapsed" || value === "New" || value === "At Risk") {
-    return value;
+  switch (value?.toLowerCase()) {
+    case "lapsed":
+      return "Lapsed";
+    case "new":
+      return "New";
+    case "at risk":
+    case "at_risk":
+      return "At Risk";
+    default:
+      return "Active";
+  }
+}
+
+function normalizeActivityStatus(
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
   }
 
-  return "Active";
+  switch (value.toLowerCase()) {
+    case "failed":
+      return "Failed";
+    case "completed":
+    case "done":
+      return "Completed";
+    case "pending":
+      return "Pending";
+    default:
+      return value;
+  }
 }
 
 function normalizePreferredContact(
@@ -229,7 +259,7 @@ export function buildMissionaryDonorRows(
       title: activity.title,
       description: activity.description ?? undefined,
       amount: activity.amount ?? undefined,
-      status: activity.status ?? undefined,
+      status: normalizeActivityStatus(activity.status),
       gift_type: normalizeGiftType(activity.gift_type),
       note: activity.note ?? undefined,
     });
