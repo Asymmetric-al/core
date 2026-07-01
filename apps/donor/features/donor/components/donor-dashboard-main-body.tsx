@@ -39,7 +39,7 @@ export function DonorDashboardMainBody() {
   const latestImpact = portal?.summary.latestImpactLabel ?? "General Fund";
 
   return (
-    <div className="space-y-8 pb-20 animate-in fade-in duration-700">
+    <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-700">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6 pb-6 border-b border-zinc-100">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tighter flex items-center gap-2 sm:gap-3 flex-wrap">
@@ -54,10 +54,14 @@ export function DonorDashboardMainBody() {
             href="/donor-dashboard/history"
             className={cn(
               buttonVariants({ variant: "outline" }),
-              "flex-1 sm:flex-none h-9 rounded-lg border-zinc-100 text-zinc-500 font-semibold uppercase tracking-widest text-[10px] bg-white hover:bg-zinc-50 hover:text-zinc-900 shadow-sm",
+              "flex-1 sm:flex-none h-9 rounded-lg border-border text-muted-foreground font-semibold uppercase tracking-widest text-[10px] bg-background hover:bg-muted hover:text-foreground shadow-sm",
             )}
           >
-            <FileText className="mr-2 size-3.5 text-zinc-400" /> Tax Receipt
+            <FileText
+              data-icon="inline-start"
+              className="text-muted-foreground"
+            />{" "}
+            Tax Receipt
           </Link>
         </div>
       </div>

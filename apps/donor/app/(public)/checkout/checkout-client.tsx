@@ -30,10 +30,18 @@ import {
   Shield,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useSyncExternalStore } from "react";
 
 import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
+
+function subscribeNoop() {
+  return () => {};
+}
+
+function useClientTodayDateInputValue() {
+  return useSyncExternalStore(subscribeNoop, todayDateInputValue, () => "");
+}
 
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = "one-time" | "monthly";
@@ -434,6 +442,7 @@ function MonthlyScheduleSection({
   onToggleScheduleConfig,
   showScheduleConfig,
   startDate,
+  minStartDate,
 }: {
   endDate: string;
   hasEndDate: boolean;
@@ -443,6 +452,7 @@ function MonthlyScheduleSection({
   onToggleScheduleConfig: () => void;
   showScheduleConfig: boolean;
   startDate: string;
+  minStartDate: string;
 }) {
   return (
     <motion.div
@@ -495,7 +505,7 @@ function MonthlyScheduleSection({
                     id="start-date"
                     type="date"
                     value={startDate}
-                    min={todayDateInputValue()}
+                    min={minStartDate || undefined}
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
                   />
@@ -559,6 +569,7 @@ function ConfigStep({
   onToggleScheduleConfig,
   showScheduleConfig,
   startDate,
+  minStartDate,
 }: {
   amount: number;
   calculatedFees: number;
@@ -578,6 +589,7 @@ function ConfigStep({
   onToggleScheduleConfig: () => void;
   showScheduleConfig: boolean;
   startDate: string;
+  minStartDate: string;
 }) {
   return (
     <motion.div
@@ -701,6 +713,7 @@ function ConfigStep({
             onToggleScheduleConfig={onToggleScheduleConfig}
             showScheduleConfig={showScheduleConfig}
             startDate={startDate}
+            minStartDate={minStartDate}
           />
         )}
 
@@ -1114,6 +1127,7 @@ function CheckoutContent({
 }: {
   searchParams: CheckoutSearchParams;
 }) {
+  const clientToday = useClientTodayDateInputValue();
   const workerId = searchParams.workerId ?? searchParams.missionaryId;
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
@@ -1134,7 +1148,7 @@ function CheckoutContent({
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
-    startDate: todayDateInputValue(),
+    startDate: "",
     step: "config",
   }));
   const {
@@ -1151,6 +1165,7 @@ function CheckoutContent({
     startDate,
     step,
   } = checkoutState;
+  const startDateForUi = startDate || clientToday;
 
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
@@ -1286,7 +1301,8 @@ function CheckoutContent({
                     setShowScheduleConfig(!showScheduleConfig)
                   }
                   showScheduleConfig={showScheduleConfig}
-                  startDate={startDate}
+                  startDate={startDateForUi}
+                  minStartDate={clientToday}
                 />
               )}
 
@@ -1331,7 +1347,7 @@ function CheckoutContent({
               coverFees={coverFees}
               fees={calculatedFees}
               total={total}
-              startDate={startDate}
+              startDate={startDateForUi}
               endDate={hasEndDate ? endDate : null}
             />
           </aside>
