@@ -198,6 +198,15 @@ describe("api/email/templates", () => {
   });
 
   it("patches templates and creates a new version through the store", async () => {
+    readEmailTemplateMock.mockResolvedValueOnce({
+      id: "template_1",
+      html_content: null,
+      text_content: null,
+      default_subject: null,
+      default_preheader: null,
+      editor_metadata: {},
+      is_active: true,
+    });
     updateEmailTemplateMock.mockResolvedValueOnce({
       template: {
         id: "template_1",
@@ -228,6 +237,33 @@ describe("api/email/templates", () => {
       templateId: "template_1",
       patch: expect.objectContaining({ name: "Updated" }),
     });
+  });
+
+  it("validates effective contribution correction template state before activation patches", async () => {
+    readEmailTemplateMock.mockResolvedValueOnce({
+      id: "template_1",
+      html_content: "<p>Hello {{full_name}}</p>",
+      text_content: "Hello {{full_name}}",
+      default_subject: "Refund update",
+      default_preheader: null,
+      editor_metadata: {
+        contributionCorrection: {
+          family: "refund_notification",
+          variant: "refund_completed",
+        },
+      },
+      is_active: false,
+    });
+
+    const response = await PATCH_TEMPLATE(
+      createJsonRequest({ isActive: true }, "PATCH"),
+      templateContext(),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(body.error).toContain("Missing required merge tag");
+    expect(updateEmailTemplateMock).not.toHaveBeenCalled();
   });
 
   it("deletes templates through the tenant-scoped store", async () => {

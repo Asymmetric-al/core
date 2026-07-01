@@ -3,6 +3,7 @@
 import { useEventAttendees } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Avatar,
@@ -1258,6 +1259,8 @@ function EventsAttendeesTab() {
 export default function EventsPage() {
   const [activeView, setActiveView] = useState<EventsView>("dashboard");
   const [event, _setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   return (
     <PageShell
@@ -1278,7 +1281,13 @@ export default function EventsPage() {
         </div>
       }
     >
-      <div className="space-y-5 animate-in fade-in duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]">
+      <div
+        className={cn(
+          "space-y-5",
+          !withinRouteVt &&
+            "animate-in fade-in duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
+        )}
+      >
         <Tabs
           value={activeView}
           onValueChange={(value) => {

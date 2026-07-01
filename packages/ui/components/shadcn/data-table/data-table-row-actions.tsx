@@ -18,20 +18,34 @@ import { getDataTableRowActionKey } from "./data-table-row-action-key";
 import type { Row, RowData } from "./tanstack";
 import type { DataTableInteractiveRowAction } from "./types";
 
+const DEFAULT_ROW_ACTION_ARIA_LABEL = "Open row actions";
+
 interface DataTableRowActionsProps<TData extends RowData> {
   row: Row<TData>;
   actions: DataTableInteractiveRowAction<TData>[];
   className?: string;
+  getAriaLabel?: (row: Row<TData>) => string;
+}
+
+function getRowActionTriggerLabel<TData>(
+  row: Row<TData>,
+  getAriaLabel?: (row: Row<TData>) => string,
+) {
+  const customLabel = getAriaLabel?.(row);
+  return customLabel?.trim() || DEFAULT_ROW_ACTION_ARIA_LABEL;
 }
 
 export function DataTableRowActions<TData extends RowData>({
   row,
   actions,
   className,
+  getAriaLabel,
 }: DataTableRowActionsProps<TData>) {
   if (actions.length === 0) {
     return null;
   }
+
+  const triggerLabel = getRowActionTriggerLabel(row, getAriaLabel);
 
   return (
     <DropdownMenu>
@@ -41,10 +55,10 @@ export function DataTableRowActions<TData extends RowData>({
           variant="ghost"
           size="icon"
           className={cn("size-8 rounded-lg", className)}
+          aria-label={triggerLabel}
           onClick={(event) => event.stopPropagation()}
         >
-          <MoreHorizontal className="size-4" />
-          <span className="sr-only">Open row actions</span>
+          <MoreHorizontal className="size-4" aria-hidden="true" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="rounded-xl">

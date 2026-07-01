@@ -12,6 +12,7 @@ import {
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
+import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -24,7 +25,6 @@ import { MCShell } from "./mc-shell";
 
 import type { Metadata, Viewport } from "next";
 
-import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
 
 const inter = Inter({

@@ -37,21 +37,27 @@ const Icon = getIconByName(tile.icon)
 <Icon className="h-4 w-4" />
 ```
 
+## Social brand icons (lucide v1)
+
+Lucide 1.x removed built-in brand icons (`Facebook`, `Twitter`, etc.). The platform keeps them in one shim:
+
+- `packages/ui/components/icons/brand-social.tsx` — SVG paths preserved from lucide 0.575
+- Re-exported from `@asym/ui/components/shadcn/icons` (same import path as before)
+
+Import brand icons from the shared registry, not from `lucide-react` and not via `DynamicIcon` string names (they are not in `dynamicIconImports`).
+
 ## File Structure
 
 ```
-src/
-├── components/
-│   └── ui/
-│       └── icons/
-│           └── index.tsx          # Primary icon registry (tree-shakeable exports)
-│
-├── components/mission-control/
-│   └── icons.tsx                  # Dynamic icon map for MC tiles
-│
-└── features/mission-control/
-    └── components/
-        └── icons.tsx              # Dynamic icon map for MC features
+packages/ui/components/
+├── icons/
+│   └── brand-social.tsx           # Social brand icons (not in lucide v1 core)
+└── shadcn/
+    └── icons/
+        └── index.tsx              # Primary icon registry (tree-shakeable exports)
+
+apps/admin/features/mission-control/components/
+└── icons.tsx                      # Dynamic icon loader for MC tiles
 ```
 
 ## Import Paths

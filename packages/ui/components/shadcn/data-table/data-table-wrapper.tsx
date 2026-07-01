@@ -46,6 +46,7 @@ interface DataTableWrapperProps<TData extends RowData, TValue> {
   onRetry?: () => void;
   onRowClick?: (row: TData) => void;
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   emptyState?: {
     title?: string;
     description?: string;
@@ -80,6 +81,7 @@ export function DataTableWrapper<TData extends RowData, TValue>({
   onRetry,
   onRowClick,
   rowActions,
+  getRowActionAriaLabel,
   emptyState,
   className,
   tableClassName,
@@ -166,6 +168,7 @@ export function DataTableWrapper<TData extends RowData, TValue>({
         urlState={urlState}
         onRowClick={onRowClick ? (row) => onRowClick(row.original) : undefined}
         rowActions={rowActions}
+        getRowActionAriaLabel={getRowActionAriaLabel}
         emptyState={customEmptyState}
         tableClassName={tableClassName}
         toolbar={toolbar}

@@ -72,6 +72,7 @@ export interface DataTableResponsiveProps<TData extends RowData, TValue> {
     variant?: "default" | "destructive";
   }[];
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   mobileCardConfig?: {
     primaryField?: string;
     secondaryField?: string;

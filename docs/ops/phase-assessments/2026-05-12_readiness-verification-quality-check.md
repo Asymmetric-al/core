@@ -174,7 +174,7 @@ The dedicated Phase 3 section clearly answers:
 - What blocks Phase 3? Twenty workspace/env proof, Stripe dashboard verification, Resend dashboard verification, Supabase migration verifier, and skipped E2E runtime checks. Sentry runtime DSNs are relevant for Phase 3; sourcemap proof is Phase 11 unless build/deploy explicitly requires upload.
 - Which Stripe keys/webhooks are ready? Vercel/GitHub env names are present; dashboard endpoint/events are not verified.
 - Which Resend keys/webhooks are ready? Vercel/GitHub env names are present; dashboard domain/event proof is not verified.
-- Whether Twenty staging/proof credentials are available for gift posting. Not ready because workspace ID/project-scope env proof is missing.
+- Whether Twenty development/proof credentials are available for gift posting. Not ready because workspace ID/project-scope env proof is missing.
 - Whether Supabase service role + DB URL are available for migrations. Present by name, but migration verifier requires disposable `DATABASE_URL`.
 - Whether Sentry is available for observability. DSNs present; sourcemap upload not verified.
 - Whether Vercel env vars are present for affected apps. Present for protected production deployments.
@@ -195,7 +195,7 @@ The report explicitly states:
 - `TWENTY_API_URL`, `TWENTY_API_KEY`, and `TWENTY_WEBHOOK_SECRET` are not verified in project scope.
 - Sync/replay/reconciliation flags are optional/defaulted until enabled.
 - Repo evidence supports server-side boundary and documented non-production proof, not production cutover.
-- Production cutover is incomplete without staging parity, rollback rehearsal, monitoring, backup/restore proof, support owner, rollback owner, and go/no-go record.
+- Production cutover is incomplete without development parity, rollback rehearsal, monitoring, backup/restore proof, support owner, rollback owner, and go/no-go record.
 
 ## Payload/Web Studio Readiness Decision Check
 

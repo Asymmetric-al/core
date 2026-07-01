@@ -51,6 +51,7 @@ interface DataTableProps<TData extends RowData, TValue> {
     variant?: "default" | "destructive";
   }[];
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   onRowClick?: (row: Row<TData>) => void;
   state?: DataTableControlledState;
   getRowId?: TableOptions<TData>["getRowId"];

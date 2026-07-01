@@ -7,8 +7,8 @@ plan by avoiding debug loops on the production branch.
 ## Standard path
 
 1. Do local implementation work on a non-production branch.
-2. Merge or push validated work to `develop` for staging.
-3. Verify staging behavior on the staging URLs.
+2. Merge or push validated work to `develop` for development.
+3. Verify development behavior on the development URLs.
 4. Run the production release command:
 
    ```bash

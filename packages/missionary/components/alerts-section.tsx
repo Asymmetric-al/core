@@ -39,7 +39,7 @@ export function AlertsSection({ alerts }: AlertsSectionProps) {
             <Link
               key={alert.id}
               href={`/donors?filter=${alert.type}`}
-              className="group flex items-center justify-between p-4 transition-all hover:bg-zinc-50/50"
+              className="group flex items-center justify-between p-4 transition-colors hover:bg-zinc-50/50"
             >
               <div className="flex items-center gap-3">
                 <div

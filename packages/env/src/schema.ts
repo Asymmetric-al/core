@@ -47,6 +47,15 @@ const normalizedTargetEnv = runtimeContext.vercelTargetEnv?.toLowerCase();
 const isProtectedDeployment =
   runtimeContext.vercelEnv === "production" ||
   normalizedTargetEnv === "production" ||
+  // "development" is the built-in local dev target.
+  normalizedTargetEnv === "development" ||
+  // "core-development" is the hosted Vercel custom environment for the develop branch
+  // (VERCEL_TARGET_ENV="core-development", VERCEL_ENV="preview"). Vercel reserves the bare name
+  // "development" for the built-in local environment, so the hosted env cannot use it.
+  normalizedTargetEnv === "core-development" ||
+  // "staging" is a retained legacy alias: keep it protected until a Vercel inventory proves no
+  // deployment still reports VERCEL_TARGET_ENV="staging" (in-flight builds / rollbacks).
+  // Recognizing an extra name here only adds protection; remove in a follow-up once verified.
   normalizedTargetEnv === "staging";
 
 const requireInProtectedDeployments = (variableName: string) =>
@@ -57,7 +66,7 @@ const requireInProtectedDeployments = (variableName: string) =>
       if (isProtectedDeployment && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required for staging and production deployments.`,
+          message: `${variableName} is required for development and production deployments.`,
         });
       }
     });
@@ -72,7 +81,7 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
       if (isProtectedDeployment && cloudinaryEnabled && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required when Cloudinary is enabled in staging or production.`,
+          message: `${variableName} is required when Cloudinary is enabled in development or production.`,
         });
       }
     });
@@ -130,6 +139,24 @@ export const env = createEnv({
       (value) => !value || value.startsWith("whsec_"),
       "STRIPE_WEBHOOK_SECRET must start with whsec_",
     ),
+    // Required in protected deployments: a keyless deploy would store and
+    // ACK provider events whose workflow dispatch can never succeed.
+    INNGEST_EVENT_KEY: requireInProtectedDeployments("INNGEST_EVENT_KEY"),
+    INNGEST_SIGNING_KEY: requireInProtectedDeployments(
+      "INNGEST_SIGNING_KEY",
+    ).refine(
+      (value) => !value || value.startsWith("signkey-"),
+      "INNGEST_SIGNING_KEY must start with signkey-",
+    ),
+    INNGEST_SIGNING_KEY_FALLBACK: z
+      .string()
+      .optional()
+      .refine(
+        (value) => !value || value.startsWith("signkey-"),
+        "INNGEST_SIGNING_KEY_FALLBACK must start with signkey-",
+      ),
+    INNGEST_DEV: z.enum(["0", "1"]).optional(),
+    INNGEST_BASE_URL: z.string().url().optional(),
     DOCRAPTOR_API_KEY: z.string().optional(),
     PDF_STUDIO_NATIVE_BUILDER_ENABLED: optionalBoolean,
     PDF_STUDIO_NATIVE_BUILDER_ROLLOUT: pdfStudioNativeBuilderRolloutSchema,
@@ -165,7 +192,7 @@ export const env = createEnv({
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             message:
-              "SENTRY_DSN is required for staging and production deployments.",
+              "SENTRY_DSN is required for development and production deployments.",
           });
         }
       }),
@@ -304,6 +331,11 @@ export const env = createEnv({
       process.env.PDF_STUDIO_NATIVE_RENDER_CALLBACK_SECRET,
     PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL:
       process.env.PDF_STUDIO_NATIVE_RENDER_CALLBACK_URL,
+    INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY,
+    INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY,
+    INNGEST_SIGNING_KEY_FALLBACK: process.env.INNGEST_SIGNING_KEY_FALLBACK,
+    INNGEST_DEV: process.env.INNGEST_DEV,
+    INNGEST_BASE_URL: process.env.INNGEST_BASE_URL,
     RESEND_API_KEY: process.env.RESEND_API_KEY,
     RESEND_WEBHOOK_SECRET: process.env.RESEND_WEBHOOK_SECRET,
     RESEND_ENCRYPTION_KEY: process.env.RESEND_ENCRYPTION_KEY,

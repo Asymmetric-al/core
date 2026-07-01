@@ -131,7 +131,7 @@ export function getTaskColumns({
               onToggleComplete(task);
             }}
             className={cn(
-              "size-5 rounded-full border-2 flex items-center justify-center transition-all duration-200",
+              "size-5 rounded-full border-2 flex items-center justify-center transition-colors duration-200",
               isCompleted
                 ? "bg-emerald-500 border-emerald-500 text-white"
                 : "border-muted-foreground/30 hover:border-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-950/30",
@@ -170,7 +170,7 @@ export function getTaskColumns({
               <button
                 onClick={() => onViewTask(task)}
                 className={cn(
-                  "font-medium text-sm text-left leading-tight hover:text-primary hover:underline decoration-primary/30 underline-offset-4 transition-all truncate",
+                  "font-medium text-sm text-left leading-tight hover:text-primary hover:underline decoration-primary/30 underline-offset-4 transition-colors truncate",
                   isCompleted && "line-through text-muted-foreground",
                 )}
               >

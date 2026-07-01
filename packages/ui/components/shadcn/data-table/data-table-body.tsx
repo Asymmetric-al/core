@@ -76,6 +76,7 @@ export interface DataTableBodyWithTableStateProps<
     variant?: "default" | "destructive";
   }[];
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   onRowClick?: (row: Row<TData>) => void;
   getRowId?: TableOptions<TData>["getRowId"];
   className?: string;
@@ -116,6 +117,7 @@ export type DataTableBodyShellProps<TData extends RowData, TValue> = {
     variant?: "default" | "destructive";
   }[];
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   onRowClick?: (row: Row<TData>) => void;
   state?: DataTableControlledState;
   getRowId?: TableOptions<TData>["getRowId"];
@@ -156,6 +158,7 @@ export function DataTableBody<TData extends RowData, TValue>({
   onColumnVisibilityChange,
   actionBarActions,
   rowActions,
+  getRowActionAriaLabel,
   onRowClick,
   state,
   getRowId,
@@ -193,6 +196,7 @@ export function DataTableBody<TData extends RowData, TValue>({
       rowCount={rowCount}
       actionBarActions={actionBarActions}
       rowActions={rowActions}
+      getRowActionAriaLabel={getRowActionAriaLabel}
       onRowClick={onRowClick}
       getRowId={getRowId}
       className={className}
@@ -223,6 +227,7 @@ export function DataTableBodyWithUrl<TData extends RowData, TValue>({
   onColumnVisibilityChange,
   actionBarActions,
   rowActions,
+  getRowActionAriaLabel,
   onRowClick,
   state,
   getRowId,
@@ -266,6 +271,7 @@ export function DataTableBodyWithUrl<TData extends RowData, TValue>({
       rowCount={rowCount}
       actionBarActions={actionBarActions}
       rowActions={rowActions}
+      getRowActionAriaLabel={getRowActionAriaLabel}
       onRowClick={onRowClick}
       getRowId={getRowId}
       className={className}
@@ -290,6 +296,7 @@ export function DataTableBodyWithTableState<TData extends RowData, TValue>({
   rowCount,
   actionBarActions,
   rowActions,
+  getRowActionAriaLabel,
   onRowClick,
   getRowId,
   className,
@@ -450,7 +457,11 @@ export function DataTableBodyWithTableState<TData extends RowData, TValue>({
 
     return (
       <TableCell className="w-0 p-4 text-right">
-        <DataTableRowActions row={row} actions={rowActions} />
+        <DataTableRowActions
+          row={row}
+          actions={rowActions}
+          getAriaLabel={getRowActionAriaLabel}
+        />
       </TableCell>
     );
   };

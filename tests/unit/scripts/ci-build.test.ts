@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAppBuildStep,
   getProcessListCommand,
+  getRequestedApps,
   getSharedPackageBuildSteps,
   getSleepCommand,
   resolveTurboBin,
@@ -14,7 +15,6 @@ describe("ci-build command planning", () => {
     // `result` and the mocked candidates use "\\". Normalize to forward slashes
     // so the candidate lookup and the assertion are path-separator agnostic and
     // pass on both Windows and the Linux CI runner.
-    const toPosixPath = (value: string) => value.replaceAll("\\", "/");
     const existingPaths = new Set([
       "/repo/node_modules/.bin/turbo.cmd",
       "/repo/node_modules/.bin/turbo",
@@ -24,15 +24,14 @@ describe("ci-build command planning", () => {
       platform: "win32",
       exists: (candidate: string) =>
         existingPaths.has(
-          toPosixPath(candidate).replace(
-            /^.*node_modules/,
-            "/repo/node_modules",
-          ),
+          candidate
+            .replaceAll("\\", "/")
+            .replace(/^.*node_modules/, "/repo/node_modules"),
         ),
     });
 
-    expect(toPosixPath(result).endsWith("node_modules/.bin/turbo.cmd")).toBe(
-      true,
+    expect(result.replaceAll("\\", "/")).toMatch(
+      /node_modules\/\.bin\/turbo\.cmd$/,
     );
   });
 
@@ -115,6 +114,42 @@ describe("ci-build command planning", () => {
         "build",
       ],
     });
+  });
+
+  it("selects one app when --app is provided", () => {
+    const apps = [
+      {
+        id: "admin",
+        filter: "@asym/admin",
+        cwd: "apps/admin",
+        nextDir: "apps/admin/.next",
+      },
+      {
+        id: "donor",
+        filter: "@asym/donor",
+        cwd: "apps/donor",
+        nextDir: "apps/donor/.next",
+      },
+    ];
+
+    expect(getRequestedApps(["--app", "admin"], apps)).toEqual([apps[0]]);
+    expect(getRequestedApps([], apps)).toEqual(apps);
+  });
+
+  it("rejects unknown app ids", () => {
+    expect(() =>
+      getRequestedApps(
+        ["--app", "unknown"],
+        [
+          {
+            id: "admin",
+            filter: "@asym/admin",
+            cwd: "apps/admin",
+            nextDir: "apps/admin/.next",
+          },
+        ],
+      ),
+    ).toThrow('Unknown app "unknown". Expected one of: admin.');
   });
 
   it("uses native Windows process and sleep commands for lock coordination", () => {

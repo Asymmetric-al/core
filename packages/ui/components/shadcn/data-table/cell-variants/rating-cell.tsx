@@ -84,7 +84,9 @@ export function RatingCell<TData extends RowData>({
             disabled={disabled || !isEditing}
             className={cn(
               "p-0 relative",
-              isEditing && !disabled && "hover:scale-110 transition-transform",
+              isEditing &&
+                !disabled &&
+                "[@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 transition-transform",
               disabled && "opacity-50",
             )}
           >

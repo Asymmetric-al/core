@@ -211,7 +211,7 @@ const columns: ColumnDef<CarePersonnel>[] = [
           <Button
             variant="ghost"
             size="icon"
-            className="size-8 rounded-lg hover:bg-primary hover:text-primary-foreground transition-all duration-300"
+            className="size-8 rounded-lg hover:bg-primary hover:text-primary-foreground transition-colors"
           >
             <ChevronRight className="size-4" />
           </Button>

@@ -1,7 +1,18 @@
 "use client";
 
+import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { motion } from "@asym/lib/motion";
-import { formatCurrency, getInitials } from "@asym/lib/utils";
+import { getInitials } from "@asym/lib/utils";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@asym/ui/components/shadcn/alert-dialog";
 import {
   Avatar,
   AvatarFallback,
@@ -14,7 +25,7 @@ import {
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
-import { useCallback, useMemo } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { getContributionColumns } from "./columns";
@@ -24,13 +35,23 @@ import {
   paymentMethodOptions,
   sourceOptions,
 } from "./data";
+import { ContributionNeedsAttentionPanel } from "./needs-attention-panel";
 
 import type { Contribution, ContributionStatus } from "./types";
+import type { MissionControlNeedsAttentionGroup } from "@asym/database/hooks";
 
 function makeDisplayDate(value?: string | number | Date): Date {
   return value === undefined
     ? new globalThis.Date()
     : new globalThis.Date(value);
+}
+
+function formatSelectedContributionCount(count: number): string {
+  return `${count} selected contribution${count === 1 ? "" : "s"}`;
+}
+
+function formatMissingStagedGiftCount(count: number): string {
+  return `${count} missing`;
 }
 
 const smoothTransition = {
@@ -41,6 +62,7 @@ const smoothTransition = {
 const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
+  processing: "bg-blue-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
@@ -48,6 +70,7 @@ const statusDotColor: Record<ContributionStatus, string> = {
 const statusShortLabel: Record<ContributionStatus, string> = {
   completed: "Completed",
   pending: "Pending",
+  processing: "Processing",
   failed: "Failed",
   refunded: "Refunded",
 };
@@ -66,15 +89,13 @@ function StatCard({
       initial={{ opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ ...smoothTransition, delay: index * 0.06 }}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.98 }}
-      className="flex items-center gap-4 px-6 py-5 rounded-2xl border border-zinc-100 bg-white shadow-sm cursor-default min-w-[140px]"
+      className="flex min-w-[140px] cursor-default items-center gap-4 rounded-lg border border-border bg-card px-6 py-5 shadow-sm"
     >
       <div className="flex flex-col">
-        <span className="text-3xl font-semibold tabular-nums tracking-tight text-zinc-900">
+        <span className="text-3xl font-semibold tabular-nums tracking-tight text-foreground">
           {value}
         </span>
-        <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400 mt-1">
+        <span className="mt-1 text-[10px] font-semibold uppercase text-muted-foreground">
           {label}
         </span>
       </div>
@@ -82,15 +103,131 @@ function StatCard({
   );
 }
 
+function BulkReceiptConfirmDialog({
+  onConfirm,
+  onOpenChange,
+  open,
+  rows,
+  submitting,
+}: {
+  onConfirm: () => void;
+  onOpenChange: (open: boolean) => void;
+  open: boolean;
+  rows: Contribution[];
+  submitting: boolean;
+}) {
+  const selectedCount = rows.length;
+  const eligibleCount = rows.filter((row) => row.stagedGiftId).length;
+  const missingStagedGiftCount = selectedCount - eligibleCount;
+  const hasEligibleReceipts = eligibleCount > 0;
+  const actionLabel = submitting
+    ? "Starting batch..."
+    : hasEligibleReceipts
+      ? "Send receipts"
+      : "No eligible receipts";
+
+  return (
+    <AlertDialog
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (!submitting) {
+          onOpenChange(nextOpen);
+        }
+      }}
+    >
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>Send receipts?</AlertDialogTitle>
+          <AlertDialogDescription>
+            This will start a receipt resend batch for{" "}
+            {formatSelectedContributionCount(selectedCount)}.
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+
+        <div className="rounded-lg border border-border bg-muted/50 p-4">
+          <dl className="grid gap-3 text-sm sm:grid-cols-3">
+            <div>
+              <dt className="font-medium text-muted-foreground">
+                Selected contributions
+              </dt>
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {selectedCount}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-muted-foreground">
+                Ready to send
+              </dt>
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {eligibleCount}
+              </dd>
+            </div>
+            <div>
+              <dt className="font-medium text-muted-foreground">
+                Missing staged gift id
+              </dt>
+              <dd className="mt-1 text-lg font-semibold tabular-nums text-foreground">
+                {formatMissingStagedGiftCount(missingStagedGiftCount)}
+              </dd>
+            </div>
+          </dl>
+          <p className="mt-4 text-sm leading-6 text-muted-foreground">
+            Contributions missing a staged gift id will be skipped by the batch
+            processor. You will see the succeeded and failed counts after the
+            batch starts.
+          </p>
+          {!hasEligibleReceipts ? (
+            <p className="mt-3 text-sm font-medium text-destructive">
+              No selected contributions have a staged gift id.
+            </p>
+          ) : null}
+        </div>
+
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={submitting || !hasEligibleReceipts}
+            onClick={(event) => {
+              event.preventDefault();
+              if (!submitting && hasEligibleReceipts) {
+                onConfirm();
+              }
+            }}
+          >
+            {actionLabel}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+  );
+}
+
 export function ContributionsMainBody({
   data,
   isLoading,
   onSelectContribution,
+  needsAttentionGroups = [],
+  onOpenContributionById,
+  onBulkReceiptSuccess,
 }: {
   data: Contribution[];
   isLoading: boolean;
   onSelectContribution: (c: Contribution) => void;
+  needsAttentionGroups?: MissionControlNeedsAttentionGroup[];
+  onOpenContributionById?: (contributionId: string) => void;
+  /**
+   * Fired after a bulk receipt batch is accepted so the page can refresh the
+   * shared contribution queries (ADR-CD-032), mirroring the detail overlay's
+   * onActionSuccess contract.
+   */
+  onBulkReceiptSuccess?: () => void;
 }) {
+  const [pendingBulkReceiptRows, setPendingBulkReceiptRows] = useState<
+    Contribution[]
+  >([]);
+  const [isBulkReceiptSubmitting, setIsBulkReceiptSubmitting] = useState(false);
+  const isBulkReceiptSubmittingRef = useRef(false);
+
   const handleViewContribution = useCallback(
     (c: Contribution) => {
       onSelectContribution(c);
@@ -107,22 +244,26 @@ export function ContributionsMainBody({
   );
 
   const stats = useMemo(() => {
-    const totalAmount = data.reduce(
+    const totalAmountCents = data.reduce(
       (sum, c) => (c.status === "completed" ? sum + c.amount : sum),
       0,
     );
     const totalCount = data.filter((c) => c.status === "completed").length;
-    const pendingAmount = data.reduce(
-      (sum, c) => (c.status === "pending" ? sum + c.amount : sum),
+    const pendingAmountCents = data.reduce(
+      (sum, c) =>
+        c.status === "pending" || c.status === "processing"
+          ? sum + c.amount
+          : sum,
       0,
     );
-    const avgAmount = totalCount > 0 ? totalAmount / totalCount : 0;
+    const avgAmountCents =
+      totalCount > 0 ? Math.round(totalAmountCents / totalCount) : 0;
     const recurringCount = data.filter((c) => c.type === "Recurring").length;
 
     return {
-      totalAmount,
-      pendingAmount,
-      avgAmount,
+      totalAmountCents,
+      pendingAmountCents,
+      avgAmountCents,
       recurringCount,
     };
   }, [data]);
@@ -138,26 +279,128 @@ export function ContributionsMainBody({
     toast.info("Bulk delete coming soon.");
   };
 
-  const handleBulkReceipt = (_rows: Contribution[]) => {
-    toast.info("Send receipts coming soon.");
-  };
+  const handleBulkReceipt = useCallback((rows: Contribution[]) => {
+    if (rows.length === 0) {
+      return;
+    }
+    setPendingBulkReceiptRows(rows);
+  }, []);
+
+  const handleBulkReceiptDialogOpenChange = useCallback(
+    (open: boolean) => {
+      if (!open && !isBulkReceiptSubmitting) {
+        setPendingBulkReceiptRows([]);
+      }
+    },
+    [isBulkReceiptSubmitting],
+  );
+
+  const submitBulkReceipt = useCallback(async () => {
+    const rows = pendingBulkReceiptRows;
+    if (
+      rows.length === 0 ||
+      isBulkReceiptSubmittingRef.current ||
+      rows.every((row) => !row.stagedGiftId)
+    ) {
+      return;
+    }
+
+    isBulkReceiptSubmittingRef.current = true;
+    setIsBulkReceiptSubmitting(true);
+    try {
+      const response = await fetch("/api/admin/contribution-batches", {
+        body: JSON.stringify({
+          actionType: "resend_receipt",
+          confirmationToken: crypto.randomUUID(),
+          reason: "Bulk receipt resend requested from Contribution Hub.",
+          records: rows.map((row) => ({
+            id: row.id,
+            receiptStatus: row.receiptStatus,
+            stagedGiftId: row.stagedGiftId,
+          })),
+        }),
+        headers: {
+          "content-type": "application/json",
+        },
+        method: "POST",
+      });
+      if (!response.ok) {
+        const body = (await response.json().catch(() => null)) as {
+          error?: string;
+        } | null;
+        throw new Error(body?.error ?? "Bulk receipt send failed.");
+      }
+      const body = (await response.json()) as {
+        batch?: {
+          status?: string;
+          summary?: { succeeded?: number; failed?: number };
+        };
+      };
+      const batchStatus = body.batch?.status ?? "completed";
+      if (batchStatus === "running") {
+        // Background batches return before any record is processed, so the
+        // zeroed summary would read as "nothing succeeded".
+        toast.success(
+          `Bulk receipt batch started: ${formatSelectedContributionCount(rows.length)} processing in the background.`,
+        );
+      } else {
+        toast.success(
+          `Bulk receipt batch ${batchStatus}: ${body.batch?.summary?.succeeded ?? 0} succeeded, ${body.batch?.summary?.failed ?? 0} failed.`,
+        );
+      }
+      setPendingBulkReceiptRows([]);
+      onBulkReceiptSuccess?.();
+    } catch (error) {
+      toast.error(
+        error instanceof Error
+          ? error.message
+          : "Could not send receipts in bulk.",
+      );
+    } finally {
+      isBulkReceiptSubmittingRef.current = false;
+      setIsBulkReceiptSubmitting(false);
+    }
+  }, [pendingBulkReceiptRows, onBulkReceiptSuccess]);
 
   return (
     <div className="space-y-10">
+      <BulkReceiptConfirmDialog
+        onConfirm={submitBulkReceipt}
+        onOpenChange={handleBulkReceiptDialogOpenChange}
+        open={pendingBulkReceiptRows.length > 0}
+        rows={pendingBulkReceiptRows}
+        submitting={isBulkReceiptSubmitting}
+      />
+
+      <ContributionNeedsAttentionPanel
+        groups={needsAttentionGroups}
+        onOpenContribution={(contributionId) => {
+          const contribution = data.find((row) => row.id === contributionId);
+          if (contribution) {
+            onSelectContribution(contribution);
+            return;
+          }
+          onOpenContributionById?.(contributionId);
+        }}
+      />
+
       <div className="flex flex-wrap gap-4">
         <StatCard
           label="Received"
-          value={formatCurrency(stats.totalAmount)}
+          value={formatSharedContributionAmount(stats.totalAmountCents, "USD")}
           index={0}
         />
         <StatCard
           label="Pending"
-          value={formatCurrency(stats.pendingAmount)}
+          value={formatSharedContributionAmount(
+            stats.pendingAmountCents,
+            "USD",
+          )}
           index={1}
         />
         <StatCard
           label="Avg Gift"
-          value={formatCurrency(stats.avgAmount)}
+          value={formatSharedContributionAmount(stats.avgAmountCents, "USD")}
           index={2}
         />
         <StatCard label="Recurring" value={stats.recurringCount} index={3} />
@@ -269,7 +512,10 @@ export function ContributionsMainBody({
                       )}
                     </span>
                     <span className="font-mono font-semibold tabular-nums tracking-tight">
-                      {formatCurrency(contribution.amount)}
+                      {formatSharedContributionAmount(
+                        contribution.shared.amountCents,
+                        contribution.shared.currencyCode,
+                      )}
                     </span>
                   </div>
                 </button>
@@ -277,18 +523,18 @@ export function ContributionsMainBody({
             },
           }}
           emptyState={
-            <div className="text-center py-32 bg-zinc-50/50 border-2 border-dashed border-zinc-200 rounded-[2.5rem]">
-              <div className="size-20 bg-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-sm border border-zinc-100">
-                <DollarSign className="size-10 text-zinc-200" />
+            <div className="rounded-lg border-2 border-dashed border-border bg-muted/30 py-32 text-center">
+              <div className="mx-auto mb-6 flex size-20 items-center justify-center rounded-lg border border-border bg-card shadow-sm">
+                <DollarSign className="size-10 text-muted-foreground/40" />
               </div>
-              <h3 className="text-2xl font-semibold text-zinc-900 tracking-tight">
+              <h3 className="text-2xl font-semibold text-foreground tracking-tight">
                 No contributions found
               </h3>
-              <p className="text-sm text-zinc-500 mt-2 font-medium">
+              <p className="text-sm text-muted-foreground mt-2 font-medium">
                 Get started by recording your first contribution or importing
                 from another source.
               </p>
-              <Button className="mt-8 h-12 px-8 rounded-xl bg-zinc-900 text-white font-semibold uppercase tracking-widest text-[10px]">
+              <Button className="mt-8 h-12 px-8 font-semibold uppercase tracking-widest text-[10px]">
                 <Plus className="mr-2 size-4" />
                 Add Contribution
               </Button>
@@ -309,13 +555,13 @@ export function ContributionsPageActions() {
     <div className="flex items-center gap-3">
       <Button
         variant="outline"
-        className="h-11 px-4 rounded-xl border-zinc-200 hover:bg-zinc-50 transition-all font-semibold uppercase tracking-widest text-[10px] gap-2"
+        className="h-11 gap-2 px-4 font-semibold uppercase tracking-widest text-[10px] transition-colors"
         onClick={handleExport}
       >
         <Download className="size-4" />
         Export
       </Button>
-      <Button className="h-11 px-6 rounded-xl bg-zinc-900 text-white hover:bg-zinc-800 font-semibold uppercase tracking-widest text-[10px] shadow-lg shadow-zinc-200 gap-2">
+      <Button className="h-11 gap-2 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg">
         <Plus className="size-4" />
         Add Contribution
       </Button>

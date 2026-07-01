@@ -356,12 +356,11 @@ export function getCrmColumns({
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button
-                  aria-label={`Open actions for ${record.displayName ?? "CRM record"}`}
+                  aria-label={`CRM actions for ${record.displayName ?? "CRM record"}`}
                   variant="ghost"
                   className="size-8 p-0 text-muted-foreground hover:text-foreground rounded-xl"
                 >
-                  <span className="sr-only">Open menu</span>
-                  <MoreHorizontal className="size-4" />
+                  <MoreHorizontal className="size-4" aria-hidden="true" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48 rounded-xl">
