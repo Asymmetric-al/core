@@ -112,7 +112,7 @@ export function DonorDashboardMainBody() {
               <div className="pt-2">
                 <Link
                   href="/donor-dashboard/feed"
-                  className="inline-flex items-center px-6 py-2.5 rounded-lg bg-white text-zinc-900 font-semibold text-[10px] uppercase tracking-widest hover:bg-zinc-100 transition-all shadow-xl touch-target"
+                  className="inline-flex items-center px-6 py-2.5 rounded-lg bg-white text-zinc-900 font-semibold text-[10px] uppercase tracking-widest hover:bg-zinc-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-xl touch-target"
                 >
                   Read Full Update <ArrowRight className="ml-2 size-3.5" />
                 </Link>
@@ -151,7 +151,7 @@ export function DonorDashboardMainBody() {
                           alt=""
                           width={40}
                           height={40}
-                          className="size-10 rounded-lg object-cover border border-zinc-100 shadow-sm grayscale group-hover:grayscale-0 transition-all"
+                          className="size-10 rounded-lg object-cover border border-zinc-100 shadow-sm grayscale group-hover:grayscale-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                         />
                       ) : (
                         <div className="size-10 rounded-lg bg-zinc-100 flex items-center justify-center font-semibold text-zinc-400 text-xs uppercase">
@@ -172,7 +172,7 @@ export function DonorDashboardMainBody() {
                         {update.title}
                       </p>
                     </div>
-                    <ChevronRight className="size-3.5 text-zinc-200 self-center opacity-0 group-hover:opacity-100 transition-all -ml-1.5 shrink-0 hidden sm:block" />
+                    <ChevronRight className="size-3.5 text-zinc-200 self-center opacity-0 group-hover:opacity-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] -ml-1.5 shrink-0 hidden sm:block" />
                   </Link>
                 ))}
               </div>

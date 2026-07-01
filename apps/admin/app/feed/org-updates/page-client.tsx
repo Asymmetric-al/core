@@ -253,7 +253,7 @@ function FeedSettingsSheet({
                 <label
                   htmlFor="all_donors"
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                     visibility === "all_donors"
                       ? "border-foreground bg-muted/50"
                       : "border-border hover:bg-muted/30",
@@ -281,7 +281,7 @@ function FeedSettingsSheet({
                 <label
                   htmlFor="followers_only"
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-all",
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                     visibility === "followers_only"
                       ? "border-foreground bg-muted/50"
                       : "border-border hover:bg-muted/30",
@@ -387,7 +387,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card"
+        className="overflow-hidden border shadow-sm hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -566,7 +566,7 @@ function DraftCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
+        className="overflow-hidden border hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 min-w-0 space-y-3">
@@ -1063,7 +1063,7 @@ function ComposeCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 transition-all"
+            className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <RichTextEditor
               value={postContent}
