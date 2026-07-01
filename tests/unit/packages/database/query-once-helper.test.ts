@@ -412,7 +412,7 @@ describe("querySupabaseCollectionOnce", () => {
   });
 
   it("returns the first row for single-result reads", async () => {
-    const { client } = createSupabaseStub([
+    const { calls, client } = createSupabaseStub([
       { id: "post-1" },
       { id: "post-2" },
     ]);
@@ -423,6 +423,11 @@ describe("querySupabaseCollectionOnce", () => {
     const result = await querySupabaseCollectionOnce(callback, client);
 
     expect(result).toEqual({ id: "post-1" });
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["limit", 1],
+    ]);
   });
 
   it("returns undefined for empty single-result reads", async () => {

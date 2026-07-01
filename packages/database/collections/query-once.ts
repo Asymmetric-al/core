@@ -374,6 +374,8 @@ async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
 
   if (query.limit !== undefined) {
     supabaseQuery = supabaseQuery.limit(query.limit);
+  } else if (query.singleResult) {
+    supabaseQuery = supabaseQuery.limit(1);
   }
 
   if (query.offset !== undefined && query.limit !== undefined) {
