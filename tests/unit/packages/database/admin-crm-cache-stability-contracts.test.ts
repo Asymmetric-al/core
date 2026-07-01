@@ -45,9 +45,7 @@ describe("admin CRM TanStack cache stability contracts", () => {
     expect(drawerSource).toMatch(/useAdminCrmRecordDetail\(contact\.id\)/);
     expect(drawerSource).toMatch(/useCreateLinkedCrmNote\(contact\.id\)/);
     expect(hookSource).toMatch(/ADMIN_CRM_RECORD_DETAIL_QUERY_KEY/);
-    expect(hookSource).toMatch(
-      /"admin",\s*"crm",\s*"records",\s*"detail"/,
-    );
+    expect(hookSource).toMatch(/"admin",\s*"crm",\s*"records",\s*"detail"/);
     expect(hookSource).toMatch(
       /CRM_DETAIL_QUERY_KEY = ADMIN_CRM_RECORD_DETAIL_QUERY_KEY/,
     );
