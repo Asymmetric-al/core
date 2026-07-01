@@ -3,6 +3,7 @@
 
 import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
   AvatarFallback,
@@ -87,8 +88,6 @@ import type {
   Visibility,
 } from "./feed-model";
 import type { MediaItem } from "@asym/database/types";
-
-import { PageHeader } from "@/components/page-header";
 
 const RichTextEditor = dynamic(
   () =>
