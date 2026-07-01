@@ -173,6 +173,67 @@ describe("querySupabaseCollectionOnce", () => {
     expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
+  it.each(["$synced", "$origin", "$key"])(
+    "delegates filters on virtual row property row.%s to upstream queryOnce",
+    async (virtualProperty) => {
+      const delegatedResult = [{ id: "delegated-row" }];
+      supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+      const { calls, client } = createSupabaseStub([
+        { id: "unsafe-unfiltered-row" },
+      ]);
+      const callback = createQueryCallback(
+        createCollectionQuery({
+          where: [
+            {
+              type: "func",
+              name: "eq",
+              args: [
+                { type: "ref", path: ["row", virtualProperty] },
+                { type: "val", value: "virtual-value" },
+              ],
+            },
+          ],
+        }),
+      );
+
+      const result = await querySupabaseCollectionOnce(callback, client);
+
+      expect(result).toBe(delegatedResult);
+      expect(calls).toEqual([]);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+    },
+  );
+
+  it("delegates filters on refs without a physical column segment", async () => {
+    const delegatedResult = [{ id: "delegated-row" }];
+    supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+    const { calls, client } = createSupabaseStub([
+      { id: "unsafe-unfiltered-row" },
+    ]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        where: [
+          {
+            type: "func",
+            name: "eq",
+            args: [
+              { type: "ref", path: ["row"] },
+              { type: "val", value: "post-1" },
+            ],
+          },
+        ],
+      }),
+    );
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toBe(delegatedResult);
+    expect(calls).toEqual([]);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+  });
+
   it("runs ordered reads without requiring where", async () => {
     const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
     const callback = createQueryCallback(
@@ -194,6 +255,59 @@ describe("querySupabaseCollectionOnce", () => {
       ["select", "*"],
       ["order", "created_at", { ascending: false }],
     ]);
+  });
+
+  it.each(["$synced", "$origin", "$key"])(
+    "delegates ordering on virtual row property row.%s to upstream queryOnce",
+    async (virtualProperty) => {
+      const delegatedResult = [{ id: "delegated-row" }];
+      supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+      const { calls, client } = createSupabaseStub([
+        { id: "unsafe-unfiltered-row" },
+      ]);
+      const callback = createQueryCallback(
+        createCollectionQuery({
+          orderBy: [
+            {
+              expression: { type: "ref", path: ["row", virtualProperty] },
+              compareOptions: { direction: "asc" },
+            },
+          ],
+        }),
+      );
+
+      const result = await querySupabaseCollectionOnce(callback, client);
+
+      expect(result).toBe(delegatedResult);
+      expect(calls).toEqual([]);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+      expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+    },
+  );
+
+  it("delegates ordering on refs without a physical column segment", async () => {
+    const delegatedResult = [{ id: "delegated-row" }];
+    supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+    const { calls, client } = createSupabaseStub([
+      { id: "unsafe-unfiltered-row" },
+    ]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        orderBy: [
+          {
+            expression: { type: "ref", path: ["row"] },
+            compareOptions: { direction: "asc" },
+          },
+        ],
+      }),
+    );
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toBe(delegatedResult);
+    expect(calls).toEqual([]);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
   });
 
   it("runs non-aggregate filtered reads through the supplied Supabase client", async () => {

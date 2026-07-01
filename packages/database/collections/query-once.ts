@@ -114,7 +114,7 @@ function getColumnName(expression: unknown): string {
     throw new Error("queryOnce filters must use table column references.");
   }
 
-  return expression.path.slice(1).join(".");
+  return getResolvedColumnName(expression);
 }
 
 function getValue(expression: unknown): unknown {
@@ -141,6 +141,26 @@ function isColumnRefExpression(
     expression.type === "ref" &&
     "path" in expression &&
     Array.isArray(expression.path)
+  );
+}
+
+function getResolvedColumnName(expression: QueryRefExpression): string {
+  return expression.path.slice(1).join(".");
+}
+
+function isSupportedColumnRefExpression(
+  expression: unknown,
+): expression is QueryRefExpression {
+  if (!isColumnRefExpression(expression)) {
+    return false;
+  }
+
+  const columnSegment = expression.path[1];
+
+  return (
+    typeof columnSegment === "string" &&
+    columnSegment.length > 0 &&
+    !columnSegment.startsWith("$")
   );
 }
 
@@ -201,7 +221,7 @@ function canApplyWhere(expression: QueryExpression): boolean {
   }
 
   const [columnRef, literalValue] = expression.args;
-  if (!isColumnRefExpression(columnRef)) {
+  if (!isSupportedColumnRefExpression(columnRef)) {
     return false;
   }
 
@@ -303,6 +323,9 @@ function isSimpleSupabaseRead(query: QueryIr): boolean {
     query.from.type === "collectionRef" &&
       query.select === undefined &&
       (query.where ?? []).every(canApplyWhere) &&
+      (query.orderBy ?? []).every((order) =>
+        isSupportedColumnRefExpression(order.expression),
+      ) &&
       (query.offset === undefined || query.limit !== undefined) &&
       !query.join?.length &&
       !query.distinct &&
