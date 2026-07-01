@@ -267,11 +267,11 @@ export function TaskTable({
                               variant="ghost"
                               size="icon"
                               className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                            />
+                            >
+                              <MoreHorizontal className="size-4" />
+                            </Button>
                           }
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </DropdownMenuTrigger>
+                        />
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem onClick={() => onEdit(task)}>
                             <Edit2 className="size-4 mr-2" />
