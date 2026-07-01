@@ -76,4 +76,12 @@ describe("areDataTableChromeActionsEqual", () => {
 
     expect(areDataTableChromeActionsEqual(previous, next)).toBe(false);
   });
+
+  it("returns false when hideOnMobile differs", () => {
+    const onClick = () => {};
+    const previous = [{ label: "Archive", onClick, hideOnMobile: true }];
+    const next = [{ label: "Archive", onClick, hideOnMobile: false }];
+
+    expect(areDataTableChromeActionsEqual(previous, next)).toBe(false);
+  });
 });

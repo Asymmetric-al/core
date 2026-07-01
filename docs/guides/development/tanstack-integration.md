@@ -94,7 +94,9 @@ v9's `useTable` returns `{ ...instance, options, state }` — a **fresh wrapper 
 
 The shared pattern (see `packages/ui/components/shadcn/data-table/data-table-chrome-memo.ts`):
 
-1. Memoize chrome with the comparator: `React.memo(Component, areChromeTablePropsInterchangeable)`. The comparator treats two wrappers as interchangeable when they share the same `atoms` map (the atoms are created once per instance and copied by reference into every wrapper) **and** the non-state option inputs feeding chrome's derived reads (`columns`, `data`, `pageCount`, `rowCount`) are unchanged.
+1. Memoize chrome with comparators from `data-table-chrome-memo.ts`:
+   - **Table prop:** `React.memo(Component, (prev, next) => areChromeTablePropsInterchangeable(prev.table, next.table) && …)`. The comparator treats two wrappers as interchangeable when they share the same `atoms` map (the atoms are created once per instance and copied by reference into every wrapper) **and** the non-state option inputs feeding chrome's derived reads (`columns`, `data`, `pageCount`, `rowCount`) are unchanged.
+   - **Action arrays (action bar / floating bar):** also compare `actions` with `areDataTableChromeActionsEqual` so inline arrays with stable handlers do not defeat memoization. That helper shallow-compares every field on `DataTableChromeAction` (including `hideOnMobile` on floating-bar actions).
 2. Subscribe to exactly the slices the component renders: `useSelector(table.atoms.pagination)`, `useSelector(table.atoms.rowSelection)`, etc.
 3. **Never read `table.state` inside a component memoized this way** — once the comparator starts bailing out, the retained wrapper's `.state` snapshot is stale. Read through `useSelector` (or live `table.get*` APIs whose inputs are covered by a subscription or the comparator).
 

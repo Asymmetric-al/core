@@ -62,14 +62,13 @@ export type DataTableChromeAction = {
   icon?: React.ComponentType<{ className?: string }>;
   onClick: (rows: RowData[]) => void;
   variant?: "default" | "destructive";
+  hideOnMobile?: boolean;
 };
 
 /** Shallow value compare so memoized chrome can bail out when callers pass fresh action arrays. */
-export function areDataTableChromeActionsEqual<
-  TAction extends DataTableChromeAction,
->(
-  previous: readonly TAction[] | undefined,
-  next: readonly TAction[] | undefined,
+export function areDataTableChromeActionsEqual(
+  previous: readonly DataTableChromeAction[] | undefined,
+  next: readonly DataTableChromeAction[] | undefined,
 ): boolean {
   if (previous === next) {
     return true;
@@ -88,6 +87,7 @@ export function areDataTableChromeActionsEqual<
     return (
       action.label === other.label &&
       action.variant === other.variant &&
+      action.hideOnMobile === other.hideOnMobile &&
       action.icon === other.icon &&
       action.onClick === other.onClick
     );
