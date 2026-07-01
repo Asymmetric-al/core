@@ -104,20 +104,19 @@ describe("querySupabaseCollectionOnce", () => {
     expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
-  it("delegates limit reads without orderBy to upstream queryOnce", async () => {
-    const delegatedResult = [{ id: "delegated-row" }];
-    supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
-    const { calls, client } = createSupabaseStub([
-      { id: "unsafe-unfiltered-row" },
-    ]);
+  it("runs limit reads without orderBy through the supplied Supabase client", async () => {
+    const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
     const callback = createQueryCallback(createCollectionQuery({ limit: 1 }));
 
     const result = await querySupabaseCollectionOnce(callback, client);
 
-    expect(result).toBe(delegatedResult);
-    expect(calls).toEqual([]);
-    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
-    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+    expect(result).toEqual([{ id: "post-1" }]);
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["limit", 1],
+    ]);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
   it("runs filtered reads without requiring orderBy", async () => {
@@ -145,6 +144,36 @@ describe("querySupabaseCollectionOnce", () => {
       ["select", "*"],
       ["eq", "id", "post-1"],
     ]);
+  });
+
+  it("runs filtered limit reads without orderBy through the supplied Supabase client", async () => {
+    const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        where: [
+          {
+            type: "func",
+            name: "eq",
+            args: [
+              { type: "ref", path: ["post", "id"] },
+              { type: "val", value: "post-1" },
+            ],
+          },
+        ],
+        limit: 3,
+      }),
+    );
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toEqual([{ id: "post-1" }]);
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["eq", "id", "post-1"],
+      ["limit", 3],
+    ]);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
   it('translates TanStack Func("in", ...) filters to Supabase in filters', async () => {
@@ -260,10 +289,8 @@ describe("querySupabaseCollectionOnce", () => {
   });
 
   it.each(["$synced", "$origin", "$key"])(
-    "delegates ordering on virtual row property row.%s to upstream queryOnce",
+    "fails closed for ordering on virtual row property row.%s",
     async (virtualProperty) => {
-      const delegatedResult = [{ id: "delegated-row" }];
-      supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
       const { calls, client } = createSupabaseStub([
         { id: "unsafe-unfiltered-row" },
       ]);
@@ -278,18 +305,18 @@ describe("querySupabaseCollectionOnce", () => {
         }),
       );
 
-      const result = await querySupabaseCollectionOnce(callback, client);
+      await expect(
+        querySupabaseCollectionOnce(callback, client),
+      ).rejects.toThrow(
+        "queryOnce orderBy must use physical table column references.",
+      );
 
-      expect(result).toBe(delegatedResult);
       expect(calls).toEqual([]);
-      expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
-      expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+      expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
     },
   );
 
-  it("delegates ordering on refs without a physical column segment", async () => {
-    const delegatedResult = [{ id: "delegated-row" }];
-    supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+  it("fails closed for ordering on refs without a physical column segment", async () => {
     const { calls, client } = createSupabaseStub([
       { id: "unsafe-unfiltered-row" },
     ]);
@@ -304,12 +331,12 @@ describe("querySupabaseCollectionOnce", () => {
       }),
     );
 
-    const result = await querySupabaseCollectionOnce(callback, client);
+    await expect(querySupabaseCollectionOnce(callback, client)).rejects.toThrow(
+      "queryOnce orderBy must use physical table column references.",
+    );
 
-    expect(result).toBe(delegatedResult);
     expect(calls).toEqual([]);
-    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
-    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
   it("runs non-aggregate filtered reads through the supplied Supabase client", async () => {

@@ -319,21 +319,38 @@ function hasServerOnlyFeatures(query: QueryIr): boolean {
 }
 
 function isSimpleSupabaseRead(query: QueryIr): boolean {
-  const hasOrderBy = Boolean(query.orderBy?.length);
-  const requiresStableOrdering = query.limit !== undefined;
+  const orderBy = query.orderBy ?? [];
+  const hasOrderBy = orderBy.length > 0;
+  const hasOffset = query.offset !== undefined;
 
   return Boolean(
     query.from.type === "collectionRef" &&
       query.select === undefined &&
       (query.where ?? []).every(canApplyWhere) &&
-      (query.orderBy ?? []).every((order) =>
+      orderBy.every((order) =>
         isSupportedColumnRefExpression(order.expression),
       ) &&
-      (!requiresStableOrdering || hasOrderBy) &&
-      (query.offset === undefined || query.limit !== undefined) &&
+      (!hasOffset || (query.limit !== undefined && hasOrderBy)) &&
       !query.join?.length &&
       !query.distinct &&
       !hasServerOnlyFeatures(query),
+  );
+}
+
+function isNonAggregateCollectionReadShape(query: QueryIr): boolean {
+  return Boolean(
+    query.from.type === "collectionRef" &&
+      query.select === undefined &&
+      (query.where ?? []).every(canApplyWhere) &&
+      !query.join?.length &&
+      !query.distinct &&
+      !hasServerOnlyFeatures(query),
+  );
+}
+
+function hasUnsupportedOrderBy(query: QueryIr): boolean {
+  return (query.orderBy ?? []).some(
+    (order) => !isSupportedColumnRefExpression(order.expression),
   );
 }
 
@@ -386,6 +403,12 @@ export async function querySupabaseCollectionOnce<
 ): Promise<Awaited<ReturnType<typeof supabaseQueryOnce<TCallback>>>> {
   const client = supabase ?? (await createClient());
   const query = getQuery(callback);
+
+  if (isNonAggregateCollectionReadShape(query) && hasUnsupportedOrderBy(query)) {
+    throw new Error(
+      "queryOnce orderBy must use physical table column references.",
+    );
+  }
 
   if (!isSimpleSupabaseRead(query)) {
     return supabaseQueryOnce(
