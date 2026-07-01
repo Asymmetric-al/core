@@ -319,6 +319,9 @@ function hasServerOnlyFeatures(query: QueryIr): boolean {
 }
 
 function isSimpleSupabaseRead(query: QueryIr): boolean {
+  const hasOrderBy = Boolean(query.orderBy?.length);
+  const requiresStableOrdering = query.limit !== undefined;
+
   return Boolean(
     query.from.type === "collectionRef" &&
       query.select === undefined &&
@@ -326,6 +329,7 @@ function isSimpleSupabaseRead(query: QueryIr): boolean {
       (query.orderBy ?? []).every((order) =>
         isSupportedColumnRefExpression(order.expression),
       ) &&
+      (!requiresStableOrdering || hasOrderBy) &&
       (query.offset === undefined || query.limit !== undefined) &&
       !query.join?.length &&
       !query.distinct &&

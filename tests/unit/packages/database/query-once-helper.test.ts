@@ -104,18 +104,20 @@ describe("querySupabaseCollectionOnce", () => {
     expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
   });
 
-  it("runs collection reads with a limit and no where or orderBy clauses", async () => {
-    const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
+  it("delegates limit reads without orderBy to upstream queryOnce", async () => {
+    const delegatedResult = [{ id: "delegated-row" }];
+    supabaseQueryOnceMock.mockResolvedValueOnce(delegatedResult);
+    const { calls, client } = createSupabaseStub([
+      { id: "unsafe-unfiltered-row" },
+    ]);
     const callback = createQueryCallback(createCollectionQuery({ limit: 1 }));
 
     const result = await querySupabaseCollectionOnce(callback, client);
 
-    expect(result).toEqual([{ id: "post-1" }]);
-    expect(calls).toEqual([
-      ["from", "posts"],
-      ["select", "*"],
-      ["limit", 1],
-    ]);
+    expect(result).toBe(delegatedResult);
+    expect(calls).toEqual([]);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
   });
 
   it("runs filtered reads without requiring orderBy", async () => {
@@ -350,6 +352,38 @@ describe("querySupabaseCollectionOnce", () => {
     ]);
   });
 
+  it("runs ordered limit and offset reads through the supplied Supabase client", async () => {
+    const { calls, client } = createSupabaseStub([
+      { id: "post-6", content: "Later update", created_at: "2026-06-30" },
+    ]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        orderBy: [
+          {
+            expression: { type: "ref", path: ["post", "created_at"] },
+            compareOptions: { direction: "desc" },
+          },
+        ],
+        limit: 5,
+        offset: 10,
+      }),
+    );
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toEqual([
+      { id: "post-6", content: "Later update", created_at: "2026-06-30" },
+    ]);
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["order", "created_at", { ascending: false }],
+      ["limit", 5],
+      ["range", 10, 14],
+    ]);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
+  });
+
   it("returns the first row for single-result reads", async () => {
     const { client } = createSupabaseStub([
       { id: "post-1" },
@@ -559,6 +593,28 @@ describe("querySupabaseCollectionOnce", () => {
     const result = await querySupabaseCollectionOnce(callback, client);
 
     expect(result).toBe(delegatedResult);
+    expect(calls).toEqual([]);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
+    expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
+  });
+
+  it("delegates offset and limit reads without orderBy to upstream queryOnce", async () => {
+    const delegatedError = new Error("offset limit requires upstream ordering");
+    supabaseQueryOnceMock.mockRejectedValueOnce(delegatedError);
+    const { calls, client } = createSupabaseStub([
+      { id: "unsafe-unfiltered-row" },
+    ]);
+    const callback = createQueryCallback(
+      createCollectionQuery({
+        limit: 25,
+        offset: 250,
+      }),
+    );
+
+    await expect(querySupabaseCollectionOnce(callback, client)).rejects.toBe(
+      delegatedError,
+    );
+
     expect(calls).toEqual([]);
     expect(supabaseQueryOnceMock).toHaveBeenCalledTimes(1);
     expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
