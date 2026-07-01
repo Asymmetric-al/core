@@ -144,7 +144,7 @@ describe("buildMissionaryDonorRows", () => {
     expect(rows[0].recurring_donations[0]).toMatchObject({
       id: pledge.id,
       amount: 3000,
-      frequency: "monthly",
+      frequency: "Monthly",
       status: "active",
     });
   });
@@ -194,6 +194,32 @@ describe("buildMissionaryDonorRows", () => {
     });
   });
 
+  it("does not leak an activity whose donor belongs to a different missionary", () => {
+    const myDonor = makeDonor({
+      id: "30000000-0000-0000-0000-000000000001",
+      missionary_id: MISSIONARY_PROFILE_ID,
+    });
+    const otherDonor = makeDonor({
+      id: "30000000-0000-0000-0000-000000000002",
+      missionary_id: OTHER_MISSIONARY_PROFILE_ID,
+    });
+    const otherActivity = makeActivity({
+      id: "activity-other",
+      donor_id: otherDonor.id,
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [myDonor, otherDonor],
+      activities: [otherActivity],
+      pledges: [],
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(myDonor.id);
+    expect(rows[0].activities).toHaveLength(0);
+  });
+
   it("returns no rows when the missionary id is missing", () => {
     const donor = makeDonor();
     const pledge = makePledge({ donor_id: donor.id });
@@ -206,5 +232,112 @@ describe("buildMissionaryDonorRows", () => {
         pledges: [pledge],
       }),
     ).toEqual([]);
+  });
+
+  it("normalizes lowercase donor row enums to presentation-case types and statuses", () => {
+    const donor = makeDonor({
+      missionary_id: MISSIONARY_PROFILE_ID,
+      type: "church",
+      status: "at_risk",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [],
+      pledges: [],
+    });
+
+    expect(rows[0]).toMatchObject({
+      type: "Church",
+      status: "At Risk",
+    });
+  });
+
+  it("normalizes lowercase failed activity status for the UI", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const activity = makeActivity({
+      donor_id: donor.id,
+      status: "failed",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [activity],
+      pledges: [],
+    });
+
+    expect(rows[0].activities[0].status).toBe("Failed");
+  });
+
+  it.each([
+    ["organization", "Organization"],
+    ["foundation", "Organization"],
+  ] as const)("normalizes donor type %s to %s", (type, expected) => {
+    const donor = makeDonor({
+      missionary_id: MISSIONARY_PROFILE_ID,
+      type,
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [],
+      pledges: [],
+    });
+
+    expect(rows[0].type).toBe(expected);
+  });
+
+  it("normalizes lowercase pledge frequency for monthly pledge math", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const pledge = makePledge({
+      donor_id: donor.id,
+      frequency: "quarterly",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [],
+      pledges: [pledge],
+    });
+
+    expect(rows[0].recurring_donations[0].frequency).toBe("Quarterly");
+  });
+
+  it("normalizes lowercase online gift type", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const activity = makeActivity({
+      donor_id: donor.id,
+      gift_type: "online",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [activity],
+      pledges: [],
+    });
+
+    expect(rows[0].activities[0].gift_type).toBe("Online");
+  });
+
+  it("normalizes done activity status to Completed", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const activity = makeActivity({
+      donor_id: donor.id,
+      status: "done",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [activity],
+      pledges: [],
+    });
+
+    expect(rows[0].activities[0].status).toBe("Completed");
   });
 });

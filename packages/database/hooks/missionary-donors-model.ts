@@ -96,21 +96,31 @@ export interface MissionaryDonorRow {
 function normalizeDonorType(
   value: string | null | undefined,
 ): MissionaryDonorRow["type"] {
-  if (value === "Organization" || value === "Church") {
-    return value;
+  switch (value?.toLowerCase()) {
+    case "church":
+      return "Church";
+    case "organization":
+    case "foundation":
+      return "Organization";
+    default:
+      return "Individual";
   }
-
-  return "Individual";
 }
 
 function normalizeDonorStatus(
   value: string | null | undefined,
 ): MissionaryDonorRow["status"] {
-  if (value === "Lapsed" || value === "New" || value === "At Risk") {
-    return value;
+  switch (value?.toLowerCase()) {
+    case "lapsed":
+      return "Lapsed";
+    case "new":
+      return "New";
+    case "at_risk":
+    case "at risk":
+      return "At Risk";
+    default:
+      return "Active";
   }
-
-  return "Active";
 }
 
 function normalizePreferredContact(
@@ -150,20 +160,63 @@ function normalizeActivityType(
   }
 }
 
+function normalizeActivityStatus(
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  switch (value.toLowerCase()) {
+    case "failed":
+      return "Failed";
+    case "done":
+    case "completed":
+      return "Completed";
+    default:
+      return value;
+  }
+}
+
 function normalizeGiftType(
   value: string | null | undefined,
 ): GiftType | undefined {
-  switch (value) {
-    case "Check":
-    case "Cash":
-    case "Bank Transfer":
-    case "Stock":
-    case "In-Kind":
-      return value;
-    case "Online":
+  switch (value?.toLowerCase()) {
+    case "online":
       return "Online";
+    case "check":
+      return "Check";
+    case "cash":
+      return "Cash";
+    case "bank transfer":
+    case "bank_transfer":
+      return "Bank Transfer";
+    case "stock":
+      return "Stock";
+    case "in-kind":
+    case "in_kind":
+      return "In-Kind";
     default:
       return undefined;
+  }
+}
+
+function normalizeFrequency(value: string | null | undefined): string {
+  switch (value?.toLowerCase()) {
+    case "monthly":
+      return "Monthly";
+    case "quarterly":
+      return "Quarterly";
+    case "annually":
+    case "annual":
+    case "yearly":
+      return "Annually";
+    case "one-time":
+    case "one_time":
+    case "onetime":
+      return "One-Time";
+    default:
+      return value ?? "One-Time";
   }
 }
 
@@ -225,7 +278,7 @@ export function buildMissionaryDonorRows(
       title: activity.title,
       description: activity.description ?? undefined,
       amount: activity.amount ?? undefined,
-      status: activity.status ?? undefined,
+      status: normalizeActivityStatus(activity.status),
       gift_type: normalizeGiftType(activity.gift_type),
       note: activity.note ?? undefined,
     });
@@ -243,7 +296,7 @@ export function buildMissionaryDonorRows(
     donorPledges.push({
       id: pledge.id,
       amount: pledge.amount,
-      frequency: pledge.frequency ?? "Monthly",
+      frequency: normalizeFrequency(pledge.frequency ?? "Monthly"),
       status: normalizeRecurringStatus(pledge.status),
       start_date: pledge.start_date ?? pledge.created_at,
       end_date: pledge.end_date ?? undefined,
@@ -268,7 +321,7 @@ export function buildMissionaryDonorRows(
       total_given: donor.total_given ?? 0,
       last_gift_date: donor.last_gift_date,
       last_gift_amount: donor.last_gift_amount ?? null,
-      frequency: donor.frequency ?? "One-Time",
+      frequency: normalizeFrequency(donor.frequency),
       email: donor.email ?? "",
       phone: donor.phone ?? "",
       mobile: donor.mobile ?? undefined,
