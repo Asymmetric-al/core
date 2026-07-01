@@ -5,7 +5,10 @@ import {
   areDataTableChromeActionsEqual,
 } from "../../../../../../packages/ui/components/shadcn/data-table/data-table-chrome-memo";
 
-import type { RowData, Table } from "../../../../../../packages/ui/components/shadcn/data-table/tanstack";
+import type {
+  RowData,
+  Table,
+} from "../../../../../../packages/ui/components/shadcn/data-table/tanstack";
 
 type Person = { id: string; name: string };
 
