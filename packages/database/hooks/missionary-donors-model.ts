@@ -201,6 +201,10 @@ export interface BuildMissionaryDonorRowsInput {
  * pledge already belongs to a donor that has been missionary-scoped above, so
  * `donor_id` is the correct (and only needed) scope — mirroring how activities
  * are scoped here.
+ *
+ * **Window skew:** donors, activities, and pledges each load independent bounded
+ * windows. After loading more donors, a partner row may show activities but an
+ * empty `recurring_donations` until pledges are paged in via `loadMore`.
  */
 export function buildMissionaryDonorRows(
   input: BuildMissionaryDonorRowsInput,

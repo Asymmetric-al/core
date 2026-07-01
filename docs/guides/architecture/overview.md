@@ -199,25 +199,26 @@ Each app has its own `features/` directory for app-specific logic:
 
 ```
 apps/admin/features/mission-control/
-├── components/           # Feature-specific components
-│   ├── index.ts         # Barrel export
-│   └── [Component].tsx
-├── hooks/               # Feature-specific hooks
-│   └── use-[hook].ts
-├── types.ts             # Feature-specific types
-├── constants.ts         # Feature constants
-├── context.tsx          # Feature context provider (if needed)
-└── index.ts             # Public API barrel export
+├── components/           # Feature-specific components (import by path, no barrel)
+│   ├── patterns/        # e.g. page-header.tsx
+│   └── tiles/           # e.g. tile-page.tsx
+├── hooks/
+├── types.ts
+├── constants.ts
+└── context.tsx          # Feature context provider (if needed)
+
+apps/admin/app/mc-shell.tsx   # Mission Control shell + sidebar navigation
 ```
 
-**Example: Admin App Feature**
+**Example: Admin Mission Control** (deep imports; navigation lives in `apps/admin/app/mc-shell.tsx`):
+many features export directly from their modules, e.g.
+`apps/admin/features/mission-control/context.tsx`)
 
 ```typescript
-// apps/admin/features/mission-control/index.ts
-export { MCProvider, useMC, useRole } from "./context";
-export { AppShell } from "./components/app-shell/app-shell";
-export { PageHeader } from "./components/patterns/page-header";
-// ... other exports
+// Prefer deep imports (no mission-control barrel):
+import { PageHeader } from "@/features/mission-control/components/patterns/page-header";
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
+import { MissionControlProvider } from "@/features/mission-control/context";
 ```
 
 ### Import Guidelines
@@ -249,7 +250,8 @@ import { env } from "@asym/env";
 
 ```typescript
 // Feature components (app-specific)
-import { AppShell, PageHeader } from "@/features/mission-control";
+import { AppShell } from "@/components/app-shell";
+import { PageHeader } from "@/features/mission-control/components/patterns/page-header";
 
 // App-specific components
 import { DashboardLayout } from "@/components/layouts";

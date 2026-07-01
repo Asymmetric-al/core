@@ -1,6 +1,7 @@
 "use client";
 
 import { siteConfig } from "@asym/config/site-client";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -350,6 +351,8 @@ function ModuleInfoCard() {
 
 export default function CareSettingsPage() {
   const [saving, setSaving] = React.useState(false);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   const handleSave = () => {
     setSaving(true);
@@ -360,7 +363,12 @@ export default function CareSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500 pb-20">
+    <div
+      className={cn(
+        "p-6 space-y-6 pb-20",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       <CareSettingsHeader />
 
       <div className="grid gap-6 lg:grid-cols-12">

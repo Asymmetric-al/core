@@ -648,6 +648,9 @@ function buildMissionaryScopedDonorCollections(missionaryId: string | null) {
     donorsCollection,
     donorActivitiesCollection,
     donorPledgesCollection,
+    /** Donors-only continuation — drives the Partners "Load more" affordance. */
+    donorsPagination: scopedDonorsFetcher,
+    /** Fans out `loadMore` across donors, activities, and pledges. */
     pagination: aggregatePagination([
       scopedDonorsFetcher,
       scopedActivitiesFetcher,
@@ -660,8 +663,9 @@ export type MissionaryScopedDonorCollections = ReturnType<
   typeof buildMissionaryScopedDonorCollections
 >;
 
-// One collection set per missionary, kept stable across renders. A session
-// touches a single missionary id, so this map stays small in practice.
+// One collection set per missionary, kept stable across renders. The
+// missionary app binds one authenticated profile id per session, so this map
+// effectively holds a single entry and does not need eviction.
 const scopedDonorCollectionsByMissionary = new Map<
   string,
   MissionaryScopedDonorCollections

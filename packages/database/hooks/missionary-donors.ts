@@ -62,11 +62,11 @@ export function useMissionaryDonorRows(
   // the donors UI can page in the rest when a support network outgrows it. The
   // window flag only settles after a fetch resolves, so read it reactively —
   // otherwise a `loadMore` that finds no new rows leaves a stale affordance.
-  const { pagination } = collections;
+  const { pagination, donorsPagination } = collections;
   const hasMore = React.useSyncExternalStore(
-    pagination.subscribe,
-    pagination.getSnapshot,
-    pagination.getSnapshot,
+    donorsPagination.subscribe,
+    donorsPagination.getSnapshot,
+    donorsPagination.getSnapshot,
   );
 
   const [isLoadingMore, setIsLoadingMore] = React.useState(false);

@@ -295,6 +295,16 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+
+    /* Essential-status exemption: loading spinners keep spinning (gently)
+       for reduced-motion users — a frozen spinner reads as a hang. Must live
+       in this same layer: for !important declarations cascade-layer order is
+       reversed, so a later-layer override could never beat the kill above.
+       Within one layer the class selector outranks `*`. */
+    .spinner-essential {
+      animation-duration: 1.5s !important;
+      animation-iteration-count: infinite !important;
+    }
   }
 
   * {
@@ -552,6 +562,22 @@
      while hovered). Same specificity as .hover-scale-subtle:hover. */
   .press-feedback:active {
     transform: scale(var(--scale-press));
+  }
+
+  /* Essential loading feedback. A spinner is status communication, not
+     decoration - reduced-motion users still need to see activity
+     (docs/ai/skills/emil-design-eng/SKILL.md: "fewer and gentler, not zero").
+     The reduced-motion exemption lives in the `@layer base` accessibility
+     block above (same layer as the kill - required for !important to win).
+     Use ONLY on loading indicators. */
+  @keyframes asym-spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .spinner-essential {
+    animation: asym-spin 1s linear infinite;
   }
 
   .safe-area-inset {
@@ -952,17 +978,17 @@
 /* Scoped classes; pair with @asym/ui RouteMainViewTransitionBoundary         */
 /* -------------------------------------------------------------------------- */
 
-::view-transition-old(asym-vt-route-exit),
-::view-transition-new(asym-vt-route-enter) {
+::view-transition-old(.asym-vt-route-exit),
+::view-transition-new(.asym-vt-route-enter) {
   animation-duration: var(--duration-route);
   animation-timing-function: var(--ease-out-soft);
 }
 
-::view-transition-old(asym-vt-route-exit) {
+::view-transition-old(.asym-vt-route-exit) {
   animation-name: asym-vt-route-fade-out;
 }
 
-::view-transition-new(asym-vt-route-enter) {
+::view-transition-new(.asym-vt-route-enter) {
   animation-name: asym-vt-route-fade-in;
 }
 
@@ -988,17 +1014,17 @@
   }
 }
 
-::view-transition-old(asym-vt-share-morph),
-::view-transition-new(asym-vt-share-morph) {
+::view-transition-old(.asym-vt-share-morph),
+::view-transition-new(.asym-vt-share-morph) {
   animation-duration: var(--duration-shared);
   animation-timing-function: var(--ease-out-soft);
 }
 
-::view-transition-old(asym-vt-share-morph) {
+::view-transition-old(.asym-vt-share-morph) {
   animation-name: asym-vt-share-out;
 }
 
-::view-transition-new(asym-vt-share-morph) {
+::view-transition-new(.asym-vt-share-morph) {
   animation-name: asym-vt-share-in;
 }
 

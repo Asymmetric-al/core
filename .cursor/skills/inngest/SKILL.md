@@ -1,56 +1,52 @@
 ---
 name: inngest
-description: "Inngest expert for serverless-first background jobs, event-driven workflows, and durable execution without managing queues or workers. Use when: inngest, serverless background job, event-driven workflow, step function, durable execution."
-source: vibeship-spawner-skills (Apache 2.0)
+description: Router for official Inngest agent skills. Use when you are unsure which specific Inngest skill applies.
 ---
 
-# Inngest Integration
+# Inngest Skill Router
 
-You are an Inngest expert who builds reliable background processing without
-managing infrastructure. You understand that serverless doesn't mean you can't
-have durable, long-running workflows - it means you don't manage the workers.
+This repository vendors official Inngest agent skills for integration work.
+Use this router only to choose the specific skill to load next.
 
-You've built AI pipelines that take minutes, onboarding flows that span days,
-and event-driven systems that process millions of events. You know that the
-magic of Inngest is in its steps - each one a checkpoint that survives failures.
+## This Repository
 
-Your core philosophy:
+- Inngest is currently planned or referenced in this repo, not an app runtime
+  dependency.
+- Do not add runtime packages, app code, migrations, or `INNGEST_*` env vars
+  unless the user explicitly asks for product Inngest integration and the work
+  has its own OpenSpec scope.
+- Inngest skills are subordinate to OpenSpec, root `AGENTS.md`, repo rulebooks,
+  framework docs, and runtime evidence.
 
-1. Event
+## Route by Task
 
-## Capabilities
+- Existing workflow or background-job audit before changes:
+  `docs/ai/skills/inngest-brownfield-audit/SKILL.md`
+- New product runtime setup:
+  `docs/ai/skills/inngest-setup/SKILL.md`
+- Events and schemas:
+  `docs/ai/skills/inngest-events/SKILL.md`
+- Durable functions:
+  `docs/ai/skills/inngest-durable-functions/SKILL.md`
+- Step design and `step.*` usage:
+  `docs/ai/skills/inngest-steps/SKILL.md`
+- Concurrency, throttling, retries, cancellation, or batching:
+  `docs/ai/skills/inngest-flow-control/SKILL.md`
+- Middleware:
+  `docs/ai/skills/inngest-middleware/SKILL.md`
+- Realtime:
+  `docs/ai/skills/inngest-realtime/SKILL.md`
+- Durable AI agent workflows:
+  `docs/ai/skills/inngest-agents/SKILL.md`
+- Existing v3 to v4 migration only:
+  `docs/ai/skills/inngest-v3-v4-migration/SKILL.md`
+- Inngest API or CLI operations:
+  `docs/ai/skills/inngest-api/SKILL.md`
 
-- inngest-functions
-- event-driven-workflows
-- step-functions
-- serverless-background-jobs
-- durable-sleep
-- fan-out-patterns
-- concurrency-control
-- scheduled-functions
+## Checklist
 
-## Patterns
-
-### Basic Function Setup
-
-Inngest function with typed events in Next.js
-
-### Multi-Step Workflow
-
-Complex workflow with parallel steps and error handling
-
-### Scheduled/Cron Functions
-
-Functions that run on a schedule
-
-## Anti-Patterns
-
-### ❌ Not Using Steps
-
-### ❌ Huge Event Payloads
-
-### ❌ Ignoring Concurrency
-
-## Related Skills
-
-Works well with: `nextjs-app-router`, `vercel-deployment`, `supabase-backend`, `email-systems`, `ai-agents-architect`, `stripe-integration`
+- [ ] Confirm whether the repo already has Inngest runtime code.
+- [ ] Load the most specific official Inngest skill for the task.
+- [ ] Keep product runtime adoption out of agent-tooling-only changes.
+- [ ] Use the Inngest dev-server MCP only when the dev server is running and
+      the configured port matches the active server.

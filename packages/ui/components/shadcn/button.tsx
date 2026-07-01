@@ -27,7 +27,7 @@ const buttonVariants = cva(
         // press from base .press-feedback. Semantic colors from shadcn audit.
         maia: "rounded-2xl bg-foreground text-background shadow-xl font-semibold tracking-wide hover:bg-foreground/90 hover-scale-subtle",
         "maia-outline":
-          "rounded-2xl border border-border bg-background text-muted-foreground shadow-sm font-semibold tracking-wide hover:bg-accent hover:text-foreground hover:shadow-md hover-scale-subtle",
+          "rounded-2xl border border-border bg-background text-muted-foreground shadow-sm font-semibold tracking-wide hover:bg-accent hover:text-foreground [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md hover-scale-subtle",
       },
       size: {
         default: "h-9 px-4 py-2 has-[>svg]:px-3",

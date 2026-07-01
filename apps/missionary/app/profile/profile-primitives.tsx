@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { MISSIONARY_SHELL_AVATAR_VT_NAME } from "@asym/lib/view-transitions";
 import {
   Avatar,
   AvatarFallback,
@@ -9,6 +8,12 @@ import {
 } from "@asym/ui/components/shadcn/avatar";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
+import {
+  Facebook,
+  Instagram,
+  Twitter,
+  Youtube,
+} from "@asym/ui/components/shadcn/icons";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
@@ -16,7 +21,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
-import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Camera,
@@ -26,10 +30,6 @@ import {
   Smartphone,
   Monitor,
   Loader2,
-  Facebook,
-  Instagram,
-  Twitter,
-  Youtube,
   Globe,
   Check,
   ExternalLink,
@@ -227,14 +227,14 @@ export function AvatarUploadArea({
       whileTap={{ scale: 0.97 }}
       transition={springTransition}
     >
-      <SharedNamedViewTransition name={MISSIONARY_SHELL_AVATAR_VT_NAME}>
-        <Avatar className="size-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
-          <AvatarImage src={avatarUrl} />
-          <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
-            {initials || "U"}
-          </AvatarFallback>
-        </Avatar>
-      </SharedNamedViewTransition>
+      {/* No shared VT name: the persistent sidebar avatar was the only other
+          surface and can never form a legal unmount/mount pair. */}
+      <Avatar className="size-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
+        <AvatarImage src={avatarUrl} />
+        <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
+          {initials || "U"}
+        </AvatarFallback>
+      </Avatar>
 
       <motion.div
         className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
@@ -263,7 +263,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
   return (
     <motion.div
       className={cn(
-        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer",
+        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors relative overflow-hidden cursor-pointer",
         coverUrl
           ? "border-transparent"
           : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300",

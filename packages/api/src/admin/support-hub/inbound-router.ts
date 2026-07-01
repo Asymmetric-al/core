@@ -3,6 +3,7 @@ import { z } from "zod";
 import { routeInboundEmailToSupabaseSupportHub } from "./adapter/supabase";
 import { listSupportInboxes } from "./reads/registry";
 import { runWithSupportHubTenant } from "./request-context";
+import { extractEmailAddress } from "../../email/address";
 
 /**
  * Inbound email → Support Hub conversation routing.
@@ -126,12 +127,4 @@ async function resolveInboxId(
     );
     return match?.id ?? null;
   });
-}
-
-function extractEmailAddress(value: string): string | null {
-  const trimmed = value.trim().toLowerCase();
-  if (!trimmed) return null;
-  const bracketMatch = trimmed.match(/<([^>]+)>/);
-  const candidate = bracketMatch?.[1] ?? trimmed;
-  return candidate.includes("@") ? candidate : null;
 }

@@ -150,7 +150,7 @@ export function TaskTable({
                             e.stopPropagation();
                             onStatusChange(task);
                           }}
-                          className="flex-shrink-0 transition-transform active:scale-90"
+                          className="flex-shrink-0 press-feedback"
                           aria-label={
                             isCompleted
                               ? "Mark as incomplete"
