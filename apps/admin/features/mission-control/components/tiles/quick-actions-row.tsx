@@ -83,7 +83,7 @@ export function QuickActionsRow() {
             <Button
               variant="secondary"
               size="sm"
-              className="h-11 rounded-2xl border border-zinc-200/60 bg-white px-5 text-sm font-bold text-zinc-600 shadow-sm hover-lift hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 hover:shadow-lg hover:shadow-zinc-200/50"
+              className="h-11 rounded-2xl border border-zinc-200/60 bg-white px-5 text-sm font-bold text-zinc-600 shadow-sm hover-lift hover:border-zinc-300 hover:bg-zinc-50 hover:text-zinc-900 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50"
             >
               {Icon && (
                 <Icon className="mr-2.5 size-4 text-zinc-400 group-hover:text-zinc-900 transition-colors" />

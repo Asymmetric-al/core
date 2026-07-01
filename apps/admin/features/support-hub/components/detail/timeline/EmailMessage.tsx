@@ -6,9 +6,11 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import { RichTextViewer } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
-import { Paperclip, Save } from "lucide-react";
+import { Paperclip, RotateCcw, Save } from "lucide-react";
+import { useState } from "react";
 
 import { useSupportNow } from "../../../lib/now";
 import { formatRelative } from "../../../lib/time";
@@ -133,7 +135,7 @@ export function EmailMessage({ message }: EmailMessageProps) {
         <RichTextViewer value={renderableBody(message)} />
       </div>
 
-      {message.attachments.length > 0 ? (
+      {message.attachments.length > 0 || showInboundAttachmentState(message) ? (
         <footer className="flex flex-wrap items-center gap-2 border-t border-zinc-100 px-4 py-2">
           {message.attachments.map((attachment) => (
             <span
@@ -146,9 +148,111 @@ export function EmailMessage({ message }: EmailMessageProps) {
               </span>
             </span>
           ))}
+          {showInboundAttachmentState(message) ? (
+            <InboundAttachmentState message={message} />
+          ) : null}
         </footer>
       ) : null}
     </article>
+  );
+}
+
+const INBOUND_ATTACHMENT_TONES: Record<
+  "pending" | "retrying" | "failed",
+  { tone: string; label: string }
+> = {
+  pending: {
+    tone: "border-zinc-200 bg-zinc-100 text-zinc-600",
+    label: "Attachments pending",
+  },
+  retrying: {
+    tone: "border-zinc-200 bg-zinc-100 text-zinc-600",
+    label: "Attachments retrying",
+  },
+  failed: {
+    tone: "border-amber-200 bg-amber-50 text-amber-700",
+    label: "Attachments unavailable",
+  },
+};
+
+function showInboundAttachmentState(
+  message: SupportMessage,
+): message is SupportMessage & { inboundEmailId: string } {
+  return Boolean(
+    message.direction === "inbound" &&
+    message.inboundEmailId &&
+    message.inboundAttachmentStatus &&
+    message.inboundAttachmentStatus !== "none" &&
+    message.inboundAttachmentStatus !== "available",
+  );
+}
+
+/**
+ * Quiet inbound attachment state. Retrieval failures stay visible and
+ * retryable without blocking the conversation; the retry goes through the
+ * product server path, never to the email provider directly.
+ */
+function InboundAttachmentState({
+  message,
+}: {
+  message: SupportMessage & { inboundEmailId: string };
+}) {
+  const [retryState, setRetryState] = useState<
+    "idle" | "requesting" | "requested" | "error"
+  >("idle");
+  const status =
+    message.inboundAttachmentStatus as keyof typeof INBOUND_ATTACHMENT_TONES;
+  const config = INBOUND_ATTACHMENT_TONES[status];
+
+  if (!config) return null;
+
+  const requestRetry = async () => {
+    setRetryState("requesting");
+    try {
+      const response = await fetch("/api/admin/support-hub/inbound/retry", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          inboundEmailRowId: message.inboundEmailId,
+          kind: "attachments",
+        }),
+      });
+      setRetryState(response.ok ? "requested" : "error");
+    } catch {
+      setRetryState("error");
+    }
+  };
+
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Badge
+        variant="outline"
+        className={cn(
+          "h-5 rounded-md px-1.5 text-[10px] font-bold uppercase tracking-wider",
+          config.tone,
+        )}
+      >
+        <Paperclip className="size-3" />
+        {retryState === "requested" ? "Attachments retrying" : config.label}
+      </Badge>
+      {status === "failed" && retryState !== "requested" ? (
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          className="h-5 gap-1 px-1.5 text-[10px] font-semibold uppercase tracking-wider text-zinc-500 hover:text-zinc-900"
+          onClick={requestRetry}
+          disabled={retryState === "requesting"}
+        >
+          <RotateCcw className="size-3" />
+          {retryState === "requesting"
+            ? "Retrying…"
+            : retryState === "error"
+              ? "Retry failed — try again"
+              : "Retry"}
+        </Button>
+      ) : null}
+    </span>
   );
 }
 

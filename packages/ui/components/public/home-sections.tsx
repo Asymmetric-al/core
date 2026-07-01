@@ -398,7 +398,7 @@ export function HomeFeatured() {
               role="listitem"
             >
               <Link href="/workers" className="block">
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
                   <Image
                     src={item.img}
                     alt={`${item.title} project - ${item.loc}`}

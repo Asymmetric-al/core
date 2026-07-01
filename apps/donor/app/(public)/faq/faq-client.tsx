@@ -156,7 +156,7 @@ const AccordionItem = ({
     <motion.div
       initial={false}
       className={cn(
-        "border rounded-2xl overflow-hidden transition-all duration-300",
+        "border rounded-2xl overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
         isOpen
           ? "border-blue-200 bg-blue-50/30 shadow-sm"
           : "border-zinc-200 bg-white hover:border-zinc-300",
@@ -275,7 +275,7 @@ export function FAQPageClient() {
 
             <div className="relative max-w-lg mx-auto group">
               <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100 transition-all duration-300">
+              <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100">
                 <Search className="ml-4 size-5 text-zinc-400" />
                 <Input
                   value={searchQuery}

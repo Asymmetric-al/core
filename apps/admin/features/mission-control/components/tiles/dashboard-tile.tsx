@@ -25,7 +25,7 @@ export function DashboardTile({
     <Link
       href={href}
       className={cn(
-        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 hover:shadow-xl hover:shadow-zinc-200/40",
+        "group relative flex flex-col justify-between overflow-hidden rounded-3xl border border-zinc-200 bg-white p-6 transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/40",
         className,
       )}
     >

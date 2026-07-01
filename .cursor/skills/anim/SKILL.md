@@ -352,11 +352,12 @@ When updating one half, update the other so consumers stay in lockstep.
 
 ### CSS utilities (composable, defined in the same file)
 
-| Utility               | What it does                                | Touch-safe?                                       | Pair with                           |
-| --------------------- | ------------------------------------------- | ------------------------------------------------- | ----------------------------------- |
-| `.press-feedback`     | `:active` scale to `var(--scale-press)`     | Yes (`:active` fires on tap)                      | Default on every `<Button>` already |
-| `.hover-lift`         | `:hover` `translateY(-2px)`                 | Yes (`@media (hover: hover) and (pointer: fine)`) | Cards, tiles                        |
-| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))` | Yes (`@media (hover: hover) and (pointer: fine)`) | Buttons, badges, marketing CTAs     |
+| Utility               | What it does                                                                  | Touch-safe?                                       | Pair with                           |
+| --------------------- | ----------------------------------------------------------------------------- | ------------------------------------------------- | ----------------------------------- |
+| `.press-feedback`     | `:active` scale to `var(--scale-press)`                                       | Yes (`:active` fires on tap)                      | Default on every `<Button>` already |
+| `.hover-lift`         | `:hover` `translateY(-2px)`                                                   | Yes (`@media (hover: hover) and (pointer: fine)`) | Cards, tiles                        |
+| `.hover-scale-subtle` | `:hover` `scale(var(--scale-hover-subtle))`                                   | Yes (`@media (hover: hover) and (pointer: fine)`) | Buttons, badges, marketing CTAs     |
+| `.spinner-essential`  | infinite spin exempt from the reduced-motion kill (essential status feedback) | Yes                                               | `Loader2` loading indicators only   |
 
 The three utilities **share** one `transition-property` declaration so you can stack them on the same element without one overriding another's transition list.
 
@@ -378,7 +379,7 @@ Re-exports `motion`, `AnimatePresence`, `LayoutGroup`, `useReducedMotion`, plus 
 
 ## Repo motion standard (operative rules)
 
-These rules are enforced informally by code review. **Runtime contract:** `packages/ui/styles/globals.css` and `packages/lib/motion-presets.ts` (update both together). **Written contract (this file +** `docs/ai/rules/frontend.md` **Motion rules):** how to apply them; keep all three in sync when policy changes.
+These rules are enforced by `tooling/eslint-config/base.mjs` (motion/react import restriction) and `tests/unit/motion-contract.test.ts` (banned class patterns), plus code review. **Runtime contract:** `packages/ui/styles/globals.css` and `packages/lib/motion-presets.ts` (update both together). **Written contract (this file +** `docs/ai/rules/frontend.md` **Motion rules):** how to apply them; keep all three in sync when policy changes.
 
 ### When NOT to animate (in this repo)
 
@@ -406,7 +407,10 @@ These rules are enforced informally by code review. **Runtime contract:** `packa
 ### Route transitions
 
 - Owned by `RouteMainViewTransitionBoundary`, applied at the **app shell** (e.g. donor `layout.tsx`, `apps/missionary/components/app-shell.tsx`, `apps/admin/app/mc-shell.tsx` — not necessarily the root `layout.tsx` in every app).
-- When a page header / shell uses `motion.div` and is also inside `RouteMainViewTransitionBoundary`, suppress the per-page entrance via `useWithinViewTransitionRouteLayer()` (the `PageShell` pattern is the template).
+- The boundary's `<ViewTransition>` is **keyed by pathname**: enter/exit can only fire on an unmount/mount pair, and a persistent layout boundary never remounts on its own. Consequence when the flag is ON (`NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED=true`): the route-content subtree remounts per navigation (template.tsx semantics — client state below the shell resets, route content starts scrolled to top). With the flag OFF nothing remounts and nothing animates.
+- Page bodies inside the boundary get **no unconditional entrance**: gate CSS `animate-in` classes and `motion` `initial` props with `useWithinViewTransitionRouteLayer()` (`!withinRouteVt && "animate-in fade-in duration-300"` / `initial={withinRouteVt ? false : {...}}` — the `PageShell` pattern is the template).
+- Lists driven by `AnimatePresence mode="popLayout"` (e.g. `apps/admin/app/feed/org-updates/page-client.tsx`) gate the **first mount only** via `<AnimatePresence initial={!withinRouteVt}>` — a per-item `initial` ternary would also kill the add/remove animation the list needs.
+- The VT CSS in `globals.css` must use the **class selector form** `::view-transition-old(.asym-vt-route-exit)` (leading dot). React applies `enter`/`exit`/`share` prop values as `view-transition-class`; an undotted ident targets a view-transition _name_ and silently matches nothing (guarded by `tests/unit/motion-contract.test.ts`).
 - Do not add `motion.div layout` on the swapping region.
 
 ### CSS transitions vs `motion/react` tweens vs springs

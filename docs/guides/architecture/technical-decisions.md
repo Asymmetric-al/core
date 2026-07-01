@@ -99,8 +99,8 @@ const IconComponent = getIcon(item.icon);
 
 ### Files Modified
 
-- `apps/admin/features/mission-control/components/app-shell/mobile-sidebar.tsx`
-- `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
+- `apps/admin/features/mission-control/components/app-shell/mobile-sidebar.tsx` (since removed — the admin shell now lives in `apps/admin/app/mc-shell.tsx`)
+- `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx` (since removed — see `apps/admin/app/mc-shell.tsx`)
 - `apps/admin/features/mission-control/components/tiles/tile-card.tsx`
 
 ### Date

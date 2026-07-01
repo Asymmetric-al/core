@@ -1,10 +1,9 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Tooltip,
   TooltipContent,
-  TooltipProvider,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
 import { cn } from "@asym/ui/lib/utils";
@@ -165,81 +164,79 @@ export function StudioNavRail({ className }: { className?: string }) {
       data-collapsed={collapsed ? "true" : "false"}
       data-hydrated={hydrated ? "true" : "false"}
     >
-      <TooltipProvider delayDuration={200}>
-        <div className="flex items-center justify-between gap-1 border-border border-b p-2">
-          {!collapsed ? (
-            <span className="px-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wide">
-              Studio
-            </span>
-          ) : (
-            <span className="sr-only">Web Studio navigation</span>
-          )}
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="size-8 shrink-0"
-                onClick={() => void persistCollapsed(!collapsed)}
-                aria-pressed={collapsed}
-                aria-label={
-                  collapsed
-                    ? "Expand studio navigation"
-                    : "Collapse studio navigation"
-                }
-              >
-                {collapsed ? (
-                  <PanelLeft className="size-4" />
-                ) : (
-                  <PanelLeftClose className="size-4" />
-                )}
-              </Button>
-            </TooltipTrigger>
-            <TooltipContent side="right">
-              {collapsed ? "Expand navigation" : "Collapse navigation"}
-            </TooltipContent>
-          </Tooltip>
-        </div>
-        <nav className="flex flex-col gap-1 p-2">
-          <NavRailLink
-            active={pathname.startsWith("/web-studio/templates")}
-            collapsed={collapsed}
-            href="/web-studio/templates"
-            icon={Sparkles}
-            title="Templates"
-          />
-          <NavRailLink
-            active={pathname.startsWith("/web-studio/missionaries")}
-            collapsed={collapsed}
-            href="/web-studio/missionaries"
-            icon={Users}
-            title="Missionaries"
-          />
-          {enabledCollections.map((collection) => {
-            const isActive =
-              pathname === collection.listPath ||
-              pathname.startsWith(`${collection.listPath}/`);
+      <div className="flex items-center justify-between gap-1 border-border border-b p-2">
+        {!collapsed ? (
+          <span className="px-2 font-semibold text-[10px] text-muted-foreground uppercase tracking-wide">
+            Studio
+          </span>
+        ) : (
+          <span className="sr-only">Web Studio navigation</span>
+        )}
+        <Tooltip>
+          <TooltipTrigger>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0"
+              onClick={() => void persistCollapsed(!collapsed)}
+              aria-pressed={collapsed}
+              aria-label={
+                collapsed
+                  ? "Expand studio navigation"
+                  : "Collapse studio navigation"
+              }
+            >
+              {collapsed ? (
+                <PanelLeft className="size-4" />
+              ) : (
+                <PanelLeftClose className="size-4" />
+              )}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent side="right">
+            {collapsed ? "Expand navigation" : "Collapse navigation"}
+          </TooltipContent>
+        </Tooltip>
+      </div>
+      <nav className="flex flex-col gap-1 p-2">
+        <NavRailLink
+          active={pathname.startsWith("/web-studio/templates")}
+          collapsed={collapsed}
+          href="/web-studio/templates"
+          icon={Sparkles}
+          title="Templates"
+        />
+        <NavRailLink
+          active={pathname.startsWith("/web-studio/missionaries")}
+          collapsed={collapsed}
+          href="/web-studio/missionaries"
+          icon={Users}
+          title="Missionaries"
+        />
+        {enabledCollections.map((collection) => {
+          const isActive =
+            pathname === collection.listPath ||
+            pathname.startsWith(`${collection.listPath}/`);
 
-            return (
-              <NavRailLink
-                key={collection.slug}
-                active={isActive}
-                collapsed={collapsed}
-                href={collection.listPath}
-                icon={collection.icon}
-                title={collection.titlePlural}
-              />
-            );
-          })}
-          <NavRailLink
-            collapsed={collapsed}
-            href="/"
-            icon={LayoutDashboard}
-            title="Dashboard"
-          />
-        </nav>
-      </TooltipProvider>
+          return (
+            <NavRailLink
+              key={collection.slug}
+              active={isActive}
+              collapsed={collapsed}
+              href={collection.listPath}
+              icon={collection.icon}
+              title={collection.titlePlural}
+            />
+          );
+        })}
+        <NavRailLink
+          collapsed={collapsed}
+          href="/"
+          icon={LayoutDashboard}
+          title="Dashboard"
+        />
+      </nav>
       {!collapsed && recentDocs.length > 0 ? (
         <div className="border-border border-t px-2 py-3">
           <div className="mb-2 flex items-center gap-2 px-2 text-muted-foreground text-[10px] font-semibold uppercase tracking-wide">
@@ -248,17 +245,17 @@ export function StudioNavRail({ className }: { className?: string }) {
           </div>
           <div className="flex flex-col gap-1">
             {recentDocs.map((doc) => (
-              <Button
+              <Link
                 key={`${doc.id}-${doc.href}`}
-                variant="ghost"
-                size="sm"
-                className="justify-start overflow-hidden text-left text-xs"
-                asChild
+                href={doc.href}
+                title={doc.title}
+                className={cn(
+                  buttonVariants({ variant: "ghost", size: "sm" }),
+                  "justify-start overflow-hidden text-left text-xs",
+                )}
               >
-                <Link href={doc.href} title={doc.title}>
-                  <span className="truncate">{doc.title}</span>
-                </Link>
-              </Button>
+                <span className="truncate">{doc.title}</span>
+              </Link>
             ))}
           </div>
         </div>
@@ -274,31 +271,34 @@ function NavRailLink({
   icon: Icon,
   title,
 }: NavRailLinkProps) {
-  const button = (
-    <Button
-      variant={active ? "secondary" : "ghost"}
-      size="sm"
-      className={cn(
-        "justify-start gap-2 font-semibold text-xs",
-        collapsed && "justify-center px-0",
-      )}
-      asChild
-    >
-      <Link href={href} title={title}>
-        <Icon className="size-4 shrink-0" />
-        {!collapsed ? <span>{title}</span> : null}
-      </Link>
-    </Button>
+  const linkClassName = cn(
+    buttonVariants({
+      variant: active ? "secondary" : "ghost",
+      size: "sm",
+    }),
+    "justify-start gap-2 font-semibold text-xs",
+    collapsed && "justify-center px-0",
+  );
+
+  const link = (
+    <Link href={href} title={title} className={linkClassName}>
+      <Icon className="size-4 shrink-0" />
+      {!collapsed ? <span>{title}</span> : null}
+    </Link>
   );
 
   if (!collapsed) {
-    return button;
+    return link;
   }
 
   return (
-    <Tooltip>
-      <TooltipTrigger asChild>{button}</TooltipTrigger>
-      <TooltipContent side="right">{title}</TooltipContent>
-    </Tooltip>
+    <Link
+      href={href}
+      title={title}
+      className={linkClassName}
+      aria-label={title}
+    >
+      <Icon className="size-4 shrink-0" />
+    </Link>
   );
 }
