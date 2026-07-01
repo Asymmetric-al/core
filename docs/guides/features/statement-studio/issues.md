@@ -107,6 +107,12 @@ This breakdown is grounded in:
 
 ## Proposed Issue Overview
 
+**Note:** The table below is an **archival planning view** with `SS-##` draft
+IDs and user-story columns for PRD cross-reference. **Implementation tracking
+uses the Published GitHub Issues table above** (`#312`–`#364`). Do not treat
+both tables as independent sources of truth—when they diverge, GitHub issue
+numbers win.
+
 | Draft ID | Title                                                                       | Type | Blocked By                                      | User Stories                             |
 | -------- | --------------------------------------------------------------------------- | ---- | ----------------------------------------------- | ---------------------------------------- |
 | SS-00    | Phase 0 Statement Studio audit and first-slice confirmation                 | HITL | None                                            | 44                                       |

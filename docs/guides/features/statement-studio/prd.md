@@ -37,7 +37,11 @@ Use it for:
    schema, routes, UI, render code, or removing legacy PDF Studio behavior.
 2. Use OpenSpec product and boundary truth first: Mission Control owns staff
    operational depth, donor and missionary dashboards expose role-scoped
-   slices, and tenant safety is non-negotiable.
+   slices, and tenant safety is non-negotiable. **Phase 0 (#312) deliverable:**
+   add `openspec/changes/add-statement-studio/` (proposal, design, tasks, spec
+   deltas for boundaries and data access) and link it from this doc set—this
+   PR documents intent; OpenSpec change lands in the implementation slice, not
+   in the docs-only planning PR.
 3. Load the repo Supabase skill before any database, Auth, Storage, Realtime,
    Edge Function, RLS, migration, or Supabase CLI work.
 4. Load the Supabase Postgres best-practices skill before schema, RLS, index,

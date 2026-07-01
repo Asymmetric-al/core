@@ -15,7 +15,8 @@ Use this doc when implementing render jobs, artifact records, downloads, Storage
 3. Render through the approved Statement Studio renderer.
 4. Store generated PDF in private Supabase Storage.
 5. Store artifact metadata in Postgres (existing native path:
-   `pdf_template_renders` + `pdf_template_artifacts`; see `pdf-studio.md`).
+   `pdf_template_renders` + `pdf_template_artifacts`; see
+   `docs/guides/features/pdf-studio.md`).
 6. Expose downloads through server-checked access or short-lived signed URLs.
 7. Apply retention and purge policy.
 8. Keep audit/tombstone metadata.

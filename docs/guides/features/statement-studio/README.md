@@ -4,6 +4,12 @@ Statement Studio is the planned rebuild of PDF Studio as a fully usable staff-fa
 
 It must not be built on Unlayer, and it must not be an email editor pretending to make PDFs. New work should use the custom Statement Studio product model, with pdfx and React PDF used as deeply as makes sense.
 
+**Render stack:** Target production path is pdfx + React PDF on an Asym-owned
+template schema. Phase 0 (#312) reconciles this with the in-flight native PDF
+Studio + DocRaptor stack (`docs/guides/features/pdf-studio.md`) and records a
+single cutover decision—no dual production render stacks without an explicit
+migration plan.
+
 ## Triggers
 
 Use this documentation when planning or implementing:

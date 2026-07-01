@@ -45,6 +45,19 @@ Use this doc before marking Statement Studio implementation complete, and whenev
 | UX entry points       | Buttons, settings screens, download links, dashboards     |
 | Tests/fixtures        | Normal, empty, large, edge, tenant-safety                 |
 
+## Portal artifact access (Phase 0 prerequisite)
+
+Donor and missionary downloads must flow through **portal BFF routes** with
+recipient-scoped authorization—not direct `pdf_template_artifacts` reads.
+
+**Current gap (audit in #312):** `pdf_template_artifacts` RLS today is staff
+membership (`authz.has_staff_membership`). Artifacts lack first-class
+`job_key`, `scope_kind`, and recipient/subject columns required for portal
+row-level checks. **SS-05+ must not expose artifacts to authenticated portal
+users until Phase 0 defines recipient predicates, columns or metadata contract,
+and route-level checks.** See `data-model.md` canonical persistence and
+`rendering-artifacts-retention.md` download rules.
+
 ## Initial Surface Notes
 
 - Donor Dashboard: receipts, annual statements, pledge summaries.

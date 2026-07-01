@@ -16,9 +16,28 @@ Use this doc when planning or changing Statement Studio tables, migrations, RLS,
 6. Add explicit grants and RLS together in migrations.
 7. Run focused SQL/type/route verification.
 
+## Canonical Persistence (Phase 0 decision)
+
+**Phase 0 (#312) must name one canonical Postgres model before SS-01+ ships
+schema.** The repo already has native PDF Studio tables from
+`supabase/migrations/20260515140948_native_pdf_studio_foundation.sql`:
+
+- `pdf_templates`, `pdf_template_versions`, `pdf_template_renders`,
+  `pdf_template_artifacts` (and related native PDF Studio tables).
+
+**Default posture:** extend and rename these `pdf_*` tables rather than
+introducing parallel `document_*` tables. The `document_*` names below are
+**conceptual** labels for product language and gap analysis only. Phase 0
+output must map each concept to an existing table, a renamed column, a view,
+or an explicitly justified net-new table with a retirement plan for any
+duplicate vocabulary.
+
+**Single store module:** `packages/api` (or the Phase 0–chosen owner) exposes
+one persistence seam; feature slices must not write parallel table families.
+
 ## Core Tables
 
-Recommended model shape:
+Recommended model shape (conceptual — map to `pdf_*` in Phase 0):
 
 - `document_job_catalog`: system-owned standard document jobs.
 - `document_template_library`: system-owned starter templates and starter versions.
@@ -26,8 +45,8 @@ Recommended model shape:
 - `tenant_document_template_assignments`: tenant default mapping for job plus optional scope.
 - `pdf_templates` or future renamed tenant template table: tenant-owned template records.
 - `pdf_template_versions` or future renamed version table: immutable draft/published/archive versions.
-- `document_artifacts` (conceptual; may align with existing `pdf_template_artifacts` /
-  `pdf_template_renders` from `20260515140948_native_pdf_studio_foundation.sql`):
+- `document_artifacts` (conceptual alias for **`pdf_template_artifacts`** /
+  **`pdf_template_renders`** — do not create a second artifact table family):
   generated PDF artifact records shared safely across app surfaces.
 - `document_artifact_events`: audit history for render, download, purge, retention, rollback, and assignment changes.
 - `document_variable_catalog`: platform variable definitions.
