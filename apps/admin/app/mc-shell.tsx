@@ -40,6 +40,7 @@ import ProfileDropdown, {
   type ProfileDropdownMenuItem,
 } from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
+import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Activity,
@@ -71,7 +72,6 @@ import type { MCBootstrapState } from "@asym/lib/mission-control/bootstrap";
 import type { ReactNode } from "react";
 
 import { ClientOnly } from "@/features/mission-control/components/client-only";
-import { ThemeProvider } from "@/lib/theme-provider";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation data                                                    */

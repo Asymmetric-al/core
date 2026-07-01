@@ -285,7 +285,7 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
               return (
                 <div
                   key={tile.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md group"
+                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 border border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
@@ -758,7 +758,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
           {members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 transition-all hover:bg-zinc-50/50"
+              className="flex items-center justify-between p-4 transition-colors hover:bg-zinc-50/50"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="size-10 border-2 border-white shadow-sm">

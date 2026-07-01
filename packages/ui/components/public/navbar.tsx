@@ -15,7 +15,7 @@ function NavbarLogo({ variant = "dark" }: { variant?: "dark" | "light" }) {
   return (
     <Link href="/" className="flex items-center gap-2 group relative z-50">
       <div
-        className={`h-8 w-8 ${isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900"} rounded-lg flex items-center justify-center font-bold text-sm shadow-sm group-hover:scale-105 transition-transform`}
+        className={`h-8 w-8 ${isDark ? "bg-slate-900 text-white" : "bg-white text-slate-900"} rounded-lg flex items-center justify-center font-bold text-sm shadow-sm [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105 transition-transform`}
       >
         {siteConfig.shortName}
       </div>

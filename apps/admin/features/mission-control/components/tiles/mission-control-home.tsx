@@ -208,7 +208,7 @@ function classifyTile(tile: Tile) {
 function TileSummaryCard({ tile }: { tile: Tile }) {
   return (
     <Link href={resolveMissionControlHref(tile.route)} className="group block">
-      <Card className="h-full border-border/70 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover-lift hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-200/50">
+      <Card className="h-full border-border/70 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50">
         <CardContent className="flex h-full flex-col gap-4 p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-muted/40 text-foreground transition-[background-color,color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">

@@ -2,6 +2,7 @@
 
 import { TimeAgo, useLastSynced } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import {
   BrandAvatar,
   BrandLogo,
@@ -1244,6 +1245,8 @@ function OrgUpdatesTabsSection({
   onDelete: (postId: string) => void;
   onTogglePin: (postId: string) => void;
 }) {
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <Tabs
       defaultValue="published"
@@ -1300,7 +1303,7 @@ function OrgUpdatesTabsSection({
       <TabsContent value="published" className="mt-0">
         <LayoutGroup>
           <motion.div layout className="space-y-6 sm:space-y-8">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={!withinRouteVt}>
               {isLoading ? (
                 <LoadingState />
               ) : posts.length > 0 ? (
@@ -1329,7 +1332,7 @@ function OrgUpdatesTabsSection({
       <TabsContent value="draft" className="mt-0">
         <LayoutGroup>
           <motion.div layout className="space-y-4 sm:space-y-6">
-            <AnimatePresence mode="popLayout">
+            <AnimatePresence mode="popLayout" initial={!withinRouteVt}>
               {drafts.length > 0 ? (
                 drafts.map((draft, index) => (
                   <DraftCard

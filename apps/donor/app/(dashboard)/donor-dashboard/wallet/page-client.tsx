@@ -9,6 +9,7 @@ import {
   STAGGER_MEDIUM,
 } from "@asym/lib/motion-presets";
 import { formatCurrency } from "@asym/lib/utils";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -710,7 +711,7 @@ function MethodCard({
         delay: index * STAGGER_MEDIUM,
         ease: EASE_OUT_SOFT,
       }}
-      className="group bg-white rounded-2xl border border-zinc-200 p-2 shadow-sm hover:shadow-xl transition-shadow duration-300 ease-out overflow-hidden text-left"
+      className="group bg-white rounded-2xl border border-zinc-200 p-2 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl transition-shadow duration-300 ease-out overflow-hidden text-left"
     >
       <div className="flex flex-col lg:flex-row gap-8 p-6 lg:p-8">
         <div className="w-full lg:w-[340px] shrink-0 self-start">
@@ -974,7 +975,7 @@ function AddMethodDialog({
           </Button>
           <Button
             onClick={onSave}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-semibold uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-12 px-8 font-semibold uppercase tracking-widest text-[10px] rounded-xl"
           >
             {editingMethod ? "Update Method" : "Save Payment Method"}
           </Button>
@@ -1107,7 +1108,7 @@ function SwapPledgeDialog({
           <Button
             onClick={onConfirmMove}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-semibold uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-semibold uppercase tracking-widest text-[10px] rounded-xl"
           >
             Confirm Move
           </Button>
@@ -1237,7 +1238,7 @@ function BulkMoveDialog({
           <Button
             onClick={onConfirmMoveAndDelete}
             disabled={!targetMethodId}
-            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-semibold uppercase tracking-widest text-[10px] rounded-xl transition-transform active:scale-[0.98]"
+            className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-lg h-10 px-6 font-semibold uppercase tracking-widest text-[10px] rounded-xl"
           >
             Transfer & Delete
           </Button>
@@ -1252,6 +1253,8 @@ function BulkMoveDialog({
 export default function DonorWalletPage() {
   const [methods, setMethods] = useState<PaymentMethod[]>(MOCK_METHODS);
   const [pledges, setPledges] = useState<Pledge[]>(MOCK_PLEDGES);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const [walletUiState, setWalletUiState] = useState(() => ({
     activeTab: "card" as WalletTab,
     editingMethod: null as PaymentMethod | null,
@@ -1434,7 +1437,13 @@ export default function DonorWalletPage() {
   };
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-300 pb-24">
+    <div
+      className={cn(
+        "max-w-5xl mx-auto space-y-10 pb-24",
+        !withinRouteVt &&
+          "animate-in fade-in slide-in-from-bottom-4 duration-300",
+      )}
+    >
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 px-1 text-left">
         <div>
           <h1 className="text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tight uppercase">
@@ -1446,7 +1455,7 @@ export default function DonorWalletPage() {
         </div>
         <Button
           onClick={openAddModal}
-          className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-xl hover:shadow-2xl hover:-translate-y-0.5 transition-[background-color,box-shadow,transform] duration-200 h-12 px-6 font-semibold uppercase tracking-widest text-[10px] rounded-lg"
+          className="bg-zinc-900 hover:bg-zinc-800 text-white shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 transition-[background-color,box-shadow,transform] duration-200 h-12 px-6 font-semibold uppercase tracking-widest text-[10px] rounded-lg"
         >
           <Plus className="mr-2 size-5" /> Add Payment Method
         </Button>

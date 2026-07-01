@@ -173,6 +173,7 @@
   "devDependencies": {
     "@asym/eslint-config": "workspace:*",
     "@axe-core/playwright": "^4.10.1",
+    "@inngest/test": "1.0.0",
     "@lhci/cli": "^0.15.1",
     "@playwright/test": "^1.49.0",
     "@tailwindcss/postcss": "^4",

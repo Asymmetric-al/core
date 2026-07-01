@@ -61,6 +61,11 @@ const statusConfig: Record<
     className:
       "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-400 dark:border-amber-800",
   },
+  processing: {
+    icon: Clock,
+    className:
+      "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-400 dark:border-blue-800",
+  },
   failed: {
     icon: XCircle,
     className:
@@ -98,6 +103,13 @@ const receiptStatusConfig: Record<
       "bg-zinc-50 text-zinc-500 border-zinc-200 dark:bg-zinc-950/50 dark:text-zinc-400 dark:border-zinc-800",
   },
 };
+
+function paymentStatusLabel(status: ContributionStatus): string {
+  if (status === "processing") {
+    return "Processing";
+  }
+  return SHARED_PAYMENT_STATUS_LABELS[status];
+}
 
 const paymentMethodIcons: Record<PaymentMethod, typeof CreditCard> = {
   "Credit Card": CreditCard,
@@ -230,7 +242,7 @@ export function getContributionColumns({
             )}
           >
             <Icon className="size-3" />
-            {SHARED_PAYMENT_STATUS_LABELS[status]}
+            {paymentStatusLabel(status)}
           </Badge>
         );
       },

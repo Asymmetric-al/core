@@ -212,7 +212,7 @@ export function TaskRow({
         "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
           ? "bg-zinc-50/50 border-zinc-100"
-          : "bg-white border-zinc-200 hover-lift hover:border-zinc-300 hover:shadow-md",
+          : "bg-white border-zinc-200 hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md",
       )}
     >
       <div className="mt-1 relative">

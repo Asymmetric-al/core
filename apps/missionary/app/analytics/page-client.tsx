@@ -1,5 +1,7 @@
 "use client";
 
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   ChartCard,
   KpiTile,
@@ -15,6 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Users,
   DollarSign,
@@ -25,8 +28,6 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import * as React from "react";
-
-import { PageHeader } from "@/components/page-header";
 
 type LooseChartProps = Record<string, unknown> & { children?: React.ReactNode };
 type RechartsComponentName =
@@ -101,8 +102,16 @@ const yearOverYear = [
 ];
 
 export default function AnalyticsPage() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div
+      className={cn(
+        "space-y-6",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       <PageHeader
         title="Analytics"
         description="Detailed insights into your support network and trends."

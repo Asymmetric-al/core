@@ -8,7 +8,7 @@
  * so CSS-only and `motion/react` consumers share one contract.
  */
 
-import type { Transition } from "motion/react";
+import type { Transition } from "./motion";
 
 /* ------------------------------------------------------------------ */
 /*  Easing — mirrors --ease-*-soft / --ease-drawer in globals.css     */

@@ -151,7 +151,7 @@ function DashboardHomeContent({
           Download Report
         </Button>
       }
-      contentClassName="section-gap animate-in fade-in duration-500"
+      contentClassName="section-gap"
     >
       {belowHeaderSlot}
       <MetricTiles missionaryId={missionaryId} />
@@ -170,7 +170,7 @@ function DashboardHomeContent({
             <Button
               variant="ghost"
               size="sm"
-              className="h-6 text-[9px] font-semibold text-zinc-500 hover:text-zinc-900 px-2 rounded-md border border-zinc-100 hover:border-zinc-200 transition-all w-full sm:w-auto"
+              className="h-6 text-[9px] font-semibold text-zinc-500 hover:text-zinc-900 px-2 rounded-md border border-zinc-100 hover:border-zinc-200 transition-colors w-full sm:w-auto"
               onClick={() => setActiveTab("analytics")}
             >
               Analytics
@@ -218,9 +218,12 @@ function DashboardHomeContent({
                   </span>
                 </div>
                 <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                  {/* Animate transform: scaleX (GPU, no layout) instead of width */}
                   <div
-                    className="h-full bg-white rounded-full transition-all duration-1000 ease-out"
-                    style={{ width: `${percentFunded}%` }}
+                    className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                    style={{
+                      transform: `scaleX(${Math.min(percentFunded, 100) / 100})`,
+                    }}
                   />
                 </div>
               </div>
@@ -277,7 +280,7 @@ function DashboardHomeContent({
               {latestUpdates.slice(0, 2).map((post) => (
                 <div
                   key={post.id}
-                  className="group flex gap-2 p-1.5 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-all cursor-pointer"
+                  className="group flex gap-2 p-1.5 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-colors cursor-pointer"
                 >
                   <Avatar className="size-6 shrink-0 border border-white shadow-sm">
                     <AvatarImage
@@ -298,7 +301,7 @@ function DashboardHomeContent({
               {setActiveTab && (
                 <Button
                   variant="outline"
-                  className="sm:col-span-2 w-full text-[9px] font-semibold h-7 border-dashed border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg transition-all"
+                  className="sm:col-span-2 w-full text-[9px] font-semibold h-7 border-dashed border-zinc-200 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 rounded-lg transition-colors"
                   onClick={() => setActiveTab("feed")}
                 >
                   Compose New Update
@@ -345,7 +348,7 @@ function DashboardHomeContent({
                   {pendingTasks.slice(0, 4).map((task) => (
                     <div
                       key={task.id}
-                      className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-all flex items-start gap-2 cursor-pointer touch-target"
+                      className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-colors flex items-start gap-2 cursor-pointer touch-target"
                     >
                       <Circle className="size-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">

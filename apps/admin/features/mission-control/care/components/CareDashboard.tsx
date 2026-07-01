@@ -102,7 +102,8 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
   ];
 
   return (
-    <div className="space-y-5 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    // Entrance is owned by the page wrapper (care/page-client.tsx motion.div).
+    <div className="space-y-5">
       {/* Stats Row */}
       <div className="grid-responsive-4">
         {stats.map((stat, i) => (
@@ -128,7 +129,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                 </div>
                 <div
                   className={cn(
-                    "size-9 rounded-xl flex items-center justify-center transition-transform group-hover:scale-105",
+                    "size-9 rounded-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105",
                     stat.bg,
                   )}
                 >
@@ -260,7 +261,7 @@ export function CareDashboard({ personnel, activities }: CareDashboardProps) {
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-all text-muted-foreground hover:text-primary"
+                        className="size-8 rounded-lg opacity-0 group-hover:opacity-100 transition-[opacity,color] text-muted-foreground hover:text-primary"
                         aria-label={`Open ${p.name} care profile`}
                       >
                         <ArrowUpRight className="size-4" />
