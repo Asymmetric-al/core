@@ -21,6 +21,7 @@ import {
 } from "../dropdown-menu";
 import {
   areChromeTablePropsInterchangeable,
+  areDataTableChromeActionsEqual,
   EMPTY_TABLE_SELECTION_SOURCE,
   getTableSliceAtoms,
 } from "./data-table-chrome-memo";
@@ -192,7 +193,7 @@ const MemoizedDataTableFloatingBar = React.memo(
   DataTableFloatingBarImpl,
   (previous, next) =>
     areChromeTablePropsInterchangeable(previous.table, next.table) &&
-    previous.actions === next.actions &&
+    areDataTableChromeActionsEqual(previous.actions, next.actions) &&
     previous.className === next.className,
 );
 

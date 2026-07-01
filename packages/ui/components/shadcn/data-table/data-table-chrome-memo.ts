@@ -10,6 +10,7 @@
  */
 
 import type { RowData, Table, TableSelectionSource } from "./tanstack";
+import type * as React from "react";
 
 /**
  * Inert selection source: the value is always `undefined` and the
@@ -38,6 +39,7 @@ export function getTableSliceAtoms<TData extends RowData>(
 }
 
 interface ChromeDerivedTableInputs {
+  columns: readonly unknown[] | undefined;
   data: readonly unknown[] | undefined;
   pageCount: number | undefined;
   rowCount: number | undefined;
@@ -48,10 +50,48 @@ function readChromeDerivedTableInputs<TData extends RowData>(
 ): ChromeDerivedTableInputs {
   const options = (table as Partial<Table<TData>>).options;
   return {
+    columns: options?.columns,
     data: options?.data,
     pageCount: options?.pageCount,
     rowCount: options?.rowCount,
   };
+}
+
+export type DataTableChromeAction = {
+  label: string;
+  icon?: React.ComponentType<{ className?: string }>;
+  onClick: (rows: RowData[]) => void;
+  variant?: "default" | "destructive";
+};
+
+/** Shallow value compare so memoized chrome can bail out when callers pass fresh action arrays. */
+export function areDataTableChromeActionsEqual<
+  TAction extends DataTableChromeAction,
+>(
+  previous: readonly TAction[] | undefined,
+  next: readonly TAction[] | undefined,
+): boolean {
+  if (previous === next) {
+    return true;
+  }
+  if (!previous || !next) {
+    return !previous && !next;
+  }
+  if (previous.length !== next.length) {
+    return false;
+  }
+  return previous.every((action, index) => {
+    const other = next[index];
+    if (!other) {
+      return false;
+    }
+    return (
+      action.label === other.label &&
+      action.variant === other.variant &&
+      action.icon === other.icon &&
+      action.onClick === other.onClick
+    );
+  });
 }
 
 /**
@@ -67,8 +107,8 @@ function readChromeDerivedTableInputs<TData extends RowData>(
  *    created once in `constructTable` and copied by reference into every
  *    wrapper), and
  * 2. the non-state option inputs feeding the chrome's derived reads
- *    (filtered/selected row counts, page count) are unchanged: `data`,
- *    `pageCount`, and `rowCount`. State-slice changes are covered by each
+ *    (filtered/selected row counts, page count) are unchanged: `columns`,
+ *    `data`, `pageCount`, and `rowCount`. State-slice changes are covered by each
  *    chrome component's own `useSelector` subscriptions, not by re-rendering
  *    through props.
  *
@@ -95,6 +135,7 @@ export function areChromeTablePropsInterchangeable<TData extends RowData>(
   const previousInputs = readChromeDerivedTableInputs(previous);
   const nextInputs = readChromeDerivedTableInputs(next);
   return (
+    previousInputs.columns === nextInputs.columns &&
     previousInputs.data === nextInputs.data &&
     previousInputs.pageCount === nextInputs.pageCount &&
     previousInputs.rowCount === nextInputs.rowCount

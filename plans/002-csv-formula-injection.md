@@ -149,8 +149,8 @@ Create `tests/unit/packages/ui/data-table-csv-export.test.ts`. Model it
 structurally on an existing pure-function unit test in that directory, e.g.
 `tests/unit/packages/ui/components/shadcn/data-table-url-filter-parse.test.ts`
 (plain `describe`/`it`/`expect`, no jsdom needed). Import `exportToCSV` from
-`../../../packages/ui/components/shadcn/data-table/utils/export` (adjust the
-relative depth to match the file's location under `tests/unit/packages/ui/`).
+`../../../../packages/ui/components/shadcn/data-table/utils/export` from
+`tests/unit/packages/ui/data-table-csv-export.test.ts`.
 
 Build a minimal `Table`-shaped double sufficient for `exportToCSV` — it calls
 `table.getAllLeafColumns()`, and `table.getFilteredRowModel().rows` /

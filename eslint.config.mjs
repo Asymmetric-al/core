@@ -155,7 +155,16 @@ const eslintConfig = defineConfig([
       "packages/ui/components/shadcn/data-table/types.ts",
     ],
     rules: {
-      "no-restricted-imports": "off",
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...crossAppImportRestrictions,
+            ...rawTwentyClientImportRestrictions,
+            ...motionImportRestrictions,
+          ],
+        },
+      ],
     },
   },
   {
