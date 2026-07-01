@@ -16,7 +16,7 @@ import {
   EmptyMedia,
 } from "../empty";
 
-import type { ColumnDef, RowData } from "./tanstack";
+import type { ColumnDef, Row, RowData } from "./tanstack";
 import type {
   DataTableConfig,
   DataTableControlledState,

@@ -27,7 +27,7 @@ interface DataTableRowActionsProps<TData extends RowData> {
   getAriaLabel?: (row: Row<TData>) => string;
 }
 
-function getRowActionTriggerLabel<TData>(
+function getRowActionTriggerLabel<TData extends RowData>(
   row: Row<TData>,
   getAriaLabel?: (row: Row<TData>) => string,
 ) {
