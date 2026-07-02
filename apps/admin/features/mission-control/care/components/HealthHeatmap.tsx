@@ -48,14 +48,16 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
 
           return (
             <Tooltip key={date}>
-              <TooltipTrigger asChild>
-                <div
-                  className={cn(
-                    "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400",
-                    getColor(intensity),
-                  )}
-                />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <div
+                    className={cn(
+                      "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400",
+                      getColor(intensity),
+                    )}
+                  />
+                }
+              />
               <TooltipContent side="top">
                 <p className="text-xs font-medium">{date}</p>
                 <p className="text-[10px] text-zinc-500">

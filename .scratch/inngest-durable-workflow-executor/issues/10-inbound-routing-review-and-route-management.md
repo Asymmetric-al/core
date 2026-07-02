@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#295
+
 ## What to build
 
 Add tenant-owned inbound routing review for emails that do not match a known

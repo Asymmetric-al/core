@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#298
+
 ## What to build
 
 Add Mission Control workflow run summaries and notification policy so staff can

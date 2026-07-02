@@ -12,7 +12,7 @@ import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
-import { getStripeClient } from "../stripe/client";
+import { createStripeClient } from "../stripe/client";
 
 function parseRpcObject<T extends Record<string, unknown>>(
   value: unknown,
@@ -52,7 +52,7 @@ export const POST = withOperation(
       );
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const amountInCents = Math.round(amount * 100);
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
 

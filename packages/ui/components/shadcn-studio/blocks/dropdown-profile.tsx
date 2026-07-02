@@ -19,7 +19,7 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 
 import type { LucideIcon } from "lucide-react";
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 export type ProfileDropdownMenuItem = {
   label: string;
@@ -28,7 +28,7 @@ export type ProfileDropdownMenuItem = {
 };
 
 type Props = {
-  trigger: ReactNode;
+  trigger: ReactElement;
   defaultOpen?: boolean;
   align?: "start" | "center" | "end";
   user?: {
@@ -57,7 +57,7 @@ const ProfileDropdown = ({
 
   return (
     <DropdownMenu defaultOpen={defaultOpen}>
-      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      <DropdownMenuTrigger render={trigger} />
       <DropdownMenuContent className="w-64" align={align || "end"}>
         <DropdownMenuLabel className="flex items-center gap-3 px-3 py-2 font-normal">
           <div className="relative">
@@ -93,15 +93,11 @@ const ProfileDropdown = ({
                 return (
                   <DropdownMenuItem
                     key={`${item.href}:${item.label}`}
-                    asChild
+                    render={<Link href={item.href} />}
                     className="px-3 py-1.5 text-sm cursor-pointer"
                   >
-                    <Link href={item.href}>
-                      {Icon && (
-                        <Icon className="text-muted-foreground size-4" />
-                      )}
-                      <span>{item.label}</span>
-                    </Link>
+                    {Icon && <Icon className="text-muted-foreground size-4" />}
+                    <span>{item.label}</span>
                   </DropdownMenuItem>
                 );
               })}

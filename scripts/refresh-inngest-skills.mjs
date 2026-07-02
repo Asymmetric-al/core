@@ -62,6 +62,66 @@ const licenseSources = [
   },
 ];
 
+const referenceSources = [
+  {
+    fileName: "expressions.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/references/expressions.md",
+    targetSkillName: "inngest",
+  },
+  {
+    fileName: "step-execution.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/inngest-durable-functions/references/step-execution.md",
+    targetSkillName: "inngest-durable-functions",
+  },
+  {
+    fileName: "error-handling.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/inngest-durable-functions/references/error-handling.md",
+    targetSkillName: "inngest-durable-functions",
+  },
+  {
+    fileName: "observability.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/inngest-durable-functions/references/observability.md",
+    targetSkillName: "inngest-durable-functions",
+  },
+  {
+    fileName: "checkpointing.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/inngest-durable-functions/references/checkpointing.md",
+    targetSkillName: "inngest-durable-functions",
+  },
+  {
+    fileName: "dependency-injection.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/inngest-middleware/references/dependency-injection.md",
+    targetSkillName: "inngest-middleware",
+  },
+  {
+    fileName: "built-in-middleware.md",
+    repo: "inngest/inngest-skills",
+    ref: INNGEST_SKILLS_REF,
+    sourcePath: "skills/inngest-middleware/references/built-in-middleware.md",
+    targetSkillName: "inngest-middleware",
+  },
+  {
+    fileName: "agent-friction.md",
+    repo: "inngest/inngest-codex-plugin",
+    ref: INNGEST_CODEX_PLUGIN_REF,
+    sourcePath:
+      "plugins/inngest/skills/inngest-api/references/agent-friction.md",
+    targetSkillName: "inngest-api",
+  },
+];
+
 function rawUrl({ repo, ref, sourcePath }) {
   return `https://raw.githubusercontent.com/${repo}/${ref}/${sourcePath}`;
 }
@@ -88,10 +148,34 @@ async function writeSkill({ skillName, repo, ref, sourcePath, license }) {
   );
 }
 
+async function writeReference({
+  fileName,
+  repo,
+  ref,
+  sourcePath,
+  targetSkillName,
+}) {
+  const referenceText = await fetchText(rawUrl({ repo, ref, sourcePath }));
+  const referencesDir = path.join(skillsRoot, targetSkillName, "references");
+
+  await mkdir(referencesDir, { recursive: true });
+  await writeFile(path.join(referencesDir, fileName), referenceText, "utf8");
+
+  console.log(
+    `refreshed ${targetSkillName}/references/${fileName} from ${repo}/${sourcePath} (${ref})`,
+  );
+}
+
 function applyRepoOverlay(skillName, content) {
   let nextContent = content;
 
+  nextContent = nextContent.replaceAll(
+    "../references/expressions.md",
+    "../inngest/references/expressions.md",
+  );
+
   if (skillName === "inngest-agents") {
+    const beforeAgentOverlay = nextContent;
     nextContent = nextContent.replace(
       [
         "When starting a durable support or tool-calling agent from scratch, inspect the",
@@ -108,6 +192,12 @@ function applyRepoOverlay(skillName, content) {
         "separate product integration change.",
       ].join("\n"),
     );
+
+    if (nextContent === beforeAgentOverlay) {
+      throw new Error(
+        "Unable to apply inngest-agents companion example overlay; upstream text changed.",
+      );
+    }
   }
 
   return `${nextContent.trimEnd()}
@@ -249,7 +339,9 @@ bun run skills:verify
 \`\`\`
 
 The refresh script downloads only the official \`SKILL.md\` files listed above.
-It does not vendor Codex plugin evals, examples, assets, or product runtime code.
+It also downloads the referenced markdown files needed by those skills so local
+links stay readable and \`bun run skills:verify\` can catch reference drift. It
+does not vendor Codex plugin evals, examples, assets, or product runtime code.
 It applies one repo overlay to \`inngest-agents\` so the upstream companion
 example path points at \`inngest/inngest-codex-plugin\` instead of implying a
 local example directory exists.
@@ -297,6 +389,10 @@ async function writeRouterAndReferences() {
 async function main() {
   for (const skill of upstreamSkills) {
     await writeSkill(skill);
+  }
+
+  for (const reference of referenceSources) {
+    await writeReference(reference);
   }
 
   await writeRouterAndReferences();

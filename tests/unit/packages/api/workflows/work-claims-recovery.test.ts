@@ -120,7 +120,18 @@ function createScanClientMock(options: ScanClientOptions) {
   const statusIn = vi.fn().mockReturnValue({
     select: vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle }),
   });
-  const batchIn = vi.fn().mockResolvedValue({ data: null, error: null });
+  const batchIn = vi.fn();
+  batchIn.mockImplementation(() => ({
+    in: batchIn,
+    then: (
+      onFulfilled?: (value: { data: null; error: null }) => unknown,
+      onRejected?: (reason: unknown) => unknown,
+    ) =>
+      Promise.resolve({ data: null, error: null }).then(
+        onFulfilled,
+        onRejected,
+      ),
+  }));
   const updateEq = { in: statusIn };
   const update = vi.fn().mockReturnValue({
     eq: vi.fn().mockReturnValue(updateEq),
@@ -221,8 +232,9 @@ describe("dispatch recovery scan (#289)", () => {
       expect.objectContaining({ status: "dead_letter" }),
     );
     // All exhausted rows dead-letter in ONE batched update.
-    expect(mock.updateIn).toHaveBeenCalledTimes(1);
+    expect(mock.updateIn).toHaveBeenCalledTimes(2);
     expect(mock.updateIn).toHaveBeenCalledWith("id", [exhausted.id]);
+    expect(mock.updateIn).toHaveBeenCalledWith("status", ["pending", "failed"]);
   });
 
   it("keeps claims tenant-scoped when scanning work from multiple tenants", async () => {
@@ -263,7 +275,7 @@ describe("dispatch recovery scan (#289)", () => {
 describe("workflow work claims migration", () => {
   const migration = readFileSync(
     new URL(
-      "../../../../../supabase/migrations/20260611140000_workflow_work_claims.sql",
+      "../../../../../supabase/migrations/20260611181000_workflow_work_claims.sql",
       import.meta.url,
     ),
     "utf8",

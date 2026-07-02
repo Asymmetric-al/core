@@ -1,9 +1,17 @@
+import {
+  buildSharedContributionRowFields,
+  type SharedContributionCorrectionInput,
+  type SharedContributionCrmPostStatus,
+  type SharedContributionPaymentStatus,
+  type SharedContributionReceiptStatus,
+  type SharedContributionRowFields,
+} from "../contribution-shared/row-contract";
+
+import type { ContributionDesignationSet } from "@asym/database/types";
+
 export type ContributionGridStatus =
-  | "completed"
-  | "pending"
-  | "processing"
-  | "failed"
-  | "refunded";
+  | SharedContributionPaymentStatus
+  | "processing";
 
 export type ContributionGridType =
   | "One-time"
@@ -27,11 +35,7 @@ export type ContributionGridSource =
   | "Phone"
   | "Import";
 
-export type ContributionReceiptStatus =
-  | "sent"
-  | "pending"
-  | "failed"
-  | "not_sent";
+export type ContributionReceiptStatus = SharedContributionReceiptStatus;
 
 export type StagedGiftGridStatus =
   | "received"
@@ -42,14 +46,11 @@ export type StagedGiftGridStatus =
   | "refunded"
   | "voided";
 
-export type StagedGiftCrmPostStatus =
-  | "not_required"
-  | "queued"
-  | "posted"
-  | "failed"
-  | "blocked";
+export type StagedGiftCrmPostStatus = SharedContributionCrmPostStatus;
 
 export interface ContributionGridRow {
+  /** Shared contribution row contract fields (ADR-CD-032 display parity). */
+  shared: SharedContributionRowFields;
   id: string;
   donorId: string | null;
   donorName: string;
@@ -189,8 +190,6 @@ export function normalizeContributionGridStatus(
   return "pending";
 }
 
-const normalizeStatus = normalizeContributionGridStatus;
-
 function normalizeType(
   donationType: string | null | undefined,
   isRecurring: boolean | null | undefined,
@@ -258,33 +257,6 @@ function normalizeSource(
   }
 }
 
-function buildDonorDisplayName(donor: RawDonor, profile: RawProfile) {
-  const donorName = donor?.name?.trim();
-  if (donorName) {
-    return donorName;
-  }
-
-  const displayName = profile?.display_name?.trim();
-  if (displayName) {
-    return displayName;
-  }
-
-  const fullName = [profile?.first_name, profile?.last_name]
-    .filter(Boolean)
-    .join(" ")
-    .trim();
-  if (fullName) {
-    return fullName;
-  }
-
-  const email = donor?.email?.trim() || profile?.email?.trim();
-  if (email) {
-    return email;
-  }
-
-  return "Anonymous";
-}
-
 function normalizeEntryMethod(source: string | null | undefined) {
   if (source === "import") {
     return "import" as const;
@@ -295,22 +267,6 @@ function normalizeEntryMethod(source: string | null | undefined) {
   }
 
   return "api" as const;
-}
-
-function normalizeReceiptStatus(
-  stagedGift: RawStagedGift,
-): ContributionReceiptStatus {
-  switch (stagedGift?.receipt_status) {
-    case "sent":
-      return "sent";
-    case "failed":
-      return "failed";
-    case "not_required":
-    case "suppressed":
-      return "not_sent";
-    default:
-      return "pending";
-  }
 }
 
 function normalizeStagedGiftStatus(
@@ -331,24 +287,9 @@ function normalizeStagedGiftStatus(
   return null;
 }
 
-function normalizeCrmPostStatus(
-  status: string | null | undefined,
-): StagedGiftCrmPostStatus | null {
-  if (
-    status === "not_required" ||
-    status === "queued" ||
-    status === "posted" ||
-    status === "failed" ||
-    status === "blocked"
-  ) {
-    return status;
-  }
-
-  return null;
-}
-
-function normalizeReconciliationStatus(stagedGift: RawStagedGift) {
-  const crmPostStatus = normalizeCrmPostStatus(stagedGift?.crm_post_status);
+function normalizeReconciliationStatus(
+  crmPostStatus: StagedGiftCrmPostStatus | null,
+) {
   if (crmPostStatus === "posted") {
     return "reconciled" as const;
   }
@@ -365,6 +306,8 @@ export function buildContributionGridRow({
   fund,
   missionary,
   stagedGift,
+  corrections,
+  designationSet,
 }: {
   donation: RawDonation;
   donor: RawDonor;
@@ -372,45 +315,56 @@ export function buildContributionGridRow({
   fund: RawFund;
   missionary: RawMissionary;
   stagedGift?: RawStagedGift;
+  corrections?: SharedContributionCorrectionInput[];
+  designationSet?: ContributionDesignationSet;
 }): ContributionGridRow {
-  const donorName = buildDonorDisplayName(donor, profile);
+  const shared = buildSharedContributionRowFields({
+    donation,
+    donor,
+    profile,
+    fund,
+    missionary,
+    stagedGift: stagedGift ?? null,
+    corrections,
+    designationSet,
+  });
   const donorEmail = donor?.email?.trim() || profile?.email?.trim() || "";
-  const status = normalizeStatus(donation.status);
-  const receiptStatus = normalizeReceiptStatus(stagedGift ?? null);
+  const receiptStatus = shared.receiptStatus;
   const receiptSent = receiptStatus === "sent";
 
   return {
+    shared,
     id: donation.id,
-    donorId: donor?.id ?? donation.donor_id,
-    donorName,
+    donorId: shared.donorId,
+    donorName: shared.donorName,
     donorEmail,
     donorAvatar: profile?.avatar_url ?? null,
     donorType: donor?.type ?? null,
     donorPhone: donor?.phone ?? null,
     donorLocation: donor?.location ?? null,
     organizationName: donor?.organization ?? null,
-    amount: donation.amount,
-    amountGross: donation.amount,
+    amount: shared.amountCents,
+    amountGross: shared.amountCents,
     amountNet: null,
     amountFee: null,
     amountTaxDeductible: null,
     currency: donation.currency,
-    date: donation.gift_date || donation.created_at,
-    contributionDate: donation.gift_date || donation.created_at,
+    date: shared.giftDate,
+    contributionDate: shared.giftDate,
     createdAt: donation.created_at,
     updatedAt: donation.updated_at,
     settlementDate: donation.completed_at ?? donation.processed_at ?? null,
     depositDate: null,
-    status,
+    status: normalizeContributionGridStatus(donation.status),
     subStatus: donation.error_code ?? donation.error_message ?? null,
     type: normalizeType(donation.donation_type, donation.is_recurring),
     paymentMethod: normalizePaymentMethod(donation.payment_method),
     source: normalizeSource(donation.source),
-    fundId: fund?.id ?? donation.fund_id,
-    fundCode: fund?.id ?? donation.fund_id,
-    fundName: fund?.name?.trim() || "General Fund",
-    missionaryId: missionary?.id ?? donation.missionary_id,
-    missionaryName: missionary?.display_name?.trim() || null,
+    fundId: shared.designationSummary.fundId,
+    fundCode: shared.designationSummary.fundId,
+    fundName: shared.designationSummary.fundName,
+    missionaryId: shared.designationSummary.missionaryId,
+    missionaryName: shared.designationSummary.missionaryName,
     campaignId: donation.campaign_id,
     receiptStatus,
     receiptSent,
@@ -418,10 +372,10 @@ export function buildContributionGridRow({
     stagedGiftId: stagedGift?.id ?? null,
     stagedGiftStatus: normalizeStagedGiftStatus(stagedGift?.status),
     stagedGiftReviewReason: stagedGift?.review_reason ?? null,
-    crmPostStatus: normalizeCrmPostStatus(stagedGift?.crm_post_status),
+    crmPostStatus: shared.crmPostStatus,
     annualStatementEligible: true,
     entryMethod: normalizeEntryMethod(donation.source),
-    reconciliationStatus: normalizeReconciliationStatus(stagedGift ?? null),
+    reconciliationStatus: normalizeReconciliationStatus(shared.crmPostStatus),
     transactionId:
       donation.stripe_payment_intent_id ??
       donation.stripe_charge_id ??

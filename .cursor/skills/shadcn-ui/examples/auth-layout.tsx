@@ -48,8 +48,8 @@ export function AuthLayout() {
               </CardDescription>
             </CardHeader>
             <form onSubmit={onSubmit}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="email">Email</Label>
                   <Input
                     id="email"
@@ -58,7 +58,7 @@ export function AuthLayout() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="password">Password</Label>
                   <Input
                     id="password"
@@ -96,8 +96,8 @@ export function AuthLayout() {
               </CardDescription>
             </CardHeader>
             <form onSubmit={onSubmit}>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
+              <CardContent className="flex flex-col gap-4">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="name">Name</Label>
                   <Input
                     id="name"
@@ -105,7 +105,7 @@ export function AuthLayout() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="register-email">Email</Label>
                   <Input
                     id="register-email"
@@ -114,7 +114,7 @@ export function AuthLayout() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="register-password">Password</Label>
                   <Input
                     id="register-password"
@@ -122,7 +122,7 @@ export function AuthLayout() {
                     required
                   />
                 </div>
-                <div className="space-y-2">
+                <div className="flex flex-col gap-2">
                   <Label htmlFor="confirm-password">Confirm Password</Label>
                   <Input
                     id="confirm-password"
@@ -131,7 +131,7 @@ export function AuthLayout() {
                   />
                 </div>
               </CardContent>
-              <CardFooter>
+              <CardFooter className="flex flex-col gap-y-4">
                 <Button 
                   type="submit" 
                   className="w-full"

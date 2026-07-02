@@ -8,7 +8,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { processDueDonationSagaOutboxEvents } from "./saga";
 import { toErrorResponse } from "../shared/http-errors";
-import { getStripeClient } from "../stripe/client";
+import { createStripeClient } from "../stripe/client";
 
 function parseLimit(request: NextRequest, fallback = 10): number {
   const { searchParams } = new URL(request.url);
@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const limit = parseLimit(request, 10);
 
     const result = await processDueDonationSagaOutboxEvents({

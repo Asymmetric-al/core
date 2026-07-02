@@ -83,7 +83,7 @@ export function ViewTabs({ value, onValueChange, baseFilter }: ViewTabsProps) {
               value={tab.view}
               className={cn(
                 "h-8 gap-2 rounded-lg px-3 text-[13px] font-medium",
-                "data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm",
+                "data-active:bg-white data-active:text-zinc-900 data-active:shadow-sm",
                 "text-zinc-600",
               )}
             >

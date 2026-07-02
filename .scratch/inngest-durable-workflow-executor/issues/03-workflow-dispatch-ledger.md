@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#288
+
 ## What to build
 
 Create the shared product-owned workflow dispatch ledger and safe event envelope

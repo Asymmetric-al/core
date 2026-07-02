@@ -1,3 +1,8 @@
+---
+name: commit
+description: "Create a Conventional Commit message for staged changes and run git commit. Use when changes are staged and you need a commit message in the form type(scope): subject, with a <=100 character imperative header and optional 'ref AL-###' body line. Retained for reference; use only when explicitly asked for this commit workflow."
+---
+
 # Commit — Skill
 
 Retained for reference only. This skill is not part of the active repo routing and should not be used unless a user explicitly asks for this commit workflow.

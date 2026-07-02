@@ -72,71 +72,89 @@ export function MissionariesHubView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missionariesQuery.isPending
-                ? Array.from({ length: 4 }).map((_, index) => (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <Skeleton className="h-5 w-40" />
-                      </TableCell>
-                      <TableCell>
-                        <Skeleton className="h-4 w-56" />
-                      </TableCell>
-                      <TableCell className="flex justify-end">
-                        <Skeleton className="h-8 w-36" />
-                      </TableCell>
-                    </TableRow>
-                  ))
-                : null}
-
-              {!missionariesQuery.isPending &&
-              missionariesQuery.data?.length === 0 ? (
-                <TableRow>
-                  <TableCell colSpan={3}>
-                    <Empty className="border-0 py-10">
-                      <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                          <UserRound className="size-5" />
-                        </EmptyMedia>
-                        <EmptyTitle>No missionaries found</EmptyTitle>
-                        <EmptyDescription>
-                          Missionary records will appear here after they are
-                          available from Supabase.
-                        </EmptyDescription>
-                      </EmptyHeader>
-                    </Empty>
-                  </TableCell>
-                </TableRow>
-              ) : null}
-
-              {!missionariesQuery.isPending
-                ? (missionariesQuery.data ?? []).map((m) => {
-                    const label =
-                      m.profile?.full_name?.trim() ||
-                      m.profile?.display_name?.trim() ||
-                      m.id;
-                    return (
-                      <TableRow key={m.id}>
-                        <TableCell className="font-medium">{label}</TableCell>
-                        <TableCell className="font-mono text-muted-foreground text-xs">
-                          {m.id}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button size="sm" asChild>
-                            <Link
-                              href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(m.id)}`}
-                            >
-                              Create giving page
-                            </Link>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })
-                : null}
+              <MissionariesHubTableRows
+                isPending={missionariesQuery.isPending}
+                missionaries={missionariesQuery.data}
+              />
             </TableBody>
           </Table>
         </div>
       </div>
     </StudioLayout>
   );
+}
+
+function MissionariesHubTableRows({
+  isPending,
+  missionaries,
+}: {
+  isPending: boolean;
+  missionaries?: MissionaryRow[];
+}) {
+  if (isPending) {
+    return Array.from({ length: 4 }).map((_, index) => (
+      <TableRow key={index}>
+        <TableCell>
+          <Skeleton className="h-5 w-40" />
+        </TableCell>
+        <TableCell>
+          <Skeleton className="h-4 w-56" />
+        </TableCell>
+        <TableCell className="flex justify-end">
+          <Skeleton className="h-8 w-36" />
+        </TableCell>
+      </TableRow>
+    ));
+  }
+
+  const rows = missionaries ?? [];
+
+  if (rows.length === 0) {
+    return (
+      <TableRow>
+        <TableCell colSpan={3}>
+          <Empty className="border-0 py-10">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <UserRound className="size-5" />
+              </EmptyMedia>
+              <EmptyTitle>No missionaries found</EmptyTitle>
+              <EmptyDescription>
+                Missionary records will appear here after they are available
+                from Supabase.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return rows.map((missionary) => {
+    const label =
+      missionary.profile?.full_name?.trim() ||
+      missionary.profile?.display_name?.trim() ||
+      missionary.id;
+
+    return (
+      <TableRow key={missionary.id}>
+        <TableCell className="font-medium">{label}</TableCell>
+        <TableCell className="font-mono text-muted-foreground text-xs">
+          {missionary.id}
+        </TableCell>
+        <TableCell className="text-right">
+          <Button
+            size="sm"
+            render={
+              <Link
+                href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
+              />
+            }
+          >
+            Create giving page
+          </Button>
+        </TableCell>
+      </TableRow>
+    );
+  });
 }

@@ -1,7 +1,7 @@
 import { NonRetriableError } from "inngest";
 
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
-import { getStripeClient } from "../../stripe/client";
+import { createStripeClient } from "../../stripe/client";
 import { runDonationSagaRecoveryScan } from "../adapters/donations";
 import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
@@ -57,7 +57,7 @@ export const donationSagaRecovery = inngest.createFunction(
         );
       }
 
-      const stripe = getStripeClient(stripeSecretKey);
+      const stripe = createStripeClient(stripeSecretKey);
 
       return await processDonationSagaOutboxEvent({
         supabaseAdmin,

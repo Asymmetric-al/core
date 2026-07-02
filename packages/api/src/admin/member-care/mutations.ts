@@ -183,6 +183,7 @@ function revalidateMemberCareTags(tenantId: string): void {
     revalidateTag("member-care", "max");
     revalidateTag(`member-care:${tenantId}`, "max");
     revalidateTag("member-care:directory", "max");
+    revalidateTag("member-care:dashboard", "max");
     revalidateTag("member-care:activity", "max");
     revalidateTag("member-care:private-notes", "max");
   } catch {

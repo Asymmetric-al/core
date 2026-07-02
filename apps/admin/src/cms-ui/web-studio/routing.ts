@@ -1,6 +1,3 @@
-export { Link, usePathname, useRouter } from "@payloadcms/ui";
-export {
-  useSearchParams,
-  type LinkAdapterProps,
-  type RouterAdapterRouter,
-} from "@payloadcms/ui/providers/RouterAdapter";
+// Payload exports Link; App Router hooks are not re-exported by @payloadcms/ui.
+export { Link } from "@payloadcms/ui";
+export { usePathname, useRouter, useSearchParams } from "next/navigation";

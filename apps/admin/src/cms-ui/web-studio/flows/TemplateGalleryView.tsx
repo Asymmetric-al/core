@@ -126,8 +126,12 @@ function TemplateGalleryViewContent() {
                 {pageTypeFilter}
               </Badge>
               .{" "}
-              <Button variant="link" className="h-auto p-0 text-xs" asChild>
-                <Link href="/web-studio/templates">Clear filter</Link>
+              <Button
+                variant="link"
+                className="h-auto p-0 text-xs"
+                render={<Link href="/web-studio/templates" />}
+              >
+                Clear filter
               </Button>
             </p>
           ) : null}
@@ -194,9 +198,9 @@ function TemplateGalleryViewContent() {
                       <Button
                         size="sm"
                         className="w-full font-semibold uppercase"
-                        asChild
+                        render={<Link href={href} />}
                       >
-                        <Link href={href}>Start from template</Link>
+                        Start from template
                       </Button>
                     </CardContent>
                   </Card>

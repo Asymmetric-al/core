@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#293
+
 ## What to build
 
 Move the first verified and tenant-resolved Resend inbound email handoff into

@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#294
+
 ## What to build
 
 Use durable workflow steps to retrieve received-email body content and

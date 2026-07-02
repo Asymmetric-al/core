@@ -1,3 +1,5 @@
+import { normalizeSharedPaymentStatus } from "@asym/api/admin/contribution-shared";
+
 import type { Contribution } from "./types";
 
 /** Live-query page reads from TanStack DB; keep empty for typing / fallbacks. */
@@ -32,7 +34,30 @@ function boneyardRow(
 ): Contribution {
   const amountGross = row.amountGross ?? row.amount;
   const receiptSent = row.receiptSent;
+  const receiptStatus = row.receiptStatus ?? (receiptSent ? "sent" : "pending");
   return {
+    shared: row.shared ?? {
+      donationId: row.id,
+      amountCents: amountGross,
+      currencyCode: (row.currency ?? "usd").toUpperCase(),
+      giftDate: row.date,
+      donorId: row.donorId,
+      donorName: row.donorName,
+      designationSummary: {
+        fundId: row.fundId ?? row.fundCode,
+        fundName: row.fundName,
+        missionaryId: row.missionaryId ?? null,
+        missionaryName: row.missionaryName ?? null,
+        lineCount: 1,
+      },
+      paymentStatus: normalizeSharedPaymentStatus(row.status),
+      receiptStatus,
+      crmPostStatus: row.crmPostStatus ?? null,
+      refundState: "none",
+      refundedAmountCents: 0,
+      correctionState: "none",
+      recurringLinkState: row.type === "Recurring" ? "provider_only" : "none",
+    },
     donorAvatar: row.donorAvatar ?? null,
     donorType: row.donorType ?? null,
     donorPhone: row.donorPhone ?? null,
@@ -61,7 +86,7 @@ function boneyardRow(
     missionaryId: row.missionaryId ?? null,
     missionaryName: row.missionaryName ?? null,
     campaignId: row.campaignId ?? null,
-    receiptStatus: row.receiptStatus ?? (receiptSent ? "sent" : "pending"),
+    receiptStatus,
     receiptSent,
     receiptSentAt: row.receiptSentAt ?? null,
     stagedGiftId: row.stagedGiftId ?? null,
@@ -92,7 +117,7 @@ export const boneyardContributionsFixture: Contribution[] = [
     donorId: "by-d1",
     donorName: "Sarah Mitchell",
     donorEmail: "sarah.mitchell@example.com",
-    amount: 250,
+    amount: 25_000,
     date: FIXTURE_TIMESTAMP,
     contributionDate: FIXTURE_TIMESTAMP,
     createdAt: FIXTURE_TIMESTAMP,
@@ -113,7 +138,7 @@ export const boneyardContributionsFixture: Contribution[] = [
     donorId: "by-d2",
     donorName: "James Chen",
     donorEmail: "james.chen@example.com",
-    amount: 100,
+    amount: 10_000,
     date: FIXTURE_TIMESTAMP,
     contributionDate: FIXTURE_TIMESTAMP,
     createdAt: FIXTURE_TIMESTAMP,

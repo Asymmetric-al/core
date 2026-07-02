@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#296
+
 ## What to build
 
 Add the explicit audited action for moving an already routed Support Hub message

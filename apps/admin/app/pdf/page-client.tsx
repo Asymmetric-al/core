@@ -436,9 +436,11 @@ function PDFStudioHeaderSection({
           </span>
           {hasUnsavedChanges && (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                }
+              />
               <TooltipContent side="bottom">
                 <p>Unsaved changes</p>
               </TooltipContent>
@@ -450,34 +452,38 @@ function PDFStudioHeaderSection({
       <div className="flex items-center gap-1.5 md:gap-2">
         <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="size-7 p-0"
-                onClick={onUndo}
-                disabled={!isEditorReady}
-              >
-                <Undo2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0"
+                  onClick={onUndo}
+                  disabled={!isEditorReady}
+                >
+                  <Undo2 className="size-3.5" />
+                </Button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>Undo</p>
               <Kbd className="ml-1.5">⌘Z</Kbd>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="size-7 p-0"
-                onClick={onRedo}
-                disabled={!isEditorReady}
-              >
-                <Redo2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0"
+                  onClick={onRedo}
+                  disabled={!isEditorReady}
+                >
+                  <Redo2 className="size-3.5" />
+                </Button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>Redo</p>
               <Kbd className="ml-1.5">⌘⇧Z</Kbd>
@@ -487,41 +493,47 @@ function PDFStudioHeaderSection({
 
         <div className="hidden md:block">
           <ToggleGroup
-            type="single"
-            value={previewDevice}
-            onValueChange={(value) =>
-              value && onPreview(value as PreviewDevice)
-            }
+            value={[previewDevice]}
+            onValueChange={(groupValue) => {
+              const next = groupValue[0];
+              if (next) {
+                onPreview(next as PreviewDevice);
+              }
+            }}
             disabled={!isEditorReady}
             variant="outline"
             size="sm"
           >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value="desktop"
-                  className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  <Monitor className="size-3.5" />
-                  <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                    Desktop
-                  </span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <ToggleGroupItem
+                    value="desktop"
+                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
+                  >
+                    <Monitor className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Desktop
+                    </span>
+                  </ToggleGroupItem>
+                }
+              />
               <TooltipContent side="bottom">Desktop preview</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value="mobile"
-                  className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  <Smartphone className="size-3.5" />
-                  <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                    Mobile
-                  </span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <ToggleGroupItem
+                    value="mobile"
+                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Mobile
+                    </span>
+                  </ToggleGroupItem>
+                }
+              />
               <TooltipContent side="bottom">Mobile preview</TooltipContent>
             </Tooltip>
           </ToggleGroup>
@@ -536,25 +548,29 @@ function PDFStudioHeaderSection({
 
         <DropdownMenu>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5"
-                  disabled={!isEditorReady || isExporting}
-                >
-                  {isExporting ? (
-                    <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
-                  ) : (
-                    <Download className="size-3.5" />
-                  )}
-                  <span className="hidden sm:inline text-xs font-medium">
-                    Export
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5"
+                      disabled={!isEditorReady || isExporting}
+                    >
+                      {isExporting ? (
+                        <span className="size-3.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
+                      ) : (
+                        <Download className="size-3.5" />
+                      )}
+                      <span className="hidden sm:inline text-xs font-medium">
+                        Export
+                      </span>
+                    </Button>
+                  }
+                />
+              }
+            />
             <TooltipContent side="bottom">Export options</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-52">
@@ -600,11 +616,13 @@ function PDFStudioHeaderSection({
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="sm" className="size-8 p-0">
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button variant="ghost" size="sm" className="size-8 p-0">
+                <MoreHorizontal className="size-4" />
+              </Button>
+            }
+          />
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onNewTemplate}>
               <Plus className="size-4 mr-2" />
@@ -722,9 +740,15 @@ function PDFSaveDialogSection({
               </Label>
               <Select
                 value={metadata.category}
-                onValueChange={(value: PDFTemplateCategory) =>
-                  setMetadata((prev) => ({ ...prev, category: value }))
-                }
+                onValueChange={(value) => {
+                  if (value === null) {
+                    return;
+                  }
+                  setMetadata((prev) => ({
+                    ...prev,
+                    category: value as PDFTemplateCategory,
+                  }));
+                }}
               >
                 <SelectTrigger id="category" className="h-10">
                   <SelectValue placeholder="Select category" />
@@ -745,9 +769,12 @@ function PDFSaveDialogSection({
               </Label>
               <Select
                 value={metadata.pageSize}
-                onValueChange={(value: "A4" | "Letter" | "Legal") =>
-                  setMetadata((prev) => ({ ...prev, pageSize: value }))
-                }
+                onValueChange={(value) => {
+                  if (value === null) {
+                    return;
+                  }
+                  setMetadata((prev) => ({ ...prev, pageSize: value }));
+                }}
               >
                 <SelectTrigger id="pageSize" className="h-10">
                   <SelectValue placeholder="Select size" />
@@ -769,9 +796,12 @@ function PDFSaveDialogSection({
             </Label>
             <Select
               value={metadata.orientation}
-              onValueChange={(value: "portrait" | "landscape") =>
-                setMetadata((prev) => ({ ...prev, orientation: value }))
-              }
+              onValueChange={(value) => {
+                if (value === null) {
+                  return;
+                }
+                setMetadata((prev) => ({ ...prev, orientation: value }));
+              }}
             >
               <SelectTrigger id="orientation" className="h-10">
                 <SelectValue placeholder="Select orientation" />
@@ -1863,7 +1893,7 @@ export default function PDFStudio() {
   return (
     <div
       className={cn(
-        "flex flex-col bg-background transition-all duration-300",
+        "flex flex-col bg-background",
         isFullscreen
           ? "fixed inset-0 z-50 overflow-hidden"
           : "flex-1 min-h-0 overflow-hidden",

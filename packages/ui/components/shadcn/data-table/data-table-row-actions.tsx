@@ -18,35 +18,52 @@ import { getDataTableRowActionKey } from "./data-table-row-action-key";
 import type { DataTableInteractiveRowAction } from "./types";
 import type { Row } from "@tanstack/react-table";
 
+const DEFAULT_ROW_ACTION_ARIA_LABEL = "Open row actions";
+
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>;
   actions: DataTableInteractiveRowAction<TData>[];
   className?: string;
+  getAriaLabel?: (row: Row<TData>) => string;
+}
+
+function getRowActionTriggerLabel<TData>(
+  row: Row<TData>,
+  getAriaLabel?: (row: Row<TData>) => string,
+) {
+  const customLabel = getAriaLabel?.(row);
+  return customLabel?.trim() || DEFAULT_ROW_ACTION_ARIA_LABEL;
 }
 
 export function DataTableRowActions<TData>({
   row,
   actions,
   className,
+  getAriaLabel,
 }: DataTableRowActionsProps<TData>) {
   if (actions.length === 0) {
     return null;
   }
 
+  const triggerLabel = getRowActionTriggerLabel(row, getAriaLabel);
+
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn("size-8 rounded-lg", className)}
-          onClick={(event) => event.stopPropagation()}
-        >
-          <MoreHorizontal className="size-4" />
-          <span className="sr-only">Open row actions</span>
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn("size-8 rounded-lg", className)}
+            aria-label={triggerLabel}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <MoreHorizontal className="size-4" aria-hidden="true" />
+            <span className="sr-only">Open row actions</span>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="rounded-xl">
         {actions.map((action, index) => (
           <React.Fragment key={getDataTableRowActionKey(action, index)}>

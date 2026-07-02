@@ -9,7 +9,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
@@ -30,14 +30,17 @@ import {
   Shield,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useSyncExternalStore } from "react";
 
+import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
 
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
+function subscribeNoop() {
+  return () => {};
+}
+
+function useClientTodayDateInputValue() {
+  return useSyncExternalStore(subscribeNoop, todayDateInputValue, () => "");
 }
 
 type Step = "config" | "details" | "payment" | "success";
@@ -289,7 +292,7 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
           <div className="flex flex-col items-center gap-2">
             <div
               className={cn(
-                "h-1.5 rounded-full transition-all duration-700 ease-[0.22, 1, 0.36, 1]",
+                "h-1.5 rounded-full transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700 ease-[0.22, 1, 0.36, 1]",
                 currentIdx === idx
                   ? "bg-zinc-900 w-12"
                   : currentIdx > idx
@@ -405,21 +408,24 @@ function SuccessView({
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
-            <Button
-              asChild
-              size="lg"
-              className="flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 transition-all font-semibold font-syne text-[11px] uppercase tracking-widest"
+            <Link
+              href="/donor-dashboard"
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "flex-1 h-20 rounded-3xl bg-zinc-950 text-white hover:bg-zinc-800 font-semibold font-syne text-[11px] uppercase tracking-widest",
+              )}
             >
-              <Link href="/donor-dashboard">Enter Dashboard</Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              size="lg"
-              className="flex-1 h-20 rounded-3xl border-zinc-100 hover:bg-zinc-50 font-semibold font-syne text-[11px] uppercase tracking-widest"
+              Enter Dashboard
+            </Link>
+            <Link
+              href="/"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "flex-1 h-20 rounded-3xl border-zinc-100 hover:bg-zinc-50 font-semibold font-syne text-[11px] uppercase tracking-widest",
+              )}
             >
-              <Link href="/">Back to Home</Link>
-            </Button>
+              Back to Home
+            </Link>
           </div>
         </div>
       </motion.div>
@@ -436,6 +442,7 @@ function MonthlyScheduleSection({
   onToggleScheduleConfig,
   showScheduleConfig,
   startDate,
+  minStartDate,
 }: {
   endDate: string;
   hasEndDate: boolean;
@@ -445,6 +452,7 @@ function MonthlyScheduleSection({
   onToggleScheduleConfig: () => void;
   showScheduleConfig: boolean;
   startDate: string;
+  minStartDate: string;
 }) {
   return (
     <motion.div
@@ -497,7 +505,7 @@ function MonthlyScheduleSection({
                     id="start-date"
                     type="date"
                     value={startDate}
-                    min={makeDisplayDate().toISOString().split("T")[0]}
+                    min={minStartDate || undefined}
                     onChange={(e) => onStartDateChange(e.target.value)}
                     className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
                   />
@@ -561,6 +569,7 @@ function ConfigStep({
   onToggleScheduleConfig,
   showScheduleConfig,
   startDate,
+  minStartDate,
 }: {
   amount: number;
   calculatedFees: number;
@@ -580,6 +589,7 @@ function ConfigStep({
   onToggleScheduleConfig: () => void;
   showScheduleConfig: boolean;
   startDate: string;
+  minStartDate: string;
 }) {
   return (
     <motion.div
@@ -616,7 +626,7 @@ function ConfigStep({
               role="radio"
               aria-checked={frequency === "one-time"}
               className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all duration-500",
+                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
                 frequency === "one-time"
                   ? "bg-white text-zinc-950 shadow-md"
                   : "text-zinc-400 hover:text-zinc-600",
@@ -629,7 +639,7 @@ function ConfigStep({
               role="radio"
               aria-checked={frequency === "monthly"}
               className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-all duration-500 relative",
+                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 relative",
                 frequency === "monthly"
                   ? "bg-white text-zinc-900 shadow-md"
                   : "text-zinc-400 hover:text-zinc-600",
@@ -684,7 +694,7 @@ function ConfigStep({
               value={customAmount}
               onChange={onCustomAmountChange}
               className={cn(
-                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-semibold font-syne transition-all duration-500 outline-none border-2",
+                "w-full h-24 pl-16 pr-8 rounded-[1.8rem] text-3xl font-semibold font-syne transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 outline-none border-2",
                 customAmount
                   ? "border-zinc-950 bg-white"
                   : "border-zinc-50 bg-zinc-50 focus:border-zinc-200",
@@ -703,12 +713,13 @@ function ConfigStep({
             onToggleScheduleConfig={onToggleScheduleConfig}
             showScheduleConfig={showScheduleConfig}
             startDate={startDate}
+            minStartDate={minStartDate}
           />
         )}
 
         <div
           className={cn(
-            "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-all duration-500",
+            "rounded-[2rem] p-8 border-2 flex gap-6 items-center cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
             coverFees
               ? "bg-zinc-900 border-zinc-900 text-white"
               : "bg-white border-zinc-100 text-zinc-950 hover:border-zinc-200",
@@ -750,7 +761,7 @@ function ConfigStep({
           <Switch
             checked={coverFees}
             onCheckedChange={onCoverFeesChange}
-            className="data-[state=checked]:bg-white data-[state=checked]:opacity-100"
+            className="data-checked:bg-white data-checked:opacity-100"
           />
         </div>
       </div>
@@ -868,7 +879,7 @@ function DetailsStep({
             !donorInfo.firstName || !donorInfo.lastName || !donorInfo.email
           }
           size="lg"
-          className="flex-1 h-20 text-xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-all uppercase tracking-widest"
+          className="flex-1 h-20 text-xl font-semibold font-syne bg-zinc-950 hover:bg-zinc-800 text-white shadow-2xl rounded-full transition-[color,background-color,border-color,box-shadow,transform,opacity] uppercase tracking-widest"
         >
           Continue to Payment
         </Button>
@@ -923,7 +934,7 @@ function PaymentStep({
             aria-selected={paymentMethod === "card"}
             onClick={() => onPaymentMethodChange("card")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "card"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
@@ -936,7 +947,7 @@ function PaymentStep({
             aria-selected={paymentMethod === "ach"}
             onClick={() => onPaymentMethodChange("ach")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "ach"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
@@ -949,7 +960,7 @@ function PaymentStep({
             aria-selected={paymentMethod === "wallet"}
             onClick={() => onPaymentMethodChange("wallet")}
             className={cn(
-              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-all",
+              "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "wallet"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
@@ -1116,6 +1127,7 @@ function CheckoutContent({
 }: {
   searchParams: CheckoutSearchParams;
 }) {
+  const clientToday = useClientTodayDateInputValue();
   const workerId = searchParams.workerId ?? searchParams.missionaryId;
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
@@ -1136,7 +1148,7 @@ function CheckoutContent({
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
-    startDate: makeDisplayDate().toISOString().split("T")[0] ?? "",
+    startDate: "",
     step: "config",
   }));
   const {
@@ -1153,6 +1165,7 @@ function CheckoutContent({
     startDate,
     step,
   } = checkoutState;
+  const startDateForUi = startDate || clientToday;
 
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
@@ -1233,12 +1246,15 @@ function CheckoutContent({
           <h2 className="text-3xl font-semibold text-zinc-950 font-syne">
             Target Unspecified
           </h2>
-          <Button
-            asChild
-            className="rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800"
+          <Link
+            href="/workers"
+            className={cn(
+              buttonVariants(),
+              "rounded-full px-8 h-12 font-semibold font-syne text-[10px] uppercase tracking-widest bg-zinc-900 hover:bg-zinc-800",
+            )}
           >
-            <Link href="/workers">View Missionaries</Link>
-          </Button>
+            View Missionaries
+          </Link>
         </div>
       </div>
     );
@@ -1285,7 +1301,8 @@ function CheckoutContent({
                     setShowScheduleConfig(!showScheduleConfig)
                   }
                   showScheduleConfig={showScheduleConfig}
-                  startDate={startDate}
+                  startDate={startDateForUi}
+                  minStartDate={clientToday}
                 />
               )}
 
@@ -1330,7 +1347,7 @@ function CheckoutContent({
               coverFees={coverFees}
               fees={calculatedFees}
               total={total}
-              startDate={startDate}
+              startDate={startDateForUi}
               endDate={hasEndDate ? endDate : null}
             />
           </aside>

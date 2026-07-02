@@ -94,7 +94,8 @@ export async function runDispatchRecoveryScan(
         status: "dead_letter",
         dead_letter_at: now.toISOString(),
       })
-      .in("id", exhaustedIds);
+      .in("id", exhaustedIds)
+      .in("status", ["pending", "failed"]);
 
     if (deadLettered.error) {
       throw new Error(

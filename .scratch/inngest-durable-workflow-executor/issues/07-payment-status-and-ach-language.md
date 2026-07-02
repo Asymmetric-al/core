@@ -7,6 +7,10 @@ Type: AFK
 
 .scratch/inngest-durable-workflow-executor/PRD.md
 
+## GitHub issue
+
+#292
+
 ## What to build
 
 Make donation status language truthful across donor and Mission Control

@@ -1,9 +1,11 @@
 "use client";
 
-import { motion } from "@asym/lib/motion";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
-import { useReducedMotion } from "motion/react";
+// Direct motion/react import (not @asym/lib/motion): the Payload admin tree
+// renders without MotionProvider/LazyMotion, so the `m`-based re-export
+// would silently skip animations here.
+import { motion, useReducedMotion } from "motion/react";
 
 export function Header() {
   const reduceMotion = useReducedMotion();

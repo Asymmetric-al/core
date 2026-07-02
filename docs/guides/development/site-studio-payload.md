@@ -119,7 +119,7 @@ Supabase env vars first because Next.js skips `.env.local` in test mode.
   - `style: base-maia` (shadcn/ui Maia variant for **Base UI** primitives — see [schema](https://ui.shadcn.com/schema.json))
   - `tailwind.baseColor: zinc`
   - Zinc surfaces and semantic tokens are defined in `packages/ui/styles/globals.css`, not a separate `theme` field in `components.json`
-  - Some older shared components may still import `@radix-ui/*` until migrated; new installs from the CLI should follow **Base UI Maia** (`base-maia`).
+  - All shared components are **Base UI Maia** (`base-maia`); new installs from the CLI follow the same pin. Never add `@radix-ui/*` imports.
 - Shared tokens come from `packages/ui/styles/globals.css` (Tailwind v4 `@theme inline` + `@source` monorepo scanning).
 - Payload visual token bridge lives in `apps/admin/src/styles/payloadStyles.css` and must only reference existing shared tokens/variables (no one-off hex values).
 - Payload UI override components (`apps/admin/src/cms-ui/*`) should use shared primitives from `@asym/ui/components/shadcn/*` and motion patterns from `@asym/lib/motion`.

@@ -1,5 +1,57 @@
 # Working Set
 
+## 2026-06-16 (Remove Codex PR review automation)
+
+- Date: 2026-06-16
+- Repo: Asymmetric-al/core
+- Goal: Fully remove the repo-owned Codex PR review automation from GitHub
+  Actions and related documentation references.
+- Primary area:
+  - `.github/workflows/**`
+  - `.github/**`
+  - `docs/**`
+  - `.cursor/commands/**`
+- Stack:
+  - GitHub Actions
+  - Bun
+  - TypeScript
+  - repo agent instructions
+- Constraints:
+  - Remove Codex PR-review triggers without changing unrelated local Codex
+    developer tooling.
+  - Preserve CI, Greptile/Bugbot/Security signal labels, and branch protection
+    semantics unless they directly depend on Codex review automation.
+  - Nia tools are unavailable in this session; use repo-scoped `rg` and direct
+    file reads.
+
+## 2026-06-16 (Development environment rename)
+
+- Date: 2026-06-16
+- Repo: Asymmetric-al/core
+- Goal: Replace old `development` environment naming with canonical
+  `development` naming across first-party source, scripts, tests, and
+  operational documentation.
+- Primary area:
+  - `docs/ops/**`
+  - `.github/**`
+  - `scripts/**`
+  - `packages/{api,config,env}/**`
+  - `apps/admin/app/api/admin/crm/gateway/**`
+  - `tests/unit/**`
+- Stack:
+  - Next.js 16 App Router
+  - TypeScript
+  - Supabase
+  - Vercel
+  - Sentry
+  - Bun
+  - Vitest
+- Constraints:
+  - `develop` remains the branch name; only environment naming changes.
+  - Preserve production branch/release semantics.
+  - Do not edit third-party vendor directories or installed agent/skill mirrors.
+  - Nia tools are unavailable in this session; use repo-scoped `rg` and direct
+    file reads.
 ## 2026-06-07 (Inngest workflow executor grill)
 
 - Date: 2026-06-07
@@ -222,7 +274,7 @@
     schema `public`.
   - Payload tenant document IDs and public Supabase tenant UUIDs remain
     separate.
-  - No hosted services or production/staging secrets for local happy path.
+  - No hosted services or production/development secrets for local happy path.
   - Commands must be noninteractive, with destructive reset separate from
     non-destructive bootstrap.
   - E2E bypass may be used only for explicit local/test paths and must remain
@@ -611,7 +663,7 @@
   - Do not move finance, CMS publish, care, auth, payment, receipt, statement,
     refund, reconciliation, or automation authority to Twenty.
   - Keep raw Twenty access behind `packages/api`.
-  - Treat production cutover as domain-gated: no domain is live unless staging
+  - Treat production cutover as domain-gated: no domain is live unless development
     parity, monitoring, rollback rehearsal, backup/restore evidence, and
     support ownership are recorded.
   - Nia tools are unavailable in this session; use repo-scoped `rg`, direct
@@ -2618,7 +2670,7 @@
   - `docs/ops/*`
 - Constraints:
   - Preserve `epic` as the production branch; another Codex session owns default-branch migration state.
-  - Keep `docs/ops/environments.md` pre-existing staging webhook edits intact.
+  - Keep `docs/ops/environments.md` pre-existing development webhook edits intact.
   - Prefer source-controlled gates, local release command, GitHub branch protection, and Vercel project settings over operator memory.
   - Nia MCP is unavailable in-session; use repo-scoped `rg`, direct file reads, GitHub CLI, and Vercel CLI/API.
 - Stack:

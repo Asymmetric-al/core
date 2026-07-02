@@ -26,6 +26,17 @@ const crossAppImportRestrictions = [
   },
 ];
 
+// Keep in sync with the motion/react pattern in @asym/eslint-config/base.mjs:
+// later no-restricted-imports blocks REPLACE the base rule for matching files,
+// so every block below must re-include this group or the ban silently drops.
+const motionImportRestrictions = [
+  {
+    group: ["motion/react", "framer-motion"],
+    message:
+      "Import motion APIs from @asym/lib/motion (LazyMotion m + MotionConfig reducedMotion). See docs/ai/skills/anim/SKILL.md.",
+  },
+];
+
 const rawTwentyClientImportRestrictions = [
   {
     group: [
@@ -64,7 +75,11 @@ const eslintConfig = defineConfig([
       "no-restricted-imports": [
         "error",
         {
-          patterns: rawTwentyClientImportRestrictions,
+          patterns: [
+            ...crossAppImportRestrictions,
+            ...rawTwentyClientImportRestrictions,
+            ...motionImportRestrictions,
+          ],
         },
       ],
     },
@@ -82,6 +97,7 @@ const eslintConfig = defineConfig([
           patterns: [
             ...crossAppImportRestrictions,
             ...rawTwentyClientImportRestrictions,
+            ...motionImportRestrictions,
             {
               group: ["@supabase/*"],
               message:
@@ -99,6 +115,23 @@ const eslintConfig = defineConfig([
               message:
                 "UI layers must not import the server database client directly.",
             },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    // cms-ui exception (mirrors @asym/eslint-config/base.mjs): the Payload
+    // admin tree has no MotionProvider/LazyMotion, so direct motion/react
+    // imports are allowed there — but app boundaries still apply.
+    files: ["**/src/cms-ui/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...crossAppImportRestrictions,
+            ...rawTwentyClientImportRestrictions,
           ],
         },
       ],
