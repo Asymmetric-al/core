@@ -276,16 +276,14 @@ describe("Phase 5 CRM donor detail and reports", () => {
     });
 
     expect(policyLoads).toBe(1);
+    // Corrections and refund route through the approval-request path for a
+    // request-capable viewer; provider replay is gated on
+    // contributions.use_provider_actions, so it is not offered here.
     expect(
       conservative.giftHistory[0]?.inlineActions?.entries
         .map((entry) => entry.actionType)
         .sort(),
-    ).toEqual([
-      "amount_correction",
-      "fund_correction",
-      "refund",
-      "stripe_replay",
-    ]);
+    ).toEqual(["amount_correction", "fund_correction", "refund"]);
 
     // A no_approval_required tenant must not offer request-only affordances
     // the operations route would reject with 403 (#270 gap 2).

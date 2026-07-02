@@ -73,10 +73,10 @@ describe("admin/contribution-operations/viewer-projection", () => {
     expect(projected.payment.stripe.replayContext).toBeNull();
     expect(projected.providerProof).toBeNull();
 
-    // Request-capable staff keep correction and replay request entries so the
-    // shared operation shell can open them (#270). The default policy routes
-    // these through approval, and the shared inline derivation is reused, so
-    // no raw provider identifiers leak through the entries themselves.
+    // Request-capable staff keep correction request entries so the shared
+    // operation shell can open them (#270). The default policy routes these
+    // through approval, and the shared inline derivation is reused, so no raw
+    // provider identifiers leak through the entries themselves.
     for (const actionType of ["amount_correction", "fund_correction"]) {
       expect(
         projected.actionAvailability.find(
@@ -89,16 +89,15 @@ describe("admin/contribution-operations/viewer-projection", () => {
         riskLevel: "high",
       });
     }
+    // Provider replay is NOT offered to request-capable-only staff: the
+    // executor routes replay solely through contributions.use_provider_actions
+    // (it is not an approval-request action), so surfacing it here would
+    // dead-end in a 403.
     expect(
-      projected.actionAvailability.find(
+      projected.actionAvailability.some(
         (entry) => entry.actionType === "stripe_replay",
       ),
-    ).toMatchObject({
-      actionType: "stripe_replay",
-      available: true,
-      blockedReason: null,
-      riskLevel: "high",
-    });
+    ).toBe(false);
 
     // Payment summary stays available for routine workflows.
     expect(projected.payment.status).toBe("completed");

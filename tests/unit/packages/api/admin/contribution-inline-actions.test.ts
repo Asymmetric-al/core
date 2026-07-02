@@ -280,11 +280,14 @@ describe("admin/contribution-operations/inline-actions", () => {
       viewerCapabilities: DONOR_CARE_CAPABILITIES,
     });
 
+    // Corrections and refund route through the approval-request path, so a
+    // request-capable viewer can raise them. Provider replay does not — the
+    // executor gates it on contributions.use_provider_actions — so it is
+    // hidden here rather than offered as a dead-end.
     expect(inline.entries.map((entry) => entry.actionType).sort()).toEqual([
       "amount_correction",
       "fund_correction",
       "refund",
-      "stripe_replay",
     ]);
   });
 

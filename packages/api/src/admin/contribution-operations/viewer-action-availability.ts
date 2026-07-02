@@ -46,12 +46,18 @@ const CORRECTION_REQUEST_ACTION_TYPES = [
 type CorrectionRequestActionType =
   (typeof CORRECTION_REQUEST_ACTION_TYPES)[number];
 
-/** Operations a request-capable viewer may submit as approval requests. */
+/**
+ * Operations a request-capable viewer may submit as approval requests. These
+ * must match the executor's approval-request path (isApprovalRequestAction:
+ * refund + corrections). Provider replay is intentionally excluded — the
+ * executor only routes replay through the direct provider capability
+ * (contributions.use_provider_actions), so surfacing it to request-capable
+ * viewers would dead-end in a 403.
+ */
 const APPROVAL_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>([
   "amount_correction",
   "fund_correction",
   "refund",
-  "stripe_replay",
 ]);
 
 export function isCorrectionRequestActionType(

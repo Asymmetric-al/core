@@ -441,14 +441,12 @@ describe("admin/crm/detail/gift-history", () => {
       ],
     });
 
+    // Provider replay is gated on contributions.use_provider_actions (not an
+    // approval-request action), so a request-capable-only viewer does not see
+    // it even though corrections and refund route through approval requests.
     expect(
       row.inlineActions.entries.map((entry) => entry.actionType).sort(),
-    ).toEqual([
-      "amount_correction",
-      "fund_correction",
-      "refund",
-      "stripe_replay",
-    ]);
+    ).toEqual(["amount_correction", "fund_correction", "refund"]);
     expect(row.inlineActions.nextBestActionType).toBeNull();
   });
 });
