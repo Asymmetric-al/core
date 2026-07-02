@@ -9,7 +9,7 @@
  */
 
 import { summarizeContributionDesignationSet } from "./designation-set";
-import { SETTLED_DONATION_STATUSES } from "../../reads/settled-donation-statuses";
+import { SETTLED_DONATION_STATUS_SET } from "../../reads/settled-donation-statuses";
 
 import type {
   ContributionDesignationSet,
@@ -162,10 +162,6 @@ export function formatSharedContributionAmount(
     currency: currencyCode || "USD",
   }).format(amountCents / 100);
 }
-
-const SETTLED_DONATION_STATUS_SET: ReadonlySet<string> = new Set(
-  SETTLED_DONATION_STATUSES,
-);
 
 export function normalizeSharedPaymentStatus(
   status: string | null | undefined,

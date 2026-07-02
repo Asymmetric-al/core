@@ -1,4 +1,4 @@
-import { SETTLED_DONATION_STATUSES } from "../../reads/settled-donation-statuses";
+import { SETTLED_DONATION_STATUS_SET } from "../../reads/settled-donation-statuses";
 import {
   buildSharedContributionRowFields,
   type SharedContributionCorrectionInput,
@@ -9,10 +9,6 @@ import {
 } from "../contribution-shared/row-contract";
 
 import type { ContributionDesignationSet } from "@asym/database/types";
-
-const SETTLED_GRID_STATUS_SET: ReadonlySet<string> = new Set(
-  SETTLED_DONATION_STATUSES,
-);
 
 export type ContributionGridStatus =
   | SharedContributionPaymentStatus
@@ -189,7 +185,7 @@ export function normalizeContributionGridStatus(
   // Settled values (including legacy "succeeded"/"success") show completed,
   // matching the shared payment-status normalizer so the badge and the
   // shared Status filter agree.
-  if (typeof status === "string" && SETTLED_GRID_STATUS_SET.has(status)) {
+  if (typeof status === "string" && SETTLED_DONATION_STATUS_SET.has(status)) {
     return "completed";
   }
   if (status === "failed" || status === "refunded") {
