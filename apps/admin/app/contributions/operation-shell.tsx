@@ -1,6 +1,9 @@
 "use client";
 
-import { isFailedProviderOutcomeStatus } from "@asym/api/admin/contribution-operations";
+// Import from the pure types submodule, not the package barrel: the barrel
+// re-exports server-only modules (Stripe refunds, Supabase access) that must
+// not be evaluated in this client component's bundle.
+import { isFailedProviderOutcomeStatus } from "@asym/api/admin/contribution-operations/types";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -40,7 +43,7 @@ import type {
   ContributionActionResult,
   ContributionActionType,
   ContributionSourceSurface,
-} from "@asym/api/admin/contribution-operations";
+} from "@asym/api/admin/contribution-operations/types";
 
 /**
  * Reusable inline contribution operation shell (ADR-CD-033).
