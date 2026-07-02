@@ -1,7 +1,7 @@
 "use client";
 
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -10,6 +10,7 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { cn } from "@asym/ui/lib/utils";
 import {
   AlertTriangle,
   ArrowUpRight,
@@ -120,18 +121,23 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
       description="Route Donor Care, Mobilization, and Existing Missionary Support requests to the right track."
       actions={
         <>
-          <Button asChild className="rounded-2xl">
-            <Link href={supportHubRoutes.newTicket}>
-              <Send className="mr-2 size-4" aria-hidden="true" />
-              New ticket
-            </Link>
-          </Button>
-          <Button asChild className="rounded-2xl" variant="outline">
-            <Link href={supportHubRoutes.knowledge}>
-              <BookOpen className="mr-2 size-4" aria-hidden="true" />
-              Knowledge base
-            </Link>
-          </Button>
+          <Link
+            href={supportHubRoutes.newTicket}
+            className={cn(buttonVariants(), "rounded-2xl")}
+          >
+            <Send className="mr-2 size-4" aria-hidden="true" />
+            New ticket
+          </Link>
+          <Link
+            href={supportHubRoutes.knowledge}
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "rounded-2xl",
+            )}
+          >
+            <BookOpen className="mr-2 size-4" aria-hidden="true" />
+            Knowledge base
+          </Link>
         </>
       }
     >
@@ -326,20 +332,22 @@ export default function SupportHubPage({ model }: SupportHubPageProps) {
                             >
                               Preview
                             </Button>
-                            <Button
-                              asChild
-                              className="rounded-2xl"
-                              size="sm"
-                              variant="outline"
+                            <Link
+                              href={supportHubRoutes.ticket(ticket.id)}
+                              className={cn(
+                                buttonVariants({
+                                  size: "sm",
+                                  variant: "outline",
+                                }),
+                                "rounded-2xl",
+                              )}
                             >
-                              <Link href={supportHubRoutes.ticket(ticket.id)}>
-                                Open thread
-                                <ArrowUpRight
-                                  className="ml-2 size-4"
-                                  aria-hidden="true"
-                                />
-                              </Link>
-                            </Button>
+                              Open thread
+                              <ArrowUpRight
+                                className="ml-2 size-4"
+                                aria-hidden="true"
+                              />
+                            </Link>
                           </div>
                         </div>
                       </article>

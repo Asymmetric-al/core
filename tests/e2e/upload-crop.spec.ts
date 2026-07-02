@@ -183,7 +183,9 @@ test.describe("Image Upload and Crop Flow", () => {
     if (await openAvatarCropper(page)) {
       const dialog = page.getByRole("dialog");
 
-      const sliders = dialog.locator('[role="slider"]');
+      // Base UI sliders use a native range input (implicit ARIA role), so
+      // query by accessible role rather than an explicit role attribute.
+      const sliders = dialog.getByRole("slider");
       await expect(sliders).toHaveCount(2);
 
       await expect(

@@ -1,7 +1,6 @@
 "use client";
 
 import { Drawer as DrawerPrimitive } from "@base-ui/react/drawer";
-import { Slot as SlotPrimitive } from "radix-ui";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
@@ -33,18 +32,9 @@ function Drawer({
 }
 
 function DrawerTrigger({
-  asChild = false,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Trigger> & {
-  asChild?: boolean;
-}) {
-  return (
-    <DrawerPrimitive.Trigger
-      data-slot="drawer-trigger"
-      render={asChild ? <SlotPrimitive.Root /> : undefined}
-      {...props}
-    />
-  );
+}: React.ComponentProps<typeof DrawerPrimitive.Trigger>) {
+  return <DrawerPrimitive.Trigger data-slot="drawer-trigger" {...props} />;
 }
 
 function DrawerPortal({
@@ -54,18 +44,9 @@ function DrawerPortal({
 }
 
 function DrawerClose({
-  asChild = false,
   ...props
-}: React.ComponentProps<typeof DrawerPrimitive.Close> & {
-  asChild?: boolean;
-}) {
-  return (
-    <DrawerPrimitive.Close
-      data-slot="drawer-close"
-      render={asChild ? <SlotPrimitive.Root /> : undefined}
-      {...props}
-    />
-  );
+}: React.ComponentProps<typeof DrawerPrimitive.Close>) {
+  return <DrawerPrimitive.Close data-slot="drawer-close" {...props} />;
 }
 
 function DrawerOverlay({

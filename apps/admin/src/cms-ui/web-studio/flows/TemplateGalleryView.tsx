@@ -1,7 +1,7 @@
 "use client";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -17,7 +17,6 @@ import {
   EmptyTitle,
 } from "@asym/ui/components/shadcn/empty";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { cn } from "@asym/ui/lib/utils";
 import { useConfig } from "@payloadcms/ui";
 import { useQuery } from "@tanstack/react-query";
 import { FileSearch } from "lucide-react";
@@ -127,15 +126,13 @@ function TemplateGalleryViewContent() {
                 {pageTypeFilter}
               </Badge>
               .{" "}
-              <Link
-                href="/web-studio/templates"
-                className={cn(
-                  buttonVariants({ variant: "link", size: "sm" }),
-                  "h-auto p-0 text-xs",
-                )}
+              <Button
+                variant="link"
+                className="h-auto p-0 text-xs"
+                render={<Link href="/web-studio/templates" />}
               >
                 Clear filter
-              </Link>
+              </Button>
             </p>
           ) : null}
         </div>
@@ -198,15 +195,13 @@ function TemplateGalleryViewContent() {
                           </span>
                         </p>
                       ) : null}
-                      <Link
-                        href={href}
-                        className={cn(
-                          buttonVariants({ size: "sm" }),
-                          "w-full font-semibold uppercase",
-                        )}
+                      <Button
+                        size="sm"
+                        className="w-full font-semibold uppercase"
+                        render={<Link href={href} />}
                       >
                         Start from template
-                      </Link>
+                      </Button>
                     </CardContent>
                   </Card>
                 );

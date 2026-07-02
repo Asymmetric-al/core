@@ -17,9 +17,9 @@ Use this skill whenever selecting, installing, composing, or customizing shadcn/
 - **Docs first:** Start with [reference-links.md](reference-links.md), then open the exact component doc before editing.
 - **Copied-in code is first-party:** Treat `components/ui/*` as owned project code with stable conventions.
 - **Prefer install over reinvention:** Use CLI/registry install paths for base components, then customize in wrappers.
-- **Behavior primitives stay intact:** Keep accessibility and keyboard behavior from Radix or Base-backed internals.
+- **Behavior primitives stay intact:** Keep accessibility and keyboard behavior from the Base UI-backed internals (this repo is Base UI only).
 - **Tokens over one-offs:** Centralize color, radius, spacing, and typography; avoid hardcoded one-off styles.
-- **Composable APIs:** Keep props minimal, use `asChild` intentionally, and avoid boolean-prop explosion.
+- **Composable APIs:** Keep props minimal, use Base UI's `render` prop intentionally (no `asChild` here), and avoid boolean-prop explosion.
 - **Interoperability guardrail:** If mixing with Base UI primitives, document the boundary and keep one clear owner per interaction.
 
 ## Workflow
@@ -40,7 +40,7 @@ Use this skill whenever selecting, installing, composing, or customizing shadcn/
 - [ ] Existing shadcn component evaluated before creating new primitive
 - [ ] Token-based styling used (no unnecessary arbitrary values)
 - [ ] `cn()` and variants are consistent with existing patterns
-- [ ] `asChild` and composition semantics are correct
+- [ ] `render` prop and composition semantics are correct
 - [ ] a11y behavior (focus, keyboard, ARIA) preserved
 
 ### Review checklist

@@ -1,10 +1,11 @@
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import { CheckSquare, Plus, Clock } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
@@ -68,14 +69,15 @@ export function TasksPreview({ tasks }: TasksPreviewProps) {
           ))}
         </div>
         <div className="p-4 bg-zinc-50/50">
-          <Button
-            variant="outline"
-            size="sm"
-            className="h-8 w-full rounded-md border-zinc-200 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 shadow-sm"
-            asChild
+          <Link
+            href="/tasks"
+            className={cn(
+              buttonVariants({ variant: "outline", size: "sm" }),
+              "h-8 w-full rounded-md border-zinc-200 text-[10px] font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-900 hover:border-zinc-300 shadow-sm",
+            )}
           >
-            <Link href="/tasks">Enterprise Task Manager</Link>
-          </Button>
+            Enterprise Task Manager
+          </Link>
         </div>
       </CardContent>
     </Card>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -17,17 +17,8 @@ export function CheckboxCell<TData>({
   label,
   indeterminate = false,
 }: CheckboxCellProps<TData>) {
-  const checkboxRef = useRef<HTMLButtonElement>(null);
-
-  useEffect(() => {
-    if (checkboxRef.current && indeterminate) {
-      checkboxRef.current.dataset.state = "indeterminate";
-    }
-  }, [indeterminate]);
-
   const handleChange = useCallback(
-    (checked: boolean | "indeterminate") => {
-      if (checked === "indeterminate") return;
+    (checked: boolean) => {
       onValueChange?.(checked);
       onEditComplete?.();
     },
@@ -37,8 +28,8 @@ export function CheckboxCell<TData>({
   return (
     <div className={cn("flex items-center gap-2", className)}>
       <Checkbox
-        ref={checkboxRef}
-        checked={indeterminate ? "indeterminate" : value}
+        checked={value}
+        indeterminate={indeterminate}
         onCheckedChange={handleChange}
         disabled={disabled}
         className="shrink-0"

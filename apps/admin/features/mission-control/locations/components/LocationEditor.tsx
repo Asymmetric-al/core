@@ -263,7 +263,7 @@ export function LocationEditor({
                                 value === "__empty" ? null : value,
                               )
                             }
-                            value={field.state.value ?? undefined}
+                            value={field.state.value ?? null}
                           >
                             <SelectTrigger className="rounded-xl border-zinc-200">
                               <SelectValue

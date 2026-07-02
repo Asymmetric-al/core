@@ -9,7 +9,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
@@ -74,7 +74,7 @@ const PUBLIC_UPDATES = [
 const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
   <div className="group relative pl-8 pb-12 last:pb-0">
     <div className="absolute left-[11px] top-3 bottom-0 w-px bg-zinc-100 group-last:hidden" />
-    <div className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-blue-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-[background-color,transform] duration-300">
+    <div className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-blue-100 group-hover:scale-110 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300">
       <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-blue-600 transition-colors" />
     </div>
 
@@ -91,7 +91,7 @@ const UpdateCard = ({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) => (
         </Badge>
       </div>
 
-      <Card className="border-zinc-200 shadow-sm overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-300 bg-white group/card">
+      <Card className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 bg-white group/card">
         <CardContent className="p-5">
           {update.title && (
             <h4 className="font-semibold text-zinc-900 mb-2 text-lg">
@@ -314,13 +314,13 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
               <TabsList className="w-full justify-start border-b border-zinc-200 bg-transparent h-auto p-0 mb-8 gap-8">
                 <TabsTrigger
                   value="story"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-zinc-500 data-[state=active]:text-zinc-900 transition-colors hover:text-zinc-700 text-base"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none px-0 py-3 font-semibold text-zinc-500 data-active:text-zinc-900 transition-colors hover:text-zinc-700 text-base"
                 >
                   Our Story
                 </TabsTrigger>
                 <TabsTrigger
                   value="updates"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none px-0 py-3 font-semibold text-zinc-500 data-[state=active]:text-zinc-900 transition-colors hover:text-zinc-700 text-base flex items-center gap-2"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none px-0 py-3 font-semibold text-zinc-500 data-active:text-zinc-900 transition-colors hover:text-zinc-700 text-base flex items-center gap-2"
                 >
                   Field Journal{" "}
                   <Badge className="bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border-none h-5 px-1.5 text-[10px]">
@@ -331,14 +331,14 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
 
               <TabsContent
                 value="story"
-                className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-200"
+                className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
                 <WorkerStoryTabContent worker={worker} />
               </TabsContent>
 
               <TabsContent
                 value="updates"
-                className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-200"
+                className="outline-none animate-in fade-in slide-in-from-bottom-4 duration-500"
               >
                 <WorkerUpdatesTabContent workerTitle={worker.title} />
               </TabsContent>
@@ -367,7 +367,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     <button
                       onClick={() => setFrequency("one-time")}
                       className={cn(
-                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-[color,background-color,box-shadow] relative z-10",
+                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 relative z-10",
                         frequency === "one-time"
                           ? "bg-white text-zinc-900 shadow-sm"
                           : "text-zinc-500 hover:text-zinc-700",
@@ -378,7 +378,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     <button
                       onClick={() => setFrequency("monthly")}
                       className={cn(
-                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-[color,background-color,box-shadow] relative z-10",
+                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 relative z-10",
                         frequency === "monthly"
                           ? "bg-white text-blue-600 shadow-sm"
                           : "text-zinc-500 hover:text-zinc-700",
@@ -391,7 +391,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                   <div className="space-y-4">
                     <div
                       className={cn(
-                        "relative h-14 rounded-xl border-2 transition-colors bg-white flex items-center overflow-hidden cursor-text group",
+                        "relative h-14 rounded-xl border-2 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 bg-white flex items-center overflow-hidden cursor-text group",
                         isInputFocused
                           ? "border-blue-600 ring-4 ring-blue-50/50"
                           : "border-zinc-200 hover:border-zinc-300",
@@ -412,7 +412,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                         id="custom-amount-input"
                         type="number"
                         placeholder="0"
-                        className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                         value={customAmount}
                         onChange={handleCustomAmountChange}
                         onFocus={() => setIsInputFocused(true)}
@@ -459,19 +459,17 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     />
                   </div>
 
-                  <Button
-                    size="lg"
-                    className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle"
-                    asChild
+                  <Link
+                    href={`/checkout?workerId=${worker.id}&amount=${amount}&frequency=${frequency}`}
+                    className={cn(
+                      buttonVariants({ size: "lg" }),
+                      "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle",
+                    )}
                   >
-                    <Link
-                      href={`/checkout?workerId=${worker.id}&amount=${amount}&frequency=${frequency}`}
-                    >
-                      {frequency === "monthly"
-                        ? `Give ${formatCurrency(amount)} Monthly`
-                        : `Give ${formatCurrency(amount)}`}
-                    </Link>
-                  </Button>
+                    {frequency === "monthly"
+                      ? `Give ${formatCurrency(amount)} Monthly`
+                      : `Give ${formatCurrency(amount)}`}
+                  </Link>
 
                   <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
                     <ShieldCheck className="size-3.5 text-emerald-500" /> Secure

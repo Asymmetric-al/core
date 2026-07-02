@@ -13,7 +13,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import {
   type ColumnDef,
@@ -269,7 +269,7 @@ function StatCard({
       whileHover={{ y: -2, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       className={cn(
-        "border-zinc-200 bg-white shadow-sm transition-[border-color,box-shadow] rounded-xl",
+        "border-zinc-200 bg-white shadow-sm transition-[color,background-color,border-color,box-shadow,transform,opacity] rounded-xl",
         onClick && "cursor-pointer",
         isActive && "border-blue-400 ring-2 ring-blue-100",
       )}
@@ -931,15 +931,13 @@ export function DonorsPageContent({
             missionaryId={profile.id}
             onSuccess={refreshDonors}
             trigger={
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                whileTap={{ scale: 0.98 }}
+              <Button
+                size="sm"
+                className="h-9 px-4 text-xs font-medium hover-scale-subtle"
               >
-                <Button size="sm" className="h-9 px-4 text-xs font-medium">
-                  <Plus className="mr-2 size-4" />
-                  Add Partner
-                </Button>
-              </motion.div>
+                <Plus className="mr-2 size-4" />
+                Add Partner
+              </Button>
             }
           />
         )}
@@ -1008,15 +1006,17 @@ export function DonorsPageContent({
                 </h2>
                 <div className="flex gap-1">
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
-                      >
-                        <ArrowDownUp className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 text-zinc-400 hover:text-zinc-900 rounded-lg"
+                        >
+                          <ArrowDownUp className="size-4" />
+                        </Button>
+                      }
+                    />
                     <DropdownMenuContent
                       align="end"
                       className="w-48 rounded-xl border-zinc-100 shadow-xl"
@@ -1053,20 +1053,22 @@ export function DonorsPageContent({
                     </DropdownMenuContent>
                   </DropdownMenu>
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className={cn(
-                          "size-8 rounded-lg",
-                          hasActiveFilters
-                            ? "text-blue-600 bg-blue-50"
-                            : "text-zinc-400 hover:text-zinc-900",
-                        )}
-                      >
-                        <Filter className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className={cn(
+                            "size-8 rounded-lg",
+                            hasActiveFilters
+                              ? "text-blue-600 bg-blue-50"
+                              : "text-zinc-400 hover:text-zinc-900",
+                          )}
+                        >
+                          <Filter className="size-4" />
+                        </Button>
+                      }
+                    />
                     <DropdownMenuContent
                       align="end"
                       className="w-56 rounded-xl border-zinc-100 shadow-xl max-h-[400px] overflow-y-auto"
@@ -1140,7 +1142,7 @@ export function DonorsPageContent({
                 <Search className="absolute left-3 top-2.5 size-4 text-zinc-400" />
                 <Input
                   placeholder="Search partners..."
-                  className="pl-9 bg-zinc-50 border-zinc-100 focus:bg-white focus:border-zinc-300 transition-colors h-10 rounded-xl text-sm"
+                  className="pl-9 bg-zinc-50 border-zinc-100 focus:bg-white focus:border-zinc-300 transition-[color,background-color,border-color,box-shadow,transform,opacity] h-10 rounded-xl text-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -1415,44 +1417,46 @@ export function DonorsPageContent({
                           whileTap={{ scale: 0.98 }}
                           className="flex-1 sm:flex-none"
                         >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50"
-                            asChild
+                          <a
+                            href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}
+                            className={cn(
+                              buttonVariants({
+                                variant: "outline",
+                                size: "sm",
+                              }),
+                              "w-full h-9 px-4 text-xs font-medium rounded-xl border-zinc-200 hover:bg-zinc-50",
+                            )}
                           >
-                            <a
-                              href={`tel:${selectedDonor.phone || selectedDonor.mobile}`}
-                            >
-                              <Phone className="size-3.5 mr-1.5" /> Call
-                            </a>
-                          </Button>
+                            <Phone className="size-3.5 mr-1.5" /> Call
+                          </a>
                         </motion.div>
                         <motion.div
                           whileHover={{ scale: 1.02 }}
                           whileTap={{ scale: 0.98 }}
                           className="flex-1 sm:flex-none"
                         >
-                          <Button
-                            size="sm"
-                            className="w-full h-9 px-4 text-xs font-medium rounded-xl"
-                            asChild
+                          <a
+                            href={`mailto:${selectedDonor.email}`}
+                            className={cn(
+                              buttonVariants({ size: "sm" }),
+                              "w-full h-9 px-4 text-xs font-medium rounded-xl",
+                            )}
                           >
-                            <a href={`mailto:${selectedDonor.email}`}>
-                              <Mail className="size-3.5 mr-1.5" /> Email
-                            </a>
-                          </Button>
+                            <Mail className="size-3.5 mr-1.5" /> Email
+                          </a>
                         </motion.div>
                         <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
-                            >
-                              <MoreHorizontal className="size-5" />
-                            </Button>
-                          </DropdownMenuTrigger>
+                          <DropdownMenuTrigger
+                            render={
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="size-9 text-zinc-400 rounded-xl hover:bg-zinc-100"
+                              >
+                                <MoreHorizontal className="size-5" />
+                              </Button>
+                            }
+                          />
                           <DropdownMenuContent
                             align="end"
                             className="rounded-xl border-zinc-100 shadow-xl"
@@ -1652,7 +1656,7 @@ export function DonorsPageContent({
                           <TabsTrigger
                             key={tab}
                             value={tab}
-                            className="rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 data-[state=active]:text-zinc-900 transition-[color,background-color,box-shadow]"
+                            className="rounded-xl data-active:bg-white data-active:shadow-sm px-4 sm:px-6 py-2 text-[10px] font-semibold uppercase tracking-widest text-zinc-400 data-active:text-zinc-900 transition-colors"
                           >
                             {tab === "overview"
                               ? "Overview"
@@ -1818,7 +1822,7 @@ export function DonorsPageContent({
                                             boxShadow:
                                               "0 8px 30px rgba(0,0,0,0.08)",
                                           }}
-                                          className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-colors"
+                                          className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                                         >
                                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
                                             <div className="space-y-1">
@@ -1964,7 +1968,7 @@ export function DonorsPageContent({
                                     variants={fadeInUp}
                                     transition={{ delay: i * 0.05 }}
                                     whileHover={{ y: -2 }}
-                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-colors"
+                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                                   >
                                     <div className="flex items-center gap-3">
                                       <div
@@ -2025,7 +2029,7 @@ export function DonorsPageContent({
                                   <motion.div
                                     variants={fadeInUp}
                                     whileHover={{ y: -2 }}
-                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-colors"
+                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -2044,26 +2048,26 @@ export function DonorsPageContent({
                                       whileHover={{ scale: 1.1 }}
                                       whileTap={{ scale: 0.97 }}
                                     >
-                                      <Button
-                                        variant="ghost"
-                                        size="icon"
-                                        className="size-9 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-xl shrink-0"
-                                        asChild
+                                      <a
+                                        href={
+                                          selectedDonor.website.startsWith(
+                                            "http",
+                                          )
+                                            ? selectedDonor.website
+                                            : `https://${selectedDonor.website}`
+                                        }
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                        className={cn(
+                                          buttonVariants({
+                                            variant: "ghost",
+                                            size: "icon",
+                                          }),
+                                          "size-9 text-zinc-400 hover:text-primary hover:bg-primary/10 rounded-xl shrink-0",
+                                        )}
                                       >
-                                        <a
-                                          href={
-                                            selectedDonor.website.startsWith(
-                                              "http",
-                                            )
-                                              ? selectedDonor.website
-                                              : `https://${selectedDonor.website}`
-                                          }
-                                          target="_blank"
-                                          rel="noopener noreferrer"
-                                        >
-                                          <ExternalLink className="size-4" />
-                                        </a>
-                                      </Button>
+                                        <ExternalLink className="size-4" />
+                                      </a>
                                     </motion.div>
                                   </motion.div>
                                 )}
@@ -2119,20 +2123,20 @@ export function DonorsPageContent({
                                         whileHover={{ scale: 1.1 }}
                                         whileTap={{ scale: 0.97 }}
                                       >
-                                        <Button
-                                          variant="ghost"
-                                          size="icon"
-                                          className="size-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0"
-                                          asChild
+                                        <a
+                                          href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className={cn(
+                                            buttonVariants({
+                                              variant: "ghost",
+                                              size: "icon",
+                                            }),
+                                            "size-9 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-xl shrink-0",
+                                          )}
                                         >
-                                          <a
-                                            href={`https://maps.google.com/?q=${encodeURIComponent(formatAddress(selectedDonor.address).join(", "))}`}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                          >
-                                            <ExternalLink className="size-4" />
-                                          </a>
-                                        </Button>
+                                          <ExternalLink className="size-4" />
+                                        </a>
                                       </motion.div>
                                     )}
                                   </div>
@@ -2317,7 +2321,7 @@ export function DonorsPageContent({
                                       transition={{ delay: i * 0.1 }}
                                       whileHover={{ y: -2 }}
                                       className={cn(
-                                        "p-5 rounded-2xl border transition-colors",
+                                        "p-5 rounded-2xl border transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                                         recurring.status === "active"
                                           ? "bg-linear-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200"
                                           : "bg-zinc-50 border-zinc-200",
@@ -2711,7 +2715,7 @@ export function DonorsPageContent({
                   whileTap={{ scale: 0.98 }}
                   onClick={() => tagEditor.toggleTag(tag.id)}
                   className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-[color,background-color,border-color,box-shadow]",
+                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                     tagEditor.selectedTags.includes(tag.id)
                       ? cn(tag.color, "ring-2 ring-offset-1 ring-zinc-400")
                       : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",
