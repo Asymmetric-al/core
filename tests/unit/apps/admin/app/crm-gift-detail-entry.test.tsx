@@ -486,6 +486,78 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(view.getAllByText("Alice Johnson").length).toBeGreaterThan(0);
   });
 
+  it("smart close returns to the donor drawer with route state preserved", async () => {
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayload,
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const giftButton = await view.findByRole("button", {
+      name: /open gift detail for \$250\.00/i,
+    });
+    fireEvent.click(giftButton);
+    const closeButton = await view.findByRole("button", {
+      name: /close contribution details/i,
+    });
+
+    fireEvent.click(closeButton);
+
+    // Smart close (ADR-CD-023): only the gift selection leaves route state;
+    // the donor context param survives so the drawer restores on refresh.
+    expect(routerReplaceMock).toHaveBeenCalledWith(
+      `/crm?donor=${DONOR_RECORD_ID}`,
+      { scroll: false },
+    );
+    // The donor drawer never unmounted: its gift row is still present.
+    expect(
+      view.getByRole("button", { name: /open gift detail for \$250\.00/i }),
+    ).toBeTruthy();
+  });
+
+  it("restores focus to the originating gift row after closing detail", async () => {
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayload,
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const giftButton = await view.findByRole("button", {
+      name: /open gift detail for \$250\.00/i,
+    });
+    giftButton.focus();
+    fireEvent.click(giftButton);
+    const closeButton = await view.findByRole("button", {
+      name: /close contribution details/i,
+    });
+
+    fireEvent.click(closeButton);
+
+    // Focus return (ADR-CD-023): the deferred focus restore wins over the
+    // sheet's focus-trap cleanup and lands back on the opener row.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(giftButton);
+    });
+  });
+
   it("renders the next-best action and a grouped, filtered more-actions menu", async () => {
     const donationId = "00000000-0000-4000-8000-00000000d002";
     mockSearch = `donor=${DONOR_RECORD_ID}`;
