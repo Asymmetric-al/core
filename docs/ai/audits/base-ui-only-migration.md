@@ -99,7 +99,7 @@ components are ported.
 ## Component family migration map (Radix → Base UI)
 
 | Family                               | Radix API                                                          | Base UI API                                                       | Consumer impact                                 |
-| ------------------------------------ | ------------------------------------------------------------------ | ----------------------------------------------------------------- | ----------------------------------------------- | ----------------- |
+| ------------------------------------ | ------------------------------------------------------------------ | ----------------------------------------------------------------- | ----------------------------------------------- |
 | Slot composition                     | `asChild` + `Slot`                                                 | `render` prop / `useRender`                                       | All `asChild` call sites                        |
 | Dialog/AlertDialog/Sheet             | `Overlay`/`Content`/`Portal`                                       | `Backdrop`/`Popup`/`Portal`                                       | Low (wrapper API stable; triggers use `render`) |
 | Popover/Tooltip/HoverCard            | `Content` + side/align props                                       | `Positioner` + `Popup`                                            | Low                                             |
@@ -107,7 +107,7 @@ components are ported.
 | Select                               | `SelectValue placeholder`, `position="popper"`, `--radix-select-*` | `items` prop, null-value placeholder item, `alignItemWithTrigger` | Audit each Select call site                     |
 | Tabs                                 | string value, `data-state=active`                                  | value any, `data-active`                                          | donor/admin tab styling selectors               |
 | Accordion                            | `type="single" collapsible`, string defaultValue                   | array values, `multiple` boolean                                  | Update call sites                               |
-| ToggleGroup                          | `type="single" \| "multiple"`                                      | `multiple` boolean, array values                | Update call sites                               |
+| ToggleGroup                          | `type="single" \| "multiple"`                                      | `multiple` boolean, array values                                  | Update call sites                               |
 | Slider                               | array values always                                                | scalar for single thumb                                           | Update call sites                               |
 | Checkbox/Switch/RadioGroup           | `data-state=checked`                                               | `data-checked`/`data-unchecked`                                   | Styling selectors                               |
 | Progress/Avatar/Separator/ScrollArea | Radix primitives                                                   | Base UI equivalents (Meter/Avatar/Separator/ScrollArea)           | None                                            |
