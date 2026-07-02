@@ -20,7 +20,7 @@ import {
   AlertDialogTitle,
 } from "@asym/ui/components/shadcn/alert-dialog";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   DropdownMenu,
@@ -253,7 +253,7 @@ function FeedSettingsSheet({
                 <label
                   htmlFor="all_donors"
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                     visibility === "all_donors"
                       ? "border-foreground bg-muted/50"
                       : "border-border hover:bg-muted/30",
@@ -281,7 +281,7 @@ function FeedSettingsSheet({
                 <label
                   htmlFor="followers_only"
                   className={cn(
-                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-colors",
+                    "flex items-center gap-3 p-3 rounded-xl border cursor-pointer transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                     visibility === "followers_only"
                       ? "border-foreground bg-muted/50"
                       : "border-border hover:bg-muted/30",
@@ -387,7 +387,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-shadow rounded-2xl sm:rounded-3xl bg-card"
+        className="overflow-hidden border shadow-sm hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -436,20 +436,19 @@ function PostCard({
             </div>
           </div>
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <motion.div
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
-                >
-                  <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
-                </Button>
-              </motion.div>
-            </DropdownMenuTrigger>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl transition-colors"
+                  >
+                    <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
+                  </Button>
+                }
+              />
+            </motion.div>
             <DropdownMenuContent
               align="end"
               className="rounded-xl border shadow-lg p-2 min-w-[160px]"
@@ -567,7 +566,7 @@ function DraftCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg transition-shadow rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
+        className="overflow-hidden border hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6"
       >
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6">
           <div className="flex-1 min-w-0 space-y-3">
@@ -863,27 +862,29 @@ function ComposeCardActions({
         </motion.div>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
-              >
-                {visibility === "public" ? (
-                  <Globe className="size-3" />
-                ) : visibility === "partners" ? (
-                  <Users className="size-3" />
-                ) : (
-                  <Lock className="size-3" />
-                )}
-                <span className="hidden sm:inline capitalize">
-                  {visibility === "partners" ? "Partners" : visibility}
-                </span>
-                <ChevronDown className="size-2.5 opacity-40" />
-              </Button>
-            </motion.div>
-          </DropdownMenuTrigger>
+          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border transition-colors"
+                >
+                  {visibility === "public" ? (
+                    <Globe className="size-3" />
+                  ) : visibility === "partners" ? (
+                    <Users className="size-3" />
+                  ) : (
+                    <Lock className="size-3" />
+                  )}
+                  <span className="hidden sm:inline capitalize">
+                    {visibility === "partners" ? "Partners" : visibility}
+                  </span>
+                  <ChevronDown className="size-2.5 opacity-40" />
+                </Button>
+              }
+            />
+          </motion.div>
           <DropdownMenuContent
             align="start"
             className="rounded-xl border shadow-lg p-1.5 min-w-[160px]"
@@ -1062,7 +1063,7 @@ function ComposeCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0"
+            className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <RichTextEditor
               value={postContent}
@@ -1110,7 +1111,12 @@ function LoadingState() {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center py-16 sm:py-24 gap-4"
     >
-      <Loader2 className="spinner-essential size-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
+      >
+        <Loader2 className="size-10 sm:h-12 sm:w-12 text-muted-foreground/30" />
+      </motion.div>
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
@@ -1239,8 +1245,6 @@ function OrgUpdatesTabsSection({
   onDelete: (postId: string) => void;
   onTogglePin: (postId: string) => void;
 }) {
-  // Suppress the cards' first-mount stagger when the route VT owns the page
-  // entrance; AnimatePresence still animates later add/remove/pin (popLayout).
   const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   return (
@@ -1259,13 +1263,13 @@ function OrgUpdatesTabsSection({
         <TabsList className="bg-muted/50 p-1 rounded-xl h-auto border backdrop-blur-sm">
           <TabsTrigger
             value="published"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow]"
           >
             Published
           </TabsTrigger>
           <TabsTrigger
             value="draft"
-            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-[state=active]:bg-card data-[state=active]:shadow-sm data-[state=active]:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
+            className="rounded-lg px-4 sm:px-6 py-2 font-semibold text-[10px] uppercase tracking-wider data-active:bg-card data-active:shadow-sm data-active:text-foreground text-muted-foreground transition-[color,background-color,box-shadow] flex items-center gap-2"
           >
             Drafts
             <AnimatePresence>
@@ -1458,16 +1462,16 @@ export default function OrgUpdatesPage() {
         density="compact"
         actions={
           <>
-            <Button
-              variant="outline"
-              className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"
-              asChild
+            <Link
+              href="/feed"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50",
+              )}
             >
-              <Link href="/feed">
-                <Eye className="mr-2 size-4" />
-                Moderation
-              </Link>
-            </Button>
+              <Eye className="mr-2 size-4" />
+              Moderation
+            </Link>
             <Button
               variant="outline"
               className="h-11 rounded-xl border-zinc-200 bg-white font-semibold uppercase tracking-widest text-[10px] shadow-sm hover:bg-zinc-50"

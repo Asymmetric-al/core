@@ -82,9 +82,8 @@ export function TaskTable({
             <tr className="border-b border-border bg-muted/30">
               <th className="w-14 p-4">
                 <Checkbox
-                  checked={
-                    allSelected ? true : someSelected ? "indeterminate" : false
-                  }
+                  checked={allSelected}
+                  indeterminate={!allSelected && someSelected}
                   onCheckedChange={(checked) => {
                     if (checked) onSelectAll(tasks.map((t) => t.id));
                     else onSelectAll([]);
@@ -262,15 +261,17 @@ export function TaskTable({
                     </td>
                     <td className="p-4" onClick={(e) => e.stopPropagation()}>
                       <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
+                        <DropdownMenuTrigger
+                          render={
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="size-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          }
+                        />
                         <DropdownMenuContent align="end" className="w-40">
                           <DropdownMenuItem onClick={() => onEdit(task)}>
                             <Edit2 className="size-4 mr-2" />

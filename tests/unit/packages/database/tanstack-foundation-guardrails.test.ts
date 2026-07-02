@@ -45,7 +45,9 @@ describe("TanStack foundation guardrails", () => {
     // reference tables. Growth-prone tables must go through a bounded fetcher,
     // so pin the helper's call sites to exactly the reference tables.
     const fetchTableRowsTargets = [
-      ...clientDbSource.matchAll(/fetchTableRows<[\s\S]*?>\(\s*"([a-z_]+)"/g),
+      ...clientDbSource.matchAll(
+        /fetchTableRows(?:<[\s\S]*?>)?\(\s*"([a-z_]+)"/g,
+      ),
     ]
       .map((match) => match[1])
       .sort();

@@ -1300,25 +1300,25 @@ export default function EventsPage() {
           <TabsList className="rounded-xl border border-zinc-200 bg-zinc-100/50 p-1">
             <TabsTrigger
               value="dashboard"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="config"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Configuration
             </TabsTrigger>
             <TabsTrigger
               value="speakers"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Speakers
             </TabsTrigger>
             <TabsTrigger
               value="attendees"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Attendees
             </TabsTrigger>

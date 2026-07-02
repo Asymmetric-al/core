@@ -103,16 +103,18 @@ export function GiftInlineActionControls({
         </span>
       ) : null}
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground"
-            aria-label="More gift actions"
-          >
-            <MoreHorizontal className="size-4" aria-hidden="true" />
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground"
+              aria-label="More gift actions"
+            >
+              <MoreHorizontal className="size-4" aria-hidden="true" />
+            </Button>
+          }
+        />
         <DropdownMenuContent align="end" className="w-64">
           {groups.map((group, index) => (
             <DropdownMenuGroup key={group.category}>
@@ -127,7 +129,7 @@ export function GiftInlineActionControls({
                     entry.available ? undefined : "text-muted-foreground"
                   }
                   disabled={!entry.available}
-                  onSelect={() => {
+                  onClick={() => {
                     if (entry.available) {
                       onRunOperation(definition);
                     }

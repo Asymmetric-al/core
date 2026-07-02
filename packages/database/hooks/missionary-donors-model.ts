@@ -123,6 +123,27 @@ function normalizeDonorStatus(
   }
 }
 
+function normalizeDonorAddress(value: unknown): MissionaryDonorAddress {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const record = value as Record<string, unknown>;
+  const readString = (key: keyof MissionaryDonorAddress) => {
+    const field = record[key];
+    return typeof field === "string" ? field : undefined;
+  };
+
+  return {
+    street: readString("street"),
+    street2: readString("street2"),
+    city: readString("city"),
+    state: readString("state"),
+    zip: readString("zip"),
+    country: readString("country"),
+  };
+}
+
 function normalizeActivityStatus(
   value: string | null | undefined,
 ): string | undefined {
@@ -310,9 +331,9 @@ export function buildMissionaryDonorRows(
       preferred_contact: normalizePreferredContact(donor.preferred_contact),
       avatar_url: donor.avatar_url ?? undefined,
       location: donor.location ?? "",
-      address: (donor.address ?? {}) as MissionaryDonorAddress,
+      address: normalizeDonorAddress(donor.address),
       work_address: donor.work_address
-        ? (donor.work_address as MissionaryDonorAddress)
+        ? normalizeDonorAddress(donor.work_address)
         : undefined,
       website: donor.website ?? undefined,
       organization: donor.organization ?? undefined,

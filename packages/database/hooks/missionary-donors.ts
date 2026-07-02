@@ -74,6 +74,9 @@ export function useMissionaryDonorRows(
     setIsLoadingMore(true);
     try {
       await pagination.loadMore();
+    } catch (error) {
+      console.error("Failed to load more missionary donor rows", error);
+      throw error;
     } finally {
       setIsLoadingMore(false);
     }

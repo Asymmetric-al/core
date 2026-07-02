@@ -239,21 +239,23 @@ function TaskDueDateSection({ form }: { form: TaskFormApi }) {
               </FieldLabel>
               <FieldContent>
                 <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      className={cn(
-                        "w-full justify-start rounded-xl text-left text-sm font-normal",
-                        !field.state.value && "text-muted-foreground",
-                      )}
-                      type="button"
-                      variant="outline"
-                    >
-                      <CalendarIcon className="mr-2 size-4" />
-                      {field.state.value
-                        ? format(field.state.value, "PPP")
-                        : "Pick a date"}
-                    </Button>
-                  </PopoverTrigger>
+                  <PopoverTrigger
+                    render={
+                      <Button
+                        className={cn(
+                          "w-full justify-start rounded-xl text-left text-sm font-normal",
+                          !field.state.value && "text-muted-foreground",
+                        )}
+                        type="button"
+                        variant="outline"
+                      >
+                        <CalendarIcon className="mr-2 size-4" />
+                        {field.state.value
+                          ? format(field.state.value, "PPP")
+                          : "Pick a date"}
+                      </Button>
+                    }
+                  />
                   <PopoverContent
                     align="start"
                     className="w-auto rounded-2xl p-0"
@@ -383,16 +385,18 @@ function TaskLinkedRecordSection({
                 onOpenChange={onEntitySearchOpenChange}
                 open={isEntitySearchOpen}
               >
-                <PopoverTrigger asChild>
-                  <Button
-                    className="w-full justify-start rounded-xl text-sm text-muted-foreground"
-                    type="button"
-                    variant="outline"
-                  >
-                    <Plus className="mr-2 size-4" />
-                    Link a donor, missionary, or contact…
-                  </Button>
-                </PopoverTrigger>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      className="w-full justify-start rounded-xl text-sm text-muted-foreground"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Plus className="mr-2 size-4" />
+                      Link a donor, missionary, or contact…
+                    </Button>
+                  }
+                />
                 <PopoverContent
                   align="start"
                   className="w-[400px] rounded-2xl p-0"
@@ -671,17 +675,19 @@ function TaskTagsSection({
               ) : null}
 
               <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    className="w-full justify-start rounded-xl text-sm text-muted-foreground"
-                    size="sm"
-                    type="button"
-                    variant="outline"
-                  >
-                    <Plus className="mr-2 size-4" />
-                    Add tags…
-                  </Button>
-                </PopoverTrigger>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      className="w-full justify-start rounded-xl text-sm text-muted-foreground"
+                      size="sm"
+                      type="button"
+                      variant="outline"
+                    >
+                      <Plus className="mr-2 size-4" />
+                      Add tags…
+                    </Button>
+                  }
+                />
                 <PopoverContent
                   align="start"
                   className="w-[320px] rounded-2xl p-0"

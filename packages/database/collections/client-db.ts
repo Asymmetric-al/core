@@ -101,6 +101,9 @@ interface BoundedTableFetcher<TItem> extends BoundedCollectionPagination {
   queryFn: () => Promise<TItem[]>;
 }
 
+/** Supabase Data API / PostgREST default max rows per response. */
+const POSTGREST_MAX_ROWS = 1000;
+
 /**
  * Bounded fetch window with offset continuation for query-db collections.
  *
@@ -144,26 +147,39 @@ export function createBoundedTableFetcher<
     const selectClause = options.embedSelect
       ? `*, ${options.embedSelect}`
       : "*";
-    let query = getSupabase().from(options.table).select(selectClause);
-    for (const filter of options.filters ?? []) {
-      query = query.eq(filter.column, filter.value);
+
+    const buildQuery = () => {
+      let query = getSupabase().from(options.table).select(selectClause);
+      for (const filter of options.filters ?? []) {
+        query = query.eq(filter.column, filter.value);
+      }
+      return query
+        .order(options.orderBy.column, {
+          ascending: options.orderBy.ascending,
+          nullsFirst: false,
+        })
+        .order("id", { ascending: true });
+    };
+
+    // PostgREST caps each response at db.max_rows (1,000 by default). When the
+    // logical window exceeds that, fetch in chunks and concatenate so loadMore
+    // can still grow past the cap without falsely reporting end-of-data.
+    const rawRows: Record<string, unknown>[] = [];
+    for (let offset = 0; offset < windowSize; offset += POSTGREST_MAX_ROWS) {
+      const chunkSize = Math.min(POSTGREST_MAX_ROWS, windowSize - offset);
+      const { data, error } = await buildQuery().range(
+        offset,
+        offset + chunkSize - 1,
+      );
+      if (error) {
+        throw error;
+      }
+      const chunk = (data ?? []) as unknown as Record<string, unknown>[];
+      rawRows.push(...chunk);
+      if (chunk.length < chunkSize) {
+        break;
+      }
     }
-    const { data, error } = await query
-      // Null sort values sort last so real rows fill the window, not nulls.
-      .order(options.orderBy.column, {
-        ascending: options.orderBy.ascending,
-        nullsFirst: false,
-      })
-      // Tie-break on the primary key so window boundaries stay deterministic.
-      .order("id", { ascending: true })
-      .range(0, windowSize - 1);
-    if (error) {
-      throw error;
-    }
-    // The select string is built at runtime (and may carry an embed), so
-    // postgrest-js can't statically type the rows; the error path above is the
-    // real guard. Cast through `unknown` per the repo's query idiom.
-    const rawRows = (data ?? []) as unknown as Record<string, unknown>[];
     setFilledWindow(rawRows.length >= windowSize);
     if (omitKeys.length === 0) {
       return rawRows as TItem[];

@@ -34,6 +34,37 @@ interface QueryResult {
  * and record every call so assertions can pin window/order/filter behavior.
  * `range` is the terminal that resolves to the query result.
  */
+function mockSupabaseRange(
+  rangeResults: Array<{ from: number; to: number; rows: Row[] }>,
+) {
+  const calls: BuilderCalls = { select: [], eq: [], order: [], range: [] };
+  const builder = {
+    select: vi.fn((clause: string) => {
+      calls.select.push(clause);
+      return builder;
+    }),
+    eq: vi.fn((column: string, value: unknown) => {
+      calls.eq.push([column, value]);
+      return builder;
+    }),
+    order: vi.fn((column: string, options: unknown) => {
+      calls.order.push([column, options]);
+      return builder;
+    }),
+    range: vi.fn((from: number, to: number) => {
+      calls.range.push([from, to]);
+      const match =
+        rangeResults.find((entry) => entry.from === from && entry.to === to) ??
+        rangeResults.find((entry) => entry.from === from);
+      const rows = match?.rows ?? [];
+      return Promise.resolve({ data: rows, error: null });
+    }),
+  };
+  const from = vi.fn(() => builder);
+  createClientMock.mockReturnValue({ from });
+  return { calls, from };
+}
+
 function mockSupabase(result: QueryResult) {
   const calls: BuilderCalls = { select: [], eq: [], order: [], range: [] };
   const builder = {
@@ -241,5 +272,27 @@ describe("createBoundedTableFetcher", () => {
     const fetcher = donorsFetcher();
 
     await expect(fetcher.queryFn()).rejects.toEqual({ message: "boom" });
+  });
+
+  it("fetches windows larger than the PostgREST row cap in sequential chunks", async () => {
+    const firstChunk = makeRows(1000);
+    const secondChunk = makeRows(200).map((row, index) => ({
+      ...row,
+      id: `row-${1000 + index}`,
+    }));
+    const { calls } = mockSupabaseRange([
+      { from: 0, to: 999, rows: firstChunk },
+      { from: 1000, to: 1199, rows: secondChunk },
+    ]);
+    const fetcher = donorsFetcher({ pageSize: 1200 });
+
+    const rows = await fetcher.queryFn();
+
+    expect(calls.range).toEqual([
+      [0, 999],
+      [1000, 1199],
+    ]);
+    expect(rows).toHaveLength(1200);
+    expect(fetcher.hasMore()).toBe(true);
   });
 });
