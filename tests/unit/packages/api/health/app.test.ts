@@ -82,6 +82,20 @@ describe("app health handler", () => {
     expect(query.limit).toHaveBeenCalledWith(1);
   });
 
+  it("normalizes custom target release metadata", async () => {
+    process.env.SKIP_ENV_VALIDATION = "1";
+    process.env.VERCEL_ENV = "preview";
+    process.env.VERCEL_TARGET_ENV = " Core-Development ";
+    const GET = createAppHealthHandler("admin");
+
+    const response = await GET();
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body.observability.release.environment).toBe("core-development");
+    expect(createClientMock).not.toHaveBeenCalled();
+  });
+
   it("returns degraded with sanitized provider errors", async () => {
     mockClientWithQuery({
       data: null,
