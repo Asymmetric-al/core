@@ -344,6 +344,12 @@ describe("contribution operations detail read model", () => {
     expect(detail.stagedGift).toBeNull();
     expect(detail.shared.amountCents).toBe(7_500);
     expect(detail.shared.designationSummary.fundName).toBe("General Fund");
+    // Receipt state stays a normal workflow state, not an error: without a
+    // staged gift the receipt has simply not been produced yet (#258).
+    expect(detail.receipt.status).toBe("pending");
+    expect(detail.shared.receiptStatus).toBe("pending");
+    // Donor context renders for read-only gifts.
+    expect(detail.donor.name).toBe("Legacy Donor");
 
     const workflowEntries = detail.actionAvailability.filter((entry) =>
       ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
