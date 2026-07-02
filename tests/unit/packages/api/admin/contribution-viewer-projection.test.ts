@@ -1,7 +1,19 @@
 import { describe, expect, it } from "vitest";
 
+import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
 import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
 import { projectContributionDetailForViewer } from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
+
+const REQUEST_CAPABLE_STAFF = [
+  "contributions.view_detail",
+  "contributions.request_corrections",
+];
+
+const NO_APPROVAL_POLICY = resolveCorrectionApprovalPolicy({
+  ownership_mode: "no_approval_required",
+  suppressed_gates: [],
+  stronger_approval_categories: [],
+});
 
 function makeDetail() {
   return buildContributionDetail({
@@ -49,27 +61,125 @@ function makeDetail() {
 }
 
 describe("admin/contribution-operations/viewer-projection", () => {
-  it("redacts provider identifiers and provider actions for normal staff", () => {
-    const projected = projectContributionDetailForViewer(makeDetail(), [
-      "contributions.view_detail",
-      "contributions.request_corrections",
-    ]);
+  it("redacts provider identifiers for normal staff while keeping request affordances", () => {
+    const projected = projectContributionDetailForViewer(
+      makeDetail(),
+      REQUEST_CAPABLE_STAFF,
+    );
 
     expect(projected.payment.stripe.paymentIntentId).toBeNull();
     expect(projected.payment.stripe.chargeId).toBeNull();
     expect(projected.payment.stripe.refundIds).toEqual([]);
     expect(projected.payment.stripe.replayContext).toBeNull();
     expect(projected.providerProof).toBeNull();
+
+    // Request-capable staff keep correction and replay request entries so the
+    // shared operation shell can open them (#270). The default policy routes
+    // these through approval, and the shared inline derivation is reused, so
+    // no raw provider identifiers leak through the entries themselves.
+    for (const actionType of ["amount_correction", "fund_correction"]) {
+      expect(
+        projected.actionAvailability.find(
+          (entry) => entry.actionType === actionType,
+        ),
+      ).toMatchObject({
+        actionType,
+        available: true,
+        blockedReason: null,
+        riskLevel: "high",
+      });
+    }
     expect(
-      projected.actionAvailability.some(
+      projected.actionAvailability.find(
         (entry) => entry.actionType === "stripe_replay",
       ),
-    ).toBe(false);
+    ).toMatchObject({
+      actionType: "stripe_replay",
+      available: true,
+      blockedReason: null,
+      riskLevel: "high",
+    });
 
     // Payment summary stays available for routine workflows.
     expect(projected.payment.status).toBe("completed");
     expect(projected.amount.value).toBe(25_000);
     expect(projected.shared.refundState).toBe("none");
+  });
+
+  it("hides request entries from viewers without request or provider capability", () => {
+    const detail = makeDetail();
+    const projected = projectContributionDetailForViewer(detail, [
+      "contributions.view_detail",
+    ]);
+
+    // Existing workflow entries are untouched; correction and replay request
+    // entries stay hidden (ADR-CD-018: unauthorized → hidden).
+    expect(projected.actionAvailability).toEqual(detail.actionAvailability);
+    expect(
+      projected.actionAvailability.some(
+        (entry) =>
+          entry.actionType === "stripe_replay" ||
+          entry.actionType === "amount_correction" ||
+          entry.actionType === "fund_correction",
+      ),
+    ).toBe(false);
+  });
+
+  it("omits request affordances when tenant policy applies corrections directly", () => {
+    const staffProjected = projectContributionDetailForViewer(
+      makeDetail(),
+      REQUEST_CAPABLE_STAFF,
+      { approvalPolicy: NO_APPROVAL_POLICY },
+    );
+
+    // A request-only viewer would be rejected by the operations route under
+    // no_approval_required, so no request entries are offered (#270 gap 2).
+    expect(
+      staffProjected.actionAvailability.some(
+        (entry) =>
+          entry.actionType === "stripe_replay" ||
+          entry.actionType === "amount_correction" ||
+          entry.actionType === "fund_correction",
+      ),
+    ).toBe(false);
+
+    // Provider operators keep the direct replay action regardless of policy.
+    const operatorProjected = projectContributionDetailForViewer(
+      makeDetail(),
+      ["contributions.use_provider_actions"],
+      { approvalPolicy: NO_APPROVAL_POLICY },
+    );
+    expect(
+      operatorProjected.actionAvailability.find(
+        (entry) => entry.actionType === "stripe_replay",
+      ),
+    ).toMatchObject({ available: true });
+    expect(
+      operatorProjected.actionAvailability.some(
+        (entry) =>
+          entry.actionType === "amount_correction" ||
+          entry.actionType === "fund_correction",
+      ),
+    ).toBe(false);
+  });
+
+  it("keeps the revision fingerprint identical across viewer and policy projections", () => {
+    const detail = makeDetail();
+
+    const staffProjected = projectContributionDetailForViewer(
+      detail,
+      REQUEST_CAPABLE_STAFF,
+    );
+    const operatorProjected = projectContributionDetailForViewer(
+      detail,
+      ["contributions.use_provider_actions"],
+      { approvalPolicy: NO_APPROVAL_POLICY },
+    );
+
+    // The viewer/policy-scoped entries are appended after the revision is
+    // computed; they must never feed the optimistic-concurrency fingerprint.
+    expect(staffProjected.revision).toBe(detail.revision);
+    expect(operatorProjected.revision).toBe(detail.revision);
   });
 
   it("exposes provider proof, dashboard links, and safe provider actions to authorized operators", () => {

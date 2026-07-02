@@ -1,5 +1,6 @@
 import { buildCrmGiftHistoryRow } from "./gift-history";
 import { ApiHttpError } from "../../../shared/http-errors";
+import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -255,44 +256,57 @@ export async function getAdminCrmDonorDetail(input: {
   const donations = donationRows.slice(0, GIFT_HISTORY_LIMIT);
 
   const donationIds = mergeUniqueIds(donations.map((donation) => donation.id));
-  const [stagedGiftResult, activityResult, pledgeResult, duplicateResult] =
-    await Promise.all([
-      donationIds.length > 0
-        ? input.supabaseAdmin
-            .from("staged_gifts")
-            .select(
-              "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
-            )
-            .eq("tenant_id", input.tenantId)
-            .in("donation_id", donationIds)
-        : Promise.resolve({ data: [], error: null }),
-      input.supabaseAdmin
-        .from("donor_activities")
-        .select("id, type, title, description, amount, date, created_at")
-        .eq("donor_id", donor.id)
-        .order("date", { ascending: false })
-        .limit(50),
-      input.supabaseAdmin
-        .from("donor_pledges")
-        .select(
-          "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
-        )
-        .eq("tenant_id", input.tenantId)
-        .eq("donor_id", donor.id)
-        .order("updated_at", { ascending: false })
-        .limit(50),
-      input.supabaseAdmin
-        .from("crm_merge_candidates")
-        .select(
-          "id, candidate_twenty_record_id, confidence, score, match_reasons",
-        )
-        .eq("tenant_id", input.tenantId)
-        .eq("source_entity_type", "donor_profile")
-        .eq("source_entity_id", donor.id)
-        .eq("status", "pending")
-        .order("score", { ascending: false })
-        .limit(10),
-    ]);
+  // The tenant approval policy is loaded once and threaded to every gift row
+  // so inline request affordances follow the real policy instead of the
+  // conservative default — otherwise no_approval_required tenants see
+  // request actions the operations route rejects (#270).
+  const [
+    stagedGiftResult,
+    activityResult,
+    pledgeResult,
+    duplicateResult,
+    approvalPolicy,
+  ] = await Promise.all([
+    donationIds.length > 0
+      ? input.supabaseAdmin
+          .from("staged_gifts")
+          .select(
+            "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
+          )
+          .eq("tenant_id", input.tenantId)
+          .in("donation_id", donationIds)
+      : Promise.resolve({ data: [], error: null }),
+    input.supabaseAdmin
+      .from("donor_activities")
+      .select("id, type, title, description, amount, date, created_at")
+      .eq("donor_id", donor.id)
+      .order("date", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("donor_pledges")
+      .select(
+        "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donor_id", donor.id)
+      .order("updated_at", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("crm_merge_candidates")
+      .select(
+        "id, candidate_twenty_record_id, confidence, score, match_reasons",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("source_entity_type", "donor_profile")
+      .eq("source_entity_id", donor.id)
+      .eq("status", "pending")
+      .order("score", { ascending: false })
+      .limit(10),
+    loadCorrectionApprovalPolicy({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+    }),
+  ]);
   assertNoError(stagedGiftResult.error, "Failed to load staged gift links.");
   assertNoError(activityResult.error, "Failed to load donor activities.");
   assertNoError(pledgeResult.error, "Failed to load donor commitments.");
@@ -408,6 +422,7 @@ export async function getAdminCrmDonorDetail(input: {
         stripeChargeId: donation.stripe_charge_id,
       },
       viewerCapabilities: input.viewerCapabilities ?? [],
+      approvalPolicy,
     });
   });
 

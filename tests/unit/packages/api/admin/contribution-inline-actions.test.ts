@@ -118,6 +118,48 @@ describe("admin/contribution-operations/inline-actions", () => {
     expect(inlineReplay?.available).toBe(false);
   });
 
+  it("finds a detail availability entry for every inline entry a viewer can open (#270)", () => {
+    // Gap 1 regression: every operation the CRM inline menu offers must have
+    // a matching entry in the projected detail contract, or the operation
+    // shell fails closed with "not available for the current gift".
+    for (const viewerCapabilities of [
+      ALL_CAPABILITIES,
+      DONOR_CARE_CAPABILITIES,
+      FINANCE_STAFF_CAPABILITIES,
+    ]) {
+      const detail = {
+        actionAvailability: availabilityFor(),
+        payment: {
+          stripe: {
+            paymentIntentId: "pi_1",
+            chargeId: null,
+            refundIds: [],
+            replayContext: null,
+          },
+        },
+        recurring: { agreement: null },
+      } as unknown as ContributionDetail;
+
+      const projected = projectContributionDetailForViewer(
+        detail,
+        viewerCapabilities,
+      );
+      const inline = buildInlineContributionActions({
+        availability: availabilityFor(),
+        providerPaymentIntentId: "pi_1",
+        viewerCapabilities,
+      });
+
+      for (const inlineEntry of inline.entries) {
+        expect(
+          projected.actionAvailability.find(
+            (entry) => entry.actionType === inlineEntry.actionType,
+          ),
+        ).toEqual(inlineEntry);
+      }
+    }
+  });
+
   it("allows provider replay when only a charge id is available", () => {
     const inline = buildInlineContributionActions({
       availability: availabilityFor(),

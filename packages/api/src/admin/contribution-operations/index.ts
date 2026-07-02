@@ -110,10 +110,18 @@ export {
   type TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 export {
+  buildCorrectionRequestAvailability,
+  CONTRIBUTION_OPERATION_CAPABILITY,
+  isCorrectionRequestActionType,
+  requiredCapabilitiesForContributionOperation,
+  viewerCanUseContributionOperation,
+} from "./viewer-action-availability";
+export {
   projectContributionActionResultForViewer,
   projectContributionDetailForViewer,
   stripeReplayAvailability,
   type ContributionProviderProof,
+  type ProjectContributionDetailOptions,
   type ViewerProjectedContributionDetail,
 } from "./viewer-projection";
 

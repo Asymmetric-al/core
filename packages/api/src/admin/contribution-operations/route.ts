@@ -136,14 +136,23 @@ export const GET = withOperation(
         "Missing contribution id.",
       );
 
-      const detail = await loadContributionDetailFromSupabase({
-        supabaseAdmin,
-        tenantId: auth.tenantId,
-        contributionId,
-      });
+      // The approval policy shapes which correction/replay request entries
+      // the viewer projection appends (#270), mirroring CRM inline actions.
+      const [detail, approvalPolicy] = await Promise.all([
+        loadContributionDetailFromSupabase({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          contributionId,
+        }),
+        loadCorrectionApprovalPolicy({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+        }),
+      ]);
       const contribution = projectContributionDetailForViewer(
         detail,
         resolveContributionCapabilities(auth),
+        { approvalPolicy },
       );
 
       return NextResponse.json({ contribution, requestId });
@@ -187,6 +196,7 @@ export const POST = withOperation(
       const projectedResult = projectContributionActionResultForViewer(
         result,
         resolveContributionCapabilities(auth),
+        { approvalPolicy },
       );
 
       return NextResponse.json({ result: projectedResult, requestId });
