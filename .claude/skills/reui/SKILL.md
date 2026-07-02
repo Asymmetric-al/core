@@ -62,13 +62,13 @@ Invocation differs slightly per agent (`/mcp__reui__build` in Claude Code/Cursor
 
 ## When to reach for ReUI vs plain shadcn
 
-| Need                                                                 | Reach for                                                                 |
-| -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
-| A full page or section (dashboard, billing, auth, pricing, settings) | `compose_page` first (plans sections + best blocks), then ReUI **blocks** |
+| Need                                                                 | Reach for                                                                                             |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| A full page or section (dashboard, billing, auth, pricing, settings) | `compose_page` first (plans sections + best blocks), then ReUI **blocks**                             |
 | A data table with sorting/filtering/pagination/virtualization        | **`DataTableResponsive`** in this repo; ReUI **data-grid** when ReUI-specific composition is required |
-| A drag-and-drop board                                                | the **kanban** component                                                  |
-| Advanced column filtering, date range, tree, stepper, ...            | the matching ReUI **component**                                           |
-| A single generic control already in shadcn (Button, Dialog, Select)  | plain **shadcn**                                                          |
+| A drag-and-drop board                                                | the **kanban** component                                                                              |
+| Advanced column filtering, date range, tree, stepper, ...            | the matching ReUI **component**                                                                       |
+| A single generic control already in shadcn (Button, Dialog, Select)  | plain **shadcn**                                                                                      |
 
 ## Detailed references
 
