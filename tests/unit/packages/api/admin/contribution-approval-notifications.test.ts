@@ -1253,7 +1253,9 @@ describe("approval notification email delivery (#262)", () => {
 
   it("sends approval-request emails through the tenant sender keyed by the dedupe key", async () => {
     const state = emailEnabledState();
-    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
 
     const result = await ensureCorrectionApprovalWorkflow({
       supabaseAdmin: createStub(state),
@@ -1281,7 +1283,9 @@ describe("approval notification email delivery (#262)", () => {
 
   it("does not resend approval emails on a pure workflow replay", async () => {
     const state = emailEnabledState();
-    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
     const dependencies = {
       sendEmail,
       resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
@@ -1366,7 +1370,9 @@ describe("approval notification email delivery (#262)", () => {
     state.preferences = [
       { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
     ];
-    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
 
     await recordCorrectionApprovalOutcome({
       supabaseAdmin: createStub(state),
@@ -1548,7 +1554,9 @@ describe("approval notification email delivery (#262)", () => {
     state.preferences = [
       { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
     ];
-    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
 
     await recordCorrectionApprovalOutcome({
       supabaseAdmin: createStub(state),
