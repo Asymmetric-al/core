@@ -442,15 +442,18 @@ export function getContributionColumns({
 
         return (
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                className="size-8 p-0"
-                aria-label={`Contribution actions for ${donorName}`}
-              >
-                <MoreHorizontal className="size-4" aria-hidden="true" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  className="size-8 p-0"
+                  aria-label={`Contribution actions for ${donorName}`}
+                >
+                  <span className="sr-only">Open menu</span>
+                  <MoreHorizontal className="size-4" aria-hidden="true" />
+                </Button>
+              }
+            />
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem

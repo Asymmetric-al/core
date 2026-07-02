@@ -315,7 +315,7 @@ description: "Tasteful, subtle web UI animation following Emil Kowalski / animat
 
 The repo motion contract has **two synchronized halves**:
 
-1. **CSS tokens** in `packages/ui/styles/globals.css` (`:root`) — the baseline for Tailwind, Radix surfaces, and global CSS.
+1. **CSS tokens** in `packages/ui/styles/globals.css` (`:root`) — the baseline for Tailwind, Base UI surfaces, and global CSS.
 2. **TS constants** in `packages/lib/motion-presets.ts` — the intended pair for `motion/react` and shared helpers; **prefer these over raw literals** in new or refactored client code.
 
 When updating one half, update the other so consumers stay in lockstep.
@@ -401,7 +401,7 @@ These rules are enforced by `tooling/eslint-config/base.mjs` (motion/react impor
 
 ### Popover / tooltip / dropdown origin
 
-- Radix-based surfaces use `transform-origin: var(--radix-*-content-transform-origin)`. Already correct in shared primitives — keep it.
+- Base UI popup surfaces use `transform-origin: var(--transform-origin)` (the Base UI positioner variable; `origin-(--transform-origin)` in Tailwind). Already correct in shared primitives — keep it.
 - Modals (`Dialog`, full-screen overlays) keep `transform-origin: center`.
 
 ### Route transitions
@@ -421,8 +421,8 @@ These rules are enforced by `tooling/eslint-config/base.mjs` (motion/react impor
 
 ### Tooltip pattern
 
-- Shared `TooltipProvider` defaults: `delayDuration={300}`, `skipDelayDuration={0}` (see `packages/ui/components/shadcn/tooltip.tsx`). With Radix, `skipDelayDuration` is the window for _skipping the open delay_ when moving between triggers; **`0` disables that skip window** — do not read it as "warm follow-up" behavior. For always-instant tooltips, set `delayDuration={0}` on a subtree provider (e.g. nav sidebar, rich-text toolbar) instead of inferring it from `skipDelayDuration` alone.
-- The sidebar's `<TooltipProvider delayDuration={0}>` is a deliberate exception (collapsed-icon sidebar tooltips should be instant).
+- Shared `TooltipProvider` defaults: `delay={300}`, `timeout={0}` (see `packages/ui/components/shadcn/tooltip.tsx`). With Base UI, `timeout` is the window for _skipping the open delay_ when moving between triggers; **`0` disables that skip window** — do not read it as "warm follow-up" behavior. For always-instant tooltips, set `delay={0}` on a subtree provider (e.g. nav sidebar, rich-text toolbar) instead of inferring it from `timeout` alone.
+- The sidebar's `<TooltipProvider delay={0}>` is a deliberate exception (collapsed-icon sidebar tooltips should be instant).
 
 ### Reduced motion
 

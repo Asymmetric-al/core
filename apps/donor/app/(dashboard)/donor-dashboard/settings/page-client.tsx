@@ -545,7 +545,7 @@ const NotificationsTab = () => {
                         id={item.key}
                         checked={preferences[item.key]}
                         onCheckedChange={() => handleToggle(item.key)}
-                        className="data-[state=checked]:bg-zinc-900 mt-1"
+                        className="data-checked:bg-zinc-900 mt-1"
                       />
                     </div>
                   ))}
