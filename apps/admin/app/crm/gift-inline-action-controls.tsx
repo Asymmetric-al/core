@@ -126,7 +126,19 @@ export function GiftInlineActionControls({
                 <DropdownMenuItem
                   key={entry.actionType}
                   className={
-                    entry.available ? undefined : "text-muted-foreground"
+                    entry.available
+                      ? undefined
+                      : "flex-col items-start gap-0.5 text-muted-foreground"
+                  }
+                  // A blocked entry keeps the same server-computed reason and
+                  // next step the detail surface shows (#270), so staff learn
+                  // why an action is unavailable without leaving the row.
+                  title={
+                    entry.available
+                      ? undefined
+                      : [entry.blockedReason, entry.nextStep]
+                          .filter(Boolean)
+                          .join(" ") || undefined
                   }
                   disabled={!entry.available}
                   onClick={() => {
@@ -135,9 +147,25 @@ export function GiftInlineActionControls({
                     }
                   }}
                 >
-                  {definition.title}
-                  {entry.available ? null : (
-                    <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
+                  {entry.available ? (
+                    definition.title
+                  ) : (
+                    <>
+                      <span className="flex w-full items-center">
+                        {definition.title}
+                        <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
+                      </span>
+                      {entry.blockedReason ? (
+                        <span className="text-xs font-normal text-muted-foreground">
+                          {entry.blockedReason}
+                        </span>
+                      ) : null}
+                      {entry.nextStep ? (
+                        <span className="text-xs font-normal text-muted-foreground">
+                          {entry.nextStep}
+                        </span>
+                      ) : null}
+                    </>
                   )}
                 </DropdownMenuItem>
               ))}
