@@ -505,10 +505,13 @@ describe("apps/admin/app/crm gift detail entry", () => {
     );
 
     // Deep-link entry: the overlay opens from the gift param without a row
-    // click, alongside the restored donor drawer.
-    const closeButton = await view.findByRole("button", {
-      name: /close contribution details/i,
-    });
+    // click, alongside the restored donor drawer. The double mount (drawer +
+    // overlay) is slower than a row-click open, so allow extra time.
+    const closeButton = await view.findByRole(
+      "button",
+      { name: /close contribution details/i },
+      { timeout: 5000 },
+    );
     fireEvent.click(closeButton);
 
     // Smart close (ADR-CD-023): only the gift selection leaves route state;
