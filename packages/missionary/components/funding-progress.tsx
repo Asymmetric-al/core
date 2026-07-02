@@ -51,9 +51,12 @@ export function FundingProgress({
             </span>
           </div>
           <div className="relative h-1.5 w-full overflow-hidden rounded-full bg-zinc-100">
+            {/* Animate transform: scaleX (GPU, no layout) instead of width */}
             <div
-              className="h-full rounded-full bg-zinc-900 transition-all duration-1000 ease-out"
-              style={{ width: `${percentFunded}%` }}
+              className="size-full origin-left bg-zinc-900 transition-transform duration-700 ease-[var(--ease-out-soft)]"
+              style={{
+                transform: `scaleX(${Math.min(percentFunded, 100) / 100})`,
+              }}
             />
           </div>
           <div className="grid grid-cols-3 gap-3">

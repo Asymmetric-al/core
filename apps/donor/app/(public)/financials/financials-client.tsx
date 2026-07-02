@@ -42,6 +42,7 @@ export function FinancialsPageClient() {
   const [rechartsModule, setRechartsModule] = useState<RechartsModule | null>(
     null,
   );
+  const [rechartsFailed, setRechartsFailed] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -60,6 +61,7 @@ export function FinancialsPageClient() {
       })
       .catch((error) => {
         console.error("Failed to load Recharts for donor financials:", error);
+        if (isMounted) setRechartsFailed(true);
       });
 
     return () => {
@@ -95,7 +97,11 @@ export function FinancialsPageClient() {
             </CardHeader>
             <CardContent className="p-8">
               <div className="h-[350px] w-full relative">
-                {rechartsModule ? (
+                {rechartsFailed ? (
+                  <p role="status" className="text-sm text-muted-foreground">
+                    The chart couldn&apos;t load. Refresh the page to try again.
+                  </p>
+                ) : rechartsModule ? (
                   <FinancialsPieChart rechartsModule={rechartsModule} />
                 ) : (
                   <FinancialsChartFallback />
@@ -222,7 +228,7 @@ export function FinancialsPageClient() {
             {[2023, 2022, 2021].map((year) => (
               <div
                 key={year}
-                className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 group cursor-pointer"
+                className="bg-white p-8 rounded-2xl border border-zinc-200 shadow-sm [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[box-shadow,transform] duration-300 group cursor-pointer"
               >
                 <div className="flex items-center justify-between mb-8">
                   <FileText className="size-10 text-zinc-300 group-hover:text-blue-600 transition-colors" />

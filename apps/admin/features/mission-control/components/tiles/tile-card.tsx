@@ -22,10 +22,10 @@ interface TileCardProps {
 
 export function TileCard({ tile }: TileCardProps) {
   return (
-    <Card className="group relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm hover-lift hover:shadow-xl hover:shadow-zinc-200/50 hover:border-zinc-300">
+    <Card className="group relative flex flex-col overflow-hidden rounded-3xl border border-zinc-200/60 bg-white shadow-sm hover-lift [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50 hover:border-zinc-300">
       <CardHeader className="relative z-10 p-6 pb-3 pointer-events-none">
         <div className="flex items-start justify-between mb-5">
-          <div className="flex size-12 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 group-hover:shadow-md">
+          <div className="flex size-12 items-center justify-center rounded-2xl bg-zinc-50 border border-zinc-100 text-zinc-700 transition-colors group-hover:bg-zinc-900 group-hover:text-white group-hover:border-zinc-900 [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-md">
             <DynamicIcon name={tile.icon} className="size-6" />
           </div>
           <Link

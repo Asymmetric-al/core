@@ -1,9 +1,11 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import { cn } from "@asym/ui/lib/utils";
 import { Heart, BookOpen } from "lucide-react";
 import React from "react";
 
@@ -17,10 +19,17 @@ import {
 export default function MemberCareDashboardPage() {
   const { data: personnel, isLoading: loadingPersonnel } = useCarePersonnel();
   const { data: activities, isLoading: loadingActivities } = useCareActivity();
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   if (loadingPersonnel || loadingActivities) {
     return (
-      <div className="container-responsive py-responsive-section section-gap animate-in fade-in duration-500">
+      <div
+        className={cn(
+          "container-responsive py-responsive-section section-gap",
+          !withinRouteVt && "animate-in fade-in duration-300",
+        )}
+      >
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-responsive-md">
           <div className="space-y-2">
             <Skeleton className="h-10 w-48 rounded-xl" />
@@ -69,10 +78,10 @@ export default function MemberCareDashboardPage() {
       }
     >
       <motion.div
-        initial={{ opacity: 0, y: 12 }}
+        initial={withinRouteVt ? false : { opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.25, ease: [0.25, 0.1, 0.25, 1] }}
-        className="space-y-5 animate-in fade-in duration-500 pb-32"
+        className="space-y-5 pb-32"
       >
         <CareDashboard
           personnel={personnel || []}

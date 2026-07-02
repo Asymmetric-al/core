@@ -91,6 +91,12 @@ function cropperReducer(
   }
 }
 
+function firstSliderValue(
+  value: number | readonly number[],
+): number | undefined {
+  return Array.isArray(value) ? value[0] : (value as number);
+}
+
 export function ImageCropper({
   image,
   aspect = 1,
@@ -282,9 +288,10 @@ export function ImageCropper({
                 min={minZoom}
                 max={maxZoom}
                 step={0.1}
-                onValueChange={([value]) => {
-                  if (value !== undefined) {
-                    dispatch({ type: "setZoom", zoom: value });
+                onValueChange={(value) => {
+                  const next = firstSliderValue(value);
+                  if (next !== undefined) {
+                    dispatch({ type: "setZoom", zoom: next });
                   }
                 }}
                 className="flex-1"
@@ -299,9 +306,10 @@ export function ImageCropper({
                 min={0}
                 max={360}
                 step={1}
-                onValueChange={([value]) => {
-                  if (value !== undefined) {
-                    dispatch({ type: "setRotation", rotation: value });
+                onValueChange={(value) => {
+                  const next = firstSliderValue(value);
+                  if (next !== undefined) {
+                    dispatch({ type: "setRotation", rotation: next });
                   }
                 }}
                 className="flex-1"

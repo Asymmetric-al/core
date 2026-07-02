@@ -106,8 +106,23 @@
     "./admin/support-hub/adapter": "./src/admin/support-hub/adapter/index.ts",
     "./admin/support-hub/adapter/types": "./src/admin/support-hub/adapter/types.ts",
     "./admin/support-hub/inbound-router": "./src/admin/support-hub/inbound-router.ts",
+    "./admin/support-hub/inbound-retry": "./src/admin/support-hub/inbound-retry.ts",
+    "./admin/support-hub/inbound-routes": "./src/admin/support-hub/inbound-routes.ts",
+    "./admin/support-hub/inbound-route": "./src/admin/support-hub/inbound-route.ts",
+    "./admin/support-hub/move": "./src/admin/support-hub/move.ts",
+    "./admin/support-hub/move-service": "./src/admin/support-hub/move-service.ts",
     "./admin/support-hub/reads/*": "./src/admin/support-hub/reads/*.ts",
-    "./admin/support-hub/mutations/*": "./src/admin/support-hub/mutations/*.ts"
+    "./admin/support-hub/mutations/*": "./src/admin/support-hub/mutations/*.ts",
+    "./workflows/serve": "./src/workflows/serve.ts",
+    "./workflows/dispatch": "./src/workflows/dispatch.ts",
+    "./workflows/events": "./src/workflows/events.ts",
+    "./workflows/ledger": "./src/workflows/ledger.ts",
+    "./workflows/claims": "./src/workflows/claims.ts",
+    "./workflows/recovery": "./src/workflows/recovery.ts",
+    "./workflows/summaries": "./src/workflows/summaries.ts",
+    "./workflows/notification-policy": "./src/workflows/notification-policy.ts",
+    "./admin/workflows/summaries": "./src/admin/workflows/summaries.ts",
+    "./admin/workflows/notification-policy": "./src/admin/workflows/notification-policy.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -127,6 +142,7 @@
     "@asym/pdf-studio-adapter": "file:../../vendor/react-pdf-packages/asym-pdf-studio-adapter",
     "@asym/pdf-template-schema": "file:../../vendor/react-pdf-packages/asym-pdf-template-schema",
     "@supabase/ssr": "^0.8.0",
+    "inngest": "4.5.1",
     "next": "16.2.6",
     "stripe": "22.2.0",
     "zod": "^4.3.6"

@@ -1,6 +1,6 @@
 import { loadSupportTicketDetail } from "@asym/api/admin/support/loaders";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -38,9 +38,12 @@ export default async function SupportTicketDetailPage({
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <Button asChild variant="outline">
-              <Link href={supportHubRoutes.tickets}>Back to tickets</Link>
-            </Button>
+            <Link
+              href={supportHubRoutes.tickets}
+              className={buttonVariants({ variant: "outline" })}
+            >
+              Back to tickets
+            </Link>
           </CardContent>
         </Card>
       </PageShell>
@@ -58,9 +61,12 @@ export default async function SupportTicketDetailPage({
       title={ticket.subject}
       description={`${ticket.id} · ${queue?.label ?? ticket.queueId} · ${ticket.status}`}
       actions={
-        <Button asChild variant="outline">
-          <Link href={supportHubRoutes.tickets}>Back to tickets</Link>
-        </Button>
+        <Link
+          href={supportHubRoutes.tickets}
+          className={buttonVariants({ variant: "outline" })}
+        >
+          Back to tickets
+        </Link>
       }
     >
       <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px]">

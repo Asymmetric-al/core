@@ -386,6 +386,47 @@ export async function recordStripeRawEventFailure(input: {
   return classification;
 }
 
+/**
+ * Best-effort failure recording when Inngest exhausts retries while a stored
+ * event is still locked in `processing` (for example when
+ * recordStripeRawEventFailure threw during the last attempt and the retry
+ * short-circuited on an already-claimed row). Makes the event visible to the
+ * automated recovery scan.
+ */
+export async function recordStripeRawEventFailureIfStillProcessing(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  rawEventId: string;
+  error: unknown;
+}): Promise<void> {
+  const { data, error: loadError } = await input.supabaseAdmin
+    .from("stripe_raw_events")
+    .select("processing_status, lock_id")
+    .eq("id", input.rawEventId)
+    .maybeSingle();
+
+  if (loadError || !isJsonRecord(data)) {
+    return;
+  }
+
+  const processingStatus = asString(data.processing_status);
+  const lockId = asString(data.lock_id);
+
+  if (processingStatus !== "processing" || !lockId) {
+    return;
+  }
+
+  try {
+    await recordStripeRawEventFailure({
+      supabaseAdmin: input.supabaseAdmin,
+      rawEventId: input.rawEventId,
+      lockId,
+      error: input.error,
+    });
+  } catch {
+    // Recovery scan may still require manual intervention.
+  }
+}
+
 export function shouldSkipAlreadyProcessedRawEvent(
   rawEvent: StoredStripeRawEvent,
 ): boolean {

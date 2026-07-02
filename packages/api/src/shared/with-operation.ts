@@ -109,16 +109,21 @@ async function normalizeHandlerErrorResponse(
   }
 }
 
-export function withOperation(
-  handler: (ctx: OperationContext) => Promise<NextResponse>,
+export function withOperation<
+  RouteContext extends OperationRouteContext = OperationRouteContext,
+>(
+  handler: (
+    ctx: OperationContext,
+    routeContext?: RouteContext,
+  ) => Promise<NextResponse>,
   options?: OperationOptions,
 ): (
   request: NextRequest,
-  routeContext?: OperationRouteContext,
+  routeContext?: RouteContext,
 ) => Promise<NextResponse> {
   return async function operationHandler(
     request: NextRequest,
-    routeContext?: OperationRouteContext,
+    routeContext?: RouteContext,
   ) {
     const requestId = crypto.randomUUID();
 
@@ -147,14 +152,17 @@ export function withOperation(
       const auth = authContext;
       const audit = createAuditLogger(auth, request);
 
-      const response = await handler({
-        supabaseAdmin,
-        auth,
-        audit,
-        request,
-        requestId,
+      const response = await handler(
+        {
+          supabaseAdmin,
+          auth,
+          audit,
+          request,
+          requestId,
+          routeContext,
+        },
         routeContext,
-      });
+      );
 
       return normalizeHandlerErrorResponse(response, requestId);
     } catch (error) {

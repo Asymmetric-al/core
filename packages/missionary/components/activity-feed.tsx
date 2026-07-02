@@ -1,12 +1,13 @@
 import { Avatar, AvatarFallback } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
   CardHeader,
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
+import { cn } from "@asym/ui/lib/utils";
 import { Sparkles, ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 import * as React from "react";
@@ -41,16 +42,15 @@ export function ActivityFeed({ activities }: ActivityFeedProps) {
             </p>
           </div>
         </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="h-8 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50"
-          asChild
+        <Link
+          href="/donors"
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "h-8 px-3 rounded-md text-[10px] font-bold uppercase tracking-widest text-zinc-400 hover:text-zinc-900 hover:bg-zinc-50",
+          )}
         >
-          <Link href="/donors">
-            Full Log <ArrowUpRight className="ml-1 size-3" />
-          </Link>
-        </Button>
+          Full Log <ArrowUpRight className="ml-1 size-3" />
+        </Link>
       </CardHeader>
       <CardContent className="p-0">
         <div className="divide-y divide-zinc-50">
