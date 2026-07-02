@@ -119,7 +119,14 @@ describe("Twenty CRM health proof", () => {
         VERCEL_ENV: "preview",
         VERCEL_TARGET_ENV: "development",
       }),
-    ).toBe(true);
+    ).toBe(false);
+    expect(
+      isTwentyCrmDevelopmentHealthEnabled({
+        NODE_ENV: "production",
+        VERCEL_ENV: "preview",
+        VERCEL_TARGET_ENV: "preview",
+      }),
+    ).toBe(false);
     // Retained legacy staging alias (kept protected until a Vercel inventory clears it).
     expect(
       isTwentyCrmDevelopmentHealthEnabled({
