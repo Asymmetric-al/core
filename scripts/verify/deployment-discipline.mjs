@@ -397,7 +397,11 @@ async function main() {
           DEVELOPMENT_BRANCH,
         ),
         requiredContexts: ["ci-gate", "integration-gate"],
-        forbiddenContexts: ["e2e-gate", "e2e-smoke-gate", "release-source-gate"],
+        forbiddenContexts: [
+          "e2e-gate",
+          "e2e-smoke-gate",
+          "release-source-gate",
+        ],
       }),
     );
 

@@ -26,7 +26,7 @@ Per-bot source files (one each) live next to this file in `docs/ai/pr-pipeline-b
 ## Universal settings (apply to every reviewer)
 
 | Setting        | Value                                                                                         |
-| -------------- | --------------------------------------------------------------------------------------------- |
+| -------------- | --------------------------------------------------------------------------------------------- | ---- | ------ | ---------- | ------------------------------------ |
 | **Trigger**    | GitHub → **Checks completed** (repo `Asymmetric-al/core`)                                     |
 | **Model**      | `composer-2.5` for reviewers; strongest available for the Final Merge Gate + Safe-Fix Planner |
 | **Tool**       | **Comment on Pull Request** — _Allow PR Approval OFF_                                         |

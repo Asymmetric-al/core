@@ -181,7 +181,12 @@ describe("deployment discipline verifier", () => {
         ...developBranchProtection,
         required_status_checks: {
           strict: true,
-          contexts: ["ci-gate", "integration-gate", "e2e-smoke-gate", "e2e-gate"],
+          contexts: [
+            "ci-gate",
+            "integration-gate",
+            "e2e-smoke-gate",
+            "e2e-gate",
+          ],
         },
       },
       branchRule: branchProtectionRule,
