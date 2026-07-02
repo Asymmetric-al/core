@@ -51,6 +51,11 @@ const routerPushMock = vi.fn();
 const routerReplaceMock = vi.fn();
 let mockSearch = "";
 
+function syncMockSearchFromRouterUrl(url: string) {
+  const queryIndex = url.indexOf("?");
+  mockSearch = queryIndex >= 0 ? url.slice(queryIndex + 1) : "";
+}
+
 vi.mock("next/navigation", () => ({
   usePathname: () => "/crm",
   useRouter: () => ({
@@ -398,6 +403,12 @@ describe("apps/admin/app/crm gift detail entry", () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
     mockSearch = "";
+    routerPushMock.mockImplementation((url: string) => {
+      syncMockSearchFromRouterUrl(url);
+    });
+    routerReplaceMock.mockImplementation((url: string) => {
+      syncMockSearchFromRouterUrl(url);
+    });
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
     installDom();
 
@@ -487,15 +498,14 @@ describe("apps/admin/app/crm gift detail entry", () => {
   });
 
   it("smart close returns to the donor drawer with route state preserved", async () => {
-    // Seed both params so params.delete("gift") is load-bearing: the detail
-    // opens from the deep link and closing must strip exactly the gift param.
-    mockSearch = `donor=${DONOR_RECORD_ID}&gift=${DONATION_ID}`;
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => contributionDetailPayload,
+    });
     Object.defineProperty(globalThis, "fetch", {
       configurable: true,
-      value: vi.fn().mockResolvedValue({
-        ok: true,
-        json: async () => contributionDetailPayload,
-      }),
+      value: fetchMock,
     });
 
     const view = render(
@@ -504,29 +514,40 @@ describe("apps/admin/app/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    // Deep-link entry: the overlay opens from the gift param without a row
-    // click, alongside the restored donor drawer. The double mount (drawer +
-    // overlay) is slower than a row-click open, so allow extra time.
-    const closeButton = await view.findByRole(
-      "button",
-      { name: /close contribution details/i },
-      { timeout: 5000 },
-    );
+    const giftButton = await view.findByRole("button", {
+      name: /open gift detail for \$250\.00/i,
+    });
+    fireEvent.click(giftButton);
+
+    await waitFor(() => {
+      expect(routerPushMock).toHaveBeenCalledWith(
+        `/crm?donor=${DONOR_RECORD_ID}&gift=${DONATION_ID}`,
+        { scroll: false },
+      );
+    });
+
+    const closeButton = await view.findByRole("button", {
+      name: /close contribution details/i,
+    });
+    const pushCallsBeforeClose = routerPushMock.mock.calls.length;
     fireEvent.click(closeButton);
 
-    // Smart close (ADR-CD-023): only the gift selection leaves route state;
-    // the donor context param survives in route state.
-    expect(routerReplaceMock).toHaveBeenCalledWith(
-      `/crm?donor=${DONOR_RECORD_ID}`,
-      { scroll: false },
-    );
-    // The detail overlay actually closed…
+    // Smart close (ADR-CD-023): strip only gift from route state; donor survives.
+    // Router mocks mirror navigation into mockSearch so params.delete("gift") is
+    // load-bearing after row-click open (same contract as the Hub smart-close test).
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenLastCalledWith(
+        `/crm?donor=${DONOR_RECORD_ID}`,
+        { scroll: false },
+      );
+    });
+    expect(routerPushMock.mock.calls.length).toBe(pushCallsBeforeClose);
+
     await waitFor(() => {
       expect(
         view.queryByRole("button", { name: /close contribution details/i }),
       ).toBeNull();
     });
-    // …and the donor drawer never unmounted: its gift row is still present.
     expect(
       view.getByRole("button", { name: /open gift detail for \$250\.00/i }),
     ).toBeTruthy();
