@@ -85,10 +85,15 @@ Stripe replay, and other provider-state corrections.
 - AND related donor-visible and staff-visible read models derive from the same
   corrected contribution truth
 
-### Requirement: High-Risk Contribution Actions Require Finance Permission And Reason
+### Requirement: High-Risk Contribution Actions Require A Granular Capability And Reason
 
-High-risk contribution actions MUST require `finance:manage_contributions`,
-a reason, and a clear confirmation prompt enforced server-side.
+High-risk contribution actions MUST resolve the granular server-side capability
+for the action, a reason, and a clear confirmation prompt enforced server-side.
+For example, refunds and Stripe replay require `contributions.run_refunds` and
+`contributions.use_provider_actions` — held by finance approver, admin, and
+super_admin, not baseline finance staff. Capability resolution follows
+`identity-and-access`; the legacy coarse `finance:manage_contributions`
+permission does not authorize refunds or Stripe replay.
 
 The non-suppressible high-risk actions include refunds, donor relinking,
 designation or fund correction, payment state correction, and Stripe replay.
@@ -96,16 +101,17 @@ designation or fund correction, payment state correction, and Stripe replay.
 Organization or user prompt settings MUST NOT suppress the reason prompt for
 these actions.
 
-#### Scenario: Staff without finance permission attempts a refund
+#### Scenario: Staff without the refund capability attempts a refund
 
-- GIVEN a staff user does not have `finance:manage_contributions`
+- GIVEN a staff user whose resolved capabilities do not include
+  `contributions.run_refunds`
 - WHEN the user attempts to refund a contribution
 - THEN the server rejects the action
 - AND UI hiding is not treated as sufficient protection
 
 #### Scenario: Staff attempts a high-risk action without reason
 
-- GIVEN a staff user has finance permission
+- GIVEN a staff user who holds the required capability for the action
 - WHEN the user attempts a high-risk contribution action without a reason and
   confirmation
 - THEN the server rejects the action
@@ -249,14 +255,14 @@ links, task links, and CSV export data.
 - AND the batch result records success, skipped, failed, audit, and task
   outcomes
 
-#### Scenario: Staff runs a high-risk bulk refund
+#### Scenario: A high-risk bulk action runs
 
-- GIVEN staff selects multiple contribution records for refund
-- WHEN they confirm the bulk refund
+- GIVEN staff selects multiple contribution records for a high-risk action
+- WHEN they confirm the bulk action
 - THEN preview and confirmation are both required
 - AND the batch runs as a background batch
-- AND every per-record refund still enforces the high-risk contribution action
-  policy
+- AND every per-record action still enforces the single-action high-risk policy,
+  including its granular capability gate
 
 ### Requirement: Contribution Operations Protect Donor Trust Through Corrections
 

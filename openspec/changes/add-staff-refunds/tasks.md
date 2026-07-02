@@ -9,8 +9,8 @@
 
 ## 2. Gating and bulk
 
-- [ ] 2.1 Enforce `finance:manage_contributions` + reason + server-side
-      confirmation on refund execution.
+- [ ] 2.1 Enforce `contributions.run_refunds` (finance approver / admin /
+      super_admin) + reason + server-side confirmation on refund execution.
 - [ ] 2.2 Bulk refunds run per-record through the single-action contract with
       preview and confirmation, as a background batch.
 

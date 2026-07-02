@@ -13,9 +13,10 @@ requirement, so this change carries the execution path as target truth.
 - Add staff-initiated refund execution through the Contribution Operations
   Core: request a full or partial refund server-side via Stripe, record the
   provider outcome truthfully, and reflect it across donor and staff surfaces.
-- Enforce the existing high-risk gate on execution: `finance:manage_contributions`,
-  a reason, and server-side confirmation; bulk refunds run per-record through
-  the single-action contract with preview and confirmation.
+- Enforce the granular high-risk gate on execution: `contributions.run_refunds`
+  (finance approver / admin / super_admin), a reason, and server-side
+  confirmation; bulk refunds run per-record through the single-action contract
+  with preview and confirmation.
 - Stop advertising refund as available in the UI while it is unwired (code fix
   tracked with the execution work).
 
