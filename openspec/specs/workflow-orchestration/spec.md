@@ -107,3 +107,28 @@ records valid and existing manual recovery paths working.
 - THEN product tables, dispatch ledger records, and manual recovery routes
   remain valid and usable
 - AND re-enabling dispatch resumes recovery from the ledger without data loss
+
+### Requirement: Workflow Problems Escalate By Tenant Notification Policy
+
+The platform MUST decide workflow-problem urgency through a tenant-adjustable
+notification policy rather than alerting on everything or failing silently.
+Defaults MUST escalate money-area failures and dead-lettered work to urgent
+staff notification while keeping routine retryable failures visible as
+operational status. Tenants MUST be able to adjust the policy within safe
+bounds (for example, escalating on retry or muting specific non-critical
+failures), and the effective policy MUST be tenant-scoped.
+
+#### Scenario: A money-path workflow dead-letters
+
+- WHEN a donation or other money-area workflow item exhausts retries and
+  dead-letters
+- THEN the notification policy escalates it to urgent staff notification
+- AND a routine retryable failure elsewhere stays visible as operational status
+  without paging
+
+#### Scenario: A tenant adjusts notification urgency
+
+- GIVEN a tenant configures its workflow notification policy
+- WHEN a workflow problem matches an adjusted rule
+- THEN the platform applies the tenant's setting within safe bounds
+- AND the policy remains scoped to that tenant

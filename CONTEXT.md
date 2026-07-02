@@ -25,6 +25,17 @@ experiences as one connected concept. It is not public page content and not a
 one-off email, though pages and communications may display or reference it.
 _Avoid_: newsletter, blog post, page content, donor email
 
+**Assistant**:
+An AI agent or assistant that helps a staff member, missionary, or donor
+complete a task inside the platform (drafting, suggesting, summarizing,
+routing, preparing work). An assistant acts within the authority of the human
+it serves — never a separate permission tier, never a way to widen role or
+tenant scope — and follows current AI-agent best practice: least privilege,
+human approval gates for donor-facing sends, money, operational-truth changes,
+and publication, plus full attribution and audit. It is not a human staff role.
+_Avoid_: assistant as a permission tier, autonomous money/donor/publish agent,
+human assistant job title
+
 **Workflow Orchestration**:
 Durable coordination of background work after authoritative product records
 exist. It does not become the source of truth for donations, CRM state,
@@ -83,6 +94,64 @@ The donor name, email, and address captured on a contribution at gift time so
 receipts, statements, and audits stay historically accurate even if the donor
 record changes later. Never exposed to missionary or public views.
 _Avoid_: live donor lookup for receipts, mutable receipt identity
+
+**Gift / Donation**:
+A donor's contribution record through the platform — one-time or a recurring
+installment — carrying amount, currency, a single designation, payment/provider
+state, and receipt state. "Gift" and "donation" are used interchangeably for
+this record. See [[one-time-donation]], [[recurring-donation]].
+_Avoid_: pledge (the recurring agreement, not the gift), staged gift (the
+post-completion record)
+
+**Fund**:
+A tenant-owned designation target — such as a general or project fund — a gift
+can be directed to, distinct from a missionary. See [[designation]].
+_Avoid_: missionary, campaign, Stripe product
+
+**Designation**:
+The single missionary or fund a gift is directed to at checkout. A gift
+designates exactly one target today; reallocation after the fact is a
+[[contribution-correction]], not a donor edit.
+_Avoid_: split gift, multi-line allocation, missionary and fund on one gift
+
+**Staged Gift**:
+The record created when a donation completes, carrying receipt status, CRM-post
+status, and designation for downstream receipting and CRM posting. It is not
+the donation record itself.
+_Avoid_: donation row, receipt, pending donation
+
+**Donor Pledge**:
+The durable record of a recurring giving agreement, linked one-to-one with a
+Stripe subscription, tracking pledge state (active, paused, cancelled) and
+progress. It is the agreement, not any single installment gift. See
+[[recurring-donation]].
+_Avoid_: individual recurring gift, subscription-only state, one-time donation
+
+**Contribution Correction**:
+A recorded staff change to a completed contribution that affects money, donor
+identity, designation, provider state, refunds, receipts, or donor-visible
+history, preserving a before/after trail rather than silently overwriting
+truth.
+_Avoid_: silent edit, direct overwrite, harmless metadata edit
+
+**Donation Saga**:
+The durable, outbox-driven process that creates a donation's payment intent and
+recovers a stuck handoff, guarded by a [[product-idempotency-key]] so a
+business effect is never performed twice.
+_Avoid_: fire-and-forget charge, retry loop as source of truth
+
+**Outbox Event**:
+A durable product-owned record that background work still needs to happen,
+written alongside the business record so a failed handoff can be recovered
+later. Donations and the shared [[workflow-dispatch-ledger]] both use this
+pattern.
+_Avoid_: job queue as source of truth, event as the business record
+
+**Dead-Letter**:
+The state a durable work item reaches after bounded automatic retries are
+exhausted without success. It stays visible for staff attention and safe manual
+replay; it never silently disappears or invents a business outcome.
+_Avoid_: hidden failure, infinite retry, silent drop
 
 **One-Time Donation**:
 A donor gift intended to be collected once through the platform's immediate

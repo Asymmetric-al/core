@@ -252,6 +252,10 @@ approval gate before it takes effect. AI output MUST NOT silently mutate
 operational truth, and AI behavior SHALL remain subject to the canonical
 priority ladder, honest-state rules, and tenant moderation boundaries.
 
+AI assistants that help staff, missionaries, or donors act within the
+authority of the human they serve and are bounded by role and tenant scope, as
+defined in `platform-boundaries`. They are not a separate permission tier.
+
 #### Scenario: An AI feature could act without human review
 
 - GIVEN an AI-assisted flow could autonomously complete a donor-facing send, a

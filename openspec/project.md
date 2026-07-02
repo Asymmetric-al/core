@@ -23,10 +23,32 @@ The spec tree is two-layered (OpenSpec discovers `openspec/specs/<id>/spec.md`):
 
 **Capability layer** — verifiable behavior contracts for specific system
 capabilities. Scenarios are written as system behavior (WHEN/THEN about the
-product). Current capability specs include `workflow-orchestration`,
-`crm-core`, `contribution-operations`, and `agent-instruction-system`; new
-feature-level contracts get their own capability spec (named for the durable
-capability, not the current vendor) rather than growing the intent specs.
+product). The current capability specs are `donation-lifecycle`,
+`contribution-operations`, `crm-core`, `identity-and-access`,
+`workflow-orchestration`, and `agent-instruction-system`; new feature-level
+contracts get their own capability spec (named for the durable capability, not
+the current vendor) rather than growing the intent specs.
+
+**Capability spec backlog** — shipped subsystems that still lack a capability
+spec, in rough priority order. Each needs code-grounded authoring before it
+governs current truth; add them in follow-up work rather than growing the
+intent specs:
+
+1. `support-hub` / inbound-communications (tenant-safe inbound email routing,
+   support conversations — many terms already in `CONTEXT.md`).
+2. `outbound-communications` / email-studio (templates, versioning, single
+   Resend send boundary — `contribution-operations` and `platform-boundaries`
+   already delegate to it).
+3. `mission-control-automations` (declarative definitions, `automation:manage`
+   gate, preview + test run before activation).
+4. `mission-control-tasks` (one shared staff task model; Needs Attention as a
+   view, not a separate model).
+5. `public-website-cms` (published-only, tenant-scoped reads; Payload runtime
+   isolated to admin).
+
+Missionary-workspace role-scoping folds into `identity-and-access`; reporting,
+mobilization, and documents stay on this watch-list until their money or
+permission depth warrants a spec.
 
 Structural detail (directory trees, diagrams, route tables) remains in
 `docs/guides/architecture/overview.md`. Keep OpenSpec intent and architecture
@@ -138,6 +160,20 @@ The repo already has a strong, hand-maintained instruction system:
 - Do not run `openspec update` casually in this repo. The repo hand-maintains
   AGENTS, Cursor, Copilot, and Codex-facing instruction files, and bulk
   regeneration could overwrite or duplicate important routing logic.
+
+## Current-State Notes (transient, not durable intent)
+
+These record where the shipped product does not yet match durable intent, so
+agents do not mistake scaffolding for the intended contract. Remove each note
+when the gap closes.
+
+- The public `/workers` missionary directory and missionary profile pages
+  render demo scaffolding from `@asym/mock-data` with a mock checkout that does
+  not call the real donate API. They are not yet backed by real CRM missionary
+  entities or CMS page content. The durable intent (CRM owns the missionary,
+  CMS owns the page, public giving is native) lives in `platform-boundaries`
+  and `platform-surfaces`; the mock pages are placeholder scaffolding, not the
+  contract.
 
 ## Validation Commands
 

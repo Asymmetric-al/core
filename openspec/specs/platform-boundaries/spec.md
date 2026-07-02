@@ -138,9 +138,11 @@ wrong layer.
 
 ### Requirement: Role-Scoped Surface Boundaries
 
-Public visitors, donors, missionaries, staff, assistants, and admins MUST have
-different visibility and action boundaries as part of the product definition,
-not as incidental implementation detail.
+Public visitors, donors, missionaries, staff, and admins MUST have different
+visibility and action boundaries as part of the product definition, not as
+incidental implementation detail. (AI assistants are not a separate permission
+tier — an assistant acts within the authority of the human it serves; see "AI
+Assistant Authority Is Bounded By The Initiating User".)
 
 Public or limited-role surfaces MUST never perform admin-depth actions, bypass
 approval rules, mutate permissions-sensitive records outside their allowed
@@ -184,6 +186,39 @@ hacked away or half-present.
   only an intentional status or handoff
 - AND they do not leak partial admin behavior into a narrow surface as broken or
   confusing remnants
+
+### Requirement: AI Assistant Authority Is Bounded By The Initiating User
+
+An AI assistant MUST act strictly within the authority of the human it serves.
+An assistant — an AI agent that helps a staff member, missionary, or donor
+complete a task — MUST NOT read data, take actions, or reach records beyond that
+user's own role scope and tenant, and MUST NOT be used to escalate privilege or
+bypass approval, permission, or tenant-isolation boundaries.
+
+Assistant actions MUST follow current AI-agent best practice: least privilege
+by default; the same human approval gates that govern donor-facing sends, money
+effects, operational-truth mutation, and publication (per the platform's AI
+product direction); clear attribution of the acting user; and an audit trail
+equivalent to the same action performed by that user directly. An assistant is
+never a separate permission tier and never a way to widen scope.
+
+#### Scenario: An assistant is asked to act beyond the user's scope
+
+- GIVEN an AI assistant serving a user is prompted to read or mutate records
+  outside that user's role scope or tenant
+- WHEN the assistant attempts the action
+- THEN the platform denies it exactly as it would deny the human user
+- AND the assistant does not gain broader visibility or authority by virtue of
+  being an assistant
+
+#### Scenario: An assistant reaches a gated effect
+
+- GIVEN an AI assistant prepares a donor-facing send, money effect, operational
+  mutation, or publication on the user's behalf
+- WHEN the effect would take place
+- THEN it stops at an explicit human approval gate before taking effect
+- AND the resulting action is attributed to the approving user and audited like
+  any direct action
 
 ### Requirement: Tenant Isolation And Scope Integrity
 

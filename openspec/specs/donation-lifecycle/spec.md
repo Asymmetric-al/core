@@ -81,16 +81,18 @@ donor-side edit.
   `contribution-operations`
 - AND donor-visible history derives from the corrected truth
 
-### Requirement: Recurring Donations Follow The Subscription Lifecycle
+### Requirement: Recurring Donation State Reflects The Subscription Lifecycle
 
-Recurring donations MUST be represented as donor pledges linked one-to-one
-with Stripe subscriptions, with pledge states of active, paused, and cancelled
-mapped from subscription state. Cancellation MUST be terminal for the pledge
-even when later provider updates arrive out of order.
+The platform MUST reflect recurring-donation state from Stripe: where a
+recurring gift exists as a Stripe subscription linked one-to-one with a donor
+pledge, invoice and subscription events update pledge state (active, paused,
+cancelled) and progress, and cancellation MUST be terminal for the pledge even
+when later provider updates arrive out of order. The platform MUST NOT rebuild
+recurring billing as manual loops of one-time donation attempts.
 
-Recurring billing MUST flow through the subscription lifecycle — invoice
-events update pledge progress and failure counts — and MUST NOT be rebuilt as
-manual loops of one-time donation attempts.
+Donor-initiated recurring creation is not yet part of the shipped donor money
+path; only the reflection of existing subscription and pledge state is current
+truth. The creation path is proposed as forward work.
 
 #### Scenario: A recurring invoice is paid
 
@@ -115,8 +117,8 @@ recorded.
 #### Scenario: A gift completes and a receipt is sent
 
 - WHEN a donation transitions to completed and stages a gift
-- THEN the receipt email renders from the gift record with amount, date,
-  donor, and designation
+- THEN the receipt email renders from the gift record with amount, date, and
+  donor
 - AND the receipt send is recorded and cannot duplicate for the same gift
 
 #### Scenario: A receipt send fails

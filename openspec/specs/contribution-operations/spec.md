@@ -143,18 +143,22 @@ Hub, donor CRM record, automation, or future batch execution.
 ### Requirement: Stripe Remains Payment Authority For Refund And Provider State
 
 Stripe MUST remain the payment execution and payment-method authority for
-Stripe-backed contributions. The platform MAY request refunds and replay
-provider events server-side, but it MUST record Stripe outcomes honestly and
-MUST NOT imply final refund or payment-state completion before provider
-outcomes or webhook-confirmed operational truth supports it.
+Stripe-backed contributions. When refund or provider-replay outcomes are
+recorded, the platform MUST record Stripe outcomes honestly and MUST NOT imply
+final refund or payment-state completion before provider outcomes or
+webhook-confirmed operational truth supports it.
+
+Staff-initiated refund and provider-replay execution is not yet part of the
+shipped path; the platform today records provider-confirmed refund outcomes.
+The staff-initiated execution path is proposed as forward work.
 
 Trust-sensitive Stripe identifiers and credentials MUST remain behind
 server-side boundaries.
 
-#### Scenario: Staff requests a partial refund
+#### Scenario: A provider-confirmed refund is recorded
 
-- GIVEN a finance staff user requests a partial refund
-- WHEN Stripe accepts the request
+- GIVEN Stripe confirms a partial refund for a contribution
+- WHEN the refund outcome reaches the platform
 - THEN the platform records the provider outcome and pending/final state
   truthfully
 - AND donor-visible history does not overstate finality before the operational

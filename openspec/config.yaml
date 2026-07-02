@@ -11,8 +11,8 @@ context: |
   backing subsystem), Payload (CMS engine for Web Studio).
   Spec layout is two-layered: openspec/specs/platform-* are durable
   intent-layer specs (product intent, surfaces, principles, boundaries);
-  other specs (workflow-orchestration, crm-core, contribution-operations,
-  agent-instruction-system, ...) are capability specs for verifiable system
+  the capability specs (donation-lifecycle, contribution-operations, crm-core,
+  workflow-orchestration, agent-instruction-system) hold verifiable system
   behavior. openspec/project.md carries fuller repo conventions and must stay
   aligned with AGENTS.md.
 
