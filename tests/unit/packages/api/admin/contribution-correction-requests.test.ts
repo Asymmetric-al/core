@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { executeContributionAction } from "../../../../../packages/api/src/admin/contribution-operations/actions";
+import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
 import {
   createContributionCorrectionRequestInSupabase,
   decideContributionCorrectionRequest,
@@ -252,6 +254,61 @@ describe("createContributionCorrectionRequestInSupabase", () => {
 });
 
 describe("decideContributionCorrectionRequest", () => {
+  it("blocks a requester from approving the request their own action created end-to-end (#261)", async () => {
+    const state: StubState = { request: pendingRequest(), auditInserts: [] };
+
+    // Route the high-risk correction through the shared action executor as
+    // requester-1; the created request carries that requester identity.
+    const createCorrectionRequest = vi.fn(
+      async (input: { requestedByProfileId: string | null }) => {
+        state.request = {
+          ...pendingRequest(),
+          requested_by_profile_id: input.requestedByProfileId,
+        };
+        return REQUEST_ID;
+      },
+    );
+    const executed = await executeContributionAction({
+      tenantId: TENANT_ID,
+      actorProfileId: "requester-1",
+      actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation-1",
+      actionType: "amount_correction",
+      reason: "Donor reported the wrong amount",
+      confirmationToken: "confirm",
+      payload: { amount: 20_000 },
+      approvalPolicy: resolveCorrectionApprovalPolicy(null),
+      dependencies: {
+        applyCorrection: vi.fn(),
+        createCorrectionRequest,
+        appendAuditEvent: vi.fn().mockResolvedValue("audit-1"),
+        loadContributionDetail: vi.fn().mockResolvedValue({
+          id: "donation-1",
+        }),
+      },
+    });
+    expect(executed.approvalStatus).toBe("pending_approval");
+    expect(state.request.requested_by_profile_id).toBe("requester-1");
+
+    // The same profile that requested the correction cannot approve it under
+    // the default separation-of-duties policy.
+    await expect(
+      decideContributionCorrectionRequest({
+        supabaseAdmin: createStub(state),
+        tenantId: TENANT_ID,
+        requestId: REQUEST_ID,
+        decision: "approve",
+        deciderProfileId: "requester-1",
+        deciderCapabilities: ["contributions.approve_corrections"],
+        dependencies: approverDependencies(state),
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+
+    expect(state.request.status).toBe("pending");
+  });
+
   it("blocks the requester from approving their own request under separation of duties", async () => {
     const state: StubState = { request: pendingRequest(), auditInserts: [] };
 
