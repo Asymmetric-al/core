@@ -487,7 +487,9 @@ describe("apps/admin/app/crm gift detail entry", () => {
   });
 
   it("smart close returns to the donor drawer with route state preserved", async () => {
-    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    // Seed both params so params.delete("gift") is load-bearing: the detail
+    // opens from the deep link and closing must strip exactly the gift param.
+    mockSearch = `donor=${DONOR_RECORD_ID}&gift=${DONATION_ID}`;
     Object.defineProperty(globalThis, "fetch", {
       configurable: true,
       value: vi.fn().mockResolvedValue({
@@ -502,23 +504,26 @@ describe("apps/admin/app/crm gift detail entry", () => {
       </QueryProvider>,
     );
 
-    const giftButton = await view.findByRole("button", {
-      name: /open gift detail for \$250\.00/i,
-    });
-    fireEvent.click(giftButton);
+    // Deep-link entry: the overlay opens from the gift param without a row
+    // click, alongside the restored donor drawer.
     const closeButton = await view.findByRole("button", {
       name: /close contribution details/i,
     });
-
     fireEvent.click(closeButton);
 
     // Smart close (ADR-CD-023): only the gift selection leaves route state;
-    // the donor context param survives so the drawer restores on refresh.
+    // the donor context param survives in route state.
     expect(routerReplaceMock).toHaveBeenCalledWith(
       `/crm?donor=${DONOR_RECORD_ID}`,
       { scroll: false },
     );
-    // The donor drawer never unmounted: its gift row is still present.
+    // The detail overlay actually closed…
+    await waitFor(() => {
+      expect(
+        view.queryByRole("button", { name: /close contribution details/i }),
+      ).toBeNull();
+    });
+    // …and the donor drawer never unmounted: its gift row is still present.
     expect(
       view.getByRole("button", { name: /open gift detail for \$250\.00/i }),
     ).toBeTruthy();
