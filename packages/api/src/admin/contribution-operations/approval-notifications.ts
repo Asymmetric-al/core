@@ -277,15 +277,21 @@ function filterEligibleApproversForRequest(input: {
   );
 }
 
+/**
+ * Upserts planned notifications and returns the dedupe keys of the rows this
+ * call actually created. Callers must deliver email only for the returned
+ * subset: a partial insert (some rows already recorded by an earlier attempt)
+ * would otherwise re-send emails whose provider idempotency key has expired.
+ */
 async function insertApprovalNotifications(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
   requestId: string,
   notifications: PlannedApprovalNotification[],
   payload: Record<string, unknown>,
-): Promise<number> {
+): Promise<string[]> {
   if (notifications.length === 0) {
-    return 0;
+    return [];
   }
 
   const { data, error } = await supabaseAdmin
@@ -302,13 +308,28 @@ async function insertApprovalNotifications(
       })),
       { onConflict: "tenant_id,dedupe_key", ignoreDuplicates: true },
     )
-    .select("id");
+    .select("dedupe_key");
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return Array.isArray(data) ? data.length : 0;
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data
+    .map((row) => (typeof row.dedupe_key === "string" ? row.dedupe_key : null))
+    .filter((key): key is string => key !== null);
+}
+
+function filterNotificationsByDedupeKeys(
+  notifications: PlannedApprovalNotification[],
+  insertedDedupeKeys: string[],
+): PlannedApprovalNotification[] {
+  const inserted = new Set(insertedDedupeKeys);
+  return notifications.filter((notification) =>
+    inserted.has(notification.dedupeKey),
+  );
 }
 
 async function appendApprovalAuditEvent(input: {
@@ -369,6 +390,13 @@ async function dismissUnlinkedApprovalTask(input: {
   }
 }
 
+/**
+ * Stamps the SLA field and inserts the round's notifications in one atomic
+ * RPC. Unlike the workflow/outcome paths, delivery here does not need an
+ * inserted-subset filter: the round-scoped dedupe keys are all fresh for a
+ * given round, the stamp and inserts commit together, and replays bail on
+ * `stamped === false`, so a mixed partial insert cannot reach delivery.
+ */
 async function ensurePendingCorrectionRequestSlaNotifications(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -516,7 +544,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     }
   }
 
-  const notificationsCreated = await insertApprovalNotifications(
+  const insertedDedupeKeys = await insertApprovalNotifications(
     input.supabaseAdmin,
     input.tenantId,
     request.id,
@@ -526,6 +554,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
       actionType: request.actionType,
     },
   );
+  const notificationsCreated = insertedDedupeKeys.length;
 
   if (approvalTaskLinked || notificationsCreated > 0) {
     await appendApprovalAuditEvent({
@@ -546,14 +575,18 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     });
   }
 
-  // Deliver email-channel notifications only when this call created rows —
-  // pure replays stay quiet, and the provider idempotency key (the dedupe
-  // key) guards the partial-insert case (#262).
+  // Deliver email only for notifications this call actually created — pure
+  // replays stay quiet, and a partial insert (earlier attempt died mid-way)
+  // must not re-send rows recorded before, because the provider idempotency
+  // key only dedupes within its retention window (#262).
   if (notificationsCreated > 0) {
     await deliverApprovalEmailNotifications({
       supabaseAdmin: input.supabaseAdmin,
       tenantId: input.tenantId,
-      notifications: plan.notifications,
+      notifications: filterNotificationsByDedupeKeys(
+        plan.notifications,
+        insertedDedupeKeys,
+      ),
       context: {
         requestId: request.id,
         donationId: request.donationId,
@@ -636,7 +669,7 @@ export async function recordCorrectionApprovalOutcome(input: {
       });
     }
 
-    const created = await insertApprovalNotifications(
+    const insertedDedupeKeys = await insertApprovalNotifications(
       input.supabaseAdmin,
       input.tenantId,
       input.request.id,
@@ -648,11 +681,14 @@ export async function recordCorrectionApprovalOutcome(input: {
       },
     );
 
-    if (created > 0) {
+    if (insertedDedupeKeys.length > 0) {
       await deliverApprovalEmailNotifications({
         supabaseAdmin: input.supabaseAdmin,
         tenantId: input.tenantId,
-        notifications: outcomeNotifications,
+        notifications: filterNotificationsByDedupeKeys(
+          outcomeNotifications,
+          insertedDedupeKeys,
+        ),
         context: {
           requestId: input.request.id,
           donationId: input.request.donationId,
@@ -683,7 +719,10 @@ async function loadRequesterNotificationPreference(
   }
 
   return resolveApproverNotificationPreference(
-    data as { in_app_enabled?: boolean | null } | null,
+    data as {
+      in_app_enabled?: boolean | null;
+      email_enabled?: boolean | null;
+    } | null,
   );
 }
 

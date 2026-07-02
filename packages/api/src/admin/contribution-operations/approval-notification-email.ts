@@ -233,7 +233,10 @@ export async function deliverApprovalEmailNotifications(input: {
     const content = buildApprovalEmailContent(notification.kind, input.context);
     result.attempted += 1;
     try {
-      await sender(settings.apiKey, {
+      // sendEmail resolves { success: false } for validation and provider
+      // failures instead of throwing, so the resolved result must be checked
+      // or failed sends would be reported as delivered.
+      const sendResult = await sender(settings.apiKey, {
         to: { email: recipientEmail, name: profileDisplayName(profile) },
         from: { email: settings.fromEmail, name: settings.fromName },
         replyTo: settings.replyToEmail
@@ -249,7 +252,11 @@ export async function deliverApprovalEmailNotifications(input: {
           kind: notification.kind,
         },
       });
-      result.sent += 1;
+      if (sendResult.success) {
+        result.sent += 1;
+      } else {
+        result.failed += 1;
+      }
     } catch {
       // Best-effort channel: the durable notification row, approval task,
       // and in-app feed remain the record when the provider send fails.

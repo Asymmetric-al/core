@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { buildApprovalEmailContent } from "../../../../../packages/api/src/admin/contribution-operations/approval-notification-email";
+import {
+  buildApprovalEmailContent,
+  deliverApprovalEmailNotifications,
+} from "../../../../../packages/api/src/admin/contribution-operations/approval-notification-email";
 import {
   ensureCorrectionApprovalWorkflow,
   evaluatePendingApprovalSla,
@@ -276,7 +279,7 @@ class QueryBuilder {
             ...row,
           };
           this.state.approvalNotifications.push(stored);
-          inserted.push({ id: stored.id });
+          inserted.push({ id: stored.id, dedupe_key: stored.dedupe_key });
         }
 
         return { data: inserted, error: null };
@@ -1250,7 +1253,7 @@ describe("approval notification email delivery (#262)", () => {
 
   it("sends approval-request emails through the tenant sender keyed by the dedupe key", async () => {
     const state = emailEnabledState();
-    const sendEmail = vi.fn().mockResolvedValue({ id: "email-1" });
+    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
 
     const result = await ensureCorrectionApprovalWorkflow({
       supabaseAdmin: createStub(state),
@@ -1278,7 +1281,7 @@ describe("approval notification email delivery (#262)", () => {
 
   it("does not resend approval emails on a pure workflow replay", async () => {
     const state = emailEnabledState();
-    const sendEmail = vi.fn().mockResolvedValue({ id: "email-1" });
+    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
     const dependencies = {
       sendEmail,
       resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
@@ -1363,7 +1366,7 @@ describe("approval notification email delivery (#262)", () => {
     state.preferences = [
       { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
     ];
-    const sendEmail = vi.fn().mockResolvedValue({ id: "email-1" });
+    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
 
     await recordCorrectionApprovalOutcome({
       supabaseAdmin: createStub(state),
@@ -1384,6 +1387,116 @@ describe("approval notification email delivery (#262)", () => {
     const [, options] = sendEmail.mock.calls[0]!;
     expect(options.subject).toMatch(/approved/i);
     expect(options.text).toContain("Verified with the donor.");
+  });
+
+  it("does not resend an outcome email already recorded by a partial earlier attempt", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: true,
+    };
+    state.approvers = [
+      {
+        id: "requester-1",
+        email: "requester@example.test",
+        display_name: "Requester",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    // Simulate an earlier attempt that recorded (and sent) the email row but
+    // died before the in-app row landed. The retry must create the in-app
+    // notification without re-sending the already-recorded email.
+    state.approvalNotifications = [
+      {
+        id: "notification-existing",
+        channel: "email",
+        dedupe_key: `correction-request/${REQUEST_ID}/outcome/approved/email/requester`,
+      },
+    ];
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
+
+    await recordCorrectionApprovalOutcome({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      request: outcomeRequest(),
+      decision: "approved",
+      decisionReason: "Verified with the donor.",
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    const channels = state.approvalNotifications.map((row) => row.channel);
+    expect(channels).toContain("in_app");
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("counts a resolved failure result as failed, not sent", async () => {
+    const state = stubState();
+    state.approvers = [
+      {
+        id: "approver-1",
+        email: "approver-one@example.test",
+        display_name: "Approver One",
+        first_name: null,
+        last_name: null,
+      },
+      {
+        id: "approver-2",
+        email: "approver-two@example.test",
+        display_name: "Approver Two",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    // sendEmail resolves { success: false } for provider/validation failures
+    // instead of throwing; the delivery counters must reflect that honestly.
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValueOnce({ success: true, messageId: "email-1" })
+      .mockResolvedValueOnce({
+        success: false,
+        error: "Invalid sender",
+        errorCode: "VALIDATION_ERROR",
+      });
+
+    const result = await deliverApprovalEmailNotifications({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      notifications: [
+        {
+          recipientProfileId: "approver-1",
+          channel: "email",
+          kind: "approval_requested",
+          dedupeKey: `correction-request/${REQUEST_ID}/approval_requested/email/approver-1`,
+        },
+        {
+          recipientProfileId: "approver-2",
+          channel: "email",
+          kind: "approval_requested",
+          dedupeKey: `correction-request/${REQUEST_ID}/approval_requested/email/approver-2`,
+        },
+      ],
+      context: {
+        requestId: REQUEST_ID,
+        donationId: "donation-1",
+        actionType: "amount_correction",
+      },
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(result).toEqual({ attempted: 2, sent: 1, failed: 1, skipped: 0 });
   });
 
   it("keeps requester outcomes in-app only when tenant email is disabled", async () => {
@@ -1435,7 +1548,7 @@ describe("approval notification email delivery (#262)", () => {
     state.preferences = [
       { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
     ];
-    const sendEmail = vi.fn().mockResolvedValue({ id: "email-1" });
+    const sendEmail = vi.fn().mockResolvedValue({ success: true, messageId: "email-1" });
 
     await recordCorrectionApprovalOutcome({
       supabaseAdmin: createStub(state),
