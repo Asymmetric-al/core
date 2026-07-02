@@ -242,6 +242,16 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         assertContributionRouteActionSupported(correctionRequest.actionType);
       }
 
+      // Load the tenant policy once: the decision executor consumes it, and
+      // the result projection must shape canonicalContribution availability
+      // entries under the same policy the GET contract uses (#270) — the
+      // conservative default would advertise request affordances the
+      // executor rejects for no_approval_required tenants.
+      const approvalPolicy = await loadCorrectionApprovalPolicy({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+      });
+
       const outcome = await decideContributionCorrectionRequest({
         supabaseAdmin,
         tenantId: auth.tenantId,
@@ -251,6 +261,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         receiptDelivery: body.receiptDelivery ?? null,
         deciderProfileId: auth.profileId,
         deciderCapabilities: resolveContributionCapabilities(auth),
+        policy: approvalPolicy,
         dependencies: createContributionActionDependencies(supabaseAdmin),
         recordOutcome: recordCorrectionApprovalOutcome,
       });
@@ -262,6 +273,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         ? projectContributionActionResultForViewer(
             outcome.result,
             resolveContributionCapabilities(auth),
+            { approvalPolicy },
           )
         : null;
 
