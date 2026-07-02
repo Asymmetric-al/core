@@ -277,6 +277,95 @@ describe("applyContributionCorrection", () => {
     expect(second.adjustmentId).toBe(first.adjustmentId);
   });
 
+  it("replays idempotently with stable effective summaries and no new writes (#260)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+    };
+
+    const first = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-replay",
+    });
+    expect(first.before.amount).toBe(25_000);
+    expect(first.after.amount).toBe(20_000);
+
+    const replay = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-replay",
+    });
+
+    // The replay reports the already-applied effective truth on both sides:
+    // nothing is recomputed against the original, nothing new is written,
+    // and no receipt delivery re-runs.
+    expect(replay.idempotentReplay).toBe(true);
+    expect(replay.before.amount).toBe(20_000);
+    expect(replay.after.amount).toBe(20_000);
+    expect(replay.receiptOutcome).toBeNull();
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.insertCount).toBe(1);
+  });
+
+  it("rejects a stale retry before consulting the idempotency key (#260)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+    };
+
+    await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-stale-retry",
+    });
+
+    // A retry carrying a revision that no longer matches is a stale save
+    // first: optimistic concurrency wins over idempotent replay so the
+    // caller reloads and re-reviews instead of silently replaying.
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        idempotencyKey: "key-stale-retry",
+        expectedRevision: "stale-revision-from-before-first-save",
+      }),
+    ).rejects.toMatchObject({
+      status: 409,
+      message: expect.stringMatching(/reload the latest detail/i),
+    });
+
+    expect(state.adjustments).toHaveLength(1);
+  });
+
+  it("derives later corrections from the accumulated effective values, not the original (#260)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+    };
+
+    const first = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-first",
+    });
+    expect(first.before.amount).toBe(25_000);
+    expect(first.after.amount).toBe(20_000);
+
+    const second = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: { amount: 18_000 },
+      idempotencyKey: "key-second",
+    });
+
+    // A genuinely new correction after an intervening change starts from the
+    // effective value the first adjustment produced — original donation truth
+    // stays 25_000 in the database and is never rewritten.
+    expect(second.idempotentReplay).toBe(false);
+    expect(second.before.amount).toBe(20_000);
+    expect(second.after.amount).toBe(18_000);
+    expect(state.adjustments).toHaveLength(2);
+    expect(state.adjustments.map((row) => row.idempotency_key)).toEqual([
+      "key-first",
+      "key-second",
+    ]);
+  });
+
   it("records a deferred receipt outcome for receipt-affecting corrections", async () => {
     const state: StubState = {
       adjustments: [],
