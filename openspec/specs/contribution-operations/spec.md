@@ -89,11 +89,12 @@ Stripe replay, and other provider-state corrections.
 
 High-risk contribution actions MUST resolve the granular server-side capability
 for the action, a reason, and a clear confirmation prompt enforced server-side.
-For example, refunds and Stripe replay require `contributions.run_refunds` and
-`contributions.use_provider_actions` — held by finance approver, admin, and
-super_admin, not baseline finance staff. Capability resolution follows
-`identity-and-access`; the legacy coarse `finance:manage_contributions`
-permission does not authorize refunds or Stripe replay.
+For example, refunds require `contributions.run_refunds`, while Stripe replay
+requires `contributions.use_provider_actions`. Those capabilities are held by
+finance approver, admin, and super_admin, not baseline finance staff.
+Capability resolution follows `identity-and-access`; the legacy coarse
+`finance:manage_contributions` permission does not authorize refunds or Stripe
+replay.
 
 The non-suppressible high-risk actions include refunds, donor relinking,
 designation or fund correction, payment state correction, and Stripe replay.

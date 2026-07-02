@@ -6,11 +6,13 @@
 
 Mission Control MUST let authorized staff enter offline gifts through the
 Contribution Hub in two explicit modes. For known donors, staff attach or
-create the donor record, may mark the gift anonymous to missionary/public
-views, and receipt eligibility is recorded. For truly unknown donors, staff
-use an intentional unknown-donor mode where `donor_id` stays null, the gift is
-marked not receiptable unless donor information is later provided, and no fake
-donor data is ever entered.
+create the donor record, the receipt identity is snapshotted on the
+contribution at entry time so later profile edits do not rewrite historical
+receipts, staff may mark the gift anonymous to missionary/public views, and
+receipt eligibility is recorded. For truly unknown donors, staff use an
+intentional unknown-donor mode where `donor_id` stays null, the gift is marked
+not receiptable unless donor information is later provided, and no fake donor
+data is ever entered.
 
 Both modes MUST run through the Contribution Operations Core contracts:
 permission checks, entry audit (who entered the gift), designation

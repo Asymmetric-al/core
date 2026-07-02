@@ -2,10 +2,10 @@
 
 ## Why
 
-A spec-refinement session (2026-07-03) found the intent specs left the target
-customer, success definition, tradeoff ordering, Support Hub, outbound
-communications, and AI direction implicit or duplicated, and the OpenSpec
-config layer used an undocumented schema the tool ignores.
+A spec-refinement session found the intent specs left the target customer,
+success definition, tradeoff ordering, Support Hub, outbound communications,
+and AI direction implicit or duplicated, and the OpenSpec config layer used an
+undocumented schema the tool ignores.
 
 ## What Changes
 

@@ -586,7 +586,8 @@ Request shape:
 
 ```ts
 type GuestDonationRequest = {
-  tenantId?: string; // resolved from host/route/server context when possible
+  // tenant is resolved server-side from host/route/session context and is
+  // never accepted from the client (see server responsibilities, step 1)
   amount: number;
   currency: "usd";
   frequency: "one-time" | "monthly";
@@ -660,6 +661,8 @@ Request shape:
 type OfflineContributionRequest =
   | {
       donorMode: "known";
+      // exactly one identity path is required: attach an existing donor via
+      // donorId, or create one inline via donorInput — never neither, never both
       donorId?: string;
       donorInput?: DonorInput;
       amount: number;

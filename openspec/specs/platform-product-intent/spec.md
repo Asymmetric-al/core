@@ -246,11 +246,14 @@ friction: drafting, suggesting, summarizing, routing, and preparing work so
 people stay focused on ministry rather than on the tool.
 
 AI ambition MUST stay inside the platform's trust boundaries. Any AI-initiated
-effect that sends donor-facing communication, moves or records money, mutates
-operational truth, or publishes public content MUST pass an explicit human
-approval gate before it takes effect. AI output MUST NOT silently mutate
-operational truth, and AI behavior SHALL remain subject to the canonical
-priority ladder, honest-state rules, and tenant moderation boundaries.
+effect that sends donor-facing communication, moves or records money, or mutates
+operational truth MUST pass an explicit human approval gate before it takes
+effect. AI-initiated publication of public content MUST respect the tenant's
+configured publication and moderation boundary (see `platform-boundaries`),
+requiring human approval wherever the tenant requires review rather than
+overriding a tenant that has chosen automatic publishing. AI output MUST NOT
+silently mutate operational truth, and AI behavior SHALL remain subject to the
+canonical priority ladder, honest-state rules, and tenant moderation boundaries.
 
 AI assistants that help staff, missionaries, or donors act within the
 authority of the human they serve and are bounded by role and tenant scope, as
@@ -259,11 +262,13 @@ defined in `platform-boundaries`. They are not a separate permission tier.
 #### Scenario: An AI feature could act without human review
 
 - GIVEN an AI-assisted flow could autonomously complete a donor-facing send, a
-  money effect, an operational record mutation, or a public publication
+  money effect, or an operational record mutation
 - WHEN an agent designs that flow
 - THEN the AI contribution stops at a clearly-labeled draft, suggestion, or
   prepared action awaiting explicit human approval
 - AND the approved effect is attributed and auditable like any staff action
+- AND AI-initiated publication follows the tenant's configured publication
+  boundary rather than a blanket gate
 
 #### Scenario: A roadmap choice weighs AI investment against parity features
 

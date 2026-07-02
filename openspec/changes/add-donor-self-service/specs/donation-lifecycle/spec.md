@@ -42,15 +42,17 @@ MUST require choosing a replacement first.
 
 ### Requirement: Donors Receive Annual Giving Statements
 
-The platform MUST generate annual giving statements covering a donor's
+The platform MUST generate annual giving statements covering a donor's settled,
 receiptable gifts tied to their donor record, available from the donor portal
-and delivered per tenant policy. Unknown-donor gifts MUST NOT appear on any
-donor's statement unless later matched, and statement language MUST be
-finance/legal reviewed before production use.
+and delivered per tenant policy. Pending or in-flight gifts (for example
+unsettled ACH or not-yet-collected recurring installments) MUST NOT appear
+until settled. Unknown-donor gifts MUST NOT appear on any donor's statement
+unless later matched, and statement language MUST be finance/legal reviewed
+before production use.
 
 #### Scenario: A donor downloads last year's statement
 
 - WHEN a donor requests a statement for a completed year
-- THEN the statement includes exactly their receiptable gifts for that year
-  from canonical records
+- THEN the statement includes exactly their settled, receiptable gifts for that
+  year from canonical records
 - AND the delivery or download is recorded
