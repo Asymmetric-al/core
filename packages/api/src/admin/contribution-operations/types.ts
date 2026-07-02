@@ -82,6 +82,25 @@ export interface ContributionProviderOutcome {
   raw?: Record<string, unknown>;
 }
 
+/**
+ * Provider-outcome statuses recorded as failed corrections. Shared by the
+ * action executor and UI surfaces so both sides classify outcomes the same
+ * way: `local_update_failed` means the provider action succeeded but the
+ * local record did not converge, which still requires staff attention.
+ */
+const FAILED_PROVIDER_OUTCOME_STATUSES: ReadonlySet<string> = new Set([
+  "failed",
+  "local_update_failed",
+  "canceled",
+  "requires_action",
+]);
+
+export function isFailedProviderOutcomeStatus(
+  status: string | null | undefined,
+): boolean {
+  return status != null && FAILED_PROVIDER_OUTCOME_STATUSES.has(status);
+}
+
 export interface ContributionCorrectionRecordInput {
   tenantId: string;
   contributionId: string;

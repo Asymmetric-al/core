@@ -5,6 +5,7 @@ import {
   resolveCorrectionApprovalPolicy,
 } from "./approval-policy";
 import { getContributionActionPolicy } from "./policy";
+import { isFailedProviderOutcomeStatus } from "./types";
 import { ApiHttpError } from "../../shared/http-errors";
 
 import type {
@@ -456,12 +457,7 @@ function correctionInput(
 function isFailedProviderOutcome(
   outcome: { status?: string | null } | null | undefined,
 ): boolean {
-  return (
-    outcome?.status === "failed" ||
-    outcome?.status === "local_update_failed" ||
-    outcome?.status === "canceled" ||
-    outcome?.status === "requires_action"
-  );
+  return isFailedProviderOutcomeStatus(outcome?.status ?? null);
 }
 
 function sanitizeProviderOutcome(

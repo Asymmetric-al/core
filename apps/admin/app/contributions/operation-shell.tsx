@@ -1,5 +1,6 @@
 "use client";
 
+import { isFailedProviderOutcomeStatus } from "@asym/api/admin/contribution-operations";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -13,6 +14,7 @@ import {
 import {
   Field,
   FieldContent,
+  FieldDescription,
   FieldError,
   FieldLabel,
 } from "@asym/ui/components/shadcn/field";
@@ -20,7 +22,7 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useQueryClient } from "@tanstack/react-query";
-import { CircleCheck, CircleX, LoaderCircle } from "lucide-react";
+import { CircleCheck, CircleX, Clock3, LoaderCircle } from "lucide-react";
 import { useId, useMemo, useState } from "react";
 
 import {
@@ -279,6 +281,7 @@ export function ContributionOperationShell({
   });
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [amountPrefillKey, setAmountPrefillKey] = useState<string | null>(null);
   const reasonId = useId();
   const amountId = useId();
   const fundId = useId();
@@ -292,6 +295,7 @@ export function ContributionOperationShell({
     : null;
   if (nextOpenKey !== openKey) {
     setOpenKey(nextOpenKey);
+    setAmountPrefillKey(null);
     if (nextOpenKey) {
       setPhase({ name: "form" });
       setValues({ reason: "", confirmed: false });
@@ -300,6 +304,30 @@ export function ContributionOperationShell({
   }
 
   const detail = detailQuery.data;
+  const isRefundOperation = operation?.actionType === "refund";
+  const remainingRefundableCents =
+    isRefundOperation && detail
+      ? Math.max(
+          0,
+          detail.shared.amountCents - detail.shared.refundedAmountCents,
+        )
+      : null;
+
+  // Refunds default to the full remaining amount: once detail loads, prefill
+  // the amount input a single time per open so staff can lower it for a
+  // partial refund without re-typing the common full-refund case.
+  if (
+    nextOpenKey &&
+    remainingRefundableCents !== null &&
+    amountPrefillKey !== nextOpenKey
+  ) {
+    setAmountPrefillKey(nextOpenKey);
+    setValues((prev) => ({
+      ...prev,
+      amountDollars: (remainingRefundableCents / 100).toFixed(2),
+    }));
+  }
+
   const availability = useMemo(() => {
     if (!detail || !operation) {
       return null;
@@ -324,14 +352,33 @@ export function ContributionOperationShell({
   const blockedNextStep =
     availability?.nextStep ??
     "Refresh the gift detail or choose another action.";
+  const amountCurrencyCode = detail?.shared.currencyCode ?? "USD";
   const amountError = (() => {
     if (!operation.fields.includes("amount")) {
       return null;
     }
     const parsed = Number.parseFloat(values.amountDollars || "");
-    return Number.isFinite(parsed) && parsed > 0
-      ? null
-      : "Enter a valid amount.";
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      return "Enter a valid amount.";
+    }
+    if (!isRefundOperation) {
+      return null;
+    }
+    // Refund amounts must resolve to whole cents; the provider contract
+    // takes integer cents. Client validation is advisory — the server
+    // revalidates against current truth on submit.
+    const cents = Math.round(parsed * 100);
+    const isWholeCents = Math.abs(parsed * 100 - cents) < 1e-6;
+    if (!isWholeCents || cents <= 0) {
+      return "Enter a valid amount.";
+    }
+    if (remainingRefundableCents !== null && cents > remainingRefundableCents) {
+      return `Enter an amount up to ${formatSharedContributionAmount(
+        remainingRefundableCents,
+        amountCurrencyCode,
+      )}.`;
+    }
+    return null;
   })();
   const fundError =
     operation.fields.includes("fundId") && !values.fundId?.trim()
@@ -392,6 +439,24 @@ export function ContributionOperationShell({
           detail.shared.currencyCode,
         )}
       </dd>
+      {isRefundOperation && (
+        <>
+          <dt className="text-muted-foreground">Refunded so far</dt>
+          <dd className="text-right font-mono font-semibold tabular-nums">
+            {formatSharedContributionAmount(
+              detail.shared.refundedAmountCents,
+              detail.shared.currencyCode,
+            )}
+          </dd>
+          <dt className="text-muted-foreground">Remaining refundable</dt>
+          <dd className="text-right font-mono font-semibold tabular-nums">
+            {formatSharedContributionAmount(
+              remainingRefundableCents ?? 0,
+              detail.shared.currencyCode,
+            )}
+          </dd>
+        </>
+      )}
       <dt className="text-muted-foreground">Designation</dt>
       <dd className="text-right font-medium">
         {detail.shared.designationSummary.fundName}
@@ -402,7 +467,6 @@ export function ContributionOperationShell({
       </dd>
     </dl>
   ) : null;
-  const amountCurrencyCode = detail?.shared.currencyCode ?? "USD";
 
   return (
     <Dialog open={open} onOpenChange={(next) => !next && onClose()}>
@@ -480,6 +544,11 @@ export function ContributionOperationShell({
                     }
                     className="h-11"
                   />
+                  {isRefundOperation && (
+                    <FieldDescription>
+                      Enter a lower amount for a partial refund.
+                    </FieldDescription>
+                  )}
                   <FieldError
                     id={`${amountId}-error`}
                     errors={amountError ? [{ message: amountError }] : []}
@@ -601,49 +670,133 @@ export function ContributionOperationShell({
         )}
 
         {phase.name === "success" && (
-          <div className="space-y-3" data-testid="operation-result-panel">
-            <p
-              role="status"
-              className="flex items-center gap-2 text-sm font-medium text-foreground"
-            >
-              <CircleCheck className="size-4" aria-hidden />
-              {phase.result.approvalStatus === "pending_approval"
-                ? "Correction request submitted for approval."
-                : "Operation completed."}
-            </p>
-            <ul className="space-y-0.5 text-xs text-muted-foreground">
-              {phase.result.correctionRequestId && (
-                <li>Approval request: {phase.result.correctionRequestId}</li>
-              )}
-              {phase.result.adjustmentId && (
-                <li>Adjustment: {phase.result.adjustmentId}</li>
-              )}
-              {phase.result.receiptOutcome &&
-                phase.result.receiptOutcome.status !== "not_required" && (
-                  <li>
-                    Receipt:{" "}
-                    {phase.result.receiptOutcome.status.replace(/_/g, " ")}
-                  </li>
-                )}
-              <li>Audit event: {phase.result.auditEventId}</li>
-            </ul>
-            <div className="flex flex-wrap justify-end gap-2">
-              {onOpenFullDetail && donationId && (
-                <Button
-                  variant="outline"
-                  className="h-11"
-                  onClick={() => onOpenFullDetail(donationId)}
-                >
-                  View full contribution detail
-                </Button>
-              )}
-              <Button className="h-11" onClick={onClose}>
-                Done
-              </Button>
-            </div>
-          </div>
+          <OperationResultPanel
+            result={phase.result}
+            operation={operation}
+            donationId={donationId}
+            onOpenFullDetail={onOpenFullDetail}
+            onClose={onClose}
+          />
         )}
       </DialogContent>
     </Dialog>
+  );
+}
+
+type OperationResultTone = "success" | "pending" | "failure";
+
+function resolveResultPresentation(
+  result: ContributionActionResult,
+  operation: OperationDefinition,
+): { headline: string; tone: OperationResultTone } {
+  const isRefund = operation.actionType === "refund";
+  const providerOutcome = result.providerOutcome ?? null;
+
+  if (result.approvalStatus === "pending_approval") {
+    return {
+      headline: isRefund
+        ? "Refund request submitted for approval."
+        : "Correction request submitted for approval.",
+      tone: "success",
+    };
+  }
+
+  if (
+    providerOutcome &&
+    isFailedProviderOutcomeStatus(providerOutcome.status)
+  ) {
+    return {
+      headline: isRefund
+        ? "The provider refund did not complete."
+        : "The provider operation did not complete.",
+      tone: "failure",
+    };
+  }
+
+  if (providerOutcome?.status === "pending") {
+    return {
+      headline: isRefund
+        ? "Stripe accepted the refund; the final state will update when the provider confirms."
+        : "The provider accepted the operation; the final state will update when the provider confirms.",
+      tone: "pending",
+    };
+  }
+
+  return { headline: "Operation completed.", tone: "success" };
+}
+
+/**
+ * In-place result panel (ADR-CD-033). The headline stays honest about the
+ * provider outcome — a failed or still-pending provider action is never
+ * summarized as "Operation completed" — while audit and correction ids stay
+ * visible for follow-up in every state.
+ */
+function OperationResultPanel({
+  result,
+  operation,
+  donationId,
+  onOpenFullDetail,
+  onClose,
+}: {
+  result: ContributionActionResult;
+  operation: OperationDefinition;
+  donationId: string | null;
+  onOpenFullDetail?: (donationId: string) => void;
+  onClose: () => void;
+}) {
+  const providerOutcome = result.providerOutcome ?? null;
+  const { headline, tone } = resolveResultPresentation(result, operation);
+
+  return (
+    <div className="space-y-3" data-testid="operation-result-panel">
+      <p
+        role={tone === "failure" ? "alert" : "status"}
+        className={
+          tone === "failure"
+            ? "flex items-center gap-2 text-sm font-medium text-destructive"
+            : "flex items-center gap-2 text-sm font-medium text-foreground"
+        }
+      >
+        {tone === "failure" ? (
+          <CircleX className="size-4" aria-hidden />
+        ) : tone === "pending" ? (
+          <Clock3 className="size-4" aria-hidden />
+        ) : (
+          <CircleCheck className="size-4" aria-hidden />
+        )}
+        {headline}
+      </p>
+      <ul className="space-y-0.5 text-xs text-muted-foreground">
+        {result.correctionRequestId && (
+          <li>Approval request: {result.correctionRequestId}</li>
+        )}
+        {result.adjustmentId && <li>Adjustment: {result.adjustmentId}</li>}
+        {providerOutcome?.referenceId && (
+          <li>Provider reference: {providerOutcome.referenceId}</li>
+        )}
+        {tone === "failure" && providerOutcome?.errorCode && (
+          <li>Provider error code: {providerOutcome.errorCode}</li>
+        )}
+        {result.receiptOutcome &&
+          result.receiptOutcome.status !== "not_required" && (
+            <li>Receipt: {result.receiptOutcome.status.replace(/_/g, " ")}</li>
+          )}
+        <li>Audit event: {result.auditEventId}</li>
+      </ul>
+      <div className="flex flex-wrap justify-end gap-2">
+        {onOpenFullDetail && donationId && (
+          <Button
+            variant="outline"
+            className="h-11"
+            onClick={() => onOpenFullDetail(donationId)}
+          >
+            View full contribution detail
+          </Button>
+        )}
+        <Button className="h-11" onClick={onClose}>
+          Done
+        </Button>
+      </div>
+    </div>
   );
 }

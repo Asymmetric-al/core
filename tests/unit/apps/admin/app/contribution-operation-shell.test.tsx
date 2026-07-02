@@ -19,6 +19,29 @@ vi.mock("@asym/database/hooks", () => ({
   ],
 }));
 
+/**
+ * Compat shim for the AL-265 split: the shell imports
+ * `isFailedProviderOutcomeStatus` from the shared operations package, whose
+ * export lands with the server-side refund work. Until then, mirror the
+ * spec'd failed provider-outcome statuses; once the real export exists this
+ * mock passes it straight through.
+ */
+vi.mock("@asym/api/admin/contribution-operations", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const fallbackIsFailedProviderOutcomeStatus = (status: string) =>
+    status === "failed" ||
+    status === "local_update_failed" ||
+    status === "canceled" ||
+    status === "requires_action";
+  return {
+    ...actual,
+    isFailedProviderOutcomeStatus:
+      typeof actual.isFailedProviderOutcomeStatus === "function"
+        ? actual.isFailedProviderOutcomeStatus
+        : fallbackIsFailedProviderOutcomeStatus,
+  };
+});
+
 vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
 }));
@@ -85,6 +108,34 @@ function makeDetail(overrides: Partial<Record<string, unknown>> = {}) {
       },
     ],
     ...overrides,
+  };
+}
+
+/**
+ * A $250.00 gift with $50.00 already refunded and refund available, so the
+ * remaining refundable amount is $200.00. Each test uses a unique donation id
+ * because the shared QueryProvider caches detail responses by donation id.
+ */
+function makeRefundableDetail(donationId: string) {
+  const detail = makeDetail();
+  return {
+    ...detail,
+    id: donationId,
+    shared: {
+      ...detail.shared,
+      donationId,
+      refundState: "partially_refunded",
+      refundedAmountCents: 5_000,
+    },
+    actionAvailability: [
+      {
+        actionType: "refund",
+        available: true,
+        blockedReason: null,
+        nextStep: null,
+        riskLevel: "high",
+      },
+    ],
   };
 }
 
@@ -407,5 +458,267 @@ describe("ContributionOperationShell", () => {
         ),
       ).toHaveLength(1);
     });
+  });
+
+  function renderRefundShell(
+    donationId: string,
+    actionResult: Record<string, unknown>,
+  ) {
+    const fetchMock = fetchMockForShell(
+      actionResult,
+      makeRefundableDetail(donationId),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.refund!}
+          donationId={donationId}
+          sourceSurface="contribution_hub"
+        />
+      </QueryProvider>,
+    );
+
+    return { fetchMock, view };
+  }
+
+  async function submitRefund(
+    view: ReturnType<typeof render>,
+    amountDollars?: string,
+  ) {
+    // Wait for detail to load (context rows render from detail truth).
+    await view.findByText("Refunded so far");
+    if (amountDollars !== undefined) {
+      fireEvent.change(view.getByLabelText("Amount (USD)"), {
+        target: { value: amountDollars },
+      });
+    }
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor requested a refund" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Refund gift" }));
+    await view.findByTestId("operation-result-panel");
+  }
+
+  it("shows refund context rows and prefills the full remaining amount", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000d1",
+      {},
+    );
+
+    expect(await view.findByText("Refunded so far")).toBeTruthy();
+    expect(view.getByText("$50.00")).toBeTruthy();
+    expect(view.getByText("Remaining refundable")).toBeTruthy();
+    expect(view.getByText("$200.00")).toBeTruthy();
+
+    // Full refund is the default; staff lower the amount for a partial.
+    const amountInput = view.getByLabelText("Amount (USD)") as HTMLInputElement;
+    await waitFor(() => {
+      expect(amountInput.value).toBe("200.00");
+    });
+    expect(
+      view.getByText("Enter a lower amount for a partial refund."),
+    ).toBeTruthy();
+    // The prefilled full amount is already valid; only reason/confirmation
+    // remain outstanding.
+    expect(amountInput.getAttribute("aria-invalid")).toBe("false");
+    expect(view.queryByText("Enter a valid amount.")).toBeNull();
+  });
+
+  it("rejects refund amounts above the remaining refundable amount", async () => {
+    const { view } = renderRefundShell(
+      "00000000-0000-4000-8000-0000000000d2",
+      {},
+    );
+
+    await view.findByText("Refunded so far");
+    const amountInput = view.getByLabelText("Amount (USD)");
+    fireEvent.change(amountInput, { target: { value: "250" } });
+
+    expect(view.getByText("Enter an amount up to $200.00.")).toBeTruthy();
+    expect(amountInput.getAttribute("aria-invalid")).toBe("true");
+    expect(view.getByRole("button", { name: "Refund gift" })).toHaveProperty(
+      "disabled",
+      true,
+    );
+  });
+
+  it("submits partial refund amounts as integer cents through the shared contract", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000d3";
+    const { fetchMock, view } = renderRefundShell(donationId, {
+      auditEventId: "audit-refund-1",
+      approvalStatus: "applied",
+      taskIds: [],
+      canonicalContribution: {},
+      providerOutcome: {
+        provider: "stripe",
+        status: "succeeded",
+        referenceId: "re_123",
+      },
+    });
+
+    await submitRefund(view, "150.25");
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "refund",
+      contributionId: donationId,
+      sourceSurface: "contribution_hub",
+      payload: { amount: 15_025 },
+    });
+    expect(Number.isInteger(body.payload.amount)).toBe(true);
+  });
+
+  it("shows an honest failure panel when the provider refund fails", async () => {
+    const { view } = renderRefundShell("00000000-0000-4000-8000-0000000000d4", {
+      auditEventId: "audit-refund-2",
+      approvalStatus: "applied",
+      taskIds: [],
+      canonicalContribution: {},
+      providerOutcome: {
+        provider: "stripe",
+        status: "failed",
+        referenceId: null,
+        errorCode: "charge_already_refunded",
+        errorMessage: null,
+      },
+    });
+
+    await submitRefund(view);
+
+    expect(view.queryByText(/operation completed/i)).toBeNull();
+    const alert = view.getByRole("alert");
+    expect(alert.textContent).toContain(
+      "The provider refund did not complete.",
+    );
+    expect(
+      view.getByText(/provider error code: charge_already_refunded/i),
+    ).toBeTruthy();
+    // Audit trail ids stay visible for follow-up.
+    expect(view.getByText(/audit event: audit-refund-2/i)).toBeTruthy();
+  });
+
+  it("frames a pending provider refund as awaiting confirmation, never completed", async () => {
+    const { view } = renderRefundShell("00000000-0000-4000-8000-0000000000d5", {
+      auditEventId: "audit-refund-3",
+      approvalStatus: "applied",
+      taskIds: [],
+      canonicalContribution: {},
+      providerOutcome: {
+        provider: "stripe",
+        status: "pending",
+        referenceId: "re_pending_1",
+      },
+    });
+
+    await submitRefund(view);
+
+    expect(view.queryByText(/operation completed/i)).toBeNull();
+    expect(
+      view.getByText(
+        "Stripe accepted the refund; the final state will update when the provider confirms.",
+      ),
+    ).toBeTruthy();
+    expect(view.getByText(/provider reference: re_pending_1/i)).toBeTruthy();
+  });
+
+  it("shows success with the provider reference when the refund succeeds", async () => {
+    const { view } = renderRefundShell("00000000-0000-4000-8000-0000000000d6", {
+      auditEventId: "audit-refund-4",
+      approvalStatus: "applied",
+      taskIds: [],
+      canonicalContribution: {},
+      providerOutcome: {
+        provider: "stripe",
+        status: "succeeded",
+        referenceId: "re_123",
+      },
+    });
+
+    await submitRefund(view);
+
+    expect(view.getByText(/operation completed/i)).toBeTruthy();
+    expect(view.getByText(/provider reference: re_123/i)).toBeTruthy();
+    expect(view.queryByRole("alert")).toBeNull();
+  });
+
+  it("frames failed provider outcomes generically for non-refund operations", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000d7";
+    const detail = makeDetail();
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-replay-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+        providerOutcome: {
+          provider: "stripe",
+          status: "failed",
+          referenceId: null,
+          errorCode: "event_not_found",
+        },
+      },
+      {
+        ...detail,
+        id: donationId,
+        shared: {
+          ...detail.shared,
+          donationId,
+        },
+        actionAvailability: [
+          {
+            actionType: "stripe_replay",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "high",
+          },
+        ],
+      },
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.stripe_replay!}
+          donationId={donationId}
+          sourceSurface="contribution_hub"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Recover missed provider event" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(
+      view.getByRole("button", { name: "Replay provider webhook" }),
+    );
+
+    await view.findByTestId("operation-result-panel");
+    expect(view.queryByText(/operation completed/i)).toBeNull();
+    expect(view.getByRole("alert").textContent).toContain(
+      "The provider operation did not complete.",
+    );
+    expect(
+      view.getByText(/provider error code: event_not_found/i),
+    ).toBeTruthy();
   });
 });

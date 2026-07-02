@@ -7,6 +7,7 @@ import {
   applyContributionCorrection,
   replayStripeEventThroughContributionOperations,
 } from "./operations";
+import { refundContributionThroughStripe } from "./refunds";
 import {
   appendContributionOperationAuditEvent,
   createContributionCorrectionRecord,
@@ -69,6 +70,8 @@ export function createContributionActionDependencies(
       }),
     applyCorrection: (correctionInput) =>
       applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
+    refundContribution: (refundInput) =>
+      refundContributionThroughStripe({ supabaseAdmin, ...refundInput }),
     resolveReplayStripeEventId: async ({
       payload,
       tenantId,

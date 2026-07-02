@@ -27,6 +27,7 @@ import {
   LoaderCircle,
   Receipt,
   RefreshCcw,
+  Undo2,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -103,6 +104,13 @@ interface ContributionDetailSheetProps {
   onApproveStagedGift?: (stagedGiftId: string, contributionId: string) => void;
   onRetryStagedGift?: (stagedGiftId: string, contributionId: string) => void;
   onSendReceipt?: (stagedGiftId: string, contributionId: string) => void;
+  /**
+   * Opens the shared refund operation shell for this gift (issue #265).
+   * The affordance only renders when server availability includes a refund
+   * entry; a present-but-blocked entry renders disabled with the server's
+   * blocked reason inline.
+   */
+  onRefund?: (contributionId: string) => void;
   isActionPending?: boolean;
   /**
    * Server-computed action availability (ADR-CD-017 / ADR-CD-018). When
@@ -152,6 +160,7 @@ const ACTION_LABELS: Partial<
   approve_staged_gift: "Approve/Post",
   retry_staged_gift: "Retry posting",
   resend_receipt: "Send receipt",
+  refund: "Refund gift",
 };
 
 function ContributionDetailSheetFrame({
@@ -253,6 +262,7 @@ export function ContributionDetailSheet({
   onApproveStagedGift,
   onRetryStagedGift,
   onSendReceipt,
+  onRefund,
   isActionPending = false,
   actionAvailability,
   designations,
@@ -308,6 +318,7 @@ export function ContributionDetailSheet({
   const approveEntry = availabilityByAction?.get("approve_staged_gift") ?? null;
   const retryEntry = availabilityByAction?.get("retry_staged_gift") ?? null;
   const receiptEntry = availabilityByAction?.get("resend_receipt") ?? null;
+  const refundEntry = availabilityByAction?.get("refund") ?? null;
   const missingStagedGiftWorkflow =
     Boolean(availabilityByAction) && !stagedGiftId;
   const blockedWorkflowEntries = availabilityByAction
@@ -316,6 +327,20 @@ export function ContributionDetailSheet({
           Boolean(entry && !entry.available && entry.blockedReason),
       )
     : [];
+
+  // Refunds are provider-charge based, not staged-gift based, so the refund
+  // affordance and its blocked reason render independently of the staged
+  // gift workflow gating below.
+  const showRefundAction = Boolean(onRefund && refundEntry);
+  const canRefund = Boolean(refundEntry?.available);
+  const refundBlockedEntry =
+    showRefundAction && refundEntry && !refundEntry.available
+      ? refundEntry
+      : null;
+  const visibleBlockedEntries = [
+    ...(missingStagedGiftWorkflow ? [] : blockedWorkflowEntries),
+    ...(refundBlockedEntry?.blockedReason ? [refundBlockedEntry] : []),
+  ];
 
   const canApproveGift = availabilityByAction
     ? Boolean(stagedGiftId && approveEntry?.available)
@@ -684,11 +709,23 @@ export function ContributionDetailSheet({
                 Retry Posting
               </Button>
             )}
+            {showRefundAction && (
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!canRefund || isActionPending}
+                className="gap-2 rounded-xl font-semibold uppercase tracking-widest text-[10px] h-9"
+                onClick={() => onRefund?.(contribution.id)}
+              >
+                <Undo2 className="size-3.5" />
+                Refund Gift
+              </Button>
+            )}
           </div>
 
-          {!missingStagedGiftWorkflow && blockedWorkflowEntries.length > 0 && (
+          {visibleBlockedEntries.length > 0 && (
             <ul className="space-y-1.5">
-              {blockedWorkflowEntries.map((entry) => (
+              {visibleBlockedEntries.map((entry) => (
                 <li
                   key={entry.actionType}
                   className="text-xs text-muted-foreground leading-relaxed"
