@@ -1,11 +1,19 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  assertCanDecideCorrectionRequest,
+  canDecideCorrectionRequest,
+  resolveCorrectionApprovalPolicy,
+} from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
+import {
+  buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   evaluateReceiptDeliveryOptions,
+  parseReceiptSnapshotContent,
   resolveConfirmedReceiptDelivery,
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
+  type ReceiptSnapshotSourceDetail,
 } from "../../../../../packages/api/src/admin/contribution-operations/receipt-delivery";
 
 const MANAGE_RECEIPTS = "contributions.manage_receipts";
@@ -229,5 +237,256 @@ describe("admin/contribution-operations/receipt-delivery", () => {
     expect(changed.requested).toEqual(proposal);
     expect(changed.confirmed.choice).toBe("pdf");
     expect(changed.changedByApprover).toBe(true);
+  });
+});
+
+function snapshotSourceDetail(): ReceiptSnapshotSourceDetail {
+  return {
+    shared: {
+      donationId: "donation-1",
+      donorName: "Jordan Donor",
+      giftDate: "2026-05-01",
+      currencyCode: "USD",
+    },
+    effective: {
+      amountCents: 20_000,
+      fundId: "fund-1",
+      missionaryId: "missionary-1",
+      paymentStatus: "completed",
+    },
+    designations: {
+      lines: [
+        {
+          id: "line-1",
+          amountCents: 12_000,
+          fundId: "fund-1",
+          fundName: "Clean Water Initiative",
+          missionaryId: "missionary-1",
+          missionaryName: "Riley Worker",
+          memo: "Well repair",
+        },
+        {
+          id: "line-2",
+          amountCents: 8_000,
+          fundId: null,
+          fundName: "General Fund",
+          missionaryId: null,
+          missionaryName: null,
+          memo: null,
+        },
+      ],
+    },
+  };
+}
+
+describe("receipt snapshot content (V1)", () => {
+  it("captures versioned, self-contained render input with every designation line", () => {
+    const content = buildReceiptSnapshotContent({
+      detail: snapshotSourceDetail(),
+      affectedFields: ["amount", "designation"],
+      adjustmentId: "adj-1",
+      now: new Date("2026-06-01T12:00:00.000Z"),
+    });
+
+    expect(content).toEqual({
+      version: 1,
+      donationId: "donation-1",
+      donorName: "Jordan Donor",
+      giftDate: "2026-05-01",
+      currencyCode: "USD",
+      effective: {
+        amountCents: 20_000,
+        fundId: "fund-1",
+        missionaryId: "missionary-1",
+        paymentStatus: "completed",
+      },
+      designationLines: [
+        {
+          id: "line-1",
+          amountCents: 12_000,
+          fundId: "fund-1",
+          fundName: "Clean Water Initiative",
+          missionaryId: "missionary-1",
+          missionaryName: "Riley Worker",
+          memo: "Well repair",
+        },
+        {
+          id: "line-2",
+          amountCents: 8_000,
+          fundId: null,
+          fundName: "General Fund",
+          missionaryId: null,
+          missionaryName: null,
+          memo: null,
+        },
+      ],
+      affectedFields: ["amount", "designation"],
+      adjustmentId: "adj-1",
+      generatedAt: "2026-06-01T12:00:00.000Z",
+    });
+  });
+
+  it("round-trips built content through JSON storage and the parser", () => {
+    const content = buildReceiptSnapshotContent({
+      detail: snapshotSourceDetail(),
+      affectedFields: ["amount"],
+      adjustmentId: "adj-1",
+      now: new Date("2026-06-01T12:00:00.000Z"),
+    });
+
+    const parsed = parseReceiptSnapshotContent(
+      JSON.parse(JSON.stringify(content)),
+    );
+
+    expect(parsed).toEqual(content);
+  });
+
+  it("returns null for legacy bare snapshots that predate versioning", () => {
+    const legacy = {
+      effective: {
+        amountCents: 20_000,
+        fundId: null,
+        missionaryId: null,
+        paymentStatus: "completed",
+      },
+      designationLines: [],
+    };
+
+    expect(parseReceiptSnapshotContent(legacy)).toBeNull();
+    expect(parseReceiptSnapshotContent(null)).toBeNull();
+    expect(parseReceiptSnapshotContent("v1")).toBeNull();
+    expect(parseReceiptSnapshotContent({ version: 2 })).toBeNull();
+  });
+
+  it("rejects snapshots missing financial truth but tolerates cosmetic gaps", () => {
+    const valid = JSON.parse(
+      JSON.stringify(
+        buildReceiptSnapshotContent({
+          detail: snapshotSourceDetail(),
+          affectedFields: ["amount"],
+          adjustmentId: null,
+          now: new Date("2026-06-01T12:00:00.000Z"),
+        }),
+      ),
+    ) as Record<string, unknown>;
+
+    expect(
+      parseReceiptSnapshotContent({ ...valid, donationId: "" }),
+    ).toBeNull();
+    expect(
+      parseReceiptSnapshotContent({ ...valid, effective: { fundId: "f" } }),
+    ).toBeNull();
+    expect(
+      parseReceiptSnapshotContent({
+        ...valid,
+        designationLines: [{ fundName: "No amount" }],
+      }),
+    ).toBeNull();
+
+    const tolerant = parseReceiptSnapshotContent({
+      ...valid,
+      donorName: undefined,
+      currencyCode: undefined,
+      affectedFields: "amount",
+      designationLines: [{ amountCents: 20_000 }],
+    });
+    expect(tolerant).toMatchObject({
+      donorName: "Unknown donor",
+      currencyCode: "USD",
+      affectedFields: [],
+      designationLines: [
+        {
+          id: "line-1",
+          amountCents: 20_000,
+          fundName: "General Fund",
+          missionaryName: null,
+          memo: null,
+        },
+      ],
+    });
+  });
+});
+
+describe("canDecideCorrectionRequest", () => {
+  const APPROVE = "contributions.approve_corrections";
+
+  it("stays in parity with assertCanDecideCorrectionRequest", () => {
+    const separationPolicy = resolveCorrectionApprovalPolicy(null);
+    const oneApproverPolicy = resolveCorrectionApprovalPolicy({
+      ownership_mode: "one_approver",
+    });
+
+    const cases = [
+      {
+        policy: separationPolicy,
+        request: { requestedByProfileId: "profile-1" },
+        deciderProfileId: "profile-2",
+        deciderCapabilities: [APPROVE],
+      },
+      {
+        policy: separationPolicy,
+        request: { requestedByProfileId: "profile-1" },
+        deciderProfileId: "profile-1",
+        deciderCapabilities: [APPROVE],
+      },
+      {
+        policy: separationPolicy,
+        request: { requestedByProfileId: "profile-1" },
+        deciderProfileId: "profile-2",
+        deciderCapabilities: [],
+      },
+      {
+        policy: separationPolicy,
+        request: { requestedByProfileId: null },
+        deciderProfileId: "profile-1",
+        deciderCapabilities: [APPROVE],
+      },
+      {
+        policy: separationPolicy,
+        request: { requestedByProfileId: "profile-1" },
+        deciderProfileId: null,
+        deciderCapabilities: [APPROVE],
+      },
+      {
+        policy: oneApproverPolicy,
+        request: { requestedByProfileId: "profile-1" },
+        deciderProfileId: "profile-1",
+        deciderCapabilities: [APPROVE],
+      },
+    ];
+
+    for (const input of cases) {
+      let assertionAllows = true;
+      try {
+        assertCanDecideCorrectionRequest(input);
+      } catch {
+        assertionAllows = false;
+      }
+
+      expect(canDecideCorrectionRequest(input)).toBe(assertionAllows);
+    }
+  });
+
+  it("blocks self-approval only under separation of duties", () => {
+    const selfDecision = {
+      request: { requestedByProfileId: "profile-1" },
+      deciderProfileId: "profile-1",
+      deciderCapabilities: [APPROVE],
+    };
+
+    expect(
+      canDecideCorrectionRequest({
+        ...selfDecision,
+        policy: resolveCorrectionApprovalPolicy(null),
+      }),
+    ).toBe(false);
+    expect(
+      canDecideCorrectionRequest({
+        ...selfDecision,
+        policy: resolveCorrectionApprovalPolicy({
+          ownership_mode: "one_approver",
+        }),
+      }),
+    ).toBe(true);
   });
 });

@@ -1,6 +1,7 @@
 import { buildContributionDetail } from "./detail-read-model";
 import { assertAllowedPaymentStateCorrectionStatus } from "./payment-status-allowlist";
 import {
+  buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   parseReceiptDeliverySelection,
   resolveTenantReceiptDeliveryPolicy,
@@ -23,6 +24,7 @@ import type { ContributionDetail } from "./detail-read-model";
 import type {
   ReceiptDeliveryOutcome,
   ReceiptDeliverySelection,
+  ReceiptSnapshotContentV1,
   TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 import type {
@@ -284,6 +286,24 @@ function mapCrmLinks(rows: unknown): CrmPostLinkInput[] {
   }));
 }
 
+/**
+ * Which receipt fields a pending correction request would change (#263).
+ * Stored payloads may be malformed or reference unadapted action types;
+ * the detail payload degrades to "no receipt fields" instead of failing.
+ */
+function correctionRequestReceiptAffectedFields(
+  actionType: string,
+  payload: Record<string, unknown>,
+): string[] {
+  try {
+    return computeReceiptAffectedFields(
+      correctionEffectiveValues(actionType as ContributionActionType, payload),
+    );
+  } catch {
+    return [];
+  }
+}
+
 async function loadContributionOperationDetail(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -360,7 +380,7 @@ async function loadContributionOperationDetail(input: {
     input.supabaseAdmin
       .from("contribution_correction_requests")
       .select(
-        "id, action_type, status, reason, requested_by_profile_id, created_at",
+        "id, action_type, status, reason, requested_by_profile_id, created_at, payload, receipt_delivery_proposal",
       )
       .eq("tenant_id", input.tenantId)
       .eq("donation_id", input.contributionId)
@@ -479,14 +499,26 @@ async function loadContributionOperationDetail(input: {
     ),
     correctionRequests: (
       (correctionRequestResult.data ?? []) as JsonRecord[]
-    ).map((request) => ({
-      id: asString(request.id) ?? "",
-      actionType: asString(request.action_type) ?? "unknown",
-      status: asString(request.status) ?? "pending",
-      reason: asString(request.reason) ?? "",
-      requestedByProfileId: asString(request.requested_by_profile_id),
-      createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
-    })),
+    ).map((request) => {
+      const actionType = asString(request.action_type) ?? "unknown";
+      const payload = isRecord(request.payload) ? request.payload : {};
+
+      return {
+        id: asString(request.id) ?? "",
+        actionType,
+        status: asString(request.status) ?? "pending",
+        reason: asString(request.reason) ?? "",
+        requestedByProfileId: asString(request.requested_by_profile_id),
+        createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
+        receiptDeliveryProposal: parseReceiptDeliverySelection(
+          request.receipt_delivery_proposal,
+        ),
+        receiptAffectedFields: correctionRequestReceiptAffectedFields(
+          actionType,
+          payload,
+        ),
+      };
+    }),
     adjustments,
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
@@ -744,7 +776,7 @@ function summarizeEffectiveDetail(detail: ContributionDetail) {
   };
 }
 
-async function loadReceiptDeliveryContext(input: {
+export async function loadReceiptDeliveryContext(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   donorId: string | null;
@@ -792,7 +824,7 @@ async function insertReceiptSnapshot(input: {
   contributionId: string;
   adjustmentId: string | null;
   kind: "email" | "pdf";
-  content: Record<string, unknown>;
+  content: ReceiptSnapshotContentV1;
 }): Promise<string | null> {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_receipt_snapshots")
@@ -823,7 +855,7 @@ async function runReceiptDelivery(input: {
   selection: ReceiptDeliverySelection;
   affectedFields: string[];
   requested: ReceiptDeliverySelection | null;
-  snapshotContent: Record<string, unknown>;
+  snapshotContent: ReceiptSnapshotContentV1;
 }): Promise<ReceiptDeliveryOutcome> {
   const base = {
     affectedFields: input.affectedFields,
@@ -1015,10 +1047,11 @@ export async function applyContributionCorrection(input: {
         selection: deliverySelection,
         affectedFields,
         requested: requestedDelivery ?? deliverySelection,
-        snapshotContent: {
-          effective: after.effective,
-          designationLines: after.designations.lines,
-        },
+        snapshotContent: buildReceiptSnapshotContent({
+          detail: after,
+          affectedFields,
+          adjustmentId,
+        }),
       });
     } else {
       receiptOutcome = {

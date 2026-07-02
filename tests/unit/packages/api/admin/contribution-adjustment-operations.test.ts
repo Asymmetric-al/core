@@ -408,6 +408,30 @@ describe("applyContributionCorrection", () => {
     });
     expect(state.snapshots).toHaveLength(1);
     expect(state.snapshots![0]).toMatchObject({ kind: "pdf" });
+    // Versioned, self-contained render input (#263): the PDF renders from the
+    // snapshot alone, so donor/gift identity is captured at correction time.
+    expect(state.snapshots![0].content).toMatchObject({
+      version: 1,
+      donationId: DONATION_ID,
+      donorName: "Anonymous",
+      giftDate: "2026-05-01",
+      currencyCode: "USD",
+      effective: {
+        amountCents: 20_000,
+        fundId: null,
+        missionaryId: null,
+        paymentStatus: "completed",
+      },
+      designationLines: [
+        expect.objectContaining({
+          amountCents: 20_000,
+          fundName: "General Fund",
+        }),
+      ],
+      affectedFields: ["amount"],
+      adjustmentId: "adj-1",
+      generatedAt: expect.any(String),
+    });
   });
 
   it("applies a fund correction when the fund exists for the tenant", async () => {

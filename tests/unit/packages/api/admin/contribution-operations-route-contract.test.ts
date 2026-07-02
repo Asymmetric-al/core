@@ -1,13 +1,32 @@
+import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
+import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
+import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
+import { resolveTenantReceiptDeliveryPolicy } from "../../../../../packages/api/src/admin/contribution-operations/receipt-delivery";
 import {
   actionRequestSchema,
   assertContributionRouteActionSupported,
   decisionRequestSchema,
   isContributionRouteActionSupported,
 } from "../../../../../packages/api/src/admin/contribution-operations/route";
+import {
+  buildContributionReceiptDeliveryView,
+  projectContributionDetailForViewer,
+  projectCorrectionRequestsForViewer,
+} from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
 
+import type { ContributionDetailInput } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
 import type { ContributionActionType } from "../../../../../packages/api/src/admin/contribution-operations/types";
+
+const routeSource = readFileSync(
+  new URL(
+    "../../../../../packages/api/src/admin/contribution-operations/route.ts",
+    import.meta.url,
+  ),
+  "utf8",
+);
 
 const VALID_ACTION_REQUEST = {
   contributionId: "00000000-0000-4000-8000-000000000001",
@@ -76,5 +95,175 @@ describe("admin/contribution-operations route contract", () => {
       reason: "Finance reviewed the request",
       receiptDelivery: { choice: "defer", deferReason: "Batch later" },
     });
+  });
+
+  it("attaches receipt delivery context and per-request decision projection on GET", () => {
+    const getSection = routeSource.slice(
+      routeSource.indexOf("export const GET ="),
+      routeSource.indexOf("export const POST ="),
+    );
+
+    expect(getSection).toContain("projectCorrectionRequestsForViewer(");
+    expect(getSection).toContain('detail.shared.receiptStatus === "sent"');
+    expect(getSection).toContain("buildContributionReceiptDeliveryView(");
+    expect(getSection).toContain("loadReceiptDeliveryContext(");
+    expect(getSection).toContain("receiptDelivery,");
+  });
+
+  it("gates the receipt snapshot PDF route on the tenant pdf capability and streams binary", () => {
+    const pdfSection = routeSource.slice(
+      routeSource.indexOf("export const GET_RECEIPT_SNAPSHOT_PDF ="),
+    );
+
+    expect(pdfSection).toContain("assertReceiptSnapshotPdfCapability({");
+    expect(pdfSection).toContain(
+      "viewerCapabilities: resolveContributionCapabilities(auth),",
+    );
+    expect(pdfSection).toContain("renderContributionReceiptSnapshotPdf({");
+    expect(pdfSection).toContain('"cache-control": "no-store"');
+    expect(pdfSection).toContain(
+      '"content-disposition": `attachment; filename="${rendered.filename}"`',
+    );
+    expect(pdfSection).toContain('"content-type": rendered.contentType');
+    expect(pdfSection).toContain('roles: ["staff", "admin", "super_admin"]');
+  });
+});
+
+function detailInputWithCorrectionRequests(
+  correctionRequests: NonNullable<
+    ContributionDetailInput["correctionRequests"]
+  >,
+): ContributionDetailInput {
+  return {
+    donation: {
+      id: "donation-1",
+      tenantId: "tenant-1",
+      donorId: "donor-1",
+      missionaryId: null,
+      fundId: null,
+      amount: 20_000,
+      currency: "usd",
+      status: "completed",
+      donationType: "one_time",
+      paymentMethod: "card",
+      isRecurring: false,
+      recurringInterval: null,
+      notes: null,
+      stripePaymentIntentId: null,
+      stripeChargeId: null,
+      giftDate: "2026-05-01",
+      campaignId: null,
+      pledgeId: null,
+      processedAt: null,
+      completedAt: null,
+      failedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      refundedAt: null,
+      refundAmount: 0,
+      source: "online",
+      createdAt: "2026-05-01T00:00:00.000Z",
+      updatedAt: "2026-05-01T00:00:00.000Z",
+    },
+    correctionRequests,
+  };
+}
+
+describe("admin/contribution-operations GET payload projections", () => {
+  const pendingRequest = {
+    id: "req-1",
+    actionType: "amount_correction",
+    status: "pending",
+    reason: "Donor reported a typo",
+    requestedByProfileId: "profile-1",
+    createdAt: "2026-05-02T00:00:00.000Z",
+    receiptDeliveryProposal: { choice: "pdf" as const, deferReason: null },
+    receiptAffectedFields: ["amount"],
+  };
+
+  it("carries receiptDeliveryProposal and viewerCanDecide per correction request", () => {
+    const detail = buildContributionDetail(
+      detailInputWithCorrectionRequests([pendingRequest]),
+    );
+    const projected = projectContributionDetailForViewer(detail, [
+      "contributions.view_detail",
+    ]);
+    const policy = resolveCorrectionApprovalPolicy(null);
+
+    const approverView = projectCorrectionRequestsForViewer(
+      projected.correctionRequests,
+      {
+        policy,
+        viewerProfileId: "profile-2",
+        viewerCapabilities: ["contributions.approve_corrections"],
+      },
+    );
+    expect(approverView[0]).toMatchObject({
+      id: "req-1",
+      receiptDeliveryProposal: { choice: "pdf" },
+      receiptAffectedFields: ["amount"],
+      viewerCanDecide: true,
+    });
+
+    const requesterView = projectCorrectionRequestsForViewer(
+      projected.correctionRequests,
+      {
+        policy,
+        viewerProfileId: "profile-1",
+        viewerCapabilities: ["contributions.approve_corrections"],
+      },
+    );
+    expect(requesterView[0].viewerCanDecide).toBe(false);
+  });
+
+  it("builds the receiptDelivery block from tenant policy and donor context", () => {
+    const receiptDelivery = buildContributionReceiptDeliveryView({
+      policy: resolveTenantReceiptDeliveryPolicy(null),
+      donor: { email: null, doNotEmail: false },
+      viewerCapabilities: ["contributions.manage_receipts"],
+    });
+
+    expect(receiptDelivery).toMatchObject({
+      defaultChoice: "pdf",
+      deferReasonRequired: true,
+      requireDeliveryAction: false,
+      donor: { email: null, doNotEmail: false },
+    });
+    expect(receiptDelivery.options.map((option) => option.choice)).toEqual([
+      "email",
+      "pdf",
+      "defer",
+    ]);
+    expect(
+      receiptDelivery.options.find((option) => option.choice === "email"),
+    ).toMatchObject({ available: false });
+  });
+
+  it("keeps the concurrency revision stable when display-only receipt fields change", () => {
+    const baseline = buildContributionDetail(
+      detailInputWithCorrectionRequests([pendingRequest]),
+    );
+    const displayOnlyChange = buildContributionDetail(
+      detailInputWithCorrectionRequests([
+        {
+          ...pendingRequest,
+          receiptDeliveryProposal: {
+            choice: "defer",
+            deferReason: "Donor asked us to wait",
+          },
+          receiptAffectedFields: ["amount", "designation"],
+        },
+      ]),
+    );
+    const materialChange = buildContributionDetail(
+      detailInputWithCorrectionRequests([
+        { ...pendingRequest, status: "approved" },
+      ]),
+    );
+
+    // receiptDeliveryProposal / receiptAffectedFields are display-only
+    // context: they must never invalidate a concurrent save (ADR-CD-022).
+    expect(displayOnlyChange.revision).toBe(baseline.revision);
+    expect(materialChange.revision).not.toBe(baseline.revision);
   });
 });

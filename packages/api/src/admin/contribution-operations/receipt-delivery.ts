@@ -225,10 +225,18 @@ export function resolveConfirmedReceiptDelivery(input: {
   };
 }
 
+/**
+ * A fully-resolved delivery selection as parsed from stored payloads —
+ * `deferReason` is always materialized (`null` when absent).
+ */
+export type ResolvedReceiptDeliverySelection = ReceiptDeliverySelection & {
+  deferReason: string | null;
+};
+
 /** Parses an untyped payload field into a delivery selection, if present. */
 export function parseReceiptDeliverySelection(
   value: unknown,
-): ReceiptDeliverySelection | null {
+): ResolvedReceiptDeliverySelection | null {
   if (typeof value !== "object" || value === null) {
     return null;
   }
@@ -251,4 +259,218 @@ export interface ReceiptDeliveryOutcome {
   affectedFields: string[];
   requested: ReceiptDeliverySelection | null;
   confirmed: ReceiptDeliverySelection | null;
+}
+
+/**
+ * Versioned content stored in `contribution_receipt_snapshots.content` (#263).
+ *
+ * A snapshot is an immutable render input: everything the updated receipt
+ * (email or PDF) communicates is captured at correction time, so later fund
+ * renames or further corrections never rewrite what was sent to the donor.
+ */
+export interface ReceiptSnapshotDesignationLineV1 {
+  id: string;
+  amountCents: number;
+  fundId: string | null;
+  fundName: string;
+  missionaryId: string | null;
+  missionaryName: string | null;
+  memo: string | null;
+}
+
+export interface ReceiptSnapshotContentV1 {
+  version: 1;
+  donationId: string;
+  donorName: string;
+  giftDate: string;
+  currencyCode: string;
+  effective: {
+    amountCents: number;
+    fundId: string | null;
+    missionaryId: string | null;
+    paymentStatus: string;
+  };
+  /** Every designation line, equally (ADR-CD-008) — no primary line. */
+  designationLines: ReceiptSnapshotDesignationLineV1[];
+  affectedFields: string[];
+  adjustmentId: string | null;
+  generatedAt: string;
+}
+
+/**
+ * Structural subset of the contribution detail read model the snapshot
+ * builder reads. Kept local (instead of importing `ContributionDetail`) so
+ * this module stays leaf-level and easy to test.
+ */
+export interface ReceiptSnapshotSourceDetail {
+  shared: {
+    donationId: string;
+    donorName: string;
+    giftDate: string;
+    currencyCode: string;
+  };
+  effective: {
+    amountCents: number;
+    fundId: string | null;
+    missionaryId: string | null;
+    paymentStatus: string;
+  };
+  designations: {
+    lines: Array<{
+      id: string;
+      amountCents: number;
+      fundId: string | null;
+      fundName: string;
+      missionaryId: string | null;
+      missionaryName: string | null;
+      memo: string | null;
+    }>;
+  };
+}
+
+export function buildReceiptSnapshotContent(input: {
+  detail: ReceiptSnapshotSourceDetail;
+  affectedFields: string[];
+  adjustmentId: string | null;
+  now?: Date;
+}): ReceiptSnapshotContentV1 {
+  const { detail } = input;
+
+  return {
+    version: 1,
+    donationId: detail.shared.donationId,
+    donorName: detail.shared.donorName,
+    giftDate: detail.shared.giftDate,
+    currencyCode: detail.shared.currencyCode,
+    effective: {
+      amountCents: detail.effective.amountCents,
+      fundId: detail.effective.fundId,
+      missionaryId: detail.effective.missionaryId,
+      paymentStatus: detail.effective.paymentStatus,
+    },
+    designationLines: detail.designations.lines.map((line) => ({
+      id: line.id,
+      amountCents: line.amountCents,
+      fundId: line.fundId,
+      fundName: line.fundName,
+      missionaryId: line.missionaryId,
+      missionaryName: line.missionaryName,
+      memo: line.memo,
+    })),
+    affectedFields: [...input.affectedFields],
+    adjustmentId: input.adjustmentId,
+    generatedAt: (input.now ?? new Date()).toISOString(),
+  };
+}
+
+function isJsonRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function parseSnapshotDesignationLine(
+  value: unknown,
+  index: number,
+): ReceiptSnapshotDesignationLineV1 | null {
+  if (!isJsonRecord(value)) {
+    return null;
+  }
+  // A line without a numeric amount cannot represent financial truth; the
+  // whole snapshot is rejected rather than rendering a wrong receipt.
+  if (
+    typeof value.amountCents !== "number" ||
+    !Number.isFinite(value.amountCents)
+  ) {
+    return null;
+  }
+
+  return {
+    id:
+      typeof value.id === "string" && value.id.trim()
+        ? value.id
+        : `line-${index + 1}`,
+    amountCents: value.amountCents,
+    fundId: typeof value.fundId === "string" ? value.fundId : null,
+    fundName:
+      typeof value.fundName === "string" && value.fundName.trim()
+        ? value.fundName
+        : "General Fund",
+    missionaryId:
+      typeof value.missionaryId === "string" ? value.missionaryId : null,
+    missionaryName:
+      typeof value.missionaryName === "string" ? value.missionaryName : null,
+    memo: typeof value.memo === "string" ? value.memo : null,
+  };
+}
+
+/**
+ * Tolerant parser for stored snapshot content. Legacy bare
+ * `{ effective, designationLines }` rows (written before versioning) return
+ * `null` — they lack the donor/gift identity a rendered receipt requires.
+ */
+export function parseReceiptSnapshotContent(
+  value: unknown,
+): ReceiptSnapshotContentV1 | null {
+  if (!isJsonRecord(value) || value.version !== 1) {
+    return null;
+  }
+
+  const donationId =
+    typeof value.donationId === "string" && value.donationId.trim()
+      ? value.donationId
+      : null;
+  const effective = value.effective;
+  const rawLines = value.designationLines;
+  if (!donationId || !isJsonRecord(effective) || !Array.isArray(rawLines)) {
+    return null;
+  }
+  if (
+    typeof effective.amountCents !== "number" ||
+    !Number.isFinite(effective.amountCents)
+  ) {
+    return null;
+  }
+
+  const designationLines: ReceiptSnapshotDesignationLineV1[] = [];
+  for (const [index, rawLine] of rawLines.entries()) {
+    const line = parseSnapshotDesignationLine(rawLine, index);
+    if (!line) {
+      return null;
+    }
+    designationLines.push(line);
+  }
+
+  return {
+    version: 1,
+    donationId,
+    donorName:
+      typeof value.donorName === "string" && value.donorName.trim()
+        ? value.donorName
+        : "Unknown donor",
+    giftDate: typeof value.giftDate === "string" ? value.giftDate : "",
+    currencyCode:
+      typeof value.currencyCode === "string" && value.currencyCode.trim()
+        ? value.currencyCode
+        : "USD",
+    effective: {
+      amountCents: effective.amountCents,
+      fundId: typeof effective.fundId === "string" ? effective.fundId : null,
+      missionaryId:
+        typeof effective.missionaryId === "string"
+          ? effective.missionaryId
+          : null,
+      paymentStatus:
+        typeof effective.paymentStatus === "string"
+          ? effective.paymentStatus
+          : "completed",
+    },
+    designationLines,
+    affectedFields: Array.isArray(value.affectedFields)
+      ? value.affectedFields.filter(
+          (field): field is string => typeof field === "string",
+        )
+      : [],
+    adjustmentId:
+      typeof value.adjustmentId === "string" ? value.adjustmentId : null,
+    generatedAt: typeof value.generatedAt === "string" ? value.generatedAt : "",
+  };
 }

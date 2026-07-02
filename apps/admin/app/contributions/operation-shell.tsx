@@ -27,11 +27,21 @@ import {
   invalidateContributionOperationQueries,
   useContributionDetail,
 } from "./contribution-detail-overlay";
+import {
+  receiptDeliveryChoiceLabel,
+  ReceiptDeliveryChoiceField,
+  receiptSnapshotPdfUrl,
+  resolveInitialReceiptDeliveryValue,
+  type ContributionReceiptDeliveryContext,
+  type ReceiptDeliveryProposal,
+  type ReceiptDeliveryValue,
+} from "./receipt-delivery-choice";
 
 import type {
   ContributionActionResult,
   ContributionActionType,
   ContributionSourceSurface,
+  ReceiptDeliveryOutcome,
 } from "@asym/api/admin/contribution-operations";
 
 /**
@@ -82,6 +92,12 @@ export interface OperationDefinition {
   requiresConfirmation: boolean;
   /** Which operation-specific inputs to render. */
   fields: Array<"amount" | "fundId">;
+  /**
+   * Receipt-visible fields this operation changes (AL-263). When non-empty
+   * and the gift's receipt was already sent, the shell renders the updated
+   * receipt delivery choice.
+   */
+  receiptFields: string[];
   buildPayload: (input: {
     values: OperationFieldValues;
     stagedGiftId: string | null;
@@ -107,6 +123,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: true,
     requiresConfirmation: true,
     fields: ["amount"],
+    receiptFields: ["amount"],
     buildPayload: ({ values }) => ({
       amount: Math.round(Number.parseFloat(values.amountDollars || "0") * 100),
     }),
@@ -126,6 +143,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: true,
     requiresConfirmation: true,
     fields: ["fundId"],
+    receiptFields: ["designation"],
     buildPayload: ({ values }) => ({ fundId: values.fundId || null }),
   },
   resend_receipt: {
@@ -138,6 +156,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
+    receiptFields: [],
     buildPayload: () => ({}),
   },
   refund: {
@@ -155,6 +174,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: true,
     requiresConfirmation: true,
     fields: ["amount"],
+    receiptFields: [],
     buildPayload: ({ values }) => ({
       amount: Math.round(Number.parseFloat(values.amountDollars || "0") * 100),
     }),
@@ -169,6 +189,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
+    receiptFields: [],
     buildPayload: () => ({}),
   },
   retry_staged_gift: {
@@ -181,6 +202,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
+    receiptFields: [],
     buildPayload: () => ({}),
   },
   stripe_replay: {
@@ -195,6 +217,7 @@ export const OPERATION_DEFINITIONS: Record<
     requiresReason: true,
     requiresConfirmation: true,
     fields: [],
+    receiptFields: [],
     buildPayload: () => ({}),
   },
 };
@@ -210,7 +233,12 @@ export const OPERATION_CATEGORY_LABELS: Record<OperationCategory, string> = {
 type ShellPhase =
   | { name: "form" }
   | { name: "submitting" }
-  | { name: "success"; result: ContributionActionResult }
+  | {
+      name: "success";
+      result: ContributionActionResult;
+      /** The delivery selection submitted with this operation, if any. */
+      submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+    }
   | { name: "failure"; message: string };
 
 async function submitOperation(input: {
@@ -252,6 +280,54 @@ async function submitOperation(input: {
   return body.result;
 }
 
+/**
+ * Receipt-outcome lines for the in-place result panel (AL-263): status,
+ * requested vs confirmed delivery when the approver changed it, the defer
+ * reason, and a download link for generated updated-receipt PDFs.
+ */
+function ReceiptOutcomeResultItems({
+  outcome,
+}: {
+  outcome: ReceiptDeliveryOutcome;
+}) {
+  const requested = outcome.requested ?? null;
+  const confirmed = outcome.confirmed ?? null;
+  const changedByApprover =
+    requested !== null &&
+    confirmed !== null &&
+    (requested.choice !== confirmed.choice ||
+      (requested.deferReason ?? null) !== (confirmed.deferReason ?? null));
+  const deferReason =
+    outcome.status === "deferred"
+      ? (confirmed?.deferReason ?? outcome.reason)
+      : null;
+
+  return (
+    <>
+      <li>Receipt: {outcome.status.replace(/_/g, " ")}</li>
+      {changedByApprover && requested && confirmed && (
+        <li>
+          Requested: {receiptDeliveryChoiceLabel(requested.choice)} · Confirmed:{" "}
+          {receiptDeliveryChoiceLabel(confirmed.choice)}
+        </li>
+      )}
+      {deferReason && <li>Defer reason: {deferReason}</li>}
+      {outcome.status === "pdf_generated" && outcome.snapshotId && (
+        <li>
+          <a
+            href={receiptSnapshotPdfUrl(outcome.snapshotId)}
+            target="_blank"
+            rel="noreferrer"
+            className="font-medium text-foreground underline underline-offset-2"
+          >
+            Download updated receipt PDF
+          </a>
+        </li>
+      )}
+    </>
+  );
+}
+
 export function ContributionOperationShell({
   open,
   onClose,
@@ -277,6 +353,7 @@ export function ContributionOperationShell({
     reason: "",
     confirmed: false,
   });
+  const [delivery, setDelivery] = useState<ReceiptDeliveryValue | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [openKey, setOpenKey] = useState<string | null>(null);
   const reasonId = useId();
@@ -295,6 +372,7 @@ export function ContributionOperationShell({
     if (nextOpenKey) {
       setPhase({ name: "form" });
       setValues({ reason: "", confirmed: false });
+      setDelivery(null);
       setIdempotencyKey(crypto.randomUUID());
     }
   }
@@ -337,6 +415,40 @@ export function ContributionOperationShell({
     operation.fields.includes("fundId") && !values.fundId?.trim()
       ? "Enter the destination fund."
       : null;
+
+  // Updated receipt delivery (AL-263): only receipt-affecting operations on
+  // gifts with a sent receipt render the choice, and only when the server
+  // supplied the delivery context. The server stays the policy authority.
+  const receiptDelivery: ContributionReceiptDeliveryContext | null =
+    detail &&
+    operation.receiptFields.length > 0 &&
+    detail.shared.receiptStatus === "sent"
+      ? (detail.receiptDelivery ?? null)
+      : null;
+  const deliveryValue: ReceiptDeliveryValue =
+    delivery ??
+    (receiptDelivery
+      ? resolveInitialReceiptDeliveryValue({ receiptDelivery })
+      : { choice: null, deferReason: "" });
+  const deliveryError = (() => {
+    if (!receiptDelivery) {
+      return null;
+    }
+    if (!deliveryValue.choice) {
+      return receiptDelivery.requireDeliveryAction
+        ? "Choose how the updated receipt is delivered."
+        : null;
+    }
+    if (
+      deliveryValue.choice === "defer" &&
+      receiptDelivery.deferReasonRequired &&
+      !deliveryValue.deferReason.trim()
+    ) {
+      return "A reason is required when deferring the updated receipt.";
+    }
+    return null;
+  })();
+
   const reasonError =
     operation.requiresReason && !values.reason.trim()
       ? "A reason is required for this operation."
@@ -346,12 +458,26 @@ export function ContributionOperationShell({
       ? "Confirm the change to continue."
       : null;
   const validationMessage =
-    amountError ?? fundError ?? reasonError ?? confirmError;
+    amountError ?? fundError ?? deliveryError ?? reasonError ?? confirmError;
 
   const handleSubmit = async () => {
     if (!donationId || validationMessage || blocked) {
       return;
     }
+    const receiptDeliverySelection: ReceiptDeliveryProposal | null =
+      receiptDelivery && deliveryValue.choice
+        ? {
+            choice: deliveryValue.choice,
+            deferReason:
+              deliveryValue.choice === "defer"
+                ? deliveryValue.deferReason.trim() || null
+                : null,
+          }
+        : null;
+    const basePayload = operation.buildPayload({
+      values,
+      stagedGiftId: detail?.stagedGift?.id ?? null,
+    });
     setPhase({ name: "submitting" });
     try {
       const result = await submitOperation({
@@ -365,14 +491,17 @@ export function ContributionOperationShell({
           : null,
         expectedRevision: detail?.revision ?? null,
         idempotencyKey,
-        payload: operation.buildPayload({
-          values,
-          stagedGiftId: detail?.stagedGift?.id ?? null,
-        }),
+        payload: receiptDeliverySelection
+          ? { ...basePayload, receiptDelivery: receiptDeliverySelection }
+          : basePayload,
       });
       await invalidateContributionOperationQueries(queryClient);
       onRowRefresh?.();
-      setPhase({ name: "success", result });
+      setPhase({
+        name: "success",
+        result,
+        submittedReceiptDelivery: receiptDeliverySelection,
+      });
     } catch (error) {
       // Failure preserves the entered form state for recovery (ADR-CD-033).
       setPhase({
@@ -510,6 +639,16 @@ export function ContributionOperationShell({
                 </Field>
               )}
 
+              {receiptDelivery && (
+                <ReceiptDeliveryChoiceField
+                  affectedFields={operation.receiptFields}
+                  receiptDelivery={receiptDelivery}
+                  value={deliveryValue}
+                  onChange={setDelivery}
+                  error={deliveryError}
+                />
+              )}
+
               {operation.requiresReason && (
                 <Field data-invalid={Boolean(reasonError)}>
                   <FieldLabel htmlFor={reasonId}>Reason</FieldLabel>
@@ -618,12 +757,23 @@ export function ContributionOperationShell({
               {phase.result.adjustmentId && (
                 <li>Adjustment: {phase.result.adjustmentId}</li>
               )}
+              {phase.result.approvalStatus === "pending_approval" &&
+                phase.submittedReceiptDelivery && (
+                  <li>
+                    Proposed receipt delivery:{" "}
+                    {receiptDeliveryChoiceLabel(
+                      phase.submittedReceiptDelivery.choice,
+                    )}
+                    {phase.submittedReceiptDelivery.deferReason
+                      ? ` — ${phase.submittedReceiptDelivery.deferReason}`
+                      : null}
+                  </li>
+                )}
               {phase.result.receiptOutcome &&
                 phase.result.receiptOutcome.status !== "not_required" && (
-                  <li>
-                    Receipt:{" "}
-                    {phase.result.receiptOutcome.status.replace(/_/g, " ")}
-                  </li>
+                  <ReceiptOutcomeResultItems
+                    outcome={phase.result.receiptOutcome}
+                  />
                 )}
               <li>Audit event: {phase.result.auditEventId}</li>
             </ul>
