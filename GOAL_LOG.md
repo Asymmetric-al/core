@@ -163,3 +163,36 @@ Doctor audit and document higher-risk follow-ups with owners and blockers.
 - PR description should list full shipped scope (donor API, auth `Request` threading, table UX) vs title-only framing
 - Optional: duplicated donor Zod schemas (form vs API) — deferred
 - Resolve GitHub review threads after CI green
+
+---
+
+## Boneyard 1.8.1 maintenance (2026-05-27)
+
+Goal: upgrade `boneyard-js` to **1.8.1**, align root capture scripts with origin-only CLI URLs, lock contract in unit tests, add `noindex` on synthetic capture routes, update `docs/guides/ui-design/boneyard.md`.
+
+### Completed
+
+| Area                 | Status | Notes                                                                                                 |
+| -------------------- | ------ | ----------------------------------------------------------------------------------------------------- |
+| `boneyard-js@^1.8.1` | Done   | admin, donor, missionary, `@asym/ui`; `bun.lock` resolves `boneyard-js@1.8.1`                         |
+| Root scripts         | Done   | `boneyard:*` use origin URLs only (`http://localhost:3030`, `4000`, `3000`); no `/boneyard/...` paths |
+| Donor breakpoints    | Done   | `[1280]` in `apps/donor/boneyard.config.json` only; no `--breakpoints` on root donor scripts          |
+| Capture route robots | Done   | `noindex`/`nofollow` on admin contributions page + missionary tasks layout (donor already had)        |
+| Docs                 | Done   | `docs/guides/ui-design/boneyard.md` updated for 1.8.1 workflow                                        |
+| TDD contract test    | Done   | `tests/unit/scripts/boneyard-scripts.test.ts` (7 tests)                                               |
+| Registry output      | Done   | Canonical generated registry is `bones/registry.ts`; stale `.js` siblings removed                     |
+| Capture route mode   | Done   | Public capture routes render `BoneyardSkeleton` with `loading={false}` for snapshot capture           |
+| Bone regeneration    | Done   | `bun run boneyard:admin:force` with admin dev server; capture succeeded                               |
+
+### Validation
+
+- `bun run test:unit tests/unit/scripts/boneyard-scripts.test.ts` → 7 passed
+- `bun run boneyard:admin:force` → captured `admin-contributions-content` across 6 breakpoints
+- `bunx turbo run typecheck --filter=@asym/admin --filter=@asym/donor --filter=@asym/missionary-app` → passed
+- Config routes match capture pages: `/boneyard/contributions`, `/boneyard/donor-dashboard`, `/boneyard/tasks`
+
+### Optional follow-up (local dev servers)
+
+| Step                          | Notes                                                                                    |
+| ----------------------------- | ---------------------------------------------------------------------------------------- |
+| `bun run test:e2e:boneyard:*` | Run after `bun run dev:admin`, `dev:missionary`, `dev:donor` when validating smoke specs |

@@ -208,7 +208,7 @@ function classifyTile(tile: Tile) {
 function TileSummaryCard({ tile }: { tile: Tile }) {
   return (
     <Link href={resolveMissionControlHref(tile.route)} className="group block">
-      <Card className="h-full border-border/70 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover-lift hover:border-zinc-300 hover:shadow-lg hover:shadow-zinc-200/50">
+      <Card className="h-full border-border/70 bg-card shadow-sm transition-[border-color,box-shadow,transform] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-zinc-200/50">
         <CardContent className="flex h-full flex-col gap-4 p-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex size-10 items-center justify-center rounded-xl border border-border bg-muted/40 text-foreground transition-[background-color,color,border-color] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)] group-hover:border-zinc-900 group-hover:bg-zinc-900 group-hover:text-white">
@@ -335,12 +335,14 @@ export function MissionControlHome({
                 </div>
               </div>
               <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
-                <DialogTrigger asChild>
-                  <Button className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800">
-                    <LayoutGrid className="mr-2 size-4" />
-                    Customize modules
-                  </Button>
-                </DialogTrigger>
+                <DialogTrigger
+                  render={
+                    <Button className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800">
+                      <LayoutGrid className="mr-2 size-4" />
+                      Customize modules
+                    </Button>
+                  }
+                />
                 <DialogContent className="max-w-3xl">
                   <DialogHeader>
                     <DialogTitle>Mission Control tools</DialogTitle>
@@ -500,15 +502,17 @@ export function MissionControlHome({
               </p>
             </div>
             <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
-                >
-                  <LayoutGrid className="mr-2 size-4" />
-                  Preview widgets
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
+                  >
+                    <LayoutGrid className="mr-2 size-4" />
+                    Preview widgets
+                  </Button>
+                }
+              />
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Widget library preview</DialogTitle>

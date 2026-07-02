@@ -1,115 +1,135 @@
+import { mkdtempSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import path from "node:path";
 import { spawnSync } from "node:child_process";
 
 import { describe, expect, it } from "vitest";
 
 const repoRoot = process.cwd();
-const scriptPath = "scripts/verify/bun-version.sh";
-const bashLauncher = resolveBashLauncher();
-const bashTestTimeout = 60_000;
+const scriptPath = path.join(repoRoot, "scripts", "verify", "bun-version.sh");
+const bashSystemPath =
+  "/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin";
 
-function resolveWindowsCommand(command: string) {
-  const result = spawnSync("where.exe", [command], { encoding: "utf8" });
-
-  return result.stdout
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter(Boolean);
-}
-
-function resolveBashLauncher() {
-  if (process.platform === "win32") {
-    const bashCommand = resolveWindowsCommand("bash").find((candidate) =>
-      candidate.toLowerCase().includes("\\git\\"),
-    );
-    if (bashCommand) {
-      return { command: bashCommand, args: [] };
-    }
-
-    const wslCommand = resolveWindowsCommand("wsl.exe");
-    if (wslCommand[0]) {
-      return { command: wslCommand[0], args: ["--exec", "bash"] };
-    }
+function toBashPath(filePath: string): string {
+  if (process.platform !== "win32") {
+    return filePath;
   }
 
-  return { command: "bash", args: [] };
+  return filePath
+    .replaceAll("\\", "/")
+    .replace(
+      /^([A-Za-z]):/,
+      (_, drive: string) => `/mnt/${drive.toLowerCase()}`,
+    );
 }
 
-function spawnBash(args: string[], options: Parameters<typeof spawnSync>[2]) {
-  return spawnSync(
-    bashLauncher.command,
-    [...bashLauncher.args, ...args],
-    options,
-  );
+function resolveBunPath(): string {
+  const execPathBase = path.basename(process.execPath).toLowerCase();
+  if (execPathBase === "bun" || execPathBase === "bun.exe") {
+    return process.execPath;
+  }
+
+  const command = process.platform === "win32" ? "where.exe" : "which";
+  const result = spawnSync(command, ["bun"], { encoding: "utf8" });
+  const firstMatch = result.stdout?.split(/\r?\n/).find(Boolean);
+
+  if (!firstMatch) {
+    throw new Error("Unable to resolve bun on PATH for bun-version test");
+  }
+
+  return firstMatch.trim();
 }
 
-function runGuardWithFakeBun(version: string) {
-  const script = [
-    'fake_bin_dir="/tmp/core-fake-bun-$$"',
-    'mkdir -p "$fake_bin_dir"',
-    "cat > \"$fake_bin_dir/bun\" <<'EOF'",
-    "#!/usr/bin/env bash",
-    "set -euo pipefail",
-    'if [[ "${1:-}" == "--version" ]]; then',
-    `  echo "${version}"`,
-    "  exit 0",
-    "fi",
-    'if [[ "${1:-}" == "-e" ]]; then',
-    '  package_json="${3:-}"',
-    '  sed -n \'s/.*"packageManager"[[:space:]]*:[[:space:]]*"bun@\\([^"]*\\)".*/\\1/p\' "$package_json" | head -n 1',
-    "  exit 0",
-    "fi",
-    'echo "unexpected fake bun args: $*" >&2',
-    "exit 127",
-    "EOF",
-    'chmod +x "$fake_bin_dir/bun"',
-    'export BUN_BIN="$fake_bin_dir/bun"',
-    `bash ${scriptPath}`,
-  ].join("\n");
+function runGuard(env: NodeJS.ProcessEnv = {}) {
+  const bunPath = resolveBunPath();
+  const bashBunDir = toBashPath(path.dirname(bunPath));
 
-  return spawnBash(["-lc", script], {
+  return spawnSync("bash", [scriptPath], {
     cwd: repoRoot,
-    env: process.env,
+    env: {
+      ...process.env,
+      PATH: `${bashBunDir}:${bashSystemPath}:${process.env.PATH ?? ""}`,
+      ...env,
+    },
     encoding: "utf8",
-    timeout: bashTestTimeout,
   });
 }
 
-function stripWslStartupWarning(stderr: string) {
-  return stderr.replace(
-    /^wsl: Failed to start the systemd user session[^\n]*\n?/gm,
-    "",
-  );
+function canRunBunVersionGuard(): boolean {
+  try {
+    const bunPath = resolveBunPath();
+    const bashBunDir = toBashPath(path.dirname(bunPath));
+    const result = spawnSync(
+      "bash",
+      ["-c", "command -v bun >/dev/null 2>&1 && bun --version >/dev/null"],
+      {
+        cwd: repoRoot,
+        env: {
+          ...process.env,
+          PATH: `${bashBunDir}:${bashSystemPath}:${process.env.PATH ?? ""}`,
+        },
+        encoding: "utf8",
+      },
+    );
+
+    return result.status === 0;
+  } catch {
+    return false;
+  }
 }
 
+const itIfBashCanRunBun = canRunBunVersionGuard() ? it : it.skip;
+const itIfFakeBunCanShadowPath =
+  process.platform === "win32" ? it.skip : itIfBashCanRunBun;
+
 describe("bun version guard", () => {
-  it(
+  itIfBashCanRunBun(
     "accepts the installed Bun when it matches packageManager",
     () => {
-      const result = runGuardWithFakeBun("1.3.14");
-      const stderr = stripWslStartupWarning(result.stderr);
+      const result = runGuard();
 
       expect(result.status).toBe(0);
       expect(result.stdout).toContain("Bun version OK: bun@1.3.14");
-      expect(stderr).toBe("");
+      expect(result.stderr).toBe("");
     },
-    bashTestTimeout,
+    30000,
   );
 
-  it(
+  itIfFakeBunCanShadowPath(
     "fails fast when the Bun binary does not match packageManager",
     () => {
-      const result = runGuardWithFakeBun("1.3.4");
-      const stderr = stripWslStartupWarning(result.stderr);
+      const fakeBinDir = mkdtempSync(path.join(tmpdir(), "fake-bun-"));
+      const bashFakeBinDir = toBashPath(fakeBinDir);
+      const realBun = toBashPath(resolveBunPath());
+
+      writeFileSync(
+        path.join(fakeBinDir, "bun"),
+        [
+          "#!/usr/bin/env bash",
+          "set -euo pipefail",
+          'if [[ "${1:-}" == "--version" ]]; then',
+          '  echo "1.3.4"',
+          "  exit 0",
+          "fi",
+          'exec "$REAL_BUN" "$@"',
+        ].join("\n"),
+        { mode: 0o755 },
+      );
+
+      const result = runGuard({
+        PATH: `${bashFakeBinDir}:${bashSystemPath}:${process.env.PATH ?? ""}`,
+        REAL_BUN: realBun,
+      });
 
       expect(result.status).toBe(1);
-      expect(stderr).toContain("error: Bun version mismatch.");
-      expect(stderr).toContain(
+      expect(result.stderr).toContain("error: Bun version mismatch.");
+      expect(result.stderr).toContain(
         "expected (package.json packageManager): bun@1.3.14",
       );
-      expect(stderr).toContain(
+      expect(result.stderr).toContain(
         "installed (bun --version):              bun@1.3.4",
       );
     },
-    bashTestTimeout,
+    30000,
   );
 });

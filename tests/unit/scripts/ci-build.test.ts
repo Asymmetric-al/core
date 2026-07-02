@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   getAppBuildStep,
   getProcessListCommand,
+  getRequestedApps,
   getSharedPackageBuildSteps,
   getSleepCommand,
   resolveTurboBin,
@@ -11,7 +12,6 @@ import {
 describe("ci-build command planning", () => {
   it("uses the first available Windows Turbo binary candidate", () => {
     const existingPaths = new Set([
-      "/repo/node_modules/.bin/turbo.exe",
       "/repo/node_modules/.bin/turbo.cmd",
       "/repo/node_modules/.bin/turbo",
     ]);
@@ -26,9 +26,9 @@ describe("ci-build command planning", () => {
         ),
     });
 
-    expect(
-      result.replaceAll("\\", "/").endsWith("node_modules/.bin/turbo.exe"),
-    ).toBe(true);
+    expect(result.replaceAll("\\", "/")).toMatch(
+      /node_modules\/\.bin\/turbo\.cmd$/,
+    );
   });
 
   it("builds shared packages without Turbo on Windows", () => {
@@ -110,6 +110,42 @@ describe("ci-build command planning", () => {
         "build",
       ],
     });
+  });
+
+  it("selects one app when --app is provided", () => {
+    const apps = [
+      {
+        id: "admin",
+        filter: "@asym/admin",
+        cwd: "apps/admin",
+        nextDir: "apps/admin/.next",
+      },
+      {
+        id: "donor",
+        filter: "@asym/donor",
+        cwd: "apps/donor",
+        nextDir: "apps/donor/.next",
+      },
+    ];
+
+    expect(getRequestedApps(["--app", "admin"], apps)).toEqual([apps[0]]);
+    expect(getRequestedApps([], apps)).toEqual(apps);
+  });
+
+  it("rejects unknown app ids", () => {
+    expect(() =>
+      getRequestedApps(
+        ["--app", "unknown"],
+        [
+          {
+            id: "admin",
+            filter: "@asym/admin",
+            cwd: "apps/admin",
+            nextDir: "apps/admin/.next",
+          },
+        ],
+      ),
+    ).toThrow('Unknown app "unknown". Expected one of: admin.');
   });
 
   it("uses native Windows process and sleep commands for lock coordination", () => {

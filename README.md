@@ -12,7 +12,7 @@ A high-performance Next.js 16.2.6 (App Router) Turborepo monorepo for mission-fo
 4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`). For a single surface, `bun run dev:donor` is typical (donor on port 3000).
 5. **Optional smoke check:** `bun run verify` (implemented in `scripts/verify/index.mjs`; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
 
-**After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/` and `.cursor/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
+**After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
 
 **Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
 **Optional:** Other entries in `.env.example` (Stripe, demo accounts, etc.)
@@ -156,17 +156,17 @@ Agent-oriented docs live under `docs/ai/`:
 
 **Canonical source:** `docs/ai/`. Root `rules/` and `skills/` contain **deprecation pointers** to `docs/ai/` (not full duplicates).
 
-**Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery) and `.cursor/skills/` (Cursor) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
+**Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery), `.cursor/skills/` (Cursor), and `.claude/skills/` (Claude Code) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
 
 **Skill scripts (root `package.json`):**
 
 | Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                                         |
 | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`.                                                                                                                              |
+| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`.                                                                                                          |
 | `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                                                                                                                                              |
 | `bun run skills:refresh-upstream` | Vendors the pinned set into `docs/ai/skills/`: `supabase`, `supabase-postgres-best-practices`, and `npm-deps-cleanup` from repo-local `.agents/skills/` (after targeted Skills CLI refreshes); `emil-design-engineering` from `$HOME/.cursor/skills/` (after the animations.dev installer). Use the matching upstream workflow for each skill, then run `skills:sync` / `skills:verify` (see below). |
 
-**Manual-vendored skills:** `docs/ai/skills/resend-cli/`, `docs/ai/skills/bendc-frontend-guidelines/`, `docs/ai/skills/payloadcms-payload/`, and `docs/ai/skills/payloadcms-cms-migration/` are not part of `skills:refresh-upstream`. Refresh them from the source documented in each `references/upstream.md`, then run `bun run skills:sync` and `bun run skills:verify`.
+**Manual-vendored skills:** `docs/ai/skills/resend-cli/`, `docs/ai/skills/bendc-frontend-guidelines/`, `docs/ai/skills/payloadcms-payload/`, `docs/ai/skills/payloadcms-cms-migration/`, and `docs/ai/skills/reui/` are not part of `skills:refresh-upstream`. Refresh them from the source documented in each `references/upstream.md`, then run `bun run skills:sync` and `bun run skills:verify`.
 
 When you add or change a skill **only** under `docs/ai/skills/`:
 

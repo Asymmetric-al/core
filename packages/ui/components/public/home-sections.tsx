@@ -11,7 +11,8 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/ui/lib/utils";
 
 import { HomeHeroAnimated } from "./home-hero-animated";
 
@@ -398,7 +399,7 @@ export function HomeFeatured() {
               role="listitem"
             >
               <Link href="/workers" className="block">
-                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
+                <div className="relative aspect-[3/4] rounded-3xl overflow-hidden mb-6 bg-zinc-200 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-500/10 transition-[box-shadow] duration-300 ease-out">
                   <Image
                     src={item.img}
                     alt={`${item.title} project - ${item.loc}`}
@@ -452,13 +453,15 @@ export function HomeFeatured() {
         </div>
 
         <div className="mt-16 md:mt-20 text-center md:hidden">
-          <Button
-            variant="outline"
-            className="w-full h-16 md:h-20 rounded-full border-zinc-200 text-zinc-950 font-semibold font-syne text-base md:text-lg tracking-widest uppercase"
-            asChild
+          <Link
+            href="/workers"
+            className={cn(
+              buttonVariants({ variant: "outline" }),
+              "w-full h-16 md:h-20 rounded-full border-zinc-200 text-zinc-950 font-semibold font-syne text-base md:text-lg tracking-widest uppercase",
+            )}
           >
-            <Link href="/workers">View Directory</Link>
-          </Button>
+            View Directory
+          </Link>
         </div>
       </div>
     </section>
@@ -492,22 +495,24 @@ export function HomeCTA() {
           movement of people who refuse to look away.
         </p>
         <div className="flex flex-col md:flex-row gap-4 justify-center">
-          <Button
-            size="lg"
-            variant="ghost"
-            className="h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-semibold font-syne text-zinc-950 shadow-lg hover:bg-zinc-100 hover:text-zinc-950 hover-scale-subtle"
-            asChild
+          <Link
+            href="/workers"
+            className={cn(
+              buttonVariants({ size: "lg", variant: "ghost" }),
+              "h-14 rounded-full border border-white/15 bg-white px-10 text-lg font-semibold font-syne text-zinc-950 shadow-lg hover:bg-zinc-100 hover:text-zinc-950 hover-scale-subtle",
+            )}
           >
-            <Link href="/workers">Initiate Support</Link>
-          </Button>
-          <Button
-            size="lg"
-            variant="outline"
-            className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl"
-            asChild
+            Initiate Support
+          </Link>
+          <Link
+            href="/about"
+            className={cn(
+              buttonVariants({ size: "lg", variant: "outline" }),
+              "h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl",
+            )}
           >
-            <Link href="/about">Our Framework</Link>
-          </Button>
+            Our Framework
+          </Link>
         </div>
       </div>
     </section>

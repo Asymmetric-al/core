@@ -24,10 +24,10 @@ import {
   TabsTrigger,
 } from "@asym/ui/components/shadcn/tabs";
 
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 type Props = {
-  trigger: ReactNode;
+  trigger: ReactElement;
   defaultOpen?: boolean;
   align?: "start" | "center" | "end";
 };
@@ -39,7 +39,7 @@ const NotificationDropdown = ({
 }: Props) => {
   return (
     <DropdownMenu defaultOpen={defaultOpen}>
-      <DropdownMenuTrigger asChild>{trigger}</DropdownMenuTrigger>
+      <DropdownMenuTrigger render={trigger} />
       <DropdownMenuContent
         className="max-w-xs sm:max-w-[30rem]"
         align={align || "end"}
@@ -61,13 +61,13 @@ const NotificationDropdown = ({
               <TabsList className="relative h-fit rounded-none bg-transparent p-0">
                 <TabsTrigger
                   value="inbox"
-                  className="data-[state=active]:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                  className="data-active:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
                 >
                   Inbox
                 </TabsTrigger>
                 <TabsTrigger
                   value="general"
-                  className="data-[state=active]:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:border-transparent dark:data-[state=active]:bg-transparent"
+                  className="data-active:!border-b-primary rounded-none border-b-2 border-b-transparent font-normal data-active:bg-transparent data-active:shadow-none dark:data-active:border-transparent dark:data-active:bg-transparent"
                 >
                   General
                 </TabsTrigger>

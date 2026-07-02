@@ -1,3 +1,8 @@
+---
+name: cache-components
+description: "Build correct cached/dynamic boundaries in the Next.js App Router when Cache Components or PPR are enabled. Use when working with cacheComponents, Partial Prerendering (PPR), 'use cache', cacheLife, cacheTag, updateTag, or revalidateTag, to avoid request-context leaks and enforce proper cache invalidation. Not for the Pages Router or when Cache Components/PPR are off."
+---
+
 # Cache Components (Next.js) — Skill
 
 **Name:** `cache-components`

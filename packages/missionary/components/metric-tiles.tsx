@@ -66,7 +66,7 @@ function MetricTile({
   const chartData = data.length > 0 ? data : [{ date: "1", value: 0 }];
 
   return (
-    <Card className="overflow-hidden border-zinc-200 shadow-sm bg-white hover:border-zinc-300 transition-all duration-300 group rounded-xl">
+    <Card className="overflow-hidden border-zinc-200 shadow-sm bg-white hover:border-zinc-300 transition-colors group rounded-xl">
       <CardContent className="p-0 flex flex-row items-stretch h-[72px] md:h-[80px]">
         <div className="flex flex-col justify-between p-2.5 pr-0 flex-shrink-0 min-w-[100px] sm:min-w-[120px] max-w-[60%]">
           <div className="space-y-0">

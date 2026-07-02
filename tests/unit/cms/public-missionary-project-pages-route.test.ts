@@ -90,14 +90,39 @@ describe("public missionary giving page route", () => {
     expect(find).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: "missionary-giving-pages",
+        limit: 1,
+        overrideAccess: true,
+        pagination: false,
+        sort: "-updatedAt",
         where: expect.objectContaining({
           and: expect.arrayContaining([
+            { tenant: { equals: "t1" } },
             { missionaryId: { equals: "m1" } },
             { _status: { equals: "published" } },
           ]),
         }),
       }),
     );
+  });
+
+  it("returns 400 for blank missionary ids before querying Payload", async () => {
+    const find = vi.fn();
+    getPayloadClientMock.mockResolvedValue({ find });
+    resolveTenantFromRequestMock.mockResolvedValue({ id: "t1", slug: "demo" });
+
+    const res = await missionaryGET(
+      {
+        nextUrl: new URL(
+          "http://localhost:3030/api/cms/public/missionary-pages/%20",
+        ),
+      } as never,
+      { params: Promise.resolve({ id: " " }) },
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body).toEqual({ error: "Missionary id required" });
+    expect(find).not.toHaveBeenCalled();
   });
 });
 
@@ -128,7 +153,57 @@ describe("public project page route", () => {
     expect(find).toHaveBeenCalledWith(
       expect.objectContaining({
         collection: "project-pages",
+        limit: 1,
+        overrideAccess: true,
+        pagination: false,
+        sort: "-updatedAt",
+        where: expect.objectContaining({
+          and: expect.arrayContaining([
+            { tenant: { equals: "t1" } },
+            { slug: { equals: "water-well" } },
+            { _status: { equals: "published" } },
+          ]),
+        }),
       }),
     );
+  });
+
+  it("returns 400 for blank project slugs before querying Payload", async () => {
+    const find = vi.fn();
+    getPayloadClientMock.mockResolvedValue({ find });
+    resolveTenantFromRequestMock.mockResolvedValue({ id: "t1", slug: "demo" });
+
+    const res = await projectGET(
+      {
+        nextUrl: new URL(
+          "http://localhost:3030/api/cms/public/project-pages/%20",
+        ),
+      } as never,
+      { params: Promise.resolve({ slug: " " }) },
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(400);
+    expect(body).toEqual({ error: "Slug required" });
+    expect(find).not.toHaveBeenCalled();
+  });
+
+  it("returns 404 when a published project page is missing", async () => {
+    const find = vi.fn().mockResolvedValue({ docs: [] });
+    getPayloadClientMock.mockResolvedValue({ find });
+    resolveTenantFromRequestMock.mockResolvedValue({ id: "t1", slug: "demo" });
+
+    const res = await projectGET(
+      {
+        nextUrl: new URL(
+          "http://localhost:3030/api/cms/public/project-pages/missing",
+        ),
+      } as never,
+      { params: Promise.resolve({ slug: "missing" }) },
+    );
+    const body = await res.json();
+
+    expect(res.status).toBe(404);
+    expect(body).toEqual({ error: "Page not found" });
   });
 });

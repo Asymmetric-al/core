@@ -1,0 +1,1 @@
+query { repository(owner: "Asymmetric-al", name: "core") { pullRequest(number: 299) { reviewThreads(first: 100) { nodes { id isResolved } } } } }

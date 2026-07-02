@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  LazyMotion,
+  domAnimation,
+  motion as m,
+  useReducedMotion,
+} from "@asym/lib/motion";
+import {
   DURATION_STANDARD,
   EASE_OUT_SOFT,
   propsFadeRiseInView,
@@ -10,11 +16,10 @@ import {
   STAGGER_TIGHT,
 } from "@asym/lib/motion-presets";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
-import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 
@@ -95,13 +100,15 @@ export function AboutBelief() {
               </p>
 
               <div className="pt-8">
-                <Button
-                  size="lg"
-                  className="h-14 px-10 rounded-full bg-zinc-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-semibold font-syne text-xs uppercase tracking-widest"
-                  asChild
+                <Link
+                  href="/workers"
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "h-14 px-10 rounded-full bg-zinc-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-semibold font-syne text-xs uppercase tracking-widest",
+                  )}
                 >
-                  <Link href="/workers">Explore the Frontlines</Link>
-                </Button>
+                  Explore the Frontlines
+                </Link>
               </div>
             </m.div>
 
@@ -197,7 +204,7 @@ export function AboutValues() {
                   delay: reduceMotion ? 0 : idx * STAGGER_MEDIUM,
                 }}
               >
-                <Card className="group border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
+                <Card className="group border-none bg-white rounded-2xl shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
                   <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center gap-y-6 h-full">
                     <div
                       className={cn(
@@ -284,7 +291,7 @@ export function AboutLeadership() {
                 }}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-zinc-100 shadow-xl group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
+                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-zinc-100 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
                   <Image
                     src={person.img}
                     alt={`${person.name}, ${person.role} at GiveHope`}
@@ -334,21 +341,24 @@ export function AboutCTA() {
               Join our global sustainer community today.
             </p>
             <div className="flex flex-col md:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="h-14 px-10 rounded-full bg-white text-zinc-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-semibold font-syne shadow-xl hover-scale-subtle"
-                asChild
+              <Link
+                href="/workers"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "h-14 px-10 rounded-full bg-white text-zinc-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-semibold font-syne shadow-xl hover-scale-subtle",
+                )}
               >
-                <Link href="/workers">View Directory</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out"
-                asChild
+                View Directory
+              </Link>
+              <Link
+                href="/checkout?fund=general"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out",
+                )}
               >
-                <Link href="/checkout?fund=general">Support Urgent Needs</Link>
-              </Button>
+                Support Urgent Needs
+              </Link>
             </div>
           </m.div>
         </div>

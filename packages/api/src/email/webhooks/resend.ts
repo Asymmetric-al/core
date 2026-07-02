@@ -1,11 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 import { getAdminClient } from "@asym/database/supabase/admin";
-import {
-  getReceivedEmail,
-  listReceivedEmailAttachments,
-  verifyResendWebhookSignature,
-} from "@asym/email";
+import { verifyResendWebhookSignature } from "@asym/email";
 import {
   type ResendInboundEventData,
   type ResendWebhookEnvelope,
@@ -14,7 +10,9 @@ import {
 import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
-import { routeInboundToSupportHub } from "@asym/api/admin/support-hub/inbound-router";
+import { EMAIL_INBOUND_PROCESS_EVENT } from "../../workflows/events";
+import { requestWorkflowDispatch } from "../../workflows/ledger";
+import { extractEmailAddress } from "../address";
 
 type JsonRecord = Record<string, unknown>;
 type AdminSupabaseClient = NonNullable<
@@ -158,7 +156,7 @@ function asStringArray(value: unknown): string[] {
     .filter((entry): entry is string => Boolean(entry));
 }
 
-function getHeaderValue(
+export function getHeaderValue(
   headers: unknown,
   names: readonly string[],
 ): string | null {
@@ -188,43 +186,8 @@ function getHeaderValue(
   return null;
 }
 
-function splitHeaderList(value: string | null): string[] {
-  if (!value) return [];
-  return value
-    .split(/\s+/)
-    .map((entry) => entry.trim())
-    .filter(Boolean);
-}
-
 function normalizeToken(value: string): string {
   return value.trim().toLowerCase();
-}
-
-function extractEmailAddress(value: unknown): string | null {
-  const rawValue = asString(value);
-  if (!rawValue) {
-    return null;
-  }
-
-  const trimmed = normalizeToken(rawValue);
-  if (trimmed.length === 0) {
-    return null;
-  }
-
-  const bracketMatch = trimmed.match(/<([^>]+)>/);
-  const candidate = bracketMatch?.[1] ?? trimmed;
-  const parts = candidate.split("@");
-
-  if (parts.length !== 2) {
-    return null;
-  }
-
-  const [localPart, domainPart] = parts;
-  if (!localPart || !domainPart) {
-    return null;
-  }
-
-  return `${localPart}@${domainPart}`;
 }
 
 function extractDomainFromEmail(value: unknown): string | null {
@@ -794,6 +757,20 @@ export async function POST(request: NextRequest) {
     }
 
     if (event.type === "email.received") {
+      if (!tenantId) {
+        // Fail closed: inbound work is never dispatched for an unresolved or
+        // ambiguous tenant (also enforced by the earlier guard).
+        return NextResponse.json(
+          {
+            accepted: false,
+            eventType: event.type,
+            code: "tenant_resolution_unresolved",
+            error: "Inbound email has no resolved tenant.",
+          },
+          { status: 503 },
+        );
+      }
+
       const emailId = getInboundEmailId(event);
       if (!emailId) {
         return NextResponse.json(
@@ -808,57 +785,14 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      const [receivedEmailResult, attachmentsResult] = await Promise.allSettled(
-        [
-          getReceivedEmail(apiKey, emailId),
-          listReceivedEmailAttachments(apiKey, emailId),
-        ],
-      );
-
-      const receivedEmail =
-        receivedEmailResult.status === "fulfilled"
-          ? receivedEmailResult.value
-          : {
-              success: false,
-              error: "Inbound email body retrieval failed.",
-              errorCode: "server_error",
-              data: null,
-            };
-      const attachments =
-        attachmentsResult.status === "fulfilled"
-          ? attachmentsResult.value
-          : {
-              success: false,
-              error: "Inbound attachment listing failed.",
-              errorCode: "server_error",
-              data: [],
-            };
-
-      const receivedHeaders = receivedEmail.success
-        ? receivedEmail.data?.headers
-        : null;
-      const messageIdHeader =
-        getHeaderValue(receivedHeaders, ["message-id", "message_id"]) ??
-        asString(eventData.message_id) ??
-        asString(eventData.messageId);
-      const inReplyToHeader =
-        getHeaderValue(receivedHeaders, ["in-reply-to", "in_reply_to"]) ??
-        asString(eventData.in_reply_to) ??
-        asString(eventData.inReplyTo);
-      const referencesHeader =
-        getHeaderValue(receivedHeaders, ["references"]) ??
-        asString(eventData.references);
-      const referencesHeaders = [
-        ...splitHeaderList(referencesHeader),
-        ...asStringArray(eventData.references),
-      ];
-      const parsedText = receivedEmail.success
-        ? (asString(receivedEmail.data?.text) ?? "")
-        : "";
-      const parsedHtml = receivedEmail.success
-        ? asString(receivedEmail.data?.html)
-        : null;
-
+      // Inbound email placeholder: verified metadata only. The email body,
+      // rendered HTML, attachment bytes, signed attachment URLs, and Support
+      // Hub rows never enter the webhook path — the inbound email workflow
+      // loads content through the provider inside durable steps. Message
+      // headers are deliberately NOT written here: the workflow enriches
+      // them from provider-fetched headers, and a webhook redelivery must
+      // never clobber those enriched values back to event-data guesses
+      // (which would break future thread-reply routing).
       const inboundWrite = await supabaseAdmin
         .from("email_inbound_messages")
         .upsert(
@@ -871,14 +805,8 @@ export async function POST(request: NextRequest) {
             to_recipients: asStringArray(eventData.to),
             cc_recipients: asStringArray(eventData.cc),
             bcc_recipients: asStringArray(eventData.bcc),
-            attachment_count: attachments.data?.length ?? 0,
             received_at: occurredAt,
             payload: eventData,
-            parsed_text: parsedText,
-            parsed_html: parsedHtml,
-            message_id_header: messageIdHeader,
-            in_reply_to_header: inReplyToHeader,
-            references_headers: referencesHeaders,
           },
           {
             onConflict: "resend_email_id",
@@ -891,53 +819,53 @@ export async function POST(request: NextRequest) {
         eventType: event.type,
         emailId,
         tenantId,
-        receivedEmailLoaded: receivedEmail.success,
-        attachmentsLoaded: attachments.success,
       });
 
       const inboundRowId = asString(inboundWrite.data?.id);
-      const supportHubRouting = await routeInboundToSupportHub({
-        tenantId,
-        resendEmailId: emailId,
-        inboundEmailRowId: inboundRowId,
-        inboxId: null,
-        fromAddress: asString(eventData.from) ?? "unknown@example.invalid",
-        fromName: null,
-        toAddresses: asStringArray(eventData.to),
-        ccAddresses: asStringArray(eventData.cc),
-        bccAddresses: asStringArray(eventData.bcc),
-        subject: asString(eventData.subject),
-        messageIdHeader,
-        inReplyToHeader,
-        referencesHeaders,
-        bodyText: parsedText,
-        bodyHtml: parsedHtml,
-        receivedAt: occurredAt,
-      });
 
-      if (
-        inboundRowId &&
-        supportHubRouting.status === "routed" &&
-        supportHubRouting.conversationId &&
-        supportHubRouting.messageId
-      ) {
-        await assertSupabaseWrite(
-          "email_inbound_messages.support_hub_bridge",
-          supabaseAdmin
-            .from("email_inbound_messages")
-            .update({
-              conversation_id: supportHubRouting.conversationId,
-              support_message_id: supportHubRouting.messageId,
-            })
-            .eq("tenant_id", tenantId)
-            .eq("id", inboundRowId),
+      if (!inboundRowId) {
+        return NextResponse.json(
           {
+            accepted: false,
             eventType: event.type,
             emailId,
-            tenantId,
-            conversationId: supportHubRouting.conversationId,
-            supportMessageId: supportHubRouting.messageId,
+            code: "inbound_placeholder_missing_id",
+            error: "Inbound email placeholder did not return an id.",
           },
+          { status: 503 },
+        );
+      }
+
+      // Provider webhook acceptance happened at durable storage. The workflow
+      // handoff is recorded in the dispatch ledger; an immediate dispatch
+      // failure is recovered internally instead of forcing Resend to replay
+      // an already accepted event.
+      let dispatchOutcome: string;
+      try {
+        const dispatch = await requestWorkflowDispatch(
+          { client: supabaseAdmin },
+          {
+            tenantId,
+            productArea: "email",
+            workflowName: EMAIL_INBOUND_PROCESS_EVENT,
+            subject: { type: "email_inbound_message", id: inboundRowId },
+            idempotencyKey: `inbound-email/${emailId}`,
+          },
+        );
+        dispatchOutcome = dispatch.outcome;
+      } catch {
+        // Without a ledger record the handoff would be unrecoverable, so let
+        // the provider retry: inbound storage is replay-safe by design.
+        return NextResponse.json(
+          {
+            accepted: false,
+            eventType: event.type,
+            emailId,
+            code: "workflow_dispatch_unrecorded",
+            error:
+              "Inbound email stored, but the workflow handoff could not be recorded.",
+          },
+          { status: 503 },
         );
       }
 
@@ -948,10 +876,8 @@ export async function POST(request: NextRequest) {
           tenantId,
           resolutionSource: tenantResolution.source,
           emailId,
-          receivedEmailLoaded: receivedEmail.success,
-          attachmentsLoaded: attachments.success,
-          attachmentCount: attachments.data?.length ?? 0,
-          supportHub: supportHubRouting,
+          inboundEmailRowId: inboundRowId,
+          dispatch: dispatchOutcome,
         },
         { status: 200 },
       );

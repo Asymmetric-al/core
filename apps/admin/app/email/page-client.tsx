@@ -185,8 +185,6 @@ function emailStudioUiReducer(
 
 interface EmailStudioHeaderProps {
   metadata: EmailMetadata;
-  builder: EmailBuilderKind;
-  legacyUnlayerEnabled: boolean;
   hasUnsavedChanges: boolean;
   isEditorReady: boolean;
   isSaving: boolean;
@@ -206,8 +204,6 @@ interface EmailStudioHeaderProps {
 
 function EmailStudioHeader({
   metadata,
-  builder,
-  legacyUnlayerEnabled,
   hasUnsavedChanges,
   isEditorReady,
   isSaving,
@@ -237,11 +233,7 @@ function EmailStudioHeader({
         </div>
 
         <div className="hidden md:block">
-          <EmailStudioProviderStatus
-            builder={builder}
-            legacyUnlayerEnabled={legacyUnlayerEnabled}
-            variant="badge"
-          />
+          <EmailStudioProviderStatus variant="badge" />
         </div>
 
         <Separator orientation="vertical" className="h-5 hidden md:block" />
@@ -254,9 +246,11 @@ function EmailStudioHeader({
           </span>
           {hasUnsavedChanges && (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                }
+              />
               <TooltipContent side="bottom">
                 <p>Unsaved changes</p>
               </TooltipContent>
@@ -268,36 +262,40 @@ function EmailStudioHeader({
       <div className="flex items-center gap-1.5 md:gap-2">
         <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="size-7 p-0"
-                aria-label="Undo"
-                onClick={onUndo}
-                disabled={!isEditorReady}
-              >
-                <Undo2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0"
+                  aria-label="Undo"
+                  onClick={onUndo}
+                  disabled={!isEditorReady}
+                >
+                  <Undo2 className="size-3.5" />
+                </Button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>Undo</p>
               <Kbd className="ml-1.5">⌘Z</Kbd>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="size-7 p-0"
-                aria-label="Redo"
-                onClick={onRedo}
-                disabled={!isEditorReady}
-              >
-                <Redo2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0"
+                  aria-label="Redo"
+                  onClick={onRedo}
+                  disabled={!isEditorReady}
+                >
+                  <Redo2 className="size-3.5" />
+                </Button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>Redo</p>
               <Kbd className="ml-1.5">⌘⇧Z</Kbd>
@@ -307,41 +305,47 @@ function EmailStudioHeader({
 
         <div className="hidden md:block">
           <ToggleGroup
-            type="single"
-            value={previewDevice}
-            onValueChange={(value) =>
-              value && onPreview(value as PreviewDevice)
-            }
+            value={[previewDevice]}
+            onValueChange={(groupValue) => {
+              const next = groupValue[0];
+              if (next) {
+                onPreview(next as PreviewDevice);
+              }
+            }}
             disabled={!isEditorReady}
             variant="outline"
             size="sm"
           >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value="desktop"
-                  className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  <Monitor className="size-3.5" />
-                  <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                    Desktop
-                  </span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <ToggleGroupItem
+                    value="desktop"
+                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
+                  >
+                    <Monitor className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Desktop
+                    </span>
+                  </ToggleGroupItem>
+                }
+              />
               <TooltipContent side="bottom">Desktop preview</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value="mobile"
-                  className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  <Smartphone className="size-3.5" />
-                  <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                    Mobile
-                  </span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <ToggleGroupItem
+                    value="mobile"
+                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Mobile
+                    </span>
+                  </ToggleGroupItem>
+                }
+              />
               <TooltipContent side="bottom">Mobile preview</TooltipContent>
             </Tooltip>
           </ToggleGroup>
@@ -358,25 +362,29 @@ function EmailStudioHeader({
 
         <DropdownMenu>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5"
-                  disabled={!isEditorReady}
-                >
-                  <Download className="size-3.5" />
-                  <span className="hidden sm:inline text-xs font-medium">
-                    Export
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5"
+                      disabled={!isEditorReady}
+                    >
+                      <Download className="size-3.5" />
+                      <span className="hidden sm:inline text-xs font-medium">
+                        Export
+                      </span>
+                    </Button>
+                  }
+                />
+              }
+            />
             <TooltipContent side="bottom">Export options</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-52">
-            <DropdownMenuItem onClick={onExportHtml}>
+            <DropdownMenuItem disabled={!isEditorReady} onClick={onExportHtml}>
               <FileCode className="size-4 mr-2" />
               Export as HTML
               <DropdownMenuShortcut>⌘E</DropdownMenuShortcut>
@@ -388,7 +396,7 @@ function EmailStudioHeader({
               Export as PDF
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem onClick={onTestSend}>
+            <DropdownMenuItem disabled={!isEditorReady} onClick={onTestSend}>
               <Send className="size-4 mr-2" />
               Send Test Email
             </DropdownMenuItem>
@@ -417,16 +425,18 @@ function EmailStudioHeader({
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-8 p-0"
-              aria-label="More email template actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="size-8 p-0"
+                aria-label="More email template actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            }
+          />
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onNewTemplate}>
               <Plus className="size-4 mr-2" />
@@ -484,12 +494,14 @@ function EmailStudioHeader({
 }
 
 function EmailSaveDialog({
+  isSaving,
   open,
   onOpenChange,
   metadata,
   setMetadata,
   onConfirmSave,
 }: {
+  isSaving: boolean;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   metadata: EmailMetadata;
@@ -569,7 +581,10 @@ function EmailSaveDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={onConfirmSave} disabled={!metadata.name.trim()}>
+          <Button
+            onClick={onConfirmSave}
+            disabled={!metadata.name.trim() || isSaving}
+          >
             <Save className="size-4 mr-2" />
             Save Template
           </Button>
@@ -785,7 +800,7 @@ function EmailTemplatePickerDialog({
                     <div className="mt-0.5 text-xs text-muted-foreground">
                       {template.builder === "react_email"
                         ? "React Email"
-                        : "Legacy Unlayer"}{" "}
+                        : "Legacy (read-only)"}{" "}
                       · v{template.version}
                     </div>
                   </div>
@@ -915,13 +930,12 @@ export default function EmailStudio() {
     emailStudioUiReducer,
     INITIAL_EMAIL_STUDIO_UI_STATE,
   );
-  const [builder, setBuilder] = useState<EmailBuilderKind>(
-    runtimeConfig.builder.defaultBuilder,
-  );
   const [initialDesign, setInitialDesign] = useState<Record<string, unknown>>(
     EMPTY_REACT_EMAIL_DESIGN,
   );
   const [previewResult, setPreviewResult] =
+    useState<EmailStudioExportResult | null>(null);
+  const [legacyPreviewResult, setLegacyPreviewResult] =
     useState<EmailStudioExportResult | null>(null);
   const [showTestSendDialog, setShowTestSendDialog] = useState(false);
   const [testToEmail, setTestToEmail] = useState("");
@@ -947,6 +961,8 @@ export default function EmailStudio() {
     isFullscreen,
     copiedHtml,
   } = ui;
+  const isLegacyReadOnly = legacyPreviewResult !== null;
+  const canEditCurrentTemplate = isEditorReady && !isLegacyReadOnly;
 
   const handleUndo = useCallback(() => {
     editorRef.current?.undo();
@@ -957,11 +973,19 @@ export default function EmailStudio() {
   }, []);
 
   const handleSaveClick = useCallback(() => {
+    if (isLegacyReadOnly) {
+      toast.info("Legacy templates are read-only in Email Studio");
+      return;
+    }
     if (!editorRef.current) return;
     dispatchUi({ type: "set_show_save_dialog", value: true });
-  }, []);
+  }, [isLegacyReadOnly]);
 
   const handleExportHtml = useCallback(async () => {
+    if (isLegacyReadOnly) {
+      toast.info("Legacy templates are preview-only in Email Studio");
+      return;
+    }
     if (!editorRef.current) return;
     try {
       const data = await editorRef.current.exportEmail({
@@ -973,12 +997,12 @@ export default function EmailStudio() {
     } catch {
       toast.error("Failed to export HTML");
     }
-  }, [metadata.preheader, metadata.subject, studioConfig]);
+  }, [isLegacyReadOnly, metadata.preheader, metadata.subject, studioConfig]);
 
   const handleKeyDown = useEffectEvent((e: KeyboardEvent) => {
     if ((e.metaKey || e.ctrlKey) && e.key === "s") {
       e.preventDefault();
-      if (isEditorReady && !isSaving) {
+      if (canEditCurrentTemplate && !isSaving) {
         handleSaveClick();
       }
     }
@@ -992,7 +1016,9 @@ export default function EmailStudio() {
     }
     if ((e.metaKey || e.ctrlKey) && e.key === "e") {
       e.preventDefault();
-      handleExportHtml();
+      if (canEditCurrentTemplate) {
+        handleExportHtml();
+      }
     }
     if (e.key === "Escape" && isFullscreen) {
       dispatchUi({ type: "set_fullscreen", value: false });
@@ -1004,19 +1030,16 @@ export default function EmailStudio() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, []);
 
-  const handleEditorReady = useCallback(
-    (readyBuilder: EmailBuilderKind) => {
-      setBuilder(readyBuilder);
-      dispatchUi({ type: "editor_ready", config: runtimeConfig });
-    },
-    [runtimeConfig],
-  );
+  const handleEditorReady = useCallback(() => {
+    dispatchUi({ type: "editor_ready", config: runtimeConfig });
+  }, [runtimeConfig]);
 
   const handleDesignUpdate = useCallback(() => {
     dispatchUi({ type: "set_unsaved_changes", value: true });
   }, []);
 
   const handleConfirmSave = useCallback(async () => {
+    if (isSaving || isLegacyReadOnly) return;
     if (!editorRef.current) return;
 
     dispatchUi({ type: "set_show_save_dialog", value: false });
@@ -1051,7 +1074,7 @@ export default function EmailStudio() {
     } finally {
       dispatchUi({ type: "set_saving", value: false });
     }
-  }, [metadata, studioConfig]);
+  }, [isLegacyReadOnly, isSaving, metadata, studioConfig]);
 
   const handleCopyHtml = useCallback(() => {
     navigator.clipboard.writeText(exportedHtml);
@@ -1078,10 +1101,16 @@ export default function EmailStudio() {
 
   const handlePreview = useCallback(
     async (device: PreviewDevice) => {
-      if (!editorRef.current) return;
       dispatchUi({ type: "set_preview_device", value: device });
 
       try {
+        if (legacyPreviewResult) {
+          setPreviewResult(legacyPreviewResult);
+          return;
+        }
+
+        if (!editorRef.current) return;
+
         const result = await editorRef.current.exportEmail({
           subject: metadata.subject,
           preheader: metadata.preheader,
@@ -1092,10 +1121,12 @@ export default function EmailStudio() {
         toast.error("Failed to generate preview");
       }
     },
-    [metadata.preheader, metadata.subject, studioConfig],
+    [legacyPreviewResult, metadata.preheader, metadata.subject, studioConfig],
   );
 
   const handleNewTemplate = useCallback(() => {
+    setLegacyPreviewResult(null);
+    setPreviewResult(null);
     setMetadata({
       id: null,
       name: "Untitled Email",
@@ -1106,10 +1137,9 @@ export default function EmailStudio() {
       editorRef.current.loadDesign(EMPTY_REACT_EMAIL_DESIGN);
     }
     setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
-    setBuilder(runtimeConfig.builder.defaultBuilder);
     dispatchUi({ type: "set_unsaved_changes", value: false });
     toast.info("New template created");
-  }, [runtimeConfig.builder.defaultBuilder]);
+  }, []);
 
   const handleInsertMergeTag = useCallback((key: string) => {
     editorRef.current?.insertMergeTag?.(key);
@@ -1117,9 +1147,13 @@ export default function EmailStudio() {
   }, []);
 
   const handleOpenTestSend = useCallback(() => {
+    if (isLegacyReadOnly) {
+      toast.info("Legacy templates are preview-only in Email Studio");
+      return;
+    }
     if (!editorRef.current) return;
     setShowTestSendDialog(true);
-  }, []);
+  }, [isLegacyReadOnly]);
 
   const handleOpenTemplatePicker = useCallback(async () => {
     setShowTemplatePicker(true);
@@ -1137,28 +1171,59 @@ export default function EmailStudio() {
 
   const handleSelectTemplate = useCallback(
     (template: EmailTemplateListEntry) => {
-      const isSameBuilder = template.builder === builder;
+      // Legacy Unlayer templates can no longer be edited in Email Studio.
+      // Open them read-only by previewing their cached HTML/text so the
+      // content stays viewable and safe from accidental overwrite.
+      if (template.builder !== "react_email") {
+        const legacyResult: EmailStudioExportResult = {
+          builder: template.builder,
+          builderVersion: template.builder_version ?? "",
+          design: template.design_json,
+          html: template.html_content ?? "",
+          text: template.text_content ?? "",
+          subject: template.default_subject ?? "",
+          preheader: template.default_preheader ?? "",
+        };
+
+        setLegacyPreviewResult(legacyResult);
+        setPreviewResult(legacyResult);
+        setInitialDesign(EMPTY_REACT_EMAIL_DESIGN);
+        setMetadata({
+          id: template.id,
+          name: template.name,
+          subject: template.default_subject ?? "",
+          preheader: template.default_preheader ?? "",
+        });
+        dispatchUi({ type: "set_unsaved_changes", value: false });
+        setShowTemplatePicker(false);
+        toast.info("Legacy template opened read-only", {
+          description:
+            "Legacy templates can't be edited in React Email. Showing a preview.",
+        });
+        return;
+      }
+
+      setLegacyPreviewResult(null);
+      setPreviewResult(null);
       setInitialDesign(template.design_json);
-      setBuilder(template.builder);
       setMetadata({
         id: template.id,
         name: template.name,
         subject: template.default_subject ?? "",
         preheader: template.default_preheader ?? "",
       });
-      if (isSameBuilder) {
-        editorRef.current?.loadDesign(template.design_json);
-      }
+      editorRef.current?.loadDesign(template.design_json);
       dispatchUi({ type: "set_unsaved_changes", value: false });
       setShowTemplatePicker(false);
       toast.success("Template opened", {
         description: template.name,
       });
     },
-    [builder],
+    [],
   );
 
   const handleSendTestEmail = useCallback(async () => {
+    if (isLegacyReadOnly || isSendingTest) return;
     if (!editorRef.current) return;
     setIsSendingTest(true);
     try {
@@ -1184,12 +1249,12 @@ export default function EmailStudio() {
     } finally {
       setIsSendingTest(false);
     }
-  }, [metadata, studioConfig, testToEmail]);
+  }, [isLegacyReadOnly, isSendingTest, metadata, studioConfig, testToEmail]);
 
   return (
     <div
       className={cn(
-        "flex flex-col bg-background transition-all duration-300",
+        "flex flex-col bg-background transition-colors duration-300 motion-reduce:transition-none",
         isFullscreen
           ? "fixed inset-0 z-50 overflow-hidden"
           : "flex-1 min-h-0 overflow-hidden",
@@ -1197,10 +1262,8 @@ export default function EmailStudio() {
     >
       <EmailStudioHeader
         metadata={metadata}
-        builder={builder}
-        legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
         hasUnsavedChanges={hasUnsavedChanges}
-        isEditorReady={isEditorReady}
+        isEditorReady={canEditCurrentTemplate}
         isSaving={isSaving}
         previewDevice={previewDevice}
         isFullscreen={isFullscreen}
@@ -1217,20 +1280,39 @@ export default function EmailStudio() {
       />
 
       <div className="flex-1 relative overflow-hidden bg-muted/30">
-        <EmailStudioEditor
-          key={`${builder}:${metadata.id ?? "draft"}`}
-          builder={builder}
-          legacyUnlayerEnabled={runtimeConfig.builder.legacyUnlayerEnabled}
-          initialDesign={initialDesign}
-          templateId={metadata.id}
-          onReady={handleEditorReady}
-          onDesignUpdate={handleDesignUpdate}
-          ref={editorRef}
-          className="absolute inset-0"
-        />
+        {isLegacyReadOnly ? (
+          <div className="absolute inset-0 flex items-center justify-center p-6">
+            <div
+              aria-label="Legacy template selected read-only"
+              aria-live="polite"
+              className="max-w-md rounded-xl border bg-background p-6 text-center shadow-sm"
+              role="status"
+            >
+              <p className="text-sm font-medium text-foreground">
+                Legacy template selected read-only
+              </p>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {metadata.name} can be previewed here, but Save, Export, and
+                Test Send are disabled to prevent overwriting a legacy template
+                with React Email editor content.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <EmailStudioEditor
+            key={metadata.id ?? "draft"}
+            initialDesign={initialDesign}
+            templateId={metadata.id}
+            onReady={handleEditorReady}
+            onDesignUpdate={handleDesignUpdate}
+            ref={editorRef}
+            className="absolute inset-0"
+          />
+        )}
       </div>
 
       <EmailSaveDialog
+        isSaving={isSaving}
         open={showSaveDialog}
         onOpenChange={(open) =>
           dispatchUi({ type: "set_show_save_dialog", value: open })
@@ -1259,8 +1341,8 @@ export default function EmailStudio() {
         }}
         html={previewResult?.html ?? ""}
         text={previewResult?.text ?? ""}
-        subject={metadata.subject}
-        preheader={metadata.preheader}
+        subject={previewResult?.subject ?? metadata.subject}
+        preheader={previewResult?.preheader ?? metadata.preheader}
       />
 
       <EmailTestSendDialog

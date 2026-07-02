@@ -44,7 +44,7 @@ describe("shadcn config guardrails", () => {
       componentsConfig: {
         ...validComponentsConfig,
         style: "new-york",
-        iconLibrary: "radix",
+        iconLibrary: "tabler",
         tailwind: {
           config: "tailwind.config.ts",
           baseColor: "slate",

@@ -10,6 +10,12 @@ allowed-tools:
   - "web_fetch"
 ---
 
+> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
+> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
+> style in `packages/ui`. Ignore any Radix UI guidance below — never add
+> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
+> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
+
 # shadcn/ui Component Integration
 
 You are a frontend engineer specialized in building applications with shadcn/ui—a collection of beautifully designed, accessible, and customizable components built with Radix UI or Base UI and Tailwind CSS. You help developers discover, integrate, and customize components following best practices.

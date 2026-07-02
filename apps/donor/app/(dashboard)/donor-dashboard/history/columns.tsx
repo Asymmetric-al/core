@@ -29,15 +29,9 @@ import {
   ExternalLink,
 } from "lucide-react";
 
-import { STATUS_COLORS } from "./types";
+import { STATUS_COLORS, type Transaction } from "./types";
 
-import type { Transaction } from "./types";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
+import { makeDisplayDate } from "@/lib/dates";
 
 const getStatusIcon = (status: Transaction["status"]) => {
   switch (status) {
@@ -204,15 +198,17 @@ export const columns: ColumnDef<Transaction>[] = [
             </Button>
           )}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 text-muted-foreground hover:text-foreground rounded-xl"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground hover:text-foreground rounded-xl"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              }
+            />
             <DropdownMenuContent align="end" className="rounded-xl">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem className="rounded-lg">
