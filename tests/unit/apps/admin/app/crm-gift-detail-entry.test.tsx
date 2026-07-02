@@ -280,7 +280,8 @@ const inlineActionsFixture = {
       available: false,
       blockedReason:
         "This gift has no payment provider charge to refund against.",
-      nextStep: null,
+      nextStep:
+        "Offline gifts are corrected through adjustments rather than provider refunds.",
       riskLevel: "high",
     },
   ],
@@ -527,13 +528,20 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(view.getByText("Correct fund designation")).toBeTruthy();
     const refundItem = view.getByText("Refund gift").closest("[role=menuitem]");
     expect(refundItem?.textContent).toContain("Blocked");
-    // The server-computed blocked reason is surfaced inline (#270 gap 5), so
-    // staff learn why an action is unavailable without opening the shell.
+    // Both the server-computed blocked reason and next step are surfaced
+    // inline (#270 gap 5), so staff learn why an action is unavailable and
+    // what to do instead without opening the shell.
     expect(refundItem?.textContent).toContain(
       "no payment provider charge to refund against",
     );
+    expect(refundItem?.textContent).toContain(
+      "corrected through adjustments rather than provider refunds",
+    );
     expect(refundItem?.getAttribute("title")).toContain(
       "no payment provider charge to refund against",
+    );
+    expect(refundItem?.getAttribute("title")).toContain(
+      "corrected through adjustments rather than provider refunds",
     );
     expect(refundItem?.getAttribute("aria-disabled")).toBe("true");
     expect(refundItem?.hasAttribute("data-disabled")).toBe(true);

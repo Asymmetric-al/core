@@ -125,10 +125,12 @@ export function GiftInlineActionControls({
               {group.items.map(({ definition, entry }) => (
                 <DropdownMenuItem
                   key={entry.actionType}
+                  // The base DropdownMenuItem already dims disabled entries
+                  // (data-disabled:opacity-50); no extra muted color, so the
+                  // blocked reason stays legible — that's the point of showing
+                  // it (#270).
                   className={
-                    entry.available
-                      ? undefined
-                      : "flex-col items-start gap-0.5 text-muted-foreground"
+                    entry.available ? undefined : "flex-col items-start gap-0.5"
                   }
                   // A blocked entry keeps the same server-computed reason and
                   // next step the detail surface shows (#270), so staff learn
@@ -138,7 +140,7 @@ export function GiftInlineActionControls({
                       ? undefined
                       : [entry.blockedReason, entry.nextStep]
                           .filter(Boolean)
-                          .join(" ") || undefined
+                          .join(". ") || undefined
                   }
                   disabled={!entry.available}
                   onClick={() => {
@@ -156,12 +158,12 @@ export function GiftInlineActionControls({
                         <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
                       </span>
                       {entry.blockedReason ? (
-                        <span className="text-xs font-normal text-muted-foreground">
+                        <span className="text-xs font-normal">
                           {entry.blockedReason}
                         </span>
                       ) : null}
                       {entry.nextStep ? (
-                        <span className="text-xs font-normal text-muted-foreground">
+                        <span className="text-xs font-normal">
                           {entry.nextStep}
                         </span>
                       ) : null}
