@@ -2,6 +2,7 @@
 
 import { QueryProvider } from "@asym/database/providers";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -224,6 +225,27 @@ function makeDetailPayload(donationId: string, donorName: string) {
         historyUpdatedImmediately: true,
         amount: 10000,
         currency: "USD",
+      },
+    },
+  };
+}
+
+/**
+ * Detail payload variant with a staged gift whose receipt is still pending,
+ * so the shared detail sheet renders an enabled "Send Receipt" action.
+ */
+function makeReceiptActionablePayload(donationId: string, donorName: string) {
+  const base = makeDetailPayload(donationId, donorName);
+  return {
+    contribution: {
+      ...base.contribution,
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "pending",
+        crmPostStatus: null,
+        reviewReason: null,
+        twentyRecordId: null,
       },
     },
   };
@@ -962,6 +984,134 @@ describe("apps/admin/app/contributions/page", () => {
     await waitFor(() => {
       expect(document.activeElement).toBe(opener);
     });
+  });
+
+  it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012c";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Freshness Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Freshness Donor")).toBeTruthy();
+    expect(view.queryByTestId("contributions-freshness")).toBeNull();
+
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    const indicator = await view.findByTestId("contributions-freshness");
+    expect(indicator.textContent).toBe("Updated just now");
+
+    // The indicator schedules an 8s auto-hide (ADR-CD-022). The harness runs
+    // real timers, so run the captured 8000ms callback instead of waiting.
+    const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 8000,
+    );
+    expect(freshnessTimerCall).toBeTruthy();
+    act(() => {
+      (freshnessTimerCall![0] as () => void)();
+    });
+    expect(view.queryByTestId("contributions-freshness")).toBeNull();
+  });
+
+  it("keeps workspace filter and search params intact after operation-success invalidation", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012d";
+    mockSearch = `status=completed&search=sarah&gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Params Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Params Donor")).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    // Success invalidates the shared queries and smart-closes the overlay:
+    // only the gift selection leaves the route; filters and search survive.
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenCalledWith(
+        "/contributions?status=completed&search=sarah",
+        { scroll: false },
+      );
+    });
+    for (const [url] of routerReplaceMock.mock.calls) {
+      expect(String(url)).toContain("status=completed");
+      expect(String(url)).toContain("search=sarah");
+    }
+    expect(routerPushMock).not.toHaveBeenCalled();
+  });
+
+  it("recovers from a stale save by refetching detail and surfacing the recovery message", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012e";
+    mockSearch = `gift=${donationId}`;
+    const staleMessage =
+      "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.";
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: false, json: async () => ({ error: staleMessage }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Stale Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Stale Donor")).toBeTruthy();
+
+    const detailCallCount = () =>
+      fetchMock.mock.calls.filter(([url]) => !String(url).includes("/actions"))
+        .length;
+    expect(detailCallCount()).toBe(1);
+
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    // The rejected save surfaces the server's recovery messaging…
+    const { toast } = await import("sonner");
+    await waitFor(() => {
+      expect(toast.error).toHaveBeenCalledWith(
+        expect.stringMatching(/changed since you loaded/i),
+      );
+    });
+
+    // …and recoverFromStaleSave refetches the canonical detail so staff can
+    // review current truth and retry (ADR-CD-022).
+    await waitFor(() => {
+      expect(detailCallCount()).toBeGreaterThan(1);
+    });
+
+    // Failure is not freshness: no indicator, and the overlay stays open
+    // for review-and-retry.
+    expect(view.queryByTestId("contributions-freshness")).toBeNull();
+    expect(view.getByRole("button", { name: /send receipt/i })).toBeTruthy();
   });
 
   it("invalidates every shared contribution surface after contribution mutations", async () => {

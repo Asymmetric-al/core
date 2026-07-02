@@ -2,6 +2,7 @@
 
 import { QueryProvider } from "@asym/database/providers";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -673,6 +674,129 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
     // Shared row data refreshes in place after the operation.
     expect(detailRefetch).toHaveBeenCalled();
+
+    // The CRM surface shows the same quiet freshness indicator the Hub
+    // uses when inline row data refreshes (ADR-CD-022).
+    expect(view.getByTestId("crm-freshness").textContent).toBe(
+      "Updated just now",
+    );
+  });
+
+  it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00c";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-10",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    expect(view.queryByTestId("crm-freshness")).toBeNull();
+    const sendReceipt = await view.findByRole("button", {
+      name: /send receipt/i,
+    });
+
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+    fireEvent.click(sendReceipt);
+
+    const indicator = await view.findByTestId("crm-freshness");
+    expect(indicator.textContent).toBe("Updated just now");
+
+    // Success smart-closes the overlay quietly: the gift param leaves the
+    // route without scrolling the CRM workspace.
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenCalledWith("/crm", {
+        scroll: false,
+      });
+    });
+
+    // The indicator schedules an 8s auto-hide (ADR-CD-022). The harness runs
+    // real timers, so run the captured 8000ms callback instead of waiting.
+    const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 8000,
+    );
+    expect(freshnessTimerCall).toBeTruthy();
+    act(() => {
+      (freshnessTimerCall![0] as () => void)();
+    });
+    expect(view.queryByTestId("crm-freshness")).toBeNull();
+  });
+
+  it("restores focus to the originating gift row after closing the gift detail overlay", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00d";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const giftButton = await view.findByRole("button", {
+      name: /open gift detail for \$250\.00/i,
+    });
+    giftButton.focus();
+    fireEvent.click(giftButton);
+
+    // Opening the overlay keeps the workspace quiet ({ scroll: false }).
+    expect(routerPushMock).toHaveBeenCalledWith(
+      `/crm?donor=${DONOR_RECORD_ID}&gift=${donationId}`,
+      { scroll: false },
+    );
+
+    const closeButton = await view.findByRole("button", {
+      name: /close contribution details/i,
+    });
+    routerReplaceMock.mockClear();
+    fireEvent.click(closeButton);
+
+    // Smart close removes only the gift param, quietly, and preserves the
+    // donor drawer context (ADR-CD-023).
+    expect(routerReplaceMock).toHaveBeenCalledWith(
+      `/crm?donor=${DONOR_RECORD_ID}`,
+      { scroll: false },
+    );
+
+    await waitFor(() => {
+      expect(document.activeElement).toBe(giftButton);
+    });
   });
 
   it("strips malformed gift deep links while preserving donor context", async () => {

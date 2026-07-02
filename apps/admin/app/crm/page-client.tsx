@@ -49,6 +49,10 @@ import {
   ContributionDetailOverlay,
   isContributionGiftParam,
 } from "../contributions/contribution-detail-overlay";
+import {
+  ContributionFreshnessIndicator,
+  useContributionFreshness,
+} from "../contributions/freshness-indicator";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
@@ -67,6 +71,9 @@ export default function MissionControlCRM() {
   const [openGiftId, setOpenGiftId] = useState<string | null>(
     () => selectedGiftParam,
   );
+  // Quiet, low-noise freshness indicator after row data refreshes
+  // (ADR-CD-022); mirrors the Contributions Hub indicator.
+  const { markFreshness, showFreshness } = useContributionFreshness();
 
   useEffect(() => {
     setOpenGiftId(selectedGiftParam);
@@ -336,6 +343,10 @@ export default function MissionControlCRM() {
         }
       >
         <div className="flex flex-col min-h-[400px]">
+          <ContributionFreshnessIndicator
+            show={showFreshness}
+            testId="crm-freshness"
+          />
           <AnimatePresence mode="wait">
             {view === "table" ? (
               <motion.div
@@ -517,6 +528,7 @@ export default function MissionControlCRM() {
           contact={selectedRecord}
           onClose={() => selectRecord(null)}
           onOpenGift={openGift}
+          onRowRefresh={markFreshness}
         />
       )}
 
@@ -524,6 +536,7 @@ export default function MissionControlCRM() {
         donationId={openGiftId}
         sourceSurface="donor_crm_record"
         onClose={closeGift}
+        onActionSuccess={markFreshness}
       />
     </>
   );
