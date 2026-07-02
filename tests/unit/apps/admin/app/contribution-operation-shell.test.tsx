@@ -272,7 +272,11 @@ describe("ContributionOperationShell", () => {
     );
 
     await view.findByText("$250.00");
-    fireEvent.click(view.getByRole("button", { name: "Send receipt" }));
+    const sendReceipt = view.getByRole("button", { name: "Send receipt" });
+    await waitFor(() =>
+      expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(sendReceipt);
 
     await view.findByTestId("operation-result-panel");
     // The receipt outcome from the shared result renders as a result line.
@@ -311,7 +315,11 @@ describe("ContributionOperationShell", () => {
     );
 
     await view.findByText("$250.00");
-    fireEvent.click(view.getByRole("button", { name: "Send receipt" }));
+    const sendReceipt = view.getByRole("button", { name: "Send receipt" });
+    await waitFor(() =>
+      expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(sendReceipt);
 
     await view.findByTestId("operation-result-panel");
     expect(view.getByText(/audit event: audit-2/i)).toBeTruthy();
