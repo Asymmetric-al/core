@@ -1,6 +1,6 @@
 # Styling (ReUI delta over shadcn)
 
-Follow the shadcn skill for the generic rules (semantic colors not raw values, `gap-*` not `space-y-*`, `size-*`, `cn()`, no manual `dark:` overrides, no overlay `z-index`). This file is only the ReUI-specific additions.
+Follow [`docs/ai/skills/moai-library-shadcn/SKILL.md`](../../moai-library-shadcn/SKILL.md) for the generic rules (semantic colors not raw values, `gap-*` not `space-y-*`, `size-*`, `cn()`, no manual `dark:` overrides, no overlay `z-index`). This file is only the ReUI-specific additions.
 
 ## ReUI extended semantic tokens
 

@@ -20,6 +20,6 @@ ReUI publishes agent-specific shadcn registry packages for Claude Code, Codex, a
    - `bunx --bun shadcn@latest add @reui/skills-codex`
    - `bunx --bun shadcn@latest add @reui/skills-cursor`
 2. Compare the generated `reui/` skill payloads. They should be equivalent except for destination paths.
-3. Copy the selected `reui/` payload into `docs/ai/skills/reui/` and preserve this `references/upstream.md` file.
+3. Copy the selected `reui/` payload into `docs/ai/skills/reui/` and preserve this `references/upstream.md` file plus the **`## This repository (Asymmetric-al/core)`** overlay at the top of `SKILL.md` (registry defaults, `base-maia`, `DataTableResponsive`, `/rui` disambiguation).
 4. Run `bun run skills:sync` and `bun run skills:verify`.
 5. Commit canonical and generated mirror updates together.

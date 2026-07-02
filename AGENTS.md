@@ -235,7 +235,8 @@ This repo configures the free ReUI MCP endpoint as `reui` in root `.mcp.json`, `
 
 - **Endpoint:** `https://mcp.reui.io` (Streamable HTTP).
 - **Scope:** Use it for ReUI registry discovery, scored search, inline component APIs, page planning, and usage validation.
-- **License:** The MCP server does not use a license key. Premium installs use the authenticated `@reui` registry in `packages/ui/components.json`, which reads `REUI_LICENSE_KEY` from a local, git-ignored `.env.local`.
+- **License:** The MCP server does not use a license key. Free `@reui` installs use the plain-string registry in `packages/ui/components.json`. Premium installs temporarily need the authenticated `@reui` object form plus `REUI_LICENSE_KEY` in git-ignored `.env.local` (see `docs/ai/skills/reui/rules/cli.md`).
+- **Not shadcn-studio `/rui`:** ReUI (`@reui`) is separate from shadcn-studio Refine UI (`/rui` in `docs/ai/rules/shadcn-studio-mcp.md`).
 - **Claude Code:** Claude Code reads the repo-root `.mcp.json`.
 - **Cursor:** Cursor reads `.cursor/mcp.json`, which mirrors the repo-root MCP server definitions.
 - **Codex:** Codex reads `.codex/config.toml` for repo-local MCP server definitions.

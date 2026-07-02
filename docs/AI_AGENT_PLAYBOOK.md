@@ -50,9 +50,11 @@
   Codex reads `.codex/config.toml`.
 - The MCP endpoint is `https://mcp.reui.io` and does not need auth headers or a
   license key. It is for ReUI search, planning, inline APIs, and validation.
-- Premium ReUI installs use the `@reui` registry entry in
-  `packages/ui/components.json`, which reads `REUI_LICENSE_KEY` from local,
-  git-ignored `.env.local` files.
+- Free `@reui` installs use the plain-string registry in
+  `packages/ui/components.json`. Premium installs temporarily need the
+  authenticated `@reui` object form plus `REUI_LICENSE_KEY` in git-ignored
+  `.env.local` (see `docs/ai/skills/reui/rules/cli.md`). ReUI is not
+  shadcn-studio `/rui` (Refine UI).
 - The canonical ReUI skill remains `docs/ai/skills/reui/SKILL.md`; keep mirrors
   fresh with `bun run skills:sync` and `bun run skills:verify`.
 

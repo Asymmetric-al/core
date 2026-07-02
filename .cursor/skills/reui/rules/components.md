@@ -9,7 +9,7 @@ The 17 ReUI building blocks: `alert`, `autocomplete`, `badge`, `data-grid`, `dat
 `data-grid` wraps TanStack Table v8. It is NOT a styled `<table>` and does NOT take `data`/`columns` props directly. The contract:
 
 - Build a TanStack table instance with `useReactTable(...)` (columns, data, the feature models you need: sorting, pagination, row selection).
-- Pass that instance to `<DataGrid table={table} recordCount={total}>`.
+- Pass that instance to `<DataGrid table={table} recordCount={total}>` (`total` is the full row count for pagination, not just the current page's `data.length`).
 - Compose the body with `DataGridTable` inside `DataGrid`, and enable features through `tableLayout` (e.g. `{ headerSticky: true, columnsResizable: true }`), not ad-hoc classes.
 - Server-side data uses the documented fetch shape (`recordCount` is the total for pagination).
 
@@ -21,7 +21,7 @@ const table = useReactTable({
   // add sorting/pagination/selection models per the API
 })
 
-<DataGrid table={table} recordCount={data.length}>
+<DataGrid table={table} recordCount={totalRowCount}>
   <DataGridTable />
 </DataGrid>
 ```
