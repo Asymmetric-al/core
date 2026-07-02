@@ -530,12 +530,21 @@ describe("contribution operations detail read model", () => {
         currencyCode: "USD",
         fundId: "fund_1",
         fundName: "General Fund",
-        missionaryId: null,
+        missionaryId: "missionary_1",
+        missionaryName: "Riley Worker",
         nextExpectedGiftAt: "2026-07-01T00:00:00.000Z",
         stripeSubscriptionId: "sub_1",
+        linkedGiftCount: 6,
+        lastLinkedGiftAt: "2026-06-01T00:00:00.000Z",
       },
     });
     expect(linked.recurring.agreement?.id).toBe("pledge_1");
+    expect(linked.recurring.agreement).toMatchObject({
+      missionaryId: "missionary_1",
+      missionaryName: "Riley Worker",
+      linkedGiftCount: 6,
+      lastLinkedGiftAt: "2026-06-01T00:00:00.000Z",
+    });
     expect(linked.recurring.providerRecurrenceWithoutAgreement).toBe(false);
     expect(linked.shared.recurringLinkState).toBe("agreement_linked");
 
@@ -580,6 +589,47 @@ describe("contribution operations detail read model", () => {
     });
     expect(oneTime.recurring.providerRecurrenceWithoutAgreement).toBe(false);
     expect(oneTime.shared.recurringLinkState).toBe("none");
+  });
+
+  it("keeps the revision stable when agreement gift-history context changes", () => {
+    const donation = donationInput({
+      pledgeId: "pledge_1",
+      updatedAt: "2026-05-21T00:00:00.000Z",
+    });
+    const agreement = {
+      id: "pledge_1",
+      status: "active",
+      frequency: "monthly",
+      amountCents: 5_000,
+      currencyCode: "USD",
+      fundId: null,
+      fundName: null,
+      missionaryId: null,
+      missionaryName: null,
+      nextExpectedGiftAt: null,
+      stripeSubscriptionId: null,
+      linkedGiftCount: 3,
+      lastLinkedGiftAt: "2026-05-01T00:00:00.000Z",
+    };
+
+    const before = buildContributionDetail({
+      donation,
+      recurringAgreement: agreement,
+    });
+    // A new gift arriving under the same agreement changes only the
+    // gift-history context; it must not invalidate in-flight corrections
+    // on this gift via the optimistic-concurrency revision.
+    const after = buildContributionDetail({
+      donation,
+      recurringAgreement: {
+        ...agreement,
+        linkedGiftCount: 4,
+        lastLinkedGiftAt: "2026-06-01T00:00:00.000Z",
+      },
+    });
+
+    expect(after.recurring.agreement?.linkedGiftCount).toBe(4);
+    expect(after.revision).toBe(before.revision);
   });
 
   it("derives effective values from applied adjustments while preserving the original", () => {

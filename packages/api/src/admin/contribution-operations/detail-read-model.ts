@@ -133,8 +133,18 @@ export interface ContributionDetailInput {
     fundId: string | null;
     fundName: string | null;
     missionaryId: string | null;
+    missionaryName: string | null;
     nextExpectedGiftAt: string | null;
     stripeSubscriptionId: string | null;
+    /**
+     * Gift-history context: how many donations are linked to this agreement
+     * (tenant-scoped count over `donations.pledge_id`). Intentionally not
+     * part of the revision fingerprint — new gifts under the agreement must
+     * not invalidate in-flight corrections on this gift.
+     */
+    linkedGiftCount: number;
+    /** Most recent gift date among the donations linked to this agreement. */
+    lastLinkedGiftAt: string | null;
   } | null;
 }
 

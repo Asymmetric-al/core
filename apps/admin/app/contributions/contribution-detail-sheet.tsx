@@ -140,8 +140,11 @@ interface ContributionDetailSheetProps {
       amountCents: number;
       currencyCode: string;
       fundName: string | null;
+      missionaryName: string | null;
       nextExpectedGiftAt: string | null;
       stripeSubscriptionId: string | null;
+      linkedGiftCount: number;
+      lastLinkedGiftAt: string | null;
     } | null;
     providerRecurrenceWithoutAgreement: boolean;
   };
@@ -356,6 +359,17 @@ export function ContributionDetailSheet({
   const canSendReceipt = availabilityByAction
     ? Boolean(stagedGiftId && receiptEntry?.available)
     : !contribution.receiptSent;
+
+  // Recurring context renders whenever the gift is recurring OR has an
+  // internal agreement link — a one-time gift inside a recurring series
+  // still shows its agreement context (ADR-CD-007).
+  const hasAgreementLink = Boolean(recurring?.pledgeId || recurring?.agreement);
+  const showRecurringSection = Boolean(
+    recurring?.isRecurring || hasAgreementLink,
+  );
+  const isOneTimeGiftWithAgreement = Boolean(
+    recurring && !recurring.isRecurring && hasAgreementLink,
+  );
 
   const handleCopyTxn = async () => {
     const tid = contribution.transactionId;
@@ -742,13 +756,18 @@ export function ContributionDetailSheet({
         </div>
 
         {/* ---- Recurring agreement context (ADR-CD-007) ---- */}
-        {recurring?.isRecurring && (
+        {recurring && showRecurringSection && (
           <>
             <Separator />
             <div className="space-y-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
                 Recurring giving
               </p>
+              {isOneTimeGiftWithAgreement && (
+                <p className="text-xs text-muted-foreground">
+                  This gift is linked to a recurring agreement.
+                </p>
+              )}
               {recurring.providerRecurrenceWithoutAgreement && (
                 <Alert className="bg-muted/40">
                   <AlertDescription>
@@ -771,11 +790,27 @@ export function ContributionDetailSheet({
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {recurring.agreement.fundName ?? "General Fund"}
+                    {recurring.agreement.missionaryName
+                      ? ` · ${recurring.agreement.missionaryName}`
+                      : null}
                     {" · "}
                     {recurring.agreement.status ?? "active"}
                     {recurring.agreement.nextExpectedGiftAt
                       ? ` · Next expected ${makeDisplayDate(
                           recurring.agreement.nextExpectedGiftAt,
+                        ).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}`
+                      : null}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Gifts under this agreement:{" "}
+                    {recurring.agreement.linkedGiftCount}
+                    {recurring.agreement.lastLinkedGiftAt
+                      ? ` · Last gift ${makeDisplayDate(
+                          recurring.agreement.lastLinkedGiftAt,
                         ).toLocaleDateString("en-US", {
                           month: "short",
                           day: "numeric",

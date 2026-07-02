@@ -11,6 +11,7 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 type QueryResult = {
   data: unknown;
   error: null;
+  count?: number | null;
 };
 
 type SupabaseQueryState = {
@@ -205,27 +206,42 @@ describe("contribution operations store", () => {
     const pledgeId = "00000000-0000-4000-8000-000000000015";
     const pledgeFundId = "00000000-0000-4000-8000-000000000016";
     const stagedGiftId = "00000000-0000-4000-8000-000000000017";
+    const pledgeMissionaryId = "00000000-0000-4000-8000-000000000018";
     const supabaseAdmin = createSupabaseStub({
-      donations: {
-        data: {
-          id: donationId,
-          tenant_id: tenantId,
-          donor_id: donorId,
-          fund_id: donationFundId,
-          pledge_id: pledgeId,
-          amount: 7500,
-          currency: "usd",
-          status: "completed",
-          donation_type: "recurring",
-          payment_method: "card",
-          is_recurring: true,
-          recurring_interval: "month",
-          refund_amount: 0,
-          gift_date: "2026-05-05T00:00:00.000Z",
-          created_at: "2026-05-05T00:00:00.000Z",
-          updated_at: "2026-05-05T00:00:00.000Z",
-        },
-        error: null,
+      donations: (query) => {
+        // Second donations query: the tenant-scoped gift-history aggregate
+        // for the linked recurring agreement.
+        if (query.eqFilters.has("pledge_id")) {
+          expectTenantScoped(query, tenantId);
+          expect(query.eqFilters.get("pledge_id")).toBe(pledgeId);
+          expect(query.limitCount).toBe(1);
+          return {
+            data: [{ gift_date: "2026-05-05T00:00:00.000Z" }],
+            error: null,
+            count: 6,
+          };
+        }
+        return {
+          data: {
+            id: donationId,
+            tenant_id: tenantId,
+            donor_id: donorId,
+            fund_id: donationFundId,
+            pledge_id: pledgeId,
+            amount: 7500,
+            currency: "usd",
+            status: "completed",
+            donation_type: "recurring",
+            payment_method: "card",
+            is_recurring: true,
+            recurring_interval: "month",
+            refund_amount: 0,
+            gift_date: "2026-05-05T00:00:00.000Z",
+            created_at: "2026-05-05T00:00:00.000Z",
+            updated_at: "2026-05-05T00:00:00.000Z",
+          },
+          error: null,
+        };
       },
       contribution_adjustments: emptyRows,
       donors: (query) => {
@@ -304,11 +320,30 @@ describe("contribution operations store", () => {
             amount: 7500,
             currency: "usd",
             fund_id: pledgeFundId,
-            missionary_id: null,
+            missionary_id: pledgeMissionaryId,
             next_payment_date: "2026-06-05",
             next_charge_at: "2026-06-05T12:00:00.000Z",
             stripe_subscription_id: "sub_123",
           },
+          error: null,
+        };
+      },
+      missionaries: (query) => {
+        expectTenantScoped(query, tenantId);
+        expectIncludesIds(query, [pledgeMissionaryId]);
+        return {
+          data: [
+            {
+              id: pledgeMissionaryId,
+              profile: {
+                display_name: "Pledge Worker",
+                full_name: null,
+                first_name: null,
+                last_name: null,
+                email: "pledge.worker@example.com",
+              },
+            },
+          ],
           error: null,
         };
       },
@@ -382,7 +417,11 @@ describe("contribution operations store", () => {
         id: pledgeId,
         fundId: pledgeFundId,
         fundName: "Monthly Support",
+        missionaryId: pledgeMissionaryId,
+        missionaryName: "Pledge Worker",
         stripeSubscriptionId: "sub_123",
+        linkedGiftCount: 6,
+        lastLinkedGiftAt: "2026-05-05T00:00:00.000Z",
       },
     });
   });
