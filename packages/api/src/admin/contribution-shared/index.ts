@@ -21,6 +21,20 @@ export {
   type ContributionProfileLabelInput,
 } from "./profile-label";
 export {
+  applyEffectiveContributionToDonation,
+  assembleSharedContributionEffectiveState,
+  buildSharedContributionDesignationSets,
+  collectSharedContributionLookupIds,
+  loadSharedContributionRowInputs,
+  toContributionCents,
+  type SharedContributionEffectiveState,
+  type SharedContributionRowInputs,
+  type SharedRowAllocationSource,
+  type SharedRowCorrectionSource,
+  type SharedRowDonationSource,
+  type SharedRowStagedGiftSource,
+} from "./row-inputs";
+export {
   buildContributionDesignationSet,
   deriveFundType,
   summarizeContributionDesignationSet,
