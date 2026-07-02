@@ -9,6 +9,7 @@
  */
 
 import { summarizeContributionDesignationSet } from "./designation-set";
+import { SETTLED_DONATION_STATUSES } from "../../reads/settled-donation-statuses";
 
 import type {
   ContributionDesignationSet,
@@ -162,16 +163,24 @@ export function formatSharedContributionAmount(
   }).format(amountCents / 100);
 }
 
+const SETTLED_DONATION_STATUS_SET: ReadonlySet<string> = new Set(
+  SETTLED_DONATION_STATUSES,
+);
+
 export function normalizeSharedPaymentStatus(
   status: string | null | undefined,
 ): SharedContributionPaymentStatus {
-  if (status === "processing" || status === "pending") {
-    return "pending";
+  // Settled values (including legacy "succeeded"/"success") are completed.
+  if (typeof status === "string" && SETTLED_DONATION_STATUS_SET.has(status)) {
+    return "completed";
   }
   if (status === "failed" || status === "refunded") {
     return status;
   }
-  return "completed";
+  // Everything else — "processing"/"pending" and any unknown or NULL status —
+  // stays pending. Unknown money is never shown as completed, matching the
+  // grid normalizer so the Hub's Status badge and shared filter agree.
+  return "pending";
 }
 
 export function normalizeSharedReceiptStatus(

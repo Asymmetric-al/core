@@ -1061,6 +1061,18 @@ describe("apps/admin/app/contributions/page", () => {
             crmPostStatus: "failed",
           },
         }),
+        // A second pending-correction row whose CRM post state is NOT failed:
+        // it survives the first chip alongside Cora, then must be eliminated by
+        // the second chip. Without it, Cora alone survives chip 1 and a
+        // crm_post_state chip that matched everything would pass unnoticed.
+        makeHubContribution({
+          id: "cody",
+          donorName: "Cody Correction",
+          shared: {
+            correctionState: "pending",
+            crmPostStatus: "posted",
+          },
+        }),
         makeHubContribution({ id: "carl", donorName: "Carl Clean" }),
         makeHubContribution({
           id: "pete",
@@ -1074,29 +1086,32 @@ describe("apps/admin/app/contributions/page", () => {
       const view = renderContributionsPage();
       await waitFor(() => {
         expect(view.getByText("Cora Correction")).toBeTruthy();
+        expect(view.getByText("Cody Correction")).toBeTruthy();
         expect(view.getByText("Carl Clean")).toBeTruthy();
         expect(view.getByText("Pete Provider")).toBeTruthy();
       });
 
       // Parity oracle: the Hub UI must keep exactly the rows the shared
-      // evaluator keeps for the same filter stack.
+      // evaluator keeps for the same filter stack. Two rows survive chip 1.
       expect(
         filterSharedContributions(rows, [{ id: "pending_correction" }]).map(
           (row) => row.donorName,
         ),
-      ).toEqual(["Cora Correction"]);
+      ).toEqual(["Cora Correction", "Cody Correction"]);
 
       const pendingCorrectionPopup = await openFilterChip("Pending correction");
       await toggleChipOption(pendingCorrectionPopup, /^Pending correction/);
 
       await waitFor(() => {
         expect(view.getByText("Cora Correction")).toBeTruthy();
+        expect(view.getByText("Cody Correction")).toBeTruthy();
         expect(view.queryByText("Carl Clean")).toBeNull();
         expect(view.queryByText("Pete Provider")).toBeNull();
       });
 
-      // Stacking a second shared chip keeps AND semantics, matching
-      // filterSharedContributions with the stacked filter list.
+      // Stacking a second shared chip strictly reduces the set (Cody is
+      // pending-correction but posted, not failed), proving both AND semantics
+      // and that the crm_post_state chip actually discriminates.
       expect(
         filterSharedContributions(rows, [
           { id: "pending_correction" },
@@ -1109,6 +1124,7 @@ describe("apps/admin/app/contributions/page", () => {
 
       await waitFor(() => {
         expect(view.getByText("Cora Correction")).toBeTruthy();
+        expect(view.queryByText("Cody Correction")).toBeNull();
         expect(view.queryByText("Carl Clean")).toBeNull();
         expect(view.queryByText("Pete Provider")).toBeNull();
       });

@@ -41,6 +41,7 @@ import {
 } from "lucide-react";
 
 import {
+  getHubPaymentStatusFacetValues,
   getHubSharedFilterFacetValue,
   hubSharedContributionFilterChips,
   matchesHubPaymentStatusSelection,
@@ -258,6 +259,10 @@ export function getContributionColumns({
       // grid-status extension.
       filterFn: (row, _columnId, filterValue) =>
         matchesHubPaymentStatusSelection(row.original, filterValue),
+      // Faceting counts by the same values the filter matches (not the grid
+      // status accessor), so the chip popover counts agree with the filtered
+      // rows — e.g. a refunded-but-grid-completed gift counts under Refunded.
+      getUniqueValues: (row) => getHubPaymentStatusFacetValues(row),
       enableSorting: true,
       meta: {
         label: "Status",

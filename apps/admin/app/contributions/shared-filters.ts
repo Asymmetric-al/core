@@ -243,3 +243,23 @@ export function matchesHubPaymentStatusSelection(
     return contribution.status === value;
   });
 }
+
+/**
+ * Faceted-count values for the Status chip. The Status column keeps its grid
+ * status accessor for cell rendering and sorting, but its filter matches
+ * through {@link matchesHubPaymentStatusSelection}: shared-vocabulary options
+ * match `shared.paymentStatus`, and Hub-only grid statuses (e.g. "processing")
+ * match the grid status. This helper mirrors that exactly so the chip popover
+ * counts agree with what selecting an option returns — a row counts under its
+ * shared payment status, plus its grid status when that grid status is a
+ * Hub-only extension rather than a shared-vocabulary value.
+ */
+export function getHubPaymentStatusFacetValues(
+  contribution: Contribution,
+): string[] {
+  const values = [contribution.shared.paymentStatus as string];
+  if (!isKeyOf(SHARED_PAYMENT_STATUS_LABELS, contribution.status)) {
+    values.push(contribution.status);
+  }
+  return values;
+}

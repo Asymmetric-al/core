@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getHubPaymentStatusFacetValues,
   getHubSharedFilterFacetValue,
   HUB_RECURRING_LINK_STATE_LABELS,
   hubSharedContributionFilterChips,
@@ -258,6 +259,81 @@ describe("apps/admin/app/contributions/shared-filters", () => {
     expect(getHubSharedFilterFacetValue(clean, "recurring_link")).toBe("none");
   });
 
+  it("matches refund_state selections through the Hub path (a chip that cannot match fails this)", () => {
+    const partial = makeContribution({
+      refundState: "partial_refund",
+      refundedAmountCents: 5000,
+    });
+    const refunded = makeContribution({
+      refundState: "refunded",
+      refundedAmountCents: 10000,
+    });
+    const clean = makeContribution();
+
+    expect(
+      matchesHubSharedFilterSelection(partial, "refund_state", [
+        "partial_refund",
+      ]),
+    ).toBe(true);
+    expect(
+      matchesHubSharedFilterSelection(clean, "refund_state", [
+        "partial_refund",
+      ]),
+    ).toBe(false);
+    expect(
+      matchesHubSharedFilterSelection(refunded, "refund_state", [
+        "partial_refund",
+      ]),
+    ).toBe(false);
+    expect(
+      matchesHubSharedFilterSelection(clean, "refund_state", ["none"]),
+    ).toBe(true);
+    expect(
+      matchesHubSharedFilterSelection(refunded, "refund_state", ["none"]),
+    ).toBe(false);
+    // OR within the chip surfaces both refunded shapes.
+    expect(
+      matchesHubSharedFilterSelection(refunded, "refund_state", [
+        "partial_refund",
+        "refunded",
+      ]),
+    ).toBe(true);
+  });
+
+  it("matches recurring_link selections through the Hub path (a chip that cannot match fails this)", () => {
+    const providerOnly = makeContribution({
+      recurringLinkState: "provider_only",
+    });
+    const agreementLinked = makeContribution({
+      recurringLinkState: "agreement_linked",
+    });
+    const oneTime = makeContribution({ recurringLinkState: "none" });
+
+    expect(
+      matchesHubSharedFilterSelection(providerOnly, "recurring_link", [
+        "provider_only",
+      ]),
+    ).toBe(true);
+    expect(
+      matchesHubSharedFilterSelection(oneTime, "recurring_link", [
+        "provider_only",
+      ]),
+    ).toBe(false);
+    expect(
+      matchesHubSharedFilterSelection(agreementLinked, "recurring_link", [
+        "agreement_linked",
+      ]),
+    ).toBe(true);
+    expect(
+      matchesHubSharedFilterSelection(oneTime, "recurring_link", ["none"]),
+    ).toBe(true);
+    expect(
+      matchesHubSharedFilterSelection(agreementLinked, "recurring_link", [
+        "none",
+      ]),
+    ).toBe(false);
+  });
+
   describe("Status chip payment-status split (issue #274)", () => {
     const refundedButGridCompleted = makeContribution(
       {
@@ -308,6 +384,30 @@ describe("apps/admin/app/contributions/shared-filters", () => {
       ).toBe(true);
       expect(matchesHubPaymentStatusSelection(completed, undefined)).toBe(true);
       expect(matchesHubPaymentStatusSelection(completed, [])).toBe(true);
+    });
+
+    it("counts Status facets by the values the filter matches, not the grid status", () => {
+      // A refunded-but-grid-completed gift counts under Refunded only — the
+      // popover count must agree with the filtered rows it targets.
+      expect(getHubPaymentStatusFacetValues(refundedButGridCompleted)).toEqual([
+        "refunded",
+      ]);
+      // A grid-processing gift counts under both Pending (shared meaning) and
+      // Processing (Hub-only extension), matching both selections.
+      expect(getHubPaymentStatusFacetValues(processing)).toEqual([
+        "pending",
+        "processing",
+      ]);
+      // A plain completed gift counts under Completed only.
+      expect(getHubPaymentStatusFacetValues(completed)).toEqual(["completed"]);
+    });
+
+    it("every Status facet value the helper reports actually matches its selection", () => {
+      for (const row of [refundedButGridCompleted, processing, completed]) {
+        for (const value of getHubPaymentStatusFacetValues(row)) {
+          expect(matchesHubPaymentStatusSelection(row, [value])).toBe(true);
+        }
+      }
     });
   });
 });
