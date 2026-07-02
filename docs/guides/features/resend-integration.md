@@ -159,7 +159,7 @@ Use these variables when wiring server-side defaults/webhooks:
 - `RESEND_ENCRYPTION_KEY` (required to encrypt/decrypt tenant API keys at rest)
 
 All three variables are server-only and are validated by `packages/env` for
-development and production deployments:
+protected deployments:
 
 - `RESEND_API_KEY` must start with `re_`.
 - `RESEND_WEBHOOK_SECRET` must start with `whsec_`.
