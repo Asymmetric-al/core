@@ -63,6 +63,7 @@
       "headers": {
         "Authorization": "Bearer ${REGISTRY_TOKEN}"
       }
-    }
+    },
+    "@reui": "https://reui.io/r/{style}/{name}.json"
   }
 }
