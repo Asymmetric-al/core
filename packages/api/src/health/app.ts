@@ -1,4 +1,5 @@
 import { createClient } from "@asym/database/supabase/server";
+import { resolveDeploymentEnvironment } from "@asym/env/target-env";
 
 type HealthSurface = "admin" | "donor" | "missionary";
 type SupabaseCheck = "ok" | `error: ${string}`;
@@ -62,7 +63,10 @@ function resolveReleaseMetadata(env = process.env): ReleaseMetadata {
       env.GIT_REF,
       env.NEXT_PUBLIC_GIT_REF,
     ),
-    environment: firstNonEmpty(env.VERCEL_TARGET_ENV, env.VERCEL_ENV),
+    environment: resolveDeploymentEnvironment({
+      VERCEL_ENV: env.VERCEL_ENV,
+      VERCEL_TARGET_ENV: env.VERCEL_TARGET_ENV,
+    }),
     runtime: firstNonEmpty(env.NEXT_RUNTIME, env.NODE_ENV),
   };
 }
