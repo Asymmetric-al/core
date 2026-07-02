@@ -483,8 +483,11 @@ function AsymSelectField({
             field.handleBlur();
           }
         }}
-        onValueChange={(value: string) => field.handleChange(value)}
-        value={(field.state.value as string | undefined) ?? undefined}
+        onValueChange={(value) => {
+          if (value === null) return;
+          field.handleChange(value);
+        }}
+        value={(field.state.value as string | undefined) ?? null}
       >
         <SelectTrigger
           aria-describedby={describedBy}

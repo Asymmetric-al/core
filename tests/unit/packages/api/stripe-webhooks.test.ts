@@ -21,7 +21,10 @@ vi.mock("@asym/database/supabase/admin", () => ({
       : { client: null, error: "Supabase admin client unavailable." },
 }));
 
-function createSupabaseDonationMock(row: Record<string, unknown> | null) {
+function createSupabaseDonationMock(
+  row: Record<string, unknown> | null,
+  options: { claimStripeRawEvent?: { claimed: boolean } } = {},
+) {
   const updateValues: Record<string, unknown>[] = [];
   const rawEvents: Record<string, unknown>[] = [];
   const stagedGifts: Record<string, unknown>[] = [];
@@ -45,7 +48,10 @@ function createSupabaseDonationMock(row: Record<string, unknown> | null) {
         };
       }
 
-      return Promise.resolve({ data: { claimed: true }, error: null });
+      return Promise.resolve({
+        data: options.claimStripeRawEvent ?? { claimed: true },
+        error: null,
+      });
     }
     return Promise.resolve({ data: {}, error: null });
   });
@@ -142,10 +148,22 @@ function createSupabaseDonationMock(row: Record<string, unknown> | null) {
       };
     }
 
-    if (
-      table === "staged_gift_allocations" ||
-      table === "staged_gift_audit_events"
-    ) {
+    if (table === "staged_gift_allocations") {
+      const makeFilter = () => {
+        const filter = {
+          eq: vi.fn(() => filter),
+          limit: vi.fn(() => filter),
+          maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+        };
+        return filter;
+      };
+      return {
+        insert: vi.fn(async () => ({ error: null })),
+        select: vi.fn(() => makeFilter()),
+      };
+    }
+
+    if (table === "staged_gift_audit_events") {
       return {
         insert: vi.fn(async () => ({ error: null })),
       };
@@ -276,6 +294,49 @@ describe("Stripe webhook handler", () => {
     });
   });
 
+  it("ignores duplicate raw Stripe events after the idempotency claim is rejected", async () => {
+    const supabase = createSupabaseDonationMock(
+      {
+        amount: 5000,
+        id: "donation-1",
+        status: "pending",
+        stripe_payment_intent_id: "pi_1",
+      },
+      {
+        claimStripeRawEvent: { claimed: false },
+      },
+    );
+    mockState.adminClient = supabase.client;
+
+    const response = await POST(
+      createSignedStripeRequest(
+        {
+          data: {
+            object: {
+              id: "pi_1",
+              latest_charge: "ch_1",
+              object: "payment_intent",
+            },
+          },
+          id: "evt_duplicate",
+          object: "event",
+          type: "payment_intent.succeeded",
+        },
+        "whsec_unit",
+      ),
+    );
+
+    await expect(response.json()).resolves.toMatchObject({
+      action: "stripe_event_already_recorded",
+      eventId: "evt_duplicate",
+      eventType: "payment_intent.succeeded",
+      handled: true,
+      received: true,
+    });
+    expect(response.status).toBe(200);
+    expect(supabase.update).not.toHaveBeenCalled();
+  });
+
   it("rejects webhook requests with an invalid signature", async () => {
     const supabase = createSupabaseDonationMock({
       amount: 5000,
@@ -337,6 +398,77 @@ describe("Stripe webhook handler", () => {
       paymentIntentId: "pi_1",
     });
     expect(supabase.update).not.toHaveBeenCalled();
+  });
+
+  it("marks canceled payment intent events as failed", async () => {
+    const supabase = createSupabaseDonationMock({
+      amount: 5000,
+      id: "donation-1",
+      status: "pending",
+      stripe_payment_intent_id: "pi_1",
+    });
+
+    const outcome = await handleStripeWebhookEvent(
+      supabase.client as never,
+      {
+        data: {
+          object: {
+            id: "pi_1",
+            object: "payment_intent",
+          },
+        },
+        id: "evt_canceled",
+        object: "event",
+        type: "payment_intent.canceled",
+      } as never,
+    );
+
+    expect(outcome).toMatchObject({
+      action: "payment_intent_failed",
+      donationId: "donation-1",
+      handled: true,
+      paymentIntentId: "pi_1",
+    });
+    expect(supabase.updateValues[0]).toMatchObject({
+      failed_at: expect.any(String),
+      status: "failed",
+      updated_at: expect.any(String),
+    });
+  });
+
+  it("marks processing payment intent events as processing", async () => {
+    const supabase = createSupabaseDonationMock({
+      amount: 5000,
+      id: "donation-1",
+      status: "pending",
+      stripe_payment_intent_id: "pi_1",
+    });
+
+    const outcome = await handleStripeWebhookEvent(
+      supabase.client as never,
+      {
+        data: {
+          object: {
+            id: "pi_1",
+            object: "payment_intent",
+          },
+        },
+        id: "evt_processing",
+        object: "event",
+        type: "payment_intent.processing",
+      } as never,
+    );
+
+    expect(outcome).toMatchObject({
+      action: "payment_intent_processing",
+      donationId: "donation-1",
+      handled: true,
+      paymentIntentId: "pi_1",
+    });
+    expect(supabase.updateValues[0]).toMatchObject({
+      status: "processing",
+      updated_at: expect.any(String),
+    });
   });
 
   it("marks fully refunded charges as refunded", async () => {

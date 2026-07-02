@@ -14,11 +14,25 @@ export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export {
+  ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
+  ADMIN_CRM_RECORDS_QUERY_KEY,
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
-  useResendCrmGiftReceipt,
 } from "./admin-crm-detail";
 export { useAdminCrmNotesGrid } from "./admin-crm-notes";
+export {
+  ADMIN_CRM_NAMED_VIEWS_QUERY_KEY,
+  useCreateCrmNamedView,
+  useCrmNamedViews,
+  useDeleteCrmNamedView,
+  useUpdateCrmNamedView,
+} from "./admin-crm-named-views";
+export {
+  ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY,
+  useCrmTablePreferences,
+  useSaveCrmRowActionPin,
+  useSaveCrmViewSettings,
+} from "./admin-crm-table-preferences";
 export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
   useAdminCrmRelationshipsGrid,
@@ -55,6 +69,20 @@ export {
   useTeams,
   useTeamMembers,
 } from "./admin-workspace";
+export {
+  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+  useMissionControlNeedsAttention,
+  type MissionControlNeedsAttentionGroup,
+  type MissionControlNeedsAttentionItem,
+} from "./mission-control-tasks";
+export {
+  MISSION_CONTROL_AUTOMATIONS_QUERY_KEY,
+  useMissionControlAutomations,
+  type MissionControlAutomationActivationStatus,
+  type MissionControlAutomationRuleDto,
+  type MissionControlAutomationSummary,
+  type MissionControlAutomationsResponse,
+} from "./mission-control-automations";
 export {
   useLocations,
   useLinkedEntities,

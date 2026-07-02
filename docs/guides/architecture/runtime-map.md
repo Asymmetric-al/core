@@ -1,4 +1,4 @@
-# API Runtime Map
+﻿# API Runtime Map
 
 ## Purpose
 
@@ -28,6 +28,8 @@ commit when the deployment exposes a non-`unknown` commit.
 | ---------- | -------------------------------------------------------------- | ------------------------------------- | --------------------------------------------- |
 | admin      | `/api/admin/comments`                                          | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/comments/[commentId]`                              | Node.js (no `runtime` segment export) | Admin client                                  |
+| admin      | `/api/admin/contribution-batches`                              | Node.js (no `runtime` segment export) | Bulk contribution operations, admin client    |
+| admin      | `/api/admin/contribution-batches/[batchId]/process`            | Node.js (no `runtime` segment export) | Bulk contribution background processing       |
 | admin      | `/api/admin/contributions`                                     | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/contributions/reconcile`                           | Node.js (no `runtime` segment export) | Giving reconciliation, admin client           |
 | admin      | `/api/admin/contributions/replay`                              | Node.js (no `runtime` segment export) | Giving replay tooling, Stripe SDK             |
@@ -48,6 +50,10 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/reports/export`                                | Node.js (no `runtime` segment export) | Audited CRM CSV export                        |
 | admin      | `/api/admin/crm/sync/reconcile`                                | Node.js (no `runtime` segment export) | Staff-only CRM reconciliation                 |
 | admin      | `/api/admin/crm/sync/replay`                                   | Node.js (no `runtime` segment export) | Staff-only CRM replay                         |
+| admin      | `/api/admin/crm/table-preferences`                             | Node.js (no `runtime` segment export) | Staff-only CRM view preferences               |
+| admin      | `/api/admin/crm/table-preferences/tenant-default`              | Node.js (no `runtime` segment export) | Audited CRM tenant default preferences        |
+| admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                      |
+| admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation              |
 | admin      | `/api/admin/crm/webhooks/twenty`                               | Node.js (no `runtime` segment export) | Twenty HMAC webhook, admin client             |
 | admin      | `/api/admin/funds`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/locations`                                         | Node.js (no `runtime` segment export) | Admin client                                  |
@@ -60,6 +66,8 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/member-care/private-notes`                         | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/requirements`                          | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/thread`                                | Node.js (no `runtime` segment export) | Admin client                                  |
+| admin      | `/api/admin/mission-control/automations`                       | Node.js (no `runtime` segment export) | Mission Control automations, admin client     |
+| admin      | `/api/admin/mission-control/needs-attention`                   | Node.js (no `runtime` segment export) | Mission Control task attention dashboard      |
 | admin      | `/api/admin/missionaries`                                      | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/org-settings`                                      | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/posts`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
@@ -102,6 +110,14 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/support/teams/[id]`                                | Node.js (no `runtime` segment export) | Support hub adapter                           |
 | admin      | `/api/admin/support/tickets`                                   | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/support/tickets/[id]`                              | Node.js (no `runtime` segment export) | Admin client                                  |
+| admin      | `/api/admin/support-hub/conversations/bulk-move`               | Node.js (no `runtime` segment export) | Bulk move, work claims, item audit            |
+| admin      | `/api/admin/support-hub/conversations/bulk-move/retry`         | Node.js (no `runtime` segment export) | Retry failed bulk-move items                  |
+| admin      | `/api/admin/support-hub/conversations/move`                    | Node.js (no `runtime` segment export) | Audited conversation move                     |
+| admin      | `/api/admin/support-hub/inbound/retry`                         | Node.js (no `runtime` segment export) | Inbound email retry, work claims, ledger      |
+| admin      | `/api/admin/support-hub/inbound/routes`                        | Node.js (no `runtime` segment export) | Saved inbound routes, save-and-continue       |
+| admin      | `/api/admin/support-hub/inbound/routes/[routeId]`              | Node.js (no `runtime` segment export) | Tenant route management, audit                |
+| admin      | `/api/admin/workflows/notification-policy`                     | Node.js (no `runtime` segment export) | Tenant notification overrides                 |
+| admin      | `/api/admin/workflows/summaries`                               | Node.js (no `runtime` segment export) | Workflow run summaries, notification policy   |
 | admin      | `/api/admin/users`                                             | Node.js (no `runtime` segment export) | Admin client (`SUPABASE_SERVICE_ROLE_KEY`)    |
 | admin      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                       |
 | admin      | `/api/auth/signout`                                            | Node.js (no `runtime` segment export) | Auth/session cleanup                          |
@@ -124,6 +140,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                       |
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                   |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                         |
+| admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving             |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/pdf-templates`                                           | Node.js (no `runtime` segment export) | PDF Studio template store                     |
 | admin      | `/api/pdf-templates/[templateId]`                              | Node.js (no `runtime` segment export) | PDF Studio template store                     |
@@ -175,3 +192,12 @@ commit when the deployment exposes a non-`unknown` commit.
 | missionary | `/api/posts/[postId]/prayer`                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | missionary | `/api/profile`                                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | missionary | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                      |
+
+Contribution operation routes added after the main table to avoid reflowing the
+full inventory around long dynamic path names.
+
+| App   | Route family                                                                  | Runtime policy                        | Reason                                    |
+| ----- | ----------------------------------------------------------------------------- | ------------------------------------- | ----------------------------------------- |
+| admin | `/api/admin/contribution-operations/[contributionId]`                         | Node.js (no `runtime` segment export) | Contribution operation detail             |
+| admin | `/api/admin/contribution-operations/actions`                                  | Node.js (no `runtime` segment export) | Contribution operation action executor    |
+| admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |

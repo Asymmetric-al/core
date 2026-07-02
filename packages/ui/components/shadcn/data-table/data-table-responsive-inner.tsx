@@ -76,6 +76,7 @@ export function DataTableResponsiveInner<TData, TValue>({
   enableVirtualization,
   floatingBarActions,
   rowActions,
+  getRowActionAriaLabel,
   mobileCardConfig,
   className,
   tableClassName,
@@ -132,9 +133,10 @@ export function DataTableResponsiveInner<TData, TValue>({
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+          checked={table.getIsAllPageRowsSelected()}
+          indeterminate={
+            table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected()
           }
           onCheckedChange={(value) => {
             table.toggleAllPageRowsSelected(!!value);
@@ -333,6 +335,7 @@ export function DataTableResponsiveInner<TData, TValue>({
             enableRowSelection={enableRowSelection}
             onRowClick={onRowClick}
             rowActions={rowActions}
+            getRowActionAriaLabel={getRowActionAriaLabel}
             renderCard={mobileCardConfig?.renderCard}
           />
         )}

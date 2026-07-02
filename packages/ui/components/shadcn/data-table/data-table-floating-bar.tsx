@@ -1,7 +1,12 @@
 "use client";
 
+import {
+  AnimatePresence,
+  LazyMotion,
+  domAnimation,
+  motion as m,
+} from "@asym/lib/motion";
 import { X, MoreHorizontal, Check } from "lucide-react";
-import { AnimatePresence, LazyMotion, domAnimation, m } from "motion/react";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
@@ -104,15 +109,17 @@ export function DataTableFloatingBar<TData>({
 
                 {overflowActions.length > 0 && (
                   <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background"
-                      >
-                        <MoreHorizontal className="size-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
+                    <DropdownMenuTrigger
+                      render={
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="size-8 rounded-xl text-background hover:bg-background/10 hover:text-background"
+                        >
+                          <MoreHorizontal className="size-4" />
+                        </Button>
+                      }
+                    />
                     <DropdownMenuContent align="end" className="rounded-xl">
                       {overflowActions.map((action, index) => (
                         <React.Fragment key={action.label}>

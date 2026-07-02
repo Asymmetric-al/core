@@ -40,12 +40,7 @@ export function LoadingState() {
       animate={{ opacity: 1 }}
       className="flex flex-col items-center justify-center gap-4 py-16 sm:py-24"
     >
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
-      >
-        <Loader2 className="size-10 text-muted-foreground/30 sm:h-12 sm:w-12" />
-      </motion.div>
+      <Loader2 className="spinner-essential size-10 text-muted-foreground/30 sm:h-12 sm:w-12" />
       <motion.p
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}

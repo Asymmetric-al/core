@@ -23,7 +23,7 @@ import {
 export interface AddPartnerDialogProps {
   missionaryId: string;
   onSuccess?: () => void;
-  trigger?: React.ReactNode;
+  trigger?: React.ReactElement;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -101,7 +101,7 @@ export function AddPartnerDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[500px]">
         <div className="bg-zinc-900 px-8 py-10 text-white">
           <DialogTitle className="text-3xl font-black tracking-tighter">
@@ -126,7 +126,7 @@ export function AddPartnerDialog({
                 {(field) => (
                   <field.TextField
                     className="col-span-2"
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                     label="Full Name / Org Name"
                     labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                     placeholder="Enter name"
@@ -137,7 +137,7 @@ export function AddPartnerDialog({
               <form.AppField name="email">
                 {(field) => (
                   <field.TextField
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                     label="Email Address"
                     labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                     placeholder="email@example.com"
@@ -149,7 +149,7 @@ export function AddPartnerDialog({
               <form.AppField name="phone">
                 {(field) => (
                   <field.TextField
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                     label="Phone Number"
                     labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                     placeholder="(555) 000-0000"
@@ -164,7 +164,7 @@ export function AddPartnerDialog({
                     labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                     options={PARTNER_TYPE_OPTIONS}
                     placeholder="Select type"
-                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                   />
                 )}
               </form.AppField>
@@ -176,7 +176,7 @@ export function AddPartnerDialog({
                     labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                     options={PARTNER_FREQUENCY_OPTIONS}
                     placeholder="Select frequency"
-                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    triggerClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                   />
                 )}
               </form.AppField>
@@ -185,7 +185,7 @@ export function AddPartnerDialog({
                 {(field) => (
                   <field.TextField
                     className="col-span-2"
-                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                    inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-bold transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                     label="Location (City, State)"
                     labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
                     placeholder="Denver, CO"
