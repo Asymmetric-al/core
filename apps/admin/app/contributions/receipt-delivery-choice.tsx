@@ -69,7 +69,10 @@ export function receiptSnapshotPdfUrl(snapshotId: string): string {
 
 /**
  * Initial form value: the requester's proposal when it is still available,
- * otherwise the server-computed default choice.
+ * otherwise NO selection. The server default is shown as guidance, never
+ * pre-selected — a receipt is never sent because a form field was silently
+ * pre-filled and submitted untouched (the delivery choice is always an
+ * explicit human decision).
  */
 export function resolveInitialReceiptDeliveryValue(input: {
   receiptDelivery: ContributionReceiptDeliveryContext;
@@ -87,7 +90,7 @@ export function resolveInitialReceiptDeliveryValue(input: {
     return { choice: proposal.choice, deferReason: proposal.deferReason ?? "" };
   }
 
-  return { choice: input.receiptDelivery.defaultChoice, deferReason: "" };
+  return { choice: null, deferReason: "" };
 }
 
 function optionDisplayLabel(

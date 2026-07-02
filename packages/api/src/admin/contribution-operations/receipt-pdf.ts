@@ -1,5 +1,8 @@
 import { parseReceiptSnapshotContent } from "./receipt-delivery";
-import { getPdfStudioDocRaptorClient } from "../../pdf-templates/docraptor";
+import {
+  getPdfStudioDocRaptorClient,
+  resolvePdfStudioDocRaptorRuntime,
+} from "../../pdf-templates/docraptor";
 import { ApiHttpError } from "../../shared/http-errors";
 
 import type {
@@ -155,10 +158,30 @@ export interface RenderedContributionReceiptSnapshotPdf {
   pdf: Uint8Array;
   contentType: "application/pdf";
   filename: string;
+  /**
+   * True when the vendor rendered in test mode (watermarked). Only reachable
+   * with an injected client — the shared runtime is asserted production.
+   */
+  testRender: boolean;
   snapshot: {
     donationId: string;
     kind: string;
   };
+}
+
+/**
+ * DocRaptor test mode watermarks documents and is never acceptable for a
+ * donor-facing compliance receipt. Exported for direct unit coverage.
+ */
+export function assertProductionReceiptRenderMode(
+  mode: string | null | undefined,
+): void {
+  if (mode !== "production") {
+    throw new ApiHttpError(
+      503,
+      "Updated receipt PDF rendering requires DocRaptor production mode (set PDF_STUDIO_DOCRAPTOR_MODE=production).",
+    );
+  }
 }
 
 /**
@@ -199,10 +222,21 @@ export async function renderContributionReceiptSnapshotPdf(input: {
 
   // Intentionally NOT gated on `productionRenderingEnabled`: that rollout flag
   // controls the PDF Studio native template *builder*, not operational receipt
-  // rendering. Updated receipt PDFs are a compliance artifact and must render
-  // whenever DocRaptor credentials are configured.
-  const docraptorClient =
-    input.docraptorClient ?? (await getPdfStudioDocRaptorClient());
+  // rendering. The vendor MODE is not inherited from the builder either:
+  // DocRaptor test mode watermarks documents, so the shared runtime must be
+  // explicitly in production mode before this compliance path renders.
+  let docraptorClient = input.docraptorClient ?? null;
+  if (!docraptorClient) {
+    const runtime = resolvePdfStudioDocRaptorRuntime();
+    if (!runtime.configured) {
+      throw new ApiHttpError(
+        503,
+        "PDF rendering is not configured for this environment.",
+      );
+    }
+    assertProductionReceiptRenderMode(runtime.mode ?? null);
+    docraptorClient = (await getPdfStudioDocRaptorClient()) ?? null;
+  }
   if (!docraptorClient) {
     throw new ApiHttpError(
       503,
@@ -228,6 +262,7 @@ export async function renderContributionReceiptSnapshotPdf(input: {
     pdf: result.pdf,
     contentType: "application/pdf",
     filename: `updated-receipt-${input.snapshotId}.pdf`,
+    testRender: result.request?.test === true,
     snapshot: {
       donationId: asString(data.donation_id) ?? content.donationId,
       kind: asString(data.kind) ?? "pdf",

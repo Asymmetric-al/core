@@ -488,14 +488,68 @@ describe("ContributionOperationShell", () => {
       view.getByText("The donor has no email address on file."),
     ).toBeTruthy();
 
-    // The available tenant default choice is prefilled.
-    expect(pdfRadio.getAttribute("aria-checked")).toBe("true");
+    // No choice is pre-selected: delivery is an explicit human decision
+    // (a silently pre-filled default must never email a donor untouched).
+    expect(pdfRadio.getAttribute("aria-checked")).toBe("false");
     expect(deferRadio.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(pdfRadio);
+    expect(pdfRadio.getAttribute("aria-checked")).toBe("true");
 
     // Clicking the blocked option does not select it.
     fireEvent.click(emailRadio);
     expect(emailRadio.getAttribute("aria-checked")).toBe("false");
     expect(pdfRadio.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("submits no receipt delivery when the field is left untouched", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ef";
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-9",
+        adjustmentId: "adj-9",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeReceiptDeliveryDetail(donationId),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText(/this correction changes receipt fields: amount/i);
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await view.findByTestId("operation-result-panel");
+
+    // Regression (#263 verification): an untouched delivery field must not
+    // ride along in the payload — the server records deferred-by-omission
+    // and no donor email is ever triggered by a silent default.
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.payload.receiptDelivery).toBeUndefined();
   });
 
   it("requires a defer reason and submits the receipt delivery selection", async () => {
@@ -611,7 +665,10 @@ describe("ContributionOperationShell", () => {
       target: { value: "Donor reported the wrong amount" },
     });
     fireEvent.click(view.getByRole("checkbox"));
-    // The prefilled PDF choice is submitted with the correction payload.
+    // Explicitly choose PDF; it is submitted with the correction payload.
+    fireEvent.click(
+      view.getByRole("radio", { name: /generate updated receipt pdf/i }),
+    );
     fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
 
     await view.findByTestId("operation-result-panel");

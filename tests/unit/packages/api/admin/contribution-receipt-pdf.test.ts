@@ -7,6 +7,7 @@ import {
   type ReceiptSnapshotSourceDetail,
 } from "../../../../../packages/api/src/admin/contribution-operations/receipt-delivery";
 import {
+  assertProductionReceiptRenderMode,
   assertReceiptSnapshotPdfCapability,
   buildUpdatedReceiptHtml,
   renderContributionReceiptSnapshotPdf,
@@ -277,5 +278,17 @@ describe("renderContributionReceiptSnapshotPdf", () => {
       status: 503,
       message: expect.stringMatching(/not configured/i),
     });
+  });
+});
+
+describe("assertProductionReceiptRenderMode", () => {
+  it("refuses vendor test mode for compliance receipts", () => {
+    expect(() => assertProductionReceiptRenderMode("test")).toThrowError(
+      /production mode/i,
+    );
+    expect(() => assertProductionReceiptRenderMode(null)).toThrowError(
+      /production mode/i,
+    );
+    expect(() => assertProductionReceiptRenderMode("production")).not.toThrow();
   });
 });
