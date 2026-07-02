@@ -40,7 +40,7 @@ Use this skill whenever selecting, installing, composing, or customizing shadcn/
 - [ ] Existing shadcn component evaluated before creating new primitive
 - [ ] Token-based styling used (no unnecessary arbitrary values)
 - [ ] `cn()` and variants are consistent with existing patterns
-- [ ] `asChild` and composition semantics are correct
+- [ ] `render` prop and composition semantics are correct
 - [ ] a11y behavior (focus, keyboard, ARIA) preserved
 
 ### Review checklist

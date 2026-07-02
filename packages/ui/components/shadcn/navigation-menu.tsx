@@ -90,7 +90,7 @@ function NavigationMenuContent({
     <NavigationMenuPrimitive.Content
       data-slot="navigation-menu-content"
       className={cn(
-        "isolate z-50 h-full w-auto p-2 pr-2.5 transition-[opacity,transform,translate] duration-[var(--duration-standard)] data-starting-style:opacity-0 data-ending-style:opacity-0 data-[motion=from-end]:slide-in-from-right-52 data-[motion=from-start]:slide-in-from-left-52 data-[motion=to-end]:slide-out-to-right-52 data-[motion=to-start]:slide-out-to-left-52 data-[motion^=from-]:animate-in data-[motion^=from-]:fade-in data-[motion^=to-]:animate-out data-[motion^=to-]:fade-out **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
+        "isolate z-50 h-full w-auto p-2 pr-2.5 transition-[opacity,transform,translate] duration-[var(--duration-standard)] data-starting-style:opacity-0 data-ending-style:opacity-0 data-[activation-direction=right]:slide-in-from-right-52 data-[activation-direction=left]:slide-in-from-left-52 data-ending-style:data-[activation-direction=right]:slide-out-to-right-52 data-ending-style:data-[activation-direction=left]:slide-out-to-left-52 data-[activation-direction]:animate-in data-[activation-direction]:fade-in data-ending-style:data-[activation-direction]:animate-out data-ending-style:data-[activation-direction]:fade-out **:data-[slot=navigation-menu-link]:focus:ring-0 **:data-[slot=navigation-menu-link]:focus:outline-none",
         className,
       )}
       {...props}

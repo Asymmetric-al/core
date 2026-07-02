@@ -71,7 +71,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { buildSecurityDialogState, SECURITY_OPTIONS } from "./feed-model";
@@ -141,6 +141,14 @@ function FollowerRequestItem({
   const [status, setStatus] = useState<
     "pending" | "processing" | "approved" | "ignored" | "collapsing"
   >("pending");
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleAction = async (action: "approve" | "ignore") => {
     setStatus("processing");
@@ -159,8 +167,10 @@ function FollowerRequestItem({
       setStatus(action === "approve" ? "approved" : "ignored");
 
       setTimeout(() => {
+        if (!mountedRef.current) return;
         setStatus("collapsing");
         setTimeout(() => {
+          if (!mountedRef.current) return;
           onResolve(request.id, action === "approve");
         }, 400);
       }, 1500);
@@ -560,7 +570,11 @@ function CommentSection({
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               render={
-                                <button className="text-muted-foreground/50 hover:text-destructive transition-colors">
+                                <button
+                                  type="button"
+                                  aria-label="Comment actions"
+                                  className="text-muted-foreground/50 hover:text-destructive transition-colors"
+                                >
                                   <MoreHorizontal className="size-3" />
                                 </button>
                               }
@@ -853,6 +867,7 @@ function PostCard({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Post actions"
                   className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
                 >
                   <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />

@@ -141,6 +141,7 @@ export function TaskRow({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Task actions"
                   className="size-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
                 />
               }

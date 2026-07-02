@@ -57,6 +57,7 @@ export function LegalPageShell({
                 <Link
                   key={route.key}
                   href={route.href}
+                  aria-current={route.key === currentRoute ? "page" : undefined}
                   className={buttonVariants({
                     size: "sm",
                     variant: route.key === currentRoute ? "default" : "outline",

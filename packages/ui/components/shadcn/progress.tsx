@@ -12,7 +12,7 @@ function Progress({
   return (
     <ProgressPrimitive.Root
       data-slot="progress"
-      value={value ?? 0}
+      value={value === undefined ? 0 : value}
       className={cn(
         "relative h-2 w-full overflow-hidden rounded-full bg-primary/20",
         className,

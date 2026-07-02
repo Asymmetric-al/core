@@ -2,6 +2,7 @@
 
 import { useDonorPortalSnapshot } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
@@ -30,6 +31,7 @@ import { RECENT_UPDATES } from "@/lib/mock-data";
 
 export function DonorDashboardMainBody() {
   const portalQuery = useDonorPortalSnapshot();
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const portal = portalQuery.data;
   const displayName = portal?.profile.displayName.split(" ")[0] ?? "Partner";
   const yearToDate = portal ? portal.summary.yearToDateCents / 100 : 0;
@@ -39,7 +41,12 @@ export function DonorDashboardMainBody() {
   const latestImpact = portal?.summary.latestImpactLabel ?? "General Fund";
 
   return (
-    <div className="flex flex-col gap-8 pb-20 animate-in fade-in duration-700">
+    <div
+      className={cn(
+        "flex flex-col gap-8 pb-20",
+        !withinRouteVt && "animate-in fade-in duration-700",
+      )}
+    >
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 sm:gap-6 pb-6 border-b border-zinc-100">
         <div className="min-w-0">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-semibold text-zinc-900 tracking-tighter flex items-center gap-2 sm:gap-3 flex-wrap">
