@@ -653,6 +653,118 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(detailRefetch).toHaveBeenCalled();
   });
 
+  it("opens the full contribution detail from the result panel without leaving CRM", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00c";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return {
+          ok: true,
+          json: async () => ({
+            result: {
+              auditEventId: "audit-10",
+              approvalStatus: "applied",
+              taskIds: [],
+              canonicalContribution: {},
+            },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+    const shell = await view.findByTestId("contribution-operation-shell");
+    const submit = await within(shell).findByRole("button", {
+      name: "Send receipt",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    const resultPanel = await view.findByTestId("operation-result-panel");
+    // Success alone never navigates — the detail open is an explicit choice.
+    expect(routerPushMock).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      within(resultPanel).getByRole("button", {
+        name: "View full contribution detail",
+      }),
+    );
+
+    // The shell closes and the shared detail overlay opens in place.
+    await waitFor(() => {
+      expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+    });
+    expect(await view.findByText("Contribution Details")).toBeTruthy();
+
+    // The only navigation is the CRM gift deep link — never a route away.
+    expect(routerPushMock).toHaveBeenCalledTimes(1);
+    expect(routerPushMock).toHaveBeenCalledWith(
+      `/crm?donor=${DONOR_RECORD_ID}&gift=${donationId}`,
+      { scroll: false },
+    );
+    for (const [route] of routerPushMock.mock.calls) {
+      expect(String(route)).toMatch(/^\/crm(\?|$)/);
+    }
+  });
+
+  it("returns focus to the triggering row action when the operation shell closes", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00d";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", { name: "Send receipt" });
+    trigger.focus();
+    expect(document.activeElement).toBe(trigger);
+
+    fireEvent.click(trigger);
+    const shell = await view.findByTestId("contribution-operation-shell");
+
+    fireEvent.click(within(shell).getByRole("button", { name: "Cancel" }));
+
+    await waitFor(() => {
+      expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+    });
+    // The dialog restores focus to the element focused before it opened,
+    // so keyboard staff land back on the row action they came from.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(trigger);
+    });
+  });
+
   it("strips malformed gift deep links while preserving donor context", async () => {
     mockSearch = `donor=${DONOR_RECORD_ID}&gift=not-a-uuid`;
     const fetchMock = vi.fn();
