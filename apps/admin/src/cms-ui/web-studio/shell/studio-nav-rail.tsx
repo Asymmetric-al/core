@@ -296,6 +296,7 @@ function NavRailLink({
             variant={active ? "secondary" : "ghost"}
             size="sm"
             className={cn("justify-center gap-2 px-0 font-semibold text-xs")}
+            render={<Link href={href} title={title} />}
           >
             <Icon className="size-4 shrink-0" />
           </Button>
