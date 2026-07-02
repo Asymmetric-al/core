@@ -5,7 +5,10 @@ import {
   type ContributionSortField,
 } from "./query";
 import { ApiHttpError } from "../../shared/http-errors";
-import { resolveContributionProfileLabel } from "../contribution-shared/profile-label";
+import {
+  applyEffectiveContributionToDonation,
+  loadSharedContributionRowInputs,
+} from "../contribution-shared/row-inputs";
 
 import type {
   AdminContributionsListResponse,
@@ -73,19 +76,11 @@ type ProfileRow = {
   avatar_url: string | null;
 };
 
-type FundRow = {
-  id: string;
-  name: string | null;
-};
-
-type MissionaryRow = {
-  id: string;
-  profile_id: string | null;
-};
-
 type StagedGiftRow = {
   id: string;
   donation_id: string;
+  fund_id: string | null;
+  missionary_id: string | null;
   status: string | null;
   review_reason: string | null;
   receipt_status: string | null;
@@ -323,59 +318,37 @@ async function fetchContributionRelations(
 ) {
   const donorIds = normalizeSearchIds(rows.map((row) => row.donor_id || ""));
   const donationIds = normalizeSearchIds(rows.map((row) => row.id));
-  const fundIds = normalizeSearchIds(rows.map((row) => row.fund_id || ""));
-  const missionaryIds = normalizeSearchIds(
-    rows.map((row) => row.missionary_id || ""),
-  );
 
-  const [donorsResult, fundsResult, missionariesResult, stagedGiftsResult] =
-    await Promise.all([
-      donorIds.length > 0
-        ? supabaseAdmin
-            .from("donors")
-            .select(
-              "id, profile_id, name, email, phone, type, location, organization, notes",
-            )
-            .in("id", donorIds)
-        : Promise.resolve({ data: [], error: null }),
-      fundIds.length > 0
-        ? supabaseAdmin.from("funds").select("id, name").in("id", fundIds)
-        : Promise.resolve({ data: [], error: null }),
-      missionaryIds.length > 0
-        ? supabaseAdmin
-            .from("missionaries")
-            .select("id, profile_id")
-            .in("id", missionaryIds)
-        : Promise.resolve({ data: [], error: null }),
-      donationIds.length > 0
-        ? supabaseAdmin
-            .from("staged_gifts")
-            .select(
-              "id, donation_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
-            )
-            .in("donation_id", donationIds)
-        : Promise.resolve({ data: [], error: null }),
-    ]);
+  const [donorsResult, stagedGiftsResult] = await Promise.all([
+    donorIds.length > 0
+      ? supabaseAdmin
+          .from("donors")
+          .select(
+            "id, profile_id, name, email, phone, type, location, organization, notes",
+          )
+          .in("id", donorIds)
+      : Promise.resolve({ data: [], error: null }),
+    donationIds.length > 0
+      ? supabaseAdmin
+          .from("staged_gifts")
+          .select(
+            "id, donation_id, fund_id, missionary_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
+          )
+          .in("donation_id", donationIds)
+      : Promise.resolve({ data: [], error: null }),
+  ]);
 
   if (donorsResult.error) {
     throw new ApiHttpError(500, donorsResult.error.message);
-  }
-  if (fundsResult.error) {
-    throw new ApiHttpError(500, fundsResult.error.message);
-  }
-  if (missionariesResult.error) {
-    throw new ApiHttpError(500, missionariesResult.error.message);
   }
   if (stagedGiftsResult.error) {
     throw new ApiHttpError(500, stagedGiftsResult.error.message);
   }
 
   const donorRows = (donorsResult.data ?? []) as DonorRow[];
-  const missionaryRows = (missionariesResult.data ?? []) as MissionaryRow[];
-  const profileIds = normalizeSearchIds([
-    ...donorRows.map((donor) => donor.profile_id || ""),
-    ...missionaryRows.map((missionary) => missionary.profile_id || ""),
-  ]);
+  const profileIds = normalizeSearchIds(
+    donorRows.map((donor) => donor.profile_id || ""),
+  );
 
   const profilesResult =
     profileIds.length > 0
@@ -391,23 +364,19 @@ async function fetchContributionRelations(
     throw new ApiHttpError(500, profilesResult.error.message);
   }
 
+  const stagedGiftRows = (stagedGiftsResult.data ?? []) as StagedGiftRow[];
+
   return {
     donorsById: new Map(donorRows.map((donor) => [donor.id, donor])),
-    fundsById: new Map(
-      ((fundsResult.data ?? []) as FundRow[]).map((fund) => [fund.id, fund]),
-    ),
-    missionariesById: new Map(missionaryRows.map((row) => [row.id, row])),
     profilesById: new Map(
       ((profilesResult.data ?? []) as ProfileRow[]).map((profile) => [
         profile.id,
         profile,
       ]),
     ),
+    stagedGiftRows,
     stagedGiftsByDonationId: new Map(
-      ((stagedGiftsResult.data ?? []) as StagedGiftRow[]).map((gift) => [
-        gift.donation_id,
-        gift,
-      ]),
+      stagedGiftRows.map((gift) => [gift.donation_id, gift]),
     ),
   };
 }
@@ -478,7 +447,20 @@ export async function listAdminContributions(
     pageRows,
   );
 
-  const gridRows = pageRows.map((donation) => {
+  // Corrections, adjustment-derived effective values, and designation sets
+  // come from the same shared loader CRM gift history uses, so both surfaces
+  // display identical shared row fields for the same gift (ADR-CD-032, #256).
+  const sharedInputs = await loadSharedContributionRowInputs(supabaseAdmin, {
+    tenantId,
+    donations: pageRows,
+    stagedGifts: relationData.stagedGiftRows,
+  });
+
+  const gridRows = pageRows.map((donationRow) => {
+    const donation = applyEffectiveContributionToDonation(
+      donationRow,
+      sharedInputs.effectiveByDonationId,
+    );
     const donor = donation.donor_id
       ? (relationData.donorsById.get(donation.donor_id) ?? null)
       : null;
@@ -488,15 +470,19 @@ export async function listAdminContributions(
         : null;
     const fund =
       donation.fund_id != null
-        ? (relationData.fundsById.get(donation.fund_id) ?? null)
+        ? {
+            id: donation.fund_id,
+            name: sharedInputs.fundNamesById.get(donation.fund_id) ?? null,
+          }
         : null;
     const missionary =
       donation.missionary_id != null
-        ? (relationData.missionariesById.get(donation.missionary_id) ?? null)
-        : null;
-    const missionaryProfile =
-      missionary?.profile_id != null
-        ? (relationData.profilesById.get(missionary.profile_id) ?? null)
+        ? {
+            id: donation.missionary_id,
+            display_name:
+              sharedInputs.missionaryLabelsById.get(donation.missionary_id) ??
+              null,
+          }
         : null;
     const stagedGift = relationData.stagedGiftsByDonationId.get(donation.id);
 
@@ -505,13 +491,10 @@ export async function listAdminContributions(
       donor,
       profile: donorProfile,
       fund,
-      missionary: missionaryProfile
-        ? {
-            id: missionary?.id ?? donation.missionary_id ?? "",
-            display_name: resolveContributionProfileLabel(missionaryProfile),
-          }
-        : null,
+      missionary,
       stagedGift: stagedGift ?? null,
+      corrections: sharedInputs.correctionsByDonationId.get(donation.id),
+      designationSet: sharedInputs.designationSetByDonationId.get(donation.id),
     });
   });
 
