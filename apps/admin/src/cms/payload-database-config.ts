@@ -1,3 +1,5 @@
+import { isProtectedDeployment } from "@asym/env/target-env";
+
 export const DEFAULT_LOCAL_PAYLOAD_DATABASE_URL =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 
@@ -10,17 +12,6 @@ const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_MAX = 2;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_IDLE_TIMEOUT_MS = 5_000;
 const DEFAULT_HOSTED_PAYLOAD_DATABASE_POOL_CONNECTION_TIMEOUT_MS = 5_000;
 const MIN_PAYLOAD_DATABASE_POOL_MAX = 2;
-// Protected Vercel target environments. "development" is the built-in local dev target;
-// "core-development" is the hosted Vercel custom environment for the develop branch
-// (VERCEL_TARGET_ENV="core-development", VERCEL_ENV="preview"). "staging" is a retained legacy
-// alias kept protected until a Vercel inventory proves no deployment still reports it. Matches
-// packages/env/src/schema.ts and packages/api/src/admin/crm/twenty-health.ts.
-const PROTECTED_TARGET_ENVIRONMENTS = new Set([
-  "production",
-  "development",
-  "core-development",
-  "staging",
-]);
 const DIRECT_SUPABASE_HOST_RE = /^db\.[a-z0-9]+\.supabase\.co$/i;
 const SUPAVISOR_POOLER_HOST_RE = /(?:^|\.)pooler\.supabase\.com$/i;
 
@@ -102,20 +93,10 @@ function firstNonEmptyEnv(env: PayloadDatabaseEnv) {
   return null;
 }
 
-function normalizeEnvName(value: string | undefined) {
-  return value?.trim().toLowerCase() ?? "";
-}
-
 export function isProtectedPayloadDeployment(
   env: PayloadDatabaseEnv = process.env,
 ) {
-  const vercelTargetEnv = normalizeEnvName(env.VERCEL_TARGET_ENV);
-  const vercelEnv = normalizeEnvName(env.VERCEL_ENV);
-
-  return (
-    PROTECTED_TARGET_ENVIRONMENTS.has(vercelTargetEnv) ||
-    vercelEnv === "production"
-  );
+  return isProtectedDeployment(env);
 }
 
 export function isVercelPayloadRuntime(env: PayloadDatabaseEnv = process.env) {
