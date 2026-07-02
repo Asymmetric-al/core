@@ -9,7 +9,15 @@ import {
   within,
 } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 type CrmPageComponent =
   typeof import("../../../../../apps/admin/app/crm/page").default;
