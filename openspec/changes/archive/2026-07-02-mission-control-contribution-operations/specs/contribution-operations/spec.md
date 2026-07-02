@@ -1,4 +1,4 @@
-# Delta for Platform System Boundaries
+# Delta for Contribution Operations
 
 ## ADDED Requirements
 
@@ -212,61 +212,6 @@ MUST be created through the shared task contract.
 - AND the blocked notification decision is audited
 - AND a follow-up task is requested for the configured actor or queue
 
-### Requirement: Mission Control Tasks Are The Shared Staff Work Model
-
-Mission Control operational follow-up work MUST use one shared staff task
-model for contribution operations, donor notifications, receipt and statement
-issues, CRM post failures, provider failures, correction reviews, batch issues,
-and future automation-created work.
-
-Needs Attention MUST be a contribution-facing view over shared task and issue
-state rather than a separate task model. Contribution-related tasks MUST link
-back to the triggering contribution operation audit event when one exists.
-
-#### Scenario: A donor correction notification is blocked
-
-- GIVEN a donor correction notification cannot send because the template is
-  missing or invalid
-- WHEN the platform creates follow-up work
-- THEN it creates or requests a shared Mission Control task
-- AND the task links to the contribution, notification decision, and operation
-  audit event
-
-#### Scenario: Contribution Needs Attention shows provider issues
-
-- GIVEN contribution operations have failed provider actions or pending refunds
-- WHEN finance staff opens Needs Attention
-- THEN those issues appear through the shared Mission Control task/issue model
-- AND the product does not invent a separate contribution-only queue
-
-### Requirement: Mission Control Automations Are Declarative And Guarded
-
-Mission Control automations MUST be declarative definitions, not arbitrary
-user-supplied code. Only users with `automation:manage` MAY create, edit,
-activate, deactivate, or delete automations.
-
-Automation activation MUST require preview, test run, and activity log setup.
-Automations MUST call shared domain services rather than writing contribution,
-CRM, task, or donor notification records directly where a service exists.
-Donor-facing emails from automations MUST use Email Studio templates and
-notification policy.
-
-#### Scenario: Admin activates an automation
-
-- GIVEN an admin with `automation:manage` creates an automation
-- WHEN the admin activates it
-- THEN the platform requires a preview and test run first
-- AND the automation definition is stored as declarative trigger, condition,
-  action, run-mode, reviewer, failure-policy, and activity-log data
-
-#### Scenario: Automation wants to send a donor email
-
-- GIVEN an automation action would send donor-facing email
-- WHEN the action is planned or executed
-- THEN it uses the contribution notification module and Email Studio template
-  policy
-- AND it does not call Resend directly
-
 ### Requirement: Bulk Contribution Actions Use The Single-Action Contract
 
 Bulk contribution actions MUST execute per-record work through the same
@@ -300,3 +245,135 @@ links, task links, and CSV export data.
 - AND the batch runs as a background batch
 - AND every per-record refund still enforces the high-risk contribution action
   policy
+
+### Requirement: Contribution Operations Protect Donor Trust Through Corrections
+
+Contribution operations MUST prioritize donor trust, operational truth, and
+money integrity over staff convenience. When staff corrections alter money,
+identity, designation, provider state, refunds, receipts, statements, or
+donor-visible contribution history, the platform MUST preserve an explainable
+correction trail rather than silently overwriting truth.
+
+#### Scenario: A fast edit would hide money-state history
+
+- GIVEN a direct database update would quickly change a contribution amount,
+  refund state, payment state, or designation
+- WHEN the change would affect money truth or donor-visible history
+- THEN the platform records a contribution correction and audit event
+- AND it does not silently overwrite the original operational explanation
+
+### Requirement: Contribution Operations Prefer Shared System Behavior
+
+Repeated contribution operations MUST be implemented as shared system behavior
+inside the Contribution Operations Core rather than as disconnected UI or
+route-specific workflows.
+
+#### Scenario: Two surfaces need the same contribution action
+
+- GIVEN both the Contribution Hub and donor CRM record need to perform the same
+  contribution action
+- WHEN the action is implemented
+- THEN the action is implemented once behind a shared server-side interface
+- AND each surface calls that interface rather than re-implementing local
+  business rules
+
+### Requirement: Contribution Operation Completion Requires Trustworthy Feedback
+
+A contribution operation MUST NOT be treated as product-complete if staff
+cannot tell what happened, whether a provider action succeeded, whether a donor
+visible state changed, or where to find the audit trail.
+
+#### Scenario: Provider outcome is uncertain
+
+- GIVEN Stripe or another provider returns a pending, failed, partial, or
+  ambiguous outcome
+- WHEN staff reviews the operation result
+- THEN the platform shows an honest state and next action
+- AND it does not hide uncertainty behind reassuring language
+
+### Requirement: Donor Correction Notifications Are Clear And Accountable
+
+Donor-facing contribution correction notifications MUST be factual, templated,
+merge-tag validated, and auditable. Staff MAY add a bounded personal note, but
+the note MUST NOT replace the official template explanation or required facts.
+
+Notification suppression for money or official document changes MUST require a
+reason and MUST be recorded as an audit decision.
+
+#### Scenario: Staff suppresses an official-document correction email
+
+- GIVEN a receipt or statement correction normally notifies a donor
+- WHEN staff suppresses the donor email
+- THEN the suppression requires a reason
+- AND the audit trail records the policy, suppression reason, actor, template
+  family, and source contribution operation
+
+### Requirement: Mission Control Contribution Operations Has Gift-First And Donor-First Entry Points
+
+Mission Control MUST support contribution operations from both a gift-first
+Contribution Hub entry point and a donor-first CRM record entry point.
+
+The Contribution Hub is the primary gift-first search and operations surface.
+The donor CRM record is the primary donor-first contribution context. The two
+surfaces MAY use different layouts, but they MUST show the same canonical gift
+truth and use the same server-side contribution action layer.
+
+#### Scenario: Staff investigates by gift context
+
+- GIVEN a finance staff user searches by gift date, donor, provider id,
+  payment method, receipt state, refund state, fund, missionary, or related
+  contribution field
+- WHEN the user opens a contribution from the Contribution Hub
+- THEN Mission Control shows a complete contribution detail
+- AND actions from that detail use the shared Contribution Operations Core
+
+#### Scenario: Staff investigates by donor context
+
+- GIVEN a staff user is already viewing a donor CRM record
+- WHEN the user opens that donor's gift history
+- THEN staff can perform contribution operations without leaving the donor
+  context
+- AND those actions use the same Contribution Operations Core as the
+  Contribution Hub
+
+### Requirement: Contribution Detail Shows Operational And Donor-Visible Consequences
+
+Mission Control contribution detail MUST show staff the operational context of
+a gift and the donor-visible consequence of meaningful corrections before the
+user confirms a high-risk action.
+
+The detail SHOULD include donor, gift, designation, payment, receipt, refund,
+recurring, staged gift, CRM, audit, task, batch, provider, and donor-visible
+state when available.
+
+#### Scenario: Staff confirms a donor-visible correction
+
+- GIVEN a staff user is about to confirm a correction that affects donor-facing
+  history or official records
+- WHEN the confirmation prompt is shown
+- THEN the prompt summarizes the exact consequence in donor-visible terms
+- AND the user can see which entry point initiated the action
+
+### Requirement: Staff Contribution Search Supports Gift Operations
+
+The Contribution Hub MUST support gift-first contribution search and filtering
+for operational investigation. Search and filters SHOULD include donor name,
+donor address/location, phone, gift date range, payment method, payment type,
+safe last-four, status, receipt state, refund state, designation, fund,
+missionary, project, batch, and other contribution fields when available.
+
+Provider identifier search and filtering, including Stripe PaymentIntent,
+charge, refund, webhook, and replay identifiers, MUST require
+`contributions.use_provider_actions`. Staff without that permission MUST stay on
+safe payment summaries, including safe last-four, brand, bank, status, and
+contact-based search inputs.
+
+#### Scenario: Staff has incomplete donor information
+
+- GIVEN a donor contacts support with only phone, address, last four, or a
+  Stripe identifier
+- WHEN staff searches in the Contribution Hub
+- THEN the product gives staff a gift-first path using safe contact and payment
+  summary inputs without needing to leave Mission Control
+- AND Stripe identifier lookup is available only when the staff user has
+  `contributions.use_provider_actions`

@@ -21,4 +21,5 @@
 - [x] 3.4 Run `bun run build:admin`.
 - [x] 3.5 Run `bun run test:unit:cms`.
 - [x] 3.6 Run focused CMS Playwright smoke for `/web-studio/templates`.
-- [ ] 3.7 Confirm GitHub required checks are green after the latest PR push.
+- [x] 3.7 Confirm GitHub required checks are green after the latest PR push.
+      (PR #284 merged 2026-06-28 with all required checks green.)

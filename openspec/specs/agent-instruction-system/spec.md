@@ -112,3 +112,95 @@ regions, while avoiding unrelated code changes.
 - THEN verification confirms path accuracy, command accuracy, marker integrity,
   and the changed-files-only boundary
 - AND no product code, tests, or database files are modified
+
+### Requirement: OpenSpec Is First-Class for Project Work
+
+The repository MUST make OpenSpec visible and actionable for non-trivial
+project work, behavior changes, and multi-step planning.
+
+#### Scenario: A project-scoped task begins
+
+- WHEN an agent starts non-trivial project work
+- THEN the routing layer points it to `openspec/project.md`
+- AND it reads the relevant specs and active changes before implementation
+
+#### Scenario: A behavior change has no active change
+
+- WHEN durable behavior is being updated without an existing OpenSpec change
+- THEN the workflow directs the agent to create or update a change before major
+  implementation
+
+### Requirement: Workspace Capability Layers Are Conditional
+
+The repository MUST acknowledge provider plugins, Codex surfaces, and optional
+MCP helpers without treating them as guaranteed repo-owned infrastructure.
+
+#### Scenario: Conditional capability wording is needed
+
+- WHEN repo instructions mention provider plugins, Codex surfaces, or optional
+  MCP helpers
+- THEN they use conditional wording unless the capability is repo-owned
+- AND they keep repo-local instructions and OpenSpec above those layers in
+  precedence
+
+### Requirement: Cursor and Copilot Workflow Files Use Real Repo Paths
+
+Checked-in workflow docs MUST reference paths and artifacts that exist in the
+repository.
+
+#### Scenario: Cursor command docs are executed
+
+- WHEN a Cursor command file tells an agent where to store planning artifacts
+- THEN it uses `openspec/changes/<change-id>/` or another real repo path
+- AND it does not reference missing `docs/projects/**` or `.cursor/nia` files
+
+#### Scenario: GitHub Copilot path instructions are loaded
+
+- WHEN GitHub Copilot consumes path-specific instructions
+- THEN the repo provides at least one `*.instructions.md` file in
+  `.github/instructions/`
+
+### Requirement: Official Agent Tooling MUST Be Canonicalized Before Routing
+
+The repository MUST promote third-party agent tooling into canonical repo-owned
+skill docs or explicitly document it as an optional external plugin before
+routing agents to it as durable repo guidance.
+
+#### Scenario: Official skills are vendored
+
+- WHEN official third-party skills are copied into the repository
+- THEN the canonical copy lives under `docs/ai/skills/<skill-name>/SKILL.md`
+- AND the upstream source repository, source path, commit SHA, license, and
+  refresh workflow are documented
+- AND `.agents/skills/` and `.cursor/skills/` are refreshed through the repo
+  skill sync workflow rather than hand-edited as the source of truth
+
+#### Scenario: Optional plugins provide extra capabilities
+
+- WHEN Codex, Claude Code, Cursor, or another agent can install a provider
+  plugin for the same tooling
+- THEN repo instructions document the plugin as optional and subordinate to
+  OpenSpec, `AGENTS.md`, canonical skills, repo rulebooks, framework docs, and
+  runtime evidence
+
+### Requirement: Inngest Agent Tools MUST Not Imply Product Runtime Adoption
+
+The repository MUST distinguish official Inngest agent tooling from product
+runtime Inngest integration.
+
+#### Scenario: Agents prepare Inngest-related work
+
+- WHEN an agent is asked to audit, design, or implement Inngest-related work
+- THEN the routing layer points to the relevant official Inngest skill
+- AND the agent uses `inngest-brownfield-audit` before changing existing app
+  workflows
+- AND `inngest-setup` is reserved for explicit product runtime adoption
+
+#### Scenario: No app runtime integration exists
+
+- WHEN the repo has no current product Inngest usage
+- THEN adding official agent tooling MUST NOT add Inngest runtime packages,
+  Inngest product app code, database migrations, or Inngest environment
+  requirements
+- AND any non-Inngest app, package, CI, or test hygiene bundled into the same PR
+  MUST be documented separately from Inngest runtime adoption

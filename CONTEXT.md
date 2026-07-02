@@ -7,10 +7,23 @@ staff operations, donor experience, missionary workspace, and background work.
 ## Language
 
 **Tenant**:
-A missions organization using the platform with its own data, permissions,
-settings, donors, missionaries, and operational history. A tenant is a product
-boundary, not an Inngest app, Inngest environment, or billing account.
-_Avoid_: Inngest tenant, customer app, billing environment
+A missions sending organization using the platform with its own data,
+permissions, settings, donors, missionaries, and operational history. The
+platform is purpose-built for organizations whose missionaries raise personal
+support; churches or other ministries are tenants only when they operate a
+sending program. An individual missionary is a user within a tenant, never a
+standalone tenant. A tenant is a product boundary, not an Inngest app, Inngest
+environment, or billing account.
+_Avoid_: Inngest tenant, customer app, billing environment, solo-missionary
+tenant
+
+**Ministry Update**:
+A missionary-authored update post — field news, prayer requests, support
+progress — created in the missionary workspace, governed by tenant moderation
+and visibility settings, and surfaced across donor, public, and communication
+experiences as one connected concept. It is not public page content and not a
+one-off email, though pages and communications may display or reference it.
+_Avoid_: newsletter, blog post, page content, donor email
 
 **Workflow Orchestration**:
 Durable coordination of background work after authoritative product records

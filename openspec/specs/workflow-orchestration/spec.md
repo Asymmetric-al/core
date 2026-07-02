@@ -1,6 +1,14 @@
-# Delta for Platform System Boundaries
+# Workflow Orchestration
 
-## ADDED Requirements
+## Purpose
+
+Define the durable contract for background work: workflow orchestration
+(currently Inngest) executes durable work without ever becoming the source
+of truth. Product records, provider records, tenant authorization, and the
+product-owned dispatch ledger stay authoritative, and tenants remain product
+boundaries inside shared workflow infrastructure.
+
+## Requirements
 
 ### Requirement: Workflow Orchestration Is Not The Source Of Truth
 
@@ -84,16 +92,13 @@ MUST NOT define business outcomes.
   deduplication, while the business effect stays guarded by the product work
   claim
 
-### Requirement: Workflow Runtime Adoption Is Phased And Rollback-Safe
+### Requirement: Workflow Runtime Stays Rollback-Safe
 
-Workflow adoption MUST follow the phased rollout: workflow foundation, then
-donation recovery, then the Resend inbound workflow, then Support Hub moves,
-then Mission Control summaries. Runtime configuration MUST use named
-environment variables only (`INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY`,
-`INNGEST_SIGNING_KEY_FALLBACK`, `INNGEST_DEV`, `INNGEST_BASE_URL`) with no
-secret values committed. Schema changes MUST be additive so disabling workflow
-dispatch leaves all product records valid and existing manual recovery paths
-working.
+Workflow runtime configuration MUST use named environment variables only
+(`INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY`, `INNGEST_SIGNING_KEY_FALLBACK`,
+`INNGEST_DEV`, `INNGEST_BASE_URL`) with no secret values committed. Schema
+changes MUST be additive so disabling workflow dispatch leaves all product
+records valid and existing manual recovery paths working.
 
 #### Scenario: Workflow dispatch is disabled after adoption
 

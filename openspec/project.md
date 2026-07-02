@@ -9,15 +9,24 @@ and UI.
 
 ## Product And Platform Intent (OpenSpec)
 
-Durable big-picture context for **what we build** and **why** lives in four
-top-level specs (OpenSpec discovers `openspec/specs/<id>/spec.md`):
+The spec tree is two-layered (OpenSpec discovers `openspec/specs/<id>/spec.md`):
+
+**Intent layer** — durable big-picture context for **what we build** and
+**why**. Scenarios in these specs may describe agent decision-making:
 
 | Spec                                                               | Path                                             |
 | ------------------------------------------------------------------ | ------------------------------------------------ |
-| Product intent (goals, scope, long-horizon success)                | `openspec/specs/platform-product-intent/spec.md` |
+| Product intent (customer, goals, scope, long-horizon success)      | `openspec/specs/platform-product-intent/spec.md` |
 | Surfaces (admin, donor, missionary, public UX intent)              | `openspec/specs/platform-surfaces/spec.md`       |
-| Principles (decision criteria)                                     | `openspec/specs/platform-principles/spec.md`     |
+| Principles (canonical priority ladder, decision criteria)          | `openspec/specs/platform-principles/spec.md`     |
 | System boundaries (trust contracts, CRM/CMS, scope, sensitive ops) | `openspec/specs/platform-boundaries/spec.md`     |
+
+**Capability layer** — verifiable behavior contracts for specific system
+capabilities. Scenarios are written as system behavior (WHEN/THEN about the
+product). Current capability specs include `workflow-orchestration`,
+`crm-core`, `contribution-operations`, and `agent-instruction-system`; new
+feature-level contracts get their own capability spec (named for the durable
+capability, not the current vendor) rather than growing the intent specs.
 
 Structural detail (directory trees, diagrams, route tables) remains in
 `docs/guides/architecture/overview.md`. Keep OpenSpec intent and architecture
@@ -108,6 +117,10 @@ The repo already has a strong, hand-maintained instruction system:
 - Use `openspec/specs/**` for the current intended behavior of durable systems.
 - Use `openspec/changes/**` for proposed or active work that changes behavior,
   workflow, or long-lived repo conventions.
+- Archive a change promptly once its work has shipped and been verified
+  (`bunx @fission-ai/openspec@latest archive <change> --yes`). Completed
+  changes left active make `openspec/specs/**` stale, because their deltas
+  never merge into current truth.
 - Before non-trivial feature work, behavior changes, or multi-step project work,
   read this file plus the relevant specs and active changes.
 - Use `bunx @fission-ai/openspec@latest <command>` as the repo-safe default for

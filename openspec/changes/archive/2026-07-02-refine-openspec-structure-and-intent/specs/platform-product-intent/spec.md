@@ -1,13 +1,6 @@
-# Platform Product Intent
+# Delta for Platform Product Intent
 
-## Purpose
-
-Capture durable **why** for Asymmetric.al core: who the software serves, what
-outcomes matter, and how we know the platform is succeeding over time. This
-spec complements `AGENTS.md` (routing) and `docs/guides/architecture/*`
-(structure and patterns).
-
-## Requirements
+## MODIFIED Requirements
 
 ### Requirement: Mission And Scope
 
@@ -110,29 +103,6 @@ confidence.
 - AND they treat input metrics like retention or engagement as supporting
   evidence rather than the goal itself
 
-### Requirement: Unified Platform Span
-
-The platform SHALL unify four major areas at a high level as one ministry
-system rather than four unrelated products:
-
-- Mission Control / admin
-- the public tenant website
-- the donor experience
-- the missionary workspace
-
-Work inside the core repo MUST keep those areas aligned as one coherent
-platform span. Agents MUST NOT treat any major area as an optional add-on that
-can drift independently without an explicit product decision.
-
-#### Scenario: A change would improve one surface while weakening platform coherence
-
-- GIVEN a change improves one of the four major areas
-- WHEN it would silently redefine the others as out of scope, duplicate their
-  job, or fork vocabulary and mental models across areas
-- THEN the agent redesigns or rescopes so the four areas still read as one
-  ministry platform
-- AND they document cross-area impact before implementation proceeds
-
 ### Requirement: Audience Service And Tradeoff Priority
 
 The platform MUST serve the ministry as a whole, including organizational
@@ -166,77 +136,7 @@ convenience.
 - THEN the agent favors ministry-wide clarity over narrow convenience
 - AND they ensure the change still fits the unified platform span
 
-### Requirement: Administrative Foundation
-
-The platform MUST be built on a strong staff and operational foundation. If the
-administrative foundation is weak, donor/public and missionary experiences will
-also be weak.
-
-Agents MUST NOT starve staff operational completeness to chase surface-only
-wins.
-
-#### Scenario: A shortcut would weaken the administrative foundation
-
-- GIVEN a shortcut would ship donor- or missionary-facing polish faster
-- WHEN it would leave staff without a clear operational home for the same data,
-  tasks, or controls—or would push operational burden back into spreadsheets or
-  side channels
-- THEN the agent rejects the shortcut or pairs surface work with the minimum
-  operational backbone needed so the ministry can run honestly in one system
-- AND they treat operational completeness as a prerequisite for trustworthy
-  downstream experiences
-
-### Requirement: Operational And Content Sources Of Truth
-
-At the product level, the platform MUST keep operational truth and public
-content truth distinct, aligned, and non-competing.
-
-The CRM names the platform's operational truth for ministry operations and
-relationships. The CMS names the platform's public and content truth for
-outward-facing presentation and story. These truths MUST reinforce one coherent
-platform rather than compete with one another.
-
-#### Scenario: A proposal would blur the operational and content truths
-
-- GIVEN a proposal treats public content as a substitute for operational truth,
-  or treats operational records as the public content truth by default
-- WHEN that would make staff, missionaries, or donors unsure which truth the
-  platform depends on
-- THEN the agent stops and reframes the work so operational and public truths
-  remain distinct and aligned
-- AND they consult `platform-boundaries` for the structural ownership rules
-  rather than inventing them inside this spec
-
-### Requirement: Non-Goals And Scope Discipline
-
-The core repo MUST NOT become a catchall for unrelated products, generic SaaS
-experiments, disconnected side tools, unrelated church software, unrelated
-nonprofit products, or standalone microsites detached from the
-mission-organization operating model.
-
-Agents MUST guard against the dominant failure mode: treating this like generic
-SaaS and solving problems with disconnected features, workaround logic scattered
-across the codebase, one-off fixes, or local optimization that damages platform
-coherence.
-
-#### Scenario: A request would pull the repo toward unrelated products or experiments
-
-- GIVEN a request would add or expand a product that does not serve the unified
-  ministry operating model in this repo
-- WHEN it would introduce a parallel product identity, unrelated user model, or
-  long-lived detour from missions-organization operations
-- THEN the agent rejects the request or routes it outside this core repo
-- AND they do not merge scope creep simply because implementation is easy
-
-#### Scenario: An agent defaults to generic SaaS thinking under ambiguity
-
-- GIVEN implementation details are underspecified
-- WHEN a generic SaaS pattern would add a disconnected module, duplicate a
-  concept already owned elsewhere, or optimize a single screen without a
-  ministry-wide story
-- THEN the agent chooses the path that preserves one coherent ministry platform
-- AND they favor fewer disconnected tools and clearer end-to-end flows over
-  clever one-offs
+## ADDED Requirements
 
 ### Requirement: AI Assistance Is A Core Product Direction
 
