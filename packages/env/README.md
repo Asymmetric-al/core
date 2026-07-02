@@ -17,6 +17,11 @@ const supabaseUrl = clientEnv.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = serverEnv.SUPABASE_SERVICE_ROLE_KEY;
 ```
 
+
+## Vercel public deployment signals
+
+`NEXT_PUBLIC_VERCEL_ENV` and `NEXT_PUBLIC_VERCEL_TARGET_ENV` keep SSR and the hydrated client aligned for studio and UI gates. Vercel sets server `VERCEL_*` automatically on hosted builds; when the public keys are unset at `next build`, `@asym/env` falls back to those server values so production cannot silently default to local-only behavior. You can still set the `NEXT_PUBLIC_*` keys explicitly in Vercel project env when you need overrides.
+
 ## Requiredness Model
 
 Always required:

@@ -47,6 +47,31 @@ export const PROTECTED_TARGET_ENVIRONMENTS: ReadonlySet<string> = new Set([
   "staging",
 ]);
 
+
+export type PublicVercelClientSignalsInput = {
+  NEXT_PUBLIC_VERCEL_ENV?: null | string;
+  NEXT_PUBLIC_VERCEL_TARGET_ENV?: null | string;
+  VERCEL_ENV?: null | string;
+  VERCEL_TARGET_ENV?: null | string;
+};
+
+/** Prefer explicit NEXT_PUBLIC_*; fall back to server Vercel vars at build time. */
+export function resolvePublicVercelClientSignals(
+  env: PublicVercelClientSignalsInput,
+) {
+  const publicEnv = normalizeDeploymentEnvironmentName(env.NEXT_PUBLIC_VERCEL_ENV);
+  const publicTarget = normalizeDeploymentEnvironmentName(
+    env.NEXT_PUBLIC_VERCEL_TARGET_ENV,
+  );
+  const serverEnv = normalizeDeploymentEnvironmentName(env.VERCEL_ENV);
+  const serverTarget = normalizeDeploymentEnvironmentName(env.VERCEL_TARGET_ENV);
+
+  return {
+    NEXT_PUBLIC_VERCEL_ENV: publicEnv || serverEnv || undefined,
+    NEXT_PUBLIC_VERCEL_TARGET_ENV: publicTarget || serverTarget || undefined,
+  };
+}
+
 export function normalizeDeploymentEnvironmentName(
   value: null | string | undefined,
 ) {

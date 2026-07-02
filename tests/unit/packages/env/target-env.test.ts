@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  resolvePublicVercelClientSignals,
   isProductionDeployment,
   isProtectedDeployment,
   isProtectedNonProductionDeployment,
@@ -9,6 +10,29 @@ import {
 } from "../../../../packages/env/src/target-env";
 
 describe("target environment helpers", () => {
+  it("falls back to server Vercel vars for public client signals", () => {
+    expect(
+      resolvePublicVercelClientSignals({
+        VERCEL_ENV: "production",
+        VERCEL_TARGET_ENV: "production",
+      }),
+    ).toEqual({
+      NEXT_PUBLIC_VERCEL_ENV: "production",
+      NEXT_PUBLIC_VERCEL_TARGET_ENV: "production",
+    });
+    expect(
+      resolvePublicVercelClientSignals({
+        NEXT_PUBLIC_VERCEL_ENV: "preview",
+        VERCEL_ENV: "production",
+        VERCEL_TARGET_ENV: "production",
+      }),
+    ).toEqual({
+      NEXT_PUBLIC_VERCEL_ENV: "preview",
+      NEXT_PUBLIC_VERCEL_TARGET_ENV: "production",
+    });
+  });
+
+
   it("keeps the protected target allowlist in one canonical set", () => {
     expect([...PROTECTED_TARGET_ENVIRONMENTS]).toEqual([
       "production",
