@@ -32,7 +32,6 @@ describe("target environment helpers", () => {
     });
   });
 
-
   it("keeps the protected target allowlist in one canonical set", () => {
     expect([...PROTECTED_TARGET_ENVIRONMENTS]).toEqual([
       "production",

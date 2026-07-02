@@ -43,7 +43,12 @@ const pdfStudioNativeBuilderRolloutSchema = z
   .optional()
   .default("legacy_only");
 
-const publicVercelClientSignals = resolvePublicVercelClientSignals(process.env);
+const publicVercelClientSignals = resolvePublicVercelClientSignals({
+  NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+  NEXT_PUBLIC_VERCEL_TARGET_ENV: process.env.NEXT_PUBLIC_VERCEL_TARGET_ENV,
+  VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
+});
 
 const runtimeContext = {
   NODE_ENV: nodeEnvSchema.parse(process.env.NODE_ENV),
@@ -294,7 +299,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
     NEXT_PUBLIC_VERCEL_ENV: publicVercelClientSignals.NEXT_PUBLIC_VERCEL_ENV,
-    NEXT_PUBLIC_VERCEL_TARGET_ENV: publicVercelClientSignals.NEXT_PUBLIC_VERCEL_TARGET_ENV,
+    NEXT_PUBLIC_VERCEL_TARGET_ENV:
+      publicVercelClientSignals.NEXT_PUBLIC_VERCEL_TARGET_ENV,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
     DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL,
