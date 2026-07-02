@@ -58,6 +58,7 @@ export async function createContributionCorrectionRecord(input: {
   supabaseAdmin: SupabaseAdmin;
   correction: ContributionCorrectionRecordInput;
 }): Promise<string> {
+  const correctionStatus = input.correction.status ?? "applied";
   const { data, error } = await input.supabaseAdmin
     .from("contribution_corrections")
     .insert({
@@ -65,14 +66,17 @@ export async function createContributionCorrectionRecord(input: {
       donation_id: input.correction.contributionId,
       staged_gift_id: input.correction.stagedGiftId ?? null,
       correction_type: input.correction.correctionType,
-      status: input.correction.status ?? "applied",
+      status: correctionStatus,
       reason: input.correction.reason,
       source_surface: input.correction.sourceSurface,
       actor_profile_id: input.correction.actorProfileId,
       before_summary: input.correction.beforeSummary ?? {},
       after_summary: input.correction.afterSummary ?? {},
       provider_outcome: input.correction.providerOutcome ?? {},
-      applied_at: new Date().toISOString(),
+      // Only applied corrections carry an applied timestamp; pending and
+      // failed records must not imply the change took effect (#265).
+      applied_at:
+        correctionStatus === "applied" ? new Date().toISOString() : null,
     })
     .select("id")
     .single();

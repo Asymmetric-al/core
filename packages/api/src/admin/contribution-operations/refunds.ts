@@ -7,11 +7,14 @@ import {
   applyRefundedChargeToDonation,
   createStripeRefund,
   describeStripeRefundError,
+  retrieveLiveChargeForRefund,
 } from "../../stripe/refunds";
 
 import type { ContributionProviderOutcome } from "./types";
 import type { StripeRefundsApi } from "../../stripe/refunds";
+import type { StripeWebhookOutcome } from "../../stripe/webhooks";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type Stripe from "stripe";
 
 /**
  * Admin refund adapter (issue #265). Enforces server-side availability
@@ -24,8 +27,28 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 const STALE_REVISION_MESSAGE =
   "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the refund again.";
 
+/**
+ * Ambiguous transport errors (connection dropped, Stripe 5xx, idempotency
+ * conflict): Stripe may or may not have created the refund. Thrown — not
+ * returned as a failed outcome — so the shell keeps the form open behind its
+ * Retry button with the SAME idempotency key, and the retry replays the
+ * identical Stripe attempt instead of minting a new refund.
+ */
+const AMBIGUOUS_PROVIDER_ERROR_MESSAGE =
+  "Stripe did not confirm the refund. Retry — the same attempt will be replayed safely.";
+
 /** Stripe metadata values are limited to 500 characters. */
 const STRIPE_METADATA_VALUE_LIMIT = 500;
+
+/**
+ * Convergence outcomes that mean the routine wrote nothing locally: the
+ * expanded charge had no payment intent, or no donation row matched it.
+ * Reporting these as "succeeded" would leave refund_amount at 0 forever.
+ */
+const NON_CONVERGING_LOCAL_UPDATE_ACTIONS: ReadonlySet<string> = new Set([
+  "charge_refund_missing_payment_intent",
+  "charge_refund_not_matched",
+]);
 
 export interface RefundContributionThroughStripeInput {
   supabaseAdmin: AdminSupabaseClient;
@@ -139,6 +162,51 @@ export async function refundContributionThroughStripe(
   const buildStripeClient = input.createStripe ?? createStripeClient;
   const stripe: StripeRefundsApi = buildStripeClient(secretKey);
 
+  // Provider-truth over-refund guard: Stripe counts pending refunds into
+  // charge.amount_refunded immediately, so the live charge is the authority
+  // on what remains refundable even when the local record has not converged
+  // (pending partials, ambiguous retries). Returned — not thrown — because
+  // it is provider-verified state the executor should record honestly.
+  let liveCharge: Stripe.Charge | null;
+  try {
+    liveCharge = await retrieveLiveChargeForRefund({
+      stripe,
+      paymentIntentId,
+      chargeId,
+    });
+  } catch (error) {
+    const described = describeStripeRefundError(error);
+    if (!described) {
+      throw error;
+    }
+    if (described.ambiguous) {
+      // Nothing was created yet, so a same-key retry is doubly safe.
+      throw new ApiHttpError(502, AMBIGUOUS_PROVIDER_ERROR_MESSAGE);
+    }
+    return {
+      provider: "stripe",
+      status: "failed",
+      errorCode: described.errorCode,
+      errorMessage: described.errorMessage,
+    };
+  }
+
+  if (liveCharge) {
+    const providerRemainingCents =
+      (liveCharge.amount ?? 0) - (liveCharge.amount_refunded ?? 0);
+    if (input.amount > providerRemainingCents) {
+      return {
+        provider: "stripe",
+        status: "failed",
+        errorCode: "refund_exceeds_provider_remaining",
+        errorMessage: `Refund amount exceeds the provider's remaining refundable amount of ${formatCentsAsCurrency(
+          providerRemainingCents,
+          detail.amount.currency,
+        )}. A refund may still be pending provider confirmation.`,
+      };
+    }
+  }
+
   let refundResult: Awaited<ReturnType<typeof createStripeRefund>>;
   try {
     refundResult = await createStripeRefund({
@@ -159,6 +227,14 @@ export async function refundContributionThroughStripe(
       throw error;
     }
 
+    // Ambiguous transport errors are NOT terminal: Stripe may have created
+    // the refund. Throw so the caller retries with the same idempotency key
+    // instead of recording a definitive failure that invites re-submission
+    // under a fresh key.
+    if (described.ambiguous) {
+      throw new ApiHttpError(502, AMBIGUOUS_PROVIDER_ERROR_MESSAGE);
+    }
+
     // Provider-outcome honesty: return the failure so the executor records
     // the failed correction and audit event instead of losing the attempt.
     return {
@@ -172,13 +248,17 @@ export async function refundContributionThroughStripe(
   const { refund, charge } = refundResult;
 
   if (refund.status === "succeeded") {
+    let localOutcome: StripeWebhookOutcome;
     try {
       if (!charge) {
         throw new Error(
           "Stripe did not return the expanded charge for the refund.",
         );
       }
-      await applyRefundedChargeToDonation(input.supabaseAdmin, charge);
+      localOutcome = await applyRefundedChargeToDonation(
+        input.supabaseAdmin,
+        charge,
+      );
     } catch (error) {
       // The provider refund succeeded but the local record did not converge.
       // Keep the reference id so staff can reconcile against Stripe.
@@ -191,6 +271,21 @@ export async function refundContributionThroughStripe(
           error instanceof Error
             ? error.message
             : "Failed to apply the Stripe refund to the donation record.",
+      };
+    }
+
+    // The convergence routine returns handled-but-non-writing outcomes
+    // (missing payment intent on the charge, no matching donation) without
+    // throwing. Those are local-update failures, not successes: money moved
+    // at Stripe while refund_amount stayed untouched.
+    if (NON_CONVERGING_LOCAL_UPDATE_ACTIONS.has(localOutcome.action)) {
+      return {
+        provider: "stripe",
+        status: "local_update_failed",
+        referenceId: refund.id,
+        errorCode: "local_update_failed",
+        errorMessage:
+          "The Stripe refund succeeded but no local donation record matched the refunded charge. Reconcile the gift against the provider reference.",
       };
     }
 

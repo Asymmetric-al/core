@@ -22,7 +22,13 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Textarea } from "@asym/ui/components/shadcn/textarea";
 import { useQueryClient } from "@tanstack/react-query";
-import { CircleCheck, CircleX, Clock3, LoaderCircle } from "lucide-react";
+import {
+  CircleCheck,
+  CircleX,
+  Clock3,
+  LoaderCircle,
+  TriangleAlert,
+} from "lucide-react";
 import { useId, useMemo, useState } from "react";
 
 import {
@@ -305,13 +311,32 @@ export function ContributionOperationShell({
 
   const detail = detailQuery.data;
   const isRefundOperation = operation?.actionType === "refund";
+  // The refundable basis is the ORIGINAL charged amount (what the provider
+  // charged), matching the server availability payload and the refund
+  // adapter (#265). The adjusted effective amount (shared.amountCents) can
+  // drift above or below it after amount corrections and must not drive the
+  // prefill, the validation cap, or the "Remaining refundable" row.
   const remainingRefundableCents =
     isRefundOperation && detail
       ? Math.max(
           0,
-          detail.shared.amountCents - detail.shared.refundedAmountCents,
+          detail.original.amountCents - detail.shared.refundedAmountCents,
         )
       : null;
+  // A refund correction that is still pending provider confirmation means
+  // money may already be moving; block a second submission client-side. The
+  // server live-charge check remains the authority.
+  const hasPendingRefundCorrection =
+    isRefundOperation && detail
+      ? detail.corrections.some(
+          (correction) =>
+            correction.correctionType === "refund" &&
+            correction.status === "pending",
+        )
+      : false;
+  const pendingRefundMessage = hasPendingRefundCorrection
+    ? "A refund is pending provider confirmation."
+    : null;
 
   // Refunds default to the full remaining amount: once detail loads, prefill
   // the amount input a single time per open so staff can lower it for a
@@ -396,7 +421,7 @@ export function ContributionOperationShell({
     amountError ?? fundError ?? reasonError ?? confirmError;
 
   const handleSubmit = async () => {
-    if (!donationId || validationMessage || blocked) {
+    if (!donationId || validationMessage || blocked || pendingRefundMessage) {
       return;
     }
     setPhase({ name: "submitting" });
@@ -441,6 +466,15 @@ export function ContributionOperationShell({
       </dd>
       {isRefundOperation && (
         <>
+          {/* Refund figures reconcile against the ORIGINAL charged amount,
+              not the effective amount shown above (#265). */}
+          <dt className="text-muted-foreground">Original charged amount</dt>
+          <dd className="text-right font-mono font-semibold tabular-nums">
+            {formatSharedContributionAmount(
+              detail.original.amountCents,
+              detail.shared.currencyCode,
+            )}
+          </dd>
           <dt className="text-muted-foreground">Refunded so far</dt>
           <dd className="text-right font-mono font-semibold tabular-nums">
             {formatSharedContributionAmount(
@@ -506,6 +540,16 @@ export function ContributionOperationShell({
           phase.name !== "submitting" && (
             <div className="space-y-4">
               {effectiveSummary}
+
+              {pendingRefundMessage && (
+                <Alert role="status" data-testid="pending-refund-notice">
+                  <Clock3 className="size-4" aria-hidden />
+                  <AlertDescription className="text-xs">
+                    {pendingRefundMessage} Submitting another refund is blocked
+                    until the provider confirms or the pending refund fails.
+                  </AlertDescription>
+                </Alert>
+              )}
 
               {operation.riskCopy && (
                 <Alert role="note">
@@ -653,7 +697,11 @@ export function ContributionOperationShell({
                 </Button>
                 <Button
                   className="h-11"
-                  disabled={Boolean(validationMessage) || detailQuery.isPending}
+                  disabled={
+                    Boolean(validationMessage) ||
+                    Boolean(pendingRefundMessage) ||
+                    detailQuery.isPending
+                  }
                   onClick={() => void handleSubmit()}
                 >
                   {phase.name === "failure" ? "Retry" : operation.title}
@@ -683,7 +731,7 @@ export function ContributionOperationShell({
   );
 }
 
-type OperationResultTone = "success" | "pending" | "failure";
+type OperationResultTone = "success" | "pending" | "warning" | "failure";
 
 function resolveResultPresentation(
   result: ContributionActionResult,
@@ -698,6 +746,19 @@ function resolveResultPresentation(
         ? "Refund request submitted for approval."
         : "Correction request submitted for approval.",
       tone: "success",
+    };
+  }
+
+  // local_update_failed means the PROVIDER action succeeded and only the
+  // local record did not converge. It must be checked before the generic
+  // failed set: telling staff the refund "did not complete" invites the
+  // exact duplicate submission this state must prevent (#265).
+  if (providerOutcome?.status === "local_update_failed") {
+    return {
+      headline: isRefund
+        ? "The Stripe refund succeeded, but the gift record was not updated. Do not submit the refund again — reconcile using the provider reference below."
+        : "The provider action succeeded, but the gift record was not updated. Do not submit it again — reconcile using the provider reference below.",
+      tone: "warning",
     };
   }
 
@@ -746,19 +807,23 @@ function OperationResultPanel({
 }) {
   const providerOutcome = result.providerOutcome ?? null;
   const { headline, tone } = resolveResultPresentation(result, operation);
+  const headlineClassName =
+    tone === "failure"
+      ? "flex items-center gap-2 text-sm font-medium text-destructive"
+      : tone === "warning"
+        ? "flex items-start gap-2 text-sm font-medium text-amber-700 dark:text-amber-400"
+        : "flex items-center gap-2 text-sm font-medium text-foreground";
 
   return (
     <div className="space-y-3" data-testid="operation-result-panel">
       <p
-        role={tone === "failure" ? "alert" : "status"}
-        className={
-          tone === "failure"
-            ? "flex items-center gap-2 text-sm font-medium text-destructive"
-            : "flex items-center gap-2 text-sm font-medium text-foreground"
-        }
+        role={tone === "failure" || tone === "warning" ? "alert" : "status"}
+        className={headlineClassName}
       >
         {tone === "failure" ? (
           <CircleX className="size-4" aria-hidden />
+        ) : tone === "warning" ? (
+          <TriangleAlert className="mt-0.5 size-4 shrink-0" aria-hidden />
         ) : tone === "pending" ? (
           <Clock3 className="size-4" aria-hidden />
         ) : (
@@ -772,11 +837,22 @@ function OperationResultPanel({
         )}
         {result.adjustmentId && <li>Adjustment: {result.adjustmentId}</li>}
         {providerOutcome?.referenceId && (
-          <li>Provider reference: {providerOutcome.referenceId}</li>
+          <li
+            className={
+              // Reconciliation depends on the provider reference when the
+              // local record did not converge — keep it prominent.
+              tone === "warning"
+                ? "text-sm font-medium text-foreground"
+                : undefined
+            }
+          >
+            Provider reference: {providerOutcome.referenceId}
+          </li>
         )}
-        {tone === "failure" && providerOutcome?.errorCode && (
-          <li>Provider error code: {providerOutcome.errorCode}</li>
-        )}
+        {(tone === "failure" || tone === "warning") &&
+          providerOutcome?.errorCode && (
+            <li>Provider error code: {providerOutcome.errorCode}</li>
+          )}
         {result.receiptOutcome &&
           result.receiptOutcome.status !== "not_required" && (
             <li>Receipt: {result.receiptOutcome.status.replace(/_/g, " ")}</li>

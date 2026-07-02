@@ -3,7 +3,10 @@ import { describe, expect, it } from "vitest";
 
 import { createContributionActionDependencies } from "../../../../../packages/api/src/admin/contribution-operations/dependencies";
 import { refundContributionThroughStripe } from "../../../../../packages/api/src/admin/contribution-operations/refunds";
-import { isFailedProviderOutcomeStatus } from "../../../../../packages/api/src/admin/contribution-operations/types";
+import {
+  correctionStatusForProviderOutcome,
+  isFailedProviderOutcomeStatus,
+} from "../../../../../packages/api/src/admin/contribution-operations/types";
 
 import type { StripeRefundsApi } from "../../../../../packages/api/src/stripe/refunds";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -180,24 +183,85 @@ interface RecordedRefundCreate {
   secretKey: string;
 }
 
+interface StripeStubOptions {
+  /**
+   * The live charge returned by the pre-refund remaining check. Defaults to
+   * an untouched charge matching the default donation ($50.00, $0 refunded).
+   * Pass `null` to simulate a payment intent without a resolvable charge.
+   */
+  liveCharge?: Stripe.Charge | null;
+  /** Error thrown from charges.retrieve / paymentIntents.retrieve. */
+  retrieveError?: unknown;
+}
+
+function liveCharge(overrides: Row = {}): Stripe.Charge {
+  return {
+    id: "ch_1",
+    object: "charge",
+    payment_intent: "pi_1",
+    amount: 5000,
+    amount_refunded: 0,
+    ...overrides,
+  } as unknown as Stripe.Charge;
+}
+
 function createStripeStub(
   handler: (
     params: Stripe.RefundCreateParams,
   ) => Stripe.Refund | Promise<Stripe.Refund>,
+  options: StripeStubOptions = {},
 ): {
   createStripe: (secretKey: string) => StripeRefundsApi;
   calls: RecordedRefundCreate[];
+  chargeRetrieves: string[];
+  paymentIntentRetrieves: Array<{
+    id: string;
+    params?: Stripe.PaymentIntentRetrieveParams;
+  }>;
 } {
   const calls: RecordedRefundCreate[] = [];
+  const chargeRetrieves: string[] = [];
+  const paymentIntentRetrieves: Array<{
+    id: string;
+    params?: Stripe.PaymentIntentRetrieveParams;
+  }> = [];
+  const configuredLiveCharge =
+    options.liveCharge === undefined ? liveCharge() : options.liveCharge;
+  const resolveLiveCharge = (): Stripe.Charge | null => {
+    if (options.retrieveError !== undefined) {
+      throw options.retrieveError;
+    }
+    return configuredLiveCharge;
+  };
   const createStripe = (secretKey: string): StripeRefundsApi => ({
     refunds: {
-      create: async (params, options) => {
-        calls.push({ params, options, secretKey });
+      create: async (params, requestOptions) => {
+        calls.push({ params, options: requestOptions, secretKey });
         return handler(params);
       },
     },
+    charges: {
+      retrieve: async (id) => {
+        chargeRetrieves.push(id);
+        const charge = resolveLiveCharge();
+        if (!charge) {
+          throw new Error("charges.retrieve stub has no live charge.");
+        }
+        return charge;
+      },
+    },
+    paymentIntents: {
+      retrieve: async (id, params) => {
+        paymentIntentRetrieves.push({ id, params });
+        return {
+          id,
+          object: "payment_intent",
+          latest_charge: resolveLiveCharge(),
+        } as unknown as Stripe.PaymentIntent;
+      },
+    },
   });
-  return { createStripe, calls };
+  return { createStripe, calls, chargeRetrieves, paymentIntentRetrieves };
 }
 
 function expandedCharge(overrides: Row = {}): Stripe.Charge {
@@ -548,13 +612,14 @@ describe("contribution refundContribution dependency", () => {
   });
 
   describe("provider errors and outcome honesty", () => {
-    it("returns Stripe errors as failed outcomes instead of throwing", async () => {
+    it("returns definitive Stripe errors as failed outcomes instead of throwing", async () => {
       const stub = createSupabaseStub({ donation: donationRow() });
       const stripe = createStripeStub(() => {
         throw {
-          type: "StripeAPIError",
-          rawType: "api_error",
-          message: "Stripe is temporarily unavailable.",
+          type: "StripeCardError",
+          rawType: "card_error",
+          code: "expired_or_canceled_card",
+          message: "The card used for this payment has expired.",
         };
       });
 
@@ -568,9 +633,65 @@ describe("contribution refundContribution dependency", () => {
       expect(outcome).toMatchObject({
         provider: "stripe",
         status: "failed",
-        errorCode: "StripeAPIError",
-        errorMessage: "Stripe is temporarily unavailable.",
+        errorCode: "expired_or_canceled_card",
+        errorMessage: "The card used for this payment has expired.",
       });
+      expect(stub.updates).toHaveLength(0);
+    });
+
+    it.each([
+      "StripeConnectionError",
+      "StripeAPIError",
+      "StripeIdempotencyError",
+    ])(
+      "rethrows ambiguous %s as a 502 so a same-key retry replays the attempt",
+      async (errorType) => {
+        const stub = createSupabaseStub({ donation: donationRow() });
+        const stripe = createStripeStub(() => {
+          throw {
+            type: errorType,
+            message: "Stripe may or may not have processed the request.",
+          };
+        });
+
+        await expect(
+          refundContributionThroughStripe(
+            refundInput({
+              supabaseAdmin: stub.client,
+              createStripe: stripe.createStripe,
+            }),
+          ),
+        ).rejects.toMatchObject({
+          status: 502,
+          message: expect.stringMatching(/did not confirm the refund/i),
+        });
+        // No failed correction outcome is returned and no local write
+        // happens; the caller retries with the SAME idempotency key.
+        expect(stub.updates).toHaveLength(0);
+      },
+    );
+
+    it("rethrows ambiguous errors from the live-charge check before creating any refund", async () => {
+      const stub = createSupabaseStub({ donation: donationRow() });
+      const stripe = createStripeStub(() => stripeRefund(), {
+        retrieveError: {
+          type: "StripeConnectionError",
+          message: "Connection dropped.",
+        },
+      });
+
+      await expect(
+        refundContributionThroughStripe(
+          refundInput({
+            supabaseAdmin: stub.client,
+            createStripe: stripe.createStripe,
+          }),
+        ),
+      ).rejects.toMatchObject({
+        status: 502,
+        message: expect.stringMatching(/did not confirm the refund/i),
+      });
+      expect(stripe.calls).toHaveLength(0);
       expect(stub.updates).toHaveLength(0);
     });
 
@@ -660,6 +781,195 @@ describe("contribution refundContribution dependency", () => {
       });
       expect(isFailedProviderOutcomeStatus(outcome.status)).toBe(true);
       expect(stub.updates).toHaveLength(0);
+    });
+  });
+
+  describe("live-charge provider remaining check", () => {
+    it("rejects a second partial that exceeds the provider remaining while a pending refund left the local record untouched", async () => {
+      // $100.00 charge with a pending $50.00 partial: Stripe counts pending
+      // refunds into amount_refunded immediately, while the local
+      // refund_amount is still 0 (pending outcomes write nothing locally).
+      const stub = createSupabaseStub({
+        donation: donationRow({ amount: 10_000, refund_amount: 0 }),
+      });
+      const stripe = createStripeStub(() => stripeRefund(), {
+        liveCharge: liveCharge({ amount: 10_000, amount_refunded: 5000 }),
+      });
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+          amount: 6000,
+        }),
+      );
+
+      expect(outcome).toMatchObject({
+        provider: "stripe",
+        status: "failed",
+        errorCode: "refund_exceeds_provider_remaining",
+        errorMessage: expect.stringContaining("$50.00"),
+      });
+      expect(stripe.chargeRetrieves).toEqual(["ch_1"]);
+      expect(stripe.calls).toHaveLength(0);
+      expect(stub.updates).toHaveLength(0);
+    });
+
+    it("allows a second partial only up to the provider remaining", async () => {
+      const stub = createSupabaseStub({
+        donation: donationRow({ amount: 10_000, refund_amount: 0 }),
+      });
+      const stripe = createStripeStub(
+        () =>
+          stripeRefund({
+            amount: 5000,
+            charge: expandedCharge({ amount_refunded: 10_000 }),
+          }),
+        {
+          liveCharge: liveCharge({ amount: 10_000, amount_refunded: 5000 }),
+        },
+      );
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+          amount: 5000,
+        }),
+      );
+
+      expect(stripe.calls).toHaveLength(1);
+      expect(stripe.calls[0]!.params).toMatchObject({ amount: 5000 });
+      expect(outcome).toEqual({
+        provider: "stripe",
+        status: "succeeded",
+        referenceId: "re_1",
+      });
+    });
+
+    it("resolves the live charge through the payment intent when no charge id is stored", async () => {
+      const stub = createSupabaseStub({
+        donation: donationRow({ stripe_charge_id: null }),
+      });
+      const stripe = createStripeStub(() => stripeRefund(), {
+        liveCharge: liveCharge({ amount: 5000, amount_refunded: 4000 }),
+      });
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+          amount: 5000,
+        }),
+      );
+
+      expect(stripe.paymentIntentRetrieves).toEqual([
+        { id: "pi_1", params: { expand: ["latest_charge"] } },
+      ]);
+      expect(stripe.chargeRetrieves).toHaveLength(0);
+      expect(outcome).toMatchObject({
+        status: "failed",
+        errorCode: "refund_exceeds_provider_remaining",
+        errorMessage: expect.stringContaining("$10.00"),
+      });
+      expect(stripe.calls).toHaveLength(0);
+    });
+
+    it("falls through to refund creation when the payment intent has no resolvable charge", async () => {
+      const stub = createSupabaseStub({
+        donation: donationRow({ stripe_charge_id: null }),
+      });
+      const stripe = createStripeStub(() => stripeRefund(), {
+        liveCharge: null,
+      });
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+        }),
+      );
+
+      // No live charge to validate against — Stripe's refund call remains
+      // the provider-truth backstop.
+      expect(stripe.calls).toHaveLength(1);
+      expect(outcome).toMatchObject({ status: "succeeded" });
+    });
+  });
+
+  describe("charge-only convergence honesty", () => {
+    it("reports local_update_failed when the expanded charge has no payment intent", async () => {
+      const stub = createSupabaseStub({
+        donation: donationRow({ stripe_payment_intent_id: null }),
+      });
+      const stripe = createStripeStub(() =>
+        stripeRefund({
+          charge: expandedCharge({ payment_intent: null }),
+        }),
+      );
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+        }),
+      );
+
+      expect(stripe.calls[0]!.params).toMatchObject({ charge: "ch_1" });
+      expect(stripe.calls[0]!.params).not.toHaveProperty("payment_intent");
+      expect(outcome).toMatchObject({
+        provider: "stripe",
+        status: "local_update_failed",
+        referenceId: "re_1",
+        errorCode: "local_update_failed",
+        errorMessage: expect.stringMatching(/no local donation record/i),
+      });
+      expect(stub.updates).toHaveLength(0);
+    });
+
+    it("reports local_update_failed when no donation matches the refunded charge's payment intent", async () => {
+      const stub = createSupabaseStub({
+        donation: donationRow({ stripe_payment_intent_id: null }),
+      });
+      const stripe = createStripeStub(() =>
+        stripeRefund({
+          charge: expandedCharge({ payment_intent: "pi_unknown" }),
+        }),
+      );
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+        }),
+      );
+
+      expect(outcome).toMatchObject({
+        provider: "stripe",
+        status: "local_update_failed",
+        referenceId: "re_1",
+        errorCode: "local_update_failed",
+      });
+      expect(stub.updates).toHaveLength(0);
+    });
+  });
+
+  describe("correctionStatusForProviderOutcome", () => {
+    it("classifies provider outcome statuses three ways", () => {
+      expect(correctionStatusForProviderOutcome("pending")).toBe("pending");
+      expect(correctionStatusForProviderOutcome("failed")).toBe("failed");
+      expect(correctionStatusForProviderOutcome("local_update_failed")).toBe(
+        "failed",
+      );
+      expect(correctionStatusForProviderOutcome("canceled")).toBe("failed");
+      expect(correctionStatusForProviderOutcome("requires_action")).toBe(
+        "failed",
+      );
+      expect(correctionStatusForProviderOutcome("succeeded")).toBe("applied");
+      expect(correctionStatusForProviderOutcome("queued_for_replay")).toBe(
+        "applied",
+      );
+      expect(correctionStatusForProviderOutcome(null)).toBe("applied");
     });
   });
 });

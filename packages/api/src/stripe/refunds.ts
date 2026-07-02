@@ -137,8 +137,9 @@ export async function applyRefundedChargeToDonation(
 }
 
 /**
- * Minimal structural surface of the Stripe SDK used by refund creation.
- * A full `Stripe` client satisfies this; tests can inject a small stub.
+ * Minimal structural surface of the Stripe SDK used by refund creation and
+ * the live-charge remaining check. A full `Stripe` client satisfies this;
+ * tests can inject a small stub.
  */
 export interface StripeRefundsApi {
   refunds: {
@@ -147,6 +148,53 @@ export interface StripeRefundsApi {
       options: Stripe.RequestOptions,
     ): Promise<Stripe.Refund>;
   };
+  charges: {
+    retrieve(id: string): Promise<Stripe.Charge>;
+  };
+  paymentIntents: {
+    retrieve(
+      id: string,
+      params?: Stripe.PaymentIntentRetrieveParams,
+    ): Promise<Stripe.PaymentIntent>;
+  };
+}
+
+export interface RetrieveLiveChargeForRefundInput {
+  stripe: StripeRefundsApi;
+  paymentIntentId: string | null;
+  chargeId: string | null;
+}
+
+/**
+ * Retrieves the live Stripe charge backing a refund target so callers can
+ * validate against provider truth. Stripe counts pending refunds into
+ * `charge.amount_refunded` immediately, so
+ * `charge.amount - charge.amount_refunded` is the authority on what actually
+ * remains refundable even when the local record has not converged yet.
+ * Returns `null` when the payment intent has no charge to inspect; the
+ * refund creation call then surfaces provider truth itself.
+ */
+export async function retrieveLiveChargeForRefund(
+  input: RetrieveLiveChargeForRefundInput,
+): Promise<Stripe.Charge | null> {
+  if (input.chargeId) {
+    return input.stripe.charges.retrieve(input.chargeId);
+  }
+
+  if (!input.paymentIntentId) {
+    return null;
+  }
+
+  const paymentIntent = await input.stripe.paymentIntents.retrieve(
+    input.paymentIntentId,
+    { expand: ["latest_charge"] },
+  );
+  const latestCharge = paymentIntent.latest_charge;
+  if (typeof latestCharge === "object" && latestCharge !== null) {
+    return latestCharge;
+  }
+
+  return null;
 }
 
 export interface CreateStripeRefundInput {
@@ -196,13 +244,37 @@ export async function createStripeRefund(
 }
 
 /**
- * Describes a Stripe SDK error as a provider outcome error pair. Returns
- * `null` for non-Stripe errors so the caller rethrows them instead of
- * recording an inaccurate provider failure.
+ * Stripe error types that are AMBIGUOUS: the request may or may not have
+ * been processed (connection dropped, Stripe 5xx, idempotency conflict).
+ * Stripe's guidance is to retry these with the SAME idempotency key so the
+ * original attempt replays safely. Callers must never record them as
+ * definitive provider failures.
+ */
+const AMBIGUOUS_STRIPE_ERROR_TYPES: ReadonlySet<string> = new Set([
+  "StripeConnectionError",
+  "StripeAPIError",
+  "StripeIdempotencyError",
+]);
+
+export interface DescribedStripeRefundError {
+  errorCode: string;
+  errorMessage: string;
+  /**
+   * True when Stripe may or may not have processed the refund. Ambiguous
+   * errors must be retried with the same idempotency key, not recorded as
+   * terminal failures.
+   */
+  ambiguous: boolean;
+}
+
+/**
+ * Describes a Stripe SDK error as a provider outcome error pair plus an
+ * ambiguity classification. Returns `null` for non-Stripe errors so the
+ * caller rethrows them instead of recording an inaccurate provider failure.
  */
 export function describeStripeRefundError(
   error: unknown,
-): { errorCode: string; errorMessage: string } | null {
+): DescribedStripeRefundError | null {
   if (typeof error !== "object" || error === null) {
     return null;
   }
@@ -233,5 +305,9 @@ export function describeStripeRefundError(
       ? candidate.message
       : "Stripe rejected the refund request.";
 
-  return { errorCode, errorMessage };
+  return {
+    errorCode,
+    errorMessage,
+    ambiguous: AMBIGUOUS_STRIPE_ERROR_TYPES.has(errorType),
+  };
 }

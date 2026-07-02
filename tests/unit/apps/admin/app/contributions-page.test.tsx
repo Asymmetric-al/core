@@ -209,6 +209,14 @@ function makeDetailPayload(donationId: string, donorName: string) {
       crm: { postStatus: null, twentyRecordId: null },
       auditEvents: [],
       corrections: [],
+      // Original donation truth — the refund shell derives its figures from
+      // this basis, never the adjusted effective amount (#265).
+      original: {
+        amountCents: 10000,
+        fundId: "fund_1",
+        missionaryId: null,
+        paymentStatus: "completed",
+      },
       tasks: [],
       batches: [],
       donorVisible: {

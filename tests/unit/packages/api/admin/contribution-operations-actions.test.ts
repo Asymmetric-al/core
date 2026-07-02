@@ -882,6 +882,145 @@ describe("contribution operations action executor", () => {
     expect(result.providerOutcome?.status).toBe("failed");
   });
 
+  it("records pending provider outcomes as pending corrections, never applied", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "pending",
+      referenceId: "re_pending_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    // Stripe accepted but has not confirmed (e.g. ACH refunds pend for
+    // days): the correction record must not assert finality (#265).
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        correctionType: "refund",
+        status: "pending",
+        providerOutcome: expect.objectContaining({
+          status: "pending",
+          referenceId: "re_pending_1",
+        }),
+      }),
+    );
+    expect(result.providerOutcome?.status).toBe("pending");
+  });
+
+  it("preserves platform-generated reconciliation messages for local_update_failed refunds", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "local_update_failed",
+      referenceId: "re_1",
+      errorCode: "local_update_failed",
+      errorMessage:
+        "The Stripe refund succeeded but no local donation record matched the refunded charge. Reconcile the gift against the provider reference.",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    // The message is platform-generated (never raw provider text), and
+    // redacting it to "Provider action failed" would tell staff the exact
+    // opposite of the truth — the provider refund DID complete (#265).
+    expect(result.providerOutcome?.status).toBe("local_update_failed");
+    expect(result.providerOutcome?.errorMessage).toContain(
+      "Stripe refund succeeded",
+    );
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "failed",
+        providerOutcome: expect.objectContaining({
+          errorMessage: expect.stringContaining("Stripe refund succeeded"),
+        }),
+      }),
+    );
+  });
+
+  it("preserves the provider-verified remaining amount for refund_exceeds_provider_remaining failures", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "failed",
+      errorCode: "refund_exceeds_provider_remaining",
+      errorMessage:
+        "Refund amount exceeds the provider's remaining refundable amount of $50.00. A refund may still be pending provider confirmation.",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 6000 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(result.providerOutcome?.errorMessage).toContain("$50.00");
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "failed" }),
+    );
+  });
+
   it("rejects fractional refund amounts before calling the provider", async () => {
     const refundContribution = vi.fn();
 

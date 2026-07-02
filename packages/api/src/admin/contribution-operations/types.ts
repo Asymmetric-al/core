@@ -101,6 +101,24 @@ export function isFailedProviderOutcomeStatus(
   return status != null && FAILED_PROVIDER_OUTCOME_STATUSES.has(status);
 }
 
+/**
+ * Correction status recorded for a provider outcome. A pending provider
+ * outcome (for example an ACH refund Stripe accepted but has not confirmed)
+ * must be recorded as "pending" — never "applied" — so the correction and
+ * audit trail do not imply finality before the provider confirms (#265).
+ */
+export function correctionStatusForProviderOutcome(
+  status: string | null | undefined,
+): "applied" | "failed" | "pending" {
+  if (isFailedProviderOutcomeStatus(status)) {
+    return "failed";
+  }
+  if (status === "pending") {
+    return "pending";
+  }
+  return "applied";
+}
+
 export interface ContributionCorrectionRecordInput {
   tenantId: string;
   contributionId: string;
