@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { useState, useEffect } from "react";
 
 import { cn } from "../../lib/utils";
-import { Button } from "../shadcn/button";
+import { buttonVariants } from "../shadcn/button";
 
 interface NavLink {
   label: string;
@@ -131,18 +131,18 @@ export function NavbarClient({
                 {link.label}
               </Link>
             ))}
-            <Button
-              asChild
-              variant="ghost"
+            <Link
+              href={ctaHref}
               className={cn(
+                buttonVariants({ variant: "ghost" }),
                 "rounded-full px-5 lg:px-6 font-bold uppercase tracking-widest text-[10px] h-10 shadow-lg",
                 showScrolledStyles
                   ? "bg-zinc-900 text-white hover:bg-zinc-800"
                   : "bg-white text-zinc-900 hover:bg-zinc-100",
               )}
             >
-              <Link href={ctaHref}>{ctaLabel}</Link>
-            </Button>
+              {ctaLabel}
+            </Link>
           </div>
 
           <button
@@ -201,15 +201,16 @@ export function NavbarClient({
             </div>
 
             <div className="pt-6 safe-area-bottom">
-              <Button
-                asChild
-                variant="ghost"
-                className="w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800"
+              <Link
+                href={ctaHref}
+                onClick={() => setIsMobileMenuOpen(false)}
+                className={cn(
+                  buttonVariants({ variant: "ghost" }),
+                  "w-full h-14 rounded-xl bg-zinc-900 text-white font-bold uppercase tracking-widest text-xs shadow-lg hover:bg-zinc-800",
+                )}
               >
-                <Link href={ctaHref} onClick={() => setIsMobileMenuOpen(false)}>
-                  {ctaLabel}
-                </Link>
-              </Button>
+                {ctaLabel}
+              </Link>
             </div>
           </div>
         </div>

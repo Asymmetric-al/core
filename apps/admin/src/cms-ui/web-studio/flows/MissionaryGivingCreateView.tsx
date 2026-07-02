@@ -195,8 +195,13 @@ function MissionaryGivingCreateViewContent() {
               <div className="flex flex-col gap-2">
                 <Label>Missionary</Label>
                 <Select
-                  value={field.state.value || undefined}
-                  onValueChange={(v) => field.handleChange(v)}
+                  value={field.state.value || null}
+                  onValueChange={(v) => {
+                    if (v === null) {
+                      return;
+                    }
+                    field.handleChange(v);
+                  }}
                   disabled={
                     missionariesQuery.isPending || missionariesQuery.isError
                   }

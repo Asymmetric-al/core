@@ -40,34 +40,36 @@ export function DataTableColumnHeader<TData, TValue>({
   }
 
   return (
-    <div className={cn("flex items-center space-x-2", className)}>
+    <div className={cn("flex items-center gap-2", className)}>
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            aria-label={
-              column.getIsSorted() === "desc"
-                ? "Sorted descending. Click to sort ascending."
-                : column.getIsSorted() === "asc"
-                  ? "Sorted ascending. Click to sort descending."
-                  : "Not sorted. Click to sort ascending."
-            }
-            variant="ghost"
-            size="sm"
-            className="-ml-3 h-8 gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground data-[state=open]:bg-accent data-[state=open]:text-foreground"
-          >
-            <span className="uppercase tracking-wide">{title}</span>
-            {column.getCanSort() && column.getIsSorted() === "desc" ? (
-              <ArrowDown className="size-3.5" aria-hidden="true" />
-            ) : column.getIsSorted() === "asc" ? (
-              <ArrowUp className="size-3.5" aria-hidden="true" />
-            ) : (
-              <ChevronsUpDown
-                className="size-3.5 opacity-50"
-                aria-hidden="true"
-              />
-            )}
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              aria-label={
+                column.getIsSorted() === "desc"
+                  ? "Sorted descending. Click to sort ascending."
+                  : column.getIsSorted() === "asc"
+                    ? "Sorted ascending. Click to sort descending."
+                    : "Not sorted. Click to sort ascending."
+              }
+              variant="ghost"
+              size="sm"
+              className="-ml-3 h-8 gap-1.5 text-xs font-semibold text-muted-foreground hover:text-foreground aria-expanded:bg-accent aria-expanded:text-foreground"
+            >
+              <span className="uppercase tracking-wide">{title}</span>
+              {column.getCanSort() && column.getIsSorted() === "desc" ? (
+                <ArrowDown className="size-3.5" aria-hidden="true" />
+              ) : column.getIsSorted() === "asc" ? (
+                <ArrowUp className="size-3.5" aria-hidden="true" />
+              ) : (
+                <ChevronsUpDown
+                  className="size-3.5 opacity-50"
+                  aria-hidden="true"
+                />
+              )}
+            </Button>
+          }
+        />
         <DropdownMenuContent align="start" className="min-w-36 rounded-xl">
           {column.getCanSort() && (
             <>

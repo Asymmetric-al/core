@@ -1,3 +1,9 @@
+> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
+> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
+> style in `packages/ui`. Ignore any Radix UI guidance below — never add
+> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
+> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
+
 # Components Build Skill
 
 An agent skill for building modern, composable, and accessible React UI components following the [components.build](https://components.build) specification. Co-authored by Hayden Bleasel and shadcn.

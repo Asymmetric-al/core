@@ -19,7 +19,7 @@ import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { cn } from "@asym/ui/lib/utils";
 
@@ -100,13 +100,15 @@ export function AboutBelief() {
               </p>
 
               <div className="pt-8">
-                <Button
-                  size="lg"
-                  className="h-14 px-10 rounded-full bg-zinc-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-semibold font-syne text-xs uppercase tracking-widest"
-                  asChild
+                <Link
+                  href="/workers"
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "h-14 px-10 rounded-full bg-zinc-950 text-white hover:bg-emerald-500 transition-colors duration-200 ease-out font-semibold font-syne text-xs uppercase tracking-widest",
+                  )}
                 >
-                  <Link href="/workers">Explore the Frontlines</Link>
-                </Button>
+                  Explore the Frontlines
+                </Link>
               </div>
             </m.div>
 
@@ -339,21 +341,24 @@ export function AboutCTA() {
               Join our global sustainer community today.
             </p>
             <div className="flex flex-col md:flex-row gap-4 justify-center">
-              <Button
-                size="lg"
-                className="h-14 px-10 rounded-full bg-white text-zinc-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-semibold font-syne shadow-xl hover-scale-subtle"
-                asChild
+              <Link
+                href="/workers"
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "h-14 px-10 rounded-full bg-white text-zinc-950 hover:bg-emerald-400 hover:text-emerald-950 text-lg font-semibold font-syne shadow-xl hover-scale-subtle",
+                )}
               >
-                <Link href="/workers">View Directory</Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out"
-                asChild
+                View Directory
+              </Link>
+              <Link
+                href="/checkout?fund=general"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out",
+                )}
               >
-                <Link href="/checkout?fund=general">Support Urgent Needs</Link>
-              </Button>
+                Support Urgent Needs
+              </Link>
             </div>
           </m.div>
         </div>

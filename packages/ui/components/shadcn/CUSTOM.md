@@ -1,5 +1,11 @@
 # Custom files in `components/shadcn`
 
+All primitives here are **Base UI-backed** (`@base-ui/react` via the shadcn
+`base-maia` style). Never add `radix-ui`/`@radix-ui/*` imports; composition
+uses Base UI's `render` prop, not `asChild`. Known intentional deviations
+from upstream base-maia: `DropdownMenuLabel`/`ContextMenuLabel` wrap their
+`GroupLabel` in an implicit `Group` to keep standalone labels valid.
+
 This directory contains two kinds of files:
 
 1. **Canonical shadcn/ui primitives** managed with the shadcn CLI.

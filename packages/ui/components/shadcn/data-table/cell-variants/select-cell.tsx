@@ -55,7 +55,10 @@ export function SelectCell<TData>({
     return (
       <Select
         value={value ?? ""}
-        onValueChange={handleSelect}
+        onValueChange={(newValue) => {
+          if (newValue === null) return;
+          handleSelect(newValue);
+        }}
         open={open}
         onOpenChange={setOpen}
       >

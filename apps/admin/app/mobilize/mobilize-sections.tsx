@@ -603,19 +603,19 @@ export function MobilizeCandidateDetailSheet({
                 <TabsList className="bg-transparent h-auto p-0 gap-6">
                   <TabsTrigger
                     value="overview"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-[state=active]:text-zinc-900 transition-colors"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
                   >
                     Overview
                   </TabsTrigger>
                   <TabsTrigger
                     value="vetting"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-[state=active]:text-zinc-900 transition-colors"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
                   >
                     Vetting Checklist
                   </TabsTrigger>
                   <TabsTrigger
                     value="placement"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-[state=active]:text-zinc-900 transition-colors"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
                   >
                     Placement
                   </TabsTrigger>

@@ -123,11 +123,12 @@ export function DonorTasks({
           }}
           onSuccess={handleTaskSuccess}
           trigger={
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button size="sm" className="h-8 rounded-xl px-3 text-xs">
-                <Plus className="mr-1.5 size-3.5" /> Add Task
-              </Button>
-            </motion.div>
+            <Button
+              size="sm"
+              className="h-8 rounded-xl px-3 text-xs hover-scale-subtle"
+            >
+              <Plus className="mr-1.5 size-3.5" /> Add Task
+            </Button>
           }
         />
       </motion.div>
@@ -229,15 +230,17 @@ export function DonorTasks({
                       ) : null}
                     </div>
                     <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
-                        >
-                          <MoreHorizontal className="size-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
+                      <DropdownMenuTrigger
+                        render={
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="size-8 rounded-lg opacity-0 transition-opacity group-hover:opacity-100"
+                          >
+                            <MoreHorizontal className="size-4" />
+                          </Button>
+                        }
+                      />
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem
                           onClick={() => {
@@ -295,7 +298,7 @@ export function DonorTasks({
                       <Checkbox
                         checked={true}
                         onCheckedChange={() => handleComplete(task)}
-                        className="size-5 rounded-md data-[state=checked]:border-emerald-500 data-[state=checked]:bg-emerald-500"
+                        className="size-5 rounded-md data-checked:border-emerald-500 data-checked:bg-emerald-500"
                       />
                     </motion.div>
                     <div

@@ -355,9 +355,14 @@ function installDom() {
   globalThis.EventTarget = dom.window.EventTarget;
   globalThis.NodeFilter = dom.window.NodeFilter;
   globalThis.MouseEvent = dom.window.MouseEvent;
+  globalThis.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
+  dom.window.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
   globalThis.KeyboardEvent = dom.window.KeyboardEvent;
   globalThis.MutationObserver = dom.window.MutationObserver;
   globalThis.getComputedStyle = dom.window.getComputedStyle;
+  globalThis.Element.prototype.getAnimations ??= function getAnimations() {
+    return [];
+  };
   globalThis.requestAnimationFrame = (callback) =>
     window.setTimeout(callback, 0);
   globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
@@ -615,8 +620,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
     ).toBeTruthy();
 
     const trigger = view.getByRole("button", { name: "More gift actions" });
-    fireEvent.pointerDown(trigger, { button: 0, ctrlKey: false });
-    fireEvent.keyDown(trigger, { key: "Enter" });
+    fireEvent.click(trigger);
 
     // Capability/state-filtered entries grouped by operation category.
     expect(await view.findByText("Correction")).toBeTruthy();
@@ -880,10 +884,10 @@ describe("apps/admin/app/crm gift detail entry", () => {
     const trigger = await view.findByRole("button", {
       name: "More gift actions",
     });
-    fireEvent.keyDown(trigger, { key: "Enter" });
+    fireEvent.click(trigger);
 
     const subTrigger = await view.findByText("Pin row action");
-    fireEvent.keyDown(subTrigger, { key: "ArrowRight" });
+    fireEvent.click(subTrigger);
 
     const pinOption = await view.findByRole("menuitemradio", {
       name: "Correct gift amount",
@@ -1015,10 +1019,10 @@ describe("apps/admin/app/crm gift detail entry", () => {
     const trigger = await view.findByRole("button", {
       name: "Gift history view settings",
     });
-    fireEvent.keyDown(trigger, { key: "Enter" });
+    fireEvent.click(trigger);
 
     const resetSubTrigger = await view.findByText("Reset view settings");
-    fireEvent.keyDown(resetSubTrigger, { key: "ArrowRight" });
+    fireEvent.click(resetSubTrigger);
 
     fireEvent.click(await view.findByText("Reset columns…"));
 
@@ -1174,7 +1178,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
       name: "Gift history views",
     });
     expect(switcher.textContent).toContain("Default view");
-    fireEvent.keyDown(switcher, { key: "Enter" });
+    fireEvent.click(switcher);
 
     fireEvent.click(await view.findByText("Delete view…"));
 
@@ -1182,7 +1186,9 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(dialog.textContent).toMatch(/choose another default/i);
 
     fireEvent.click(
-      within(dialog).getByLabelText(/make “backup view” the default/i),
+      within(dialog).getByRole("radio", {
+        name: /make “backup view” the default/i,
+      }),
     );
     fireEvent.click(
       within(dialog).getByRole("button", { name: "Delete view" }),

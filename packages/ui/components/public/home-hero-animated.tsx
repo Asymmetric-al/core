@@ -11,7 +11,8 @@ import { Activity, ArrowRight, Users, Zap } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
+import { cn } from "@asym/ui/lib/utils";
 
 const heroStatIcons = {
   activity: Activity,
@@ -84,34 +85,32 @@ export function HomeHeroAnimated({
               {...propsHeroEntrance(reduceMotion, STAGGER_TIGHT * 2)}
               className="flex flex-col sm:flex-row gap-4 pt-6"
             >
-              <Button
-                size="lg"
-                variant="ghost"
-                className="h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-semibold font-syne text-zinc-950 shadow-lg hover:bg-zinc-100 hover:text-zinc-950 hover-scale-subtle group"
-                asChild
+              <Link
+                href="/workers"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "ghost" }),
+                  "h-12 rounded-full border border-white/15 bg-white px-8 text-sm font-semibold font-syne text-zinc-950 shadow-lg hover:bg-zinc-100 hover:text-zinc-950 hover-scale-subtle group",
+                )}
               >
-                <Link href="/workers">
-                  Support the Frontlines
-                  <Zap
-                    className="ml-2 size-4 fill-current transition-transform duration-200 ease-out group-hover:rotate-12"
-                    aria-hidden="true"
-                  />
-                </Link>
-              </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 h-12 px-8 text-sm font-semibold font-syne rounded-full backdrop-blur-md transition-colors duration-150 ease-out group"
-                asChild
+                Support the Frontlines
+                <Zap
+                  className="ml-2 size-4 fill-current transition-transform duration-200 ease-out group-hover:rotate-12"
+                  aria-hidden="true"
+                />
+              </Link>
+              <Link
+                href="/about"
+                className={cn(
+                  buttonVariants({ size: "lg", variant: "outline" }),
+                  "bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 h-12 px-8 text-sm font-semibold font-syne rounded-full backdrop-blur-md transition-colors duration-150 ease-out group",
+                )}
               >
-                <Link href="/about">
-                  Our Methodology
-                  <ArrowRight
-                    className="ml-2 size-4 text-white/50 transition-transform duration-200 ease-out group-hover:translate-x-2 group-hover:text-white"
-                    aria-hidden="true"
-                  />
-                </Link>
-              </Button>
+                Our Methodology
+                <ArrowRight
+                  className="ml-2 size-4 text-white/50 transition-transform duration-200 ease-out group-hover:translate-x-2 group-hover:text-white"
+                  aria-hidden="true"
+                />
+              </Link>
             </m.div>
           </div>
         </div>
