@@ -1,6 +1,7 @@
 import { resolveCorrectionApprovalPolicy } from "./approval-policy";
 import {
   buildCorrectionRequestAvailability,
+  isContributionOperationActionType,
   isCorrectionRequestActionType,
   stripeReplayAvailability,
   viewerCanUseContributionOperation,
@@ -57,9 +58,10 @@ export interface ProjectContributionDetailOptions {
  * Correction requests and provider replay reuse the exact derivation
  * `buildInlineContributionActions` uses, so a CRM inline affordance always
  * finds a matching detail availability entry with identical semantics.
- * Entries the viewer cannot act on stay hidden (ADR-CD-018 mixed
- * visibility: irrelevant or unauthorized → hidden). The base workflow
- * entries (approve/retry/resend/refund) pass through untouched.
+ * Every entry — including the base workflow entries (approve/retry/
+ * resend/refund) — passes the same viewer-capability gate the inline
+ * builder applies, so entries the viewer cannot act on stay hidden
+ * (ADR-CD-018 mixed visibility: irrelevant or unauthorized → hidden).
  */
 function viewerScopedActionAvailability(input: {
   detail: ContributionDetail;
@@ -70,7 +72,13 @@ function viewerScopedActionAvailability(input: {
   const baseEntries = detail.actionAvailability.filter(
     (entry) =>
       entry.actionType !== "stripe_replay" &&
-      !isCorrectionRequestActionType(entry.actionType),
+      !isCorrectionRequestActionType(entry.actionType) &&
+      isContributionOperationActionType(entry.actionType) &&
+      viewerCanUseContributionOperation({
+        actionType: entry.actionType,
+        approvalPolicy,
+        viewerCapabilities,
+      }),
   );
 
   const correctionEntries = buildCorrectionRequestAvailability(

@@ -106,23 +106,37 @@ describe("admin/contribution-operations/viewer-projection", () => {
     expect(projected.shared.refundState).toBe("none");
   });
 
-  it("hides request entries from viewers without request or provider capability", () => {
+  it("hides every entry from viewers without any operation capability", () => {
     const detail = makeDetail();
     const projected = projectContributionDetailForViewer(detail, [
       "contributions.view_detail",
     ]);
 
-    // Existing workflow entries are untouched; correction and replay request
-    // entries stay hidden (ADR-CD-018: unauthorized → hidden).
-    expect(projected.actionAvailability).toEqual(detail.actionAvailability);
-    expect(
-      projected.actionAvailability.some(
-        (entry) =>
-          entry.actionType === "stripe_replay" ||
-          entry.actionType === "amount_correction" ||
-          entry.actionType === "fund_correction",
-      ),
-    ).toBe(false);
+    // ADR-CD-018 mixed visibility: unauthorized → hidden. A read-only viewer
+    // gets no availability entries at all — the base workflow entries pass
+    // the same capability gate the inline builder applies.
+    expect(projected.actionAvailability).toEqual([]);
+  });
+
+  it("keeps base workflow entries for viewers holding their capabilities", () => {
+    const detail = makeDetail();
+    const projected = projectContributionDetailForViewer(detail, [
+      "contributions.view_detail",
+      "contributions.apply_corrections",
+      "contributions.retry_crm_post",
+      "contributions.manage_receipts",
+      "contributions.run_refunds",
+    ]);
+
+    const baseEntries = detail.actionAvailability.filter(
+      (entry) =>
+        entry.actionType !== "stripe_replay" &&
+        entry.actionType !== "amount_correction" &&
+        entry.actionType !== "fund_correction",
+    );
+    for (const entry of baseEntries) {
+      expect(projected.actionAvailability).toContainEqual(entry);
+    }
   });
 
   it("omits request affordances when tenant policy applies corrections directly", () => {

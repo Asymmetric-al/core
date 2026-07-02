@@ -62,6 +62,13 @@ export function isCorrectionRequestActionType(
   );
 }
 
+/** Narrow to operations the shared capability map governs. */
+export function isContributionOperationActionType(
+  actionType: string,
+): actionType is CrmGiftInlineActionType {
+  return actionType in CONTRIBUTION_OPERATION_CAPABILITY;
+}
+
 /** Provider payment proof drives replay availability (ADR-CD-015). */
 export function stripeReplayAvailability(
   paymentIntentId: string | null,
