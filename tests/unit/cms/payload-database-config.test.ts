@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isProtectedDeployment } from "../../../packages/env/src/target-env";
+import { isProtectedDeployment } from "@asym/env/target-env";
 import {
   assertPayloadDatabaseConfiguration,
   DEFAULT_LOCAL_PAYLOAD_DATABASE_URL,
