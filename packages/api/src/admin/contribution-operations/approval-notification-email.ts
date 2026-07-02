@@ -81,6 +81,20 @@ function humanizeActionType(actionType: string): string {
 }
 
 /**
+ * Decision reasons are staff-authored free text; escape them (and everything
+ * else) before HTML interpolation, matching the merge-tag renderer and
+ * receipt HTML conventions.
+ */
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+/**
  * Deliberately minimal product copy: enough for an approver or requester to
  * act from their inbox without leaking donor financial detail into email.
  */
@@ -227,7 +241,7 @@ export async function deliverApprovalEmailNotifications(input: {
           : undefined,
         subject: content.subject,
         text: content.text,
-        html: `<p>${content.text.replace(/\n/g, "<br />")}</p>`,
+        html: `<p>${escapeHtml(content.text).replace(/\n/g, "<br />")}</p>`,
         idempotencyKey: `approval-notification/${input.tenantId}/${notification.dedupeKey}`,
         customArgs: {
           source: "contribution_approval_notification",

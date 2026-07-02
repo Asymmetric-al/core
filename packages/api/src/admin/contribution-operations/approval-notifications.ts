@@ -599,15 +599,25 @@ export async function recordCorrectionApprovalOutcome(input: {
     const requesterProfileId = input.request.requestedByProfileId;
     // Outcome email follows the same double opt-in the approval-request
     // channel uses: the tenant setting AND the requester preference must both
-    // enable email. Preferences still only pick channels (#262).
-    const [settings, requesterPreference] = await Promise.all([
-      loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
-      loadRequesterNotificationPreference(
-        input.supabaseAdmin,
-        input.tenantId,
-        requesterProfileId,
-      ),
-    ]);
+    // enable email. Preferences still only pick channels (#262). These loads
+    // exist solely to gate the email channel, so they are best-effort: a
+    // settings/preferences read failure falls back to email-off instead of
+    // failing a decision that has already applied.
+    let settings = resolveApprovalNotificationSettings(null);
+    let requesterPreference = resolveApproverNotificationPreference(null);
+    try {
+      [settings, requesterPreference] = await Promise.all([
+        loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
+        loadRequesterNotificationPreference(
+          input.supabaseAdmin,
+          input.tenantId,
+          requesterProfileId,
+        ),
+      ]);
+    } catch {
+      settings = resolveApprovalNotificationSettings(null);
+      requesterPreference = resolveApproverNotificationPreference(null);
+    }
 
     const outcomeNotifications: PlannedApprovalNotification[] = [
       {

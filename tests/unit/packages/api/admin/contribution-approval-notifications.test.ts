@@ -26,6 +26,7 @@ interface StubState {
   statusBeforeSlaUpdateIds: Map<string, string>;
   approvalPolicy: Record<string, unknown> | null;
   approvalSettings: Record<string, unknown> | null;
+  failingSettingsRead?: boolean;
   approvers: Array<Record<string, unknown>>;
   preferences: Array<Record<string, unknown>>;
   approvalNotifications: Array<Record<string, unknown>>;
@@ -234,6 +235,9 @@ class QueryBuilder {
     }
 
     if (this.table === "contribution_approval_notification_settings") {
+      if (this.state.failingSettingsRead) {
+        return { data: null, error: { message: "settings read failed" } };
+      }
       return { data: this.state.approvalSettings, error: null };
     }
 
@@ -1406,6 +1410,79 @@ describe("approval notification email delivery (#262)", () => {
       },
     });
 
+    expect(state.approvalNotifications.map((row) => row.channel)).toEqual([
+      "in_app",
+    ]);
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("escapes staff-authored decision reasons in the email html body", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: true,
+    };
+    state.approvers = [
+      {
+        id: "requester-1",
+        email: "requester@example.test",
+        display_name: "Requester",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    const sendEmail = vi.fn().mockResolvedValue({ id: "email-1" });
+
+    await recordCorrectionApprovalOutcome({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      request: outcomeRequest(),
+      decision: "rejected",
+      decisionReason: 'a < b & "c" <img src=x onerror=alert(1)>',
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [, options] = sendEmail.mock.calls[0]!;
+    // Text keeps the verbatim reason; html escapes it.
+    expect(options.text).toContain('a < b & "c" <img src=x onerror=alert(1)>');
+    expect(options.html).not.toContain("<img");
+    expect(options.html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(options.html).toContain("a &lt; b &amp; &quot;c&quot;");
+  });
+
+  it("falls back to email-off when the gating reads fail instead of failing the decision", async () => {
+    const state = stubState();
+    state.failingSettingsRead = true;
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    const sendEmail = vi.fn();
+
+    await expect(
+      recordCorrectionApprovalOutcome({
+        supabaseAdmin: createStub(state),
+        tenantId: TENANT_ID,
+        request: outcomeRequest(),
+        decision: "approved",
+        decisionReason: null,
+        dependencies: {
+          sendEmail,
+          resolveSendingSettings: vi
+            .fn()
+            .mockResolvedValue(emailSendingSettings),
+        },
+      }),
+    ).resolves.toBeUndefined();
+
+    // The durable in-app outcome still records; email quietly stays off.
     expect(state.approvalNotifications.map((row) => row.channel)).toEqual([
       "in_app",
     ]);
