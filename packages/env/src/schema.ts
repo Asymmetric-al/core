@@ -1,6 +1,12 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+import {
+  isProtectedDeployment,
+  resolveDeploymentEnvironment,
+  resolvePublicVercelClientSignals,
+} from "./target-env";
+
 const optionalBoolean = z
   .enum(["true", "false"])
   .optional()
@@ -37,36 +43,30 @@ const pdfStudioNativeBuilderRolloutSchema = z
   .optional()
   .default("legacy_only");
 
+const publicVercelClientSignals = resolvePublicVercelClientSignals({
+  NEXT_PUBLIC_VERCEL_ENV: process.env.NEXT_PUBLIC_VERCEL_ENV,
+  NEXT_PUBLIC_VERCEL_TARGET_ENV: process.env.NEXT_PUBLIC_VERCEL_TARGET_ENV,
+  VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
+});
+
 const runtimeContext = {
-  nodeEnv: nodeEnvSchema.parse(process.env.NODE_ENV),
-  vercelEnv: process.env.VERCEL_ENV,
-  vercelTargetEnv: process.env.VERCEL_TARGET_ENV,
+  NODE_ENV: nodeEnvSchema.parse(process.env.NODE_ENV),
+  VERCEL_ENV: process.env.VERCEL_ENV,
+  VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
 };
 
-const normalizedTargetEnv = runtimeContext.vercelTargetEnv?.toLowerCase();
-const isProtectedDeployment =
-  runtimeContext.vercelEnv === "production" ||
-  normalizedTargetEnv === "production" ||
-  // "development" is the built-in local dev target.
-  normalizedTargetEnv === "development" ||
-  // "core-development" is the hosted Vercel custom environment for the develop branch
-  // (VERCEL_TARGET_ENV="core-development", VERCEL_ENV="preview"). Vercel reserves the bare name
-  // "development" for the built-in local environment, so the hosted env cannot use it.
-  normalizedTargetEnv === "core-development" ||
-  // "staging" is a retained legacy alias: keep it protected until a Vercel inventory proves no
-  // deployment still reports VERCEL_TARGET_ENV="staging" (in-flight builds / rollbacks).
-  // Recognizing an extra name here only adds protection; remove in a follow-up once verified.
-  normalizedTargetEnv === "staging";
+const isProtectedRuntimeDeployment = isProtectedDeployment(runtimeContext);
 
 const requireInProtectedDeployments = (variableName: string) =>
   z
     .string()
     .optional()
     .superRefine((value, ctx) => {
-      if (isProtectedDeployment && !value) {
+      if (isProtectedRuntimeDeployment && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required for development and production deployments.`,
+          message: `${variableName} is required for protected deployments.`,
         });
       }
     });
@@ -78,10 +78,10 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
     .superRefine((value, ctx) => {
       const cloudinaryEnabled =
         process.env.NEXT_PUBLIC_CLOUDINARY_ENABLED === "true";
-      if (isProtectedDeployment && cloudinaryEnabled && !value) {
+      if (isProtectedRuntimeDeployment && cloudinaryEnabled && !value) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          message: `${variableName} is required when Cloudinary is enabled in development or production.`,
+          message: `${variableName} is required when Cloudinary is enabled in protected deployments.`,
         });
       }
     });
@@ -188,11 +188,10 @@ export const env = createEnv({
       .url()
       .optional()
       .superRefine((value, ctx) => {
-        if (isProtectedDeployment && !value) {
+        if (isProtectedRuntimeDeployment && !value) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message:
-              "SENTRY_DSN is required for development and production deployments.",
+            message: "SENTRY_DSN is required for protected deployments.",
           });
         }
       }),
@@ -251,6 +250,8 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_URL: z.string().url(),
     NEXT_PUBLIC_SUPABASE_ANON_KEY: z.string().min(1).optional(),
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(1).optional(),
+    NEXT_PUBLIC_VERCEL_ENV: vercelEnvSchema,
+    NEXT_PUBLIC_VERCEL_TARGET_ENV: z.string().optional(),
     NEXT_PUBLIC_SITE_URL: z.string().url().optional(),
     NEXT_PUBLIC_APP_URL: z.string().url().optional(),
     NEXT_PUBLIC_MAIN_DOMAIN: z.string().optional(),
@@ -297,6 +298,9 @@ export const env = createEnv({
     NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY:
       process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+    NEXT_PUBLIC_VERCEL_ENV: publicVercelClientSignals.NEXT_PUBLIC_VERCEL_ENV,
+    NEXT_PUBLIC_VERCEL_TARGET_ENV:
+      publicVercelClientSignals.NEXT_PUBLIC_VERCEL_TARGET_ENV,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY,
     SUPABASE_DB_URL: process.env.SUPABASE_DB_URL,
     DEMO_ADMIN_EMAIL: process.env.DEMO_ADMIN_EMAIL,
@@ -442,8 +446,9 @@ export const clientEnv: Pick<typeof env, ClientEnvKey> = env;
 export const serverEnv = env;
 
 export const runtimeEnvFlags = {
-  NODE_ENV: runtimeContext.nodeEnv,
-  VERCEL_ENV: runtimeContext.vercelEnv,
-  VERCEL_TARGET_ENV: runtimeContext.vercelTargetEnv,
-  IS_PROTECTED_DEPLOYMENT: isProtectedDeployment,
+  NODE_ENV: runtimeContext.NODE_ENV,
+  VERCEL_ENV: runtimeContext.VERCEL_ENV,
+  VERCEL_TARGET_ENV: runtimeContext.VERCEL_TARGET_ENV,
+  DEPLOYMENT_ENVIRONMENT: resolveDeploymentEnvironment(runtimeContext),
+  IS_PROTECTED_DEPLOYMENT: isProtectedRuntimeDeployment,
 } as const;
