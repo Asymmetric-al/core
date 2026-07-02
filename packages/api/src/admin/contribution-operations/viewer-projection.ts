@@ -1,3 +1,5 @@
+import { stripeDashboardUrls } from "./provider-dashboard";
+
 import type { ContributionActionAvailability } from "./action-availability";
 import type { ContributionDetail } from "./detail-read-model";
 import type {
@@ -31,6 +33,17 @@ export type ViewerProjectedContributionDetail = ContributionDetail & {
   providerProof: ContributionProviderProof | null;
 };
 
+export interface ContributionViewerProjectionOptions {
+  /**
+   * True when the tenant's resolved Stripe key is a test-mode key
+   * (sk_test_/rk_test_); dashboard proof links then point at
+   * https://dashboard.stripe.com/test/... Resolved server-side (route) only
+   * for viewers holding contributions.use_provider_actions. Defaults to
+   * live-mode links.
+   */
+  providerDashboardTestMode?: boolean;
+}
+
 export function stripeReplayAvailability(
   paymentIntentId: string | null,
   chargeId: string | null,
@@ -58,6 +71,7 @@ export function stripeReplayAvailability(
 export function projectContributionDetailForViewer(
   detail: ContributionDetail,
   viewerCapabilities: string[],
+  options: ContributionViewerProjectionOptions = {},
 ): ViewerProjectedContributionDetail {
   const hasProviderAccess = viewerCapabilities.includes(
     "contributions.use_provider_actions",
@@ -105,14 +119,11 @@ export function projectContributionDetailForViewer(
       chargeId,
       refundIds: detail.payment.stripe.refundIds,
       replayContext: detail.payment.stripe.replayContext,
-      dashboardUrls: {
-        paymentIntent: paymentIntentId
-          ? `https://dashboard.stripe.com/payments/${paymentIntentId}`
-          : null,
-        charge: chargeId
-          ? `https://dashboard.stripe.com/charges/${chargeId}`
-          : null,
-      },
+      dashboardUrls: stripeDashboardUrls({
+        paymentIntentId,
+        chargeId,
+        testMode: options.providerDashboardTestMode ?? false,
+      }),
     },
   };
 }
@@ -147,7 +158,11 @@ function redactProviderOutcomeForViewer(
  */
 export function projectContributionActionResultForViewer<
   TResult extends ContributionActionResult,
->(result: TResult, viewerCapabilities: string[]): TResult {
+>(
+  result: TResult,
+  viewerCapabilities: string[],
+  options: ContributionViewerProjectionOptions = {},
+): TResult {
   const hasProviderAccess = viewerCapabilities.includes(
     "contributions.use_provider_actions",
   );
@@ -160,6 +175,7 @@ export function projectContributionActionResultForViewer<
           canonicalContribution: projectContributionDetailForViewer(
             canonical as ContributionDetail,
             viewerCapabilities,
+            options,
           ),
         }
       : result;

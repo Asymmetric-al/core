@@ -309,7 +309,7 @@ describe("ContributionDetailSheet provider proof", () => {
         providerProof={{
           paymentIntentId: "pi_proof",
           chargeId: "ch_proof",
-          refundIds: ["re_1"],
+          refundIds: ["re_1", "re_2"],
           replayContext: null,
           dashboardUrls: {
             paymentIntent: "https://dashboard.stripe.com/payments/pi_proof",
@@ -322,6 +322,8 @@ describe("ContributionDetailSheet provider proof", () => {
     expect(view.getByText("Provider proof")).toBeTruthy();
     expect(view.getByText("pi_proof")).toBeTruthy();
     expect(view.getByText("ch_proof")).toBeTruthy();
+    expect(view.getByText("Refund IDs")).toBeTruthy();
+    expect(view.getByText("re_1, re_2")).toBeTruthy();
     expect(
       view.getByRole("link", { name: /open payment in stripe/i }),
     ).toBeTruthy();

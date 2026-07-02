@@ -258,6 +258,10 @@ export async function refundContributionThroughStripe(
       localOutcome = await applyRefundedChargeToDonation(
         input.supabaseAdmin,
         charge,
+        // The expanded charge's embedded refund list can be absent or
+        // truncated; the refund this action just created is always part of
+        // the convergent stripe_refund_ids set.
+        { knownRefundIds: [refund.id] },
       );
     } catch (error) {
       // The provider refund succeeded but the local record did not converge.

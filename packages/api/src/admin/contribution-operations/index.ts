@@ -114,10 +114,19 @@ export {
   type TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 export {
+  isStripeTestModeKey,
+  resolveProviderDashboardTestMode,
+  resolveViewerProviderDashboardTestMode,
+  stripeDashboardUrls,
+  type StripeDashboardUrls,
+  type StripeDashboardUrlsInput,
+} from "./provider-dashboard";
+export {
   projectContributionActionResultForViewer,
   projectContributionDetailForViewer,
   stripeReplayAvailability,
   type ContributionProviderProof,
+  type ContributionViewerProjectionOptions,
   type ViewerProjectedContributionDetail,
 } from "./viewer-projection";
 

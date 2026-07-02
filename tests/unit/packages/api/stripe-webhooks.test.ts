@@ -471,7 +471,7 @@ describe("Stripe webhook handler", () => {
     });
   });
 
-  it("marks fully refunded charges as refunded", async () => {
+  it("marks fully refunded charges as refunded and records the refund ids", async () => {
     const supabase = createSupabaseDonationMock({
       amount: 5000,
       id: "donation-1",
@@ -488,6 +488,11 @@ describe("Stripe webhook handler", () => {
             id: "ch_1",
             object: "charge",
             payment_intent: "pi_1",
+            refunds: {
+              data: [{ id: "re_1", object: "refund" }],
+              has_more: false,
+              object: "list",
+            },
           },
         },
         id: "evt_refunded",
@@ -507,7 +512,81 @@ describe("Stripe webhook handler", () => {
       refunded_at: expect.any(String),
       status: "refunded",
       stripe_charge_id: "ch_1",
+      stripe_refund_ids: ["re_1"],
       updated_at: expect.any(String),
+    });
+  });
+
+  it("unions webhook-reported refund ids with the ids already stored on the donation", async () => {
+    const supabase = createSupabaseDonationMock({
+      amount: 5000,
+      id: "donation-1",
+      status: "completed",
+      stripe_payment_intent_id: "pi_1",
+      stripe_refund_ids: ["re_existing"],
+    });
+
+    await handleStripeWebhookEvent(
+      supabase.client as never,
+      {
+        data: {
+          object: {
+            amount_refunded: 5000,
+            id: "ch_1",
+            object: "charge",
+            payment_intent: "pi_1",
+            refunds: {
+              data: [
+                { id: "re_existing", object: "refund" },
+                { id: "re_new", object: "refund" },
+              ],
+              has_more: false,
+              object: "list",
+            },
+          },
+        },
+        id: "evt_refunded_union",
+        object: "event",
+        type: "charge.refunded",
+      } as never,
+    );
+
+    expect(supabase.updateValues[0]).toMatchObject({
+      refund_amount: 5000,
+      stripe_refund_ids: ["re_existing", "re_new"],
+    });
+  });
+
+  it("preserves stored refund ids when the refunded charge omits its refund list", async () => {
+    const supabase = createSupabaseDonationMock({
+      amount: 5000,
+      id: "donation-1",
+      status: "completed",
+      stripe_payment_intent_id: "pi_1",
+      stripe_refund_ids: ["re_kept"],
+    });
+
+    await handleStripeWebhookEvent(
+      supabase.client as never,
+      {
+        data: {
+          object: {
+            amount_refunded: 2000,
+            id: "ch_1",
+            object: "charge",
+            payment_intent: "pi_1",
+          },
+        },
+        id: "evt_refunded_no_list",
+        object: "event",
+        type: "charge.refunded",
+      } as never,
+    );
+
+    expect(supabase.updateValues[0]).toMatchObject({
+      refund_amount: 2000,
+      status: "completed",
+      stripe_refund_ids: ["re_kept"],
     });
   });
 });
