@@ -1042,8 +1042,14 @@ export function DetailDrawer({
               >
                 Cancel
               </Button>
-              <Button className="h-11" onClick={confirmSetTenantDefault}>
-                Set tenant default
+              <Button
+                className="h-11"
+                disabled={saveTenantDefaultMutation.isPending}
+                onClick={confirmSetTenantDefault}
+              >
+                {saveTenantDefaultMutation.isPending
+                  ? "Saving..."
+                  : "Set tenant default"}
               </Button>
             </div>
           </DialogContent>
