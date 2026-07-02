@@ -14,7 +14,7 @@ Current workflow semantics:
 
 - `ci.yml` is the always-on fast gate for the active long-lived branches (`develop`, `production`).
 - `ci-integration.yml` runs on the same active long-lived branches.
-- `test-e2e-smoke` is **blocking on `develop`** through `e2e-smoke-gate` and `integration-gate`.
+- `test-e2e-smoke` is **blocking on `develop`** through `integration-gate`, which depends on `e2e-smoke-gate` (not a separate branch-protection check).
 - `test-e2e` is **informational on `develop`** (`continue-on-error: true` there).
 - `test-e2e` is enforced on `production` through the workflow's `e2e-gate`, and
   branch protection must require `ci-gate`, `integration-gate`, and `e2e-gate`

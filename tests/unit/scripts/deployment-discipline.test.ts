@@ -49,12 +49,7 @@ const branchProtection = {
   allow_force_pushes: { enabled: true },
   required_status_checks: {
     strict: true,
-    contexts: [
-      "ci-gate",
-      "integration-gate",
-      "e2e-gate",
-      "release-source-gate",
-    ],
+    contexts: ["ci-gate", "integration-gate", "e2e-gate"],
   },
   required_pull_request_reviews: {
     required_approving_review_count: 1,
@@ -65,7 +60,7 @@ const developBranchProtection = {
   ...branchProtection,
   required_status_checks: {
     strict: true,
-    contexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
+    contexts: ["ci-gate", "integration-gate"],
   },
 };
 
@@ -164,20 +159,15 @@ describe("deployment discipline verifier", () => {
       branch: "develop",
       protection: developBranchProtection,
       branchRule: branchProtectionRule,
-      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
-      forbiddenContexts: ["e2e-gate"],
+      requiredContexts: ["ci-gate", "integration-gate"],
+      forbiddenContexts: ["e2e-gate", "e2e-smoke-gate", "release-source-gate"],
     });
     const productionChecks = validateGitHubBranchProtection({
       branch: "production",
       protection: branchProtection,
       branchRule: branchProtectionRule,
-      requiredContexts: [
-        "ci-gate",
-        "integration-gate",
-        "e2e-gate",
-        "release-source-gate",
-      ],
-      forbiddenContexts: ["e2e-smoke-gate"],
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
+      forbiddenContexts: ["e2e-smoke-gate", "release-source-gate"],
     });
 
     expect(developChecks.every((item) => item.ok)).toBe(true);
@@ -191,21 +181,19 @@ describe("deployment discipline verifier", () => {
         ...developBranchProtection,
         required_status_checks: {
           strict: true,
-          contexts: [
-            "ci-gate",
-            "integration-gate",
-            "e2e-smoke-gate",
-            "e2e-gate",
-          ],
+          contexts: ["ci-gate", "integration-gate", "e2e-smoke-gate", "e2e-gate"],
         },
       },
       branchRule: branchProtectionRule,
-      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
-      forbiddenContexts: ["e2e-gate"],
+      requiredContexts: ["ci-gate", "integration-gate"],
+      forbiddenContexts: ["e2e-gate", "e2e-smoke-gate", "release-source-gate"],
     });
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
-      expect.arrayContaining(["develop does not require e2e-gate"]),
+      expect.arrayContaining([
+        "develop does not require e2e-gate",
+        "develop does not require e2e-smoke-gate",
+      ]),
     );
   });
 
@@ -219,12 +207,7 @@ describe("deployment discipline verifier", () => {
       branchRule: {
         allowsForcePushes: true,
       },
-      requiredContexts: [
-        "ci-gate",
-        "integration-gate",
-        "e2e-gate",
-        "release-source-gate",
-      ],
+      requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
     });
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(
@@ -234,7 +217,6 @@ describe("deployment discipline verifier", () => {
         "production requires ci-gate",
         "production requires integration-gate",
         "production requires e2e-gate",
-        "production requires release-source-gate",
       ]),
     );
   });
@@ -252,8 +234,8 @@ describe("deployment discipline verifier", () => {
           "Preview – missionary",
         ],
       },
-      requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
-      forbiddenContexts: ["e2e-gate"],
+      requiredContexts: ["ci-gate", "integration-gate"],
+      forbiddenContexts: ["e2e-gate", "e2e-smoke-gate", "release-source-gate"],
     });
 
     expect(checks.filter((item) => !item.ok).map((item) => item.label)).toEqual(

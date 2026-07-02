@@ -384,13 +384,8 @@ async function main() {
           args.repo,
           PRODUCTION_BRANCH,
         ),
-        requiredContexts: [
-          "ci-gate",
-          "integration-gate",
-          "e2e-gate",
-          "release-source-gate",
-        ],
-        forbiddenContexts: ["e2e-smoke-gate"],
+        requiredContexts: ["ci-gate", "integration-gate", "e2e-gate"],
+        forbiddenContexts: ["e2e-smoke-gate", "release-source-gate"],
       }),
     );
     checks.push(
@@ -401,8 +396,8 @@ async function main() {
           args.repo,
           DEVELOPMENT_BRANCH,
         ),
-        requiredContexts: ["ci-gate", "integration-gate", "e2e-smoke-gate"],
-        forbiddenContexts: ["e2e-gate"],
+        requiredContexts: ["ci-gate", "integration-gate"],
+        forbiddenContexts: ["e2e-gate", "e2e-smoke-gate", "release-source-gate"],
       }),
     );
 
