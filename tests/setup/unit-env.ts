@@ -1,3 +1,5 @@
+import { beforeEach } from "vitest";
+
 process.env.SKIP_ENV_VALIDATION ??= "1";
 process.env.NEXT_PUBLIC_SUPABASE_URL ??= "https://example.supabase.co";
 process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "example-anon-key";
@@ -39,3 +41,15 @@ if (!localStorageDescriptor || "get" in localStorageDescriptor) {
     },
   });
 }
+
+beforeEach(() => {
+  if (typeof MouseEvent !== "undefined") {
+    globalThis.PointerEvent ??= MouseEvent as typeof PointerEvent;
+  }
+
+  if (typeof Element !== "undefined") {
+    Element.prototype.getAnimations ??= function getAnimations() {
+      return [];
+    };
+  }
+});

@@ -32,7 +32,15 @@ describe("qa smoke preview deployment workflow", () => {
 
   it("checks out the PR head SHA and deploys preview targets only", () => {
     expect(workflow).toContain("ref: ${{ steps.gate.outputs.head_sha }}");
-    expect(workflow).toContain("vercel@latest deploy --yes --target=preview");
+    expect(workflow).toContain(
+      "vercel@latest --cwd apps/admin deploy --yes --target=preview",
+    );
+    expect(workflow).toContain(
+      "vercel@latest --cwd apps/donor deploy --yes --target=preview",
+    );
+    expect(workflow).toContain(
+      "vercel@latest --cwd apps/missionary deploy --yes --target=preview",
+    );
     expect(workflow).not.toContain("--prod");
     expect(workflow).not.toContain("--target=production");
   });
@@ -69,6 +77,14 @@ describe("qa smoke preview deployment workflow", () => {
     expect(workflow).toContain("actions/upload-artifact@v4");
     expect(workflow).toContain("<!-- headless-pr-preview-smoke-qa -->");
     expect(workflow).toContain("# Headless PR Preview Smoke QA");
+  });
+
+  it("uses the shared Bun version and portable install backend", () => {
+    expect(workflow).toContain('BUN_VERSION: "1.3.14"');
+    expect(workflow).toContain("bun-version: ${{ env.BUN_VERSION }}");
+    expect(workflow).toContain("bun ci --no-cache --backend=copyfile");
+    expect(workflow).not.toContain('bun-version: "1.3.4"');
+    expect(workflow).not.toContain("bun install --frozen-lockfile");
   });
 
   it("does not use bypass query parameters", () => {

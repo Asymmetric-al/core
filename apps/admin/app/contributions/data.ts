@@ -1,3 +1,5 @@
+import { normalizeSharedPaymentStatus } from "@asym/api/admin/contribution-shared";
+
 import type { Contribution } from "./types";
 
 /** Live-query page reads from TanStack DB; keep empty for typing / fallbacks. */
@@ -48,7 +50,7 @@ function boneyardRow(
         missionaryName: row.missionaryName ?? null,
         lineCount: 1,
       },
-      paymentStatus: row.status,
+      paymentStatus: normalizeSharedPaymentStatus(row.status),
       receiptStatus,
       crmPostStatus: row.crmPostStatus ?? null,
       refundState: "none",
@@ -157,6 +159,9 @@ export const boneyardContributionsFixture: Contribution[] = [
 export const contributionStatusOptions = [
   { label: "Completed", value: "completed" },
   { label: "Pending", value: "pending" },
+  // Delayed-notification rails (e.g. ACH) sit in "processing" until Stripe
+  // confirms finality; without this option those rows match no filter chip.
+  { label: "Processing", value: "processing" },
   { label: "Failed", value: "failed" },
   { label: "Refunded", value: "refunded" },
 ];

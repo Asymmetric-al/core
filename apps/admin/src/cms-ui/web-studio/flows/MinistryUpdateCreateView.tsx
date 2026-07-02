@@ -13,8 +13,6 @@ import {
 import { useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 import { z } from "zod";
@@ -25,6 +23,7 @@ import {
   useSuperAdminTenantOptions,
 } from "./tenant-picker";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
+import { Link, useRouter, useSearchParams } from "../routing";
 import { StudioLayout } from "../shell/studio-layout";
 
 type ProfileDoc = {
@@ -198,8 +197,13 @@ function MinistryUpdateCreateViewContent() {
               <div className="flex flex-col gap-2">
                 <Label>Missionary profile</Label>
                 <Select
-                  value={field.state.value || undefined}
-                  onValueChange={(v) => field.handleChange(v)}
+                  value={field.state.value || null}
+                  onValueChange={(v) => {
+                    if (v === null) {
+                      return;
+                    }
+                    field.handleChange(v);
+                  }}
                   disabled={profilesQuery.isPending || profilesQuery.isError}
                 >
                   <SelectTrigger>

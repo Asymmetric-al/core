@@ -1,7 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@asym/lib/utils";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { cn } from "@asym/ui/lib/utils";
@@ -68,7 +68,7 @@ export function GivingWidget({
             role="radio"
             aria-checked={frequency === "one-time"}
             className={cn(
-              "flex-1 py-3 text-sm font-semibold rounded-lg transition-all duration-300 relative z-10",
+              "flex-1 py-3 text-sm font-semibold rounded-lg transition-[color,background-color,box-shadow] relative z-10",
               frequency === "one-time"
                 ? "bg-white text-zinc-900 shadow-sm"
                 : "text-zinc-500 hover:text-zinc-700",
@@ -81,7 +81,7 @@ export function GivingWidget({
             role="radio"
             aria-checked={frequency === "monthly"}
             className={cn(
-              "flex-1 py-3 text-sm font-semibold rounded-lg transition-all duration-300 relative z-10",
+              "flex-1 py-3 text-sm font-semibold rounded-lg transition-[color,background-color,box-shadow] relative z-10",
               frequency === "monthly"
                 ? "bg-white text-zinc-900 shadow-sm"
                 : "text-zinc-500 hover:text-zinc-700",
@@ -94,7 +94,7 @@ export function GivingWidget({
         <div className="space-y-4">
           <div
             className={cn(
-              "relative h-14 rounded-xl border-2 transition-all duration-300 bg-white flex items-center overflow-hidden cursor-text group",
+              "relative h-14 rounded-xl border-2 transition-colors bg-white flex items-center overflow-hidden cursor-text group",
               isInputFocused
                 ? "border-zinc-900 ring-4 ring-zinc-900/5"
                 : "border-zinc-200 hover:border-zinc-300",
@@ -119,7 +119,7 @@ export function GivingWidget({
               id="custom-amount-input"
               type="number"
               placeholder="0"
-              className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none transition-all"
+              className="size-full bg-transparent border-none outline-none pl-10 pr-6 text-2xl font-semibold text-zinc-900 placeholder:text-zinc-200 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               value={customAmount}
               onChange={handleCustomAmountChange}
               onFocus={() => setIsInputFocused(true)}
@@ -181,19 +181,17 @@ export function GivingWidget({
           </div>
         )}
 
-        <Button
-          size="lg"
-          className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle"
-          asChild
+        <Link
+          href={`/checkout?workerId=${workerId}&amount=${amount}&frequency=${frequency}`}
+          className={cn(
+            buttonVariants({ size: "lg" }),
+            "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle",
+          )}
         >
-          <Link
-            href={`/checkout?workerId=${workerId}&amount=${amount}&frequency=${frequency}`}
-          >
-            {frequency === "monthly"
-              ? `Give ${formatCurrency(amount)} Monthly`
-              : `Give ${formatCurrency(amount)}`}
-          </Link>
-        </Button>
+          {frequency === "monthly"
+            ? `Give ${formatCurrency(amount)} Monthly`
+            : `Give ${formatCurrency(amount)}`}
+        </Link>
 
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
           <ShieldCheck

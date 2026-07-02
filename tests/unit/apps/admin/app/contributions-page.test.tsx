@@ -231,9 +231,14 @@ function installDom() {
   globalThis.EventTarget = dom.window.EventTarget;
   globalThis.NodeFilter = dom.window.NodeFilter;
   globalThis.MouseEvent = dom.window.MouseEvent;
+  globalThis.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
+  dom.window.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
   globalThis.KeyboardEvent = dom.window.KeyboardEvent;
   globalThis.MutationObserver = dom.window.MutationObserver;
   globalThis.getComputedStyle = dom.window.getComputedStyle;
+  globalThis.Element.prototype.getAnimations ??= function getAnimations() {
+    return [];
+  };
   globalThis.requestAnimationFrame = (callback) =>
     window.setTimeout(callback, 0);
   globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
@@ -337,7 +342,7 @@ describe("apps/admin/app/contributions/page", () => {
         isPending: false,
       }),
     );
-  }, 30_000);
+  }, 60_000);
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");

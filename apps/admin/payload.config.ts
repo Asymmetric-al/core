@@ -19,7 +19,7 @@ import { Tenants } from "./src/cms/collections/tenants";
 import { webStudioCreateFromTemplateEndpoint } from "./src/cms/create-from-template-endpoint";
 import { resolvePayloadDatabaseConfig } from "./src/cms/payload-database-config";
 import {
-  createPayloadStoragePlugins,
+  createPayloadStorageAdapters,
   resolvePayloadEmailAdapter,
 } from "./src/cms/payload-runtime-integrations";
 
@@ -116,11 +116,11 @@ export default buildConfig({
   }),
   editor: lexicalEditor(),
   email: resolvePayloadEmailAdapter(),
-  plugins: createPayloadStoragePlugins(),
   routes: {
     admin: "/web-studio",
   },
   secret: resolvePayloadSecret(),
+  storage: createPayloadStorageAdapters(),
   typescript: {
     outputFile: path.resolve(dirname, "payload-types.ts"),
   },

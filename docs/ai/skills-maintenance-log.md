@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-05-23
+Last updated: 2026-06-28
 
 ## Scope
 
@@ -126,6 +126,14 @@ Completed 2026-05-23:
 - `bun run test:unit` — pass after raising the donor Next config dynamic import
   test timeout to 15 seconds
 - `bun run ci:preflight` — pass
+
+## 2026-06-28 — eve + ecosystem skills
+
+Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
+
+- Installed via Skills CLI: `eve`, `create-agent`, `impeccable` (upstream id; requested `critique` is not published), `playwright-best-practices`, `codebase-design`, refreshed `setup-pre-commit`.
+- Promoted new skills into canonical `docs/ai/skills/*` with `references/upstream.md`.
+- Updated `AGENTS.md` Skill Routing and ran `bun run skills:sync`.
 
 ## Rollback Notes
 

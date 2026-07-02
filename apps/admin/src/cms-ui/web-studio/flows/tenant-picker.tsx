@@ -99,8 +99,13 @@ export function TenantSelectField({
     <div className="flex flex-col gap-2">
       <Label>{label}</Label>
       <Select
-        value={field.state.value || undefined}
-        onValueChange={(v) => field.handleChange(v)}
+        value={field.state.value || null}
+        onValueChange={(v) => {
+          if (v === null) {
+            return;
+          }
+          field.handleChange(v);
+        }}
         disabled={disabled}
       >
         <SelectTrigger>
