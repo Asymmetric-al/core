@@ -1,9 +1,11 @@
+import { deliverApprovalEmailNotifications } from "./approval-notification-email";
 import {
   loadContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
+import type { ApprovalEmailDependencies } from "./approval-notification-email";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionCorrectionRequest } from "./correction-requests";
 import type { ContributionOperationAuditEventInput } from "./types";
@@ -421,6 +423,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   requestId: string;
+  dependencies?: ApprovalEmailDependencies;
 }): Promise<{ approvalTaskId: string | null; notificationsCreated: number }> {
   const request = await loadContributionCorrectionRequest(input);
   if (request.status !== "pending") {
@@ -543,6 +546,23 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     });
   }
 
+  // Deliver email-channel notifications only when this call created rows —
+  // pure replays stay quiet, and the provider idempotency key (the dedupe
+  // key) guards the partial-insert case (#262).
+  if (notificationsCreated > 0) {
+    await deliverApprovalEmailNotifications({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      notifications: plan.notifications,
+      context: {
+        requestId: request.id,
+        donationId: request.donationId,
+        actionType: request.actionType,
+      },
+      dependencies: input.dependencies,
+    });
+  }
+
   return { approvalTaskId, notificationsCreated };
 }
 
@@ -557,6 +577,7 @@ export async function recordCorrectionApprovalOutcome(input: {
   request: ContributionCorrectionRequest;
   decision: "approved" | "rejected";
   decisionReason: string | null;
+  dependencies?: ApprovalEmailDependencies;
 }): Promise<void> {
   if (input.request.approvalTaskId) {
     const completedAt = new Date().toISOString();
@@ -575,25 +596,85 @@ export async function recordCorrectionApprovalOutcome(input: {
   }
 
   if (input.request.requestedByProfileId) {
-    await insertApprovalNotifications(
+    const requesterProfileId = input.request.requestedByProfileId;
+    // Outcome email follows the same double opt-in the approval-request
+    // channel uses: the tenant setting AND the requester preference must both
+    // enable email. Preferences still only pick channels (#262).
+    const [settings, requesterPreference] = await Promise.all([
+      loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
+      loadRequesterNotificationPreference(
+        input.supabaseAdmin,
+        input.tenantId,
+        requesterProfileId,
+      ),
+    ]);
+
+    const outcomeNotifications: PlannedApprovalNotification[] = [
+      {
+        recipientProfileId: requesterProfileId,
+        channel: "in_app",
+        kind: "outcome",
+        dedupeKey: `correction-request/${input.request.id}/outcome/${input.decision}/requester`,
+      },
+    ];
+    if (settings.emailEnabled && requesterPreference.emailEnabled) {
+      outcomeNotifications.push({
+        recipientProfileId: requesterProfileId,
+        channel: "email",
+        kind: "outcome",
+        dedupeKey: `correction-request/${input.request.id}/outcome/${input.decision}/email/requester`,
+      });
+    }
+
+    const created = await insertApprovalNotifications(
       input.supabaseAdmin,
       input.tenantId,
       input.request.id,
-      [
-        {
-          recipientProfileId: input.request.requestedByProfileId,
-          channel: "in_app",
-          kind: "outcome",
-          dedupeKey: `correction-request/${input.request.id}/outcome/${input.decision}/requester`,
-        },
-      ],
+      outcomeNotifications,
       {
         decision: input.decision,
         decisionReason: input.decisionReason,
         donationId: input.request.donationId,
       },
     );
+
+    if (created > 0) {
+      await deliverApprovalEmailNotifications({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        notifications: outcomeNotifications,
+        context: {
+          requestId: input.request.id,
+          donationId: input.request.donationId,
+          actionType: input.request.actionType,
+          decision: input.decision,
+          decisionReason: input.decisionReason,
+        },
+        dependencies: input.dependencies,
+      });
+    }
   }
+}
+
+async function loadRequesterNotificationPreference(
+  supabaseAdmin: SupabaseAdmin,
+  tenantId: string,
+  profileId: string,
+): Promise<ApproverNotificationPreference> {
+  const { data, error } = await supabaseAdmin
+    .from("contribution_approval_notification_preferences")
+    .select("in_app_enabled, email_enabled")
+    .eq("tenant_id", tenantId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return resolveApproverNotificationPreference(
+    data as { in_app_enabled?: boolean | null } | null,
+  );
 }
 
 /**
@@ -606,6 +687,7 @@ export async function processCorrectionApprovalSla(input: {
   tenantId: string;
   policy: { reminderHours: number; escalationHours: number | null };
   now?: string;
+  dependencies?: ApprovalEmailDependencies;
 }): Promise<{ remindersSent: number; escalationsSent: number }> {
   const now = input.now ?? new Date().toISOString();
   const { data, error } = await input.supabaseAdmin
@@ -676,6 +758,20 @@ export async function processCorrectionApprovalSla(input: {
           continue;
         }
         remindersSent += reminderDelivery.notificationsCreated;
+
+        if (reminderDelivery.notificationsCreated > 0) {
+          await deliverApprovalEmailNotifications({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            notifications: plan.notifications,
+            context: {
+              requestId,
+              donationId: asString(row.donation_id) ?? "",
+              actionType: asString(row.action_type) ?? "correction",
+            },
+            dependencies: input.dependencies,
+          });
+        }
       }
 
       if (sla.escalationDue) {
@@ -705,6 +801,20 @@ export async function processCorrectionApprovalSla(input: {
           continue;
         }
         escalationsSent += escalationDelivery.notificationsCreated;
+
+        if (escalationDelivery.notificationsCreated > 0) {
+          await deliverApprovalEmailNotifications({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            notifications: plan.notifications,
+            context: {
+              requestId,
+              donationId: asString(row.donation_id) ?? "",
+              actionType: asString(row.action_type) ?? "correction",
+            },
+            dependencies: input.dependencies,
+          });
+        }
       }
     } catch (error) {
       failures.push({
