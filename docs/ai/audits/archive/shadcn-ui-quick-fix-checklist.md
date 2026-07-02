@@ -1,3 +1,6 @@
+> **ARCHIVED (2026-06):** Historical audit from the Radix era. The UI layer
+> is now Base UI only — see docs/ai/audits/base-ui-only-migration.md.
+
 # shadcn/ui Quick-Fix Checklist
 
 > Superseded status: historical reference only. Current `packages/ui/components.json` is already pinned to `base-maia`, `lucide`, `zinc`, Tailwind v4 CSS-first, and `bun run verify:shadcn-diff` is clean. Do not apply these checklist items without re-verifying them against the current tree.

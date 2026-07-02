@@ -335,12 +335,14 @@ export function MissionControlHome({
                 </div>
               </div>
               <Dialog open={showAllTools} onOpenChange={setShowAllTools}>
-                <DialogTrigger asChild>
-                  <Button className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800">
-                    <LayoutGrid className="mr-2 size-4" />
-                    Customize modules
-                  </Button>
-                </DialogTrigger>
+                <DialogTrigger
+                  render={
+                    <Button className="h-10 w-full rounded-xl bg-zinc-900 text-sm font-semibold text-white hover:bg-zinc-800">
+                      <LayoutGrid className="mr-2 size-4" />
+                      Customize modules
+                    </Button>
+                  }
+                />
                 <DialogContent className="max-w-3xl">
                   <DialogHeader>
                     <DialogTitle>Mission Control tools</DialogTitle>
@@ -500,15 +502,17 @@ export function MissionControlHome({
               </p>
             </div>
             <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
-                >
-                  <LayoutGrid className="mr-2 size-4" />
-                  Preview widgets
-                </Button>
-              </DialogTrigger>
+              <DialogTrigger
+                render={
+                  <Button
+                    variant="outline"
+                    className="h-10 rounded-xl border-zinc-200 bg-white px-4 text-sm font-semibold hover:bg-zinc-50"
+                  >
+                    <LayoutGrid className="mr-2 size-4" />
+                    Preview widgets
+                  </Button>
+                }
+              />
               <DialogContent className="max-w-2xl">
                 <DialogHeader>
                   <DialogTitle>Widget library preview</DialogTitle>

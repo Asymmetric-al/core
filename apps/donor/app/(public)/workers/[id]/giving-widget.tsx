@@ -1,7 +1,7 @@
 "use client";
 
 import { formatCurrency } from "@asym/lib/utils";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { cn } from "@asym/ui/lib/utils";
@@ -181,19 +181,17 @@ export function GivingWidget({
           </div>
         )}
 
-        <Button
-          size="lg"
-          className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle"
-          asChild
+        <Link
+          href={`/checkout?workerId=${workerId}&amount=${amount}&frequency=${frequency}`}
+          className={cn(
+            buttonVariants({ size: "lg" }),
+            "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle",
+          )}
         >
-          <Link
-            href={`/checkout?workerId=${workerId}&amount=${amount}&frequency=${frequency}`}
-          >
-            {frequency === "monthly"
-              ? `Give ${formatCurrency(amount)} Monthly`
-              : `Give ${formatCurrency(amount)}`}
-          </Link>
-        </Button>
+          {frequency === "monthly"
+            ? `Give ${formatCurrency(amount)} Monthly`
+            : `Give ${formatCurrency(amount)}`}
+        </Link>
 
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
           <ShieldCheck

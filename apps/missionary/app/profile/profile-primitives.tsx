@@ -6,7 +6,7 @@ import {
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent, CardHeader } from "@asym/ui/components/shadcn/card";
 import {
   Facebook,
@@ -504,8 +504,8 @@ export function ProfileHeaderActions({
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <Tooltip>
-        <TooltipTrigger asChild>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+        <TooltipTrigger
+          render={
             <Button
               variant="outline"
               size="sm"
@@ -536,33 +536,30 @@ export function ProfileHeaderActions({
                 )}
               </AnimatePresence>
             </Button>
-          </motion.div>
-        </TooltipTrigger>
+          }
+        />
         <TooltipContent>Copy profile link</TooltipContent>
       </Tooltip>
 
       <Tooltip>
-        <TooltipTrigger asChild>
-          <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9 px-3 text-xs font-medium"
-              asChild
+        <TooltipTrigger
+          render={
+            <a
+              href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "h-9 px-3 text-xs font-medium",
+              )}
             >
-              <a
-                href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                <Eye className="mr-1.5 size-4" />
-                <span className="hidden sm:inline">View Public Page</span>
-                <span className="sm:hidden">View</span>
-                <ExternalLink className="ml-1 size-3 opacity-50" />
-              </a>
-            </Button>
-          </motion.div>
-        </TooltipTrigger>
+              <Eye className="mr-1.5 size-4" />
+              <span className="hidden sm:inline">View Public Page</span>
+              <span className="sm:hidden">View</span>
+              <ExternalLink className="ml-1 size-3 opacity-50" />
+            </a>
+          }
+        />
         <TooltipContent>View your public profile</TooltipContent>
       </Tooltip>
 

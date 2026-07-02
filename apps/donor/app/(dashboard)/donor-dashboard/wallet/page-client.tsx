@@ -739,15 +739,17 @@ function MethodCard({
             </div>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-10 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-50 rounded-full"
-                >
-                  <MoreHorizontal className="size-5" />
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-10 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-50 rounded-full"
+                  >
+                    <MoreHorizontal className="size-5" />
+                  </Button>
+                }
+              />
               <DropdownMenuContent align="end" className="w-56 p-2 rounded-xl">
                 <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 px-2 py-1.5">
                   Manage Method
@@ -910,13 +912,13 @@ function AddMethodDialog({
               <TabsList className="grid w-full grid-cols-2 mb-8 bg-white p-1 rounded-xl shadow-sm border border-zinc-200 h-12">
                 <TabsTrigger
                   value="card"
-                  className="rounded-lg font-semibold uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-colors duration-200 shadow-none"
+                  className="rounded-lg font-semibold uppercase tracking-widest text-[10px] data-active:bg-zinc-900 data-active:text-white transition-colors duration-200 shadow-none"
                 >
                   Credit Card
                 </TabsTrigger>
                 <TabsTrigger
                   value="bank"
-                  className="rounded-lg font-semibold uppercase tracking-widest text-[10px] data-[state=active]:bg-zinc-900 data-[state=active]:text-white transition-colors duration-200 shadow-none"
+                  className="rounded-lg font-semibold uppercase tracking-widest text-[10px] data-active:bg-zinc-900 data-active:text-white transition-colors duration-200 shadow-none"
                 >
                   Bank Account
                 </TabsTrigger>

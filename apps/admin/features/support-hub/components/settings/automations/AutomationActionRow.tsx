@@ -69,9 +69,12 @@ export function AutomationActionRow({
       {action.kind === "assign_agent" ? (
         <Select
           value={action.agentId}
-          onValueChange={(value) =>
-            onChange({ kind: "assign_agent", agentId: value })
-          }
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            onChange({ kind: "assign_agent", agentId: value });
+          }}
         >
           <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
             <SelectValue placeholder="Pick an agent" />
@@ -89,9 +92,12 @@ export function AutomationActionRow({
       {action.kind === "assign_team" ? (
         <Select
           value={action.teamId}
-          onValueChange={(value) =>
-            onChange({ kind: "assign_team", teamId: value })
-          }
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            onChange({ kind: "assign_team", teamId: value });
+          }}
         >
           <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
             <SelectValue placeholder="Pick a team" />
@@ -109,9 +115,12 @@ export function AutomationActionRow({
       {action.kind === "add_label" ? (
         <Select
           value={action.labelId}
-          onValueChange={(value) =>
-            onChange({ kind: "add_label", labelId: value })
-          }
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            onChange({ kind: "add_label", labelId: value });
+          }}
         >
           <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
             <SelectValue placeholder="Pick a label" />
@@ -200,9 +209,12 @@ export function AutomationActionRow({
       {action.kind === "run_macro" ? (
         <Select
           value={action.macroId}
-          onValueChange={(value) =>
-            onChange({ kind: "run_macro", macroId: value })
-          }
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            onChange({ kind: "run_macro", macroId: value });
+          }}
         >
           <SelectTrigger className="h-8 min-w-[220px] text-[12px]">
             <SelectValue placeholder="Pick a macro" />

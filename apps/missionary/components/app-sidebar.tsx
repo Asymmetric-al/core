@@ -133,7 +133,12 @@ export function AppSidebar({
                 return (
                   <SidebarMenuItem key={item.href}>
                     <SidebarMenuButton
-                      asChild
+                      render={
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-2.5"
+                        />
+                      }
                       isActive={isActive}
                       tooltip={item.title}
                       className={cn(
@@ -143,22 +148,15 @@ export function AppSidebar({
                           : "text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50",
                       )}
                     >
-                      <Link
-                        href={item.href}
-                        className="flex items-center gap-2.5"
-                      >
-                        <AppIcon
-                          icon={item.icon}
-                          animated={isActive}
-                          className={cn(
-                            "size-4 shrink-0",
-                            isActive ? "text-zinc-700" : "text-zinc-400",
-                          )}
-                        />
-                        <span className="text-[13px] truncate">
-                          {item.title}
-                        </span>
-                      </Link>
+                      <AppIcon
+                        icon={item.icon}
+                        animated={isActive}
+                        className={cn(
+                          "size-4 shrink-0",
+                          isActive ? "text-zinc-700" : "text-zinc-400",
+                        )}
+                      />
+                      <span className="text-[13px] truncate">{item.title}</span>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 );
