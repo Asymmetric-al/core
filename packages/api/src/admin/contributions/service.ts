@@ -314,11 +314,14 @@ function getCursorValue(row: DonationRow, field: ContributionSortField) {
 
 async function fetchContributionRelations(
   supabaseAdmin: AdminSupabase,
+  tenantId: string,
   rows: DonationRow[],
 ) {
   const donorIds = normalizeSearchIds(rows.map((row) => row.donor_id || ""));
   const donationIds = normalizeSearchIds(rows.map((row) => row.id));
 
+  // Tenant-scope even though ids come from tenant-filtered donations: these
+  // run on the service-role client where RLS cannot backstop a foreign id.
   const [donorsResult, stagedGiftsResult] = await Promise.all([
     donorIds.length > 0
       ? supabaseAdmin
@@ -326,6 +329,7 @@ async function fetchContributionRelations(
           .select(
             "id, profile_id, name, email, phone, type, location, organization, notes",
           )
+          .eq("tenant_id", tenantId)
           .in("id", donorIds)
       : Promise.resolve({ data: [], error: null }),
     donationIds.length > 0
@@ -334,6 +338,7 @@ async function fetchContributionRelations(
           .select(
             "id, donation_id, fund_id, missionary_id, status, review_reason, receipt_status, receipt_send_log_id, crm_post_status",
           )
+          .eq("tenant_id", tenantId)
           .in("donation_id", donationIds)
       : Promise.resolve({ data: [], error: null }),
   ]);
@@ -444,6 +449,7 @@ export async function listAdminContributions(
   const hasMore = rows.length > params.limit;
   const relationData = await fetchContributionRelations(
     supabaseAdmin,
+    tenantId,
     pageRows,
   );
 

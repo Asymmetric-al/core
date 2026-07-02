@@ -426,29 +426,15 @@ export async function loadSharedContributionRowInputs(
   // adjustment effective_values ids predate server-side reference validation,
   // and this loader runs on the service-role client where RLS cannot backstop
   // a foreign id (matches contribution-operations/operations.ts).
-  const [fundsResult, missionariesResult] = await Promise.all([
+  const fundsResult =
     fundIds.length > 0
-      ? supabaseAdmin
+      ? await supabaseAdmin
           .from("funds")
           .select("id, name, missionary_id, goal_amount, start_date, end_date")
           .eq("tenant_id", input.tenantId)
           .in("id", fundIds)
-      : Promise.resolve({ data: [], error: null }),
-    missionaryIds.length > 0
-      ? supabaseAdmin
-          .from("missionaries")
-          .select(
-            "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
-          )
-          .eq("tenant_id", input.tenantId)
-          .in("id", missionaryIds)
-      : Promise.resolve({ data: [], error: null }),
-  ]);
+      : { data: [], error: null };
   assertNoRowInputError(fundsResult.error, "Failed to load fund metadata.");
-  assertNoRowInputError(
-    missionariesResult.error,
-    "Failed to load missionary labels.",
-  );
 
   const fundsById = new Map<string, DesignationFundInput>(
     ((fundsResult.data ?? []) as FundMetaRow[]).map((fund) => [
@@ -469,6 +455,29 @@ export async function loadSharedContributionRowInputs(
   const fundNamesById = new Map<string, string | null>(
     Array.from(fundsById.values()).map((fund) => [fund.id, fund.name]),
   );
+
+  // Designation lines fall back to fund.missionary_id when an allocation
+  // leaves missionary_id null, so missionaries owned by looked-up funds need
+  // labels too — the funds fetch must complete before this lookup.
+  const missionaryLookupIds = mergeUniqueIds([
+    ...missionaryIds,
+    ...Array.from(fundsById.values()).map((fund) => fund.missionary_id),
+  ]);
+  const missionariesResult =
+    missionaryLookupIds.length > 0
+      ? await supabaseAdmin
+          .from("missionaries")
+          .select(
+            "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name, email)",
+          )
+          .eq("tenant_id", input.tenantId)
+          .in("id", missionaryLookupIds)
+      : { data: [], error: null };
+  assertNoRowInputError(
+    missionariesResult.error,
+    "Failed to load missionary labels.",
+  );
+
   const missionaryLabelsById = new Map<string, string | null>(
     ((missionariesResult.data ?? []) as unknown as MissionaryLabelRow[]).map(
       (row) => [row.id, resolveContributionProfileLabel(row.profile, null)],

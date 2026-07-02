@@ -321,9 +321,24 @@ describe("admin/contribution-shared/row-inputs", () => {
     expect(set?.reconcilesToGiftAmount).toBe(true);
   });
 
-  it("tenant-scopes every loader query, including fund and missionary lookups", async () => {
+  it("tenant-scopes every loader query and resolves fund-owned missionary labels", async () => {
     type ChainCall = [method: string, args: unknown[]];
     const chainsByTable = new Map<string, ChainCall[][]>();
+    const resultsByTable = new Map<string, unknown[]>([
+      [
+        "funds",
+        [
+          {
+            id: "fund-1",
+            name: "Martinez Family Support",
+            missionary_id: "missionary-9",
+            goal_amount: null,
+            start_date: null,
+            end_date: null,
+          },
+        ],
+      ],
+    ]);
 
     function createQueryStub(table: string) {
       const calls: ChainCall[] = [];
@@ -351,7 +366,11 @@ describe("admin/contribution-shared/row-inputs", () => {
         then: (
           resolve: (value: { data: unknown[]; error: null }) => unknown,
           reject?: (reason: unknown) => unknown,
-        ) => Promise.resolve({ data: [], error: null }).then(resolve, reject),
+        ) =>
+          Promise.resolve({
+            data: resultsByTable.get(table) ?? [],
+            error: null,
+          }).then(resolve, reject),
       };
       return builder;
     }
@@ -384,10 +403,32 @@ describe("admin/contribution-shared/row-inputs", () => {
 
     expectTenantScoped("contribution_corrections");
     expectTenantScoped("contribution_correction_requests");
+    const correctionRequestChains =
+      chainsByTable.get("contribution_correction_requests") ?? [];
+    for (const calls of correctionRequestChains) {
+      expect(
+        calls.some(
+          ([method, args]) =>
+            method === "eq" && args[0] === "status" && args[1] === "pending",
+        ),
+        "expected correction requests to filter pending status only",
+      ).toBe(true);
+    }
     expectTenantScoped("contribution_adjustments");
     expectTenantScoped("staged_gift_allocations");
     expectTenantScoped("funds");
     expectTenantScoped("missionaries");
+
+    // Missionaries owned by looked-up funds are labeled too: designation
+    // lines fall back to fund.missionary_id, so the missionary query must
+    // include ids discovered through the funds fetch.
+    const missionaryChains = chainsByTable.get("missionaries") ?? [];
+    const missionaryInIds = missionaryChains.flatMap((calls) =>
+      calls
+        .filter(([method]) => method === "in")
+        .flatMap(([, args]) => args[1] as string[]),
+    );
+    expect(missionaryInIds).toContain("missionary-9");
   });
 });
 

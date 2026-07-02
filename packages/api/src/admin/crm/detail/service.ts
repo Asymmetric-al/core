@@ -277,6 +277,7 @@ export async function getAdminCrmDonorDetail(input: {
         .select(
           "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
         )
+        .eq("tenant_id", input.tenantId)
         .eq("donor_id", donor.id)
         .order("updated_at", { ascending: false })
         .limit(50),
