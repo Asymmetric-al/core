@@ -21,7 +21,7 @@ export default function BoneyardTasksCapturePage() {
     >
       <BoneyardSkeleton
         name="missionary-tasks-list"
-        loading={true}
+        loading={false}
         fixture={skeletonContent}
         snapshotConfig={{
           excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],
