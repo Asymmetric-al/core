@@ -11,13 +11,15 @@ conditional tool layers, and verify instruction-system changes safely.
 ### Requirement: OpenSpec Owns Durable Project Intent
 
 The repository SHALL use OpenSpec as the durable source of truth for project
-context and intended long-lived behavior.
+context and intended long-lived behavior, and MUST make OpenSpec visible and
+actionable for non-trivial project work, behavior changes, and multi-step
+planning.
 
 #### Scenario: Non-trivial project work starts
 
 - WHEN an agent begins non-trivial feature work, behavior changes, or multi-step
   planning
-- THEN it reads `openspec/project.md`
+- THEN the routing layer points it to `openspec/project.md`
 - AND it reads the relevant specs in `openspec/specs/**`
 - AND it reads any active change in `openspec/changes/**` before implementation
 
@@ -85,7 +87,8 @@ The repository SHALL ground repo and dependency research in current evidence.
 
 Installed provider plugins, Codex surfaces, and MCP helpers SHALL remain
 subordinate to OpenSpec, repo-local instructions, canonical repo-local skills,
-and local framework docs. They MAY improve workflow when available.
+and local framework docs. They MAY improve workflow when available, and repo
+instructions MUST NOT treat them as guaranteed repo-owned infrastructure.
 
 #### Scenario: Provider-specific workflow is needed
 
@@ -100,6 +103,14 @@ and local framework docs. They MAY improve workflow when available.
 - THEN it uses conditional wording
 - AND it does not hard-wire the missing capability into repo instructions
 
+#### Scenario: Repo instructions mention optional capability layers
+
+- WHEN repo instructions mention provider plugins, Codex surfaces, or optional
+  MCP helpers
+- THEN they use conditional wording unless the capability is repo-owned
+- AND they keep repo-local instructions and OpenSpec above those layers in
+  precedence
+
 ### Requirement: Instruction-System Changes Are Verified Safely
 
 Instruction-system changes SHALL validate paths, commands, and generated marker
@@ -112,36 +123,6 @@ regions, while avoiding unrelated code changes.
 - THEN verification confirms path accuracy, command accuracy, marker integrity,
   and the changed-files-only boundary
 - AND no product code, tests, or database files are modified
-
-### Requirement: OpenSpec Is First-Class for Project Work
-
-The repository MUST make OpenSpec visible and actionable for non-trivial
-project work, behavior changes, and multi-step planning.
-
-#### Scenario: A project-scoped task begins
-
-- WHEN an agent starts non-trivial project work
-- THEN the routing layer points it to `openspec/project.md`
-- AND it reads the relevant specs and active changes before implementation
-
-#### Scenario: A behavior change has no active change
-
-- WHEN durable behavior is being updated without an existing OpenSpec change
-- THEN the workflow directs the agent to create or update a change before major
-  implementation
-
-### Requirement: Workspace Capability Layers Are Conditional
-
-The repository MUST acknowledge provider plugins, Codex surfaces, and optional
-MCP helpers without treating them as guaranteed repo-owned infrastructure.
-
-#### Scenario: Conditional capability wording is needed
-
-- WHEN repo instructions mention provider plugins, Codex surfaces, or optional
-  MCP helpers
-- THEN they use conditional wording unless the capability is repo-owned
-- AND they keep repo-local instructions and OpenSpec above those layers in
-  precedence
 
 ### Requirement: Cursor and Copilot Workflow Files Use Real Repo Paths
 
@@ -186,7 +167,9 @@ routing agents to it as durable repo guidance.
 ### Requirement: Inngest Agent Tools MUST Not Imply Product Runtime Adoption
 
 The repository MUST distinguish official Inngest agent tooling from product
-runtime Inngest integration.
+runtime Inngest integration. Product runtime behavior is governed by the
+`workflow-orchestration` spec; vendored agent tooling MUST NOT silently expand
+product runtime scope.
 
 #### Scenario: Agents prepare Inngest-related work
 
@@ -194,13 +177,12 @@ runtime Inngest integration.
 - THEN the routing layer points to the relevant official Inngest skill
 - AND the agent uses `inngest-brownfield-audit` before changing existing app
   workflows
-- AND `inngest-setup` is reserved for explicit product runtime adoption
+- AND `inngest-setup` is reserved for explicit product runtime expansion
 
-#### Scenario: No app runtime integration exists
+#### Scenario: Vendored Inngest tooling is refreshed
 
-- WHEN the repo has no current product Inngest usage
-- THEN adding official agent tooling MUST NOT add Inngest runtime packages,
-  Inngest product app code, database migrations, or Inngest environment
-  requirements
-- AND any non-Inngest app, package, CI, or test hygiene bundled into the same PR
-  MUST be documented separately from Inngest runtime adoption
+- WHEN vendored Inngest skills or optional plugins are refreshed or expanded
+- THEN the refresh does not change product runtime packages, app code, database
+  migrations, or environment requirements as a side effect
+- AND any runtime change goes through an OpenSpec change governed by
+  `workflow-orchestration`

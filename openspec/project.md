@@ -121,6 +121,9 @@ The repo already has a strong, hand-maintained instruction system:
   (`bunx @fission-ai/openspec@latest archive <change> --yes`). Completed
   changes left active make `openspec/specs/**` stale, because their deltas
   never merge into current truth.
+- The OpenSpec change is the canonical feature-definition unit (`proposal.md`
+  for why/what, `design.md` for how). PRDs under `docs/prds/` are optional
+  supporting narrative linked from a change; on conflict, OpenSpec wins.
 - Before non-trivial feature work, behavior changes, or multi-step project work,
   read this file plus the relevant specs and active changes.
 - Use `bunx @fission-ai/openspec@latest <command>` as the repo-safe default for

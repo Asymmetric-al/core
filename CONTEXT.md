@@ -49,6 +49,41 @@ performed twice. It is stronger than short-term workflow event deduplication
 and belongs to the product area that owns the outcome.
 _Avoid_: Inngest dedupe key, random retry key, workflow-only idempotency
 
+**Guest Giving**:
+Online giving without a pre-existing account or sign-in step. The donor still
+provides the name, email, and payment/billing details the payment method and
+organization policy require; the server creates or matches the donor record
+behind the scenes. Guest giving is not anonymous giving and not an unknown
+donor.
+_Avoid_: account-first checkout, anonymous gift, unknown donor
+
+**Claimable Donor Access**:
+Donor portal access created during checkout without a password step. The donor
+later claims it through email verification or magic link. Creating it never
+reveals whether an email already belonged to an existing donor.
+_Avoid_: forced signup, silent password creation, account-existence leak
+
+**Gift Anonymity**:
+A per-gift visibility preference hiding the donor's identity from missionary
+and public views only. Finance, admins, receipts, reconciliation, and audit
+records always retain the donor. Stored on the contribution itself; donor
+defaults only seed the per-gift choice.
+_Avoid_: donor-level-only flag, hidden-from-finance gift, deleted donor
+identity
+
+**Unknown Offline Contribution**:
+An offline gift entered when donor identity is truly unavailable (anonymous
+cash, unmarked offering-box gifts). The donor reference stays null, the gift is
+not receiptable unless donor information is later provided, and staff never
+invent fake donor data.
+_Avoid_: fake donor row, "Anonymous Anonymous" donor, receiptable unknown gift
+
+**Receipt Identity Snapshot**:
+The donor name, email, and address captured on a contribution at gift time so
+receipts, statements, and audits stay historically accurate even if the donor
+record changes later. Never exposed to missionary or public views.
+_Avoid_: live donor lookup for receipts, mutable receipt identity
+
 **One-Time Donation**:
 A donor gift intended to be collected once through the platform's immediate
 donation flow. Its payment recovery may use the donation saga and outbox model.
