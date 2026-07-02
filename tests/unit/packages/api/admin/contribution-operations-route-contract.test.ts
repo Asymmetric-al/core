@@ -121,8 +121,11 @@ describe("admin/contribution-operations route contract", () => {
     );
     expect(pdfSection).toContain("renderContributionReceiptSnapshotPdf({");
     expect(pdfSection).toContain('"cache-control": "no-store"');
+    // The filename is sanitized to safe token characters before it reaches
+    // the Content-Disposition header.
+    expect(pdfSection).toContain('rendered.filename.replace(/[^\\w.-]/g, "_")');
     expect(pdfSection).toContain(
-      '"content-disposition": `attachment; filename="${rendered.filename}"`',
+      '"content-disposition": `attachment; filename="${safeFilename}"`',
     );
     expect(pdfSection).toContain('"content-type": rendered.contentType');
     expect(pdfSection).toContain('roles: ["staff", "admin", "super_admin"]');

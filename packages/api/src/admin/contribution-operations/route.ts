@@ -157,18 +157,20 @@ export const GET = withOperation(
         viewerCapabilities,
       );
 
-      const approvalPolicy = await loadCorrectionApprovalPolicy({
-        supabaseAdmin,
-        tenantId: auth.tenantId,
-      });
-      const correctionRequests = projectCorrectionRequestsForViewer(
-        projected.correctionRequests,
-        {
-          policy: approvalPolicy,
-          viewerProfileId: auth.profileId,
-          viewerCapabilities,
-        },
-      );
+      // The approval policy only shapes correction-request decidability, so
+      // skip the extra tenant-policy read on the common path where a gift has
+      // no pending correction requests at all.
+      const correctionRequests =
+        projected.correctionRequests.length > 0
+          ? projectCorrectionRequestsForViewer(projected.correctionRequests, {
+              policy: await loadCorrectionApprovalPolicy({
+                supabaseAdmin,
+                tenantId: auth.tenantId,
+              }),
+              viewerProfileId: auth.profileId,
+              viewerCapabilities,
+            })
+          : [];
 
       // Delivery context only matters once a receipt was communicated; a
       // never-sent receipt cannot be invalidated by a correction (#263).
@@ -350,10 +352,15 @@ export const GET_RECEIPT_SNAPSHOT_PDF = withOperation(
         snapshotId,
       });
 
+      // Sanitize the filename to safe token characters. Snapshot ids are
+      // DB-generated UUIDs today, but a stray quote or control character would
+      // otherwise produce a malformed Content-Disposition header value.
+      const safeFilename = rendered.filename.replace(/[^\w.-]/g, "_");
+
       return new NextResponse(Buffer.from(rendered.pdf), {
         headers: {
           "cache-control": "no-store",
-          "content-disposition": `attachment; filename="${rendered.filename}"`,
+          "content-disposition": `attachment; filename="${safeFilename}"`,
           "content-type": rendered.contentType,
         },
       });
