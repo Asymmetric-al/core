@@ -9,7 +9,7 @@ import {
   within,
 } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 type CrmPageComponent =
   typeof import("../../../../../apps/admin/app/crm/page").default;
@@ -387,6 +387,13 @@ function installDom() {
 }
 
 describe("apps/admin/app/crm gift detail entry", () => {
+  beforeAll(async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    const pageModule = await import("../../../../../apps/admin/app/crm/page");
+    CrmPage = pageModule.default;
+  }, 120_000);
+
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
@@ -399,9 +406,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
     dom = undefined;
   });
 
-  beforeEach(async () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+  beforeEach(() => {
     mockSearch = "";
     routerPushMock.mockImplementation((url: string) => {
       syncMockSearchFromRouterUrl(url);
@@ -411,9 +416,6 @@ describe("apps/admin/app/crm gift detail entry", () => {
     });
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
     installDom();
-
-    const pageModule = await import("../../../../../apps/admin/app/crm/page");
-    CrmPage = pageModule.default;
 
     useAdminCrmRecordsInfiniteGridMock.mockReturnValue({
       columnFilters: [],
@@ -457,7 +459,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutate: vi.fn(),
     });
-  }, 60_000);
+  });
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
     mockSearch = `donor=${DONOR_RECORD_ID}`;
