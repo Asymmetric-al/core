@@ -132,8 +132,12 @@ Parity is measured against **official SiteStacker/WMTek public documentation**
 
 ## Lane 2 — human confirmation required (UNCONFIRMED)
 
-Assigned owner: _to be named_ (needs Vercel / hosting-dashboard + live-site
-access).
+**Accountable owner: the platform owner (founder)** — performs this check
+directly or delegates it to an ops lead with Vercel / hosting-dashboard +
+live-site access. Assigning and running Lane 2 is the immediate open Phase 0
+action; it may be reassigned, but it is never left ownerless. Until the owner
+records the results below, these items stay UNCONFIRMED and stop condition SC1
+holds.
 
 - **L2-1 (UNCONFIRMED):** Confirm the exact commit currently deployed to each
   live app (`admin`, `donor`, `missionary`) and whether it matches the
