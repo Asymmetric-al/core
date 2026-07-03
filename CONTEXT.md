@@ -12,6 +12,31 @@ settings, donors, missionaries, and operational history. A tenant is a product
 boundary, not an Inngest app, Inngest environment, or billing account.
 _Avoid_: Inngest tenant, customer app, billing environment
 
+**Site**:
+A tenant-owned public presence — one website a tenant operates, with its own
+domain(s), branding, language, and public giving entry points. A tenant can own
+more than one site, and every tenant has at least one. A site is a presentation
+and attribution boundary beneath the tenant, not a separate tenant, billing
+account, or payment identity. Public content and public gifts belong to a site;
+the tenant remains the organization, owner, and money/merchant boundary.
+_Avoid_: site as tenant, separate-org microsite, site channel as a product
+surface (Mission Control and Donor Portal are surfaces, not sites)
+
+**Entry Method**:
+How a gift entered the system — for example public checkout, donor portal,
+offline staff entry, data import, or an API call. It is one of a gift's
+attribution axes and is kept separate from the gift's type (one-time vs
+recurring) and from where or why the gift was made.
+_Avoid_: source as gift type, channel, donation type
+
+**Source Code**:
+A short attribution tag recording what drove a gift — a specific appeal, email,
+link, QR code, or promotion — typically captured from giving-link URL
+parameters. It records marketing origin only, and stays distinct from the site
+(where the gift happened), the entry method (how it entered), and the
+designation (which fund or campaign the gift is for).
+_Avoid_: channel, entry method, designation, campaign
+
 **SiteStacker Parity**:
 Matching what SiteStacker/WMTek lets a Christian missions organization
 accomplish — its operational capability — built on Asymmetric.al's own model,
