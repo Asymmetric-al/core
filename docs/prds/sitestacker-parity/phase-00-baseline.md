@@ -79,7 +79,8 @@ precedes offline batch (6), pledges (8), receipts (9), statements (10), exports
 - **0A-3** Confirm the portal code follows the boundary rules (shared package
   APIs, thin routes, no browser-side sensitive writes). _(Done.)_
 - **0A-4 (human-only)** Confirm the exact live commit per app and that the live
-  sites are healthy and behave per evidence. _(UNCONFIRMED — needs hosting
+  sites are healthy and behave per evidence. Accountable owner: the platform
+  owner (founder), to perform or delegate. _(UNCONFIRMED — needs hosting
   access; see evidence file Lane 2.)_
 - **0A-5** Write the evidence file with known gaps + stop conditions. _(Done —
   `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`.)_
@@ -102,7 +103,8 @@ sitestacker-parity/`). _(Done.)_
   commit/gap, gate status, boundary compliance. _(Mostly complete; attach
   evidence file.)_
 - **Issue: [Phase 0A] Baseline truth — live confirmation (Lane 2, human).**
-  Confirm live commit per app + health + behavior; assign an owner with hosting
+  Confirm live commit per app + health + behavior. Accountable owner: the
+  platform owner (founder), performing or delegating to an ops lead with hosting
   access. Blocks stop condition SC1.
 - **Issue: [Phase 0B] Parity program records.** Charter, matrix, plan, OpenSpec
   entry, glossary. _(Complete; open for review.)_

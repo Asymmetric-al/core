@@ -47,6 +47,9 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
 
 ## Open questions
 
-- Who owns Lane 2 (hosting access)?
+- Lane 2 (live confirmation) is owned by the platform owner (founder), to
+  perform or delegate to an ops lead with hosting access (see the evidence
+  file). The remaining action is scheduling and completing it — not deciding who
+  is accountable.
 - Should the 374-commit gap be closed (release) before parity Phase 1 starts?
   (Recorded, deliberately not forced by Phase 0.)
