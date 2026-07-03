@@ -12,6 +12,15 @@ settings, donors, missionaries, and operational history. A tenant is a product
 boundary, not an Inngest app, Inngest environment, or billing account.
 _Avoid_: Inngest tenant, customer app, billing environment
 
+**SiteStacker Parity**:
+Matching what SiteStacker/WMTek lets a Christian missions organization
+accomplish — its operational capability — built on Asymmetric.al's own model,
+not cloning its screens. SiteStacker is the benchmark of outcomes an org must be
+able to achieve, not a UI blueprint. Each parity area is judged by "can an org
+get the same real-world job done here?" and tracked in the parity matrix
+(`docs/prds/sitestacker-parity/`). Child sponsorship is out of scope.
+_Avoid_: SiteStacker clone, screen-for-screen copy, feature-for-feature parity
+
 **Workflow Orchestration**:
 Durable coordination of background work after authoritative product records
 exist. It does not become the source of truth for donations, CRM state,
