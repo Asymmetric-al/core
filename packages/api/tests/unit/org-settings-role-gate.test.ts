@@ -14,9 +14,10 @@ vi.mock("@asym/database/supabase/server", () => ({
   createClient: createClientMock,
 }));
 vi.mock("@asym/auth/context", async () => {
-  const actual = await vi.importActual<typeof import("@asym/auth/context")>(
-    "@asym/auth/context",
-  );
+  const actual =
+    await vi.importActual<typeof import("@asym/auth/context")>(
+      "@asym/auth/context",
+    );
   return { ...actual, getAuthContext: getAuthContextMock };
 });
 
@@ -65,6 +66,8 @@ describe("admin/org-settings PATCH — explicit admin role gate (finding 06 Gap 
     const { update } = mockTenantUpdateOk();
     const res = await PATCH(req("admin"));
     expect(res.status).toBe(200);
-    expect(update).toHaveBeenCalledWith({ org_post_visibility: "followers_only" });
+    expect(update).toHaveBeenCalledWith({
+      org_post_visibility: "followers_only",
+    });
   });
 });

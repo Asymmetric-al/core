@@ -75,7 +75,9 @@ describe("api/auth/cleanup-demo-users — fail-closed auth (finding 06 Gap 1)", 
     mockAdminNoUsers();
 
     expect((await GET(req())).status).toBe(401);
-    expect((await GET(req({ authorization: "Bearer wrong" }))).status).toBe(401);
+    expect((await GET(req({ authorization: "Bearer wrong" }))).status).toBe(
+      401,
+    );
   });
 
   it("PROCEEDS on the legitimate cron path (correct Bearer token)", async () => {

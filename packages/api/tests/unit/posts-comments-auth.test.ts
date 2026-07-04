@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+
 import type { NextRequest } from "next/server";
 
 /**
@@ -20,8 +21,9 @@ import { GET } from "../../src/posts/comments";
 function ctx(postId = "post-1") {
   return { params: Promise.resolve({ postId }) };
 }
-const request = new Request("https://example.com/api/posts/post-1/comments") as
-  unknown as NextRequest;
+const request = new Request(
+  "https://example.com/api/posts/post-1/comments",
+) as unknown as NextRequest;
 
 function mockClient(user: { id: string } | null) {
   const order = vi.fn().mockResolvedValue({ data: [], error: null });
@@ -29,7 +31,9 @@ function mockClient(user: { id: string } | null) {
   const select = vi.fn(() => ({ eq }));
   const from = vi.fn(() => ({ select }));
   createClientMock.mockResolvedValue({
-    auth: { getUser: vi.fn().mockResolvedValue({ data: { user }, error: null }) },
+    auth: {
+      getUser: vi.fn().mockResolvedValue({ data: { user }, error: null }),
+    },
     from,
   });
   return { from };
