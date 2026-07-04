@@ -27,7 +27,11 @@ describe("buildGivingTrends", () => {
       giftCount: 2,
     });
     expect(out[0]!.label).toBe("Jan 2026");
-    expect(out[1]).toMatchObject({ monthKey: "2026-03", totalCents: 5000, giftCount: 1 });
+    expect(out[1]).toMatchObject({
+      monthKey: "2026-03",
+      totalCents: 5000,
+      giftCount: 1,
+    });
   });
 
   it("excludes non-succeeded gifts (Processing/Failed)", () => {
@@ -37,7 +41,11 @@ describe("buildGivingTrends", () => {
       d("2026-02-03", 3000, "Succeeded"),
     ]);
     expect(out).toHaveLength(1);
-    expect(out[0]).toMatchObject({ monthKey: "2026-02", totalCents: 3000, giftCount: 1 });
+    expect(out[0]).toMatchObject({
+      monthKey: "2026-02",
+      totalCents: 3000,
+      giftCount: 1,
+    });
   });
 
   it("returns an empty series for no settled gifts", () => {
@@ -46,7 +54,10 @@ describe("buildGivingTrends", () => {
   });
 
   it("ignores rows with an unparseable date", () => {
-    const out = buildGivingTrends([d("not-a-date", 1000), d("2026-05-01", 2000)]);
+    const out = buildGivingTrends([
+      d("not-a-date", 1000),
+      d("2026-05-01", 2000),
+    ]);
     expect(out.map((p) => p.monthKey)).toEqual(["2026-05"]);
   });
 });

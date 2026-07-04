@@ -1,5 +1,13 @@
 "use client";
 
+import {
+  buildDonorSettingsPatch,
+  buildProfileFormState,
+} from "@asym/api/donor-portal/settings-patch";
+import {
+  useDonorPortalSnapshot,
+  useUpdateDonorPortal,
+} from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
@@ -21,6 +29,7 @@ import {
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { ScrollArea } from "@asym/ui/components/shadcn/scroll-area";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -45,16 +54,6 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import React, { useEffect, useState } from "react";
-
-import {
-  buildDonorSettingsPatch,
-  buildProfileFormState,
-} from "@asym/api/donor-portal/settings-patch";
-import {
-  useDonorPortalSnapshot,
-  useUpdateDonorPortal,
-} from "@asym/database/hooks";
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";
@@ -386,11 +385,23 @@ const ProfileTab = () => {
             </div>
             <div className="relative">
               <MapPin className="absolute left-3 top-3 size-4 text-muted-foreground" />
-              <Input id="address" placeholder="123 Mission Way" className="pl-9 h-10 rounded-lg" />
+              <Input
+                id="address"
+                placeholder="123 Mission Way"
+                className="pl-9 h-10 rounded-lg"
+              />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-              <Input placeholder="City" className="h-10 rounded-lg" aria-label="City" />
-              <Input placeholder="State" className="h-10 rounded-lg" aria-label="State" />
+              <Input
+                placeholder="City"
+                className="h-10 rounded-lg"
+                aria-label="City"
+              />
+              <Input
+                placeholder="State"
+                className="h-10 rounded-lg"
+                aria-label="State"
+              />
               <Input
                 placeholder="Postal Code"
                 className="h-10 rounded-lg col-span-2 md:col-span-1"

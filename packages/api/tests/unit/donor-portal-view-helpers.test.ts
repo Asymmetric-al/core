@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
+import { mapRecurringGiftToPledgeView } from "../../src/donor-portal/pledge-view";
 import {
   buildDonorSettingsPatch,
   buildProfileFormState,
   splitDisplayName,
 } from "../../src/donor-portal/settings-patch";
-import { mapRecurringGiftToPledgeView } from "../../src/donor-portal/pledge-view";
 
 /**
  * TDD — pure helpers the donor-portal views consume when wiring off MOCK_*.
@@ -22,7 +22,10 @@ describe("splitDisplayName (settings prefill)", () => {
       firstName: "Blaise",
       lastName: "de Pascal",
     });
-    expect(splitDisplayName("Cher")).toEqual({ firstName: "Cher", lastName: "" });
+    expect(splitDisplayName("Cher")).toEqual({
+      firstName: "Cher",
+      lastName: "",
+    });
     expect(splitDisplayName(null)).toEqual({ firstName: "", lastName: "" });
   });
 });
@@ -67,7 +70,10 @@ describe("buildDonorSettingsPatch — only PATCH-supported keys (schema is .stri
   });
 
   it("omits undefined fields (only sends what changed/present)", () => {
-    const patch = buildDonorSettingsPatch({ phone: undefined, firstName: "Ada" });
+    const patch = buildDonorSettingsPatch({
+      phone: undefined,
+      firstName: "Ada",
+    });
     expect(patch).toEqual({ firstName: "Ada" });
   });
 });
@@ -148,13 +154,23 @@ describe("mapRecurringGiftToPledgeView", () => {
       mapRecurringGiftToPledgeView({
         ...gift,
         nextChargeAt: null,
-        designation: { id: "f-1", name: "Medical Fund", type: "fund", avatarUrl: null },
+        designation: {
+          id: "f-1",
+          name: "Medical Fund",
+          type: "fund",
+          avatarUrl: null,
+        },
       }).recipientCategory,
     ).toBe("Fund");
     expect(
       mapRecurringGiftToPledgeView({
         ...gift,
-        designation: { id: null, name: "General", type: "general", avatarUrl: null },
+        designation: {
+          id: null,
+          name: "General",
+          type: "general",
+          avatarUrl: null,
+        },
       }).recipientCategory,
     ).toBe("General");
   });

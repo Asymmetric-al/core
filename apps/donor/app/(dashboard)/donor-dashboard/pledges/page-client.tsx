@@ -16,7 +16,12 @@ import { Button } from "@asym/ui/components/shadcn/button";
 import { Card, CardContent } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
-import { CalendarClock, ExternalLink, HeartHandshake, Loader2 } from "lucide-react";
+import {
+  CalendarClock,
+  ExternalLink,
+  HeartHandshake,
+  Loader2,
+} from "lucide-react";
 
 type PledgeView = ReturnType<typeof mapRecurringGiftToPledgeView>;
 
@@ -78,7 +83,10 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
           </div>
           <Badge
             variant="outline"
-            className={cn("shrink-0 text-[10px] uppercase", statusClasses(pledge.status))}
+            className={cn(
+              "shrink-0 text-[10px] uppercase",
+              statusClasses(pledge.status),
+            )}
           >
             {pledge.status}
           </Badge>
@@ -187,7 +195,11 @@ export default function DonorPledgesPage() {
             <p role="alert" className="text-sm font-medium text-destructive">
               We couldn&apos;t load your recurring pledges.
             </p>
-            <Button variant="outline" size="sm" onClick={() => snapshot.refetch()}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => snapshot.refetch()}
+            >
               Try again
             </Button>
           </CardContent>
@@ -200,7 +212,9 @@ export default function DonorPledgesPage() {
               aria-hidden="true"
             />
             <div>
-              <p className="font-semibold text-foreground">No recurring pledges yet</p>
+              <p className="font-semibold text-foreground">
+                No recurring pledges yet
+              </p>
               <p className="text-sm text-muted-foreground mt-1">
                 When you set up a recurring gift, it will appear here.
               </p>
