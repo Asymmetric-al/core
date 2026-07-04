@@ -21,11 +21,31 @@ function snapshot(overrides: Record<string, unknown> = {}) {
       lastGiftAt: null,
     },
     tasks: [
-      { id: "t1", title: "Call partner", status: "not_started", priority: "high", due_date: "2026-07-10" },
-      { id: "t2", title: "Done task", status: "completed", priority: "low", due_date: null },
+      {
+        id: "t1",
+        title: "Call partner",
+        status: "not_started",
+        priority: "high",
+        due_date: "2026-07-10",
+      },
+      {
+        id: "t2",
+        title: "Done task",
+        status: "completed",
+        priority: "low",
+        due_date: null,
+      },
     ],
     ministryUpdates: [
-      { id: "u1", excerpt: "Reached a milestone", createdAt: "2026-07-01", title: "x", visibility: "public", status: "published", engagementCount: 0 },
+      {
+        id: "u1",
+        excerpt: "Reached a milestone",
+        createdAt: "2026-07-01",
+        title: "x",
+        visibility: "public",
+        status: "published",
+        engagementCount: 0,
+      },
     ],
     ...overrides,
   } as never;
@@ -74,7 +94,12 @@ describe("buildMissionaryDashboardView", () => {
   it("filters completed tasks and passes through due_date (no fake 'Today')", () => {
     const view = buildMissionaryDashboardView(snapshot());
     expect(view.pendingTasks).toEqual([
-      { id: "t1", title: "Call partner", priority: "high", dueDate: "2026-07-10" },
+      {
+        id: "t1",
+        title: "Call partner",
+        priority: "high",
+        dueDate: "2026-07-10",
+      },
     ]);
   });
 
@@ -89,7 +114,11 @@ describe("buildMissionaryDashboardView", () => {
     const view = buildMissionaryDashboardView(snapshot());
     expect(view.alerts).toEqual([
       { id: "tasks", text: "1 support task needs attention", severity: "high" },
-      { id: "donors", text: "3 active donor relationships", severity: "medium" },
+      {
+        id: "donors",
+        text: "3 active donor relationships",
+        severity: "medium",
+      },
     ]);
 
     const emptyish = buildMissionaryDashboardView(

@@ -13,6 +13,7 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   ArrowUpRight,
   AlertCircle,
@@ -21,8 +22,6 @@ import {
   Activity,
 } from "lucide-react";
 import React from "react";
-
-import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 import { buildMissionaryDashboardView } from "./dashboard-view";
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
@@ -56,8 +55,12 @@ function DashboardHomeContent({
   belowHeaderSlot?: React.ReactNode;
 }) {
   const portalQuery = useMissionaryPortalSnapshot();
-  const { support, pendingTasks, updates: latestUpdates, alerts } =
-    buildMissionaryDashboardView(portalQuery.data);
+  const {
+    support,
+    pendingTasks,
+    updates: latestUpdates,
+    alerts,
+  } = buildMissionaryDashboardView(portalQuery.data);
 
   if (portalQuery.isLoading) {
     return (

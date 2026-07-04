@@ -51,7 +51,10 @@ export function buildMissionaryDashboardView(
     ? {
         goalCents: rawSupport.goalCents,
         raisedCents: rawSupport.raisedCents,
-        remainingCents: Math.max(0, rawSupport.goalCents - rawSupport.raisedCents),
+        remainingCents: Math.max(
+          0,
+          rawSupport.goalCents - rawSupport.raisedCents,
+        ),
         percentFunded: rawSupport.percentFunded,
         giftCount: rawSupport.giftCount,
         activeDonorCount: rawSupport.activeDonorCount,
