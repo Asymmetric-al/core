@@ -10,6 +10,18 @@ export {
   useMissionaryDashboard,
   useMissionaryStats,
 } from "./hooks";
+export {
+  DONOR_FEED_POSTS_QUERY_KEY,
+  fetchDonorFeedPosts,
+  formatPostRelativeTime,
+  mapToRecentUpdate,
+  postAuthorName,
+  postImages,
+  postInitials,
+  postTitle,
+  useDonorFeedPosts,
+  type DonorFeedPostsOptions,
+} from "./donor-feed-posts";
 export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
