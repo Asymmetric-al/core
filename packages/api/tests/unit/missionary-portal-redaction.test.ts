@@ -53,7 +53,9 @@ describe("isAnonymousToRecipient — signal resolution", () => {
 describe("isAnonymousToPublic — keyed on the public preference", () => {
   it("uses defaultAnonymousToPublic, independent of recipient", () => {
     expect(
-      isAnonymousToPublic({ givingPreferences: { defaultAnonymousToPublic: true } }),
+      isAnonymousToPublic({
+        givingPreferences: { defaultAnonymousToPublic: true },
+      }),
     ).toBe(true);
     expect(
       isAnonymousToPublic({
@@ -62,9 +64,9 @@ describe("isAnonymousToPublic — keyed on the public preference", () => {
     ).toBe(false);
   });
   it("unknown_offline always anonymous to public too", () => {
-    expect(isAnonymousToPublic({ donorIdentityStatus: "unknown_offline" })).toBe(
-      true,
-    );
+    expect(
+      isAnonymousToPublic({ donorIdentityStatus: "unknown_offline" }),
+    ).toBe(true);
   });
 });
 
@@ -117,12 +119,14 @@ describe("redactDonorRelationshipForMissionary", () => {
 
 describe("redactGiftForMissionary", () => {
   it("nulls donorId for an anonymous gift (breaks correlation)", () => {
-    expect(redactGiftForMissionary({ donorId: "donor-1", amount: 10 }, true))
-      .toEqual({ donorId: null, amount: 10 });
+    expect(
+      redactGiftForMissionary({ donorId: "donor-1", amount: 10 }, true),
+    ).toEqual({ donorId: null, amount: 10 });
   });
   it("keeps donorId when named", () => {
-    expect(redactGiftForMissionary({ donorId: "donor-1", amount: 10 }, false))
-      .toEqual({ donorId: "donor-1", amount: 10 });
+    expect(
+      redactGiftForMissionary({ donorId: "donor-1", amount: 10 }, false),
+    ).toEqual({ donorId: "donor-1", amount: 10 });
   });
 });
 

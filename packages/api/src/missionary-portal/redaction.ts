@@ -40,7 +40,9 @@ export function isAnonymousToRecipient(signal: AnonymitySignal): boolean {
   if (typeof signal.giftAnonymousToRecipient === "boolean") {
     return signal.giftAnonymousToRecipient;
   }
-  return Boolean(readPreferences(signal.givingPreferences)?.defaultAnonymousToRecipient);
+  return Boolean(
+    readPreferences(signal.givingPreferences)?.defaultAnonymousToRecipient,
+  );
 }
 
 export function isAnonymousToPublic(signal: AnonymitySignal): boolean {
@@ -48,7 +50,9 @@ export function isAnonymousToPublic(signal: AnonymitySignal): boolean {
   if (typeof signal.giftAnonymousToPublic === "boolean") {
     return signal.giftAnonymousToPublic;
   }
-  return Boolean(readPreferences(signal.givingPreferences)?.defaultAnonymousToPublic);
+  return Boolean(
+    readPreferences(signal.givingPreferences)?.defaultAnonymousToPublic,
+  );
 }
 
 /** Fields that must be scrubbed on a redacted donor relationship. */
@@ -98,7 +102,12 @@ export function redactTaskDonorForMissionary<
 >(donor: T | null, anonymous: boolean): T | null {
   if (!donor) return null;
   if (!anonymous) return donor;
-  return { ...donor, name: ANONYMOUS_DONOR_LABEL, email: null, avatar_url: null };
+  return {
+    ...donor,
+    name: ANONYMOUS_DONOR_LABEL,
+    email: null,
+    avatar_url: null,
+  };
 }
 
 /**

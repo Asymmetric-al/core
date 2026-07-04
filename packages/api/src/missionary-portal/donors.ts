@@ -155,11 +155,15 @@ export interface DonorPledgeSourceRow {
 
 const ANONYMOUS_DONOR_NAME = "Anonymous donor";
 
-function normalizeDonorType(value: string | null | undefined): MissionaryDonorRow["type"] {
+function normalizeDonorType(
+  value: string | null | undefined,
+): MissionaryDonorRow["type"] {
   return value === "Organization" || value === "Church" ? value : "Individual";
 }
 
-function normalizeDonorStatus(value: string | null | undefined): MissionaryDonorRow["status"] {
+function normalizeDonorStatus(
+  value: string | null | undefined,
+): MissionaryDonorRow["status"] {
   return value === "Lapsed" || value === "New" || value === "At Risk"
     ? value
     : "Active";
@@ -182,7 +186,9 @@ function createInitials(name: string | null | undefined) {
   );
 }
 
-function mapActivity(activity: DonorActivitySourceRow): MissionaryDonorActivity {
+function mapActivity(
+  activity: DonorActivitySourceRow,
+): MissionaryDonorActivity {
   return {
     id: activity.id,
     type: activity.type ?? "note",
@@ -236,7 +242,10 @@ export function buildMissionaryDonorRows(input: {
 
   const pledgesByDonor = new Map<string, MissionaryRecurringDonation[]>();
   for (const pledge of input.pledges) {
-    if (!pledge.donor_id || pledge.missionary_id !== input.missionaryProfileId) {
+    if (
+      !pledge.donor_id ||
+      pledge.missionary_id !== input.missionaryProfileId
+    ) {
       continue;
     }
     const list = pledgesByDonor.get(pledge.donor_id) ?? [];
@@ -346,7 +355,9 @@ export async function getMissionaryDonorRows(input: {
       .limit(500),
     input.supabaseAdmin
       .from("donor_activities")
-      .select("id, donor_id, type, date, created_at, title, description, amount, status, gift_type, note")
+      .select(
+        "id, donor_id, type, date, created_at, title, description, amount, status, gift_type, note",
+      )
       .eq("tenant_id", input.tenantId)
       .limit(2000),
     input.supabaseAdmin
@@ -359,13 +370,17 @@ export async function getMissionaryDonorRows(input: {
   ]);
 
   if (donorsRes.error) {
-    throw new ApiHttpError(500, donorsRes.error.message || "Unable to load donors");
+    throw new ApiHttpError(
+      500,
+      donorsRes.error.message || "Unable to load donors",
+    );
   }
 
   return buildMissionaryDonorRows({
     missionaryProfileId: input.profileId,
     donors: (donorsRes.data ?? []) as unknown as MissionaryDonorSourceRow[],
-    activities: (activitiesRes.data ?? []) as unknown as DonorActivitySourceRow[],
+    activities: (activitiesRes.data ??
+      []) as unknown as DonorActivitySourceRow[],
     pledges: (pledgesRes.data ?? []) as unknown as DonorPledgeSourceRow[],
   });
 }
