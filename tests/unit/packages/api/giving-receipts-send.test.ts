@@ -4,14 +4,12 @@ const {
   sendEmailMock,
   logSystemAuditEventMock,
   loadStagedGiftByIdMock,
-  evaluateEmailConsentMock,
   readTenantEmailSettingsMock,
   decryptResendApiKeyMock,
 } = vi.hoisted(() => ({
   sendEmailMock: vi.fn(),
   logSystemAuditEventMock: vi.fn().mockResolvedValue(undefined),
   loadStagedGiftByIdMock: vi.fn(),
-  evaluateEmailConsentMock: vi.fn(),
   readTenantEmailSettingsMock: vi.fn(),
   decryptResendApiKeyMock: vi.fn(() => "re_decrypted"),
 }));
@@ -22,9 +20,6 @@ vi.mock("@asym/lib/audit/logger", () => ({
 }));
 vi.mock("../../../../packages/api/src/giving/staged-gifts", () => ({
   loadStagedGiftById: loadStagedGiftByIdMock,
-}));
-vi.mock("../../../../packages/api/src/email/consent", () => ({
-  evaluateEmailConsent: evaluateEmailConsentMock,
 }));
 vi.mock("../../../../packages/api/src/email/settings-store", () => ({
   readTenantEmailSettings: readTenantEmailSettingsMock,
@@ -52,21 +47,40 @@ const connectedSettings = {
   reply_to_email: null,
 };
 
-function buildAdmin() {
+const cleanDonor = {
+  id: "donor-1",
+  profile_id: null,
+  name: "Ada Lovelace",
+  email: "ada@example.com",
+  do_not_email: false,
+  do_not_contact: false,
+};
+
+/**
+ * Chainable Supabase admin mock. The real consent gate runs against it (we do
+ * not mock the consent module — path-based module mocks are unreliable in the
+ * full suite). `donors` serves both the receipt identity lookup (`.single()`)
+ * and the gate's consent lookup (`.limit().maybeSingle()`) from one row.
+ */
+function buildAdmin(options?: {
+  donor?: Record<string, unknown> | null;
+  suppressions?: Array<{ suppression_type: string }>;
+}) {
+  const donor = options?.donor === undefined ? cleanDonor : options.donor;
+  const suppressions = options?.suppressions ?? [];
+
+  const settle = (result: unknown) => {
+    const settled = Promise.resolve(result);
+    return {
+      maybeSingle: vi.fn(() => settled),
+      then: settled.then.bind(settled),
+      catch: settled.catch.bind(settled),
+      finally: settled.finally.bind(settled),
+    };
+  };
+
   const stagedGiftsUpdateEq = vi.fn().mockResolvedValue({ error: null });
   const stagedGiftsUpdate = vi.fn(() => ({ eq: stagedGiftsUpdateEq }));
-
-  const donorSingle = vi.fn().mockResolvedValue({
-    data: {
-      id: "donor-1",
-      profile_id: null,
-      name: "Ada Lovelace",
-      email: "ada@example.com",
-    },
-    error: null,
-  });
-  const donorEq = vi.fn(() => ({ single: donorSingle }));
-  const donorSelect = vi.fn(() => ({ eq: donorEq }));
 
   const sendLogSingle = vi
     .fn()
@@ -75,7 +89,22 @@ function buildAdmin() {
   const sendLogInsert = vi.fn(() => ({ select: sendLogSelect }));
 
   const from = vi.fn((table: string) => {
-    if (table === "donors") return { select: donorSelect };
+    if (table === "donors") {
+      const chain: Record<string, unknown> = {};
+      chain.select = vi.fn(() => chain);
+      chain.eq = vi.fn(() => chain);
+      chain.single = vi.fn(() => Promise.resolve({ data: donor, error: null }));
+      chain.limit = vi.fn(() => settle({ data: donor, error: null }));
+      return chain;
+    }
+    if (table === "email_suppressions") {
+      const chain: Record<string, unknown> = {};
+      chain.select = vi.fn(() => chain);
+      chain.eq = vi.fn(() => chain);
+      chain.ilike = vi.fn(() => chain);
+      chain.limit = vi.fn(() => settle({ data: suppressions, error: null }));
+      return chain;
+    }
     if (table === "staged_gifts") return { update: stagedGiftsUpdate };
     if (table === "email_send_logs") return { insert: sendLogInsert };
     throw new Error(`Unexpected table: ${table}`);
@@ -89,14 +118,12 @@ function buildAdmin() {
 }
 
 describe("sendStagedGiftReceipt consent gate", () => {
-  it("evaluates consent as a transactional message and skips a do_not_contact donor", async () => {
+  it("skips a do_not_contact donor as a transactional message and records an audit event", async () => {
     loadStagedGiftByIdMock.mockResolvedValue(gift);
     readTenantEmailSettingsMock.mockResolvedValue(connectedSettings);
-    evaluateEmailConsentMock.mockResolvedValue({
-      allowed: false,
-      reason: "do_not_contact",
+    const admin = buildAdmin({
+      donor: { ...cleanDonor, do_not_contact: true },
     });
-    const admin = buildAdmin();
 
     const result = await sendStagedGiftReceipt({
       supabaseAdmin: admin.client,
@@ -104,15 +131,6 @@ describe("sendStagedGiftReceipt consent gate", () => {
       stagedGiftId: "staged-gift-1",
     });
 
-    expect(evaluateEmailConsentMock).toHaveBeenCalledWith(
-      expect.objectContaining({
-        supabaseAdmin: admin.client,
-        tenantId: "tenant-1",
-        email: "ada@example.com",
-        donorId: "donor-1",
-        messageType: "transactional",
-      }),
-    );
     expect(sendEmailMock).not.toHaveBeenCalled();
     expect(admin.sendLogInsert).not.toHaveBeenCalled();
     expect(logSystemAuditEventMock).toHaveBeenCalledWith(
@@ -143,12 +161,9 @@ describe("sendStagedGiftReceipt consent gate", () => {
   it("skips the send for a suppressed address and records the suppression type", async () => {
     loadStagedGiftByIdMock.mockResolvedValue(gift);
     readTenantEmailSettingsMock.mockResolvedValue(connectedSettings);
-    evaluateEmailConsentMock.mockResolvedValue({
-      allowed: false,
-      reason: "suppressed",
-      suppressionType: "bounce",
+    const admin = buildAdmin({
+      suppressions: [{ suppression_type: "bounce" }],
     });
-    const admin = buildAdmin();
 
     const result = await sendStagedGiftReceipt({
       supabaseAdmin: admin.client,
@@ -172,7 +187,6 @@ describe("sendStagedGiftReceipt consent gate", () => {
   it("proceeds with a normal send when consent allows it", async () => {
     loadStagedGiftByIdMock.mockResolvedValue(gift);
     readTenantEmailSettingsMock.mockResolvedValue(connectedSettings);
-    evaluateEmailConsentMock.mockResolvedValue({ allowed: true });
     sendEmailMock.mockResolvedValue({
       success: true,
       messageId: "msg-1",
