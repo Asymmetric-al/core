@@ -28,12 +28,29 @@ import {
   Zap,
   Activity,
   Shield,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
 import React, { useMemo, useState, useSyncExternalStore } from "react";
 
+import {
+  buildDonateRequestBody,
+  interpretDonateResponse,
+  isServerConfirmed,
+  resolveCheckoutMode,
+  type CheckoutMode,
+  type ServerDonation,
+} from "./checkout-donation";
+
 import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
+
+// Live checkout needs a Stripe publishable key to mount Elements and confirm the
+// PaymentIntent (Tier-3, creds-gated). Absent a key we run TEST-MODE: the saga
+// call + server-confirmed state are wired, but the card-capture leg is stubbed
+// and staged unverified-for-live (BLOCKED-FOR-CREDS).
+const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+const CHECKOUT_MODE = resolveCheckoutMode(STRIPE_PUBLISHABLE_KEY);
 
 function subscribeNoop() {
   return () => {};
@@ -72,10 +89,13 @@ type CheckoutState = {
   amount: number;
   coverFees: boolean;
   customAmount: string;
+  donation: ServerDonation | null;
   donorInfo: DonorInfo;
   endDate: string;
+  error: string | null;
   frequency: Frequency;
   hasEndDate: boolean;
+  idempotencyKey: string | null;
   isProcessing: boolean;
   paymentMethod: PaymentMethod;
   showScheduleConfig: boolean;
@@ -322,12 +342,14 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 function SuccessView({
   donorInfo,
   frequency,
+  mode,
   paymentMethod,
   total,
   workerTitle,
 }: {
   donorInfo: DonorInfo;
   frequency: Frequency;
+  mode: CheckoutMode;
   paymentMethod: PaymentMethod;
   total: number;
   workerTitle: string;
@@ -406,6 +428,16 @@ function SuccessView({
             . Your gift is being routed to{" "}
             <span className="text-zinc-950 font-semibold">{workerTitle}</span>.
           </p>
+
+          {mode === "test" && (
+            <div
+              role="status"
+              className="inline-flex items-center gap-3 rounded-full bg-amber-50 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+            >
+              <AlertTriangle className="size-3.5" aria-hidden="true" /> Test
+              mode — no card charge collected
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Link
@@ -889,14 +921,18 @@ function DetailsStep({
 }
 
 function PaymentStep({
+  error,
   isProcessing,
+  mode,
   onBack,
   onConfirmPayment,
   onPaymentMethodChange,
   paymentMethod,
   total,
 }: {
+  error: string | null;
   isProcessing: boolean;
+  mode: CheckoutMode;
   onBack: () => void;
   onConfirmPayment: () => void;
   onPaymentMethodChange: (value: PaymentMethod) => void;
@@ -1093,6 +1129,44 @@ function PaymentStep({
         </div>
       </div>
 
+      {mode === "test" && (
+        <div
+          role="status"
+          className="flex items-start gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-6 text-left dark:border-amber-500/30 dark:bg-amber-500/10"
+        >
+          <AlertTriangle
+            className="size-5 shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true"
+          />
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-300">
+              Test mode — card capture disabled
+            </p>
+            <p className="text-sm font-medium leading-relaxed text-amber-700/80 dark:text-amber-200/80">
+              Live card processing needs Stripe credentials that aren&apos;t
+              configured yet. Your contribution is recorded server-side; the
+              card charge is not collected in this mode.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
+        >
+          <AlertTriangle
+            className="size-5 shrink-0 text-red-600 dark:text-red-400"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
+            {error}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-6">
         <Button
           variant="outline"
@@ -1137,14 +1211,17 @@ function CheckoutContent({
     amount: initialAmount ? Number(initialAmount) : 100,
     coverFees: false,
     customAmount: "",
+    donation: null,
     donorInfo: {
       email: "",
       firstName: "",
       lastName: "",
     },
     endDate: "",
+    error: null,
     frequency: searchParams.frequency ?? "monthly",
     hasEndDate: false,
+    idempotencyKey: null,
     isProcessing: false,
     paymentMethod: "card",
     showScheduleConfig: false,
@@ -1155,8 +1232,10 @@ function CheckoutContent({
     amount,
     coverFees,
     customAmount,
+    donation,
     donorInfo,
     endDate,
+    error,
     frequency,
     hasEndDate,
     isProcessing,
@@ -1177,8 +1256,6 @@ function CheckoutContent({
     setCheckoutState((prev) => ({ ...prev, frequency: value }));
   const setCoverFees = (value: boolean) =>
     setCheckoutState((prev) => ({ ...prev, coverFees: value }));
-  const setIsProcessing = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, isProcessing: value }));
   const setPaymentMethod = (value: PaymentMethod) =>
     setCheckoutState((prev) => ({ ...prev, paymentMethod: value }));
   const setStartDate = (value: string) =>
@@ -1229,11 +1306,69 @@ function CheckoutContent({
   };
 
   const handlePayment = async () => {
-    setIsProcessing(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsProcessing(false);
-    setStep("success");
-    window.scrollTo(0, 0);
+    // One idempotency key per checkout attempt, reused across retries so the
+    // idempotent donation saga replays rather than creating a second donation.
+    const idempotencyKey = checkoutState.idempotencyKey ?? crypto.randomUUID();
+    setCheckoutState((prev) => ({
+      ...prev,
+      error: null,
+      idempotencyKey,
+      isProcessing: true,
+    }));
+
+    try {
+      const body = buildDonateRequestBody({
+        amount: total,
+        currency: "usd",
+        // `workerId` already falls back to `missionary_id`; the server validates
+        // that the designation exists for this tenant.
+        missionaryId: workerId,
+        fundId,
+      });
+
+      const response = await fetch("/api/donate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify(body),
+      });
+
+      const payload = await response.json().catch(() => null);
+      const result = interpretDonateResponse(response.status, payload);
+
+      // LAW: the success screen renders ONLY from server-confirmed donation
+      // state (a real `donationId` from the saga), never from a client timer.
+      if (isServerConfirmed(result)) {
+        setCheckoutState((prev) => ({
+          ...prev,
+          donation: result.donation,
+          error: null,
+          isProcessing: false,
+          step: "success",
+        }));
+        window.scrollTo(0, 0);
+        return;
+      }
+
+      const message =
+        result.kind === "processing"
+          ? "Your contribution is still processing — we'll email your receipt once it's confirmed."
+          : result.message;
+      setCheckoutState((prev) => ({
+        ...prev,
+        error: message,
+        isProcessing: false,
+      }));
+    } catch {
+      setCheckoutState((prev) => ({
+        ...prev,
+        error:
+          "We couldn't reach the server to confirm your contribution. Please try again.",
+        isProcessing: false,
+      }));
+    }
   };
 
   if (!worker && step !== "success" && !hasGivingTarget) {
@@ -1260,11 +1395,15 @@ function CheckoutContent({
     );
   }
 
-  if (step === "success") {
+  // Success renders ONLY when the server has confirmed the donation. If we are
+  // on the success step without server-confirmed state, something is wrong —
+  // fall through to the checkout rather than showing an unbacked confirmation.
+  if (step === "success" && donation) {
     return (
       <SuccessView
         donorInfo={donorInfo}
         frequency={frequency}
+        mode={CHECKOUT_MODE}
         paymentMethod={paymentMethod}
         total={total}
         workerTitle={worker?.title || "our global mission"}
@@ -1319,7 +1458,9 @@ function CheckoutContent({
 
               {step === "payment" && (
                 <PaymentStep
+                  error={error}
                   isProcessing={isProcessing}
+                  mode={CHECKOUT_MODE}
                   onBack={handleBack}
                   onConfirmPayment={handlePayment}
                   onPaymentMethodChange={setPaymentMethod}
