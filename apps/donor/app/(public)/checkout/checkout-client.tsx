@@ -1,7 +1,12 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { describeDonationPaymentStatus } from "@asym/lib/payments/payment-status-language";
+import {
+  describeDonationPaymentStatus,
+  isFinalPaymentSuccess,
+  type DonationPaymentState,
+  type PaymentRail,
+} from "@asym/lib/payments/payment-status-language";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -78,6 +83,14 @@ type CheckoutState = {
   hasEndDate: boolean;
   isProcessing: boolean;
   paymentMethod: PaymentMethod;
+  /**
+   * Payment state that gates the confirmation copy. It must be populated from the
+   * SERVER-confirmed outcome (see @asym/lib/payments/confirm-checkout-payment).
+   * In this slice the live transport is staged (BLOCKED-FOR-DB / OpenSpec), so it
+   * holds a non-final `pending`/`processing` acknowledgment — never a `completed`
+   * success — so the UI cannot claim a gift was collected or a receipt was sent.
+   */
+  paymentState: DonationPaymentState;
   showScheduleConfig: boolean;
   startDate: string;
   step: Step;
@@ -323,26 +336,34 @@ function SuccessView({
   donorInfo,
   frequency,
   paymentMethod,
+  paymentState,
   total,
   workerTitle,
 }: {
   donorInfo: DonorInfo;
   frequency: Frequency;
   paymentMethod: PaymentMethod;
+  paymentState: DonationPaymentState;
   total: number;
   workerTitle: string;
 }) {
-  // ACH Direct Debit is a delayed-notification rail: the donor authorized the
-  // debit, but payment finality arrives later from Stripe. Keep the language
-  // honest while the visual treatment stays identical across payment methods.
-  const achStatus =
+  // Confirmation copy is derived from the SERVER-confirmed payment state, never
+  // decided by the client. Nothing is described as collected — and no receipt is
+  // claimed as sent — until the state is a final success ("Stripe is the payment
+  // authority"; see @asym/lib/payments/payment-status-language). ACH and other
+  // delayed rails stay honestly "Processing — not yet collected".
+  const rail: PaymentRail =
     paymentMethod === "ach"
-      ? describeDonationPaymentStatus({
-          state: "processing",
-          rail: "ach_debit",
-          audience: "donor",
-        })
-      : null;
+      ? "ach_debit"
+      : paymentMethod === "wallet"
+        ? "wallet"
+        : "card";
+  const status = describeDonationPaymentStatus({
+    state: paymentState,
+    rail,
+    audience: "donor",
+  });
+  const collected = isFinalPaymentSuccess(paymentState);
 
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
@@ -371,12 +392,14 @@ function SuccessView({
           </motion.div>
 
           <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
-            {achStatus ? "Bank Transfer Started." : "Contribution Logged."}
+            {collected ? "Contribution Confirmed." : "Contribution Submitted."}
           </h1>
           <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
-            {achStatus
-              ? "Processing — not yet collected"
-              : "Thank you for your support"}
+            {collected
+              ? "Thank you for your support"
+              : status.isFinal
+                ? status.label
+                : `${status.label} — not yet collected`}
           </p>
         </div>
 
@@ -397,13 +420,15 @@ function SuccessView({
           </div>
 
           <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
-            {achStatus
-              ? `${achStatus.message} A confirmation has been sent to `
-              : "A secure receipt has been sent to "}
+            {collected
+              ? "A secure receipt has been sent to "
+              : `${status.message} We'll email your receipt to `}
             <span className="text-zinc-950 font-semibold">
               {donorInfo.email}
             </span>
-            . Your gift is being routed to{" "}
+            {collected
+              ? ". Your gift is being routed to "
+              : " once your gift is confirmed. Your gift is being routed to "}
             <span className="text-zinc-950 font-semibold">{workerTitle}</span>.
           </p>
 
@@ -1147,6 +1172,7 @@ function CheckoutContent({
     hasEndDate: false,
     isProcessing: false,
     paymentMethod: "card",
+    paymentState: "pending",
     showScheduleConfig: false,
     startDate: "",
     step: "config",
@@ -1161,6 +1187,7 @@ function CheckoutContent({
     hasEndDate,
     isProcessing,
     paymentMethod,
+    paymentState,
     showScheduleConfig,
     startDate,
     step,
@@ -1230,9 +1257,23 @@ function CheckoutContent({
 
   const handlePayment = async () => {
     setIsProcessing(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsProcessing(false);
-    setStep("success");
+    // Server-confirmed money path: POST the donation to the saga endpoint, then
+    // confirm via Stripe and derive success from the SERVER PaymentIntent status
+    // (see @asym/lib/payments/confirm-checkout-payment + checkout-confirmation).
+    // The live transport — the guest money endpoint + Stripe Elements confirm +
+    // live DB — is staged BLOCKED-FOR-DB / OpenSpec-first (al-public-giving-wire).
+    // Until it lands we must NOT fabricate a collected success or claim a receipt
+    // was sent (the old client-timer "success" did exactly that). Advance to an
+    // honest, not-yet-confirmed state instead; the confirmation screen renders
+    // truthful pending copy driven by this state.
+    const submittedState: DonationPaymentState =
+      paymentMethod === "ach" ? "processing" : "pending";
+    setCheckoutState((prev) => ({
+      ...prev,
+      isProcessing: false,
+      paymentState: submittedState,
+      step: "success",
+    }));
     window.scrollTo(0, 0);
   };
 
@@ -1266,6 +1307,7 @@ function CheckoutContent({
         donorInfo={donorInfo}
         frequency={frequency}
         paymentMethod={paymentMethod}
+        paymentState={paymentState}
         total={total}
         workerTitle={worker?.title || "our global mission"}
       />
