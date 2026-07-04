@@ -44,7 +44,17 @@ import {
   Globe,
   AlertTriangle,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+
+import {
+  buildDonorSettingsPatch,
+  buildProfileFormState,
+} from "@asym/api/donor-portal/settings-patch";
+import {
+  useDonorPortalSnapshot,
+  useUpdateDonorPortal,
+} from "@asym/database/hooks";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";
@@ -110,21 +120,94 @@ const PasswordInput = ({
 
 // --- Tabs ---
 
-const ProfileTab = () => {
-  const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?fit=facearea&facepad=2&w=256&h=256&q=80",
-  );
+const COMING_SOON = "Coming soon — not editable here yet.";
 
-  const handleSave = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
+const ProfileTab = () => {
+  const snapshot = useDonorPortalSnapshot();
+  const update = useUpdateDonorPortal();
+
+  const [form, setForm] = useState({
+    firstName: "",
+    lastName: "",
+    email: "",
+    phone: "",
+    avatarUrl: "",
+  });
+  const [success, setSuccess] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const hydratedRef = React.useRef(false);
+
+  // Prefill once from the live snapshot; don't clobber in-progress edits.
+  useEffect(() => {
+    if (hydratedRef.current || !snapshot.data) return;
+    setForm(
+      buildProfileFormState({
+        displayName: snapshot.data.profile.displayName,
+        email: snapshot.data.profile.email,
+        phone: snapshot.data.profile.phone,
+        avatarUrl: snapshot.data.profile.avatarUrl,
+      }),
+    );
+    hydratedRef.current = true;
+  }, [snapshot.data]);
+
+  const setField = (key: keyof typeof form, value: string) => {
+    setForm((prev) => ({ ...prev, [key]: value }));
+    setSuccess(false);
+    setErrorMessage(null);
+  };
+
+  const handleSave = async () => {
+    setErrorMessage(null);
+    try {
+      await update.mutateAsync(
+        buildDonorSettingsPatch({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          phone: form.phone || null,
+          avatarUrl: form.avatarUrl || null,
+        }) as Parameters<typeof update.mutateAsync>[0],
+      );
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
-    }, 1500);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error ? error.message : "Couldn't save your changes.",
+      );
+    }
   };
+
+  if (snapshot.isLoading) {
+    return (
+      <div className="space-y-6" aria-busy="true" aria-label="Loading profile">
+        <Skeleton className="h-40 w-full rounded-xl" />
+        <Skeleton className="h-80 w-full rounded-xl" />
+      </div>
+    );
+  }
+
+  if (snapshot.error) {
+    return (
+      <Card className="border-destructive/40 text-left rounded-xl">
+        <CardContent className="p-6 space-y-3">
+          <p role="alert" className="text-sm font-medium text-destructive">
+            We couldn&apos;t load your profile.
+          </p>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => snapshot.refetch()}
+          >
+            Try again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const initials =
+    `${form.firstName[0] ?? ""}${form.lastName[0] ?? ""}`.toUpperCase() || "··";
+  const saving = update.isPending;
 
   return (
     <motion.div
@@ -134,8 +217,8 @@ const ProfileTab = () => {
       className="space-y-6"
     >
       {/* Avatar Section */}
-      <Card className="border-zinc-200 shadow-sm overflow-hidden text-left rounded-xl">
-        <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4">
+      <Card className="border-border shadow-sm overflow-hidden text-left rounded-xl">
+        <CardHeader className="bg-muted/40 border-b border-border pb-4">
           <CardTitle className="text-lg">Public Avatar</CardTitle>
           <CardDescription>
             Displayed on your profile and interactions.
@@ -144,17 +227,17 @@ const ProfileTab = () => {
         <CardContent className="p-6">
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <ImageUpload
-              value={avatarUrl}
-              onChange={(url) => setAvatarUrl(url)}
+              value={form.avatarUrl}
+              onChange={(url) => setField("avatarUrl", url)}
               path="avatars"
               aspect={1}
               triggerAriaLabel="Upload public avatar"
             >
               <div className="relative group cursor-pointer">
-                <Avatar className="size-20 border-4 border-white shadow-md ring-1 ring-zinc-100">
-                  <AvatarImage src={avatarUrl} />
-                  <AvatarFallback className="bg-zinc-900 text-white text-2xl uppercase font-semibold">
-                    JD
+                <Avatar className="size-20 border-4 border-background shadow-md ring-1 ring-border">
+                  <AvatarImage src={form.avatarUrl} />
+                  <AvatarFallback className="bg-foreground text-background text-2xl uppercase font-semibold">
+                    {initials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -164,23 +247,23 @@ const ProfileTab = () => {
             </ImageUpload>
             <div className="flex flex-col gap-3 text-center sm:text-left">
               <div>
-                <h4 className="font-semibold text-zinc-900 uppercase tracking-tight">
+                <h4 className="font-semibold text-foreground uppercase tracking-tight">
                   Profile Photo
                 </h4>
-                <p className="text-[10px] font-semibold text-zinc-400 mt-1 uppercase tracking-widest">
+                <p className="text-[10px] font-semibold text-muted-foreground mt-1 uppercase tracking-widest">
                   JPG, GIF or PNG. Large files auto-optimized.
                 </p>
               </div>
               <div className="flex gap-3 justify-center sm:justify-start">
                 <ImageUpload
-                  value={avatarUrl}
-                  onChange={(url) => setAvatarUrl(url)}
+                  value={form.avatarUrl}
+                  onChange={(url) => setField("avatarUrl", url)}
                   path="avatars"
                 >
                   <Button
                     variant="outline"
                     size="sm"
-                    className="bg-white h-8 text-[10px] font-semibold uppercase tracking-widest border-zinc-200 shadow-sm hover:bg-zinc-50 rounded-lg px-4"
+                    className="h-8 text-[10px] font-semibold uppercase tracking-widest shadow-sm rounded-lg px-4"
                   >
                     Upload New
                   </Button>
@@ -188,8 +271,8 @@ const ProfileTab = () => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => setAvatarUrl("")}
-                  className="text-rose-600 h-8 text-[10px] font-semibold uppercase tracking-widest hover:text-rose-700 hover:bg-rose-50 rounded-lg px-4"
+                  onClick={() => setField("avatarUrl", "")}
+                  className="text-destructive h-8 text-[10px] font-semibold uppercase tracking-widest hover:text-destructive rounded-lg px-4"
                 >
                   Remove
                 </Button>
@@ -200,12 +283,12 @@ const ProfileTab = () => {
       </Card>
 
       {/* Personal Info Form */}
-      <Card className="border-zinc-200 shadow-sm text-left rounded-xl">
-        <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4">
+      <Card className="border-border shadow-sm text-left rounded-xl">
+        <CardHeader className="bg-muted/40 border-b border-border pb-4">
           <CardTitle className="text-lg uppercase font-semibold tracking-tight">
             Personal Information
           </CardTitle>
-          <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+          <CardDescription className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
             Update your identity and contact details.
           </CardDescription>
         </CardHeader>
@@ -214,27 +297,29 @@ const ProfileTab = () => {
             <div className="space-y-2">
               <Label
                 htmlFor="firstName"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
               >
                 First Name
               </Label>
               <Input
                 id="firstName"
-                defaultValue="John"
-                className="bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
+                value={form.firstName}
+                onChange={(event) => setField("firstName", event.target.value)}
+                className="focus:border-foreground transition-colors h-10 rounded-lg"
               />
             </div>
             <div className="space-y-2">
               <Label
                 htmlFor="lastName"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
               >
                 Last Name
               </Label>
               <Input
                 id="lastName"
-                defaultValue="Doe"
-                className="bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
+                value={form.lastName}
+                onChange={(event) => setField("lastName", event.target.value)}
+                className="focus:border-foreground transition-colors h-10 rounded-lg"
               />
             </div>
           </div>
@@ -243,126 +328,105 @@ const ProfileTab = () => {
             <div className="space-y-2">
               <Label
                 htmlFor="email"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
               >
                 Email Address
               </Label>
               <div className="relative">
-                <Mail className="absolute left-3 top-3 size-4 text-zinc-400" />
+                <Mail className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Input
                   id="email"
                   type="email"
-                  defaultValue="john.doe@example.com"
-                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
+                  value={form.email}
+                  disabled
+                  aria-describedby="email-note"
+                  className="pl-9 h-10 rounded-lg"
                 />
               </div>
+              <p id="email-note" className="text-[10px] text-muted-foreground">
+                Contact support to change your email.
+              </p>
             </div>
             <div className="space-y-2">
               <Label
                 htmlFor="phone"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
               >
                 Phone Number
               </Label>
               <div className="relative">
-                <Phone className="absolute left-3 top-3 size-4 text-zinc-400" />
+                <Phone className="absolute left-3 top-3 size-4 text-muted-foreground" />
                 <Input
                   id="phone"
                   type="tel"
-                  defaultValue="+1 (555) 123-4567"
-                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
+                  value={form.phone}
+                  onChange={(event) => setField("phone", event.target.value)}
+                  className="pl-9 focus:border-foreground transition-colors h-10 rounded-lg"
                 />
               </div>
             </div>
           </div>
 
-          <div className="space-y-4 pt-2">
-            <div className="space-y-2">
+          {/* Mailing address — not yet editable via the portal API. */}
+          <fieldset
+            disabled
+            aria-describedby="address-note"
+            className="space-y-4 pt-2 opacity-60"
+          >
+            <div className="flex items-center gap-2">
               <Label
                 htmlFor="address"
-                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
+                className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground"
               >
                 Street Address
               </Label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3 size-4 text-zinc-400" />
-                <Input
-                  id="address"
-                  defaultValue="123 Mission Way"
-                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
-                />
-              </div>
+              <Badge variant="secondary" className="text-[9px] uppercase">
+                Coming soon
+              </Badge>
+            </div>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-3 size-4 text-muted-foreground" />
+              <Input id="address" placeholder="123 Mission Way" className="pl-9 h-10 rounded-lg" />
             </div>
             <div className="grid grid-cols-2 md:grid-cols-3 gap-5">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="city"
-                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
-                >
-                  City
-                </Label>
-                <Input
-                  id="city"
-                  defaultValue="San Francisco"
-                  className="bg-white border-zinc-200 h-10 rounded-lg"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label
-                  htmlFor="state"
-                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
-                >
-                  State
-                </Label>
-                <Input
-                  id="state"
-                  defaultValue="CA"
-                  className="bg-white border-zinc-200 h-10 rounded-lg"
-                />
-              </div>
-              <div className="space-y-2 col-span-2 md:col-span-1">
-                <Label
-                  htmlFor="zip"
-                  className="text-[10px] font-semibold uppercase tracking-[0.2em] text-zinc-400"
-                >
-                  Postal Code
-                </Label>
-                <Input
-                  id="zip"
-                  defaultValue="94105"
-                  className="bg-white border-zinc-200 h-10 rounded-lg"
-                />
-              </div>
+              <Input placeholder="City" className="h-10 rounded-lg" aria-label="City" />
+              <Input placeholder="State" className="h-10 rounded-lg" aria-label="State" />
+              <Input
+                placeholder="Postal Code"
+                className="h-10 rounded-lg col-span-2 md:col-span-1"
+                aria-label="Postal code"
+              />
             </div>
-          </div>
+            <p id="address-note" className="text-[10px] text-muted-foreground">
+              {COMING_SOON}
+            </p>
+          </fieldset>
         </CardContent>
-        <CardFooter className="bg-zinc-50/50 border-t border-zinc-100 p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400 hidden sm:block">
-            Last updated: 3 days ago
+        <CardFooter className="bg-muted/40 border-t border-border p-4 flex flex-col-reverse sm:flex-row justify-between items-center gap-4">
+          <p
+            role={errorMessage ? "alert" : undefined}
+            className={cn(
+              "text-[10px] font-semibold uppercase tracking-widest",
+              errorMessage ? "text-destructive" : "text-muted-foreground",
+            )}
+          >
+            {errorMessage ?? "Changes sync to your giving record."}
           </p>
           <div className="flex gap-3 w-full sm:w-auto">
             <Button
-              variant="ghost"
-              className="text-zinc-500 hover:text-zinc-900 w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest"
-            >
-              Cancel
-            </Button>
-            <Button
               onClick={handleSave}
-              disabled={loading}
+              disabled={saving}
               className={cn(
                 "min-w-[120px] transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
-                success
-                  ? "bg-emerald-600 hover:bg-emerald-700"
-                  : "bg-zinc-900 hover:bg-zinc-800",
+                success && "bg-emerald-600 hover:bg-emerald-700",
               )}
             >
-              {loading ? (
+              {saving ? (
                 <Loader2 className="mr-2 size-3 animate-spin" />
               ) : success ? (
                 <Check className="mr-2 size-3" />
               ) : null}
-              {loading ? "Saving..." : success ? "Saved" : "Save Changes"}
+              {saving ? "Saving..." : success ? "Saved" : "Save Changes"}
             </Button>
           </div>
         </CardFooter>

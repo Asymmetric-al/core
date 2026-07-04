@@ -1,5 +1,6 @@
 "use client";
 
+import { buildGivingTrends } from "@asym/api/donor-portal/trends";
 import { useDonorHistoryTransactions } from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
@@ -77,14 +78,7 @@ type HistoryFiltersAction =
   | { type: "set_type_filter"; value: string }
   | { type: "set_status_filter"; value: string };
 
-const MONTHLY_DATA = [
-  { month: "May", amount: 100 },
-  { month: "Jun", amount: 350 },
-  { month: "Jul", amount: 100 },
-  { month: "Aug", amount: 100 },
-  { month: "Sep", amount: 600 },
-  { month: "Oct", amount: 100 },
-];
+type MonthlyGivingPoint = { month: string; amount: number };
 
 const CURRENT_YEAR = new Date().getFullYear();
 const HISTORY_YEAR_OPTIONS = Array.from({ length: 5 }, (_, index) =>
@@ -127,9 +121,11 @@ function HistoryChartFallback() {
 }
 
 function MonthlyGivingChart({
+  data,
   rechartsFailed,
   rechartsModule,
 }: {
+  data: MonthlyGivingPoint[];
   rechartsFailed: boolean;
   rechartsModule: RechartsModule | null;
 }) {
@@ -145,6 +141,17 @@ function MonthlyGivingChart({
     return <HistoryChartFallback />;
   }
 
+  if (data.length === 0) {
+    return (
+      <p
+        role="status"
+        className="flex h-full items-center text-sm text-zinc-500"
+      >
+        No giving to chart yet.
+      </p>
+    );
+  }
+
   const {
     Bar,
     BarChart,
@@ -155,9 +162,9 @@ function MonthlyGivingChart({
 
   return (
     <ResponsiveContainer width="100%" height="100%">
-      <BarChart data={MONTHLY_DATA}>
+      <BarChart data={data}>
         <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
-          {MONTHLY_DATA.map((entry) => (
+          {data.map((entry) => (
             <Cell
               key={entry.month}
               fill={entry.amount > 300 ? "#10b981" : "rgba(255,255,255,0.2)"}
@@ -239,6 +246,7 @@ function HistoryPageHeader({
 
 function HistoryStatsColumn({
   filteredTransactionCount,
+  monthlyGiving,
   receiptCount,
   rechartsFailed,
   rechartsModule,
@@ -246,6 +254,7 @@ function HistoryStatsColumn({
   yearFilter,
 }: {
   filteredTransactionCount: number;
+  monthlyGiving: MonthlyGivingPoint[];
   receiptCount: number;
   rechartsFailed: boolean;
   rechartsModule: RechartsModule | null;
@@ -276,6 +285,7 @@ function HistoryStatsColumn({
 
           <div className="h-24 w-full">
             <MonthlyGivingChart
+              data={monthlyGiving}
               rechartsFailed={rechartsFailed}
               rechartsModule={rechartsModule}
             />
@@ -546,6 +556,21 @@ export default function DonorHistoryPage() {
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }, [searchTerm, transactions, yearFilter, typeFilter, statusFilter]);
 
+  const monthlyGiving = useMemo<MonthlyGivingPoint[]>(
+    () =>
+      buildGivingTrends(
+        filteredTransactions.map((transaction) => ({
+          date: transaction.date,
+          amountCents: Math.round(transaction.amount * 100),
+          status: transaction.status,
+        })),
+      ).map((point) => ({
+        month: point.label.split(" ")[0] ?? point.label,
+        amount: point.total,
+      })),
+    [filteredTransactions],
+  );
+
   const totalGiven = useMemo(
     () =>
       filteredTransactions.reduce(
@@ -575,6 +600,7 @@ export default function DonorHistoryPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <HistoryStatsColumn
           filteredTransactionCount={filteredTransactions.length}
+          monthlyGiving={monthlyGiving}
           receiptCount={receiptCount}
           rechartsFailed={rechartsFailed}
           rechartsModule={rechartsModule}
