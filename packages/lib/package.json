@@ -6,6 +6,7 @@
   "exports": {
     "./build-info": "./build-info.ts",
     "./utils": "./utils.ts",
+    "./csv": "./csv.ts",
     "./stripe": "./stripe.ts",
     "./cloudinary": {
       "client": "./cloudinary/client.ts",
