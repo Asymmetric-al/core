@@ -59,7 +59,8 @@ Concretely, Phase 2:
    primitive (decimal exponent per ISO-4217 code plus documented special cases) and ISO-4217
    validation.
 3. Treats **locale** and **currency** as **facets of a site** (not a new hierarchy of tables), and
-   reserves the audit stamps later phases need (`rendered_locale` on receipts and messages).
+   reserves the audit stamps Phase 7 (Receipt & Statement Compliance Rules + donor-identity/credit
+   model) needs (`rendered_locale` on receipts and messages).
 4. Captures giving **attribution** on four orthogonal axes — **site** (where), **entry method**
    (how it entered), **source code** (what drove it), **designation** (what it is for) — dropping
    the ambiguous generic "channel."
@@ -368,13 +369,21 @@ _All site settings that need a home before their consuming phase are **typed col
   - Reserved (nullable) money-context columns on giving records: `presentment_currency`,
     `settlement_currency`, `exchange_rate_snapshot_id` — default to the single currency in Phase 2.
   - `rendered_locale` (nullable, defaults to site default) reserved on receipts and system messages.
+    It is a reserved **column contract** for the receipts/messages entities that Phase 7 (Receipt &
+    Statement Compliance Rules + donor-identity/credit model) creates — Phase 2 builds no receipts
+    table. Capture semantics: `rendered_locale` is stamped from the **effective locale at
+    render/issuance time** and is thereafter **immutable** — a frozen fact, not a live pointer to the
+    site's current `default_locale` — so a later `default_locale` change never misreports a
+    historical receipt.
   - **Not** site-scoped (stay tenant-wide): funds/designations, donor/CRM tables, and **Media**
     (Media is already tenant-scoped today via its `tenant` relationship + access hooks; per-site
     asset isolation, if ever needed, is later work — no Media change in Phase 2).
 - **Reserved override-resolution contract (D9 shape, storage deferred):** for receipts and system
   messages, a setting/message resolves in the order **tenant default → site override → locale
-  override**. Phase 2 reserves this _ordering contract_ only; the override storage and editor are
-  deferred to the receipt/message phases.
+  override**. Phase 2 reserves this _ordering contract_ only, as a reserved ordering contract for the
+  receipts/messages entities that Phase 7 (Receipt & Statement Compliance Rules + donor-identity/credit
+  model) creates; the override storage and editor are deferred to Phase 7. Phase 7 **may extend** this
+  override-resolution contract with a jurisdiction axis.
 
 ### Contracts & wiring (thin, on top of the deep modules)
 
@@ -466,9 +475,14 @@ DB-config tests) and the Phase 1 evidence pattern for the completion write-up.
   Named and **reserved for the giving-cart phase**, not built here. Per A1a, when each of these
   lands it becomes a typed column on `public.sites`, not a `site_*_settings` table.
 - **Receipt compliance** (legal name/address/tax-language storage), **accounting exports**, **gift
-  triggers**, **reports** — later phases; Phase 2 reserves the primitives (reporting currency,
-  rate-snapshot shape, attribution axes, `rendered_locale`, and the override-resolution contract)
-  they will consume.
+  triggers**, **reports** — deferred to Phase 7 (Receipt & Statement Compliance Rules +
+  donor-identity/credit model) and the later reporting/export phases; Phase 2 reserves the primitives
+  (reporting currency, rate-snapshot shape, attribution axes, `rendered_locale`, and the
+  override-resolution contract) they will consume. The issuing tenant/site **jurisdiction/country** —
+  which gates receipt numbering (US non-gapless vs Canada/CRA gapless) and tax language — is part of
+  this deferred receipt-compliance bundle and is **not** a reserved column on `public.sites` in
+  Phase 2; Phase 7 introduces it and **may extend** the reserved override-resolution contract with a
+  jurisdiction axis.
 - **Surfacing attribution to missionaries** — deliberately deferred (attribution is staff/finance-
   facing in Phase 2); missionary views stay normalized at the tenant.
 - **CRM/Twenty projection of site/attribution** — attribution stays in the Asym ledger; the CRM

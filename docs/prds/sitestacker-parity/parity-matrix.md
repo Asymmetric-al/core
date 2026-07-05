@@ -24,34 +24,34 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
 
 ## Status grid
 
-| #   | Area                                                    | Built?       | Live?  | Confirmed? | Owning surface           |
-| --- | ------------------------------------------------------- | ------------ | ------ | ---------- | ------------------------ |
-| 1   | Twenty CRM integration foundation                       | Yes (v)      | unconf | No         | Mission Control          |
-| 2   | Full CRM depth & relationship graph                     | Partial (v)  | unconf | No         | Mission Control          |
-| 3   | Custom CRM fields & configurable entities               | ? (v)        | unconf | No         | Mission Control          |
-| 4   | Role & permission configuration                         | Partial (v)  | unconf | No         | Mission Control          |
-| 5   | Campaign, designation, contribution ledger, giving cart | Partial (v)  | unconf | No         | Mission Control + public |
-| 6   | Offline gift batch entry                                | Partial (v)  | unconf | No         | Mission Control          |
-| 7   | Soft credits, affiliated donors, DAF handling           | ? (v)        | unconf | No         | Mission Control          |
-| 8   | Pledges & offline recurring commitments                 | Partial (v)  | unconf | No         | Mission Control + donor  |
-| 9   | Receipt & PDF template system                           | Yes (v)      | unconf | No         | Mission Control          |
-| 10  | Year-end statement operations                           | Partial (v)  | unconf | No         | Mission Control + donor  |
-| 11  | Accounting exports & reconciliation                     | ? (v)        | unconf | No         | Mission Control          |
-| 12  | Public missionary & project page workflow               | Partial (v)  | unconf | No         | Public website + CRM     |
-| 13  | CMS / Site Planner dynamic content                      | Partial (v)  | unconf | No         | Public website (CMS)     |
-| 14  | Multi-site, language & currency                         | ? (v)        | unconf | No         | Platform-wide            |
-| 15  | Donor dashboard depth                                   | Partial (v)  | unconf | No         | Donor portal             |
-| 16  | Missionary dashboard depth                              | Partial (v)  | unconf | No         | Missionary workspace     |
-| 17  | System messages & email template management             | Partial (v)  | unconf | No         | Mission Control          |
-| 18  | File manager & document management                      | ? (v)        | unconf | No         | Mission Control          |
-| 19  | Mailchimp / newsletter sync                             | No (v)       | No     | No         | Mission Control          |
-| 20  | Peer-to-peer advocacy campaigns                         | ? (v)        | unconf | No         | Public + donor           |
-| 21  | Event / opportunity workflows & groups                  | ? (v)        | unconf | No         | Mission Control          |
-| 22  | Imports & migration tools                               | Partial (v)  | unconf | No         | Mission Control          |
-| 23  | Reporting & BI                                          | Partial (v)  | unconf | No         | Mission Control          |
-| 24  | Configurable automation / workflow engine               | Partial (v)  | unconf | No         | Mission Control          |
-| 25  | Spark-style contribution triggers                       | ? (v)        | unconf | No         | Mission Control          |
-| —   | Child sponsorship                                       | out-of-scope | —      | —          | —                        |
+| #   | Area                                                    | Built?       | Live?  | Confirmed? | Owning surface                                           |
+| --- | ------------------------------------------------------- | ------------ | ------ | ---------- | -------------------------------------------------------- |
+| 1   | Twenty CRM integration foundation                       | Yes (v)      | unconf | No         | Mission Control                                          |
+| 2   | Full CRM depth & relationship graph                     | Partial (v)  | unconf | No         | Mission Control                                          |
+| 3   | Custom CRM fields & configurable entities               | ? (v)        | unconf | No         | Mission Control                                          |
+| 4   | Role & permission configuration                         | Partial (v)  | unconf | No         | Mission Control                                          |
+| 5   | Campaign, designation, contribution ledger, giving cart | Partial (v)  | unconf | No         | Mission Control + public                                 |
+| 6   | Offline gift batch entry                                | Partial (v)  | unconf | No         | Mission Control                                          |
+| 7   | Soft credits, affiliated donors, DAF handling           | ? (v)        | unconf | No         | Mission Control (Phase 7 owns)                           |
+| 8   | Pledges & offline recurring commitments                 | Partial (v)  | unconf | No         | Mission Control + donor                                  |
+| 9   | Receipt & PDF template system                           | Partial (v)  | unconf | No         | Mission Control (Phase 7 owns facts/compliance layer)    |
+| 10  | Year-end statement operations                           | Partial (v)  | unconf | No         | Mission Control + donor (Phase 7 owns eligibility rules) |
+| 11  | Accounting exports & reconciliation                     | ? (v)        | unconf | No         | Mission Control                                          |
+| 12  | Public missionary & project page workflow               | Partial (v)  | unconf | No         | Public website + CRM                                     |
+| 13  | CMS / Site Planner dynamic content                      | Partial (v)  | unconf | No         | Public website (CMS)                                     |
+| 14  | Multi-site, language & currency                         | ? (v)        | unconf | No         | Platform-wide                                            |
+| 15  | Donor dashboard depth                                   | Partial (v)  | unconf | No         | Donor portal                                             |
+| 16  | Missionary dashboard depth                              | Partial (v)  | unconf | No         | Missionary workspace                                     |
+| 17  | System messages & email template management             | Partial (v)  | unconf | No         | Mission Control                                          |
+| 18  | File manager & document management                      | ? (v)        | unconf | No         | Mission Control                                          |
+| 19  | Mailchimp / newsletter sync                             | No (v)       | No     | No         | Mission Control                                          |
+| 20  | Peer-to-peer advocacy campaigns                         | ? (v)        | unconf | No         | Public + donor                                           |
+| 21  | Event / opportunity workflows & groups                  | ? (v)        | unconf | No         | Mission Control                                          |
+| 22  | Imports & migration tools                               | Partial (v)  | unconf | No         | Mission Control                                          |
+| 23  | Reporting & BI                                          | Partial (v)  | unconf | No         | Mission Control                                          |
+| 24  | Configurable automation / workflow engine               | Partial (v)  | unconf | No         | Mission Control                                          |
+| 25  | Spark-style contribution triggers                       | ? (v)        | unconf | No         | Mission Control                                          |
+| —   | Child sponsorship                                       | out-of-scope | —      | —          | —                                                        |
 
 ## Per-area detail
 
@@ -76,8 +76,12 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker CRM relationships, households, organizations. (s)
 - **Current state:** CRM domain workflows built (phase 05); relationship graph
-  depth partial. (v)
-- **Depends on:** #1.
+  depth partial. The household + organization **party** tables (plus membership
+  and org profiles/`org_contacts`) that satisfy this row are delivered by
+  Phase 7 (Donor Identity/Credit Model) and projected to Twenty via the extended
+  `crm_link_entity_type` enum; phase 05 remains the consumer of that graph. (v)
+- **Depends on:** #1; Phase 7 party tables + `crm_link_entity_type` extension
+  (blast radius: enum change is projected across the Twenty link surface).
 - **Acceptance test:** staff can navigate people ↔ households ↔ organizations ↔
   giving relationships as one graph.
 - **Evidence:** `docs/ops/phase-evidence/2026-05-14_phase-05_crm-domain-workflows.md`.
@@ -137,10 +141,16 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker soft credits, affiliated donors, donor-advised
   funds. (s)
-- **Current state:** no evidence found; likely not built. (v)
-- **Depends on:** #2, #5.
-- **Acceptance test:** a gift can carry a soft-credit to a second donor, and a
-  DAF gift links to both the DAF and the advised donor.
+- **Current state:** no evidence found; likely not built. Owned by Phase 7
+  (Receipt & Statement Compliance Rules + Donor Identity/Credit Model). (v)
+- **Depends on:** #2 (party graph), #5 (giving pipeline), Phase 4 identity
+  spine (fulfilled by Phase 7).
+- **Acceptance test:** the D3 credit model holds — a gift carries `0..N` typed
+  soft credits with `is_receiptable=FALSE` that never mint a receipt or enter a
+  money total; a DAF gift receipts the sponsor/fund as legal donor and issues
+  the advisor a non-deductible **acknowledgment** (not a tax receipt), excluded
+  from the advisor's year-end deductible total; and a matching gift is two
+  donations (employee gift + company-match receipted to the company).
 - **Evidence:** needs per-area check.
 - **Open questions:** demand/priority.
 
@@ -160,10 +170,16 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker receipts / PDF templates. (s)
 - **Current state:** PDF Studio template persistence built (phase 10); donation
-  receipts issued from gift records. (v)
-- **Depends on:** #5.
+  receipts issued from gift records. Receipt facts/compliance layer owned by
+  Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model);
+  Statement Studio remains the render consumer. (v)
+- **Depends on:** #5, Phase 7 (receipt facts/compliance layer).
 - **Acceptance test:** staff configure a receipt template and donors receive a
-  correct receipt from it.
+  correct receipt from it, backed by an immutable, versioned, per-tenant-numbered
+  receipt **facts** record that references `contribution_adjustments`, where a
+  correction or partial refund creates a **new** version (the prior version is
+  retained and void-audited) and numbering is jurisdiction-gated (US
+  non-gapless / CRA gapless).
 - **Evidence:** `docs/ops/phase-evidence/2026-05-15_phase-10_studios-operational-hubs.md`.
 - **Open questions:** template breadth vs SiteStacker.
 
@@ -171,11 +187,16 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker year-end statements. (s)
 - **Current state:** donor-portal statements exist; annual statement generation
-  **proposed** (add-donor-self-service, PR #462); statements limited to settled
-  gifts. (v)
-- **Depends on:** #5, #9.
-- **Acceptance test:** a donor downloads a correct year-end statement of settled
-  gifts.
+  **proposed** (add-donor-self-service, PR #462). Statement eligibility rules
+  owned by Phase 7 (Receipt & Statement Compliance Rules + Donor
+  Identity/Credit Model); Statement Studio remains the render consumer. (v)
+- **Depends on:** #5, #9, Phase 7 (statement eligibility rules).
+- **Acceptance test:** a donor downloads a correct year-end statement whose
+  eligibility is issued **on accept** per payment method (card on capture; ACH
+  on `payment_intent.processing` pre-settlement; offline on
+  recorded-received) — settlement is a no-op — and a gift is voided/superseded
+  only on a negative terminal event (e.g. an ACH `charge.dispute.created`
+  return, a lost card dispute, or a refund).
 - **Evidence:** add-donor-self-service change (PR #462).
 - **Open questions:** bulk statement runs for staff.
 

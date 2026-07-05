@@ -67,6 +67,13 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   dependencies are firm.
 - Each area graduates to its own detailed PRD + OpenSpec change **when it is
   actually being built**, not before.
+- **Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit
+  Model)** is the next phase. It **fulfills the identity/party/credit seams
+  reserved in Phase 4** — the persons spine, party entities, frozen-snapshot
+  extension, and the `gift_credits`/tribute/matching/DAF model — which the
+  provisional build order permits. Phase 7 **hard-depends on the Phase 4
+  isolation-hardening foundation shipping first** (firm dependency: Phase 4
+  foundation → Phase 7).
 
 ## Files in this program
 
@@ -75,6 +82,10 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   source of truth).
 - [`phase-00-baseline.md`](./phase-00-baseline.md) — the Phase 0 plan: what
   Phase 0 does, its done-definition, and the provisional order.
+- `phase-07-receipt-statement-compliance-and-donor-credit.md` — **FORTHCOMING
+  (planned, not yet written)** — the Phase 7 plan (Receipt & Statement
+  Compliance Rules + Donor Identity/Credit Model). This file does not exist yet;
+  it is authored when Phase 7 graduates to its own detailed PRD.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
