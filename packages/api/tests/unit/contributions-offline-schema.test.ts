@@ -27,7 +27,9 @@ const unknownCash = {
 
 describe("offlineContributionSchema — known mode", () => {
   it("accepts a known gift attached to an existing donorId", () => {
-    expect(offlineContributionSchema.parse(knownWithId).donorMode).toBe("known");
+    expect(offlineContributionSchema.parse(knownWithId).donorMode).toBe(
+      "known",
+    );
   });
 
   it("accepts a known gift with inline donorInput (create/match)", () => {
@@ -46,7 +48,14 @@ describe("offlineContributionSchema — known mode", () => {
   });
 
   it("allows check/wire/stock/manual_ach for known gifts", () => {
-    for (const method of ["check", "wire", "stock", "manual_ach", "cash", "other"]) {
+    for (const method of [
+      "check",
+      "wire",
+      "stock",
+      "manual_ach",
+      "cash",
+      "other",
+    ]) {
       expect(() =>
         offlineContributionSchema.parse({ ...knownWithId, method }),
       ).not.toThrow();

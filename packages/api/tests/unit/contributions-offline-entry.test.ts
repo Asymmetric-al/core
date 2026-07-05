@@ -4,6 +4,7 @@ import {
   recordOfflineContribution,
   type OfflineEntryDependencies,
 } from "../../src/admin/contributions/offline-entry";
+
 import type { OfflineContributionRequest } from "../../src/schemas/contributions-offline";
 
 /**
@@ -20,7 +21,9 @@ function deps(): OfflineEntryDependencies & {
 } {
   return {
     resolveKnownDonor: vi.fn().mockResolvedValue({ donorId: "donor-created" }),
-    insertContribution: vi.fn().mockResolvedValue({ contributionId: "contrib-1" }),
+    insertContribution: vi
+      .fn()
+      .mockResolvedValue({ contributionId: "contrib-1" }),
     appendAudit: vi.fn().mockResolvedValue({ auditEventId: "audit-1" }),
   };
 }
@@ -53,7 +56,11 @@ describe("recordOfflineContribution", () => {
   });
 
   it("unknown gift NEVER resolves a donor, stores donor_id null, not receiptable", async () => {
-    const res = await recordOfflineContribution({ input: unknownGift, actor, deps: d });
+    const res = await recordOfflineContribution({
+      input: unknownGift,
+      actor,
+      deps: d,
+    });
 
     expect(d.resolveKnownDonor).not.toHaveBeenCalled(); // §6.2 no fake donor data
     expect(res.donorId).toBeNull();
@@ -71,7 +78,11 @@ describe("recordOfflineContribution", () => {
   });
 
   it("known gift resolves/creates a donor and stores donor_id", async () => {
-    const res = await recordOfflineContribution({ input: knownGift, actor, deps: d });
+    const res = await recordOfflineContribution({
+      input: knownGift,
+      actor,
+      deps: d,
+    });
 
     expect(d.resolveKnownDonor).toHaveBeenCalledWith({
       tenantId: "tenant-1",
@@ -104,7 +115,11 @@ describe("recordOfflineContribution", () => {
   });
 
   it("returns the created contribution + audit ids", async () => {
-    const res = await recordOfflineContribution({ input: knownGift, actor, deps: d });
+    const res = await recordOfflineContribution({
+      input: knownGift,
+      actor,
+      deps: d,
+    });
     expect(res.contributionId).toBe("contrib-1");
     expect(res.auditEventId).toBe("audit-1");
   });

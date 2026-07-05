@@ -42,7 +42,10 @@ const designationSchema = z.object({
 // ISO date (YYYY-MM-DD) or full ISO timestamp — staff-entered received date.
 const receivedDate = requiredText("Received date");
 
-const amount = z.coerce.number().finite().positive("Amount must be greater than 0");
+const amount = z.coerce
+  .number()
+  .finite()
+  .positive("Amount must be greater than 0");
 
 const knownOffline = z.object({
   donorMode: z.literal("known"),
@@ -102,4 +105,6 @@ export const offlineContributionSchema = z
     }
   });
 
-export type OfflineContributionRequest = z.infer<typeof offlineContributionSchema>;
+export type OfflineContributionRequest = z.infer<
+  typeof offlineContributionSchema
+>;
