@@ -178,6 +178,28 @@ Each is a deep module — a simple, testable interface hiding real complexity �
 3. **Guest-gift attribution = recognize-but-never-reveal + enumeration-safe + verified-possession claim binding** (account-takeover safety, since Supabase's verified-email guarantee covers only its own identity linking, not our `profile_id` write).
 4. **Non-destructive, replayable merge** (tombstone + `merge_operations`) chosen over the industry-standard irreversible merge.
 
+### G. Merge-UX & receipt-integrity amendment (Phase-8 grill, 2026-07-06)
+
+Added during the Phase-8 (CRM Operating Foundation) grill, which confirmed **Phase 4 — not Phase 8 — owns the donor merge/dedupe workbench**, and surfaced a receipt-integrity hazard to close here. Enriches **#514** (Merge UI) and strengthens **#507 / #512 / #506 / #516**.
+
+**G1 — The Merge UI is a duplicate-triage workbench (enriches #514).** Researched against modern nonprofit CRMs (Salesforce Nonprofit Cloud/NPSP, Blackbaud RE NXT Data Health, Bloomerang, Neon, DonorPerfect, Virtuous) and general merge/diff/undo/a11y best practice:
+
+- **Queue:** confidence **tiers** (High / Possible / Low — never a false-precision numeric score), with the match **reason** as chips ("matched on email + last name"); default staff into the high-confidence lane; sort by confidence **and value-at-risk** (records carrying gifts/large history); "you're all caught up" empty state; skeleton loading (not spinners).
+- **Compare sheet:** records as columns, fields as rows, **frozen label column + sticky headers**; **default to "show only differing fields"** (agreeing fields collapsed, expandable); **per-field survivor radio + an editable result cell**; a **master radio** in each column header pre-selected to the most-complete record; multi-value fields **combine** (emails/phones) rather than discard; a live **"resulting record" preview**; **red-strikethrough-lost / green-kept** diff **paired with a non-color "Removed/Kept" cue** (WCAG 1.4.1); a loud callout when the surviving record changes downstream associations; default **2 records, hard cap 3**.
+- **Actions — three-way, not binary:** **Merge**, **Not a duplicate** (durable suppression — the pair never resurfaces), and **Defer / Unsure**; role-gated + audited.
+- **Reversibility (beats every incumbent — 5 of 6 have no undo):** merge is **execute-then-undo** — archive-not-delete the loser (the existing `merge_operations` tombstone), keep lineage, show a time-boxed **"Merged — Undo"** toast + a durable **Unmerge** for a ~30-day window + full before/after Merge History. **No "type-to-confirm"/irreversible modal.**
+- **Accessibility:** ARIA `grid` (roving-tabindex arrow navigation), focus-trapped merge dialog with focus-return, `aria-live` selection announcements, 24px targets, WCAG-2.2 focus-not-obscured under sticky headers; keyboard-driven merge / not-dup / defer / next.
+- **Queue hygiene:** durable "not a duplicate" suppression + defer/aging expiry so pending candidates don't accumulate into an ignored backlog.
+
+**G2 — Receipt integrity through merge (strengthens #507 / #512 / #506 / #516).** Because a donor merge re-points `donations.donor_id` (A9), an already-issued receipt MUST NOT silently re-attach to the surviving donor:
+
+- The receipt **resolves its legal donor from the frozen snapshot (#507), never from live `donations.donor_id`.** The snapshot embeds `donor-id-at-issue` + legal name + address-of-record (already #507's intent) and is the receipt's source of donor truth.
+- **Reconcile with the shipped `contribution_receipt_snapshots`** (migration `20260611140000_contribution_receipt_delivery.sql`), whose `content` currently stores only `{effective, designationLines}` — **extend it to embed the frozen donor identity** so it actually satisfies #507.
+- **Guard trigger (#506):** a `BEFORE UPDATE OF donor_id` trigger on `donations` that RAISEs when a frozen receipt/statement snapshot exists for the donation (short-circuit `IS DISTINCT FROM`, security-definer with locked `search_path` so RLS cannot hide a snapshot, explicit `ERRCODE`, indexed lookup) — defense-in-depth so no merge/re-point path can corrupt an issued receipt.
+- **Permanent negative test (#516):** a merge / re-point never changes the donor an already-issued receipt resolves to.
+
+**G3 — Phase-8 relationship.** Phase 8 (CRM Operating Foundation) **consumes** this merge (for CRM record-link repointing) and builds **no separate workbench**; its read-only `/crm/operations` windowpane shows the duplicate _count_ and links here. Phase 8 hard-depends on this Phase-4 merge + isolation foundation.
+
 ---
 
 ## Testing Decisions
