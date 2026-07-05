@@ -334,6 +334,9 @@ type DonorsPageViewModel = {
     selected: Donor | null;
     selectById: (id: string) => void;
     clearSelection: () => void;
+    hasMore: boolean;
+    isLoadingMore: boolean;
+    loadMore: () => Promise<void>;
   };
   filters: {
     searchTerm: string;
@@ -433,6 +436,14 @@ export function useDonorsPageView(): DonorsPageViewModel {
       invalidateSupabaseTableQuery(queryClient, "donor_pledges"),
     ]);
   }, [queryClient]);
+
+  const loadMoreDonors = React.useCallback(async () => {
+    try {
+      await donorsQuery.loadMore();
+    } catch {
+      toast.error("Could not load more partners. Please try again.");
+    }
+  }, [donorsQuery]);
 
   const filteredDonors = React.useMemo(
     () =>
@@ -797,6 +808,9 @@ export function useDonorsPageView(): DonorsPageViewModel {
       selected: selectedDonor,
       selectById: selectDonorById,
       clearSelection: clearSelectedDonor,
+      hasMore: donorsQuery.hasMore,
+      isLoadingMore: donorsQuery.isLoadingMore,
+      loadMore: loadMoreDonors,
     },
     filters: {
       searchTerm,
@@ -886,6 +900,9 @@ export function DonorsPageContent({
     selected: selectedDonor,
     selectById,
     clearSelection,
+    hasMore: hasMoreDonors,
+    isLoadingMore: isLoadingMoreDonors,
+    loadMore: loadMoreDonors,
   } = donors;
   const {
     searchTerm,
@@ -945,9 +962,13 @@ export function DonorsPageContent({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total Partners"
-          value={donorRows.length}
-          subtext={`${activeCount} active`}
+          label={hasMoreDonors ? "Partners loaded" : "Total Partners"}
+          value={hasMoreDonors ? `${donorRows.length}+` : donorRows.length}
+          subtext={
+            hasMoreDonors
+              ? `${activeCount} active in loaded window`
+              : `${activeCount} active`
+          }
           icon={Users}
           iconBg="bg-zinc-50 border-zinc-100"
           iconColor="text-zinc-900"
@@ -956,7 +977,7 @@ export function DonorsPageContent({
         <StatCard
           label="Total Given"
           value={formatCurrency(totalGiven)}
-          subtext="Lifetime"
+          subtext={hasMoreDonors ? "Lifetime (loaded window)" : "Lifetime"}
           icon={Heart}
           iconBg="bg-emerald-50 border-emerald-100"
           iconColor="text-emerald-600"
@@ -965,7 +986,11 @@ export function DonorsPageContent({
         <StatCard
           label="Recurring Donations"
           value={activePledgeCount}
-          subtext={`${formatCurrency(monthlyPledgeTotal)}/mo`}
+          subtext={
+            hasMoreDonors
+              ? `${formatCurrency(monthlyPledgeTotal)}/mo (loaded window)`
+              : `${formatCurrency(monthlyPledgeTotal)}/mo`
+          }
           icon={Repeat}
           iconBg="bg-blue-50 border-blue-100"
           iconColor="text-blue-600"
@@ -976,7 +1001,11 @@ export function DonorsPageContent({
         <StatCard
           label="Needs Attention"
           value={atRiskCount + lapsedCount}
-          subtext={`${atRiskCount} at risk, ${lapsedCount} lapsed`}
+          subtext={
+            hasMoreDonors
+              ? `${atRiskCount} at risk, ${lapsedCount} lapsed (loaded window)`
+              : `${atRiskCount} at risk, ${lapsedCount} lapsed`
+          }
           icon={AlertCircle}
           iconBg="bg-amber-50 border-amber-100"
           iconColor="text-amber-600"
@@ -1318,6 +1347,26 @@ export function DonorsPageContent({
                 )}
               </ScrollArea>
             </div>
+            {hasMoreDonors && !error && !isLoading && (
+              <div className="border-t border-zinc-100 p-3 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMoreDonors}
+                  disabled={isLoadingMoreDonors}
+                  className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+                >
+                  {isLoadingMoreDonors ? (
+                    <>
+                      <Loader2 className="size-3.5 mr-2 animate-spin" />
+                      Loading partners
+                    </>
+                  ) : (
+                    "Load more partners"
+                  )}
+                </Button>
+              </div>
+            )}
           </Card>
         </motion.div>
 
