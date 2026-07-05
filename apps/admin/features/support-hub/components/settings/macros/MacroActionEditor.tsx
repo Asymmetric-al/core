@@ -178,9 +178,15 @@ export function MacroActionEditor({
               {action.kind === "assign_agent" ? (
                 <Select
                   value={action.agentId}
-                  onValueChange={(value) =>
-                    handlePatch(index, { kind: "assign_agent", agentId: value })
-                  }
+                  onValueChange={(value) => {
+                    if (value === null) {
+                      return;
+                    }
+                    handlePatch(index, {
+                      kind: "assign_agent",
+                      agentId: value,
+                    });
+                  }}
                 >
                   <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
                     <SelectValue placeholder="Pick an agent" />
@@ -198,9 +204,12 @@ export function MacroActionEditor({
               {action.kind === "assign_team" ? (
                 <Select
                   value={action.teamId}
-                  onValueChange={(value) =>
-                    handlePatch(index, { kind: "assign_team", teamId: value })
-                  }
+                  onValueChange={(value) => {
+                    if (value === null) {
+                      return;
+                    }
+                    handlePatch(index, { kind: "assign_team", teamId: value });
+                  }}
                 >
                   <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
                     <SelectValue placeholder="Pick a team" />
@@ -218,12 +227,15 @@ export function MacroActionEditor({
               {action.kind === "add_label" || action.kind === "remove_label" ? (
                 <Select
                   value={action.labelId}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    if (value === null) {
+                      return;
+                    }
                     handlePatch(index, {
                       kind: action.kind,
                       labelId: value,
-                    } as SupportMacroAction)
-                  }
+                    } as SupportMacroAction);
+                  }}
                 >
                   <SelectTrigger className="h-8 min-w-[180px] text-[12px]">
                     <SelectValue placeholder="Pick a label" />
@@ -241,12 +253,15 @@ export function MacroActionEditor({
               {action.kind === "send_canned_response" ? (
                 <Select
                   value={action.cannedResponseId}
-                  onValueChange={(value) =>
+                  onValueChange={(value) => {
+                    if (value === null) {
+                      return;
+                    }
                     handlePatch(index, {
                       kind: "send_canned_response",
                       cannedResponseId: value,
-                    })
-                  }
+                    });
+                  }}
                 >
                   <SelectTrigger className="h-8 min-w-[220px] text-[12px]">
                     <SelectValue placeholder="Pick a canned response" />

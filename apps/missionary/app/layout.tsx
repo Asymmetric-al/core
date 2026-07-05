@@ -7,6 +7,7 @@ import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { MotionProvider } from "@asym/lib/motion";
 import { Toaster } from "@asym/ui/components/shadcn/sonner";
 import { TooltipProvider } from "@asym/ui/components/shadcn/tooltip";
+import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { Inter, Geist_Mono, Syne } from "next/font/google";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
@@ -18,7 +19,6 @@ import type { Metadata, Viewport } from "next";
 import { BoneyardRegistry } from "@/app/_providers/boneyard-registry";
 import { MissionaryLayoutShell } from "@/app/_providers/missionary-layout-shell";
 import { MISSIONARY_ALLOWED_ROLES } from "@/app/access";
-import { ThemeProvider } from "@/lib/theme-provider";
 import "./globals.css";
 
 const inter = Inter({
@@ -161,7 +161,7 @@ export default function RootLayout({
           <BoneyardRegistry />
           <QueryProvider>
             <MotionProvider>
-              <TooltipProvider delayDuration={0}>
+              <TooltipProvider delay={0}>
                 <Suspense fallback={null}>
                   <NuqsAdapter>
                     <MissionaryRoleGate>

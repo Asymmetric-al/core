@@ -108,9 +108,8 @@ describe("DataTableCardView row action trigger", () => {
       />,
     );
 
-    fireEvent.keyDown(
+    fireEvent.click(
       screen.getByRole("button", { name: "Row actions for Ada Lovelace" }),
-      { key: "Enter" },
     );
     fireEvent.click(screen.getByRole("menuitem", { name: "Edit" }));
 

@@ -99,7 +99,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
         aria-hidden="true"
       />
       <div
-        className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-emerald-100 group-hover:scale-110 transition-all duration-300"
+        className="absolute left-0 top-3 size-6 rounded-full border-4 border-white bg-zinc-100 flex items-center justify-center z-10 group-hover:bg-emerald-100 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-[background-color,transform] duration-300"
         aria-hidden="true"
       >
         <div className="size-1.5 rounded-full bg-zinc-400 group-hover:bg-emerald-600 transition-colors" />
@@ -118,7 +118,7 @@ function UpdateCard({ update }: { update: (typeof PUBLIC_UPDATES)[0] }) {
           </Badge>
         </div>
 
-        <Card className="border-zinc-200 shadow-sm overflow-hidden hover:shadow-md transition-shadow duration-300 bg-white">
+        <Card className="border-zinc-200 shadow-sm overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-300 bg-white">
           <CardContent className="p-5">
             {update.title && (
               <h4 className="font-semibold text-zinc-900 mb-2 text-lg">

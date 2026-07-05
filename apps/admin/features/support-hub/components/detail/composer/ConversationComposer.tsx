@@ -221,14 +221,14 @@ function ComposerTabs({ mode, onModeChange, donorName }: ComposerTabsProps) {
         <TabsList className="h-9 gap-1 rounded-lg bg-zinc-100/60 p-1">
           <TabsTrigger
             value="reply"
-            className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-medium data-[state=active]:bg-white data-[state=active]:text-zinc-900 data-[state=active]:shadow-sm"
+            className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-medium data-active:bg-white data-active:text-zinc-900 data-active:shadow-sm"
           >
             <Mail className="size-3.5" />
             Reply
           </TabsTrigger>
           <TabsTrigger
             value="note"
-            className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-medium data-[state=active]:bg-amber-100 data-[state=active]:text-amber-900 data-[state=active]:shadow-sm"
+            className="h-7 gap-1.5 rounded-md px-2.5 text-[12px] font-medium data-active:bg-amber-100 data-active:text-amber-900 data-active:shadow-sm"
           >
             <StickyNote className="size-3.5" />
             Internal note

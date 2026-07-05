@@ -10,10 +10,30 @@ const nextConfigPath = fileURLToPath(
 describe("apps/donor next.config images", () => {
   it("allows quality 85 for next/image (Next 16+ allowlist)", async () => {
     const mod = (await import(nextConfigPath)) as {
-      default: { images?: { qualities?: number[] } };
+      default: {
+        images?: {
+          contentDispositionType?: string;
+          dangerouslyAllowSVG?: boolean;
+          qualities?: number[];
+        };
+      };
     };
     const qualities = mod.default.images?.qualities;
     expect(qualities).toBeDefined();
     expect(qualities).toContain(85);
+  }, 60_000);
+
+  it("keeps SVG optimization disabled and attachments enforced", async () => {
+    const mod = (await import(nextConfigPath)) as {
+      default: {
+        images?: {
+          contentDispositionType?: string;
+          dangerouslyAllowSVG?: boolean;
+        };
+      };
+    };
+
+    expect(mod.default.images?.dangerouslyAllowSVG).not.toBe(true);
+    expect(mod.default.images?.contentDispositionType).toBe("attachment");
   }, 60_000);
 });

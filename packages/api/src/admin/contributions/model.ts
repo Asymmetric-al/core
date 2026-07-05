@@ -9,7 +9,9 @@ import {
 
 import type { ContributionDesignationSet } from "@asym/database/types";
 
-export type ContributionGridStatus = SharedContributionPaymentStatus;
+export type ContributionGridStatus =
+  | SharedContributionPaymentStatus
+  | "processing";
 
 export type ContributionGridType =
   | "One-time"
@@ -166,6 +168,27 @@ type RawStagedGift = {
   receipt_send_log_id: string | null;
   crm_post_status: string | null;
 } | null;
+
+/**
+ * Map raw donation status to the staff-facing grid status. Stripe is the
+ * payment authority: "processing" stays distinct (ACH and other delayed
+ * rails are not collected yet), and unknown statuses are never shown as
+ * completed — they stay pending until a Stripe-confirmed state arrives.
+ */
+export function normalizeContributionGridStatus(
+  status: string | null | undefined,
+): ContributionGridStatus {
+  if (status === "processing") {
+    return "processing";
+  }
+  if (status === "completed") {
+    return "completed";
+  }
+  if (status === "failed" || status === "refunded") {
+    return status;
+  }
+  return "pending";
+}
 
 function normalizeType(
   donationType: string | null | undefined,
@@ -332,7 +355,7 @@ export function buildContributionGridRow({
     updatedAt: donation.updated_at,
     settlementDate: donation.completed_at ?? donation.processed_at ?? null,
     depositDate: null,
-    status: shared.paymentStatus,
+    status: normalizeContributionGridStatus(donation.status),
     subStatus: donation.error_code ?? donation.error_message ?? null,
     type: normalizeType(donation.donation_type, donation.is_recurring),
     paymentMethod: normalizePaymentMethod(donation.payment_method),

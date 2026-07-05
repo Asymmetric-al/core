@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { cn } from "@asym/ui/lib/utils";
 import {
@@ -156,7 +156,7 @@ const AccordionItem = ({
     <motion.div
       initial={false}
       className={cn(
-        "border rounded-2xl overflow-hidden transition-all duration-300",
+        "border rounded-2xl overflow-hidden transition-[border-color,background-color,box-shadow] duration-300",
         isOpen
           ? "border-blue-200 bg-blue-50/30 shadow-sm"
           : "border-zinc-200 bg-white hover:border-zinc-300",
@@ -275,7 +275,7 @@ export function FAQPageClient() {
 
             <div className="relative max-w-lg mx-auto group">
               <div className="absolute inset-0 bg-blue-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100 transition-all duration-300">
+              <div className="relative bg-white rounded-full shadow-xl shadow-zinc-200/50 flex items-center p-2 border border-zinc-200 group-focus-within:border-blue-400 group-focus-within:ring-4 group-focus-within:ring-blue-100">
                 <Search className="ml-4 size-5 text-zinc-400" />
                 <Input
                   value={searchQuery}
@@ -399,14 +399,15 @@ export function FAQPageClient() {
           </div>
 
           <div className="flex flex-col sm:flex-row gap-4 relative z-10 w-full md:w-auto">
-            <Button
-              className="h-14 px-8 bg-white text-zinc-950 hover:bg-zinc-100 font-semibold text-base rounded-full shadow-lg hover-scale-subtle"
-              asChild
+            <Link
+              href="/contact"
+              className={cn(
+                buttonVariants(),
+                "h-14 px-8 bg-white text-zinc-950 hover:bg-zinc-100 font-semibold text-base rounded-full shadow-lg hover-scale-subtle",
+              )}
             >
-              <Link href="/contact">
-                <Mail className="mr-2 size-5" /> Email Support
-              </Link>
-            </Button>
+              <Mail className="mr-2 size-5" /> Email Support
+            </Link>
             <Button
               variant="outline"
               className="h-14 px-8 border-white/20 text-white hover:bg-white/10 hover:text-white font-semibold text-base rounded-full backdrop-blur-sm hover-scale-subtle"

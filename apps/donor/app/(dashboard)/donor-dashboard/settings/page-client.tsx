@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { ImageUpload } from "@asym/ui/components/primitives/image-upload";
 import {
   Avatar,
@@ -88,7 +89,7 @@ const PasswordInput = ({
           type={isVisible ? "text" : "password"}
           value={value}
           onChange={onChange}
-          className="pr-10 bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-2 focus:ring-zinc-100 transition-all duration-200"
+          className="pr-10 bg-zinc-50 border-zinc-200 focus:bg-white focus:ring-2 focus:ring-zinc-100 transition-colors duration-200"
           placeholder={placeholder}
         />
         <button
@@ -220,7 +221,7 @@ const ProfileTab = () => {
               <Input
                 id="firstName"
                 defaultValue="John"
-                className="bg-white border-zinc-200 focus:border-zinc-900 transition-all h-10 rounded-lg"
+                className="bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
               />
             </div>
             <div className="space-y-2">
@@ -233,7 +234,7 @@ const ProfileTab = () => {
               <Input
                 id="lastName"
                 defaultValue="Doe"
-                className="bg-white border-zinc-200 focus:border-zinc-900 transition-all h-10 rounded-lg"
+                className="bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
               />
             </div>
           </div>
@@ -252,7 +253,7 @@ const ProfileTab = () => {
                   id="email"
                   type="email"
                   defaultValue="john.doe@example.com"
-                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-all h-10 rounded-lg"
+                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
                 />
               </div>
             </div>
@@ -269,7 +270,7 @@ const ProfileTab = () => {
                   id="phone"
                   type="tel"
                   defaultValue="+1 (555) 123-4567"
-                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-all h-10 rounded-lg"
+                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
                 />
               </div>
             </div>
@@ -288,7 +289,7 @@ const ProfileTab = () => {
                 <Input
                   id="address"
                   defaultValue="123 Mission Way"
-                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-all h-10 rounded-lg"
+                  className="pl-9 bg-white border-zinc-200 focus:border-zinc-900 transition-colors h-10 rounded-lg"
                 />
               </div>
             </div>
@@ -350,7 +351,7 @@ const ProfileTab = () => {
               onClick={handleSave}
               disabled={loading}
               className={cn(
-                "min-w-[120px] transition-all w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+                "min-w-[120px] transition-colors w-full sm:w-auto h-9 text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
                 success
                   ? "bg-emerald-600 hover:bg-emerald-700"
                   : "bg-zinc-900 hover:bg-zinc-800",
@@ -480,7 +481,7 @@ const NotificationsTab = () => {
   ];
 
   return (
-    <Card className="border-zinc-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-500 text-left rounded-xl">
+    <Card className="border-zinc-200 shadow-sm overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-300 text-left rounded-xl">
       <CardHeader className="bg-zinc-50/50 border-b border-zinc-100 pb-4">
         <div className="flex items-center justify-between">
           <div className="space-y-1">
@@ -544,7 +545,7 @@ const NotificationsTab = () => {
                         id={item.key}
                         checked={preferences[item.key]}
                         onCheckedChange={() => handleToggle(item.key)}
-                        className="data-[state=checked]:bg-zinc-900 mt-1"
+                        className="data-checked:bg-zinc-900 mt-1"
                       />
                     </div>
                   ))}
@@ -564,7 +565,7 @@ const NotificationsTab = () => {
           onClick={handleSave}
           disabled={loading || success}
           className={cn(
-            "min-w-[140px] shadow-sm transition-all duration-300 font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
+            "min-w-[140px] shadow-sm transition-colors font-semibold h-9 w-full sm:w-auto text-[10px] uppercase tracking-widest rounded-lg px-6",
             success
               ? "bg-emerald-600 hover:bg-emerald-700"
               : "bg-zinc-900 hover:bg-zinc-800",
@@ -695,11 +696,13 @@ const SecurityTab = () => {
               {/* Strength Meter */}
               <div className="space-y-1.5">
                 <div className="h-1 w-full bg-zinc-100 rounded-full overflow-hidden">
+                  {/* Animate transform: scaleX (GPU, no layout) instead of width */}
                   <motion.div
-                    initial={{ width: 0 }}
-                    animate={{ width: `${widthPercent}%` }}
+                    initial={{ scaleX: 0 }}
+                    animate={{ scaleX: Math.min(widthPercent, 100) / 100 }}
+                    style={{ originX: 0 }}
                     className={cn(
-                      "h-full transition-colors duration-500 ease-out",
+                      "h-full w-full transition-colors",
                       strengthColor,
                     )}
                   />
@@ -739,7 +742,7 @@ const SecurityTab = () => {
               passwords.new !== passwords.confirm
             }
             className={cn(
-              "min-w-[140px] h-9 shadow-sm transition-all w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
+              "min-w-[140px] h-9 shadow-sm transition-colors w-full sm:w-auto text-[10px] font-semibold uppercase tracking-widest rounded-lg px-6",
               success
                 ? "bg-emerald-600 hover:bg-emerald-700"
                 : "bg-zinc-900 hover:bg-zinc-800",
@@ -787,7 +790,7 @@ const SecurityTab = () => {
           <CardFooter className="pt-0 pb-4">
             <Button
               variant="outline"
-              className="w-full text-[10px] font-semibold uppercase tracking-widest h-9 rounded-lg border-zinc-200 hover:bg-zinc-50 transition-all"
+              className="w-full text-[10px] font-semibold uppercase tracking-widest h-9 rounded-lg border-zinc-200 hover:bg-zinc-50 transition-colors"
             >
               Configure 2FA
             </Button>
@@ -832,9 +835,16 @@ const SecurityTab = () => {
 
 export default function DonorSettingsPage() {
   const [activeTab, setActiveTab] = useState<TabId>("profile");
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   return (
-    <div className="max-w-5xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20 pt-4">
+    <div
+      className={cn(
+        "max-w-5xl mx-auto space-y-8 pb-20 pt-4",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       {/* Header */}
       <div className="space-y-1.5 px-1 text-left">
         <h1 className="text-3xl font-semibold text-zinc-900 tracking-tight uppercase">
@@ -855,7 +865,7 @@ export default function DonorSettingsPage() {
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={cn(
-                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-all duration-200 relative overflow-hidden group min-w-[140px] lg:w-full",
+                    "flex items-center gap-3 px-4 py-3 rounded-lg text-[10px] font-semibold uppercase tracking-widest transition-[color,background-color,box-shadow] duration-200 relative overflow-hidden group min-w-[140px] lg:w-full",
                     activeTab === tab.id
                       ? "bg-zinc-900 text-white shadow-md shadow-zinc-200"
                       : "text-zinc-500 hover:bg-zinc-50 hover:text-zinc-900",

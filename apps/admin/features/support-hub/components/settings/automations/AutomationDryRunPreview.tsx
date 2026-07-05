@@ -72,7 +72,12 @@ export function AutomationDryRunPreview({
       </div>
       <Select
         value={conversationId}
-        onValueChange={setConversationId}
+        onValueChange={(value) => {
+          if (value === null) {
+            return;
+          }
+          setConversationId(value);
+        }}
         disabled={rows.length === 0}
       >
         <SelectTrigger className="h-9 text-[12px]">

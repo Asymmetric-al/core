@@ -21,6 +21,7 @@ GitHub uses CODEOWNERS to automatically request reviews on pull requests that to
 The repo uses gate jobs as merge controls. Gate jobs are summary checks that fail when any prerequisite check fails.
 
 - `production` requires:
+  - `release-source-gate`
   - `ci-gate`
   - `integration-gate`
   - `e2e-gate`

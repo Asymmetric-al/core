@@ -143,7 +143,7 @@ export interface TaskDialogProps {
   initialStatus?: TaskStatus;
   onSuccess?: (task: Task) => void;
   onClose?: () => void;
-  trigger?: React.ReactNode;
+  trigger?: React.ReactElement;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
 }
@@ -253,7 +253,7 @@ function TaskTitleField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="title">
       {(field) => (
         <field.TextField
-          inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+          inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Task Title *"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="e.g., Call to thank for donation"
@@ -285,7 +285,7 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
               onValueChange={(value) => field.handleChange(value as TaskType)}
               value={field.state.value}
             >
-              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                 <SelectValue placeholder="Select type">
                   {selectedTaskType ? (
                     <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
             onValueChange={(value) => field.handleChange(value as TaskPriority)}
             value={field.state.value}
           >
-            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-zinc-100">
@@ -393,30 +393,32 @@ function DatePickerField({
             {label}
           </span>
           <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                className={cn(
-                  "h-12 justify-start rounded-xl border-transparent bg-zinc-50 text-left font-medium transition-all hover:bg-zinc-100",
-                  !field.state.value && "text-zinc-400",
-                )}
-                type="button"
-                variant="outline"
-              >
-                <Icon className="mr-2 size-4" />
-                {field.state.value
-                  ? format(field.state.value, "PPP")
-                  : placeholder}
-                {field.state.value ? (
-                  <X
-                    className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      field.handleChange(null);
-                    }}
-                  />
-                ) : null}
-              </Button>
-            </PopoverTrigger>
+            <PopoverTrigger
+              render={
+                <Button
+                  className={cn(
+                    "h-12 justify-start rounded-xl border-transparent bg-zinc-50 text-left font-medium transition-colors hover:bg-zinc-100",
+                    !field.state.value && "text-zinc-400",
+                  )}
+                  type="button"
+                  variant="outline"
+                >
+                  <Icon className="mr-2 size-4" />
+                  {field.state.value
+                    ? format(field.state.value, "PPP")
+                    : placeholder}
+                  {field.state.value ? (
+                    <X
+                      className="ml-auto size-4 text-zinc-400 hover:text-zinc-600"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        field.handleChange(null);
+                      }}
+                    />
+                  ) : null}
+                </Button>
+              }
+            />
             <PopoverContent align="start" className="w-auto rounded-xl p-0">
               <Calendar
                 mode="single"
@@ -448,7 +450,7 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
             onValueChange={(value) => field.handleChange(value as TaskStatus)}
             value={field.state.value}
           >
-            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-zinc-100">
@@ -501,55 +503,57 @@ function DonorSelectorField({
               onOpenChange={onDonorSearchOpenChange}
               open={donorSearchOpen}
             >
-              <PopoverTrigger asChild>
-                <Button
-                  aria-controls={donorListboxId}
-                  aria-expanded={donorSearchOpen}
-                  className={cn(
-                    "h-12 justify-between rounded-xl border-transparent bg-zinc-50 font-medium transition-all hover:bg-zinc-100",
-                    !field.state.value && "text-zinc-400",
-                  )}
-                  role="combobox"
-                  type="button"
-                  variant="outline"
-                >
-                  {selectedDonor ? (
-                    <div className="flex items-center gap-2">
-                      <Avatar className="size-6">
-                        <AvatarImage
-                          src={selectedDonor.avatar_url || undefined}
-                        />
-                        <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
-                          {selectedDonor.name
-                            .split(" ")
-                            .map((name) => name[0])
-                            .join("")
-                            .slice(0, 2)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <span>{selectedDonor.name}</span>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <User className="size-4" />
-                      <span>Select partner (optional)</span>
-                    </div>
-                  )}
+              <PopoverTrigger
+                render={
+                  <Button
+                    aria-controls={donorListboxId}
+                    aria-expanded={donorSearchOpen}
+                    className={cn(
+                      "h-12 justify-between rounded-xl border-transparent bg-zinc-50 font-medium transition-colors hover:bg-zinc-100",
+                      !field.state.value && "text-zinc-400",
+                    )}
+                    role="combobox"
+                    type="button"
+                    variant="outline"
+                  >
+                    {selectedDonor ? (
+                      <div className="flex items-center gap-2">
+                        <Avatar className="size-6">
+                          <AvatarImage
+                            src={selectedDonor.avatar_url || undefined}
+                          />
+                          <AvatarFallback className="bg-zinc-200 text-[10px] font-bold">
+                            {selectedDonor.name
+                              .split(" ")
+                              .map((name) => name[0])
+                              .join("")
+                              .slice(0, 2)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span>{selectedDonor.name}</span>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <User className="size-4" />
+                        <span>Select partner (optional)</span>
+                      </div>
+                    )}
 
-                  <div className="flex items-center gap-1">
-                    {field.state.value ? (
-                      <X
-                        className="size-4 text-zinc-400 hover:text-zinc-600"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          field.handleChange("");
-                        }}
-                      />
-                    ) : null}
-                    <ChevronsUpDown className="size-4 opacity-50" />
-                  </div>
-                </Button>
-              </PopoverTrigger>
+                    <div className="flex items-center gap-1">
+                      {field.state.value ? (
+                        <X
+                          className="size-4 text-zinc-400 hover:text-zinc-600"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            field.handleChange("");
+                          }}
+                        />
+                      ) : null}
+                      <ChevronsUpDown className="size-4 opacity-50" />
+                    </div>
+                  </Button>
+                }
+              />
 
               <PopoverContent
                 align="start"
@@ -639,7 +643,7 @@ function TaskDescriptionField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="description">
       {(field) => (
         <field.TextareaField
-          inputClassName="min-h-[80px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+          inputClassName="min-h-[80px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Description"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Add details about this task..."
@@ -656,7 +660,7 @@ function TaskNotesField({ form }: { form: MissionaryTaskFormApi }) {
         <field.TextareaField
           description="These notes are only visible to you"
           descriptionClassName="text-xs text-zinc-400"
-          inputClassName="min-h-[60px] resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-all focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
+          inputClassName="min-h-[60px] resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
           label="Internal Notes"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Private notes (not visible to partner)..."
@@ -769,7 +773,7 @@ export function TaskDialog({
       }}
       open={open}
     >
-      {trigger ? <DialogTrigger asChild>{trigger}</DialogTrigger> : null}
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="max-h-[90vh] overflow-hidden rounded-[2rem] border-zinc-100 p-0 sm:max-w-[600px]">
         <div className="bg-zinc-900 p-8 text-white">
           <DialogTitle className="text-2xl font-black tracking-tight">

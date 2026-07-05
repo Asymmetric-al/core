@@ -16,7 +16,7 @@ export default function AboutPage() {
   const licenseUrl = getGitHubLicenseUrl(build.ref);
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+    <div className="space-y-8 pb-20">
       <div>
         <h1 className="text-3xl font-semibold tracking-tight text-zinc-900">
           About asymmetric.al

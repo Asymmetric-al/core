@@ -54,6 +54,7 @@ function makeDisplayDate(value?: string | number | Date): Date {
 const statusDotColor: Record<ContributionStatus, string> = {
   completed: "bg-emerald-500",
   pending: "bg-amber-500",
+  processing: "bg-blue-500",
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };

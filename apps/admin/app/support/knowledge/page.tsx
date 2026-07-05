@@ -1,5 +1,5 @@
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -37,9 +37,12 @@ export default async function SupportKnowledgePage({
       title="Support Knowledge"
       description="Internal playbooks support agents can attach to replies."
       actions={
-        <Button asChild variant="outline">
-          <Link href={supportHubRoutes.home}>Back to Support Hub</Link>
-        </Button>
+        <Link
+          href={supportHubRoutes.home}
+          className={buttonVariants({ variant: "outline" })}
+        >
+          Back to Support Hub
+        </Link>
       }
     >
       <div className="space-y-4">

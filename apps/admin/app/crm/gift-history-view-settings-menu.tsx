@@ -42,16 +42,18 @@ export function GiftHistoryViewSettingsMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 text-muted-foreground"
-          aria-label="Gift history view settings"
-        >
-          <Settings2 className="size-4" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground"
+            aria-label="Gift history view settings"
+          >
+            <Settings2 className="size-4" aria-hidden="true" />
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Columns
@@ -162,16 +164,16 @@ export function GiftHistoryViewSettingsMenu({
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Reset view settings</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuItem onSelect={() => onRequestReset("columns")}>
+            <DropdownMenuItem onClick={() => onRequestReset("columns")}>
               Reset columns…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("filtersSort")}>
+            <DropdownMenuItem onClick={() => onRequestReset("filtersSort")}>
               Reset filters & sort…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("pinnedAction")}>
+            <DropdownMenuItem onClick={() => onRequestReset("pinnedAction")}>
               Reset pinned row action…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("all")}>
+            <DropdownMenuItem onClick={() => onRequestReset("all")}>
               Reset all view settings…
             </DropdownMenuItem>
           </DropdownMenuSubContent>

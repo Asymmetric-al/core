@@ -3,6 +3,12 @@ name: tailwind-design-system
 description: Build scalable design systems with Tailwind CSS v4, design tokens, component libraries, and responsive patterns. Use when creating component libraries, implementing design systems, or standardizing UI patterns.
 ---
 
+> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
+> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
+> style in `packages/ui`. Ignore any Radix UI guidance below — never add
+> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
+> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
+
 # Tailwind Design System (v4)
 
 Build production-ready design systems with Tailwind CSS v4, including CSS-first configuration, design tokens, component variants, responsive patterns, and accessibility.

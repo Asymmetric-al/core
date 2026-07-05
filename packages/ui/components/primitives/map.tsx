@@ -349,7 +349,7 @@ export function MarkerContent({
   return createPortal(
     <div
       className={cn(
-        "relative transition-transform duration-200 hover:scale-110",
+        "relative transition-transform duration-200 [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110",
         className,
       )}
     >
@@ -672,7 +672,8 @@ export function MapStyleToggle({
       <button
         type="button"
         onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-        className="bg-popover/90 border-border/80 ring-border/40 hover:bg-accent flex size-10 items-center justify-center rounded-2xl border shadow-lg ring-1 backdrop-blur-xl transition-all"
+        aria-label="Toggle map theme"
+        className="bg-popover/90 border-border/80 ring-border/40 hover:bg-accent press-feedback flex size-10 items-center justify-center rounded-2xl border shadow-lg ring-1 backdrop-blur-xl"
       >
         {resolvedTheme === "dark" ? <SunIcon /> : <MoonIcon />}
       </button>

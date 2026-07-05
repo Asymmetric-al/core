@@ -16,6 +16,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from "@asym/ui/components/shadcn/dropdown-menu";
+import { Facebook, Linkedin, Twitter } from "@asym/ui/components/shadcn/icons";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
@@ -29,9 +30,6 @@ import {
   Send,
   ImageOff,
   Link as LinkIcon,
-  Facebook,
-  Twitter,
-  Linkedin,
   Mail,
   Check,
   BookmarkCheck,
@@ -224,7 +222,7 @@ const FeedFilter = ({
             className={cn(
               "px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-[background-color,border-color,color,box-shadow,transform] duration-200 border select-none whitespace-nowrap flex items-center gap-2",
               current === type
-                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg hover:shadow-xl transform scale-[1.02]"
+                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl scale-[1.02]"
                 : "bg-white text-zinc-500 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-900 shadow-sm",
             )}
           >
@@ -357,15 +355,17 @@ const PostActions = ({
         </motion.button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <motion.button
-              aria-label="Share post"
-              whileTap={{ scale: 0.9 }}
-              className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
-            >
-              <Share2 className="size-4" strokeWidth={1.5} />
-            </motion.button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <motion.button
+                aria-label="Share post"
+                whileTap={{ scale: 0.9 }}
+                className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
+              >
+                <Share2 className="size-4" strokeWidth={1.5} />
+              </motion.button>
+            }
+          />
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
               Share Update
@@ -625,7 +625,7 @@ const PostCard: React.FC<{
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6 sm:p-8 overflow-hidden hover:shadow-md transition-shadow duration-300"
+      className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6 sm:p-8 overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-300"
     >
       {/* Meta Header */}
       <div className="flex items-center justify-between mb-6">
@@ -657,16 +657,18 @@ const PostCard: React.FC<{
 
         <div className="flex items-center gap-2">
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                aria-label="Open post actions"
-                variant="ghost"
-                size="icon"
-                className="text-zinc-300 hover:text-zinc-600 hover:bg-transparent -mr-2"
-              >
-                <MoreHorizontal className="size-5" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  aria-label="Open post actions"
+                  variant="ghost"
+                  size="icon"
+                  className="text-zinc-300 hover:text-zinc-600 hover:bg-transparent -mr-2"
+                >
+                  <MoreHorizontal className="size-5" />
+                </Button>
+              }
+            />
             <DropdownMenuContent align="end" className="w-40">
               <DropdownMenuItem className="text-[10px] font-semibold uppercase tracking-widest">
                 Mute Updates
