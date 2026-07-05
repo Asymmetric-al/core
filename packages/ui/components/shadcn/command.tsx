@@ -58,6 +58,7 @@ function CommandDialog({
 }: React.ComponentProps<typeof Dialog> & {
   title?: string;
   description?: string;
+  children?: React.ReactNode;
   className?: string;
   showCloseButton?: boolean;
 }) {
@@ -76,7 +77,7 @@ function CommandDialog({
       <DialogContent
         className={cn(
           "overflow-hidden p-0",
-          "data-[state=open]:!animate-none data-[state=closed]:!animate-none !duration-0",
+          "data-open:!animate-none data-closed:!animate-none !duration-0",
           className,
         )}
         showCloseButton={showCloseButton}

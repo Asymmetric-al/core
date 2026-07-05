@@ -14,6 +14,14 @@
         "shadcn@latest",
         "mcp"
       ]
+    },
+    "inngest-dev": {
+      "type": "http",
+      "url": "http://127.0.0.1:8288/mcp"
+    },
+    "reui": {
+      "type": "http",
+      "url": "https://mcp.reui.io"
     }
   }
 }

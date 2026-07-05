@@ -1,0 +1,17 @@
+[mcp_servers.next-devtools]
+command = "bunx"
+args = [
+    "-y",
+    "next-devtools-mcp@latest",
+]
+
+[mcp_servers.shadcn]
+command = "npx"
+args = [
+    "--yes",
+    "shadcn@latest",
+    "mcp",
+]
+
+[mcp_servers.reui]
+url = "https://mcp.reui.io"

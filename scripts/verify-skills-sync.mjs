@@ -57,6 +57,7 @@ function run(command, args) {
 }
 
 run(process.execPath, ["scripts/sync-agent-skills.mjs"]);
+run(process.execPath, ["scripts/verify/inngest-skill-references.mjs"]);
 
 const diffResult = spawnSync(
   "git",
@@ -68,6 +69,9 @@ const diffResult = spawnSync(
     "--",
     ".agents/skills",
     ".cursor/skills",
+    ".claude/skills",
+    ".claude/commands",
+    ".claude/agents",
   ],
   { cwd: repoRoot, env: gitSafeEnv, stdio: "inherit" },
 );
@@ -93,6 +97,9 @@ const untrackedResult = spawnSync(
     "--",
     ".agents/skills",
     ".cursor/skills",
+    ".claude/skills",
+    ".claude/commands",
+    ".claude/agents",
   ],
   {
     cwd: repoRoot,

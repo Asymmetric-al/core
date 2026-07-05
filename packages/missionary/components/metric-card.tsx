@@ -13,7 +13,7 @@ interface Metric {
 
 export function MetricCard({ metric }: { metric: Metric }) {
   return (
-    <Card className="border-zinc-100 bg-white shadow-sm hover:border-zinc-200 transition-all rounded-xl">
+    <Card className="border-zinc-100 bg-white shadow-sm hover:border-zinc-200 transition-colors rounded-xl">
       <CardContent className="flex items-center gap-3 p-3.5">
         <div
           className={`flex size-9 shrink-0 items-center justify-center rounded-lg ${metric.color}`}

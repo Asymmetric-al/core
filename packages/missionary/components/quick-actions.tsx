@@ -34,10 +34,10 @@ export function QuickActions({ actions }: QuickActionsProps) {
           <Link
             key={action.label}
             href={action.href}
-            className="group flex flex-col items-center justify-center gap-2 rounded-lg bg-zinc-50/50 p-4 transition-all hover:bg-zinc-100/50 border border-zinc-50 hover:border-zinc-200"
+            className="group flex flex-col items-center justify-center gap-2 rounded-lg bg-zinc-50/50 p-4 transition-colors hover:bg-zinc-100/50 border border-zinc-50 hover:border-zinc-200"
           >
             <div
-              className={`flex h-9 w-9 items-center justify-center rounded-lg ${action.bgColor} border border-white shadow-sm transition-transform group-hover:scale-105`}
+              className={`flex h-9 w-9 items-center justify-center rounded-lg ${action.bgColor} border border-white shadow-sm transition-transform [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-105`}
             >
               <action.icon className={`h-4.5 w-4.5 ${action.iconColor}`} />
             </div>

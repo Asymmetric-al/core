@@ -221,12 +221,14 @@ function getPermissionColor(level: string) {
 export function TeamsPageActions() {
   return (
     <Dialog>
-      <DialogTrigger asChild>
-        <Button className="h-11 rounded-xl bg-zinc-900 font-semibold uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
-          <Plus className="mr-2 size-4" />
-          Create Team
-        </Button>
-      </DialogTrigger>
+      <DialogTrigger
+        render={
+          <Button className="h-11 rounded-xl bg-zinc-900 font-semibold uppercase tracking-widest text-[10px] text-white shadow-xl hover:bg-zinc-800">
+            <Plus className="mr-2 size-4" />
+            Create Team
+          </Button>
+        }
+      />
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Team</DialogTitle>
@@ -283,7 +285,7 @@ function TeamPermissionsTab({ selectedTeam }: { selectedTeam: Team }) {
               return (
                 <div
                   key={tile.id}
-                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-all hover:shadow-md group"
+                  className="flex items-center justify-between p-4 rounded-xl border border-zinc-100 hover:border-zinc-200 bg-white shadow-sm transition-[box-shadow,border-color] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md group"
                 >
                   <div className="flex items-center gap-4">
                     <div className="flex size-10 items-center justify-center rounded-lg bg-zinc-50 text-zinc-500 border border-zinc-100 group-hover:bg-zinc-900 group-hover:text-white transition-colors">
@@ -503,20 +505,20 @@ function TeamManagementSheet({
               <TabsList className="bg-transparent h-12 gap-6 rounded-none p-0 border-b-0">
                 <TabsTrigger
                   value="permissions"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-semibold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:bg-transparent data-active:shadow-none font-semibold text-zinc-500 data-active:text-zinc-900 px-0 h-12"
                 >
                   <ShieldCheck className="size-4 mr-2" /> Permissions
                 </TabsTrigger>
                 <TabsTrigger
                   value="members"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-semibold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:bg-transparent data-active:shadow-none font-semibold text-zinc-500 data-active:text-zinc-900 px-0 h-12"
                 >
                   <Users className="size-4 mr-2" /> Members (
                   {selectedTeam.membersCount})
                 </TabsTrigger>
                 <TabsTrigger
                   value="settings"
-                  className="rounded-none border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:bg-transparent data-[state=active]:shadow-none font-semibold text-zinc-500 data-[state=active]:text-zinc-900 px-0 h-12"
+                  className="rounded-none border-b-2 border-transparent data-active:border-zinc-900 data-active:bg-transparent data-active:shadow-none font-semibold text-zinc-500 data-active:text-zinc-900 px-0 h-12"
                 >
                   <Settings2 className="size-4 mr-2" /> Settings
                 </TabsTrigger>
@@ -537,15 +539,17 @@ function TeamManagementSheet({
                 </span>
               </div>
               <div className="flex gap-2">
-                <SheetClose asChild>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="h-9 px-4 text-xs font-semibold border-zinc-200 shadow-none"
-                  >
-                    Cancel
-                  </Button>
-                </SheetClose>
+                <SheetClose
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-9 px-4 text-xs font-semibold border-zinc-200 shadow-none"
+                    >
+                      Cancel
+                    </Button>
+                  }
+                />
                 <Button
                   size="sm"
                   className="h-9 px-6 text-xs font-semibold bg-zinc-900 text-white shadow-lg shadow-zinc-200"
@@ -663,16 +667,18 @@ export function TeamsTableCard({
         cell: ({ row }) => (
           <div className="flex justify-end pr-2">
             <Sheet onOpenChange={(open) => !open && onSelectTeam(null)}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 hover:bg-zinc-200/50 font-semibold text-zinc-600 gap-1"
-                  onClick={() => onSelectTeam(row.original)}
-                >
-                  Manage <ChevronRight className="size-4" />
-                </Button>
-              </SheetTrigger>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 hover:bg-zinc-200/50 font-semibold text-zinc-600 gap-1"
+                    onClick={() => onSelectTeam(row.original)}
+                  >
+                    Manage <ChevronRight className="size-4" />
+                  </Button>
+                }
+              />
               <TeamManagementSheet
                 selectedTeam={selectedTeam}
                 members={members}
@@ -752,7 +758,7 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
           {members.map((member) => (
             <div
               key={member.id}
-              className="flex items-center justify-between p-4 transition-all hover:bg-zinc-50/50"
+              className="flex items-center justify-between p-4 transition-colors hover:bg-zinc-50/50"
             >
               <div className="flex items-center gap-3">
                 <Avatar className="size-10 border-2 border-white shadow-sm">
@@ -805,15 +811,17 @@ export function SystemUsersCard({ members }: { members: Member[] }) {
                   {member.status}
                 </Badge>
                 <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="size-8 text-zinc-400 hover:text-zinc-900"
-                    >
-                      <MoreHorizontal className="size-4" />
-                    </Button>
-                  </DropdownMenuTrigger>
+                  <DropdownMenuTrigger
+                    render={
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="size-8 text-zinc-400 hover:text-zinc-900"
+                      >
+                        <MoreHorizontal className="size-4" />
+                      </Button>
+                    }
+                  />
                   <DropdownMenuContent align="end" className="w-48">
                     <DropdownMenuLabel className="font-semibold text-xs">
                       User Options

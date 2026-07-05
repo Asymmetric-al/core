@@ -1,0 +1,13 @@
+{
+  "name": "nextjs",
+  "description": "Build Next.js 16 apps with App Router, Server Components/Actions, Cache Components (use cache), and async route params. Includes proxy.ts and React 19.2. Prevents 25 documented errors. Use when: building Next.js 16 projects, or troubleshooting async params (Promise types), use cache directives, parallel route 404s, Turbopack issues, i18n caching, navigation throttling.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Jeremy Dawes",
+    "email": "jeremy@jezweb.net"
+  },
+  "license": "MIT",
+  "repository": "https://github.com/jezweb/claude-skills",
+  "keywords": [],
+  "commands": "./commands/"
+}

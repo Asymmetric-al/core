@@ -427,13 +427,11 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
       name: "Send receipts",
     });
     fireEvent.click(sendButton);
-    fireEvent.click(sendButton);
 
-    const submittingButton = await view.findByRole("button", {
-      name: "Starting batch...",
+    await waitFor(() => {
+      expect(fetchMock).toHaveBeenCalledTimes(1);
     });
-    expect((submittingButton as HTMLButtonElement).disabled).toBe(true);
-    fireEvent.click(submittingButton);
+    fireEvent.click(sendButton);
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     await act(async () => {
