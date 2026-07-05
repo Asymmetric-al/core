@@ -220,7 +220,7 @@ describe("recordGiftReceipt", () => {
   it("inserts one immutable receipt row per successful gift with the frozen snapshot", async () => {
     const mock = createSupabaseMock({});
     const result = await recordGiftReceipt({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(receipt-statement): test-double Supabase client cast
       supabaseAdmin: mock.client as any,
       ...baseInput,
     });
@@ -247,7 +247,7 @@ describe("recordGiftReceipt", () => {
   it("is idempotent: a duplicate (23505) re-reads the existing receipt instead of failing", async () => {
     const mock = createSupabaseMock({ insertError: { code: "23505" } });
     const result = await recordGiftReceipt({
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(receipt-statement): test-double Supabase client cast
       supabaseAdmin: mock.client as any,
       ...baseInput,
     });
@@ -261,7 +261,7 @@ describe("recordGiftReceipt", () => {
     const mock = createSupabaseMock({ insertError: { code: "23503" } });
     await expect(
       recordGiftReceipt({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any -- TODO(receipt-statement): test-double Supabase client cast
         supabaseAdmin: mock.client as any,
         ...baseInput,
       }),
