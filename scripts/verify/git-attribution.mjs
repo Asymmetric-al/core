@@ -4,11 +4,18 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const REQUIRED_GIT_NAME = "Blake";
-export const ALLOWED_GIT_EMAILS = Object.freeze([
-  "blake@risencode.org",
-  "116130409+II-ricky-bobby-II@users.noreply.github.com",
+export const EXPECTED_GITHUB_LOGIN_BY_EMAIL = Object.freeze({
+  "blake@risencode.org": "II-ricky-bobby-II",
+  "116130409+II-ricky-bobby-II@users.noreply.github.com": "II-ricky-bobby-II",
+  "299239962+asymmetric-core-eve[bot]@users.noreply.github.com":
+    "asymmetric-core-eve[bot]",
+});
+export const ALLOWED_GIT_EMAILS = Object.freeze(
+  Object.keys(EXPECTED_GITHUB_LOGIN_BY_EMAIL),
+);
+export const ALLOWED_GITHUB_LOGINS = Object.freeze([
+  ...new Set(Object.values(EXPECTED_GITHUB_LOGIN_BY_EMAIL)),
 ]);
-export const ALLOWED_GITHUB_LOGINS = Object.freeze(["II-ricky-bobby-II"]);
 export const FORBIDDEN_GIT_EMAILS = Object.freeze(["codex@example.com"]);
 export const FORBIDDEN_GITHUB_LOGINS = Object.freeze(["abiatarprado"]);
 
@@ -24,6 +31,12 @@ const allowedEmailSet = new Set(ALLOWED_GIT_EMAILS.map(normalizeEmail));
 const allowedLoginSet = new Set(ALLOWED_GITHUB_LOGINS.map(normalizeLogin));
 const forbiddenEmailSet = new Set(FORBIDDEN_GIT_EMAILS.map(normalizeEmail));
 const forbiddenLoginSet = new Set(FORBIDDEN_GITHUB_LOGINS.map(normalizeLogin));
+const expectedLoginByEmail = new Map(
+  Object.entries(EXPECTED_GITHUB_LOGIN_BY_EMAIL).map(([email, login]) => [
+    normalizeEmail(email),
+    login,
+  ]),
+);
 
 export function parseGitIdentity(identity) {
   const match = /^(?<name>.+) <(?<email>[^>]+)> \d+ [+-]\d+$/.exec(
@@ -142,6 +155,37 @@ export function validateGitHubActors({ authorLogin, committerLogin }) {
         `${label} resolved to ${login}; expected ${ALLOWED_GITHUB_LOGINS.join(
           " or ",
         )}`,
+      );
+    }
+  }
+
+  return errors;
+}
+
+export function validateGitHubActorAttribution(metadata, actors) {
+  const errors = [];
+
+  for (const { email, label, login } of [
+    {
+      email: metadata.authorEmail,
+      label: "latest commit GitHub author",
+      login: actors.authorLogin,
+    },
+    {
+      email: metadata.committerEmail,
+      label: "latest commit GitHub committer",
+      login: actors.committerLogin,
+    },
+  ]) {
+    const expectedLogin = expectedLoginByEmail.get(normalizeEmail(email));
+
+    if (!expectedLogin || !login) {
+      continue;
+    }
+
+    if (normalizeLogin(login) !== normalizeLogin(expectedLogin)) {
+      errors.push(
+        `${label} resolved to ${login}; email ${email} must resolve to ${expectedLogin}`,
       );
     }
   }
@@ -284,6 +328,9 @@ function collectVerification(options) {
 
           if (actors) {
             errors.push(...validateGitHubActors(actors));
+            errors.push(
+              ...validateGitHubActorAttribution(latestCommit, actors),
+            );
           }
         }
       }
