@@ -82,10 +82,11 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   source of truth).
 - [`phase-00-baseline.md`](./phase-00-baseline.md) — the Phase 0 plan: what
   Phase 0 does, its done-definition, and the provisional order.
-- `phase-07-receipt-statement-compliance-and-donor-credit.md` — **FORTHCOMING
-  (planned, not yet written)** — the Phase 7 plan (Receipt & Statement
-  Compliance Rules + Donor Identity/Credit Model). This file does not exist yet;
-  it is authored when Phase 7 graduates to its own detailed PRD.
+- [`phase-07-receipt-statement-compliance-and-donor-credit.md`](./phase-07-receipt-statement-compliance-and-donor-credit.md)
+  — the Phase 7 plan (Receipt & Statement Compliance Rules + Donor
+  Identity/Credit Model): a rules-first receipt/statement engine + the full
+  donor credit model. Groomed and committed; tracked by epic #566 + children
+  #567–#586.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
