@@ -25,6 +25,7 @@
     "./donor-portal/statements": "./src/donor-portal/statements.ts",
     "./stripe/webhooks": "./src/stripe/webhooks.ts",
     "./profile": "./src/profile/index.ts",
+    "./public-giving": "./src/public-giving/index.ts",
     "./feed-preferences": "./src/feed-preferences/index.ts",
     "./admin/org-settings": "./src/admin/org-settings.ts",
     "./admin/fund-directory": "./src/admin/fund-directory.ts",
