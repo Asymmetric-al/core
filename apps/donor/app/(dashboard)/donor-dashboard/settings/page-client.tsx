@@ -53,7 +53,7 @@ import {
   Globe,
   AlertTriangle,
 } from "lucide-react";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 
 // --- Types ---
 type TabId = "profile" | "notifications" | "security";
@@ -134,11 +134,14 @@ const ProfileTab = () => {
   });
   const [success, setSuccess] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const hydratedRef = React.useRef(false);
+  const [hydrated, setHydrated] = useState(false);
 
   // Prefill once from the live snapshot; don't clobber in-progress edits.
-  useEffect(() => {
-    if (hydratedRef.current || !snapshot.data) return;
+  // Set-state-during-render (React-recommended) instead of a synchronous
+  // setState inside an effect, which the react-hooks rule flags for cascading
+  // renders. Behaviour is identical: hydrate once when data first arrives.
+  if (!hydrated && snapshot.data) {
+    setHydrated(true);
     setForm(
       buildProfileFormState({
         displayName: snapshot.data.profile.displayName,
@@ -147,8 +150,7 @@ const ProfileTab = () => {
         avatarUrl: snapshot.data.profile.avatarUrl,
       }),
     );
-    hydratedRef.current = true;
-  }, [snapshot.data]);
+  }
 
   const setField = (key: keyof typeof form, value: string) => {
     setForm((prev) => ({ ...prev, [key]: value }));
