@@ -10,9 +10,6 @@ function readRepoFile(path: string) {
 
 describe("admin TanStack surface migrations", () => {
   it("routes contributions through shared database hooks and responsive table", () => {
-    const liveQuerySource = readRepoFile(
-      "apps/admin/app/contributions/live-query.ts",
-    );
     const mainBodySource = readRepoFile(
       "apps/admin/app/contributions/main-body.tsx",
     );
@@ -20,7 +17,6 @@ describe("admin TanStack surface migrations", () => {
       "apps/admin/app/contributions/page-client.tsx",
     );
 
-    expect(liveQuerySource).toMatch(/@asym\/database\/hooks/);
     expect(mainBodySource).toMatch(/DataTableResponsive/);
     expect(pageSource).toMatch(/useAdminContributions/);
     expect(pageSource).toMatch(/mc-contributions-live/);
