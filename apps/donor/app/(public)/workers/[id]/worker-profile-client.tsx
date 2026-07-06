@@ -265,7 +265,7 @@ interface WorkerProfileClientProps {
 export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
   const [amount, setAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>("");
-  const [frequency, setFrequency] = useState<"one-time" | "monthly">("monthly");
+  const frequency = "one-time";
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   const percentRaised = worker.goal
@@ -363,29 +363,10 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                     </p>
                   </div>
 
-                  <div className="bg-zinc-100 p-1.5 rounded-2xl flex relative">
-                    <button
-                      onClick={() => setFrequency("one-time")}
-                      className={cn(
-                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 relative z-10",
-                        frequency === "one-time"
-                          ? "bg-white text-zinc-900 shadow-sm"
-                          : "text-zinc-500 hover:text-zinc-700",
-                      )}
-                    >
-                      One-Time
-                    </button>
-                    <button
-                      onClick={() => setFrequency("monthly")}
-                      className={cn(
-                        "flex-1 py-3 text-sm font-semibold rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 relative z-10",
-                        frequency === "monthly"
-                          ? "bg-white text-blue-600 shadow-sm"
-                          : "text-zinc-500 hover:text-zinc-700",
-                      )}
-                    >
-                      Monthly
-                    </button>
+                  <div className="rounded-2xl border border-zinc-100 bg-zinc-50 p-4 text-center">
+                    <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+                      One-time gift
+                    </p>
                   </div>
 
                   <div className="space-y-4">
@@ -466,9 +447,7 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                       "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle",
                     )}
                   >
-                    {frequency === "monthly"
-                      ? `Give ${formatCurrency(amount)} Monthly`
-                      : `Give ${formatCurrency(amount)}`}
+                    Give {formatCurrency(amount)}
                   </Link>
 
                   <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">

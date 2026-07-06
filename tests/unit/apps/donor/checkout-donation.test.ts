@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  buildCheckoutRequestFingerprint,
   buildDonateRequestBody,
   interpretDonateResponse,
-  isServerConfirmed,
+  isDonationInitialized,
+  isStripeFinalCheckoutSuccess,
+  normalizeCheckoutFrequency,
+  resolveCheckoutIdempotencyKey,
   resolveCheckoutMode,
 } from "../../../../apps/donor/app/(public)/checkout/checkout-donation";
 
@@ -47,34 +51,34 @@ describe("buildDonateRequestBody", () => {
   });
 });
 
-describe("interpretDonateResponse — success is ONLY server-confirmed donation state", () => {
-  it("treats a 200 with a server donationId as confirmed", () => {
+describe("interpretDonateResponse — 200 initializes, but does not confirm payment", () => {
+  it("treats a 200 with a server donationId as initialized", () => {
     const result = interpretDonateResponse(200, {
       donationId: "don_1",
       paymentIntentId: "pi_1",
       clientSecret: "cs_1",
     });
     expect(result).toEqual({
-      kind: "confirmed",
+      kind: "initialized",
       donation: {
         donationId: "don_1",
         paymentIntentId: "pi_1",
         clientSecret: "cs_1",
       },
     });
-    expect(isServerConfirmed(result)).toBe(true);
+    expect(isDonationInitialized(result)).toBe(true);
   });
 
-  it("does NOT confirm a 200 that lacks a server donationId (no fake success)", () => {
+  it("does NOT initialize a 200 that lacks a server donationId", () => {
     const result = interpretDonateResponse(200, { paymentIntentId: "pi_1" });
     expect(result.kind).toBe("error");
-    expect(isServerConfirmed(result)).toBe(false);
+    expect(isDonationInitialized(result)).toBe(false);
   });
 
-  it("does NOT confirm an empty/whitespace donationId", () => {
+  it("does NOT initialize an empty/whitespace donationId", () => {
     const result = interpretDonateResponse(200, { donationId: "   " });
     expect(result.kind).toBe("error");
-    expect(isServerConfirmed(result)).toBe(false);
+    expect(isDonationInitialized(result)).toBe(false);
   });
 
   it("maps a 202 saga-in-flight to processing, never success", () => {
@@ -83,7 +87,7 @@ describe("interpretDonateResponse — success is ONLY server-confirmed donation 
       donationId: "don_2",
     });
     expect(result).toEqual({ kind: "processing", donationId: "don_2" });
-    expect(isServerConfirmed(result)).toBe(false);
+    expect(isDonationInitialized(result)).toBe(false);
   });
 
   it("surfaces the server error message on 4xx/5xx", () => {
@@ -94,13 +98,119 @@ describe("interpretDonateResponse — success is ONLY server-confirmed donation 
       kind: "error",
       message: "Missionary or fund not found",
     });
-    expect(isServerConfirmed(result)).toBe(false);
+    expect(isDonationInitialized(result)).toBe(false);
   });
 
   it("falls back to a generic message when the error body is unusable", () => {
     const result = interpretDonateResponse(500, null);
     expect(result.kind).toBe("error");
     expect((result as { message: string }).message.length).toBeGreaterThan(0);
+  });
+});
+
+describe("Stripe confirmation success helper", () => {
+  it("accepts completed and intentionally async PaymentIntent statuses", () => {
+    expect(isStripeFinalCheckoutSuccess("succeeded")).toBe(true);
+    expect(isStripeFinalCheckoutSuccess("processing")).toBe(true);
+    expect(isStripeFinalCheckoutSuccess("requires_action")).toBe(false);
+    expect(isStripeFinalCheckoutSuccess("requires_payment_method")).toBe(false);
+    expect(isStripeFinalCheckoutSuccess(null)).toBe(false);
+  });
+});
+
+describe("one-time checkout frequency normalization", () => {
+  it("defaults to one-time and coerces monthly inputs to one-time", () => {
+    expect(normalizeCheckoutFrequency(undefined)).toBe("one-time");
+    expect(normalizeCheckoutFrequency(null)).toBe("one-time");
+    expect(normalizeCheckoutFrequency("monthly")).toBe("one-time");
+    expect(normalizeCheckoutFrequency("one_time")).toBe("one-time");
+    expect(normalizeCheckoutFrequency("one-time")).toBe("one-time");
+  });
+});
+
+describe("checkout request fingerprint", () => {
+  const baseFingerprintInput = {
+    amount: 102.346,
+    coverFees: true,
+    currency: "USD",
+    donorEmail: " Donor@Example.COM ",
+    donorFirstName: " Ada ",
+    donorLastName: " Lovelace ",
+    endDate: "2026-08-01",
+    frequency: "one-time" as const,
+    fundId: " fund_1 ",
+    missionaryId: " miss_1 ",
+    paymentMethod: "card" as const,
+    startDate: "2026-07-06",
+  };
+
+  it("is deterministic and covers immutable checkout attempt fields", () => {
+    expect(buildCheckoutRequestFingerprint(baseFingerprintInput)).toBe(
+      JSON.stringify({
+        amount: 102.35,
+        coverFees: true,
+        currency: "usd",
+        donorEmail: "donor@example.com",
+        donorFirstName: "Ada",
+        donorLastName: "Lovelace",
+        endDate: "2026-08-01",
+        frequency: "one-time",
+        fundId: "fund_1",
+        missionaryId: "miss_1",
+        paymentMethod: "card",
+        startDate: "2026-07-06",
+      }),
+    );
+  });
+
+  it("changes when amount, designation, donor, fee, schedule, frequency, or method changes", () => {
+    const base = buildCheckoutRequestFingerprint(baseFingerprintInput);
+    const variants = [
+      { amount: 103 },
+      { fundId: "fund_2" },
+      { missionaryId: "miss_2" },
+      { donorEmail: "other@example.com" },
+      { donorFirstName: "Grace" },
+      { donorLastName: "Hopper" },
+      { coverFees: false },
+      { startDate: "2026-07-07" },
+      { endDate: "2026-09-01" },
+      { frequency: "monthly" as const },
+      { paymentMethod: "wallet" as const },
+    ];
+
+    for (const patch of variants) {
+      expect(
+        buildCheckoutRequestFingerprint({
+          ...baseFingerprintInput,
+          ...patch,
+        }),
+      ).not.toBe(base);
+    }
+  });
+});
+
+describe("resolveCheckoutIdempotencyKey", () => {
+  it("reuses the existing key for an exact fingerprint retry", () => {
+    expect(
+      resolveCheckoutIdempotencyKey({
+        currentFingerprint: "same",
+        existingFingerprint: "same",
+        existingKey: "idem_1",
+        generateKey: () => "idem_2",
+      }),
+    ).toEqual({ idempotencyKey: "idem_1", isNewKey: false });
+  });
+
+  it("rotates the key when the fingerprint changes", () => {
+    expect(
+      resolveCheckoutIdempotencyKey({
+        currentFingerprint: "changed",
+        existingFingerprint: "same",
+        existingKey: "idem_1",
+        generateKey: () => "idem_2",
+      }),
+    ).toEqual({ idempotencyKey: "idem_2", isNewKey: true });
   });
 });
 

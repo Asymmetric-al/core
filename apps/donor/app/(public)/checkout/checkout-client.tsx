@@ -1,8 +1,19 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { describeDonationPaymentStatus } from "@asym/lib/payments/payment-status-language";
 import { formatCurrency } from "@asym/lib/utils";
+import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import {
+  loadStripe,
+  type Stripe,
+  type StripeCardElement,
+  type StripeElements,
+} from "@stripe/stripe-js";
 import {
   Avatar,
   AvatarFallback,
@@ -18,11 +29,9 @@ import { cn } from "@asym/ui/lib/utils";
 import {
   Check,
   Lock,
-  CreditCard,
   ArrowRight,
   Heart,
   Loader2,
-  CalendarDays,
   Landmark,
   Wallet,
   Zap,
@@ -31,38 +40,37 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState, useSyncExternalStore } from "react";
+import React, { useMemo, useState } from "react";
 
 import {
+  buildCheckoutRequestFingerprint,
   buildDonateRequestBody,
   interpretDonateResponse,
-  isServerConfirmed,
+  isDonationInitialized,
+  isStripeFinalCheckoutSuccess,
+  normalizeCheckoutFrequency,
+  resolveCheckoutIdempotencyKey,
   resolveCheckoutMode,
   type CheckoutMode,
+  type CheckoutFrequency,
+  type CheckoutPaymentMethod,
   type ServerDonation,
 } from "./checkout-donation";
 
-import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
-import { getFieldWorkerById } from "@/lib/mock-data";
+import { getFieldWorkerById } from "../../../lib/mock-data";
 
 // Live checkout needs a Stripe publishable key to mount Elements and confirm the
-// PaymentIntent (Tier-3, creds-gated). Absent a key we run TEST-MODE: the saga
-// call + server-confirmed state are wired, but the card-capture leg is stubbed
-// and staged unverified-for-live (BLOCKED-FOR-CREDS).
+// PaymentIntent. Absent a key we run TEST-MODE: the saga initialization is
+// exercised, but no card charge is collected.
 const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 const CHECKOUT_MODE = resolveCheckoutMode(STRIPE_PUBLISHABLE_KEY);
-
-function subscribeNoop() {
-  return () => {};
-}
-
-function useClientTodayDateInputValue() {
-  return useSyncExternalStore(subscribeNoop, todayDateInputValue, () => "");
-}
+const STRIPE_PROMISE = STRIPE_PUBLISHABLE_KEY
+  ? loadStripe(STRIPE_PUBLISHABLE_KEY)
+  : null;
 
 type Step = "config" | "details" | "payment" | "success";
-type Frequency = "one-time" | "monthly";
-type PaymentMethod = "card" | "ach" | "wallet";
+type Frequency = CheckoutFrequency;
+type PaymentMethod = CheckoutPaymentMethod;
 type SearchParamInput = string | string[] | undefined;
 type CheckoutPageSearchParams = {
   amount?: SearchParamInput;
@@ -95,12 +103,18 @@ type CheckoutState = {
   error: string | null;
   frequency: Frequency;
   hasEndDate: boolean;
+  idempotencyFingerprint: string | null;
   idempotencyKey: string | null;
   isProcessing: boolean;
   paymentMethod: PaymentMethod;
-  showScheduleConfig: boolean;
   startDate: string;
   step: Step;
+};
+type CheckoutStripeOverride = {
+  cardElement?: React.ReactNode;
+  elements: StripeElements | null;
+  mode: CheckoutMode;
+  stripe: Stripe | null;
 };
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
@@ -114,16 +128,7 @@ const readSearchParam = (value: SearchParamInput): string | null => {
 };
 
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
-  const normalized = readSearchParam(value)?.trim().toLowerCase();
-  if (normalized === "monthly") {
-    return "monthly";
-  }
-
-  if (normalized === "one-time" || normalized === "one_time") {
-    return "one-time";
-  }
-
-  return null;
+  return normalizeCheckoutFrequency(readSearchParam(value));
 };
 
 const normalizeCheckoutSearchParams = (
@@ -137,23 +142,6 @@ const normalizeCheckoutSearchParams = (
   workerId: readSearchParam(searchParams.workerId),
 });
 
-const formatDatePretty = (dateStr: string) => {
-  if (!dateStr) return "Today";
-  const date = makeDisplayDate(dateStr);
-  const today = makeDisplayDate();
-
-  date.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-
-  if (date.getTime() === today.getTime()) return "Today";
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-  }).format(date);
-};
-
 interface SummaryCardProps {
   worker: { title?: string; image?: string } | null;
   amount: number;
@@ -161,8 +149,6 @@ interface SummaryCardProps {
   coverFees: boolean;
   fees: number;
   total: number;
-  startDate: string;
-  endDate: string | null;
 }
 
 function SummaryCard({
@@ -172,14 +158,7 @@ function SummaryCard({
   coverFees,
   fees,
   total,
-  startDate,
-  endDate,
 }: SummaryCardProps) {
-  const isFutureStart =
-    makeDisplayDate(startDate).setHours(0, 0, 0, 0) >
-    makeDisplayDate().setHours(0, 0, 0, 0);
-  const dueToday = isFutureStart ? 0 : total;
-
   return (
     <div className="bg-white rounded-3xl border border-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden sticky top-32">
       <div className="p-8 bg-zinc-50/50 border-b border-zinc-100">
@@ -229,34 +208,12 @@ function SummaryCard({
             <span className="text-zinc-500 font-medium">Frequency</span>
             <Badge
               variant="outline"
-              className={cn(
-                "uppercase text-[10px] font-semibold tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none",
-                frequency === "monthly"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-500",
-              )}
+              className="uppercase text-[10px] font-semibold tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none bg-zinc-100 text-zinc-500"
             >
               {frequency}
             </Badge>
           </div>
         </div>
-
-        {frequency === "monthly" && (
-          <div className="bg-zinc-50 rounded-2xl p-5 space-y-3 border border-zinc-100">
-            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
-              <span className="text-zinc-400">Start Date</span>
-              <span className="text-zinc-900">
-                {formatDatePretty(startDate)}
-              </span>
-            </div>
-            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
-              <span className="text-zinc-400">Duration</span>
-              <span className="text-zinc-900 flex items-center gap-2">
-                {endDate ? formatDatePretty(endDate) : "Ongoing"}
-              </span>
-            </div>
-          </div>
-        )}
 
         <Separator className="bg-zinc-100" />
 
@@ -266,19 +223,9 @@ function SummaryCard({
               Amount Due Today
             </span>
             <span className="block text-3xl font-semibold text-zinc-950 font-syne tracking-tighter">
-              {formatCurrency(dueToday)}
+              {formatCurrency(total)}
             </span>
           </div>
-          {isFutureStart && (
-            <div className="text-right pb-1">
-              <span className="text-[9px] font-semibold text-zinc-900 uppercase tracking-widest block mb-1">
-                Set Recurring
-              </span>
-              <span className="text-sm font-semibold text-zinc-400 font-syne">
-                {formatCurrency(total)}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -341,31 +288,15 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 
 function SuccessView({
   donorInfo,
-  frequency,
   mode,
-  paymentMethod,
   total,
   workerTitle,
 }: {
   donorInfo: DonorInfo;
-  frequency: Frequency;
   mode: CheckoutMode;
-  paymentMethod: PaymentMethod;
   total: number;
   workerTitle: string;
 }) {
-  // ACH Direct Debit is a delayed-notification rail: the donor authorized the
-  // debit, but payment finality arrives later from Stripe. Keep the language
-  // honest while the visual treatment stays identical across payment methods.
-  const achStatus =
-    paymentMethod === "ach"
-      ? describeDonationPaymentStatus({
-          state: "processing",
-          rail: "ach_debit",
-          audience: "donor",
-        })
-      : null;
-
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
       <motion.div
@@ -393,12 +324,10 @@ function SuccessView({
           </motion.div>
 
           <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
-            {achStatus ? "Bank Transfer Started." : "Contribution Logged."}
+            Contribution Confirmed.
           </h1>
           <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
-            {achStatus
-              ? "Processing — not yet collected"
-              : "Thank you for your support"}
+            Thank you for your support
           </p>
         </div>
 
@@ -410,18 +339,10 @@ function SuccessView({
             <p className="text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
               {formatCurrency(total)}
             </p>
-            {frequency === "monthly" && (
-              <div className="inline-flex items-center gap-3 bg-zinc-100 text-zinc-900 px-6 py-2 rounded-full text-[10px] font-semibold uppercase tracking-widest">
-                <Activity className="size-3.5" aria-hidden="true" /> Ongoing
-                Monthly Support
-              </div>
-            )}
           </div>
 
           <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
-            {achStatus
-              ? `${achStatus.message} A confirmation has been sent to `
-              : "A secure receipt has been sent to "}
+            A secure receipt has been sent to{" "}
             <span className="text-zinc-950 font-semibold">
               {donorInfo.email}
             </span>
@@ -465,163 +386,24 @@ function SuccessView({
   );
 }
 
-function MonthlyScheduleSection({
-  endDate,
-  hasEndDate,
-  onEndDateChange,
-  onHasEndDateChange,
-  onStartDateChange,
-  onToggleScheduleConfig,
-  showScheduleConfig,
-  startDate,
-  minStartDate,
-}: {
-  endDate: string;
-  hasEndDate: boolean;
-  onEndDateChange: (value: string) => void;
-  onHasEndDateChange: (value: boolean) => void;
-  onStartDateChange: (value: string) => void;
-  onToggleScheduleConfig: () => void;
-  showScheduleConfig: boolean;
-  startDate: string;
-  minStartDate: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="space-y-6 overflow-hidden"
-    >
-      <div className="bg-zinc-50 rounded-[2rem] p-8 border border-zinc-100">
-        <div className="flex items-start justify-between mb-8">
-          <div className="space-y-1">
-            <h4 className="font-semibold text-zinc-900 text-[10px] uppercase tracking-[0.2em] flex items-center gap-3">
-              <CalendarDays className="size-4" aria-hidden="true" /> Support
-              Schedule
-            </h4>
-            <p className="text-sm text-zinc-600 font-medium">
-              First contribution scheduled for{" "}
-              <span className="text-zinc-900 font-semibold">
-                {formatDatePretty(startDate)}
-              </span>
-              .
-            </p>
-          </div>
-          <button
-            className="h-10 px-5 rounded-full border border-zinc-200 text-zinc-700 font-semibold text-[9px] uppercase tracking-widest hover:bg-zinc-100 transition-colors"
-            onClick={onToggleScheduleConfig}
-            aria-expanded={showScheduleConfig}
-          >
-            {showScheduleConfig ? "SAVE" : "EDIT"}
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {showScheduleConfig && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-8 pt-8 border-t border-zinc-100"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="start-date"
-                    className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest"
-                  >
-                    Start Date
-                  </Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={startDate}
-                    min={minStartDate || undefined}
-                    onChange={(e) => onStartDateChange(e.target.value)}
-                    className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="end-date"
-                      className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest"
-                    >
-                      Ending Date
-                    </Label>
-                    <Switch
-                      checked={hasEndDate}
-                      onCheckedChange={(checked) => {
-                        onHasEndDateChange(checked);
-                        if (!checked) onEndDateChange("");
-                      }}
-                    />
-                  </div>
-                  {hasEndDate ? (
-                    <Input
-                      id="end-date"
-                      type="date"
-                      value={endDate}
-                      min={startDate}
-                      onChange={(e) => onEndDateChange(e.target.value)}
-                      className="h-14 rounded-2xl bg-white border-zinc-100"
-                    />
-                  ) : (
-                    <div className="h-14 flex items-center px-4 bg-zinc-50 rounded-2xl text-xs text-zinc-400 font-semibold uppercase tracking-widest">
-                      Continual Support
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
-  );
-}
-
 function ConfigStep({
   amount,
   calculatedFees,
   coverFees,
   customAmount,
-  endDate,
-  frequency,
-  hasEndDate,
   onAmountSelect,
   onCoverFeesChange,
   onCustomAmountChange,
-  onEndDateChange,
-  onFrequencyChange,
-  onHasEndDateChange,
   onNext,
-  onStartDateChange,
-  onToggleScheduleConfig,
-  showScheduleConfig,
-  startDate,
-  minStartDate,
 }: {
   amount: number;
   calculatedFees: number;
   coverFees: boolean;
   customAmount: string;
-  endDate: string;
-  frequency: Frequency;
-  hasEndDate: boolean;
   onAmountSelect: (value: number) => void;
   onCoverFeesChange: (value: boolean) => void;
   onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onEndDateChange: (value: string) => void;
-  onFrequencyChange: (value: Frequency) => void;
-  onHasEndDateChange: (value: boolean) => void;
   onNext: () => void;
-  onStartDateChange: (value: string) => void;
-  onToggleScheduleConfig: () => void;
-  showScheduleConfig: boolean;
-  startDate: string;
-  minStartDate: string;
 }) {
   return (
     <motion.div
@@ -640,47 +422,19 @@ function ConfigStep({
           Your Gift.
         </h1>
         <p className="text-2xl text-zinc-400 font-light tracking-tight">
-          Configure the amount and frequency of your impact.
+          Configure the amount of your one-time gift.
         </p>
       </header>
 
       <div className="space-y-8">
-        <fieldset className="space-y-4">
-          <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
+        <div className="rounded-[2rem] border border-zinc-100 bg-zinc-50 p-6">
+          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
             Contribution Frequency
-          </legend>
-          <div
-            className="flex p-1.5 bg-zinc-50 rounded-2xl border border-zinc-100"
-            role="radiogroup"
-          >
-            <button
-              onClick={() => onFrequencyChange("one-time")}
-              role="radio"
-              aria-checked={frequency === "one-time"}
-              className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
-                frequency === "one-time"
-                  ? "bg-white text-zinc-950 shadow-md"
-                  : "text-zinc-400 hover:text-zinc-600",
-              )}
-            >
-              One-Time
-            </button>
-            <button
-              onClick={() => onFrequencyChange("monthly")}
-              role="radio"
-              aria-checked={frequency === "monthly"}
-              className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 relative",
-                frequency === "monthly"
-                  ? "bg-white text-zinc-900 shadow-md"
-                  : "text-zinc-400 hover:text-zinc-600",
-              )}
-            >
-              Monthly Partner
-            </button>
-          </div>
-        </fieldset>
+          </p>
+          <p className="mt-2 font-semibold text-zinc-950 font-syne">
+            One-time gift
+          </p>
+        </div>
 
         <fieldset className="space-y-6">
           <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
@@ -734,20 +488,6 @@ function ConfigStep({
             />
           </div>
         </fieldset>
-
-        {frequency === "monthly" && (
-          <MonthlyScheduleSection
-            endDate={endDate}
-            hasEndDate={hasEndDate}
-            onEndDateChange={onEndDateChange}
-            onHasEndDateChange={onHasEndDateChange}
-            onStartDateChange={onStartDateChange}
-            onToggleScheduleConfig={onToggleScheduleConfig}
-            showScheduleConfig={showScheduleConfig}
-            startDate={startDate}
-            minStartDate={minStartDate}
-          />
-        )}
 
         <div
           className={cn(
@@ -921,6 +661,8 @@ function DetailsStep({
 }
 
 function PaymentStep({
+  cardElement,
+  elements,
   error,
   isProcessing,
   mode,
@@ -928,15 +670,22 @@ function PaymentStep({
   onConfirmPayment,
   onPaymentMethodChange,
   paymentMethod,
+  stripe,
   total,
 }: {
+  cardElement?: React.ReactNode;
+  elements: StripeElements | null;
   error: string | null;
   isProcessing: boolean;
   mode: CheckoutMode;
   onBack: () => void;
-  onConfirmPayment: () => void;
+  onConfirmPayment: (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) => void;
   onPaymentMethodChange: (value: PaymentMethod) => void;
   paymentMethod: PaymentMethod;
+  stripe: Stripe | null;
   total: number;
 }) {
   return (
@@ -1018,41 +767,25 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-8"
               >
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="card-number"
-                    className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
-                  >
+                <div className="space-y-3" data-testid="stripe-card-panel">
+                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2">
                     Card Details
-                  </Label>
-                  <div className="bg-white rounded-[2rem] border border-zinc-100 overflow-hidden shadow-sm">
-                    <div className="relative border-b border-zinc-50">
-                      <CreditCard
-                        className="absolute left-6 top-6 size-6 text-zinc-300"
-                        aria-hidden="true"
-                      />
-                      <Input
-                        id="card-number"
-                        className="h-20 border-none pl-16 text-lg font-medium bg-transparent focus-visible:ring-0"
-                        placeholder="Card Number"
-                        autoComplete="cc-number"
-                      />
+                  </p>
+                  {mode === "live" ? (
+                    <div className="bg-white rounded-[2rem] border border-zinc-100 p-8 shadow-sm">
+                      {cardElement ?? (
+                        <CardElement options={{ hidePostalCode: true }} />
+                      )}
                     </div>
-                    <div className="flex">
-                      <Input
-                        className="h-20 border-none border-r border-zinc-50 text-lg font-medium bg-transparent focus-visible:ring-0 px-8"
-                        placeholder="MM/YY"
-                        autoComplete="cc-exp"
-                        aria-label="Expiration date"
-                      />
-                      <Input
-                        className="h-20 border-none text-lg font-medium bg-transparent focus-visible:ring-0 px-8"
-                        placeholder="CVC"
-                        autoComplete="cc-csc"
-                        aria-label="Security code"
-                      />
+                  ) : (
+                    <div
+                      role="status"
+                      className="rounded-[2rem] border border-dashed border-amber-200 bg-white p-8 text-sm font-medium leading-relaxed text-amber-700"
+                    >
+                      Test mode does not collect card details. Configure a
+                      Stripe publishable key to mount live Elements.
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
@@ -1177,7 +910,7 @@ function PaymentStep({
           Back
         </Button>
         <Button
-          onClick={onConfirmPayment}
+          onClick={() => onConfirmPayment(stripe, elements)}
           disabled={isProcessing}
           size="lg"
           className="flex-1 h-24 text-2xl font-semibold font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
@@ -1196,12 +929,22 @@ function PaymentStep({
   );
 }
 
+function StripePaymentStep(
+  props: Omit<React.ComponentProps<typeof PaymentStep>, "elements" | "stripe">,
+) {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  return <PaymentStep {...props} elements={elements} stripe={stripe} />;
+}
+
 function CheckoutContent({
   searchParams,
+  stripeOverride,
 }: {
   searchParams: CheckoutSearchParams;
+  stripeOverride?: CheckoutStripeOverride;
 }) {
-  const clientToday = useClientTodayDateInputValue();
   const workerId = searchParams.workerId ?? searchParams.missionaryId;
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
@@ -1219,12 +962,12 @@ function CheckoutContent({
     },
     endDate: "",
     error: null,
-    frequency: searchParams.frequency ?? "monthly",
+    frequency: "one-time",
     hasEndDate: false,
+    idempotencyFingerprint: null,
     idempotencyKey: null,
     isProcessing: false,
     paymentMethod: "card",
-    showScheduleConfig: false,
     startDate: "",
     step: "config",
   }));
@@ -1240,32 +983,19 @@ function CheckoutContent({
     hasEndDate,
     isProcessing,
     paymentMethod,
-    showScheduleConfig,
     startDate,
     step,
   } = checkoutState;
-  const startDateForUi = startDate || clientToday;
-
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
   const setAmount = (value: number) =>
     setCheckoutState((prev) => ({ ...prev, amount: value }));
   const setCustomAmount = (value: string) =>
     setCheckoutState((prev) => ({ ...prev, customAmount: value }));
-  const setFrequency = (value: Frequency) =>
-    setCheckoutState((prev) => ({ ...prev, frequency: value }));
   const setCoverFees = (value: boolean) =>
     setCheckoutState((prev) => ({ ...prev, coverFees: value }));
   const setPaymentMethod = (value: PaymentMethod) =>
     setCheckoutState((prev) => ({ ...prev, paymentMethod: value }));
-  const setStartDate = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, startDate: value }));
-  const setShowScheduleConfig = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, showScheduleConfig: value }));
-  const setHasEndDate = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, hasEndDate: value }));
-  const setEndDate = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, endDate: value }));
   const setDonorInfo = (value: DonorInfo) =>
     setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
 
@@ -1275,6 +1005,7 @@ function CheckoutContent({
   }, [amount]);
 
   const total = coverFees ? amount + calculatedFees : amount;
+  const checkoutMode = stripeOverride?.mode ?? CHECKOUT_MODE;
 
   const handleAmountSelect = (val: number) => {
     setAmount(val);
@@ -1305,13 +1036,45 @@ function CheckoutContent({
     else if (step === "payment") setStep("details");
   };
 
-  const handlePayment = async () => {
-    // One idempotency key per checkout attempt, reused across retries so the
-    // idempotent donation saga replays rather than creating a second donation.
-    const idempotencyKey = checkoutState.idempotencyKey ?? crypto.randomUUID();
+  const handlePayment = async (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) => {
+    if (paymentMethod !== "card") {
+      setCheckoutState((prev) => ({
+        ...prev,
+        error:
+          "Card payments are the only checkout method currently available. Bank and wallet checkout need a live Stripe flow before they can be used.",
+      }));
+      return;
+    }
+
+    const requestFingerprint = buildCheckoutRequestFingerprint({
+      amount: total,
+      coverFees,
+      currency: "usd",
+      donorEmail: donorInfo.email,
+      donorFirstName: donorInfo.firstName,
+      donorLastName: donorInfo.lastName,
+      endDate: hasEndDate ? endDate : "",
+      frequency,
+      fundId,
+      missionaryId: workerId,
+      paymentMethod,
+      startDate,
+    });
+    const { idempotencyKey, isNewKey } = resolveCheckoutIdempotencyKey({
+      currentFingerprint: requestFingerprint,
+      existingFingerprint: checkoutState.idempotencyFingerprint,
+      existingKey: checkoutState.idempotencyKey,
+      generateKey: () => crypto.randomUUID(),
+    });
+
     setCheckoutState((prev) => ({
       ...prev,
+      donation: isNewKey ? null : prev.donation,
       error: null,
+      idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
     }));
@@ -1338,9 +1101,93 @@ function CheckoutContent({
       const payload = await response.json().catch(() => null);
       const result = interpretDonateResponse(response.status, payload);
 
-      // LAW: the success screen renders ONLY from server-confirmed donation
-      // state (a real `donationId` from the saga), never from a client timer.
-      if (isServerConfirmed(result)) {
+      if (isDonationInitialized(result)) {
+        if (checkoutMode === "test") {
+          setCheckoutState((prev) => ({
+            ...prev,
+            donation: result.donation,
+            error: null,
+            isProcessing: false,
+            step: "success",
+          }));
+          window.scrollTo(0, 0);
+          return;
+        }
+
+        if (!result.donation.clientSecret) {
+          setCheckoutState((prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Payment was initialized, but Stripe did not return a client secret. Please try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        if (!stripe || !elements) {
+          setCheckoutState((prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Stripe is still initializing. Please wait a moment and try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        const cardElement = elements.getElement(
+          CardElement,
+        ) as StripeCardElement | null;
+        if (!cardElement) {
+          setCheckoutState((prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Card details are not ready yet. Please check the card form and try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        const confirmation = await stripe.confirmCardPayment(
+          result.donation.clientSecret,
+          {
+            payment_method: {
+              card: cardElement,
+              billing_details: {
+                email: donorInfo.email,
+                name: `${donorInfo.firstName} ${donorInfo.lastName}`.trim(),
+              },
+            },
+          },
+        );
+
+        if (confirmation.error) {
+          setCheckoutState((prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              confirmation.error.message ??
+              "Stripe could not confirm this card payment. Please check your card details and try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        if (
+          !isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)
+        ) {
+          setCheckoutState((prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Stripe has not confirmed this payment yet. Please try again or use another card.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
         setCheckoutState((prev) => ({
           ...prev,
           donation: result.donation,
@@ -1395,16 +1242,14 @@ function CheckoutContent({
     );
   }
 
-  // Success renders ONLY when the server has confirmed the donation. If we are
-  // on the success step without server-confirmed state, something is wrong —
+  // Success renders ONLY when Stripe confirmation has accepted the initialized
+  // donation. If we are on the success step without donation state, something is wrong —
   // fall through to the checkout rather than showing an unbacked confirmation.
   if (step === "success" && donation) {
     return (
       <SuccessView
         donorInfo={donorInfo}
-        frequency={frequency}
-        mode={CHECKOUT_MODE}
-        paymentMethod={paymentMethod}
+        mode={checkoutMode}
         total={total}
         workerTitle={worker?.title || "our global mission"}
       />
@@ -1425,23 +1270,10 @@ function CheckoutContent({
                   calculatedFees={calculatedFees}
                   coverFees={coverFees}
                   customAmount={customAmount}
-                  endDate={endDate}
-                  frequency={frequency}
-                  hasEndDate={hasEndDate}
                   onAmountSelect={handleAmountSelect}
                   onCoverFeesChange={setCoverFees}
                   onCustomAmountChange={handleCustomAmountChange}
-                  onEndDateChange={setEndDate}
-                  onFrequencyChange={setFrequency}
-                  onHasEndDateChange={setHasEndDate}
                   onNext={handleNext}
-                  onStartDateChange={setStartDate}
-                  onToggleScheduleConfig={() =>
-                    setShowScheduleConfig(!showScheduleConfig)
-                  }
-                  showScheduleConfig={showScheduleConfig}
-                  startDate={startDateForUi}
-                  minStartDate={clientToday}
                 />
               )}
 
@@ -1457,16 +1289,49 @@ function CheckoutContent({
               )}
 
               {step === "payment" && (
-                <PaymentStep
-                  error={error}
-                  isProcessing={isProcessing}
-                  mode={CHECKOUT_MODE}
-                  onBack={handleBack}
-                  onConfirmPayment={handlePayment}
-                  onPaymentMethodChange={setPaymentMethod}
-                  paymentMethod={paymentMethod}
-                  total={total}
-                />
+                <>
+                  {stripeOverride ? (
+                    <PaymentStep
+                      cardElement={stripeOverride.cardElement}
+                      elements={stripeOverride.elements}
+                      error={error}
+                      isProcessing={isProcessing}
+                      mode={checkoutMode}
+                      onBack={handleBack}
+                      onConfirmPayment={handlePayment}
+                      onPaymentMethodChange={setPaymentMethod}
+                      paymentMethod={paymentMethod}
+                      stripe={stripeOverride.stripe}
+                      total={total}
+                    />
+                  ) : CHECKOUT_MODE === "live" && STRIPE_PROMISE ? (
+                    <Elements stripe={STRIPE_PROMISE}>
+                      <StripePaymentStep
+                        error={error}
+                        isProcessing={isProcessing}
+                        mode={CHECKOUT_MODE}
+                        onBack={handleBack}
+                        onConfirmPayment={handlePayment}
+                        onPaymentMethodChange={setPaymentMethod}
+                        paymentMethod={paymentMethod}
+                        total={total}
+                      />
+                    </Elements>
+                  ) : (
+                    <PaymentStep
+                      elements={null}
+                      error={error}
+                      isProcessing={isProcessing}
+                      mode={CHECKOUT_MODE}
+                      onBack={handleBack}
+                      onConfirmPayment={handlePayment}
+                      onPaymentMethodChange={setPaymentMethod}
+                      paymentMethod={paymentMethod}
+                      stripe={null}
+                      total={total}
+                    />
+                  )}
+                </>
               )}
             </AnimatePresence>
           </div>
@@ -1488,8 +1353,6 @@ function CheckoutContent({
               coverFees={coverFees}
               fees={calculatedFees}
               total={total}
-              startDate={startDateForUi}
-              endDate={hasEndDate ? endDate : null}
             />
           </aside>
         </div>
@@ -1500,9 +1363,16 @@ function CheckoutContent({
 
 export function CheckoutPageClient({
   searchParams,
+  stripeOverride,
 }: {
   searchParams: CheckoutPageSearchParams;
+  stripeOverride?: CheckoutStripeOverride;
 }) {
   const normalizedSearchParams = normalizeCheckoutSearchParams(searchParams);
-  return <CheckoutContent searchParams={normalizedSearchParams} />;
+  return (
+    <CheckoutContent
+      searchParams={normalizedSearchParams}
+      stripeOverride={stripeOverride}
+    />
+  );
 }

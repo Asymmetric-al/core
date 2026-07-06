@@ -1,16 +1,11 @@
 /**
  * Pure, framework-free state logic for the donor checkout → POST /api/donate wiring.
  *
- * Public-issue requirement: **checkout success must be confirmed by server-side
- * donation state.** The success screen is therefore gated on a real `donationId`
- * returned by the donation saga — never on a client-side timer. All of the
- * decision logic lives here so it can be unit-tested without React, network, or
- * Stripe creds.
- *
- * The Stripe PaymentIntent *confirmation* (turning the saga's `clientSecret` into
- * a captured charge via Stripe Elements) is Tier-3 and needs creds that do not
- * exist on this box — see `resolveCheckoutMode`. This module wires the saga call
- * and server-confirmed state; the capture leg is stubbed behind TEST-MODE.
+ * Public-issue requirement: **checkout success must be confirmed by Stripe
+ * PaymentIntent state.** A successful `/api/donate` response only proves that the
+ * donation saga initialized a donation + PaymentIntent. The final success screen
+ * is gated by Stripe confirmation in live mode, never by the initialization
+ * response alone.
  */
 
 export type DonateRequestBody = {
@@ -20,7 +15,7 @@ export type DonateRequestBody = {
   fund_id?: string;
 };
 
-/** Server-confirmed donation state returned by the saga on a 200. */
+/** Donation state initialized by the saga on a 200. */
 export type ServerDonation = {
   donationId: string;
   paymentIntentId: string | null;
@@ -28,12 +23,41 @@ export type ServerDonation = {
 };
 
 export type DonateResult =
-  | { kind: "confirmed"; donation: ServerDonation }
+  | { kind: "initialized"; donation: ServerDonation }
   | { kind: "processing"; donationId: string | null }
   | { kind: "error"; message: string };
 
 /** Live vs test-mode is decided solely by the presence of a publishable key. */
 export type CheckoutMode = "live" | "test";
+export type CheckoutFrequency = "one-time" | "monthly";
+export type CheckoutPaymentMethod = "card" | "ach" | "wallet";
+
+export type CheckoutRequestFingerprintInput = {
+  amount: number;
+  coverFees: boolean;
+  currency?: string | null;
+  donorEmail?: string | null;
+  donorFirstName?: string | null;
+  donorLastName?: string | null;
+  endDate?: string | null;
+  frequency?: CheckoutFrequency | null;
+  fundId?: string | null;
+  missionaryId?: string | null;
+  paymentMethod: CheckoutPaymentMethod;
+  startDate?: string | null;
+};
+
+export type ResolveIdempotencyKeyInput = {
+  currentFingerprint: string;
+  existingFingerprint: string | null;
+  existingKey: string | null;
+  generateKey: () => string;
+};
+
+export type ResolveIdempotencyKeyResult = {
+  idempotencyKey: string;
+  isNewKey: boolean;
+};
 
 const trimToUndefined = (
   value: string | null | undefined,
@@ -72,6 +96,71 @@ export function buildDonateRequestBody(input: {
   return body;
 }
 
+const normalizeStringField = (value: string | null | undefined): string =>
+  trimToUndefined(value) ?? "";
+
+const normalizeMoneyAmount = (value: number): number => {
+  if (!Number.isFinite(value)) {
+    throw new Error("Donation fingerprint amount must be finite");
+  }
+
+  return Number(value.toFixed(2));
+};
+
+/**
+ * Checkout currently routes through one-time `/api/donate` only. Monthly query
+ * params are accepted for backwards-compatible links, but coerced to one-time so
+ * the UI and request path cannot imply recurring billing.
+ */
+export function normalizeCheckoutFrequency(
+  value: string | null | undefined,
+): "one-time" {
+  void value;
+  return "one-time";
+}
+
+/**
+ * Deterministic immutable attempt fingerprint. The idempotency key may only be
+ * reused when every field that could alter the checkout attempt still matches.
+ */
+export function buildCheckoutRequestFingerprint(
+  input: CheckoutRequestFingerprintInput,
+): string {
+  return JSON.stringify({
+    amount: normalizeMoneyAmount(input.amount),
+    coverFees: input.coverFees,
+    currency: normalizeStringField(input.currency).toLowerCase() || "usd",
+    donorEmail: normalizeStringField(input.donorEmail).toLowerCase(),
+    donorFirstName: normalizeStringField(input.donorFirstName),
+    donorLastName: normalizeStringField(input.donorLastName),
+    endDate: normalizeStringField(input.endDate),
+    frequency: input.frequency ?? "one-time",
+    fundId: normalizeStringField(input.fundId),
+    missionaryId: normalizeStringField(input.missionaryId),
+    paymentMethod: input.paymentMethod,
+    startDate: normalizeStringField(input.startDate),
+  });
+}
+
+export function resolveCheckoutIdempotencyKey({
+  currentFingerprint,
+  existingFingerprint,
+  existingKey,
+  generateKey,
+}: ResolveIdempotencyKeyInput): ResolveIdempotencyKeyResult {
+  if (existingKey && existingFingerprint === currentFingerprint) {
+    return {
+      idempotencyKey: existingKey,
+      isNewKey: false,
+    };
+  }
+
+  return {
+    idempotencyKey: generateKey(),
+    isNewKey: true,
+  };
+}
+
 const readString = (body: unknown, key: string): string | null => {
   if (!body || typeof body !== "object") return null;
   const value = (body as Record<string, unknown>)[key];
@@ -79,12 +168,10 @@ const readString = (body: unknown, key: string): string | null => {
 };
 
 /**
- * Interpret the saga's HTTP response into a server-confirmed result.
+ * Interpret the saga's HTTP response into an initialization result.
  *
- * A checkout is `confirmed` ONLY when the server returns 200 with a non-empty
- * `donationId` — the server-side proof that the donation row exists and the
- * PaymentIntent was initialized. A 200 that lacks a donationId is treated as an
- * error, not success, so the UI can never render a fake confirmation.
+ * A 200 with a non-empty `donationId` means the server initialized the donation
+ * and PaymentIntent. It is not final payment confirmation.
  */
 export function interpretDonateResponse(
   status: number,
@@ -99,7 +186,7 @@ export function interpretDonateResponse(
       };
     }
     return {
-      kind: "confirmed",
+      kind: "initialized",
       donation: {
         donationId,
         paymentIntentId: readString(body, "paymentIntentId"),
@@ -123,10 +210,16 @@ export function interpretDonateResponse(
   };
 }
 
-export function isServerConfirmed(
+export function isDonationInitialized(
   result: DonateResult,
-): result is Extract<DonateResult, { kind: "confirmed" }> {
-  return result.kind === "confirmed";
+): result is Extract<DonateResult, { kind: "initialized" }> {
+  return result.kind === "initialized";
+}
+
+export function isStripeFinalCheckoutSuccess(
+  status: string | null | undefined,
+): boolean {
+  return status === "succeeded" || status === "processing";
 }
 
 /**

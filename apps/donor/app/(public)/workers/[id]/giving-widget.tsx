@@ -26,7 +26,7 @@ export function GivingWidget({
 }: GivingWidgetProps) {
   const [amount, setAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>("");
-  const [frequency, setFrequency] = useState<"one-time" | "monthly">("monthly");
+  const frequency = "one-time";
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   const handleAmountClick = (val: number) => {
@@ -58,37 +58,10 @@ export function GivingWidget({
           </p>
         </div>
 
-        <div
-          className="bg-zinc-100 p-1.5 rounded-xl flex relative"
-          role="radiogroup"
-          aria-label="Giving frequency"
-        >
-          <button
-            onClick={() => setFrequency("one-time")}
-            role="radio"
-            aria-checked={frequency === "one-time"}
-            className={cn(
-              "flex-1 py-3 text-sm font-semibold rounded-lg transition-[color,background-color,box-shadow] relative z-10",
-              frequency === "one-time"
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-700",
-            )}
-          >
-            One-Time
-          </button>
-          <button
-            onClick={() => setFrequency("monthly")}
-            role="radio"
-            aria-checked={frequency === "monthly"}
-            className={cn(
-              "flex-1 py-3 text-sm font-semibold rounded-lg transition-[color,background-color,box-shadow] relative z-10",
-              frequency === "monthly"
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-700",
-            )}
-          >
-            Monthly
-          </button>
+        <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            One-time gift
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -188,9 +161,7 @@ export function GivingWidget({
             "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle",
           )}
         >
-          {frequency === "monthly"
-            ? `Give ${formatCurrency(amount)} Monthly`
-            : `Give ${formatCurrency(amount)}`}
+          Give {formatCurrency(amount)}
         </Link>
 
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
