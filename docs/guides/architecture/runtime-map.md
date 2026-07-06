@@ -139,6 +139,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/email/templates/test-send`                               | Node.js (no `runtime` segment export) | Email Studio draft test-send                  |
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                       |
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                   |
+| admin      | `/api/health/crm`                                              | Node.js (no `runtime` segment export) | Twenty CRM provider health reachability       |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                         |
 | admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving             |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                  |
