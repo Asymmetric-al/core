@@ -67,26 +67,31 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 
 ## How work is sequenced
 
-- The post-Phase-0 build order is **provisional** — recorded as best-current
-  thinking in [`phase-00-baseline.md`](./phase-00-baseline.md), changeable once
-  the matrix shows what is already done. Only genuine "B needs A first"
-  dependencies are firm.
+- The current build order is the [`phase-map.md`](./phase-map.md) roadmap and
+  dependency lanes. The original post-Phase-0 order in
+  [`phase-00-baseline.md`](./phase-00-baseline.md) was **provisional** and is
+  superseded by the phase map; phase-00 remains the origin of the firm,
+  locked "B needs A first" dependencies.
 - Each area graduates to its own detailed PRD + OpenSpec change **when it is
   actually being built**, not before.
 - **Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit
-  Model)** is the next phase. It **fulfills the identity/party/credit seams
-  reserved in Phase 4** — the persons spine, party entities, frozen-snapshot
-  extension, and the `gift_credits`/tribute/matching/DAF model — which the
-  provisional build order permits. Phase 7 **hard-depends on the Phase 4
-  isolation-hardening foundation shipping first** (firm dependency: Phase 4
-  foundation → Phase 7).
+  Model)** is the final Lane-1 foundation phase (groomed 2026-07-05; Phases
+  2–6 precede it in dependency order — see [`phase-map.md`](./phase-map.md)).
+  It **fulfills the identity/party/credit seams reserved in Phase 4** — the
+  persons spine, party entities, frozen-snapshot extension, and the
+  `gift_credits`/tribute/matching/DAF model — which the provisional build
+  order permits. Phase 7 **hard-depends on the Phase 4 isolation-hardening
+  foundation, the Phase 6 communication-event spine + `sendEmail` seam, and
+  the Phase 3 consent gate (PR #502) shipping first** (the PRD's hard
+  prerequisites C1–C3).
 - **Phase 8 (CRM Operating Foundation)** is groomed but **scope-amended
   (2026-07-06):** the Twenty write-enable tranche (Notes) is withdrawn by
   [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) —
   Asym Postgres owns all CRM truth and Twenty CRM is retired as a product
-  dependency. The surviving operating-foundation concerns (readiness/
-  self-healing, `/crm/operations`, alert routing) are re-groomed against
-  Asym-internal subjects before any build starts (re-groom pending). It
+  dependency. The surviving operating-foundation concerns (staff operations
+  visibility, CRM data health (Asym-internal), alert routing) are re-groomed
+  against Asym-internal subjects before any build starts (re-groom pending,
+  #603). It
   **hard-depends on Phase 4 and Phase 6 shipping first**, and **supersedes**
   the earlier `phase-01-crm-operating-foundation.md`.
 
@@ -107,6 +112,20 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   Not the same file as the tombstoned `phase-01-crm-operating-foundation.md`.
 - [`phase-00-baseline.md`](./phase-00-baseline.md) — the Phase 0 plan: what
   Phase 0 does, its done-definition, and the provisional order.
+- [`phase-01-crm-operating-foundation.md`](./phase-01-crm-operating-foundation.md)
+  — tombstoned; superseded by Phase 8; retained for history (issues #466–#476
+  closed as superseded, 2026-07-06).
+- Phase PRDs (groomed, each tracked by an epic + children):
+  [`phase-02-site-locale-currency-foundation.md`](./phase-02-site-locale-currency-foundation.md)
+  (epic #477),
+  [`phase-03-minimum-permission-role-scoped-projection-foundation.md`](./phase-03-minimum-permission-role-scoped-projection-foundation.md)
+  (epic #489),
+  [`phase-04-identity-account-claiming-foundation.md`](./phase-04-identity-account-claiming-foundation.md)
+  (epic #503),
+  [`phase-05-public-website-runtime-contract.md`](./phase-05-public-website-runtime-contract.md)
+  (epic #520), and
+  [`phase-06-shared-communication-event-model.md`](./phase-06-shared-communication-event-model.md)
+  (epic #550).
 - [`phase-07-receipt-statement-compliance-and-donor-credit.md`](./phase-07-receipt-statement-compliance-and-donor-credit.md)
   — the Phase 7 plan (Receipt & Statement Compliance Rules + Donor
   Identity/Credit Model): a rules-first receipt/statement engine + the full
@@ -115,11 +134,20 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 - [`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md)
   — the Phase 8 plan (CRM Operating Foundation). **Scope amended 2026-07-06
   ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)):**
-  the Notes write-enable tranche is withdrawn; the surviving
-  readiness/self-healing + `/crm/operations` concerns are re-groomed against
-  Asym-internal subjects (re-groom pending — do not build from the PRD until
-  the re-groomed version lands). Hard-depends on Phase 4 + Phase 6 shipping;
-  supersedes `phase-01-crm-operating-foundation.md`.
+  the Notes write-enable tranche is withdrawn; the surviving concerns (staff
+  operations visibility, CRM data health (Asym-internal), alert routing) are
+  re-groomed against Asym-internal subjects (re-groom pending, #603 — do not
+  build from the PRD until the re-groomed version lands). Hard-depends on
+  Phase 4 + Phase 6 shipping; supersedes
+  `phase-01-crm-operating-foundation.md`.
+- [`phase-09-full-crm-depth-relationship-graph.md`](./phase-09-full-crm-depth-relationship-graph.md)
+  — the Phase 9 plan (Full CRM Depth & Relationship Graph): the People &
+  Churches backbone — parties supertype + relationship graph (stored +
+  derived edges), the record-detail shell (8 live tabs + 8 reserved
+  sockets + the header contract), one list engine with kind-scoped routes,
+  party-keyed notes/activity, Cmd-K search, and governed CSV export.
+  Groomed 2026-07-06; hard-depends on Phase 4 + Phase 7 (party spine);
+  Phase 8 is a soft dependency (ADR-0001). Issues via `/to-issues` pending.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

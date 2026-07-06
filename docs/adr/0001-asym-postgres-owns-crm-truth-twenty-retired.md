@@ -68,10 +68,10 @@ external evidence pass) found:
    read from, write to, or depend on Twenty. The one-way mirror never turns
    on. The unmerged `integrate-twenty-crm-core` change is withdrawn (its
    spec deltas must never be merged); the package carries a RETIRED banner
-   and is archived by the cleanup ticket.
+   and is archived by the cleanup ticket (#602).
 3. **The Twenty-specific code goes dormant now and is removed by a scheduled
-   cleanup ticket** (client stack, webhook ingress, read-through services,
-   projection/mirror machinery, `twenty-object-model`). Reusable
+   cleanup ticket (#602)** (client stack, webhook ingress, read-through
+   services, projection/mirror machinery, `twenty-object-model`). Reusable
    Asym-serving pieces are kept: `crm_record_links` (generalized provider
    links), `crm_merge_candidates` + duplicate detection (feeds the Phase 4
    merge workbench), `crm_command_logs` (audited-write boundary), and the
@@ -82,7 +82,7 @@ external evidence pass) found:
    idempotency log, and live-Twenty round-trip evidence requirements are
    withdrawn. Surviving concerns (staff operations visibility, CRM data
    health, alert routing) will be re-scoped against Asym-internal subjects
-   in a dedicated grill before any Phase 8 build starts.
+   in a dedicated grill (#603) before any Phase 8 build starts.
 5. **Phase 9+ build CRM depth directly on Asym Postgres** using Phase 4
    isolation plumbing (composite `(tenant_id, id)` keys, `ENABLE`+`FORCE`
    RLS, tenant-guard) and the Phase 7 party spine.
@@ -106,9 +106,9 @@ The full record-type ownership table lives in
   workspace anyway.
 - Reporting (Phase 30), imports (Phase 29), and workflows (Phase 31) operate
   on one local database — no cross-system ETL for CRM data.
-- The cleanup ticket must also: verify/revoke the Vercel `TWENTY_*` env
-  entries recorded on 2026-05-14, delete the dev-workspace proof record and
-  development API key left in Twenty Cloud, re-`COMMENT` the
+- The cleanup ticket (#602) must also: verify/revoke the Vercel `TWENTY_*`
+  env entries recorded on 2026-05-14, delete the dev-workspace proof record
+  and development API key left in Twenty Cloud, re-`COMMENT` the
   `staged_gifts`/`crm_command_logs` SQL comments via a forward migration,
   rewrite or delete the six staff-visible "Twenty CRM owns …" strings, and
   archive the `integrate-twenty-crm-core` package with a link-fix sweep.

@@ -1,6 +1,6 @@
 # Phase 3 — Minimum Permission & Role-Scoped Projection Foundation
 
-**Program:** SiteStacker Parity · **Phase:** 3 · **Status:** Draft for pricing → tickets
+**Program:** SiteStacker Parity · **Phase:** 3 · **Status:** Groomed; tracked by epic #489 + children
 
 > Buildable synthesis of the Phase 3 grill (decisions D1–D12) plus a nonprofit-CRM/CMS best-practice validation and a gap-check verified against the live schema on this branch. Grounded in the repo as of drafting; **specific file/line references may drift** — treat them as pointers, not contracts. New canonical terms are reconciled in **Glossary & OpenSpec** below and must be added to the repo-root `CONTEXT.md`.
 
@@ -109,7 +109,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
     tenantId?: string | null;
   }): Promise<FieldPolicySet>;
   ```
-- Prior art: `crm/projections/contracts.ts` (code-defined surface→field contracts to promote from shadow to enforced); `contribution_correction_requests` migration shape (partial-unique, RLS staff-only).
+- Prior art: `crm/projections/contracts.ts` (code-defined surface→field contracts to promote from shadow to enforced). _(Amended 2026-07-06: the shadow CRM→surface projection stack is retired by ADR-0001 and deleted by cleanup ticket #602 — capture `contracts.ts`'s surface→field lists into the Phase-3 field census before the deletion lands; the Phase-3 resolver itself is unaffected.)_ Also: `contribution_correction_requests` migration shape (partial-unique, RLS staff-only).
 
 **Module 2 — Sensitivity taxonomy** _(6 categories + default bundles)_
 
@@ -284,7 +284,7 @@ A good test here exercises **external behavior through each module's stable inte
 
 **Fabricated-citation correction.** The gift-anonymity surface rule was earlier attributed to `CONTEXT.md:77` ("Finance/admins/audit always retain the donor"). That text **does not exist** in the repo-root `CONTEXT.md`, the contribution-detail `CONTEXT.md`, or `openspec/` on this branch — it was a fabricated citation and is retracted. Phase 3 **defines** the anonymity surface-scoping as new product intent, grounded in the AFP Donor Bill of Rights. Do not propagate the bad citation (it also appears in Phase 2's program memory).
 
-**Term collision — "projection."** `projection` already means the shadowed CRM→surface sync in `crm/projections/contracts.ts` and `openspec/specs/crm-core`. Phase 3's new concept is named **"role-scoped field projection"** (or "surface projection") and the disambiguation is stated in the glossary; the two meanings must not be conflated (the shadow contracts are the thing Phase 3 _promotes_ from monitoring to enforcement).
+**Term collision — "projection."** `projection` already means the shadowed CRM→surface sync in `crm/projections/contracts.ts` and `openspec/specs/crm-core`. Phase 3's new concept is named **"role-scoped field projection"** (or "surface projection") and the disambiguation is stated in the glossary; the two meanings must not be conflated (the shadow contracts are the thing Phase 3 _promotes_ from monitoring to enforcement). _(Amended 2026-07-06: the shadow CRM→surface projection stack is retired by ADR-0001 and deleted by cleanup ticket #602, so the other sense is retired, not merely different — capture `contracts.ts`'s surface→field lists into the Phase-3 field census before the deletion lands. The surviving canonical sense in this program is Phase 3's **role-scoped field projection**; the Phase-3 resolver survives the retirement.)_
 
 **Live P0s (fast-tracked, compose with Phase 3).** Three live issues were spun off as standalone security patches: CSV formula-injection across three serializers (adds the shared `csvSafeCell` + CRLF/BOM + the Phase-2 `source_code` debt) and the `sendEmail()` consent-bypass. Phase 3's export-governance **consumes the same `csvSafeCell`** the patch introduces — it must be one shared helper, never re-implemented (a lint forbids a second CSV-escaping implementation).
 
@@ -294,7 +294,7 @@ A good test here exercises **external behavior through each module's stable inte
 
 ## Evidence & Acceptance
 
-Evidence file under `docs/ops/phase-evidence/` (following the Phase 1/2 pattern), recording commands + results, the five module suites, and the honest "what Phase 3 did **not** build" list.
+Evidence file under `docs/ops/phase-evidence/` (following the program's phase-evidence pattern), recording commands + results, the five module suites, and the honest "what Phase 3 did **not** build" list.
 
 **Headline acceptance run:**
 
@@ -308,9 +308,9 @@ Evidence file under `docs/ops/phase-evidence/` (following the Phase 1/2 pattern)
 
 ---
 
-## Tracking Issues (pre-ticket; blocked on pricing)
+## Tracking Issues (epic #489 + children; created via `/to-issues`)
 
-Anticipated ticket shape (finalized via `/to-issues`):
+Ticket shape (filed via `/to-issues`):
 
 1. `field_policies` table + column census/seed + fail-closed default.
 2. Surface-generic resolver + promote both portal `SELECT`s + **promotion-parity golden snapshot** + extend `verify:data-boundary` chokepoint lint + client-DataTable-export gate.

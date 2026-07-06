@@ -49,12 +49,17 @@ everything is green:
 
 ## Provisional build order (not locked)
 
+> **Superseded (2026-07-06):** the current program order is the
+> [`phase-map.md`](./phase-map.md) roadmap and dependency lanes. This section
+> is retained as Phase-0 history.
+
 Recorded as **best current thinking**, changeable once the matrix is verified.
 Only genuine dependencies are firm.
 
-1. CRM truth → 2. money truth → 3. document truth → 4. finance truth →
-2. public truth → 6. donor & missionary workspaces → 7. communications & files →
-3. fundraising extensions → 9. operations tools → 10. automation & triggers.
+1\. CRM truth → 2. money truth → 3. document truth → 4. finance truth →
+5\. public truth → 6. donor & missionary workspaces → 7. communications &
+files → 8. fundraising extensions → 9. operations tools → 10. automation &
+triggers.
 
 **Reality check (from the matrix):** several of these are already built/live —
 the CRM foundation (area 1), the portals (areas 15–16), receipts/PDF (area 9),
@@ -62,10 +67,15 @@ CMS foundation (area 13). So the _real_ first work is likely **verifying and
 closing depth gaps** on already-built areas, not starting CRM from zero. The
 order is finalized only after the matrix is verified per area.
 
-**Firm dependencies (locked):** CRM foundation (1) precedes CRM depth (2),
-custom fields (3), and anything reading CRM relationships; giving pipeline (5)
-precedes offline batch (6), pledges (8), receipts (9), statements (10), exports
-(11); automation engine (24) precedes contribution triggers (25).
+**Firm dependencies (locked; the numbers are parity-matrix _area_ numbers, not
+phase numbers):** CRM foundation (area 1) precedes CRM depth (area 2), custom
+fields (area 3), and anything reading CRM relationships; the giving pipeline
+(area 5 / Phase 12) precedes offline batch (area 6), pledges (area 8),
+receipt/statement **rendering and operations** (areas 9–10 / Phases 16–17),
+and exports (area 11) — the receipt/statement _rules_ foundation (Phase 7)
+deliberately precedes the ledger; see the rules-first inversion note in
+[`phase-map.md`](./phase-map.md); automation engine (area 24) precedes
+contribution triggers (area 25).
 
 ## Work breakdown
 

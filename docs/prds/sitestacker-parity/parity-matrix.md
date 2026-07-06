@@ -67,12 +67,12 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md);
   [Phase 1 ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)).
   The earlier Twenty CRM integration is retired as a product dependency; its
-  sync code is dormant pending the cleanup ticket. The CRM grid/detail screens
-  already run on Asym tables; the notes/relationships read-throughs re-point
-  to local SQL in Phase 9. The **operating foundation** (`/crm/operations`,
-  health, alerting) remains **Phase 8**
+  sync code is dormant pending the cleanup ticket (#602). The CRM grid/detail
+  screens already run on Asym tables; the notes/relationships read-throughs
+  re-point to local SQL in Phase 9. The **operating foundation**
+  (`/crm/operations`, health, alerting) remains **Phase 8**
   (`phase-08-crm-operating-foundation.md`), whose scope is being re-groomed
-  under ADR-0001 (the Notes write-enable tranche is withdrawn). (v)
+  under ADR-0001 (#603; the Notes write-enable tranche is withdrawn). (v)
 - **Depends on:** — (foundational).
 - **Acceptance test:** staff can create/read core CRM records through native
   Mission Control **on Asym Postgres**, with tenant isolation.
@@ -180,7 +180,8 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 - **Current state:** PDF Studio template persistence built (phase 10); donation
   receipts issued from gift records. Receipt facts/compliance layer owned by
   Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model);
-  Statement Studio remains the render consumer. (v)
+  Statement Studio remains the render consumer (PDF Studio and Statement
+  Studio are the same surface — see Phase 7 E1). (v)
 - **Depends on:** #5, Phase 7 (receipt facts/compliance layer).
 - **Acceptance test:** staff configure a receipt template and donors receive a
   correct receipt from it, backed by an immutable, versioned, per-tenant-numbered

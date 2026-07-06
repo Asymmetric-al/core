@@ -46,7 +46,7 @@ dependency entirely (ADR-0001, 2026-07-06).**
 | Public content, pages, publishing state           | Payload CMS                                                                  | Web Studio / CMS flows                                        | CMS for content; **CRM for operational identity** | CMS versioning/publish state                                             |
 | Files                                             | Storage provider holds **bytes**; Asym owns metadata/permissions (Phase 25)  | Future file-manager services                                  | Asym for metadata, always                         | Re-link/reissue from Asym metadata                                       |
 | Workflow / process truth                          | Asym Postgres; **Inngest = execution infrastructure only**                   | Workflow services (Phase 31)                                  | Asym                                              | Durable-workflow replay from Asym state                                  |
-| ~~Twenty CRM~~                                    | **Retired (ADR-0001).** No surface may read or write it                      | None — the write path never opens                             | Not applicable — no competing copy exists         | Cleanup ticket removes dormant code; no reconcile needed                 |
+| ~~Twenty CRM~~                                    | **Retired (ADR-0001).** No surface may read or write it                      | None — the write path never opens                             | Not applicable — no competing copy exists         | Cleanup ticket (#602) removes dormant code; no reconcile needed          |
 
 **Provider rule (generalizes the last rows):** a provider may _execute_ an
 action (charge a card, deliver an email, store bytes, host a login) and Asym
@@ -64,8 +64,8 @@ _happened_.
   records `TWENTY_API_URL` / `TWENTY_API_KEY` / `TWENTY_WEBHOOK_SECRET`
   configured in the Vercel production/admin project, while the same-day env
   audit found no `TWENTY_*` keys in production runtime. The cleanup ticket
-  must verify and revoke these entries and record the outcome per the Phase 0
-  Built/Live/Confirmed discipline.
+  (#602) must verify and revoke these entries and record the outcome per the
+  Phase 0 Built/Live/Confirmed discipline.
 
 ## What changed where (congruence pointers)
 
@@ -75,23 +75,30 @@ rewrites):
 
 - **This folder:** `README.md` (Phase 8 charter blurbs), `parity-matrix.md`
   (Area 1 reframed; Areas 2–3 de-Twenty'd), `phase-map.md` (rows 1 and 8–10,
-  surface-ownership table), `phase-04-…md` (A2 amended; reserved Twenty seam
-  removed), `phase-07-…md` (C4 enum-extension note re-scoped),
-  `phase-08-…md` (scope-amendment banner; Twenty write-enable withdrawn;
-  re-groom pending).
+  surface-ownership table), `phase-02-…md` (CRM tenant-scope wording — the
+  earlier Twenty phrasing retired), `phase-04-…md` (A2 amended; reserved
+  Twenty seam removed), `phase-06-…md` (negative-direction "Twenty person"
+  mentions annotated — the rule survives provider-neutrally),
+  `phase-07-…md` (C4 enum-extension note re-scoped), `phase-08-…md`
+  (scope-amendment banner; Twenty write-enable withdrawn; re-groom pending).
 - **OpenSpec:** `openspec/changes/integrate-twenty-crm-core/**` — RETIRED
   banner; spec deltas withdrawn, never to merge; physical archive move
-  deferred to the cleanup ticket. No **merged** spec mentions Twenty; no
-  merged-spec change is required.
+  deferred to the cleanup ticket (#602). No **merged** spec mentions Twenty;
+  no merged-spec change is required.
 - **Guides:** `docs/guides/features/twenty-crm-integration/**` and
   `docs/guides/operations/twenty-crm-cutover.md` — status banners.
 - **Glossary:** root `CONTEXT.md` — provider-neutral rewrites of the Phase-8
-  operating terms (CRM Write Gate et al.) pending the Phase 8 re-groom.
-- **GitHub:** Phase 8 epic #587 + children #588–#601, Phase 4 epic #503,
-  Phase 1 issues #466–#476 — per-issue edit/close proposals prepared for
-  founder approval before any live issue is touched.
+  operating terms (CRM Write Gate et al.) pending the Phase 8 re-groom
+  (#603).
+- **GitHub:** issue re-scoping **applied 2026-07-06** after founder
+  approval — Phase 8 epic #587 carries the ADR-0001 scope banner and
+  children #588–#601 carry ADR-0001 notice comments; #599 (the withdrawn
+  Notes write-enable tranche) and the old Phase 1 issues #466–#476 are
+  closed as superseded; Phase 4 epic #503 carries its ADR-0001 amendment
+  section; the cleanup ticket (#602) and the Phase 8 re-groom session
+  (#603) are filed.
 
-## The cleanup ticket (dormant-code removal — to be filed)
+## The cleanup ticket (#602 — dormant-code removal)
 
 Scope recorded from the 2026-07-06 code inventory. **Delete:** the Twenty
 client stack (`packages/api/src/crm/client/**`, health, gateway,
@@ -115,10 +122,12 @@ package with a link-fix sweep.
 
 ## Open items
 
-1. **Phase 8 re-groom** — a dedicated grill session re-scopes the operating
-   foundation against Asym-internal subjects (ops visibility, data health,
-   alerting). Until then the Phase 8 PRD carries a scope-amendment banner and
-   its issues carry proposed edits, not silent changes.
+1. **Phase 8 re-groom (#603)** — a dedicated grill session re-scopes the
+   operating foundation against Asym-internal subjects (ops visibility, data
+   health, alerting). Until it lands the Phase 8 PRD carries a
+   scope-amendment banner and its issues carry applied ADR-0001 scope
+   notices, not silent changes.
 2. **Lane 2 verification** of the Vercel `TWENTY_*` discrepancy (above).
-3. **Issue re-scoping** — applied only after founder approval of the
-   proposal document.
+3. **Issue re-scoping** — executed 2026-07-06 after founder approval: epic
+   #587 bannered, children #588–#601 commented, #599 and #466–#476 closed
+   as superseded, #602/#603 filed.

@@ -468,6 +468,78 @@ ownership lives in the Phase 1 ownership matrix
 _Avoid_: backing CRM provider, Twenty-backed surface, new work that reads or
 writes Twenty
 
+**Party**:
+The CRM supertype record: every person, household, or organization (including
+churches) is one party, with `party_kind` in person / household / org
+(`group` reserved for a later phase) and `org_type` distinguishing org
+subtypes (church, school, foundation, business, DAF sponsor, …). Parties are
+Asym operational identity — not logins, donor profiles, or public-page
+identities.
+_Avoid_: constituent table, generic CRM record, individual (use person)
+
+**Shared-PK subtype**:
+The party topology rule: a subtype row IS its party — same id in the subtype
+table (persons, households, org profiles) and in parties. For people, a
+person id and a party id are one value, so no bridge columns exist to drift.
+_Avoid_: party_id foreign keys on subtype tables, dual identity bridges
+
+**Stored edge / Derived edge**:
+A stored edge is a `crm_relationships` row — one canonical, typed, time-bound
+row per relationship, never a mirrored reciprocal pair. A derived edge is
+computed at read from source truth (supports from the giving ledger,
+household membership, org contacts) and is never persisted as a row.
+_Avoid_: persisting derived kinds, reciprocal mirror records, edges for
+gift-level facts
+
+**Provenance (graph/timeline)**:
+The label saying which source of truth produced an edge or timeline item.
+Finance-derived items inherit finance visibility rules, not generic CRM
+visibility.
+_Avoid_: unlabeled merged lists, one visibility rule for all sources
+
+**Relationship role**:
+The qualifier a party carries on a specific edge (treasurer on a
+board-member edge, coach on an applicant edge). Lives on the edge, never as
+a stored party-role table.
+_Avoid_: party_roles table, role tags detached from their relationship
+
+**Supports policy**:
+The named, versioned definition of when a supports edge exists (v1: a
+settled (adjustment-folded) gift in the trailing 365 days OR an active
+pledge/recurring commitment). Displayed with the edge; never a hidden code
+threshold.
+_Avoid_: unstated support thresholds, staff-entered supports edges
+
+**Saved view / List (segment)**:
+A saved view is a live, named, shareable lens over a record kind (filters +
+sort + columns; always a live query, never stored membership). A list or
+segment — a curated membership container — is a distinct, reserved future
+concept.
+_Avoid_: static list copies, views that store record membership
+
+**Staff-assignment edge**:
+The portfolio-assignment primitive: a typed edge from a staff person to any
+party, with rep roles carried as data (donor rep, regional rep, church
+relations, mobilizer). Portfolios are derived views over active
+staff-assignment edges; display roles derived from them are never an
+authorization input.
+_Avoid_: stored portfolio tables, assignment columns on records, roles as
+authorization
+
+**Lifecycle status vs cultivation stage**:
+Lifecycle status is the record's own state (active, inactive, archived,
+deceased — plus merged, derived from the Phase 4 merge tombstone, never a
+stored value). Cultivation stage is donor-development pipeline state
+(Phase 33) and never appears as a lifecycle status value.
+_Avoid_: pipeline stages in record status, prospect states on the party row
+
+**Provider link (record link)**:
+A row linking an Asym record to an external provider object by id (the
+`crm_record_links` pattern, generalized — Stripe now, Mailchimp later). A
+provider id is a link, not an identity: losing or re-pointing it never
+changes who a record is or what money happened.
+_Avoid_: provider ids as primary identity, provider records as truth
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

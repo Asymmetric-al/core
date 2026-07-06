@@ -4,7 +4,7 @@
 > This PRD is the buildable synthesis of the Phase 2 grill (decisions D1–D13). Glossary terms
 > **Site**, **Entry Method**, and **Source Code** are defined in the repo-root `CONTEXT.md`.
 
-**Status:** Draft for pricing → tickets. Not yet published as issues.
+**Status:** Groomed; tracked by epic #477 + children.
 **Retitle note:** the original working title was "Tenant, Site, Channel, Locale, and Currency Primitives."
 Grilling removed two words: _tenant_ already exists as the canonical product boundary (nothing to build),
 and _channel_ was demoted from a boundary to an attribution tag. The phase is therefore
@@ -284,7 +284,7 @@ Supabase query; no Payload import), shared by the CMS public API and the giving 
   exactly one site).
 - The authenticated donate path derives tenant from the auth context and **defaults `site_id` to the
   tenant's default site**; host resolution is used by the CMS public routes and by the public
-  anonymous checkout when it is built (Phase 3).
+  anonymous checkout when it is built (Phase 5 — Public Website Runtime Contract).
 
 **Module 3 — Attribution builder.** Home: `packages/api` (used by the giving path; no CMS import).
 Assembles a gift's four attribution axes and hardens the user-controlled input.
@@ -296,7 +296,7 @@ Assembles a gift's four attribution axes and hardens the user-controlled input.
 legacy`, enforced by a DB check/enum. **Caller → entry_method mapping** (the `entrySurface` is
   caller-supplied; if it disagrees with `authContext`, the authenticated context wins):
   - authenticated donor portal `/donate` → `portal`
-  - anonymous public checkout (Phase 3) → `public_checkout`
+  - anonymous public checkout (Phase 5 — Public Website Runtime Contract) → `public_checkout`
   - staff-entered gift → `admin`
   - offline batch entry → `offline`
   - programmatic API caller → `api`
@@ -424,7 +424,8 @@ _All site settings that need a home before their consuming phase are **typed col
 with representative and adversarial inputs, not its internals. Money and attribution are the
 highest-value targets because they are correctness- and security-sensitive.
 
-All five deep modules are tested (consistent with Phase 1's "all deep modules" coverage):
+All five deep modules are tested (consistent with the program's all-deep-modules testing
+convention, from the tombstoned phase-01 operating-foundation PRD):
 
 1. **Currency module** — two distinct concerns, tested separately:
    - _Metadata + formatter correctness (comprehensive unit tests, no live provider call):_
@@ -458,7 +459,8 @@ All five deep modules are tested (consistent with Phase 1's "all deep modules" c
 - The donation saga persists all four attribution axes and the currency-aware amount.
 
 **Prior art:** follow the existing unit-test patterns under `tests/unit` (including the CMS/Payload
-DB-config tests) and the Phase 1 evidence pattern for the completion write-up.
+DB-config tests) and the phase-evidence pattern (`docs/ops/phase-evidence/`) for the completion
+write-up.
 
 ---
 
@@ -528,8 +530,7 @@ DB-config tests) and the Phase 1 evidence pattern for the completion write-up.
 
 ## Tracking Issues
 
-_Intentionally pre-ticket: this PRD is blocked on the pricing pass before issues are created._
-Anticipated ticket shape (subject to pricing):
+Tracked as epic **#477** + children (created via `/to-issues`). Ticket shape:
 
 1. OpenSpec change + parity-matrix update (platform-surfaces singular → multi-site; Site entity).
 2. `public.sites` + `cms.sites` data model + default-site provisioning + demo seed (Module 4).
