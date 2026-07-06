@@ -185,6 +185,11 @@ vi.mock("../../../../apps/donor/lib/mock-data", () => ({
 
 let CheckoutPageClient: CheckoutPageClientComponent;
 
+const TEST_FUND_ID = "40000000-0000-0000-0000-000000000001";
+const TEST_OTHER_FUND_ID = "40000000-0000-0000-0000-000000000003";
+const TEST_MISSIONARY_ID = "20000000-0000-0000-0000-000000000001";
+const TEST_WORKER_ID = "worker_1";
+
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_unit";
 
 beforeAll(async () => {
@@ -253,7 +258,8 @@ const serverErrorResponse = (message = "Server rejected the donation") =>
 const renderCheckout = (
   searchParams: React.ComponentProps<CheckoutPageClientComponent>["searchParams"] = {
     amount: "100",
-    workerId: "worker_1",
+    missionary_id: TEST_MISSIONARY_ID,
+    workerId: TEST_WORKER_ID,
   },
 ) =>
   render(
@@ -298,6 +304,41 @@ const requestAt = (index: number) => {
     headers: request[1]?.headers as Record<string, string>,
   };
 };
+
+describe("CheckoutPageClient donation designations", () => {
+  it("does not expose the payment flow for a worker-only legacy checkout URL", () => {
+    renderCheckout({
+      amount: "100",
+      workerId: TEST_WORKER_ID,
+    });
+
+    expect(
+      screen.getByRole("heading", { name: /target unspecified/i }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("button", { name: /next step/i })).toBeNull();
+    expect(screen.queryByTestId("stripe-card-element")).toBeNull();
+    expect(fetchMock()).not.toHaveBeenCalled();
+  });
+
+  it("posts a UUID fund designation for the legacy general fund alias", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    renderCheckout({
+      amount: "100",
+      fund: "general",
+    });
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+    expect(requestAt(0).body.fund_id).toBe(
+      "40000000-0000-0000-0000-000000000007",
+    );
+  });
+});
 
 describe("CheckoutPageClient live card confirmation", () => {
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
@@ -345,7 +386,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     const view = renderCheckout({
       amount: "100",
-      fund_id: "fund_1",
+      fund_id: TEST_FUND_ID,
     });
     advanceToPayment();
     confirmPayment();
@@ -366,7 +407,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     view.rerender(
       <CheckoutPageClient
-        searchParams={{ amount: "100", fund_id: "fund_2" }}
+        searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
         stripeOverride={{
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
@@ -402,7 +443,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     const view = renderCheckout({
       amount: "100",
-      fund_id: "fund_1",
+      fund_id: TEST_FUND_ID,
     });
     advanceToPayment();
     confirmPayment();
@@ -413,7 +454,7 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     view.rerender(
       <CheckoutPageClient
-        searchParams={{ amount: "100", fund_id: "fund_2" }}
+        searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
         stripeOverride={{
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
@@ -501,7 +542,8 @@ describe("CheckoutPageClient live card confirmation", () => {
     renderCheckout({
       amount: "100",
       frequency: "monthly",
-      workerId: "worker_1",
+      missionary_id: TEST_MISSIONARY_ID,
+      workerId: TEST_WORKER_ID,
     });
 
     expect(screen.getAllByText(/one-time gift/i).length).toBeGreaterThan(0);
@@ -517,7 +559,7 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(requestAt(0).body).toEqual({
       amount: 100,
       currency: "usd",
-      missionary_id: "worker_1",
+      missionary_id: TEST_MISSIONARY_ID,
     });
     expect(screen.queryByText(/monthly support/i)).toBeNull();
     expect(screen.queryByText(/recurring/i)).toBeNull();
@@ -578,7 +620,7 @@ describe("CheckoutPageClient idempotency retry keys", () => {
 
     const view = renderCheckout({
       amount: "100",
-      fund_id: "fund_1",
+      fund_id: TEST_FUND_ID,
     });
     advanceToPayment();
     confirmPayment();
@@ -589,7 +631,7 @@ describe("CheckoutPageClient idempotency retry keys", () => {
 
     view.rerender(
       <CheckoutPageClient
-        searchParams={{ amount: "100", fund_id: "fund_2" }}
+        searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
         stripeOverride={{
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
@@ -602,8 +644,8 @@ describe("CheckoutPageClient idempotency retry keys", () => {
 
     await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(2));
     expect(requestAt(0).headers["Idempotency-Key"]).toBe("idem-1");
-    expect(requestAt(0).body.fund_id).toBe("fund_1");
+    expect(requestAt(0).body.fund_id).toBe(TEST_FUND_ID);
     expect(requestAt(1).headers["Idempotency-Key"]).toBe("idem-2");
-    expect(requestAt(1).body.fund_id).toBe("fund_2");
+    expect(requestAt(1).body.fund_id).toBe(TEST_OTHER_FUND_ID);
   });
 });

@@ -114,7 +114,7 @@ describe("apps/donor/proxy (auth middleware)", () => {
     mockedGetUser.mockResolvedValue({ data: { user: null } });
 
     const response = await invokeDonorProxy(
-      "https://example.test/checkout?workerId=worker_1&fund_id=fund_1",
+      "https://example.test/checkout?workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
     );
 
     expect(response.status).toBe(307);
@@ -137,7 +137,7 @@ describe("apps/donor/proxy (auth middleware)", () => {
     });
 
     const response = await invokeDonorProxy(
-      "https://example.test/checkout?workerId=worker_1",
+      "https://example.test/checkout?workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
       {
         [E2E_AUTH_COOKIE_NAMES.donor]: cookieValue,
       },

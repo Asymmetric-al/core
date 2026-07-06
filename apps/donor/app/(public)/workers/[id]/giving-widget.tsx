@@ -1,5 +1,6 @@
 "use client";
 
+import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
 import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
@@ -12,6 +13,7 @@ import React, { useState } from "react";
 const GivingAmounts = [50, 100, 200, 500];
 
 interface GivingWidgetProps {
+  missionaryId: string;
   workerId: string;
   raised: number;
   goal: number | null;
@@ -19,6 +21,7 @@ interface GivingWidgetProps {
 }
 
 export function GivingWidget({
+  missionaryId,
   workerId,
   raised,
   goal,
@@ -155,7 +158,12 @@ export function GivingWidget({
         )}
 
         <Link
-          href={`/checkout?workerId=${workerId}&amount=${amount}&frequency=${frequency}`}
+          href={buildWorkerCheckoutHref({
+            amount,
+            frequency,
+            missionaryId,
+            workerId,
+          })}
           className={cn(
             buttonVariants({ size: "lg" }),
             "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle",

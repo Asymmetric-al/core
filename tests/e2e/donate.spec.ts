@@ -35,9 +35,12 @@ test.describe("Donation flow", () => {
       }
     });
 
-    await page.goto("/checkout?amount=100&workerId=worker_1&fund_id=fund_1", {
-      waitUntil: "domcontentloaded",
-    });
+    await page.goto(
+      "/checkout?amount=100&workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001&fund_id=40000000-0000-0000-0000-000000000001",
+      {
+        waitUntil: "domcontentloaded",
+      },
+    );
 
     await page.waitForURL((url) => url.pathname === "/" && url.search === "");
     const redirectedUrl = new URL(page.url());
@@ -61,7 +64,9 @@ test.describe("Donation flow", () => {
       `Donor demo session unavailable: POST /api/auth/demo-account returned ${session.status}.`,
     );
 
-    await page.goto("/checkout?amount=100&workerId=worker_1");
+    await page.goto(
+      "/checkout?amount=100&workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
+    );
 
     await expect(page).toHaveURL(/\/checkout/);
     await expect(

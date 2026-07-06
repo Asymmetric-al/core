@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { resolveCheckoutFundId } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -76,14 +77,15 @@ type CheckoutPageSearchParams = {
   frequency?: SearchParamInput;
   fund?: SearchParamInput;
   fund_id?: SearchParamInput;
+  missionary?: SearchParamInput;
   missionary_id?: SearchParamInput;
   workerId?: SearchParamInput;
 };
 type CheckoutSearchParams = {
   amount: string | null;
   frequency: Frequency | null;
-  fund: string | null;
   fundId: string | null;
+  fundLabel: string | null;
   missionaryId: string | null;
   workerId: string | null;
 };
@@ -132,20 +134,38 @@ const readSearchParam = (value: SearchParamInput): string | null => {
   return null;
 };
 
+const readDesignationSearchParam = (
+  value: SearchParamInput,
+): string | null => {
+  const rawValue = readSearchParam(value);
+  if (!rawValue) return null;
+
+  const trimmedValue = rawValue.trim();
+  return trimmedValue.length > 0 ? trimmedValue : null;
+};
+
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
   return normalizeCheckoutFrequency(readSearchParam(value));
 };
 
 const normalizeCheckoutSearchParams = (
   searchParams: CheckoutPageSearchParams,
-): CheckoutSearchParams => ({
-  amount: readSearchParam(searchParams.amount),
-  frequency: readCheckoutFrequency(searchParams.frequency),
-  fund: readSearchParam(searchParams.fund),
-  fundId: readSearchParam(searchParams.fund_id),
-  missionaryId: readSearchParam(searchParams.missionary_id),
-  workerId: readSearchParam(searchParams.workerId),
-});
+): CheckoutSearchParams => {
+  const fundAlias = readSearchParam(searchParams.fund);
+  const rawFundId = readSearchParam(searchParams.fund_id);
+  const rawMissionaryId =
+    readDesignationSearchParam(searchParams.missionary_id) ??
+    readDesignationSearchParam(searchParams.missionary);
+
+  return {
+    amount: readSearchParam(searchParams.amount),
+    frequency: readCheckoutFrequency(searchParams.frequency),
+    fundId: resolveCheckoutFundId(rawFundId) ?? resolveCheckoutFundId(fundAlias),
+    fundLabel: fundAlias,
+    missionaryId: rawMissionaryId,
+    workerId: readSearchParam(searchParams.workerId),
+  };
+};
 
 interface SummaryCardProps {
   worker: { title?: string; image?: string } | null;
@@ -963,11 +983,12 @@ function CheckoutContent({
   searchParams: CheckoutSearchParams;
   stripeOverride?: CheckoutStripeOverride;
 }) {
-  const workerId = searchParams.workerId ?? searchParams.missionaryId;
+  const workerId = searchParams.workerId;
+  const missionaryId = searchParams.missionaryId;
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
-  const fundId = searchParams.fundId ?? searchParams.fund;
-  const hasGivingTarget = Boolean(workerId || fundId);
+  const fundId = searchParams.fundId;
+  const hasGivingTarget = Boolean(missionaryId || fundId);
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
     coverFees: false,
@@ -1041,7 +1062,7 @@ function CheckoutContent({
         endDate: hasEndDate ? endDate : "",
         frequency,
         fundId,
-        missionaryId: workerId,
+        missionaryId,
         paymentMethod,
         startDate,
       }),
@@ -1057,7 +1078,7 @@ function CheckoutContent({
       paymentMethod,
       startDate,
       total,
-      workerId,
+      missionaryId,
     ],
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
@@ -1216,6 +1237,15 @@ function CheckoutContent({
     stripe: Stripe | null,
     elements: StripeElements | null,
   ) => {
+    if (!hasGivingTarget) {
+      setCheckoutState((prev) => ({
+        ...prev,
+        error:
+          "This checkout link does not include a valid giving target. Please return to the missionary directory and try again.",
+      }));
+      return;
+    }
+
     if (paymentMethod !== "card") {
       setCheckoutState((prev) => ({
         ...prev,
@@ -1260,9 +1290,7 @@ function CheckoutContent({
       const body = buildDonateRequestBody({
         amount: total,
         currency: "usd",
-        // `workerId` already falls back to `missionary_id`; the server validates
-        // that the designation exists for this tenant.
-        missionaryId: workerId,
+        missionaryId,
         fundId,
       });
 
@@ -1429,7 +1457,7 @@ function CheckoutContent({
     }
   };
 
-  if (!worker && step !== "success" && !hasGivingTarget) {
+  if (step !== "success" && !hasGivingTarget) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-6">
@@ -1552,7 +1580,7 @@ function CheckoutContent({
               worker={
                 worker || {
                   title:
-                    fundId === "general"
+                    searchParams.fundLabel === "general"
                       ? "General Mission Fund"
                       : searchParams.missionaryId
                         ? "Missionary Support"

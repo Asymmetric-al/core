@@ -2,6 +2,7 @@
 
 import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion } from "@asym/lib/motion";
+import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -441,7 +442,12 @@ export function WorkerProfileClient({ worker }: WorkerProfileClientProps) {
                   </div>
 
                   <Link
-                    href={`/checkout?workerId=${worker.id}&amount=${amount}&frequency=${frequency}`}
+                    href={buildWorkerCheckoutHref({
+                      amount,
+                      frequency,
+                      missionaryId: worker.givingMissionaryId,
+                      workerId: worker.id,
+                    })}
                     className={cn(
                       buttonVariants({ size: "lg" }),
                       "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-2xl hover-scale-subtle",
