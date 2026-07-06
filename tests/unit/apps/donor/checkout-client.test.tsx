@@ -331,7 +331,7 @@ describe("CheckoutPageClient live card confirmation", () => {
     ).toBeTruthy();
   });
 
-  it("keeps checkout locked during processing and ignores an invalidated Stripe completion", async () => {
+  it("commits a succeeded Stripe confirmation from the original attempt after checkout params rerender", async () => {
     let resolveConfirmation:
       | ((value: { paymentIntent: { status: string } }) => void)
       | null = null;
@@ -382,6 +382,55 @@ describe("CheckoutPageClient live card confirmation", () => {
     });
 
     expect(
+      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+    expect(screen.queryByRole("alert")).toBeNull();
+    expect(fetchMock()).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps a stale non-success Stripe confirmation retryable after checkout params rerender", async () => {
+    let resolveConfirmation:
+      | ((value: { paymentIntent: { status: string } }) => void)
+      | null = null;
+    const confirmationPromise = new Promise<{
+      paymentIntent: { status: string };
+    }>((resolve) => {
+      resolveConfirmation = resolve;
+    });
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockReturnValue(confirmationPromise);
+
+    const view = renderCheckout({
+      amount: "100",
+      fund_id: "fund_1",
+    });
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() =>
+      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
+    );
+
+    view.rerender(
+      <CheckoutPageClient
+        searchParams={{ amount: "100", fund_id: "fund_2" }}
+        stripeOverride={{
+          cardElement: <div data-testid="stripe-card-element" />,
+          elements: stripeState.elements,
+          mode: "live",
+          stripe: stripeState.stripe,
+        }}
+      />,
+    );
+
+    await act(async () => {
+      resolveConfirmation?.({
+        paymentIntent: { status: "requires_payment_method" },
+      });
+      await confirmationPromise;
+    });
+
+    expect(
       screen.queryByRole("heading", { name: /contribution confirmed/i }),
     ).toBeNull();
     expect(
@@ -391,6 +440,7 @@ describe("CheckoutPageClient live card confirmation", () => {
     const retryableError = await screen.findByRole("alert");
     expect(retryableError.textContent).toMatch(/checkout details changed/i);
     expect(retryableError.textContent).toMatch(/try again/i);
+    expect(fetchMock()).toHaveBeenCalledTimes(1);
 
     const unlockedBackButton = screen.getByRole("button", { name: /^back$/i });
     const unlockedConfirmButton = screen.getByRole("button", {

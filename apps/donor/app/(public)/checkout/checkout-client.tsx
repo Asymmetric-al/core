@@ -1077,11 +1077,28 @@ function CheckoutContent({
     );
   };
 
+  const isOriginalPaymentAttemptActive = (attempt: PaymentAttempt) => {
+    const activeAttempt = activePaymentAttemptRef.current;
+
+    return (
+      activeAttempt?.id === attempt.id &&
+      activeAttempt.fingerprint === attempt.fingerprint
+    );
+  };
+
   const isPaymentAttemptStateActive = (
     attempt: PaymentAttempt,
     state: CheckoutState,
   ) =>
     isPaymentAttemptActive(attempt) &&
+    state.idempotencyFingerprint === attempt.fingerprint &&
+    state.step === "payment";
+
+  const isOriginalPaymentAttemptStateActive = (
+    attempt: PaymentAttempt,
+    state: CheckoutState,
+  ) =>
+    isOriginalPaymentAttemptActive(attempt) &&
     state.idempotencyFingerprint === attempt.fingerprint &&
     state.step === "payment";
 
@@ -1099,6 +1116,36 @@ function CheckoutContent({
       }
 
       const next = updater(prev);
+      checkoutStateRef.current = next;
+      return next;
+    });
+
+    return true;
+  };
+
+  const commitSuccessfulOriginalPaymentAttempt = (
+    attempt: PaymentAttempt,
+    donation: ServerDonation,
+  ) => {
+    if (
+      !isOriginalPaymentAttemptStateActive(attempt, checkoutStateRef.current)
+    ) {
+      return false;
+    }
+
+    setCheckoutState((prev) => {
+      if (!isOriginalPaymentAttemptStateActive(attempt, prev)) {
+        return prev;
+      }
+
+      const next = {
+        ...prev,
+        donation,
+        error: null,
+        isProcessing: false,
+        step: "success" as const,
+      };
+      activePaymentAttemptRef.current = null;
       checkoutStateRef.current = next;
       return next;
     });
@@ -1307,12 +1354,12 @@ function CheckoutContent({
           },
         );
 
-        if (!isPaymentAttemptActive(paymentAttempt)) {
-          exitStalePaymentAttempt(paymentAttempt);
-          return;
-        }
-
         if (confirmation.error) {
+          if (!isPaymentAttemptActive(paymentAttempt)) {
+            exitStalePaymentAttempt(paymentAttempt);
+            return;
+          }
+
           commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
@@ -1325,6 +1372,11 @@ function CheckoutContent({
         }
 
         if (confirmation.paymentIntent?.status === "processing") {
+          if (!isPaymentAttemptActive(paymentAttempt)) {
+            exitStalePaymentAttempt(paymentAttempt);
+            return;
+          }
+
           commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
@@ -1335,6 +1387,11 @@ function CheckoutContent({
         }
 
         if (!isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)) {
+          if (!isPaymentAttemptActive(paymentAttempt)) {
+            exitStalePaymentAttempt(paymentAttempt);
+            return;
+          }
+
           commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
@@ -1345,13 +1402,10 @@ function CheckoutContent({
           return;
         }
 
-        const didCommit = commitPaymentAttemptState(paymentAttempt, (prev) => ({
-          ...prev,
-          donation: result.donation,
-          error: null,
-          isProcessing: false,
-          step: "success",
-        }));
+        const didCommit = commitSuccessfulOriginalPaymentAttempt(
+          paymentAttempt,
+          result.donation,
+        );
         if (didCommit) window.scrollTo(0, 0);
         return;
       }
