@@ -172,7 +172,8 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   redaction — landed **before** custom fields (Phase 11) and public missionary
   pages (Phase 22) can create unclassifiable data. **Extends** the Phase-3
   `field_policies` floor; the member-care case product stays Phase 38.
-  Groomed 2026-07-07; hard-depends on Phase 3 + Phase 9.
+  Groomed 2026-07-07; hard-depends on Phase 3 + Phase 9. Tracked by epic
+  #628 + children #629–#640.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

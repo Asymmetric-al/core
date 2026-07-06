@@ -141,7 +141,7 @@ capabilities that already have code lives in
 | **7**  | Receipt & Statement Compliance Rules + Donor Identity/Credit Model               | **4, 6, 3** (PRD C1–C3)                          | `PRD exists` (epic #566)                                       |
 | **8**  | CRM Operating Foundation _(re-groomed → Operations Observability & Data-Health)_ | none (build-now core); 6/9 gate reserved sockets | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
 | **9**  | Full CRM Depth & Relationship Graph                                              | **4, 7, 3**; 8 soft                              | `PRD exists` (epic #604 + #605–#627)                           |
-| **10** | Sensitive-Data Classification & Restricted-Ministry Safety Foundation            | **3, 9**                                         | `PRD exists` (groomed 2026-07-07; new in v2)                   |
+| **10** | Sensitive-Data Classification & Restricted-Ministry Safety Foundation            | **3, 9**                                         | `PRD exists` (groomed 2026-07-07; epic #628 + #629–#640)       |
 | **11** | Custom CRM Fields & Configurable Entities                                        | 9, 10, 3                                         | `future (needs PRD)`                                           |
 | **12** | Full Role & Permission Configuration                                             | 3, 10, 11                                        | `future (needs PRD)`                                           |
 | **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `future (needs PRD)`                                           |

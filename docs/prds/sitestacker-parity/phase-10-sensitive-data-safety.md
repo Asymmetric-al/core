@@ -210,20 +210,20 @@ No production users → build the rails correct-from-start (`NOT NULL security_l
 
 ---
 
-## Tracking Issues (epic + children; created via `/to-issues`)
+## Tracking Issues (epic #628 + children #629–#640, created 2026-07-07)
 
-Foundation tickets first (`status:todo`); the rest `status:blocked`. Hard-blocked on Phase 3 + Phase 9. No `ready-for-agent` until dispatch.
+Foundation tickets first (`status:todo`); the rest `status:blocked`. Hard-blocked on Phase 3 (#489) + Phase 9 (#604). No `ready-for-agent` until dispatch.
 
-- **Epic — Phase 10: Sensitive-Data Classification & Restricted-Ministry Safety Foundation**
-- **T1** — Docs: this PRD, the 10 ADRs, CONTEXT.md glossary terms (security level, publication firewall, dual identity, break-glass, restricted tier), OpenSpec delta. _(foundation)_
-- **T2** — Classification model: `security_level` on the party + the versioned `country_risk` table + `resolveSecurityLevel`/`effectiveSensitivity` (strictest-wins); `field_policies` census rows. _(foundation)_
-- **T3** — Dual identity: `party_restricted` separate table + legal-name/alias + classified attributes + the `security_officer`-gated mapping.
-- **T4** — The `security_scope` ABAC predicate folded into the Phase-3 subtract-only resolver.
-- **T5** — The publication firewall predicate + the enumerated egress guards (public/CMS/giving/receipt/OG/sitemap/search/CSV/webhook) + media EXIF scrub + the sole-entry CI lint.
-- **T6** — Sensitive-read audit (append-only, audit-of-audit classified) extending the Phase-3 audit.
-- **T7** — The break-glass primitive: time-boxed grant + alert (Sentry + Phase-6 seam) + review queue.
-- **T8** — Consent/publishing preferences wired into the shipped consent gate + do-not-publish enforcement.
-- **T9** — Telemetry redaction of restricted fields (Sentry/logs/support/demo seeds).
-- **T10** — Reclassification retro-scrub/purge workflow (Inngest).
-- **T11** — Permanent negative/safety test tier + structural CI gates + the Supabase advisors.
-- **T12** — Phase 10 evidence file (Built/Live/Confirmed; seeded demonstrations; the "did not build" list).
+- **Epic #628 — Phase 10: Sensitive-Data Classification & Restricted-Ministry Safety Foundation**
+- **T1 · #629** — Docs: this PRD, the 10 ADRs, CONTEXT.md glossary terms (security level, publication firewall, dual identity, break-glass), OpenSpec delta. _(foundation, `status:todo`)_
+- **T2 · #630** — Classification model: `security_level` on the party + the versioned `country_risk` table + `resolveSecurityLevel`/`effectiveSensitivity` (strictest-wins); `field_policies` census rows. _(foundation, `status:todo`)_
+- **T3 · #631** — Dual identity: `party_restricted` separate table + legal-name/alias + classified attributes + the `security_officer`-gated mapping.
+- **T4 · #632** — The `security_scope` ABAC predicate folded into the Phase-3 subtract-only resolver.
+- **T5 · #633** — The publication firewall predicate + the enumerated egress guards (public/CMS/giving/receipt/OG/sitemap/search/CSV/webhook) + media EXIF scrub + the sole-entry CI lint.
+- **T6 · #634** — Sensitive-read audit (append-only, audit-of-audit classified) extending the Phase-3 audit.
+- **T7 · #635** — The break-glass primitive: time-boxed grant + alert (Sentry + Phase-6 seam) + review queue.
+- **T8 · #636** — Consent/publishing preferences wired into the shipped consent gate + do-not-publish enforcement.
+- **T9 · #637** — Telemetry redaction of restricted fields (Sentry/logs/support/demo seeds).
+- **T10 · #638** — Reclassification retro-scrub/purge workflow (Inngest).
+- **T11 · #639** — Permanent negative/safety test tier + structural CI gates + the Supabase advisors.
+- **T12 · #640** — Phase 10 evidence file (Built/Live/Confirmed; seeded demonstrations; the "did not build" list).
