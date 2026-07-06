@@ -387,6 +387,17 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(
       screen.getByRole("heading", { name: /secure payment/i }),
     ).toBeTruthy();
+
+    const retryableError = await screen.findByRole("alert");
+    expect(retryableError.textContent).toMatch(/checkout details changed/i);
+    expect(retryableError.textContent).toMatch(/try again/i);
+
+    const unlockedBackButton = screen.getByRole("button", { name: /^back$/i });
+    const unlockedConfirmButton = screen.getByRole("button", {
+      name: /confirm/i,
+    });
+    expect((unlockedBackButton as HTMLButtonElement).disabled).toBe(false);
+    expect((unlockedConfirmButton as HTMLButtonElement).disabled).toBe(false);
   });
 
   it("keeps the donor on payment with a visible error when Stripe confirmation fails", async () => {

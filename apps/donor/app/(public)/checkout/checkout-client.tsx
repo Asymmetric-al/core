@@ -1106,6 +1106,32 @@ function CheckoutContent({
     return true;
   };
 
+  const exitStalePaymentAttempt = (attempt: PaymentAttempt) => {
+    setCheckoutState((prev) => {
+      const activeAttempt = activePaymentAttemptRef.current;
+
+      if (
+        activeAttempt?.id !== attempt.id ||
+        activeAttempt.fingerprint !== attempt.fingerprint
+      ) {
+        return prev;
+      }
+
+      const next = {
+        ...prev,
+        donation: null,
+        error:
+          "Checkout details changed while payment was processing. Please review your details and try again.",
+        isProcessing: false,
+        step: "payment" as const,
+      };
+
+      activePaymentAttemptRef.current = null;
+      checkoutStateRef.current = next;
+      return next;
+    });
+  };
+
   const handleAmountSelect = (val: number) => {
     setAmount(val);
     setCustomAmount("");
@@ -1203,12 +1229,14 @@ function CheckoutContent({
       });
 
       if (!isPaymentAttemptActive(paymentAttempt)) {
+        exitStalePaymentAttempt(paymentAttempt);
         return;
       }
 
       const payload = await response.json().catch(() => null);
 
       if (!isPaymentAttemptActive(paymentAttempt)) {
+        exitStalePaymentAttempt(paymentAttempt);
         return;
       }
 
@@ -1280,6 +1308,7 @@ function CheckoutContent({
         );
 
         if (!isPaymentAttemptActive(paymentAttempt)) {
+          exitStalePaymentAttempt(paymentAttempt);
           return;
         }
 
