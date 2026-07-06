@@ -242,10 +242,7 @@ export function buildMissionaryDonorRows(input: {
 
   const pledgesByDonor = new Map<string, MissionaryRecurringDonation[]>();
   for (const pledge of input.pledges) {
-    if (
-      !pledge.donor_id ||
-      pledge.missionary_id !== input.missionaryProfileId
-    ) {
+    if (!pledge.donor_id) {
       continue;
     }
     const list = pledgesByDonor.get(pledge.donor_id) ?? [];
@@ -434,7 +431,6 @@ export async function getMissionaryDonorRows(input: {
       .select(
         "id, donor_id, type, date, created_at, title, description, amount, status, gift_type, note",
       )
-      .eq("tenant_id", input.tenantId)
       .in("donor_id", donorIds)
       .order("date", { ascending: false, nullsFirst: false })
       .order("created_at", { ascending: false })
@@ -445,7 +441,6 @@ export async function getMissionaryDonorRows(input: {
         "id, donor_id, missionary_id, amount, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method",
       )
       .eq("tenant_id", input.tenantId)
-      .eq("missionary_id", input.profileId)
       .in("donor_id", donorIds)
       .limit(RELATED_ROWS_LIMIT),
   ]);

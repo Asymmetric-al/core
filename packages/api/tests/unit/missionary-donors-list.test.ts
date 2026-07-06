@@ -351,6 +351,23 @@ class FakeSupabaseQuery {
   }
 }
 
+function expectNoOperation(
+  query: FakeSupabaseQuery,
+  expected: {
+    method: string;
+    column?: string;
+  },
+) {
+  expect(query.operations).not.toEqual(
+    expect.arrayContaining([
+      expect.objectContaining({
+        method: expected.method,
+        column: expected.column,
+      }),
+    ]),
+  );
+}
+
 function createFakeSupabaseAdmin(results: Record<string, FakeQueryResult>) {
   const queries: Record<string, FakeSupabaseQuery> = {};
   return {
@@ -402,8 +419,11 @@ describe("getMissionaryDonorRows", () => {
           {
             id: "pledge-B",
             donor_id: "donor-B",
-            missionary_id: missionaryProfileId,
+            missionary_id: "missionary-row-id-1",
             amount: 50,
+            frequency: "Monthly",
+            status: "active",
+            start_date: "2026-07-01",
             created_at: "2026-07-01",
             total_paid: 50,
             total_expected: 100,
@@ -428,10 +448,44 @@ describe("getMissionaryDonorRows", () => {
     expect(page.hasMore).toBe(true);
     expect(page.nextOffset).toBe(2);
 
+    const donorB = page.donors.find((donor) => donor.id === "donor-B")!;
+    expect(donorB.activities).toEqual([
+      expect.objectContaining({
+        id: "act-B",
+        title: "Blaise note",
+      }),
+    ]);
+    expect(donorB.recurring_donations).toEqual([
+      expect.objectContaining({
+        id: "pledge-B",
+        amount: 50,
+        frequency: "Monthly",
+      }),
+    ]);
+
+    expect(fake.queries.donors!.operations).toEqual(
+      expect.arrayContaining([
+        { method: "eq", column: "tenant_id", value: "tenant-1" },
+        { method: "eq", column: "missionary_id", value: missionaryProfileId },
+      ]),
+    );
+    expectNoOperation(fake.queries.donor_activities!, {
+      method: "eq",
+      column: "tenant_id",
+    });
     expect(fake.queries.donor_activities!.operations).toContainEqual({
       method: "in",
       column: "donor_id",
       values: ["donor-B", "donor-C"],
+    });
+    expect(fake.queries.donor_pledges!.operations).toContainEqual({
+      method: "eq",
+      column: "tenant_id",
+      value: "tenant-1",
+    });
+    expectNoOperation(fake.queries.donor_pledges!, {
+      method: "eq",
+      column: "missionary_id",
     });
     expect(fake.queries.donor_pledges!.operations).toContainEqual({
       method: "in",
