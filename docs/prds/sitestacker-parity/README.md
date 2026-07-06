@@ -147,7 +147,8 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   sockets + the header contract), one list engine with kind-scoped routes,
   party-keyed notes/activity, Cmd-K search, and governed CSV export.
   Groomed 2026-07-06; hard-depends on Phase 4 + Phase 7 (party spine);
-  Phase 8 is a soft dependency (ADR-0001). Issues via `/to-issues` pending.
+  Phase 8 is a soft dependency (ADR-0001). Tracked by epic #604 + children
+  #605–#627.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

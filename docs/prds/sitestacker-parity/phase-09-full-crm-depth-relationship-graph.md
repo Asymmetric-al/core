@@ -987,6 +987,25 @@ mapping: #1/#2 kept (merged into T1); **#3 obsolete — decided by the grill**
 schema tranche + seed regeneration in T2); #14 becomes socket-only (registry
 in T8; lights with Phase 6)._
 
+> **Final slicing (created 2026-07-06): epic #604 + children #605–#627.**
+> The published set refines the first-pass skeleton below (house precedent:
+> Phase 4 renumbered at `/to-issues` too): T3 split into **#607**
+> (stored graph) + **#608** (derived views/UNION); T5+T6 merged into **#611**
+> (list engine + saved views); T7's legacy deletion split out as **#623**;
+> T11 split into **#616** (Notes) + **#617** (timeline); a dedicated
+> **merge-membership** ticket **#610** was added (extends Phase 4
+> #512/#514); the Relationships tab is **#625**, duplicates **#626**, the
+> safety-tier assembly **#627**, the evidence file **#624**. Full map:
+> #605 docs · #606 spine · #607/#608 graph · #609 roles · #610 merge ·
+> #611 engine · #612 routes · #613 shell · #614 Overview/Contact ·
+> #615 Giving · #616 Notes · #617 timeline · #618 tasks · #619 search ·
+> #620 write path · #621 export · #622 enforcement · #623 legacy deletion ·
+> #624 evidence · #625 Relationships tab · #626 duplicates · #627 tier.
+> Foundation `status:todo`: #605 only; #606 carries
+> `status:blocked-on-Phase-4` + `status:blocked-on-Phase-7-T4`; #610/#626
+> carry `status:blocked-on-Phase-4`; the rest are `status:blocked` inside
+> the phase. No `ready-for-agent` until dispatch.
+
 - **{{EPIC}}** — Phase 9: Full CRM Depth & Relationship Graph.
 - **{{T1}}** — Docs: PRD; the F1 ADR; OpenSpec delta; `CONTEXT.md` glossary;
   Phase 7 §C2 / Phase 4 §C1 amendment one-liners; C6 congruence touches.
