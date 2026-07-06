@@ -206,7 +206,7 @@ These are guarded by Mission Control auth middleware and require `staff`, `admin
 ### Ownership boundary
 
 - Payload/Web Studio owns content structure, drafts, versions, media, navigation, templates, preview, and publish state.
-- Twenty/CRM owns donor relationships, notes, donor detail, donor reports, and CRM workflow records.
+- Asym Postgres (`packages/api` CRM services) owns donor relationships, notes, donor detail, donor reports, and CRM workflow records (ADR-0001; Twenty CRM retired 2026-07-06).
 - Stripe/Supabase giving owns gifts, staged gifts, allocations, receipt facts, reconciliation, and payment state.
 - Resend/app email services own send logs, receipt sends, and delivery events.
 - CMS giving CTAs may store copy and content references, but public CTA URLs resolve to the donor checkout flow by validated `missionary_id` / `fund_id` references; CMS must not create gifts or store payment truth.

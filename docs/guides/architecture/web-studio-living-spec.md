@@ -188,13 +188,13 @@ Payload/Web Studio is the durable **content** runtime. It owns page structure, n
 
 Payload/Web Studio is **not** the source of truth for giving, CRM, donor care, or email delivery facts:
 
-| Domain                                                                         | Source of truth                                       | CMS relationship                                 |
-| ------------------------------------------------------------------------------ | ----------------------------------------------------- | ------------------------------------------------ |
-| Content, media, navigation, templates, preview, publish state                  | Payload `cms` schema                                  | Owns and mutates                                 |
-| Donor relationships, notes, donor detail, reports, CRM workflow records        | Twenty/CRM projections and package-layer CRM services | May display read-only projections                |
-| Gifts, staged gifts, allocations, payment state, reconciliation, receipt facts | Stripe/Supabase giving pipeline                       | May store CTA copy and validated references only |
-| Receipt sends, send logs, delivery events                                      | Resend/app email services                             | No direct provider sends from CMS                |
-| Mobilization stage transitions                                                 | Deferred mobilization workstream                      | Read-only/deferred; not a CMS foundation blocker |
+| Domain                                                                         | Source of truth                                                           | CMS relationship                                 |
+| ------------------------------------------------------------------------------ | ------------------------------------------------------------------------- | ------------------------------------------------ |
+| Content, media, navigation, templates, preview, publish state                  | Payload `cms` schema                                                      | Owns and mutates                                 |
+| Donor relationships, notes, donor detail, reports, CRM workflow records        | Asym Postgres CRM (package-layer CRM services; Twenty retired — ADR-0001) | May display read-only projections                |
+| Gifts, staged gifts, allocations, payment state, reconciliation, receipt facts | Stripe/Supabase giving pipeline                                           | May store CTA copy and validated references only |
+| Receipt sends, send logs, delivery events                                      | Resend/app email services                                                 | No direct provider sends from CMS                |
+| Mobilization stage transitions                                                 | Deferred mobilization workstream                                          | Read-only/deferred; not a CMS foundation blocker |
 
 Giving CTAs on CMS pages resolve into the donor checkout flow with validated `missionary_id` / `fund_id` references. Missionary giving and project page source-reference fields reject non-UUID values at the collection layer; create-from-template still validates tenant ownership against Supabase before creating those drafts. CMS must not create gifts, mutate giving tables, store payment truth, or write CRM donor-care records.
 

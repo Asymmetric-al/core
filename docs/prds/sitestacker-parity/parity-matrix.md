@@ -24,34 +24,34 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
 
 ## Status grid
 
-| #   | Area                                                    | Built?       | Live?  | Confirmed? | Owning surface                                           |
-| --- | ------------------------------------------------------- | ------------ | ------ | ---------- | -------------------------------------------------------- |
-| 1   | Twenty CRM integration foundation                       | Yes (v)      | unconf | No         | Mission Control                                          |
-| 2   | Full CRM depth & relationship graph                     | Partial (v)  | unconf | No         | Mission Control                                          |
-| 3   | Custom CRM fields & configurable entities               | ? (v)        | unconf | No         | Mission Control                                          |
-| 4   | Role & permission configuration                         | Partial (v)  | unconf | No         | Mission Control                                          |
-| 5   | Campaign, designation, contribution ledger, giving cart | Partial (v)  | unconf | No         | Mission Control + public                                 |
-| 6   | Offline gift batch entry                                | Partial (v)  | unconf | No         | Mission Control                                          |
-| 7   | Soft credits, affiliated donors, DAF handling           | ? (v)        | unconf | No         | Mission Control (Phase 7 owns)                           |
-| 8   | Pledges & offline recurring commitments                 | Partial (v)  | unconf | No         | Mission Control + donor                                  |
-| 9   | Receipt & PDF template system                           | Partial (v)  | unconf | No         | Mission Control (Phase 7 owns facts/compliance layer)    |
-| 10  | Year-end statement operations                           | Partial (v)  | unconf | No         | Mission Control + donor (Phase 7 owns eligibility rules) |
-| 11  | Accounting exports & reconciliation                     | ? (v)        | unconf | No         | Mission Control                                          |
-| 12  | Public missionary & project page workflow               | Partial (v)  | unconf | No         | Public website + CRM                                     |
-| 13  | CMS / Site Planner dynamic content                      | Partial (v)  | unconf | No         | Public website (CMS)                                     |
-| 14  | Multi-site, language & currency                         | ? (v)        | unconf | No         | Platform-wide                                            |
-| 15  | Donor dashboard depth                                   | Partial (v)  | unconf | No         | Donor portal                                             |
-| 16  | Missionary dashboard depth                              | Partial (v)  | unconf | No         | Missionary workspace                                     |
-| 17  | System messages & email template management             | Partial (v)  | unconf | No         | Mission Control                                          |
-| 18  | File manager & document management                      | ? (v)        | unconf | No         | Mission Control                                          |
-| 19  | Mailchimp / newsletter sync                             | No (v)       | No     | No         | Mission Control                                          |
-| 20  | Peer-to-peer advocacy campaigns                         | ? (v)        | unconf | No         | Public + donor                                           |
-| 21  | Event / opportunity workflows & groups                  | ? (v)        | unconf | No         | Mission Control                                          |
-| 22  | Imports & migration tools                               | Partial (v)  | unconf | No         | Mission Control                                          |
-| 23  | Reporting & BI                                          | Partial (v)  | unconf | No         | Mission Control                                          |
-| 24  | Configurable automation / workflow engine               | Partial (v)  | unconf | No         | Mission Control                                          |
-| 25  | Spark-style contribution triggers                       | ? (v)        | unconf | No         | Mission Control                                          |
-| —   | Child sponsorship                                       | out-of-scope | —      | —          | —                                                        |
+| #   | Area                                                                          | Built?       | Live?  | Confirmed? | Owning surface                                           |
+| --- | ----------------------------------------------------------------------------- | ------------ | ------ | ---------- | -------------------------------------------------------- |
+| 1   | CRM system-of-record foundation (formerly: Twenty CRM integration foundation) | Partial (v)  | unconf | No         | Mission Control                                          |
+| 2   | Full CRM depth & relationship graph                                           | Partial (v)  | unconf | No         | Mission Control                                          |
+| 3   | Custom CRM fields & configurable entities                                     | ? (v)        | unconf | No         | Mission Control                                          |
+| 4   | Role & permission configuration                                               | Partial (v)  | unconf | No         | Mission Control                                          |
+| 5   | Campaign, designation, contribution ledger, giving cart                       | Partial (v)  | unconf | No         | Mission Control + public                                 |
+| 6   | Offline gift batch entry                                                      | Partial (v)  | unconf | No         | Mission Control                                          |
+| 7   | Soft credits, affiliated donors, DAF handling                                 | ? (v)        | unconf | No         | Mission Control (Phase 7 owns)                           |
+| 8   | Pledges & offline recurring commitments                                       | Partial (v)  | unconf | No         | Mission Control + donor                                  |
+| 9   | Receipt & PDF template system                                                 | Partial (v)  | unconf | No         | Mission Control (Phase 7 owns facts/compliance layer)    |
+| 10  | Year-end statement operations                                                 | Partial (v)  | unconf | No         | Mission Control + donor (Phase 7 owns eligibility rules) |
+| 11  | Accounting exports & reconciliation                                           | ? (v)        | unconf | No         | Mission Control                                          |
+| 12  | Public missionary & project page workflow                                     | Partial (v)  | unconf | No         | Public website + CRM                                     |
+| 13  | CMS / Site Planner dynamic content                                            | Partial (v)  | unconf | No         | Public website (CMS)                                     |
+| 14  | Multi-site, language & currency                                               | ? (v)        | unconf | No         | Platform-wide                                            |
+| 15  | Donor dashboard depth                                                         | Partial (v)  | unconf | No         | Donor portal                                             |
+| 16  | Missionary dashboard depth                                                    | Partial (v)  | unconf | No         | Missionary workspace                                     |
+| 17  | System messages & email template management                                   | Partial (v)  | unconf | No         | Mission Control                                          |
+| 18  | File manager & document management                                            | ? (v)        | unconf | No         | Mission Control                                          |
+| 19  | Mailchimp / newsletter sync                                                   | No (v)       | No     | No         | Mission Control                                          |
+| 20  | Peer-to-peer advocacy campaigns                                               | ? (v)        | unconf | No         | Public + donor                                           |
+| 21  | Event / opportunity workflows & groups                                        | ? (v)        | unconf | No         | Mission Control                                          |
+| 22  | Imports & migration tools                                                     | Partial (v)  | unconf | No         | Mission Control                                          |
+| 23  | Reporting & BI                                                                | Partial (v)  | unconf | No         | Mission Control                                          |
+| 24  | Configurable automation / workflow engine                                     | Partial (v)  | unconf | No         | Mission Control                                          |
+| 25  | Spark-style contribution triggers                                             | ? (v)        | unconf | No         | Mission Control                                          |
+| —   | Child sponsorship                                                             | out-of-scope | —      | —          | —                                                        |
 
 ## Per-area detail
 
@@ -59,19 +59,23 @@ Each block: **SiteStacker capability (benchmark)** · **Current Asym state** ·
 **Depends on** · **Acceptance test (outcome-based)** · **Evidence** · **Open
 questions**. Benchmark source root: `https://sitestacker.training`.
 
-### 1. Twenty CRM integration foundation
+### 1. CRM system-of-record foundation (formerly: Twenty CRM integration foundation)
 
 - **Benchmark:** SiteStacker Ministry CRM as the operational system of record.
   (s) cite specific CRM docs page.
-- **Current state:** Twenty adopted as internal CRM subsystem behind Asym
-  server boundaries; foundation built (phase 04). The **operating foundation**
-  (readiness/write-gate, multi-tenant self-healing reconcile, `/crm/operations`)
-  plus the first reversible production write (Notes) are groomed as **Phase 8**
-  (`phase-08-crm-operating-foundation.md`), hard-gated on Phase 4 + Phase 6
-  shipping. (v)
+- **Current state:** Asym Postgres is the CRM system of record
+  ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md);
+  [Phase 1 ownership matrix](./phase-01-source-of-truth-ownership-matrix.md)).
+  The earlier Twenty CRM integration is retired as a product dependency; its
+  sync code is dormant pending the cleanup ticket. The CRM grid/detail screens
+  already run on Asym tables; the notes/relationships read-throughs re-point
+  to local SQL in Phase 9. The **operating foundation** (`/crm/operations`,
+  health, alerting) remains **Phase 8**
+  (`phase-08-crm-operating-foundation.md`), whose scope is being re-groomed
+  under ADR-0001 (the Notes write-enable tranche is withdrawn). (v)
 - **Depends on:** — (foundational).
 - **Acceptance test:** staff can create/read core CRM records through native
-  Mission Control, backed by Twenty, with tenant isolation.
+  Mission Control **on Asym Postgres**, with tenant isolation.
 - **Evidence:** `docs/ops/phase-evidence/2026-05-14_phase-04_twenty-crm-foundation.md`;
   crm-core spec (in-flight PR #462).
 - **Open questions:** current live parity vs SiteStacker CRM breadth.
@@ -82,10 +86,9 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 - **Current state:** CRM domain workflows built (phase 05); relationship graph
   depth partial. The household + organization **party** tables (plus membership
   and org profiles/`org_contacts`) that satisfy this row are delivered by
-  Phase 7 (Donor Identity/Credit Model) and projected to Twenty via the extended
-  `crm_link_entity_type` enum; phase 05 remains the consumer of that graph. (v)
-- **Depends on:** #1; Phase 7 party tables + `crm_link_entity_type` extension
-  (blast radius: enum change is projected across the Twenty link surface).
+  Phase 7 (Donor Identity/Credit Model) in Asym Postgres; phase 05 remains the
+  consumer of that graph. (v)
+- **Depends on:** #1; Phase 7 party tables.
 - **Acceptance test:** staff can navigate people ↔ households ↔ organizations ↔
   giving relationships as one graph.
 - **Evidence:** `docs/ops/phase-evidence/2026-05-14_phase-05_crm-domain-workflows.md`.
@@ -94,8 +97,9 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 3. Custom CRM fields & configurable entities
 
 - **Benchmark:** SiteStacker custom fields / configurable entities. (s)
-- **Current state:** Twenty supports custom fields; Asym-surface configurability
-  unverified. (v)
+- **Current state:** custom-fields engine to be designed tenant-safe on Asym
+  Postgres in Phase 10 (the Twenty Metadata API path retired with
+  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)). (v)
 - **Depends on:** #1, #2.
 - **Acceptance test:** an org admin can add a custom field/entity and see it in
   native CRM screens without code changes.

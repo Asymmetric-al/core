@@ -485,8 +485,9 @@ DB-config tests) and the Phase 1 evidence pattern for the completion write-up.
   jurisdiction axis.
 - **Surfacing attribution to missionaries** — deliberately deferred (attribution is staff/finance-
   facing in Phase 2); missionary views stay normalized at the tenant.
-- **CRM/Twenty projection of site/attribution** — attribution stays in the Asym ledger; the CRM
-  operates at tenant scope. Money-truth does not move into Twenty.
+- **CRM projection of site/attribution** — attribution stays in the Asym ledger; the CRM operates at
+  tenant scope (the earlier Twenty wording is retired —
+  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)).
 - **Domain verification, preview-domain routing, resolver caching strategy** — deferred to the
   Public-Website-runtime phase; Phase 2 pins only the resolver contract.
 - **Advocacy / personal-fundraising microsites** — SiteStacker achieves "many missionary sites" via

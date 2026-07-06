@@ -411,46 +411,62 @@ _Avoid_: Reason fatigue, unclear retry audit, separate reason for same
 correction
 
 **CRM Write Gate**:
-A durable, fail-closed control that decides whether the platform may write to
-the backing CRM provider for a given tenant and domain. It is opened by a
+A durable, fail-closed control that decides whether the platform may perform
+governed CRM writes for a given tenant and domain. It is opened by a
 deliberate staff decision recorded with evidence, and refuses every write
 unless recorded safety preconditions are met. It is a governance and audit
-concept — the durable answer to "why are writes blocked?" — not a code flag.
+concept — the durable answer to "why are writes blocked?" — not a code flag
+(scope re-groom pending — ADR-0001).
 _Avoid_: env feature flag, code constant, per-request permission check
 
 **CRM Readiness Gate**:
 The machine-checkable verdict of whether the CRM is safe to write to right now,
 composed from live health and recorded conformance facts. "Not ready" is the
 default; any missing, false, or stale input refuses. On the write path it is
-read as local state, never a live provider probe per write.
-_Avoid_: health dashboard, live provider ping per write, optimistic default
+read as local state, never a live probe per write (scope re-groom pending —
+ADR-0001).
+_Avoid_: health dashboard, live ping per write, optimistic default
 
 **Reactive Pause**:
 An automatic, health-driven halt of CRM writes for a tenant/domain, distinct
 from the deliberate write gate. It trips only after sustained failure and
 clears only after sustained recovery, so a transient blip never flaps writes on
-and off. The emergency global kill-switch uses the same halt path.
+and off. The emergency global kill-switch uses the same halt path (scope
+re-groom pending — ADR-0001).
 _Avoid_: manual toggle, single-failure trip, gate open/close
 
 **CRM Healer**:
 The scheduled, self-healing process that reconciles CRM state across tenants,
 auto-repairing only mechanical, reversible, non-money drift and escalating
-everything else. It is the sole prober of provider health. Its steady state is
-quiet — a green, empty operations screen means "handled," not "unwatched."
+everything else. It is the sole prober of CRM health. Its steady state is
+quiet — a green, empty operations screen means "handled," not "unwatched"
+(scope re-groom pending — ADR-0001).
 _Avoid_: manual reconcile button, auto-merge, cron that only detects
 
 **Disposition Predicate**:
 The single rule that decides whether the healer may auto-repair a drift item or
 must escalate it to a human: auto-heal only when the action is idempotent,
 reversible, non-money, and well-scoped; otherwise escalate. New kinds of drift
-classify themselves by the rule rather than needing a bespoke handler.
+classify themselves by the rule rather than needing a bespoke handler (scope
+re-groom pending — ADR-0001).
 _Avoid_: per-category handler list, heal-everything, escalate-everything
 
 **Proof-of-Health Snapshot**:
 The recorded evidence — who, when, and the green readiness verdict — captured at
 the moment a write gate is opened, so that enabling writes is provably a
-deliberate decision made against a healthy system.
+deliberate decision made against a healthy system (scope re-groom pending —
+ADR-0001).
 _Avoid_: unrecorded toggle, after-the-fact assertion, design-claim readiness
+
+**Twenty CRM (retired)**:
+A third-party CRM engine once adopted as a backing CRM provider for the
+relationship layer (read-only) and retired on 2026-07-06 by ADR-0001
+(`docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md`) before any
+production use. Asym Postgres is the CRM system of record; per-record-type
+ownership lives in the Phase 1 ownership matrix
+(`docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md`).
+_Avoid_: backing CRM provider, Twenty-backed surface, new work that reads or
+writes Twenty
 
 ## Example Dialogue
 

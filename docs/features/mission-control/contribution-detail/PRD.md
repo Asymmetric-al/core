@@ -1,5 +1,11 @@
 # Mission Control Contribution Detail PRD
 
+> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
+> referenced in this PRD target the now-retired Twenty pipeline and are dormant
+> per [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+> (2026-07-06); "CRM post" survives only as a label over the dormant
+> staged-gift pipeline pending the Phase 8 re-groom.
+
 ## Problem Statement
 
 Mission Control staff need one trustworthy way to work with a donor gift, regardless of whether they start from CRM donor gift history or the Contributions Hub. Today, those surfaces expose different row shapes and different levels of action support. The Contributions Hub can open a contribution detail sheet, while CRM gift history mostly shows an inline row and a narrow receipt action. This creates risk that staff will see incomplete context, perform actions through inconsistent paths, or misunderstand which data is authoritative.

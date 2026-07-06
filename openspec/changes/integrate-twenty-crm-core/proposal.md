@@ -1,5 +1,18 @@
 # Proposal: Integrate Twenty CRM as the backing CRM subsystem
 
+> **RETIRED (2026-07-06) — do not merge, do not build from this change.**
+> Withdrawn by founder ruling
+> [ADR-0001](../../../docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+> (see also the
+> [Phase 1 Source-of-Truth Ownership Matrix](../../../docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)):
+> Asym Postgres is the system of record for all CRM truth and Twenty CRM is
+> retired as a product dependency. Production never held Twenty data. The spec
+> deltas under `specs/` are withdrawn and must never be merged into
+> `openspec/specs/`. The Twenty-specific code is dormant pending a scheduled
+> cleanup ticket, which will also archive this package. The document below is
+> preserved unedited as the historical record of what was proposed and
+> partially implemented.
+
 ## Why
 
 Asymmetric.al needs a durable CRM foundation for operational identity,

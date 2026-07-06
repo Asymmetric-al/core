@@ -1,5 +1,9 @@
 # Delta for Platform Surfaces And User Experience Intent
 
+> **RETIRED (2026-07-06, ADR-0001)** — this change is withdrawn; see the
+> banner in [proposal.md](../../proposal.md). Preserved unedited as historical
+> record.
+
 ## ADDED Requirements
 
 ### Requirement: Twenty-Backed CRM Remains A Native Mission Control Experience

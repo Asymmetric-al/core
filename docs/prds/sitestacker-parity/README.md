@@ -55,6 +55,12 @@ The parity effort inherits the platform's existing, binding boundaries. It does
   `openspec/specs/platform-principles/spec.md` — product intent and the
   decision ladder.
 
+Source-of-truth ownership is additionally ruled by
+[ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) and
+the [Phase 1 ownership matrix](./phase-01-source-of-truth-ownership-matrix.md):
+Asym Postgres owns all CRM truth; Twenty CRM is retired as a product
+dependency.
+
 **Parity-specific reminder:** a new SiteStacker-style capability must fit an
 existing surface and use the shared `packages/api` layer — it must not become a
 bolted-on module or push admin depth into donor/missionary surfaces.
@@ -74,11 +80,15 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   provisional build order permits. Phase 7 **hard-depends on the Phase 4
   isolation-hardening foundation shipping first** (firm dependency: Phase 4
   foundation → Phase 7).
-- **Phase 8 (CRM Operating Foundation)** is groomed and committed — the
-  operating foundation (readiness/self-healing, `/crm/operations`) + the first
-  reversible production write (Notes). It **hard-depends on Phase 4 and Phase 6
-  shipping first**, and **supersedes** the earlier
-  `phase-01-crm-operating-foundation.md`.
+- **Phase 8 (CRM Operating Foundation)** is groomed but **scope-amended
+  (2026-07-06):** the Twenty write-enable tranche (Notes) is withdrawn by
+  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) —
+  Asym Postgres owns all CRM truth and Twenty CRM is retired as a product
+  dependency. The surviving operating-foundation concerns (readiness/
+  self-healing, `/crm/operations`, alert routing) are re-groomed against
+  Asym-internal subjects before any build starts (re-groom pending). It
+  **hard-depends on Phase 4 and Phase 6 shipping first**, and **supersedes**
+  the earlier `phase-01-crm-operating-foundation.md`.
 
 ## Files in this program
 
@@ -89,6 +99,12 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   SiteStacker parity phase order, dependency lanes, owner surfaces, and
   ticket-generation guardrails. **Read this before writing a PRD, issues,
   tickets, or a new implementation PR** so the work fits the whole program.
+- [`phase-01-source-of-truth-ownership-matrix.md`](./phase-01-source-of-truth-ownership-matrix.md)
+  — the Phase 1 deliverable (ruled 2026-07-06): the per-record-type
+  source-of-truth ownership ruling and the record that Twenty CRM is retired
+  as a product dependency
+  ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)).
+  Not the same file as the tombstoned `phase-01-crm-operating-foundation.md`.
 - [`phase-00-baseline.md`](./phase-00-baseline.md) — the Phase 0 plan: what
   Phase 0 does, its done-definition, and the provisional order.
 - [`phase-07-receipt-statement-compliance-and-donor-credit.md`](./phase-07-receipt-statement-compliance-and-donor-credit.md)
@@ -97,11 +113,13 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   donor credit model. Groomed and committed; tracked by epic #566 + children
   #567–#586.
 - [`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md)
-  — the Phase 8 plan (CRM Operating Foundation: readiness/self-healing +
-  Notes write-enable): a fail-closed write gate, a multi-tenant self-healing
-  reconcile healer, a read-only `/crm/operations` windowpane, and the first
-  reversible production write (Notes). Groomed and committed; hard-depends on
-  Phase 4 + Phase 6 shipping; supersedes `phase-01-crm-operating-foundation.md`.
+  — the Phase 8 plan (CRM Operating Foundation). **Scope amended 2026-07-06
+  ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)):**
+  the Notes write-enable tranche is withdrawn; the surviving
+  readiness/self-healing + `/crm/operations` concerns are re-groomed against
+  Asym-internal subjects (re-groom pending — do not build from the PRD until
+  the re-groomed version lands). Hard-depends on Phase 4 + Phase 6 shipping;
+  supersedes `phase-01-crm-operating-foundation.md`.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

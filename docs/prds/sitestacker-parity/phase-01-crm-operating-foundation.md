@@ -1,6 +1,7 @@
 # Phase 1 — CRM Operating Foundation (PRD)
 
 > **⚠️ SUPERSEDED — do not build from this file.** This groomed-but-unbuilt PRD is superseded by **Phase 8 — CRM Operating Foundation** ([`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md)), which carries the same operating-foundation goals **plus** the write-enable + operations work this file reserved for "Phase 8+". Retained for history only — build from the Phase 8 PRD.
+> **Scope note (2026-07-06):** Phase 8's own scope was since amended by [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) — Twenty CRM is retired as a product dependency, the write-enable tranche is withdrawn, and a Phase 8 re-groom is pending.
 
 **Program:** SiteStacker Parity. **Phase:** 1 of the parity roadmap (CRM
 truth). **Status:** decision-complete, ready for implementation.

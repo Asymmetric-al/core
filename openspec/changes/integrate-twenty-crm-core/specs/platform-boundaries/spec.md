@@ -1,5 +1,9 @@
 # Delta for Platform System Boundaries
 
+> **RETIRED (2026-07-06, ADR-0001)** — this change is withdrawn; see the
+> banner in [proposal.md](../../proposal.md). Preserved unedited as historical
+> record.
+
 ## ADDED Requirements
 
 ### Requirement: Twenty CRM Is An Internal Subsystem Behind Asym

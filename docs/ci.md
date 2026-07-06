@@ -173,6 +173,10 @@ not be pointed at production data.
 
 ### CRM production cutover gate
 
+> **Note (2026-07-06):** this cutover will never occur — Twenty CRM has been
+> retired ([ADR-0001](adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+> the section is retained for history until the cleanup ticket removes it.
+
 Twenty CRM production cutovers use the same fast CI gate plus OpenSpec and
 data-boundary checks before any domain can depend on Twenty in production.
 
