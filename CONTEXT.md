@@ -530,7 +530,7 @@ authorization
 Lifecycle status is the record's own state (active, inactive, archived,
 deceased — plus merged, derived from the Phase 4 merge tombstone, never a
 stored value). Cultivation stage is donor-development pipeline state
-(Phase 33) and never appears as a lifecycle status value.
+(Phase 27 — Donor Development) and never appears as a lifecycle status value.
 _Avoid_: pipeline stages in record status, prospect states on the party row
 
 **Provider link (record link)**:

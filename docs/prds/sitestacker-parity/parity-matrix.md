@@ -98,7 +98,7 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker custom fields / configurable entities. (s)
 - **Current state:** custom-fields engine to be designed tenant-safe on Asym
-  Postgres in Phase 10 (the Twenty Metadata API path retired with
+  Postgres in Phase 11 (the Twenty Metadata API path retired with
   [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)). (v)
 - **Depends on:** #1, #2.
 - **Acceptance test:** an org admin can add a custom field/entity and see it in

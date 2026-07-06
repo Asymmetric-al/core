@@ -67,11 +67,14 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 
 ## How work is sequenced
 
-- The current build order is the [`phase-map.md`](./phase-map.md) roadmap and
-  dependency lanes. The original post-Phase-0 order in
+- The current build order is **[`roadmap.md`](./roadmap.md) (Roadmap v2,
+  adopted 2026-07-07)** — 41 phases (0–40) in seven dependency lanes, with
+  the v1→v2 renumbering map. [`phase-map.md`](./phase-map.md) is the short
+  orientation mirror of it. The original post-Phase-0 order in
   [`phase-00-baseline.md`](./phase-00-baseline.md) was **provisional** and is
-  superseded by the phase map; phase-00 remains the origin of the firm,
-  locked "B needs A first" dependencies.
+  superseded; phase-00 remains the origin of the firm, locked "B needs A
+  first" dependencies. Any pre-2026-07-07 document citing a phase number
+  above 9 uses v1 numbering — decode via the roadmap's map.
 - Each area graduates to its own detailed PRD + OpenSpec change **when it is
   actually being built**, not before.
 - **Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit
@@ -98,12 +101,16 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 ## Files in this program
 
 - [`README.md`](./README.md) — this charter.
+- [`roadmap.md`](./roadmap.md) — **Roadmap v2 (source of truth for phase
+  architecture):** the full 41-phase table with slugs and dependencies, the
+  v1→v2 renumbering map, dependency lanes/parallelism, and per-phase scope
+  sections. **Read this (plus `phase-map.md`) before writing a PRD, issues,
+  tickets, or a new implementation PR** so the work fits the whole program.
 - [`parity-matrix.md`](./parity-matrix.md) — the 25-area inventory (the tracking
   source of truth).
-- [`phase-map.md`](./phase-map.md) — short orientation guide showing the full
-  SiteStacker parity phase order, dependency lanes, owner surfaces, and
-  ticket-generation guardrails. **Read this before writing a PRD, issues,
-  tickets, or a new implementation PR** so the work fits the whole program.
+- [`phase-map.md`](./phase-map.md) — short orientation guide mirroring the
+  roadmap: phase order, dependency lanes, owner surfaces, and
+  ticket-generation guardrails.
 - [`phase-01-source-of-truth-ownership-matrix.md`](./phase-01-source-of-truth-ownership-matrix.md)
   — the Phase 1 deliverable (ruled 2026-07-06): the per-record-type
   source-of-truth ownership ruling and the record that Twenty CRM is retired

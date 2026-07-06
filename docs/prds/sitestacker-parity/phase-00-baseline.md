@@ -70,8 +70,9 @@ order is finalized only after the matrix is verified per area.
 **Firm dependencies (locked; the numbers are parity-matrix _area_ numbers, not
 phase numbers):** CRM foundation (area 1) precedes CRM depth (area 2), custom
 fields (area 3), and anything reading CRM relationships; the giving pipeline
-(area 5 / Phase 12) precedes offline batch (area 6), pledges (area 8),
-receipt/statement **rendering and operations** (areas 9–10 / Phases 16–17),
+(area 5 / Phase 13 under Roadmap v2) precedes offline batch (area 6), pledges
+(area 8), receipt/statement **rendering and operations** (areas 9–10 /
+Phases 18–19 under Roadmap v2),
 and exports (area 11) — the receipt/statement _rules_ foundation (Phase 7)
 deliberately precedes the ledger; see the rules-first inversion note in
 [`phase-map.md`](./phase-map.md); automation engine (area 24) precedes

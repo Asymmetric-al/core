@@ -100,12 +100,16 @@ The full record-type ownership table lives in
   Twenty REST read-through to local SQL (faster, paginated, RLS-protected);
   the "queued note placeholder" wart disappears — a created note is an
   authoritative local insert.
-- Phase 10 (Custom CRM Fields) must design its own tenant-safe
+- Phase 11 (Custom CRM Fields) must design its own tenant-safe
   configurable-fields engine on Postgres; Twenty's Metadata API was
   workspace-global and could not deliver per-tenant fields in the shared
   workspace anyway.
-- Reporting (Phase 30), imports (Phase 29), and workflows (Phase 31) operate
+- Reporting (Phase 33), imports (Phase 30), and workflows (Phase 34) operate
   on one local database — no cross-system ETL for CRM data.
+  _(Editorial note, 2026-07-07: the forward-phase numbers in this section
+  were updated to Roadmap v2 — see
+  `docs/prds/sitestacker-parity/roadmap.md`; the decision content is
+  unchanged.)_
 - The cleanup ticket (#602) must also: verify/revoke the Vercel `TWENTY_*`
   env entries recorded on 2026-05-14, delete the dev-workspace proof record
   and development API key left in Twenty Cloud, re-`COMMENT` the

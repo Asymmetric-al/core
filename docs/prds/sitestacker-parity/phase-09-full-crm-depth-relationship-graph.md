@@ -216,7 +216,7 @@ parties.id` (same for household and org subtype rows); `party_kind ∈
 19. As a **development lead**, I want N role-qualified staff assignees with one
     primary on any record (donor rep, regional rep, church relations,
     mobilizer), read from assignment edges, so that portfolio ownership is
-    data, not tribal knowledge — and ready for Phase 33 portfolios.
+    data, not tribal knowledge — and ready for Phase 27 portfolios.
 20. As a **member-care lead**, I want member-care notes structurally absent
     from CRM notes and timeline (only the permission-gated Overview indicator),
     so that care confidentiality survives every new surface.
@@ -224,7 +224,7 @@ parties.id` (same for household and org subtype rows); `party_kind ∈
 ### Organization admin
 
 21. As an **organization admin**, I want the relationship-type catalog to be
-    seeded, governed data — edited only via migrations until the Phase 10/11
+    seeded, governed data — edited only via migrations until the Phase 11/12
     catalog UI ships — so that relationship semantics stay consistent and no
     app page hard-codes a type.
 22. As an **organization admin**, I want saved-view visibility to launch
@@ -234,7 +234,7 @@ parties.id` (same for household and org subtype rows); `party_kind ∈
     Phase 3 export governance and recorded in the audit trail, so that I can
     account for every list that leaves the system.
 24. As an **organization admin**, I want flat tags on the party spine now,
-    with taxonomy deferred to Phase 10, so that staff can label records today
+    with taxonomy deferred to Phase 11, so that staff can label records today
     without pre-empting the custom-fields model.
 
 ### Founder / organization
@@ -335,7 +335,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   snapshots still **copy** the resolved taxonomy at issuance — a frozen copy
   is not a live dual truth. `donors.missionary_id` is **dropped outright**
   (its meaning becomes staff-assignment / derived edges; the differently-owned
-  `donations.missionary_id` is Phase 12/14 territory and untouched).
+  `donations.missionary_id` is Phase 13/14 territory and untouched).
   Free-text `donors.type`, `donors.organization`, and `donors.spouse` are
   never carried (kind lives on parties; org = org-contact link; spouse =
   person-to-person edge). (D3, D7.1.)
@@ -354,7 +354,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   rejected from the stored catalog by **CHECK + API rejection + test**.
   Relationship types are **never hard-coded in an app page**; in Phase 9 the
   catalog is edited via migrations/seed only (staff-facing catalog UI is
-  Phase 10/11). (D2, D7.2.)
+  Phase 11/12). (D2, D7.2.)
 
 - **A6 — Derived edges are views, merged with provenance.** Supports,
   household-membership, and org-contact edges are `security_invoker=true` SQL
@@ -362,7 +362,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   surface with provenance labels and keyset pagination. Giving-derived edges
   inherit **FINANCE visibility**; anonymity is respected; both are negative-
   tested. The supports policy reads **settled, adjustment-folded facts only**
-  and is provider-isolated (Phase 12/14 re-model gift facts behind it); the
+  and is provider-isolated (Phase 13/14 re-model gift facts behind it); the
   shipped `buildSupportSummary` defects (100-gift truncation, raw
   `missionary_id` grouping) are not carried. (D2.)
 
@@ -373,7 +373,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   first-class partner type). Stored `party_roles` REJECTED (reserve-seam: the
   derived view's output shape `(party_id, role_key, since/until, provenance)`
   is a frozen contract and the backfill script if ever needed); role-instance
-  edges REJECTED outright; classifications REJECTED (Phase 10 collision);
+  edges REJECTED outright; classifications REJECTED (Phase 11 collision);
   contact normalization REJECTED-now (Phase 4 `contact_points` reservation
   stands; `donors.email` stays the claiming/consent key). `applicant` is a
   reserved mobilization **domain table**, not a role row. (D3.)
@@ -382,10 +382,10 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   is **grandfathered** for that one kind forever (receipt-compliance
   construct — NOT the template). ALL future group kinds (team, region,
   committee, circle) enter as new party_kind values + ONE shared `groups`
-  subtype + ONE `group_memberships` table — **built by Phase 28, not
+  subtype + ONE `group_memberships` table — **built by Phase 37, not
   before**; the UNION cost of household_members + group_memberships +
   org_contacts is accepted and stated; `support_teams` is legacy noted for
-  Phase 28. (D3 R3.)
+  Phase 37. (D3 R3.)
 
 - **A9 — Merge membership.** `parties`, `crm_relationships`, and the
   party-keyed engagement tables (`crm_notes`, `crm_activity_events`,
@@ -403,32 +403,32 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   #514); portal/claim chip (Phase 4 claimed/unclaimed/invited socket);
   owner/assignment chip (**N role-qualified assignees + ONE primary, reading
   assignment edges only**); tags chips; privacy role-gate indicator; and a
-  reserved header **action-slot registry** (print/PDF exports → Phases 16/17;
-  Write-a-Message → Phase 6/24; "Request payment method update" → A11).
+  reserved header **action-slot registry** (print/PDF exports → Phases 18/19;
+  Write-a-Message → Phase 6/17; "Request payment method update" → A11).
   **Eight live tabs:** Overview, Contact, Relationships, Giving (incl.
   Commitments + the payment-instruments read panel), Notes, Activity, Tasks
   (thin), Audit (thin, permission-gated). **Eight hidden registry sockets:**
-  Communications (P6), Custom Fields (P10), Files (P25), Workflows +
-  mobilization progress (P31), Events participation (P28), Payment Methods
-  staff actions, External IDs / provider links (P29, over
-  `crm_record_links`), Donor Development / Portfolio (P33). Overview adds a
+  Communications (P6), Custom Fields (P11), Files (P29), Workflows +
+  mobilization progress (P34), Events participation (P37), Payment Methods
+  staff actions, External IDs / provider links (P30/P31, over
+  `crm_record_links`), Donor Development / Portfolio (P27). Overview adds a
   family/household panel (spouse/children/birthdays from edges +
   `household_members`), a support-vs-goal widget on missionary records (thin
   now from `missionaries.funding_goal`/`current_funding`; recomputed on
-  Phase 12 facts), a key-contacts strip on church/org records (from
+  Phase 13 facts), a key-contacts strip on church/org records (from
   org-contact edges), and `donors.score` **shown explicitly labeled as
-  demo/placeholder data until Phase 33 ships real scoring**; reserved
-  Overview sockets: missionary assignment/deployment (P28), cultivation
-  stage + next ask (P33). Contact adds the consent & communication-
+  demo/placeholder data until Phase 27 ships real scoring**; reserved
+  Overview sockets: missionary assignment/deployment (P37), cultivation
+  stage + next ask (P27). Contact adds the consent & communication-
   preferences section, per-address suppression status, and the reserved
-  newsletter-preference seam (Phase 26). **Member-care
+  newsletter-preference seam (Phase 32). **Member-care
   exclusion:** `member_care_private_notes` stays RLS-revoked; only the
   permission-gated Overview indicator references care. (D4.)
   - **Giving-tab reserved columns (the four ratified in D4):** soft-credit
     rows (light up with Phase 7 `gift_credits`); per-gift
-    receipt/acknowledgment status (Phase 7 facts; Phases 16/17 rendering);
-    pledge-fulfillment status (on-track/behind — Phase 15 computation); and
-    statement history plus a re-send affordance (Phase 17).
+    receipt/acknowledgment status (Phase 7 facts; Phases 18/19 rendering);
+    pledge-fulfillment status (on-track/behind — Phase 16 computation); and
+    statement history plus a re-send affordance (Phase 19).
 
 - **A11 — Payments (D4a): read metadata, never key card data.** Phase 9
   **ships** a read-only "Payment instruments" panel (Giving tab section):
@@ -440,16 +440,16 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   (portal sessions already exist in
   `packages/api/src/donor-portal/billing.ts`) and sends via the Phase 6
   seam — lights up with Phase 6;
-  donor-side completion is Phase 22. **HARD PROGRAM GUARDRAIL (restated for
-  Phases 13, 15, 22): staff NEVER key card data into any surface this
+  donor-side completion is Phase 25. **HARD PROGRAM GUARDRAIL (restated for
+  Phases 15, 16, 25): staff NEVER key card data into any surface this
   platform renders — no admin-app card form, ever.** Orgs that insist use
   Stripe-hosted gated surfaces (Dashboard manual entry / Terminal MOTO) under
-  their own PCI responsibility, outside our app chrome. Phone gifts (P13):
+  their own PCI responsibility, outside our app chrome. Phone gifts (P15):
   default send-secure-link; org-level opt-in to Stripe-hosted MOTO. Offline
-  recurring (P15): payment-method-as-attribute of the commitment, no stored
+  recurring (P16): payment-method-as-attribute of the commitment, no stored
   instrument. (D4a.)
 
-- **A12 — Phase 33 reservations (D4b), zero-rework contract.** (a) a
+- **A12 — Phase 27 reservations (D4b), zero-rework contract.** (a) a
   **staff-assignment edge-type family** seeded in `crm_relationship_types`
   (endpoint kinds staff-person → any-party; `relationship_role` vocabulary
   `donor_rep` / `regional_rep` / `church_relations` / `mobilizer` —
@@ -468,9 +468,9 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   render the A10 shell. Work queues: `/crm/relationships`, `/crm/duplicates`
   (links into Phase 4 #514), and `/crm/tasks` (**thin work-queue route in
   P9**: my/all tasks over the same engine). `/crm/activity` is **rejected**
-  for P9 (per-record tab covers it; global feeds = Phase 8 ops / Phase 30
-  reporting); `/crm/files` deferred to Phase 25; `/crm/settings` deferred to
-  Phase 10/11. **No redirects or aliases for pre-Phase-9 URL shapes
+  for P9 (per-record tab covers it; global feeds = Phase 8 ops / Phase 33
+  reporting); `/crm/files` deferred to Phase 29; `/crm/settings` deferred to
+  Phase 11/12. **No redirects or aliases for pre-Phase-9 URL shapes
   (`?donor=` etc.); the old shapes cease to exist.** (D5, D7.2.)
 
 - **A14 — The list engine (nine binding requirements).** (1) **Saved views =
@@ -524,7 +524,7 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
 
 - **A16 — Party-keyed engagement replaces donor-keyed outright.** `crm_notes`
   and `crm_activity_events` are party-keyed (composite tenant FKs); tags move
-  to the party spine (flat labels; taxonomy stays Phase 10 — this does not
+  to the party spine (flat labels; taxonomy stays Phase 11 — this does not
   reopen D3 increment 4); task links gain `record_type='party'`. Legacy
   `donor_activities` and the `donors.notes` scalar **die**; the timeline is
   **always composed at read** (explicit rejection of a persisted
@@ -664,6 +664,13 @@ foundation, business, daf_sponsor, partner, agency, …}` on the org
   truth; platform-surfaces: `/crm` routes); confirm
   `docs/guides/features/twenty-crm-integration/**` retirement banners remain
   intact when #602 archives the package.
+- **C7 — Roadmap v2 renumbering (2026-07-07).** All forward-phase
+  references in this PRD were renumbered to Roadmap v2
+  ([`roadmap.md`](./roadmap.md) — 41 phases, v1→v2 mapping table there).
+  No scope change: every socket, guardrail, and deferral points at the
+  same phase _by name_; only the numbers moved (e.g. Custom Fields 10→11,
+  Files 25→29, Events/groups 28→37, Workflow engine 31→34, Donor
+  Development 33→27).
 
 ### D. Data model (all tenant-scoped, composite keys, FORCE RLS posture per repo discipline)
 
@@ -674,7 +681,7 @@ foundation, business, daf_sponsor, partner, agency, …}` on the org
   `active|inactive|archived|deceased`; `merged` read from the tombstone),
   `tags` (flat labels), `merged_into_party_id`, timestamps. **Zero
   denormalized giving/engagement columns — all giving-derived display reads
-  through the supports policy or Phase 12 facts.** No new inline contact
+  through the supports policy or Phase 13 facts.** No new inline contact
   columns, ever (migration lint).
 - `persons` / `households` / org subtype — shared-PK subtype rows
   (`id = parties.id`, composite tenant FK); org subtype carries `org_type`.
@@ -695,7 +702,7 @@ ON DELETE SET NULL, author_name_snapshot, body jsonb /*Tiptap*/, body_text
 NOT NULL, visibility CHECK (standard|restricted) DEFAULT 'standard',
 pinned_at NULL, edited_at NULL, created_at/updated_at, deleted_at NULL)`.
   Indexes: `(tenant_id, party_id, created_at DESC, id)`; partial pinned. NO
-  title column (Twenty artifact). Deferred: attachments → P25 (no schema
+  title column (Twenty artifact). Deferred: attachments → P29 (no schema
   reservation); @-mentions → later (zero schema cost — marks live in body
   jsonb; `crm_note_mentions` named as the future fan-out table); edit history
   = the audit event's before/after snapshots (`edited_at` flag only);
@@ -706,7 +713,7 @@ DEFAULT 'system', subject_type/subject_id [pointer — diffs live in the
 audit event, never duplicated], summary NOT NULL [frozen one-liner],
 details jsonb, occurred_at DEFAULT now(), created_at)`. Index
   `(tenant_id, party_id, occurred_at DESC, id)`. CiviCRM `activity_contact`
-  named as the upgrade if events routinely target many parties (P28).
+  named as the upgrade if events routinely target many parties (P37).
 - `crm_audit_events(id, tenant_id, actor_profile_id, actor_kind, operation,
 resource_type CHECK (party|relationship|note), resource_id, source_surface
 CHECK (crm_record|crm_list|merge_workbench|api), reason NULL,
@@ -738,19 +745,19 @@ one each):**
 | missionary reports-to leader (roles `field_leader`, `regional_leader`)              | **Stored seed**                                                                                                                                  |
 | person ↔ person family (spouse/child/parent/sibling roles)                          | **Stored seed** (feeds the Overview family panel)                                                                                                |
 | board member of org                                                                 | **Stored seed**                                                                                                                                  |
-| volunteer of org                                                                    | **Stored seed** (event-scoped volunteering → P28)                                                                                                |
+| volunteer of org                                                                    | **Stored seed** (event-scoped volunteering → P37)                                                                                                |
 | staff-assignment family (`donor_rep`/`regional_rep`/`church_relations`/`mobilizer`) | **Stored seed** (A12)                                                                                                                            |
 | partner org of tenant                                                               | **Stored edge/tag**; `partner` = derived display role (no kind)                                                                                  |
-| missionary belongs to team / region (covers 2)                                      | **Deferred** — P28-gated group kinds                                                                                                             |
-| church/volunteer connected to event or trip (covers 2)                              | **Deferred** — P28                                                                                                                               |
-| donor connected to advocacy campaign                                                | **Not a P9 edge** — Phase 27 owns advocacy participation                                                                                         |
+| missionary belongs to team / region (covers 2)                                      | **Deferred** — P37-gated group kinds                                                                                                             |
+| church/volunteer connected to event or trip (covers 2)                              | **Deferred** — P37                                                                                                                               |
+| donor connected to advocacy campaign                                                | **Not a P9 edge** — Phase 36 owns advocacy participation                                                                                         |
 | applicant reference / applicant coach (covers 2)                                    | **Reserved** with the mobilization phase (domain table, D3)                                                                                      |
 | person employed by org                                                              | **Deferred** (no P9 consumer)                                                                                                                    |
 | donor recommended DAF gift                                                          | **NOT an edge** — Phase 14 gift-fact/soft-credit territory (guardrail: gift-level facts are never party edges, mirroring "asks are never edges") |
 
-Imported/legacy provenance is a Phase 29 concern carried by
+Imported/legacy provenance is a Phase 30 concern carried by
 `crm_record_links`, never a party_kind or status; deceased/inactive are the
-lifecycle-status model; event registrant is Phase 28.
+lifecycle-status model; event registrant is Phase 37.
 
 **Schema-tranche checklist (one reviewable migration unit):** everything
 additive against the existing migration chain, with named constraints:
@@ -858,26 +865,26 @@ carve-outs stated: the **payment-instruments read panel** ships in P9 with
 its PCI rationale (A11), and the shipped **#270 inline gift-operation shell**
 is retained in the Giving tab as a capability-checklist item (D6 reframing):
 
-- Full custom field builder → Phase 10 (socket reserved).
-- Full admin permission configuration → Phase 3/11.
-- Full giving ledger → Phases 12/14 (Giving tab links source truth).
-- Full offline batch entry → Phase 13.
+- Full custom field builder → Phase 11 (socket reserved).
+- Full admin permission configuration → Phase 3/12.
+- Full giving ledger → Phases 13/14 (Giving tab links source truth).
+- Full offline batch entry → Phase 15.
 - Full soft credit / DAF processing → Phases 7/14.
-- Full pledge management → Phase 15 (Commitments section reads contracts).
-- Full receipt/PDF template system → Phase 16.
-- Full year-end statement operations → Phase 17.
+- Full pledge management → Phase 16 (Commitments section reads contracts).
+- Full receipt/PDF template system → Phase 18.
+- Full year-end statement operations → Phase 19.
 - Full accounting exports → later Area-11 phase (P9 ships governed list CSV
   only).
 - Full public page workflow → Phase 5+/public phases.
 - Full Site Planner → its own phase.
-- Full donor dashboard depth → Phase 22.
-- Full missionary dashboard depth → Phase 23+.
-- Full system message editor → Phase 24.
-- Full file manager → Phase 25 (socket reserved).
-- Full Mailchimp sync → Phase 26.
-- Full import tool → Phase 29 (External-IDs socket reserved).
-- Full report builder → Phase 30.
-- Full workflow engine → Phase 31 (socket reserved).
+- Full donor dashboard depth → Phase 25.
+- Full missionary dashboard depth → Phase 28+.
+- Full system message editor → Phase 17.
+- Full file manager → Phase 29 (socket reserved).
+- Full Mailchimp sync → Phase 32.
+- Full import tool → Phase 30 (External-IDs socket reserved; provider-link registry pairs with Phase 31).
+- Full report builder → Phase 33.
+- Full workflow engine → Phase 34 (socket reserved).
 - **Destructive duplicate merge — deferred unless explicitly approved**;
   structurally replaced by the Phase 4 non-destructive merge contract
   (tombstone + replayable unmerge), owned by Phase 4 (#514).
