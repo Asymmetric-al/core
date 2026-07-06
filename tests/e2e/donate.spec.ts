@@ -64,6 +64,20 @@ test.describe("Donation flow", () => {
       `Donor demo session unavailable: POST /api/auth/demo-account returned ${session.status}.`,
     );
 
+    await page.route("**/api/donate", async (route) => {
+      const request = route.request();
+      if (request.method() !== "GET") {
+        await route.continue();
+        return;
+      }
+
+      await route.fulfill({
+        body: JSON.stringify({ publishableKey: null }),
+        contentType: "application/json",
+        status: 200,
+      });
+    });
+
     await page.goto(
       "/checkout?amount=100&workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
     );

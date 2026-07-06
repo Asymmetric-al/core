@@ -143,6 +143,8 @@ const STRIPE_FEE_PERCENT = 0.029;
 const STRIPE_FEE_FIXED = 0.3;
 const PAYMENT_PROCESSING_MESSAGE =
   "Your contribution is still processing — we'll email your receipt once it's confirmed.";
+const CHECKOUT_CONFIGURATION_ERROR =
+  "Checkout configuration is incomplete. Please contact support before completing this contribution.";
 
 const resolveSuccessWorkerTitle = (
   worker: { title?: string } | null | undefined,
@@ -207,6 +209,24 @@ const createReadyRuntimeConfig = (
       ? loadStripe(normalizedPublishableKey)
       : null,
   };
+};
+
+const createRuntimeConfigError = (
+  message = CHECKOUT_CONFIGURATION_ERROR,
+): CheckoutRuntimeConfig => ({
+  error: message,
+  publishableKey: null,
+  status: "error",
+  stripePromise: null,
+});
+
+const createRuntimeConfigFromPublishableKey = (
+  publishableKey: string | null | undefined,
+): CheckoutRuntimeConfig => {
+  const normalizedPublishableKey = normalizePublishableKey(publishableKey);
+  return normalizedPublishableKey
+    ? createReadyRuntimeConfig(normalizedPublishableKey)
+    : createRuntimeConfigError();
 };
 
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
@@ -1080,6 +1100,38 @@ function CheckoutConfigurationState({
   );
 }
 
+function CheckoutConfigurationError({ message }: { message: string | null }) {
+  return (
+    <div className="space-y-12">
+      <header className="space-y-4">
+        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
+          Payment Information
+        </span>
+        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+          Secure Payment.
+        </h1>
+        <p className="text-2xl text-zinc-400 font-light tracking-tight">
+          Safely authorize your contribution.
+        </p>
+      </header>
+
+      <div
+        role="alert"
+        className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
+      >
+        <AlertTriangle
+          className="size-5 shrink-0 text-red-600 dark:text-red-400"
+          aria-hidden="true"
+        />
+        <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
+          {message ??
+            "Checkout configuration could not be loaded. Please refresh and try again."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CheckoutContent({
   searchParams,
   stripeOverride,
@@ -1274,7 +1326,9 @@ function CheckoutContent({
         }
 
         setRuntimeConfig(
-          createReadyRuntimeConfig(readRuntimePublishableKey(payload)),
+          createRuntimeConfigFromPublishableKey(
+            readRuntimePublishableKey(payload),
+          ),
         );
       } catch (error) {
         if (abortController.signal.aborted) {
@@ -1481,6 +1535,22 @@ function CheckoutContent({
       return;
     }
 
+    if (
+      !stripeOverride &&
+      (checkoutMode === "test" || !mountedPublishableKey)
+    ) {
+      setRuntimeConfig(createRuntimeConfigError());
+      setCheckoutState((prev) => ({
+        ...prev,
+        donation: null,
+        error: CHECKOUT_CONFIGURATION_ERROR,
+        isProcessing: false,
+        step: "payment",
+        successSnapshot: null,
+      }));
+      return;
+    }
+
     const requestFingerprint = currentRequestFingerprint;
     const attemptSuccessSnapshot = createPaymentSuccessSnapshot({
       donorInfo,
@@ -1563,7 +1633,11 @@ function CheckoutContent({
 
         if (returnedPublishableKey !== currentMountedPublishableKey) {
           if (!stripeOverride) {
-            setRuntimeConfig(createReadyRuntimeConfig(returnedPublishableKey));
+            setRuntimeConfig(
+              returnedPublishableKey
+                ? createReadyRuntimeConfig(returnedPublishableKey)
+                : createRuntimeConfigError(),
+            );
           }
 
           const didCommit = commitPaymentAttemptState(
@@ -1828,19 +1902,7 @@ function CheckoutContent({
                       message="Loading this organization's payment configuration."
                     />
                   ) : runtimeConfig.status === "error" ? (
-                    <div
-                      role="alert"
-                      className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
-                    >
-                      <AlertTriangle
-                        className="size-5 shrink-0 text-red-600 dark:text-red-400"
-                        aria-hidden="true"
-                      />
-                      <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
-                        {runtimeConfig.error ??
-                          "Checkout configuration could not be loaded. Please refresh and try again."}
-                      </p>
-                    </div>
+                    <CheckoutConfigurationError message={runtimeConfig.error} />
                   ) : checkoutMode === "live" && runtimeConfig.stripePromise ? (
                     <Elements
                       key={runtimeConfig.publishableKey}

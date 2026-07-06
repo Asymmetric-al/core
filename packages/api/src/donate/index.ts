@@ -25,6 +25,24 @@ function parseRpcObject<T extends Record<string, unknown>>(
   return typeof value === "object" ? (value as T) : null;
 }
 
+const normalizeStripeKey = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : null;
+};
+
+const resolveStripeKey = (
+  tenantValue: unknown,
+  environmentValue: unknown,
+): string | null =>
+  normalizeStripeKey(tenantValue) ?? normalizeStripeKey(environmentValue);
+
+const stripeConfigurationError = () =>
+  NextResponse.json(
+    { error: "Checkout configuration is incomplete for this organization" },
+    { status: 500 },
+  );
+
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
@@ -43,16 +61,16 @@ export const POST = withOperation(
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const stripeSecretKey =
-      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
-    const publishableKey =
-      tenant.stripe_publishable_key ??
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-    if (!stripeSecretKey) {
-      return NextResponse.json(
-        { error: "Stripe not configured for this organization" },
-        { status: 500 },
-      );
+    const stripeSecretKey = resolveStripeKey(
+      tenant.stripe_secret_key,
+      process.env.STRIPE_SECRET_KEY,
+    );
+    const publishableKey = resolveStripeKey(
+      tenant.stripe_publishable_key,
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    );
+    if (!stripeSecretKey || !publishableKey) {
+      return stripeConfigurationError();
     }
 
     const stripe = createStripeClient(stripeSecretKey);
@@ -139,7 +157,7 @@ export const POST = withOperation(
       outboxId,
       idempotencyKey,
       replayed: Boolean(beginResult?.replayed),
-      publishableKey: publishableKey ?? null,
+      publishableKey,
     });
   },
   { roles: ["donor", "admin", "staff", "super_admin"] },
@@ -158,7 +176,7 @@ export async function GET(request: NextRequest) {
 
     const { data: tenant, error: tenantError } = await supabaseAdmin
       .from("tenants")
-      .select("stripe_publishable_key")
+      .select("stripe_secret_key, stripe_publishable_key")
       .eq("id", ctx.tenantId)
       .single();
 
@@ -166,9 +184,17 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const publishableKey =
-      tenant.stripe_publishable_key ??
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    const stripeSecretKey = resolveStripeKey(
+      tenant.stripe_secret_key,
+      process.env.STRIPE_SECRET_KEY,
+    );
+    const publishableKey = resolveStripeKey(
+      tenant.stripe_publishable_key,
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    );
+    if (!stripeSecretKey || !publishableKey) {
+      return stripeConfigurationError();
+    }
 
     const { searchParams } = new URL(request.url);
     const { missionary_id: missionaryId, fund_id: fundId } =
@@ -250,7 +276,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       designations,
       donor: donor || null,
-      publishableKey: publishableKey ?? null,
+      publishableKey,
     });
   } catch (error) {
     return toErrorResponse(error);

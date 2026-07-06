@@ -28,7 +28,7 @@ export type DonateResult =
   | { kind: "processing"; donationId: string | null }
   | { kind: "error"; message: string };
 
-/** Live vs test-mode is decided solely by the presence of a publishable key. */
+/** Runtime checkout is live only with a publishable key; test mode is for explicit test overrides. */
 export type CheckoutMode = "live" | "test";
 export type CheckoutFrequency = "one-time" | "monthly";
 export type CheckoutPaymentMethod = "card" | "ach" | "wallet";
@@ -228,9 +228,9 @@ export function isStripeFinalCheckoutSuccess(
 
 /**
  * Live checkout requires a Stripe publishable key to mount Elements and confirm
- * the PaymentIntent. With no key on the box we run TEST-MODE: the saga call +
- * server-confirmed state are exercised, but the card capture leg is stubbed and
- * staged unverified-for-live (BLOCKED-FOR-CREDS).
+ * the PaymentIntent. A missing runtime key must be handled as configuration
+ * failure before checkout posts. The `test` mode result is reserved for explicit
+ * test-only overrides that intentionally bypass live Stripe Elements.
  */
 export function resolveCheckoutMode(
   publishableKey: string | null | undefined,

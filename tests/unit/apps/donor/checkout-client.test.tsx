@@ -232,7 +232,9 @@ const initializedDonationResponse = (
   publishableKey: unknown = "pk_test_unit",
 ) => {
   const effectivePublishableKey =
-    typeof publishableKey === "string" && publishableKey.startsWith("pk_")
+    publishableKey === null ||
+    (typeof publishableKey === "string" &&
+      (publishableKey.startsWith("pk_") || publishableKey.trim().length === 0))
       ? publishableKey
       : "pk_test_unit";
 
@@ -341,6 +343,9 @@ const requestAt = (index: number) => {
   };
 };
 
+const fetchCallsByMethod = (method: string) =>
+  fetchMock().mock.calls.filter(([, init]) => init?.method === method);
+
 describe("CheckoutPageClient donation designations", () => {
   it("does not expose the payment flow for a worker-only legacy checkout URL", () => {
     renderCheckout({
@@ -419,6 +424,28 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(screen.queryByText(/test mode/i)).toBeNull();
   });
 
+  it("shows a configuration error when runtime config returns no publishable key", async () => {
+    fetchMock().mockImplementation((_input, init) => {
+      return init?.method === "POST"
+        ? initializedDonationResponse("pk_live_tenant")
+        : checkoutConfigResponse(null);
+    });
+
+    renderCheckoutWithRuntimeConfig();
+    advanceToPayment();
+
+    const configurationError = await screen.findByRole("alert");
+    expect(configurationError.textContent).toMatch(/checkout configuration/i);
+    expect(
+      screen.getByRole("heading", { name: /secure payment/i }),
+    ).toBeTruthy();
+    expect(fetchCallsByMethod("POST")).toHaveLength(0);
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+    expect(
+      screen.queryByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeNull();
+  });
+
   it("remounts with the server returned publishable key and prevents confirmation when keys differ", async () => {
     fetchMock().mockImplementation(() =>
       initializedDonationResponse("pk_test_rotated"),
@@ -450,6 +477,32 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(retryableError.textContent).toMatch(/configuration changed/i);
     expect(retryableError.textContent).toMatch(/try again/i);
   });
+
+  it.each([null, "   "])(
+    "does not confirm or show success when POST returns unusable publishable key %s",
+    async (publishableKey) => {
+      fetchMock().mockImplementation((_input, init) => {
+        return init?.method === "POST"
+          ? initializedDonationResponse(publishableKey)
+          : checkoutConfigResponse("pk_live_tenant");
+      });
+
+      renderCheckoutWithRuntimeConfig();
+      advanceToPayment();
+
+      await screen.findByTestId("stripe-card-panel");
+      confirmPayment();
+
+      await waitFor(() => expect(fetchCallsByMethod("POST")).toHaveLength(1));
+      expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+      expect(
+        screen.queryByRole("heading", { name: /contribution confirmed/i }),
+      ).toBeNull();
+
+      const configurationError = await screen.findByRole("alert");
+      expect(configurationError.textContent).toMatch(/configuration/i);
+    },
+  );
 
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
     let resolveConfirmation:

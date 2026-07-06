@@ -245,12 +245,12 @@ describe("resolveCheckoutIdempotencyKey", () => {
   });
 });
 
-describe("resolveCheckoutMode — Stripe leg is Tier-3 / creds-gated", () => {
+describe("resolveCheckoutMode — explicit override mode selection", () => {
   it("is live only when a publishable key is present", () => {
     expect(resolveCheckoutMode("pk_test_123")).toBe("live");
   });
 
-  it("falls back to test-mode when no publishable key is configured", () => {
+  it("returns test mode for explicit test-only overrides without a publishable key", () => {
     expect(resolveCheckoutMode(undefined)).toBe("test");
     expect(resolveCheckoutMode("")).toBe("test");
     expect(resolveCheckoutMode("   ")).toBe("test");
