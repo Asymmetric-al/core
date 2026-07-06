@@ -3,18 +3,6 @@
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { formatCurrency } from "@asym/lib/utils";
 import {
-  CardElement,
-  Elements,
-  useElements,
-  useStripe,
-} from "@stripe/react-stripe-js";
-import {
-  loadStripe,
-  type Stripe,
-  type StripeCardElement,
-  type StripeElements,
-} from "@stripe/stripe-js";
-import {
   Avatar,
   AvatarFallback,
   AvatarImage,
@@ -26,6 +14,18 @@ import { Label } from "@asym/ui/components/shadcn/label";
 import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { cn } from "@asym/ui/lib/utils";
+import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import {
+  loadStripe,
+  type Stripe,
+  type StripeCardElement,
+  type StripeElements,
+} from "@stripe/stripe-js";
 import {
   Check,
   Lock,
@@ -40,7 +40,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
 import {
   buildCheckoutRequestFingerprint,
@@ -56,7 +56,6 @@ import {
   type CheckoutPaymentMethod,
   type ServerDonation,
 } from "./checkout-donation";
-
 import { getFieldWorkerById } from "../../../lib/mock-data";
 
 // Live checkout needs a Stripe publishable key to mount Elements and confirm the
@@ -1004,7 +1003,6 @@ function CheckoutContent({
     step,
   } = checkoutState;
   const checkoutStateRef = useRef(checkoutState);
-  checkoutStateRef.current = checkoutState;
   const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
   const paymentAttemptIdRef = useRef(0);
   const setStep = (value: Step) =>
@@ -1061,7 +1059,11 @@ function CheckoutContent({
     ],
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
-  currentRequestFingerprintRef.current = currentRequestFingerprint;
+
+  useEffect(() => {
+    checkoutStateRef.current = checkoutState;
+    currentRequestFingerprintRef.current = currentRequestFingerprint;
+  }, [checkoutState, currentRequestFingerprint]);
 
   const isPaymentAttemptActive = (attempt: PaymentAttempt) => {
     const activeAttempt = activePaymentAttemptRef.current;
@@ -1212,13 +1214,16 @@ function CheckoutContent({
 
       if (isDonationInitialized(result)) {
         if (checkoutMode === "test") {
-          const didCommit = commitPaymentAttemptState(paymentAttempt, (prev) => ({
-            ...prev,
-            donation: result.donation,
-            error: null,
-            isProcessing: false,
-            step: "success",
-          }));
+          const didCommit = commitPaymentAttemptState(
+            paymentAttempt,
+            (prev) => ({
+              ...prev,
+              donation: result.donation,
+              error: null,
+              isProcessing: false,
+              step: "success",
+            }),
+          );
           if (didCommit) window.scrollTo(0, 0);
           return;
         }
