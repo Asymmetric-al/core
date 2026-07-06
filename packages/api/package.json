@@ -86,6 +86,7 @@
     "./shared/http-errors": "./src/shared/http-errors.ts",
     "./health/app": "./src/health/app.ts",
     "./health/db": "./src/health/db.ts",
+    "./health/crm": "./src/health/crm.ts",
     "./email/connect": "./src/email/connect.ts",
     "./email/test-send": "./src/email/test-send.ts",
     "./email/templates": "./src/email/templates.ts",
