@@ -14,7 +14,7 @@
 CREATE TABLE IF NOT EXISTS public.gift_receipt_records (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-    donation_id UUID NOT NULL REFERENCES public.donations(id) ON DELETE CASCADE,
+    donation_id UUID NOT NULL REFERENCES public.donations(id) ON DELETE RESTRICT,
     receipt_number TEXT NOT NULL,
     status TEXT NOT NULL
         CHECK (status IN ('paid', 'processing', 'pending', 'failed', 'refunded')),
