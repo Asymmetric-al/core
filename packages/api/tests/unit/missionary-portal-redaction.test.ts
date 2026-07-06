@@ -44,9 +44,22 @@ describe("isAnonymousToRecipient — signal resolution", () => {
       }),
     ).toBe(true);
   });
-  it("defaults to NOT anonymous (named) when there is no signal", () => {
-    expect(isAnonymousToRecipient({})).toBe(false);
-    expect(isAnonymousToRecipient({ givingPreferences: null })).toBe(false);
+  it("fails closed to anonymous when the recipient default is absent", () => {
+    expect(isAnonymousToRecipient({})).toBe(true);
+    expect(isAnonymousToRecipient({ givingPreferences: null })).toBe(true);
+    expect(isAnonymousToRecipient({ givingPreferences: {} })).toBe(true);
+    expect(
+      isAnonymousToRecipient({
+        givingPreferences: { defaultAnonymousToRecipient: null },
+      }),
+    ).toBe(true);
+  });
+  it("shows a named donor only with explicit recipient consent", () => {
+    expect(
+      isAnonymousToRecipient({
+        givingPreferences: { defaultAnonymousToRecipient: false },
+      }),
+    ).toBe(false);
   });
 });
 

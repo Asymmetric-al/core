@@ -40,8 +40,9 @@ export function isAnonymousToRecipient(signal: AnonymitySignal): boolean {
   if (typeof signal.giftAnonymousToRecipient === "boolean") {
     return signal.giftAnonymousToRecipient;
   }
-  return Boolean(
-    readPreferences(signal.givingPreferences)?.defaultAnonymousToRecipient,
+  return (
+    readPreferences(signal.givingPreferences)?.defaultAnonymousToRecipient !==
+    false
   );
 }
 

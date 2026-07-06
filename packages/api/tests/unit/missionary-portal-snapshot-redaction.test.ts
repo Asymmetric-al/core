@@ -71,6 +71,39 @@ const namedDonor = {
   giving_preferences: { defaultAnonymousToRecipient: false },
 };
 
+const emptyPrefsDonor = {
+  ...anonDonor,
+  id: "donor-D",
+  name: "Clara Empty",
+  email: "clara.empty@example.com",
+  phone: "+1-555-0300",
+  location: "Lisbon",
+  tags: ["empty-prefs-tag"],
+  giving_preferences: {},
+};
+
+const nullPrefsDonor = {
+  ...anonDonor,
+  id: "donor-E",
+  name: "Null Prefs",
+  email: "null.prefs@example.com",
+  phone: "+1-555-0400",
+  location: "Oslo",
+  tags: ["null-prefs-tag"],
+  giving_preferences: null,
+};
+
+const { giving_preferences: _missingGivingPreferences, ...missingPrefsDonor } =
+  {
+    ...anonDonor,
+    id: "donor-F",
+    name: "Missing Prefs",
+    email: "missing.prefs@example.com",
+    phone: "+1-555-0500",
+    location: "Quito",
+    tags: ["missing-prefs-tag"],
+  };
+
 const donations = [
   {
     id: "gift-A",
@@ -93,6 +126,39 @@ const donations = [
     is_recurring: false,
     gift_date: "2026-07-02",
     created_at: "2026-07-02",
+  },
+  {
+    id: "gift-D",
+    donor_id: "donor-D",
+    amount: 30000,
+    currency: "usd",
+    status: "completed",
+    donation_type: "one_time",
+    is_recurring: false,
+    gift_date: "2026-07-03",
+    created_at: "2026-07-03",
+  },
+  {
+    id: "gift-E",
+    donor_id: "donor-E",
+    amount: 40000,
+    currency: "usd",
+    status: "completed",
+    donation_type: "one_time",
+    is_recurring: false,
+    gift_date: "2026-07-04",
+    created_at: "2026-07-04",
+  },
+  {
+    id: "gift-F",
+    donor_id: "donor-F",
+    amount: 50000,
+    currency: "usd",
+    status: "completed",
+    donation_type: "one_time",
+    is_recurring: false,
+    gift_date: "2026-07-05",
+    created_at: "2026-07-05",
   },
 ];
 
@@ -120,6 +186,74 @@ const tasks = [
       giving_preferences: { defaultAnonymousToRecipient: true },
     },
   },
+  {
+    id: "task-D",
+    missionary_id: "prof-1",
+    donor_id: "donor-D",
+    title: "Send partner update",
+    description: null,
+    task_type: "to_do",
+    status: "not_started",
+    priority: "none",
+    sort_key: 0,
+    due_date: null,
+    completed_at: null,
+    is_auto_generated: false,
+    created_at: "2026-07-01",
+    updated_at: "2026-07-01",
+    donor: {
+      id: "donor-D",
+      name: "Clara Empty",
+      email: "clara.empty@example.com",
+      avatar_url: "https://cdn/d.png",
+      giving_preferences: {},
+    },
+  },
+  {
+    id: "task-E",
+    missionary_id: "prof-1",
+    donor_id: "donor-E",
+    title: "Send partner update",
+    description: null,
+    task_type: "to_do",
+    status: "not_started",
+    priority: "none",
+    sort_key: 0,
+    due_date: null,
+    completed_at: null,
+    is_auto_generated: false,
+    created_at: "2026-07-01",
+    updated_at: "2026-07-01",
+    donor: {
+      id: "donor-E",
+      name: "Null Prefs",
+      email: "null.prefs@example.com",
+      avatar_url: "https://cdn/e.png",
+      giving_preferences: null,
+    },
+  },
+  {
+    id: "task-F",
+    missionary_id: "prof-1",
+    donor_id: "donor-F",
+    title: "Send partner update",
+    description: null,
+    task_type: "to_do",
+    status: "not_started",
+    priority: "none",
+    sort_key: 0,
+    due_date: null,
+    completed_at: null,
+    is_auto_generated: false,
+    created_at: "2026-07-01",
+    updated_at: "2026-07-01",
+    donor: {
+      id: "donor-F",
+      name: "Missing Prefs",
+      email: "missing.prefs@example.com",
+      avatar_url: "https://cdn/f.png",
+    },
+  },
 ];
 
 describe("buildMissionaryPortalSnapshot redaction", () => {
@@ -127,23 +261,43 @@ describe("buildMissionaryPortalSnapshot redaction", () => {
     profile,
     missionary,
     donations,
-    donors: [anonDonor, namedDonor],
+    donors: [
+      anonDonor,
+      namedDonor,
+      emptyPrefsDonor,
+      nullPrefsDonor,
+      missingPrefsDonor,
+    ],
     tasks,
     posts: [],
   } as Parameters<typeof buildMissionaryPortalSnapshot>[0]);
 
-  it("redacts the anonymous donor relationship but keeps the named one", () => {
-    const a = snap.donorRelationships.find((d) => d.id === "donor-A");
+  function expectRedactedRelationship(id: string) {
+    const relationship = snap.donorRelationships.find((d) => d.id === id);
+    expect(relationship?.displayName).toBe("Anonymous donor");
+    expect(relationship?.email).toBeNull();
+    expect(relationship?.phone).toBeNull();
+    expect(relationship?.avatarUrl).toBeNull();
+    expect(relationship?.location).toBeNull();
+    expect(relationship?.tags).toEqual([]);
+  }
+
+  it("redacts anonymous donor relationships but keeps the named one", () => {
+    expectRedactedRelationship("donor-A");
+    expectRedactedRelationship("donor-D");
+    expectRedactedRelationship("donor-E");
+    expectRedactedRelationship("donor-F");
+
     const b = snap.donorRelationships.find((d) => d.id === "donor-B");
-    expect(a?.displayName).toBe("Anonymous donor");
-    expect(a?.email).toBeNull();
-    expect(a?.phone).toBeNull();
     expect(b?.displayName).toBe("Blaise Pascal");
     expect(b?.email).toBe("blaise@example.com");
   });
 
-  it("nulls donorId on the anonymous donor's gift, keeps the named donor's", () => {
+  it("nulls donorId on anonymous donor gifts, keeps the named donor's", () => {
     expect(snap.recentGifts.find((g) => g.id === "gift-A")?.donorId).toBeNull();
+    expect(snap.recentGifts.find((g) => g.id === "gift-D")?.donorId).toBeNull();
+    expect(snap.recentGifts.find((g) => g.id === "gift-E")?.donorId).toBeNull();
+    expect(snap.recentGifts.find((g) => g.id === "gift-F")?.donorId).toBeNull();
     expect(snap.recentGifts.find((g) => g.id === "gift-B")?.donorId).toBe(
       "donor-B",
     );
@@ -155,6 +309,21 @@ describe("buildMissionaryPortalSnapshot redaction", () => {
     expect(s).not.toContain("ada@example.com");
     expect(s).not.toContain("555-0100");
     expect(s).not.toContain("Chiang Mai");
+    expect(s).not.toContain("Clara Empty");
+    expect(s).not.toContain("clara.empty@example.com");
+    expect(s).not.toContain("555-0300");
+    expect(s).not.toContain("Lisbon");
+    expect(s).not.toContain("empty-prefs-tag");
+    expect(s).not.toContain("Null Prefs");
+    expect(s).not.toContain("null.prefs@example.com");
+    expect(s).not.toContain("555-0400");
+    expect(s).not.toContain("Oslo");
+    expect(s).not.toContain("null-prefs-tag");
+    expect(s).not.toContain("Missing Prefs");
+    expect(s).not.toContain("missing.prefs@example.com");
+    expect(s).not.toContain("555-0500");
+    expect(s).not.toContain("Quito");
+    expect(s).not.toContain("missing-prefs-tag");
     // named donor is fine to appear
     expect(s).toContain("Blaise Pascal");
   });
@@ -168,5 +337,17 @@ describe("mapMissionaryTask redaction (also covers standalone task endpoints)", 
     expect(t.donor?.name).toBe("Anonymous donor");
     expect(t.donor?.email).toBeNull();
     expect(JSON.stringify(t)).not.toContain("ada@example.com");
+  });
+
+  it("redacts joined donors when giving_preferences are empty, null, or missing", () => {
+    for (const id of ["task-D", "task-E", "task-F"]) {
+      const task = tasks.find((candidate) => candidate.id === id)!;
+      const mapped = mapMissionaryTask(
+        task as Parameters<typeof mapMissionaryTask>[0],
+      );
+      expect(mapped.donor?.name).toBe("Anonymous donor");
+      expect(mapped.donor?.email).toBeNull();
+      expect(mapped.donor?.avatar_url).toBeNull();
+    }
   });
 });

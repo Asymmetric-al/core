@@ -47,6 +47,50 @@ const namedDonor = {
   giving_preferences: { defaultAnonymousToRecipient: false },
 };
 
+const emptyPrefsDonor = {
+  ...anonDonor,
+  id: "donor-D",
+  name: "Clara Empty",
+  email: "clara.empty@example.com",
+  phone: "+1-555-0300",
+  mobile: "+1-555-0301",
+  location: "Lisbon",
+  address: { street: "3 Empty Lane", city: "Lisbon" },
+  organization: "Empty Prefs Org",
+  notes: "empty prefs private note",
+  tags: ["empty-prefs-tag"],
+  giving_preferences: {},
+};
+
+const nullPrefsDonor = {
+  ...anonDonor,
+  id: "donor-E",
+  name: "Null Prefs",
+  email: "null.prefs@example.com",
+  phone: "+1-555-0400",
+  mobile: "+1-555-0401",
+  location: "Oslo",
+  address: { street: "4 Null Court", city: "Oslo" },
+  organization: "Null Prefs Org",
+  notes: "null prefs private note",
+  tags: ["null-prefs-tag"],
+  giving_preferences: null,
+};
+
+const { giving_preferences: _missingGivingPreferences, ...missingPrefsDonor } = {
+  ...anonDonor,
+  id: "donor-F",
+  name: "Missing Prefs",
+  email: "missing.prefs@example.com",
+  phone: "+1-555-0500",
+  mobile: "+1-555-0501",
+  location: "Quito",
+  address: { street: "5 Missing Road", city: "Quito" },
+  organization: "Missing Prefs Org",
+  notes: "missing prefs private note",
+  tags: ["missing-prefs-tag"],
+};
+
 const otherMissionaryDonor = {
   ...namedDonor,
   id: "donor-C",
@@ -64,6 +108,33 @@ const activities = [
     created_at: "2026-07-01",
     title: "Called Ada",
     note: "ada@example.com follow-up",
+  },
+  {
+    id: "act-D",
+    donor_id: "donor-D",
+    type: "note",
+    date: "2026-07-01",
+    created_at: "2026-07-01",
+    title: "Called Clara Empty",
+    note: "clara.empty@example.com follow-up",
+  },
+  {
+    id: "act-E",
+    donor_id: "donor-E",
+    type: "note",
+    date: "2026-07-01",
+    created_at: "2026-07-01",
+    title: "Called Null Prefs",
+    note: "null.prefs@example.com follow-up",
+  },
+  {
+    id: "act-F",
+    donor_id: "donor-F",
+    type: "note",
+    date: "2026-07-01",
+    created_at: "2026-07-01",
+    title: "Called Missing Prefs",
+    note: "missing.prefs@example.com follow-up",
   },
 ];
 
@@ -85,32 +156,107 @@ const pledges = [
 describe("buildMissionaryDonorRows", () => {
   const rows = buildMissionaryDonorRows({
     missionaryProfileId,
-    donors: [anonDonor, namedDonor, otherMissionaryDonor],
+    donors: [
+      anonDonor,
+      namedDonor,
+      emptyPrefsDonor,
+      nullPrefsDonor,
+      missingPrefsDonor,
+      otherMissionaryDonor,
+    ],
     activities,
     pledges,
   });
 
   it("only returns donors for THIS missionary (tenant/ownership scoping)", () => {
-    expect(rows.map((r) => r.id).sort()).toEqual(["donor-A", "donor-B"]);
+    expect(rows.map((r) => r.id).sort()).toEqual([
+      "donor-A",
+      "donor-B",
+      "donor-D",
+      "donor-E",
+      "donor-F",
+    ]);
   });
 
+  function expectRedactedDonorRow(id: string, rawFragments: string[]) {
+    const row = rows.find((r) => r.id === id)!;
+    expect(row.name).toBe("Anonymous donor");
+    expect(row.email).toBe("");
+    expect(row.phone).toBe("");
+    expect(row.mobile).toBeUndefined();
+    expect(row.avatar_url).toBeUndefined();
+    expect(row.location).toBe("");
+    expect(row.address).toEqual({});
+    expect(row.organization).toBeUndefined();
+    expect(row.notes).toBeUndefined();
+    expect(row.tags).toEqual([]);
+    expect(row.activities).toEqual([]);
+
+    const serialized = JSON.stringify(row);
+    for (const fragment of rawFragments) {
+      expect(serialized).not.toContain(fragment);
+    }
+
+    return row;
+  }
+
   it("redacts the anonymous donor — Anonymous donor + zero identifiers", () => {
-    const a = rows.find((r) => r.id === "donor-A")!;
-    expect(a.name).toBe("Anonymous donor");
-    expect(a.email).toBe("");
-    expect(a.phone).toBe("");
-    expect(a.mobile).toBeUndefined();
-    expect(a.avatar_url).toBeUndefined();
-    expect(a.location).toBe("");
-    expect(a.address).toEqual({});
-    expect(a.organization).toBeUndefined();
-    expect(a.notes).toBeUndefined();
-    expect(a.tags).toEqual([]);
-    expect(a.activities).toEqual([]); // activities carry free-text/PII
+    const a = expectRedactedDonorRow("donor-A", [
+      "Ada",
+      "ada@example.com",
+      "555-0100",
+      "555-0101",
+      "Chiang Mai",
+      "1 Analytical Way",
+      "Babbage",
+      "met at conference",
+      "major-donor",
+      "Called Ada",
+      "follow-up",
+    ]);
     // support stats stay visible (§7.2)
     expect(a.total_given).toBe(50000);
     expect(a.status).toBe("Active");
     expect(a.has_active_pledge).toBe(true);
+  });
+
+  it("redacts donors with empty, null, or missing giving_preferences", () => {
+    expectRedactedDonorRow("donor-D", [
+      "Clara Empty",
+      "clara.empty@example.com",
+      "555-0300",
+      "555-0301",
+      "Lisbon",
+      "3 Empty Lane",
+      "Empty Prefs Org",
+      "empty prefs private note",
+      "empty-prefs-tag",
+      "Called Clara Empty",
+    ]);
+    expectRedactedDonorRow("donor-E", [
+      "Null Prefs",
+      "null.prefs@example.com",
+      "555-0400",
+      "555-0401",
+      "Oslo",
+      "4 Null Court",
+      "Null Prefs Org",
+      "null prefs private note",
+      "null-prefs-tag",
+      "Called Null Prefs",
+    ]);
+    expectRedactedDonorRow("donor-F", [
+      "Missing Prefs",
+      "missing.prefs@example.com",
+      "555-0500",
+      "555-0501",
+      "Quito",
+      "5 Missing Road",
+      "Missing Prefs Org",
+      "missing prefs private note",
+      "missing-prefs-tag",
+      "Called Missing Prefs",
+    ]);
   });
 
   it("shows the named (consented) donor in full", () => {
@@ -120,14 +266,9 @@ describe("buildMissionaryDonorRows", () => {
     expect(b.phone).toBe("+1-555-0200");
   });
 
-  it("leaks NO raw identity of the anonymous donor anywhere in the payload", () => {
-    const a = rows.find((r) => r.id === "donor-A")!;
-    const s = JSON.stringify(a);
-    expect(s).not.toContain("Ada");
-    expect(s).not.toContain("ada@example.com");
-    expect(s).not.toContain("555-0100");
-    expect(s).not.toContain("Chiang Mai");
-    expect(s).not.toContain("Babbage");
-    expect(s).not.toContain("major-donor");
+  it("leaks NO raw identity of anonymous donors anywhere in their payloads", () => {
+    for (const id of ["donor-A", "donor-D", "donor-E", "donor-F"]) {
+      expect(rows.find((r) => r.id === id)?.name).toBe("Anonymous donor");
+    }
   });
 });
