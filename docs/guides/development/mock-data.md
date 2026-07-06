@@ -36,6 +36,20 @@ apps/<app>/lib/mock-data/
 | `POSTS`           | Social feed updates and prayer requests                 | 7     |
 | `ALERTS`          | System notifications                                    | 5     |
 
+### Field Worker Donation Designations
+
+Public field worker IDs such as `miss-001` are route/display identifiers for
+demo worker pages. They must not be sent to checkout as donation designations.
+`getFieldWorkers()` and `getFieldWorkerById()` expose `givingMissionaryId`
+separately so worker CTAs can build checkout URLs with both values:
+
+- `workerId` keeps the public worker page context for display.
+- `missionary_id` is the canonical UUID passed to `/api/donate`.
+
+When replacing mock workers with database-backed workers, keep this split unless
+the public worker route ID is intentionally the same UUID as
+`public.missionaries.id`.
+
 ---
 
 ## Migration to Production
