@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { buildMissionaryDonorRows } from "../../src/missionary-portal/donors";
+import {
+  buildMissionaryDonorRows,
+  getMissionaryDonorRows,
+} from "../../src/missionary-portal/donors";
 
 /**
  * TDD — the missionary "Partners" list is built + redacted SERVER-side so the
@@ -77,19 +80,20 @@ const nullPrefsDonor = {
   giving_preferences: null,
 };
 
-const { giving_preferences: _missingGivingPreferences, ...missingPrefsDonor } = {
-  ...anonDonor,
-  id: "donor-F",
-  name: "Missing Prefs",
-  email: "missing.prefs@example.com",
-  phone: "+1-555-0500",
-  mobile: "+1-555-0501",
-  location: "Quito",
-  address: { street: "5 Missing Road", city: "Quito" },
-  organization: "Missing Prefs Org",
-  notes: "missing prefs private note",
-  tags: ["missing-prefs-tag"],
-};
+const { giving_preferences: _missingGivingPreferences, ...missingPrefsDonor } =
+  {
+    ...anonDonor,
+    id: "donor-F",
+    name: "Missing Prefs",
+    email: "missing.prefs@example.com",
+    phone: "+1-555-0500",
+    mobile: "+1-555-0501",
+    location: "Quito",
+    address: { street: "5 Missing Road", city: "Quito" },
+    organization: "Missing Prefs Org",
+    notes: "missing prefs private note",
+    tags: ["missing-prefs-tag"],
+  };
 
 const otherMissionaryDonor = {
   ...namedDonor,
@@ -270,5 +274,196 @@ describe("buildMissionaryDonorRows", () => {
     for (const id of ["donor-A", "donor-D", "donor-E", "donor-F"]) {
       expect(rows.find((r) => r.id === id)?.name).toBe("Anonymous donor");
     }
+  });
+});
+
+type FakeQueryResult = {
+  data: unknown[] | null;
+  error: { message: string } | null;
+};
+
+class FakeSupabaseQuery {
+  readonly operations: Array<{
+    method: string;
+    column?: string;
+    value?: unknown;
+    values?: unknown[];
+    from?: number;
+    to?: number;
+  }> = [];
+
+  constructor(
+    readonly table: string,
+    private readonly result: FakeQueryResult,
+  ) {}
+
+  select(_columns: string) {
+    this.operations.push({ method: "select" });
+    return this;
+  }
+
+  eq(column: string, value: unknown) {
+    this.operations.push({ method: "eq", column, value });
+    return this;
+  }
+
+  in(column: string, values: unknown[]) {
+    this.operations.push({ method: "in", column, values });
+    return this;
+  }
+
+  order(column: string, options?: unknown) {
+    this.operations.push({ method: "order", column, value: options });
+    return this;
+  }
+
+  range(from: number, to: number) {
+    this.operations.push({ method: "range", from, to });
+    return this;
+  }
+
+  limit(value: number) {
+    this.operations.push({ method: "limit", value });
+    return this;
+  }
+
+  then<TResult1 = FakeQueryResult, TResult2 = never>(
+    onfulfilled?:
+      | ((value: FakeQueryResult) => TResult1 | PromiseLike<TResult1>)
+      | null,
+    onrejected?: ((reason: unknown) => TResult2 | PromiseLike<TResult2>) | null,
+  ) {
+    const rangeOperation = this.operations.find(
+      (operation) => operation.method === "range",
+    );
+    const data =
+      this.result.data && rangeOperation
+        ? this.result.data.slice(
+            rangeOperation.from,
+            (rangeOperation.to ?? -1) + 1,
+          )
+        : this.result.data;
+
+    return Promise.resolve({ ...this.result, data }).then(
+      onfulfilled,
+      onrejected,
+    );
+  }
+}
+
+function createFakeSupabaseAdmin(results: Record<string, FakeQueryResult>) {
+  const queries: Record<string, FakeSupabaseQuery> = {};
+  return {
+    queries,
+    client: {
+      from(table: string) {
+        const query = new FakeSupabaseQuery(table, results[table]!);
+        queries[table] = query;
+        return query;
+      },
+    },
+  };
+}
+
+describe("getMissionaryDonorRows", () => {
+  it("returns a redacted donor page and scopes related rows to page donor ids", async () => {
+    const fake = createFakeSupabaseAdmin({
+      donors: {
+        data: [
+          namedDonor,
+          { ...namedDonor, id: "donor-C", name: "Charles Babbage" },
+          { ...namedDonor, id: "donor-D", name: "Dorothy Vaughan" },
+        ],
+        error: null,
+      },
+      donor_activities: {
+        data: [
+          {
+            id: "act-B",
+            donor_id: "donor-B",
+            type: "note",
+            date: "2026-07-01",
+            created_at: "2026-07-01",
+            title: "Blaise note",
+          },
+          {
+            id: "act-C",
+            donor_id: "donor-C",
+            type: "note",
+            date: "2026-07-02",
+            created_at: "2026-07-02",
+            title: "Charles note",
+          },
+        ],
+        error: null,
+      },
+      donor_pledges: {
+        data: [
+          {
+            id: "pledge-B",
+            donor_id: "donor-B",
+            missionary_id: missionaryProfileId,
+            amount: 50,
+            created_at: "2026-07-01",
+            total_paid: 50,
+            total_expected: 100,
+          },
+        ],
+        error: null,
+      },
+    });
+
+    const page = await getMissionaryDonorRows({
+      supabaseAdmin: fake.client as never,
+      profileId: missionaryProfileId,
+      tenantId: "tenant-1",
+      limit: 2,
+      offset: 0,
+    });
+
+    expect(page.donors.map((donor) => donor.id)).toEqual([
+      "donor-B",
+      "donor-C",
+    ]);
+    expect(page.hasMore).toBe(true);
+    expect(page.nextOffset).toBe(2);
+
+    expect(fake.queries.donor_activities!.operations).toContainEqual({
+      method: "in",
+      column: "donor_id",
+      values: ["donor-B", "donor-C"],
+    });
+    expect(fake.queries.donor_pledges!.operations).toContainEqual({
+      method: "in",
+      column: "donor_id",
+      values: ["donor-B", "donor-C"],
+    });
+  });
+
+  it("throws when a related activity query fails", async () => {
+    const fake = createFakeSupabaseAdmin({
+      donors: {
+        data: [namedDonor],
+        error: null,
+      },
+      donor_activities: {
+        data: null,
+        error: { message: "activity query failed" },
+      },
+      donor_pledges: {
+        data: [],
+        error: null,
+      },
+    });
+
+    await expect(
+      getMissionaryDonorRows({
+        supabaseAdmin: fake.client as never,
+        profileId: missionaryProfileId,
+        tenantId: "tenant-1",
+        limit: 25,
+        offset: 0,
+      }),
+    ).rejects.toThrow("activity query failed");
   });
 });

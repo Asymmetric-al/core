@@ -340,34 +340,72 @@ const DONOR_SELECT = `
   has_active_pledge, giving_preferences
 `;
 
+export interface MissionaryDonorRowsPage {
+  donors: MissionaryDonorRow[];
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
+const DEFAULT_DONOR_PAGE_SIZE = 50;
+const MAX_DONOR_PAGE_SIZE = 100;
+const RELATED_ROWS_LIMIT = 2000;
+
+function normalizePaginationInteger(
+  value: number | null | undefined,
+  fallback: number,
+): number {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
+    return fallback;
+  }
+  return Math.trunc(value);
+}
+
+function normalizeLimit(value: number | null | undefined): number {
+  const normalized = normalizePaginationInteger(value, DEFAULT_DONOR_PAGE_SIZE);
+  return Math.min(Math.max(normalized, 1), MAX_DONOR_PAGE_SIZE);
+}
+
+function normalizeOffset(value: number | null | undefined): number {
+  const normalized = normalizePaginationInteger(value, 0);
+  return Math.max(normalized, 0);
+}
+
+function readPaginationNumber(searchParams: URLSearchParams, key: string) {
+  const value = searchParams.get(key);
+  if (value === null || value.trim() === "") {
+    return null;
+  }
+  return Number(value);
+}
+
+function readDonorRowsPagination(searchParams: URLSearchParams) {
+  return {
+    limit: normalizeLimit(readPaginationNumber(searchParams, "limit")),
+    offset: normalizeOffset(readPaginationNumber(searchParams, "offset")),
+  };
+}
+
 /** Fetch + build the redacted donor rows for the authenticated missionary. */
 export async function getMissionaryDonorRows(input: {
   supabaseAdmin: AdminSupabaseClient;
   profileId: string;
   tenantId: string;
-}): Promise<MissionaryDonorRow[]> {
-  const [donorsRes, activitiesRes, pledgesRes] = await Promise.all([
-    input.supabaseAdmin
-      .from("donors")
-      .select(DONOR_SELECT)
-      .eq("tenant_id", input.tenantId)
-      .eq("missionary_id", input.profileId)
-      .limit(500),
-    input.supabaseAdmin
-      .from("donor_activities")
-      .select(
-        "id, donor_id, type, date, created_at, title, description, amount, status, gift_type, note",
-      )
-      .eq("tenant_id", input.tenantId)
-      .limit(2000),
-    input.supabaseAdmin
-      .from("donor_pledges")
-      .select(
-        "id, donor_id, missionary_id, amount, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method",
-      )
-      .eq("tenant_id", input.tenantId)
-      .limit(2000),
-  ]);
+  limit?: number | null;
+  offset?: number | null;
+}): Promise<MissionaryDonorRowsPage> {
+  const limit = normalizeLimit(input.limit);
+  const offset = normalizeOffset(input.offset);
+  const donorFetchLimit = limit + 1;
+  const donorFetchEnd = offset + donorFetchLimit - 1;
+
+  const donorsRes = await input.supabaseAdmin
+    .from("donors")
+    .select(DONOR_SELECT)
+    .eq("tenant_id", input.tenantId)
+    .eq("missionary_id", input.profileId)
+    .order("name", { ascending: true, nullsFirst: false })
+    .order("id", { ascending: true })
+    .range(offset, donorFetchEnd);
 
   if (donorsRes.error) {
     throw new ApiHttpError(
@@ -376,24 +414,82 @@ export async function getMissionaryDonorRows(input: {
     );
   }
 
-  return buildMissionaryDonorRows({
+  const fetchedDonors = (donorsRes.data ??
+    []) as unknown as MissionaryDonorSourceRow[];
+  const pageDonors = fetchedDonors.slice(0, limit);
+  const donorIds = pageDonors.map((donor) => donor.id);
+  const hasMore = fetchedDonors.length > limit;
+
+  if (donorIds.length === 0) {
+    return {
+      donors: [],
+      hasMore: false,
+      nextOffset: null,
+    };
+  }
+
+  const [activitiesRes, pledgesRes] = await Promise.all([
+    input.supabaseAdmin
+      .from("donor_activities")
+      .select(
+        "id, donor_id, type, date, created_at, title, description, amount, status, gift_type, note",
+      )
+      .eq("tenant_id", input.tenantId)
+      .in("donor_id", donorIds)
+      .order("date", { ascending: false, nullsFirst: false })
+      .order("created_at", { ascending: false })
+      .limit(RELATED_ROWS_LIMIT),
+    input.supabaseAdmin
+      .from("donor_pledges")
+      .select(
+        "id, donor_id, missionary_id, amount, frequency, status, start_date, created_at, end_date, next_payment_date, total_paid, total_expected, payments_completed, payments_remaining, payment_method",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("missionary_id", input.profileId)
+      .in("donor_id", donorIds)
+      .limit(RELATED_ROWS_LIMIT),
+  ]);
+
+  if (activitiesRes.error) {
+    throw new ApiHttpError(
+      500,
+      activitiesRes.error.message || "Unable to load donor activities",
+    );
+  }
+
+  if (pledgesRes.error) {
+    throw new ApiHttpError(
+      500,
+      pledgesRes.error.message || "Unable to load recurring donations",
+    );
+  }
+
+  const donors = buildMissionaryDonorRows({
     missionaryProfileId: input.profileId,
-    donors: (donorsRes.data ?? []) as unknown as MissionaryDonorSourceRow[],
+    donors: pageDonors,
     activities: (activitiesRes.data ??
       []) as unknown as DonorActivitySourceRow[],
     pledges: (pledgesRes.data ?? []) as unknown as DonorPledgeSourceRow[],
   });
+
+  return {
+    donors,
+    hasMore,
+    nextOffset: hasMore ? offset + limit : null,
+  };
 }
 
 export const GET = withOperation(
-  async ({ supabaseAdmin, auth }) => {
+  async ({ supabaseAdmin, auth, request }) => {
     const ctx = auth as AuthenticatedContext;
-    const donors = await getMissionaryDonorRows({
+    const pagination = readDonorRowsPagination(request.nextUrl.searchParams);
+    const page = await getMissionaryDonorRows({
       supabaseAdmin,
       profileId: ctx.profileId,
       tenantId: ctx.tenantId,
+      ...pagination,
     });
-    return NextResponse.json({ donors });
+    return NextResponse.json(page);
   },
   { roles: ["missionary"] },
 );

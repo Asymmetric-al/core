@@ -1,5 +1,6 @@
 "use client";
 
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import {
   useWithinViewTransitionRouteLayer,
   workerHeroImageTransitionName,
@@ -106,7 +107,10 @@ function WorkerCard({
           </h2>
 
           <div className="relative z-30">
-            <QuickGiveInput workerId={worker.id} />
+            <QuickGiveInput
+              missionaryId={worker.givingMissionaryId}
+              workerId={worker.id}
+            />
           </div>
         </div>
       </div>
@@ -409,7 +413,7 @@ export function WorkersPageClient() {
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
             <Link
-              href="/checkout?fund=general"
+              href={buildCheckoutHref({ fundId: "general" })}
               className={cn(
                 buttonVariants({ size: "lg" }),
                 "h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm sm:text-base font-semibold shadow-xl w-full sm:w-auto",

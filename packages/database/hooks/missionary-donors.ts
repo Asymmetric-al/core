@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 
 /**
  * Missionary "Partners" donor rows.
@@ -104,8 +104,23 @@ export interface MissionaryDonorRow {
   is_anonymous?: boolean;
 }
 
-async function fetchMissionaryDonorRows(): Promise<MissionaryDonorRow[]> {
-  const response = await fetch("/api/missionary/donors", {
+interface MissionaryDonorRowsPage {
+  donors: MissionaryDonorRow[];
+  hasMore: boolean;
+  nextOffset: number | null;
+}
+
+const MISSIONARY_DONOR_PAGE_SIZE = 50;
+
+async function fetchMissionaryDonorRowsPage(
+  offset: number,
+): Promise<MissionaryDonorRowsPage> {
+  const searchParams = new URLSearchParams({
+    limit: String(MISSIONARY_DONOR_PAGE_SIZE),
+    offset: String(offset),
+  });
+
+  const response = await fetch(`/api/missionary/donors?${searchParams}`, {
     headers: { accept: "application/json" },
   });
 
@@ -120,22 +135,41 @@ async function fetchMissionaryDonorRows(): Promise<MissionaryDonorRow[]> {
     throw new Error(message);
   }
 
-  const body = (await response.json()) as { donors?: MissionaryDonorRow[] };
-  return body.donors ?? [];
+  const body = (await response.json()) as Partial<MissionaryDonorRowsPage>;
+  return {
+    donors: body.donors ?? [],
+    hasMore: body.hasMore ?? false,
+    nextOffset:
+      typeof body.nextOffset === "number" && Number.isFinite(body.nextOffset)
+        ? body.nextOffset
+        : null,
+  };
 }
 
 export function useMissionaryDonorRows(
   missionaryId: string | null | undefined,
 ) {
-  const query = useQuery({
-    queryKey: ["missionary-donors", missionaryId ?? null],
-    queryFn: fetchMissionaryDonorRows,
+  const query = useInfiniteQuery({
+    queryKey: ["donors", "missionary", missionaryId ?? null, "redacted"],
+    queryFn: ({ pageParam }) => fetchMissionaryDonorRowsPage(pageParam),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.nextOffset ?? undefined,
     enabled: Boolean(missionaryId),
     staleTime: 30_000,
   });
 
+  const data = query.data?.pages.flatMap((page) => page.donors) ?? [];
+
+  async function loadMore() {
+    if (!query.hasNextPage || query.isFetchingNextPage) return;
+    await query.fetchNextPage();
+  }
+
   return {
-    data: (query.data ?? []) as MissionaryDonorRow[],
+    data,
+    hasMore: query.hasNextPage,
+    isLoadingMore: query.isFetchingNextPage,
+    loadMore,
     isLoading: query.isLoading,
     error: (query.error as Error | null) ?? null,
   };
