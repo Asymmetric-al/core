@@ -410,6 +410,48 @@ attempt was a retry and links it to the original batch.
 _Avoid_: Reason fatigue, unclear retry audit, separate reason for same
 correction
 
+**CRM Write Gate**:
+A durable, fail-closed control that decides whether the platform may write to
+the backing CRM provider for a given tenant and domain. It is opened by a
+deliberate staff decision recorded with evidence, and refuses every write
+unless recorded safety preconditions are met. It is a governance and audit
+concept — the durable answer to "why are writes blocked?" — not a code flag.
+_Avoid_: env feature flag, code constant, per-request permission check
+
+**CRM Readiness Gate**:
+The machine-checkable verdict of whether the CRM is safe to write to right now,
+composed from live health and recorded conformance facts. "Not ready" is the
+default; any missing, false, or stale input refuses. On the write path it is
+read as local state, never a live provider probe per write.
+_Avoid_: health dashboard, live provider ping per write, optimistic default
+
+**Reactive Pause**:
+An automatic, health-driven halt of CRM writes for a tenant/domain, distinct
+from the deliberate write gate. It trips only after sustained failure and
+clears only after sustained recovery, so a transient blip never flaps writes on
+and off. The emergency global kill-switch uses the same halt path.
+_Avoid_: manual toggle, single-failure trip, gate open/close
+
+**CRM Healer**:
+The scheduled, self-healing process that reconciles CRM state across tenants,
+auto-repairing only mechanical, reversible, non-money drift and escalating
+everything else. It is the sole prober of provider health. Its steady state is
+quiet — a green, empty operations screen means "handled," not "unwatched."
+_Avoid_: manual reconcile button, auto-merge, cron that only detects
+
+**Disposition Predicate**:
+The single rule that decides whether the healer may auto-repair a drift item or
+must escalate it to a human: auto-heal only when the action is idempotent,
+reversible, non-money, and well-scoped; otherwise escalate. New kinds of drift
+classify themselves by the rule rather than needing a bespoke handler.
+_Avoid_: per-category handler list, heal-everything, escalate-everything
+
+**Proof-of-Health Snapshot**:
+The recorded evidence — who, when, and the green readiness verdict — captured at
+the moment a write gate is opened, so that enabling writes is provably a
+deliberate decision made against a healthy system.
+_Avoid_: unrecorded toggle, after-the-fact assertion, design-claim readiness
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

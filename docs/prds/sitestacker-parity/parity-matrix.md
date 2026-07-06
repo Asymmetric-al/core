@@ -64,7 +64,11 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 - **Benchmark:** SiteStacker Ministry CRM as the operational system of record.
   (s) cite specific CRM docs page.
 - **Current state:** Twenty adopted as internal CRM subsystem behind Asym
-  server boundaries; foundation built (phase 04). (v)
+  server boundaries; foundation built (phase 04). The **operating foundation**
+  (readiness/write-gate, multi-tenant self-healing reconcile, `/crm/operations`)
+  plus the first reversible production write (Notes) are groomed as **Phase 8**
+  (`phase-08-crm-operating-foundation.md`), hard-gated on Phase 4 + Phase 6
+  shipping. (v)
 - **Depends on:** — (foundational).
 - **Acceptance test:** staff can create/read core CRM records through native
   Mission Control, backed by Twenty, with tenant isolation.

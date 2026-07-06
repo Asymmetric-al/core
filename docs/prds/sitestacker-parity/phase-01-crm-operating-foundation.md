@@ -1,5 +1,7 @@
 # Phase 1 — CRM Operating Foundation (PRD)
 
+> **⚠️ SUPERSEDED — do not build from this file.** This groomed-but-unbuilt PRD is superseded by **Phase 8 — CRM Operating Foundation** ([`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md)), which carries the same operating-foundation goals **plus** the write-enable + operations work this file reserved for "Phase 8+". Retained for history only — build from the Phase 8 PRD.
+
 **Program:** SiteStacker Parity. **Phase:** 1 of the parity roadmap (CRM
 truth). **Status:** decision-complete, ready for implementation.
 

@@ -74,6 +74,11 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   provisional build order permits. Phase 7 **hard-depends on the Phase 4
   isolation-hardening foundation shipping first** (firm dependency: Phase 4
   foundation → Phase 7).
+- **Phase 8 (CRM Operating Foundation)** is groomed and committed — the
+  operating foundation (readiness/self-healing, `/crm/operations`) + the first
+  reversible production write (Notes). It **hard-depends on Phase 4 and Phase 6
+  shipping first**, and **supersedes** the earlier
+  `phase-01-crm-operating-foundation.md`.
 
 ## Files in this program
 
@@ -87,6 +92,12 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   Identity/Credit Model): a rules-first receipt/statement engine + the full
   donor credit model. Groomed and committed; tracked by epic #566 + children
   #567–#586.
+- [`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md)
+  — the Phase 8 plan (CRM Operating Foundation: readiness/self-healing +
+  Notes write-enable): a fail-closed write gate, a multi-tenant self-healing
+  reconcile healer, a read-only `/crm/operations` windowpane, and the first
+  reversible production write (Notes). Groomed and committed; hard-depends on
+  Phase 4 + Phase 6 shipping; supersedes `phase-01-crm-operating-foundation.md`.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
