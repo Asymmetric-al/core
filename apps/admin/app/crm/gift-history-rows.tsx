@@ -37,7 +37,7 @@ export function GiftHistoryRows({
           No gifts match the current view filters.
         </p>
       ) : null}
-      {giftRows.slice(0, 6).map((gift) => {
+      {giftRows.map((gift) => {
         const shared = gift.shared;
         const formattedAmount = formatSharedContributionAmount(
           shared.amountCents,

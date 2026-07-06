@@ -21,7 +21,7 @@ Use precise wording in PRs and release notes:
 
 - Correct: "React Doctor passes for the configured first-party audit."
 - Correct: "Known ignores are documented in `docs/guides/development/react-doctor.md`."
-- Correct: "`failOn` is advisory unless CI runs a stricter mode."
+- Correct: "`blocking` is advisory unless CI runs a stricter mode."
 - Avoid: "React Doctor proves the repo is 100/100 clean" unless every enabled and disabled rule has been audited and there are no ignored findings.
 
 The default command accepts legacy `--fail-on none` and normalizes it to the current React Doctor `--blocking none` flag; `doctor.config.json` also sets `"blocking": "none"`. That keeps the audit useful during cleanup without turning every advisory rule into a local blocker. CI or a focused cleanup PR may choose a stricter mode later.
@@ -51,7 +51,7 @@ The ignore list is intentionally human-readable here because `doctor.config.json
 - [ ] React Doctor reports the expected score for each configured package target under the configured audit.
 - [ ] Any remaining findings are either fixed or documented as known exceptions.
 - [ ] Any new ignored rule has a repo-specific reason and is not masking a known bug.
-- [ ] `failOn` behavior is described honestly in the PR summary.
+- [ ] `blocking` behavior is described honestly in the PR summary.
 - [ ] Relevant format/lint/typecheck/build/test commands have been run for touched surfaces.
 
 ## Narrowed Rules

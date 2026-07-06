@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { deriveGiftHistoryRows } from "../../../../../packages/api/src/admin/crm/gift-history-row-model";
+import { deriveGiftHistoryRows } from "@asym/api/admin/crm/gift-history-row-model";
 
 import type {
   CrmGiftHistoryFiltersSortSettings,

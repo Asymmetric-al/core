@@ -5,6 +5,7 @@
     "": {
       "name": "give-hope",
       "dependencies": {
+        "@asym/api": "workspace:*",
         "@asym/auth": "workspace:*",
         "@asym/config": "workspace:*",
         "@asym/database": "workspace:*",

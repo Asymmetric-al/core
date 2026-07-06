@@ -149,6 +149,7 @@
     "postinstall": "node scripts/dedupe-tanstack-db.mjs"
   },
   "dependencies": {
+    "@asym/api": "workspace:*",
     "@asym/auth": "workspace:*",
     "@asym/config": "workspace:*",
     "@asym/database": "workspace:*",

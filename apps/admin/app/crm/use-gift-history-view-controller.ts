@@ -16,7 +16,6 @@ import {
   useUpdateCrmNamedView,
 } from "@asym/database/hooks";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { toast } from "sonner";
 
 import {
   viewMutationErrorToast,
@@ -129,25 +128,13 @@ export function useGiftHistoryViewController({
 
   const pinRowAction = (actionId: string | null) => {
     savePinMutation.mutate(actionId, {
-      onError: (error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save the pinned row action.",
-        );
-      },
+      onError: viewMutationErrorToast,
     });
   };
 
   const saveViewSettings = (patch: ViewSettingsPatch) => {
     saveViewSettingsMutate(patch, {
-      onError: (error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save view settings.",
-        );
-      },
+      onError: viewMutationErrorToast,
     });
   };
 

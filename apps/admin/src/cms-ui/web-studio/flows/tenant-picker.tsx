@@ -140,11 +140,9 @@ export function useSuperAdminTenantOptions() {
 
   return {
     isSuperAdmin,
-    tenantsQuery: {
-      data,
-      error,
-      isError,
-      isPending,
-    },
+    tenants: data ?? [],
+    tenantsError: error,
+    tenantsIsError: isError,
+    tenantsIsPending: isPending,
   };
 }
