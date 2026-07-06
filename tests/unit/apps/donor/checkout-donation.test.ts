@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-// eslint-disable-next-line no-restricted-imports -- This app-scoped unit test covers the donor checkout helper before it is promoted to a package.
+// eslint-disable-next-line no-restricted-imports -- TODO(checkout-donation): app-scoped unit test covers the donor checkout helper before package promotion.
 import {
   buildCheckoutRequestFingerprint,
   buildDonateRequestBody,
