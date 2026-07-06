@@ -110,6 +110,7 @@ type CheckoutState = {
   paymentMethod: PaymentMethod;
   startDate: string;
   step: Step;
+  successSnapshot: PaymentSuccessSnapshot | null;
 };
 type CheckoutStripeOverride = {
   cardElement?: React.ReactNode;
@@ -120,13 +121,41 @@ type CheckoutStripeOverride = {
 type PaymentAttempt = {
   fingerprint: string;
   id: number;
+  successSnapshot: PaymentSuccessSnapshot;
 };
+type PaymentSuccessSnapshot = Readonly<{
+  donorInfo: Readonly<DonorInfo>;
+  total: number;
+  workerTitle: string;
+}>;
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
 const STRIPE_FEE_PERCENT = 0.029;
 const STRIPE_FEE_FIXED = 0.3;
 const PAYMENT_PROCESSING_MESSAGE =
   "Your contribution is still processing — we'll email your receipt once it's confirmed.";
+
+const resolveSuccessWorkerTitle = (
+  worker: { title?: string } | null | undefined,
+): string => worker?.title || "our global mission";
+
+const createPaymentSuccessSnapshot = ({
+  donorInfo,
+  total,
+  workerTitle,
+}: {
+  donorInfo: DonorInfo;
+  total: number;
+  workerTitle: string;
+}): PaymentSuccessSnapshot => ({
+  donorInfo: {
+    email: donorInfo.email,
+    firstName: donorInfo.firstName,
+    lastName: donorInfo.lastName,
+  },
+  total,
+  workerTitle,
+});
 
 const readSearchParam = (value: SearchParamInput): string | null => {
   if (typeof value === "string") return value;
@@ -1008,6 +1037,7 @@ function CheckoutContent({
     paymentMethod: "card",
     startDate: "",
     step: "config",
+    successSnapshot: null,
   }));
   const {
     amount,
@@ -1023,6 +1053,7 @@ function CheckoutContent({
     paymentMethod,
     startDate,
     step,
+    successSnapshot,
   } = checkoutState;
   const checkoutStateRef = useRef(checkoutState);
   const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
@@ -1164,6 +1195,7 @@ function CheckoutContent({
         error: null,
         isProcessing: false,
         step: "success" as const,
+        successSnapshot: attempt.successSnapshot,
       };
       activePaymentAttemptRef.current = null;
       checkoutStateRef.current = next;
@@ -1191,6 +1223,7 @@ function CheckoutContent({
           "Checkout details changed while payment was processing. Please review your details and try again.",
         isProcessing: false,
         step: "payment" as const,
+        successSnapshot: null,
       };
 
       activePaymentAttemptRef.current = null;
@@ -1255,9 +1288,15 @@ function CheckoutContent({
     }
 
     const requestFingerprint = currentRequestFingerprint;
+    const attemptSuccessSnapshot = createPaymentSuccessSnapshot({
+      donorInfo,
+      total,
+      workerTitle: resolveSuccessWorkerTitle(worker),
+    });
     const paymentAttempt = {
       fingerprint: requestFingerprint,
       id: paymentAttemptIdRef.current + 1,
+      successSnapshot: attemptSuccessSnapshot,
     };
     paymentAttemptIdRef.current = paymentAttempt.id;
     activePaymentAttemptRef.current = paymentAttempt;
@@ -1275,6 +1314,7 @@ function CheckoutContent({
       idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
+      successSnapshot: null,
     };
     setCheckoutState((prev) => ({
       ...prev,
@@ -1283,6 +1323,7 @@ function CheckoutContent({
       idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
+      successSnapshot: null,
     }));
 
     try {
@@ -1326,6 +1367,7 @@ function CheckoutContent({
               error: null,
               isProcessing: false,
               step: "success",
+              successSnapshot: paymentAttempt.successSnapshot,
             }),
           );
           if (didCommit) window.scrollTo(0, 0);
@@ -1481,15 +1523,15 @@ function CheckoutContent({
   }
 
   // Success renders ONLY when Stripe confirmation has accepted the initialized
-  // donation. If we are on the success step without donation state, something is wrong —
-  // fall through to the checkout rather than showing an unbacked confirmation.
-  if (step === "success" && donation) {
+  // donation and the attempt has the immutable values that should be confirmed.
+  // If either is missing, fall through rather than showing an unbacked receipt.
+  if (step === "success" && donation && successSnapshot) {
     return (
       <SuccessView
-        donorInfo={donorInfo}
+        donorInfo={successSnapshot.donorInfo}
         mode={checkoutMode}
-        total={total}
-        workerTitle={worker?.title || "our global mission"}
+        total={successSnapshot.total}
+        workerTitle={successSnapshot.workerTitle}
       />
     );
   }

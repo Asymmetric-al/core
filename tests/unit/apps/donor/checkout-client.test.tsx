@@ -370,9 +370,12 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(
       await screen.findByRole("heading", { name: /contribution confirmed/i }),
     ).toBeTruthy();
+    expect(screen.getByText("$100.00")).toBeTruthy();
+    expect(screen.getByText(/ada@example\.com/i)).toBeTruthy();
+    expect(screen.getByText(/unit test worker/i)).toBeTruthy();
   });
 
-  it("commits a succeeded Stripe confirmation from the original attempt after checkout params rerender", async () => {
+  it("renders the original attempt snapshot after checkout params rerender", async () => {
     let resolveConfirmation:
       | ((value: { paymentIntent: { status: string } }) => void)
       | null = null;
@@ -407,7 +410,11 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     view.rerender(
       <CheckoutPageClient
-        searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
+        searchParams={{
+          amount: "250",
+          missionary_id: TEST_MISSIONARY_ID,
+          workerId: TEST_WORKER_ID,
+        }}
         stripeOverride={{
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
@@ -425,6 +432,10 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(
       await screen.findByRole("heading", { name: /contribution confirmed/i }),
     ).toBeTruthy();
+    expect(screen.getByText("$100.00")).toBeTruthy();
+    expect(screen.queryByText("$250.00")).toBeNull();
+    expect(screen.getByText(/our global mission/i)).toBeTruthy();
+    expect(screen.queryByText(/unit test worker/i)).toBeNull();
     expect(screen.queryByRole("alert")).toBeNull();
     expect(fetchMock()).toHaveBeenCalledTimes(1);
   });
