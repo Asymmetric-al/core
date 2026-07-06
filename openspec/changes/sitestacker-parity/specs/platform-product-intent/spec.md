@@ -31,3 +31,32 @@ sponsorship is out of scope.
 - THEN its detailed behavior is specified in its own OpenSpec change and PRD at
   that time
 - AND the parity matrix records its built, live, and confirmed status separately
+
+### Requirement: The Parity Program's Phase Architecture Is Governed By One Roadmap
+
+The SiteStacker parity program MUST govern its phase set, numbering,
+ordering, and dependencies through a single roadmap source of truth
+(`docs/prds/sitestacker-parity/roadmap.md`, Roadmap v2 adopted 2026-07-07;
+`phase-map.md` is its compact mirror and loses on conflict). New PRDs, issues,
+and tickets MUST cite phases as "Phase N (Name)" — never a bare number — and
+MUST start from the roadmap's per-phase scope section. Dependencies gate phase
+starts, not numbers. Any re-sequencing of the roadmap MUST land as a new
+roadmap revision carrying an old→new renumbering map together with a
+same-commit congruence sweep of every live document and open issue that cites
+a moved number; partial renumbering MUST NOT occur. Documents dated before a
+renumbering are read through the roadmap's mapping table rather than edited
+retroactively where they are historical records.
+
+#### Scenario: A new phase PRD is groomed
+
+- WHEN a phase moves into grooming
+- THEN the PRD starts from that phase's roadmap scope section, cites phases as
+  "Phase N (Name)", extends the Phase 1 ownership matrix if it introduces a new
+  record type, and reserves the seams the roadmap names for later phases
+
+#### Scenario: The program is re-sequenced
+
+- WHEN phase numbering or ordering changes
+- THEN the change lands as a roadmap revision with an old→new mapping table and
+  a same-commit congruence sweep of live PRDs, program docs, and open issues
+- AND no document or issue is left citing a moved number without the mapping

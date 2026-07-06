@@ -17,6 +17,18 @@
 - [x] 2.4 This OpenSpec entry + durable requirement.
 - [x] 2.5 Add `SiteStacker parity` to `CONTEXT.md`.
 
+## 2b. Roadmap v2 (2026-07-07)
+
+- [x] 2b.1 Adopt Roadmap v2 (`docs/prds/sitestacker-parity/roadmap.md`) as the
+      source of truth for phase architecture (41 phases, 0–40; v1→v2
+      renumbering map; per-phase scope sections).
+- [x] 2b.2 Rewrite `phase-map.md` as the compact mirror.
+- [x] 2b.3 Same-commit congruence sweep of live PRDs/docs and open issues
+      (#604–#618, #621, #624, #625) to v2 numbering; decoder comment on epic
+      #604.
+- [x] 2b.4 Record the roadmap-governance durable requirement in this change's
+      `platform-product-intent` delta.
+
 ## 3. Verification
 
 - [x] 3.1 `bunx @fission-ai/openspec@latest validate --strict` passes for this

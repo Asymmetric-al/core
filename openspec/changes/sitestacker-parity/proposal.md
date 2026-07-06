@@ -19,9 +19,18 @@ platform boundaries already warn against.
 - The program's operating detail (charter, 25-area matrix, Phase 0 plan) lives
   in `docs/prds/sitestacker-parity/`; the baseline truth lives in
   `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`.
+- **Amended 2026-07-07 (Roadmap v2):** add a second durable requirement
+  recording that the program's phase architecture (41 phases, 0–40) is
+  governed by one roadmap source of truth
+  (`docs/prds/sitestacker-parity/roadmap.md`), with `phase-map.md` as its
+  compact mirror, "Phase N (Name)" citation discipline, and a mandatory
+  renumbering-map + congruence-sweep rule for any future re-sequencing.
+  Roadmap v2 renumbered every phase above 9; pre-2026-07-07 documents citing
+  higher numbers are decoded via the roadmap's v1→v2 map.
 
 ## Impact
 
 - Affected specs: `platform-product-intent`
-- Affected docs: `docs/prds/sitestacker-parity/**`, the Phase 0 evidence file
-- No product code changes (Phase 0 is baseline + governance only).
+- Affected docs: `docs/prds/sitestacker-parity/**` (including `roadmap.md`,
+  the source of truth for phase architecture), the Phase 0 evidence file
+- No product code changes (this change is baseline + governance only).
