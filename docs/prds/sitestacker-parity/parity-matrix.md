@@ -71,8 +71,10 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   screens already run on Asym tables; the notes/relationships read-throughs
   re-point to local SQL in Phase 9. The **operating foundation**
   (`/crm/operations`, health, alerting) remains **Phase 8**
-  (`phase-08-crm-operating-foundation.md`), whose scope is being re-groomed
-  under ADR-0001 (#603; the Notes write-enable tranche is withdrawn). (v)
+  (`phase-08-crm-operating-foundation.md`), **re-groomed 2026-07-07 (#603)**
+  into the CRM Operations Observability & Data-Health Foundation — the Twenty
+  write-enable spine withdrawn (→ #602), observability + escalation over the
+  shipped Inngest recovery kept. (v)
 - **Depends on:** — (foundational).
 - **Acceptance test:** staff can create/read core CRM records through native
   Mission Control **on Asym Postgres**, with tenant isolation.

@@ -87,16 +87,20 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   foundation, the Phase 6 communication-event spine + `sendEmail` seam, and
   the Phase 3 consent gate (PR #502) shipping first** (the PRD's hard
   prerequisites C1–C3).
-- **Phase 8 (CRM Operating Foundation)** is groomed but **scope-amended
-  (2026-07-06):** the Twenty write-enable tranche (Notes) is withdrawn by
-  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md) —
-  Asym Postgres owns all CRM truth and Twenty CRM is retired as a product
-  dependency. The surviving operating-foundation concerns (staff operations
-  visibility, CRM data health (Asym-internal), alert routing) are re-groomed
-  against Asym-internal subjects before any build starts (re-groom pending,
-  #603). It
-  **hard-depends on Phase 4 and Phase 6 shipping first**, and **supersedes**
-  the earlier `phase-01-crm-operating-foundation.md`.
+- **Phase 8 (CRM Operating Foundation)** was **re-groomed 2026-07-07 (#603
+  complete)** under
+  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md).
+  With Twenty retired and Asym Postgres owning all CRM truth, the Twenty
+  write-enable spine is **withdrawn** (dormant code → #602) and the phase is
+  reframed to the **CRM Operations Observability & Data-Health Foundation**: a
+  read-only `/crm/operations` windowpane, escalation over the shipped Inngest
+  recovery machinery (no second healer), alert routing (Sentry + the Phase-6
+  seam), and the CRM data-health catalog Phase 40 later builds on. Its
+  **build-now core has no hard prerequisite** (it observes Asym's shipped
+  runtime + the Phase-4 merge count); Phase 6 gates the emailed-alert path and
+  Phase 9 gates the reserved party-graph-health sockets. Issues re-scoped
+  2026-07-07 (epic #587; #590/#591/#594/#598 closed). **Supersedes** the
+  earlier `phase-01-crm-operating-foundation.md`.
 
 ## Files in this program
 
@@ -139,13 +143,15 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   donor credit model. Groomed and committed; tracked by epic #566 + children
   #567–#586.
 - [`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md)
-  — the Phase 8 plan (CRM Operating Foundation). **Scope amended 2026-07-06
-  ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)):**
-  the Notes write-enable tranche is withdrawn; the surviving concerns (staff
-  operations visibility, CRM data health (Asym-internal), alert routing) are
-  re-groomed against Asym-internal subjects (re-groom pending, #603 — do not
-  build from the PRD until the re-groomed version lands). Hard-depends on
-  Phase 4 + Phase 6 shipping; supersedes
+  — the Phase 8 plan, **re-groomed 2026-07-07 (#603 complete,
+  [ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md))**
+  into the **CRM Operations Observability & Data-Health Foundation**: a
+  read-only `/crm/operations` windowpane, escalation over the shipped Inngest
+  recovery (no second healer), alert routing (Sentry + Phase-6 seam), and the
+  CRM data-health catalog Phase 40 builds on. The Twenty write-enable spine is
+  withdrawn (→ #602). The build-now core has no hard prerequisite; Phase 6/9
+  gate the reserved sockets. Tracked by epic #587 (children #588–#601;
+  #590/#591/#594/#598 closed at the re-groom). Supersedes
   `phase-01-crm-operating-foundation.md`.
 - [`phase-09-full-crm-depth-relationship-graph.md`](./phase-09-full-crm-depth-relationship-graph.md)
   — the Phase 9 plan (Full CRM Depth & Relationship Graph): the People &

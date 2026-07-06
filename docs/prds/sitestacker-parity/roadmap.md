@@ -129,7 +129,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                 | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                       |
 | **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5              | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                       |
 | **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3) | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                       |
-| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md)                                                                | **4, 6**                | 3, 7 (inherited seams)                                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists`; **re-groom pending (#603, ADR-0001)**            |
+| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)   | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
 | **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**             | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                           |
 | **10** | `sensitive-safety`           | Sensitive-Data Classification & Restricted-Ministry Safety Foundation                                                             | 3, 9                    | 4, 6                                                  | Mission Control, security projections, Member Care seams        | `future (needs PRD)` — **new in v2**                           |
 | **11** | `custom-fields`              | Custom CRM Fields & Configurable Entities                                                                                         | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `future (needs PRD)`                                           |
@@ -424,22 +424,33 @@ receipt truth.
 
 ### Phase 8 — CRM Operating Foundation (`crm-operating`)
 
-**What it is.** The CRM operations layer in Mission Control: staff
-operations visibility, CRM data health, duplicate queues, merge-workbench
-readiness, RLS/tenant-guard state, alert routing. **Scope amended by
-ADR-0001** — the Twenty write-enable tranche is withdrawn; the surviving
-concerns are re-groomed against **Asym-internal** subjects (no provider
-gates, no provider readiness, internal CRM health only).
+**What it is (re-groomed 2026-07-07).** With Twenty retired (ADR-0001) and
+Asym Postgres owning all CRM truth, there is no provider to write to, gate,
+probe, or sync — so the phase is reframed from "safely open the first write
+to a provider" to the **CRM Operations Observability & Data-Health
+Foundation**: a read-only `/crm/operations` windowpane (health verdict +
+data-health signals + duplicate/merge backlog + a needs-a-human list),
+**escalation over the shipped Inngest recovery machinery** (it reuses that
+runtime — it does _not_ fork a second healer), alert routing (Sentry + the
+Phase-6 send seam), and the **CRM data-health catalog** that Phase 40 builds
+its stewardship product on. The one net-new active heal it owns —
+re-projecting a stale derived view — is reserved until Phase 9 makes derived
+views exist. Withdrawn (dormant code → #602): the write gate,
+provider-idempotency, reactive pause, kill-switch, provider-health probing,
+and Notes write-enable.
 
-**Status.** `PRD exists` with amendment banner
+**Status.** `PRD exists` — re-groomed 2026-07-07 (#603 complete)
 ([`phase-08-crm-operating-foundation.md`](./phase-08-crm-operating-foundation.md),
-epic #587); **re-groom pending (#603)** — do not build from the current PRD.
-Phase 9 does **not** wait on the re-groom (soft, operations-visibility-only
-dependency).
+epic #587). Issues re-scoped 2026-07-07 (#588/#589/#592/#593/#595/#596/#597/
+#600/#601 re-scoped; #590/#591/#594/#598 closed).
 
-**v2 note.** The re-groom should also absorb this roadmap's framing: Phase 8
-is the natural home of the _data-health queue_ infrastructure that Phase 40's
-AI stewardship later builds on.
+**Dependencies (softened at the re-groom).** The build-now core has **no
+hard prerequisite** — it observes Asym's already-shipped runtime
+(dispatch/dead-letter ledgers, recovery scans, the notification-policy
+console) and the Phase-4 merge count. Phase 6 gates the emailed-alert path;
+Phase 9 gates the reserved party-graph-health signals and the reserved
+re-projection heal. Phase 40 (AI stewardship) hard-depends on the
+data-health catalog this phase defines.
 
 ---
 
@@ -2255,10 +2266,11 @@ term when Core already has an equivalent.
   executive summary of deltas, an updated mapping table if numbers move, and
   a same-commit congruence sweep. Small factual updates (a phase gets its
   PRD; an epic number lands) are normal edits, not revisions.
-- **Grooming order recommendation** (as of v2): re-groom Phase 8 (#603)
-  first; then Phase 10 (safety foundation) before any Phase 11 grooming; the
-  money lane (13) can be groomed in parallel with 10–12. Phase 9's PRD is the
-  live pattern for how deep a phase grooming should go.
+- **Grooming order recommendation** (updated 2026-07-07): Phase 8 is
+  re-groomed (#603 complete); **next is Phase 10** (the sensitive-data safety
+  foundation) before any Phase 11 grooming; the money lane (13) can be groomed
+  in parallel with 10–12. Phase 9's PRD is the live pattern for how deep a
+  phase grooming should go.
 - **Every new PRD starts here:** read this roadmap's phase section + the
   phase-map guardrails + the Core glossary; translate all competitor
   terminology; extend the Phase 1 ownership matrix if the phase introduces a
