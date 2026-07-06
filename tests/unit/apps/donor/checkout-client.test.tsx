@@ -539,6 +539,54 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect((unlockedConfirmButton as HTMLButtonElement).disabled).toBe(false);
   });
 
+  it("unlocks a stale failed request after checkout params rerender", async () => {
+    let rejectDonationRequest: ((reason?: unknown) => void) | null = null;
+    const donationRequestPromise = new Promise<Response>((_resolve, reject) => {
+      rejectDonationRequest = reject;
+    });
+    fetchMock().mockReturnValue(donationRequestPromise);
+
+    const view = renderCheckout({
+      amount: "100",
+      fund_id: TEST_FUND_ID,
+    });
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+
+    await act(async () => {
+      view.rerender(
+        <CheckoutPageClient
+          searchParams={{ amount: "100", fund_id: TEST_OTHER_FUND_ID }}
+          stripeOverride={{
+            cardElement: <div data-testid="stripe-card-element" />,
+            elements: stripeState.elements,
+            mode: "live",
+            stripe: stripeState.stripe,
+          }}
+        />,
+      );
+    });
+
+    await act(async () => {
+      rejectDonationRequest?.(new Error("Network unavailable"));
+      await donationRequestPromise.catch(() => null);
+    });
+
+    const retryableError = await screen.findByRole("alert");
+    expect(retryableError.textContent).toMatch(/checkout details changed/i);
+    expect(retryableError.textContent).toMatch(/try again/i);
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+
+    const unlockedBackButton = screen.getByRole("button", { name: /^back$/i });
+    const unlockedConfirmButton = screen.getByRole("button", {
+      name: /confirm/i,
+    });
+    expect((unlockedBackButton as HTMLButtonElement).disabled).toBe(false);
+    expect((unlockedConfirmButton as HTMLButtonElement).disabled).toBe(false);
+  });
+
   it("keeps the donor on payment with a visible error when Stripe confirmation fails", async () => {
     fetchMock().mockImplementation(initializedDonationResponse);
     stripeState.stripe.confirmCardPayment.mockResolvedValue({

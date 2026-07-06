@@ -1517,6 +1517,11 @@ function CheckoutContent({
         isProcessing: false,
       }));
     } catch {
+      if (!isPaymentAttemptActive(paymentAttempt)) {
+        exitStalePaymentAttempt(paymentAttempt);
+        return;
+      }
+
       commitPaymentAttemptState(paymentAttempt, (prev) => ({
         ...prev,
         error:
