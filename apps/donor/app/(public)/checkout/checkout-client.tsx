@@ -108,6 +108,7 @@ type CheckoutState = {
   idempotencyKey: string | null;
   isProcessing: boolean;
   paymentMethod: PaymentMethod;
+  postalCode: string;
   startDate: string;
   step: Step;
   successSnapshot: PaymentSuccessSnapshot | null;
@@ -722,7 +723,9 @@ function PaymentStep({
   onBack,
   onConfirmPayment,
   onPaymentMethodChange,
+  onPostalCodeChange,
   paymentMethod,
+  postalCode,
   stripe,
   total,
 }: {
@@ -737,7 +740,9 @@ function PaymentStep({
     elements: StripeElements | null,
   ) => void;
   onPaymentMethodChange: (value: PaymentMethod) => void;
+  onPostalCodeChange: (value: string) => void;
   paymentMethod: PaymentMethod;
+  postalCode: string;
   stripe: Stripe | null;
   total: number;
 }) {
@@ -875,6 +880,12 @@ function PaymentStep({
                       placeholder="12345"
                       className="h-16 rounded-2xl bg-white border-none shadow-sm font-medium px-6 focus:ring-4 focus:ring-zinc-900/5"
                       autoComplete="postal-code"
+                      disabled={isProcessing}
+                      inputMode="numeric"
+                      onChange={(event) =>
+                        onPostalCodeChange(event.target.value)
+                      }
+                      value={postalCode}
                     />
                   </div>
                 </div>
@@ -1035,6 +1046,7 @@ function CheckoutContent({
     idempotencyKey: null,
     isProcessing: false,
     paymentMethod: "card",
+    postalCode: "",
     startDate: "",
     step: "config",
     successSnapshot: null,
@@ -1051,6 +1063,7 @@ function CheckoutContent({
     hasEndDate,
     isProcessing,
     paymentMethod,
+    postalCode,
     startDate,
     step,
     successSnapshot,
@@ -1072,6 +1085,8 @@ function CheckoutContent({
     );
   const setDonorInfo = (value: DonorInfo) =>
     setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
+  const setPostalCode = (value: string) =>
+    setCheckoutState((prev) => ({ ...prev, postalCode: value }));
 
   const calculatedFees = useMemo(() => {
     const gross = (amount + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_PERCENT);
@@ -1094,6 +1109,7 @@ function CheckoutContent({
         fundId,
         missionaryId,
         paymentMethod,
+        postalCode,
         startDate,
       }),
     [
@@ -1106,6 +1122,7 @@ function CheckoutContent({
       fundId,
       hasEndDate,
       paymentMethod,
+      postalCode,
       startDate,
       total,
       missionaryId,
@@ -1358,6 +1375,8 @@ function CheckoutContent({
       const result = interpretDonateResponse(response.status, payload);
 
       if (isDonationInitialized(result)) {
+        const trimmedPostalCode = postalCode.trim();
+
         if (checkoutMode === "test") {
           const didCommit = commitPaymentAttemptState(
             paymentAttempt,
@@ -1410,15 +1429,24 @@ function CheckoutContent({
           return;
         }
 
+        const billingDetails = {
+          ...(trimmedPostalCode
+            ? {
+                address: {
+                  postal_code: trimmedPostalCode,
+                },
+              }
+            : {}),
+          email: donorInfo.email,
+          name: `${donorInfo.firstName} ${donorInfo.lastName}`.trim(),
+        };
+
         const confirmation = await stripe.confirmCardPayment(
           result.donation.clientSecret,
           {
             payment_method: {
               card: cardElement,
-              billing_details: {
-                email: donorInfo.email,
-                name: `${donorInfo.firstName} ${donorInfo.lastName}`.trim(),
-              },
+              billing_details: billingDetails,
             },
           },
         );
@@ -1581,6 +1609,8 @@ function CheckoutContent({
                       onConfirmPayment={handlePayment}
                       onPaymentMethodChange={setPaymentMethod}
                       paymentMethod={paymentMethod}
+                      postalCode={postalCode}
+                      onPostalCodeChange={setPostalCode}
                       stripe={stripeOverride.stripe}
                       total={total}
                     />
@@ -1594,6 +1624,8 @@ function CheckoutContent({
                         onConfirmPayment={handlePayment}
                         onPaymentMethodChange={setPaymentMethod}
                         paymentMethod={paymentMethod}
+                        postalCode={postalCode}
+                        onPostalCodeChange={setPostalCode}
                         total={total}
                       />
                     </Elements>
@@ -1607,6 +1639,8 @@ function CheckoutContent({
                       onConfirmPayment={handlePayment}
                       onPaymentMethodChange={setPaymentMethod}
                       paymentMethod={paymentMethod}
+                      postalCode={postalCode}
+                      onPostalCodeChange={setPostalCode}
                       stripe={null}
                       total={total}
                     />

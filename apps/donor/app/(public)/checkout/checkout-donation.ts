@@ -44,6 +44,7 @@ export type CheckoutRequestFingerprintInput = {
   fundId?: string | null;
   missionaryId?: string | null;
   paymentMethod: CheckoutPaymentMethod;
+  postalCode?: string | null;
   startDate?: string | null;
 };
 
@@ -138,6 +139,7 @@ export function buildCheckoutRequestFingerprint(
     fundId: normalizeStringField(input.fundId),
     missionaryId: normalizeStringField(input.missionaryId),
     paymentMethod: input.paymentMethod,
+    postalCode: normalizeStringField(input.postalCode),
     startDate: normalizeStringField(input.startDate),
   });
 }

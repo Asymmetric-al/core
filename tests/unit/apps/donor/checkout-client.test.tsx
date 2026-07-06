@@ -1,6 +1,5 @@
 // @vitest-environment jsdom
 
-import React from "react";
 import {
   act,
   cleanup,
@@ -9,6 +8,7 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
+import React from "react";
 import {
   afterEach,
   beforeAll,
@@ -20,7 +20,7 @@ import {
 } from "vitest";
 
 type CheckoutPageClientComponent =
-  (typeof import("../../../../apps/donor/app/(public)/checkout/checkout-client"))["CheckoutPageClient"];
+  (typeof import("../../../../apps/donor/app/(public)/checkout/checkout-client"))["CheckoutPageClient"]; // eslint-disable-line @typescript-eslint/consistent-type-imports -- Keep the component import deferred until after mocks are registered.
 
 const stripeState = vi.hoisted(() => ({
   cardElement: {},
@@ -288,6 +288,12 @@ const advanceToPayment = () => {
   fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
 };
 
+const fillPostalCode = (value: string) => {
+  fireEvent.change(screen.getByLabelText(/postal code/i), {
+    target: { value },
+  });
+};
+
 const confirmPayment = () => {
   fireEvent.click(screen.getByRole("button", { name: /confirm/i }));
 };
@@ -373,6 +379,37 @@ describe("CheckoutPageClient live card confirmation", () => {
     expect(screen.getByText("$100.00")).toBeTruthy();
     expect(screen.getByText(/ada@example\.com/i)).toBeTruthy();
     expect(screen.getByText(/unit test worker/i)).toBeTruthy();
+  });
+
+  it("passes the entered postal code to Stripe billing details", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    renderCheckout();
+    advanceToPayment();
+    fillPostalCode(" 94103 ");
+    confirmPayment();
+
+    await waitFor(() =>
+      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
+    );
+    expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledWith(
+      "cs_test_123",
+      {
+        payment_method: {
+          billing_details: {
+            address: {
+              postal_code: "94103",
+            },
+            email: "ada@example.com",
+            name: "Ada Lovelace",
+          },
+          card: stripeState.cardElement,
+        },
+      },
+    );
   });
 
   it("renders the original attempt snapshot after checkout params rerender", async () => {

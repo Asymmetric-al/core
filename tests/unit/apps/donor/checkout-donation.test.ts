@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+// eslint-disable-next-line no-restricted-imports -- This app-scoped unit test covers the donor checkout helper before it is promoted to a package.
 import {
   buildCheckoutRequestFingerprint,
   buildDonateRequestBody,
@@ -141,6 +142,7 @@ describe("checkout request fingerprint", () => {
     fundId: " fund_1 ",
     missionaryId: " miss_1 ",
     paymentMethod: "card" as const,
+    postalCode: " 94103 ",
     startDate: "2026-07-06",
   };
 
@@ -158,12 +160,13 @@ describe("checkout request fingerprint", () => {
         fundId: "fund_1",
         missionaryId: "miss_1",
         paymentMethod: "card",
+        postalCode: "94103",
         startDate: "2026-07-06",
       }),
     );
   });
 
-  it("changes when amount, designation, donor, fee, schedule, frequency, or method changes", () => {
+  it("changes when amount, designation, donor, fee, schedule, frequency, method, or postal code changes", () => {
     const base = buildCheckoutRequestFingerprint(baseFingerprintInput);
     const variants = [
       { amount: 103 },
@@ -177,6 +180,7 @@ describe("checkout request fingerprint", () => {
       { endDate: "2026-09-01" },
       { frequency: "monthly" as const },
       { paymentMethod: "wallet" as const },
+      { postalCode: "94104" },
     ];
 
     for (const patch of variants) {
