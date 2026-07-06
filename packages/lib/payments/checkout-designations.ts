@@ -69,6 +69,8 @@ export function buildCheckoutHref({
   return queryString ? `/checkout?${queryString}` : "/checkout";
 }
 
-export function buildWorkerCheckoutHref(input: WorkerCheckoutHrefInput): string {
+export function buildWorkerCheckoutHref(
+  input: WorkerCheckoutHrefInput,
+): string {
   return buildCheckoutHref(input);
 }

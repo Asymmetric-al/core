@@ -134,9 +134,7 @@ const readSearchParam = (value: SearchParamInput): string | null => {
   return null;
 };
 
-const readDesignationSearchParam = (
-  value: SearchParamInput,
-): string | null => {
+const readDesignationSearchParam = (value: SearchParamInput): string | null => {
   const rawValue = readSearchParam(value);
   if (!rawValue) return null;
 
@@ -160,7 +158,8 @@ const normalizeCheckoutSearchParams = (
   return {
     amount: readSearchParam(searchParams.amount),
     frequency: readCheckoutFrequency(searchParams.frequency),
-    fundId: resolveCheckoutFundId(rawFundId) ?? resolveCheckoutFundId(fundAlias),
+    fundId:
+      resolveCheckoutFundId(rawFundId) ?? resolveCheckoutFundId(fundAlias),
     fundLabel: fundAlias,
     missionaryId: rawMissionaryId,
     workerId: readSearchParam(searchParams.workerId),
