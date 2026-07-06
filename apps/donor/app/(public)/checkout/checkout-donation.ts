@@ -219,7 +219,7 @@ export function isDonationInitialized(
 export function isStripeFinalCheckoutSuccess(
   status: string | null | undefined,
 ): boolean {
-  return status === "succeeded" || status === "processing";
+  return status === "succeeded";
 }
 
 /**

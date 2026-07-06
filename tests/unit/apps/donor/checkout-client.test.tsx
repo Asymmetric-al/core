@@ -410,7 +410,7 @@ describe("CheckoutPageClient live card confirmation", () => {
     ).toBeNull();
   });
 
-  it("shows success when Stripe returns an intentionally asynchronous processing PaymentIntent", async () => {
+  it("keeps the donor on payment when Stripe returns a processing PaymentIntent", async () => {
     fetchMock().mockImplementation(initializedDonationResponse);
     stripeState.stripe.confirmCardPayment.mockResolvedValue({
       paymentIntent: { status: "processing" },
@@ -420,9 +420,15 @@ describe("CheckoutPageClient live card confirmation", () => {
     advanceToPayment();
     confirmPayment();
 
+    expect((await screen.findByRole("alert")).textContent).toMatch(
+      /still processing/i,
+    );
     expect(
-      await screen.findByRole("heading", { name: /contribution confirmed/i }),
+      screen.getByRole("heading", { name: /secure payment/i }),
     ).toBeTruthy();
+    expect(
+      screen.queryByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeNull();
   });
 
   it("coerces monthly input to one-time request behavior and one-time success copy", async () => {

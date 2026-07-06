@@ -109,9 +109,9 @@ describe("interpretDonateResponse — 200 initializes, but does not confirm paym
 });
 
 describe("Stripe confirmation success helper", () => {
-  it("accepts completed and intentionally async PaymentIntent statuses", () => {
+  it("accepts only completed PaymentIntent statuses", () => {
     expect(isStripeFinalCheckoutSuccess("succeeded")).toBe(true);
-    expect(isStripeFinalCheckoutSuccess("processing")).toBe(true);
+    expect(isStripeFinalCheckoutSuccess("processing")).toBe(false);
     expect(isStripeFinalCheckoutSuccess("requires_action")).toBe(false);
     expect(isStripeFinalCheckoutSuccess("requires_payment_method")).toBe(false);
     expect(isStripeFinalCheckoutSuccess(null)).toBe(false);

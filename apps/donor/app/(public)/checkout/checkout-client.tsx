@@ -123,6 +123,8 @@ type PaymentAttempt = {
 const PRESET_AMOUNTS = [50, 100, 250, 500];
 const STRIPE_FEE_PERCENT = 0.029;
 const STRIPE_FEE_FIXED = 0.3;
+const PAYMENT_PROCESSING_MESSAGE =
+  "Your contribution is still processing — we'll email your receipt once it's confirmed.";
 
 const readSearchParam = (value: SearchParamInput): string | null => {
   if (typeof value === "string") return value;
@@ -1293,6 +1295,16 @@ function CheckoutContent({
           return;
         }
 
+        if (confirmation.paymentIntent?.status === "processing") {
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error: PAYMENT_PROCESSING_MESSAGE,
+            isProcessing: false,
+          }));
+          return;
+        }
+
         if (!isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)) {
           commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
@@ -1317,7 +1329,7 @@ function CheckoutContent({
 
       const message =
         result.kind === "processing"
-          ? "Your contribution is still processing — we'll email your receipt once it's confirmed."
+          ? PAYMENT_PROCESSING_MESSAGE
           : result.message;
       commitPaymentAttemptState(paymentAttempt, (prev) => ({
         ...prev,
