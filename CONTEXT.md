@@ -459,6 +459,40 @@ ownership lives in the Phase 1 ownership matrix
 _Avoid_: backing CRM provider, Twenty-backed surface, new work that reads or
 writes Twenty
 
+**Security level** (Phase 10):
+A person-level classification on a party (standard / sensitive / restricted /
+high-risk) that governs **publication** — whether the person's real identity may
+ever reach a public or external surface. It is orthogonal to the Phase-3 field
+`sensitivity_category` (which governs field need-to-know); the two compose with
+strictest-applicable wins. It defaults from a tenant-configurable, versioned
+country-risk table and is a fixed enum (tenants configure the mapping, not the
+tiers).
+_Avoid_: per-page visibility checkbox, a second field-classification model,
+tenant-defined tiers
+
+**Publication firewall** (Phase 10):
+The architectural invariant that a restricted worker's real name, photo, and
+location are **structurally unreachable** from every public/external egress
+(public site, CMS, donor portal, receipts, OG images, sitemaps, slugs, search,
+CSV/export, webhooks, media metadata) — enforced by one predicate at every
+egress point, not by configuring each page. Extends the Phase-5 public
+projection.
+_Avoid_: per-page authenticate checkbox, admin-configured-per-surface safety
+
+**Dual identity** (Phase 10):
+A party's separation of a **legal name** (security-classified, in a separate
+restricted table) from a public **display name / alias** (pseudonym), with
+photo, biography, region, and country as classified attributes. Public surfaces
+read only the alias projection; the legal↔alias mapping is a gated named grant.
+_Avoid_: one name field, alias stored beside legal name in the clear
+
+**Break-glass access** (Phase 10):
+A controlled emergency-access path to a restricted-tier record: it requires a
+mandatory justification, fires a real-time alert, grants time-boxed access, and
+lands in a post-hoc review queue. The primitive (grant + alert + audit) ships in
+Phase 10; the crisis-response UI is Phase 38.
+_Avoid_: a weakened gate, silent emergency bypass, unaudited override
+
 **Party**:
 The CRM supertype record: every person, household, or organization (including
 churches) is one party, with `party_kind` in person / household / org

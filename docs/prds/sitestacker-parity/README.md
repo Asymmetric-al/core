@@ -162,6 +162,17 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   Groomed 2026-07-06; hard-depends on Phase 4 + Phase 7 (party spine);
   Phase 8 is a soft dependency (ADR-0001). Tracked by epic #604 + children
   #605–#627.
+- [`phase-10-sensitive-data-safety.md`](./phase-10-sensitive-data-safety.md)
+  — the Phase 10 plan (Sensitive-Data Classification & Restricted-Ministry
+  Safety Foundation): the safety rails a missions CRM needs — a person-level
+  `security_level` (country-risk-defaulted), dual identity (legal name vs
+  public alias), the publication firewall as an architectural invariant,
+  restricted data in separate RLS tables, ABAC through the Phase-3 resolver,
+  read-audit + break-glass, consent/publishing preferences, and telemetry
+  redaction — landed **before** custom fields (Phase 11) and public missionary
+  pages (Phase 22) can create unclassifiable data. **Extends** the Phase-3
+  `field_policies` floor; the member-care case product stays Phase 38.
+  Groomed 2026-07-07; hard-depends on Phase 3 + Phase 9.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

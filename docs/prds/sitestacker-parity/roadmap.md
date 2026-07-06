@@ -131,7 +131,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3) | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                       |
 | **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)   | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
 | **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**             | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                           |
-| **10** | `sensitive-safety`           | Sensitive-Data Classification & Restricted-Ministry Safety Foundation                                                             | 3, 9                    | 4, 6                                                  | Mission Control, security projections, Member Care seams        | `future (needs PRD)` — **new in v2**                           |
+| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (groomed 2026-07-07; new in v2)                   |
 | **11** | `custom-fields`              | Custom CRM Fields & Configurable Entities                                                                                         | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `future (needs PRD)`                                           |
 | **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11               | —                                                     | Mission Control Admin, `packages/api` authz                     | `future (needs PRD)`                                           |
 | **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7        | —                                                     | Contributions/giving, public checkout, MC finance               | `future (needs PRD)`                                           |
@@ -479,6 +479,15 @@ Workflows (34), Events (37), External IDs (30/31), Donor Development (27).
 ---
 
 ### Phase 10 — Sensitive-Data Classification & Restricted-Ministry Safety Foundation (`sensitive-safety`)
+
+> **Status: `PRD exists` — groomed 2026-07-07** →
+> [`phase-10-sensitive-data-safety.md`](./phase-10-sensitive-data-safety.md).
+> Extends the Phase-3 `field_policies`/resolver floor (which explicitly
+> reserved break-glass + blanket read-audit for here) with a person-level
+> `security_level`, dual identity (legal name vs public alias), the
+> publication firewall as an architectural invariant, restricted data in
+> separate RLS tables, read-audit + break-glass, consent/publishing prefs, and
+> telemetry redaction. The member-care case product stays Phase 38.
 
 **What this phase is (plain language).** A missions CRM is different from every
 other nonprofit CRM in one brutal way: **the database itself is a targeting
