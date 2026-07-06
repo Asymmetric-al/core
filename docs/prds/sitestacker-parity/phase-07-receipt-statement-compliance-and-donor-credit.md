@@ -1,7 +1,7 @@
 # Phase 7 — Receipt & Statement Compliance Rules + Donor Identity/Credit Model
 
 > **Program:** SiteStacker Parity · **Phase:** 7 · **Status:** Groomed (grill-with-docs, 2026-07-05) · **Base:** `develop`
-> **Predecessors:** Phase 1 (CRM Operating Foundation) · Phase 2 (Site, Locale & Currency) · Phase 3 (Minimum Permission & Role-Scoped Projection) · Phase 4 (Identity & Account-Claiming) · Phase 5 (Public Website Runtime Contract) · Phase 6 (Shared Communication Event Model)
+> **Predecessors:** Phase 2 (Site, Locale & Currency) · Phase 3 (Minimum Permission & Role-Scoped Projection) · Phase 4 (Identity & Account-Claiming) · Phase 5 (Public Website Runtime Contract) · Phase 6 (Shared Communication Event Model)
 > **Hard dependencies (must ship first):** Phase 4 tenant-isolation foundation slice · Phase 6 communication-event spine + `sendEmail` seam · Phase 3 consent gate (in-flight, PR #502, **unmerged**)
 > **Charter / matrix:** `docs/prds/sitestacker-parity/README.md`, `parity-matrix.md` (Areas 7, 9, 10; touches 2, 5, 11)
 > **Production gate:** requires review by qualified finance/tax counsel before production use (this document is not legal or tax advice).
