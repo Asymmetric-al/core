@@ -40,7 +40,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 import {
   buildCheckoutRequestFingerprint,
@@ -115,6 +115,10 @@ type CheckoutStripeOverride = {
   elements: StripeElements | null;
   mode: CheckoutMode;
   stripe: Stripe | null;
+};
+type PaymentAttempt = {
+  fingerprint: string;
+  id: number;
 };
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
@@ -717,12 +721,16 @@ function PaymentStep({
           <button
             role="tab"
             aria-selected={paymentMethod === "card"}
-            onClick={() => onPaymentMethodChange("card")}
+            disabled={isProcessing}
+            onClick={() => {
+              if (!isProcessing) onPaymentMethodChange("card");
+            }}
             className={cn(
               "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "card"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
+              isProcessing && "cursor-not-allowed opacity-60",
             )}
           >
             Card
@@ -730,12 +738,16 @@ function PaymentStep({
           <button
             role="tab"
             aria-selected={paymentMethod === "ach"}
-            onClick={() => onPaymentMethodChange("ach")}
+            disabled={isProcessing}
+            onClick={() => {
+              if (!isProcessing) onPaymentMethodChange("ach");
+            }}
             className={cn(
               "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "ach"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
+              isProcessing && "cursor-not-allowed opacity-60",
             )}
           >
             Bank
@@ -743,12 +755,16 @@ function PaymentStep({
           <button
             role="tab"
             aria-selected={paymentMethod === "wallet"}
-            onClick={() => onPaymentMethodChange("wallet")}
+            disabled={isProcessing}
+            onClick={() => {
+              if (!isProcessing) onPaymentMethodChange("wallet");
+            }}
             className={cn(
               "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "wallet"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
+              isProcessing && "cursor-not-allowed opacity-60",
             )}
           >
             Apple/Google
@@ -904,8 +920,9 @@ function PaymentStep({
         <Button
           variant="outline"
           onClick={onBack}
+          disabled={isProcessing}
           size="lg"
-          className="h-24 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest"
+          className="h-24 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-60"
         >
           Back
         </Button>
@@ -986,6 +1003,10 @@ function CheckoutContent({
     startDate,
     step,
   } = checkoutState;
+  const checkoutStateRef = useRef(checkoutState);
+  checkoutStateRef.current = checkoutState;
+  const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
+  const paymentAttemptIdRef = useRef(0);
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
   const setAmount = (value: number) =>
@@ -995,7 +1016,9 @@ function CheckoutContent({
   const setCoverFees = (value: boolean) =>
     setCheckoutState((prev) => ({ ...prev, coverFees: value }));
   const setPaymentMethod = (value: PaymentMethod) =>
-    setCheckoutState((prev) => ({ ...prev, paymentMethod: value }));
+    setCheckoutState((prev) =>
+      prev.isProcessing ? prev : { ...prev, paymentMethod: value },
+    );
   const setDonorInfo = (value: DonorInfo) =>
     setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
 
@@ -1006,6 +1029,78 @@ function CheckoutContent({
 
   const total = coverFees ? amount + calculatedFees : amount;
   const checkoutMode = stripeOverride?.mode ?? CHECKOUT_MODE;
+  const currentRequestFingerprint = useMemo(
+    () =>
+      buildCheckoutRequestFingerprint({
+        amount: total,
+        coverFees,
+        currency: "usd",
+        donorEmail: donorInfo.email,
+        donorFirstName: donorInfo.firstName,
+        donorLastName: donorInfo.lastName,
+        endDate: hasEndDate ? endDate : "",
+        frequency,
+        fundId,
+        missionaryId: workerId,
+        paymentMethod,
+        startDate,
+      }),
+    [
+      coverFees,
+      donorInfo.email,
+      donorInfo.firstName,
+      donorInfo.lastName,
+      endDate,
+      frequency,
+      fundId,
+      hasEndDate,
+      paymentMethod,
+      startDate,
+      total,
+      workerId,
+    ],
+  );
+  const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
+  currentRequestFingerprintRef.current = currentRequestFingerprint;
+
+  const isPaymentAttemptActive = (attempt: PaymentAttempt) => {
+    const activeAttempt = activePaymentAttemptRef.current;
+
+    return (
+      activeAttempt?.id === attempt.id &&
+      activeAttempt.fingerprint === attempt.fingerprint &&
+      currentRequestFingerprintRef.current === attempt.fingerprint
+    );
+  };
+
+  const isPaymentAttemptStateActive = (
+    attempt: PaymentAttempt,
+    state: CheckoutState,
+  ) =>
+    isPaymentAttemptActive(attempt) &&
+    state.idempotencyFingerprint === attempt.fingerprint &&
+    state.step === "payment";
+
+  const commitPaymentAttemptState = (
+    attempt: PaymentAttempt,
+    updater: (prev: CheckoutState) => CheckoutState,
+  ) => {
+    if (!isPaymentAttemptStateActive(attempt, checkoutStateRef.current)) {
+      return false;
+    }
+
+    setCheckoutState((prev) => {
+      if (!isPaymentAttemptStateActive(attempt, prev)) {
+        return prev;
+      }
+
+      const next = updater(prev);
+      checkoutStateRef.current = next;
+      return next;
+    });
+
+    return true;
+  };
 
   const handleAmountSelect = (val: number) => {
     setAmount(val);
@@ -1031,6 +1126,10 @@ function CheckoutContent({
   };
 
   const handleBack = () => {
+    if (isProcessing) {
+      return;
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (step === "details") setStep("config");
     else if (step === "payment") setStep("details");
@@ -1049,20 +1148,13 @@ function CheckoutContent({
       return;
     }
 
-    const requestFingerprint = buildCheckoutRequestFingerprint({
-      amount: total,
-      coverFees,
-      currency: "usd",
-      donorEmail: donorInfo.email,
-      donorFirstName: donorInfo.firstName,
-      donorLastName: donorInfo.lastName,
-      endDate: hasEndDate ? endDate : "",
-      frequency,
-      fundId,
-      missionaryId: workerId,
-      paymentMethod,
-      startDate,
-    });
+    const requestFingerprint = currentRequestFingerprint;
+    const paymentAttempt = {
+      fingerprint: requestFingerprint,
+      id: paymentAttemptIdRef.current + 1,
+    };
+    paymentAttemptIdRef.current = paymentAttempt.id;
+    activePaymentAttemptRef.current = paymentAttempt;
     const { idempotencyKey, isNewKey } = resolveCheckoutIdempotencyKey({
       currentFingerprint: requestFingerprint,
       existingFingerprint: checkoutState.idempotencyFingerprint,
@@ -1070,6 +1162,14 @@ function CheckoutContent({
       generateKey: () => crypto.randomUUID(),
     });
 
+    checkoutStateRef.current = {
+      ...checkoutStateRef.current,
+      donation: isNewKey ? null : checkoutStateRef.current.donation,
+      error: null,
+      idempotencyFingerprint: requestFingerprint,
+      idempotencyKey,
+      isProcessing: true,
+    };
     setCheckoutState((prev) => ({
       ...prev,
       donation: isNewKey ? null : prev.donation,
@@ -1098,24 +1198,33 @@ function CheckoutContent({
         body: JSON.stringify(body),
       });
 
+      if (!isPaymentAttemptActive(paymentAttempt)) {
+        return;
+      }
+
       const payload = await response.json().catch(() => null);
+
+      if (!isPaymentAttemptActive(paymentAttempt)) {
+        return;
+      }
+
       const result = interpretDonateResponse(response.status, payload);
 
       if (isDonationInitialized(result)) {
         if (checkoutMode === "test") {
-          setCheckoutState((prev) => ({
+          const didCommit = commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: result.donation,
             error: null,
             isProcessing: false,
             step: "success",
           }));
-          window.scrollTo(0, 0);
+          if (didCommit) window.scrollTo(0, 0);
           return;
         }
 
         if (!result.donation.clientSecret) {
-          setCheckoutState((prev) => ({
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
             error:
@@ -1126,7 +1235,7 @@ function CheckoutContent({
         }
 
         if (!stripe || !elements) {
-          setCheckoutState((prev) => ({
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
             error:
@@ -1140,7 +1249,7 @@ function CheckoutContent({
           CardElement,
         ) as StripeCardElement | null;
         if (!cardElement) {
-          setCheckoutState((prev) => ({
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
             error:
@@ -1163,8 +1272,12 @@ function CheckoutContent({
           },
         );
 
+        if (!isPaymentAttemptActive(paymentAttempt)) {
+          return;
+        }
+
         if (confirmation.error) {
-          setCheckoutState((prev) => ({
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
             error:
@@ -1176,7 +1289,7 @@ function CheckoutContent({
         }
 
         if (!isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)) {
-          setCheckoutState((prev) => ({
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
             ...prev,
             donation: null,
             error:
@@ -1186,14 +1299,14 @@ function CheckoutContent({
           return;
         }
 
-        setCheckoutState((prev) => ({
+        const didCommit = commitPaymentAttemptState(paymentAttempt, (prev) => ({
           ...prev,
           donation: result.donation,
           error: null,
           isProcessing: false,
           step: "success",
         }));
-        window.scrollTo(0, 0);
+        if (didCommit) window.scrollTo(0, 0);
         return;
       }
 
@@ -1201,13 +1314,13 @@ function CheckoutContent({
         result.kind === "processing"
           ? "Your contribution is still processing — we'll email your receipt once it's confirmed."
           : result.message;
-      setCheckoutState((prev) => ({
+      commitPaymentAttemptState(paymentAttempt, (prev) => ({
         ...prev,
         error: message,
         isProcessing: false,
       }));
     } catch {
-      setCheckoutState((prev) => ({
+      commitPaymentAttemptState(paymentAttempt, (prev) => ({
         ...prev,
         error:
           "We couldn't reach the server to confirm your contribution. Please try again.",

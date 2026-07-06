@@ -2,6 +2,7 @@
 
 import React from "react";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -327,6 +328,64 @@ describe("CheckoutPageClient live card confirmation", () => {
 
     expect(
       await screen.findByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeTruthy();
+  });
+
+  it("keeps checkout locked during processing and ignores an invalidated Stripe completion", async () => {
+    let resolveConfirmation:
+      | ((value: { paymentIntent: { status: string } }) => void)
+      | null = null;
+    const confirmationPromise = new Promise<{
+      paymentIntent: { status: string };
+    }>((resolve) => {
+      resolveConfirmation = resolve;
+    });
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockReturnValue(confirmationPromise);
+
+    const view = renderCheckout({
+      amount: "100",
+      fund_id: "fund_1",
+    });
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() =>
+      expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
+    );
+
+    const backButton = screen.getByRole("button", { name: /^back$/i });
+    expect((backButton as HTMLButtonElement).disabled).toBe(true);
+
+    fireEvent.click(backButton);
+
+    expect(
+      screen.getByRole("heading", { name: /secure payment/i }),
+    ).toBeTruthy();
+    expect(screen.queryByLabelText(/first name/i)).toBeNull();
+
+    view.rerender(
+      <CheckoutPageClient
+        searchParams={{ amount: "100", fund_id: "fund_2" }}
+        stripeOverride={{
+          cardElement: <div data-testid="stripe-card-element" />,
+          elements: stripeState.elements,
+          mode: "live",
+          stripe: stripeState.stripe,
+        }}
+      />,
+    );
+
+    await act(async () => {
+      resolveConfirmation?.({ paymentIntent: { status: "succeeded" } });
+      await confirmationPromise;
+    });
+
+    expect(
+      screen.queryByRole("heading", { name: /contribution confirmed/i }),
+    ).toBeNull();
+    expect(
+      screen.getByRole("heading", { name: /secure payment/i }),
     ).toBeTruthy();
   });
 
