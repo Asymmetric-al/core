@@ -1,6 +1,7 @@
 import {
   buildCheckoutHref,
   buildWorkerCheckoutHref,
+  isGeneralCheckoutAlias,
   resolveCheckoutFundId,
 } from "@asym/lib/payments/checkout-designations";
 import { describe, expect, it } from "vitest";
@@ -18,16 +19,19 @@ describe("checkout designation links", () => {
     );
   });
 
-  it("normalizes the legacy general fund alias to a fund UUID", () => {
-    expect(resolveCheckoutFundId("general")).toBe(
-      "40000000-0000-0000-0000-000000000007",
-    );
+  it("keeps the general fund alias semantic instead of converting it to a UUID", () => {
+    expect(isGeneralCheckoutAlias("general")).toBe(true);
+    expect(isGeneralCheckoutAlias(" General ")).toBe(true);
+    expect(resolveCheckoutFundId("general")).toBeNull();
     expect(buildCheckoutHref({ fundId: "general" })).toBe(
-      "/checkout?fund_id=40000000-0000-0000-0000-000000000007",
+      "/checkout?fund=general",
     );
   });
 
   it("preserves canonical missionary and fund UUIDs", () => {
+    expect(
+      resolveCheckoutFundId("40000000-0000-0000-0000-000000000001"),
+    ).toBe("40000000-0000-0000-0000-000000000001");
     expect(
       buildCheckoutHref({
         fundId: "40000000-0000-0000-0000-000000000001",

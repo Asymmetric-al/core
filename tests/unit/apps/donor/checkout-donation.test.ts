@@ -39,6 +39,13 @@ describe("buildDonateRequestBody", () => {
     ).toEqual({ amount: 50, currency: "usd" });
   });
 
+  it("allows a general checkout request to omit designation fields", () => {
+    expect(buildDonateRequestBody({ amount: 75, currency: "usd" })).toEqual({
+      amount: 75,
+      currency: "usd",
+    });
+  });
+
   it("trims designation identifiers", () => {
     expect(
       buildDonateRequestBody({ amount: 25, missionaryId: " m_2 " }),
@@ -65,9 +72,29 @@ describe("interpretDonateResponse — 200 initializes, but does not confirm paym
         donationId: "don_1",
         paymentIntentId: "pi_1",
         clientSecret: "cs_1",
+        publishableKey: null,
       },
     });
     expect(isDonationInitialized(result)).toBe(true);
+  });
+
+  it("preserves the server-resolved publishable key", () => {
+    const result = interpretDonateResponse(200, {
+      donationId: "don_1",
+      paymentIntentId: "pi_1",
+      clientSecret: "cs_1",
+      publishableKey: "pk_live_tenant",
+    });
+
+    expect(result).toEqual({
+      kind: "initialized",
+      donation: {
+        donationId: "don_1",
+        paymentIntentId: "pi_1",
+        clientSecret: "cs_1",
+        publishableKey: "pk_live_tenant",
+      },
+    });
   });
 
   it("does NOT initialize a 200 that lacks a server donationId", () => {

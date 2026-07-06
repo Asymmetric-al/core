@@ -1,7 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { resolveCheckoutFundId } from "@asym/lib/payments/checkout-designations";
+import {
+  isGeneralCheckoutAlias,
+  resolveCheckoutFundId,
+} from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -59,15 +62,6 @@ import {
 } from "./checkout-donation";
 import { getFieldWorkerById } from "../../../lib/mock-data";
 
-// Live checkout needs a Stripe publishable key to mount Elements and confirm the
-// PaymentIntent. Absent a key we run TEST-MODE: the saga initialization is
-// exercised, but no card charge is collected.
-const STRIPE_PUBLISHABLE_KEY = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
-const CHECKOUT_MODE = resolveCheckoutMode(STRIPE_PUBLISHABLE_KEY);
-const STRIPE_PROMISE = STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(STRIPE_PUBLISHABLE_KEY)
-  : null;
-
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = CheckoutFrequency;
 type PaymentMethod = CheckoutPaymentMethod;
@@ -117,8 +111,22 @@ type CheckoutStripeOverride = {
   cardElement?: React.ReactNode;
   elements: StripeElements | null;
   mode: CheckoutMode;
+  publishableKey?: string | null;
   stripe: Stripe | null;
 };
+type CheckoutRuntimeConfig =
+  | {
+      error: null;
+      publishableKey: string | null;
+      status: "ready";
+      stripePromise: Promise<Stripe | null> | null;
+    }
+  | {
+      error: string | null;
+      publishableKey: null;
+      status: "loading" | "error";
+      stripePromise: null;
+    };
 type PaymentAttempt = {
   fingerprint: string;
   id: number;
@@ -172,6 +180,35 @@ const readDesignationSearchParam = (value: SearchParamInput): string | null => {
   return trimmedValue.length > 0 ? trimmedValue : null;
 };
 
+const normalizePublishableKey = (
+  value: string | null | undefined,
+): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : null;
+};
+
+const readRuntimePublishableKey = (body: unknown): string | null => {
+  if (!body || typeof body !== "object") return null;
+  const value = (body as Record<string, unknown>).publishableKey;
+  return typeof value === "string" ? normalizePublishableKey(value) : null;
+};
+
+const createReadyRuntimeConfig = (
+  publishableKey: string | null | undefined,
+): CheckoutRuntimeConfig => {
+  const normalizedPublishableKey = normalizePublishableKey(publishableKey);
+
+  return {
+    error: null,
+    publishableKey: normalizedPublishableKey,
+    status: "ready",
+    stripePromise: normalizedPublishableKey
+      ? loadStripe(normalizedPublishableKey)
+      : null,
+  };
+};
+
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
   return normalizeCheckoutFrequency(readSearchParam(value));
 };
@@ -179,8 +216,8 @@ const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
 const normalizeCheckoutSearchParams = (
   searchParams: CheckoutPageSearchParams,
 ): CheckoutSearchParams => {
-  const fundAlias = readSearchParam(searchParams.fund);
-  const rawFundId = readSearchParam(searchParams.fund_id);
+  const fundAlias = readDesignationSearchParam(searchParams.fund);
+  const rawFundId = readDesignationSearchParam(searchParams.fund_id);
   const rawMissionaryId =
     readDesignationSearchParam(searchParams.missionary_id) ??
     readDesignationSearchParam(searchParams.missionary);
@@ -1015,6 +1052,34 @@ function StripePaymentStep(
   return <PaymentStep {...props} elements={elements} stripe={stripe} />;
 }
 
+function CheckoutConfigurationState({
+  message,
+  title,
+}: {
+  message: string;
+  title: string;
+}) {
+  return (
+    <div
+      role="status"
+      className="flex min-h-[360px] flex-col items-center justify-center gap-6 rounded-[3.5rem] border border-zinc-100 bg-zinc-50 p-12 text-center"
+    >
+      <Loader2
+        className="size-8 animate-spin text-zinc-400"
+        aria-hidden="true"
+      />
+      <div className="space-y-2">
+        <h2 className="font-syne text-2xl font-semibold text-zinc-950">
+          {title}
+        </h2>
+        <p className="max-w-md text-sm font-medium leading-relaxed text-zinc-500">
+          {message}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CheckoutContent({
   searchParams,
   stripeOverride,
@@ -1027,7 +1092,21 @@ function CheckoutContent({
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
   const fundId = searchParams.fundId;
-  const hasGivingTarget = Boolean(missionaryId || fundId);
+  const hasGeneralGivingTarget = isGeneralCheckoutAlias(searchParams.fundLabel);
+  const hasGivingTarget = Boolean(
+    missionaryId || fundId || hasGeneralGivingTarget,
+  );
+  const [runtimeConfig, setRuntimeConfig] = useState<CheckoutRuntimeConfig>(
+    () =>
+      stripeOverride
+        ? createReadyRuntimeConfig(stripeOverride.publishableKey)
+        : {
+            error: null,
+            publishableKey: null,
+            status: "loading",
+            stripePromise: null,
+          },
+  );
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
     coverFees: false,
@@ -1071,6 +1150,8 @@ function CheckoutContent({
   const checkoutStateRef = useRef(checkoutState);
   const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
   const paymentAttemptIdRef = useRef(0);
+  const runtimeConfigAbortRef = useRef<AbortController | null>(null);
+  const runtimeConfigRequestedRef = useRef(false);
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
   const setAmount = (value: number) =>
@@ -1094,7 +1175,15 @@ function CheckoutContent({
   }, [amount]);
 
   const total = coverFees ? amount + calculatedFees : amount;
-  const checkoutMode = stripeOverride?.mode ?? CHECKOUT_MODE;
+  const mountedPublishableKey = stripeOverride
+    ? normalizePublishableKey(stripeOverride.publishableKey)
+    : runtimeConfig.status === "ready"
+      ? runtimeConfig.publishableKey
+      : null;
+  const checkoutMode =
+    stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
+  const mountedPublishableKeyRef = useRef(mountedPublishableKey);
+  mountedPublishableKeyRef.current = mountedPublishableKey;
   const currentRequestFingerprint = useMemo(
     () =>
       buildCheckoutRequestFingerprint({
@@ -1130,6 +1219,92 @@ function CheckoutContent({
   );
   const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
 
+  const loadCheckoutRuntimeConfig = () => {
+    if (stripeOverride) {
+      setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
+      return;
+    }
+
+    if (
+      runtimeConfigRequestedRef.current &&
+      runtimeConfig.status === "loading"
+    ) {
+      return;
+    }
+
+    runtimeConfigRequestedRef.current = true;
+    runtimeConfigAbortRef.current?.abort();
+    const abortController = new AbortController();
+    runtimeConfigAbortRef.current = abortController;
+
+    setRuntimeConfig({
+      error: null,
+      publishableKey: null,
+      status: "loading",
+      stripePromise: null,
+    });
+
+    const loadRuntimeConfig = async () => {
+      try {
+        const response = await fetch("/api/donate", {
+          method: "GET",
+          signal: abortController.signal,
+        });
+        const payload = await response.json().catch(() => null);
+
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (!response.ok) {
+          const message =
+            payload && typeof payload === "object"
+              ? (payload as Record<string, unknown>).error
+              : null;
+          setRuntimeConfig({
+            error:
+              typeof message === "string"
+                ? message
+                : "Checkout configuration could not be loaded. Please try again.",
+            publishableKey: null,
+            status: "error",
+            stripePromise: null,
+          });
+          return;
+        }
+
+        setRuntimeConfig(
+          createReadyRuntimeConfig(readRuntimePublishableKey(payload)),
+        );
+      } catch (error) {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setRuntimeConfig({
+          error:
+            "Checkout configuration could not be loaded. Please refresh and try again.",
+          publishableKey: null,
+          status: "error",
+          stripePromise: null,
+        });
+      }
+    };
+
+    void loadRuntimeConfig();
+  };
+
+  useEffect(() => {
+    loadCheckoutRuntimeConfig();
+
+    return () => runtimeConfigAbortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
+  }, [stripeOverride]);
+
   useEffect(() => {
     checkoutStateRef.current = checkoutState;
     currentRequestFingerprintRef.current = currentRequestFingerprint;
@@ -1158,7 +1333,6 @@ function CheckoutContent({
     attempt: PaymentAttempt,
     state: CheckoutState,
   ) =>
-    isPaymentAttemptActive(attempt) &&
     state.idempotencyFingerprint === attempt.fingerprint &&
     state.step === "payment";
 
@@ -1174,7 +1348,7 @@ function CheckoutContent({
     attempt: PaymentAttempt,
     updater: (prev: CheckoutState) => CheckoutState,
   ) => {
-    if (!isPaymentAttemptStateActive(attempt, checkoutStateRef.current)) {
+    if (!isPaymentAttemptActive(attempt)) {
       return false;
     }
 
@@ -1269,7 +1443,10 @@ function CheckoutContent({
   const handleNext = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (step === "config") setStep("details");
-    else if (step === "details") setStep("payment");
+    else if (step === "details") {
+      loadCheckoutRuntimeConfig();
+      setStep("payment");
+    }
   };
 
   const handleBack = () => {
@@ -1324,6 +1501,7 @@ function CheckoutContent({
       generateKey: () => crypto.randomUUID(),
     });
 
+    currentRequestFingerprintRef.current = requestFingerprint;
     checkoutStateRef.current = {
       ...checkoutStateRef.current,
       donation: isNewKey ? null : checkoutStateRef.current.donation,
@@ -1331,6 +1509,7 @@ function CheckoutContent({
       idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
+      step: "payment",
       successSnapshot: null,
     };
     setCheckoutState((prev) => ({
@@ -1340,6 +1519,7 @@ function CheckoutContent({
       idempotencyFingerprint: requestFingerprint,
       idempotencyKey,
       isProcessing: true,
+      step: "payment",
       successSnapshot: null,
     }));
 
@@ -1376,6 +1556,29 @@ function CheckoutContent({
 
       if (isDonationInitialized(result)) {
         const trimmedPostalCode = postalCode.trim();
+        const returnedPublishableKey = normalizePublishableKey(
+          result.donation.publishableKey,
+        );
+        const currentMountedPublishableKey = mountedPublishableKeyRef.current;
+
+        if (returnedPublishableKey !== currentMountedPublishableKey) {
+          if (!stripeOverride) {
+            setRuntimeConfig(createReadyRuntimeConfig(returnedPublishableKey));
+          }
+
+          const didCommit = commitPaymentAttemptState(
+            paymentAttempt,
+            (prev) => ({
+              ...prev,
+              donation: null,
+              error:
+                "Checkout configuration changed while payment was preparing. Please try again.",
+              isProcessing: false,
+            }),
+          );
+          if (didCommit) activePaymentAttemptRef.current = null;
+          return;
+        }
 
         if (checkoutMode === "test") {
           const didCommit = commitPaymentAttemptState(
@@ -1619,12 +1822,34 @@ function CheckoutContent({
                       stripe={stripeOverride.stripe}
                       total={total}
                     />
-                  ) : CHECKOUT_MODE === "live" && STRIPE_PROMISE ? (
-                    <Elements stripe={STRIPE_PROMISE}>
+                  ) : runtimeConfig.status === "loading" ? (
+                    <CheckoutConfigurationState
+                      title="Preparing secure checkout"
+                      message="Loading this organization's payment configuration."
+                    />
+                  ) : runtimeConfig.status === "error" ? (
+                    <div
+                      role="alert"
+                      className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
+                    >
+                      <AlertTriangle
+                        className="size-5 shrink-0 text-red-600 dark:text-red-400"
+                        aria-hidden="true"
+                      />
+                      <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
+                        {runtimeConfig.error ??
+                          "Checkout configuration could not be loaded. Please refresh and try again."}
+                      </p>
+                    </div>
+                  ) : checkoutMode === "live" && runtimeConfig.stripePromise ? (
+                    <Elements
+                      key={runtimeConfig.publishableKey}
+                      stripe={runtimeConfig.stripePromise}
+                    >
                       <StripePaymentStep
                         error={error}
                         isProcessing={isProcessing}
-                        mode={CHECKOUT_MODE}
+                        mode={checkoutMode}
                         onBack={handleBack}
                         onConfirmPayment={handlePayment}
                         onPaymentMethodChange={setPaymentMethod}
@@ -1639,7 +1864,7 @@ function CheckoutContent({
                       elements={null}
                       error={error}
                       isProcessing={isProcessing}
-                      mode={CHECKOUT_MODE}
+                      mode={checkoutMode}
                       onBack={handleBack}
                       onConfirmPayment={handlePayment}
                       onPaymentMethodChange={setPaymentMethod}
@@ -1660,7 +1885,7 @@ function CheckoutContent({
               worker={
                 worker || {
                   title:
-                    searchParams.fundLabel === "general"
+                    hasGeneralGivingTarget
                       ? "General Mission Fund"
                       : searchParams.missionaryId
                         ? "Missionary Support"

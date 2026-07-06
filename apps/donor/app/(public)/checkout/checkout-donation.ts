@@ -20,6 +20,7 @@ export type ServerDonation = {
   donationId: string;
   paymentIntentId: string | null;
   clientSecret: string | null;
+  publishableKey: string | null;
 };
 
 export type DonateResult =
@@ -70,8 +71,8 @@ const trimToUndefined = (
 
 /**
  * Build the POST /api/donate body from checkout inputs, matching
- * `donatePostSchema` in `@asym/api`. Blank/null designations are omitted so the
- * server-side `refine` (missionary_id OR fund_id required) governs validity.
+ * `donatePostSchema` in `@asym/api`. Blank/null designations are omitted so
+ * general giving posts no designation fields.
  */
 export function buildDonateRequestBody(input: {
   amount: number;
@@ -193,6 +194,7 @@ export function interpretDonateResponse(
         donationId,
         paymentIntentId: readString(body, "paymentIntentId"),
         clientSecret: readString(body, "clientSecret"),
+        publishableKey: readString(body, "publishableKey"),
       },
     };
   }

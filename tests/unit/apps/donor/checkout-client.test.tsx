@@ -32,6 +32,10 @@ const stripeState = vi.hoisted(() => ({
   },
 }));
 
+const stripeJsState = vi.hoisted(() => ({
+  loadStripe: vi.fn(() => Promise.resolve({})),
+}));
+
 const omitMotionProps = (props: Record<string, unknown>) => {
   const {
     animate,
@@ -160,7 +164,7 @@ vi.mock("@stripe/react-stripe-js", () => {
 });
 
 vi.mock("@stripe/stripe-js", () => ({
-  loadStripe: vi.fn(() => Promise.resolve({})),
+  loadStripe: stripeJsState.loadStripe,
 }));
 
 vi.mock("next/link", () => ({
@@ -190,8 +194,6 @@ const TEST_OTHER_FUND_ID = "40000000-0000-0000-0000-000000000003";
 const TEST_MISSIONARY_ID = "20000000-0000-0000-0000-000000000001";
 const TEST_WORKER_ID = "worker_1";
 
-process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_unit";
-
 beforeAll(async () => {
   const module =
     await import("../../../../apps/donor/app/(public)/checkout/checkout-client");
@@ -217,6 +219,8 @@ beforeEach(() => {
   stripeState.cardElement = {};
   stripeState.elements.getElement.mockReturnValue(stripeState.cardElement);
   stripeState.stripe.confirmCardPayment.mockReset();
+  stripeJsState.loadStripe.mockClear();
+  stripeJsState.loadStripe.mockImplementation(() => Promise.resolve({}));
 });
 
 afterEach(() => {
@@ -224,19 +228,34 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const initializedDonationResponse = () =>
-  Promise.resolve(
+const initializedDonationResponse = (publishableKey: unknown = "pk_test_unit") => {
+  const effectivePublishableKey =
+    typeof publishableKey === "string" && publishableKey.startsWith("pk_")
+      ? publishableKey
+      : "pk_test_unit";
+
+  return Promise.resolve(
     new Response(
       JSON.stringify({
         clientSecret: "cs_test_123",
         donationId: "don_123",
         paymentIntentId: "pi_123",
+        publishableKey: effectivePublishableKey,
       }),
       {
         headers: { "Content-Type": "application/json" },
         status: 200,
       },
     ),
+  );
+};
+
+const checkoutConfigResponse = (publishableKey: string | null) =>
+  Promise.resolve(
+    new Response(JSON.stringify({ publishableKey }), {
+      headers: { "Content-Type": "application/json" },
+      status: 200,
+    }),
   );
 
 const processingDonationResponse = () =>
@@ -269,10 +288,19 @@ const renderCheckout = (
         cardElement: <div data-testid="stripe-card-element" />,
         elements: stripeState.elements,
         mode: "live",
+        publishableKey: "pk_test_unit",
         stripe: stripeState.stripe,
       }}
     />,
   );
+
+const renderCheckoutWithRuntimeConfig = (
+  searchParams: React.ComponentProps<CheckoutPageClientComponent>["searchParams"] = {
+    amount: "100",
+    missionary_id: TEST_MISSIONARY_ID,
+    workerId: TEST_WORKER_ID,
+  },
+) => render(<CheckoutPageClient searchParams={searchParams} />);
 
 const advanceToPayment = () => {
   fireEvent.click(screen.getByRole("button", { name: /next step/i }));
@@ -326,7 +354,7 @@ describe("CheckoutPageClient donation designations", () => {
     expect(fetchMock()).not.toHaveBeenCalled();
   });
 
-  it("posts a UUID fund designation for the legacy general fund alias", async () => {
+  it("posts no designation fields for the semantic general fund alias", async () => {
     fetchMock().mockImplementation(initializedDonationResponse);
     stripeState.stripe.confirmCardPayment.mockResolvedValue({
       paymentIntent: { status: "succeeded" },
@@ -340,13 +368,87 @@ describe("CheckoutPageClient donation designations", () => {
     confirmPayment();
 
     await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
-    expect(requestAt(0).body.fund_id).toBe(
-      "40000000-0000-0000-0000-000000000007",
-    );
+    expect(requestAt(0).body).toEqual({
+      amount: 100,
+      currency: "usd",
+    });
+    expect(
+      screen.queryByRole("heading", { name: /target unspecified/i }),
+    ).toBeNull();
+  });
+
+  it("posts canonical fund UUID designations unchanged", async () => {
+    fetchMock().mockImplementation(initializedDonationResponse);
+    stripeState.stripe.confirmCardPayment.mockResolvedValue({
+      paymentIntent: { status: "succeeded" },
+    });
+
+    renderCheckout({
+      amount: "100",
+      fund_id: TEST_FUND_ID,
+    });
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+    expect(requestAt(0).body).toEqual({
+      amount: 100,
+      currency: "usd",
+      fund_id: TEST_FUND_ID,
+    });
   });
 });
 
 describe("CheckoutPageClient live card confirmation", () => {
+  it("loads checkout configuration from the tenant publishable key when no bundled env key exists", async () => {
+    delete process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
+    fetchMock().mockImplementation((_input, init) => {
+      return init?.method === "POST"
+        ? initializedDonationResponse("pk_live_tenant")
+        : checkoutConfigResponse("pk_live_tenant");
+    });
+
+    renderCheckoutWithRuntimeConfig();
+    advanceToPayment();
+
+    expect(await screen.findByTestId("stripe-card-panel")).toBeTruthy();
+    expect(fetchMock()).toHaveBeenCalledTimes(1);
+    expect(fetchMock().mock.calls[0]?.[1]?.method).toBe("GET");
+    expect(screen.queryByText(/test mode/i)).toBeNull();
+  });
+
+  it("remounts with the server returned publishable key and prevents confirmation when keys differ", async () => {
+    fetchMock().mockImplementation(() =>
+      initializedDonationResponse("pk_test_rotated"),
+    );
+
+    render(
+      <CheckoutPageClient
+        searchParams={{
+          amount: "100",
+          missionary_id: TEST_MISSIONARY_ID,
+          workerId: TEST_WORKER_ID,
+        }}
+        stripeOverride={{
+          cardElement: <div data-testid="stripe-card-element" />,
+          elements: stripeState.elements,
+          mode: "live",
+          publishableKey: "pk_test_initial",
+          stripe: stripeState.stripe,
+        }}
+      />,
+    );
+    advanceToPayment();
+    confirmPayment();
+
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
+    expect(stripeState.stripe.confirmCardPayment).not.toHaveBeenCalled();
+
+    const retryableError = await screen.findByRole("alert");
+    expect(retryableError.textContent).toMatch(/configuration changed/i);
+    expect(retryableError.textContent).toMatch(/try again/i);
+  });
+
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
     let resolveConfirmation:
       | ((value: { paymentIntent: { status: string } }) => void)
@@ -392,6 +494,7 @@ describe("CheckoutPageClient live card confirmation", () => {
     fillPostalCode(" 94103 ");
     confirmPayment();
 
+    await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(1));
     await waitFor(() =>
       expect(stripeState.stripe.confirmCardPayment).toHaveBeenCalledTimes(1),
     );
@@ -456,6 +559,7 @@ describe("CheckoutPageClient live card confirmation", () => {
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
           mode: "live",
+          publishableKey: "pk_test_unit",
           stripe: stripeState.stripe,
         }}
       />,
@@ -507,6 +611,7 @@ describe("CheckoutPageClient live card confirmation", () => {
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
           mode: "live",
+          publishableKey: "pk_test_unit",
           stripe: stripeState.stripe,
         }}
       />,
@@ -563,6 +668,7 @@ describe("CheckoutPageClient live card confirmation", () => {
             cardElement: <div data-testid="stripe-card-element" />,
             elements: stripeState.elements,
             mode: "live",
+            publishableKey: "pk_test_unit",
             stripe: stripeState.stripe,
           }}
         />,
@@ -732,6 +838,7 @@ describe("CheckoutPageClient idempotency retry keys", () => {
           cardElement: <div data-testid="stripe-card-element" />,
           elements: stripeState.elements,
           mode: "live",
+          publishableKey: "pk_test_unit",
           stripe: stripeState.stripe,
         }}
       />,

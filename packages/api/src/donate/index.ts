@@ -45,6 +45,9 @@ export const POST = withOperation(
 
     const stripeSecretKey =
       tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
+    const publishableKey =
+      tenant.stripe_publishable_key ??
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
     if (!stripeSecretKey) {
       return NextResponse.json(
         { error: "Stripe not configured for this organization" },
@@ -136,9 +139,7 @@ export const POST = withOperation(
       outboxId,
       idempotencyKey,
       replayed: Boolean(beginResult?.replayed),
-      publishableKey:
-        tenant.stripe_publishable_key ??
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+      publishableKey: publishableKey ?? null,
     });
   },
   { roles: ["donor", "admin", "staff", "super_admin"] },
@@ -154,6 +155,20 @@ export async function GET(request: NextRequest) {
     const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
+
+    const { data: tenant, error: tenantError } = await supabaseAdmin
+      .from("tenants")
+      .select("stripe_publishable_key")
+      .eq("id", ctx.tenantId)
+      .single();
+
+    if (tenantError || !tenant) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const publishableKey =
+      tenant.stripe_publishable_key ??
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY;
 
     const { searchParams } = new URL(request.url);
     const { missionary_id: missionaryId, fund_id: fundId } =
@@ -235,6 +250,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       designations,
       donor: donor || null,
+      publishableKey: publishableKey ?? null,
     });
   } catch (error) {
     return toErrorResponse(error);

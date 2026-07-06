@@ -11,11 +11,7 @@ type WorkerCheckoutHrefInput = Omit<CheckoutHrefInput, "missionaryId"> & {
   workerId: string;
 };
 
-const LEGACY_GENERAL_FUND_ID = "40000000-0000-0000-0000-000000000007";
-
-const LEGACY_FUND_ALIASES: Record<string, string> = {
-  general: LEGACY_GENERAL_FUND_ID,
-};
+const GENERAL_CHECKOUT_ALIAS = "general";
 
 const trimToNull = (value: string | null | undefined): string | null => {
   if (typeof value !== "string") return null;
@@ -47,7 +43,13 @@ export function resolveCheckoutFundId(
   const trimmed = trimToNull(fundIdOrAlias);
   if (!trimmed) return null;
 
-  return LEGACY_FUND_ALIASES[trimmed.toLowerCase()] ?? trimmed;
+  return isGeneralCheckoutAlias(trimmed) ? null : trimmed;
+}
+
+export function isGeneralCheckoutAlias(
+  value: string | null | undefined,
+): boolean {
+  return trimToNull(value)?.toLowerCase() === GENERAL_CHECKOUT_ALIAS;
 }
 
 export function buildCheckoutHref({
@@ -61,7 +63,11 @@ export function buildCheckoutHref({
 
   appendParam(params, "workerId", workerId);
   appendParam(params, "missionary_id", missionaryId);
-  appendParam(params, "fund_id", resolveCheckoutFundId(fundId));
+  if (isGeneralCheckoutAlias(fundId)) {
+    appendParam(params, "fund", GENERAL_CHECKOUT_ALIAS);
+  } else {
+    appendParam(params, "fund_id", resolveCheckoutFundId(fundId));
+  }
   appendParam(params, "amount", amount);
   appendParam(params, "frequency", frequency);
 
