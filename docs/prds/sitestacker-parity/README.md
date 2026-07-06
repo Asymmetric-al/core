@@ -85,6 +85,10 @@ bolted-on module or push admin depth into donor/missionary surfaces.
 - [`README.md`](./README.md) — this charter.
 - [`parity-matrix.md`](./parity-matrix.md) — the 25-area inventory (the tracking
   source of truth).
+- [`phase-map.md`](./phase-map.md) — short orientation guide showing the full
+  SiteStacker parity phase order, dependency lanes, owner surfaces, and
+  ticket-generation guardrails. **Read this before writing a PRD, issues,
+  tickets, or a new implementation PR** so the work fits the whole program.
 - [`phase-00-baseline.md`](./phase-00-baseline.md) — the Phase 0 plan: what
   Phase 0 does, its done-definition, and the provisional order.
 - [`phase-07-receipt-statement-compliance-and-donor-credit.md`](./phase-07-receipt-statement-compliance-and-donor-credit.md)
