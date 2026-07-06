@@ -3,6 +3,8 @@ import { randomUUID } from "node:crypto";
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
 
+import { createDonationPaymentIntent } from "./payment-intent";
+
 type DonationSupabaseClient = NonNullable<
   ReturnType<typeof getAdminClient>["client"]
 >;
@@ -201,29 +203,24 @@ async function processClaimedDonationSagaEvent(params: {
     existingStripeCustomerId: stringOrNull(params.claim.stripe_customer_id),
   });
 
-  const paymentIntent = await params.stripe.paymentIntents.create(
-    {
-      amount,
-      currency,
-      customer: stripeCustomerId,
-      automatic_payment_methods: { enabled: true },
-      metadata: {
-        donation_id: donationId,
-        donor_id: donorId,
-        missionary_id: stringOrNull(params.claim.missionary_id) ?? "",
-        fund_id: stringOrNull(params.claim.fund_id) ?? "",
-        tenant_id: tenantId,
-        user_id: params.actorUserId,
-      },
+  const paymentIntent = await createDonationPaymentIntent(params.stripe, {
+    amountCents: amount,
+    currency,
+    customerId: stripeCustomerId,
+    idempotencyKey,
+    metadata: {
+      donation_id: donationId,
+      donor_id: donorId,
+      missionary_id: stringOrNull(params.claim.missionary_id) ?? "",
+      fund_id: stringOrNull(params.claim.fund_id) ?? "",
+      tenant_id: tenantId,
+      user_id: params.actorUserId,
     },
-    {
-      idempotencyKey: `${idempotencyKey}:payment_intent`,
-    },
-  );
+  });
 
   const gatewayResponse = {
-    clientSecret: paymentIntent.client_secret,
-    stripePaymentIntentId: paymentIntent.id,
+    clientSecret: paymentIntent.clientSecret,
+    stripePaymentIntentId: paymentIntent.paymentIntentId,
     stripeCustomerId,
     stripeStatus: paymentIntent.status,
     attemptCount: params.claim.attempt_count ?? 1,
@@ -234,7 +231,7 @@ async function processClaimedDonationSagaEvent(params: {
     {
       p_outbox_id: params.outboxId,
       p_lock_id: params.lockId,
-      p_stripe_payment_intent_id: paymentIntent.id,
+      p_stripe_payment_intent_id: paymentIntent.paymentIntentId,
       p_stripe_customer_id: stripeCustomerId,
       p_gateway_response: gatewayResponse,
     },
@@ -248,8 +245,8 @@ async function processClaimedDonationSagaEvent(params: {
     status: "completed",
     donationId,
     outboxId: params.outboxId,
-    paymentIntentId: paymentIntent.id,
-    clientSecret: paymentIntent.client_secret,
+    paymentIntentId: paymentIntent.paymentIntentId,
+    clientSecret: paymentIntent.clientSecret,
   };
 }
 
