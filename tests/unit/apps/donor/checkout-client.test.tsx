@@ -228,7 +228,9 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-const initializedDonationResponse = (publishableKey: unknown = "pk_test_unit") => {
+const initializedDonationResponse = (
+  publishableKey: unknown = "pk_test_unit",
+) => {
   const effectivePublishableKey =
     typeof publishableKey === "string" && publishableKey.startsWith("pk_")
       ? publishableKey

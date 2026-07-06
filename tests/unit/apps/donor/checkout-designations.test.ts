@@ -29,9 +29,9 @@ describe("checkout designation links", () => {
   });
 
   it("preserves canonical missionary and fund UUIDs", () => {
-    expect(
-      resolveCheckoutFundId("40000000-0000-0000-0000-000000000001"),
-    ).toBe("40000000-0000-0000-0000-000000000001");
+    expect(resolveCheckoutFundId("40000000-0000-0000-0000-000000000001")).toBe(
+      "40000000-0000-0000-0000-000000000001",
+    );
     expect(
       buildCheckoutHref({
         fundId: "40000000-0000-0000-0000-000000000001",

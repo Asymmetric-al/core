@@ -1302,7 +1302,7 @@ function CheckoutContent({
     loadCheckoutRuntimeConfig();
 
     return () => runtimeConfigAbortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(checkout-runtime-config): Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
   }, [stripeOverride]);
 
   useEffect(() => {
@@ -1884,12 +1884,11 @@ function CheckoutContent({
             <SummaryCard
               worker={
                 worker || {
-                  title:
-                    hasGeneralGivingTarget
-                      ? "General Mission Fund"
-                      : searchParams.missionaryId
-                        ? "Missionary Support"
-                        : "Urgent Needs",
+                  title: hasGeneralGivingTarget
+                    ? "General Mission Fund"
+                    : searchParams.missionaryId
+                      ? "Missionary Support"
+                      : "Urgent Needs",
                 }
               }
               amount={amount}

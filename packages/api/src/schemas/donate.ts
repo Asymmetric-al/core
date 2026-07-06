@@ -7,10 +7,7 @@ const optionalIdentifier = z.preprocess((value) => {
 }, z.string().min(1).optional());
 
 export const donatePostSchema = z.object({
-  amount: z.coerce
-    .number()
-    .finite()
-    .positive("Amount must be greater than 0"),
+  amount: z.coerce.number().finite().positive("Amount must be greater than 0"),
   currency: z.string().trim().min(1).default("usd"),
   missionary_id: optionalIdentifier,
   fund_id: optionalIdentifier,
