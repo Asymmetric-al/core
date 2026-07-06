@@ -1175,9 +1175,7 @@ function CheckoutContent({
           return;
         }
 
-        if (
-          !isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)
-        ) {
+        if (!isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)) {
           setCheckoutState((prev) => ({
             ...prev,
             donation: null,

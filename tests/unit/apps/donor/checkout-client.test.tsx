@@ -8,9 +8,18 @@ import {
   screen,
   waitFor,
 } from "@testing-library/react";
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
-type CheckoutPageClientComponent = typeof import("../../../../apps/donor/app/(public)/checkout/checkout-client")["CheckoutPageClient"];
+type CheckoutPageClientComponent =
+  (typeof import("../../../../apps/donor/app/(public)/checkout/checkout-client"))["CheckoutPageClient"];
 
 const stripeState = vi.hoisted(() => ({
   cardElement: {},
@@ -90,7 +99,9 @@ vi.mock("@asym/ui/components/shadcn/button", () => ({
   Button: ({
     children,
     ...props
-  }: React.PropsWithChildren<React.ButtonHTMLAttributes<HTMLButtonElement>>) => (
+  }: React.PropsWithChildren<
+    React.ButtonHTMLAttributes<HTMLButtonElement>
+  >) => (
     <button type="button" {...props}>
       {children}
     </button>
@@ -114,7 +125,9 @@ vi.mock("@asym/ui/components/shadcn/label", () => ({
 }));
 
 vi.mock("@asym/ui/components/shadcn/separator", () => ({
-  Separator: (props: React.HTMLAttributes<HTMLDivElement>) => <div {...props} />,
+  Separator: (props: React.HTMLAttributes<HTMLDivElement>) => (
+    <div {...props} />
+  ),
 }));
 
 vi.mock("@asym/ui/components/shadcn/switch", () => ({
@@ -174,9 +187,8 @@ let CheckoutPageClient: CheckoutPageClientComponent;
 process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY = "pk_test_unit";
 
 beforeAll(async () => {
-  const module = await import(
-    "../../../../apps/donor/app/(public)/checkout/checkout-client"
-  );
+  const module =
+    await import("../../../../apps/donor/app/(public)/checkout/checkout-client");
   CheckoutPageClient = module.CheckoutPageClient;
 });
 
@@ -289,9 +301,7 @@ const requestAt = (index: number) => {
 describe("CheckoutPageClient live card confirmation", () => {
   it("does not show success for /api/donate initialization until Stripe confirms the PaymentIntent", async () => {
     let resolveConfirmation:
-      | ((value: {
-          paymentIntent: { status: string };
-        }) => void)
+      | ((value: { paymentIntent: { status: string } }) => void)
       | null = null;
     const confirmationPromise = new Promise<{
       paymentIntent: { status: string };
@@ -424,7 +434,9 @@ describe("CheckoutPageClient idempotency retry keys", () => {
     fireEvent.click(screen.getByRole("button", { name: /^back$/i }));
     fireEvent.click(screen.getByRole("radio", { name: "$250" }));
     fireEvent.click(screen.getByRole("button", { name: /next step/i }));
-    fireEvent.click(screen.getByRole("button", { name: /continue to payment/i }));
+    fireEvent.click(
+      screen.getByRole("button", { name: /continue to payment/i }),
+    );
     confirmPayment();
 
     await waitFor(() => expect(fetchMock()).toHaveBeenCalledTimes(2));
