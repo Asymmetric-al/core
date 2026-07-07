@@ -54,6 +54,7 @@ has_env_value() {
 
 log "Checking prerequisites..."
 require_cmd bun
+require_cmd node
 bash "$ROOT_DIR/scripts/verify/bun-version.sh"
 require_cmd git
 supabase_cli_guidance
