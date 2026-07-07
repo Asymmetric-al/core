@@ -6,8 +6,8 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createOfflineEntryDependencies,
   OFFLINE_ENTRY_UNBOUND_MESSAGE,
-} from "@asym/api/admin/contributions/offline-dependencies";
-import { handleOfflineContribution } from "@asym/api/admin/contributions/offline-route";
+} from "../../../../../packages/api/src/admin/contributions/offline-dependencies";
+import { handleOfflineContribution } from "../../../../../packages/api/src/admin/contributions/offline-route";
 
 import type { AuthenticatedContext } from "@asym/auth/context";
 

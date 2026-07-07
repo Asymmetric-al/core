@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { offlineContributionSchema } from "@asym/api/schemas/contributions-offline";
+import { offlineContributionSchema } from "../../../../../packages/api/src/schemas/contributions-offline";
 
 import {
   INITIAL_OFFLINE_GIFT_FORM_VALUES,
