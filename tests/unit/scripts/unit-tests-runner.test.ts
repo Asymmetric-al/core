@@ -52,4 +52,32 @@ describe("unit test runner", () => {
       },
     );
   });
+
+  it("runs vitest with Windows-specific flags after the guard passes", () => {
+    const spawn = vi
+      .fn()
+      .mockReturnValueOnce({ status: 0 })
+      .mockReturnValueOnce({ status: 0 });
+
+    expect(runUnitTests("win32", spawn)).toBe(0);
+    expect(spawn).toHaveBeenCalledTimes(2);
+    expect(spawn).toHaveBeenNthCalledWith(
+      2,
+      "bunx",
+      [
+        "vitest",
+        "run",
+        "--coverage",
+        "--maxWorkers=50%",
+        "--testTimeout=30000",
+        "--no-file-parallelism",
+        "--exclude",
+        "tests/unit/scripts/bun-version.test.ts",
+      ],
+      {
+        shell: true,
+        stdio: "inherit",
+      },
+    );
+  });
 });
