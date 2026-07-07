@@ -270,6 +270,85 @@ describe("buildMissionaryDonorRows", () => {
     expect(b.phone).toBe("+1-555-0200");
   });
 
+  it("normalizes persisted donor type and status values for presentation", () => {
+    const normalizationRows = buildMissionaryDonorRows({
+      missionaryProfileId,
+      donors: [
+        {
+          ...namedDonor,
+          id: "donor-church",
+          name: "Church Partner",
+          type: "church",
+          status: "lapsed",
+        },
+        {
+          ...namedDonor,
+          id: "donor-organization",
+          name: "Organization Partner",
+          type: "organization",
+          status: "new",
+        },
+        {
+          ...namedDonor,
+          id: "donor-foundation",
+          name: "Foundation Partner",
+          type: "foundation",
+          status: "at_risk",
+        },
+        {
+          ...namedDonor,
+          id: "donor-at-risk",
+          name: "At Risk Partner",
+          type: "individual",
+          status: "at risk",
+        },
+        {
+          ...namedDonor,
+          id: "donor-unknown",
+          name: "Unknown Partner",
+          type: "corporate",
+          status: "paused",
+        },
+        {
+          ...namedDonor,
+          id: "donor-missing",
+          name: "Missing Partner",
+          type: null,
+          status: null,
+        },
+      ],
+      activities: [],
+      pledges: [],
+    });
+
+    const rowsById = new Map(normalizationRows.map((row) => [row.id, row]));
+
+    expect(rowsById.get("donor-church")).toMatchObject({
+      type: "Church",
+      status: "Lapsed",
+    });
+    expect(rowsById.get("donor-organization")).toMatchObject({
+      type: "Organization",
+      status: "New",
+    });
+    expect(rowsById.get("donor-foundation")).toMatchObject({
+      type: "Organization",
+      status: "At Risk",
+    });
+    expect(rowsById.get("donor-at-risk")).toMatchObject({
+      type: "Individual",
+      status: "At Risk",
+    });
+    expect(rowsById.get("donor-unknown")).toMatchObject({
+      type: "Individual",
+      status: "Active",
+    });
+    expect(rowsById.get("donor-missing")).toMatchObject({
+      type: "Individual",
+      status: "Active",
+    });
+  });
+
   it("leaks NO raw identity of anonymous donors anywhere in their payloads", () => {
     for (const id of ["donor-A", "donor-D", "donor-E", "donor-F"]) {
       expect(rows.find((r) => r.id === id)?.name).toBe("Anonymous donor");

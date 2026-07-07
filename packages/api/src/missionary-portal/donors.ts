@@ -158,15 +158,37 @@ const ANONYMOUS_DONOR_NAME = "Anonymous donor";
 function normalizeDonorType(
   value: string | null | undefined,
 ): MissionaryDonorRow["type"] {
-  return value === "Organization" || value === "Church" ? value : "Individual";
+  const normalized = value?.toLowerCase();
+
+  if (normalized === "organization" || normalized === "foundation") {
+    return "Organization";
+  }
+
+  if (normalized === "church") {
+    return "Church";
+  }
+
+  return "Individual";
 }
 
 function normalizeDonorStatus(
   value: string | null | undefined,
 ): MissionaryDonorRow["status"] {
-  return value === "Lapsed" || value === "New" || value === "At Risk"
-    ? value
-    : "Active";
+  const normalized = value?.toLowerCase();
+
+  if (normalized === "lapsed") {
+    return "Lapsed";
+  }
+
+  if (normalized === "new") {
+    return "New";
+  }
+
+  if (normalized === "at risk" || normalized === "at_risk") {
+    return "At Risk";
+  }
+
+  return "Active";
 }
 
 function normalizePreferredContact(
