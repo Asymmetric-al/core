@@ -19,7 +19,7 @@
 
 -- 1. Redirect pointer on the duplicate/secondary record (marked merged, not deleted).
 ALTER TABLE public.donors
-  ADD COLUMN IF NOT EXISTS merged_into_donor_id UUID REFERENCES public.donors(id),
+  ADD COLUMN IF NOT EXISTS merged_into_donor_id UUID,
   ADD COLUMN IF NOT EXISTS merged_at TIMESTAMPTZ;
 
 COMMENT ON COLUMN public.donors.merged_into_donor_id IS
@@ -31,6 +31,30 @@ COMMENT ON COLUMN public.donors.merged_at IS
 CREATE INDEX IF NOT EXISTS donors_merged_into_donor_id_idx
   ON public.donors (merged_into_donor_id) WHERE merged_into_donor_id IS NOT NULL;
 
+-- Composite tenant+id uniqueness lets new references enforce same-tenant donor links.
+CREATE UNIQUE INDEX IF NOT EXISTS donors_tenant_id_id_uidx
+  ON public.donors (tenant_id, id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'donors_merged_requires_tenant_check'
+  ) THEN
+    ALTER TABLE public.donors
+      ADD CONSTRAINT donors_merged_requires_tenant_check
+      CHECK (merged_into_donor_id IS NULL OR tenant_id IS NOT NULL);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'donors_merged_into_same_tenant_fk'
+  ) THEN
+    ALTER TABLE public.donors
+      ADD CONSTRAINT donors_merged_into_same_tenant_fk
+      FOREIGN KEY (tenant_id, merged_into_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+END $$;
+
 -- Fast in-tenant matching on normalized email (§2.1 exact/high-confidence match).
 CREATE INDEX IF NOT EXISTS donors_tenant_lower_email_idx
   ON public.donors (tenant_id, lower(email));
@@ -39,8 +63,8 @@ CREATE INDEX IF NOT EXISTS donors_tenant_lower_email_idx
 CREATE TABLE IF NOT EXISTS public.donor_merge_candidates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),
-  existing_donor_id UUID NOT NULL REFERENCES public.donors(id),
-  incoming_donor_id UUID REFERENCES public.donors(id),
+  existing_donor_id UUID NOT NULL,
+  incoming_donor_id UUID,
   confidence TEXT NOT NULL,
   signals JSONB NOT NULL DEFAULT '[]'::jsonb,
   status TEXT NOT NULL DEFAULT 'open',
@@ -59,6 +83,32 @@ CREATE TABLE IF NOT EXISTS public.donor_merge_candidates (
 CREATE INDEX IF NOT EXISTS donor_merge_candidates_tenant_status_idx
   ON public.donor_merge_candidates (tenant_id, status);
 
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_candidates_existing_donor_same_tenant_fk'
+  ) THEN
+    ALTER TABLE public.donor_merge_candidates
+      ADD CONSTRAINT donor_merge_candidates_existing_donor_same_tenant_fk
+      FOREIGN KEY (tenant_id, existing_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_candidates_incoming_donor_same_tenant_fk'
+  ) THEN
+    ALTER TABLE public.donor_merge_candidates
+      ADD CONSTRAINT donor_merge_candidates_incoming_donor_same_tenant_fk
+      FOREIGN KEY (tenant_id, incoming_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+END $$;
+
+ALTER TABLE public.donor_merge_candidates ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.donor_merge_candidates FROM anon, authenticated;
+GRANT ALL ON TABLE public.donor_merge_candidates TO service_role;
+
 COMMENT ON TABLE public.donor_merge_candidates IS
   'Duplicate-detection review queue (§2.2/§2.4): possible/low matches held for human '
   'or agent-assisted review. Never an auto-merge.';
@@ -67,8 +117,8 @@ COMMENT ON TABLE public.donor_merge_candidates IS
 CREATE TABLE IF NOT EXISTS public.donor_merge_audit (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),
-  surviving_donor_id UUID NOT NULL REFERENCES public.donors(id), -- canonical / primary
-  merged_donor_id UUID NOT NULL REFERENCES public.donors(id),    -- duplicate / secondary
+  surviving_donor_id UUID NOT NULL, -- canonical / primary
+  merged_donor_id UUID NOT NULL,    -- duplicate / secondary
   actor_id UUID NOT NULL,
   actor_type TEXT NOT NULL,
   reason TEXT NOT NULL,
@@ -85,6 +135,32 @@ CREATE INDEX IF NOT EXISTS donor_merge_audit_tenant_idx
   ON public.donor_merge_audit (tenant_id, decided_at);
 CREATE INDEX IF NOT EXISTS donor_merge_audit_surviving_idx
   ON public.donor_merge_audit (surviving_donor_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_audit_surviving_donor_same_tenant_fk'
+  ) THEN
+    ALTER TABLE public.donor_merge_audit
+      ADD CONSTRAINT donor_merge_audit_surviving_donor_same_tenant_fk
+      FOREIGN KEY (tenant_id, surviving_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_audit_merged_donor_same_tenant_fk'
+  ) THEN
+    ALTER TABLE public.donor_merge_audit
+      ADD CONSTRAINT donor_merge_audit_merged_donor_same_tenant_fk
+      FOREIGN KEY (tenant_id, merged_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+END $$;
+
+ALTER TABLE public.donor_merge_audit ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.donor_merge_audit FROM anon, authenticated;
+GRANT ALL ON TABLE public.donor_merge_audit TO service_role;
 
 COMMENT ON TABLE public.donor_merge_audit IS
   'Auditable merge history (§2.5): who/what/when/why/confidence-signals/affected-records. '

@@ -34,6 +34,7 @@ describe("buildMergeCandidate — opens a reviewable candidate, never an auto-me
 
 describe("planDonorMerge — auditable, marks duplicate merged/redirected not deleted (§2.5)", () => {
   const base = {
+    tenantId: "tenant-a",
     survivingDonorId: "donor-1",
     mergedDonorId: "donor-2",
     actorId: "user-9",
@@ -89,6 +90,16 @@ describe("planDonorMerge — auditable, marks duplicate merged/redirected not de
         confidenceSignals: [...base.confidenceSignals],
       }),
     ).toThrow();
+  });
+
+  it("rejects a merge with no tenant id because audit attribution must be tenant-scoped", () => {
+    expect(() =>
+      planDonorMerge({
+        ...base,
+        tenantId: " ",
+        confidenceSignals: [...base.confidenceSignals],
+      }),
+    ).toThrow("merge requires a tenant id for the audit record");
   });
 });
 

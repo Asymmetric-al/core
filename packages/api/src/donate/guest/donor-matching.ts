@@ -58,6 +58,8 @@ export interface DonorMatchCandidate {
   donorId: string;
   tenantId: string;
   normalizedEmail: string | null;
+  /** Creation time, when available, used to prefer the oldest canonical donor. */
+  createdAt?: string | null;
   firstName?: string | null;
   lastName?: string | null;
   address?: NormalizedAddress | null;
@@ -108,6 +110,28 @@ function phoneExact(
   return da.length >= 7 && da === db;
 }
 
+function createdAtTime(candidate: DonorMatchCandidate): number | null {
+  if (!candidate.createdAt) return null;
+  const time = Date.parse(candidate.createdAt);
+  return Number.isFinite(time) ? time : null;
+}
+
+function compareCanonicalCandidates(
+  a: DonorMatchCandidate,
+  b: DonorMatchCandidate,
+): number {
+  const aCreatedAt = createdAtTime(a);
+  const bCreatedAt = createdAtTime(b);
+
+  if (aCreatedAt !== null && bCreatedAt !== null && aCreatedAt !== bCreatedAt) {
+    return aCreatedAt - bCreatedAt;
+  }
+  if (aCreatedAt !== null && bCreatedAt === null) return -1;
+  if (aCreatedAt === null && bCreatedAt !== null) return 1;
+
+  return a.donorId.localeCompare(b.donorId);
+}
+
 /** Signals for a single incoming↔candidate pair (email match handled separately). */
 function pairSignals(
   incoming: IncomingDonorIdentity,
@@ -156,7 +180,7 @@ export function resolveDonorMatch(input: {
   if (email !== "") {
     const emailMatches = candidates
       .filter((c) => norm(c.normalizedEmail) === email)
-      .sort((a, b) => a.donorId.localeCompare(b.donorId)); // deterministic canonical pick
+      .sort(compareCanonicalCandidates);
     if (emailMatches.length > 0) {
       const canonical = emailMatches[0]!;
       const rest = emailMatches.slice(1);

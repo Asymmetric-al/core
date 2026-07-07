@@ -95,7 +95,7 @@ export interface DonorMergePlan {
 }
 
 export function planDonorMerge(input: {
-  tenantId?: string;
+  tenantId: string;
   survivingDonorId: string;
   mergedDonorId: string;
   actorId: string;
@@ -105,8 +105,12 @@ export function planDonorMerge(input: {
   affectedRecords: Record<string, number>;
   decidedAt: string;
 }): DonorMergePlan {
+  const tenantId = input.tenantId.trim();
   const surviving = input.survivingDonorId.trim();
   const merged = input.mergedDonorId.trim();
+  if (!tenantId) {
+    throw new Error("merge requires a tenant id for the audit record");
+  }
   if (!surviving || !merged) {
     throw new Error("merge requires both a surviving and a merged donor id");
   }
@@ -123,7 +127,7 @@ export function planDonorMerge(input: {
 
   return {
     audit: {
-      tenantId: input.tenantId ?? "", // tenant carried by caller context
+      tenantId,
       survivingDonorId: surviving,
       mergedDonorId: merged,
       actorId: input.actorId,

@@ -141,4 +141,27 @@ describe("resolveDonorMatch — pre-existing duplicate on exact email", () => {
     expect(r.canonicalDonorId).toBe("donor-1"); // deterministic pick
     expect(r.mergeCandidateDonorIds).toContain("donor-2"); // the other dup surfaced, not auto-merged
   });
+
+  it("chooses the oldest same-email donor as canonical instead of lexicographic UUID order", () => {
+    const newerLexicographicallyFirst = {
+      ...candidate({ donorId: "00000000-0000-0000-0000-000000000001" }),
+      createdAt: "2026-07-04T12:00:00Z",
+    };
+    const olderLexicographicallyLast = {
+      ...candidate({ donorId: "ffffffff-ffff-ffff-ffff-ffffffffffff" }),
+      createdAt: "2024-01-01T00:00:00Z",
+    };
+
+    const r = resolveDonorMatch({
+      tenantId: TENANT,
+      incoming: incoming(),
+      candidates: [newerLexicographicallyFirst, olderLexicographicallyLast],
+    });
+
+    expect(r.decision).toBe("attach");
+    expect(r.canonicalDonorId).toBe("ffffffff-ffff-ffff-ffff-ffffffffffff");
+    expect(r.mergeCandidateDonorIds).toEqual([
+      "00000000-0000-0000-0000-000000000001",
+    ]);
+  });
 });
