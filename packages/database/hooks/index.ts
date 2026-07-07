@@ -33,6 +33,18 @@ export {
 export { useAdminCrmReport } from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
+  DONOR_FEED_POSTS_QUERY_KEY,
+  fetchDonorFeedPosts,
+  formatPostRelativeTime,
+  mapToRecentUpdate,
+  postAuthorName,
+  postImages,
+  postInitials,
+  postTitle,
+  useDonorFeedPosts,
+  type DonorFeedPostsOptions,
+} from "./donor-feed-posts";
+export {
   useCareDashboard,
   useMemberCareDashboardQuery,
   useMemberCareDetailQuery,
