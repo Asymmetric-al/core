@@ -1,16 +1,28 @@
-import { readFileSync } from "node:fs";
-import path from "node:path";
+import { describe, expect, it, vi } from "vitest";
 
-import { describe, expect, it } from "vitest";
-
-const repoRoot = process.cwd();
-const runnerPath = path.join(repoRoot, "scripts", "verify", "unit-tests.mjs");
+import {
+  buildVitestInvocation,
+  runBunVersionGuard,
+} from "../../../scripts/verify/unit-tests.mjs";
 
 describe("unit test runner", () => {
   it("uses the cross-platform Bun version guard on Windows", () => {
-    const runner = readFileSync(runnerPath, "utf8");
+    const spawn = vi.fn(() => ({ status: 0 }));
 
-    expect(runner).toContain('spawnSync("bun", ["run", "verify:bun-version"]');
-    expect(runner).not.toContain("scripts/verify/bun-version.sh");
+    expect(runBunVersionGuard(spawn)).toBe(0);
+    expect(spawn).toHaveBeenCalledWith("bun run verify:bun-version", [], {
+      shell: true,
+      stdio: "inherit",
+    });
+  });
+
+  it("uses a shell command string for Windows vitest runs", () => {
+    expect(
+      buildVitestInvocation(["--coverage", "--no-file-parallelism"], "win32"),
+    ).toEqual({
+      command: "bunx vitest run --coverage --no-file-parallelism",
+      args: [],
+      shell: true,
+    });
   });
 });
