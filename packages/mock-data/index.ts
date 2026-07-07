@@ -73,6 +73,7 @@ import { MISSIONARIES } from "./users";
 
 export interface FieldWorker {
   id: string;
+  givingMissionaryId: string;
   title: string;
   location: string;
   category: string;
@@ -82,9 +83,23 @@ export interface FieldWorker {
   goal: number | null;
 }
 
+const DEMO_FIELD_WORKER_MISSIONARY_IDS = [
+  "20000000-0000-0000-0000-000000000001",
+  "20000000-0000-0000-0000-000000000002",
+  "20000000-0000-0000-0000-000000000003",
+  "20000000-0000-0000-0000-000000000004",
+  "20000000-0000-0000-0000-000000000005",
+  "20000000-0000-0000-0000-000000000006",
+] as const;
+
+const getDemoFieldWorkerMissionaryId = (index: number): string =>
+  DEMO_FIELD_WORKER_MISSIONARY_IDS[index] ??
+  DEMO_FIELD_WORKER_MISSIONARY_IDS[0];
+
 export function getFieldWorkers(): FieldWorker[] {
   return MISSIONARIES.map((m, index) => ({
     id: m.id,
+    givingMissionaryId: getDemoFieldWorkerMissionaryId(index),
     title: m.title,
     location: m.location,
     category: m.ministryFocus.split(" & ")[0] || "Ministry",
@@ -96,10 +111,12 @@ export function getFieldWorkers(): FieldWorker[] {
 }
 
 export function getFieldWorkerById(id: string): FieldWorker | undefined {
-  const m = MISSIONARIES.find((m) => m.id === id);
+  const index = MISSIONARIES.findIndex((m) => m.id === id);
+  const m = index >= 0 ? MISSIONARIES[index] : undefined;
   if (!m) return undefined;
   return {
     id: m.id,
+    givingMissionaryId: getDemoFieldWorkerMissionaryId(index),
     title: m.title,
     location: m.location,
     category: m.ministryFocus.split(" & ")[0] || "Ministry",
