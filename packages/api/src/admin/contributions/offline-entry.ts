@@ -20,6 +20,7 @@ import {
   buildOfflineContributionRow,
   type OfflineContributionRow,
 } from "./offline-logic";
+
 import type { OfflineContributionRequest } from "../../schemas/contributions-offline";
 
 export interface OfflineEntryActor {

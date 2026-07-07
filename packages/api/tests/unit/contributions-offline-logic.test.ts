@@ -4,6 +4,7 @@ import {
   buildOfflineContributionRow,
   resolveOfflineReceiptStatus,
 } from "../../src/admin/contributions/offline-logic";
+
 import type { OfflineContributionRequest } from "../../src/schemas/contributions-offline";
 
 /** TDD — offline gift entry pure logic (spec §6, §8.1, §11.3). */
