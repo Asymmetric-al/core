@@ -30,6 +30,36 @@ describe("buildMergeCandidate — opens a reviewable candidate, never an auto-me
     expect(mc.signals).toContain("name_exact");
     expect(mc.existingDonorId).toBe("donor-1");
   });
+
+  it("rejects a candidate with no tenant id", () => {
+    expect(() =>
+      buildMergeCandidate({
+        id: "mc-1",
+        tenantId: " ",
+        existingDonorId: "donor-1",
+        incomingDonorId: "donor-2",
+        confidence: "possible",
+        signals: ["name_exact", "address_similar"],
+        createdAt: "2026-07-04T00:00:00Z",
+      }),
+    ).toThrow("merge candidate requires a tenant id");
+  });
+
+  it("rejects confidence values that are not reviewable merge-candidate levels", () => {
+    expect(() =>
+      buildMergeCandidate({
+        id: "mc-1",
+        tenantId: "tenant-a",
+        existingDonorId: "donor-1",
+        incomingDonorId: "donor-2",
+        confidence: "exact" as Parameters<
+          typeof buildMergeCandidate
+        >[0]["confidence"],
+        signals: ["normalized_email_exact"],
+        createdAt: "2026-07-04T00:00:00Z",
+      }),
+    ).toThrow("merge candidate confidence must be possible or low");
+  });
 });
 
 describe("planDonorMerge — auditable, marks duplicate merged/redirected not deleted (§2.5)", () => {
@@ -54,6 +84,7 @@ describe("planDonorMerge — auditable, marks duplicate merged/redirected not de
     expect(plan.audit.mergedDonorId).toBe("donor-2"); // duplicate / secondary
     expect(plan.audit.actorId).toBe("user-9");
     expect(plan.audit.actorType).toBe("staff");
+    expect(plan.audit.tenantId).toBe("tenant-a");
     expect(plan.audit.reason).toMatch(/household/);
     expect(plan.audit.confidenceSignals).toContain("address_similar");
     expect(plan.audit.affectedRecords.donations).toBe(3);
@@ -134,5 +165,16 @@ describe("deriveReceiptCorrectionsForMerge — receipt truth preserved, not sile
     expect(c0.originalReceiptEmail).toBe("ada@example.com");
     expect(c0.linkedToDonorId).toBe("donor-1");
     expect(c0.reason).toMatch(/merge/i);
+  });
+
+  it("rejects receipt corrections for a self-merge", () => {
+    expect(() =>
+      deriveReceiptCorrectionsForMerge({
+        survivingDonorId: "donor-1",
+        mergedDonorId: "donor-1",
+        mergedDonorReceipts: receipts,
+        decidedAt: "2026-07-04T12:00:00Z",
+      }),
+    ).toThrow("cannot derive receipt corrections for a self-merge");
   });
 });

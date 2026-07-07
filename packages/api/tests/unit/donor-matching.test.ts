@@ -66,6 +66,24 @@ describe("resolveDonorMatch — exact / high-confidence email match (§2.1)", ()
     expect(r.decision).toBe("create_new");
     expect(r.canonicalDonorId).toBeNull();
   });
+
+  it("NEVER creates merge candidates from non-email signals in a DIFFERENT tenant", () => {
+    const r = resolveDonorMatch({
+      tenantId: TENANT,
+      incoming: incoming({ normalizedEmail: "ada.l@work.com" }),
+      candidates: [
+        candidate({
+          donorId: "other",
+          tenantId: "tenant-b",
+          normalizedEmail: "ada@example.com",
+        }),
+      ],
+    });
+
+    expect(r.decision).toBe("create_new");
+    expect(r.canonicalDonorId).toBeNull();
+    expect(r.mergeCandidateDonorIds).toEqual([]);
+  });
 });
 
 describe("resolveDonorMatch — possible match → merge candidate, never auto-merge (§2.2)", () => {
@@ -123,6 +141,31 @@ describe("resolveDonorMatch — low confidence → merge candidate (§2.4)", () 
     });
     expect(r.decision).toBe("create_new");
     expect(r.confidence).toBe("none");
+    expect(r.mergeCandidateDonorIds).toEqual([]);
+  });
+
+  it("does not create a merge candidate from first-name-only overlap", () => {
+    const r = resolveDonorMatch({
+      tenantId: TENANT,
+      incoming: incoming({
+        normalizedEmail: "ada.l@work.com",
+        lastName: "",
+        address: null,
+        phone: null,
+      }),
+      candidates: [
+        candidate({
+          normalizedEmail: "other@example.com",
+          lastName: "",
+          address: null,
+          phone: null,
+        }),
+      ],
+    });
+
+    expect(r.decision).toBe("create_new");
+    expect(r.confidence).toBe("none");
+    expect(r.signals).not.toContain("name_exact");
     expect(r.mergeCandidateDonorIds).toEqual([]);
   });
 });

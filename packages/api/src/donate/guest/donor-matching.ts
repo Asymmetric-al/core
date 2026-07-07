@@ -81,10 +81,13 @@ function norm(value: string | null | undefined): string {
 }
 
 function sameName(a: IncomingDonorIdentity, c: DonorMatchCandidate): boolean {
+  const firstName = norm(a.firstName);
+  const lastName = norm(a.lastName);
   return (
-    norm(a.firstName) !== "" &&
-    norm(a.firstName) === norm(c.firstName) &&
-    norm(a.lastName) === norm(c.lastName)
+    firstName !== "" &&
+    lastName !== "" &&
+    firstName === norm(c.firstName) &&
+    lastName === norm(c.lastName)
   );
 }
 

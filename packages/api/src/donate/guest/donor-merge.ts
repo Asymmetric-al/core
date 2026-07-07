@@ -25,6 +25,10 @@ export type MergeCandidateStatus =
 export type MergeActorType = "staff" | "agent";
 /** A donor record is either the CANONICAL/surviving record or a MERGED/secondary one. */
 export type DonorRecordStatus = "canonical" | "merged";
+export type ReviewableDonorMatchConfidence = Extract<
+  DonorMatchConfidence,
+  "possible" | "low"
+>;
 
 export interface MergeCandidate {
   id: string;
@@ -33,10 +37,16 @@ export interface MergeCandidate {
   existingDonorId: string;
   /** The newly created/incoming donor that may be a duplicate (nullable). */
   incomingDonorId: string | null;
-  confidence: DonorMatchConfidence;
+  confidence: ReviewableDonorMatchConfidence;
   signals: DonorMatchSignal[];
   status: MergeCandidateStatus;
   createdAt: string;
+}
+
+function isReviewableConfidence(
+  confidence: DonorMatchConfidence,
+): confidence is ReviewableDonorMatchConfidence {
+  return confidence === "possible" || confidence === "low";
 }
 
 export function buildMergeCandidate(input: {
@@ -44,16 +54,23 @@ export function buildMergeCandidate(input: {
   tenantId: string;
   existingDonorId: string;
   incomingDonorId: string | null;
-  confidence: DonorMatchConfidence;
+  confidence: ReviewableDonorMatchConfidence;
   signals: DonorMatchSignal[];
   createdAt: string;
 }): MergeCandidate {
+  const tenantId = input.tenantId.trim();
+  if (!tenantId) {
+    throw new Error("merge candidate requires a tenant id");
+  }
   if (!input.existingDonorId.trim()) {
     throw new Error("merge candidate requires an existing donor id");
   }
+  if (!isReviewableConfidence(input.confidence)) {
+    throw new Error("merge candidate confidence must be possible or low");
+  }
   return {
     id: input.id,
-    tenantId: input.tenantId,
+    tenantId,
     existingDonorId: input.existingDonorId,
     incomingDonorId: input.incomingDonorId,
     confidence: input.confidence,
@@ -184,13 +201,19 @@ export function deriveReceiptCorrectionsForMerge(input: {
   mergedDonorReceipts: ReceiptSnapshotRef[];
   decidedAt: string;
 }): ReceiptMergeResult {
+  const surviving = input.survivingDonorId.trim();
+  const merged = input.mergedDonorId.trim();
+  if (surviving === merged) {
+    throw new Error("cannot derive receipt corrections for a self-merge");
+  }
+
   return {
     preservedReceipts: input.mergedDonorReceipts.map((r) => ({ ...r })),
     corrections: input.mergedDonorReceipts.map((r) => ({
       donationId: r.donationId,
       originalReceiptName: r.receiptName,
       originalReceiptEmail: r.receiptEmail,
-      linkedToDonorId: input.survivingDonorId,
+      linkedToDonorId: surviving,
       reason: `donor merge ${input.mergedDonorId} → ${input.survivingDonorId}; receipt snapshot preserved`,
       correctedAt: input.decidedAt,
     })),

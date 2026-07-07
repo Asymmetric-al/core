@@ -26,9 +26,7 @@ describe("donor matching merge candidate migration", () => {
   });
 
   it("enforces that every donor reference belongs to the row tenant", () => {
-    expect(migrationSql).toContain(
-      "CREATE UNIQUE INDEX IF NOT EXISTS donors_tenant_id_id_uidx",
-    );
+    expect(migrationSql).toContain("donors_tenant_id_id_uidx");
     expect(migrationSql).toContain(
       "FOREIGN KEY (tenant_id, merged_into_donor_id)",
     );
@@ -43,5 +41,24 @@ describe("donor matching merge candidate migration", () => {
     );
     expect(migrationSql).toContain("FOREIGN KEY (tenant_id, merged_donor_id)");
     expect(migrationSql).toContain("REFERENCES public.donors (tenant_id, id)");
+  });
+
+  it("builds public.donors indexes concurrently for live deploy safety", () => {
+    expect(migrationSql).toContain(
+      "CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_merged_into_donor_id_idx",
+    );
+    expect(migrationSql).toContain(
+      "CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_id_id_uidx",
+    );
+    expect(migrationSql).toContain(
+      "CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_lower_email_idx",
+    );
+  });
+
+  it("limits merge candidate confidence values to reviewable levels", () => {
+    expect(migrationSql).toContain("CHECK (confidence IN ('possible', 'low'))");
+    expect(migrationSql).not.toContain(
+      "CHECK (confidence IN ('exact', 'high', 'possible', 'low', 'none'))",
+    );
   });
 });

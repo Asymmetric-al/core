@@ -28,11 +28,11 @@ COMMENT ON COLUMN public.donors.merged_into_donor_id IS
 COMMENT ON COLUMN public.donors.merged_at IS
   'Timestamp the donor record was merged/redirected into the surviving record.';
 
-CREATE INDEX IF NOT EXISTS donors_merged_into_donor_id_idx
+CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_merged_into_donor_id_idx
   ON public.donors (merged_into_donor_id) WHERE merged_into_donor_id IS NOT NULL;
 
 -- Composite tenant+id uniqueness lets new references enforce same-tenant donor links.
-CREATE UNIQUE INDEX IF NOT EXISTS donors_tenant_id_id_uidx
+CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_id_id_uidx
   ON public.donors (tenant_id, id);
 
 DO $$
@@ -56,7 +56,7 @@ BEGIN
 END $$;
 
 -- Fast in-tenant matching on normalized email (§2.1 exact/high-confidence match).
-CREATE INDEX IF NOT EXISTS donors_tenant_lower_email_idx
+CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_lower_email_idx
   ON public.donors (tenant_id, lower(email));
 
 -- 2. Merge candidates — possible/low matches held for human/agent review (§2.2/§2.4).
@@ -72,7 +72,7 @@ CREATE TABLE IF NOT EXISTS public.donor_merge_candidates (
   resolved_at TIMESTAMPTZ,
   resolved_by UUID,
   CONSTRAINT donor_merge_candidates_confidence_check
-    CHECK (confidence IN ('exact', 'high', 'possible', 'low', 'none')),
+    CHECK (confidence IN ('possible', 'low')),
   CONSTRAINT donor_merge_candidates_status_check
     CHECK (status IN ('open', 'resolved_merged', 'resolved_rejected')),
   -- A candidate never pairs a record with itself.
