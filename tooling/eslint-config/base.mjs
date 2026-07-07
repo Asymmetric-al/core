@@ -60,6 +60,11 @@ export const baseConfig = [
               message:
                 "Cannot import from apps/missionary. Use @asym/* packages instead.",
             },
+            {
+              group: ["motion/react", "framer-motion"],
+              message:
+                "Import motion APIs from @asym/lib/motion (LazyMotion m + MotionConfig reducedMotion). See docs/ai/skills/anim/SKILL.md.",
+            },
           ],
         },
       ],
@@ -92,6 +97,53 @@ export const baseConfig = [
           argsIgnorePattern: "^_",
           caughtErrors: "all",
           caughtErrorsIgnorePattern: "^_",
+        },
+      ],
+    },
+  },
+  {
+    // Exception zones for the motion/react import restriction:
+    // - packages/lib/motion.tsx IS the re-export module.
+    // - apps/admin/src/cms-ui renders inside the Payload admin React tree,
+    //   which does not mount MotionProvider/LazyMotion, so the `m`-based
+    //   re-export would silently break its animations.
+    // Patterns cover both repo-root and per-package eslint working dirs.
+    files: ["motion.tsx", "**/packages/lib/motion.tsx"],
+    rules: {
+      "no-restricted-imports": "off",
+    },
+  },
+  {
+    // cms-ui relaxes ONLY the motion/react restriction; the cross-app import
+    // boundaries must keep applying, so re-declare the rule without the
+    // motion group instead of turning it off.
+    files: ["**/src/cms-ui/**"],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            {
+              group: ["../../apps/*", "../../../apps/*", "../../../../apps/*"],
+              message:
+                "Apps cannot import from other apps. Use @asym/* packages instead.",
+            },
+            {
+              group: ["**/apps/admin/**"],
+              message:
+                "Cannot import from apps/admin. Use @asym/* packages instead.",
+            },
+            {
+              group: ["**/apps/donor/**"],
+              message:
+                "Cannot import from apps/donor. Use @asym/* packages instead.",
+            },
+            {
+              group: ["**/apps/missionary/**"],
+              message:
+                "Cannot import from apps/missionary. Use @asym/* packages instead.",
+            },
+          ],
         },
       ],
     },

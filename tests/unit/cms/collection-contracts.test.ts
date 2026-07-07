@@ -10,17 +10,19 @@ type FieldDef = {
   validate?: (value: unknown) => true | string | Promise<true | string>;
 };
 
+type DraftVersionsDef = {
+  drafts?: {
+    autosave?: {
+      interval?: number;
+      showSaveDraftButton?: boolean;
+    };
+  };
+};
+
 type CollectionDef = {
   slug: string;
   fields: FieldDef[];
-  versions?: {
-    drafts?: {
-      autosave?: {
-        interval?: number;
-        showSaveDraftButton?: boolean;
-      };
-    };
-  };
+  versions?: false | DraftVersionsDef;
   upload?: {
     staticDir?: string;
     imageSizes?: Array<{ name?: string; width?: number; height?: number }>;
@@ -64,6 +66,11 @@ function getField(collection: CollectionDef, name: string) {
   const field = collection.fields.find((entry) => entry.name === name);
   expect(field).toBeDefined();
   return field as FieldDef;
+}
+
+function getDraftVersions(collection: CollectionDef) {
+  expect(collection.versions).not.toBe(false);
+  return collection.versions as DraftVersionsDef | undefined;
 }
 
 beforeAll(async () => {
@@ -113,16 +120,21 @@ describe("CMS collection contracts", () => {
   });
 
   it("enables drafts only for publish-managed collections", () => {
-    expect(Pages.versions?.drafts?.autosave?.interval).toBe(300);
-    expect(MinistryUpdates.versions?.drafts?.autosave?.interval).toBe(300);
-    expect(Pages.versions?.drafts?.autosave?.showSaveDraftButton).toBe(true);
-    expect(
-      MinistryUpdates.versions?.drafts?.autosave?.showSaveDraftButton,
-    ).toBe(true);
+    const pageVersions = getDraftVersions(Pages);
+    const ministryUpdateVersions = getDraftVersions(MinistryUpdates);
 
-    expect(Navigation.versions).toBeUndefined();
-    expect(MissionaryProfiles.versions).toBeUndefined();
-    expect(Media.versions).toBeUndefined();
+    expect(pageVersions?.drafts?.autosave?.interval).toBe(300);
+    expect(ministryUpdateVersions?.drafts?.autosave?.interval).toBe(300);
+    expect(pageVersions?.drafts?.autosave?.showSaveDraftButton).toBe(true);
+    expect(ministryUpdateVersions?.drafts?.autosave?.showSaveDraftButton).toBe(
+      true,
+    );
+
+    expect(CmsUsers.versions).toBe(false);
+    expect(Tenants.versions).toBe(false);
+    expect(Navigation.versions).toBe(false);
+    expect(MissionaryProfiles.versions).toBe(false);
+    expect(Media.versions).toBe(false);
   });
 
   it("requires tenant relationship on all tenant-scoped collections", () => {

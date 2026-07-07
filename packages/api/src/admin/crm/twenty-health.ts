@@ -1,4 +1,8 @@
 import { runtimeEnvFlags, serverEnv } from "@asym/env";
+import {
+  isProductionDeployment,
+  isProtectedNonProductionDeployment,
+} from "@asym/env/target-env";
 import { NextResponse } from "next/server";
 
 import { getTwentyCrmHealth } from "../../crm/health";
@@ -10,17 +14,14 @@ type TwentyCrmHealthRouteFlags = Pick<
   "NODE_ENV" | "VERCEL_ENV" | "VERCEL_TARGET_ENV"
 >;
 
-export function isTwentyCrmStagingHealthEnabled(
+export function isTwentyCrmDevelopmentHealthEnabled(
   flags: TwentyCrmHealthRouteFlags = runtimeEnvFlags,
 ): boolean {
-  const targetEnv = flags.VERCEL_TARGET_ENV?.toLowerCase();
-  const vercelEnv = flags.VERCEL_ENV?.toLowerCase();
-
-  if (targetEnv === "production" || vercelEnv === "production") {
+  if (isProductionDeployment(flags)) {
     return false;
   }
 
-  if (targetEnv === "staging") {
+  if (isProtectedNonProductionDeployment(flags)) {
     return true;
   }
 
@@ -31,10 +32,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   const requestId = crypto.randomUUID();
   void request.headers.get("x-vercel-id");
 
-  if (!isTwentyCrmStagingHealthEnabled()) {
+  if (!isTwentyCrmDevelopmentHealthEnabled()) {
     return NextResponse.json(
       {
-        error: "Twenty CRM staging health route is not enabled.",
+        error: "Twenty CRM development health route is not enabled.",
         requestId,
       },
       {

@@ -74,6 +74,7 @@ export interface DataTableBodyWithTableStateProps<TData, TValue> {
     variant?: "default" | "destructive";
   }[];
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   onRowClick?: (row: Row<TData>) => void;
   getRowId?: TableOptions<TData>["getRowId"];
   className?: string;
@@ -108,6 +109,7 @@ export type DataTableBodyShellProps<TData, TValue> = {
     variant?: "default" | "destructive";
   }[];
   rowActions?: DataTableInteractiveRowAction<TData>[];
+  getRowActionAriaLabel?: (row: Row<TData>) => string;
   onRowClick?: (row: Row<TData>) => void;
   state?: DataTableControlledState;
   getRowId?: TableOptions<TData>["getRowId"];
@@ -142,6 +144,7 @@ export function DataTableBody<TData, TValue>({
   onColumnVisibilityChange,
   actionBarActions,
   rowActions,
+  getRowActionAriaLabel,
   onRowClick,
   state,
   getRowId,
@@ -178,6 +181,7 @@ export function DataTableBody<TData, TValue>({
       rowCount={rowCount}
       actionBarActions={actionBarActions}
       rowActions={rowActions}
+      getRowActionAriaLabel={getRowActionAriaLabel}
       onRowClick={onRowClick}
       getRowId={getRowId}
       className={className}
@@ -207,6 +211,7 @@ export function DataTableBodyWithUrl<TData, TValue>({
   onColumnVisibilityChange,
   actionBarActions,
   rowActions,
+  getRowActionAriaLabel,
   onRowClick,
   state,
   getRowId,
@@ -249,6 +254,7 @@ export function DataTableBodyWithUrl<TData, TValue>({
       rowCount={rowCount}
       actionBarActions={actionBarActions}
       rowActions={rowActions}
+      getRowActionAriaLabel={getRowActionAriaLabel}
       onRowClick={onRowClick}
       getRowId={getRowId}
       className={className}
@@ -272,6 +278,7 @@ export function DataTableBodyWithTableState<TData, TValue>({
   rowCount,
   actionBarActions,
   rowActions,
+  getRowActionAriaLabel,
   onRowClick,
   getRowId,
   className,
@@ -298,9 +305,10 @@ export function DataTableBodyWithTableState<TData, TValue>({
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+          checked={table.getIsAllPageRowsSelected()}
+          indeterminate={
+            table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected()
           }
           onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
           aria-label="Select all"
@@ -422,7 +430,11 @@ export function DataTableBodyWithTableState<TData, TValue>({
 
     return (
       <TableCell className="w-0 p-4 text-right">
-        <DataTableRowActions row={row} actions={rowActions} />
+        <DataTableRowActions
+          row={row}
+          actions={rowActions}
+          getAriaLabel={getRowActionAriaLabel}
+        />
       </TableCell>
     );
   };

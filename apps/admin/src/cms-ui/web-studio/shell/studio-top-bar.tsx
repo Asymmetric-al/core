@@ -8,13 +8,13 @@ import {
   BreadcrumbPage,
   BreadcrumbSeparator,
 } from "@asym/ui/components/shadcn/breadcrumb";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { useAuth } from "@payloadcms/ui";
-import { ChevronLeft, Search } from "lucide-react";
-import Link from "next/link";
+import { ChevronLeft } from "lucide-react";
 
 import { getEnabledWebStudioCollections } from "../collections/config";
+import { Link } from "../routing";
 
 type StudioTopBarProps = {
   sectionLabel?: string;
@@ -45,20 +45,24 @@ export function StudioTopBar({
       )}
     >
       <div className="flex flex-wrap items-center gap-3 px-4 py-3 sm:px-6">
-        <Button variant="ghost" size="sm" className="gap-1.5" asChild>
-          <Link href="/">
-            <ChevronLeft className="size-4" />
-            <span className="font-semibold text-xs uppercase tracking-wide">
-              Mission Control
-            </span>
-          </Link>
-        </Button>
+        <Link
+          href="/"
+          className={cn(
+            buttonVariants({ variant: "ghost", size: "sm" }),
+            "gap-1.5",
+          )}
+        >
+          <ChevronLeft className="size-4" />
+          <span className="font-semibold text-xs uppercase tracking-wide">
+            Mission Control
+          </span>
+        </Link>
 
         <Breadcrumb className="min-w-0 flex-1">
           <BreadcrumbList className="flex-wrap">
             <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link href="/web-studio">Web Studio</Link>
+              <BreadcrumbLink render={<Link href="/web-studio" />}>
+                Web Studio
               </BreadcrumbLink>
             </BreadcrumbItem>
             {sectionLabel ? (
@@ -66,8 +70,8 @@ export function StudioTopBar({
                 <BreadcrumbSeparator />
                 <BreadcrumbItem>
                   {currentLabel ? (
-                    <BreadcrumbLink asChild>
-                      <Link href={sectionHref}>{sectionLabel}</Link>
+                    <BreadcrumbLink render={<Link href={sectionHref} />}>
+                      {sectionLabel}
                     </BreadcrumbLink>
                   ) : (
                     <BreadcrumbPage>{sectionLabel}</BreadcrumbPage>
@@ -87,20 +91,6 @@ export function StudioTopBar({
             ) : null}
           </BreadcrumbList>
         </Breadcrumb>
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="hidden gap-2 sm:inline-flex"
-          disabled
-          title="Command palette (coming soon)"
-        >
-          <Search className="size-4" />
-          <span className="font-semibold text-[10px] uppercase tracking-wider">
-            Search
-          </span>
-        </Button>
 
         <div className="ml-auto flex items-center gap-2">
           <span className="hidden max-w-[12rem] truncate text-muted-foreground text-xs sm:inline">

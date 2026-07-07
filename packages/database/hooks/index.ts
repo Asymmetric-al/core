@@ -1,24 +1,27 @@
 "use client";
 
-export {
-  usePostsWithAuthors,
-  usePostsForFollowedMissionaries,
-  useDonorGivingHistory,
-  useMissionarySupporters,
-  useCommentsWithAuthors,
-  useFundsWithProgress,
-  useMissionaryDashboard,
-  useMissionaryStats,
-} from "./hooks";
-export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export {
+  ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
+  ADMIN_CRM_RECORDS_QUERY_KEY,
   useAdminCrmRecordDetail,
   useCreateLinkedCrmNote,
-  useResendCrmGiftReceipt,
 } from "./admin-crm-detail";
 export { useAdminCrmNotesGrid } from "./admin-crm-notes";
+export {
+  ADMIN_CRM_NAMED_VIEWS_QUERY_KEY,
+  useCreateCrmNamedView,
+  useCrmNamedViews,
+  useDeleteCrmNamedView,
+  useUpdateCrmNamedView,
+} from "./admin-crm-named-views";
+export {
+  ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY,
+  useCrmTablePreferences,
+  useSaveCrmRowActionPin,
+  useSaveCrmViewSettings,
+} from "./admin-crm-table-preferences";
 export {
   CRM_RELATIONSHIP_DOMAIN_OPTIONS,
   useAdminCrmRelationshipsGrid,
@@ -27,7 +30,20 @@ export {
   CRM_PROJECTION_TARGET_SURFACE_OPTIONS,
   useAdminCrmProjectionShadowGrid,
 } from "./admin-crm-projections";
+export { useAdminCrmReport } from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
+export {
+  DONOR_FEED_POSTS_QUERY_KEY,
+  fetchDonorFeedPosts,
+  formatPostRelativeTime,
+  mapToRecentUpdate,
+  postAuthorName,
+  postImages,
+  postInitials,
+  postTitle,
+  useDonorFeedPosts,
+  type DonorFeedPostsOptions,
+} from "./donor-feed-posts";
 export {
   useCareDashboard,
   useMemberCareDashboardQuery,
@@ -55,6 +71,20 @@ export {
   useTeams,
   useTeamMembers,
 } from "./admin-workspace";
+export {
+  MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
+  useMissionControlNeedsAttention,
+  type MissionControlNeedsAttentionGroup,
+  type MissionControlNeedsAttentionItem,
+} from "./mission-control-tasks";
+export {
+  MISSION_CONTROL_AUTOMATIONS_QUERY_KEY,
+  useMissionControlAutomations,
+  type MissionControlAutomationActivationStatus,
+  type MissionControlAutomationRuleDto,
+  type MissionControlAutomationSummary,
+  type MissionControlAutomationsResponse,
+} from "./mission-control-automations";
 export {
   useLocations,
   useLinkedEntities,
@@ -167,7 +197,6 @@ export {
 } from "./demo-account";
 
 export type { DemoAvailability, DemoRole } from "./demo-account";
-export type { ContributionLiveRow } from "./admin-contributions";
 export type { DonorHistoryTransaction } from "./donor-history";
 export type {
   DonorPortalDonation,

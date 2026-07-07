@@ -84,6 +84,65 @@ const query = useQuery({
 - Use `queryCollectionOptions` with explicit `queryKey`.
 - Keep mutation handlers transactional and error-throwing.
 - Prefer `Promise.all` for independent network calls.
+- Bound the `queryFn` for any table that grows with tenant size (see below).
+
+### Bounded collection windows
+
+Collections backed by tenant-scale tables must not fetch the whole table into
+the browser. `packages/database/collections/client-db.ts` bounds `donors`,
+`donor_activities`, `donor_pledges`, `posts`, `donations`, `post_comments`, and
+`follows` with `createBoundedTableFetcher`, which:
+
+- fetches a deterministically ordered window — the `orderBy` column with
+  `nullsFirst: false` (so null sort values land last instead of crowding out
+  real rows) plus an `id` tie-break — from offset `0` via
+  `.range(0, windowSize - 1)`;
+- always refetches from offset `0`, so invalidating the collection's query key
+  refreshes every loaded row (query collections replace their contents with
+  the `queryFn` result);
+- exposes offset continuation through the exported `*CollectionPagination`
+  objects (`donorsCollectionPagination`, etc.). `hasMore()` /`loadMore()` drive
+  the fetch, and **`subscribe` + `getSnapshot`** expose the window flag
+  reactively for `useSyncExternalStore`. Read it reactively: the flag only
+  settles after a fetch resolves, so a polled boolean would leave a stale
+  "load more" affordance when `loadMore` turns up no new rows. `loadMore` grows
+  the window by one page and invalidates the fetcher's configured query key.
+
+Consuming hooks pass continuation through rather than re-implement it.
+`useMissionaryDonorRows` reads `hasMore` via `useSyncExternalStore` over
+`donorsPagination` (donors window only) so the "Load more partners" affordance
+matches partner rows, while `loadMore` fans out through aggregated `pagination`
+(donors + activities + pledges). It returns `hasMore` / `isLoadingMore` /
+`loadMore`; the missionary donors page renders the affordance from them.
+Collection contracts (`id`, `queryKey`, `schema`, `getKey`, mutation handlers)
+stay unchanged; only the fetch is windowed.
+
+### Scoped collections for tenant-scale joins
+
+Tenant-wide collections that a view then filters client-side both over-fetch and
+can drop in-scope rows that fall outside the newest-N window. When a surface only
+needs one scope, push the filter into the query with a per-scope collection.
+`getMissionaryScopedDonorCollections(missionaryId)` returns `donors`,
+`donor_activities`, and `donor_pledges` collections (and aggregated pagination)
+scoped to one missionary, memoized per id with scope-qualified ids/query keys
+(`["donors", "missionary", id]`). `donors` filters on its `missionary_id`
+column directly (it references `profiles(id)` — the namespace the hook is called
+with). `donor_activities` and `donor_pledges` are scoped through their `donors`
+foreign key with an `!inner` embed (`donors!inner(missionary_id)`) whose
+embed-only key is stripped before the row reaches the schema: `donor_activities`
+has no `missionary_id` column, and `donor_pledges.missionary_id` references
+`missionaries(id)` (a different namespace, which is why filtering it by a profile
+id returns nothing), so the donor relationship is the correct scope for both. An
+empty scope builds disabled (`enabled: false`) collections that never hit the
+network.
+
+> **RLS note:** the demo posture in
+> `supabase/migrations/20260216153000_demo_readonly_rls.sql` grants `SELECT`
+> only `TO anon`, so these client-side collections return rows for the anonymous
+> demo but **zero rows for an authenticated session**. Surfaces that must work
+> for real signed-in users read through `packages/api` server services (e.g.
+> `missionary-portal/service.ts`), which use the admin client. Adding an
+> authenticated read path is an RLS/authorization decision, not a client change.
 
 ```ts
 const collection = createCollection<Item>(
@@ -176,6 +235,7 @@ Shared table primitives now follow one contract:
 - **`DataTableWrapper`** delegates to `DataTableResponsive` but merges defaults first: `enableViewToggle: false`, `defaultViewMode: "table"`, and `mobileBreakpoint: 0` so the wrapper stays **table-only** and does not auto-switch to card on narrow viewports. Pass `config` to override (spread order is defaults then `...config`).
 - **Remounting:** switching `urlState` from off to on (or the reverse) swaps the inner implementation component and **resets** uncontrolled table state for that mount. Avoid hot-toggling `urlState` if you need to preserve in-memory table state.
 - **Pending URL transitions (`nuqs`):** When URL sync is on, `useDataTableStateWithUrl` exposes **`isUrlStatePending`** (mirrors `useDataTableUrlState`’s transition pending flag). `DataTable` / `DataTableResponsive` pass this through as **`urlStatePending`** to **`DataTableToolbar`**, **`DataTableToolbarResponsive`**, and **`DataTablePagination`**. While pending, search inputs, faceted filters, column visibility, reset/export/refresh actions, and pagination controls are **disabled**, and busy regions use **`aria-busy`** where appropriate. That reduces races (e.g. typing or paging ahead of the query string catching up) without changing committed URL semantics.
+- **Row action labels:** when `rowActions` render as card overflow menus, the default trigger label uses `mobileCardConfig.primaryField` when available (for example, `Row actions for Ada Lovelace`) and otherwise falls back to `Open row actions`. Pass `getRowActionAriaLabel` when the primary field is not enough to uniquely identify rows.
 
 ```tsx
 <DataTableResponsive
@@ -252,6 +312,8 @@ This preserves count consistency without requiring route-level SQL transactions 
 - [ ] Only externally controlled state slices are hoisted.
 - [ ] Stable `getRowId` is provided for durable records.
 - [ ] DB collection schemas are validated with Zod.
+- [ ] Collection `queryFn`s over tenant-scale tables use a bounded window with
+      deterministic ordering (no unbounded `select("*")`).
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).

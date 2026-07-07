@@ -209,7 +209,7 @@ export function Footer() {
                   key={label}
                   href={href}
                   aria-label={label}
-                  className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-all touch-target"
+                  className="size-10 rounded-full border border-white/10 flex items-center justify-center hover:bg-white/5 hover:border-white/20 transition-colors touch-target"
                 >
                   <Icon className="size-4" />
                 </a>

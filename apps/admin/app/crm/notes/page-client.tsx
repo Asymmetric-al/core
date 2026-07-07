@@ -4,7 +4,7 @@ import { useAdminCrmNotesGrid } from "@asym/database/hooks";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Alert } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
@@ -82,12 +82,13 @@ export default function CrmNotesPageClient() {
       description={CRM_NOTES_PAGE_META.description}
       actions={
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" asChild>
-            <Link href="/crm">
-              <ArrowLeft className="size-4" />
-              CRM
-            </Link>
-          </Button>
+          <Link
+            href="/crm"
+            className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+          >
+            <ArrowLeft className="size-4" />
+            CRM
+          </Link>
           <Button
             variant="outline"
             className="gap-2"

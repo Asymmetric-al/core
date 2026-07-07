@@ -80,12 +80,12 @@ export const READ_CACHE_TAGS = {
 } as const;
 
 function revalidateTags(tags: string[]): void {
-  try {
-    for (const tag of tags) {
+  for (const tag of tags) {
+    try {
       revalidateTag(tag, "max");
+    } catch (error) {
+      console.error(`Failed to revalidate cache tag "${tag}"`, error);
     }
-  } catch {
-    // noop outside the Next.js runtime (unit tests, scripts).
   }
 }
 

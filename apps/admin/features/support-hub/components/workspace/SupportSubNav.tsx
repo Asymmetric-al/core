@@ -173,7 +173,8 @@ function MobileTabSelect({ tabs, activeHref }: MobileTabSelectProps) {
   const [navigating, setNavigating] = React.useState(false);
   const active = tabs.find((tab) => tab.href === activeHref) ?? tabs[0];
 
-  const handleChange = (href: string) => {
+  const handleChange = (href: string | null) => {
+    if (href === null) return;
     if (typeof window === "undefined") return;
     setNavigating(true);
     window.location.href = href;

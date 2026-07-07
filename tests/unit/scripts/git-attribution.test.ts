@@ -4,6 +4,7 @@ import {
   parseGitHubRepoSlug,
   parseGitIdentity,
   parseLatestCommitLog,
+  validateGitHubActorAttribution,
   validateGitHubActors,
   validateIdentity,
   validateLatestCommitMetadata,
@@ -11,6 +12,9 @@ import {
 
 const blakeNoReplyEmail =
   "116130409+II-ricky-bobby-II@users.noreply.github.com";
+const asymmetricCoreEveBotEmail =
+  "299239962+asymmetric-core-eve[bot]@users.noreply.github.com";
+const asymmetricCoreEveBotLogin = "asymmetric-core-eve[bot]";
 
 describe("git attribution verifier", () => {
   it("accepts Blake with the configured GitHub noreply address", () => {
@@ -19,6 +23,16 @@ describe("git attribution verifier", () => {
         label: "local git config",
         name: "Blake",
         email: blakeNoReplyEmail,
+      }),
+    ).toEqual([]);
+  });
+
+  it("accepts Blake with the Asymmetric Core Eve bot noreply address", () => {
+    expect(
+      validateIdentity({
+        label: "latest commit author",
+        name: "Blake",
+        email: asymmetricCoreEveBotEmail,
       }),
     ).toEqual([]);
   });
@@ -58,6 +72,53 @@ describe("git attribution verifier", () => {
         authorLogin: "II-ricky-bobby-II",
         committerLogin: "II-ricky-bobby-II",
       }),
+    ).toEqual([]);
+  });
+
+  it("accepts GitHub actor metadata that resolves to Asymmetric Core Eve", () => {
+    expect(
+      validateGitHubActors({
+        authorLogin: asymmetricCoreEveBotLogin,
+        committerLogin: asymmetricCoreEveBotLogin,
+      }),
+    ).toEqual([]);
+  });
+
+  it("rejects mixed human and bot commit attribution", () => {
+    const metadata = {
+      sha: "abc123",
+      authorName: "Blake",
+      authorEmail: asymmetricCoreEveBotEmail,
+      committerName: "Blake",
+      committerEmail: asymmetricCoreEveBotEmail,
+    };
+
+    expect(
+      validateGitHubActorAttribution(metadata, {
+        authorLogin: "II-ricky-bobby-II",
+        committerLogin: "II-ricky-bobby-II",
+      }),
+    ).toEqual([
+      `latest commit GitHub author resolved to II-ricky-bobby-II; email ${asymmetricCoreEveBotEmail} must resolve to ${asymmetricCoreEveBotLogin}`,
+      `latest commit GitHub committer resolved to II-ricky-bobby-II; email ${asymmetricCoreEveBotEmail} must resolve to ${asymmetricCoreEveBotLogin}`,
+    ]);
+  });
+
+  it("accepts matching human and bot commit attribution", () => {
+    expect(
+      validateGitHubActorAttribution(
+        {
+          sha: "abc123",
+          authorName: "Blake",
+          authorEmail: blakeNoReplyEmail,
+          committerName: "Blake",
+          committerEmail: asymmetricCoreEveBotEmail,
+        },
+        {
+          authorLogin: "II-ricky-bobby-II",
+          committerLogin: asymmetricCoreEveBotLogin,
+        },
+      ),
     ).toEqual([]);
   });
 

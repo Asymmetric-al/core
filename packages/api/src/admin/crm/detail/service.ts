@@ -1,9 +1,13 @@
+import { buildCrmGiftHistoryRow } from "./gift-history";
 import { ApiHttpError } from "../../../shared/http-errors";
+import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
 
 type SupabaseAdmin = AdminSupabaseClient;
+
+const GIFT_HISTORY_LIMIT = 100;
 
 interface DonorRow {
   id: string;
@@ -12,12 +16,18 @@ interface DonorRow {
   name: string | null;
   email: string | null;
   phone: string | null;
+  avatar_url: string | null;
+  location: string | null;
   organization: string | null;
+  title: string | null;
   type: string | null;
   status: string | null;
   total_given: number | string | null;
   last_gift_date: string | null;
+  tags: string[] | null;
   notes: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 interface DonationRow {
@@ -29,8 +39,16 @@ interface DonationRow {
   currency: string | null;
   status: string | null;
   is_recurring: boolean | null;
+  recurring_interval: string | null;
+  pledge_id: string | null;
   donation_type: string | null;
+  gift_date: string | null;
+  refund_amount: number | string | null;
+  refunded_at: string | null;
+  stripe_payment_intent_id: string | null;
+  stripe_charge_id: string | null;
   created_at: string | null;
+  updated_at: string | null;
 }
 
 interface StagedGiftRow {
@@ -52,18 +70,6 @@ interface DonationCrmLinkRow {
   staged_gift_id: string | null;
   link_status: string | null;
   twenty_record_id: string | null;
-}
-
-interface LabelRow {
-  id: string;
-  name?: string | null;
-  profile_id?: string | null;
-  profile?: {
-    display_name?: string | null;
-    full_name?: string | null;
-    first_name?: string | null;
-    last_name?: string | null;
-  } | null;
 }
 
 interface DonorActivityRow {
@@ -113,10 +119,6 @@ function toCents(value: number | string | null | undefined): number {
   return Number.isFinite(numberValue) ? Math.round(numberValue) : 0;
 }
 
-function normalizeCurrency(value: string | null | undefined): string {
-  return (value ?? "usd").trim().toUpperCase();
-}
-
 function previewNotes(notes: string | null): string | null {
   if (!notes?.trim()) {
     return null;
@@ -126,19 +128,8 @@ function previewNotes(notes: string | null): string | null {
   return trimmed.length <= 160 ? trimmed : `${trimmed.slice(0, 157)}...`;
 }
 
-function profileName(row: LabelRow): string {
-  const profile = row.profile ?? {};
-  return (
-    profile.display_name?.trim() ||
-    profile.full_name?.trim() ||
-    [profile.first_name, profile.last_name].filter(Boolean).join(" ").trim() ||
-    row.name?.trim() ||
-    "Unassigned"
-  );
-}
-
 function getLabel(
-  map: Map<string, string>,
+  map: Map<string, string | null>,
   id: string | null,
   fallback: string,
 ) {
@@ -149,38 +140,11 @@ function mergeUniqueIds(ids: Array<string | null | undefined>): string[] {
   return Array.from(new Set(ids.filter((id): id is string => Boolean(id))));
 }
 
-async function fetchLabels(
-  supabaseAdmin: SupabaseAdmin,
-  table: "funds" | "missionaries",
-  ids: string[],
-): Promise<Map<string, string>> {
-  if (ids.length === 0) {
-    return new Map();
-  }
-
-  const select =
-    table === "missionaries"
-      ? "id, profile:profiles!missionaries_profile_id_fkey(display_name, full_name, first_name, last_name)"
-      : "id, name";
-  const { data, error } = await supabaseAdmin
-    .from(table)
-    .select(select)
-    .in("id", ids);
-  assertNoError(error, `Failed to load ${table} labels.`);
-
-  return new Map(
-    ((data ?? []) as LabelRow[]).map((row) => [
-      row.id,
-      table === "missionaries" ? profileName(row) : (row.name ?? "Unnamed"),
-    ]),
-  );
-}
-
 function buildSupportSummary(input: {
   donor: DonorRow;
   donations: DonationRow[];
-  fundsById: Map<string, string>;
-  missionariesById: Map<string, string>;
+  fundsById: Map<string, string | null>;
+  missionariesById: Map<string, string | null>;
   pledges: PledgeRow[];
 }): CrmDonorDetailResponse["support"] {
   const byFund = new Map<string, { label: string; amountCents: number }>();
@@ -259,11 +223,13 @@ export async function getAdminCrmDonorDetail(input: {
   donorId: string;
   role: UserRole;
   crmWritesEnabled?: boolean;
+  /** Filters which contribution operations surface inline on gift rows (#270). */
+  viewerCapabilities?: string[];
 }): Promise<CrmDonorDetailResponse> {
   const donorResult = await input.supabaseAdmin
     .from("donors")
     .select(
-      "id, profile_id, missionary_id, name, email, phone, organization, type, status, total_given, last_gift_date, notes",
+      "id, profile_id, missionary_id, name, email, phone, avatar_url, location, organization, title, type, status, total_given, last_gift_date, tags, notes, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.donorId)
@@ -277,88 +243,98 @@ export async function getAdminCrmDonorDetail(input: {
   const donationsResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, donation_type, created_at",
+      "id, donor_id, missionary_id, fund_id, amount, currency, status, is_recurring, recurring_interval, pledge_id, donation_type, gift_date, refund_amount, refunded_at, stripe_payment_intent_id, stripe_charge_id, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("donor_id", donor.id)
     .order("created_at", { ascending: false })
-    .limit(100);
+    .limit(GIFT_HISTORY_LIMIT + 1);
   assertNoError(donationsResult.error, "Failed to load donor gifts.");
-  const donations = (donationsResult.data ?? []) as DonationRow[];
+  const donationRows = (donationsResult.data ?? []) as DonationRow[];
+  const giftHistoryTruncated = donationRows.length > GIFT_HISTORY_LIMIT;
+  const donations = donationRows.slice(0, GIFT_HISTORY_LIMIT);
 
   const donationIds = mergeUniqueIds(donations.map((donation) => donation.id));
-  const stagedGiftResult =
-    donationIds.length > 0
-      ? await input.supabaseAdmin
-          .from("staged_gifts")
-          .select(
-            "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
-          )
-          .eq("tenant_id", input.tenantId)
-          .in("donation_id", donationIds)
-      : { data: [], error: null };
+  const [stagedGiftResult, activityResult, pledgeResult, duplicateResult] =
+    await Promise.all([
+      donationIds.length > 0
+        ? input.supabaseAdmin
+            .from("staged_gifts")
+            .select(
+              "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
+            )
+            .eq("tenant_id", input.tenantId)
+            .in("donation_id", donationIds)
+        : Promise.resolve({ data: [], error: null }),
+      input.supabaseAdmin
+        .from("donor_activities")
+        .select("id, type, title, description, amount, date, created_at")
+        .eq("donor_id", donor.id)
+        .order("date", { ascending: false })
+        .limit(50),
+      input.supabaseAdmin
+        .from("donor_pledges")
+        .select(
+          "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
+        )
+        .eq("tenant_id", input.tenantId)
+        .eq("donor_id", donor.id)
+        .order("updated_at", { ascending: false })
+        .limit(50),
+      input.supabaseAdmin
+        .from("crm_merge_candidates")
+        .select(
+          "id, candidate_twenty_record_id, confidence, score, match_reasons",
+        )
+        .eq("tenant_id", input.tenantId)
+        .eq("source_entity_type", "donor_profile")
+        .eq("source_entity_id", donor.id)
+        .eq("status", "pending")
+        .order("score", { ascending: false })
+        .limit(10),
+    ]);
   assertNoError(stagedGiftResult.error, "Failed to load staged gift links.");
+  assertNoError(activityResult.error, "Failed to load donor activities.");
+  assertNoError(pledgeResult.error, "Failed to load donor commitments.");
+  assertNoError(duplicateResult.error, "Failed to load duplicate warnings.");
   const stagedGifts = (stagedGiftResult.data ?? []) as StagedGiftRow[];
+  const pledges = (pledgeResult.data ?? []) as PledgeRow[];
 
   const stagedGiftIds = mergeUniqueIds(stagedGifts.map((gift) => gift.id));
-  const linkResult =
+  const [linkResult, sharedInputs] = await Promise.all([
     stagedGiftIds.length > 0
-      ? await input.supabaseAdmin
+      ? input.supabaseAdmin
           .from("donation_crm_links")
           .select(
             "id, donation_id, staged_gift_id, link_status, twenty_record_id",
           )
           .eq("tenant_id", input.tenantId)
+          .eq("scope", "parent")
           .in("staged_gift_id", stagedGiftIds)
-      : { data: [], error: null };
+      : Promise.resolve({ data: [], error: null }),
+    // Corrections, effective values, and designation sets come from the same
+    // shared loader the Contributions Hub uses (ADR-CD-032, #256).
+    loadSharedContributionRowInputs(input.supabaseAdmin, {
+      tenantId: input.tenantId,
+      donations,
+      stagedGifts,
+      extraFundIds: pledges.map((pledge) => pledge.fund_id),
+      extraMissionaryIds: [
+        ...pledges.map((pledge) => pledge.missionary_id),
+        donor.missionary_id,
+      ],
+    }),
+  ]);
   assertNoError(linkResult.error, "Failed to load donation CRM links.");
   const links = (linkResult.data ?? []) as DonationCrmLinkRow[];
 
-  const activityResult = await input.supabaseAdmin
-    .from("donor_activities")
-    .select("id, type, title, description, amount, date, created_at")
-    .eq("donor_id", donor.id)
-    .order("date", { ascending: false })
-    .limit(50);
-  assertNoError(activityResult.error, "Failed to load donor activities.");
-
-  const pledgeResult = await input.supabaseAdmin
-    .from("donor_pledges")
-    .select(
-      "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
-    )
-    .eq("donor_id", donor.id)
-    .order("updated_at", { ascending: false })
-    .limit(50);
-  assertNoError(pledgeResult.error, "Failed to load donor commitments.");
-  const pledges = (pledgeResult.data ?? []) as PledgeRow[];
-
-  const duplicateResult = await input.supabaseAdmin
-    .from("crm_merge_candidates")
-    .select("id, candidate_twenty_record_id, confidence, score, match_reasons")
-    .eq("tenant_id", input.tenantId)
-    .eq("source_entity_type", "donor_profile")
-    .eq("source_entity_id", donor.id)
-    .eq("status", "pending")
-    .order("score", { ascending: false })
-    .limit(10);
-  assertNoError(duplicateResult.error, "Failed to load duplicate warnings.");
-
-  const fundIds = mergeUniqueIds([
-    ...donations.map((donation) => donation.fund_id),
-    ...stagedGifts.map((gift) => gift.fund_id),
-    ...pledges.map((pledge) => pledge.fund_id),
-  ]);
-  const missionaryIds = mergeUniqueIds([
-    ...donations.map((donation) => donation.missionary_id),
-    ...stagedGifts.map((gift) => gift.missionary_id),
-    ...pledges.map((pledge) => pledge.missionary_id),
-    donor.missionary_id,
-  ]);
-  const [fundsById, missionariesById] = await Promise.all([
-    fetchLabels(input.supabaseAdmin, "funds", fundIds),
-    fetchLabels(input.supabaseAdmin, "missionaries", missionaryIds),
-  ]);
+  const {
+    correctionsByDonationId,
+    effectiveByDonationId,
+    designationSetByDonationId,
+    fundNamesById: fundsById,
+    missionaryLabelsById: missionariesById,
+  } = sharedInputs;
 
   const stagedByDonationId = new Map(
     stagedGifts.map((gift) => [gift.donation_id, gift]),
@@ -372,34 +348,67 @@ export async function getAdminCrmDonorDetail(input: {
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
     const link = stagedGift ? linkByStagedGiftId.get(stagedGift.id) : null;
-    const fundId = stagedGift?.fund_id ?? donation.fund_id;
-    const missionaryId = stagedGift?.missionary_id ?? donation.missionary_id;
-
-    return {
+    const effectiveResult = effectiveByDonationId.get(donation.id);
+    const effective = effectiveResult?.effective ?? {
       amountCents: toCents(donation.amount),
-      canResendReceipt:
-        Boolean(stagedGift?.id) &&
-        donation.status === "completed" &&
-        stagedGift?.receipt_status !== "suppressed",
-      crmPostStatus: stagedGift?.crm_post_status ?? null,
-      currencyCode: normalizeCurrency(donation.currency),
-      donationId: donation.id,
-      fundId,
-      fundName: getLabel(fundsById, fundId, "Unassigned fund"),
-      giftDate: donation.created_at,
-      id: donation.id,
-      missionaryId,
-      missionaryName: getLabel(
-        missionariesById,
-        missionaryId,
-        "Unassigned missionary",
-      ),
-      paymentStatus: donation.status,
-      receiptStatus: stagedGift?.receipt_status ?? null,
-      stagedGiftId: stagedGift?.id ?? null,
-      twentyRecordId:
-        stagedGift?.twenty_record_id ?? link?.twenty_record_id ?? null,
+      fundId: donation.fund_id,
+      missionaryId: donation.missionary_id,
+      paymentStatus: donation.status ?? "pending",
     };
+
+    return buildCrmGiftHistoryRow({
+      designationSet: designationSetByDonationId.get(donation.id),
+      donation: {
+        id: donation.id,
+        donor_id: donation.donor_id,
+        missionary_id: effective.missionaryId,
+        fund_id: effective.fundId,
+        amount: effective.amountCents,
+        currency: donation.currency ?? "usd",
+        status: effective.paymentStatus,
+        gift_date: donation.gift_date,
+        refund_amount: toCents(donation.refund_amount),
+        refunded_at: donation.refunded_at,
+        created_at: donation.created_at ?? "",
+        updated_at: donation.updated_at ?? donation.created_at ?? "",
+        is_recurring: donation.is_recurring,
+        recurring_interval: donation.recurring_interval,
+        pledge_id: donation.pledge_id,
+      },
+      donor: {
+        id: donor.id,
+        name: donor.name,
+        email: donor.email,
+      },
+      fund: effective.fundId
+        ? {
+            id: effective.fundId,
+            name: fundsById.get(effective.fundId) ?? null,
+          }
+        : null,
+      missionary: effective.missionaryId
+        ? {
+            id: effective.missionaryId,
+            display_name: missionariesById.get(effective.missionaryId) ?? null,
+          }
+        : null,
+      stagedGift: stagedGift
+        ? {
+            id: stagedGift.id,
+            status: stagedGift.status,
+            receipt_status: stagedGift.receipt_status,
+            crm_post_status: stagedGift.crm_post_status,
+            twenty_record_id:
+              stagedGift.twenty_record_id ?? link?.twenty_record_id ?? null,
+          }
+        : null,
+      corrections: correctionsByDonationId.get(donation.id),
+      provider: {
+        stripePaymentIntentId: donation.stripe_payment_intent_id,
+        stripeChargeId: donation.stripe_charge_id,
+      },
+      viewerCapabilities: input.viewerCapabilities ?? [],
+    });
   });
 
   const timeline = [
@@ -409,7 +418,7 @@ export async function getAdminCrmDonorDetail(input: {
       description: gift.fundName,
       id: `gift:${gift.id}`,
       kind: "gift" as const,
-      occurredAt: gift.giftDate ?? new Date(0).toISOString(),
+      occurredAt: gift.giftDate || new Date(0).toISOString(),
       source: "platform" as const,
       title: "Gift received",
       visibility: "standard" as const,
@@ -445,8 +454,11 @@ export async function getAdminCrmDonorDetail(input: {
 
   return {
     donor: {
+      avatarUrl: donor.avatar_url,
+      createdAt: donor.created_at,
       email: donor.email,
       id: donor.id,
+      location: donor.location,
       missionaryId: donor.missionary_id,
       name: donor.name,
       notesPreview: previewNotes(donor.notes),
@@ -454,10 +466,14 @@ export async function getAdminCrmDonorDetail(input: {
       phone: donor.phone,
       profileId: donor.profile_id,
       status: donor.status,
+      tags: donor.tags ?? [],
+      title: donor.title,
       type: donor.type,
+      updatedAt: donor.updated_at,
     },
     duplicateWarnings,
     giftHistory,
+    giftHistoryTruncated,
     privacy: {
       missionaryContactDataExposed: false,
       restrictedNotesVisible:

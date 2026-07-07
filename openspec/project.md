@@ -42,7 +42,7 @@ docs aligned when behavior or naming changes.
 - Task runner: Turborepo (`turbo` 2.9.x)
 - Framework: Next.js `16.2.6` across all Next.js workspaces
 - React: `19.2.x`
-- TypeScript: `5.9.x`
+- TypeScript: `6.0.x`
 - Styling: Tailwind CSS `v4`, Base UI, shadcn/ui Maia theme
 - Data and auth: Supabase
 - Payments: Stripe
@@ -74,7 +74,7 @@ The repo already has a strong, hand-maintained instruction system:
   `.github/copilot-instructions.md`, and `.github/instructions/*.instructions.md`
   are helper layers that must stay coherent with `AGENTS.md`.
 - Canonical repo-local skills live under `docs/ai/skills/*/SKILL.md`; mirrors in
-  `.cursor/skills/*` and `.agents/skills/*` are runtime copies, not the source
+  `.cursor/skills/*`, `.agents/skills/*`, and `.claude/skills/*` (plus `.claude/commands/` and `.claude/agents/`) are runtime copies, not the source
   of truth.
 - Optional **Skills CLI** or vendored ecosystem installs (for example
   mattpocock packs) are mirror-only helpers under `.agents/skills/<name>/`

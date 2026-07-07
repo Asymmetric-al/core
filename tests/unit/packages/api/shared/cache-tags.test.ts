@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/cache", () => ({
   revalidateTag: vi.fn(),
@@ -16,6 +16,7 @@ import {
 } from "../../../../../packages/api/src/shared/cache-tags";
 
 const revalidateTagMock = vi.mocked(revalidateTag);
+let consoleErrorSpy: ReturnType<typeof vi.spyOn> | null = null;
 
 /** The tag strings passed to revalidateTag, in call order. */
 function revalidatedTags(): string[] {
@@ -28,6 +29,16 @@ function expectAllUseMaxProfile(): void {
     expect(call[1]).toBe("max");
   }
 }
+
+function silenceExpectedConsoleErrors() {
+  consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+  return consoleErrorSpy;
+}
+
+afterEach(() => {
+  consoleErrorSpy?.mockRestore();
+  consoleErrorSpy = null;
+});
 
 describe("shared/cache-tags constant values", () => {
   // These strings are a cross-module contract: cached reads `cacheTag` them
@@ -148,6 +159,27 @@ describe("revalidateAdminContributionsCache", () => {
       "admin:contributions:staged-gifts",
       "admin:contributions:summary",
     ]);
+  });
+
+  it("keeps revalidating later tags when one tag fails", () => {
+    const consoleError = silenceExpectedConsoleErrors();
+    revalidateTagMock.mockImplementationOnce(() => {
+      throw new Error("first tag failed");
+    });
+
+    expect(() => revalidateAdminContributionsCache("tenant-9")).not.toThrow();
+
+    expect(revalidatedTags()).toEqual([
+      "admin:contributions",
+      "admin:contributions:tenant:tenant-9",
+      "admin:contributions:list",
+      "admin:contributions:staged-gifts",
+      "admin:contributions:summary",
+    ]);
+    expect(consoleError).toHaveBeenCalledWith(
+      'Failed to revalidate cache tag "admin:contributions"',
+      expect.any(Error),
+    );
   });
 });
 

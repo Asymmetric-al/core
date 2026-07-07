@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  workerAvatarTransitionName,
   workerHeroImageTransitionName,
   workerTitleTransitionName,
 } from "@asym/lib/view-transitions";
@@ -50,14 +49,14 @@ export function WorkerProfileHeroWithViewTransitions({
       </SharedNamedViewTransition>
 
       <div className="flex flex-col sm:flex-row gap-5 items-start">
-        <SharedNamedViewTransition name={workerAvatarTransitionName(worker.id)}>
-          <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-14 sm:-mt-16 bg-white relative z-10 ring-1 ring-zinc-100">
-            <AvatarImage src={worker.image} alt="" className="object-cover" />
-            <AvatarFallback className="text-lg font-semibold bg-zinc-100 text-zinc-700">
-              {worker.title.substring(0, 2)}
-            </AvatarFallback>
-          </Avatar>
-        </SharedNamedViewTransition>
+        {/* No shared VT name: the workers list card renders no avatar, so
+            this name has no pairing surface anywhere. */}
+        <Avatar className="size-20 sm:h-24 sm:w-24 border-4 border-white shadow-lg -mt-14 sm:-mt-16 bg-white relative z-10 ring-1 ring-zinc-100">
+          <AvatarImage src={worker.image} alt="" className="object-cover" />
+          <AvatarFallback className="text-lg font-semibold bg-zinc-100 text-zinc-700">
+            {worker.title.substring(0, 2)}
+          </AvatarFallback>
+        </Avatar>
 
         <div className="space-y-2 flex-1 pt-1">
           <div className="flex flex-wrap items-center gap-3">

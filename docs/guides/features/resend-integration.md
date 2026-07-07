@@ -159,7 +159,7 @@ Use these variables when wiring server-side defaults/webhooks:
 - `RESEND_ENCRYPTION_KEY` (required to encrypt/decrypt tenant API keys at rest)
 
 All three variables are server-only and are validated by `packages/env` for
-staging and production deployments:
+protected deployments:
 
 - `RESEND_API_KEY` must start with `re_`.
 - `RESEND_WEBHOOK_SECRET` must start with `whsec_`.
@@ -293,7 +293,14 @@ Operational caveat:
 
 - Outbound events without resolvable tenant context still fail closed with `422`.
 - Inbound events with unresolved/ambiguous tenant resolution fail retryably with
-  `503`; there is no tenantless quarantine/replay workflow yet.
+  `503`; this is the planned tenant-safe behavior for the first Inngest email
+  workflow slice as well. Do not guess a tenant, create a fake tenant, route to
+  Support Hub, or dispatch tenant workflow work until exactly one tenant is
+  known.
+- Inbound events that are verified, tenant-safe, and durably stored should still
+  return `200 OK` if immediate Inngest dispatch fails. The product-owned
+  dispatch recovery path retries the workflow handoff instead of making Resend
+  replay a webhook that was already accepted.
 - Inbound body and attachment retrieval are independent; one can fail while the
   other succeeds. Response flags (`receivedEmailLoaded`, `attachmentsLoaded`)
   indicate what was loaded.
@@ -326,6 +333,231 @@ Retention policy:
 - Add admin reporting views over `email_events`, `email_suppressions`, and
   `email_inbound_messages` for operational support.
 - Add scheduled cleanup/archival jobs that enforce the retention policy above.
+- For the first Inngest email workflow slice, move only the `email.received`
+  body/attachment retrieval and Support Hub routing path behind durable workflow
+  steps. Keep outbound delivery status, suppression, bounce, complaint, and
+  send-log handling on the current path until separately approved.
+- For verified, exactly tenant-resolved inbound events, the webhook should
+  create or update a minimal `email_inbound_messages` placeholder from Resend
+  metadata before workflow dispatch. The placeholder must not include body text,
+  rendered HTML, attachment bytes, signed attachment URLs, or Support Hub rows;
+  Inngest fills those in through durable steps.
+- The first Inngest inbound routing flow should require the received email body
+  before creating or threading a Support Hub message. Attachment retrieval should
+  not block routing once the body is available; attachment status can remain
+  pending, retryable, failed, or added later.
+- After the body is available, route automatically when the inbound email
+  matches a known Support Hub inbox route: configured inbox address, configured
+  alias, reply/thread headers matching an existing support conversation, or a
+  tenant-approved default catch-all route for that receiving domain. Do not make
+  a new sender, unusual subject, or attachment presence trigger manual approval
+  by itself.
+- Use lightweight inbound routing review only when a tenant-owned email does not
+  match a known route or matches multiple safe candidate routes. Authorized
+  tenant staff should be able to choose an inbox and save an alias or default
+  route so future matching emails route automatically.
+- Any authenticated support agent in the owning tenant may save the reviewed
+  route. The saved route must remain tenant-scoped, audit logged, and protected
+  by product authorization and work-claim checks so retries, replays, or repeat
+  clicks cannot create duplicate or cross-tenant routing rules.
+- Saving the reviewed route should immediately continue routing the same inbound
+  email through the durable Support Hub routing path. Do not require a second
+  staff click or wait for a scheduled scan unless immediate dispatch fails and
+  normal recovery needs to pick it up.
+- Save-and-continue routing should reuse the existing inbound email identity,
+  dispatch request, and product work claim where possible so retries, replays,
+  or repeat clicks cannot create duplicate Support Hub messages.
+- A reviewed route should save the exact recipient address or alias by default.
+  Creating or changing a tenant receiving-domain default must be an explicit
+  staff choice, not an automatic side effect of reviewing one email.
+- If staff chooses a tenant receiving-domain default, require an extra
+  confirmation that explains the rule may route future emails for many
+  addresses on that receiving domain. Exact recipient and alias saves do not
+  need this broader-domain confirmation.
+- Route-save audit data should record the selected scope, such as recipient
+  address, alias, or tenant-domain default, so later replay and support review
+  can tell whether the route was narrow or intentionally broad.
+- Route-save audit data should record the domain-default confirmation result
+  when the selected scope is tenant-domain default.
+- Tenant admins should be able to view, edit, disable, and delete active saved
+  inbound routing rules for their own tenant. These changes must remain
+  tenant-scoped and audit logged.
+- Deleting a saved route removes the active future routing rule; it must not
+  erase the audit history for previously saved, changed, or used routes.
+- Pending inbound email should use the current active route state when routing
+  resumes, while already routed Support Hub messages should keep their
+  historical routing audit trail.
+- If a route edit, disable, delete, or new save resolves pending inbound email
+  that was waiting for routing, the product may immediately resume routing for
+  that pending email through the same durable Support Hub routing path. The
+  resumed run should re-read current tenant route state inside a workflow step
+  instead of trusting stale route details from an old event payload.
+- Route changes must not silently move or rewrite already routed Support Hub
+  messages. Any future reroute feature for already routed messages should be a
+  separate explicit staff action with its own audit trail.
+- Any authenticated support agent in the owning tenant may move an already
+  routed Support Hub message or conversation to a different tenant inbox through
+  an explicit audited action. This action should record the actor, tenant,
+  message or conversation identity, original inbox, destination inbox, and
+  timestamp.
+- Support message moves must be limited to tenant-owned source and destination
+  inboxes.
+- Moving an already routed Support Hub message must append routing history
+  instead of erasing or rewriting the original route decision.
+- Moving an already routed Support Hub message or conversation must require a
+  short staff-entered reason. Store the reason with the move audit entry so
+  tenant staff can understand the correction later.
+- The move reason should be free text only. Do not add preset reason choices for
+  the first implementation; they create reporting categories the product has not
+  agreed to maintain yet.
+- The move-reason UI should use existing shared `@asym/ui` form primitives, the
+  repo's Maia/Zinc design tokens, and the surrounding Support Hub modal/drawer
+  form pattern. Do not hardcode colors, spacing, radius, or route-specific
+  custom controls for this field.
+- Move-reason validation should be intentionally light: trim whitespace, require
+  5-500 characters after trimming, and do not enforce grammar, preset
+  categories, special formatting, or a longer minimum that could block a quick
+  routing correction.
+- Moving an already routed Support Hub message should not send automatic staff
+  email. Show the move in Support Hub activity and history instead.
+- Do not create a Resend outbound email for routine message-move notifications
+  in the first implementation. If in-app destination inbox alerts are added
+  later, they should be a separate notification-settings decision.
+- The original inbox should retain a quiet "moved to" activity or history entry
+  after a message or conversation is moved. This entry should point to the
+  destination inbox and move audit trail without keeping a duplicate replyable
+  message in the original inbox.
+- The original-inbox move marker should use existing Support Hub activity
+  styling, shared `@asym/ui` primitives, and Maia/Zinc design tokens. Do not use
+  a loud notification treatment, hardcoded colors, or custom route-specific
+  badges for this marker.
+- The destination inbox should show the moved message normally, with a quiet
+  "moved from" activity or history entry that points back to the original inbox
+  and move audit trail.
+- The destination-inbox move marker should use existing Support Hub activity
+  styling, shared `@asym/ui` primitives, and Maia/Zinc design tokens. Do not use
+  a prominent banner, hardcoded colors, or custom route-specific controls for
+  this marker.
+- When a message or conversation is moved, keep the current assignee only if
+  that agent still has access to the destination inbox in the owning tenant. If
+  the assignee does not have destination inbox access, clear the assignee.
+- Message-move audit should record whether the assignee was retained or cleared,
+  including the previous assignee identity when one existed.
+- If the assignee is cleared during a move, leave the message unassigned in the
+  destination inbox queue. Do not automatically run destination-inbox
+  round-robin and do not require the moving agent to choose a new assignee as
+  part of the move.
+- Existing destination-inbox assignment or automation rules may pick up the
+  unassigned message later if the tenant has configured them, but that is a
+  separate assignment workflow rather than a hidden side effect of moving the
+  message.
+- Keep labels and priority on the moved Support Hub message or conversation by
+  default. The destination inbox staff may change labels or priority later, but
+  moving the message should not erase useful context or require extra
+  label/priority questions.
+- Message-move audit should record that labels and priority were retained by
+  default, including the priority value and label IDs present at move time.
+- Keep the current Support Hub status on the moved message or conversation by
+  default, including `open`, `pending`, `snoozed`, or `resolved`. Moving changes
+  the inbox, not the work state.
+- Message-move audit should record the retained status value present at move
+  time.
+- If the message or conversation is `resolved`, show a quiet confirmation before
+  moving it. The move remains allowed, and the `resolved` status remains
+  retained unless staff changes status through a separate status action.
+- The resolved-move confirmation should use the existing Support Hub
+  modal/drawer confirmation pattern, shared `@asym/ui` primitives, and Maia/Zinc
+  design tokens. Do not use a loud banner, custom color treatment, or separate
+  alert workflow.
+- If the message or conversation is `snoozed`, keep the snooze timer by default,
+  including the stored `snoozedUntil` value. Moving changes the inbox, not when
+  the work should reappear.
+- The move action must not clear or change snooze timing. Staff should use the
+  normal snooze or unsnooze action if they want to change when the message
+  reappears.
+- Message-move audit should record the retained `snoozedUntil` value when the
+  moved message or conversation is snoozed.
+- Do not add a separate move-specific snooze note or warning when moving a
+  snoozed message. The retained `snoozed` status and normal Support Hub snooze
+  indicators are responsible for showing that the message remains snoozed.
+- Bulk moving multiple Support Hub messages or conversations is allowed only
+  when every item goes through the same safeguards as a single-message move:
+  tenant-owned source and destination inbox checks, required reason,
+  audit/history entries, assignee retention or clearing, label and priority
+  retention, status and snooze retention, resolved confirmation when needed, and
+  quiet original/destination move markers.
+- Bulk move execution should be idempotent per moved message or conversation,
+  not only per bulk request. Retry, replay, or partial failure recovery must not
+  duplicate move audit entries or activity markers for items already moved.
+- If Inngest is used for bulk move follow-up, fan out durable work per message
+  or use per-message work claims so one failed item does not hide successful
+  moves or force already-moved items to run again.
+- Bulk move must not use reduced checks for speed. It may show a batch-level
+  result summary to staff, but each item still needs item-level audit evidence.
+- Bulk move uses one shared required free-text reason for the batch. Copy that
+  reason into every item-level move audit entry.
+- Each item-level audit entry must clearly say the move came from a batch move
+  and include a stable `bulkMoveId` or equivalent operation identifier, actor,
+  source inbox, destination inbox, moved item id, and retained or cleared move
+  metadata needed for replay-safe investigation.
+- A batch-level result summary or batch operation audit may supplement the
+  item-level audit records, but it must not replace them.
+- Bulk move may partially succeed. Successfully moved items should stay moved,
+  failed items should stay unchanged in their original inbox, and staff should
+  see a clear batch result summary with item-level success and failure states.
+- Retrying or recovering a partially failed bulk move must target only failed
+  items. It must not rerun successful item moves, duplicate successful move audit
+  entries, or roll back successful moves because another item failed.
+- Item-level bulk move failures should record safe, staff-readable failure
+  reasons such as missing authorization, stale item state, or invalid
+  destination. Do not expose provider secrets, workflow internals, stack traces,
+  or cross-tenant details in staff-visible failure text.
+- The batch result UI should include a `Retry failed` action when retryable
+  failed items remain. This action should retry only failed items from the batch
+  and must keep successful items untouched.
+- `Retry failed` must call a product server endpoint or action that re-checks
+  tenant authorization, reloads current item state, and creates or reuses product
+  work claims before dispatching workflow retry work. The UI must not call
+  Inngest or Resend directly.
+- Repeat clicks on `Retry failed` should reuse the active retry attempt or return
+  current retry status instead of creating duplicate workflow dispatches or
+  duplicate item-level audit entries.
+- Retry audit should link the retry attempt to the original `bulkMoveId` or
+  equivalent operation identifier and record which failed items were retried.
+- The retry action should use existing Support Hub controls, shared `@asym/ui`
+  primitives, and Maia/Zinc design tokens. Do not introduce custom colors, loud
+  banners, or route-specific controls for the first implementation.
+- `Retry failed` should reuse the original bulk move reason. Do not ask staff
+  for a second reason when the retry is part of the same batch correction.
+- Retry audit should record that the original reason was reused, identify the
+  retry attempt, and keep the original item-level move audit entries separate
+  from retry-attempt audit records.
+- If received-email body retrieval from Resend fails, keep the inbound email
+  placeholder pending and retry body retrieval automatically through durable
+  workflow steps. Do not route a Support Hub message from subject, sender, or
+  placeholder metadata alone.
+- If automatic body retrieval retries are exhausted, mark the placeholder as
+  body retrieval failed and keep it visible to authorized tenant staff for safe
+  retry. The retry must run through product authorization, product work claims,
+  and workflow dispatch. Do not create an empty Support Hub message, delete the
+  placeholder, or hide the failed inbound email.
+- If a body retrieval retry is already active for the same tenant and inbound
+  email, repeat staff clicks should reuse the active retry and return the
+  current status instead of starting duplicate provider work.
+- Support Hub messages should show a clear staff-visible attachment status when
+  inbound attachments are pending, retrying, failed, or available. Do not expose
+  Resend signed attachment URLs, raw attachment payloads, provider internals, or
+  workflow step logs in that status.
+- Authorized tenant staff should be able to request attachment retry from the
+  Support Hub message for failed, pending, or stale inbound attachments. The
+  retry must run through product authorization, product work claims, and
+  workflow dispatch; the UI must never call Resend directly or receive API keys,
+  signed attachment URLs, raw provider payloads, or attachment bytes as part of
+  the retry request.
+- If an attachment retry is already active for the same tenant, inbound email,
+  and provider attachment identity when available, repeat staff clicks should
+  reuse the active retry and return the current status instead of starting
+  duplicate provider work.
 
 Replay verification examples:
 

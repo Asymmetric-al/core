@@ -3,22 +3,27 @@ import {
   toLegacyUnlayerMergeTags,
   type MergeTagRegistry,
 } from "@asym/email/merge-tags";
-import { clientEnv, runtimeEnvFlags } from "@asym/env";
+import { clientEnv } from "@asym/env";
 
-import type { EmailBuilderKind } from "@asym/email/email-builder-types";
+import { resolveStudioEnvironment } from "./studio-environment";
+
 import type {
   UnlayerAppearance,
   UnlayerMergeTags,
 } from "@asym/email/email-studio-types";
 
-export type EmailStudioBuilderMode = EmailBuilderKind | "auto";
+export interface EmailStudioBuilderConfig {
+  requestedBuilder: "react_email";
+  defaultBuilder: "react_email";
+  legacyUnlayerEnabled: false;
+}
 
 export interface UnlayerAccountConfig {
   projectId: number | null;
   isConfigured: boolean;
   isWhiteLabel: boolean;
   allowedDomains: string[];
-  environment: "development" | "staging" | "production";
+  environment: "development" | "production";
 }
 
 export interface EmailStudioBrandConfig {
@@ -31,11 +36,7 @@ export interface EmailStudioBrandConfig {
 
 export interface EmailStudioFullConfig {
   account: UnlayerAccountConfig;
-  builder: {
-    requestedBuilder: EmailStudioBuilderMode;
-    defaultBuilder: EmailBuilderKind;
-    legacyUnlayerEnabled: boolean;
-  };
+  builder: EmailStudioBuilderConfig;
   brand: EmailStudioBrandConfig;
   appearance: UnlayerAppearance;
   mergeTagRegistry: MergeTagRegistry;
@@ -58,27 +59,8 @@ export interface EmailStudioFullConfig {
   };
 }
 
-function isEmailStudioBuilderMode(
-  value: unknown,
-): value is EmailStudioBuilderMode {
-  return value === "react_email" || value === "unlayer" || value === "auto";
-}
-
-function getEnvironment(): "development" | "staging" | "production" {
-  if (typeof window === "undefined") {
-    return runtimeEnvFlags.NODE_ENV === "production"
-      ? "production"
-      : "development";
-  }
-
-  const hostname = window.location.hostname;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "development";
-  }
-  if (hostname.includes("staging") || hostname.includes("preview")) {
-    return "staging";
-  }
-  return "production";
+function getEnvironment(): "development" | "production" {
+  return resolveStudioEnvironment(clientEnv);
 }
 
 function getAllowedDomains(): string[] {
@@ -157,20 +139,14 @@ export const DEFAULT_MERGE_TAGS: UnlayerMergeTags = toLegacyUnlayerMergeTags(
   DEFAULT_MERGE_TAG_REGISTRY,
 );
 
-export function getEmailStudioBuilderConfig(): EmailStudioFullConfig["builder"] {
-  const requestedBuilder = isEmailStudioBuilderMode(
-    clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER,
-  )
-    ? clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_BUILDER
-    : "react_email";
-  const defaultBuilder =
-    requestedBuilder === "unlayer" ? "unlayer" : "react_email";
-
+export function getEmailStudioBuilderConfig(): EmailStudioBuilderConfig {
+  // Email Studio uses React Email exclusively. Unlayer is retained only for
+  // PDF Studio and for reading legacy templates already stored as "unlayer";
+  // it is never offered as an Email Studio editing surface.
   return {
-    requestedBuilder,
-    defaultBuilder,
-    legacyUnlayerEnabled:
-      clientEnv.NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED ?? true,
+    requestedBuilder: "react_email",
+    defaultBuilder: "react_email",
+    legacyUnlayerEnabled: false,
   };
 }
 
@@ -215,10 +191,10 @@ export function getUnlayerSetupStatus(): {
   const config = getUnlayerAccountConfig();
 
   const freeFeatures = [
-    "Drag-and-drop editor",
-    "Basic templates",
-    "HTML export",
-    "Mobile preview",
+    "PDF Studio document editor",
+    "Legacy Unlayer template preview support",
+    "HTML export for legacy surfaces",
+    "Mobile preview for legacy surfaces",
   ];
 
   const paidFeatures = [
@@ -240,7 +216,7 @@ export function getUnlayerSetupStatus(): {
     return {
       status: "not_configured",
       message:
-        "Email Studio is running in free mode. Add your Unlayer project ID to unlock all features.",
+        "Unlayer is not configured. Email Studio still uses React Email; add a project ID only for PDF Studio or legacy Unlayer surfaces.",
       setupUrl: "https://dashboard.unlayer.com",
       features: freeFeatures,
       missingFeatures: [...paidFeatures, ...whiteLabelFeatures],
@@ -251,7 +227,7 @@ export function getUnlayerSetupStatus(): {
     return {
       status: "white_label",
       message:
-        "Email Studio is fully configured with white-label features enabled.",
+        "Unlayer is configured with white-label features for PDF Studio and legacy surfaces.",
       setupUrl: "https://dashboard.unlayer.com",
       features: [...freeFeatures, ...paidFeatures, ...whiteLabelFeatures],
       missingFeatures: [],
@@ -261,7 +237,7 @@ export function getUnlayerSetupStatus(): {
   return {
     status: "configured",
     message:
-      "Email Studio is configured. Upgrade to white-label to remove branding.",
+      "Unlayer is configured for PDF Studio and legacy surfaces. Email Studio still uses React Email.",
     setupUrl: "https://dashboard.unlayer.com",
     features: [...freeFeatures, ...paidFeatures],
     missingFeatures: whiteLabelFeatures,
@@ -269,7 +245,7 @@ export function getUnlayerSetupStatus(): {
 }
 
 export const UNLAYER_SETUP_INSTRUCTIONS = {
-  title: "Setting Up Unlayer Email Studio",
+  title: "Setting Up Unlayer for PDF Studio and Legacy Templates",
   steps: [
     {
       step: 1,
@@ -280,7 +256,8 @@ export const UNLAYER_SETUP_INSTRUCTIONS = {
     {
       step: 2,
       title: "Create a Project",
-      description: "Create a new project for your email editor integration",
+      description:
+        "Create a new project for PDF Studio or legacy template support",
       details:
         'Go to Projects → Create New Project → Choose "Email" as the project type',
     },

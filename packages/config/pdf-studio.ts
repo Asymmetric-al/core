@@ -1,4 +1,6 @@
-import { clientEnv, runtimeEnvFlags } from "@asym/env";
+import { clientEnv } from "@asym/env";
+
+import { resolveStudioEnvironment } from "./studio-environment";
 
 import type {
   UnlayerAppearance,
@@ -10,7 +12,7 @@ export interface UnlayerAccountConfig {
   isConfigured: boolean;
   isWhiteLabel: boolean;
   allowedDomains: string[];
-  environment: "development" | "staging" | "production";
+  environment: "development" | "production";
 }
 
 export interface PDFStudioBrandConfig {
@@ -54,21 +56,8 @@ export interface PDFStudioFullConfig {
   };
 }
 
-function getEnvironment(): "development" | "staging" | "production" {
-  if (typeof window === "undefined") {
-    return runtimeEnvFlags.NODE_ENV === "production"
-      ? "production"
-      : "development";
-  }
-
-  const hostname = window.location.hostname;
-  if (hostname === "localhost" || hostname === "127.0.0.1") {
-    return "development";
-  }
-  if (hostname.includes("staging") || hostname.includes("preview")) {
-    return "staging";
-  }
-  return "production";
+function getEnvironment(): "development" | "production" {
+  return resolveStudioEnvironment(clientEnv);
 }
 
 function getAllowedDomains(): string[] {

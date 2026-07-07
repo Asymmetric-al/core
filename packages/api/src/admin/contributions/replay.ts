@@ -1,6 +1,5 @@
 import { serverEnv } from "@asym/env";
 import { NextResponse } from "next/server";
-import Stripe from "stripe";
 import { z } from "zod";
 
 import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
@@ -13,6 +12,7 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+import { createStripeClient } from "../../stripe/client";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -24,8 +24,6 @@ import {
   markStripeRawEventForReplay,
 } from "../../stripe/replay";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
-
-const STRIPE_API_VERSION = "2025-02-24.acacia";
 
 const replaySchema = z
   .object({
@@ -57,7 +55,7 @@ function getStripeForReplay() {
     );
   }
 
-  return new Stripe(secretKey, { apiVersion: STRIPE_API_VERSION });
+  return createStripeClient(secretKey);
 }
 
 export const POST = withOperation(
@@ -115,7 +113,9 @@ export const POST = withOperation(
           throw error;
         }
 
-        revalidateAdminContributionsCache(auth.tenantId);
+        if (outcome.mutated) {
+          revalidateAdminContributionsCache(auth.tenantId);
+        }
 
         return NextResponse.json({ replayed: outcome, requestId });
       }

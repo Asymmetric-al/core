@@ -35,6 +35,12 @@ export const CRM_PROJECTIONS_PAGE_META: TablePageMeta = {
   density: "default",
 };
 
+export const CONTRIBUTIONS_PAGE_META: TablePageMeta = {
+  title: "Contributions",
+  description: "Track and manage all donations and contributions.",
+  density: "compact",
+};
+
 export const TASKS_PAGE_META: TablePageMeta = {
   title: "Mission Pipeline",
   description: "Coordinate donor outreach and field operations.",

@@ -44,20 +44,22 @@ export function ConversationStatusMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className={cn(
-            "h-8 gap-1.5 rounded-lg px-2.5 text-[11px] font-bold uppercase tracking-wider",
-            STATUS_TRIGGER_TONES[conversation.status],
-          )}
-        >
-          {STATUS_LABELS[conversation.status]}
-          <ChevronDown className="size-3 opacity-70" />
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className={cn(
+              "h-8 gap-1.5 rounded-lg px-2.5 text-[11px] font-bold uppercase tracking-wider",
+              STATUS_TRIGGER_TONES[conversation.status],
+            )}
+          >
+            {STATUS_LABELS[conversation.status]}
+            <ChevronDown className="size-3 opacity-70" />
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-44">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
           Set status
@@ -68,7 +70,7 @@ export function ConversationStatusMenu({
           return (
             <DropdownMenuItem
               key={status}
-              onSelect={() =>
+              onClick={() =>
                 setStatus.mutate({
                   conversationId: conversation.id,
                   status,

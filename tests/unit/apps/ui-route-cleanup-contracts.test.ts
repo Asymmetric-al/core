@@ -30,6 +30,8 @@ const routeSplits = [
     wrapperPath: "apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx",
     clientPath:
       "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
+    implementationPath:
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
   },
   {
     name: "donor wallet",
@@ -90,7 +92,15 @@ describe("UI route cleanup contracts", () => {
 
   it("guards touched client files against broad or slow motion regressions", () => {
     const clientSources = routeSplits.map(
-      (route) => [route.name, readRepoFile(route.clientPath)] as const,
+      (route) =>
+        [
+          route.name,
+          readRepoFile(
+            "implementationPath" in route
+              ? route.implementationPath
+              : route.clientPath,
+          ),
+        ] as const,
     );
 
     for (const [name, source] of clientSources) {
@@ -113,23 +123,28 @@ describe("UI route cleanup contracts", () => {
 
   it("keeps donor history page and chart cells on targeted motion", () => {
     const source = readRepoFile(
-      "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
     );
 
     expect(source).toMatch(/transition-opacity/);
     expect(source).toMatch(/animate-in fade-in duration-300/);
   });
 
-  it("keeps missionary analytics neutral chart colors on Maia CSS variables", () => {
+  it("keeps missionary analytics chart colors on Maia CSS variables (no one-off hex)", () => {
     const source = readRepoFile(
       "apps/missionary/app/analytics/page-client.tsx",
     );
 
+    // Chart colors must resolve from Maia/shadcn design tokens, never a
+    // one-off hex literal. Neutral segment/series colors stay on the
+    // foreground/muted token ramp.
     expect(source).toMatch(/var\(--foreground\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
-    expect(source).toMatch(/color: "#eab308"/);
-    expect(source).not.toMatch(/#(18181b|71717a|a1a1aa|f4f4f5|e4e4e7)/i);
+    // The mock "At Risk" donut segment (the former one-off #eab308 amber) was
+    // removed when the analytics page was wired to real Giving Trends data.
+    // Keep the source on Maia/shadcn tokens with no hex color literals.
+    expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/i);
   });
 
   it("keeps admin reports summary dismissible by accessible name", () => {
@@ -160,9 +175,10 @@ describe("admin table routes stream behind a Suspense boundary", () => {
 
       expect(pageSource, route).not.toMatch(/^["']use client["'];/m);
       expect(pageSource, route).toMatch(/import \{ Suspense \} from "react"/);
-      expect(pageSource, route).toMatch(/import Loading from "\.\/loading"/);
       expect(pageSource, route).toMatch(/from "\.\/page-client"/);
-      expect(pageSource, route).toMatch(/<Suspense fallback=\{<Loading \/>\}>/);
+      expect(pageSource, route).toMatch(
+        /<Suspense fallback=\{<[A-Z][A-Za-z0-9]* \/>\}>/,
+      );
     }
   });
 
@@ -178,5 +194,23 @@ describe("admin table routes stream behind a Suspense boundary", () => {
       // `DataTableSkeleton`) or a bespoke `Skeleton`-based fallback.
       expect(loadingSource, route).toMatch(/TablePageFallback|Skeleton/);
     }
+  });
+});
+
+describe("support tickets keeps a server-rendered table loading contract", () => {
+  it("keeps the server page and loading skeleton aligned to shared metadata", () => {
+    const pageSource = readRepoFile("apps/admin/app/support/tickets/page.tsx");
+    const loadingSource = readRepoFile(
+      "apps/admin/app/support/tickets/loading.tsx",
+    );
+
+    expect(pageSource).not.toMatch(/^["']use client["'];/m);
+    expect(pageSource).toMatch(/loadSupportTicketList/);
+    expect(pageSource).toMatch(/SUPPORT_TICKETS_PAGE_META\.title/);
+    expect(pageSource).toMatch(/SUPPORT_TICKETS_PAGE_META\.description/);
+    expect(pageSource).toMatch(/SUPPORT_TICKETS_PAGE_META\.density/);
+    expect(loadingSource).not.toMatch(/^["']use client["'];/m);
+    expect(loadingSource).toMatch(/TablePageFallback/);
+    expect(loadingSource).toMatch(/SUPPORT_TICKETS_PAGE_META/);
   });
 });

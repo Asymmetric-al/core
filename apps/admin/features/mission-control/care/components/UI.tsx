@@ -93,7 +93,7 @@ export const Input = React.forwardRef<
       type={type}
       data-slot="input"
       className={cn(
-        "flex h-10 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm shadow-sm transition-all file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex h-10 w-full rounded-xl border border-input bg-background px-3.5 py-2 text-sm shadow-sm file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       ref={ref}
@@ -111,7 +111,7 @@ export const Textarea = React.forwardRef<
     <textarea
       data-slot="textarea"
       className={cn(
-        "flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm shadow-sm transition-all placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
+        "flex min-h-[100px] w-full rounded-xl border border-input bg-background px-3.5 py-3 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50",
         className,
       )}
       ref={ref}
@@ -164,7 +164,7 @@ export const CustomSelect: React.FC<CustomSelectProps> = ({
         data-slot="select-trigger"
         onClick={() => setOpen(!open)}
         className={cn(
-          "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3.5 py-2 text-sm shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
+          "flex h-10 w-full items-center justify-between rounded-xl border border-input bg-background px-3.5 py-2 text-sm shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
           open ? "ring-2 ring-ring ring-offset-2" : "hover:bg-accent",
         )}
       >
@@ -221,7 +221,7 @@ export const Card: React.FC<React.HTMLAttributes<HTMLDivElement>> = ({
   <div
     data-slot="card"
     className={cn(
-      "bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-4 shadow-sm transition-all",
+      "bg-card text-card-foreground flex flex-col gap-4 rounded-xl border py-4 shadow-sm",
       className,
     )}
     {...props}
@@ -442,7 +442,7 @@ export const Dialog: React.FC<DialogProps> = ({
         {!hideClose && (
           <button
             onClick={() => onOpenChange(false)}
-            className="absolute right-4 top-4 z-50 rounded-xl p-2 opacity-70 ring-offset-background transition-all hover:opacity-100 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
+            className="absolute right-4 top-4 z-50 rounded-xl p-2 opacity-70 ring-offset-background transition-[opacity,background-color] hover:opacity-100 hover:bg-accent focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none"
           >
             <X className="size-4" />
             <span className="sr-only">Close</span>
@@ -557,7 +557,7 @@ export const Checkbox = React.forwardRef<HTMLInputElement, CheckboxProps>(
           ref={ref}
           data-slot="checkbox"
           className={cn(
-            "peer size-4 shrink-0 rounded-md border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer transition-all checked:bg-primary checked:text-primary-foreground",
+            "peer size-4 shrink-0 rounded-md border border-primary ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer transition-colors checked:bg-primary checked:text-primary-foreground",
             className,
           )}
           {...props}
@@ -667,7 +667,7 @@ export const SimpleTabsTrigger: React.FC<SimpleTabsTriggerProps> = ({
         onClick?.(value);
       }}
       className={cn(
-        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ring-offset-background transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
+        "inline-flex items-center justify-center whitespace-nowrap rounded-lg px-3 py-1.5 text-sm font-medium ring-offset-background transition-[color,background-color,box-shadow] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50",
         isActive
           ? "bg-background text-foreground shadow-sm"
           : "hover:bg-background/50 hover:text-foreground",
@@ -828,7 +828,7 @@ export const Calendar: React.FC<CalendarProps> = ({
               onClick={() => handleDateClick(day)}
               disabled={disabledState}
               className={cn(
-                "size-9 rounded-xl text-sm font-medium flex items-center justify-center transition-all focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 active:scale-90",
+                "size-9 rounded-xl text-sm font-medium flex items-center justify-center press-feedback focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2",
                 isSelected
                   ? "bg-primary text-primary-foreground shadow-sm"
                   : "hover:bg-accent hover:text-accent-foreground",

@@ -75,25 +75,11 @@ async function appendReviewAudit(input: {
   }
 }
 
-type StagedGiftAllocationRow = {
-  tenant_id: string;
-  staged_gift_id: string;
-  fund_id: string | null;
-  missionary_id: string | null;
-  amount: number;
-  memo: string | null;
-};
-
 /**
- * Replace a staged gift's allocation split as a delete-then-insert, restoring
- * the original rows if the replacement insert fails.
- *
- * `staged_gift_allocations` has no route-level transaction (see the giving
- * guide), so a failed insert after the delete would otherwise leave a
- * reviewed gift with zero allocations on a money table. We snapshot the
- * existing rows first and, on insert failure, re-insert them (a compensating
- * write) before surfacing the original error. If the restore itself fails,
- * both errors are reported so an operator can reconcile manually.
+ * Replace a staged gift's allocation split through a tenant-scoped Postgres
+ * RPC. The RPC locks the staged gift row, deletes the previous allocation set,
+ * and inserts the replacement rows in one transaction so concurrent PATCHes
+ * cannot interleave partial allocation state.
  */
 export async function replaceStagedGiftAllocations(input: {
   supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
@@ -102,58 +88,21 @@ export async function replaceStagedGiftAllocations(input: {
 }): Promise<void> {
   const { supabaseAdmin, gift, allocations } = input;
 
-  const existing = await supabaseAdmin
-    .from("staged_gift_allocations")
-    .select("tenant_id, staged_gift_id, fund_id, missionary_id, amount, memo")
-    .eq("staged_gift_id", gift.id);
-  if (existing.error) {
-    throw new Error(existing.error.message);
+  const replacementRows = allocations.map((allocation) => ({
+    fund_id: allocation.fundId ?? null,
+    missionary_id: allocation.missionaryId ?? null,
+    amount: allocation.amount,
+    memo: allocation.memo ?? null,
+  }));
+
+  const { error } = await supabaseAdmin.rpc("replace_staged_gift_allocations", {
+    p_tenant_id: gift.tenantId,
+    p_staged_gift_id: gift.id,
+    p_allocations: replacementRows,
+  });
+  if (error) {
+    throw new Error(error.message);
   }
-  const originalRows = (existing.data ?? []) as StagedGiftAllocationRow[];
-
-  const deleteResult = await supabaseAdmin
-    .from("staged_gift_allocations")
-    .delete()
-    .eq("staged_gift_id", gift.id);
-  if (deleteResult.error) {
-    throw new Error(deleteResult.error.message);
-  }
-
-  const replacementRows: StagedGiftAllocationRow[] = allocations.map(
-    (allocation) => ({
-      tenant_id: gift.tenantId,
-      staged_gift_id: gift.id,
-      fund_id: allocation.fundId ?? null,
-      missionary_id: allocation.missionaryId ?? null,
-      amount: allocation.amount,
-      memo: allocation.memo ?? null,
-    }),
-  );
-
-  const insertResult = await supabaseAdmin
-    .from("staged_gift_allocations")
-    .insert(replacementRows);
-  if (!insertResult.error) {
-    return;
-  }
-
-  // Compensating write: the replacement insert failed after the original
-  // rows were deleted. Restore them so the gift is never left without
-  // allocations.
-  if (originalRows.length > 0) {
-    const restore = await supabaseAdmin
-      .from("staged_gift_allocations")
-      .insert(originalRows);
-    if (restore.error) {
-      throw new Error(
-        `Failed to replace staged gift allocations (${insertResult.error.message}); ` +
-          `original allocations could not be restored (${restore.error.message}). ` +
-          `Staged gift ${gift.id} requires manual reconciliation.`,
-      );
-    }
-  }
-
-  throw new Error(insertResult.error.message);
 }
 
 export const GET = withOperation(

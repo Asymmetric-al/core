@@ -39,7 +39,9 @@ export function TablePageFallback({
         </>
       }
     >
-      <DataTableSkeleton columnCount={columnCount} rowCount={rowCount} />
+      <div aria-busy="true" aria-label={`Loading ${title}`} role="status">
+        <DataTableSkeleton columnCount={columnCount} rowCount={rowCount} />
+      </div>
     </PageShell>
   );
 }

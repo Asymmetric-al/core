@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("next/cache", () => ({ revalidateTag: vi.fn() }));
@@ -7,33 +9,36 @@ vi.mock("@asym/auth/context", () => ({
   requireRole: vi.fn(),
   requireAuth: vi.fn(),
 }));
+vi.mock("zod", () => {
+  const chain = {
+    int: () => chain,
+    max: () => chain,
+    min: () => chain,
+    nonnegative: () => chain,
+    nullable: () => chain,
+    optional: () => chain,
+    parse: (value: unknown) => value,
+    uuid: () => chain,
+  };
+
+  return {
+    z: {
+      array: () => chain,
+      enum: () => chain,
+      number: () => chain,
+      object: () => chain,
+      string: () => chain,
+    },
+  };
+});
 
 import { replaceStagedGiftAllocations } from "../../../../../../packages/api/src/admin/contributions/staged-gifts";
 
 type QueryResult = { data?: unknown; error?: { message: string } | null };
 
-/**
- * Minimal supabase mock for the `staged_gift_allocations` table used by
- * `replaceStagedGiftAllocations`: `.select().eq()`, `.delete().eq()`, and a
- * sequence of `.insert()` results (replacement first, restore second).
- */
-function makeClient(opts: {
-  existing: QueryResult;
-  deleteResult?: QueryResult;
-  insertResults: QueryResult[];
-}) {
-  const insertQueue = [...opts.insertResults];
-  const insert = vi.fn(() =>
-    Promise.resolve(insertQueue.shift() ?? { error: null }),
-  );
-  const selectEq = vi.fn(() => Promise.resolve(opts.existing));
-  const select = vi.fn(() => ({ eq: selectEq }));
-  const deleteEq = vi.fn(() =>
-    Promise.resolve(opts.deleteResult ?? { error: null }),
-  );
-  const del = vi.fn(() => ({ eq: deleteEq }));
-  const from = vi.fn(() => ({ select, delete: del, insert }));
-  return { client: { from }, from, insert, select, del };
+function makeClient(result: QueryResult = { error: null }) {
+  const rpc = vi.fn(() => Promise.resolve(result));
+  return { client: { rpc }, rpc };
 }
 
 const gift = { id: "sg-1", tenantId: "tenant-1" };
@@ -41,27 +46,14 @@ const allocations = [
   { fundId: "fund-1", missionaryId: null, amount: 5000, memo: null },
   { fundId: "fund-2", missionaryId: null, amount: 5000, memo: null },
 ];
-const existingRows = [
-  {
-    tenant_id: "tenant-1",
-    staged_gift_id: "sg-1",
-    fund_id: "fund-orig",
-    missionary_id: null,
-    amount: 10000,
-    memo: null,
-  },
-];
 
 describe("replaceStagedGiftAllocations", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("replaces the split and does not restore when the insert succeeds", async () => {
-    const mock = makeClient({
-      existing: { data: existingRows, error: null },
-      insertResults: [{ error: null }],
-    });
+  it("replaces the split through the tenant-scoped atomic RPC", async () => {
+    const mock = makeClient();
 
     await expect(
       replaceStagedGiftAllocations({
@@ -71,35 +63,28 @@ describe("replaceStagedGiftAllocations", () => {
       }),
     ).resolves.toBeUndefined();
 
-    expect(mock.insert).toHaveBeenCalledTimes(1);
-    expect(mock.insert).toHaveBeenCalledWith([
-      {
-        tenant_id: "tenant-1",
-        staged_gift_id: "sg-1",
-        fund_id: "fund-1",
-        missionary_id: null,
-        amount: 5000,
-        memo: null,
-      },
-      {
-        tenant_id: "tenant-1",
-        staged_gift_id: "sg-1",
-        fund_id: "fund-2",
-        missionary_id: null,
-        amount: 5000,
-        memo: null,
-      },
-    ]);
-  });
-
-  it("restores the original allocations when the replacement insert fails", async () => {
-    const mock = makeClient({
-      existing: { data: existingRows, error: null },
-      insertResults: [
-        { error: { message: "insert exploded" } },
-        { error: null },
+    expect(mock.rpc).toHaveBeenCalledWith("replace_staged_gift_allocations", {
+      p_tenant_id: "tenant-1",
+      p_staged_gift_id: "sg-1",
+      p_allocations: [
+        {
+          fund_id: "fund-1",
+          missionary_id: null,
+          amount: 5000,
+          memo: null,
+        },
+        {
+          fund_id: "fund-2",
+          missionary_id: null,
+          amount: 5000,
+          memo: null,
+        },
       ],
     });
+  });
+
+  it("throws when the atomic replacement RPC fails", async () => {
+    const mock = makeClient({ error: { message: "rpc exploded" } });
 
     await expect(
       replaceStagedGiftAllocations({
@@ -107,65 +92,35 @@ describe("replaceStagedGiftAllocations", () => {
         gift,
         allocations,
       }),
-    ).rejects.toThrow("insert exploded");
+    ).rejects.toThrow("rpc exploded");
 
-    expect(mock.insert).toHaveBeenCalledTimes(2);
-    // The compensating write re-inserts the exact snapshot rows.
-    expect(mock.insert).toHaveBeenLastCalledWith(existingRows);
+    expect(mock.rpc).toHaveBeenCalledTimes(1);
   });
 
-  it("reports both errors when the compensating restore also fails", async () => {
-    const mock = makeClient({
-      existing: { data: existingRows, error: null },
-      insertResults: [
-        { error: { message: "insert exploded" } },
-        { error: { message: "restore exploded" } },
-      ],
-    });
-
-    await expect(
-      replaceStagedGiftAllocations({
-        supabaseAdmin: mock.client as never,
-        gift,
-        allocations,
-      }),
-    ).rejects.toThrow(
-      /insert exploded.*restore exploded.*manual reconciliation/,
+  it("keeps the database replacement atomic and tenant scoped", () => {
+    const migration = readFileSync(
+      new URL(
+        "../../../../../../supabase/migrations/20260707220134_atomic_staged_gift_allocation_replace.sql",
+        import.meta.url,
+      ),
+      "utf8",
     );
-  });
 
-  it("does not attempt a restore when there were no prior allocations", async () => {
-    const mock = makeClient({
-      existing: { data: [], error: null },
-      insertResults: [{ error: { message: "insert exploded" } }],
-    });
-
-    await expect(
-      replaceStagedGiftAllocations({
-        supabaseAdmin: mock.client as never,
-        gift,
-        allocations,
-      }),
-    ).rejects.toThrow("insert exploded");
-
-    expect(mock.insert).toHaveBeenCalledTimes(1);
-  });
-
-  it("throws and skips the rewrite when the snapshot read fails", async () => {
-    const mock = makeClient({
-      existing: { data: null, error: { message: "select exploded" } },
-      insertResults: [],
-    });
-
-    await expect(
-      replaceStagedGiftAllocations({
-        supabaseAdmin: mock.client as never,
-        gift,
-        allocations,
-      }),
-    ).rejects.toThrow("select exploded");
-
-    expect(mock.del).not.toHaveBeenCalled();
-    expect(mock.insert).not.toHaveBeenCalled();
+    expect(migration).toContain(
+      "CREATE OR REPLACE FUNCTION public.replace_staged_gift_allocations",
+    );
+    expect(migration).toMatch(
+      /WHERE sg\.id = p_staged_gift_id\s+AND sg\.tenant_id = p_tenant_id\s+FOR UPDATE/,
+    );
+    expect(migration).toMatch(
+      /DELETE FROM public\.staged_gift_allocations\s+WHERE staged_gift_id = p_staged_gift_id\s+AND tenant_id = p_tenant_id/,
+    );
+    expect(migration).toContain("jsonb_to_recordset(p_allocations)");
+    expect(migration).toContain(
+      "REVOKE EXECUTE ON FUNCTION public.replace_staged_gift_allocations(UUID, UUID, JSONB)",
+    );
+    expect(migration).toContain(
+      "GRANT EXECUTE ON FUNCTION public.replace_staged_gift_allocations(UUID, UUID, JSONB)",
+    );
   });
 });

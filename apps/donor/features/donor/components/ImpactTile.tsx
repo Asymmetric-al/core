@@ -37,7 +37,7 @@ export function ImpactTile({
   return (
     <Card
       className={cn(
-        "border-zinc-100 shadow-sm hover:border-zinc-200 transition-all h-full bg-white overflow-hidden group rounded-xl",
+        "border-zinc-100 shadow-sm hover:border-zinc-200 transition-colors h-full bg-white overflow-hidden group rounded-xl",
         className,
       )}
     >

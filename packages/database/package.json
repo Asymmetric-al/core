@@ -40,6 +40,10 @@
       "types": "./hooks/index.ts",
       "default": "./hooks/index.ts"
     },
+    "./hooks/missionary-donors-model": {
+      "types": "./hooks/missionary-donors-model.ts",
+      "default": "./hooks/missionary-donors-model.ts"
+    },
     "./providers": {
       "types": "./providers/index.ts",
       "default": "./providers/index.ts"
@@ -51,6 +55,10 @@
     "./query-keys": {
       "types": "./query-keys.ts",
       "default": "./query-keys.ts"
+    },
+    "./mission-control-automations": {
+      "types": "./mission-control-automations.ts",
+      "default": "./mission-control-automations.ts"
     }
   },
   "scripts": {
