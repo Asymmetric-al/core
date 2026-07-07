@@ -116,18 +116,21 @@ describe("UI route cleanup contracts", () => {
     expect(source).toMatch(/animate-in fade-in duration-300/);
   });
 
-  it("keeps missionary analytics neutral chart colors on Maia CSS variables", () => {
+  it("keeps missionary analytics chart colors on Maia CSS variables (no one-off hex)", () => {
     const source = readRepoFile(
       "apps/missionary/app/analytics/page-client.tsx",
     );
 
+    // Chart colors must resolve from Maia/shadcn design tokens, never a
+    // one-off hex literal. Neutral segment/series colors stay on the
+    // foreground/muted token ramp.
     expect(source).toMatch(/var\(--foreground\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
     // The mock "At Risk" donut segment (the former one-off #eab308 amber) was
-    // removed when the analytics page was wired to real Giving Trends data, so
-    // the chart config is now fully on Maia/shadcn tokens with no hex literal.
-    expect(source).not.toMatch(/#(18181b|71717a|a1a1aa|f4f4f5|e4e4e7)/i);
+    // removed when the analytics page was wired to real Giving Trends data.
+    // Keep the source on Maia/shadcn tokens with no hex color literals.
+    expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/i);
   });
 
   it("keeps admin reports summary dismissible by accessible name", () => {
