@@ -187,6 +187,29 @@ const tasks = [
     },
   },
   {
+    id: "task-B",
+    missionary_id: "prof-1",
+    donor_id: "donor-B",
+    title: "Call named donor",
+    description: null,
+    task_type: "to_do",
+    status: "not_started",
+    priority: "none",
+    sort_key: 1,
+    due_date: null,
+    completed_at: null,
+    is_auto_generated: false,
+    created_at: "2026-07-01",
+    updated_at: "2026-07-01",
+    donor: {
+      id: "donor-B",
+      name: "Blaise Pascal",
+      email: "blaise@example.com",
+      avatar_url: "https://cdn/b.png",
+      giving_preferences: { defaultAnonymousToRecipient: false },
+    },
+  },
+  {
     id: "task-D",
     missionary_id: "prof-1",
     donor_id: "donor-D",
@@ -270,7 +293,7 @@ describe("buildMissionaryPortalSnapshot redaction", () => {
     ],
     tasks,
     posts: [],
-  } as Parameters<typeof buildMissionaryPortalSnapshot>[0]);
+  });
 
   function expectRedactedRelationship(id: string) {
     const relationship = snap.donorRelationships.find((d) => d.id === id);
@@ -337,6 +360,20 @@ describe("mapMissionaryTask redaction (also covers standalone task endpoints)", 
     expect(t.donor?.name).toBe("Anonymous donor");
     expect(t.donor?.email).toBeNull();
     expect(JSON.stringify(t)).not.toContain("ada@example.com");
+  });
+
+  it("keeps the joined donor when that donor explicitly allows recipient identity", () => {
+    const task = tasks.find((candidate) => candidate.id === "task-B")!;
+    const mapped = mapMissionaryTask(
+      task as Parameters<typeof mapMissionaryTask>[0],
+    );
+
+    expect(mapped.donor).toMatchObject({
+      id: "donor-B",
+      name: "Blaise Pascal",
+      email: "blaise@example.com",
+      avatar_url: "https://cdn/b.png",
+    });
   });
 
   it("redacts joined donors when giving_preferences are empty, null, or missing", () => {

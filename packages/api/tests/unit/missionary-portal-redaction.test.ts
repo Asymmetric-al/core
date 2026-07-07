@@ -72,7 +72,10 @@ describe("isAnonymousToPublic — keyed on the public preference", () => {
     ).toBe(true);
     expect(
       isAnonymousToPublic({
-        givingPreferences: { defaultAnonymousToRecipient: true },
+        givingPreferences: {
+          defaultAnonymousToRecipient: true,
+          defaultAnonymousToPublic: false,
+        },
       }),
     ).toBe(false);
   });
@@ -80,6 +83,37 @@ describe("isAnonymousToPublic — keyed on the public preference", () => {
     expect(
       isAnonymousToPublic({ donorIdentityStatus: "unknown_offline" }),
     ).toBe(true);
+  });
+  it("a per-gift public flag overrides the donor default", () => {
+    expect(
+      isAnonymousToPublic({
+        giftAnonymousToPublic: true,
+        givingPreferences: { defaultAnonymousToPublic: false },
+      }),
+    ).toBe(true);
+    expect(
+      isAnonymousToPublic({
+        giftAnonymousToPublic: false,
+        givingPreferences: { defaultAnonymousToPublic: true },
+      }),
+    ).toBe(false);
+  });
+  it("fails closed to anonymous when the public default is absent", () => {
+    expect(isAnonymousToPublic({})).toBe(true);
+    expect(isAnonymousToPublic({ givingPreferences: null })).toBe(true);
+    expect(isAnonymousToPublic({ givingPreferences: {} })).toBe(true);
+    expect(
+      isAnonymousToPublic({
+        givingPreferences: { defaultAnonymousToPublic: null },
+      }),
+    ).toBe(true);
+  });
+  it("shows a named public donor only with explicit public consent", () => {
+    expect(
+      isAnonymousToPublic({
+        givingPreferences: { defaultAnonymousToPublic: false },
+      }),
+    ).toBe(false);
   });
 });
 

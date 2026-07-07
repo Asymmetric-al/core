@@ -51,8 +51,9 @@ export function isAnonymousToPublic(signal: AnonymitySignal): boolean {
   if (typeof signal.giftAnonymousToPublic === "boolean") {
     return signal.giftAnonymousToPublic;
   }
-  return Boolean(
-    readPreferences(signal.givingPreferences)?.defaultAnonymousToPublic,
+  return (
+    readPreferences(signal.givingPreferences)?.defaultAnonymousToPublic !==
+    false
   );
 }
 
