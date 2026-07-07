@@ -37,6 +37,11 @@ import {
 import Link from "next/link";
 import React, { useMemo, useState, useSyncExternalStore } from "react";
 
+import {
+  getStagedCheckoutPaymentTransition,
+  type CheckoutPaymentMethod,
+} from "./checkout-payment-transition";
+
 import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
 import { getFieldWorkerById } from "@/lib/mock-data";
 
@@ -50,7 +55,7 @@ function useClientTodayDateInputValue() {
 
 type Step = "config" | "details" | "payment" | "success";
 type Frequency = "one-time" | "monthly";
-type PaymentMethod = "card" | "ach" | "wallet";
+type PaymentMethod = CheckoutPaymentMethod;
 type SearchParamInput = string | string[] | undefined;
 type CheckoutPageSearchParams = {
   amount?: SearchParamInput;
@@ -1204,8 +1209,6 @@ function CheckoutContent({
     setCheckoutState((prev) => ({ ...prev, frequency: value }));
   const setCoverFees = (value: boolean) =>
     setCheckoutState((prev) => ({ ...prev, coverFees: value }));
-  const setIsProcessing = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, isProcessing: value }));
   const setPaymentMethod = (value: PaymentMethod) =>
     setCheckoutState((prev) => ({ ...prev, paymentMethod: value }));
   const setStartDate = (value: string) =>
@@ -1256,25 +1259,21 @@ function CheckoutContent({
   };
 
   const handlePayment = async () => {
-    setIsProcessing(true);
-    // Server-confirmed money path: POST the donation to the saga endpoint, then
-    // confirm via Stripe and derive success from the SERVER PaymentIntent status
-    // (see @asym/lib/payments/confirm-checkout-payment + checkout-confirmation).
+    // Live Stripe confirmation is staged behind the public-giving money path.
+    // Until it lands, only rails that can honestly be shown as processing may
+    // advance to confirmation; pending card/wallet payments stay on this step.
     // The live transport — the guest money endpoint + Stripe Elements confirm +
     // live DB — is staged BLOCKED-FOR-DB / OpenSpec-first (al-public-giving-wire).
-    // Until it lands we must NOT fabricate a collected success or claim a receipt
-    // was sent (the old client-timer "success" did exactly that). Advance to an
-    // honest, not-yet-confirmed state instead; the confirmation screen renders
-    // truthful pending copy driven by this state.
-    const submittedState: DonationPaymentState =
-      paymentMethod === "ach" ? "processing" : "pending";
+    const transition = getStagedCheckoutPaymentTransition(paymentMethod);
     setCheckoutState((prev) => ({
       ...prev,
       isProcessing: false,
-      paymentState: submittedState,
-      step: "success",
+      paymentState: transition.paymentState,
+      step: transition.nextStep,
     }));
-    window.scrollTo(0, 0);
+    if (transition.showConfirmation) {
+      window.scrollTo(0, 0);
+    }
   };
 
   if (!worker && step !== "success" && !hasGivingTarget) {

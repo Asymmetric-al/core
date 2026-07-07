@@ -130,6 +130,17 @@ describe("projectGiftForViewer — finance/admin money precision", () => {
     expect(view.amountCents).toBe(999);
     expect(view.amount).toBeCloseTo(9.99, 2);
   });
+
+  it("preserves missing privileged amount data instead of coercing it to zero", () => {
+    const gift: RawGiftForView = { ...namedGift, amountCents: null };
+    const view = projectGiftForViewer(gift, "finance") as unknown as Record<
+      string,
+      unknown
+    >;
+
+    expect(view.amountCents).toBeNull();
+    expect(view.amount).toBeNull();
+  });
 });
 
 describe("buildReceiptIdentitySnapshot", () => {

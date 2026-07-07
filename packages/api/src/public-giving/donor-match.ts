@@ -69,6 +69,9 @@ export function resolveGuestDonorMatch(
   input: GuestDonorInput,
   candidates: readonly CrmIdentityFingerprint[],
 ): DonorMatchDecision {
+  const tenantCandidates = candidates.filter(
+    (candidate) => candidate.tenantId === input.tenantId,
+  );
   const source = buildIdentityFingerprint({
     tenantId: input.tenantId,
     entityType: "donor_profile",
@@ -84,7 +87,7 @@ export function resolveGuestDonorMatch(
   } | null = null;
   let topScoreCount = 0; // how many candidates tie at the current best score
   let exactEmailCount = 0; // how many candidates are an exact-email match
-  for (const candidate of candidates) {
+  for (const candidate of tenantCandidates) {
     const score = scoreDuplicateCandidate(source, candidate);
     if (score.reasons.includes("email_exact")) exactEmailCount += 1;
     if (!best || score.score > best.score.score) {
@@ -100,7 +103,7 @@ export function resolveGuestDonorMatch(
       action: "create",
       matchedEntityId: null,
       score: best?.score ?? null,
-      candidateCount: candidates.length,
+      candidateCount: tenantCandidates.length,
     };
   }
 
@@ -126,6 +129,6 @@ export function resolveGuestDonorMatch(
     action,
     matchedEntityId: best.candidate.entityId,
     score: best.score,
-    candidateCount: candidates.length,
+    candidateCount: tenantCandidates.length,
   };
 }

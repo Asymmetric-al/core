@@ -71,10 +71,20 @@ export interface ConfirmCheckoutPaymentResult {
   error?: string;
 }
 
-/** A non-success outcome used when the transport itself failed to reach a status. */
-function failedOutcome(rail: PaymentRail): CheckoutOutcome {
-  // `canceled` maps to a final `failed` state with truthful "no funds collected" copy.
-  return decideCheckoutOutcome({ paymentIntentStatus: "canceled", rail });
+/** A neutral non-success outcome used when the transport never returned Stripe status. */
+function indeterminateOutcome(): CheckoutOutcome {
+  return {
+    state: "pending",
+    isSuccess: false,
+    showConfirmation: false,
+    description: {
+      label: "Payment not confirmed",
+      message:
+        "We could not confirm this payment. Please try again or use a different payment method.",
+      tone: "attention",
+      isFinal: false,
+    },
+  };
 }
 
 export async function confirmCheckoutPayment(
@@ -87,7 +97,7 @@ export async function confirmCheckoutPayment(
   } catch (cause) {
     return {
       ok: false,
-      outcome: failedOutcome(request.rail),
+      outcome: indeterminateOutcome(),
       error:
         cause instanceof Error
           ? cause.message

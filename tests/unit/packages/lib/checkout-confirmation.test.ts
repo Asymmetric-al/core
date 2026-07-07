@@ -88,6 +88,16 @@ describe("decideCheckoutOutcome (server truth only)", () => {
     expect(outcome.showConfirmation).toBe(false);
   });
 
+  it("does NOT show confirmation for a pending payment", () => {
+    const outcome = decideCheckoutOutcome({
+      paymentIntentStatus: "requires_confirmation",
+    });
+
+    expect(outcome.state).toBe("pending");
+    expect(outcome.isSuccess).toBe(false);
+    expect(outcome.showConfirmation).toBe(false);
+  });
+
   it("does NOT show success when the payment failed", () => {
     const outcome = decideCheckoutOutcome({
       paymentIntentStatus: "requires_payment_method",

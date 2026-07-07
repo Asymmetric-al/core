@@ -71,6 +71,10 @@ describe("confirmCheckoutPayment", () => {
 
     expect(result.ok).toBe(false);
     expect(result.outcome.isSuccess).toBe(false);
+    expect(result.outcome.state).toBe("pending");
+    expect(result.outcome.description.message).not.toMatch(
+      /stripe confirmed|failed/i,
+    );
     expect(result.error).toMatch(/unavailable/i);
   });
 });

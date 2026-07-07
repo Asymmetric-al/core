@@ -57,9 +57,9 @@ export interface PrivilegedGiftView {
   donorEmail: string | null;
   isAnonymous: boolean;
   /** Exact integer cents — reconciliation/audit truth (never floored). */
-  amountCents: number;
+  amountCents: number | null;
   /** Exact amount in dollars (cents / 100), not floored. */
-  amount: number;
+  amount: number | null;
   currency: string;
   designationLabel: string | null;
   createdAt: string;
@@ -85,8 +85,8 @@ function centsToDollars(cents: number | null | undefined): number {
 }
 
 /** Exact, clamped integer cents — the reconciliation/audit truth. */
-function clampCents(cents: number | null | undefined): number {
-  if (cents == null || !Number.isFinite(cents) || cents <= 0) return 0;
+function exactCentsOrNull(cents: number | null | undefined): number | null {
+  if (cents == null || !Number.isFinite(cents) || cents < 0) return null;
   return Math.trunc(cents);
 }
 
@@ -133,14 +133,14 @@ export function projectGiftForViewer(
 
   if (isIdentityPrivilegedScope(scope)) {
     // Finance/admin see exact money (no floor) for receipts/reconciliation/audit.
-    const amountCents = clampCents(raw.amountCents);
+    const amountCents = exactCentsOrNull(raw.amountCents);
     return {
       id: raw.id,
       donorName: realDonorName(raw),
       donorEmail: nonEmpty(raw.donorEmail),
       isAnonymous: isGiftAnonymous(raw),
       amountCents,
-      amount: amountCents / CENTS_PER_DOLLAR,
+      amount: amountCents == null ? null : amountCents / CENTS_PER_DOLLAR,
       currency: raw.currency,
       designationLabel,
       createdAt: raw.createdAt,

@@ -125,4 +125,25 @@ describe("resolveGuestDonorMatch", () => {
     expect(decision.action).toBe("create");
     expect(decision.matchedEntityId).toBeNull();
   });
+
+  it("counts and scores only candidates from the input tenant", () => {
+    const local = donorCandidate("donor-local", {
+      email: "local@example.com",
+      displayName: "Local Donor",
+    });
+    const foreign = buildIdentityFingerprint({
+      tenantId: "tenant-2",
+      entityType: "donor_profile",
+      entityId: "foreign-1",
+      primaryEmail: "ada@example.com",
+    });
+
+    const decision = resolveGuestDonorMatch(
+      { tenantId: TENANT, email: "ada@example.com" },
+      [local, foreign],
+    );
+
+    expect(decision.action).toBe("create");
+    expect(decision.candidateCount).toBe(1);
+  });
 });
