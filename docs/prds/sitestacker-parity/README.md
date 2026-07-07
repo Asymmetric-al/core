@@ -164,12 +164,17 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   #605–#627.
 - [`phase-10-sensitive-data-safety.md`](./phase-10-sensitive-data-safety.md)
   — the Phase 10 plan (Sensitive-Data Classification & Restricted-Ministry
-  Safety Foundation): the safety rails a missions CRM needs — a person-level
-  `security_level` (country-risk-defaulted), dual identity (legal name vs
-  public alias), the publication firewall as an architectural invariant,
-  restricted data in separate RLS tables, ABAC through the Phase-3 resolver,
-  read-audit + break-glass, consent/publishing preferences, and telemetry
-  redaction — landed **before** custom fields (Phase 11) and public missionary
+  Safety Foundation), **groomed + founder-grilled 2026-07-07 (G1–G7 + a
+  four-lens adversarial pass; epic #628 + #629–#641)**: the safety rails a
+  missions CRM needs — a person-level `security_level` (**tenant-sovereign**
+  country-risk-defaulted; opt-in World Watch List seed; person always
+  overrides), dual identity (legal name vs public alias, **alias enforced at
+  the data layer**), the publication firewall as a **sole-entry** architectural
+  invariant, restricted data in a separate RLS table, ABAC through the Phase-3
+  resolver, read-audit, **one identity-access-grant object** (standing /
+  requested / break-glass) with **"Security Clearance" a role-toggled
+  capability**, consent/publishing preferences, and telemetry redaction —
+  landed **before** custom fields (Phase 11) and public missionary
   pages (Phase 22) can create unclassifiable data. **Extends** the Phase-3
   `field_policies` floor; the member-care case product stays Phase 38.
   Groomed 2026-07-07; hard-depends on Phase 3 + Phase 9. Tracked by epic
