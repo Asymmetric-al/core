@@ -82,7 +82,7 @@ const monthlyData = [
 const donorSegments = [
   { name: "Active", value: 4, color: "var(--foreground)" },
   { name: "New", value: 2, color: "var(--muted-foreground)" },
-  { name: "At Risk", value: 1, color: "#eab308" },
+  { name: "At Risk", value: 1, color: "var(--chart-4)" },
   { name: "Lapsed", value: 1, color: "var(--muted)" },
 ];
 
