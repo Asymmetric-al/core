@@ -44,7 +44,7 @@ import {
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 
 import type { PostWithAuthor } from "@asym/database/types";
 
@@ -661,16 +661,31 @@ function toFeedPost(post: PostWithAuthor): Post {
 export default function DonorFeedPage() {
   const [filter, setFilter] = useState<FilterType>("All");
   const feedQuery = useDonorFeedPosts();
-  const [posts, setPosts] = useState<Post[]>([]);
 
-  // Seed the local, interactively-editable copy once the server feed arrives.
-  // Local like/pray/save/comment state then diverges from the server snapshot.
-  const seededRef = useRef(false);
-  useEffect(() => {
-    if (seededRef.current || feedQuery.isLoading) return;
-    setPosts(feedQuery.data.map(toFeedPost));
-    seededRef.current = true;
-  }, [feedQuery.isLoading, feedQuery.data]);
+  // The server feed is the immutable base snapshot; local like/pray/save/comment
+  // interactions are tracked as per-post overrides and merged during render.
+  // Deriving (rather than syncing into state via an effect) keeps a single source
+  // of truth and satisfies react-hooks/set-state-in-effect.
+  const basePosts = useMemo<Post[]>(
+    () => (feedQuery.data ?? []).map(toFeedPost),
+    [feedQuery.data],
+  );
+  const [overrides, setOverrides] = useState<
+    Record<string | number, Partial<Post>>
+  >({});
+  const posts = useMemo<Post[]>(
+    () =>
+      basePosts.map((p) =>
+        p.id in overrides ? { ...p, ...overrides[p.id] } : p,
+      ),
+    [basePosts, overrides],
+  );
+
+  // Resolve a post's current (base + override) value for computing the next override.
+  const currentPost = (id: string | number): Post | undefined => {
+    const base = basePosts.find((p) => p.id === id);
+    return base ? { ...base, ...overrides[id] } : undefined;
+  };
 
   // --- Filter Logic ---
   const filteredPosts = useMemo(() => {
@@ -681,37 +696,38 @@ export default function DonorFeedPage() {
 
   // --- Handlers ---
   const handleLike = (id: string | number) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-              liked: !p.liked,
-            }
-          : p,
-      ),
-    );
+    const cur = currentPost(id);
+    if (!cur) return;
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        likes: cur.liked ? cur.likes - 1 : cur.likes + 1,
+        liked: !cur.liked,
+      },
+    }));
   };
 
   const handlePray = (id: string | number) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              prayers: p.prayed ? p.prayers - 1 : p.prayers + 1,
-              prayed: !p.prayed,
-            }
-          : p,
-      ),
-    );
+    const cur = currentPost(id);
+    if (!cur) return;
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        prayers: cur.prayed ? cur.prayers - 1 : cur.prayers + 1,
+        prayed: !cur.prayed,
+      },
+    }));
   };
 
   const handleSave = (id: string | number) => {
-    setPosts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, saved: !p.saved } : p)),
-    );
+    const cur = currentPost(id);
+    if (!cur) return;
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], saved: !cur.saved },
+    }));
   };
 
   const handleAddComment = (
@@ -719,6 +735,8 @@ export default function DonorFeedPage() {
     text: string,
     parentId?: string,
   ) => {
+    const cur = currentPost(id);
+    if (!cur) return;
     const newComment: Comment = {
       id: `new_${Date.now()}`,
       author: "You",
@@ -729,26 +747,18 @@ export default function DonorFeedPage() {
       replies: [],
     };
 
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          if (parentId) {
-            // Find parent and add reply
-            const updatedComments = p.comments.map((c) => {
-              if (c.id === parentId) {
-                return { ...c, replies: [...(c.replies || []), newComment] };
-              }
-              return c;
-            });
-            return { ...p, comments: updatedComments };
-          } else {
-            // Add root comment
-            return { ...p, comments: [...p.comments, newComment] };
-          }
-        }
-        return p;
-      }),
-    );
+    const updatedComments = parentId
+      ? cur.comments.map((c) =>
+          c.id === parentId
+            ? { ...c, replies: [...(c.replies || []), newComment] }
+            : c,
+        )
+      : [...cur.comments, newComment];
+
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], comments: updatedComments },
+    }));
   };
 
   return (
