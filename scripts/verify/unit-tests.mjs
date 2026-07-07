@@ -2,11 +2,10 @@ import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 
 export function buildVitestInvocation(args, platform = process.platform) {
-  const useShell = platform === "win32";
   return {
-    command: useShell ? ["bunx", "vitest", "run", ...args].join(" ") : "bunx",
-    args: useShell ? [] : ["vitest", "run", ...args],
-    shell: useShell,
+    command: "bunx",
+    args: ["vitest", "run", ...args],
+    shell: platform === "win32",
   };
 }
 
@@ -37,25 +36,29 @@ export function runBunVersionGuard(spawn = spawnSync) {
   return result.status ?? 1;
 }
 
-export function runUnitTests(platform = process.platform) {
+export function runUnitTests(platform = process.platform, spawn = spawnSync) {
   if (platform === "win32") {
-    const bunVersionStatus = runBunVersionGuard();
+    const bunVersionStatus = runBunVersionGuard(spawn);
 
     if (bunVersionStatus !== 0) {
       return bunVersionStatus;
     }
 
-    return runVitest([
-      "--coverage",
-      "--maxWorkers=50%",
-      "--testTimeout=30000",
-      "--no-file-parallelism",
-      "--exclude",
-      "tests/unit/scripts/bun-version.test.ts",
-    ]);
+    return runVitest(
+      [
+        "--coverage",
+        "--maxWorkers=50%",
+        "--testTimeout=30000",
+        "--no-file-parallelism",
+        "--exclude",
+        "tests/unit/scripts/bun-version.test.ts",
+      ],
+      spawn,
+      platform,
+    );
   }
 
-  return runVitest(["--coverage"]);
+  return runVitest(["--coverage"], spawn, platform);
 }
 
 const isMain =
