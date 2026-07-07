@@ -1,5 +1,14 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  DEMO_PROFILE_ID,
+  DEMO_TENANT_ID,
+} from "../../../packages/auth/constants";
+import {
+  E2E_AUTH_COOKIE_NAMES,
+  parseE2EAuthCookieValue,
+} from "../../../packages/auth/e2e-auth";
+
 const ORIGINAL_ENV = { ...process.env };
 const ORIGINAL_FETCH = global.fetch;
 
@@ -82,6 +91,43 @@ describe("api/auth/demo-account", () => {
     expect(response.status).toBe(200);
     expect(await response.json()).toEqual({ ok: true });
     expect(response.headers.get("set-cookie")).toContain("sb-");
+  });
+
+  it("sets the seeded donor tenant and profile in the E2E bypass cookie", async () => {
+    vi.resetModules();
+    process.env.E2E_AUTH_BYPASS = "true";
+
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
+    const request = new Request("http://localhost:3000/api/auth/demo-account", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "donor" }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({
+      ok: true,
+      role: "donor",
+      bypass: true,
+    });
+
+    const setCookie = response.headers.get("set-cookie") ?? "";
+    const match = setCookie.match(
+      new RegExp(`${E2E_AUTH_COOKIE_NAMES.donor}=([^;]+)`),
+    );
+    expect(match?.[1]).toBeTruthy();
+
+    const session = parseE2EAuthCookieValue(
+      decodeURIComponent(match?.[1] ?? ""),
+    );
+    expect(session).toMatchObject({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: DEMO_TENANT_ID,
+      profileId: DEMO_PROFILE_ID,
+    });
   });
 
   it("blocks demo login in production unless explicitly enabled", async () => {

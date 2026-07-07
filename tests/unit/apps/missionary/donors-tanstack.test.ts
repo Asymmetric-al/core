@@ -19,4 +19,19 @@ describe("missionary donors TanStack migration", () => {
     expect(source).not.toMatch(/useDataTableVirtualization/);
     expect(source).not.toMatch(/<table/);
   });
+
+  it("keeps missionary donor identity behind the server-redacted hook contract", () => {
+    const source = readRepoFile("packages/database/hooks/missionary-donors.ts");
+
+    expect(source).toMatch(/useInfiniteQuery/);
+    expect(source).toMatch(/\/api\/missionary\/donors/);
+    expect(source).toMatch(/hasMore/);
+    expect(source).toMatch(/isLoadingMore/);
+    expect(source).toMatch(/loadMore/);
+    expect(source).toMatch(/\["donors", "missionary"/);
+
+    expect(source).not.toMatch(/useLiveQuery/);
+    expect(source).not.toMatch(/getMissionaryScopedDonorCollections/);
+    expect(source).not.toMatch(/buildMissionaryDonorRows/);
+  });
 });

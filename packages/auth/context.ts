@@ -4,6 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 
+import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
@@ -19,7 +20,6 @@ import {
 
 import type { UserRole } from "@asym/database/types";
 
-const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const MEMBERSHIP_ROLES = new Set(["donor", "missionary", "staff"]);
 const STAFF_SUBROLES = new Set([
   "finance",
@@ -162,15 +162,8 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
     profileRole,
     memberships: [],
   });
-  const tenantIdForBypass =
-    e2eSession.tenantId ??
-    (hasAnyRole({ profileRole, memberships: [] }, [
-      "admin",
-      "staff",
-      "super_admin",
-    ])
-      ? DEFAULT_TENANT_ID
-      : null);
+  const tenantIdForBypass = e2eSession.tenantId ?? DEMO_TENANT_ID;
+  const profileIdForBypass = e2eSession.profileId ?? DEMO_PROFILE_ID;
   return {
     userId: e2eSession.userId,
     email: null,
@@ -178,7 +171,7 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
     role,
     profileRole,
     memberships: [],
-    profileId: null,
+    profileId: profileIdForBypass,
     isAuthenticated: true,
   };
 }
@@ -241,7 +234,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
     typeof profile.tenant_id === "string"
       ? profile.tenant_id
       : profileRole === "super_admin"
-        ? DEFAULT_TENANT_ID
+        ? DEMO_TENANT_ID
         : null;
   const memberships = await loadMembershipsForTenant(
     adminClient ?? supabase,
