@@ -15,8 +15,8 @@ function runVitest(args) {
 
 if (process.platform === "win32") {
   const bunVersionStatus =
-    spawnSync("bash", ["scripts/verify/bun-version.sh"], {
-      shell: false,
+    spawnSync("bun", ["run", "verify:bun-version"], {
+      shell: true,
       stdio: "inherit",
     }).status ?? 1;
 
