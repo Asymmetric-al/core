@@ -162,15 +162,7 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
     profileRole,
     memberships: [],
   });
-  const tenantIdForBypass =
-    e2eSession.tenantId ??
-    (hasAnyRole({ profileRole, memberships: [] }, [
-      "admin",
-      "staff",
-      "super_admin",
-    ])
-      ? DEFAULT_TENANT_ID
-      : null);
+  const tenantIdForBypass = e2eSession.tenantId ?? DEFAULT_TENANT_ID;
   return {
     userId: e2eSession.userId,
     email: null,

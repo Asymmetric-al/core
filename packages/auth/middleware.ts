@@ -24,6 +24,7 @@ export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
   authRoutes?: string[];
   protectedRoutePrefixes?: string[];
+  unauthenticatedRedirects?: UnauthenticatedRedirectRule[];
   loginPath?: string;
   redirectAuthenticatedTo?: string;
   unauthorizedRedirectTo?: string;
@@ -32,6 +33,12 @@ export interface AuthMiddlewareOptions {
   resolveSession?: (
     request: NextRequest,
   ) => Promise<{ userId: string | null; role: UserRole | null }>;
+}
+
+export interface UnauthenticatedRedirectRule {
+  prefix: string;
+  redirectTo: string;
+  preserveNext?: boolean;
 }
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
@@ -66,6 +73,30 @@ function buildRedirectUrl(
     url.searchParams.set("next", next);
   }
   return url;
+}
+
+function findUnauthenticatedRedirectRule(
+  pathname: string,
+  rules: UnauthenticatedRedirectRule[],
+) {
+  return rules.find((rule) => matchesProtectedPrefix(pathname, rule.prefix));
+}
+
+function buildUnauthenticatedRedirectUrl(
+  request: NextRequest,
+  loginPath: string,
+  rules: UnauthenticatedRedirectRule[],
+) {
+  const rule = findUnauthenticatedRedirectRule(request.nextUrl.pathname, rules);
+  const redirectPath = rule?.redirectTo ?? loginPath;
+  const shouldPreserveNext = rule?.preserveNext ?? true;
+  const next = shouldPreserveNext
+    ? safeNextParam(
+        `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+      )
+    : null;
+
+  return buildRedirectUrl(request, redirectPath, next);
 }
 
 function logMissingSupabaseConfig(
@@ -109,6 +140,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
   const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
   const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
+  const unauthenticatedRedirects = options.unauthenticatedRedirects ?? [];
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
   const allowedRoles = options.allowedRoles;
@@ -133,11 +165,16 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     if (!url || !key) {
       if (requiresAuthentication) {
         logMissingSupabaseConfig(pathname, config);
-        const next = safeNextParam(
-          `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+        const redirectUrl = buildUnauthenticatedRedirectUrl(
+          request,
+          loginPath,
+          unauthenticatedRedirects,
         );
-        const redirectUrl = buildRedirectUrl(request, loginPath, next);
-        redirectUrl.searchParams.set("error", "auth_misconfigured");
+        if (
+          !findUnauthenticatedRedirectRule(pathname, unauthenticatedRedirects)
+        ) {
+          redirectUrl.searchParams.set("error", "auth_misconfigured");
+        }
         return NextResponse.redirect(redirectUrl);
       }
 
@@ -226,10 +263,13 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
-      const next = safeNextParam(
-        `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+      return NextResponse.redirect(
+        buildUnauthenticatedRedirectUrl(
+          request,
+          loginPath,
+          unauthenticatedRedirects,
+        ),
       );
-      return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
     }
 
     return supabaseResponse;
