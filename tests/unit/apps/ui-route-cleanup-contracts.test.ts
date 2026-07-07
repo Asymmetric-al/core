@@ -124,7 +124,9 @@ describe("UI route cleanup contracts", () => {
     expect(source).toMatch(/var\(--foreground\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
-    expect(source).toMatch(/color: "#eab308"/);
+    // The mock "At Risk" donut segment (the former one-off #eab308 amber) was
+    // removed when the analytics page was wired to real Giving Trends data, so
+    // the chart config is now fully on Maia/shadcn tokens with no hex literal.
     expect(source).not.toMatch(/#(18181b|71717a|a1a1aa|f4f4f5|e4e4e7)/i);
   });
 

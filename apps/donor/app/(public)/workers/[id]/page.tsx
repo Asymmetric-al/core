@@ -334,6 +334,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
               <div className="sticky top-24 space-y-6">
                 <Suspense fallback={<GivingWidgetSkeleton />}>
                   <GivingWidget
+                    missionaryId={worker.givingMissionaryId}
                     workerId={worker.id}
                     raised={worker.raised}
                     goal={worker.goal}
