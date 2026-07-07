@@ -1,114 +1,221 @@
 "use client";
 
+import { useAdminCrmReport } from "@asym/database/hooks";
 import { SafeHtml } from "@asym/lib/components/safe-html";
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { formatCurrency } from "@asym/lib/utils";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
 import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@asym/ui/components/shadcn/card";
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@asym/ui/components/shadcn/alert";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   TrendingUp,
   DollarSign,
-  Repeat,
-  Activity,
-  Loader2,
+  Users,
+  Receipt,
   FileText,
-  Library,
   X,
   ClipboardList,
+  AlertTriangle,
 } from "lucide-react";
-import dynamic from "next/dynamic";
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 
-// --- Mock Data ---
+import {
+  ReportsCharts,
+  type DonorsByFundPoint,
+  type GivingByFundPoint,
+} from "./reports-charts";
 
-const DONATION_DATA = [
-  { month: "Jan", amount: 240000 },
-  { month: "Feb", amount: 139800 },
-  { month: "Mar", amount: 980000 },
-  { month: "Apr", amount: 390800 },
-  { month: "May", amount: 480000 },
-  { month: "Jun", amount: 380000 },
-  { month: "Jul", amount: 430000 },
-  { month: "Aug", amount: 530000 },
-  { month: "Sep", amount: 480000 },
-  { month: "Oct", amount: 610000 },
-  { month: "Nov", amount: 720000 },
-  { month: "Dec", amount: 840000 },
-];
+import type { AdminCrmReportResponse } from "@asym/database/types";
 
-const _DONOR_TYPE_DATA = [
-  { name: "Recurring", value: 45 },
-  { name: "One-Time", value: 55 },
-];
+/** Cap chart series so long fund lists stay legible; the endpoint already sorts by amount desc. */
+const TOP_FUNDS = 8;
 
-const ENGAGEMENT_DATA = [
-  { month: "Jun", new: 120, retained: 1400, lapsed: 50 },
-  { month: "Jul", new: 150, retained: 1380, lapsed: 80 },
-  { month: "Aug", new: 220, retained: 1450, lapsed: 40 },
-  { month: "Sep", new: 180, retained: 1550, lapsed: 60 },
-  { month: "Oct", new: 250, retained: 1600, lapsed: 30 },
-  { month: "Nov", new: 300, retained: 1750, lapsed: 50 },
-];
+interface ReportKpi {
+  label: string;
+  value: string;
+  context: string;
+  icon: React.ComponentType<{ className?: string }>;
+}
 
-const ReportsCharts = dynamic(
-  () => import("./reports-charts").then((mod) => mod.ReportsCharts),
-  {
-    ssr: false,
-    loading: () => (
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7 text-left">
-        <Card className="col-span-4 border-zinc-100 shadow-sm rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Giving Trends
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Monthly volume across all regions.
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[320px] animate-pulse rounded-xl bg-zinc-100" />
-          </CardContent>
-        </Card>
-        <Card className="col-span-3 border-zinc-100 shadow-sm rounded-2xl">
-          <CardHeader>
-            <CardTitle className="text-base font-semibold">
-              Donor Engagement
-            </CardTitle>
-            <CardDescription className="text-xs">
-              Retention velocity (6 Month).
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="h-[300px] animate-pulse rounded-xl bg-zinc-100" />
-          </CardContent>
-        </Card>
-      </div>
-    ),
-  },
-);
+function toDollars(amountCents: number): number {
+  return amountCents / 100;
+}
 
-export default function MissionControlReports() {
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [report, setReport] = useState<string | null>(null);
+/** All KPI figures come from the report totals — no fabricated benchmarks. */
+export function deriveReportKpis(
+  report: AdminCrmReportResponse | null,
+): ReportKpi[] {
+  const totals = report?.totals;
+  const amount = toDollars(totals?.amountCents ?? 0);
+  const gifts = totals?.giftCount ?? 0;
+  const donors = totals?.donorCount ?? 0;
+  const average = gifts > 0 ? amount / gifts : 0;
 
-  const generateReport = async () => {
-    setIsGenerating(true);
-    setReport(null);
-    await new Promise((r) => setTimeout(r, 1500));
-    setReport(`
-### 📊 Performance Summary
-*   **Revenue Growth:** Org-wide revenue has peaked in Q4, showing a 25% MoM increase driven by year-end giving.
-*   **Donor Retention:** Consolidated retention rates are solid at 88.4%.
-*   **Actionable Item:** The Clean Water Initiative is at 83% of its annual goal. A targeted follow-up with previous supporters could close the remaining $2.5M gap by Dec 31.
-    `);
-    setIsGenerating(false);
-  };
+  return [
+    {
+      context: "Across all completed gifts",
+      icon: DollarSign,
+      label: "Completed Giving",
+      value: formatCurrency(amount),
+    },
+    {
+      context: "Completed gift count",
+      icon: Receipt,
+      label: "Total Gifts",
+      value: gifts.toLocaleString("en-US"),
+    },
+    {
+      context: "Per completed gift",
+      icon: TrendingUp,
+      label: "Average Gift",
+      value: formatCurrency(average),
+    },
+    {
+      context: "Unique giving donors",
+      icon: Users,
+      label: "Donors",
+      value: donors.toLocaleString("en-US"),
+    },
+  ];
+}
+
+export function deriveGivingByFund(
+  report: AdminCrmReportResponse | null,
+): GivingByFundPoint[] {
+  return (report?.rows ?? []).slice(0, TOP_FUNDS).map((row) => ({
+    amount: toDollars(row.amountCents),
+    label: row.label,
+  }));
+}
+
+export function deriveDonorsByFund(
+  report: AdminCrmReportResponse | null,
+): DonorsByFundPoint[] {
+  return (report?.rows ?? []).slice(0, TOP_FUNDS).map((row) => ({
+    donors: row.donorCount,
+    label: row.label,
+  }));
+}
+
+/** Deterministic executive summary computed from the loaded report — no LLM, no fake latency. */
+export function buildReportSummary(
+  report: AdminCrmReportResponse | null,
+): string | null {
+  const totals = report?.totals;
+  if (!totals || totals.rowCount === 0 || totals.amountCents === 0) {
+    return null;
+  }
+
+  const amount = toDollars(totals.amountCents);
+  const average = totals.giftCount > 0 ? amount / totals.giftCount : 0;
+  const topFund = report?.rows[0];
+
+  const lines = [
+    "### Giving Summary",
+    `*   **Completed giving:** ${formatCurrency(amount)} across ${totals.giftCount.toLocaleString(
+      "en-US",
+    )} gifts from ${totals.donorCount.toLocaleString("en-US")} donors.`,
+    `*   **Average gift:** ${formatCurrency(average)}.`,
+  ];
+
+  if (topFund) {
+    lines.push(
+      `*   **Top fund:** ${topFund.label} — ${formatCurrency(
+        toDollars(topFund.amountCents),
+      )}.`,
+    );
+  }
+
+  return lines.join("\n");
+}
+
+function ReportsErrorAlert({ message }: { message: string }) {
+  return (
+    <Alert variant="destructive">
+      <AlertTriangle aria-hidden="true" className="size-4" />
+      <AlertTitle>Could not load reports</AlertTitle>
+      <AlertDescription>{message}</AlertDescription>
+    </Alert>
+  );
+}
+
+function KpiSkeletonRow() {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {[0, 1, 2, 3].map((index) => (
+        <div
+          key={index}
+          className="h-[92px] animate-pulse rounded-2xl border border-border bg-muted/40"
+        />
+      ))}
+    </div>
+  );
+}
+
+function KpiRow({ kpis }: { kpis: ReportKpi[] }) {
+  return (
+    <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      {kpis.map((kpi, index) => (
+        <motion.div
+          key={kpi.label}
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{
+            duration: 0.25,
+            ease: [0.25, 0.1, 0.25, 1],
+            delay: index * 0.05,
+          }}
+        >
+          <div className="flex items-start justify-between gap-4 rounded-2xl border border-border bg-card px-5 py-4 shadow-sm">
+            <div className="flex min-w-0 flex-col">
+              <span className="text-3xl font-black tabular-nums tracking-tight text-foreground">
+                {kpi.value}
+              </span>
+              <span className="mt-0.5 text-sm font-semibold text-foreground">
+                {kpi.label}
+              </span>
+              <span className="mt-1 text-xs font-medium text-muted-foreground">
+                {kpi.context}
+              </span>
+            </div>
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-muted text-muted-foreground">
+              <kpi.icon className="size-4" />
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+export function ReportsPageView({
+  errorMessage,
+  hasLoadedData = true,
+  isError,
+  isLoading,
+  report,
+}: {
+  errorMessage?: string;
+  hasLoadedData?: boolean;
+  isError: boolean;
+  isLoading: boolean;
+  report: AdminCrmReportResponse | null;
+}) {
+  const [summary, setSummary] = useState<string | null>(null);
+  const queryError = errorMessage ?? "Could not load report data.";
+
+  const kpis = useMemo(() => deriveReportKpis(report), [report]);
+  const giving = useMemo(() => deriveGivingByFund(report), [report]);
+  const donors = useMemo(() => deriveDonorsByFund(report), [report]);
+
+  const hasGiving = (report?.totals.rowCount ?? 0) > 0;
+  const showEmptyState =
+    hasLoadedData && !isLoading && !isError && report != null && !hasGiving;
+  const canSummarize = !isLoading && !isError && hasGiving;
 
   return (
     <PageShell
@@ -118,131 +225,104 @@ export default function MissionControlReports() {
       actions={
         <div className="flex items-center gap-3">
           <Button
-            variant="outline"
-            className="h-10 rounded-xl border-zinc-200 px-4 text-sm font-semibold hover:bg-zinc-50"
+            onClick={() => setSummary(buildReportSummary(report))}
+            disabled={!canSummarize}
+            className="h-10 rounded-xl px-5 text-sm font-semibold shadow-md"
           >
-            <Library className="size-4" />
-            Report Library
-          </Button>
-          <Button
-            onClick={generateReport}
-            disabled={isGenerating}
-            className="h-10 rounded-xl bg-zinc-900 px-5 text-sm font-semibold text-white shadow-md shadow-zinc-200 hover:bg-zinc-800"
-          >
-            {isGenerating ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <ClipboardList className="size-4" />
-            )}
-            {isGenerating ? "Summarizing..." : "Quick Summary"}
+            <ClipboardList className="size-4" />
+            Quick Summary
           </Button>
         </div>
       }
     >
       <div className="space-y-6">
-        {/* AI Summary */}
+        {isError ? <ReportsErrorAlert message={queryError} /> : null}
+
+        {/* Deterministic summary derived from the loaded report */}
         <AnimatePresence>
-          {report && (
+          {summary && (
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: -20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: -20 }}
               className="overflow-hidden"
             >
-              <Card className="border-none bg-zinc-900 text-white shadow-2xl relative overflow-hidden rounded-3xl">
-                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white opacity-[0.03] rounded-full -translate-y-1/2 translate-x-1/3 blur-3xl pointer-events-none" />
-                <CardHeader className="p-6 pb-3 relative z-10">
-                  <CardTitle className="flex items-center gap-3 text-sm font-semibold text-zinc-300">
-                    <FileText className="size-4 text-emerald-400" /> Executive
-                    Summary
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="p-6 pt-0 relative z-10">
-                  <SafeHtml
-                    className="prose prose-invert prose-sm max-w-none text-zinc-300 leading-relaxed font-medium"
-                    html={report.replace(/\n/g, "<br/>")}
-                  />
-                </CardContent>
-                <div className="absolute top-4 right-4">
+              <div className="relative overflow-hidden rounded-3xl border border-border bg-card p-6 shadow-lg">
+                <div className="mb-3 flex items-center gap-3 text-sm font-semibold text-muted-foreground">
+                  <FileText className="size-4 text-primary" /> Executive Summary
+                </div>
+                <SafeHtml
+                  className="prose prose-sm dark:prose-invert max-w-none leading-relaxed text-foreground"
+                  html={summary.replace(/\n/g, "<br/>")}
+                />
+                <div className="absolute right-4 top-4">
                   <Button
                     aria-label="Dismiss report summary"
                     variant="ghost"
                     size="icon"
-                    onClick={() => setReport(null)}
-                    className="size-9 text-zinc-500 hover:text-white hover:bg-white/10 rounded-full transition-colors"
+                    onClick={() => setSummary(null)}
+                    className="size-9 rounded-full text-muted-foreground hover:text-foreground"
                   >
                     <X className="size-5" />
                   </Button>
                 </div>
-              </Card>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
 
-        {/* KPI Cards — neutral, consistent */}
-        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            {
-              label: "Global Revenue",
-              value: "$26.4M",
-              context: "Across all regions",
-              icon: DollarSign,
-            },
-            {
-              label: "Avg Contribution",
-              value: "$420",
-              context: "Per recorded gift",
-              icon: TrendingUp,
-            },
-            {
-              label: "Retention Rate",
-              value: "88.4%",
-              context: "Six month donor retention",
-              icon: Activity,
-            },
-            {
-              label: "Recurring Mix",
-              value: "45%",
-              context: "Recurring share of giving",
-              icon: Repeat,
-            },
-          ].map((kpi, index) => (
-            <motion.div
-              key={kpi.label}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{
-                duration: 0.25,
-                ease: [0.25, 0.1, 0.25, 1],
-                delay: index * 0.05,
-              }}
+        {isLoading ? (
+          <>
+            <p
+              className="text-sm font-medium text-muted-foreground"
+              role="status"
             >
-              <div className="flex items-start justify-between gap-4 rounded-2xl border border-zinc-100 bg-white px-5 py-4 shadow-sm">
-                <div className="flex min-w-0 flex-col">
-                  <span className="text-3xl font-black tabular-nums tracking-tight text-zinc-900">
-                    {kpi.value}
-                  </span>
-                  <span className="mt-0.5 text-sm font-semibold text-zinc-800">
-                    {kpi.label}
-                  </span>
-                  <span className="mt-1 text-xs font-medium text-zinc-500">
-                    {kpi.context}
-                  </span>
-                </div>
-                <div className="flex size-9 shrink-0 items-center justify-center rounded-xl bg-zinc-100 text-zinc-600">
-                  <kpi.icon className="size-4" />
-                </div>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              Loading reports…
+            </p>
+            <KpiSkeletonRow />
+          </>
+        ) : (
+          <KpiRow kpis={kpis} />
+        )}
 
-        {/* Charts */}
-        <ReportsCharts
-          donationData={DONATION_DATA}
-          engagementData={ENGAGEMENT_DATA}
-        />
+        {showEmptyState ? (
+          <div className="flex flex-col items-center justify-center gap-2 rounded-2xl border border-dashed border-border bg-muted/20 px-6 py-12 text-center">
+            <p className="text-base font-semibold text-foreground">
+              No completed giving to report yet
+            </p>
+            <p className="max-w-md text-sm font-medium text-muted-foreground">
+              This tenant has no completed gifts in the selected range. Reports
+              will populate once giving is recorded.
+            </p>
+          </div>
+        ) : (
+          <ReportsCharts
+            donors={donors}
+            giving={giving}
+            isEmpty={!isLoading && !hasGiving}
+          />
+        )}
       </div>
     </PageShell>
+  );
+}
+
+export default function MissionControlReports() {
+  const reportQuery = useAdminCrmReport("funds");
+  const errorMessage =
+    reportQuery.error instanceof Error
+      ? reportQuery.error.message
+      : reportQuery.error
+        ? String(reportQuery.error)
+        : undefined;
+
+  return (
+    <ReportsPageView
+      errorMessage={errorMessage}
+      hasLoadedData={reportQuery.report != null}
+      isError={reportQuery.isError}
+      isLoading={reportQuery.isLoading}
+      report={reportQuery.report}
+    />
   );
 }
