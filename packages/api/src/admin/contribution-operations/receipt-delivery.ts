@@ -367,6 +367,10 @@ function isJsonRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isValidAmountCents(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
 function parseSnapshotDesignationLine(
   value: unknown,
   index: number,
@@ -376,10 +380,7 @@ function parseSnapshotDesignationLine(
   }
   // A line without a numeric amount cannot represent financial truth; the
   // whole snapshot is rejected rather than rendering a wrong receipt.
-  if (
-    typeof value.amountCents !== "number" ||
-    !Number.isFinite(value.amountCents)
-  ) {
+  if (!isValidAmountCents(value.amountCents)) {
     return null;
   }
 
@@ -423,10 +424,7 @@ export function parseReceiptSnapshotContent(
   if (!donationId || !isJsonRecord(effective) || !Array.isArray(rawLines)) {
     return null;
   }
-  if (
-    typeof effective.amountCents !== "number" ||
-    !Number.isFinite(effective.amountCents)
-  ) {
+  if (!isValidAmountCents(effective.amountCents)) {
     return null;
   }
 

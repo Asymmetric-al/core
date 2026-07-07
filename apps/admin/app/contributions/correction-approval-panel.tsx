@@ -16,6 +16,7 @@ import {
   ReceiptDeliveryChoiceField,
   receiptSnapshotPdfUrl,
   resolveInitialReceiptDeliveryValue,
+  resolveReceiptDeliveryError,
   type ContributionReceiptDeliveryContext,
   type ReceiptDeliveryProposal,
   type ReceiptDeliveryValue,
@@ -192,25 +193,12 @@ function CorrectionApprovalRequestCard({
     (receiptDelivery
       ? resolveInitialReceiptDeliveryValue({ receiptDelivery, proposal })
       : { choice: null, deferReason: "" });
-
-  const deliveryError = (() => {
-    if (!showDelivery || !receiptDelivery) {
-      return null;
-    }
-    if (!deliveryValue.choice) {
-      return receiptDelivery.requireDeliveryAction
-        ? "Choose how the updated receipt is delivered."
-        : null;
-    }
-    if (
-      deliveryValue.choice === "defer" &&
-      receiptDelivery.deferReasonRequired &&
-      !deliveryValue.deferReason.trim()
-    ) {
-      return "A reason is required when deferring the updated receipt.";
-    }
-    return null;
-  })();
+  const deliveryError = showDelivery
+    ? resolveReceiptDeliveryError({
+        receiptDelivery,
+        value: deliveryValue,
+      })
+    : null;
 
   const decisionMutation = useMutation({
     mutationFn: postCorrectionRequestDecision,
@@ -326,7 +314,11 @@ function CorrectionApprovalRequestCard({
           >
             Reject
           </Button>
-          <Button className="h-9" onClick={() => submitDecision("approve")}>
+          <Button
+            className="h-9"
+            disabled={Boolean(deliveryError)}
+            onClick={() => submitDecision("approve")}
+          >
             Approve
           </Button>
         </div>

@@ -188,6 +188,52 @@ describe("CorrectionApprovalPanel", () => {
     });
   });
 
+  it("blocks approval and wires the defer error when a required defer reason is empty", async () => {
+    const fetchMock = decisionFetchMock(null);
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderPanel({
+      correctionRequests: [
+        makeRequest({
+          receiptDeliveryProposal: { choice: "defer", deferReason: null },
+        }),
+      ],
+    });
+
+    const approve = view.getByRole("button", { name: "Approve" });
+    const deferReason = view.getByLabelText("Defer reason");
+
+    expect(approve).toHaveProperty("disabled", true);
+    expect(deferReason.getAttribute("aria-invalid")).toBe("true");
+    const describedBy = deferReason.getAttribute("aria-describedby");
+    expect(describedBy).toBeTruthy();
+    expect(document.getElementById(describedBy!)?.textContent).toMatch(
+      /a reason is required when deferring the updated receipt/i,
+    );
+
+    fireEvent.change(deferReason, {
+      target: { value: "Donor asked us to wait" },
+    });
+    expect(approve).toHaveProperty("disabled", false);
+    fireEvent.click(approve);
+
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(1));
+    const body = JSON.parse(
+      (fetchMock.mock.calls[0]![1] as RequestInit).body as string,
+    );
+    expect(body).toEqual({
+      decision: "approve",
+      reason: null,
+      receiptDelivery: {
+        choice: "defer",
+        deferReason: "Donor asked us to wait",
+      },
+    });
+  });
+
   it("requires a decision reason to reject and posts the rejection", async () => {
     const fetchMock = decisionFetchMock(null);
     Object.defineProperty(globalThis, "fetch", {

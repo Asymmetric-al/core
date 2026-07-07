@@ -93,6 +93,30 @@ export function resolveInitialReceiptDeliveryValue(input: {
   return { choice: null, deferReason: "" };
 }
 
+export function resolveReceiptDeliveryError(input: {
+  receiptDelivery: ContributionReceiptDeliveryContext | null;
+  value: ReceiptDeliveryValue;
+}): string | null {
+  const { receiptDelivery, value } = input;
+
+  if (!receiptDelivery) {
+    return null;
+  }
+  if (!value.choice) {
+    return receiptDelivery.requireDeliveryAction
+      ? "Choose how the updated receipt is delivered."
+      : null;
+  }
+  if (
+    value.choice === "defer" &&
+    receiptDelivery.deferReasonRequired &&
+    !value.deferReason.trim()
+  ) {
+    return "A reason is required when deferring the updated receipt.";
+  }
+  return null;
+}
+
 function optionDisplayLabel(
   choice: ReceiptDeliveryChoice,
   donorEmail: string | null,
@@ -121,6 +145,7 @@ export function ReceiptDeliveryChoiceField({
 }) {
   const groupId = useId();
   const deferReasonId = useId();
+  const deferReasonErrorId = `${deferReasonId}-error`;
 
   return (
     <div
@@ -198,6 +223,7 @@ export function ReceiptDeliveryChoiceField({
           </FieldLabel>
           <Textarea
             id={deferReasonId}
+            aria-describedby={error ? deferReasonErrorId : undefined}
             aria-invalid={Boolean(error)}
             aria-required={receiptDelivery.deferReasonRequired}
             value={value.deferReason}
@@ -209,7 +235,10 @@ export function ReceiptDeliveryChoiceField({
         </Field>
       )}
 
-      <FieldError errors={error ? [{ message: error }] : []} />
+      <FieldError
+        id={deferReasonErrorId}
+        errors={error ? [{ message: error }] : []}
+      />
     </div>
   );
 }

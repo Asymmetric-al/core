@@ -162,6 +162,26 @@ describe("buildUpdatedReceiptHtml", () => {
       "Jordan &lt;script&gt;alert(&quot;x&quot;)&lt;/script&gt; &amp; Co",
     );
   });
+
+  it("escapes apostrophes in donor-controlled values", () => {
+    const content = {
+      ...snapshotContent(),
+      donorName: "Jordan's Team",
+      designationLines: [
+        {
+          ...snapshotContent().designationLines[0]!,
+          memo: "Donor's memo",
+        },
+      ],
+    };
+
+    const { html } = buildUpdatedReceiptHtml(content);
+
+    expect(html).toContain("Jordan&#39;s Team");
+    expect(html).toContain("Donor&#39;s memo");
+    expect(html).not.toContain("Jordan's Team");
+    expect(html).not.toContain("Donor's memo");
+  });
 });
 
 describe("assertReceiptSnapshotPdfCapability", () => {
@@ -273,6 +293,10 @@ describe("renderContributionReceiptSnapshotPdf", () => {
         }),
         tenantId: TENANT_ID,
         snapshotId: SNAPSHOT_ID,
+        docraptorRuntime: { configured: false, mode: "production" },
+        getDocRaptorClient: async () => {
+          throw new Error("client lookup should not run when unconfigured");
+        },
       }),
     ).rejects.toMatchObject({
       status: 503,

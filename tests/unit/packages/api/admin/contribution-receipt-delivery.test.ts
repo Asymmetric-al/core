@@ -13,6 +13,7 @@ import {
   resolveConfirmedReceiptDelivery,
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
+  type ReceiptSnapshotContentV1,
   type ReceiptSnapshotSourceDetail,
 } from "../../../../../packages/api/src/admin/contribution-operations/receipt-delivery";
 
@@ -404,6 +405,46 @@ describe("receipt snapshot content (V1)", () => {
         },
       ],
     });
+  });
+
+  it("rejects negative or fractional cents in stored receipt snapshots", () => {
+    const valid = JSON.parse(
+      JSON.stringify(
+        buildReceiptSnapshotContent({
+          detail: snapshotSourceDetail(),
+          affectedFields: ["amount"],
+          adjustmentId: null,
+          now: new Date("2026-06-01T12:00:00.000Z"),
+        }),
+      ),
+    ) as ReceiptSnapshotContentV1;
+
+    expect(
+      parseReceiptSnapshotContent({
+        ...valid,
+        effective: { ...valid.effective, amountCents: -1 },
+      }),
+    ).toBeNull();
+    expect(
+      parseReceiptSnapshotContent({
+        ...valid,
+        effective: { ...valid.effective, amountCents: 99.9 },
+      }),
+    ).toBeNull();
+    expect(
+      parseReceiptSnapshotContent({
+        ...valid,
+        designationLines: [{ ...valid.designationLines[0], amountCents: -500 }],
+      }),
+    ).toBeNull();
+    expect(
+      parseReceiptSnapshotContent({
+        ...valid,
+        designationLines: [
+          { ...valid.designationLines[0], amountCents: 12_000.5 },
+        ],
+      }),
+    ).toBeNull();
   });
 });
 

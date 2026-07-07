@@ -28,7 +28,8 @@ function escapeHtml(value: string) {
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;");
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
 }
 
 function formatMoney(cents: number, currency: string) {
@@ -184,6 +185,11 @@ export function assertProductionReceiptRenderMode(
   }
 }
 
+interface ReceiptPdfDocRaptorRuntime {
+  configured: boolean;
+  mode?: string | null;
+}
+
 /**
  * Renders the durable updated-receipt PDF for a stored snapshot (#263).
  *
@@ -197,6 +203,10 @@ export async function renderContributionReceiptSnapshotPdf(input: {
   snapshotId: string;
   /** Injectable for tests; defaults to the shared PDF Studio DocRaptor client. */
   docraptorClient?: DocRaptorClient;
+  /** Injectable for tests; defaults to the shared PDF Studio DocRaptor runtime. */
+  docraptorRuntime?: ReceiptPdfDocRaptorRuntime;
+  /** Injectable for tests; defaults to the shared PDF Studio DocRaptor client factory. */
+  getDocRaptorClient?: () => Promise<DocRaptorClient | null | undefined>;
 }): Promise<RenderedContributionReceiptSnapshotPdf> {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_receipt_snapshots")
@@ -227,7 +237,8 @@ export async function renderContributionReceiptSnapshotPdf(input: {
   // explicitly in production mode before this compliance path renders.
   let docraptorClient = input.docraptorClient ?? null;
   if (!docraptorClient) {
-    const runtime = resolvePdfStudioDocRaptorRuntime();
+    const runtime =
+      input.docraptorRuntime ?? resolvePdfStudioDocRaptorRuntime();
     if (!runtime.configured) {
       throw new ApiHttpError(
         503,
@@ -235,7 +246,8 @@ export async function renderContributionReceiptSnapshotPdf(input: {
       );
     }
     assertProductionReceiptRenderMode(runtime.mode ?? null);
-    docraptorClient = (await getPdfStudioDocRaptorClient()) ?? null;
+    const getClient = input.getDocRaptorClient ?? getPdfStudioDocRaptorClient;
+    docraptorClient = (await getClient()) ?? null;
   }
   if (!docraptorClient) {
     throw new ApiHttpError(

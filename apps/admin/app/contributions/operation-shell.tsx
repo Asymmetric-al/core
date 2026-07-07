@@ -32,6 +32,7 @@ import {
   ReceiptDeliveryChoiceField,
   receiptSnapshotPdfUrl,
   resolveInitialReceiptDeliveryValue,
+  resolveReceiptDeliveryError,
   type ContributionReceiptDeliveryContext,
   type ReceiptDeliveryProposal,
   type ReceiptDeliveryValue,
@@ -430,24 +431,10 @@ export function ContributionOperationShell({
     (receiptDelivery
       ? resolveInitialReceiptDeliveryValue({ receiptDelivery })
       : { choice: null, deferReason: "" });
-  const deliveryError = (() => {
-    if (!receiptDelivery) {
-      return null;
-    }
-    if (!deliveryValue.choice) {
-      return receiptDelivery.requireDeliveryAction
-        ? "Choose how the updated receipt is delivered."
-        : null;
-    }
-    if (
-      deliveryValue.choice === "defer" &&
-      receiptDelivery.deferReasonRequired &&
-      !deliveryValue.deferReason.trim()
-    ) {
-      return "A reason is required when deferring the updated receipt.";
-    }
-    return null;
-  })();
+  const deliveryError = resolveReceiptDeliveryError({
+    receiptDelivery,
+    value: deliveryValue,
+  });
 
   const reasonError =
     operation.requiresReason && !values.reason.trim()
