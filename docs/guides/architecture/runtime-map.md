@@ -31,6 +31,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/contribution-batches`                              | Node.js (no `runtime` segment export) | Bulk contribution operations, admin client    |
 | admin      | `/api/admin/contribution-batches/[batchId]/process`            | Node.js (no `runtime` segment export) | Bulk contribution background processing       |
 | admin      | `/api/admin/contributions`                                     | Node.js (no `runtime` segment export) | Admin client                                  |
+| admin      | `/api/admin/contributions/offline`                             | Node.js (no `runtime` segment export) | Offline gift entry, admin client              |
 | admin      | `/api/admin/contributions/reconcile`                           | Node.js (no `runtime` segment export) | Giving reconciliation, admin client           |
 | admin      | `/api/admin/contributions/replay`                              | Node.js (no `runtime` segment export) | Giving replay tooling, Stripe SDK             |
 | admin      | `/api/admin/contributions/staged-gifts`                        | Node.js (no `runtime` segment export) | Finance review queue, admin client            |
