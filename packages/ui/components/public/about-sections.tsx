@@ -15,6 +15,7 @@ import {
   STAGGER_MEDIUM,
   STAGGER_TIGHT,
 } from "@asym/lib/motion-presets";
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -351,7 +352,7 @@ export function AboutCTA() {
                 View Directory
               </Link>
               <Link
-                href="/checkout?fund=general"
+                href={buildCheckoutHref({ fundId: "general" })}
                 className={cn(
                   buttonVariants({ size: "lg", variant: "outline" }),
                   "h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out",

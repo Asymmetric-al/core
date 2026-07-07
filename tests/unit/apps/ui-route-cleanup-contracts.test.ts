@@ -127,11 +127,10 @@ describe("UI route cleanup contracts", () => {
     expect(source).toMatch(/var\(--foreground\)/);
     expect(source).toMatch(/var\(--muted-foreground\)/);
     expect(source).toMatch(/var\(--muted\)/);
-    // Design-token enforcement (Conrad §7): no one-off hex color literal
-    // anywhere in the analytics chart config. The former #eab308 "At Risk"
-    // amber must resolve from a token (e.g. var(--chart-4)) or be removed
-    // with its segment — subsumes the prior zinc-hardcode guard.
-    expect(source).not.toMatch(/"#[0-9a-fA-F]{3,8}"/);
+    // The mock "At Risk" donut segment (the former one-off #eab308 amber) was
+    // removed when the analytics page was wired to real Giving Trends data.
+    // Keep the source on Maia/shadcn tokens with no hex color literals.
+    expect(source).not.toMatch(/#[0-9a-fA-F]{3,8}\b/i);
   });
 
   it("keeps admin reports summary dismissible by accessible name", () => {
