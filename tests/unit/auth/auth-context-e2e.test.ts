@@ -40,7 +40,7 @@ import {
   E2E_AUTH_COOKIE_NAMES,
   createE2EAuthCookieValue,
 } from "../../../packages/auth/e2e-auth";
-import { getAuthContext } from "../../../packages/auth/context";
+import { getAuthContext, requireAuth } from "../../../packages/auth/context";
 
 describe("getAuthContext E2E cookie", () => {
   const originalBypass = process.env.E2E_AUTH_BYPASS;
@@ -72,6 +72,8 @@ describe("getAuthContext E2E cookie", () => {
 
     expect(ctx.isAuthenticated).toBe(true);
     expect(ctx.userId).toBe("e2e-donor-user");
+    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
     expect(ctx.role).toBe("donor");
+    expect(() => requireAuth(ctx)).not.toThrow();
   });
 });
