@@ -186,6 +186,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client        |
 | missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client            |
 | missionary | `/api/missionary/tasks/[taskId]`                               | Node.js (no `runtime` segment export) | Missionary-owned task mutation                |
+| missionary | `/api/missionary/donors`                                       | Node.js (no `runtime` segment export) | Missionary donor list, redacted, `@asym/api`  |
 | missionary | `/api/missionary/donors/[donorId]`                             | Node.js (no `runtime` segment export) | Missionary donor PATCH/tags, `@asym/api`      |
 | missionary | `/api/missionary/donors/[donorId]/activities`                  | Node.js (no `runtime` segment export) | Missionary donor activity log, `@asym/api`    |
 | missionary | `/api/missionaries`                                            | Node.js (no `runtime` segment export) | Admin client                                  |

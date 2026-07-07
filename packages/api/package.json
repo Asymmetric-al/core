@@ -77,6 +77,7 @@
     "./missionaries/queries": "./src/missionaries/queries.ts",
     "./missionary-portal": "./src/missionary-portal/index.ts",
     "./missionary-portal/donor": "./src/missionary-portal/donor.ts",
+    "./missionary-portal/donors": "./src/missionary-portal/donors.ts",
     "./missionary-portal/tasks": "./src/missionary-portal/tasks.ts",
     "./missionary-portal/task": "./src/missionary-portal/task.ts",
     "./reads/dashboard-stats": "./src/reads/dashboard-stats.ts",
