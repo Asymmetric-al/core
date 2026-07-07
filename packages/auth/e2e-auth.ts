@@ -77,6 +77,7 @@ export interface E2EAuthSession {
   userId: string;
   role: UserRole;
   tenantId: string | null;
+  profileId?: string | null;
 }
 
 export function isE2EAuthBypassEnabled() {
@@ -134,6 +135,13 @@ export function parseE2EAuthCookieValue(
       return null;
     }
 
+    const profileId =
+      typeof parsed.profileId === "string"
+        ? parsed.profileId
+        : parsed.profileId === null
+          ? null
+          : undefined;
+
     return {
       userId: parsed.userId,
       role: parsed.role as UserRole,
@@ -143,6 +151,7 @@ export function parseE2EAuthCookieValue(
           : parsed.tenantId
             ? null
             : null,
+      ...(profileId !== undefined ? { profileId } : {}),
     };
   } catch {
     return null;
