@@ -554,9 +554,10 @@ with no firewall.
   for publishing name/photo/story; hard do-not-publish flags), wired into the
   existing outbound-email consent gate — honoring the Art. 9(2)(d) invariant
   (no disclosure outside the body without consent).
-- **Security-aware content seams** for later phases: review-before-publish
-  moderation and trigger-word warning hooks that Phase 22 (public pages) and
-  Phase 32 (newsletters) will consume.
+- **Security-aware content seams** for later phases: the review-before-publish
+  **verdict contract** (`allowed | needs_review | blocked`) that Phase 22 (public
+  pages) and Phase 32 (newsletters) consume. _(Trigger-word content detection
+  was dropped at the 2026-07-07 grill as speculative — no owning phase.)_
 
 **Benchmark & better-than-parity.** SiteStacker's answer is thin — group CRUD
 permissions plus "Security Tags" on notes/files; no person-level security
@@ -1209,8 +1210,9 @@ designations (CTAs carry designation + source code + site/locale context).
   from ledger facts + commitments (13/16; offline gifts included via 15) via
   the existing PII-safe public projection pattern.
 - **Missionary edit workflow**: workspace-submitted drafts → staff review
-  queue → publish, with Phase 10 trigger-word warnings and photo/EXIF
-  scrubbing in the pipeline; shareable expiring review links.
+  queue → publish, consuming Phase 10's publication firewall + review-verdict
+  contract and photo/EXIF scrubbing in the pipeline; shareable expiring review
+  links.
 - **Giving CTAs** preserving site, source code, locale, currency, and
   designation through the Phase 5 checkout handoff into the Phase 13 cart.
 - **Project/campaign pages** with the same mechanics (designation-backed,
