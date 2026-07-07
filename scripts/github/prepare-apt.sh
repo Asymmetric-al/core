@@ -14,13 +14,13 @@ for source_file in \
   fi
 
   if grep -q "packages.microsoft.com" "$source_file"; then
-    if [ "$source_file" = "/etc/apt/sources.list" ]; then
+    if [[ "$source_file" == *.sources ]]; then
+      sudo mv "$source_file" "${source_file}.disabled-by-core-ci"
+    else
       sudo sed -i \
         -e "s|^[[:space:]]*deb |# disabled by core CI apt prep: deb |" \
         -e "s|^[[:space:]]*deb-src |# disabled by core CI apt prep: deb-src |" \
         "$source_file"
-    else
-      sudo mv "$source_file" "${source_file}.disabled-by-core-ci"
     fi
   fi
 done
