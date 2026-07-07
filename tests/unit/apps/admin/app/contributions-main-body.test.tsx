@@ -7,6 +7,7 @@ import { readFileSync } from "node:fs";
 // file"). Alias Node's own `URL` so source-file reads use a real `file:` URL.
 import { URL as NodeURL, fileURLToPath } from "node:url";
 
+import { QueryProvider } from "@asym/database/providers";
 import {
   act,
   cleanup,
@@ -17,7 +18,7 @@ import {
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { Contribution } from "../../../../../apps/admin/app/contributions/types";
+import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
 
 const selectedRowsRef = { current: [] as unknown[] };
 const toastErrorMock = vi.fn();
@@ -89,7 +90,10 @@ vi.mock("sonner", () => ({
 const root = new NodeURL("../../../../../", import.meta.url);
 type ContributionsMainBodyComponent =
   typeof import("../../../../../apps/admin/app/contributions/main-body").ContributionsMainBody;
+type ContributionsPageActionsComponent =
+  typeof import("../../../../../apps/admin/app/contributions/main-body").ContributionsPageActions;
 let ContributionsMainBody: ContributionsMainBodyComponent;
+let ContributionsPageActions: ContributionsPageActionsComponent;
 let confirmDescriptor: PropertyDescriptor | undefined;
 let cryptoDescriptor: PropertyDescriptor | undefined;
 let customEventDescriptor: PropertyDescriptor | undefined;
@@ -190,6 +194,16 @@ function renderMainBody(rows: Contribution[]) {
   );
 }
 
+function renderPageActions(canManageContributions?: boolean) {
+  return render(
+    <QueryProvider>
+      <ContributionsPageActions
+        canManageContributions={canManageContributions}
+      />
+    </QueryProvider>,
+  );
+}
+
 function stubBatchFetch() {
   const fetchMock = vi.fn().mockResolvedValue({
     ok: true,
@@ -284,9 +298,10 @@ beforeEach(async () => {
       randomUUID: vi.fn(() => "confirmation-token"),
     },
   });
-  ContributionsMainBody = (
-    await import("../../../../../apps/admin/app/contributions/main-body")
-  ).ContributionsMainBody;
+  const mainBodyModule =
+    await import("../../../../../apps/admin/app/contributions/main-body");
+  ContributionsMainBody = mainBodyModule.ContributionsMainBody;
+  ContributionsPageActions = mainBodyModule.ContributionsPageActions;
   selectedRowsRef.current = [];
 });
 
@@ -571,13 +586,20 @@ describe("contributions surface design tokens", () => {
 });
 
 describe("offline gift entry readiness gate", () => {
-  it("keeps the unbound offline gift form behind persistence and finance gates", () => {
-    const source = readRepoFile("apps/admin/app/contributions/main-body.tsx");
+  it("keeps the unbound offline gift form hidden by default", () => {
+    const view = renderPageActions();
 
-    expect(source).toContain("OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED");
-    expect(source).toContain("canManageContributions");
-    expect(source).toContain(
-      "OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED && canManageContributions",
-    );
+    expect(
+      view.queryByRole("button", { name: /Enter Offline Gift/i }),
+    ).toBeNull();
+  });
+
+  it("keeps finance-authorized users behind the persistence flag until DB dependencies are bound", () => {
+    const view = renderPageActions(true);
+
+    expect(
+      view.queryByRole("button", { name: /Enter Offline Gift/i }),
+    ).toBeNull();
+    expect(view.getByRole("button", { name: "Export" })).toBeTruthy();
   });
 });

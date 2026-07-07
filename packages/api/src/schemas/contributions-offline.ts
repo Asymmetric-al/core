@@ -55,9 +55,10 @@ function isValidIsoDate(value: string): boolean {
   );
 }
 
+const isoDateTimeWithOffset = z.iso.datetime({ offset: true });
+
 function isValidIsoDateTime(value: string): boolean {
-  const parsed = z.iso.datetime({ offset: true }).safeParse(value);
-  return parsed.success && Number.isFinite(Date.parse(value));
+  return isoDateTimeWithOffset.safeParse(value).success;
 }
 
 // ISO date (YYYY-MM-DD) or full ISO timestamp - staff-entered received date.
