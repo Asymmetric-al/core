@@ -97,11 +97,11 @@ function normalizeDonorType(
   value: string | null | undefined,
 ): MissionaryDonorRow["type"] {
   switch (value?.toLowerCase()) {
-    case "church":
-      return "Church";
     case "organization":
     case "foundation":
       return "Organization";
+    case "church":
+      return "Church";
     default:
       return "Individual";
   }
@@ -115,12 +115,33 @@ function normalizeDonorStatus(
       return "Lapsed";
     case "new":
       return "New";
-    case "at_risk":
     case "at risk":
+    case "at_risk":
       return "At Risk";
     default:
       return "Active";
   }
+}
+
+function normalizeDonorAddress(value: unknown): MissionaryDonorAddress {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const record = value as Record<string, unknown>;
+  const readString = (key: keyof MissionaryDonorAddress) => {
+    const field = record[key];
+    return typeof field === "string" ? field : undefined;
+  };
+
+  return {
+    street: readString("street"),
+    street2: readString("street2"),
+    city: readString("city"),
+    state: readString("state"),
+    zip: readString("zip"),
+    country: readString("country"),
+  };
 }
 
 function normalizePreferredContact(
@@ -170,9 +191,11 @@ function normalizeActivityStatus(
   switch (value.toLowerCase()) {
     case "failed":
       return "Failed";
-    case "done":
     case "completed":
+    case "done":
       return "Completed";
+    case "pending":
+      return "Pending";
     default:
       return value;
   }
@@ -232,7 +255,7 @@ function createInitials(name: string | null | undefined) {
 }
 
 export interface BuildMissionaryDonorRowsInput {
-  /** The missionary's profile id (`profiles.id`) — the namespace used by `donors.missionary_id`. */
+  /** The missionary's profile id (`profiles.id`), the namespace used by `donors.missionary_id`. */
   missionaryId: string | null | undefined;
   donors: readonly DonorCollectionRow[];
   activities: readonly DonorActivityCollectionRow[];
@@ -252,8 +275,11 @@ export interface BuildMissionaryDonorRowsInput {
  * helper receives the missionary's `profiles.id`. Comparing the two never
  * matches, which previously left `recurring_donations` permanently empty. The
  * pledge already belongs to a donor that has been missionary-scoped above, so
- * `donor_id` is the correct (and only needed) scope — mirroring how activities
- * are scoped here.
+ * `donor_id` is the correct scope, mirroring how activities are scoped here.
+ *
+ * Window skew: donors, activities, and pledges can each load independent bounded
+ * windows. After loading more donors, a partner row may show activities but an
+ * empty `recurring_donations` until pledges are paged in via `loadMore`.
  */
 export function buildMissionaryDonorRows(
   input: BuildMissionaryDonorRowsInput,
@@ -287,7 +313,6 @@ export function buildMissionaryDonorRows(
 
   const pledgesByDonor = new Map<string, MissionaryRecurringDonation[]>();
   for (const pledge of pledges) {
-    // Scope through donor_id only — see the namespace note in the JSDoc above.
     if (!pledge.donor_id) {
       continue;
     }
@@ -329,9 +354,9 @@ export function buildMissionaryDonorRows(
       preferred_contact: normalizePreferredContact(donor.preferred_contact),
       avatar_url: donor.avatar_url ?? undefined,
       location: donor.location ?? "",
-      address: (donor.address ?? {}) as MissionaryDonorAddress,
+      address: normalizeDonorAddress(donor.address),
       work_address: donor.work_address
-        ? (donor.work_address as MissionaryDonorAddress)
+        ? normalizeDonorAddress(donor.work_address)
         : undefined,
       website: donor.website ?? undefined,
       organization: donor.organization ?? undefined,

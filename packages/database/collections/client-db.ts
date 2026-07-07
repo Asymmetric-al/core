@@ -5,7 +5,13 @@ import { queryCollectionOptions } from "@tanstack/query-db-collection";
 import { z } from "zod";
 
 import { getQueryClient } from "../providers/query-client";
+import {
+  getSupabaseTableQueryKey,
+  type SupabaseTableQueryName,
+} from "../query-keys";
 import { createClient } from "../supabase/client";
+
+import type { QueryKey } from "@tanstack/react-query";
 
 type SupabaseClient = ReturnType<typeof createClient>;
 
@@ -40,6 +46,207 @@ async function fetchTableRows<TItem extends Record<string, unknown>>(
     throw error;
   }
   return (data ?? []) as TItem[];
+}
+
+interface BoundedFetchOrder {
+  column: string;
+  ascending: boolean;
+}
+
+interface BoundedTableFetchOptions {
+  /** Canonical table name (also the base of the default query key). */
+  table: SupabaseTableQueryName;
+  /**
+   * Full query key the backing collection uses. Defaults to the table's
+   * canonical key; scoped collections pass a key that includes their scope so
+   * `loadMore` invalidates exactly that collection and nothing else.
+   */
+  queryKey?: QueryKey;
+  orderBy: BoundedFetchOrder;
+  pageSize: number;
+  /** Equality filters applied to every fetch (e.g. scope to one missionary). */
+  filters?: ReadonlyArray<{ column: string; value: string }>;
+  /**
+   * Extra PostgREST select fragment appended to `*`, used only to filter the
+   * window (e.g. an `!inner` embed for a column that lives on a related table).
+   * Any keys it adds to each row are stripped via `omitKeys` so the stored
+   * shape still matches the collection schema.
+   */
+  embedSelect?: string;
+  /** Embed-only keys to drop from each row before it reaches the schema. */
+  omitKeys?: readonly string[];
+  /** When false, the queryFn short-circuits to `[]` and never hits the network. */
+  enabled?: boolean;
+}
+
+export interface BoundedCollectionPagination {
+  /** True when the last fetch filled the window, so more rows likely exist. */
+  hasMore: () => boolean;
+  /**
+   * Grow the fetch window by one page and refetch the collection.
+   * Resolves to false when the last fetch already drained the table.
+   */
+  loadMore: () => Promise<boolean>;
+  /**
+   * Subscribe to window changes. Pairs with `getSnapshot` so React consumers
+   * can read `hasMore` reactively through `useSyncExternalStore` — without this
+   * a fetch that drains the window leaves a stale "load more" affordance.
+   */
+  subscribe: (listener: () => void) => () => void;
+  /** Stable primitive snapshot of `hasMore` for `useSyncExternalStore`. */
+  getSnapshot: () => boolean;
+}
+
+interface BoundedTableFetcher<TItem> extends BoundedCollectionPagination {
+  queryFn: () => Promise<TItem[]>;
+}
+
+/** Supabase Data API / PostgREST default max rows per response. */
+const POSTGREST_MAX_ROWS = 1000;
+
+/**
+ * Bounded fetch window with offset continuation for query-db collections.
+ *
+ * Query collections replace their contents with whatever the queryFn returns,
+ * so the window always starts at row 0: a refetch (query invalidation)
+ * refreshes every loaded row, and `loadMore` grows the window by one page
+ * before invalidating the collection's query key to trigger that refetch.
+ *
+ * The window flag is exposed reactively (`subscribe`/`getSnapshot`) because it
+ * only settles after a fetch resolves — a `loadMore` that turns up no new rows
+ * must be able to retract a "load more" affordance.
+ */
+export function createBoundedTableFetcher<
+  TItem extends Record<string, unknown>,
+>(options: BoundedTableFetchOptions): BoundedTableFetcher<TItem> {
+  const queryKey = options.queryKey ?? getSupabaseTableQueryKey(options.table);
+  const enabled = options.enabled ?? true;
+  const omitKeys = options.omitKeys ?? [];
+
+  let loadedPageCount = 1;
+  let lastFetchFilledWindow = false;
+  let loadMoreInFlight = false;
+  const listeners = new Set<() => void>();
+
+  const setFilledWindow = (filled: boolean) => {
+    if (filled === lastFetchFilledWindow) {
+      return;
+    }
+    lastFetchFilledWindow = filled;
+    for (const listener of listeners) {
+      listener();
+    }
+  };
+
+  const queryFn = async (): Promise<TItem[]> => {
+    if (!enabled) {
+      setFilledWindow(false);
+      return [];
+    }
+    const windowSize = loadedPageCount * options.pageSize;
+    const selectClause = options.embedSelect
+      ? `*, ${options.embedSelect}`
+      : "*";
+
+    const buildQuery = () => {
+      let query = getSupabase().from(options.table).select(selectClause);
+      for (const filter of options.filters ?? []) {
+        query = query.eq(filter.column, filter.value);
+      }
+      return query
+        .order(options.orderBy.column, {
+          ascending: options.orderBy.ascending,
+          nullsFirst: false,
+        })
+        .order("id", { ascending: true });
+    };
+
+    // PostgREST caps each response at db.max_rows (1,000 by default). When the
+    // logical window exceeds that, fetch in chunks and concatenate so loadMore
+    // can still grow past the cap without falsely reporting end-of-data.
+    const rawRows: Record<string, unknown>[] = [];
+    for (let offset = 0; offset < windowSize; offset += POSTGREST_MAX_ROWS) {
+      const chunkSize = Math.min(POSTGREST_MAX_ROWS, windowSize - offset);
+      const { data, error } = await buildQuery().range(
+        offset,
+        offset + chunkSize - 1,
+      );
+      if (error) {
+        throw error;
+      }
+      const chunk = (data ?? []) as unknown as Record<string, unknown>[];
+      rawRows.push(...chunk);
+      if (chunk.length < chunkSize) {
+        break;
+      }
+    }
+    setFilledWindow(rawRows.length >= windowSize);
+    if (omitKeys.length === 0) {
+      return rawRows as TItem[];
+    }
+    return rawRows.map((row) => {
+      const next = { ...row };
+      for (const key of omitKeys) {
+        delete next[key];
+      }
+      return next as TItem;
+    });
+  };
+
+  const hasMore = () => lastFetchFilledWindow;
+  const getSnapshot = () => lastFetchFilledWindow;
+
+  const subscribe = (listener: () => void) => {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  };
+
+  const loadMore = async (): Promise<boolean> => {
+    // Guard re-entry: a second call before the refetch settles would grow the
+    // window by two pages instead of one (e.g. a double-click landing before
+    // the consumer's disabled state flushes).
+    if (!enabled || !lastFetchFilledWindow || loadMoreInFlight) {
+      return false;
+    }
+    loadMoreInFlight = true;
+    loadedPageCount += 1;
+    try {
+      await getQueryClient().invalidateQueries({ queryKey });
+    } finally {
+      loadMoreInFlight = false;
+    }
+    return true;
+  };
+
+  return { queryFn, hasMore, loadMore, subscribe, getSnapshot };
+}
+
+/** Combine several fetchers' pagination into one for a multi-collection view. */
+function aggregatePagination(
+  fetchers: readonly BoundedCollectionPagination[],
+): BoundedCollectionPagination {
+  return {
+    hasMore: () => fetchers.some((fetcher) => fetcher.hasMore()),
+    getSnapshot: () => fetchers.some((fetcher) => fetcher.getSnapshot()),
+    subscribe: (listener) => {
+      const unsubscribes = fetchers.map((fetcher) =>
+        fetcher.subscribe(listener),
+      );
+      return () => {
+        for (const unsubscribe of unsubscribes) {
+          unsubscribe();
+        }
+      };
+    },
+    loadMore: async () => {
+      const results = await Promise.all(
+        fetchers.map((fetcher) => fetcher.loadMore()),
+      );
+      return results.some(Boolean);
+    },
+  };
 }
 
 const mediaItemSchema = z.object({
@@ -282,6 +489,216 @@ export type DonorActivityCollectionRow = SchemaOutput<
 >;
 export type DonorPledgeCollectionRow = SchemaOutput<typeof donorPledgeSchema>;
 
+/**
+ * Fetch windows for collections backed by tables that grow with tenant size.
+ * Without a bound these queryFns load entire tables into the browser.
+ */
+const DONORS_PAGE_SIZE = 1000;
+const DONOR_ACTIVITIES_PAGE_SIZE = 1000;
+const DONOR_PLEDGES_PAGE_SIZE = 500;
+const POSTS_PAGE_SIZE = 200;
+const DONATIONS_PAGE_SIZE = 1000;
+const POST_COMMENTS_PAGE_SIZE = 500;
+const FOLLOWS_PAGE_SIZE = 1000;
+
+const donorsFetcher = createBoundedTableFetcher<
+  SchemaOutput<typeof donorSchema>
+>({
+  table: "donors",
+  pageSize: DONORS_PAGE_SIZE,
+  orderBy: { column: "created_at", ascending: false },
+});
+
+const donorActivitiesFetcher = createBoundedTableFetcher<
+  SchemaOutput<typeof donorActivitySchema>
+>({
+  table: "donor_activities",
+  pageSize: DONOR_ACTIVITIES_PAGE_SIZE,
+  orderBy: { column: "date", ascending: false },
+});
+
+const donorPledgesFetcher = createBoundedTableFetcher<
+  SchemaOutput<typeof donorPledgeSchema>
+>({
+  table: "donor_pledges",
+  pageSize: DONOR_PLEDGES_PAGE_SIZE,
+  orderBy: { column: "start_date", ascending: false },
+});
+
+const postsFetcher = createBoundedTableFetcher<SchemaOutput<typeof postSchema>>(
+  {
+    table: "posts",
+    pageSize: POSTS_PAGE_SIZE,
+    orderBy: { column: "created_at", ascending: false },
+  },
+);
+
+const donationsFetcher = createBoundedTableFetcher<
+  SchemaOutput<typeof donationSchema>
+>({
+  table: "donations",
+  pageSize: DONATIONS_PAGE_SIZE,
+  orderBy: { column: "created_at", ascending: false },
+});
+
+const postCommentsFetcher = createBoundedTableFetcher<
+  SchemaOutput<typeof postCommentSchema>
+>({
+  table: "post_comments",
+  pageSize: POST_COMMENTS_PAGE_SIZE,
+  orderBy: { column: "created_at", ascending: true },
+});
+
+const followsFetcher = createBoundedTableFetcher<
+  SchemaOutput<typeof followSchema>
+>({
+  table: "follows",
+  pageSize: FOLLOWS_PAGE_SIZE,
+  orderBy: { column: "created_at", ascending: false },
+});
+
+/**
+ * Per-missionary scoped donor collections.
+ *
+ * The tenant-wide collections above load every tenant's donors into the
+ * browser and then filter client-side, which both over-fetches and lets a
+ * missionary's own donors fall outside the newest-N window. These scoped
+ * collections push the `missionary_id` filter into the query so each missionary
+ * fetches only their slice. `donor_activities` has no `missionary_id`, so it is
+ * scoped through its `donors` foreign key with an inner embed, and the embed
+ * column is stripped before validation.
+ */
+const SCOPED_DONORS_PAGE_SIZE = 500;
+const SCOPED_DONOR_ACTIVITIES_PAGE_SIZE = 1000;
+const SCOPED_DONOR_PLEDGES_PAGE_SIZE = 500;
+
+function buildMissionaryScopedDonorCollections(missionaryId: string | null) {
+  const scopeKey = missionaryId ?? "none";
+  const enabled = Boolean(missionaryId);
+  const directScope = missionaryId
+    ? [{ column: "missionary_id", value: missionaryId }]
+    : [];
+
+  const scopedDonorsFetcher = createBoundedTableFetcher<
+    SchemaOutput<typeof donorSchema>
+  >({
+    table: "donors",
+    queryKey: ["donors", "missionary", scopeKey],
+    pageSize: SCOPED_DONORS_PAGE_SIZE,
+    orderBy: { column: "created_at", ascending: false },
+    filters: directScope,
+    enabled,
+  });
+
+  const scopedActivitiesFetcher = createBoundedTableFetcher<
+    SchemaOutput<typeof donorActivitySchema>
+  >({
+    table: "donor_activities",
+    queryKey: ["donor_activities", "missionary", scopeKey],
+    pageSize: SCOPED_DONOR_ACTIVITIES_PAGE_SIZE,
+    orderBy: { column: "date", ascending: false },
+    embedSelect: "donors!inner(missionary_id)",
+    filters: missionaryId
+      ? [{ column: "donors.missionary_id", value: missionaryId }]
+      : [],
+    omitKeys: ["donors"],
+    enabled,
+  });
+
+  // donor_pledges.missionary_id references missionaries(id), not profiles(id),
+  // so filtering it by the missionary's profile id never matches. Scope through
+  // the donor FK instead (same as activities); the donor is already
+  // missionary-scoped, which is the correct relationship for the Partners view.
+  const scopedPledgesFetcher = createBoundedTableFetcher<
+    SchemaOutput<typeof donorPledgeSchema>
+  >({
+    table: "donor_pledges",
+    queryKey: ["donor_pledges", "missionary", scopeKey],
+    pageSize: SCOPED_DONOR_PLEDGES_PAGE_SIZE,
+    orderBy: { column: "start_date", ascending: false },
+    embedSelect: "donors!inner(missionary_id)",
+    filters: missionaryId
+      ? [{ column: "donors.missionary_id", value: missionaryId }]
+      : [],
+    omitKeys: ["donors"],
+    enabled,
+  });
+
+  const donorsCollection = createCollection(
+    queryCollectionOptions({
+      id: `donors:missionary:${scopeKey}`,
+      queryKey: ["donors", "missionary", scopeKey],
+      queryClient: getQueryClient(),
+      schema: donorSchema,
+      getKey: (item) => item.id,
+      enabled,
+      queryFn: scopedDonorsFetcher.queryFn,
+    }),
+  );
+
+  const donorActivitiesCollection = createCollection(
+    queryCollectionOptions({
+      id: `donor_activities:missionary:${scopeKey}`,
+      queryKey: ["donor_activities", "missionary", scopeKey],
+      queryClient: getQueryClient(),
+      schema: donorActivitySchema,
+      getKey: (item) => item.id,
+      enabled,
+      queryFn: scopedActivitiesFetcher.queryFn,
+    }),
+  );
+
+  const donorPledgesCollection = createCollection(
+    queryCollectionOptions({
+      id: `donor_pledges:missionary:${scopeKey}`,
+      queryKey: ["donor_pledges", "missionary", scopeKey],
+      queryClient: getQueryClient(),
+      schema: donorPledgeSchema,
+      getKey: (item) => item.id,
+      enabled,
+      queryFn: scopedPledgesFetcher.queryFn,
+    }),
+  );
+
+  return {
+    donorsCollection,
+    donorActivitiesCollection,
+    donorPledgesCollection,
+    /** Donors-only continuation — drives the Partners "Load more" affordance. */
+    donorsPagination: scopedDonorsFetcher,
+    /** Fans out `loadMore` across donors, activities, and pledges. */
+    pagination: aggregatePagination([
+      scopedDonorsFetcher,
+      scopedActivitiesFetcher,
+      scopedPledgesFetcher,
+    ]),
+  };
+}
+
+export type MissionaryScopedDonorCollections = ReturnType<
+  typeof buildMissionaryScopedDonorCollections
+>;
+
+// One collection set per missionary, kept stable across renders. The
+// missionary app binds one authenticated profile id per session, so this map
+// effectively holds a single entry and does not need eviction.
+const scopedDonorCollectionsByMissionary = new Map<
+  string,
+  MissionaryScopedDonorCollections
+>();
+
+export function getMissionaryScopedDonorCollections(
+  missionaryId: string | null | undefined,
+): MissionaryScopedDonorCollections {
+  const key = missionaryId ?? "none";
+  let collections = scopedDonorCollectionsByMissionary.get(key);
+  if (!collections) {
+    collections = buildMissionaryScopedDonorCollections(missionaryId ?? null);
+    scopedDonorCollectionsByMissionary.set(key, collections);
+  }
+  return collections;
+}
+
 function createProfilesCollection() {
   return createCollection(
     queryCollectionOptions({
@@ -318,7 +735,7 @@ function createDonorsCollection() {
       queryClient: getQueryClient(),
       schema: donorSchema,
       getKey: (item) => item.id,
-      queryFn: () => fetchTableRows<SchemaOutput<typeof donorSchema>>("donors"),
+      queryFn: donorsFetcher.queryFn,
     }),
   );
 }
@@ -331,10 +748,7 @@ function createPostsCollection() {
       queryClient: getQueryClient(),
       schema: postSchema,
       getKey: (item) => item.id,
-      queryFn: () =>
-        fetchTableRows<SchemaOutput<typeof postSchema>>("posts", {
-          orderBy: { column: "created_at", ascending: false },
-        }),
+      queryFn: postsFetcher.queryFn,
       onInsert: async ({ transaction }) => {
         const items = transaction.mutations.map(
           (mutation) => mutation.modified,
@@ -381,13 +795,7 @@ function createPostCommentsCollection() {
       queryClient: getQueryClient(),
       schema: postCommentSchema,
       getKey: (item) => item.id,
-      queryFn: () =>
-        fetchTableRows<SchemaOutput<typeof postCommentSchema>>(
-          "post_comments",
-          {
-            orderBy: { column: "created_at", ascending: true },
-          },
-        ),
+      queryFn: postCommentsFetcher.queryFn,
       onInsert: async ({ transaction }) => {
         const items = transaction.mutations.map(
           (mutation) => mutation.modified,
@@ -411,10 +819,7 @@ function createDonationsCollection() {
       queryClient: getQueryClient(),
       schema: donationSchema,
       getKey: (item) => item.id,
-      queryFn: () =>
-        fetchTableRows<SchemaOutput<typeof donationSchema>>("donations", {
-          orderBy: { column: "created_at", ascending: false },
-        }),
+      queryFn: donationsFetcher.queryFn,
     }),
   );
 }
@@ -427,13 +832,7 @@ function createDonorActivitiesCollection() {
       queryClient: getQueryClient(),
       schema: donorActivitySchema,
       getKey: (item) => item.id,
-      queryFn: () =>
-        fetchTableRows<SchemaOutput<typeof donorActivitySchema>>(
-          "donor_activities",
-          {
-            orderBy: { column: "date", ascending: false },
-          },
-        ),
+      queryFn: donorActivitiesFetcher.queryFn,
     }),
   );
 }
@@ -446,13 +845,7 @@ function createDonorPledgesCollection() {
       queryClient: getQueryClient(),
       schema: donorPledgeSchema,
       getKey: (item) => item.id,
-      queryFn: () =>
-        fetchTableRows<SchemaOutput<typeof donorPledgeSchema>>(
-          "donor_pledges",
-          {
-            orderBy: { column: "start_date", ascending: false },
-          },
-        ),
+      queryFn: donorPledgesFetcher.queryFn,
     }),
   );
 }
@@ -478,8 +871,7 @@ function createFollowsCollection() {
       queryClient: getQueryClient(),
       schema: followSchema,
       getKey: (item) => item.id,
-      queryFn: () =>
-        fetchTableRows<SchemaOutput<typeof followSchema>>("follows"),
+      queryFn: followsFetcher.queryFn,
       onInsert: async ({ transaction }) => {
         const items = transaction.mutations.map(
           (mutation) => mutation.modified,
@@ -531,6 +923,7 @@ export const donorPledgesCollection = defineLazyCollection(
   createDonorPledgesCollection,
 );
 export const postsCollection = defineLazyCollection(createPostsCollection);
+
 export const postCommentsCollection = defineLazyCollection(
   createPostCommentsCollection,
 );
@@ -539,3 +932,20 @@ export const donationsCollection = defineLazyCollection(
 );
 export const fundsCollection = defineLazyCollection(createFundsCollection);
 export const followsCollection = defineLazyCollection(createFollowsCollection);
+
+// Continuation for the tenant-wide bounded collections. Each fetcher already
+// implements BoundedCollectionPagination; the annotation hides its queryFn.
+export const donorsCollectionPagination: BoundedCollectionPagination =
+  donorsFetcher;
+export const donorActivitiesCollectionPagination: BoundedCollectionPagination =
+  donorActivitiesFetcher;
+export const donorPledgesCollectionPagination: BoundedCollectionPagination =
+  donorPledgesFetcher;
+export const postsCollectionPagination: BoundedCollectionPagination =
+  postsFetcher;
+export const donationsCollectionPagination: BoundedCollectionPagination =
+  donationsFetcher;
+export const postCommentsCollectionPagination: BoundedCollectionPagination =
+  postCommentsFetcher;
+export const followsCollectionPagination: BoundedCollectionPagination =
+  followsFetcher;

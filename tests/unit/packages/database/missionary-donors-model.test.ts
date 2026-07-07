@@ -12,10 +12,10 @@ const TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const CREATED_AT = "2026-01-01T00:00:00Z";
 
 // The ID-namespace split this model has to bridge (see supabase/seed.sql):
-//  - donors.missionary_id stores a PROFILE id (FK -> profiles.id), and the
-//    missionary app calls the hook with profile.id.
-//  - donor_pledges.missionary_id stores a MISSIONARIES.id (FK -> missionaries.id),
-//    which is a different value than the profile id.
+// - donors.missionary_id stores a PROFILE id (FK -> profiles.id), and the
+//   missionary app calls the hook with profile.id.
+// - donor_pledges.missionary_id stores a MISSIONARIES.id (FK -> missionaries.id),
+//   which is a different value than the profile id.
 const MISSIONARY_PROFILE_ID = "11111111-1111-1111-1111-111111111111";
 const OTHER_MISSIONARY_PROFILE_ID = "99999999-9999-9999-9999-999999999999";
 const MISSIONARIES_ROW_ID = "20000000-0000-0000-0000-000000000001";
@@ -73,8 +73,8 @@ function makePledge(overrides: Partial<PledgeRow> = {}): PledgeRow {
     id: "60000000-0000-0000-0000-000000000001",
     tenant_id: TENANT_ID,
     donor_id: "30000000-0000-0000-0000-000000000001",
-    // Deliberately the missionaries.id, NOT the profile id — this is what the
-    // seed inserts and what previously broke the recurring-donations list.
+    // Deliberately the missionaries.id, not the profile id. This mirrors seed
+    // data and is what previously broke the recurring-donations list.
     missionary_id: MISSIONARIES_ROW_ID,
     fund_id: null,
     amount: 3000,
