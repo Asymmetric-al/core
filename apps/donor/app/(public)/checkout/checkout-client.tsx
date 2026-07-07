@@ -1,7 +1,10 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { describeDonationPaymentStatus } from "@asym/lib/payments/payment-status-language";
+import {
+  isGeneralCheckoutAlias,
+  resolveCheckoutFundId,
+} from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
@@ -16,50 +19,67 @@ import { Separator } from "@asym/ui/components/shadcn/separator";
 import { Switch } from "@asym/ui/components/shadcn/switch";
 import { cn } from "@asym/ui/lib/utils";
 import {
+  CardElement,
+  Elements,
+  useElements,
+  useStripe,
+} from "@stripe/react-stripe-js";
+import {
+  loadStripe,
+  type Stripe,
+  type StripeCardElement,
+  type StripeElements,
+} from "@stripe/stripe-js";
+import {
   Check,
   Lock,
-  CreditCard,
   ArrowRight,
   Heart,
   Loader2,
-  CalendarDays,
   Landmark,
   Wallet,
   Zap,
   Activity,
   Shield,
+  AlertTriangle,
 } from "lucide-react";
 import Link from "next/link";
-import React, { useMemo, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 
-import { makeDisplayDate, todayDateInputValue } from "@/lib/dates";
-import { getFieldWorkerById } from "@/lib/mock-data";
-
-function subscribeNoop() {
-  return () => {};
-}
-
-function useClientTodayDateInputValue() {
-  return useSyncExternalStore(subscribeNoop, todayDateInputValue, () => "");
-}
+import {
+  buildCheckoutRequestFingerprint,
+  buildDonateRequestBody,
+  interpretDonateResponse,
+  isDonationInitialized,
+  isStripeFinalCheckoutSuccess,
+  normalizeCheckoutFrequency,
+  resolveCheckoutIdempotencyKey,
+  resolveCheckoutMode,
+  type CheckoutMode,
+  type CheckoutFrequency,
+  type CheckoutPaymentMethod,
+  type ServerDonation,
+} from "./checkout-donation";
+import { getFieldWorkerById } from "../../../lib/mock-data";
 
 type Step = "config" | "details" | "payment" | "success";
-type Frequency = "one-time" | "monthly";
-type PaymentMethod = "card" | "ach" | "wallet";
+type Frequency = CheckoutFrequency;
+type PaymentMethod = CheckoutPaymentMethod;
 type SearchParamInput = string | string[] | undefined;
 type CheckoutPageSearchParams = {
   amount?: SearchParamInput;
   frequency?: SearchParamInput;
   fund?: SearchParamInput;
   fund_id?: SearchParamInput;
+  missionary?: SearchParamInput;
   missionary_id?: SearchParamInput;
   workerId?: SearchParamInput;
 };
 type CheckoutSearchParams = {
   amount: string | null;
   frequency: Frequency | null;
-  fund: string | null;
   fundId: string | null;
+  fundLabel: string | null;
   missionaryId: string | null;
   workerId: string | null;
 };
@@ -72,20 +92,81 @@ type CheckoutState = {
   amount: number;
   coverFees: boolean;
   customAmount: string;
+  donation: ServerDonation | null;
   donorInfo: DonorInfo;
   endDate: string;
+  error: string | null;
   frequency: Frequency;
   hasEndDate: boolean;
+  idempotencyFingerprint: string | null;
+  idempotencyKey: string | null;
   isProcessing: boolean;
   paymentMethod: PaymentMethod;
-  showScheduleConfig: boolean;
+  postalCode: string;
   startDate: string;
   step: Step;
+  successSnapshot: PaymentSuccessSnapshot | null;
 };
+type CheckoutStripeOverride = {
+  cardElement?: React.ReactNode;
+  elements: StripeElements | null;
+  mode: CheckoutMode;
+  publishableKey?: string | null;
+  stripe: Stripe | null;
+};
+type CheckoutRuntimeConfig =
+  | {
+      error: null;
+      publishableKey: string | null;
+      status: "ready";
+      stripePromise: Promise<Stripe | null> | null;
+    }
+  | {
+      error: string | null;
+      publishableKey: null;
+      status: "loading" | "error";
+      stripePromise: null;
+    };
+type PaymentAttempt = {
+  fingerprint: string;
+  id: number;
+  successSnapshot: PaymentSuccessSnapshot;
+};
+type PaymentSuccessSnapshot = Readonly<{
+  donorInfo: Readonly<DonorInfo>;
+  total: number;
+  workerTitle: string;
+}>;
 
 const PRESET_AMOUNTS = [50, 100, 250, 500];
 const STRIPE_FEE_PERCENT = 0.029;
 const STRIPE_FEE_FIXED = 0.3;
+const PAYMENT_PROCESSING_MESSAGE =
+  "Your contribution is still processing — we'll email your receipt once it's confirmed.";
+const CHECKOUT_CONFIGURATION_ERROR =
+  "Checkout configuration is incomplete. Please contact support before completing this contribution.";
+
+const resolveSuccessWorkerTitle = (
+  worker: { title?: string } | null | undefined,
+): string => worker?.title || "our global mission";
+
+const createPaymentSuccessSnapshot = ({
+  donorInfo,
+  total,
+  workerTitle,
+}: {
+  donorInfo: DonorInfo;
+  total: number;
+  workerTitle: string;
+}): PaymentSuccessSnapshot => ({
+  donorInfo: {
+    email: donorInfo.email,
+    firstName: donorInfo.firstName,
+    lastName: donorInfo.lastName,
+  },
+  total,
+  workerTitle,
+});
 
 const readSearchParam = (value: SearchParamInput): string | null => {
   if (typeof value === "string") return value;
@@ -93,45 +174,83 @@ const readSearchParam = (value: SearchParamInput): string | null => {
   return null;
 };
 
+const readDesignationSearchParam = (value: SearchParamInput): string | null => {
+  const rawValue = readSearchParam(value);
+  if (!rawValue) return null;
+
+  const trimmedValue = rawValue.trim();
+  return trimmedValue.length > 0 ? trimmedValue : null;
+};
+
+const normalizePublishableKey = (
+  value: string | null | undefined,
+): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : null;
+};
+
+const readRuntimePublishableKey = (body: unknown): string | null => {
+  if (!body || typeof body !== "object") return null;
+  const value = (body as Record<string, unknown>).publishableKey;
+  return typeof value === "string" ? normalizePublishableKey(value) : null;
+};
+
+const createReadyRuntimeConfig = (
+  publishableKey: string | null | undefined,
+): CheckoutRuntimeConfig => {
+  const normalizedPublishableKey = normalizePublishableKey(publishableKey);
+
+  return {
+    error: null,
+    publishableKey: normalizedPublishableKey,
+    status: "ready",
+    stripePromise: normalizedPublishableKey
+      ? loadStripe(normalizedPublishableKey)
+      : null,
+  };
+};
+
+const createRuntimeConfigError = (
+  message = CHECKOUT_CONFIGURATION_ERROR,
+): CheckoutRuntimeConfig => ({
+  error: message,
+  publishableKey: null,
+  status: "error",
+  stripePromise: null,
+});
+
+const createRuntimeConfigFromPublishableKey = (
+  publishableKey: string | null | undefined,
+): CheckoutRuntimeConfig => {
+  const normalizedPublishableKey = normalizePublishableKey(publishableKey);
+  return normalizedPublishableKey
+    ? createReadyRuntimeConfig(normalizedPublishableKey)
+    : createRuntimeConfigError();
+};
+
 const readCheckoutFrequency = (value: SearchParamInput): Frequency | null => {
-  const normalized = readSearchParam(value)?.trim().toLowerCase();
-  if (normalized === "monthly") {
-    return "monthly";
-  }
-
-  if (normalized === "one-time" || normalized === "one_time") {
-    return "one-time";
-  }
-
-  return null;
+  return normalizeCheckoutFrequency(readSearchParam(value));
 };
 
 const normalizeCheckoutSearchParams = (
   searchParams: CheckoutPageSearchParams,
-): CheckoutSearchParams => ({
-  amount: readSearchParam(searchParams.amount),
-  frequency: readCheckoutFrequency(searchParams.frequency),
-  fund: readSearchParam(searchParams.fund),
-  fundId: readSearchParam(searchParams.fund_id),
-  missionaryId: readSearchParam(searchParams.missionary_id),
-  workerId: readSearchParam(searchParams.workerId),
-});
+): CheckoutSearchParams => {
+  const fundAlias = readDesignationSearchParam(searchParams.fund);
+  const rawFundId = readDesignationSearchParam(searchParams.fund_id);
+  const rawMissionaryId =
+    readDesignationSearchParam(searchParams.missionary_id) ??
+    readDesignationSearchParam(searchParams.missionary);
 
-const formatDatePretty = (dateStr: string) => {
-  if (!dateStr) return "Today";
-  const date = makeDisplayDate(dateStr);
-  const today = makeDisplayDate();
-
-  date.setHours(0, 0, 0, 0);
-  today.setHours(0, 0, 0, 0);
-
-  if (date.getTime() === today.getTime()) return "Today";
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    year: date.getFullYear() !== today.getFullYear() ? "numeric" : undefined,
-  }).format(date);
+  return {
+    amount: readSearchParam(searchParams.amount),
+    frequency: readCheckoutFrequency(searchParams.frequency),
+    fundId:
+      resolveCheckoutFundId(rawFundId) ?? resolveCheckoutFundId(fundAlias),
+    fundLabel: fundAlias,
+    missionaryId: rawMissionaryId,
+    workerId: readSearchParam(searchParams.workerId),
+  };
 };
 
 interface SummaryCardProps {
@@ -141,8 +260,6 @@ interface SummaryCardProps {
   coverFees: boolean;
   fees: number;
   total: number;
-  startDate: string;
-  endDate: string | null;
 }
 
 function SummaryCard({
@@ -152,14 +269,7 @@ function SummaryCard({
   coverFees,
   fees,
   total,
-  startDate,
-  endDate,
 }: SummaryCardProps) {
-  const isFutureStart =
-    makeDisplayDate(startDate).setHours(0, 0, 0, 0) >
-    makeDisplayDate().setHours(0, 0, 0, 0);
-  const dueToday = isFutureStart ? 0 : total;
-
   return (
     <div className="bg-white rounded-3xl border border-zinc-100 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.05)] overflow-hidden sticky top-32">
       <div className="p-8 bg-zinc-50/50 border-b border-zinc-100">
@@ -209,34 +319,12 @@ function SummaryCard({
             <span className="text-zinc-500 font-medium">Frequency</span>
             <Badge
               variant="outline"
-              className={cn(
-                "uppercase text-[10px] font-semibold tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none",
-                frequency === "monthly"
-                  ? "bg-zinc-900 text-white"
-                  : "bg-zinc-100 text-zinc-500",
-              )}
+              className="uppercase text-[10px] font-semibold tracking-[0.2em] px-4 py-1.5 rounded-full border-none shadow-none bg-zinc-100 text-zinc-500"
             >
               {frequency}
             </Badge>
           </div>
         </div>
-
-        {frequency === "monthly" && (
-          <div className="bg-zinc-50 rounded-2xl p-5 space-y-3 border border-zinc-100">
-            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
-              <span className="text-zinc-400">Start Date</span>
-              <span className="text-zinc-900">
-                {formatDatePretty(startDate)}
-              </span>
-            </div>
-            <div className="flex justify-between text-[10px] font-semibold uppercase tracking-widest">
-              <span className="text-zinc-400">Duration</span>
-              <span className="text-zinc-900 flex items-center gap-2">
-                {endDate ? formatDatePretty(endDate) : "Ongoing"}
-              </span>
-            </div>
-          </div>
-        )}
 
         <Separator className="bg-zinc-100" />
 
@@ -246,19 +334,9 @@ function SummaryCard({
               Amount Due Today
             </span>
             <span className="block text-3xl font-semibold text-zinc-950 font-syne tracking-tighter">
-              {formatCurrency(dueToday)}
+              {formatCurrency(total)}
             </span>
           </div>
-          {isFutureStart && (
-            <div className="text-right pb-1">
-              <span className="text-[9px] font-semibold text-zinc-900 uppercase tracking-widest block mb-1">
-                Set Recurring
-              </span>
-              <span className="text-sm font-semibold text-zinc-400 font-syne">
-                {formatCurrency(total)}
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
@@ -321,29 +399,15 @@ function StepIndicator({ currentStep }: { currentStep: Step }) {
 
 function SuccessView({
   donorInfo,
-  frequency,
-  paymentMethod,
+  mode,
   total,
   workerTitle,
 }: {
   donorInfo: DonorInfo;
-  frequency: Frequency;
-  paymentMethod: PaymentMethod;
+  mode: CheckoutMode;
   total: number;
   workerTitle: string;
 }) {
-  // ACH Direct Debit is a delayed-notification rail: the donor authorized the
-  // debit, but payment finality arrives later from Stripe. Keep the language
-  // honest while the visual treatment stays identical across payment methods.
-  const achStatus =
-    paymentMethod === "ach"
-      ? describeDonationPaymentStatus({
-          state: "processing",
-          rail: "ach_debit",
-          audience: "donor",
-        })
-      : null;
-
   return (
     <div className="min-h-screen bg-zinc-50 flex items-center justify-center p-6">
       <motion.div
@@ -371,12 +435,10 @@ function SuccessView({
           </motion.div>
 
           <h1 className="text-5xl md:text-6xl font-semibold mb-4 font-syne tracking-tighter">
-            {achStatus ? "Bank Transfer Started." : "Contribution Logged."}
+            Contribution Confirmed.
           </h1>
           <p className="text-zinc-400 font-semibold text-xs uppercase tracking-[0.4em]">
-            {achStatus
-              ? "Processing — not yet collected"
-              : "Thank you for your support"}
+            Thank you for your support
           </p>
         </div>
 
@@ -388,24 +450,26 @@ function SuccessView({
             <p className="text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
               {formatCurrency(total)}
             </p>
-            {frequency === "monthly" && (
-              <div className="inline-flex items-center gap-3 bg-zinc-100 text-zinc-900 px-6 py-2 rounded-full text-[10px] font-semibold uppercase tracking-widest">
-                <Activity className="size-3.5" aria-hidden="true" /> Ongoing
-                Monthly Support
-              </div>
-            )}
           </div>
 
           <p className="text-xl text-zinc-500 leading-relaxed font-light tracking-tight">
-            {achStatus
-              ? `${achStatus.message} A confirmation has been sent to `
-              : "A secure receipt has been sent to "}
+            A secure receipt has been sent to{" "}
             <span className="text-zinc-950 font-semibold">
               {donorInfo.email}
             </span>
             . Your gift is being routed to{" "}
             <span className="text-zinc-950 font-semibold">{workerTitle}</span>.
           </p>
+
+          {mode === "test" && (
+            <div
+              role="status"
+              className="inline-flex items-center gap-3 rounded-full bg-amber-50 px-6 py-3 text-[10px] font-semibold uppercase tracking-widest text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
+            >
+              <AlertTriangle className="size-3.5" aria-hidden="true" /> Test
+              mode — no card charge collected
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-4 pt-4">
             <Link
@@ -433,163 +497,24 @@ function SuccessView({
   );
 }
 
-function MonthlyScheduleSection({
-  endDate,
-  hasEndDate,
-  onEndDateChange,
-  onHasEndDateChange,
-  onStartDateChange,
-  onToggleScheduleConfig,
-  showScheduleConfig,
-  startDate,
-  minStartDate,
-}: {
-  endDate: string;
-  hasEndDate: boolean;
-  onEndDateChange: (value: string) => void;
-  onHasEndDateChange: (value: boolean) => void;
-  onStartDateChange: (value: string) => void;
-  onToggleScheduleConfig: () => void;
-  showScheduleConfig: boolean;
-  startDate: string;
-  minStartDate: string;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="space-y-6 overflow-hidden"
-    >
-      <div className="bg-zinc-50 rounded-[2rem] p-8 border border-zinc-100">
-        <div className="flex items-start justify-between mb-8">
-          <div className="space-y-1">
-            <h4 className="font-semibold text-zinc-900 text-[10px] uppercase tracking-[0.2em] flex items-center gap-3">
-              <CalendarDays className="size-4" aria-hidden="true" /> Support
-              Schedule
-            </h4>
-            <p className="text-sm text-zinc-600 font-medium">
-              First contribution scheduled for{" "}
-              <span className="text-zinc-900 font-semibold">
-                {formatDatePretty(startDate)}
-              </span>
-              .
-            </p>
-          </div>
-          <button
-            className="h-10 px-5 rounded-full border border-zinc-200 text-zinc-700 font-semibold text-[9px] uppercase tracking-widest hover:bg-zinc-100 transition-colors"
-            onClick={onToggleScheduleConfig}
-            aria-expanded={showScheduleConfig}
-          >
-            {showScheduleConfig ? "SAVE" : "EDIT"}
-          </button>
-        </div>
-
-        <AnimatePresence>
-          {showScheduleConfig && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: "auto" }}
-              exit={{ opacity: 0, height: 0 }}
-              className="space-y-8 pt-8 border-t border-zinc-100"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="start-date"
-                    className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest"
-                  >
-                    Start Date
-                  </Label>
-                  <Input
-                    id="start-date"
-                    type="date"
-                    value={startDate}
-                    min={minStartDate || undefined}
-                    onChange={(e) => onStartDateChange(e.target.value)}
-                    className="h-14 rounded-2xl bg-white border-zinc-100 font-medium"
-                  />
-                </div>
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label
-                      htmlFor="end-date"
-                      className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest"
-                    >
-                      Ending Date
-                    </Label>
-                    <Switch
-                      checked={hasEndDate}
-                      onCheckedChange={(checked) => {
-                        onHasEndDateChange(checked);
-                        if (!checked) onEndDateChange("");
-                      }}
-                    />
-                  </div>
-                  {hasEndDate ? (
-                    <Input
-                      id="end-date"
-                      type="date"
-                      value={endDate}
-                      min={startDate}
-                      onChange={(e) => onEndDateChange(e.target.value)}
-                      className="h-14 rounded-2xl bg-white border-zinc-100"
-                    />
-                  ) : (
-                    <div className="h-14 flex items-center px-4 bg-zinc-50 rounded-2xl text-xs text-zinc-400 font-semibold uppercase tracking-widest">
-                      Continual Support
-                    </div>
-                  )}
-                </div>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
-    </motion.div>
-  );
-}
-
 function ConfigStep({
   amount,
   calculatedFees,
   coverFees,
   customAmount,
-  endDate,
-  frequency,
-  hasEndDate,
   onAmountSelect,
   onCoverFeesChange,
   onCustomAmountChange,
-  onEndDateChange,
-  onFrequencyChange,
-  onHasEndDateChange,
   onNext,
-  onStartDateChange,
-  onToggleScheduleConfig,
-  showScheduleConfig,
-  startDate,
-  minStartDate,
 }: {
   amount: number;
   calculatedFees: number;
   coverFees: boolean;
   customAmount: string;
-  endDate: string;
-  frequency: Frequency;
-  hasEndDate: boolean;
   onAmountSelect: (value: number) => void;
   onCoverFeesChange: (value: boolean) => void;
   onCustomAmountChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  onEndDateChange: (value: string) => void;
-  onFrequencyChange: (value: Frequency) => void;
-  onHasEndDateChange: (value: boolean) => void;
   onNext: () => void;
-  onStartDateChange: (value: string) => void;
-  onToggleScheduleConfig: () => void;
-  showScheduleConfig: boolean;
-  startDate: string;
-  minStartDate: string;
 }) {
   return (
     <motion.div
@@ -608,47 +533,19 @@ function ConfigStep({
           Your Gift.
         </h1>
         <p className="text-2xl text-zinc-400 font-light tracking-tight">
-          Configure the amount and frequency of your impact.
+          Configure the amount of your one-time gift.
         </p>
       </header>
 
       <div className="space-y-8">
-        <fieldset className="space-y-4">
-          <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
+        <div className="rounded-[2rem] border border-zinc-100 bg-zinc-50 p-6">
+          <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
             Contribution Frequency
-          </legend>
-          <div
-            className="flex p-1.5 bg-zinc-50 rounded-2xl border border-zinc-100"
-            role="radiogroup"
-          >
-            <button
-              onClick={() => onFrequencyChange("one-time")}
-              role="radio"
-              aria-checked={frequency === "one-time"}
-              className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500",
-                frequency === "one-time"
-                  ? "bg-white text-zinc-950 shadow-md"
-                  : "text-zinc-400 hover:text-zinc-600",
-              )}
-            >
-              One-Time
-            </button>
-            <button
-              onClick={() => onFrequencyChange("monthly")}
-              role="radio"
-              aria-checked={frequency === "monthly"}
-              className={cn(
-                "flex-1 py-3 text-[10px] font-semibold uppercase tracking-widest rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 relative",
-                frequency === "monthly"
-                  ? "bg-white text-zinc-900 shadow-md"
-                  : "text-zinc-400 hover:text-zinc-600",
-              )}
-            >
-              Monthly Partner
-            </button>
-          </div>
-        </fieldset>
+          </p>
+          <p className="mt-2 font-semibold text-zinc-950 font-syne">
+            One-time gift
+          </p>
+        </div>
 
         <fieldset className="space-y-6">
           <legend className="text-[10px] font-semibold text-zinc-400 uppercase tracking-[0.3em]">
@@ -702,20 +599,6 @@ function ConfigStep({
             />
           </div>
         </fieldset>
-
-        {frequency === "monthly" && (
-          <MonthlyScheduleSection
-            endDate={endDate}
-            hasEndDate={hasEndDate}
-            onEndDateChange={onEndDateChange}
-            onHasEndDateChange={onHasEndDateChange}
-            onStartDateChange={onStartDateChange}
-            onToggleScheduleConfig={onToggleScheduleConfig}
-            showScheduleConfig={showScheduleConfig}
-            startDate={startDate}
-            minStartDate={minStartDate}
-          />
-        )}
 
         <div
           className={cn(
@@ -889,18 +772,35 @@ function DetailsStep({
 }
 
 function PaymentStep({
+  cardElement,
+  elements,
+  error,
   isProcessing,
+  mode,
   onBack,
   onConfirmPayment,
   onPaymentMethodChange,
+  onPostalCodeChange,
   paymentMethod,
+  postalCode,
+  stripe,
   total,
 }: {
+  cardElement?: React.ReactNode;
+  elements: StripeElements | null;
+  error: string | null;
   isProcessing: boolean;
+  mode: CheckoutMode;
   onBack: () => void;
-  onConfirmPayment: () => void;
+  onConfirmPayment: (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) => void;
   onPaymentMethodChange: (value: PaymentMethod) => void;
+  onPostalCodeChange: (value: string) => void;
   paymentMethod: PaymentMethod;
+  postalCode: string;
+  stripe: Stripe | null;
   total: number;
 }) {
   return (
@@ -932,12 +832,16 @@ function PaymentStep({
           <button
             role="tab"
             aria-selected={paymentMethod === "card"}
-            onClick={() => onPaymentMethodChange("card")}
+            disabled={isProcessing}
+            onClick={() => {
+              if (!isProcessing) onPaymentMethodChange("card");
+            }}
             className={cn(
               "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "card"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
+              isProcessing && "cursor-not-allowed opacity-60",
             )}
           >
             Card
@@ -945,12 +849,16 @@ function PaymentStep({
           <button
             role="tab"
             aria-selected={paymentMethod === "ach"}
-            onClick={() => onPaymentMethodChange("ach")}
+            disabled={isProcessing}
+            onClick={() => {
+              if (!isProcessing) onPaymentMethodChange("ach");
+            }}
             className={cn(
               "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "ach"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
+              isProcessing && "cursor-not-allowed opacity-60",
             )}
           >
             Bank
@@ -958,12 +866,16 @@ function PaymentStep({
           <button
             role="tab"
             aria-selected={paymentMethod === "wallet"}
-            onClick={() => onPaymentMethodChange("wallet")}
+            disabled={isProcessing}
+            onClick={() => {
+              if (!isProcessing) onPaymentMethodChange("wallet");
+            }}
             className={cn(
               "flex-1 py-4 text-[10px] font-semibold uppercase tracking-widest rounded-3xl transition-[color,background-color,border-color,box-shadow,transform,opacity]",
               paymentMethod === "wallet"
                 ? "bg-zinc-950 text-white shadow-xl"
                 : "text-zinc-400",
+              isProcessing && "cursor-not-allowed opacity-60",
             )}
           >
             Apple/Google
@@ -982,41 +894,25 @@ function PaymentStep({
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-8"
               >
-                <div className="space-y-3">
-                  <Label
-                    htmlFor="card-number"
-                    className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2"
-                  >
+                <div className="space-y-3" data-testid="stripe-card-panel">
+                  <p className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest pl-2">
                     Card Details
-                  </Label>
-                  <div className="bg-white rounded-[2rem] border border-zinc-100 overflow-hidden shadow-sm">
-                    <div className="relative border-b border-zinc-50">
-                      <CreditCard
-                        className="absolute left-6 top-6 size-6 text-zinc-300"
-                        aria-hidden="true"
-                      />
-                      <Input
-                        id="card-number"
-                        className="h-20 border-none pl-16 text-lg font-medium bg-transparent focus-visible:ring-0"
-                        placeholder="Card Number"
-                        autoComplete="cc-number"
-                      />
+                  </p>
+                  {mode === "live" ? (
+                    <div className="bg-white rounded-[2rem] border border-zinc-100 p-8 shadow-sm">
+                      {cardElement ?? (
+                        <CardElement options={{ hidePostalCode: true }} />
+                      )}
                     </div>
-                    <div className="flex">
-                      <Input
-                        className="h-20 border-none border-r border-zinc-50 text-lg font-medium bg-transparent focus-visible:ring-0 px-8"
-                        placeholder="MM/YY"
-                        autoComplete="cc-exp"
-                        aria-label="Expiration date"
-                      />
-                      <Input
-                        className="h-20 border-none text-lg font-medium bg-transparent focus-visible:ring-0 px-8"
-                        placeholder="CVC"
-                        autoComplete="cc-csc"
-                        aria-label="Security code"
-                      />
+                  ) : (
+                    <div
+                      role="status"
+                      className="rounded-[2rem] border border-dashed border-amber-200 bg-white p-8 text-sm font-medium leading-relaxed text-amber-700"
+                    >
+                      Test mode does not collect card details. Configure a
+                      Stripe publishable key to mount live Elements.
                     </div>
-                  </div>
+                  )}
                 </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div className="space-y-3">
@@ -1041,6 +937,12 @@ function PaymentStep({
                       placeholder="12345"
                       className="h-16 rounded-2xl bg-white border-none shadow-sm font-medium px-6 focus:ring-4 focus:ring-zinc-900/5"
                       autoComplete="postal-code"
+                      disabled={isProcessing}
+                      inputMode="numeric"
+                      onChange={(event) =>
+                        onPostalCodeChange(event.target.value)
+                      }
+                      value={postalCode}
                     />
                   </div>
                 </div>
@@ -1093,17 +995,56 @@ function PaymentStep({
         </div>
       </div>
 
+      {mode === "test" && (
+        <div
+          role="status"
+          className="flex items-start gap-4 rounded-3xl border border-amber-200 bg-amber-50 p-6 text-left dark:border-amber-500/30 dark:bg-amber-500/10"
+        >
+          <AlertTriangle
+            className="size-5 shrink-0 text-amber-600 dark:text-amber-400"
+            aria-hidden="true"
+          />
+          <div className="space-y-1">
+            <p className="text-[11px] font-semibold uppercase tracking-widest text-amber-700 dark:text-amber-300">
+              Test mode — card capture disabled
+            </p>
+            <p className="text-sm font-medium leading-relaxed text-amber-700/80 dark:text-amber-200/80">
+              Live card processing needs Stripe credentials that aren&apos;t
+              configured yet. Your contribution is recorded server-side; the
+              card charge is not collected in this mode.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {error && (
+        <div
+          role="alert"
+          aria-live="assertive"
+          className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
+        >
+          <AlertTriangle
+            className="size-5 shrink-0 text-red-600 dark:text-red-400"
+            aria-hidden="true"
+          />
+          <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
+            {error}
+          </p>
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-6">
         <Button
           variant="outline"
           onClick={onBack}
+          disabled={isProcessing}
           size="lg"
-          className="h-24 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest"
+          className="h-24 px-12 rounded-full border-zinc-100 text-zinc-400 font-semibold font-syne text-xs uppercase tracking-widest disabled:cursor-not-allowed disabled:opacity-60"
         >
           Back
         </Button>
         <Button
-          onClick={onConfirmPayment}
+          onClick={() => onConfirmPayment(stripe, elements)}
           disabled={isProcessing}
           size="lg"
           className="flex-1 h-24 text-2xl font-semibold font-syne bg-zinc-900 hover:bg-zinc-800 text-white shadow-2xl rounded-full hover-scale-subtle uppercase tracking-widest"
@@ -1122,75 +1063,163 @@ function PaymentStep({
   );
 }
 
+function StripePaymentStep(
+  props: Omit<React.ComponentProps<typeof PaymentStep>, "elements" | "stripe">,
+) {
+  const stripe = useStripe();
+  const elements = useElements();
+
+  return <PaymentStep {...props} elements={elements} stripe={stripe} />;
+}
+
+function CheckoutConfigurationState({
+  message,
+  title,
+}: {
+  message: string;
+  title: string;
+}) {
+  return (
+    <div
+      role="status"
+      className="flex min-h-[360px] flex-col items-center justify-center gap-6 rounded-[3.5rem] border border-zinc-100 bg-zinc-50 p-12 text-center"
+    >
+      <Loader2
+        className="size-8 animate-spin text-zinc-400"
+        aria-hidden="true"
+      />
+      <div className="space-y-2">
+        <h2 className="font-syne text-2xl font-semibold text-zinc-950">
+          {title}
+        </h2>
+        <p className="max-w-md text-sm font-medium leading-relaxed text-zinc-500">
+          {message}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function CheckoutConfigurationError({ message }: { message: string | null }) {
+  return (
+    <div className="space-y-12">
+      <header className="space-y-4">
+        <span className="text-xs font-semibold text-zinc-900 uppercase tracking-[0.4em]">
+          Payment Information
+        </span>
+        <h1 className="text-5xl md:text-7xl font-semibold text-zinc-950 font-syne tracking-tighter">
+          Secure Payment.
+        </h1>
+        <p className="text-2xl text-zinc-400 font-light tracking-tight">
+          Safely authorize your contribution.
+        </p>
+      </header>
+
+      <div
+        role="alert"
+        className="flex items-start gap-4 rounded-3xl border border-red-200 bg-red-50 p-6 text-left dark:border-red-500/30 dark:bg-red-500/10"
+      >
+        <AlertTriangle
+          className="size-5 shrink-0 text-red-600 dark:text-red-400"
+          aria-hidden="true"
+        />
+        <p className="text-sm font-medium leading-relaxed text-red-700 dark:text-red-300">
+          {message ??
+            "Checkout configuration could not be loaded. Please refresh and try again."}
+        </p>
+      </div>
+    </div>
+  );
+}
+
 function CheckoutContent({
   searchParams,
+  stripeOverride,
 }: {
   searchParams: CheckoutSearchParams;
+  stripeOverride?: CheckoutStripeOverride;
 }) {
-  const clientToday = useClientTodayDateInputValue();
-  const workerId = searchParams.workerId ?? searchParams.missionaryId;
+  const workerId = searchParams.workerId;
+  const missionaryId = searchParams.missionaryId;
   const initialAmount = searchParams.amount;
   const worker = workerId ? getFieldWorkerById(workerId) : null;
-  const fundId = searchParams.fundId ?? searchParams.fund;
-  const hasGivingTarget = Boolean(workerId || fundId);
+  const fundId = searchParams.fundId;
+  const hasGeneralGivingTarget = isGeneralCheckoutAlias(searchParams.fundLabel);
+  const hasGivingTarget = Boolean(
+    missionaryId || fundId || hasGeneralGivingTarget,
+  );
+  const [runtimeConfig, setRuntimeConfig] = useState<CheckoutRuntimeConfig>(
+    () =>
+      stripeOverride
+        ? createReadyRuntimeConfig(stripeOverride.publishableKey)
+        : {
+            error: null,
+            publishableKey: null,
+            status: "loading",
+            stripePromise: null,
+          },
+  );
   const [checkoutState, setCheckoutState] = useState<CheckoutState>(() => ({
     amount: initialAmount ? Number(initialAmount) : 100,
     coverFees: false,
     customAmount: "",
+    donation: null,
     donorInfo: {
       email: "",
       firstName: "",
       lastName: "",
     },
     endDate: "",
-    frequency: searchParams.frequency ?? "monthly",
+    error: null,
+    frequency: "one-time",
     hasEndDate: false,
+    idempotencyFingerprint: null,
+    idempotencyKey: null,
     isProcessing: false,
     paymentMethod: "card",
-    showScheduleConfig: false,
+    postalCode: "",
     startDate: "",
     step: "config",
+    successSnapshot: null,
   }));
   const {
     amount,
     coverFees,
     customAmount,
+    donation,
     donorInfo,
     endDate,
+    error,
     frequency,
     hasEndDate,
     isProcessing,
     paymentMethod,
-    showScheduleConfig,
+    postalCode,
     startDate,
     step,
+    successSnapshot,
   } = checkoutState;
-  const startDateForUi = startDate || clientToday;
-
+  const checkoutStateRef = useRef(checkoutState);
+  const activePaymentAttemptRef = useRef<PaymentAttempt | null>(null);
+  const paymentAttemptIdRef = useRef(0);
+  const runtimeConfigAbortRef = useRef<AbortController | null>(null);
+  const runtimeConfigRequestedRef = useRef(false);
   const setStep = (value: Step) =>
     setCheckoutState((prev) => ({ ...prev, step: value }));
   const setAmount = (value: number) =>
     setCheckoutState((prev) => ({ ...prev, amount: value }));
   const setCustomAmount = (value: string) =>
     setCheckoutState((prev) => ({ ...prev, customAmount: value }));
-  const setFrequency = (value: Frequency) =>
-    setCheckoutState((prev) => ({ ...prev, frequency: value }));
   const setCoverFees = (value: boolean) =>
     setCheckoutState((prev) => ({ ...prev, coverFees: value }));
-  const setIsProcessing = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, isProcessing: value }));
   const setPaymentMethod = (value: PaymentMethod) =>
-    setCheckoutState((prev) => ({ ...prev, paymentMethod: value }));
-  const setStartDate = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, startDate: value }));
-  const setShowScheduleConfig = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, showScheduleConfig: value }));
-  const setHasEndDate = (value: boolean) =>
-    setCheckoutState((prev) => ({ ...prev, hasEndDate: value }));
-  const setEndDate = (value: string) =>
-    setCheckoutState((prev) => ({ ...prev, endDate: value }));
+    setCheckoutState((prev) =>
+      prev.isProcessing ? prev : { ...prev, paymentMethod: value },
+    );
   const setDonorInfo = (value: DonorInfo) =>
     setCheckoutState((prev) => ({ ...prev, donorInfo: value }));
+  const setPostalCode = (value: string) =>
+    setCheckoutState((prev) => ({ ...prev, postalCode: value }));
 
   const calculatedFees = useMemo(() => {
     const gross = (amount + STRIPE_FEE_FIXED) / (1 - STRIPE_FEE_PERCENT);
@@ -1198,6 +1227,255 @@ function CheckoutContent({
   }, [amount]);
 
   const total = coverFees ? amount + calculatedFees : amount;
+  const mountedPublishableKey = stripeOverride
+    ? normalizePublishableKey(stripeOverride.publishableKey)
+    : runtimeConfig.status === "ready"
+      ? runtimeConfig.publishableKey
+      : null;
+  const checkoutMode =
+    stripeOverride?.mode ?? resolveCheckoutMode(mountedPublishableKey);
+  const mountedPublishableKeyRef = useRef(mountedPublishableKey);
+  mountedPublishableKeyRef.current = mountedPublishableKey;
+  const currentRequestFingerprint = useMemo(
+    () =>
+      buildCheckoutRequestFingerprint({
+        amount: total,
+        coverFees,
+        currency: "usd",
+        donorEmail: donorInfo.email,
+        donorFirstName: donorInfo.firstName,
+        donorLastName: donorInfo.lastName,
+        endDate: hasEndDate ? endDate : "",
+        frequency,
+        fundId,
+        missionaryId,
+        paymentMethod,
+        postalCode,
+        startDate,
+      }),
+    [
+      coverFees,
+      donorInfo.email,
+      donorInfo.firstName,
+      donorInfo.lastName,
+      endDate,
+      frequency,
+      fundId,
+      hasEndDate,
+      paymentMethod,
+      postalCode,
+      startDate,
+      total,
+      missionaryId,
+    ],
+  );
+  const currentRequestFingerprintRef = useRef(currentRequestFingerprint);
+
+  const loadCheckoutRuntimeConfig = () => {
+    if (stripeOverride) {
+      setRuntimeConfig(createReadyRuntimeConfig(stripeOverride.publishableKey));
+      return;
+    }
+
+    if (
+      runtimeConfigRequestedRef.current &&
+      runtimeConfig.status === "loading"
+    ) {
+      return;
+    }
+
+    runtimeConfigRequestedRef.current = true;
+    runtimeConfigAbortRef.current?.abort();
+    const abortController = new AbortController();
+    runtimeConfigAbortRef.current = abortController;
+
+    setRuntimeConfig({
+      error: null,
+      publishableKey: null,
+      status: "loading",
+      stripePromise: null,
+    });
+
+    const loadRuntimeConfig = async () => {
+      try {
+        const response = await fetch("/api/donate", {
+          method: "GET",
+          signal: abortController.signal,
+        });
+        const payload = await response.json().catch(() => null);
+
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (!response.ok) {
+          const message =
+            payload && typeof payload === "object"
+              ? (payload as Record<string, unknown>).error
+              : null;
+          setRuntimeConfig({
+            error:
+              typeof message === "string"
+                ? message
+                : "Checkout configuration could not be loaded. Please try again.",
+            publishableKey: null,
+            status: "error",
+            stripePromise: null,
+          });
+          return;
+        }
+
+        setRuntimeConfig(
+          createRuntimeConfigFromPublishableKey(
+            readRuntimePublishableKey(payload),
+          ),
+        );
+      } catch (error) {
+        if (abortController.signal.aborted) {
+          return;
+        }
+
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+
+        setRuntimeConfig({
+          error:
+            "Checkout configuration could not be loaded. Please refresh and try again.",
+          publishableKey: null,
+          status: "error",
+          stripePromise: null,
+        });
+      }
+    };
+
+    void loadRuntimeConfig();
+  };
+
+  useEffect(() => {
+    loadCheckoutRuntimeConfig();
+
+    return () => runtimeConfigAbortRef.current?.abort();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(checkout-runtime-config): Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
+  }, [stripeOverride]);
+
+  useEffect(() => {
+    checkoutStateRef.current = checkoutState;
+    currentRequestFingerprintRef.current = currentRequestFingerprint;
+  }, [checkoutState, currentRequestFingerprint]);
+
+  const isPaymentAttemptActive = (attempt: PaymentAttempt) => {
+    const activeAttempt = activePaymentAttemptRef.current;
+
+    return (
+      activeAttempt?.id === attempt.id &&
+      activeAttempt.fingerprint === attempt.fingerprint &&
+      currentRequestFingerprintRef.current === attempt.fingerprint
+    );
+  };
+
+  const isOriginalPaymentAttemptActive = (attempt: PaymentAttempt) => {
+    const activeAttempt = activePaymentAttemptRef.current;
+
+    return (
+      activeAttempt?.id === attempt.id &&
+      activeAttempt.fingerprint === attempt.fingerprint
+    );
+  };
+
+  const isPaymentAttemptStateActive = (
+    attempt: PaymentAttempt,
+    state: CheckoutState,
+  ) =>
+    state.idempotencyFingerprint === attempt.fingerprint &&
+    state.step === "payment";
+
+  const isOriginalPaymentAttemptStateActive = (
+    attempt: PaymentAttempt,
+    state: CheckoutState,
+  ) =>
+    isOriginalPaymentAttemptActive(attempt) &&
+    state.idempotencyFingerprint === attempt.fingerprint &&
+    state.step === "payment";
+
+  const commitPaymentAttemptState = (
+    attempt: PaymentAttempt,
+    updater: (prev: CheckoutState) => CheckoutState,
+  ) => {
+    if (!isPaymentAttemptActive(attempt)) {
+      return false;
+    }
+
+    setCheckoutState((prev) => {
+      if (!isPaymentAttemptStateActive(attempt, prev)) {
+        return prev;
+      }
+
+      const next = updater(prev);
+      checkoutStateRef.current = next;
+      return next;
+    });
+
+    return true;
+  };
+
+  const commitSuccessfulOriginalPaymentAttempt = (
+    attempt: PaymentAttempt,
+    donation: ServerDonation,
+  ) => {
+    if (
+      !isOriginalPaymentAttemptStateActive(attempt, checkoutStateRef.current)
+    ) {
+      return false;
+    }
+
+    setCheckoutState((prev) => {
+      if (!isOriginalPaymentAttemptStateActive(attempt, prev)) {
+        return prev;
+      }
+
+      const next = {
+        ...prev,
+        donation,
+        error: null,
+        isProcessing: false,
+        step: "success" as const,
+        successSnapshot: attempt.successSnapshot,
+      };
+      activePaymentAttemptRef.current = null;
+      checkoutStateRef.current = next;
+      return next;
+    });
+
+    return true;
+  };
+
+  const exitStalePaymentAttempt = (attempt: PaymentAttempt) => {
+    setCheckoutState((prev) => {
+      const activeAttempt = activePaymentAttemptRef.current;
+
+      if (
+        activeAttempt?.id !== attempt.id ||
+        activeAttempt.fingerprint !== attempt.fingerprint
+      ) {
+        return prev;
+      }
+
+      const next = {
+        ...prev,
+        donation: null,
+        error:
+          "Checkout details changed while payment was processing. Please review your details and try again.",
+        isProcessing: false,
+        step: "payment" as const,
+        successSnapshot: null,
+      };
+
+      activePaymentAttemptRef.current = null;
+      checkoutStateRef.current = next;
+      return next;
+    });
+  };
 
   const handleAmountSelect = (val: number) => {
     setAmount(val);
@@ -1219,24 +1497,318 @@ function CheckoutContent({
   const handleNext = () => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (step === "config") setStep("details");
-    else if (step === "details") setStep("payment");
+    else if (step === "details") {
+      loadCheckoutRuntimeConfig();
+      setStep("payment");
+    }
   };
 
   const handleBack = () => {
+    if (isProcessing) {
+      return;
+    }
+
     window.scrollTo({ top: 0, behavior: "smooth" });
     if (step === "details") setStep("config");
     else if (step === "payment") setStep("details");
   };
 
-  const handlePayment = async () => {
-    setIsProcessing(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    setIsProcessing(false);
-    setStep("success");
-    window.scrollTo(0, 0);
+  const handlePayment = async (
+    stripe: Stripe | null,
+    elements: StripeElements | null,
+  ) => {
+    if (!hasGivingTarget) {
+      setCheckoutState((prev) => ({
+        ...prev,
+        error:
+          "This checkout link does not include a valid giving target. Please return to the missionary directory and try again.",
+      }));
+      return;
+    }
+
+    if (paymentMethod !== "card") {
+      setCheckoutState((prev) => ({
+        ...prev,
+        error:
+          "Card payments are the only checkout method currently available. Bank and wallet checkout need a live Stripe flow before they can be used.",
+      }));
+      return;
+    }
+
+    if (
+      !stripeOverride &&
+      (checkoutMode === "test" || !mountedPublishableKey)
+    ) {
+      setRuntimeConfig(createRuntimeConfigError());
+      setCheckoutState((prev) => ({
+        ...prev,
+        donation: null,
+        error: CHECKOUT_CONFIGURATION_ERROR,
+        isProcessing: false,
+        step: "payment",
+        successSnapshot: null,
+      }));
+      return;
+    }
+
+    const requestFingerprint = currentRequestFingerprint;
+    const attemptSuccessSnapshot = createPaymentSuccessSnapshot({
+      donorInfo,
+      total,
+      workerTitle: resolveSuccessWorkerTitle(worker),
+    });
+    const paymentAttempt = {
+      fingerprint: requestFingerprint,
+      id: paymentAttemptIdRef.current + 1,
+      successSnapshot: attemptSuccessSnapshot,
+    };
+    paymentAttemptIdRef.current = paymentAttempt.id;
+    activePaymentAttemptRef.current = paymentAttempt;
+    const { idempotencyKey, isNewKey } = resolveCheckoutIdempotencyKey({
+      currentFingerprint: requestFingerprint,
+      existingFingerprint: checkoutState.idempotencyFingerprint,
+      existingKey: checkoutState.idempotencyKey,
+      generateKey: () => crypto.randomUUID(),
+    });
+
+    currentRequestFingerprintRef.current = requestFingerprint;
+    checkoutStateRef.current = {
+      ...checkoutStateRef.current,
+      donation: isNewKey ? null : checkoutStateRef.current.donation,
+      error: null,
+      idempotencyFingerprint: requestFingerprint,
+      idempotencyKey,
+      isProcessing: true,
+      step: "payment",
+      successSnapshot: null,
+    };
+    setCheckoutState((prev) => ({
+      ...prev,
+      donation: isNewKey ? null : prev.donation,
+      error: null,
+      idempotencyFingerprint: requestFingerprint,
+      idempotencyKey,
+      isProcessing: true,
+      step: "payment",
+      successSnapshot: null,
+    }));
+
+    try {
+      const body = buildDonateRequestBody({
+        amount: total,
+        currency: "usd",
+        missionaryId,
+        fundId,
+      });
+
+      const response = await fetch("/api/donate", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Idempotency-Key": idempotencyKey,
+        },
+        body: JSON.stringify(body),
+      });
+
+      if (!isPaymentAttemptActive(paymentAttempt)) {
+        exitStalePaymentAttempt(paymentAttempt);
+        return;
+      }
+
+      const payload = await response.json().catch(() => null);
+
+      if (!isPaymentAttemptActive(paymentAttempt)) {
+        exitStalePaymentAttempt(paymentAttempt);
+        return;
+      }
+
+      const result = interpretDonateResponse(response.status, payload);
+
+      if (isDonationInitialized(result)) {
+        const trimmedPostalCode = postalCode.trim();
+        const returnedPublishableKey = normalizePublishableKey(
+          result.donation.publishableKey,
+        );
+        const currentMountedPublishableKey = mountedPublishableKeyRef.current;
+
+        if (returnedPublishableKey !== currentMountedPublishableKey) {
+          if (!stripeOverride) {
+            setRuntimeConfig(
+              returnedPublishableKey
+                ? createReadyRuntimeConfig(returnedPublishableKey)
+                : createRuntimeConfigError(),
+            );
+          }
+
+          const didCommit = commitPaymentAttemptState(
+            paymentAttempt,
+            (prev) => ({
+              ...prev,
+              donation: null,
+              error:
+                "Checkout configuration changed while payment was preparing. Please try again.",
+              isProcessing: false,
+            }),
+          );
+          if (didCommit) activePaymentAttemptRef.current = null;
+          return;
+        }
+
+        if (checkoutMode === "test") {
+          const didCommit = commitPaymentAttemptState(
+            paymentAttempt,
+            (prev) => ({
+              ...prev,
+              donation: result.donation,
+              error: null,
+              isProcessing: false,
+              step: "success",
+              successSnapshot: paymentAttempt.successSnapshot,
+            }),
+          );
+          if (didCommit) window.scrollTo(0, 0);
+          return;
+        }
+
+        if (!result.donation.clientSecret) {
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Payment was initialized, but Stripe did not return a client secret. Please try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        if (!stripe || !elements) {
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Stripe is still initializing. Please wait a moment and try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        const cardElement = elements.getElement(
+          CardElement,
+        ) as StripeCardElement | null;
+        if (!cardElement) {
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Card details are not ready yet. Please check the card form and try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        const billingDetails = {
+          ...(trimmedPostalCode
+            ? {
+                address: {
+                  postal_code: trimmedPostalCode,
+                },
+              }
+            : {}),
+          email: donorInfo.email,
+          name: `${donorInfo.firstName} ${donorInfo.lastName}`.trim(),
+        };
+
+        const confirmation = await stripe.confirmCardPayment(
+          result.donation.clientSecret,
+          {
+            payment_method: {
+              card: cardElement,
+              billing_details: billingDetails,
+            },
+          },
+        );
+
+        if (confirmation.error) {
+          if (!isPaymentAttemptActive(paymentAttempt)) {
+            exitStalePaymentAttempt(paymentAttempt);
+            return;
+          }
+
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              confirmation.error.message ??
+              "Stripe could not confirm this card payment. Please check your card details and try again.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        if (confirmation.paymentIntent?.status === "processing") {
+          if (!isPaymentAttemptActive(paymentAttempt)) {
+            exitStalePaymentAttempt(paymentAttempt);
+            return;
+          }
+
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error: PAYMENT_PROCESSING_MESSAGE,
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        if (!isStripeFinalCheckoutSuccess(confirmation.paymentIntent?.status)) {
+          if (!isPaymentAttemptActive(paymentAttempt)) {
+            exitStalePaymentAttempt(paymentAttempt);
+            return;
+          }
+
+          commitPaymentAttemptState(paymentAttempt, (prev) => ({
+            ...prev,
+            donation: null,
+            error:
+              "Stripe has not confirmed this payment yet. Please try again or use another card.",
+            isProcessing: false,
+          }));
+          return;
+        }
+
+        const didCommit = commitSuccessfulOriginalPaymentAttempt(
+          paymentAttempt,
+          result.donation,
+        );
+        if (didCommit) window.scrollTo(0, 0);
+        return;
+      }
+
+      const message =
+        result.kind === "processing"
+          ? PAYMENT_PROCESSING_MESSAGE
+          : result.message;
+      commitPaymentAttemptState(paymentAttempt, (prev) => ({
+        ...prev,
+        error: message,
+        isProcessing: false,
+      }));
+    } catch {
+      if (!isPaymentAttemptActive(paymentAttempt)) {
+        exitStalePaymentAttempt(paymentAttempt);
+        return;
+      }
+
+      commitPaymentAttemptState(paymentAttempt, (prev) => ({
+        ...prev,
+        error:
+          "We couldn't reach the server to confirm your contribution. Please try again.",
+        isProcessing: false,
+      }));
+    }
   };
 
-  if (!worker && step !== "success" && !hasGivingTarget) {
+  if (step !== "success" && !hasGivingTarget) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center space-y-6">
@@ -1260,14 +1832,16 @@ function CheckoutContent({
     );
   }
 
-  if (step === "success") {
+  // Success renders ONLY when Stripe confirmation has accepted the initialized
+  // donation and the attempt has the immutable values that should be confirmed.
+  // If either is missing, fall through rather than showing an unbacked receipt.
+  if (step === "success" && donation && successSnapshot) {
     return (
       <SuccessView
-        donorInfo={donorInfo}
-        frequency={frequency}
-        paymentMethod={paymentMethod}
-        total={total}
-        workerTitle={worker?.title || "our global mission"}
+        donorInfo={successSnapshot.donorInfo}
+        mode={checkoutMode}
+        total={successSnapshot.total}
+        workerTitle={successSnapshot.workerTitle}
       />
     );
   }
@@ -1286,23 +1860,10 @@ function CheckoutContent({
                   calculatedFees={calculatedFees}
                   coverFees={coverFees}
                   customAmount={customAmount}
-                  endDate={endDate}
-                  frequency={frequency}
-                  hasEndDate={hasEndDate}
                   onAmountSelect={handleAmountSelect}
                   onCoverFeesChange={setCoverFees}
                   onCustomAmountChange={handleCustomAmountChange}
-                  onEndDateChange={setEndDate}
-                  onFrequencyChange={setFrequency}
-                  onHasEndDateChange={setHasEndDate}
                   onNext={handleNext}
-                  onStartDateChange={setStartDate}
-                  onToggleScheduleConfig={() =>
-                    setShowScheduleConfig(!showScheduleConfig)
-                  }
-                  showScheduleConfig={showScheduleConfig}
-                  startDate={startDateForUi}
-                  minStartDate={clientToday}
                 />
               )}
 
@@ -1318,14 +1879,65 @@ function CheckoutContent({
               )}
 
               {step === "payment" && (
-                <PaymentStep
-                  isProcessing={isProcessing}
-                  onBack={handleBack}
-                  onConfirmPayment={handlePayment}
-                  onPaymentMethodChange={setPaymentMethod}
-                  paymentMethod={paymentMethod}
-                  total={total}
-                />
+                <>
+                  {stripeOverride ? (
+                    <PaymentStep
+                      cardElement={stripeOverride.cardElement}
+                      elements={stripeOverride.elements}
+                      error={error}
+                      isProcessing={isProcessing}
+                      mode={checkoutMode}
+                      onBack={handleBack}
+                      onConfirmPayment={handlePayment}
+                      onPaymentMethodChange={setPaymentMethod}
+                      paymentMethod={paymentMethod}
+                      postalCode={postalCode}
+                      onPostalCodeChange={setPostalCode}
+                      stripe={stripeOverride.stripe}
+                      total={total}
+                    />
+                  ) : runtimeConfig.status === "loading" ? (
+                    <CheckoutConfigurationState
+                      title="Preparing secure checkout"
+                      message="Loading this organization's payment configuration."
+                    />
+                  ) : runtimeConfig.status === "error" ? (
+                    <CheckoutConfigurationError message={runtimeConfig.error} />
+                  ) : checkoutMode === "live" && runtimeConfig.stripePromise ? (
+                    <Elements
+                      key={runtimeConfig.publishableKey}
+                      stripe={runtimeConfig.stripePromise}
+                    >
+                      <StripePaymentStep
+                        error={error}
+                        isProcessing={isProcessing}
+                        mode={checkoutMode}
+                        onBack={handleBack}
+                        onConfirmPayment={handlePayment}
+                        onPaymentMethodChange={setPaymentMethod}
+                        paymentMethod={paymentMethod}
+                        postalCode={postalCode}
+                        onPostalCodeChange={setPostalCode}
+                        total={total}
+                      />
+                    </Elements>
+                  ) : (
+                    <PaymentStep
+                      elements={null}
+                      error={error}
+                      isProcessing={isProcessing}
+                      mode={checkoutMode}
+                      onBack={handleBack}
+                      onConfirmPayment={handlePayment}
+                      onPaymentMethodChange={setPaymentMethod}
+                      paymentMethod={paymentMethod}
+                      postalCode={postalCode}
+                      onPostalCodeChange={setPostalCode}
+                      stripe={null}
+                      total={total}
+                    />
+                  )}
+                </>
               )}
             </AnimatePresence>
           </div>
@@ -1334,12 +1946,11 @@ function CheckoutContent({
             <SummaryCard
               worker={
                 worker || {
-                  title:
-                    fundId === "general"
-                      ? "General Mission Fund"
-                      : searchParams.missionaryId
-                        ? "Missionary Support"
-                        : "Urgent Needs",
+                  title: hasGeneralGivingTarget
+                    ? "General Mission Fund"
+                    : searchParams.missionaryId
+                      ? "Missionary Support"
+                      : "Urgent Needs",
                 }
               }
               amount={amount}
@@ -1347,8 +1958,6 @@ function CheckoutContent({
               coverFees={coverFees}
               fees={calculatedFees}
               total={total}
-              startDate={startDateForUi}
-              endDate={hasEndDate ? endDate : null}
             />
           </aside>
         </div>
@@ -1359,9 +1968,16 @@ function CheckoutContent({
 
 export function CheckoutPageClient({
   searchParams,
+  stripeOverride,
 }: {
   searchParams: CheckoutPageSearchParams;
+  stripeOverride?: CheckoutStripeOverride;
 }) {
   const normalizedSearchParams = normalizeCheckoutSearchParams(searchParams);
-  return <CheckoutContent searchParams={normalizedSearchParams} />;
+  return (
+    <CheckoutContent
+      searchParams={normalizedSearchParams}
+      stripeOverride={stripeOverride}
+    />
+  );
 }
