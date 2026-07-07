@@ -565,6 +565,44 @@ provider id is a link, not an identity: losing or re-pointing it never
 changes who a record is or what money happened.
 _Avoid_: provider ids as primary identity, provider records as truth
 
+**Custom field** (Phase 11):
+A tenant-defined field on an approved CRM record type (person, org/church,
+household, or fund), created by a tenant admin without engineering. Its
+_definition_ (name, type, options, policy) lives in the field catalog; its
+_value_ is the data entered for one record. Every custom field is born
+classified — none exists without a visibility/edit/export/sensitivity policy.
+_Avoid_: per-tenant tables, raw EAV, an unclassified or ungoverned field
+
+**Custom collection** (Phase 11):
+A tenant-defined _repeatable_ set of custom fields under a parent record — e.g.
+a person's many Certifications. Each entry is a _collection item_; the shape is
+a _collection definition_. A collection is owned sub-data of one parent
+(cascade-deleted with it), not a relationship between two records —
+record-to-record links stay in the stored-edge relationship graph. (Renamed
+from "Configurable Entities"; "entity" retired as ambiguous.)
+_Avoid_: "entity" for this, record-reference fields inside a collection,
+rebuilding `crm_relationships` inside a collection
+
+**Field key vs value key vs label** (Phase 11):
+The field key is a field's immutable machine identity — what stored values and
+integrations reference; it never changes. The value key is an option's stable
+machine handle for import/export/API. The label is the human display name and
+can be renamed freely without breaking anything or corrupting history.
+_Avoid_: keying stored data or integrations on the label
+
+**Field catalog** (Phase 11):
+The tenant's governed list of custom-field and collection definitions plus their
+policy — the single typed, policy-annotated contract every surface (lists,
+exports, reports, imports, API, workflows) reads. No consumer touches raw stored
+values or re-derives a field's type or policy.
+_Avoid_: per-surface field logic, reading raw extension JSON outside the catalog
+
+**Hot / promoted field** (Phase 11):
+A custom field an org filters, sorts, or reports on often, promoted to fast
+typed access (an index) under a governed budget. Promotion is additive and
+reversible; most fields are never promoted.
+_Avoid_: indexing every field, unbounded promoted-index growth
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

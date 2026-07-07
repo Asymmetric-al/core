@@ -132,7 +132,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)   | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
 | **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**             | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                           |
 | **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
-| **11** | `custom-fields`              | Custom CRM Fields & Configurable Entities                                                                                         | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `future (needs PRD)`                                           |
+| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `PRD exists`                                                   |
 | **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11               | —                                                     | Mission Control Admin, `packages/api` authz                     | `future (needs PRD)`                                           |
 | **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7        | —                                                     | Contributions/giving, public checkout, MC finance               | `future (needs PRD)`                                           |
 | **14** | `donor-credit-ops`           | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts                                                            | 13, 7, 9                | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `future (needs PRD)`                                           |
@@ -585,7 +585,12 @@ treated as Art. 9 data or only flagged subsets.
 
 ---
 
-### Phase 11 — Custom CRM Fields & Configurable Entities (`custom-fields`)
+### Phase 11 — Custom Fields & Custom Collections (`custom-fields`)
+
+> **Ratified PRD:** [`phase-11-custom-fields-custom-collections.md`](./phase-11-custom-fields-custom-collections.md)
+> — grill-complete 2026-07-08 (13 decisions D1–D13, deep-researched + adversarially verified + congruence-swept).
+> The section below is the pre-grill roadmap sketch; the PRD supersedes it (renamed "Configurable Entities" →
+> "Custom Collections"; the open questions below are resolved there).
 
 **What this phase is (plain language).** Every missions org tracks things no
 vendor predicted — visa categories, language proficiencies, home-assignment
