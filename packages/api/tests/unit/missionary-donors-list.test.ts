@@ -144,16 +144,34 @@ const activities = [
 
 const pledges = [
   {
-    id: "pl-A",
+    id: "anonymous-sensitive-pledge-id",
     donor_id: "donor-A",
     missionary_id: "prof-1",
     amount: 100,
     frequency: "Monthly",
     status: "active",
-    start_date: "2026-01-01",
+    start_date: "2040-01-02",
     created_at: "2026-01-01",
-    total_paid: 600,
-    total_expected: 1200,
+    end_date: "2041-03-04",
+    next_payment_date: "2040-02-03",
+    total_paid: 424242,
+    total_expected: 515151,
+    payments_completed: 6060,
+    payments_remaining: 7070,
+    payment_method: "Sensitive Anonymous ACH",
+  },
+  {
+    id: "pl-B",
+    donor_id: "donor-B",
+    missionary_id: "prof-1",
+    amount: 250,
+    frequency: "Weekly",
+    status: "active",
+    start_date: "2026-02-01",
+    created_at: "2026-02-01",
+    total_paid: 750,
+    total_expected: 1500,
+    payment_method: "Visa ending in 4242",
   },
 ];
 
@@ -220,8 +238,30 @@ describe("buildMissionaryDonorRows", () => {
     ]);
     // support stats stay visible (§7.2)
     expect(a.total_given).toBe(50000);
+    expect(a.last_gift_date).toBe("2026-07-01");
+    expect(a.last_gift_amount).toBe(10000);
+    expect(a.frequency).toBe("Monthly");
+    expect(a.score).toBe(90);
     expect(a.status).toBe("Active");
     expect(a.has_active_pledge).toBe(true);
+    expect(a.joined_date).toBe("2025-01-01");
+    expect(a.type).toBe("Individual");
+    expect(a.recurring_donations).toEqual([]);
+
+    const serialized = JSON.stringify(a);
+    for (const fragment of [
+      "anonymous-sensitive-pledge-id",
+      "Sensitive Anonymous ACH",
+      "2040-01-02",
+      "2041-03-04",
+      "2040-02-03",
+      "424242",
+      "515151",
+      "6060",
+      "7070",
+    ]) {
+      expect(serialized).not.toContain(fragment);
+    }
   });
 
   it("redacts donors with empty, null, or missing giving_preferences", () => {
@@ -268,6 +308,14 @@ describe("buildMissionaryDonorRows", () => {
     expect(b.name).toBe("Blaise Pascal");
     expect(b.email).toBe("blaise@example.com");
     expect(b.phone).toBe("+1-555-0200");
+    expect(b.recurring_donations).toEqual([
+      expect.objectContaining({
+        id: "pl-B",
+        amount: 250,
+        frequency: "Weekly",
+        payment_method: "Visa ending in 4242",
+      }),
+    ]);
   });
 
   it("normalizes persisted donor type and status values for presentation", () => {
@@ -506,6 +554,7 @@ describe("getMissionaryDonorRows", () => {
             created_at: "2026-07-01",
             total_paid: 50,
             total_expected: 100,
+            payment_method: "Card ending in 1234",
           },
         ],
         error: null,
@@ -539,6 +588,7 @@ describe("getMissionaryDonorRows", () => {
         id: "pledge-B",
         amount: 50,
         frequency: "Monthly",
+        payment_method: "Card ending in 1234",
       }),
     ]);
 

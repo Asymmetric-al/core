@@ -317,6 +317,7 @@ export function buildMissionaryDonorRows(input: {
           notes: undefined,
           tags: [],
           activities: [], // free-text / PII — never expose for anonymous donors
+          recurring_donations: [],
           is_anonymous: true,
         };
       }
