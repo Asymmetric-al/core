@@ -1,3 +1,11 @@
+import {
+  isAnonymousToRecipient,
+  redactDonorRelationshipForMissionary,
+  redactGiftForMissionary,
+  redactTaskDonorForMissionary,
+  type GivingPreferences,
+} from "./redaction";
+
 const SETTLED_DONATION_STATUSES = new Set([
   "completed",
   "succeeded",
@@ -61,6 +69,7 @@ export type MissionaryPortalDonorRow = {
   frequency: string | null;
   tags: string[] | null;
   has_active_pledge: boolean | null;
+  giving_preferences?: GivingPreferences | null;
 };
 
 export type MissionaryPortalTaskRow = {
@@ -83,6 +92,7 @@ export type MissionaryPortalTaskRow = {
     name: string | null;
     email: string | null;
     avatar_url: string | null;
+    giving_preferences?: GivingPreferences | null;
   } | null;
 };
 
@@ -266,13 +276,21 @@ export function mapMissionaryTask(
     is_auto_generated: Boolean(row.is_auto_generated),
     created_at: row.created_at,
     updated_at: row.updated_at,
+    // Redact the joined donor server-side (§7.2) when that donor is anonymous
+    // to the missionary. Applies to the snapshot AND the standalone task
+    // endpoints, since both build through mapMissionaryTask.
     donor: row.donor
-      ? {
-          id: row.donor.id,
-          name: row.donor.name || "Donor",
-          email: row.donor.email,
-          avatar_url: row.donor.avatar_url,
-        }
+      ? redactTaskDonorForMissionary(
+          {
+            id: row.donor.id,
+            name: row.donor.name || "Donor",
+            email: row.donor.email,
+            avatar_url: row.donor.avatar_url,
+          },
+          isAnonymousToRecipient({
+            givingPreferences: row.donor.giving_preferences,
+          }),
+        )
       : null,
   };
 }
@@ -285,35 +303,56 @@ export function buildMissionaryPortalSnapshot(input: {
   tasks: MissionaryPortalTaskRow[];
   posts: MissionaryPortalPostRow[];
 }): MissionaryPortalSnapshot {
+  // Donors this missionary is NOT allowed to see by name (§7.2). Signal is the
+  // donor-level default in giving_preferences; a per-gift override lands with
+  // the Track B `donations.anonymous_to_recipient` column (not selected yet).
+  const anonymousDonorIds = new Set(
+    input.donors
+      .filter((donor) =>
+        isAnonymousToRecipient({ givingPreferences: donor.giving_preferences }),
+      )
+      .map((donor) => donor.id),
+  );
+
   const gifts = input.donations
     .filter((row) => isSettled(row.status))
-    .map((row) => ({
-      id: row.id,
-      donorId: row.donor_id,
-      amountCents: row.amount ?? 0,
-      amount: centsToDollars(row.amount ?? 0),
-      currency: normalizeCurrency(row.currency),
-      type: giftType(row),
-      date: donationDate(row),
-    }));
+    .map((row) =>
+      redactGiftForMissionary(
+        {
+          id: row.id,
+          donorId: row.donor_id,
+          amountCents: row.amount ?? 0,
+          amount: centsToDollars(row.amount ?? 0),
+          currency: normalizeCurrency(row.currency),
+          type: giftType(row),
+          date: donationDate(row),
+        },
+        Boolean(row.donor_id && anonymousDonorIds.has(row.donor_id)),
+      ),
+    );
 
-  const donorRelationships = input.donors.map((donor) => ({
-    id: donor.id,
-    displayName: donor.name || donor.email || "Donor",
-    email: donor.email,
-    phone: donor.phone || donor.mobile,
-    preferredContact: donor.preferred_contact || "email",
-    avatarUrl: donor.avatar_url,
-    location: donor.location,
-    status: donor.status || "active",
-    totalGivenCents: donor.total_given ?? 0,
-    lastGiftAt: donor.last_gift_date,
-    lastGiftAmountCents: donor.last_gift_amount ?? 0,
-    giftCount: donor.gift_count ?? 0,
-    frequency: donor.frequency,
-    tags: donor.tags ?? [],
-    hasActivePledge: Boolean(donor.has_active_pledge),
-  }));
+  const donorRelationships = input.donors.map((donor) =>
+    redactDonorRelationshipForMissionary(
+      {
+        id: donor.id,
+        displayName: donor.name || donor.email || "Donor",
+        email: donor.email,
+        phone: donor.phone || donor.mobile,
+        preferredContact: donor.preferred_contact || "email",
+        avatarUrl: donor.avatar_url,
+        location: donor.location,
+        status: donor.status || "active",
+        totalGivenCents: donor.total_given ?? 0,
+        lastGiftAt: donor.last_gift_date,
+        lastGiftAmountCents: donor.last_gift_amount ?? 0,
+        giftCount: donor.gift_count ?? 0,
+        frequency: donor.frequency,
+        tags: donor.tags ?? [],
+        hasActivePledge: Boolean(donor.has_active_pledge),
+      },
+      anonymousDonorIds.has(donor.id),
+    ),
+  );
 
   const recurringMonthlyCents = gifts
     .filter((gift) => gift.type === "Recurring")

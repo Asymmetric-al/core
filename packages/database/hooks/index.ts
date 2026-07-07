@@ -1,16 +1,5 @@
 "use client";
 
-export {
-  usePostsWithAuthors,
-  usePostsForFollowedMissionaries,
-  useDonorGivingHistory,
-  useMissionarySupporters,
-  useCommentsWithAuthors,
-  useFundsWithProgress,
-  useMissionaryDashboard,
-  useMissionaryStats,
-} from "./hooks";
-export { useContributionsLiveRows } from "./admin-contributions";
 export { useAdminContributionsInfiniteGrid } from "./admin-contributions-infinite";
 export { useAdminCrmRecordsInfiniteGrid } from "./admin-crm-infinite";
 export {
@@ -42,7 +31,20 @@ export {
   CRM_PROJECTION_TARGET_SURFACE_OPTIONS,
   useAdminCrmProjectionShadowGrid,
 } from "./admin-crm-projections";
+export { useAdminCrmReport } from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
+export {
+  DONOR_FEED_POSTS_QUERY_KEY,
+  fetchDonorFeedPosts,
+  formatPostRelativeTime,
+  mapToRecentUpdate,
+  postAuthorName,
+  postImages,
+  postInitials,
+  postTitle,
+  useDonorFeedPosts,
+  type DonorFeedPostsOptions,
+} from "./donor-feed-posts";
 export {
   useCareDashboard,
   useMemberCareDashboardQuery,
@@ -196,7 +198,6 @@ export {
 } from "./demo-account";
 
 export type { DemoAvailability, DemoRole } from "./demo-account";
-export type { ContributionLiveRow } from "./admin-contributions";
 export type { DonorHistoryTransaction } from "./donor-history";
 export type {
   DonorPortalDonation,
