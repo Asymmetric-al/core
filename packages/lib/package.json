@@ -26,6 +26,7 @@
     "./payments/confirm-checkout-payment": "./payments/confirm-checkout-payment.ts",
     "./audit/logger": "./audit/logger.ts",
     "./payments/payment-status-language": "./payments/payment-status-language.ts",
+    "./payments/checkout-designations": "./payments/checkout-designations.ts",
     "./posts/link-policy": "./posts/link-policy.ts",
     "./posts/reaction-idempotency": "./posts/reaction-idempotency.ts",
     "./hooks": "./hooks/index.ts",

@@ -11,7 +11,6 @@ export const proxy = createAuthMiddleware({
     "/forgot-password",
     "/ways-to-give",
     "/workers",
-    "/checkout",
     "/sign",
     "/api/auth/demo-account",
     "/sitemap.xml",
@@ -19,7 +18,14 @@ export const proxy = createAuthMiddleware({
     "/no-access",
     "/boneyard",
   ],
-  protectedRoutePrefixes: ["/donor-dashboard"],
+  protectedRoutePrefixes: ["/donor-dashboard", "/checkout"],
+  unauthenticatedRedirects: [
+    {
+      prefix: "/checkout",
+      redirectTo: "/",
+      preserveNext: false,
+    },
+  ],
   loginPath: "/login",
   redirectAuthenticatedTo: "/donor-dashboard",
   unauthorizedRedirectTo: "/",
