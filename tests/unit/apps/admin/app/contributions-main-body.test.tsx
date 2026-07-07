@@ -569,3 +569,15 @@ describe("contributions surface design tokens", () => {
     }
   });
 });
+
+describe("offline gift entry readiness gate", () => {
+  it("keeps the unbound offline gift form behind persistence and finance gates", () => {
+    const source = readRepoFile("apps/admin/app/contributions/main-body.tsx");
+
+    expect(source).toContain("OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED");
+    expect(source).toContain("canManageContributions");
+    expect(source).toContain(
+      "OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED && canManageContributions",
+    );
+  });
+});
