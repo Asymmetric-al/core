@@ -6,12 +6,18 @@ import type { MonthlyChartDataPoint } from "@asym/lib/hooks";
  */
 export const GIVING_TREND_MONTHS = 6;
 
-/** Chart-ready giving point. `total = recurring + oneTime` (offline is excluded). */
+/**
+ * Chart-ready giving point in dollars. `total = recurring + oneTime` (offline is excluded).
+ */
 export interface GivingTrendPoint {
   month: string;
   total: number;
   recurring: number;
   oneTime: number;
+}
+
+function centsToDollars(cents: number): number {
+  return cents / 100;
 }
 
 /**
@@ -29,12 +35,17 @@ export function selectGivingTrend(
 ): GivingTrendPoint[] {
   if (months <= 0) return [];
   const windowed = monthlyBreakdown.slice(-months);
-  return windowed.map((point) => ({
-    month: point.month,
-    total: point.total,
-    recurring: point.recurring,
-    oneTime: point.oneTime,
-  }));
+  return windowed.map((point) => {
+    const recurring = centsToDollars(point.recurring);
+    const oneTime = centsToDollars(point.oneTime);
+
+    return {
+      month: point.month,
+      total: recurring + oneTime,
+      recurring,
+      oneTime,
+    };
+  });
 }
 
 export type GivingTrendState = "loading" | "error" | "empty" | "ready";

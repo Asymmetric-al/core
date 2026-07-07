@@ -51,12 +51,24 @@ describe("selectGivingTrend", () => {
   });
 
   it("projects onto the chart shape and drops the offline field", () => {
-    const [first] = selectGivingTrend(makeBreakdown().slice(0, 1), 6);
+    const [first] = selectGivingTrend(
+      [
+        {
+          month: "Jan",
+          recurring: 10000,
+          oneTime: 2500,
+          offline: 500,
+          total: 13000,
+        },
+      ],
+      6,
+    );
+
     expect(first).toEqual<GivingTrendPoint>({
       month: "Jan",
-      total: 115,
+      total: 125,
       recurring: 100,
-      oneTime: 10,
+      oneTime: 25,
     });
     expect(first).not.toHaveProperty("offline");
   });
