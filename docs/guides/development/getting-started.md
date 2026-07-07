@@ -91,6 +91,7 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 | --------------------------------------------------------------------- | -------------------------------------------------------------- |
 | `bun run setup`                                                       | Hosted Supabase setup (env + deps + verify)                    |
 | `bun run setup:mission-control:cloud`                                 | Credential-free Mission Control setup for disposable sandboxes |
+| `bun run dev:mission-control`                                         | Run the Mission Control admin app in credential-free mode      |
 | `bun run verify`                                                      | Validate dev server + basic connectivity                       |
 | `bun run dev`                                                         | Start all apps in dev mode                                     |
 | `bun run dev:admin`                                                   | Start admin app only                                           |

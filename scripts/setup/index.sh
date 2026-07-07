@@ -21,6 +21,29 @@ require_cmd() {
   fi
 }
 
+require_node_version() {
+  local minimum="$1"
+  local current
+  current="$(node --version 2>/dev/null || true)"
+  current="${current#v}"
+
+  if [[ ! "$current" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+    fail "Failed to read Node.js version."
+    exit 1
+  fi
+
+  local major minor patch min_major min_minor min_patch
+  IFS=. read -r major minor patch <<<"$current"
+  IFS=. read -r min_major min_minor min_patch <<<"$minimum"
+
+  if (( major < min_major ||
+    (major == min_major && minor < min_minor) ||
+    (major == min_major && minor == min_minor && patch < min_patch) )); then
+    fail "Node.js ${minimum} or newer is required. Found ${current}."
+    exit 1
+  fi
+}
+
 supabase_cli_guidance() {
   if command -v supabase >/dev/null 2>&1; then
     local version
@@ -55,6 +78,7 @@ has_env_value() {
 log "Checking prerequisites..."
 require_cmd bun
 require_cmd node
+require_node_version "20.9.0"
 bash "$ROOT_DIR/scripts/verify/bun-version.sh"
 require_cmd git
 supabase_cli_guidance

@@ -74,7 +74,7 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Then open `http://localhost:3030`. The setup command writes gitignored `.env.local` defaults, installs dependencies with `bun install --frozen-lockfile`, and runs `bun run skills:verify`. The defaults are `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, and the admin Playwright base URL. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo account secrets when testing live auth or hosted data.
+Then open `http://localhost:3030`. The setup command writes gitignored `.env.local` defaults, installs dependencies with `bun install --frozen-lockfile`, and runs `bun run skills:verify`. The defaults include `ASYM_USE_CI_ENV_DEFAULTS=1`, `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, `NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key`, `PAYLOAD_SECRET=cloud-agent-mission-control-placeholder`, `PLAYWRIGHT_ADMIN_BASE_URL=http://localhost:3030`, and `PLAYWRIGHT_ADMIN_PORT=3030`. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo account secrets when testing live auth or hosted data.
 
 ### Windows
 

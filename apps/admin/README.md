@@ -66,10 +66,10 @@ that local choice.
 Replace the Supabase placeholders with real project values when you need live
 data, auth, or database-backed admin workflows.
 
-### Regular local setup
+### Root-level admin commands
 
 ```bash
-# Credential-free disposable setup
+# From the repo root
 bun run setup:mission-control:cloud
 
 # Run development server

@@ -14,11 +14,16 @@ function runVitest(args) {
 }
 
 if (process.platform === "win32") {
-  const bunVersionStatus =
-    spawnSync("bun", ["run", "verify:bun-version"], {
-      shell: false,
-      stdio: "inherit",
-    }).status ?? 1;
+  const bunVersionResult = spawnSync("bun", ["run", "verify:bun-version"], {
+    shell: process.platform === "win32",
+    stdio: "inherit",
+  });
+
+  if (bunVersionResult.error) {
+    throw bunVersionResult.error;
+  }
+
+  const bunVersionStatus = bunVersionResult.status ?? 1;
 
   if (bunVersionStatus !== 0) {
     process.exit(bunVersionStatus);

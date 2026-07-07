@@ -24,6 +24,44 @@ function Require-Command {
   return $true
 }
 
+function Require-NodeVersion {
+  param([string]$MinimumVersion)
+
+  $versionOutput = & node --version 2>&1
+  if ($LASTEXITCODE -ne 0) {
+    Write-Fail 'Failed to read Node.js version.'
+    return $false
+  }
+
+  $versionLines = @(
+    $versionOutput |
+      ForEach-Object { $_.ToString() } |
+      Where-Object { -not [string]::IsNullOrWhiteSpace($_) }
+  )
+
+  if ($versionLines.Count -eq 0) {
+    Write-Fail 'Failed to read Node.js version.'
+    return $false
+  }
+
+  $rawVersion = $versionLines[0].Trim().TrimStart('v')
+
+  try {
+    $installedVersion = [version]$rawVersion
+    $minimum = [version]$MinimumVersion
+  } catch {
+    Write-Fail "Failed to parse Node.js version: $rawVersion"
+    return $false
+  }
+
+  if ($installedVersion -lt $minimum) {
+    Write-Fail "Node.js $MinimumVersion or newer is required. Found $rawVersion."
+    return $false
+  }
+
+  return $true
+}
+
 function Write-SupabaseCliGuidance {
   $supabaseCommand = Get-Command 'supabase' -ErrorAction SilentlyContinue
   if ($supabaseCommand) {
@@ -151,15 +189,18 @@ try {
 Write-Log 'Checking prerequisites...'
 $ok = $true
 $ok = (Require-Command 'bun' 'Install Bun for Windows and ensure it is on PATH: https://bun.sh/docs/installation#windows') -and $ok
-$ok = (Require-Command 'node' 'Install Node.js 20.9 or newer and ensure it is on PATH: https://nodejs.org/') -and $ok
+$hasNode = Require-Command 'node' 'Install Node.js 20.9 or newer and ensure it is on PATH: https://nodejs.org/'
+$ok = $hasNode -and $ok
+if ($hasNode) {
+  $ok = (Require-NodeVersion '20.9.0') -and $ok
+}
+$ok = (Require-Command 'git' 'Install Git for Windows and ensure it is on PATH: https://git-scm.com/download/win') -and $ok
 if (-not $ok) { exit 1 }
 
 Write-Log 'Verifying Bun version...'
 & bun run verify:bun-version
 if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
 
-$ok = (Require-Command 'git' 'Install Git for Windows and ensure it is on PATH: https://git-scm.com/download/win') -and $ok
-if (-not $ok) { exit 1 }
 Write-SupabaseCliGuidance
 
 $existingSupabaseUrl = Trim-EnvValue ((Get-Item -Path 'Env:NEXT_PUBLIC_SUPABASE_URL' -ErrorAction SilentlyContinue).Value)
