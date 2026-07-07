@@ -139,6 +139,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/email/templates/test-send`                               | Node.js (no `runtime` segment export) | Email Studio draft test-send                  |
 | admin      | `/api/email/webhooks/resend`                                   | Node.js (no `runtime` segment export) | Resend webhook handling                       |
 | admin      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                   |
+| admin      | `/api/health/crm`                                              | Node.js (no `runtime` segment export) | Twenty CRM provider health reachability       |
 | admin      | `/api/health/db`                                               | Node.js (no `runtime` segment export) | Database health probe                         |
 | admin      | `/api/inngest`                                                 | Node.js (no `runtime` segment export) | Inngest workflow function serving             |
 | admin      | `/api/missionaries/[id]/metrics`                               | Node.js (no `runtime` segment export) | Admin client                                  |
@@ -180,6 +181,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | missionary | `/api/missionary/portal`                                       | Node.js (no `runtime` segment export) | Missionary workspace BFF, admin client        |
 | missionary | `/api/missionary/tasks`                                        | Node.js (no `runtime` segment export) | Missionary task CRUD, admin client            |
 | missionary | `/api/missionary/tasks/[taskId]`                               | Node.js (no `runtime` segment export) | Missionary-owned task mutation                |
+| missionary | `/api/missionary/donors`                                       | Node.js (no `runtime` segment export) | Missionary donor list, redacted, `@asym/api`  |
 | missionary | `/api/missionary/donors/[donorId]`                             | Node.js (no `runtime` segment export) | Missionary donor PATCH/tags, `@asym/api`      |
 | missionary | `/api/missionary/donors/[donorId]/activities`                  | Node.js (no `runtime` segment export) | Missionary donor activity log, `@asym/api`    |
 | missionary | `/api/missionaries`                                            | Node.js (no `runtime` segment export) | Admin client                                  |

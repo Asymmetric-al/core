@@ -30,6 +30,7 @@ export {
   CRM_PROJECTION_TARGET_SURFACE_OPTIONS,
   useAdminCrmProjectionShadowGrid,
 } from "./admin-crm-projections";
+export { useAdminCrmReport } from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
   useCareDashboard,
