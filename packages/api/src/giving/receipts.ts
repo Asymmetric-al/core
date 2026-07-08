@@ -1,6 +1,12 @@
 import { sendEmail } from "@asym/email";
+import { logSystemAuditEvent } from "@asym/lib/audit/logger";
 
 import { loadStagedGiftById } from "./staged-gifts";
+import {
+  evaluateEmailConsent,
+  type EmailConsentBlockReason,
+  type EmailConsentDecision,
+} from "../email/consent";
 import { decryptResendApiKey } from "../email/crypto";
 import { readTenantEmailSettings } from "../email/settings-store";
 import { ApiHttpError } from "../shared/http-errors";
@@ -135,6 +141,77 @@ export function buildDonationReceiptEmail(input: {
   };
 }
 
+function consentSkipMessage(reason: EmailConsentBlockReason): string {
+  switch (reason) {
+    case "do_not_contact":
+      return "Recipient has opted out of all outbound contact (do_not_contact).";
+    case "do_not_email":
+      return "Recipient has opted out of email (do_not_email).";
+    case "suppressed":
+      return "Recipient address is on the email suppression list.";
+  }
+}
+
+/**
+ * The consent gate forbade this send. Record the compliance decision and mark
+ * the receipt terminally so reconciliation does not retry it. Fail-closed: no
+ * email is sent and no email_send_logs row is written (that would collide with
+ * the send-path idempotency key on a later retry) — `audit_logs` is the
+ * compliance record of record.
+ */
+async function skipReceiptForConsent(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  gift: {
+    id: string;
+    tenantId: string;
+    donationId: string;
+    donorId: string | null;
+  };
+  donorEmail: string;
+  idempotencyKey: string;
+  decision: Extract<EmailConsentDecision, { allowed: false }>;
+}): Promise<{ sendLogId: string | null; status: "suppressed" }> {
+  const { gift, decision } = input;
+  const message = consentSkipMessage(decision.reason);
+
+  await logSystemAuditEvent({
+    tenantId: gift.tenantId,
+    action: "email_send_suppressed",
+    resourceType: "email_send",
+    resourceId: gift.donationId,
+    details: {
+      source: "donation_receipt",
+      channel: "email",
+      reason: decision.reason,
+      suppressionType:
+        decision.reason === "suppressed"
+          ? (decision.suppressionType ?? null)
+          : null,
+      donorId: gift.donorId,
+      stagedGiftId: gift.id,
+      recipientEmail: input.donorEmail,
+      idempotencyKey: input.idempotencyKey,
+    },
+  });
+
+  const updateResult = await input.supabaseAdmin
+    .from("staged_gifts")
+    .update({
+      receipt_status: "suppressed",
+      receipt_send_log_id: null,
+      last_error_code: decision.reason,
+      last_error_message: message,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", gift.id);
+
+  if (updateResult.error) {
+    throw new Error(updateResult.error.message);
+  }
+
+  return { sendLogId: null, status: "suppressed" };
+}
+
 export async function sendStagedGiftReceipt(input: {
   supabaseAdmin: SupabaseAdminClient;
   tenantId: string;
@@ -167,6 +244,35 @@ export async function sendStagedGiftReceipt(input: {
     currency: gift.currency,
     receiptDate: new Date(),
   });
+
+  // Consent gate. A donation receipt is a transactional/relationship message,
+  // so a donor's marketing opt-out (do_not_email / unsubscribe) does not stop
+  // it — but a global do_not_contact, a hard bounce, or a spam complaint does
+  // (the last two also protect deliverability and sender reputation). See the
+  // enforcement table in ../email/consent.ts.
+  const consent = await evaluateEmailConsent({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: gift.tenantId,
+    email: donor.email,
+    donorId: gift.donorId,
+    messageType: "transactional",
+  });
+
+  if (!consent.allowed) {
+    return skipReceiptForConsent({
+      supabaseAdmin: input.supabaseAdmin,
+      gift: {
+        id: gift.id,
+        tenantId: gift.tenantId,
+        donationId: gift.donationId,
+        donorId: gift.donorId,
+      },
+      donorEmail: donor.email,
+      idempotencyKey: receipt.idempotencyKey,
+      decision: consent,
+    });
+  }
+
   const result = await sendEmail(
     decryptResendApiKey(settings.resend_api_key_encrypted),
     {
