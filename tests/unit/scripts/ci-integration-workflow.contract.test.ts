@@ -83,6 +83,11 @@ describe("ci-integration workflow contract", () => {
     expect(testE2e).toContain("continue-on-error:");
     expect(testE2e).toContain("github.base_ref == 'develop'");
     expect(testE2e).toContain("refs/heads/develop");
+    expect(testE2e).toContain(
+      "secrets.E2E_AUTH_SECRET && secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS",
+    );
+    expect(testE2e).toContain("https://example.supabase.co");
+    expect(testE2e).toContain("example-anon-key");
 
     expect(integrationGate).toContain(
       "needs: [migrate, smoke, e2e-smoke-gate]",

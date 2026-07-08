@@ -276,13 +276,16 @@ jobs:
       # Required secrets for the datasource-bound bypass against the hosted demo project:
       #   E2E_AUTH_SECRET                 — HMAC signing key shared by producer + verifiers
       #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)
+      # If either bypass binding secret is unavailable, fall back to the
+      # non-confidential placeholder datasource so the informational full E2E job
+      # still exercises demo auth instead of failing with all roles disabled.
       E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
       E2E_AUTH_ALLOWED_SUPABASE_REFS: ${{ secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS }}
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_INCLUDE_ADMIN: "1"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
-      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.E2E_AUTH_SECRET && secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS && secrets.NEXT_PUBLIC_SUPABASE_URL || 'https://example.supabase.co' }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.E2E_AUTH_SECRET && secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS && secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'example-anon-key' }}
       DEMO_PASSWORD: ${{ secrets.DEMO_PASSWORD }}
       DEMO_ADMIN_EMAIL: ${{ secrets.DEMO_ADMIN_EMAIL }}
       DEMO_MISSIONARY_EMAIL: ${{ secrets.DEMO_MISSIONARY_EMAIL }}
