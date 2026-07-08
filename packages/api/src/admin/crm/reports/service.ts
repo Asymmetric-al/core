@@ -1,3 +1,5 @@
+import { CSV_RECORD_SEPARATOR, CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
+
 import { ApiHttpError } from "../../../shared/http-errors";
 import { resolveContributionProfileLabel } from "../../contribution-shared/profile-label";
 
@@ -358,16 +360,6 @@ export function buildReportResponse(
   };
 }
 
-function csvCell(value: unknown) {
-  const stringValue =
-    value == null
-      ? ""
-      : typeof value === "object"
-        ? JSON.stringify(value)
-        : String(value);
-  return `"${stringValue.replace(/"/g, '""')}"`;
-}
-
 export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
   const headers = [
     "id",
@@ -390,9 +382,14 @@ export function serializeAdminCrmReportCsv(report: AdminCrmReportResponse) {
       row.status,
       row.metadata,
     ]
-      .map(csvCell)
+      .map(csvSafeCell)
       .join(","),
   );
 
-  return [headers.map(csvCell).join(","), ...rows].join("\n");
+  // Emit CRLF records + a UTF-8 BOM so Excel renders non-ASCII donor/org names
+  // correctly and matches the client download path (@asym/ui data-table export).
+  const body = [headers.map(csvSafeCell).join(","), ...rows].join(
+    CSV_RECORD_SEPARATOR,
+  );
+  return `${CSV_UTF8_BOM}${body}`;
 }
