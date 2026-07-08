@@ -1,10 +1,19 @@
-import { type AuthenticatedContext } from "@asym/auth/context";
+import {
+  getAuthContext,
+  requireRole,
+  type AuthenticatedContext,
+} from "@asym/auth/context";
+import { isE2EAuthBypassEnabled } from "@asym/auth/e2e-auth";
+import { getAdminClient } from "@asym/database/supabase/admin";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { getDemoDonorPortalSnapshot } from "./demo-snapshot";
 import { getDonorPortalSnapshot, resolveDonorPortalContext } from "./service";
-import { ensureJsonBody } from "../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { withOperation } from "../shared/with-operation";
+
+import type { NextRequest } from "next/server";
 
 const donorPortalPatchSchema = z
   .object({
@@ -35,19 +44,43 @@ function fullNameFromPatch(input: {
   return parts.length > 0 ? parts.join(" ") : undefined;
 }
 
-export const GET = withOperation(
-  async ({ supabaseAdmin, auth }) => {
-    const ctx = auth as AuthenticatedContext;
+function isSyntheticE2EContext(auth: AuthenticatedContext): boolean {
+  return isE2EAuthBypassEnabled() && auth.userId.startsWith("e2e-");
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const requestId = crypto.randomUUID();
+
+  try {
+    void request.headers.get("cookie");
+
+    const authContext = await getAuthContext(request);
+    requireRole(authContext, ["donor"]);
+    const auth = authContext as AuthenticatedContext;
+
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    if (!supabaseAdmin) {
+      if (isSyntheticE2EContext(auth)) {
+        return NextResponse.json({ portal: getDemoDonorPortalSnapshot() });
+      }
+
+      return NextResponse.json(
+        { error: adminError, requestId },
+        { status: 503 },
+      );
+    }
+
     const portal = await getDonorPortalSnapshot({
       supabaseAdmin,
-      profileId: ctx.profileId,
-      tenantId: ctx.tenantId,
+      profileId: auth.profileId,
+      tenantId: auth.tenantId,
     });
 
     return NextResponse.json({ portal });
-  },
-  { roles: ["donor"] },
-);
+  } catch (error) {
+    return toErrorResponse(error, "Internal error", requestId);
+  }
+}
 
 export const PATCH = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
