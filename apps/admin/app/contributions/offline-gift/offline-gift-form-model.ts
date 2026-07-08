@@ -177,9 +177,15 @@ export function toOfflineContributionRequest(
   };
 
   if (values.donorMode === "unknown_offline") {
+    if (values.method !== "cash" && values.method !== "other") {
+      throw new Error(
+        "Unknown offline gifts must be cash or other; payer-identifying methods must be entered as known gifts.",
+      );
+    }
+
     return {
       donorMode: "unknown_offline",
-      method: values.method === "other" ? "other" : "cash",
+      method: values.method,
       ...shared,
     };
   }
@@ -212,6 +218,7 @@ const KNOWN_METHODS = OFFLINE_METHOD_OPTIONS_KNOWN.map(
 const UNKNOWN_METHODS = OFFLINE_METHOD_OPTIONS_UNKNOWN.map(
   (option) => option.value,
 );
+const emailFormat = z.email();
 
 /**
  * Form-values schema for inline (onChange) UX validation. This is the
@@ -303,6 +310,17 @@ export const offlineGiftFormSchema = z
           code: z.ZodIssueCode.custom,
           path: ["lastName"],
           message: "Last name is required",
+        });
+      }
+      const trimmedEmail = values.email.trim();
+      if (
+        trimmedEmail.length > 0 &&
+        !emailFormat.safeParse(trimmedEmail).success
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["email"],
+          message: "Enter a valid email address",
         });
       }
     } else if (values.donorId.trim().length === 0) {
