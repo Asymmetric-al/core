@@ -86,9 +86,9 @@ export interface CheckoutOutcome {
   isSuccess: boolean;
   /**
    * True when the checkout may advance to its confirmation screen: a collected
-   * gift (`completed`) OR an honestly-pending rail (`processing`, e.g. ACH). It
-   * is NEVER true for requires_action / failed — the donor stays on the payment
-   * step to finish or retry.
+   * gift (`completed`) OR a delayed-notification ACH payment that Stripe has
+   * accepted into `processing`. Card, wallet, and `requires_capture` statuses
+   * stay on the payment step until Stripe reports final collection.
    */
   showConfirmation: boolean;
   /** Truthful donor/staff copy for the state (calm, rail-aware). */
@@ -111,6 +111,8 @@ export function decideCheckoutOutcome({
   });
   const description = describeDonationPaymentStatus({ state, rail, audience });
   const isSuccess = state === "completed";
-  const showConfirmation = state === "completed" || state === "processing";
+  const canShowDelayedRailConfirmation =
+    paymentIntentStatus === "processing" && rail === "ach_debit";
+  const showConfirmation = isSuccess || canShowDelayedRailConfirmation;
   return { state, isSuccess, showConfirmation, description };
 }
