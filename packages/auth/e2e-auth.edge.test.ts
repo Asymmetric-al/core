@@ -1,12 +1,24 @@
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import {
+  afterAll,
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
+  assertSupabaseDatasourceAllowedForE2EBypass,
   createE2EAuthCookieValue,
+  extractSupabaseProjectRef,
   getE2EAuthCookieNameForProxyHost,
   getE2EAuthCookieNameForRequest,
   inferE2EAuthSurfaceFromHost,
   isE2EAuthBypassEnabled,
+  isSupabaseDatasourceAllowedForE2EBypass,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
 
@@ -89,27 +101,41 @@ describe("getE2EAuthCookieNameForRequest", () => {
 });
 
 describe("parseE2EAuthCookieValue", () => {
-  it("accepts explicit null tenantId", () => {
-    const raw = createE2EAuthCookieValue({
+  const originalSecret = process.env.E2E_AUTH_SECRET;
+
+  beforeAll(() => {
+    process.env.E2E_AUTH_SECRET = "edge-test-e2e-secret";
+  });
+
+  afterAll(() => {
+    if (originalSecret === undefined) {
+      delete process.env.E2E_AUTH_SECRET;
+    } else {
+      process.env.E2E_AUTH_SECRET = originalSecret;
+    }
+  });
+
+  it("accepts explicit null tenantId", async () => {
+    const raw = await createE2EAuthCookieValue({
       userId: "u1",
       role: "staff",
       tenantId: null,
     });
-    expect(parseE2EAuthCookieValue(raw)).toEqual({
+    expect(await parseE2EAuthCookieValue(raw)).toEqual({
       userId: "u1",
       role: "staff",
       tenantId: null,
     });
   });
 
-  it("round-trips seeded profile and tenant ids", () => {
-    const raw = createE2EAuthCookieValue({
+  it("round-trips seeded profile and tenant ids", async () => {
+    const raw = await createE2EAuthCookieValue({
       userId: "u1",
       role: "donor",
       tenantId: DEMO_TENANT_ID,
       profileId: DEMO_PROFILE_ID,
     });
-    expect(parseE2EAuthCookieValue(raw)).toEqual({
+    expect(await parseE2EAuthCookieValue(raw)).toEqual({
       userId: "u1",
       role: "donor",
       tenantId: DEMO_TENANT_ID,
@@ -117,10 +143,10 @@ describe("parseE2EAuthCookieValue", () => {
     });
   });
 
-  it("rejects empty userId and unknown roles", () => {
+  it("rejects empty userId and unknown roles", async () => {
     expect(
-      parseE2EAuthCookieValue(
-        createE2EAuthCookieValue({
+      await parseE2EAuthCookieValue(
+        await createE2EAuthCookieValue({
           userId: "",
           role: "admin",
           tenantId: null,
@@ -131,12 +157,157 @@ describe("parseE2EAuthCookieValue", () => {
       JSON.stringify({ userId: "x", role: "root", tenantId: null }),
       "utf8",
     ).toString("base64url");
-    expect(parseE2EAuthCookieValue(invalidRolePayload)).toBe(null);
+    expect(await parseE2EAuthCookieValue(invalidRolePayload)).toBe(null);
   });
 
-  it("rejects malformed base64 / JSON", () => {
-    expect(parseE2EAuthCookieValue("not-valid-base64!!!")).toBe(null);
-    expect(parseE2EAuthCookieValue("e30")).toBe(null); // {} — missing required fields
+  it("rejects malformed base64 / JSON", async () => {
+    expect(await parseE2EAuthCookieValue("not-valid-base64!!!")).toBe(null);
+    expect(await parseE2EAuthCookieValue("e30")).toBe(null); // {} — missing required fields
+  });
+
+  it("rejects an unsigned single-segment token", async () => {
+    const unsigned = Buffer.from(
+      JSON.stringify({
+        userId: "u1",
+        role: "super_admin",
+        tenantId: null,
+        exp: Math.floor(Date.now() / 1000) + 3600,
+      }),
+      "utf8",
+    ).toString("base64url");
+    expect(await parseE2EAuthCookieValue(unsigned)).toBe(null);
+  });
+
+  it("rejects a token whose signature does not match the payload", async () => {
+    const raw = await createE2EAuthCookieValue({
+      userId: "u1",
+      role: "super_admin",
+      tenantId: null,
+    });
+    const [payload] = raw.split(".");
+    const forged = `${payload}.AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`;
+    expect(await parseE2EAuthCookieValue(forged)).toBe(null);
+  });
+
+  it("rejects a token signed with a different secret", async () => {
+    process.env.E2E_AUTH_SECRET = "attacker-secret";
+    const forged = await createE2EAuthCookieValue({
+      userId: "u1",
+      role: "super_admin",
+      tenantId: null,
+    });
+    process.env.E2E_AUTH_SECRET = "edge-test-e2e-secret";
+    expect(await parseE2EAuthCookieValue(forged)).toBe(null);
+  });
+
+  it("rejects an expired token", async () => {
+    // Mint two hours in the past so exp (mint time + TTL) is already elapsed.
+    const nowMs = Date.now();
+    const nowSpy = vi.spyOn(Date, "now").mockReturnValue(nowMs - 7200 * 1000);
+    const expired = await createE2EAuthCookieValue({
+      userId: "u1",
+      role: "donor",
+      tenantId: null,
+    });
+    nowSpy.mockRestore();
+    expect(await parseE2EAuthCookieValue(expired)).toBe(null);
+  });
+
+  it("fails closed when the signing secret is unset", async () => {
+    const raw = await createE2EAuthCookieValue({
+      userId: "u1",
+      role: "donor",
+      tenantId: null,
+    });
+    delete process.env.E2E_AUTH_SECRET;
+    try {
+      expect(await parseE2EAuthCookieValue(raw)).toBe(null);
+      await expect(
+        createE2EAuthCookieValue({
+          userId: "u1",
+          role: "donor",
+          tenantId: null,
+        }),
+      ).rejects.toThrow(/E2E_AUTH_SECRET/);
+    } finally {
+      process.env.E2E_AUTH_SECRET = "edge-test-e2e-secret";
+    }
+  });
+});
+
+describe("Supabase datasource binding for E2E bypass", () => {
+  const originalAllowlist = process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
+
+  afterEach(() => {
+    if (originalAllowlist === undefined) {
+      delete process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
+    } else {
+      process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = originalAllowlist;
+    }
+  });
+
+  it("extracts hosted Supabase project refs", () => {
+    expect(extractSupabaseProjectRef("https://abcdefgh.supabase.co")).toBe(
+      "abcdefgh",
+    );
+    expect(extractSupabaseProjectRef("https://abcdefgh.supabase.in")).toBe(
+      "abcdefgh",
+    );
+    expect(extractSupabaseProjectRef("http://127.0.0.1:54321")).toBe(null);
+    expect(extractSupabaseProjectRef("not a url")).toBe(null);
+  });
+
+  it("does not extract a ref from a Supabase lookalike host", () => {
+    // `myref.supabase.evil.com` must NOT resolve to ref `myref`, or an attacker
+    // who owns evil.com could satisfy an allowlist that lists `myref`.
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "myref";
+    expect(extractSupabaseProjectRef("https://myref.supabase.evil.com")).toBe(
+      null,
+    );
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass(
+        "https://myref.supabase.evil.com",
+      ),
+    ).toBe(false);
+  });
+
+  it("allows loopback and unconfigured datasources", () => {
+    delete process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass("http://127.0.0.1:54321"),
+    ).toBe(true);
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass("http://localhost:54321"),
+    ).toBe(true);
+    expect(isSupabaseDatasourceAllowedForE2EBypass(null)).toBe(true);
+    expect(isSupabaseDatasourceAllowedForE2EBypass("")).toBe(true);
+  });
+
+  it("allows an allowlisted hosted ref and rejects everything else", () => {
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "demo1234, example";
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass("https://example.supabase.co"),
+    ).toBe(true);
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass("https://demo1234.supabase.co"),
+    ).toBe(true);
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass("https://prodxxxx.supabase.co"),
+    ).toBe(false);
+  });
+
+  it("throws for a non-allowlisted datasource and passes for an allowlisted one", () => {
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
+    expect(() =>
+      assertSupabaseDatasourceAllowedForE2EBypass(
+        "https://prodxxxx.supabase.co",
+      ),
+    ).toThrow(/not[\s\S]*allowlisted/i);
+    expect(() =>
+      assertSupabaseDatasourceAllowedForE2EBypass(
+        "https://example.supabase.co",
+      ),
+    ).not.toThrow();
   });
 });
 

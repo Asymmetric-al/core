@@ -73,11 +73,24 @@ const USER_ROLES: readonly UserRole[] = [
 ];
 const USER_ROLE_SET = new Set(USER_ROLES);
 
+/**
+ * Lifetime of a minted E2E bypass token, in seconds. Kept in lockstep with the
+ * cookie `maxAge` used by the demo-account route so a token never outlives its
+ * cookie. Short by design: a leaked token expires quickly.
+ */
+const E2E_AUTH_TOKEN_TTL_SECONDS = 60 * 60;
+
 export interface E2EAuthSession {
   userId: string;
   role: UserRole;
   tenantId: string | null;
   profileId?: string | null;
+}
+
+/** Signed on-the-wire payload: an {@link E2EAuthSession} plus an absolute expiry. */
+interface SignedE2EAuthPayload extends E2EAuthSession {
+  /** Absolute expiry as epoch seconds. Signed, so a client cannot extend it. */
+  exp: number;
 }
 
 export function isE2EAuthBypassEnabled() {
@@ -89,8 +102,20 @@ export function isE2EAuthBypassEnabled() {
   return value ? E2E_AUTH_BYPASS_VALUES.has(value) : false;
 }
 
-function encodeBase64Url(input: string): string {
-  const bytes = new TextEncoder().encode(input);
+/**
+ * HMAC secret shared by the E2E cookie producer (`POST /api/auth/demo-account`)
+ * and every verifier. Read directly from `process.env` (not `@asym/env`) so this
+ * module stays edge-safe and dependency-light, matching the other env reads here.
+ *
+ * Returns `null` when unset. Callers fail closed: without the secret we can
+ * neither mint nor trust a bypass cookie.
+ */
+function getE2EAuthSecret(): string | null {
+  const secret = process.env.E2E_AUTH_SECRET?.trim();
+  return secret ? secret : null;
+}
+
+function bytesToBase64Url(bytes: Uint8Array): string {
   let binary = "";
   for (let i = 0; i < bytes.length; i += 1) {
     binary += String.fromCharCode(bytes[i]!);
@@ -101,59 +126,304 @@ function encodeBase64Url(input: string): string {
     .replace(/=+$/, "");
 }
 
-function decodeBase64Url(value: string): string {
+function base64UrlToBytes(value: string): Uint8Array<ArrayBuffer> {
   const base64 = value.replace(/-/g, "+").replace(/_/g, "/");
   const pad = (4 - (base64.length % 4)) % 4;
-  const padded = base64 + "=".repeat(pad);
-  const binary = atob(padded);
+  const binary = atob(base64 + "=".repeat(pad));
   const bytes = new Uint8Array(binary.length);
   for (let i = 0; i < binary.length; i += 1) {
     bytes[i] = binary.charCodeAt(i);
   }
-  return new TextDecoder().decode(bytes);
+  return bytes;
 }
 
-export function createE2EAuthCookieValue(session: E2EAuthSession) {
-  return encodeBase64Url(JSON.stringify(session));
+/** Encode a string as UTF-8 bytes backed by a plain `ArrayBuffer` (Web Crypto `BufferSource`). */
+function utf8Bytes(input: string): Uint8Array<ArrayBuffer> {
+  const encoded = new TextEncoder().encode(input);
+  return new Uint8Array(encoded);
 }
 
-export function parseE2EAuthCookieValue(
-  value: string | null | undefined,
-): E2EAuthSession | null {
-  if (!value) return null;
+function encodeBase64Url(input: string): string {
+  return bytesToBase64Url(new TextEncoder().encode(input));
+}
+
+function decodeBase64Url(value: string): string {
+  return new TextDecoder().decode(base64UrlToBytes(value));
+}
+
+async function importE2EAuthKey(secret: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
+    "raw",
+    utf8Bytes(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign", "verify"],
+  );
+}
+
+async function signE2EAuthPayload(
+  payloadSegment: string,
+  secret: string,
+): Promise<string> {
+  const key = await importE2EAuthKey(secret);
+  const signature = await crypto.subtle.sign(
+    "HMAC",
+    key,
+    utf8Bytes(payloadSegment),
+  );
+  return bytesToBase64Url(new Uint8Array(signature));
+}
+
+/**
+ * Constant-time HMAC verification via Web Crypto. Returns `false` (never throws)
+ * for a malformed signature segment or any verification error.
+ */
+async function verifyE2EAuthSignature(
+  payloadSegment: string,
+  signatureSegment: string,
+  secret: string,
+): Promise<boolean> {
+  let signatureBytes: Uint8Array<ArrayBuffer>;
+  try {
+    signatureBytes = base64UrlToBytes(signatureSegment);
+  } catch {
+    return false;
+  }
 
   try {
-    const decoded = decodeBase64Url(value);
-    const parsed = JSON.parse(decoded) as Partial<E2EAuthSession>;
+    const key = await importE2EAuthKey(secret);
+    return await crypto.subtle.verify(
+      "HMAC",
+      key,
+      signatureBytes,
+      utf8Bytes(payloadSegment),
+    );
+  } catch {
+    return false;
+  }
+}
 
-    if (
-      typeof parsed.userId !== "string" ||
-      !parsed.userId ||
-      typeof parsed.role !== "string" ||
-      !USER_ROLE_SET.has(parsed.role as UserRole)
-    ) {
-      return null;
-    }
+/**
+ * Mint a signed E2E bypass cookie value: `"<base64url(payload)>.<base64url(hmac)>"`.
+ *
+ * Throws when `E2E_AUTH_SECRET` is unset — an unsigned bypass primitive is exactly
+ * the gap this guards against, so we refuse to produce one.
+ */
+export async function createE2EAuthCookieValue(
+  session: E2EAuthSession,
+): Promise<string> {
+  const secret = getE2EAuthSecret();
+  if (!secret) {
+    throw new Error(
+      "E2E_AUTH_SECRET is not set; refusing to mint an unsigned E2E auth cookie.",
+    );
+  }
 
-    const profileId =
-      typeof parsed.profileId === "string"
-        ? parsed.profileId
-        : parsed.profileId === null
-          ? null
-          : undefined;
+  const payload: SignedE2EAuthPayload = {
+    userId: session.userId,
+    role: session.role,
+    tenantId: session.tenantId,
+    ...(session.profileId !== undefined
+      ? { profileId: session.profileId }
+      : {}),
+    exp: Math.floor(Date.now() / 1000) + E2E_AUTH_TOKEN_TTL_SECONDS,
+  };
 
-    return {
-      userId: parsed.userId,
-      role: parsed.role as UserRole,
-      tenantId:
-        typeof parsed.tenantId === "string"
-          ? parsed.tenantId
-          : parsed.tenantId
-            ? null
-            : null,
-      ...(profileId !== undefined ? { profileId } : {}),
-    };
+  const payloadSegment = encodeBase64Url(JSON.stringify(payload));
+  const signatureSegment = await signE2EAuthPayload(payloadSegment, secret);
+  return `${payloadSegment}.${signatureSegment}`;
+}
+
+/**
+ * Verify and decode a signed E2E bypass cookie. Returns `null` — never throws —
+ * for any missing / unsigned / forged / expired / malformed value so callers
+ * fall back to an unauthenticated context.
+ *
+ * Fails closed when `E2E_AUTH_SECRET` is unset: without the shared secret the
+ * signature cannot be trusted, so no bypass identity is granted.
+ *
+ * INVARIANT — this function proves the cookie is *authentic*, NOT that the
+ * environment is *allowed* to honor a bypass. Every caller that grants identity
+ * from the result MUST first gate on {@link isE2EAuthBypassEnabled} and
+ * {@link assertSupabaseDatasourceAllowedForE2EBypass}. Do not honor the returned
+ * session without both. Current callers: `context.ts`, `middleware.ts`,
+ * `apps/admin/src/cms/auth/supabase-strategy.ts`.
+ */
+export async function parseE2EAuthCookieValue(
+  value: string | null | undefined,
+): Promise<E2EAuthSession | null> {
+  if (!value) return null;
+
+  const secret = getE2EAuthSecret();
+  if (!secret) return null;
+
+  const segments = value.split(".");
+  if (segments.length !== 2) return null;
+  const [payloadSegment, signatureSegment] = segments;
+  if (!payloadSegment || !signatureSegment) return null;
+
+  const signatureValid = await verifyE2EAuthSignature(
+    payloadSegment,
+    signatureSegment,
+    secret,
+  );
+  if (!signatureValid) return null;
+
+  let parsed: Partial<SignedE2EAuthPayload>;
+  try {
+    parsed = JSON.parse(
+      decodeBase64Url(payloadSegment),
+    ) as Partial<SignedE2EAuthPayload>;
   } catch {
     return null;
   }
+
+  if (typeof parsed.exp !== "number" || !Number.isFinite(parsed.exp)) {
+    return null;
+  }
+  const nowSeconds = Math.floor(Date.now() / 1000);
+  if (parsed.exp <= nowSeconds) {
+    return null;
+  }
+
+  if (
+    typeof parsed.userId !== "string" ||
+    !parsed.userId ||
+    typeof parsed.role !== "string" ||
+    !USER_ROLE_SET.has(parsed.role as UserRole)
+  ) {
+    return null;
+  }
+
+  const profileId =
+    typeof parsed.profileId === "string"
+      ? parsed.profileId
+      : parsed.profileId === null
+        ? null
+        : undefined;
+
+  return {
+    userId: parsed.userId,
+    role: parsed.role as UserRole,
+    tenantId: typeof parsed.tenantId === "string" ? parsed.tenantId : null,
+    ...(profileId !== undefined ? { profileId } : {}),
+  };
+}
+
+const E2E_BYPASS_LOOPBACK_HOSTNAMES = new Set([
+  "localhost",
+  "127.0.0.1",
+  "0.0.0.0",
+  "::1",
+  "host.docker.internal",
+]);
+
+function isLoopbackDatasourceHostname(hostname: string): boolean {
+  const normalized = hostname
+    .trim()
+    .toLowerCase()
+    .replace(/^\[(.*)\]$/, "$1");
+  if (E2E_BYPASS_LOOPBACK_HOSTNAMES.has(normalized)) return true;
+  return normalized.endsWith(".local") || normalized.endsWith(".localhost");
+}
+
+/**
+ * Extract a Supabase hosted project ref from a URL (`<ref>.supabase.co` /
+ * `.supabase.in`), else `null`.
+ *
+ * The trailing TLD is constrained to letters only (`[a-z]{2,}`) so a lookalike
+ * host such as `myref.supabase.evil.com` does NOT resolve to a ref an attacker
+ * could pre-seed into the allowlist. Custom API domains have no derivable ref;
+ * allowlist those by full hostname instead.
+ */
+export function extractSupabaseProjectRef(
+  supabaseUrl: string | null | undefined,
+): string | null {
+  if (!supabaseUrl) return null;
+  let hostname: string;
+  try {
+    hostname = new URL(supabaseUrl).hostname.toLowerCase();
+  } catch {
+    return null;
+  }
+  const match = hostname.match(/^([a-z0-9-]+)\.supabase\.[a-z]{2,}$/);
+  return match ? match[1]! : null;
+}
+
+function getAllowedE2EBypassDatasources(): Set<string> {
+  const raw = process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
+  if (!raw) return new Set();
+  return new Set(
+    raw
+      .split(",")
+      .map((entry) => entry.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+/**
+ * Is the configured Supabase datasource one the E2E bypass may run against?
+ *
+ * Binds the bypass to datasource IDENTITY rather than `NODE_ENV` (which is
+ * non-"production" on staging, preview, and masked-prod too). Allowed when:
+ * - no datasource is configured (nothing to protect), or
+ * - the host is loopback (local Supabase / Docker), or
+ * - the host or hosted project ref is listed in `E2E_AUTH_ALLOWED_SUPABASE_REFS`.
+ *
+ * Everything else — including production project refs and their read replicas —
+ * is rejected.
+ */
+export function isSupabaseDatasourceAllowedForE2EBypass(
+  supabaseUrl: string | null | undefined,
+): boolean {
+  if (!supabaseUrl) return true;
+
+  let hostname: string;
+  try {
+    hostname = new URL(supabaseUrl).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+
+  if (isLoopbackDatasourceHostname(hostname)) return true;
+
+  const allowed = getAllowedE2EBypassDatasources();
+  if (allowed.has(hostname)) return true;
+
+  const ref = extractSupabaseProjectRef(supabaseUrl);
+  return ref !== null && allowed.has(ref);
+}
+
+/**
+ * Throw unless the configured Supabase datasource is allowlisted for the E2E
+ * bypass. Callers invoke this before granting a bypass identity, so a
+ * bypass-enabled boot against a non-allowlisted datasource fails loudly before
+ * serving a bypassed request.
+ *
+ * Logs before throwing so the misconfiguration is diagnosable even if a caller
+ * swallows the error. The hostname is logged (it is a public `NEXT_PUBLIC_*`
+ * value); the secret is never logged.
+ */
+export function assertSupabaseDatasourceAllowedForE2EBypass(
+  supabaseUrl: string | null | undefined,
+): void {
+  if (isSupabaseDatasourceAllowedForE2EBypass(supabaseUrl)) return;
+  let host = "<unparseable>";
+  try {
+    host = supabaseUrl ? new URL(supabaseUrl).host : "<unset>";
+  } catch {
+    // keep the placeholder
+  }
+  console.error(
+    `[auth] E2E bypass blocked: Supabase datasource "${host}" is not in ` +
+      `E2E_AUTH_ALLOWED_SUPABASE_REFS. Allowlist a non-production project ref/host ` +
+      `or disable E2E_AUTH_BYPASS.`,
+  );
+  throw new Error(
+    "E2E auth bypass is enabled but the configured Supabase datasource is not " +
+      "allowlisted. Set E2E_AUTH_ALLOWED_SUPABASE_REFS to the project ref (or " +
+      "hostname) of a non-production Supabase project, or disable " +
+      "E2E_AUTH_BYPASS. Refusing to grant a bypass identity against a " +
+      "non-allowlisted datasource.",
+  );
 }

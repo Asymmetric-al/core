@@ -201,6 +201,8 @@ describe("createSupabaseAuthStrategy", () => {
   beforeEach(() => {
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "anon-key";
+    process.env.E2E_AUTH_SECRET = "cms-strategy-test-secret";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
     delete process.env.E2E_AUTH_BYPASS;
     delete process.env.ASYM_E2E_AUTH_SURFACE;
     // Keep unit tests on injected clients even when a developer shell exports the service role key.
@@ -227,7 +229,7 @@ describe("createSupabaseAuthStrategy", () => {
     const supabaseMock = createSupabaseClientMock({
       userId: "",
     });
-    const e2eCookie = createE2EAuthCookieValue({
+    const e2eCookie = await createE2EAuthCookieValue({
       role: "admin",
       tenantId: null,
       userId: "e2e-admin-user",
@@ -269,7 +271,7 @@ describe("createSupabaseAuthStrategy", () => {
     const supabaseMock = createSupabaseClientMock({
       userId: "",
     });
-    const e2eCookie = createE2EAuthCookieValue({
+    const e2eCookie = await createE2EAuthCookieValue({
       role: "donor",
       tenantId: null,
       userId: "e2e-donor-user",

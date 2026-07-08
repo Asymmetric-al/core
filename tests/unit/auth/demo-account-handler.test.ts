@@ -20,6 +20,8 @@ beforeEach(() => {
     NODE_ENV: "development",
     ALLOW_DEMO_ACCOUNTS: "true",
     E2E_AUTH_BYPASS: "false",
+    E2E_AUTH_SECRET: "demo-account-test-secret",
+    E2E_AUTH_ALLOWED_SUPABASE_REFS: "example",
     NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
     NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
@@ -119,7 +121,7 @@ describe("api/auth/demo-account", () => {
     );
     expect(match?.[1]).toBeTruthy();
 
-    const session = parseE2EAuthCookieValue(
+    const session = await parseE2EAuthCookieValue(
       decodeURIComponent(match?.[1] ?? ""),
     );
     expect(session).toMatchObject({
@@ -128,6 +130,43 @@ describe("api/auth/demo-account", () => {
       tenantId: DEMO_TENANT_ID,
       profileId: DEMO_PROFILE_ID,
     });
+  });
+
+  it("reports E2E bypass unavailable on GET when the signing secret is missing", async () => {
+    vi.resetModules();
+    process.env.E2E_AUTH_BYPASS = "true";
+    delete process.env.E2E_AUTH_SECRET;
+
+    const { GET } = await import("../../../packages/api/src/auth/demo-account");
+    const response = await GET();
+    expect(response.status).toBe(200);
+    const payload = (await response.json()) as {
+      availableRoles: Record<string, boolean>;
+      reason?: string;
+    };
+    expect(payload.availableRoles.admin).toBe(false);
+    expect(payload.availableRoles.donor).toBe(false);
+    expect(payload.reason).toMatch(/E2E_AUTH_SECRET/);
+  });
+
+  it("returns 503 on POST when E2E bypass is enabled but misconfigured", async () => {
+    vi.resetModules();
+    process.env.E2E_AUTH_BYPASS = "true";
+    delete process.env.E2E_AUTH_SECRET;
+
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
+    const request = new Request("http://localhost:3000/api/auth/demo-account", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "donor" }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(503);
+    const payload = (await response.json()) as { ok: boolean; code?: string };
+    expect(payload.ok).toBe(false);
+    expect(payload.code).toBe("DEMO_E2E_BYPASS_MISCONFIGURED");
   });
 
   it("blocks demo login in production unless explicitly enabled", async () => {
