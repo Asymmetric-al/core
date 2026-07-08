@@ -30,6 +30,8 @@ const routeSplits = [
     wrapperPath: "apps/donor/app/(dashboard)/donor-dashboard/history/page.tsx",
     clientPath:
       "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
+    implementationPath:
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
   },
   {
     name: "donor wallet",
@@ -86,7 +88,15 @@ describe("UI route cleanup contracts", () => {
 
   it("guards touched client files against broad or slow motion regressions", () => {
     const clientSources = routeSplits.map(
-      (route) => [route.name, readRepoFile(route.clientPath)] as const,
+      (route) =>
+        [
+          route.name,
+          readRepoFile(
+            "implementationPath" in route
+              ? route.implementationPath
+              : route.clientPath,
+          ),
+        ] as const,
     );
 
     for (const [name, source] of clientSources) {
@@ -109,7 +119,7 @@ describe("UI route cleanup contracts", () => {
 
   it("keeps donor history page and chart cells on targeted motion", () => {
     const source = readRepoFile(
-      "apps/donor/app/(dashboard)/donor-dashboard/history/page-client.tsx",
+      "apps/donor/app/(dashboard)/donor-dashboard/history/page-content.tsx",
     );
 
     expect(source).toMatch(/transition-opacity/);
