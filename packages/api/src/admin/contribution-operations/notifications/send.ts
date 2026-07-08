@@ -3,6 +3,7 @@ import {
   renderMergeTags,
   renderTemplateForRecipient,
 } from "@asym/email/merge-tag-render";
+import { logSystemAuditEvent } from "@asym/lib/audit/logger";
 
 import {
   getContributionNotificationPolicy,
@@ -11,6 +12,7 @@ import {
 } from "./policy";
 import { validateContributionCorrectionTemplate } from "./templates";
 
+import type { EmailConsentDecision } from "../../../email/consent";
 import type { ContributionActionType } from "../types";
 import type { SendEmailOptions } from "@asym/email";
 import type {
@@ -61,6 +63,15 @@ export interface ContributionCorrectionNotificationInput {
   settings: ContributionCorrectionNotificationSettings | null;
   dependencies?: {
     sendEmail?: typeof sendEmail;
+    /**
+     * Consent gate bound to the tenant's Supabase admin client. The Supabase
+     * adapter (`store.ts`) always supplies this in production; when it is
+     * omitted (isolated unit tests) the consent check is skipped.
+     */
+    evaluateEmailConsent?: (input: {
+      email: string;
+      donorId: string | null;
+    }) => Promise<EmailConsentDecision>;
     logNotificationEvent?: (
       event: ContributionCorrectionNotificationEvent,
     ) => Promise<ContributionCorrectionNotificationLogResult>;
@@ -288,6 +299,95 @@ async function blockNotification(
   };
 }
 
+function consentBlockMessage(
+  decision: Extract<EmailConsentDecision, { allowed: false }>,
+): string {
+  switch (decision.reason) {
+    case "do_not_contact":
+      return "The donor has opted out of all outbound contact (do_not_contact), so the correction notice was not emailed.";
+    case "do_not_email":
+      return "The donor has opted out of email (do_not_email), so the correction notice was not emailed.";
+    case "suppressed":
+      return `The donor address is on the email suppression list (${
+        decision.suppressionType ?? "suppressed"
+      }), so the correction notice was not emailed.`;
+  }
+}
+
+/**
+ * The consent gate forbade this transactional correction notice. Record the
+ * decision, emit a system audit event, and raise a follow-up task so staff know
+ * a money-change notice could not be delivered and can reach the donor another
+ * way. Never sends.
+ */
+async function suppressForConsent(
+  input: ContributionCorrectionNotificationInput,
+  decision: Extract<EmailConsentDecision, { allowed: false }>,
+  policySnapshot: Record<string, unknown>,
+) {
+  const errorCode = `consent_${decision.reason}`;
+  const message = consentBlockMessage(decision);
+  const idempotencyKey = buildDecisionIdempotencyKey({
+    tenantId: input.tenantId,
+    operationAuditEventId: input.operationAuditEventId,
+    donorId: input.recipient.donorId ?? "unknown-donor",
+    actionType: input.actionType,
+    decision: "suppressed",
+    reason: errorCode,
+  });
+
+  await logSystemAuditEvent({
+    tenantId: input.tenantId,
+    action: "email_send_suppressed",
+    resourceType: "email_send",
+    resourceId: input.correctionId ?? input.operationAuditEventId,
+    details: {
+      source: "contribution_correction_notification",
+      channel: "email",
+      reason: decision.reason,
+      suppressionType:
+        decision.reason === "suppressed"
+          ? (decision.suppressionType ?? null)
+          : null,
+      donorId: input.recipient.donorId,
+      recipientEmail: input.recipient.email,
+      actionType: input.actionType,
+      correctionId: input.correctionId,
+      operationAuditEventId: input.operationAuditEventId,
+      idempotencyKey,
+    },
+  });
+
+  const logResult = await logEvent(input, {
+    idempotencyKey,
+    operationAuditEventId: input.operationAuditEventId,
+    correctionId: input.correctionId,
+    actionType: input.actionType,
+    decision: "suppressed",
+    templateId: input.template?.id ?? null,
+    templateVersionId: input.template?.versionId ?? null,
+    templateFamily: input.template?.family ?? null,
+    templateVariant: input.template?.variant ?? null,
+    templateVersion: input.template?.version ?? null,
+    recipientDonorId: input.recipient.donorId,
+    recipientEmail: input.recipient.email,
+    policySnapshot,
+    suppressionReason: message,
+    personalNotePresent: Boolean(input.personalNote?.trim()),
+    errorCode,
+    errorMessage: message,
+    taskIds: [],
+  });
+
+  const taskIds = await createOrReuseTaskIntent({
+    notificationInput: input,
+    logResult,
+    reason: message,
+  });
+
+  return { decision: "suppressed" as const, taskIds };
+}
+
 export async function sendContributionCorrectionNotification(
   input: ContributionCorrectionNotificationInput,
 ) {
@@ -467,6 +567,21 @@ export async function sendContributionCorrectionNotification(
   }
 
   const settings = input.settings;
+
+  // Consent gate (transactional): a correction notice bypasses marketing
+  // opt-outs, but a global do_not_contact or a hard bounce/complaint blocks it.
+  // The Supabase adapter always injects the gate; isolated tests may omit it.
+  const consentGate = input.dependencies?.evaluateEmailConsent;
+  if (consentGate) {
+    const consent = await consentGate({
+      email: input.recipient.email,
+      donorId: input.recipient.donorId,
+    });
+    if (!consent.allowed) {
+      return suppressForConsent(input, consent, policySnapshot);
+    }
+  }
+
   const sender = input.dependencies?.sendEmail ?? sendEmail;
   const idempotencyKey = buildProviderIdempotencyKey({
     tenantId: input.tenantId,
