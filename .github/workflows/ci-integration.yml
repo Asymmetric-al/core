@@ -154,9 +154,11 @@ jobs:
       PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
+      # Zero-config bypass: the example.supabase.co placeholder is a
+      # non-confidential datasource, so no E2E_AUTH_SECRET /
+      # E2E_AUTH_ALLOWED_SUPABASE_REFS is needed (built-in fallback key +
+      # implicit allowlist). A real Supabase project would require both.
       E2E_AUTH_BYPASS: "true"
-      E2E_AUTH_SECRET: ci-e2e-auth-hmac-secret-not-for-production
-      E2E_AUTH_ALLOWED_SUPABASE_REFS: example
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key

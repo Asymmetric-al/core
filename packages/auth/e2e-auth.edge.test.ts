@@ -16,6 +16,7 @@ import {
   extractSupabaseProjectRef,
   getE2EAuthCookieNameForProxyHost,
   getE2EAuthCookieNameForRequest,
+  hasE2EAuthSecret,
   inferE2EAuthSurfaceFromHost,
   isE2EAuthBypassEnabled,
   isSupabaseDatasourceAllowedForE2EBypass,
@@ -213,13 +214,16 @@ describe("parseE2EAuthCookieValue", () => {
     expect(await parseE2EAuthCookieValue(expired)).toBe(null);
   });
 
-  it("fails closed when the signing secret is unset", async () => {
+  it("fails closed for a real remote datasource when the secret is unset", async () => {
+    const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const raw = await createE2EAuthCookieValue({
       userId: "u1",
       role: "donor",
       tenantId: null,
     });
     delete process.env.E2E_AUTH_SECRET;
+    // A real remote datasource must NOT fall back to the public key.
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
     try {
       expect(await parseE2EAuthCookieValue(raw)).toBe(null);
       await expect(
@@ -231,7 +235,75 @@ describe("parseE2EAuthCookieValue", () => {
       ).rejects.toThrow(/E2E_AUTH_SECRET/);
     } finally {
       process.env.E2E_AUTH_SECRET = "edge-test-e2e-secret";
+      if (originalUrl === undefined) {
+        delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+      } else {
+        process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
+      }
     }
+  });
+});
+
+describe("E2E_AUTH_SECRET zero-config dev fallback", () => {
+  const originalSecret = process.env.E2E_AUTH_SECRET;
+  const originalUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+
+  beforeEach(() => {
+    // Exercise the fallback path: no explicit secret configured.
+    delete process.env.E2E_AUTH_SECRET;
+  });
+
+  afterEach(() => {
+    if (originalSecret === undefined) {
+      delete process.env.E2E_AUTH_SECRET;
+    } else {
+      process.env.E2E_AUTH_SECRET = originalSecret;
+    }
+    if (originalUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = originalUrl;
+    }
+  });
+
+  it("mints and verifies with no configured secret against loopback", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "http://127.0.0.1:54321";
+    expect(hasE2EAuthSecret()).toBe(true);
+    const raw = await createE2EAuthCookieValue({
+      userId: "u1",
+      role: "donor",
+      tenantId: null,
+    });
+    expect(await parseE2EAuthCookieValue(raw)).toMatchObject({
+      userId: "u1",
+      role: "donor",
+    });
+  });
+
+  it("mints and verifies with no configured secret against the example placeholder", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    expect(hasE2EAuthSecret()).toBe(true);
+    const raw = await createE2EAuthCookieValue({
+      userId: "u1",
+      role: "admin",
+      tenantId: null,
+    });
+    expect(await parseE2EAuthCookieValue(raw)).toMatchObject({
+      userId: "u1",
+      role: "admin",
+    });
+  });
+
+  it("does NOT fall back for a real remote datasource", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
+    expect(hasE2EAuthSecret()).toBe(false);
+    await expect(
+      createE2EAuthCookieValue({
+        userId: "u1",
+        role: "donor",
+        tenantId: null,
+      }),
+    ).rejects.toThrow(/E2E_AUTH_SECRET/);
   });
 });
 
@@ -271,13 +343,17 @@ describe("Supabase datasource binding for E2E bypass", () => {
     ).toBe(false);
   });
 
-  it("allows loopback and unconfigured datasources", () => {
+  it("allows loopback, the example placeholder, and unconfigured datasources", () => {
     delete process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
     expect(
       isSupabaseDatasourceAllowedForE2EBypass("http://127.0.0.1:54321"),
     ).toBe(true);
     expect(
       isSupabaseDatasourceAllowedForE2EBypass("http://localhost:54321"),
+    ).toBe(true);
+    // example.supabase.co is a non-resolving placeholder → implicitly allowed.
+    expect(
+      isSupabaseDatasourceAllowedForE2EBypass("https://example.supabase.co"),
     ).toBe(true);
     expect(isSupabaseDatasourceAllowedForE2EBypass(null)).toBe(true);
     expect(isSupabaseDatasourceAllowedForE2EBypass("")).toBe(true);

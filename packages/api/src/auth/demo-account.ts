@@ -1,6 +1,7 @@
 import {
   createE2EAuthCookieValue,
   getE2EAuthCookieNameForRequest,
+  hasE2EAuthSecret,
   isE2EAuthBypassEnabled,
   isSupabaseDatasourceAllowedForE2EBypass,
 } from "@asym/auth";
@@ -103,8 +104,12 @@ type E2EBypassReadiness = { ready: true } | { ready: false; reason: string };
  * availability honestly, instead of minting a cookie the middleware will reject.
  */
 function getE2EBypassReadiness(): E2EBypassReadiness {
-  if (!process.env.E2E_AUTH_SECRET?.trim()) {
-    return { ready: false, reason: "E2E_AUTH_SECRET is not set." };
+  if (!hasE2EAuthSecret()) {
+    return {
+      ready: false,
+      reason:
+        "No E2E signing key for this datasource. Loopback and the example.supabase.co placeholder work with no setup; a real Supabase project requires an explicit E2E_AUTH_SECRET.",
+    };
   }
   if (!isSupabaseDatasourceAllowedForE2EBypass(getSupabasePublicConfig().url)) {
     return {

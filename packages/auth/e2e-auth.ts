@@ -102,17 +102,73 @@ export function isE2EAuthBypassEnabled() {
   return value ? E2E_AUTH_BYPASS_VALUES.has(value) : false;
 }
 
+/** The canonical non-resolving Supabase placeholder host used across the repo. */
+const E2E_PLACEHOLDER_SUPABASE_HOST = "example.supabase.co";
+
+/**
+ * Public, NON-SECRET fallback HMAC key. Used automatically ONLY for datasources
+ * that cannot hold real data — loopback, the non-resolving `example.supabase.co`
+ * placeholder, or no datasource at all — so local dev and the placeholder CI job
+ * need zero secret setup ("easy for anyone to test").
+ *
+ * This being public is safe: it is only ever used where the bypass grants access
+ * to throwaway / non-existent data, and the datasource binding independently
+ * forbids production projects. A real remote datasource MUST set an explicit,
+ * confidential `E2E_AUTH_SECRET` — otherwise `getE2EAuthSecret` returns `null`
+ * there and mint/verify fail closed.
+ */
+const E2E_AUTH_DEV_FALLBACK_SECRET =
+  "asym-e2e-dev-fallback-key-loopback-and-example-placeholder-only";
+
 /**
  * HMAC secret shared by the E2E cookie producer (`POST /api/auth/demo-account`)
  * and every verifier. Read directly from `process.env` (not `@asym/env`) so this
  * module stays edge-safe and dependency-light, matching the other env reads here.
  *
- * Returns `null` when unset. Callers fail closed: without the secret we can
- * neither mint nor trust a bypass cookie.
+ * Resolution: an explicit `E2E_AUTH_SECRET` always wins. When it is unset, a
+ * public fallback key is used for datasources that cannot hold real data
+ * (loopback / `example.supabase.co` / unconfigured). For any real remote
+ * datasource this returns `null`, so callers fail closed — mint refuses and
+ * verify rejects — until an explicit confidential secret is configured.
  */
 function getE2EAuthSecret(): string | null {
-  const secret = process.env.E2E_AUTH_SECRET?.trim();
-  return secret ? secret : null;
+  const explicit = process.env.E2E_AUTH_SECRET?.trim();
+  if (explicit) return explicit;
+  if (isNonConfidentialE2EDatasource(process.env.NEXT_PUBLIC_SUPABASE_URL)) {
+    return E2E_AUTH_DEV_FALLBACK_SECRET;
+  }
+  return null;
+}
+
+/**
+ * Whether a usable signing key (explicit secret, or the safe fallback for a
+ * non-confidential datasource) is available in this environment. Producers use
+ * this to report availability honestly and fail fast.
+ */
+export function hasE2EAuthSecret(): boolean {
+  return getE2EAuthSecret() !== null;
+}
+
+/**
+ * A datasource that cannot hold real data, so the public fallback signing key is
+ * safe to use: loopback, the `example.supabase.co` placeholder, or no datasource
+ * configured. Anything else (a real hosted Supabase project) is treated as
+ * potentially confidential and requires an explicit `E2E_AUTH_SECRET`.
+ */
+function isNonConfidentialE2EDatasource(
+  supabaseUrl: string | null | undefined,
+): boolean {
+  if (!supabaseUrl) return true;
+  let hostname: string;
+  try {
+    hostname = new URL(supabaseUrl).hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  return (
+    isLoopbackDatasourceHostname(hostname) ||
+    hostname === E2E_PLACEHOLDER_SUPABASE_HOST
+  );
 }
 
 function bytesToBase64Url(bytes: Uint8Array): string {
@@ -368,6 +424,7 @@ function getAllowedE2EBypassDatasources(): Set<string> {
  * non-"production" on staging, preview, and masked-prod too). Allowed when:
  * - no datasource is configured (nothing to protect), or
  * - the host is loopback (local Supabase / Docker), or
+ * - the host is the non-resolving `example.supabase.co` placeholder, or
  * - the host or hosted project ref is listed in `E2E_AUTH_ALLOWED_SUPABASE_REFS`.
  *
  * Everything else — including production project refs and their read replicas —
@@ -386,6 +443,7 @@ export function isSupabaseDatasourceAllowedForE2EBypass(
   }
 
   if (isLoopbackDatasourceHostname(hostname)) return true;
+  if (hostname === E2E_PLACEHOLDER_SUPABASE_HOST) return true;
 
   const allowed = getAllowedE2EBypassDatasources();
   if (allowed.has(hostname)) return true;

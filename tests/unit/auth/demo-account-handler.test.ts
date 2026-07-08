@@ -132,10 +132,41 @@ describe("api/auth/demo-account", () => {
     });
   });
 
-  it("reports E2E bypass unavailable on GET when the signing secret is missing", async () => {
+  it("mints a bypass cookie with zero secret config for the example placeholder", async () => {
+    // The whole point of "easy for anyone to test": no E2E_AUTH_SECRET /
+    // E2E_AUTH_ALLOWED_SUPABASE_REFS needed against the placeholder datasource.
     vi.resetModules();
     process.env.E2E_AUTH_BYPASS = "true";
     delete process.env.E2E_AUTH_SECRET;
+    delete process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+
+    const { GET, POST } =
+      await import("../../../packages/api/src/auth/demo-account");
+
+    const availability = (await (await GET()).json()) as {
+      availableRoles: Record<string, boolean>;
+    };
+    expect(availability.availableRoles.donor).toBe(true);
+
+    const request = new Request("http://localhost:3000/api/auth/demo-account", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "donor" }),
+    });
+    const response = await POST(request);
+    expect(response.status).toBe(200);
+    expect(response.headers.get("set-cookie") ?? "").toContain(
+      "asym_e2e_auth_donor=",
+    );
+  });
+
+  it("reports E2E bypass unavailable on GET when a real datasource has no secret", async () => {
+    vi.resetModules();
+    process.env.E2E_AUTH_BYPASS = "true";
+    delete process.env.E2E_AUTH_SECRET;
+    // Real remote datasource → the public fallback does NOT apply.
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
 
     const { GET } = await import("../../../packages/api/src/auth/demo-account");
     const response = await GET();
@@ -149,10 +180,11 @@ describe("api/auth/demo-account", () => {
     expect(payload.reason).toMatch(/E2E_AUTH_SECRET/);
   });
 
-  it("returns 503 on POST when E2E bypass is enabled but misconfigured", async () => {
+  it("returns 503 on POST when a real datasource has no secret", async () => {
     vi.resetModules();
     process.env.E2E_AUTH_BYPASS = "true";
     delete process.env.E2E_AUTH_SECRET;
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
 
     const { POST } =
       await import("../../../packages/api/src/auth/demo-account");

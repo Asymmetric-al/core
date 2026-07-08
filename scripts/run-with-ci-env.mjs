@@ -6,12 +6,13 @@ import { fileURLToPath } from "node:url";
 const DEFAULT_ENV = {
   ASYM_USE_CI_ENV_DEFAULTS: "1",
   SKIP_ENV_VALIDATION: "1",
-  /** Lets POST /api/auth/demo-account set the E2E cookie without real Supabase sign-in. */
+  /**
+   * Lets POST /api/auth/demo-account set the E2E cookie without real Supabase
+   * sign-in. No E2E_AUTH_SECRET / E2E_AUTH_ALLOWED_SUPABASE_REFS needed: the
+   * `example.supabase.co` placeholder below is a non-confidential datasource, so
+   * the bypass auto-uses a built-in fallback key and is implicitly allowlisted.
+   */
   E2E_AUTH_BYPASS: "true",
-  /** HMAC secret shared by the demo-account producer and the bypass verifiers. */
-  E2E_AUTH_SECRET: "ci-e2e-auth-hmac-secret-not-for-production",
-  /** Ref of the placeholder NEXT_PUBLIC_SUPABASE_URL below; binds bypass to this datasource. */
-  E2E_AUTH_ALLOWED_SUPABASE_REFS: "example",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",
   PAYLOAD_SECRET: "ci-placeholder-payload-secret",
