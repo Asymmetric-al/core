@@ -894,11 +894,25 @@ async function runReceiptDelivery(input: {
     };
   }
 
-  await sendStagedGiftReceipt({
+  const receipt = await sendStagedGiftReceipt({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
     stagedGiftId: input.stagedGiftId,
   });
+
+  if (receipt.status === "suppressed") {
+    // The consent gate blocked the send (do_not_contact, or a bounced/
+    // complained/suppressed address). No email went out, so do not record an
+    // email receipt snapshot; surface it as blocked with a clear reason.
+    return {
+      ...base,
+      status: "blocked",
+      reason:
+        "The donor has opted out of contact or the recipient address is on the suppression list, so the updated receipt email was not sent.",
+      snapshotId: null,
+    };
+  }
+
   const snapshotId = await insertReceiptSnapshot({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
