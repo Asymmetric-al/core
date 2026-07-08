@@ -218,26 +218,18 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     } = await supabase.auth.getUser();
     let userId = user?.id ?? null;
 
+    const isProtectedPath = isProtectedRoute(pathname, protectedRoutePrefixes);
+    const e2eAuthBypassEnabled = isE2EAuthBypassEnabled();
+
     // Bind the bypass to datasource identity, not NODE_ENV: when the bypass flag
     // is on, refuse to honor an E2E cookie unless the configured Supabase project
     // is allowlisted (throws before serving a bypassed request).
-    if (
-      !userId &&
-      isE2EAuthBypassEnabled() &&
-      isProtectedRoute(pathname, protectedRoutePrefixes)
-    ) {
+    if (!userId && e2eAuthBypassEnabled && isProtectedPath) {
       assertSupabaseDatasourceAllowedForE2EBypass(url);
-    }
 
-    // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
-    // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`).
-    // Proxy may not see `E2E_AUTH_BYPASS`; also allow outside production so
-    // local `next dev` can mirror tests that use surface cookies.
-    if (
-      !userId &&
-      (isE2EAuthBypassEnabled() || process.env.NODE_ENV !== "production") &&
-      isProtectedRoute(pathname, protectedRoutePrefixes)
-    ) {
+      // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
+      // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`). Honor both surface
+      // cookies and the legacy cookie only when the explicit bypass is enabled.
       const e2eCookieName = getE2EAuthCookieNameForProxyHost(
         request.headers.get("host"),
       );
@@ -248,21 +240,17 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
         userId = e2eSession.userId;
       }
-    }
 
-    if (
-      !userId &&
-      isE2EAuthBypassEnabled() &&
-      isProtectedRoute(pathname, protectedRoutePrefixes)
-    ) {
-      const legacySession = await parseE2EAuthCookieValue(
-        request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
-      );
-      if (
-        legacySession &&
-        isRoleAllowedForApp(legacySession.role, allowedRoles)
-      ) {
-        userId = legacySession.userId;
+      if (!userId) {
+        const legacySession = await parseE2EAuthCookieValue(
+          request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
+        );
+        if (
+          legacySession &&
+          isRoleAllowedForApp(legacySession.role, allowedRoles)
+        ) {
+          userId = legacySession.userId;
+        }
       }
     }
 
@@ -274,7 +262,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return supabaseResponse;
     }
 
-    if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
+    if (isProtectedPath && !userId) {
       return NextResponse.redirect(
         buildUnauthenticatedRedirectUrl(
           request,
