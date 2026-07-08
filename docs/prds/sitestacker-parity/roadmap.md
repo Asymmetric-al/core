@@ -134,7 +134,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
 | **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `PRD exists`                                                   |
 | **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11               | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists`                                                   |
-| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7        | —                                                     | Contributions/giving, public checkout, MC finance               | `future (needs PRD)`                                           |
+| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7        | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists`                                                   |
 | **14** | `donor-credit-ops`           | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts                                                            | 13, 7, 9                | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `future (needs PRD)`                                           |
 | **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7           | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `future (needs PRD)`                                           |
 | **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **13**, 9, 6            | 14, 15; enhanced by 17 (pledge reminders)             | Contributions and CRM                                           | `future (needs PRD)`                                           |
@@ -721,6 +721,13 @@ UI here or stay API-managed until Phase 38.
 ---
 
 ### Phase 13 — Campaign, Designation, Contribution Ledger & Giving Cart (`contribution-ledger`)
+
+> **PRD:** [`phase-13-campaign-designation-contribution-ledger-giving-cart.md`](./phase-13-campaign-designation-contribution-ledger-giving-cart.md)
+> — grill-complete 2026-07-09 (decisions D1–D25 + governing rulings R-JW / R-UX; five
+> ruthless 16/17-category adversarial reviews). The "open questions for grooming" below
+> are **resolved** in the PRD (topology = Stripe Connect direct charges on tenant-owned
+> accounts, 0% platform cut; append-only header+lines+postings ledger; bounded campaign
+> hierarchy; per-method fee-cover; recurring commitments + dunning). Groomed-not-built.
 
 **What this phase is (plain language).** The money backbone rebuilt properly.
 Today a gift is one donation row; real missions giving is **one checkout that

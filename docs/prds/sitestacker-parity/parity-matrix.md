@@ -133,7 +133,8 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   it in the contribution ledger.
 - **Evidence:** `docs/ops/phase-evidence/2026-05-12_phase-03_payments-giving-pipeline-final.md`;
   contribution-operations + donation-lifecycle specs (PR #462).
-- **Open questions:** giving cart (multi-designation basket) scope.
+- **PRD:** groomed — [`phase-13-campaign-designation-contribution-ledger-giving-cart.md`](./phase-13-campaign-designation-contribution-ledger-giving-cart.md) (decisions D1–D25); resolves the giving-cart, ledger, campaign, and source-code scope. `Built?`/`Live?` cells stay code-verification-pending.
+- **Open questions:** giving cart (multi-designation basket) scope. **Resolved by the Phase 13 PRD.**
 
 ### 6. Offline gift batch entry
 

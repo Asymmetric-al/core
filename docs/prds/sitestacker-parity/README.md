@@ -179,6 +179,28 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   `field_policies` floor; the member-care case product stays Phase 38.
   Groomed 2026-07-07; hard-depends on Phase 3 + Phase 9. Tracked by epic
   #628 + children #629–#640.
+- [`phase-11-custom-fields-custom-collections.md`](./phase-11-custom-fields-custom-collections.md)
+  — the Phase 11 plan (Custom Fields & Custom Collections): a governed field
+  catalog + policy-at-birth model on Asym Postgres, obeying the Phase-10
+  classification from field creation. Groomed 2026-07-08 (decisions D1–D13).
+  Tracked by epic #645 + children #646–#664.
+- [`phase-12-full-role-permission-configuration.md`](./phase-12-full-role-permission-configuration.md)
+  — the Phase 12 plan (Full Role & Permission Configuration): one server-side
+  PDP producing a runtime-verifiable branded `EffectiveAccess`; capabilities the
+  sole enforcement unit (names never authorize); additive grants above a
+  subtract-only floor; tenant branded into the token; instant causal revocation.
+  Groomed 2026-07-08 (26 decisions + 7 rulings + five adversarial passes).
+  Tracked by epic #665 + children #666–#687.
+- [`phase-13-campaign-designation-contribution-ledger-giving-cart.md`](./phase-13-campaign-designation-contribution-ledger-giving-cart.md)
+  — the Phase 13 plan (Campaign, Designation, Contribution Ledger & Giving
+  Cart): the money backbone — Stripe Connect **direct charges on each tenant's
+  own connected account** (Asym never in the flow of funds, 0% cut), an
+  **append-only header + designation-lines + postings** ledger that replaces the
+  single donation row, the multi-designation **giving cart**, first-class
+  **source codes**, **giving campaigns** with a bounded parent/child hierarchy,
+  and the **recurring-commitment** object with dunning + a self-serve portal.
+  Groomed 2026-07-09 (decisions D1–D25 + five ruthless adversarial reviews).
+  PRD authored; not yet tracked (issues via `/to-issues`).
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

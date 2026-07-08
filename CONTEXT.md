@@ -647,6 +647,66 @@ timing), letting someone infer that a restricted worker exists. The platform mak
 purpose-denied, and not-found _indistinguishable_ everywhere, including "view as".
 _Avoid_: a distinct "forbidden" vs "not found"; a timing difference on the restricted path
 
+**Contribution (gift)** (Phase 13):
+A donor's gift event. One payment can carry several designation lines ("$100 to the Smiths,
+$50 to the Kenya well"). Say "gift" to donors/founders; "contribution" for the data model.
+_Avoid_: donation-row-as-the-gift, one-gift-one-fund
+
+**Contribution header** (Phase 13):
+The top-level record of one payment — who gave, when, how (tender), how much in total, in what
+currency, through which site/source. The header is the canonical gift identity.
+_Avoid_: the Stripe PaymentIntent as the gift; the header as the money's source of truth for a line
+
+**Designation line** (Phase 13):
+One part of a gift directing an amount to exactly one fund or missionary. The database enforces
+that the lines always sum to the header total.
+_Avoid_: a line with two designations; a gift total that drifts from its lines
+
+**Posting** (Phase 13):
+An append-only money-effect entry beneath the ledger. A refund, correction, re-designation,
+chargeback, or NSF is a NEW posting — never an edit or delete of a settled row.
+_Avoid_: editing money in place; a `status='reversed'` flag instead of a reversing entry
+
+**The effective fold** (Phase 13):
+The one derivation that folds the append-only postings into a gift's current ("effective") truth,
+ordered by a monotonic per-header sequence. All readers go through it; raw base-row money is never
+read directly.
+_Avoid_: summing original amounts; two competing effective-value computations
+
+**Tender** (Phase 13):
+How a gift was paid — card, ACH, check, cash, or a non-cash asset (stock/securities/crypto,
+real estate, in-kind vehicle) or a church remittance. Distinct from the gift's type (one-time vs
+recurring) and from its designation.
+_Avoid_: tender as gift type; a card-only ledger
+
+**Fee-cover** (Phase 13):
+An extra amount, on top of the intended gift, that covers processing fees so ~100% reaches the
+field. Configured per tenant and per payment method (optional or, for a method, mandatory);
+a fully-deductible gift shown as its own line, never a hidden surcharge.
+_Avoid_: implying an exact fee; a mandatory card charge framed as a card surcharge
+
+**Source code** (Phase 13):
+The attribution tag for what DROVE a gift (the July newsletter, a banquet QR, a prayer letter) —
+channel × segment × message. Distinct from a campaign (the effort) and a designation (the purpose);
+it rides in the URL query (`?sc=`), never the path.
+_Avoid_: source code as campaign; free-text source; the code in the URL path
+
+**Giving campaign** (Phase 13):
+A staff-defined, time-bounded fundraising effort with goal(s) and reporting rollups. May nest in a
+bounded (≤5-deep) parent/child hierarchy. NOT an email blast, a public page, a peer-to-peer
+fundraiser, an appeal, a source code, or a designation.
+_Avoid_: the email-blast/fundraiser conflation; adding a campaign total to a fund total
+
+**Recurring commitment** (Phase 13):
+The donor-owned monthly-giving agreement (Asym owns the intent + designation lines; Stripe merely
+executes the charges). One Stripe subscription per recurring line, grouped for the donor.
+_Avoid_: the Stripe subscription as the commitment; a pledge (a fixed promised total) as a recurring gift
+
+**Lapsed vs canceled** (Phase 13):
+Lapsed = involuntary (the card failed after retries) and RECOVERABLE — the win-back signal.
+Canceled = the donor chose to stop — terminal. Keeping them distinct is what makes recovery possible.
+_Avoid_: folding an involuntary lapse into "canceled"
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"
