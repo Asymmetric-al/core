@@ -24,7 +24,8 @@ import {
   LoaderCircle,
   Receipt,
 } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { z } from "zod";
 
 import {
   INITIAL_OFFLINE_GIFT_FORM_VALUES,
@@ -40,11 +41,21 @@ import {
 const LABEL_CLASS =
   "text-[9px] font-bold uppercase tracking-widest text-muted-foreground";
 
-interface OfflineGiftEntryResult {
-  contributionId: string;
-  receiptStatus: keyof typeof OFFLINE_RECEIPT_STATUS_DISPLAY;
-  donorIdentityStatus: "known" | "unknown_offline";
-}
+const SUBMIT_TIMEOUT_MS = 15_000;
+const GENERIC_RECORDING_ERROR =
+  "We couldn't record this gift. Please review the details and try again.";
+
+const offlineGiftEntryResultSchema = z.object({
+  contributionId: z.string().min(1),
+  receiptStatus: z.enum(["pending", "no_receipt_requested", "not_receiptable"]),
+  donorIdentityStatus: z.enum(["known", "unknown_offline"]),
+});
+const offlineGiftEntryResponseSchema = z.object({
+  result: offlineGiftEntryResultSchema.optional(),
+  error: z.string().optional(),
+});
+
+type OfflineGiftEntryResult = z.infer<typeof offlineGiftEntryResultSchema>;
 
 interface OfflineGiftEntryDialogProps {
   open: boolean;
@@ -83,13 +94,54 @@ function OfflineGiftEntryForm({
 }) {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [recorded, setRecorded] = useState<OfflineGiftEntryResult | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const isActiveRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isActiveRef.current = false;
+      abortControllerRef.current?.abort();
+      abortControllerRef.current = null;
+    };
+  }, []);
+
+  const abortInFlightSubmit = () => {
+    abortControllerRef.current?.abort();
+    abortControllerRef.current = null;
+  };
+
+  const handleClose = () => {
+    abortInFlightSubmit();
+    onClose();
+  };
 
   const form = useOfflineGiftForm({
-    onError: setSubmitError,
-    onBeforeSubmit: () => setSubmitError(null),
+    clearAbortController: (controller) => {
+      if (abortControllerRef.current === controller) {
+        abortControllerRef.current = null;
+      }
+    },
+    createAbortController: () => {
+      abortInFlightSubmit();
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+      return controller;
+    },
+    onError: (message) => {
+      if (isActiveRef.current) {
+        setSubmitError(message);
+      }
+    },
+    onBeforeSubmit: () => {
+      if (isActiveRef.current) {
+        setSubmitError(null);
+      }
+    },
     onRecorded: (result) => {
-      setRecorded(result);
-      onRecorded?.(result);
+      if (isActiveRef.current) {
+        setRecorded(result);
+        onRecorded?.(result);
+      }
     },
   });
 
@@ -97,7 +149,7 @@ function OfflineGiftEntryForm({
     return (
       <OfflineGiftEntrySuccess
         result={recorded}
-        onClose={onClose}
+        onClose={handleClose}
         onAddAnother={() => {
           setRecorded(null);
           setSubmitError(null);
@@ -205,7 +257,7 @@ function OfflineGiftEntryForm({
       </div>
 
       <DialogFooter className="gap-2 border-t border-border px-6 py-4 sm:gap-2">
-        <Button onClick={onClose} type="button" variant="outline">
+        <Button onClick={handleClose} type="button" variant="outline">
           Cancel
         </Button>
         <form.Subscribe
@@ -233,6 +285,8 @@ function OfflineGiftEntryForm({
 }
 
 interface UseOfflineGiftFormHandlers {
+  clearAbortController: (controller: AbortController) => void;
+  createAbortController: () => AbortController;
   onBeforeSubmit: () => void;
   onError: (message: string) => void;
   onRecorded: (result: OfflineGiftEntryResult) => void;
@@ -249,25 +303,48 @@ function useOfflineGiftForm(handlers: UseOfflineGiftFormHandlers) {
     validators: { onChange: offlineGiftFormSchema },
     onSubmit: async ({ value }: { value: OfflineGiftFormValues }) => {
       handlers.onBeforeSubmit();
-      const response = await fetch("/api/admin/contributions/offline", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(toOfflineContributionRequest(value)),
-      });
-      const payload = (await response.json().catch(() => null)) as {
-        result?: OfflineGiftEntryResult;
-        error?: string;
-      } | null;
+      const controller = handlers.createAbortController();
+      let timedOut = false;
+      const timeoutId = globalThis.setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, SUBMIT_TIMEOUT_MS);
 
-      if (!response.ok || !payload?.result) {
-        handlers.onError(
-          payload?.error ??
-            "We couldn't record this gift. Please review the details and try again.",
-        );
-        return;
+      try {
+        const response = await fetch("/api/admin/contributions/offline", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(toOfflineContributionRequest(value)),
+          signal: controller.signal,
+        });
+        const rawPayload = await response.json().catch(() => null);
+        const parsedPayload =
+          offlineGiftEntryResponseSchema.safeParse(rawPayload);
+        const payload = parsedPayload.success ? parsedPayload.data : null;
+
+        if (!response.ok) {
+          handlers.onError(payload?.error ?? GENERIC_RECORDING_ERROR);
+          return;
+        }
+
+        if (!payload?.result) {
+          handlers.onError(GENERIC_RECORDING_ERROR);
+          return;
+        }
+
+        handlers.onRecorded(payload.result);
+      } catch {
+        if (controller.signal.aborted) {
+          if (timedOut) {
+            handlers.onError("Recording timed out. Please try again.");
+          }
+          return;
+        }
+        handlers.onError(GENERIC_RECORDING_ERROR);
+      } finally {
+        globalThis.clearTimeout(timeoutId);
+        handlers.clearAbortController(controller);
       }
-
-      handlers.onRecorded(payload.result);
     },
   });
 }
@@ -301,12 +378,12 @@ function ModeToggle({
   return (
     <fieldset>
       <legend className={cn(LABEL_CLASS, "mb-2")}>Donor</legend>
-      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2" role="radiogroup">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
         {options.map((option) => {
           const active = option.mode === value;
           return (
             <button
-              aria-checked={active}
+              aria-pressed={active}
               className={cn(
                 "flex flex-col items-start rounded-xl border px-3 py-2.5 text-left transition-colors",
                 active
@@ -315,7 +392,6 @@ function ModeToggle({
               )}
               key={option.mode}
               onClick={() => onChange(option.mode)}
-              role="radio"
               type="button"
             >
               <span className="text-sm font-medium text-foreground">
