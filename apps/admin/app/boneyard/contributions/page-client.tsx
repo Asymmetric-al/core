@@ -26,7 +26,7 @@ export default function BoneyardContributionsCapturePage() {
     <PageShell
       title="Contributions"
       description="Track and manage all donations and contributions."
-      actions={<ContributionsPageActions />}
+      actions={<ContributionsPageActions canManageContributions={false} />}
     >
       <BoneyardSkeleton
         name="admin-contributions-content"
