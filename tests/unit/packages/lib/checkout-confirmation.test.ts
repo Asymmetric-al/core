@@ -80,6 +80,32 @@ describe("decideCheckoutOutcome (server truth only)", () => {
     expect(outcome.description.label).toBe("Processing");
   });
 
+  it("does NOT show confirmation for non-final non-ACH processing states", () => {
+    for (const rail of ["card", "wallet", "instant_bank", "unknown"] as const) {
+      const outcome = decideCheckoutOutcome({
+        paymentIntentStatus: "processing",
+        rail,
+      });
+
+      expect(outcome.state).toBe("processing");
+      expect(outcome.isSuccess).toBe(false);
+      expect(outcome.showConfirmation).toBe(false);
+    }
+  });
+
+  it("does NOT show confirmation for requires_capture authorizations", () => {
+    for (const rail of ["card", "wallet", "ach_debit", "unknown"] as const) {
+      const outcome = decideCheckoutOutcome({
+        paymentIntentStatus: "requires_capture",
+        rail,
+      });
+
+      expect(outcome.state).toBe("processing");
+      expect(outcome.isSuccess).toBe(false);
+      expect(outcome.showConfirmation).toBe(false);
+    }
+  });
+
   it("does NOT show success/confirmation when action is still required", () => {
     const outcome = decideCheckoutOutcome({
       paymentIntentStatus: "requires_action",
