@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import {
+  createE2EAuthCookieValue,
+  E2E_AUTH_COOKIE_NAMES,
+} from "../../../packages/auth/e2e-auth";
+
 const {
   mockedCreateServerClient,
   mockedGetUser,
@@ -20,28 +25,50 @@ vi.mock("@asym/database/supabase/config", () => ({
   getSupabasePublicConfig: mockedGetSupabasePublicConfig,
 }));
 
-function createMockRequest(url: string) {
+const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
+const originalNodeEnv = process.env.NODE_ENV;
+
+function createMockRequest(
+  url: string,
+  cookieMap?: Record<string, string>,
+  hostHeader?: string,
+) {
   const nextUrl = new URL(url);
+  const headers = new Headers();
+  if (hostHeader) {
+    headers.set("host", hostHeader);
+  }
+
   return {
-    headers: new Headers(),
+    headers,
     nextUrl,
     cookies: {
       getAll: () => [],
       set: vi.fn(),
-      get: vi.fn(() => undefined),
+      get: vi.fn((name: string) =>
+        cookieMap && name in cookieMap
+          ? { name, value: cookieMap[name]! }
+          : undefined,
+      ),
     },
   };
 }
 
-async function invokeDonorProxy(url: string) {
+async function invokeDonorProxy(
+  url: string,
+  cookieMap?: Record<string, string>,
+  hostHeader?: string,
+) {
   const { proxy } = await import("../../../apps/donor/proxy");
-  return proxy(createMockRequest(url) as never);
+  return proxy(createMockRequest(url, cookieMap, hostHeader) as never);
 }
 
 describe("apps/donor/proxy (auth middleware)", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
+    process.env.NODE_ENV = originalNodeEnv;
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: mockedGetUser,
@@ -51,6 +78,8 @@ describe("apps/donor/proxy (auth middleware)", () => {
   });
 
   afterEach(() => {
+    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
+    process.env.NODE_ENV = originalNodeEnv;
     vi.restoreAllMocks();
   });
 
@@ -74,6 +103,49 @@ describe("apps/donor/proxy (auth middleware)", () => {
       "auth_misconfigured",
     );
     expect(mockedGetSupabasePublicConfig).toHaveBeenCalled();
+  });
+
+  it("redirects unauthenticated checkout visitors to the homepage without a next param", async () => {
+    mockedGetSupabasePublicConfig.mockReturnValue({
+      url: "https://example.supabase.co",
+      key: "anon-key",
+      keyType: "anon",
+    });
+    mockedGetUser.mockResolvedValue({ data: { user: null } });
+
+    const response = await invokeDonorProxy(
+      "https://example.test/checkout?workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe("https://example.test/");
+  });
+
+  it("allows authenticated checkout visitors through the donor proxy", async () => {
+    mockedGetSupabasePublicConfig.mockReturnValue({
+      url: "https://example.supabase.co",
+      key: "anon-key",
+      keyType: "anon",
+    });
+    process.env.E2E_AUTH_BYPASS = "1";
+    process.env.NODE_ENV = "development";
+    mockedGetUser.mockResolvedValue({ data: { user: null } });
+    const cookieValue = createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+
+    const response = await invokeDonorProxy(
+      "https://example.test/checkout?workerId=miss-001&missionary_id=20000000-0000-0000-0000-000000000001",
+      {
+        [E2E_AUTH_COOKIE_NAMES.donor]: cookieValue,
+      },
+      "localhost:3005",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.headers.get("location")).toBeNull();
   });
 
   it("fails closed on protected routes when public Supabase config is missing", async () => {
