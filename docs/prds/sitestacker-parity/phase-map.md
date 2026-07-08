@@ -143,7 +143,7 @@ capabilities that already have code lives in
 | **9**  | Full CRM Depth & Relationship Graph                                              | **4, 7, 3**; 8 soft                              | `PRD exists` (epic #604 + #605–#627)                           |
 | **10** | Sensitive-Data Classification & Restricted-Ministry Safety Foundation            | **3, 9**                                         | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
 | **11** | Custom Fields & Custom Collections                                               | 9, 10, 3                                         | `PRD exists`                                                   |
-| **12** | Full Role & Permission Configuration                                             | 3, 10, 11                                        | `future (needs PRD)`                                           |
+| **12** | Full Role & Permission Configuration                                             | 3, 10, 11                                        | `PRD exists`                                                   |
 | **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `future (needs PRD)`                                           |
 | **14** | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts           | 13, 7, 9                                         | `future (needs PRD)`                                           |
 | **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `future (needs PRD)`                                           |

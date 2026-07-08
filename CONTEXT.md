@@ -603,6 +603,50 @@ typed access (an index) under a governed budget. Promotion is additive and
 reversible; most fields are never promoted.
 _Avoid_: indexing every field, unbounded promoted-index growth
 
+**Capability** (Phase 12):
+A single, enforced permission — a verb on a resource (e.g. "view a gift record",
+"run refunds", "manage permissions"). Capabilities are the _only_ thing the system
+checks to make an access decision; roles, groups, and named grants are bundles that
+resolve _into_ capabilities. A role or group _name_ is never checked to authorize.
+_Avoid_: authorizing on a role/subrole name string; treating a group as the security rule
+
+**Staff group vs named grant** (Phase 12):
+A _group_ is a set of staff who share a bundle of capabilities (Finance, Donor Care…) —
+an administrative convenience. A _named grant_ gives one person access to one record
+(e.g. one restricted worker) for a stated reason, with expiry. Both only ever _add_
+capabilities; neither can reach past the floor.
+_Avoid_: a "view all" group; a grant that widens a restricted-worker projection
+
+**The floor** (Phase 12):
+The subtract-only safety layer — field policy (Phase 3), person security level /
+clearance (Phase 10), field gates (Phase 11), purpose/consent, and residency — composed
+strictest-wins and applied last. No grant of any kind can add back what the floor removes.
+_Avoid_: a configuration path that grants around the floor; a second decision point
+
+**Active assignment** (Phase 12):
+The single organization-hat a person acts within for one request. A staffer who serves
+several orgs holds several assignments but acts within exactly one at a time; the resolver
+refuses to run without one, so data never bleeds across orgs.
+_Avoid_: a client-chosen tenant; a person-global (org-blind) permission resolution
+
+**Purpose** (Phase 12):
+The required "for what" input to every access decision — the consent / legal-basis axis.
+Being _allowed to see_ a person is not the same as being _lawful to use their data for
+this purpose_ (readable ≠ contactable). Bound to the egress surface, from a fixed list.
+_Avoid_: a caller-asserted free-text purpose; consent modeled as a second system
+
+**Protected constituent** (Phase 12):
+A whole record (person, and everything attached) hidden from non-cleared staff — modeled
+as a floor rule that makes the row _vanish_, not a hidden field. A "you can see this person
+exists" roster is itself a leak.
+_Avoid_: hiding fields but leaving the record visible; a count/roster that reveals existence
+
+**Existence oracle / uniformity** (Phase 12):
+A leak where "blocked" and "does not exist" look different (by wording, response shape, or
+timing), letting someone infer that a restricted worker exists. The platform makes denied,
+purpose-denied, and not-found _indistinguishable_ everywhere, including "view as".
+_Avoid_: a distinct "forbidden" vs "not found"; a timing difference on the restricted path
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"
