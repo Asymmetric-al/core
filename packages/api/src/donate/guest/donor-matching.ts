@@ -119,21 +119,25 @@ function createdAtTime(candidate: DonorMatchCandidate): number | null {
   return Number.isFinite(time) ? time : null;
 }
 
-function compareCanonicalCandidates(
-  a: DonorMatchCandidate,
-  b: DonorMatchCandidate,
-): number {
-  const aCreatedAt = createdAtTime(a);
-  const bCreatedAt = createdAtTime(b);
+function orderByUniqueOldestCreatedAt(
+  candidates: DonorMatchCandidate[],
+): DonorMatchCandidate[] | null {
+  const comparable: Array<{ candidate: DonorMatchCandidate; time: number }> =
+    [];
 
-  if (aCreatedAt !== null && bCreatedAt !== null && aCreatedAt !== bCreatedAt) {
-    return aCreatedAt - bCreatedAt;
+  for (const candidate of candidates) {
+    const time = createdAtTime(candidate);
+    if (time === null) return null;
+    comparable.push({ candidate, time });
   }
 
-  // Preserve caller order when timestamps are missing, invalid, or tied. The
-  // caller may have already ordered candidates by a stronger canonical signal;
-  // UUID order is deterministic but not semantically meaningful.
-  return 0;
+  comparable.sort((a, b) => a.time - b.time);
+
+  if (comparable.length > 1 && comparable[0]!.time === comparable[1]!.time) {
+    return null;
+  }
+
+  return comparable.map(({ candidate }) => candidate);
 }
 
 /** Signals for a single incoming↔candidate pair (email match handled separately). */
@@ -182,12 +186,33 @@ export function resolveDonorMatch(input: {
 
   // §2.1 — exact / high-confidence normalized-email match → attach.
   if (email !== "") {
-    const emailMatches = candidates
-      .filter((c) => norm(c.normalizedEmail) === email)
-      .sort(compareCanonicalCandidates);
+    const emailMatches = candidates.filter(
+      (c) => norm(c.normalizedEmail) === email,
+    );
     if (emailMatches.length > 0) {
-      const canonical = emailMatches[0]!;
-      const rest = emailMatches.slice(1);
+      if (emailMatches.length === 1) {
+        return {
+          decision: "attach",
+          confidence: "exact",
+          signals: ["normalized_email_exact"],
+          canonicalDonorId: emailMatches[0]!.donorId,
+          mergeCandidateDonorIds: [],
+        };
+      }
+
+      const orderedEmailMatches = orderByUniqueOldestCreatedAt(emailMatches);
+      if (!orderedEmailMatches) {
+        return {
+          decision: "create_merge_candidate",
+          confidence: "possible",
+          signals: ["normalized_email_exact"],
+          canonicalDonorId: null,
+          mergeCandidateDonorIds: emailMatches.map((c) => c.donorId),
+        };
+      }
+
+      const canonical = orderedEmailMatches[0]!;
+      const rest = orderedEmailMatches.slice(1);
       return {
         decision: "attach",
         confidence: "exact",
