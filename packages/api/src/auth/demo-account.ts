@@ -3,6 +3,7 @@ import {
   getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
 } from "@asym/auth";
+import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "@asym/auth/constants";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { serverEnv } from "@asym/env";
@@ -222,7 +223,8 @@ export async function POST(request: Request) {
           createE2EAuthCookieValue({
             userId: `e2e-${role}-user`,
             role: e2eRole,
-            tenantId: null,
+            tenantId: DEMO_TENANT_ID,
+            profileId: DEMO_PROFILE_ID,
           }),
           {
             httpOnly: true,
