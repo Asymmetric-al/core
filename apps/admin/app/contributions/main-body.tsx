@@ -85,6 +85,8 @@ const statusShortLabel: Record<ContributionStatus, string> = {
   refunded: "Refunded",
 };
 
+const OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED = false;
+
 function StatCard({
   label,
   value,
@@ -556,9 +558,15 @@ export function ContributionsMainBody({
   );
 }
 
-export function ContributionsPageActions() {
+export function ContributionsPageActions({
+  canManageContributions = false,
+}: {
+  canManageContributions?: boolean;
+} = {}) {
   const queryClient = useQueryClient();
   const [offlineEntryOpen, setOfflineEntryOpen] = useState(false);
+  const canShowOfflineGiftEntry =
+    OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED && canManageContributions;
 
   const handleExport = () => {
     toast.info("Export coming soon.");
@@ -574,23 +582,27 @@ export function ContributionsPageActions() {
         <Download className="size-4" />
         Export
       </Button>
-      <Button
-        className="h-11 gap-2 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg"
-        onClick={() => setOfflineEntryOpen(true)}
-      >
-        <HandCoins className="size-4" />
-        Enter Offline Gift
-      </Button>
-      <OfflineGiftEntryDialog
-        open={offlineEntryOpen}
-        onOpenChange={setOfflineEntryOpen}
-        onRecorded={() => {
-          toast.success("Offline gift recorded.");
-          void queryClient.invalidateQueries({
-            queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
-          });
-        }}
-      />
+      {canShowOfflineGiftEntry ? (
+        <>
+          <Button
+            className="h-11 gap-2 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg"
+            onClick={() => setOfflineEntryOpen(true)}
+          >
+            <HandCoins className="size-4" />
+            Enter Offline Gift
+          </Button>
+          <OfflineGiftEntryDialog
+            open={offlineEntryOpen}
+            onOpenChange={setOfflineEntryOpen}
+            onRecorded={() => {
+              toast.success("Offline gift recorded.");
+              void queryClient.invalidateQueries({
+                queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
+              });
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

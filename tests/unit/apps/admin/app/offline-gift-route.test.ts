@@ -58,10 +58,10 @@ const ctxBase = () => ({
 function okDepsFactory() {
   return () => ({
     resolveKnownDonor: vi.fn().mockResolvedValue({ donorId: "donor-1" }),
-    insertContribution: vi
-      .fn()
-      .mockResolvedValue({ contributionId: "contrib-1" }),
-    appendAudit: vi.fn().mockResolvedValue({ auditEventId: "audit-1" }),
+    recordContributionWithAudit: vi.fn().mockResolvedValue({
+      contributionId: "contrib-1",
+      auditEventId: "audit-1",
+    }),
   });
 }
 
