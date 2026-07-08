@@ -231,6 +231,25 @@ describe("evaluateEmailConsent", () => {
     expect(decision).toEqual({ allowed: true });
   });
 
+  it("resolves donor consent by donor id scoped to tenant when donorId is given", async () => {
+    const { client, calls } = buildClient({
+      donors: cleanDonor,
+      email_suppressions: noSuppression,
+    });
+
+    const decision = await evaluateEmailConsent({
+      supabaseAdmin: client,
+      tenantId: "tenant-1",
+      email: "ada@example.com",
+      donorId: "donor-1",
+      messageType: "transactional",
+    });
+
+    expect(decision).toEqual({ allowed: true });
+    expect(calls.donors.eq).toContainEqual(["id", "donor-1"]);
+    expect(calls.donors.eq).toContainEqual(["tenant_id", "tenant-1"]);
+  });
+
   it("resolves donor consent by tenant + email (escaped) when no donorId is given", async () => {
     const { client, calls } = buildClient({
       donors: () => ({

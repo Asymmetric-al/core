@@ -124,7 +124,7 @@ async function loadDonorConsentFlags(
     .select("do_not_email, do_not_contact");
 
   const filteredQuery = input.donorId
-    ? baseQuery.eq("id", input.donorId)
+    ? baseQuery.eq("id", input.donorId).eq("tenant_id", input.tenantId)
     : baseQuery
         .eq("tenant_id", input.tenantId)
         .ilike("email", escapeLikePattern(normalizedEmail));
