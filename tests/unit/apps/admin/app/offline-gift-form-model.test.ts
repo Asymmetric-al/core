@@ -112,6 +112,12 @@ describe("toOfflineContributionRequest — unknown_offline mode", () => {
       (request as Record<string, unknown>).anonymousToRecipient,
     ).toBeUndefined();
   });
+
+  it("does not silently coerce a stale payer-identifying method to cash", () => {
+    expect(() =>
+      toOfflineContributionRequest(unknownValues({ method: "check" })),
+    ).toThrow(/cash or other/i);
+  });
 });
 
 describe("designation mapping", () => {
@@ -169,6 +175,17 @@ describe("offlineGiftFormSchema — inline UX validation", () => {
       knownValues({ lastName: "" }),
     );
     expect(result.success).toBe(false);
+  });
+
+  it("rejects a malformed optional email before the submit round-trip", () => {
+    const result = offlineGiftFormSchema.safeParse(
+      knownValues({ email: "not-an-email" }),
+    );
+    expect(result.success).toBe(false);
+    if (result.success) throw new Error("expected invalid email");
+    expect(result.error.issues.some((issue) => issue.path[0] === "email")).toBe(
+      true,
+    );
   });
 
   it("rejects a known existing-donor gift with no donor selected", () => {
