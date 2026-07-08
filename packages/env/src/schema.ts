@@ -1,6 +1,7 @@
 import { createEnv } from "@t3-oss/env-nextjs";
 import { z } from "zod";
 
+import { E2E_AUTH_MIN_SECRET_LENGTH } from "./e2e-auth";
 import {
   isProtectedDeployment,
   resolveDeploymentEnvironment,
@@ -207,7 +208,10 @@ export const env = createEnv({
     /** HMAC secret used to sign/verify E2E bypass cookies. Non-production only. */
     E2E_AUTH_SECRET: z
       .string()
-      .min(16, "E2E_AUTH_SECRET must be at least 16 characters")
+      .min(
+        E2E_AUTH_MIN_SECRET_LENGTH,
+        "E2E_AUTH_SECRET must be at least 16 characters",
+      )
       .optional(),
     /**
      * Comma-separated Supabase project refs (or datasource hostnames) that the

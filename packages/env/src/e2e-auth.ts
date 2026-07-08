@@ -1,0 +1,1 @@
+export const E2E_AUTH_MIN_SECRET_LENGTH = 16;

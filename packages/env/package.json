@@ -5,6 +5,7 @@
   "type": "module",
   "exports": {
     ".": "./index.ts",
+    "./e2e-auth": "./src/e2e-auth.ts",
     "./target-env": "./src/target-env.ts"
   },
   "scripts": {

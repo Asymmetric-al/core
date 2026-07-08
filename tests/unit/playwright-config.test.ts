@@ -3,6 +3,7 @@ import {
   getDefaultProjectTestIgnore,
   shouldReuseExistingServer,
 } from "../../playwright.config";
+import { nextDevReadyURL } from "../e2e/base-urls";
 
 describe("shouldReuseExistingServer", () => {
   it("defaults to reusing an existing server outside CI", () => {
@@ -72,5 +73,13 @@ describe("getDefaultProjectTestIgnore", () => {
     expect(
       getDefaultProjectTestIgnore({ PLAYWRIGHT_INCLUDE_ADMIN: "1" }),
     ).toEqual(defaultProjectIgnores);
+  });
+});
+
+describe("nextDevReadyURL", () => {
+  it("uses the health endpoint for web server readiness", () => {
+    expect(nextDevReadyURL("http://localhost:3030/")).toBe(
+      "http://localhost:3030/api/health",
+    );
   });
 });

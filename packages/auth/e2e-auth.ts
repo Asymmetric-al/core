@@ -1,3 +1,5 @@
+import { E2E_AUTH_MIN_SECRET_LENGTH } from "@asym/env/e2e-auth";
+
 import type { UserRole } from "@asym/database/types";
 
 /** @deprecated Prefer surface-specific names; kept for grep/docs compatibility */
@@ -64,7 +66,6 @@ export function getE2EAuthCookieNameForProxyHost(
   return null;
 }
 const E2E_AUTH_BYPASS_VALUES = new Set(["1", "true"]);
-const E2E_AUTH_MIN_SECRET_LENGTH = 16;
 const USER_ROLES: readonly UserRole[] = [
   "donor",
   "missionary",
