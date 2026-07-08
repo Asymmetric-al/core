@@ -1,10 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
-const bunVersionScript = fileURLToPath(
-  new URL("./bun-version.mjs", import.meta.url),
-);
-
 function runVitest(args) {
   const result = spawnSync("bunx", ["vitest", "run", ...args], {
     shell: process.platform === "win32",
@@ -19,8 +15,12 @@ function runVitest(args) {
 }
 
 if (process.platform === "win32") {
+  const bunVersionScriptPath = fileURLToPath(
+    new URL("./bun-version.mjs", import.meta.url),
+  );
+
   const bunVersionStatus =
-    spawnSync(process.execPath, [bunVersionScript], {
+    spawnSync(process.execPath, [bunVersionScriptPath], {
       shell: false,
       stdio: "inherit",
     }).status ?? 1;
