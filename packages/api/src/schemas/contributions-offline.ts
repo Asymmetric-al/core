@@ -14,7 +14,7 @@ import { z } from "zod";
 const requiredText = (label: string) =>
   z.string().trim().min(1, `${label} is required`);
 
-const normalizedEmail = z.string().trim().toLowerCase().email();
+const normalizedEmail = z.string().trim().toLowerCase().pipe(z.email());
 
 export const offlineAddressSchema = z.object({
   line1: requiredText("Address line 1"),
@@ -39,8 +39,33 @@ const designationSchema = z.object({
   fundId: z.string().trim().min(1).optional(),
 });
 
-// ISO date (YYYY-MM-DD) or full ISO timestamp — staff-entered received date.
-const receivedDate = requiredText("Received date");
+function isValidIsoDate(value: string): boolean {
+  const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+  if (!match) return false;
+
+  const year = Number(match[1]);
+  const month = Number(match[2]);
+  const day = Number(match[3]);
+  const date = new Date(Date.UTC(year, month - 1, day));
+
+  return (
+    date.getUTCFullYear() === year &&
+    date.getUTCMonth() === month - 1 &&
+    date.getUTCDate() === day
+  );
+}
+
+const isoDateTimeWithOffset = z.iso.datetime({ offset: true });
+
+function isValidIsoDateTime(value: string): boolean {
+  return isoDateTimeWithOffset.safeParse(value).success;
+}
+
+// ISO date (YYYY-MM-DD) or full ISO timestamp - staff-entered received date.
+const receivedDate = requiredText("Received date").refine(
+  (value) => isValidIsoDate(value) || isValidIsoDateTime(value),
+  "Received date must be a valid ISO date or timestamp",
+);
 
 const amount = z.coerce
   .number()

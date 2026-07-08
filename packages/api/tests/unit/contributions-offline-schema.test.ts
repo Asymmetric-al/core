@@ -107,6 +107,23 @@ describe("offlineContributionSchema — shared rules", () => {
     expect(() => offlineContributionSchema.parse(bad)).toThrow();
   });
 
+  it("rejects a received date that is not an ISO date or timestamp", () => {
+    for (const receivedDate of ["not-a-date", "2026-13-01", "2026-02-30"]) {
+      expect(() =>
+        offlineContributionSchema.parse({ ...knownWithId, receivedDate }),
+      ).toThrow();
+    }
+  });
+
+  it("accepts a full ISO timestamp as a received date", () => {
+    expect(() =>
+      offlineContributionSchema.parse({
+        ...knownWithId,
+        receivedDate: "2026-07-01T10:30:00.000Z",
+      }),
+    ).not.toThrow();
+  });
+
   it("rejects a non-usd currency", () => {
     expect(() =>
       offlineContributionSchema.parse({ ...knownWithId, currency: "eur" }),
