@@ -27,6 +27,11 @@ const FORMULA_TRIGGER_CHARS = new Set<string>([
   "\n", // 0x0a line feed
 ]);
 
+const SPREADSHEET_IGNORABLE_LEADING_CHARS = new Set<string>([
+  " ",
+  "\u00a0", // no-break space
+]);
+
 function coerceToCellString(value: unknown): string {
   if (value === null || value === undefined) {
     return "";
@@ -62,7 +67,9 @@ function coerceToCellString(value: unknown): string {
 export function csvSafeCell(value: unknown): string {
   const raw = coerceToCellString(value);
   let formulaProbeIndex = 0;
-  while (raw.charAt(formulaProbeIndex) === " ") {
+  while (
+    SPREADSHEET_IGNORABLE_LEADING_CHARS.has(raw.charAt(formulaProbeIndex))
+  ) {
     formulaProbeIndex += 1;
   }
 

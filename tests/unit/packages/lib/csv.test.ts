@@ -23,6 +23,10 @@ describe("csvSafeCell — formula injection neutralization", () => {
     expect(csvSafeCell(" =cmd")).toBe(`"' =cmd"`);
   });
 
+  it("neutralizes a formula after a leading no-break space without removing it", () => {
+    expect(csvSafeCell("\u00a0=cmd")).toBe(`"'\u00a0=cmd"`);
+  });
+
   it("neutralizes leading CR and LF", () => {
     expect(csvSafeCell("\r=cmd")).toBe(`"'\r=cmd"`);
     expect(csvSafeCell("\n=cmd")).toBe(`"'\n=cmd"`);
@@ -42,6 +46,13 @@ describe("csvSafeCell — formula injection neutralization", () => {
     );
   });
 
+  it("neutralizes a HYPERLINK payload after a leading no-break space and doubles its quotes", () => {
+    const payload = '\u00a0=HYPERLINK("http://evil.example","x")';
+    expect(csvSafeCell(payload)).toBe(
+      `"'\u00a0=HYPERLINK(""http://evil.example"",""x"")"`,
+    );
+  });
+
   it("prefixes negative numbers per OWASP guidance but leaves positives intact", () => {
     expect(csvSafeCell(-5)).toBe(`"'-5"`);
     expect(csvSafeCell(12500)).toBe(`"12500"`);
@@ -51,6 +62,10 @@ describe("csvSafeCell — formula injection neutralization", () => {
 describe("csvSafeCell — RFC 4180 quoting", () => {
   it("always wraps benign values in double quotes without a prefix", () => {
     expect(csvSafeCell("Ada Lovelace")).toBe(`"Ada Lovelace"`);
+  });
+
+  it("preserves benign values after leading no-break spaces", () => {
+    expect(csvSafeCell("\u00a0Ada Lovelace")).toBe(`"\u00a0Ada Lovelace"`);
   });
 
   it("doubles embedded double quotes", () => {
