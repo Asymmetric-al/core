@@ -9,6 +9,23 @@ const migrationSql = readFileSync(
   ),
   "utf8",
 );
+const rollbackSql = readFileSync(
+  new URL(
+    "../../../supabase/migrations/rollback_20260704140000_donor_matching_merge_candidates.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+function scopedConstraintLookup(
+  tableName: string,
+  constraintName: string,
+): RegExp {
+  const escapedTableName = tableName.replace(".", "\\.");
+  return new RegExp(
+    `WHERE\\s+conname = '${constraintName}'\\s+AND conrelid = '${escapedTableName}'::regclass`,
+  );
+}
 
 describe("donor matching merge candidate migration", () => {
   it("keeps merge candidate and audit tables server-only behind RLS", () => {
@@ -27,20 +44,57 @@ describe("donor matching merge candidate migration", () => {
 
   it("enforces that every donor reference belongs to the row tenant", () => {
     expect(migrationSql).toContain("donors_tenant_id_id_uidx");
+    for (const donorIdColumn of [
+      "merged_into_donor_id",
+      "existing_donor_id",
+      "incoming_donor_id",
+      "surviving_donor_id",
+      "merged_donor_id",
+    ]) {
+      expect(migrationSql).toMatch(
+        new RegExp(
+          `FOREIGN KEY \\(tenant_id, ${donorIdColumn}\\)\\s+REFERENCES public\\.donors \\(tenant_id, id\\)`,
+        ),
+      );
+    }
+  });
+
+  it("blocks donors from redirecting to themselves", () => {
+    expect(migrationSql).toContain("donors_merged_into_not_self_check");
     expect(migrationSql).toContain(
-      "FOREIGN KEY (tenant_id, merged_into_donor_id)",
+      "CHECK (merged_into_donor_id IS NULL OR merged_into_donor_id <> id)",
     );
-    expect(migrationSql).toContain(
-      "FOREIGN KEY (tenant_id, existing_donor_id)",
+    expect(rollbackSql).toContain(
+      "DROP CONSTRAINT IF EXISTS donors_merged_into_not_self_check",
     );
-    expect(migrationSql).toContain(
-      "FOREIGN KEY (tenant_id, incoming_donor_id)",
-    );
-    expect(migrationSql).toContain(
-      "FOREIGN KEY (tenant_id, surviving_donor_id)",
-    );
-    expect(migrationSql).toContain("FOREIGN KEY (tenant_id, merged_donor_id)");
-    expect(migrationSql).toContain("REFERENCES public.donors (tenant_id, id)");
+  });
+
+  it("scopes idempotent constraint lookups to each target table", () => {
+    for (const [tableName, constraintName] of [
+      ["public.donors", "donors_merged_requires_tenant_check"],
+      ["public.donors", "donors_merged_into_same_tenant_fk"],
+      ["public.donors", "donors_merged_into_not_self_check"],
+      [
+        "public.donor_merge_candidates",
+        "donor_merge_candidates_existing_donor_same_tenant_fk",
+      ],
+      [
+        "public.donor_merge_candidates",
+        "donor_merge_candidates_incoming_donor_same_tenant_fk",
+      ],
+      [
+        "public.donor_merge_audit",
+        "donor_merge_audit_surviving_donor_same_tenant_fk",
+      ],
+      [
+        "public.donor_merge_audit",
+        "donor_merge_audit_merged_donor_same_tenant_fk",
+      ],
+    ] as const) {
+      expect(migrationSql).toMatch(
+        scopedConstraintLookup(tableName, constraintName),
+      );
+    }
   });
 
   it("builds public.donors indexes concurrently for live deploy safety", () => {
@@ -59,6 +113,13 @@ describe("donor matching merge candidate migration", () => {
     expect(migrationSql).toContain("CHECK (confidence IN ('possible', 'low'))");
     expect(migrationSql).not.toContain(
       "CHECK (confidence IN ('exact', 'high', 'possible', 'low', 'none'))",
+    );
+  });
+
+  it("does not drop a composite donor index the forward migration may not own", () => {
+    expect(rollbackSql).toContain("Keep donors_tenant_id_id_uidx");
+    expect(rollbackSql).not.toContain(
+      "DROP INDEX IF EXISTS public.donors_tenant_id_id_uidx",
     );
   });
 });

@@ -38,7 +38,10 @@ CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_id_id_uidx
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'donors_merged_requires_tenant_check'
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donors_merged_requires_tenant_check'
+      AND conrelid = 'public.donors'::regclass
   ) THEN
     ALTER TABLE public.donors
       ADD CONSTRAINT donors_merged_requires_tenant_check
@@ -46,12 +49,26 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'donors_merged_into_same_tenant_fk'
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donors_merged_into_same_tenant_fk'
+      AND conrelid = 'public.donors'::regclass
   ) THEN
     ALTER TABLE public.donors
       ADD CONSTRAINT donors_merged_into_same_tenant_fk
       FOREIGN KEY (tenant_id, merged_into_donor_id)
       REFERENCES public.donors (tenant_id, id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donors_merged_into_not_self_check'
+      AND conrelid = 'public.donors'::regclass
+  ) THEN
+    ALTER TABLE public.donors
+      ADD CONSTRAINT donors_merged_into_not_self_check
+      CHECK (merged_into_donor_id IS NULL OR merged_into_donor_id <> id);
   END IF;
 END $$;
 
@@ -86,7 +103,10 @@ CREATE INDEX IF NOT EXISTS donor_merge_candidates_tenant_status_idx
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_candidates_existing_donor_same_tenant_fk'
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donor_merge_candidates_existing_donor_same_tenant_fk'
+      AND conrelid = 'public.donor_merge_candidates'::regclass
   ) THEN
     ALTER TABLE public.donor_merge_candidates
       ADD CONSTRAINT donor_merge_candidates_existing_donor_same_tenant_fk
@@ -95,7 +115,10 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_candidates_incoming_donor_same_tenant_fk'
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donor_merge_candidates_incoming_donor_same_tenant_fk'
+      AND conrelid = 'public.donor_merge_candidates'::regclass
   ) THEN
     ALTER TABLE public.donor_merge_candidates
       ADD CONSTRAINT donor_merge_candidates_incoming_donor_same_tenant_fk
@@ -139,7 +162,10 @@ CREATE INDEX IF NOT EXISTS donor_merge_audit_surviving_idx
 DO $$
 BEGIN
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_audit_surviving_donor_same_tenant_fk'
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donor_merge_audit_surviving_donor_same_tenant_fk'
+      AND conrelid = 'public.donor_merge_audit'::regclass
   ) THEN
     ALTER TABLE public.donor_merge_audit
       ADD CONSTRAINT donor_merge_audit_surviving_donor_same_tenant_fk
@@ -148,7 +174,10 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (
-    SELECT 1 FROM pg_constraint WHERE conname = 'donor_merge_audit_merged_donor_same_tenant_fk'
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donor_merge_audit_merged_donor_same_tenant_fk'
+      AND conrelid = 'public.donor_merge_audit'::regclass
   ) THEN
     ALTER TABLE public.donor_merge_audit
       ADD CONSTRAINT donor_merge_audit_merged_donor_same_tenant_fk
