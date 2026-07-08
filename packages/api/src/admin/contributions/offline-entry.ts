@@ -42,26 +42,29 @@ export interface OfflineEntryDependencies {
       { donorMode: "known" }
     >["donorInput"];
   }) => Promise<{ donorId: string }>;
-  /** Insert the assembled contribution row; returns the new contribution id. */
-  insertContribution: (
+  /**
+   * Persist the assembled contribution row and its matching audit event in one
+   * atomic dependency. The real binding must commit both records together or
+   * fail both; the orchestration deliberately avoids a split insert-then-audit
+   * contract for this money/audit-critical path.
+   */
+  recordContributionWithAudit: (args: {
     row: OfflineContributionRow & {
       tenant_id: string;
       donor_id: string | null;
       entered_by_user_id: string;
       source: "offline";
-    },
-  ) => Promise<{ contributionId: string }>;
-  /** Append the shared contribution-operations audit event. */
-  appendAudit: (event: {
-    tenantId: string;
-    actorProfileId: string;
-    contributionId: string;
-    actionType: "offline_gift_entry";
-    sourceSurface: "offline";
-    donorMode: OfflineContributionRequest["donorMode"];
-    amountCents: number;
-    receivedDate: string;
-  }) => Promise<{ auditEventId: string }>;
+    };
+    audit: {
+      tenantId: string;
+      actorProfileId: string;
+      actionType: "offline_gift_entry";
+      sourceSurface: "offline";
+      donorMode: OfflineContributionRequest["donorMode"];
+      amountCents: number;
+      receivedDate: string;
+    };
+  }) => Promise<{ contributionId: string; auditEventId: string }>;
 }
 
 export interface OfflineEntryResult {
@@ -100,24 +103,25 @@ export async function recordOfflineContribution(args: {
     donorId = resolved.donorId;
   }
 
-  const { contributionId } = await deps.insertContribution({
-    ...row,
-    tenant_id: actor.tenantId,
-    donor_id: donorId,
-    entered_by_user_id: actor.actorProfileId,
-    source: "offline",
-  });
-
-  const { auditEventId } = await deps.appendAudit({
-    tenantId: actor.tenantId,
-    actorProfileId: actor.actorProfileId,
-    contributionId,
-    actionType: "offline_gift_entry",
-    sourceSurface: "offline",
-    donorMode: input.donorMode,
-    amountCents: row.amount_cents,
-    receivedDate: row.received_date,
-  });
+  const { contributionId, auditEventId } =
+    await deps.recordContributionWithAudit({
+      row: {
+        ...row,
+        tenant_id: actor.tenantId,
+        donor_id: donorId,
+        entered_by_user_id: actor.actorProfileId,
+        source: "offline",
+      },
+      audit: {
+        tenantId: actor.tenantId,
+        actorProfileId: actor.actorProfileId,
+        actionType: "offline_gift_entry",
+        sourceSurface: "offline",
+        donorMode: input.donorMode,
+        amountCents: row.amount_cents,
+        receivedDate: row.received_date,
+      },
+    });
 
   return {
     contributionId,
