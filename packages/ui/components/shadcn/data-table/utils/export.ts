@@ -1,3 +1,4 @@
+import { CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 import { format } from "date-fns";
 
 import type { Table, Row, Column } from "@tanstack/react-table";
@@ -16,20 +17,6 @@ export interface ExportOptions<TData> {
 export interface ExportColumn {
   id: string;
   header: string;
-}
-
-function escapeCSVValue(value: string, delimiter: string): string {
-  const stringValue = String(value ?? "");
-  const needsQuotes =
-    stringValue.includes(delimiter) ||
-    stringValue.includes('"') ||
-    stringValue.includes("\n") ||
-    stringValue.includes("\r");
-
-  if (needsQuotes) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
-  }
-  return stringValue;
 }
 
 function getColumnHeader<TData>(column: Column<TData, unknown>): string {
@@ -98,7 +85,7 @@ export function exportToCSV<TData>(
 
   if (includeHeaders) {
     const headerRow = exportColumns
-      .map((column) => escapeCSVValue(getColumnHeader(column), delimiter))
+      .map((column) => csvSafeCell(getColumnHeader(column)))
       .join(delimiter);
     lines.push(headerRow);
   }
@@ -109,10 +96,10 @@ export function exportToCSV<TData>(
       const formatter = formatters[column.id];
 
       if (formatter) {
-        return escapeCSVValue(formatter(value, row.original), delimiter);
+        return csvSafeCell(formatter(value, row.original));
       }
 
-      return escapeCSVValue(formatValue(value), delimiter);
+      return csvSafeCell(formatValue(value));
     });
     lines.push(values.join(delimiter));
   }
@@ -124,7 +111,9 @@ export function downloadCSV(
   csv: string,
   filename: string = "export.csv",
 ): void {
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([CSV_UTF8_BOM + csv], {
+    type: "text/csv;charset=utf-8;",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);
