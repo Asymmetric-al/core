@@ -19,6 +19,10 @@ describe("csvSafeCell — formula injection neutralization", () => {
     expect(csvSafeCell("\t=cmd")).toBe(`"'\t=cmd"`);
   });
 
+  it("neutralizes a formula after leading ordinary spaces", () => {
+    expect(csvSafeCell(" =cmd")).toBe(`"' =cmd"`);
+  });
+
   it("neutralizes leading CR and LF", () => {
     expect(csvSafeCell("\r=cmd")).toBe(`"'\r=cmd"`);
     expect(csvSafeCell("\n=cmd")).toBe(`"'\n=cmd"`);
@@ -28,6 +32,13 @@ describe("csvSafeCell — formula injection neutralization", () => {
     const payload = '=HYPERLINK("http://evil.example","clickme")';
     expect(csvSafeCell(payload)).toBe(
       `"'=HYPERLINK(""http://evil.example"",""clickme"")"`,
+    );
+  });
+
+  it("neutralizes a HYPERLINK payload after a leading ordinary space", () => {
+    const payload = ' =HYPERLINK("http://evil.example","x")';
+    expect(csvSafeCell(payload)).toBe(
+      `"' =HYPERLINK(""http://evil.example"",""x"")"`,
     );
   });
 

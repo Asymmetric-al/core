@@ -49,11 +49,11 @@ function coerceToCellString(value: unknown): string {
  * as a formula on open, so this is CSV / formula injection (OWASP CSV Injection,
  * CWE-1236) on live data — not a hypothetical.
  *
- * Neutralization: if the first character is a formula trigger (`=`, `+`, `-`,
- * `@`, TAB, CR, or LF) the value is prefixed with a single quote so the
- * spreadsheet renders the literal text instead of evaluating it. The field is
- * then always wrapped in double quotes with internal quotes doubled, so callers
- * never have to reason about when quoting is required.
+ * Neutralization: if the first non-space character is a formula trigger (`=`,
+ * `+`, `-`, `@`, TAB, CR, or LF) the value is prefixed with a single quote so
+ * the spreadsheet renders the literal text instead of evaluating it. The field
+ * is then always wrapped in double quotes with internal quotes doubled, so
+ * callers never have to reason about when quoting is required.
  *
  * @example
  * csvSafeCell("=cmd|'/c calc'!A1") // "\"'=cmd|''/c calc''!A1\""
@@ -61,7 +61,12 @@ function coerceToCellString(value: unknown): string {
  */
 export function csvSafeCell(value: unknown): string {
   const raw = coerceToCellString(value);
-  const neutralized = FORMULA_TRIGGER_CHARS.has(raw.charAt(0))
+  let formulaProbeIndex = 0;
+  while (raw.charAt(formulaProbeIndex) === " ") {
+    formulaProbeIndex += 1;
+  }
+
+  const neutralized = FORMULA_TRIGGER_CHARS.has(raw.charAt(formulaProbeIndex))
     ? `'${raw}`
     : raw;
   return `"${neutralized.replace(/"/g, '""')}"`;

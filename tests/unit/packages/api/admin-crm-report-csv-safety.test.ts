@@ -24,8 +24,9 @@ const rows: CrmReportRow[] = [
     donorCount: 1,
     giftCount: 1,
     id: "donor-1",
-    // Donor-controlled name carrying a spreadsheet formula payload.
-    label: '=HYPERLINK("http://evil.example","x")',
+    // Donor-controlled name carrying a spreadsheet formula payload after a
+    // leading ordinary space.
+    label: ' =HYPERLINK("http://evil.example","x")',
     lastGiftAt: "2026-05-10T00:00:00.000Z",
     metadata: {},
     status: "active",
@@ -62,8 +63,8 @@ describe("serializeAdminCrmReportCsv — export hardening", () => {
     expect(csv.slice(1)).toMatch(/^"id","label","amount_cents"/);
   });
 
-  it("neutralizes spreadsheet formula injection in the label column", () => {
-    expect(csv).toContain(`"'=HYPERLINK(""http://evil.example"",""x"")"`);
+  it("neutralizes spreadsheet formula injection after a leading space in the label column", () => {
+    expect(csv).toContain(`"' =HYPERLINK(""http://evil.example"",""x"")"`);
   });
 
   it("preserves non-ASCII donor/org names verbatim", () => {
