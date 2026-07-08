@@ -24,7 +24,15 @@ import {
   type DataTableFilterField,
 } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
-import { DollarSign, Download, Plus, Trash2, Receipt } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  DollarSign,
+  Download,
+  HandCoins,
+  Plus,
+  Trash2,
+  Receipt,
+} from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
@@ -36,6 +44,8 @@ import {
   sourceOptions,
 } from "./data";
 import { ContributionNeedsAttentionPanel } from "./needs-attention-panel";
+import { OfflineGiftEntryDialog } from "./offline-gift/offline-gift-entry-dialog";
+import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution, ContributionStatus } from "./types";
 import type { MissionControlNeedsAttentionGroup } from "@asym/database/hooks";
@@ -74,6 +84,8 @@ const statusShortLabel: Record<ContributionStatus, string> = {
   failed: "Failed",
   refunded: "Refunded",
 };
+
+const OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED = false;
 
 function StatCard({
   label,
@@ -545,7 +557,16 @@ export function ContributionsMainBody({
   );
 }
 
-export function ContributionsPageActions() {
+export function ContributionsPageActions({
+  canManageContributions = false,
+}: {
+  canManageContributions?: boolean;
+} = {}) {
+  const queryClient = useQueryClient();
+  const [offlineEntryOpen, setOfflineEntryOpen] = useState(false);
+  const canShowOfflineGiftEntry =
+    OFFLINE_GIFT_ENTRY_PERSISTENCE_ENABLED && canManageContributions;
+
   const handleExport = () => {
     toast.info("Export coming soon.");
   };
@@ -560,10 +581,27 @@ export function ContributionsPageActions() {
         <Download className="size-4" />
         Export
       </Button>
-      <Button className="h-11 gap-2 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg">
-        <Plus className="size-4" />
-        Add Contribution
-      </Button>
+      {canShowOfflineGiftEntry ? (
+        <>
+          <Button
+            className="h-11 gap-2 px-6 font-semibold uppercase tracking-widest text-[10px] shadow-lg"
+            onClick={() => setOfflineEntryOpen(true)}
+          >
+            <HandCoins className="size-4" />
+            Enter Offline Gift
+          </Button>
+          <OfflineGiftEntryDialog
+            open={offlineEntryOpen}
+            onOpenChange={setOfflineEntryOpen}
+            onRecorded={() => {
+              toast.success("Offline gift recorded.");
+              void queryClient.invalidateQueries({
+                queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
+              });
+            }}
+          />
+        </>
+      ) : null}
     </div>
   );
 }

@@ -192,6 +192,7 @@ export const columns: ColumnDef<Transaction>[] = [
             <Button
               variant="ghost"
               size="sm"
+              nativeButton={false}
               className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg"
               render={
                 <a

@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import { createE2EAuthCookieValue, E2E_AUTH_COOKIE_NAME } from "./e2e-auth";
 
 const originalBypass = process.env.E2E_AUTH_BYPASS;
@@ -79,12 +80,13 @@ describe("getAuthContext E2E bypass", () => {
 
     expect(ctx.isAuthenticated).toBe(true);
     expect(ctx.userId).toBe("e2e-donor-user");
-    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
     expect(ctx.role).toBe("donor");
     expect(ctx.profileRole).toBe("donor");
+    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
+    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
 
-  it("injects default tenant for super_admin E2E bypass when tenantId is null", async () => {
+  it("injects demo tenant and profile for super_admin E2E bypass when ids are null", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -109,10 +111,11 @@ describe("getAuthContext E2E bypass", () => {
     const ctx = await getAuthContext();
 
     expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
+    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
+    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
 
-  it("injects default tenant for staff-capable E2E bypass when tenantId is null", async () => {
+  it("injects demo tenant and profile for staff-capable E2E bypass when ids are null", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -137,10 +140,11 @@ describe("getAuthContext E2E bypass", () => {
     const ctx = await getAuthContext();
 
     expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
+    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
+    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
 
-  it("injects default tenant for donor E2E bypass when tenantId is null", async () => {
+  it("injects demo tenant and profile for donor E2E bypass when ids are null", async () => {
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
@@ -165,7 +169,8 @@ describe("getAuthContext E2E bypass", () => {
     const ctx = await getAuthContext();
 
     expect(ctx.isAuthenticated).toBe(true);
-    expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
+    expect(ctx.tenantId).toBe(DEMO_TENANT_ID);
+    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
 
   it("preserves explicit tenant IDs for donor E2E bypass", async () => {
@@ -194,6 +199,7 @@ describe("getAuthContext E2E bypass", () => {
 
     expect(ctx.isAuthenticated).toBe(true);
     expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000099");
+    expect(ctx.profileId).toBe(DEMO_PROFILE_ID);
   });
 
   it("prefers Supabase session over stale asym_e2e_auth when both are present", async () => {
