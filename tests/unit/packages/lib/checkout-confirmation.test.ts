@@ -80,8 +80,8 @@ describe("decideCheckoutOutcome (server truth only)", () => {
     expect(outcome.description.label).toBe("Processing");
   });
 
-  it("does NOT show confirmation for non-final card or wallet processing states", () => {
-    for (const rail of ["card", "wallet"] as const) {
+  it("does NOT show confirmation for non-final non-ACH processing states", () => {
+    for (const rail of ["card", "wallet", "instant_bank", "unknown"] as const) {
       const outcome = decideCheckoutOutcome({
         paymentIntentStatus: "processing",
         rail,
