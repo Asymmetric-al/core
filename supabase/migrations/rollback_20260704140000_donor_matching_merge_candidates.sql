@@ -8,6 +8,7 @@ DROP TABLE IF EXISTS public.donor_merge_candidates;
 ALTER TABLE public.donors
   DROP CONSTRAINT IF EXISTS donors_merged_into_same_tenant_fk,
   DROP CONSTRAINT IF EXISTS donors_merged_into_not_self_check,
+  DROP CONSTRAINT IF EXISTS donors_merge_timestamp_consistency_check,
   DROP CONSTRAINT IF EXISTS donors_merged_requires_tenant_check;
 
 -- Keep donors_tenant_id_id_uidx: the forward migration uses IF NOT EXISTS,

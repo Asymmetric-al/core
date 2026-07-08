@@ -70,6 +70,20 @@ BEGIN
       ADD CONSTRAINT donors_merged_into_not_self_check
       CHECK (merged_into_donor_id IS NULL OR merged_into_donor_id <> id);
   END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donors_merge_timestamp_consistency_check'
+      AND conrelid = 'public.donors'::regclass
+  ) THEN
+    ALTER TABLE public.donors
+      ADD CONSTRAINT donors_merge_timestamp_consistency_check
+      CHECK (
+        (merged_into_donor_id IS NULL AND merged_at IS NULL)
+        OR (merged_into_donor_id IS NOT NULL AND merged_at IS NOT NULL)
+      );
+  END IF;
 END $$;
 
 -- Fast in-tenant matching on normalized email (§2.1 exact/high-confidence match).

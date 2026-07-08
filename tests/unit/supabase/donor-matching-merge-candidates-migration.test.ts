@@ -69,11 +69,25 @@ describe("donor matching merge candidate migration", () => {
     );
   });
 
+  it("keeps donor merge redirect and timestamp fields consistent", () => {
+    expect(migrationSql).toContain("donors_merge_timestamp_consistency_check");
+    expect(migrationSql).toContain(
+      "(merged_into_donor_id IS NULL AND merged_at IS NULL)",
+    );
+    expect(migrationSql).toContain(
+      "(merged_into_donor_id IS NOT NULL AND merged_at IS NOT NULL)",
+    );
+    expect(rollbackSql).toContain(
+      "DROP CONSTRAINT IF EXISTS donors_merge_timestamp_consistency_check",
+    );
+  });
+
   it("scopes idempotent constraint lookups to each target table", () => {
     for (const [tableName, constraintName] of [
       ["public.donors", "donors_merged_requires_tenant_check"],
       ["public.donors", "donors_merged_into_same_tenant_fk"],
       ["public.donors", "donors_merged_into_not_self_check"],
+      ["public.donors", "donors_merge_timestamp_consistency_check"],
       [
         "public.donor_merge_candidates",
         "donor_merge_candidates_existing_donor_same_tenant_fk",
