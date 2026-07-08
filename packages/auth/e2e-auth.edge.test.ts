@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
+import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
   createE2EAuthCookieValue,
   getE2EAuthCookieNameForProxyHost,
@@ -98,6 +99,21 @@ describe("parseE2EAuthCookieValue", () => {
       userId: "u1",
       role: "staff",
       tenantId: null,
+    });
+  });
+
+  it("round-trips seeded profile and tenant ids", () => {
+    const raw = createE2EAuthCookieValue({
+      userId: "u1",
+      role: "donor",
+      tenantId: DEMO_TENANT_ID,
+      profileId: DEMO_PROFILE_ID,
+    });
+    expect(parseE2EAuthCookieValue(raw)).toEqual({
+      userId: "u1",
+      role: "donor",
+      tenantId: DEMO_TENANT_ID,
+      profileId: DEMO_PROFILE_ID,
     });
   });
 
