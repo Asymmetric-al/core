@@ -129,10 +129,11 @@ function compareCanonicalCandidates(
   if (aCreatedAt !== null && bCreatedAt !== null && aCreatedAt !== bCreatedAt) {
     return aCreatedAt - bCreatedAt;
   }
-  if (aCreatedAt !== null && bCreatedAt === null) return -1;
-  if (aCreatedAt === null && bCreatedAt !== null) return 1;
 
-  return a.donorId.localeCompare(b.donorId);
+  // Preserve caller order when timestamps are missing, invalid, or tied. The
+  // caller may have already ordered candidates by a stronger canonical signal;
+  // UUID order is deterministic but not semantically meaningful.
+  return 0;
 }
 
 /** Signals for a single incoming↔candidate pair (email match handled separately). */

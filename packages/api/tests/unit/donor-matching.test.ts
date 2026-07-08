@@ -207,4 +207,48 @@ describe("resolveDonorMatch — pre-existing duplicate on exact email", () => {
       "00000000-0000-0000-0000-000000000001",
     ]);
   });
+
+  it("preserves caller order for same-email duplicates when creation timestamps are missing", () => {
+    const firstCandidate = candidate({
+      donorId: "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz",
+    });
+    const secondCandidate = candidate({
+      donorId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    });
+
+    const r = resolveDonorMatch({
+      tenantId: TENANT,
+      incoming: incoming(),
+      candidates: [firstCandidate, secondCandidate],
+    });
+
+    expect(r.decision).toBe("attach");
+    expect(r.canonicalDonorId).toBe("zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz");
+    expect(r.mergeCandidateDonorIds).toEqual([
+      "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    ]);
+  });
+
+  it("preserves caller order for same-email duplicates when creation timestamps are invalid", () => {
+    const firstCandidate = {
+      ...candidate({ donorId: "zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz" }),
+      createdAt: "not-a-date",
+    };
+    const secondCandidate = {
+      ...candidate({ donorId: "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa" }),
+      createdAt: "also-not-a-date",
+    };
+
+    const r = resolveDonorMatch({
+      tenantId: TENANT,
+      incoming: incoming(),
+      candidates: [firstCandidate, secondCandidate],
+    });
+
+    expect(r.decision).toBe("attach");
+    expect(r.canonicalDonorId).toBe("zzzzzzzz-zzzz-zzzz-zzzz-zzzzzzzzzzzz");
+    expect(r.mergeCandidateDonorIds).toEqual([
+      "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+    ]);
+  });
 });
