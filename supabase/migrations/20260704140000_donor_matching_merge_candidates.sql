@@ -28,6 +28,50 @@ COMMENT ON COLUMN public.donors.merged_into_donor_id IS
 COMMENT ON COLUMN public.donors.merged_at IS
   'Timestamp the donor record was merged/redirected into the surviving record.';
 
+-- Preserve prior direct-client access to existing donor columns, but do not expose
+-- merge redirect metadata through public.donors.
+DO $$
+DECLARE
+  donor_direct_client_columns TEXT :=
+    'id, tenant_id, profile_id, missionary_id, name, email, phone, mobile, work_phone, ' ||
+    'preferred_contact, avatar_url, location, type, status, giving_preferences, ' ||
+    'total_given, first_gift_date, last_gift_date, last_gift_amount, gift_count, ' ||
+    'frequency, joined_date, tags, score, address, work_address, website, organization, ' ||
+    'title, birthday, anniversary, spouse, notes, do_not_contact, do_not_email, ' ||
+    'receipt_email_frequency, default_update_frequency, preferred_language, ' ||
+    'has_active_pledge, stripe_customer_id, created_at, updated_at';
+BEGIN
+  IF has_table_privilege('anon', 'public.donors', 'SELECT') THEN
+    REVOKE SELECT ON TABLE public.donors FROM anon;
+    EXECUTE format('GRANT SELECT (%s) ON TABLE public.donors TO anon', donor_direct_client_columns);
+  END IF;
+
+  IF has_table_privilege('anon', 'public.donors', 'INSERT') THEN
+    REVOKE INSERT ON TABLE public.donors FROM anon;
+    EXECUTE format('GRANT INSERT (%s) ON TABLE public.donors TO anon', donor_direct_client_columns);
+  END IF;
+
+  IF has_table_privilege('anon', 'public.donors', 'UPDATE') THEN
+    REVOKE UPDATE ON TABLE public.donors FROM anon;
+    EXECUTE format('GRANT UPDATE (%s) ON TABLE public.donors TO anon', donor_direct_client_columns);
+  END IF;
+
+  IF has_table_privilege('authenticated', 'public.donors', 'SELECT') THEN
+    REVOKE SELECT ON TABLE public.donors FROM authenticated;
+    EXECUTE format('GRANT SELECT (%s) ON TABLE public.donors TO authenticated', donor_direct_client_columns);
+  END IF;
+
+  IF has_table_privilege('authenticated', 'public.donors', 'INSERT') THEN
+    REVOKE INSERT ON TABLE public.donors FROM authenticated;
+    EXECUTE format('GRANT INSERT (%s) ON TABLE public.donors TO authenticated', donor_direct_client_columns);
+  END IF;
+
+  IF has_table_privilege('authenticated', 'public.donors', 'UPDATE') THEN
+    REVOKE UPDATE ON TABLE public.donors FROM authenticated;
+    EXECUTE format('GRANT UPDATE (%s) ON TABLE public.donors TO authenticated', donor_direct_client_columns);
+  END IF;
+END $$;
+
 CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_merged_into_donor_id_idx
   ON public.donors (merged_into_donor_id) WHERE merged_into_donor_id IS NOT NULL;
 

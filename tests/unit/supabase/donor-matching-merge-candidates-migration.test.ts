@@ -82,6 +82,31 @@ describe("donor matching merge candidate migration", () => {
     );
   });
 
+  it("keeps donor redirect metadata out of direct client grants", () => {
+    const grantListMatch = migrationSql.match(
+      /donor_direct_client_columns TEXT :=([\s\S]*?);/,
+    );
+    expect(grantListMatch).not.toBeNull();
+
+    const grantList = grantListMatch?.[1] ?? "";
+    expect(grantList).not.toContain("merged_into_donor_id");
+    expect(grantList).not.toContain("merged_at");
+
+    for (const role of ["anon", "authenticated"]) {
+      for (const privilege of ["SELECT", "INSERT", "UPDATE"]) {
+        expect(migrationSql).toContain(
+          `has_table_privilege('${role}', 'public.donors', '${privilege}')`,
+        );
+        expect(migrationSql).toContain(
+          `REVOKE ${privilege} ON TABLE public.donors FROM ${role}`,
+        );
+        expect(migrationSql).toContain(
+          `GRANT ${privilege} (%s) ON TABLE public.donors TO ${role}`,
+        );
+      }
+    }
+  });
+
   it("scopes idempotent constraint lookups to each target table", () => {
     for (const [tableName, constraintName] of [
       ["public.donors", "donors_merged_requires_tenant_check"],
