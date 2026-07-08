@@ -27,3 +27,26 @@ export {
   PUBLIC_WORKER_SELECT,
   assertNoForbiddenPublicColumns,
 } from "./columns";
+
+export type {
+  GiftViewerScope,
+  PrivilegedGiftView,
+  PublicGiftView,
+  RawGiftForView,
+  ReceiptIdentitySnapshot,
+} from "./gift-anonymity";
+
+export {
+  buildReceiptIdentitySnapshot,
+  donorPublicDisplay,
+  isIdentityPrivilegedScope,
+  projectGiftForViewer,
+} from "./gift-anonymity";
+
+export type {
+  DonorMatchDecision,
+  GuestDonorInput,
+  GuestDonorMatchAction,
+} from "./donor-match";
+
+export { resolveGuestDonorMatch } from "./donor-match";
