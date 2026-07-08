@@ -89,6 +89,10 @@ class QueryBuilder {
     return this;
   }
 
+  ilike() {
+    return this;
+  }
+
   in(_column: string, values: unknown[]) {
     this.inValues = values;
     return this;
