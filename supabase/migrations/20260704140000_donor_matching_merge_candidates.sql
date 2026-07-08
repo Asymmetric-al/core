@@ -1,140 +1,22 @@
 -- Donor matching / entity resolution: merge candidates + auditable merge workflow.
--- Source: Conrad blocker answers §2.5–§2.6 (2026-07-04).
+-- Source: Conrad blocker answers section 2.5-2.6 (2026-07-04).
 -- PROTECTED AREA (tenant / donor PII / audit). Requires Gate 4 + Gate 8 human sign-off.
 -- Grounded in public.donors (id UUID PK, tenant_id UUID) from
 -- 20260214090000_foundation_1_schema.sql. Stacks on 20260702120000 (guest giving).
 --
--- Terminology LAW (§2.5): canonical / surviving / primary vs duplicate / secondary /
--- merged. The legacy dominant/subordinate naming is never used. A merged donor is REDIRECTED to the
--- surviving record (merged_into_donor_id), never deleted.
---
--- Design notes:
---   * All ADDs/CREATEs are idempotent (IF NOT EXISTS). Column ADDs on public.donors
---     are nullable with no default → metadata-only, no table rewrite.
---   * A donor is CANONICAL when merged_into_donor_id IS NULL; MERGED otherwise.
---   * Merge audit is append-only history: who/what/when/why/confidence-signals/
---     affected-records (§2.5). Receipts are NOT rewritten by a merge (§2.6); receipt
---     snapshot columns from 20260702120000 stay authoritative and a correction/link
---     is recorded in application logic, not by mutating the snapshot here.
+-- Terminology law: canonical / surviving / primary vs duplicate / secondary /
+-- merged. A merged donor is redirected to the surviving record, never deleted.
+-- Redirect metadata lives in a server-only table so public.donors wildcard reads
+-- do not expose merge relationships.
 
--- 1. Redirect pointer on the duplicate/secondary record (marked merged, not deleted).
-ALTER TABLE public.donors
-  ADD COLUMN IF NOT EXISTS merged_into_donor_id UUID,
-  ADD COLUMN IF NOT EXISTS merged_at TIMESTAMPTZ;
-
-COMMENT ON COLUMN public.donors.merged_into_donor_id IS
-  'Entity resolution (§2.5): when set, this is a MERGED/secondary record redirected to '
-  'the surviving/canonical donor. NULL = canonical record. Never deleted on merge.';
-COMMENT ON COLUMN public.donors.merged_at IS
-  'Timestamp the donor record was merged/redirected into the surviving record.';
-
--- Preserve prior direct-client access to existing donor columns, but do not expose
--- merge redirect metadata through public.donors.
-DO $$
-DECLARE
-  donor_direct_client_columns TEXT :=
-    'id, tenant_id, profile_id, missionary_id, name, email, phone, mobile, work_phone, ' ||
-    'preferred_contact, avatar_url, location, type, status, giving_preferences, ' ||
-    'total_given, first_gift_date, last_gift_date, last_gift_amount, gift_count, ' ||
-    'frequency, joined_date, tags, score, address, work_address, website, organization, ' ||
-    'title, birthday, anniversary, spouse, notes, do_not_contact, do_not_email, ' ||
-    'receipt_email_frequency, default_update_frequency, preferred_language, ' ||
-    'has_active_pledge, stripe_customer_id, created_at, updated_at';
-BEGIN
-  IF has_table_privilege('anon', 'public.donors', 'SELECT') THEN
-    REVOKE SELECT ON TABLE public.donors FROM anon;
-    EXECUTE format('GRANT SELECT (%s) ON TABLE public.donors TO anon', donor_direct_client_columns);
-  END IF;
-
-  IF has_table_privilege('anon', 'public.donors', 'INSERT') THEN
-    REVOKE INSERT ON TABLE public.donors FROM anon;
-    EXECUTE format('GRANT INSERT (%s) ON TABLE public.donors TO anon', donor_direct_client_columns);
-  END IF;
-
-  IF has_table_privilege('anon', 'public.donors', 'UPDATE') THEN
-    REVOKE UPDATE ON TABLE public.donors FROM anon;
-    EXECUTE format('GRANT UPDATE (%s) ON TABLE public.donors TO anon', donor_direct_client_columns);
-  END IF;
-
-  IF has_table_privilege('authenticated', 'public.donors', 'SELECT') THEN
-    REVOKE SELECT ON TABLE public.donors FROM authenticated;
-    EXECUTE format('GRANT SELECT (%s) ON TABLE public.donors TO authenticated', donor_direct_client_columns);
-  END IF;
-
-  IF has_table_privilege('authenticated', 'public.donors', 'INSERT') THEN
-    REVOKE INSERT ON TABLE public.donors FROM authenticated;
-    EXECUTE format('GRANT INSERT (%s) ON TABLE public.donors TO authenticated', donor_direct_client_columns);
-  END IF;
-
-  IF has_table_privilege('authenticated', 'public.donors', 'UPDATE') THEN
-    REVOKE UPDATE ON TABLE public.donors FROM authenticated;
-    EXECUTE format('GRANT UPDATE (%s) ON TABLE public.donors TO authenticated', donor_direct_client_columns);
-  END IF;
-END $$;
-
-CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_merged_into_donor_id_idx
-  ON public.donors (merged_into_donor_id) WHERE merged_into_donor_id IS NOT NULL;
-
--- Composite tenant+id uniqueness lets new references enforce same-tenant donor links.
+-- 1. Shared donor indexes for tenant-safe references and in-tenant matching.
 CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_id_id_uidx
   ON public.donors (tenant_id, id);
 
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'donors_merged_requires_tenant_check'
-      AND conrelid = 'public.donors'::regclass
-  ) THEN
-    ALTER TABLE public.donors
-      ADD CONSTRAINT donors_merged_requires_tenant_check
-      CHECK (merged_into_donor_id IS NULL OR tenant_id IS NOT NULL);
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'donors_merged_into_same_tenant_fk'
-      AND conrelid = 'public.donors'::regclass
-  ) THEN
-    ALTER TABLE public.donors
-      ADD CONSTRAINT donors_merged_into_same_tenant_fk
-      FOREIGN KEY (tenant_id, merged_into_donor_id)
-      REFERENCES public.donors (tenant_id, id);
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'donors_merged_into_not_self_check'
-      AND conrelid = 'public.donors'::regclass
-  ) THEN
-    ALTER TABLE public.donors
-      ADD CONSTRAINT donors_merged_into_not_self_check
-      CHECK (merged_into_donor_id IS NULL OR merged_into_donor_id <> id);
-  END IF;
-
-  IF NOT EXISTS (
-    SELECT 1
-    FROM pg_constraint
-    WHERE conname = 'donors_merge_timestamp_consistency_check'
-      AND conrelid = 'public.donors'::regclass
-  ) THEN
-    ALTER TABLE public.donors
-      ADD CONSTRAINT donors_merge_timestamp_consistency_check
-      CHECK (
-        (merged_into_donor_id IS NULL AND merged_at IS NULL)
-        OR (merged_into_donor_id IS NOT NULL AND merged_at IS NOT NULL)
-      );
-  END IF;
-END $$;
-
--- Fast in-tenant matching on normalized email (§2.1 exact/high-confidence match).
 CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_lower_email_idx
   ON public.donors (tenant_id, lower(email));
 
--- 2. Merge candidates — possible/low matches held for human/agent review (§2.2/§2.4).
+-- 2. Merge candidates: possible/low matches held for human/agent review.
 CREATE TABLE IF NOT EXISTS public.donor_merge_candidates (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),
@@ -150,7 +32,6 @@ CREATE TABLE IF NOT EXISTS public.donor_merge_candidates (
     CHECK (confidence IN ('possible', 'low')),
   CONSTRAINT donor_merge_candidates_status_check
     CHECK (status IN ('open', 'resolved_merged', 'resolved_rejected')),
-  -- A candidate never pairs a record with itself.
   CONSTRAINT donor_merge_candidates_distinct_check
     CHECK (incoming_donor_id IS NULL OR incoming_donor_id <> existing_donor_id)
 );
@@ -191,15 +72,65 @@ REVOKE ALL ON TABLE public.donor_merge_candidates FROM anon, authenticated;
 GRANT ALL ON TABLE public.donor_merge_candidates TO service_role;
 
 COMMENT ON TABLE public.donor_merge_candidates IS
-  'Duplicate-detection review queue (§2.2/§2.4): possible/low matches held for human '
-  'or agent-assisted review. Never an auto-merge.';
+  'Duplicate-detection review queue: possible/low matches held for review. Never an auto-merge.';
 
--- 3. Merge audit — append-only, fully auditable merge history (§2.5).
+-- 3. Redirect records: server-only pointer from merged donor to surviving donor.
+CREATE TABLE IF NOT EXISTS public.donor_merge_redirects (
+  tenant_id UUID NOT NULL REFERENCES public.tenants(id),
+  merged_donor_id UUID NOT NULL,
+  surviving_donor_id UUID NOT NULL,
+  merged_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  CONSTRAINT donor_merge_redirects_pkey PRIMARY KEY (merged_donor_id),
+  CONSTRAINT donor_merge_redirects_distinct_check
+    CHECK (surviving_donor_id <> merged_donor_id)
+);
+
+CREATE INDEX IF NOT EXISTS donor_merge_redirects_tenant_idx
+  ON public.donor_merge_redirects (tenant_id, merged_at);
+CREATE INDEX IF NOT EXISTS donor_merge_redirects_surviving_idx
+  ON public.donor_merge_redirects (surviving_donor_id);
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donor_merge_redirects_merged_donor_same_tenant_fk'
+      AND conrelid = 'public.donor_merge_redirects'::regclass
+  ) THEN
+    ALTER TABLE public.donor_merge_redirects
+      ADD CONSTRAINT donor_merge_redirects_merged_donor_same_tenant_fk
+      FOREIGN KEY (tenant_id, merged_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_constraint
+    WHERE conname = 'donor_merge_redirects_surviving_donor_same_tenant_fk'
+      AND conrelid = 'public.donor_merge_redirects'::regclass
+  ) THEN
+    ALTER TABLE public.donor_merge_redirects
+      ADD CONSTRAINT donor_merge_redirects_surviving_donor_same_tenant_fk
+      FOREIGN KEY (tenant_id, surviving_donor_id)
+      REFERENCES public.donors (tenant_id, id);
+  END IF;
+END $$;
+
+ALTER TABLE public.donor_merge_redirects ENABLE ROW LEVEL SECURITY;
+
+REVOKE ALL ON TABLE public.donor_merge_redirects FROM anon, authenticated;
+GRANT ALL ON TABLE public.donor_merge_redirects TO service_role;
+
+COMMENT ON TABLE public.donor_merge_redirects IS
+  'Server-only donor merge redirects. Keeps merge metadata out of public.donors wildcard reads.';
+
+-- 4. Merge audit: append-only, fully auditable merge history.
 CREATE TABLE IF NOT EXISTS public.donor_merge_audit (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tenant_id UUID NOT NULL REFERENCES public.tenants(id),
-  surviving_donor_id UUID NOT NULL, -- canonical / primary
-  merged_donor_id UUID NOT NULL,    -- duplicate / secondary
+  surviving_donor_id UUID NOT NULL,
+  merged_donor_id UUID NOT NULL,
   actor_id UUID NOT NULL,
   actor_type TEXT NOT NULL,
   reason TEXT NOT NULL,
@@ -250,6 +181,4 @@ REVOKE ALL ON TABLE public.donor_merge_audit FROM anon, authenticated;
 GRANT ALL ON TABLE public.donor_merge_audit TO service_role;
 
 COMMENT ON TABLE public.donor_merge_audit IS
-  'Auditable merge history (§2.5): who/what/when/why/confidence-signals/affected-records. '
-  'Append-only. A merge marks the duplicate redirected (donors.merged_into_donor_id), '
-  'never deleted, and never rewrites receipt snapshots (§2.6).';
+  'Auditable merge history: who/what/when/why/confidence-signals/affected-records. Append-only.';

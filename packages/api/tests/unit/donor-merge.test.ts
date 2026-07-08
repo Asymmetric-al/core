@@ -96,9 +96,10 @@ describe("planDonorMerge — auditable, marks duplicate merged/redirected not de
       ...base,
       confidenceSignals: [...base.confidenceSignals],
     });
-    expect(plan.mergedRecordUpdate.donorId).toBe("donor-2");
-    expect(plan.mergedRecordUpdate.recordStatus).toBe("merged");
-    expect(plan.mergedRecordUpdate.mergedIntoDonorId).toBe("donor-1"); // redirect pointer
+    expect(plan.redirectRecord.tenantId).toBe("tenant-a");
+    expect(plan.redirectRecord.mergedDonorId).toBe("donor-2");
+    expect(plan.redirectRecord.survivingDonorId).toBe("donor-1");
+    expect(plan.redirectRecord.mergedAt).toBe("2026-07-04T12:00:00Z");
     // there is no delete anywhere in the plan
     expect(JSON.stringify(plan)).not.toMatch(/delete/i);
   });

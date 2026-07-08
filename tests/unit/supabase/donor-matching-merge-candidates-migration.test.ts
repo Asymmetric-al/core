@@ -28,8 +28,12 @@ function scopedConstraintLookup(
 }
 
 describe("donor matching merge candidate migration", () => {
-  it("keeps merge candidate and audit tables server-only behind RLS", () => {
-    for (const tableName of ["donor_merge_candidates", "donor_merge_audit"]) {
+  it("keeps merge candidate, redirect, and audit tables server-only behind RLS", () => {
+    for (const tableName of [
+      "donor_merge_candidates",
+      "donor_merge_redirects",
+      "donor_merge_audit",
+    ]) {
       expect(migrationSql).toContain(
         `ALTER TABLE public.${tableName} ENABLE ROW LEVEL SECURITY`,
       );
@@ -45,7 +49,6 @@ describe("donor matching merge candidate migration", () => {
   it("enforces that every donor reference belongs to the row tenant", () => {
     expect(migrationSql).toContain("donors_tenant_id_id_uidx");
     for (const donorIdColumn of [
-      "merged_into_donor_id",
       "existing_donor_id",
       "incoming_donor_id",
       "surviving_donor_id",
@@ -59,60 +62,43 @@ describe("donor matching merge candidate migration", () => {
     }
   });
 
-  it("blocks donors from redirecting to themselves", () => {
-    expect(migrationSql).toContain("donors_merged_into_not_self_check");
+  it("keeps donor redirect metadata off the public donors row shape", () => {
+    expect(migrationSql).not.toContain(
+      "ADD COLUMN IF NOT EXISTS merged_into_donor_id",
+    );
+    expect(migrationSql).not.toContain("ADD COLUMN IF NOT EXISTS merged_at");
     expect(migrationSql).toContain(
-      "CHECK (merged_into_donor_id IS NULL OR merged_into_donor_id <> id)",
+      "CREATE TABLE IF NOT EXISTS public.donor_merge_redirects",
+    );
+    expect(migrationSql).toContain(
+      "merged_at TIMESTAMPTZ NOT NULL DEFAULT now()",
     );
     expect(rollbackSql).toContain(
-      "DROP CONSTRAINT IF EXISTS donors_merged_into_not_self_check",
+      "DROP TABLE IF EXISTS public.donor_merge_redirects",
+    );
+    expect(rollbackSql).not.toContain("DROP COLUMN IF EXISTS merged_at");
+    expect(rollbackSql).not.toContain(
+      "DROP COLUMN IF EXISTS merged_into_donor_id",
     );
   });
 
-  it("keeps donor merge redirect and timestamp fields consistent", () => {
-    expect(migrationSql).toContain("donors_merge_timestamp_consistency_check");
+  it("blocks redirect rows from pointing at themselves", () => {
+    expect(migrationSql).toContain("donor_merge_redirects_distinct_check");
     expect(migrationSql).toContain(
-      "(merged_into_donor_id IS NULL AND merged_at IS NULL)",
+      "CHECK (surviving_donor_id <> merged_donor_id)",
     );
-    expect(migrationSql).toContain(
-      "(merged_into_donor_id IS NOT NULL AND merged_at IS NOT NULL)",
-    );
-    expect(rollbackSql).toContain(
-      "DROP CONSTRAINT IF EXISTS donors_merge_timestamp_consistency_check",
-    );
-  });
-
-  it("keeps donor redirect metadata out of direct client grants", () => {
-    const grantListMatch = migrationSql.match(
-      /donor_direct_client_columns TEXT :=([\s\S]*?);/,
-    );
-    expect(grantListMatch).not.toBeNull();
-
-    const grantList = grantListMatch?.[1] ?? "";
-    expect(grantList).not.toContain("merged_into_donor_id");
-    expect(grantList).not.toContain("merged_at");
-
-    for (const role of ["anon", "authenticated"]) {
-      for (const privilege of ["SELECT", "INSERT", "UPDATE"]) {
-        expect(migrationSql).toContain(
-          `has_table_privilege('${role}', 'public.donors', '${privilege}')`,
-        );
-        expect(migrationSql).toContain(
-          `REVOKE ${privilege} ON TABLE public.donors FROM ${role}`,
-        );
-        expect(migrationSql).toContain(
-          `GRANT ${privilege} (%s) ON TABLE public.donors TO ${role}`,
-        );
-      }
-    }
   });
 
   it("scopes idempotent constraint lookups to each target table", () => {
     for (const [tableName, constraintName] of [
-      ["public.donors", "donors_merged_requires_tenant_check"],
-      ["public.donors", "donors_merged_into_same_tenant_fk"],
-      ["public.donors", "donors_merged_into_not_self_check"],
-      ["public.donors", "donors_merge_timestamp_consistency_check"],
+      [
+        "public.donor_merge_redirects",
+        "donor_merge_redirects_merged_donor_same_tenant_fk",
+      ],
+      [
+        "public.donor_merge_redirects",
+        "donor_merge_redirects_surviving_donor_same_tenant_fk",
+      ],
       [
         "public.donor_merge_candidates",
         "donor_merge_candidates_existing_donor_same_tenant_fk",
@@ -137,9 +123,7 @@ describe("donor matching merge candidate migration", () => {
   });
 
   it("builds public.donors indexes concurrently for live deploy safety", () => {
-    expect(migrationSql).toContain(
-      "CREATE INDEX CONCURRENTLY IF NOT EXISTS donors_merged_into_donor_id_idx",
-    );
+    expect(migrationSql).not.toContain("donors_merged_into_donor_id_idx");
     expect(migrationSql).toContain(
       "CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS donors_tenant_id_id_uidx",
     );

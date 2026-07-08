@@ -23,8 +23,6 @@ export type MergeCandidateStatus =
   | "resolved_merged"
   | "resolved_rejected";
 export type MergeActorType = "staff" | "agent";
-/** A donor record is either the CANONICAL/surviving record or a MERGED/secondary one. */
-export type DonorRecordStatus = "canonical" | "merged";
 export type ReviewableDonorMatchConfidence = Extract<
   DonorMatchConfidence,
   "possible" | "low"
@@ -97,13 +95,13 @@ export interface DonorMergeAudit {
 export interface DonorMergePlan {
   audit: DonorMergeAudit;
   /**
-   * The DUPLICATE record is marked merged and REDIRECTED to the surviving
-   * record — never deleted (§2.5). Downstream reads follow the redirect.
+   * The DUPLICATE record gets a server-only REDIRECT row to the surviving
+   * record. Public donor rows are never deleted or stamped with merge metadata.
    */
-  mergedRecordUpdate: {
-    donorId: string;
-    recordStatus: Extract<DonorRecordStatus, "merged">;
-    mergedIntoDonorId: string;
+  redirectRecord: {
+    tenantId: string;
+    mergedDonorId: string;
+    survivingDonorId: string;
     mergedAt: string;
   };
   survivingDonorId: string;
@@ -154,10 +152,10 @@ export function planDonorMerge(input: {
       affectedRecords: { ...input.affectedRecords },
       decidedAt: input.decidedAt,
     },
-    mergedRecordUpdate: {
-      donorId: merged,
-      recordStatus: "merged",
-      mergedIntoDonorId: surviving, // redirect pointer, not a delete
+    redirectRecord: {
+      tenantId,
+      mergedDonorId: merged,
+      survivingDonorId: surviving,
       mergedAt: input.decidedAt,
     },
     survivingDonorId: surviving,
