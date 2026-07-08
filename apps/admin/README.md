@@ -49,8 +49,9 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Then open `http://localhost:3030`. The setup command writes only gitignored
-`.env.local` placeholders for Cloud Agent development:
+Then open `http://localhost:3030`. The setup command installs dependencies,
+runs `bun run skills:verify`, and writes gitignored `.env.local` placeholders
+for Cloud Agent development:
 
 - `SKIP_ENV_VALIDATION=1`
 - `E2E_AUTH_BYPASS=true`
@@ -65,23 +66,23 @@ that local choice.
 Replace the Supabase placeholders with real project values when you need live
 data, auth, or database-backed admin workflows.
 
-### Regular local setup
+### Root-level admin commands
 
 ```bash
-# Install dependencies
-bun install
+# From the repo root
+bun run setup:mission-control:cloud
 
 # Run development server
 bun run dev:admin
 
 # Build for production
-bun build
+bun run build:admin
 
 # Type check
-bun typecheck
+bun run typecheck:admin
 
 # Lint
-bun lint
+bun run lint:admin
 ```
 
 ## Structure
