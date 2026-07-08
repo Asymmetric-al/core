@@ -19,11 +19,23 @@ if (process.platform === "win32") {
     new URL("./bun-version.mjs", import.meta.url),
   );
 
-  const bunVersionStatus =
-    spawnSync(process.execPath, [bunVersionScriptPath], {
-      shell: false,
+  let bunVersionResult = spawnSync(process.execPath, [bunVersionScriptPath], {
+    shell: false,
+    stdio: "inherit",
+  });
+
+  if (bunVersionResult.error) {
+    bunVersionResult = spawnSync("bun", ["run", "verify:bun-version"], {
+      shell: process.platform === "win32",
       stdio: "inherit",
-    }).status ?? 1;
+    });
+  }
+
+  if (bunVersionResult.error) {
+    throw bunVersionResult.error;
+  }
+
+  const bunVersionStatus = bunVersionResult.status ?? 1;
 
   if (bunVersionStatus !== 0) {
     process.exit(bunVersionStatus);
