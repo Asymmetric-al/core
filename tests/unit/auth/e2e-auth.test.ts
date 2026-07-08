@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import {
   createE2EAuthCookieValue,
+  hasE2EAuthSecret,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "../../../packages/auth/e2e-auth";
@@ -13,6 +14,7 @@ import {
 const originalBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
 const originalSecret = process.env.E2E_AUTH_SECRET;
+const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 
 describe("e2e auth helpers", () => {
   beforeEach(() => {
@@ -26,6 +28,11 @@ describe("e2e auth helpers", () => {
       delete process.env.E2E_AUTH_SECRET;
     } else {
       process.env.E2E_AUTH_SECRET = originalSecret;
+    }
+    if (originalSupabaseUrl === undefined) {
+      delete process.env.NEXT_PUBLIC_SUPABASE_URL;
+    } else {
+      process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
     }
   });
 
@@ -64,5 +71,20 @@ describe("e2e auth helpers", () => {
 
     process.env.NODE_ENV = "production";
     expect(isE2EAuthBypassEnabled()).toBe(false);
+  });
+
+  it("rejects explicit E2E auth secrets shorter than the signing key floor", async () => {
+    process.env.E2E_AUTH_SECRET = "too-short";
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://realproj12345.supabase.co";
+
+    expect(hasE2EAuthSecret()).toBe(false);
+    await expect(
+      createE2EAuthCookieValue({
+        userId: "e2e-donor-user",
+        role: "donor",
+        tenantId: DEMO_TENANT_ID,
+        profileId: DEMO_PROFILE_ID,
+      }),
+    ).rejects.toThrow(/E2E_AUTH_SECRET/);
   });
 });

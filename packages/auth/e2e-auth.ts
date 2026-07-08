@@ -64,6 +64,7 @@ export function getE2EAuthCookieNameForProxyHost(
   return null;
 }
 const E2E_AUTH_BYPASS_VALUES = new Set(["1", "true"]);
+const E2E_AUTH_MIN_SECRET_LENGTH = 16;
 const USER_ROLES: readonly UserRole[] = [
   "donor",
   "missionary",
@@ -133,7 +134,9 @@ const E2E_AUTH_DEV_FALLBACK_SECRET =
  */
 function getE2EAuthSecret(): string | null {
   const explicit = process.env.E2E_AUTH_SECRET?.trim();
-  if (explicit) return explicit;
+  if (explicit) {
+    return explicit.length >= E2E_AUTH_MIN_SECRET_LENGTH ? explicit : null;
+  }
   if (isNonConfidentialE2EDatasource(process.env.NEXT_PUBLIC_SUPABASE_URL)) {
     return E2E_AUTH_DEV_FALLBACK_SECRET;
   }

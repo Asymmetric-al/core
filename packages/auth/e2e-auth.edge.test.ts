@@ -191,7 +191,7 @@ describe("parseE2EAuthCookieValue", () => {
   });
 
   it("rejects a token signed with a different secret", async () => {
-    process.env.E2E_AUTH_SECRET = "attacker-secret";
+    process.env.E2E_AUTH_SECRET = "attacker-secret-key";
     const forged = await createE2EAuthCookieValue({
       userId: "u1",
       role: "super_admin",

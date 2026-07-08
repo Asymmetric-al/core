@@ -86,6 +86,10 @@ const requireCloudinaryWhenEnabled = (variableName: string) =>
       }
     });
 
+const skipEnvValidation =
+  process.env.SKIP_ENV_VALIDATION === "1" ||
+  process.env.SKIP_ENV_VALIDATION === "true";
+
 const resendApiKeySchema = requireInProtectedDeployments(
   "RESEND_API_KEY",
 ).refine(
@@ -437,14 +441,12 @@ export const env = createEnv({
       process.env.NEXT_PUBLIC_VIEW_TRANSITIONS_ENABLED,
     NEXT_PUBLIC_DONOR_URL: process.env.NEXT_PUBLIC_DONOR_URL,
   },
-  skipValidation:
-    process.env.SKIP_ENV_VALIDATION === "1" ||
-    process.env.SKIP_ENV_VALIDATION === "true",
+  skipValidation: skipEnvValidation,
   emptyStringAsUndefined: true,
 });
 
 if (
-  !process.env.SKIP_ENV_VALIDATION &&
+  !skipEnvValidation &&
   !env.NEXT_PUBLIC_SUPABASE_ANON_KEY &&
   !env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ) {
@@ -459,7 +461,7 @@ if (
 // targets report NODE_ENV !== "production", so gate on deployment identity here too.
 const e2eAuthBypassRaw = process.env.E2E_AUTH_BYPASS?.trim().toLowerCase();
 if (
-  !process.env.SKIP_ENV_VALIDATION &&
+  !skipEnvValidation &&
   isProtectedRuntimeDeployment &&
   (e2eAuthBypassRaw === "true" || e2eAuthBypassRaw === "1")
 ) {
