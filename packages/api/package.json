@@ -17,6 +17,8 @@
     "./auth/signout": "./src/auth/signout.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
     "./donate": "./src/donate/index.ts",
+    "./donate/guest/donor-matching": "./src/donate/guest/donor-matching.ts",
+    "./donate/guest/donor-merge": "./src/donate/guest/donor-merge.ts",
     "./donate/outbox": "./src/donate/outbox.ts",
     "./donations": "./src/donations/index.ts",
     "./donor-portal": "./src/donor-portal/index.ts",
