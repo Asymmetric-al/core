@@ -52,6 +52,18 @@ describe("confirmCheckoutPayment", () => {
     expect(result.outcome.state).toBe("processing");
   });
 
+  it("keeps non-final card processing on the payment step", async () => {
+    const transport = vi
+      .fn()
+      .mockResolvedValue({ paymentIntentStatus: "processing" });
+    const result = await confirmCheckoutPayment(baseRequest, { transport });
+
+    expect(result.ok).toBe(false);
+    expect(result.outcome.isSuccess).toBe(false);
+    expect(result.outcome.showConfirmation).toBe(false);
+    expect(result.outcome.state).toBe("processing");
+  });
+
   it("never fabricates success when the transport reports a non-succeeded status", async () => {
     const transport = vi
       .fn()
