@@ -7,6 +7,8 @@ const originalBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
 const originalSupabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const originalSupabaseAnon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const originalSecret = process.env.E2E_AUTH_SECRET;
+const originalAllowlist = process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
 
 const mockedCreateServerClient = vi.hoisted(() => vi.fn());
 const mockedGetSupabasePublicConfig = vi.hoisted(() => vi.fn());
@@ -38,6 +40,8 @@ describe("getAuthContext E2E bypass", () => {
     process.env.NODE_ENV = "development";
     process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = "example-anon-key";
+    process.env.E2E_AUTH_SECRET = "context-test-e2e-secret";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
     mockedGetSupabasePublicConfig.mockReturnValue({
       url: "https://example.supabase.co",
       key: "example-anon-key",
@@ -50,6 +54,8 @@ describe("getAuthContext E2E bypass", () => {
     process.env.NODE_ENV = originalNodeEnv;
     process.env.NEXT_PUBLIC_SUPABASE_URL = originalSupabaseUrl;
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY = originalSupabaseAnon;
+    process.env.E2E_AUTH_SECRET = originalSecret;
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = originalAllowlist;
     vi.resetModules();
     vi.clearAllMocks();
   });
@@ -61,7 +67,7 @@ describe("getAuthContext E2E bypass", () => {
       },
     });
 
-    const value = createE2EAuthCookieValue({
+    const value = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
       tenantId: null,
@@ -93,7 +99,7 @@ describe("getAuthContext E2E bypass", () => {
       },
     });
 
-    const value = createE2EAuthCookieValue({
+    const value = await createE2EAuthCookieValue({
       userId: "e2e-super",
       role: "super_admin",
       tenantId: null,
@@ -122,7 +128,7 @@ describe("getAuthContext E2E bypass", () => {
       },
     });
 
-    const value = createE2EAuthCookieValue({
+    const value = await createE2EAuthCookieValue({
       userId: "e2e-admin-user",
       role: "admin",
       tenantId: null,
@@ -151,7 +157,7 @@ describe("getAuthContext E2E bypass", () => {
       },
     });
 
-    const value = createE2EAuthCookieValue({
+    const value = await createE2EAuthCookieValue({
       userId: "e2e-donor",
       role: "donor",
       tenantId: null,
@@ -180,7 +186,7 @@ describe("getAuthContext E2E bypass", () => {
       },
     });
 
-    const value = createE2EAuthCookieValue({
+    const value = await createE2EAuthCookieValue({
       userId: "e2e-donor",
       role: "donor",
       tenantId: "00000000-0000-0000-0000-000000000099",
@@ -203,7 +209,7 @@ describe("getAuthContext E2E bypass", () => {
   });
 
   it("prefers Supabase session over stale asym_e2e_auth when both are present", async () => {
-    const e2eValue = createE2EAuthCookieValue({
+    const e2eValue = await createE2EAuthCookieValue({
       userId: "e2e-stale-user",
       role: "super_admin",
       tenantId: "00000000-0000-0000-0000-000000000099",
@@ -257,5 +263,30 @@ describe("getAuthContext E2E bypass", () => {
     expect(ctx.profileId).toBe("profile-real");
     expect(ctx.tenantId).toBe("00000000-0000-0000-0000-000000000001");
     expect(ctx.role).toBe("staff");
+  });
+
+  it("throws when bypass is enabled against a non-allowlisted datasource", async () => {
+    // Allowlist has only "example"; point config at a production-looking ref.
+    mockedGetSupabasePublicConfig.mockReturnValue({
+      url: "https://prodxxxx.supabase.co",
+      key: "example-anon-key",
+      keyType: "anon",
+    });
+    mockedCreateServerClient.mockReturnValue({
+      auth: {
+        getUser: vi.fn().mockResolvedValue({ data: { user: null } }),
+      },
+    });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+
+    const { cookies } = await import("next/headers");
+    vi.mocked(cookies).mockResolvedValue({
+      get: () => undefined,
+      getAll: () => [],
+      set: vi.fn(),
+    } as never);
+
+    const { getAuthContext } = await import("./context");
+    await expect(getAuthContext()).rejects.toThrow(/allowlisted/i);
   });
 });
