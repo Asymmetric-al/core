@@ -13,7 +13,13 @@
  *    its selected-count display is disabled (the focused-subscription win).
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from "@testing-library/react";
 import * as React from "react";
 import {
   afterAll,
@@ -104,6 +110,14 @@ function renderPeopleTable() {
   );
 }
 
+async function chooseRowsPerPage(pageSize: string) {
+  fireEvent.mouseDown(screen.getByRole("combobox"));
+  const option = await screen.findByRole("option", { name: pageSize });
+
+  fireEvent.pointerDown(option, { pointerType: "mouse", buttons: 1 });
+  fireEvent.click(option);
+}
+
 describe("memoized pagination chrome behavior", () => {
   it("pages forward and backward and changes the page size", async () => {
     renderPeopleTable();
@@ -118,10 +132,11 @@ describe("memoized pagination chrome behavior", () => {
     );
     expect(screen.getByText("Page 1 of 2")).toBeTruthy();
 
-    fireEvent.click(screen.getByRole("combobox"));
-    fireEvent.click(await screen.findByRole("option", { name: "20" }));
+    await chooseRowsPerPage("20");
 
-    expect(screen.getByText("Page 1 of 1")).toBeTruthy();
+    await waitFor(() => {
+      expect(screen.getByText("Page 1 of 1")).toBeTruthy();
+    });
     expect(screen.getByText("Mallory")).toBeTruthy();
     expect(screen.getByText("Grace")).toBeTruthy();
   });

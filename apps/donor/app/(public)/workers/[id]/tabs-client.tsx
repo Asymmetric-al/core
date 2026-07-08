@@ -27,10 +27,10 @@ export function TabsClient({ storyContent, updatesContent }: TabsClientProps) {
           className={cn(
             "relative h-auto flex-none rounded-none border-0 bg-transparent px-0 pt-0 pb-3 text-base font-semibold text-muted-foreground shadow-none transition-colors",
             "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:text-foreground",
-            "data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none",
+            "data-active:bg-transparent data-active:text-foreground data-active:shadow-none",
             "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5",
             "after:bg-transparent after:transition-colors",
-            "data-[state=active]:after:bg-foreground",
+            "data-active:after:bg-foreground",
           )}
         >
           Our Story
@@ -40,10 +40,10 @@ export function TabsClient({ storyContent, updatesContent }: TabsClientProps) {
           className={cn(
             "relative h-auto flex-none items-center gap-2 rounded-none border-0 bg-transparent px-0 pt-0 pb-3 text-base font-semibold text-muted-foreground shadow-none transition-colors",
             "hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background focus-visible:text-foreground",
-            "data-[state=active]:bg-transparent data-[state=active]:text-foreground data-[state=active]:shadow-none",
+            "data-active:bg-transparent data-active:text-foreground data-active:shadow-none",
             "after:absolute after:bottom-0 after:left-0 after:right-0 after:h-0.5",
             "after:bg-transparent after:transition-colors",
-            "data-[state=active]:after:bg-foreground",
+            "data-active:after:bg-foreground",
           )}
         >
           Field Journal

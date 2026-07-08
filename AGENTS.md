@@ -229,6 +229,18 @@ This repo configures the official Inngest dev-server MCP endpoint in root `.mcp.
 - **Scope:** This is agent tooling only. It does not mean this repo has adopted Inngest product runtime code, dependencies, or env vars.
 - **Claude Code:** The official Claude Code plugin can provide its own Inngest tooling and MCP wiring; repo MCP config is available when the client reads `.mcp.json`.
 
+## ReUI MCP (agent tooling)
+
+This repo configures the free ReUI MCP endpoint as `reui` in root `.mcp.json`, `.cursor/mcp.json`, and `.codex/config.toml`.
+
+- **Endpoint:** `https://mcp.reui.io` (Streamable HTTP).
+- **Scope:** Use it for ReUI registry discovery, scored search, inline component APIs, page planning, and usage validation.
+- **License:** The MCP server does not use a license key. Free `@reui` installs use the plain-string registry in `packages/ui/components.json`. Premium installs temporarily need the authenticated `@reui` object form plus `REUI_LICENSE_KEY` in git-ignored `.env.local` (see `docs/ai/skills/reui/rules/cli.md`).
+- **Not shadcn-studio `/rui`:** ReUI (`@reui`) is separate from shadcn-studio Refine UI (`/rui` in `docs/ai/rules/shadcn-studio-mcp.md`).
+- **Claude Code:** Claude Code reads the repo-root `.mcp.json`.
+- **Cursor:** Cursor reads `.cursor/mcp.json`, which mirrors the repo-root MCP server definitions.
+- **Codex:** Codex reads `.codex/config.toml` for repo-local MCP server definitions.
+
 ### TanStack CLI and Intent
 
 For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
@@ -315,6 +327,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
 - **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
+- **ReUI registry components, examples, blocks, Motion Icons, or ReUI MCP workflows:** `docs/ai/skills/reui/SKILL.md` (vendored from ReUI agent skills; mirrored into `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 - **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **npm / pnpm / Yarn / Bun dependency footprint cleanup (unused deps, dedupe, lockfile closure, e18e):** `docs/ai/skills/npm-deps-cleanup/SKILL.md`

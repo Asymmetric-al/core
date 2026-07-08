@@ -83,8 +83,13 @@ describe("useAdminCrmRelationshipsGrid query key", () => {
     // The normalized key must map back to the existing fresh cache entry,
     // so no new query (and no refetch within staleTime) is created.
     act(() => result.current.onDomainToggle("people"));
-    await act(async () => {
-      await Promise.resolve();
+
+    await waitFor(() => {
+      const queries = queryClient.getQueryCache().getAll();
+      expect(queries).toHaveLength(4);
+      expect(queries.every((query) => query.state.fetchStatus === "idle")).toBe(
+        true,
+      );
     });
 
     expect(queryClient.getQueryCache().getAll()).toHaveLength(4);

@@ -183,13 +183,13 @@ export function TasksFilterSection({
             <TabsList className="bg-zinc-100/80 p-1 h-11 rounded-xl border border-zinc-200/50">
               <TabsTrigger
                 value="all"
-                className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="rounded-lg px-4 text-xs font-semibold data-active:bg-white data-active:shadow-sm"
               >
                 All Missions
               </TabsTrigger>
               <TabsTrigger
                 value="my"
-                className="rounded-lg px-4 text-xs font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
+                className="rounded-lg px-4 text-xs font-semibold data-active:bg-white data-active:shadow-sm"
               >
                 My Work
               </TabsTrigger>
@@ -197,15 +197,17 @@ export function TasksFilterSection({
           </Tabs>
 
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                className="h-11 gap-2 rounded-xl border-zinc-200 text-xs font-semibold"
-              >
-                <ListFilter className="size-4 text-zinc-500" />
-                Display
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="outline"
+                  className="h-11 gap-2 rounded-xl border-zinc-200 text-xs font-semibold"
+                >
+                  <ListFilter className="size-4 text-zinc-500" />
+                  Display
+                </Button>
+              }
+            />
             <DropdownMenuContent
               align="end"
               className="w-56 rounded-2xl border-zinc-100 p-2 shadow-xl"

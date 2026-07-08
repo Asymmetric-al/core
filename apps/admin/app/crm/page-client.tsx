@@ -17,7 +17,7 @@ import {
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   DataTableResponsive,
   type DataTableFilterField,
@@ -302,24 +302,36 @@ export default function MissionControlCRM() {
             <Button className="h-10 gap-2 rounded-xl bg-primary px-5 text-sm font-semibold text-primary-foreground shadow-sm hover:bg-primary/90">
               <Plus className="size-3.5" /> New Record
             </Button>
-            <Button variant="outline" className="h-11 gap-2" asChild>
-              <Link href="/crm/relationships">
-                <Network className="h-4 w-4" />
-                Relationships
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-11 gap-2" asChild>
-              <Link href="/crm/notes">
-                <StickyNote className="h-4 w-4" />
-                Notes
-              </Link>
-            </Button>
-            <Button variant="outline" className="h-11 gap-2" asChild>
-              <Link href="/crm/projections">
-                <GitCompareArrows className="h-4 w-4" />
-                Projections
-              </Link>
-            </Button>
+            <Link
+              href="/crm/relationships"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 gap-2",
+              )}
+            >
+              <Network className="h-4 w-4" />
+              Relationships
+            </Link>
+            <Link
+              href="/crm/notes"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 gap-2",
+              )}
+            >
+              <StickyNote className="h-4 w-4" />
+              Notes
+            </Link>
+            <Link
+              href="/crm/projections"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "h-11 gap-2",
+              )}
+            >
+              <GitCompareArrows className="h-4 w-4" />
+              Projections
+            </Link>
           </div>
         }
       >

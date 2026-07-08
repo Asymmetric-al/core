@@ -40,6 +40,10 @@
       "types": "./hooks/index.ts",
       "default": "./hooks/index.ts"
     },
+    "./hooks/missionary-donors-model": {
+      "types": "./hooks/missionary-donors-model.ts",
+      "default": "./hooks/missionary-donors-model.ts"
+    },
     "./providers": {
       "types": "./providers/index.ts",
       "default": "./providers/index.ts"

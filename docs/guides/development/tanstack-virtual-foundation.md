@@ -84,7 +84,7 @@ const getRowKey = React.useCallback(
 ### 3) Custom Lists
 
 - Hook must target the real scroll element.
-- For Radix `ScrollArea`, locate the viewport element and pass that to the hook.
+- For the shared `ScrollArea` (Base UI), locate the viewport element and pass that to the hook.
 - For dynamic-height list items, call `virtualizer.measureElement` on item wrappers.
 
 ## Performance Guardrails

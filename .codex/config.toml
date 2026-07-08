@@ -12,3 +12,6 @@ args = [
     "shadcn@latest",
     "mcp",
 ]
+
+[mcp_servers.reui]
+url = "https://mcp.reui.io"

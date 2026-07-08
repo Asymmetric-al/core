@@ -42,9 +42,15 @@ in every workspace that consumes it (`apps/admin`, `apps/donor`,
   "TanStack Table v9 (beta) source verification" rule before trusting any
   Table doc.
 
-**Consequences:** stable-release upgrade later should be a version bump plus a
-review of beta-era spellings; until then, contributors must verify Table API
-questions against the installed package typings or the beta branch docs.
+**Consequences:** stable-release upgrade later should be handled as a
+coordinated boundary migration, not a blind version bump. In particular,
+`9.0.0-beta.10` moved row-model factories out of the standalone `rowModels`
+table option and into `tableFeatures(...)` slots, so any bump past the current
+`9.0.0-beta.9` pin must update `createDataTableRowModels`,
+`dataTableFeatures`, and the `useTable({ rowModels: ... })` call sites in
+`data-table-body.tsx`, `data-table-responsive-inner.tsx`, and `data-grid.tsx`.
+Until then, contributors must verify Table API questions against the installed
+package typings or the beta branch docs.
 
 ---
 

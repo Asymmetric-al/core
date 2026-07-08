@@ -60,9 +60,12 @@ export function AutomationConditionRow({
       {condition.kind === "inbox_is" ? (
         <Select
           value={condition.inboxId}
-          onValueChange={(value) =>
-            onChange({ kind: "inbox_is", inboxId: value })
-          }
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            onChange({ kind: "inbox_is", inboxId: value });
+          }}
         >
           <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
             <SelectValue placeholder="Pick an inbox" />
@@ -80,9 +83,12 @@ export function AutomationConditionRow({
       {condition.kind === "label_includes" ? (
         <Select
           value={condition.labelId}
-          onValueChange={(value) =>
-            onChange({ kind: "label_includes", labelId: value })
-          }
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            onChange({ kind: "label_includes", labelId: value });
+          }}
         >
           <SelectTrigger className="h-8 min-w-[200px] text-[12px]">
             <SelectValue placeholder="Pick a label" />

@@ -246,9 +246,11 @@ function EmailStudioHeader({
           </span>
           {hasUnsavedChanges && (
             <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <span className="ml-1 size-2 rounded-full bg-amber-500 animate-pulse shrink-0" />
+                }
+              />
               <TooltipContent side="bottom">
                 <p>Unsaved changes</p>
               </TooltipContent>
@@ -260,36 +262,40 @@ function EmailStudioHeader({
       <div className="flex items-center gap-1.5 md:gap-2">
         <div className="hidden xl:flex items-center gap-1 p-0.5 bg-muted rounded-lg">
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="size-7 p-0"
-                aria-label="Undo"
-                onClick={onUndo}
-                disabled={!isEditorReady}
-              >
-                <Undo2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0"
+                  aria-label="Undo"
+                  onClick={onUndo}
+                  disabled={!isEditorReady}
+                >
+                  <Undo2 className="size-3.5" />
+                </Button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>Undo</p>
               <Kbd className="ml-1.5">⌘Z</Kbd>
             </TooltipContent>
           </Tooltip>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="size-7 p-0"
-                aria-label="Redo"
-                onClick={onRedo}
-                disabled={!isEditorReady}
-              >
-                <Redo2 className="size-3.5" />
-              </Button>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="size-7 p-0"
+                  aria-label="Redo"
+                  onClick={onRedo}
+                  disabled={!isEditorReady}
+                >
+                  <Redo2 className="size-3.5" />
+                </Button>
+              }
+            />
             <TooltipContent side="bottom">
               <p>Redo</p>
               <Kbd className="ml-1.5">⌘⇧Z</Kbd>
@@ -299,41 +305,47 @@ function EmailStudioHeader({
 
         <div className="hidden md:block">
           <ToggleGroup
-            type="single"
-            value={previewDevice}
-            onValueChange={(value) =>
-              value && onPreview(value as PreviewDevice)
-            }
+            value={[previewDevice]}
+            onValueChange={(groupValue) => {
+              const next = groupValue[0];
+              if (next) {
+                onPreview(next as PreviewDevice);
+              }
+            }}
             disabled={!isEditorReady}
             variant="outline"
             size="sm"
           >
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value="desktop"
-                  className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  <Monitor className="size-3.5" />
-                  <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                    Desktop
-                  </span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <ToggleGroupItem
+                    value="desktop"
+                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
+                  >
+                    <Monitor className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Desktop
+                    </span>
+                  </ToggleGroupItem>
+                }
+              />
               <TooltipContent side="bottom">Desktop preview</TooltipContent>
             </Tooltip>
             <Tooltip>
-              <TooltipTrigger asChild>
-                <ToggleGroupItem
-                  value="mobile"
-                  className="h-7 px-2.5 data-[state=on]:bg-primary data-[state=on]:text-primary-foreground"
-                >
-                  <Smartphone className="size-3.5" />
-                  <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
-                    Mobile
-                  </span>
-                </ToggleGroupItem>
-              </TooltipTrigger>
+              <TooltipTrigger
+                render={
+                  <ToggleGroupItem
+                    value="mobile"
+                    className="h-7 px-2.5 data-pressed:bg-primary data-pressed:text-primary-foreground"
+                  >
+                    <Smartphone className="size-3.5" />
+                    <span className="hidden lg:inline ml-1.5 text-[10px] font-medium uppercase tracking-wider">
+                      Mobile
+                    </span>
+                  </ToggleGroupItem>
+                }
+              />
               <TooltipContent side="bottom">Mobile preview</TooltipContent>
             </Tooltip>
           </ToggleGroup>
@@ -350,21 +362,25 @@ function EmailStudioHeader({
 
         <DropdownMenu>
           <Tooltip>
-            <TooltipTrigger asChild>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="h-8 gap-1.5"
-                  disabled={!isEditorReady}
-                >
-                  <Download className="size-3.5" />
-                  <span className="hidden sm:inline text-xs font-medium">
-                    Export
-                  </span>
-                </Button>
-              </DropdownMenuTrigger>
-            </TooltipTrigger>
+            <TooltipTrigger
+              render={
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="h-8 gap-1.5"
+                      disabled={!isEditorReady}
+                    >
+                      <Download className="size-3.5" />
+                      <span className="hidden sm:inline text-xs font-medium">
+                        Export
+                      </span>
+                    </Button>
+                  }
+                />
+              }
+            />
             <TooltipContent side="bottom">Export options</TooltipContent>
           </Tooltip>
           <DropdownMenuContent align="end" className="w-52">
@@ -409,16 +425,18 @@ function EmailStudioHeader({
         </Button>
 
         <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="size-8 p-0"
-              aria-label="More email template actions"
-            >
-              <MoreHorizontal className="size-4" />
-            </Button>
-          </DropdownMenuTrigger>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="sm"
+                className="size-8 p-0"
+                aria-label="More email template actions"
+              >
+                <MoreHorizontal className="size-4" />
+              </Button>
+            }
+          />
           <DropdownMenuContent align="end" className="w-52">
             <DropdownMenuItem onClick={onNewTemplate}>
               <Plus className="size-4 mr-2" />

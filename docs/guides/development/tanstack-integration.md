@@ -63,6 +63,14 @@ The boundary exports everything consumers need:
 - **`useTable`, `flexRender`, `useSelector`** — the React entry points. `useSelector` is re-exported from `@tanstack/react-store` (a direct dependency, matching the store version `@tanstack/react-table` itself uses); import it from the boundary, not from the package.
 - **v8-named type aliases pre-bound to `SharedTableFeatures`** — `ColumnDef<TData, TValue>`, `Table<TData>`, `Row`, `Cell`, `Column`, `Header`, `HeaderGroup`, `TableOptions`, plus `VisibilityState` (the v8 name for v9's `ColumnVisibilityState`). v9 added `TFeatures` as the first generic parameter on most types; the aliases absorb it so consumer signatures keep the v8 shape, and raw `TFeatures` generics appear nowhere in app code (ADR-4).
 
+> **Beta.10 upgrade note:** `createDataTableRowModels` and every
+> `useTable({ rowModels: ... })` call site are intentionally tied to the pinned
+> `9.0.0-beta.9` option shape. TanStack Table `9.0.0-beta.10` moved row-model
+> factories into `tableFeatures(...)` slots (`filteredRowModel`,
+> `sortedRowModel`, `paginatedRowModel`, etc.). Do not bump past beta.9 without
+> migrating `dataTableFeatures`, `createDataTableRowModels`, and the direct
+> `useTable` call sites together.
+
 ### Building a new table on v9
 
 - **Default: use the shared components.** `DataTable` / `DataTableResponsive` (and `DataGrid` for editable grids) are the family entry points; their public props did not change in the v9 migration (`columns`, `data`, `state`, `initialState`, `urlState`, `getRowId`, `config`, …).
@@ -177,6 +185,65 @@ const query = useQuery({
 - Use `queryCollectionOptions` with explicit `queryKey`.
 - Keep mutation handlers transactional and error-throwing.
 - Prefer `Promise.all` for independent network calls.
+- Bound the `queryFn` for any table that grows with tenant size (see below).
+
+### Bounded collection windows
+
+Collections backed by tenant-scale tables must not fetch the whole table into
+the browser. `packages/database/collections/client-db.ts` bounds `donors`,
+`donor_activities`, `donor_pledges`, `posts`, `donations`, `post_comments`, and
+`follows` with `createBoundedTableFetcher`, which:
+
+- fetches a deterministically ordered window — the `orderBy` column with
+  `nullsFirst: false` (so null sort values land last instead of crowding out
+  real rows) plus an `id` tie-break — from offset `0` via
+  `.range(0, windowSize - 1)`;
+- always refetches from offset `0`, so invalidating the collection's query key
+  refreshes every loaded row (query collections replace their contents with
+  the `queryFn` result);
+- exposes offset continuation through the exported `*CollectionPagination`
+  objects (`donorsCollectionPagination`, etc.). `hasMore()` /`loadMore()` drive
+  the fetch, and **`subscribe` + `getSnapshot`** expose the window flag
+  reactively for `useSyncExternalStore`. Read it reactively: the flag only
+  settles after a fetch resolves, so a polled boolean would leave a stale
+  "load more" affordance when `loadMore` turns up no new rows. `loadMore` grows
+  the window by one page and invalidates the fetcher's configured query key.
+
+Consuming hooks pass continuation through rather than re-implement it.
+`useMissionaryDonorRows` reads `hasMore` via `useSyncExternalStore` over
+`donorsPagination` (donors window only) so the "Load more partners" affordance
+matches partner rows, while `loadMore` fans out through aggregated `pagination`
+(donors + activities + pledges). It returns `hasMore` / `isLoadingMore` /
+`loadMore`; the missionary donors page renders the affordance from them.
+Collection contracts (`id`, `queryKey`, `schema`, `getKey`, mutation handlers)
+stay unchanged; only the fetch is windowed.
+
+### Scoped collections for tenant-scale joins
+
+Tenant-wide collections that a view then filters client-side both over-fetch and
+can drop in-scope rows that fall outside the newest-N window. When a surface only
+needs one scope, push the filter into the query with a per-scope collection.
+`getMissionaryScopedDonorCollections(missionaryId)` returns `donors`,
+`donor_activities`, and `donor_pledges` collections (and aggregated pagination)
+scoped to one missionary, memoized per id with scope-qualified ids/query keys
+(`["donors", "missionary", id]`). `donors` filters on its `missionary_id`
+column directly (it references `profiles(id)` — the namespace the hook is called
+with). `donor_activities` and `donor_pledges` are scoped through their `donors`
+foreign key with an `!inner` embed (`donors!inner(missionary_id)`) whose
+embed-only key is stripped before the row reaches the schema: `donor_activities`
+has no `missionary_id` column, and `donor_pledges.missionary_id` references
+`missionaries(id)` (a different namespace, which is why filtering it by a profile
+id returns nothing), so the donor relationship is the correct scope for both. An
+empty scope builds disabled (`enabled: false`) collections that never hit the
+network.
+
+> **RLS note:** the demo posture in
+> `supabase/migrations/20260216153000_demo_readonly_rls.sql` grants `SELECT`
+> only `TO anon`, so these client-side collections return rows for the anonymous
+> demo but **zero rows for an authenticated session**. Surfaces that must work
+> for real signed-in users read through `packages/api` server services (e.g.
+> `missionary-portal/service.ts`), which use the admin client. Adding an
+> authenticated read path is an RLS/authorization decision, not a client change.
 
 ```ts
 const collection = createCollection<Item>(
@@ -345,6 +412,8 @@ This preserves count consistency without requiring route-level SQL transactions 
 - [ ] Only externally controlled state slices are hoisted.
 - [ ] Stable `getRowId` is provided for durable records.
 - [ ] DB collection schemas are validated with Zod.
+- [ ] Collection `queryFn`s over tenant-scale tables use a bounded window with
+      deterministic ordering (no unbounded `select("*")`).
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).

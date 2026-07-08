@@ -1,7 +1,8 @@
 "use client";
 
+import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { formatCurrency } from "@asym/lib/utils";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import { Card } from "@asym/ui/components/shadcn/card";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import { cn } from "@asym/ui/lib/utils";
@@ -12,6 +13,7 @@ import React, { useState } from "react";
 const GivingAmounts = [50, 100, 200, 500];
 
 interface GivingWidgetProps {
+  missionaryId: string;
   workerId: string;
   raised: number;
   goal: number | null;
@@ -19,6 +21,7 @@ interface GivingWidgetProps {
 }
 
 export function GivingWidget({
+  missionaryId,
   workerId,
   raised,
   goal,
@@ -26,7 +29,7 @@ export function GivingWidget({
 }: GivingWidgetProps) {
   const [amount, setAmount] = useState<number>(100);
   const [customAmount, setCustomAmount] = useState<string>("");
-  const [frequency, setFrequency] = useState<"one-time" | "monthly">("monthly");
+  const frequency = "one-time";
   const [isInputFocused, setIsInputFocused] = useState(false);
 
   const handleAmountClick = (val: number) => {
@@ -58,37 +61,10 @@ export function GivingWidget({
           </p>
         </div>
 
-        <div
-          className="bg-zinc-100 p-1.5 rounded-xl flex relative"
-          role="radiogroup"
-          aria-label="Giving frequency"
-        >
-          <button
-            onClick={() => setFrequency("one-time")}
-            role="radio"
-            aria-checked={frequency === "one-time"}
-            className={cn(
-              "flex-1 py-3 text-sm font-semibold rounded-lg transition-[color,background-color,box-shadow] relative z-10",
-              frequency === "one-time"
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-700",
-            )}
-          >
-            One-Time
-          </button>
-          <button
-            onClick={() => setFrequency("monthly")}
-            role="radio"
-            aria-checked={frequency === "monthly"}
-            className={cn(
-              "flex-1 py-3 text-sm font-semibold rounded-lg transition-[color,background-color,box-shadow] relative z-10",
-              frequency === "monthly"
-                ? "bg-white text-zinc-900 shadow-sm"
-                : "text-zinc-500 hover:text-zinc-700",
-            )}
-          >
-            Monthly
-          </button>
+        <div className="rounded-xl border border-zinc-100 bg-zinc-50 p-4 text-center">
+          <p className="text-xs font-semibold uppercase tracking-widest text-zinc-500">
+            One-time gift
+          </p>
         </div>
 
         <div className="space-y-4">
@@ -181,19 +157,20 @@ export function GivingWidget({
           </div>
         )}
 
-        <Button
-          size="lg"
-          className="w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle"
-          asChild
+        <Link
+          href={buildWorkerCheckoutHref({
+            amount,
+            frequency,
+            missionaryId,
+            workerId,
+          })}
+          className={cn(
+            buttonVariants({ size: "lg" }),
+            "w-full h-14 text-lg font-semibold bg-zinc-900 hover:bg-zinc-800 shadow-xl shadow-zinc-900/20 rounded-xl hover-scale-subtle",
+          )}
         >
-          <Link
-            href={`/checkout?workerId=${workerId}&amount=${amount}&frequency=${frequency}`}
-          >
-            {frequency === "monthly"
-              ? `Give ${formatCurrency(amount)} Monthly`
-              : `Give ${formatCurrency(amount)}`}
-          </Link>
-        </Button>
+          Give {formatCurrency(amount)}
+        </Link>
 
         <div className="flex items-center justify-center gap-2 text-xs text-zinc-400 font-medium">
           <ShieldCheck

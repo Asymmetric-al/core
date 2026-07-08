@@ -94,7 +94,16 @@ export function AssignmentRulesForm() {
         label="Fallback agent"
         description="Pick an agent to receive a conversation if round-robin can't find anyone. (Applied by the Phase 7 server-side evaluator.)"
       >
-        <Select value={fallbackAgent} onValueChange={setFallbackAgent} disabled>
+        <Select
+          value={fallbackAgent}
+          onValueChange={(value) => {
+            if (value === null) {
+              return;
+            }
+            setFallbackAgent(value);
+          }}
+          disabled
+        >
           <SelectTrigger className="h-9 max-w-sm text-[12px]">
             <SelectValue placeholder="Configured in a later phase" />
           </SelectTrigger>

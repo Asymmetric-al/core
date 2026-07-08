@@ -57,6 +57,18 @@ describe("exportToCSV — formula injection neutralization", () => {
     expect(dataLine).toBe("'+1,'-1,'@x,'\tindented");
   });
 
+  it("prefixes values starting with carriage return or line feed", () => {
+    const table = makeTable(
+      [
+        { id: "cr", header: "CR" },
+        { id: "lf", header: "LF" },
+      ],
+      [{ cr: "\r=1+1", lf: "\n=1+1" }],
+    );
+    const csv = exportToCSV(table);
+    expect(csv).toBe('CR,LF\n"\'\r=1+1","\'\n=1+1"');
+  });
+
   it("quotes a formula+delimiter cell after neutralization", () => {
     // '=a,b contains the delimiter so it must be wrapped in quotes.
     const table = makeTable([{ id: "val", header: "Val" }], [{ val: "=a,b" }]);

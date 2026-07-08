@@ -164,6 +164,7 @@ const baseTables: Record<string, Row[]> = {
       missionary_id: "missionary-1",
       next_payment_date: "2026-01-01",
       status: "active",
+      tenant_id: "tenant-1",
       updated_at: "2026-05-11T00:00:00.000Z",
     },
   ],

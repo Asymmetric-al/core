@@ -5,6 +5,10 @@ import {
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "../../../packages/auth/e2e-auth";
+import {
+  DEMO_PROFILE_ID,
+  DEMO_TENANT_ID,
+} from "../../../packages/auth/constants";
 
 const originalBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
@@ -19,13 +23,15 @@ describe("e2e auth helpers", () => {
     const encoded = createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
-      tenantId: null,
+      tenantId: DEMO_TENANT_ID,
+      profileId: DEMO_PROFILE_ID,
     });
 
     expect(parseE2EAuthCookieValue(encoded)).toEqual({
       userId: "e2e-donor-user",
       role: "donor",
-      tenantId: null,
+      tenantId: DEMO_TENANT_ID,
+      profileId: DEMO_PROFILE_ID,
     });
   });
 

@@ -22,7 +22,7 @@ export interface ExportColumn {
 // formula by Excel/Sheets/LibreOffice. Prefix with a single quote so the value
 // is treated as text. Applied to every header and cell before delimiter/quote
 // escaping.
-const FORMULA_TRIGGER = /^[=+\-@\t\r]/;
+const FORMULA_TRIGGER = /^[=+\-@\t\r\n]/;
 
 function neutralizeFormula(value: string): string {
   return FORMULA_TRIGGER.test(value) ? `'${value}` : value;

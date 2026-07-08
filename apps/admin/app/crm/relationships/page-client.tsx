@@ -8,9 +8,10 @@ import { formatCurrency } from "@asym/lib/utils";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Alert } from "@asym/ui/components/shadcn/alert";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import { DataTableResponsive } from "@asym/ui/components/shadcn/data-table";
 import { Input } from "@asym/ui/components/shadcn/input";
+import { cn } from "@asym/ui/lib/utils";
 import {
   ArrowLeft,
   Building2,
@@ -85,18 +86,20 @@ export default function CrmRelationshipsPageClient() {
       description="Relationship graph, search, and reporting for staff operations."
       actions={
         <div className="flex items-center gap-2">
-          <Button variant="outline" className="gap-2" asChild>
-            <Link href="/crm">
-              <ArrowLeft className="size-4" />
-              CRM
-            </Link>
-          </Button>
-          <Button variant="outline" className="gap-2" asChild>
-            <Link href="/crm/notes">
-              <FileText className="size-4" />
-              Notes
-            </Link>
-          </Button>
+          <Link
+            href="/crm"
+            className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+          >
+            <ArrowLeft className="size-4" />
+            CRM
+          </Link>
+          <Link
+            href="/crm/notes"
+            className={cn(buttonVariants({ variant: "outline" }), "gap-2")}
+          >
+            <FileText className="size-4" />
+            Notes
+          </Link>
           <Button
             variant="outline"
             className="gap-2"

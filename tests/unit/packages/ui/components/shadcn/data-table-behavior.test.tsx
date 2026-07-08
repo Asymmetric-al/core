@@ -14,6 +14,7 @@ import {
   fireEvent,
   render,
   screen,
+  waitFor,
   within,
 } from "@testing-library/react";
 import {
@@ -116,6 +117,14 @@ function rowByName(container: HTMLElement, name: string): HTMLElement {
     throw new Error(`No rendered row contains "${name}"`);
   }
   return row as HTMLElement;
+}
+
+async function chooseRowsPerPage(pageSize: string) {
+  fireEvent.mouseDown(screen.getByRole("combobox"));
+  const option = await screen.findByRole("option", { name: pageSize });
+
+  fireEvent.pointerDown(option, { pointerType: "mouse", buttons: 1 });
+  fireEvent.click(option);
 }
 
 beforeAll(() => {
@@ -319,11 +328,11 @@ describe("DataTable pagination", () => {
 
     expect(visibleNames(container)).toHaveLength(5);
 
-    fireEvent.click(screen.getByRole("combobox"));
-    const option = await screen.findByRole("option", { name: "20" });
-    fireEvent.click(option);
+    await chooseRowsPerPage("20");
 
-    expect(visibleNames(container)).toEqual(namesInDataOrder);
+    await waitFor(() => {
+      expect(visibleNames(container)).toEqual(namesInDataOrder);
+    });
     expect(screen.getByText("Page 1 of 1")).toBeTruthy();
   });
 });
@@ -361,11 +370,16 @@ describe("DataTable row selection", () => {
 
     fireEvent.click(screen.getByRole("checkbox", { name: "Select all" }));
 
-    // Action bar renders "<count> selected" as two sibling text nodes.
-    expect(screen.getByText("selected")).toBeTruthy();
-    expect(screen.getByText("5")).toBeTruthy();
+    const clearSelectionButton = screen.getByRole("button", {
+      name: "Clear selection",
+    });
+    const actionBar = clearSelectionButton.parentElement;
 
-    fireEvent.click(screen.getByRole("button", { name: "Clear selection" }));
+    expect(actionBar).toBeTruthy();
+    expect(within(actionBar as HTMLElement).getByText("5")).toBeTruthy();
+    expect(within(actionBar as HTMLElement).getByText("selected")).toBeTruthy();
+
+    fireEvent.click(clearSelectionButton);
 
     expect(screen.queryByText("selected")).toBeNull();
     expect(screen.getByText("0 of 10 row(s) selected")).toBeTruthy();
@@ -393,7 +407,7 @@ describe("DataTable column visibility", () => {
     expect(screen.getByRole("columnheader", { name: "Role" })).toBeTruthy();
 
     const viewButton = screen.getByRole("button", { name: "Toggle columns" });
-    fireEvent.keyDown(viewButton, { key: "Enter" });
+    fireEvent.mouseDown(viewButton);
 
     const roleMenuItem = await screen.findByRole("menuitemcheckbox", {
       name: "role",
