@@ -7,7 +7,7 @@ import {
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
 } from "./receipt-delivery";
-import { sendStagedGiftReceipt } from "../../giving/receipts";
+import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import {
   loadStripeRawEventForReplay,
@@ -894,25 +894,6 @@ async function runReceiptDelivery(input: {
     };
   }
 
-  const receipt = await sendStagedGiftReceipt({
-    supabaseAdmin: input.supabaseAdmin,
-    tenantId: input.tenantId,
-    stagedGiftId: input.stagedGiftId,
-  });
-
-  if (receipt.status === "suppressed") {
-    // The consent gate blocked the send (do_not_contact, or a bounced/
-    // complained/suppressed address). No email went out, so do not record an
-    // email receipt snapshot; surface it as blocked with a clear reason.
-    return {
-      ...base,
-      status: "blocked",
-      reason:
-        "The donor has opted out of contact or the recipient address is on the suppression list, so the updated receipt email was not sent.",
-      snapshotId: null,
-    };
-  }
-
   const snapshotId = await insertReceiptSnapshot({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
@@ -921,6 +902,36 @@ async function runReceiptDelivery(input: {
     kind: "email",
     content: input.snapshotContent,
   });
+
+  if (!snapshotId) {
+    throw new Error("Updated receipt email snapshot was not created.");
+  }
+
+  const receipt = await sendUpdatedReceiptSnapshotEmail({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: input.stagedGiftId,
+    snapshotId,
+    content: input.snapshotContent,
+  });
+
+  if (receipt.status === "suppressed") {
+    // The consent gate blocked the send (do_not_contact, or a bounced/
+    // complained/suppressed address). No email went out; surface it as
+    // blocked with a clear reason while preserving the snapshot allocated for
+    // the attempted updated receipt action.
+    return {
+      ...base,
+      status: "blocked",
+      reason:
+        "The donor has opted out of contact or the recipient address is on the suppression list, so the updated receipt email was not sent.",
+      snapshotId,
+    };
+  }
+  if (receipt.status === "failed") {
+    throw new Error("Updated receipt email failed to send.");
+  }
+
   return { ...base, status: "emailed", reason: null, snapshotId };
 }
 
