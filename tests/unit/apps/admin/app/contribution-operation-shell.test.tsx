@@ -88,6 +88,38 @@ function makeDetail(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
+function makeReceiptDelivery(overrides: Partial<Record<string, unknown>> = {}) {
+  return {
+    options: [
+      {
+        choice: "email",
+        available: false,
+        blockedReason: "The donor has no email address on file.",
+      },
+      { choice: "pdf", available: true, blockedReason: null },
+      { choice: "defer", available: true, blockedReason: null },
+    ],
+    defaultChoice: "pdf",
+    deferReasonRequired: true,
+    requireDeliveryAction: false,
+    donor: { email: null, doNotEmail: false },
+    ...overrides,
+  };
+}
+
+/**
+ * Detail payload with the AL-263 receipt delivery block. Each test uses a
+ * unique donation id because the shared QueryProvider caches detail per id.
+ */
+function makeReceiptDeliveryDetail(donationId: string) {
+  const detail = makeDetail({ receiptDelivery: makeReceiptDelivery() });
+  return {
+    ...detail,
+    id: donationId,
+    shared: { ...detail.shared, donationId },
+  };
+}
+
 function fetchMockForShell(
   actionResult: Record<string, unknown>,
   detail = makeDetail(),
@@ -406,6 +438,255 @@ describe("ContributionOperationShell", () => {
           String(url).includes("/actions"),
         ),
       ).toHaveLength(1);
+    });
+  });
+
+  it("renders receipt delivery options with inline blocked reasons", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000dd";
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeReceiptDeliveryDetail(donationId),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(
+      await view.findByText(/this correction changes receipt fields: amount/i),
+    ).toBeTruthy();
+
+    const emailRadio = view.getByRole("radio", {
+      name: /send updated receipt by email/i,
+    });
+    const pdfRadio = view.getByRole("radio", {
+      name: /generate updated receipt pdf/i,
+    });
+    const deferRadio = view.getByRole("radio", {
+      name: /don't send now \(defer with reason\)/i,
+    });
+
+    // The blocked option stays visible with its reason inline beneath it.
+    expect(
+      view.getByText("The donor has no email address on file."),
+    ).toBeTruthy();
+
+    // No choice is pre-selected: delivery is an explicit human decision
+    // (a silently pre-filled default must never email a donor untouched).
+    expect(pdfRadio.getAttribute("aria-checked")).toBe("false");
+    expect(deferRadio.getAttribute("aria-checked")).toBe("false");
+    fireEvent.click(pdfRadio);
+    expect(pdfRadio.getAttribute("aria-checked")).toBe("true");
+
+    // Clicking the blocked option does not select it.
+    fireEvent.click(emailRadio);
+    expect(emailRadio.getAttribute("aria-checked")).toBe("false");
+    expect(pdfRadio.getAttribute("aria-checked")).toBe("true");
+  });
+
+  it("submits no receipt delivery when the field is left untouched", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ef";
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-9",
+        adjustmentId: "adj-9",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeReceiptDeliveryDetail(donationId),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText(/this correction changes receipt fields: amount/i);
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await view.findByTestId("operation-result-panel");
+
+    // Regression (#263 verification): an untouched delivery field must not
+    // ride along in the payload — the server records deferred-by-omission
+    // and no donor email is ever triggered by a silent default.
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.payload.receiptDelivery).toBeUndefined();
+  });
+
+  it("requires a defer reason and submits the receipt delivery selection", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ee";
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-2",
+        adjustmentId: "adj-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeReceiptDeliveryDetail(donationId),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText(/this correction changes receipt fields: amount/i);
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+
+    // Defer requires a reason while the tenant policy demands one.
+    fireEvent.click(view.getByRole("radio", { name: /don't send now/i }));
+    const submit = view.getByRole("button", { name: "Correct gift amount" });
+    expect(submit).toHaveProperty("disabled", true);
+    expect(
+      view.getByText(
+        /a reason is required when deferring the updated receipt/i,
+      ),
+    ).toBeTruthy();
+
+    fireEvent.change(view.getByLabelText("Defer reason"), {
+      target: { value: "Donor asked us to wait" },
+    });
+    expect(submit).toHaveProperty("disabled", false);
+    fireEvent.click(submit);
+
+    await view.findByTestId("operation-result-panel");
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.payload).toMatchObject({
+      amount: 20_000,
+      receiptDelivery: {
+        choice: "defer",
+        deferReason: "Donor asked us to wait",
+      },
+    });
+  });
+
+  it("shows a PDF download link when the result generated an updated receipt", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ff";
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-3",
+        adjustmentId: "adj-2",
+        approvalStatus: "applied",
+        receiptOutcome: {
+          status: "pdf_generated",
+          reason: null,
+          snapshotId: "snap-9",
+          affectedFields: ["amount"],
+          requested: { choice: "pdf", deferReason: null },
+          confirmed: { choice: "pdf", deferReason: null },
+        },
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeReceiptDeliveryDetail(donationId),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText(/this correction changes receipt fields: amount/i);
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    // Explicitly choose PDF; it is submitted with the correction payload.
+    fireEvent.click(
+      view.getByRole("radio", { name: /generate updated receipt pdf/i }),
+    );
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await view.findByTestId("operation-result-panel");
+    expect(view.getByText(/receipt: pdf generated/i)).toBeTruthy();
+    const link = view.getByRole("link", {
+      name: /download updated receipt pdf/i,
+    });
+    expect(link.getAttribute("href")).toBe(
+      "/api/admin/contribution-operations/receipt-snapshots/snap-9/pdf",
+    );
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.payload.receiptDelivery).toEqual({
+      choice: "pdf",
+      deferReason: null,
     });
   });
 });

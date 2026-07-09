@@ -209,3 +209,4 @@ full inventory around long dynamic path names.
 | admin | `/api/admin/contribution-operations/[contributionId]`                         | Node.js (no `runtime` segment export) | Contribution operation detail             |
 | admin | `/api/admin/contribution-operations/actions`                                  | Node.js (no `runtime` segment export) | Contribution operation action executor    |
 | admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |
+| admin | `/api/admin/contribution-operations/receipt-snapshots/[snapshotId]/pdf`       | Node.js (no `runtime` segment export) | Updated receipt snapshot PDF download     |
