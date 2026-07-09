@@ -200,7 +200,7 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   **source codes**, **giving campaigns** with a bounded parent/child hierarchy,
   and the **recurring-commitment** object with dunning + a self-serve portal.
   Groomed 2026-07-09 (decisions D1–D25 + five ruthless adversarial reviews).
-  PRD authored; not yet tracked (issues via `/to-issues`).
+  Tracked by epic #690 + children #691–#713.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
