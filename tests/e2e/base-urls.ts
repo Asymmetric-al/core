@@ -14,9 +14,11 @@ export const adminBaseURL =
   `http://localhost:${adminPort}`;
 
 /**
- * Next dev responds to `/_next/static/` with redirects (308) in some setups, which
- * breaks Playwright `webServer` readiness. A stable app route is more reliable.
+ * Next dev responds to `/_next/static/` with redirects (308) in some setups,
+ * which breaks Playwright `webServer` readiness. Use the same health endpoint
+ * that CI already polls before invoking Playwright so `reuseExistingServer`
+ * does not depend on compiling auth-facing pages.
  */
 export function nextDevReadyURL(base: string): string {
-  return `${base.replace(/\/$/, "")}/login`;
+  return `${base.replace(/\/$/, "")}/api/health`;
 }
