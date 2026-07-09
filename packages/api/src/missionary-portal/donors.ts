@@ -191,10 +191,91 @@ function normalizeDonorStatus(
   return "Active";
 }
 
+function normalizeDonorAddress(value: unknown): MissionaryDonorAddress {
+  if (!value || typeof value !== "object") {
+    return {};
+  }
+
+  const record = value as Record<string, unknown>;
+  const readString = (key: keyof MissionaryDonorAddress) => {
+    const field = record[key];
+    return typeof field === "string" ? field : undefined;
+  };
+
+  return {
+    street: readString("street"),
+    street2: readString("street2"),
+    city: readString("city"),
+    state: readString("state"),
+    zip: readString("zip"),
+    country: readString("country"),
+  };
+}
+
 function normalizePreferredContact(
   value: string | null | undefined,
 ): MissionaryDonorRow["preferred_contact"] {
   return value === "phone" || value === "text" ? value : "email";
+}
+
+function normalizeActivityStatus(
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  switch (value.toLowerCase()) {
+    case "failed":
+      return "Failed";
+    case "completed":
+    case "done":
+      return "Completed";
+    case "pending":
+      return "Pending";
+    default:
+      return value;
+  }
+}
+
+function normalizeGiftType(value: string | null | undefined) {
+  switch (value?.toLowerCase()) {
+    case "online":
+      return "Online";
+    case "check":
+      return "Check";
+    case "cash":
+      return "Cash";
+    case "bank transfer":
+    case "bank_transfer":
+      return "Bank Transfer";
+    case "stock":
+      return "Stock";
+    case "in-kind":
+    case "in_kind":
+      return "In-Kind";
+    default:
+      return undefined;
+  }
+}
+
+function normalizeFrequency(value: string | null | undefined): string {
+  switch (value?.toLowerCase()) {
+    case "monthly":
+      return "Monthly";
+    case "quarterly":
+      return "Quarterly";
+    case "annually":
+    case "annual":
+    case "yearly":
+      return "Annually";
+    case "one-time":
+    case "one_time":
+    case "onetime":
+      return "One-Time";
+    default:
+      return value ?? "One-Time";
+  }
 }
 
 function createInitials(name: string | null | undefined) {
@@ -218,8 +299,8 @@ function mapActivity(
     title: activity.title,
     description: activity.description ?? undefined,
     amount: activity.amount ?? undefined,
-    status: activity.status ?? undefined,
-    gift_type: activity.gift_type ?? undefined,
+    status: normalizeActivityStatus(activity.status),
+    gift_type: normalizeGiftType(activity.gift_type),
     note: activity.note ?? undefined,
   };
 }
@@ -228,7 +309,7 @@ function mapPledge(pledge: DonorPledgeSourceRow): MissionaryRecurringDonation {
   return {
     id: pledge.id,
     amount: pledge.amount,
-    frequency: pledge.frequency ?? "Monthly",
+    frequency: normalizeFrequency(pledge.frequency ?? "Monthly"),
     status: pledge.status ?? "active",
     start_date: pledge.start_date ?? pledge.created_at,
     end_date: pledge.end_date ?? undefined,
@@ -287,7 +368,7 @@ export function buildMissionaryDonorRows(input: {
         total_given: donor.total_given ?? 0,
         last_gift_date: donor.last_gift_date ?? null,
         last_gift_amount: donor.last_gift_amount ?? null,
-        frequency: donor.frequency ?? "One-Time",
+        frequency: normalizeFrequency(donor.frequency),
         score: donor.score ?? 0,
         recurring_donations: pledgesByDonor.get(donor.id) ?? [],
         has_active_pledge: donor.has_active_pledge ?? false,
@@ -333,9 +414,9 @@ export function buildMissionaryDonorRows(input: {
         preferred_contact: normalizePreferredContact(donor.preferred_contact),
         avatar_url: donor.avatar_url ?? undefined,
         location: donor.location ?? "",
-        address: (donor.address ?? {}) as MissionaryDonorAddress,
+        address: normalizeDonorAddress(donor.address),
         work_address: donor.work_address
-          ? (donor.work_address as MissionaryDonorAddress)
+          ? normalizeDonorAddress(donor.work_address)
           : undefined,
         website: donor.website ?? undefined,
         organization: donor.organization ?? undefined,
