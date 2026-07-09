@@ -1,17 +1,23 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { buildWorkerCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { cn } from "@asym/ui/lib/utils";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useState, useRef, useEffect } from "react";
 
 interface QuickGiveInputProps {
+  missionaryId: string;
   workerId: string;
   className?: string;
 }
 
-export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
+export function QuickGiveInput({
+  missionaryId,
+  workerId,
+  className,
+}: QuickGiveInputProps) {
   const { push } = useRouter();
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,7 +57,13 @@ export function QuickGiveInput({ workerId, className }: QuickGiveInputProps) {
 
   const handleGive = () => {
     if (hasValidAmount) {
-      push(`/checkout?workerId=${workerId}&amount=${amount}`);
+      push(
+        buildWorkerCheckoutHref({
+          amount,
+          missionaryId,
+          workerId,
+        }),
+      );
     } else {
       inputRef.current?.focus();
     }
