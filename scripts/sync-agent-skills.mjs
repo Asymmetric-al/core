@@ -96,6 +96,24 @@ async function overlayDirectory(sourceDir, targetDir) {
   }
 }
 
+async function replaceDirectory(sourceDir, targetDir) {
+  const sourceEntries = await readdir(sourceDir, { withFileTypes: true });
+
+  await rm(targetDir, { recursive: true, force: true });
+  await mkdir(targetDir, { recursive: true });
+
+  for (const entry of sourceEntries) {
+    await cp(
+      path.join(sourceDir, entry.name),
+      path.join(targetDir, entry.name),
+      {
+        recursive: true,
+        force: true,
+      },
+    );
+  }
+}
+
 function getCanonicalManifestPath(targetRoot) {
   return path.join(targetRoot, CANONICAL_MANIFEST_FILENAME);
 }
@@ -259,7 +277,7 @@ async function mirrorAgentSkill(skillName, mirrorRoots) {
     }
 
     try {
-      await overlayDirectory(sourceDir, targetDir);
+      await replaceDirectory(sourceDir, targetDir);
       console.log(
         `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
       );

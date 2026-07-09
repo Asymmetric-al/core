@@ -24,10 +24,34 @@ the `gh pr` equivalents:
 
 - **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for
   the diff.
-- **List external PRs for triage**:
-  `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments`,
-  then keep only `authorAssociation` of `CONTRIBUTOR`,
-  `FIRST_TIME_CONTRIBUTOR`, `FIRST_TIMER`, or `NONE`.
+- **List external PRs for triage**: use GitHub GraphQL because
+  `gh pr list --json` does not expose `authorAssociation`.
+
+  ```bash
+  gh api graphql \
+    -f owner=Asymmetric-al \
+    -f name=core \
+    -f query='
+      query($owner: String!, $name: String!) {
+        repository(owner: $owner, name: $name) {
+          pullRequests(first: 100, states: OPEN, orderBy: { field: UPDATED_AT, direction: DESC }) {
+            nodes {
+              number
+              title
+              body
+              author { login }
+              authorAssociation
+              labels(first: 25) { nodes { name } }
+              comments(first: 25) { nodes { body } }
+            }
+          }
+        }
+      }
+    ' \
+    --jq '.data.repository.pullRequests.nodes
+      | map(select(["CONTRIBUTOR","FIRST_TIME_CONTRIBUTOR","FIRST_TIMER","NONE"] | index(.authorAssociation)))'
+  ```
+
 - **Comment / label / close**: `gh pr comment`,
   `gh pr edit --add-label` / `--remove-label`, `gh pr close`.
 
@@ -49,12 +73,19 @@ tickets.
 
 - **Map**: a single issue labelled `wayfinder:map`, holding the
   Notes / Decisions-so-far / Fog body. Create it with
-  `gh issue create --label wayfinder:map`.
+  `gh issue create --label wayfinder:map --label type:chore --label status:todo --label complexity:hard`.
 - **Child ticket**: an issue linked to the map as a GitHub sub-issue. Where
   sub-issues are not enabled, add the child to a task list in the map body and
   put `Part of #<map>` at the top of the child body. Labels:
-  `wayfinder:<type>` (`research`, `prototype`, `grilling`, or `task`). Once
-  claimed, the ticket is assigned to the driving dev.
+  `wayfinder:<type>` (`research`, `prototype`, `grilling`, or `task`) plus
+  exactly one repo `type:*`, `status:*`, and `complexity:*` label. Use
+  `status:todo` when creating a child. For `research`, `prototype`, and
+  `grilling` children, use `type:chore` unless the child clearly documents a
+  user-facing doc change (`type:docs`). For `task` children, use the actual work
+  type (`type:bug`, `type:feature`, `type:refactor`, `type:docs`, or
+  `type:chore`) and choose the smallest defensible `complexity:*`; use
+  `complexity:medium` only when the map does not yet contain enough evidence.
+  Once claimed, the ticket is assigned to the driving dev.
 - **Blocking**: use GitHub's native issue dependencies where available. Where
   dependencies are unavailable, fall back to a `Blocked by: #<n>, #<n>` line at
   the top of the child body. A ticket is unblocked when every blocker is closed.
