@@ -1,6 +1,10 @@
 "use client";
 
-import { useDonorPortalSnapshot } from "@asym/database/hooks";
+import {
+  mapToRecentUpdate,
+  useDonorFeedPosts,
+  useDonorPortalSnapshot,
+} from "@asym/database/hooks";
 import { formatCurrency } from "@asym/lib/utils";
 import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
@@ -27,10 +31,10 @@ import Link from "next/link";
 import { Greeting } from "./dashboard-greeting";
 import { ImpactTile } from "./ImpactTile";
 
-import { RECENT_UPDATES } from "@/lib/mock-data";
-
 export function DonorDashboardMainBody() {
   const portalQuery = useDonorPortalSnapshot();
+  const feedQuery = useDonorFeedPosts({ limit: 5 });
+  const recentUpdates = feedQuery.data.map((post) => mapToRecentUpdate(post));
   const withinRouteVt = useWithinViewTransitionRouteLayer();
   const portal = portalQuery.data;
   const displayName = portal?.profile.displayName.split(" ")[0] ?? "Partner";
@@ -148,45 +152,67 @@ export function DonorDashboardMainBody() {
               </div>
             </CardHeader>
             <CardContent className="p-0">
-              <div className="divide-y divide-zinc-50">
-                {RECENT_UPDATES.map((update) => (
-                  <Link
-                    href="/donor-dashboard/feed"
-                    key={update.id}
-                    className="flex gap-4 p-5 hover:bg-zinc-50/50 transition-colors group touch-target"
-                  >
-                    <div className="shrink-0 pt-0.5">
-                      {update.image ? (
-                        <Image
-                          src={update.image}
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="size-10 rounded-lg object-cover border border-zinc-100 shadow-sm grayscale group-hover:grayscale-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
-                        />
-                      ) : (
-                        <div className="size-10 rounded-lg bg-zinc-100 flex items-center justify-center font-semibold text-zinc-400 text-xs uppercase">
-                          {update.avatar}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex justify-between items-baseline mb-0.5 gap-2">
-                        <span className="text-[11px] font-semibold text-zinc-900 truncate tracking-tight uppercase">
-                          {update.author}
-                        </span>
-                        <span className="text-[9px] font-semibold text-zinc-300 uppercase tracking-widest whitespace-nowrap shrink-0">
-                          {update.time}
-                        </span>
+              {feedQuery.isLoading ? (
+                <div className="divide-y divide-border">
+                  {[0, 1, 2].map((row) => (
+                    <div key={row} className="flex gap-4 p-5">
+                      <div className="size-10 rounded-lg bg-muted animate-pulse shrink-0" />
+                      <div className="flex-1 space-y-2 pt-1">
+                        <div className="h-2.5 w-1/3 rounded bg-muted animate-pulse" />
+                        <div className="h-2 w-4/5 rounded bg-muted animate-pulse" />
                       </div>
-                      <p className="text-[10px] font-semibold text-zinc-500 line-clamp-2 leading-snug uppercase tracking-tight">
-                        {update.title}
-                      </p>
                     </div>
-                    <ChevronRight className="size-3.5 text-zinc-200 self-center opacity-0 group-hover:opacity-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] -ml-1.5 shrink-0 hidden sm:block" />
-                  </Link>
-                ))}
-              </div>
+                  ))}
+                </div>
+              ) : feedQuery.error ? (
+                <p className="p-8 text-center text-[10px] font-semibold text-destructive uppercase tracking-widest">
+                  Updates couldn&apos;t load right now.
+                </p>
+              ) : recentUpdates.length === 0 ? (
+                <p className="p-8 text-center text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+                  No ministry updates yet.
+                </p>
+              ) : (
+                <div className="divide-y divide-zinc-50 dark:divide-border">
+                  {recentUpdates.map((update) => (
+                    <Link
+                      href="/donor-dashboard/feed"
+                      key={update.id}
+                      className="flex gap-4 p-5 hover:bg-zinc-50/50 dark:hover:bg-muted/50 transition-colors group touch-target"
+                    >
+                      <div className="shrink-0 pt-0.5">
+                        {update.image ? (
+                          <Image
+                            src={update.image}
+                            alt=""
+                            width={40}
+                            height={40}
+                            className="size-10 rounded-lg object-cover border border-zinc-100 dark:border-border shadow-sm grayscale group-hover:grayscale-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
+                          />
+                        ) : (
+                          <div className="size-10 rounded-lg bg-zinc-100 dark:bg-muted flex items-center justify-center font-semibold text-zinc-400 dark:text-muted-foreground text-xs uppercase">
+                            {update.avatar}
+                          </div>
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex justify-between items-baseline mb-0.5 gap-2">
+                          <span className="text-[11px] font-semibold text-zinc-900 dark:text-foreground truncate tracking-tight uppercase">
+                            {update.author}
+                          </span>
+                          <span className="text-[9px] font-semibold text-zinc-300 dark:text-muted-foreground uppercase tracking-widest whitespace-nowrap shrink-0">
+                            {update.time}
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-semibold text-zinc-500 dark:text-muted-foreground line-clamp-2 leading-snug uppercase tracking-tight">
+                          {update.title}
+                        </p>
+                      </div>
+                      <ChevronRight className="size-3.5 text-zinc-200 dark:text-muted-foreground self-center opacity-0 group-hover:opacity-100 transition-[color,background-color,border-color,box-shadow,transform,opacity] -ml-1.5 shrink-0 hidden sm:block" />
+                    </Link>
+                  ))}
+                </div>
+              )}
             </CardContent>
             <Link
               href="/donor-dashboard/feed"

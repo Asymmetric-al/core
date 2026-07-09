@@ -3,6 +3,7 @@ import { serverEnv } from "@asym/env";
 
 import { sendContributionCorrectionNotification } from "./send";
 import { resolveContributionCorrectionTemplateVariant } from "./templates";
+import { evaluateEmailConsent } from "../../../email/consent";
 import { decryptResendApiKey } from "../../../email/crypto";
 import { readTenantEmailSettings } from "../../../email/settings-store";
 import {
@@ -471,6 +472,14 @@ export async function sendContributionCorrectionNotificationFromSupabase(input: 
         : null,
     settings: sendingSettings,
     dependencies: {
+      evaluateEmailConsent: ({ email, donorId }) =>
+        evaluateEmailConsent({
+          supabaseAdmin: input.supabaseAdmin,
+          tenantId: input.tenantId,
+          email,
+          donorId,
+          messageType: "transactional",
+        }),
       logNotificationEvent: (event) =>
         logContributionNotificationEvent({
           supabaseAdmin: input.supabaseAdmin,

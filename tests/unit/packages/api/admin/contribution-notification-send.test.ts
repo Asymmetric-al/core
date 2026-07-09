@@ -1,6 +1,32 @@
 import { describe, expect, it, vi } from "vitest";
 
+const { logSystemAuditEventMock } = vi.hoisted(() => ({
+  logSystemAuditEventMock: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("@asym/lib/audit/logger", () => ({
+  logSystemAuditEvent: logSystemAuditEventMock,
+}));
+
 import { sendContributionCorrectionNotification } from "../../../../../packages/api/src/admin/contribution-operations/notifications/send";
+
+const activeRefundTemplate = {
+  id: "template_1",
+  versionId: "version_1",
+  version: 3,
+  family: "refund_notification" as const,
+  variant: "refund_completed" as const,
+  active: true,
+  subject: "Your refund for {{donation_amount}}",
+  html: "<p>{{full_name}} {{gift_date}} {{donation_amount}} {{refund_amount}} {{donor_portal_link}} {{personal_note}}</p>",
+  text: "{{full_name}} {{gift_date}} {{donation_amount}} {{refund_amount}} {{donor_portal_link}} {{personal_note}}",
+};
+
+const connectedSettings = {
+  apiKey: "re_test",
+  fromEmail: "finance@example.com",
+  fromName: "Finance Team",
+};
 
 const baseInput = {
   tenantId: "tenant_1",
@@ -303,6 +329,89 @@ describe("sendContributionCorrectionNotification", () => {
         policySnapshot: expect.objectContaining({ mode: "always_ask" }),
       }),
     );
+  });
+
+  it("suppresses the notice, audits it, and raises a follow-up task when consent forbids", async () => {
+    const sendEmail = vi.fn();
+    const logNotificationEvent = vi
+      .fn()
+      .mockResolvedValue({ eventId: "event_1" });
+    const createFollowUpTask = vi.fn().mockResolvedValue(["task_1"]);
+    const evaluateEmailConsent = vi.fn().mockResolvedValue({
+      allowed: false,
+      reason: "do_not_contact",
+    });
+
+    const result = await sendContributionCorrectionNotification({
+      ...baseInput,
+      template: activeRefundTemplate,
+      settings: connectedSettings,
+      dependencies: {
+        sendEmail,
+        evaluateEmailConsent,
+        logNotificationEvent,
+        createFollowUpTask,
+      },
+    });
+
+    expect(result.decision).toBe("suppressed");
+    expect(result.taskIds).toEqual(["task_1"]);
+    expect(sendEmail).not.toHaveBeenCalled();
+    expect(evaluateEmailConsent).toHaveBeenCalledWith({
+      email: "donor@example.com",
+      donorId: "donor_1",
+    });
+    expect(logSystemAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: "email_send_suppressed",
+        resourceType: "email_send",
+        details: expect.objectContaining({
+          source: "contribution_correction_notification",
+          reason: "do_not_contact",
+          donorId: "donor_1",
+          recipientEmail: "donor@example.com",
+        }),
+      }),
+    );
+    expect(logNotificationEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        decision: "suppressed",
+        errorCode: "consent_do_not_contact",
+      }),
+    );
+    expect(createFollowUpTask).toHaveBeenCalledWith(
+      expect.objectContaining({
+        reason: expect.stringContaining("opted out of all outbound contact"),
+      }),
+    );
+  });
+
+  it("sends normally when the consent gate allows the recipient", async () => {
+    const sendEmail = vi.fn().mockResolvedValue({
+      success: true,
+      messageId: "msg_1",
+      correlationId: "corr_1",
+      retryCount: 0,
+    });
+    const logNotificationEvent = vi
+      .fn()
+      .mockResolvedValue({ eventId: "event_1" });
+    const evaluateEmailConsent = vi.fn().mockResolvedValue({ allowed: true });
+
+    const result = await sendContributionCorrectionNotification({
+      ...baseInput,
+      template: activeRefundTemplate,
+      settings: connectedSettings,
+      dependencies: { sendEmail, evaluateEmailConsent, logNotificationEvent },
+    });
+
+    expect(evaluateEmailConsent).toHaveBeenCalledWith({
+      email: "donor@example.com",
+      donorId: "donor_1",
+    });
+    expect(result.decision).toBe("sent");
+    expect(sendEmail).toHaveBeenCalled();
+    expect(logSystemAuditEventMock).not.toHaveBeenCalled();
   });
 
   it("honors tenant policy overrides when deciding suppression requirements", async () => {
