@@ -18,8 +18,10 @@ used daily surface in the platform. It MUST serve as the control center for the
 organization's operations and the conceptual home of operational depth.
 
 Mission Control MUST carry the deepest staff capabilities across CRM,
-contributions, reporting, content administration, communications, documents,
-mobilization, automations, and tenant configuration.
+contributions, Support Hub, communications, reporting, content administration,
+documents, mobilization, automations, and tenant configuration. Support Hub
+SHALL be conceptually anchored in Mission Control as the staff home for
+support conversations and inbound email routing.
 
 Mission Control MUST NOT be treated as optional back-office overflow. When a
 capability carries organization-wide operational depth, staff control,
@@ -211,3 +213,21 @@ revealed.
 - THEN they push back toward shared product language and connected behavior
 - AND they reject drift that would make the platform feel like separate apps
   with disconnected logic or unsynced records
+
+### Requirement: Outbound Communications Are A Governed Platform Channel
+
+Outbound communications — email today, additional channels as adopted — SHALL
+be treated as a governed channel of the connected platform rather than as a
+fifth surface.
+
+Communications that reach donors, missionaries, or the public MUST use shared
+product language, honest states, and tenant-controlled templates and policy,
+and they MUST reflect the same underlying truth as the surfaces they reference.
+
+#### Scenario: An outbound email would diverge from surface truth
+
+- GIVEN an outbound communication describes gift, support, or account state
+- WHEN it is composed or sent
+- THEN it reflects the same operational truth the platform surfaces show
+- AND it does not soften, overstate, or contradict the real state for the sake
+  of nicer copy
