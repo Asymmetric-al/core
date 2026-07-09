@@ -6,10 +6,15 @@ maps those roles to this repo's required issue taxonomy from
 
 ## Category roles
 
-| Triage category in mattpocock/skills | Repo tracker action                    | Meaning                    |
-| ------------------------------------ | -------------------------------------- | -------------------------- |
-| `bug`                                | apply exactly one `type:bug` label     | Something is broken        |
-| `enhancement`                        | apply exactly one `type:feature` label | New feature or improvement |
+| Triage category in mattpocock/skills | Repo tracker action                                       | Meaning                    |
+| ------------------------------------ | --------------------------------------------------------- | -------------------------- |
+| `bug`                                | apply exactly one `type:bug` label                        | Something is broken        |
+| `enhancement`                        | apply exactly one matching repo `type:*` label; see below | New feature or improvement |
+
+For `enhancement`, classify the requested work rather than the source wording:
+use `type:feature` for product or capability changes, `type:docs` for
+docs-only work, `type:refactor` for behavior-neutral refactors, and
+`type:chore` for repo maintenance that is neither feature, docs, nor refactor.
 
 ## State roles
 

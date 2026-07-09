@@ -20,7 +20,41 @@ Infer the repo from `git remote -v` — `gh` does this automatically when run in
 When set to `yes`, PRs run through the same labels and states as issues, using the `gh pr` equivalents:
 
 - **Read a PR**: `gh pr view <number> --comments` and `gh pr diff <number>` for the diff.
-- **List external PRs for triage**: `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments` then keep only `authorAssociation` of `CONTRIBUTOR`, `FIRST_TIME_CONTRIBUTOR`, or `NONE` (drop `OWNER`/`MEMBER`/`COLLABORATOR`).
+- **List external PRs for triage**:
+
+  ```bash
+  owner="$(gh repo view --json owner --jq .owner.login)"
+  repo="$(gh repo view --json name --jq .name)"
+
+  gh api graphql \
+    -f owner="$owner" \
+    -f name="$repo" \
+    -f query='
+      query($owner: String!, $name: String!) {
+        repository(owner: $owner, name: $name) {
+          pullRequests(first: 100, states: OPEN, orderBy: { field: UPDATED_AT, direction: DESC }) {
+            nodes {
+              number
+              title
+              body
+              author { login }
+              authorAssociation
+              labels(first: 25) { nodes { name } }
+              comments(first: 25) { nodes { body } }
+            }
+          }
+        }
+      }
+    ' \
+    --jq '.data.repository.pullRequests.nodes
+      | map(select(
+          .authorAssociation == "CONTRIBUTOR"
+          or .authorAssociation == "FIRST_TIME_CONTRIBUTOR"
+          or .authorAssociation == "FIRST_TIMER"
+          or .authorAssociation == "NONE"
+        ))'
+  ```
+
 - **Comment / label / close**: `gh pr comment`, `gh pr edit --add-label`/`--remove-label`, `gh pr close`.
 
 GitHub shares one number space across issues and PRs, so a bare `#42` may be either — resolve with `gh pr view 42` and fall back to `gh issue view 42`.

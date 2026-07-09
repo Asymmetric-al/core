@@ -15,10 +15,9 @@ export const adminBaseURL =
 
 /**
  * Next dev responds to `/_next/static/` with redirects (308) in some setups,
- * which breaks Playwright `webServer` readiness. Use the same health endpoint
- * that CI already polls before invoking Playwright so `reuseExistingServer`
- * does not depend on compiling auth-facing pages.
+ * which breaks Playwright `webServer` readiness. Use a DB-independent endpoint
+ * so strict/local Playwright startup does not depend on Supabase being seeded.
  */
 export function nextDevReadyURL(base: string): string {
-  return `${base.replace(/\/$/, "")}/api/health`;
+  return `${base.replace(/\/$/, "")}/api/playwright-ready`;
 }
