@@ -3,13 +3,13 @@ source_name: mattpocock/skills (grill-me)
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/productivity/grill-me/SKILL.md
-skills_lock_hash: daf64ca15f4fa081a6747766db538e2dbd1131725ed4fcdd3d538dc62c7035ba
-last_reviewed: 2026-05-23
+skills_lock_hash: 67e31b63e6e9e454cc2f51cd85b9cf1396ee46379a87c07a1450f33c47c1276a
+last_reviewed: 2026-07-09
 ---
 
 # Upstream: grill-me
 
-Canonical copy in this repo: `docs/ai/skills/grill-me/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/grill-me/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/mattpocock/skills
 - **Upstream path:** `skills/productivity/grill-me/SKILL.md`
@@ -18,6 +18,8 @@ Canonical copy in this repo: `docs/ai/skills/grill-me/` (mirrored to `.cursor/sk
 ## Refresh from ecosystem
 
 1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Copy the routed skill into `docs/ai/skills/grill-me/` if this canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+2. Copy the relevant skill tree from `.agents/skills/grill-me/` into `docs/ai/skills/grill-me/` if this canonical copy needs updating.
+3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
+
+This skill is **not** updated by `bun run skills:refresh-upstream` today.

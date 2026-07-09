@@ -3,13 +3,13 @@ source_name: mattpocock/skills (request-refactor-plan)
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/deprecated/request-refactor-plan/SKILL.md
-skills_lock_hash: d59de4ba6cc1fe2dd267e8b9b5a1fd88e3e739e2130bc9dd78061d2a072830b8
-last_reviewed: 2026-05-23
+skills_lock_hash: 6811250488d1dafcb111e7ef0dc1124211369c5f6f47ce820b7527c255489178
+last_reviewed: 2026-07-09
 ---
 
 # Upstream: request-refactor-plan
 
-Canonical copy in this repo: `docs/ai/skills/request-refactor-plan/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/request-refactor-plan/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/mattpocock/skills
 - **Upstream path:** `skills/deprecated/request-refactor-plan/SKILL.md`
@@ -18,6 +18,8 @@ Canonical copy in this repo: `docs/ai/skills/request-refactor-plan/` (mirrored t
 ## Refresh from ecosystem
 
 1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Copy the routed skill into `docs/ai/skills/request-refactor-plan/` if this canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+2. Copy the relevant skill tree from `.agents/skills/request-refactor-plan/` into `docs/ai/skills/request-refactor-plan/` if this canonical copy needs updating.
+3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
+
+This skill is **not** updated by `bun run skills:refresh-upstream` today.
