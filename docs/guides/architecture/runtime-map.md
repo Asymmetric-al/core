@@ -149,6 +149,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/pdf-templates/native/migration-report`                   | Node.js (no `runtime` segment export) | Native PDF Studio migration report            |
 | admin      | `/api/pdf-templates/native/preview`                            | Node.js (no `runtime` segment export) | Native PDF Studio browser preview             |
 | admin      | `/api/pdf-templates/native/render`                             | Node.js (no `runtime` segment export) | Native PDF Studio server render adapter       |
+| admin      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe     |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                      |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                  |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                       |
@@ -165,6 +166,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()        |
 | donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                   |
+| donor      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe     |
 | donor      | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | donor      | `/api/posts/[postId]`                                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | donor      | `/api/posts/[postId]/comments`                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
