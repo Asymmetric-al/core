@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const {
   sendEmailMock,
@@ -28,7 +28,10 @@ vi.mock("../../../../packages/api/src/email/crypto", () => ({
   decryptResendApiKey: decryptResendApiKeyMock,
 }));
 
-import { sendStagedGiftReceipt } from "../../../../packages/api/src/giving/receipts";
+import {
+  sendStagedGiftReceipt,
+  sendUpdatedReceiptSnapshotEmail,
+} from "../../../../packages/api/src/giving/receipts";
 
 const gift = {
   id: "staged-gift-1",
@@ -118,6 +121,16 @@ function buildAdmin(options?: {
 }
 
 describe("sendStagedGiftReceipt consent gate", () => {
+  beforeEach(() => {
+    sendEmailMock.mockReset();
+    logSystemAuditEventMock.mockReset();
+    logSystemAuditEventMock.mockResolvedValue(undefined);
+    loadStagedGiftByIdMock.mockReset();
+    readTenantEmailSettingsMock.mockReset();
+    decryptResendApiKeyMock.mockReset();
+    decryptResendApiKeyMock.mockReturnValue("re_decrypted");
+  });
+
   it("skips a do_not_contact donor as a transactional message and records an audit event", async () => {
     loadStagedGiftByIdMock.mockResolvedValue(gift);
     readTenantEmailSettingsMock.mockResolvedValue(connectedSettings);
@@ -215,6 +228,88 @@ describe("sendStagedGiftReceipt consent gate", () => {
     );
     expect(admin.stagedGiftsUpdate).toHaveBeenCalledWith(
       expect.objectContaining({ receipt_status: "sent" }),
+    );
+    expect(result).toEqual({ sendLogId: "log-1", status: "sent" });
+  });
+
+  it("sends updated receipt snapshots with corrected content and a snapshot idempotency key", async () => {
+    loadStagedGiftByIdMock.mockResolvedValue({
+      ...gift,
+      amount: 2500,
+    });
+    readTenantEmailSettingsMock.mockResolvedValue(connectedSettings);
+    sendEmailMock.mockResolvedValue({
+      success: true,
+      messageId: "msg-updated",
+      correlationId: "corr-updated",
+      recipientCount: 1,
+      retryCount: 0,
+    });
+    const admin = buildAdmin();
+
+    const result = await sendUpdatedReceiptSnapshotEmail({
+      supabaseAdmin: admin.client,
+      tenantId: "tenant-1",
+      stagedGiftId: "staged-gift-1",
+      snapshotId: "snapshot-1",
+      content: {
+        version: 1,
+        donationId: "donation-1",
+        donorName: "Ada Lovelace",
+        giftDate: "2026-05-12",
+        currencyCode: "USD",
+        effective: {
+          amountCents: 2000,
+          fundId: null,
+          missionaryId: null,
+          paymentStatus: "completed",
+        },
+        designationLines: [
+          {
+            id: "line-1",
+            amountCents: 2000,
+            fundId: null,
+            fundName: "General Fund",
+            missionaryId: null,
+            missionaryName: null,
+            memo: null,
+          },
+        ],
+        affectedFields: ["amount"],
+        adjustmentId: "adjustment-1",
+        generatedAt: "2026-05-13T00:00:00.000Z",
+      },
+    });
+
+    expect(sendEmailMock).toHaveBeenCalledWith(
+      "re_decrypted",
+      expect.objectContaining({
+        subject: "Updated donation receipt for $20.00",
+        html: expect.stringContaining("updated receipt amount"),
+        text: expect.stringContaining("updated receipt amount is $20.00"),
+        idempotencyKey:
+          "contribution-receipt-snapshot/tenant-1/snapshot-1/email",
+        customArgs: expect.objectContaining({
+          source: "updated_donation_receipt",
+          receiptSnapshotId: "snapshot-1",
+          adjustmentId: "adjustment-1",
+        }),
+      }),
+    );
+    expect(sendEmailMock.mock.calls[0]?.[1].idempotencyKey).not.toBe(
+      "donation-receipt/tenant-1/donation-1/staged-gift-1",
+    );
+    expect(admin.sendLogInsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        idempotency_key:
+          "contribution-receipt-snapshot/tenant-1/snapshot-1/email",
+        metadata: expect.objectContaining({
+          source: "updated_donation_receipt",
+          receiptSnapshotId: "snapshot-1",
+        }),
+        status: "sent",
+        tenant_id: "tenant-1",
+      }),
     );
     expect(result).toEqual({ sendLogId: "log-1", status: "sent" });
   });

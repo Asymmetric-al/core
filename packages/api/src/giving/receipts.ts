@@ -11,6 +11,7 @@ import { decryptResendApiKey } from "../email/crypto";
 import { readTenantEmailSettings } from "../email/settings-store";
 import { ApiHttpError } from "../shared/http-errors";
 
+import type { ReceiptSnapshotContentV1 } from "../admin/contribution-operations/receipt-delivery";
 import type { getAdminClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdminClient = NonNullable<
@@ -31,6 +32,18 @@ export interface DonationReceiptEmail {
   idempotencyKey: string;
 }
 
+interface ReceiptGiftIdentity {
+  id: string;
+  tenantId: string;
+  donationId: string;
+  donorId: string | null;
+}
+
+interface ReceiptSendResult {
+  sendLogId: string | null;
+  status: "sent" | "failed" | "suppressed";
+}
+
 function isJsonRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
@@ -44,6 +57,26 @@ function formatMoney(cents: number, currency: string) {
     currency: currency.toUpperCase(),
     style: "currency",
   }).format(cents / 100);
+}
+
+function formatReceiptDate(value: Date) {
+  return value.toLocaleDateString("en-US", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  });
+}
+
+function formatSnapshotGiftDate(giftDate: string): string {
+  const parsed = new Date(giftDate);
+  if (Number.isNaN(parsed.getTime())) {
+    return giftDate;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    dateStyle: "long",
+    timeZone: "UTC",
+  }).format(parsed);
 }
 
 function escapeHtml(value: string) {
@@ -118,11 +151,7 @@ export function buildDonationReceiptEmail(input: {
   receiptDate: Date;
 }): DonationReceiptEmail {
   const formattedAmount = formatMoney(input.amount, input.currency);
-  const receiptDate = input.receiptDate.toLocaleDateString("en-US", {
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-  });
+  const receiptDate = formatReceiptDate(input.receiptDate);
   const safeName = escapeHtml(input.donorName);
 
   return {
@@ -138,6 +167,78 @@ export function buildDonationReceiptEmail(input: {
       `Thank you for your gift of ${formattedAmount} on ${receiptDate}.`,
       `Donation ID: ${input.donationId}`,
     ].join("\n\n"),
+  };
+}
+
+export function buildUpdatedDonationReceiptEmail(input: {
+  tenantId: string;
+  snapshotId: string;
+  content: ReceiptSnapshotContentV1;
+}): DonationReceiptEmail {
+  const formattedAmount = formatMoney(
+    input.content.effective.amountCents,
+    input.content.currencyCode,
+  );
+  const giftDate = formatSnapshotGiftDate(input.content.giftDate);
+  const safeName = escapeHtml(input.content.donorName);
+  const affectedFields =
+    input.content.affectedFields.length > 0
+      ? input.content.affectedFields.join(", ")
+      : "gift details";
+  const designationItems = input.content.designationLines
+    .map((line) => {
+      const lineAmount = formatMoney(
+        line.amountCents,
+        input.content.currencyCode,
+      );
+      const parts = [
+        line.fundName,
+        line.missionaryName ? `Missionary: ${line.missionaryName}` : null,
+        line.memo ? `Memo: ${line.memo}` : null,
+      ].filter((part): part is string => Boolean(part));
+      return `<li>${escapeHtml(parts.join(" | "))}: <strong>${escapeHtml(
+        lineAmount,
+      )}</strong></li>`;
+    })
+    .join("\n");
+  const textDesignationLines = input.content.designationLines
+    .map((line) => {
+      const lineAmount = formatMoney(
+        line.amountCents,
+        input.content.currencyCode,
+      );
+      const parts = [
+        line.fundName,
+        line.missionaryName ? `Missionary: ${line.missionaryName}` : null,
+        line.memo ? `Memo: ${line.memo}` : null,
+      ].filter((part): part is string => Boolean(part));
+      return `- ${parts.join(" | ")}: ${lineAmount}`;
+    })
+    .join("\n");
+
+  return {
+    html: [
+      `<p>Hello ${safeName},</p>`,
+      `<p>We corrected ${escapeHtml(affectedFields)} for your gift. Your updated receipt amount is <strong>${formattedAmount}</strong>.</p>`,
+      `<p>Gift date: ${escapeHtml(giftDate)}</p>`,
+      designationItems ? `<ul>${designationItems}</ul>` : "",
+      `<p>Donation ID: <code>${escapeHtml(input.content.donationId)}</code></p>`,
+      `<p>This updated receipt replaces the receipt previously sent for this gift.</p>`,
+    ]
+      .filter(Boolean)
+      .join("\n"),
+    idempotencyKey: `contribution-receipt-snapshot/${input.tenantId}/${input.snapshotId}/email`,
+    subject: `Updated donation receipt for ${formattedAmount}`,
+    text: [
+      `Hello ${input.content.donorName},`,
+      `We corrected ${affectedFields} for your gift. Your updated receipt amount is ${formattedAmount}.`,
+      `Gift date: ${giftDate}`,
+      textDesignationLines,
+      `Donation ID: ${input.content.donationId}`,
+      "This updated receipt replaces the receipt previously sent for this gift.",
+    ]
+      .filter(Boolean)
+      .join("\n\n"),
   };
 }
 
@@ -161,18 +262,15 @@ function consentSkipMessage(reason: EmailConsentBlockReason): string {
  */
 async function skipReceiptForConsent(input: {
   supabaseAdmin: SupabaseAdminClient;
-  gift: {
-    id: string;
-    tenantId: string;
-    donationId: string;
-    donorId: string | null;
-  };
+  gift: ReceiptGiftIdentity;
   donorEmail: string;
   idempotencyKey: string;
   decision: Extract<EmailConsentDecision, { allowed: false }>;
+  source?: string;
 }): Promise<{ sendLogId: string | null; status: "suppressed" }> {
   const { gift, decision } = input;
   const message = consentSkipMessage(decision.reason);
+  const source = input.source ?? "donation_receipt";
 
   await logSystemAuditEvent({
     tenantId: gift.tenantId,
@@ -180,7 +278,7 @@ async function skipReceiptForConsent(input: {
     resourceType: "email_send",
     resourceId: gift.donationId,
     details: {
-      source: "donation_receipt",
+      source,
       channel: "email",
       reason: decision.reason,
       suppressionType:
@@ -212,16 +310,16 @@ async function skipReceiptForConsent(input: {
   return { sendLogId: null, status: "suppressed" };
 }
 
-export async function sendStagedGiftReceipt(input: {
+async function deliverReceiptEmailForGift(input: {
   supabaseAdmin: SupabaseAdminClient;
-  tenantId: string;
-  stagedGiftId: string;
-}) {
-  const gift = await loadStagedGiftById(input);
-  const donor = await loadDonorReceiptIdentity({
-    supabaseAdmin: input.supabaseAdmin,
-    donorId: gift.donorId,
-  });
+  gift: ReceiptGiftIdentity;
+  donor: DonorReceiptIdentity;
+  receipt: DonationReceiptEmail;
+  source: string;
+  metadata: JsonRecord;
+  customArgs: Record<string, string>;
+}): Promise<ReceiptSendResult> {
+  const { gift, donor, receipt } = input;
   const settings = await readTenantEmailSettings(gift.tenantId);
   if (
     !settings?.is_connected ||
@@ -234,16 +332,6 @@ export async function sendStagedGiftReceipt(input: {
       "Connect Resend with a verified sender before sending receipts.",
     );
   }
-
-  const receipt = buildDonationReceiptEmail({
-    tenantId: gift.tenantId,
-    donationId: gift.donationId,
-    stagedGiftId: gift.id,
-    donorName: donor.name,
-    amount: gift.amount,
-    currency: gift.currency,
-    receiptDate: new Date(),
-  });
 
   // Consent gate. A donation receipt is a transactional/relationship message,
   // so a donor's marketing opt-out (do_not_email / unsubscribe) does not stop
@@ -270,6 +358,7 @@ export async function sendStagedGiftReceipt(input: {
       donorEmail: donor.email,
       idempotencyKey: receipt.idempotencyKey,
       decision: consent,
+      source: input.source,
     });
   }
 
@@ -288,11 +377,7 @@ export async function sendStagedGiftReceipt(input: {
       html: receipt.html,
       text: receipt.text,
       idempotencyKey: receipt.idempotencyKey,
-      customArgs: {
-        donationId: gift.donationId,
-        source: "donation_receipt",
-        stagedGiftId: gift.id,
-      },
+      customArgs: input.customArgs,
     },
   );
 
@@ -311,11 +396,7 @@ export async function sendStagedGiftReceipt(input: {
       error_code: result.errors?.[0]?.code ?? null,
       error_message: result.errors?.[0]?.message ?? null,
       retry_count: result.retryCount,
-      metadata: {
-        donationId: gift.donationId,
-        source: "donation_receipt",
-        stagedGiftId: gift.id,
-      },
+      metadata: input.metadata,
     })
     .select("id")
     .single();
@@ -346,4 +427,88 @@ export async function sendStagedGiftReceipt(input: {
     sendLogId,
     status: result.success ? "sent" : "failed",
   };
+}
+
+export async function sendStagedGiftReceipt(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  stagedGiftId: string;
+}) {
+  const gift = await loadStagedGiftById(input);
+  const donor = await loadDonorReceiptIdentity({
+    supabaseAdmin: input.supabaseAdmin,
+    donorId: gift.donorId,
+  });
+  const receipt = buildDonationReceiptEmail({
+    tenantId: gift.tenantId,
+    donationId: gift.donationId,
+    stagedGiftId: gift.id,
+    donorName: donor.name,
+    amount: gift.amount,
+    currency: gift.currency,
+    receiptDate: new Date(),
+  });
+
+  return deliverReceiptEmailForGift({
+    supabaseAdmin: input.supabaseAdmin,
+    gift,
+    donor,
+    receipt,
+    source: "donation_receipt",
+    metadata: {
+      donationId: gift.donationId,
+      source: "donation_receipt",
+      stagedGiftId: gift.id,
+    },
+    customArgs: {
+      donationId: gift.donationId,
+      source: "donation_receipt",
+      stagedGiftId: gift.id,
+    },
+  });
+}
+
+export async function sendUpdatedReceiptSnapshotEmail(input: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  stagedGiftId: string;
+  snapshotId: string;
+  content: ReceiptSnapshotContentV1;
+}) {
+  const gift = await loadStagedGiftById(input);
+  const donor = await loadDonorReceiptIdentity({
+    supabaseAdmin: input.supabaseAdmin,
+    donorId: gift.donorId,
+  });
+  const receipt = buildUpdatedDonationReceiptEmail({
+    tenantId: gift.tenantId,
+    snapshotId: input.snapshotId,
+    content: input.content,
+  });
+  const metadata: JsonRecord = {
+    donationId: gift.donationId,
+    source: "updated_donation_receipt",
+    stagedGiftId: gift.id,
+    receiptSnapshotId: input.snapshotId,
+    adjustmentId: input.content.adjustmentId,
+  };
+  const customArgs: Record<string, string> = {
+    donationId: gift.donationId,
+    source: "updated_donation_receipt",
+    stagedGiftId: gift.id,
+    receiptSnapshotId: input.snapshotId,
+  };
+  if (input.content.adjustmentId) {
+    customArgs.adjustmentId = input.content.adjustmentId;
+  }
+
+  return deliverReceiptEmailForGift({
+    supabaseAdmin: input.supabaseAdmin,
+    gift,
+    donor,
+    receipt,
+    source: "updated_donation_receipt",
+    metadata,
+    customArgs,
+  });
 }

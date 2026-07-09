@@ -9,7 +9,15 @@ import {
   within,
 } from "@testing-library/react";
 import { JSDOM } from "jsdom";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+  afterEach,
+  beforeAll,
+  beforeEach,
+  describe,
+  expect,
+  it,
+  vi,
+} from "vitest";
 
 type CrmPageComponent =
   typeof import("../../../../../apps/admin/app/crm/page").default;
@@ -50,6 +58,11 @@ vi.mock("@asym/database/hooks", () => ({
 const routerPushMock = vi.fn();
 const routerReplaceMock = vi.fn();
 let mockSearch = "";
+
+function syncMockSearchFromRouterUrl(url: string) {
+  const queryIndex = url.indexOf("?");
+  mockSearch = queryIndex >= 0 ? url.slice(queryIndex + 1) : "";
+}
 
 vi.mock("next/navigation", () => ({
   usePathname: () => "/crm",
@@ -237,7 +250,14 @@ const contributionDetailPayload = {
       reviewReason: null,
       twentyRecordId: null,
     },
-    crm: { postStatus: "posted", twentyRecordId: null },
+    crm: {
+      postStatus: "posted",
+      twentyRecordId: null,
+      parent: { status: "posted", twentyRecordId: null, lastError: null },
+      designationRecords: [],
+      failedScopes: [],
+      adapterLimitation: null,
+    },
     auditEvents: [],
     corrections: [],
     tasks: [],
@@ -387,6 +407,13 @@ function installDom() {
 }
 
 describe("apps/admin/app/crm gift detail entry", () => {
+  beforeAll(async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    const pageModule = await import("../../../../../apps/admin/app/crm/page");
+    CrmPage = pageModule.default;
+  }, 120_000);
+
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
@@ -399,15 +426,16 @@ describe("apps/admin/app/crm gift detail entry", () => {
     dom = undefined;
   });
 
-  beforeEach(async () => {
-    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+  beforeEach(() => {
     mockSearch = "";
+    routerPushMock.mockImplementation((url: string) => {
+      syncMockSearchFromRouterUrl(url);
+    });
+    routerReplaceMock.mockImplementation((url: string) => {
+      syncMockSearchFromRouterUrl(url);
+    });
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
     installDom();
-
-    const pageModule = await import("../../../../../apps/admin/app/crm/page");
-    CrmPage = pageModule.default;
 
     useAdminCrmRecordsInfiniteGridMock.mockReturnValue({
       columnFilters: [],
@@ -451,7 +479,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutate: vi.fn(),
     });
-  }, 60_000);
+  });
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
     mockSearch = `donor=${DONOR_RECORD_ID}`;
@@ -489,6 +517,96 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
     expect(await view.findByText("Clean Water Initiative")).toBeTruthy();
     expect(view.getAllByText("Alice Johnson").length).toBeGreaterThan(0);
+  });
+
+  it("smart close returns to the donor drawer with route state preserved", async () => {
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => contributionDetailPayload,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const giftButton = await view.findByRole("button", {
+      name: /open gift detail for \$250\.00/i,
+    });
+    fireEvent.click(giftButton);
+
+    await waitFor(() => {
+      expect(routerPushMock).toHaveBeenCalledWith(
+        `/crm?donor=${DONOR_RECORD_ID}&gift=${DONATION_ID}`,
+        { scroll: false },
+      );
+    });
+
+    const closeButton = await view.findByRole("button", {
+      name: /close contribution details/i,
+    });
+    const pushCallsBeforeClose = routerPushMock.mock.calls.length;
+    fireEvent.click(closeButton);
+
+    // Smart close (ADR-CD-023): strip only gift from route state; donor survives.
+    // Router mocks mirror navigation into mockSearch so params.delete("gift") is
+    // load-bearing after row-click open (same contract as the Hub smart-close test).
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenLastCalledWith(
+        `/crm?donor=${DONOR_RECORD_ID}`,
+        { scroll: false },
+      );
+    });
+    expect(routerPushMock.mock.calls.length).toBe(pushCallsBeforeClose);
+
+    await waitFor(() => {
+      expect(
+        view.queryByRole("button", { name: /close contribution details/i }),
+      ).toBeNull();
+    });
+    expect(
+      view.getByRole("button", { name: /open gift detail for \$250\.00/i }),
+    ).toBeTruthy();
+  });
+
+  it("restores focus to the originating gift row after closing detail", async () => {
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayload,
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const giftButton = await view.findByRole("button", {
+      name: /open gift detail for \$250\.00/i,
+    });
+    giftButton.focus();
+    fireEvent.click(giftButton);
+    const closeButton = await view.findByRole("button", {
+      name: /close contribution details/i,
+    });
+
+    fireEvent.click(closeButton);
+
+    // Focus return (ADR-CD-023): the deferred focus restore wins over the
+    // sheet's focus-trap cleanup and lands back on the opener row.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(giftButton);
+    });
   });
 
   it("renders the next-best action and a grouped, filtered more-actions menu", async () => {
