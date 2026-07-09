@@ -16,6 +16,7 @@ import { getMergeTagSamples } from "@asym/email/merge-tags";
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 
+import { evaluateEmailConsent, type EmailConsentDecision } from "./consent";
 import { decryptResendApiKey } from "./crypto";
 import {
   isTenantEmailSettingsStorageUnavailable,
@@ -58,6 +59,21 @@ const templateTestSendSchema = z.object({
   sampleMergeTags: z.record(z.string(), z.string()).optional(),
   messageType: z.enum(["transactional", "marketing"]).optional(),
 });
+
+function testSendConsentMessage(
+  decision: Extract<EmailConsentDecision, { allowed: false }>,
+): string {
+  switch (decision.reason) {
+    case "do_not_contact":
+      return "This recipient has opted out of all contact and cannot be emailed.";
+    case "do_not_email":
+      return "This recipient has opted out of marketing email, so this campaign-type test cannot be sent to them.";
+    case "suppressed":
+      return `This address is on the suppression list (${
+        decision.suppressionType ?? "suppressed"
+      }) and cannot be emailed.`;
+  }
+}
 
 function statusFromErrorCode(errorCode?: string): number {
   switch (errorCode) {
@@ -208,6 +224,33 @@ async function sendTemplateTestEmail(input: {
   const idempotencyKey = `template-test-send/${input.ctx.tenantId}/${
     input.templateId ?? "draft"
   }/${crypto.randomUUID()}`;
+
+  const { client: supabaseAdmin } = getAdminClient();
+
+  // Consent gate: never test-send to an address the donor opted out of or that
+  // is on the suppression list. Uses the template's message type, so a
+  // transactional-template test still respects hard bounces/complaints and
+  // do_not_contact while bypassing marketing-only opt-outs. Skipped only when
+  // the admin client is unavailable (mirrors the audit-log tolerance below).
+  if (supabaseAdmin) {
+    const consent = await evaluateEmailConsent({
+      supabaseAdmin,
+      tenantId: input.ctx.tenantId,
+      email: input.toEmail,
+      messageType: input.messageType,
+    });
+    if (!consent.allowed) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: testSendConsentMessage(consent),
+          code: `consent_${consent.reason}`,
+        },
+        { status: 422 },
+      );
+    }
+  }
+
   const result = await sendEmail(settings.apiKey, {
     to: { email: input.toEmail },
     from: { email: settings.fromEmail, name: settings.fromName },
@@ -224,7 +267,6 @@ async function sendTemplateTestEmail(input: {
       builder: input.builder,
     },
   });
-  const { client: supabaseAdmin } = getAdminClient();
   let auditLogged = true;
   let auditLogWarning: string | undefined;
 

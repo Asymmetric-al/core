@@ -1,8 +1,9 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   createE2EAuthCookieValue,
   E2E_AUTH_COOKIE_NAME,
+  E2E_AUTH_COOKIE_NAMES,
 } from "../../../packages/auth/e2e-auth";
 
 // Stable object identity for hoisted mock factory (reassigning `let` can desync the mock).
@@ -39,6 +40,8 @@ const { createAuthMiddleware } =
 
 const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
+const originalE2ESecret = process.env.E2E_AUTH_SECRET;
+const originalE2EAllowlist = process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
 
 function createRequest(
   pathname: string,
@@ -87,7 +90,16 @@ describe("createAuthMiddleware", () => {
   beforeEach(() => {
     process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
     process.env.NODE_ENV = originalNodeEnv;
+    process.env.E2E_AUTH_SECRET = "middleware-test-secret";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
     mockNoConfig();
+  });
+
+  afterEach(() => {
+    process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
+    process.env.NODE_ENV = originalNodeEnv;
+    process.env.E2E_AUTH_SECRET = originalE2ESecret;
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = originalE2EAllowlist;
   });
 
   it("redirects unauthenticated page requests to login with next param", async () => {
@@ -146,7 +158,7 @@ describe("createAuthMiddleware", () => {
     expect(response.headers.get("location")).toContain("next=%2Fweb-studio");
   });
 
-  it("accepts E2E auth cookie when bypass is enabled and role is allowed", async () => {
+  it("accepts legacy E2E auth cookie when bypass is enabled and role is allowed", async () => {
     process.env.E2E_AUTH_BYPASS = "1";
     mockConfigWithUser(null);
     const middleware = createAuthMiddleware({
@@ -155,7 +167,7 @@ describe("createAuthMiddleware", () => {
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
     });
-    const cookieValue = createE2EAuthCookieValue({
+    const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
       tenantId: null,
@@ -168,11 +180,10 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(200);
   });
 
-  it("honors E2E auth cookie on protected routes outside production", async () => {
+  it("accepts surface E2E auth cookie when bypass is enabled and role is allowed", async () => {
+    process.env.E2E_AUTH_BYPASS = "1";
     mockConfigWithUser(null);
-    const { createE2EAuthCookieValue: mkCookie, E2E_AUTH_COOKIE_NAMES } =
-      await import("../../../packages/auth/e2e-auth");
-    const cookieValue = mkCookie({
+    const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
       tenantId: null,
@@ -198,6 +209,72 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(200);
   });
 
+  it("redirects valid surface E2E auth cookie when bypass is unset in development", async () => {
+    delete process.env.E2E_AUTH_BYPASS;
+    process.env.NODE_ENV = "development";
+    mockConfigWithUser(null);
+    const cookieValue = await createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+    });
+
+    const response = await middleware(
+      createRequest(
+        "/donor-dashboard/settings",
+        {
+          [E2E_AUTH_COOKIE_NAMES.donor]: cookieValue,
+        },
+        "localhost:3005",
+      ),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/login?next=%2Fdonor-dashboard%2Fsettings",
+    );
+  });
+
+  it("redirects valid surface E2E auth cookie when bypass is false against a non-allowlisted datasource", async () => {
+    process.env.E2E_AUTH_BYPASS = "false";
+    process.env.NODE_ENV = "development";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
+    mockConfigWithUser(null);
+    mockSupabaseConfig.url = "https://prodxxxx.supabase.co";
+    const cookieValue = await createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+      allowedRoles: ["donor", "super_admin"],
+    });
+
+    const response = await middleware(
+      createRequest(
+        "/donor-dashboard/settings",
+        {
+          [E2E_AUTH_COOKIE_NAMES.donor]: cookieValue,
+        },
+        "localhost:3005",
+      ),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/login?next=%2Fdonor-dashboard%2Fsettings",
+    );
+  });
+
   it("rejects E2E auth cookie when role is not allowed", async () => {
     process.env.E2E_AUTH_BYPASS = "1";
     mockConfigWithUser(null);
@@ -207,7 +284,7 @@ describe("createAuthMiddleware", () => {
       loginPath: "/login",
       allowedRoles: ["donor", "super_admin"],
     });
-    const cookieValue = createE2EAuthCookieValue({
+    const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-admin-user",
       role: "admin",
       tenantId: null,
@@ -254,7 +331,7 @@ describe("createAuthMiddleware", () => {
     process.env.E2E_AUTH_BYPASS = "true";
     process.env.NODE_ENV = "development";
     mockConfigWithUser(null);
-    const e2eValue = createE2EAuthCookieValue({
+    const e2eValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
       tenantId: null,
@@ -272,5 +349,42 @@ describe("createAuthMiddleware", () => {
     );
 
     expect(response.status).toBe(200);
+  });
+
+  it("throws before serving when bypass is enabled against a non-allowlisted datasource", async () => {
+    process.env.E2E_AUTH_BYPASS = "1";
+    process.env.NODE_ENV = "development";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
+    mockConfigWithUser(null);
+    // Point at a production-looking ref that is NOT in the allowlist.
+    mockSupabaseConfig.url = "https://prodxxxx.supabase.co";
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login"],
+      protectedRoutePrefixes: ["/donor-dashboard"],
+      loginPath: "/login",
+    });
+    const cookieValue = await createE2EAuthCookieValue({
+      userId: "e2e-donor-user",
+      role: "donor",
+      tenantId: null,
+    });
+
+    await expect(
+      middleware(
+        createRequest(
+          "/donor-dashboard/settings",
+          {
+            [E2E_AUTH_COOKIE_NAMES.donor]: cookieValue,
+          },
+          "localhost:3005",
+        ),
+      ),
+    ).rejects.toThrow(/allowlisted/i);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("E2E bypass blocked"),
+    );
   });
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import {
   Map,
   MapMarker,
@@ -587,7 +588,11 @@ function DetailDialog({
                     View Profile
                   </Button>
                 </Link>
-                <Link href={`/checkout?missionary=${location.linked_id}`}>
+                <Link
+                  href={buildCheckoutHref({
+                    missionaryId: location.linked_id,
+                  })}
+                >
                   <Button
                     variant="secondary"
                     size="icon"
@@ -695,7 +700,11 @@ function MobileDetailSheet({
                     View Profile
                   </Button>
                 </Link>
-                <Link href={`/checkout?missionary=${location.linked_id}`}>
+                <Link
+                  href={buildCheckoutHref({
+                    missionaryId: location.linked_id,
+                  })}
+                >
                   <Button
                     variant="secondary"
                     size="icon"
