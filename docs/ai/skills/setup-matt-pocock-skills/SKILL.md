@@ -9,7 +9,8 @@ disable-model-invocation: true
 Scaffold the per-repo configuration that the engineering skills assume:
 
 - **Issue tracker** — where issues live (GitHub by default; local markdown is also supported out of the box)
-- **Triage labels** — the strings used for the five canonical triage roles
+- **Triage labels** — the strings or actions used for the canonical category
+  and state triage roles
 - **Domain docs** — where `CONTEXT.md` and ADRs live, and the consumer rules for reading them
 
 This is a prompt-driven skill, not a deterministic script. Explore, present what you found, confirm with the user, then write.
@@ -52,9 +53,14 @@ If — and only if — the user picked **GitHub** or **GitLab**, ask one follow-
 
 **Section B — Triage label vocabulary.**
 
-> Explainer: When the `triage` skill processes an incoming issue, it moves it through a state machine — needs evaluation, waiting on reporter, ready for an AFK agent to pick up, ready for a human, or won't fix. To do that, it needs to apply labels (or the equivalent in your issue tracker) that match strings _you've actually configured_. If your repo already uses different label names (e.g. `bug:triage` instead of `needs-triage`), map them here so the skill applies the right ones instead of creating duplicates.
+> Explainer: When the `triage` skill processes an incoming issue, it assigns a category role — bug or enhancement — and moves it through a state machine — needs evaluation, waiting on reporter, ready for an AFK agent to pick up, ready for a human, or won't fix. To do that, it needs labels or equivalent tracker actions that match strings _you've actually configured_. If your repo already uses different label names (e.g. `type:bug` instead of `bug`, or `status:todo` instead of `needs-triage`), map them here so the skill applies the right ones instead of creating duplicates.
 
-The five canonical roles:
+The two canonical category roles:
+
+- `bug` — something is broken
+- `enhancement` — new feature or improvement
+
+The five canonical state roles:
 
 - `needs-triage` — maintainer needs to evaluate
 - `needs-info` — waiting on reporter
@@ -62,7 +68,9 @@ The five canonical roles:
 - `ready-for-human` — needs human implementation
 - `wontfix` — will not be actioned
 
-Default: each role's string equals its name. Ask the user if they want to override any. If their issue tracker has no existing labels, the defaults are fine.
+Default: each role's string equals its name. Ask the user if they want to
+override any category or state role. If a state such as `wontfix` is represented
+by closing instead of a label, record that action explicitly.
 
 **Section C — Domain docs.**
 
