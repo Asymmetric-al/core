@@ -1244,6 +1244,11 @@ export async function executeContributionAction<TContribution = unknown>(
                 correction.receiptOutcome?.status ?? "not_required",
               receiptAffectedFields:
                 correction.receiptOutcome?.affectedFields ?? [],
+              receiptSnapshotId: correction.receiptOutcome?.snapshotId ?? null,
+              receiptDeliveryRequested:
+                correction.receiptOutcome?.requested ?? null,
+              receiptDeliveryConfirmed:
+                correction.receiptOutcome?.confirmed ?? null,
             },
           }),
         );

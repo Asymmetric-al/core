@@ -27,20 +27,20 @@ Donor dashboard and public website for Asymmetric.al.
 ## Development
 
 ```bash
-# Install dependencies
-bun install
+# From the repo root, install dependencies
+bun run setup:mission-control:cloud
 
-# Run development server (port 3003)
-bun dev
+# Run development server (port 3000)
+bun run dev:donor
 
 # Build for production
-bun build
+bun run build:donor
 
 # Type check
-bun typecheck
+bun run typecheck:donor
 
 # Lint
-bun lint
+bun run lint:donor
 ```
 
 ## Structure

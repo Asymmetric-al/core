@@ -6,6 +6,7 @@ import { cookies, headers } from "next/headers";
 
 import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
+  assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
@@ -143,14 +144,17 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
+  // Bind the bypass to datasource identity, not NODE_ENV: refuse to grant a
+  // bypass identity unless the configured Supabase project is allowlisted.
+  assertSupabaseDatasourceAllowedForE2EBypass(getSupabasePublicConfig().url);
   const cookieStore = await cookies();
   const host = (await headers()).get("host");
   const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
   let e2eSession = e2eCookieName
-    ? parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
+    ? await parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
     : null;
   if (!e2eSession) {
-    e2eSession = parseE2EAuthCookieValue(
+    e2eSession = await parseE2EAuthCookieValue(
       cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
     );
   }
