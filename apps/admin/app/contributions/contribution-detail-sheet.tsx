@@ -1,6 +1,9 @@
 "use client";
 
-import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
+import {
+  formatSharedContributionAmount,
+  SHARED_CRM_POST_STATUS_LABELS,
+} from "@asym/api/admin/contribution-shared";
 import { getInitials } from "@asym/lib/utils";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import {
@@ -40,11 +43,14 @@ import type { ContributionReceiptDeliveryContext } from "./receipt-delivery-choi
 import type { Contribution, ContributionStatus } from "./types";
 import type {
   ContributionActionAvailability,
+  ContributionCrmPostState,
   ContributionProviderProof,
+  CrmPostFailedScope,
 } from "@asym/api/admin/contribution-operations";
 import type {
   ContributionDesignationFundType,
   ContributionDesignationSet,
+  SharedContributionCrmPostStatus,
 } from "@asym/database/types";
 
 function makeDisplayDate(value?: string | number | Date): Date {
@@ -64,6 +70,37 @@ const statusDotColor: Record<ContributionStatus, string> = {
   failed: "bg-destructive",
   refunded: "bg-muted-foreground",
 };
+
+/* ------------------------------------------------------------------ */
+/*  CRM post state helpers (ADR-CD-012)                                 */
+/* ------------------------------------------------------------------ */
+
+function isCrmPostFailure(
+  status: SharedContributionCrmPostStatus | null,
+): boolean {
+  return status === "failed" || status === "blocked";
+}
+
+function crmPostStatusLabel(
+  status: SharedContributionCrmPostStatus | null,
+): string {
+  return status ? SHARED_CRM_POST_STATUS_LABELS[status] : "Not posted";
+}
+
+function crmPostStatusDotColor(
+  status: SharedContributionCrmPostStatus | null,
+): string {
+  if (status === "posted") {
+    return "bg-emerald-500";
+  }
+  if (isCrmPostFailure(status)) {
+    return "bg-destructive";
+  }
+  if (status === "queued") {
+    return "bg-amber-500";
+  }
+  return "bg-muted-foreground/40";
+}
 
 /* ------------------------------------------------------------------ */
 /*  Detail field component                                              */
@@ -126,6 +163,24 @@ interface ContributionDetailSheetProps {
    * without provider access — the section then never renders.
    */
   providerProof?: ContributionProviderProof | null;
+  /**
+   * CRM/Twenty parent + child post state (ADR-CD-012). Workflow metadata —
+   * never payment truth. When present it replaces the scalar Twenty field
+   * with a parent/child breakdown, failed-scope retries, and any adapter
+   * limitation note.
+   */
+  crmPostState?: ContributionCrmPostState | null;
+  /**
+   * Scoped CRM retry (ADR-CD-012): retries only the failed parent record or
+   * one failed designation line via the existing retry_staged_gift action.
+   * Buttons render only when the retry_staged_gift availability entry is
+   * available.
+   */
+  onRetryCrmPost?: (
+    scope: CrmPostFailedScope,
+    stagedGiftId: string,
+    contributionId: string,
+  ) => void;
   /** Recurring agreement context (ADR-CD-007). */
   recurring?: {
     isRecurring: boolean;
@@ -272,6 +327,8 @@ export function ContributionDetailSheet({
   actionAvailability,
   designations,
   providerProof,
+  crmPostState,
+  onRetryCrmPost,
   recurring,
   correctionRequests,
   receiptDelivery,
@@ -349,6 +406,25 @@ export function ContributionDetailSheet({
   const canSendReceipt = availabilityByAction
     ? Boolean(stagedGiftId && receiptEntry?.available)
     : !contribution.receiptSent;
+  const canRetryCrmScope = Boolean(
+    stagedGiftId && retryEntry?.available && onRetryCrmPost,
+  );
+  const parentRetryScope =
+    crmPostState?.failedScopes.find((scope) => scope.scope === "parent") ??
+    null;
+  /**
+   * Gifts outside the CRM post workflow carry an all-null post state; render
+   * the section only when there is something to report, matching the prior
+   * scalar-field behavior of hiding a null crmPostStatus.
+   */
+  const crmPostStateHasSignal = Boolean(
+    crmPostState &&
+    (crmPostState.parent.status ||
+      crmPostState.parent.twentyRecordId ||
+      crmPostState.designationRecords.length > 0 ||
+      crmPostState.failedScopes.length > 0 ||
+      crmPostState.adapterLimitation),
+  );
 
   const handleCopyTxn = async () => {
     const tid = contribution.transactionId;
@@ -491,7 +567,7 @@ export function ContributionDetailSheet({
             </DetailField>
           )}
 
-          {contribution.crmPostStatus && (
+          {contribution.crmPostStatus && !crmPostStateHasSignal && (
             <DetailField label="Twenty">
               {contribution.crmPostStatus.replace(/_/g, " ")}
             </DetailField>
@@ -581,6 +657,146 @@ export function ContributionDetailSheet({
                           </div>
                         )}
                       </details>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
+          </>
+        )}
+
+        {/* ---- CRM/Twenty post state (ADR-CD-012) ---- */}
+        {crmPostState && crmPostStateHasSignal && (
+          <>
+            <Separator />
+            <div className="space-y-3">
+              <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                Twenty CRM posting
+              </p>
+              {crmPostState.adapterLimitation && (
+                <Alert className="bg-muted/40">
+                  <AlertDescription>
+                    <p className="text-xs">{crmPostState.adapterLimitation}</p>
+                  </AlertDescription>
+                </Alert>
+              )}
+              <ul className="space-y-2">
+                <li className="space-y-2 rounded-lg border border-border bg-card p-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="min-w-0">
+                      <span className="block text-sm font-semibold text-foreground">
+                        Parent gift record
+                      </span>
+                      {crmPostState.parent.twentyRecordId && (
+                        <span className="block truncate font-mono text-[10px] text-muted-foreground">
+                          {crmPostState.parent.twentyRecordId}
+                        </span>
+                      )}
+                    </span>
+                    <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
+                      <span
+                        className={cn(
+                          "size-2 shrink-0 rounded-full",
+                          crmPostStatusDotColor(crmPostState.parent.status),
+                        )}
+                      />
+                      {crmPostStatusLabel(crmPostState.parent.status)}
+                    </span>
+                  </div>
+                  {isCrmPostFailure(crmPostState.parent.status) &&
+                    crmPostState.parent.lastError && (
+                      <p className="text-xs text-destructive">
+                        {crmPostState.parent.lastError}
+                      </p>
+                    )}
+                  {canRetryCrmScope && parentRetryScope && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={isActionPending}
+                      className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                      onClick={() =>
+                        stagedGiftId &&
+                        onRetryCrmPost?.(
+                          parentRetryScope,
+                          stagedGiftId,
+                          contribution.id,
+                        )
+                      }
+                    >
+                      <RefreshCcw className="size-3.5" aria-hidden />
+                      Retry parent record
+                    </Button>
+                  )}
+                </li>
+                {crmPostState.designationRecords.map((record, index) => {
+                  const allocationId = record.allocationId;
+                  const line = allocationId
+                    ? (designations?.lines.find(
+                        (candidate) => candidate.id === allocationId,
+                      ) ?? null)
+                    : null;
+                  const lineLabel =
+                    line?.fundName ??
+                    (allocationId
+                      ? `Designation ${allocationId}`
+                      : "Designation line");
+                  const retryScope = crmPostState.failedScopes.find(
+                    (scope) =>
+                      scope.scope === "designation" &&
+                      scope.allocationId === allocationId,
+                  );
+
+                  return (
+                    <li
+                      key={allocationId ?? `designation-record-${index}`}
+                      className="space-y-2 rounded-lg border border-border bg-card p-3"
+                    >
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="min-w-0">
+                          <span className="block truncate text-sm font-semibold text-foreground">
+                            {lineLabel}
+                          </span>
+                          {record.twentyRecordId && (
+                            <span className="block truncate font-mono text-[10px] text-muted-foreground">
+                              {record.twentyRecordId}
+                            </span>
+                          )}
+                        </span>
+                        <span className="flex shrink-0 items-center gap-2 text-xs font-semibold text-foreground">
+                          <span
+                            className={cn(
+                              "size-2 shrink-0 rounded-full",
+                              crmPostStatusDotColor(record.status),
+                            )}
+                          />
+                          {crmPostStatusLabel(record.status)}
+                        </span>
+                      </div>
+                      {isCrmPostFailure(record.status) && record.lastError && (
+                        <p className="text-xs text-destructive">
+                          {record.lastError}
+                        </p>
+                      )}
+                      {canRetryCrmScope && retryScope && allocationId && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isActionPending}
+                          className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                          onClick={() =>
+                            stagedGiftId &&
+                            onRetryCrmPost?.(
+                              { scope: "designation", allocationId },
+                              stagedGiftId,
+                              contribution.id,
+                            )
+                          }
+                        >
+                          <RefreshCcw className="size-3.5" aria-hidden />
+                          Retry this line
+                        </Button>
+                      )}
                     </li>
                   );
                 })}
