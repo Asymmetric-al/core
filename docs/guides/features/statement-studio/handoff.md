@@ -100,7 +100,7 @@ removal or migration step.
   rendering, routing, and data-fetching work.
 - `frontend-design` or repo frontend rules: Statement Studio UX/UI work using
   shared design tokens.
-- `to-issues`: only if future PRD changes need new vertical-slice issues.
+- `to-tickets`: only if future PRD changes need new vertical-slice tickets.
 - `handoff`: use again when pausing after implementation progress.
 
 ## Verification Expectations
