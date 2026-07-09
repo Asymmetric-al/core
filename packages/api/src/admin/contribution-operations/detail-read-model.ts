@@ -23,6 +23,7 @@ import {
   type SharedContributionRowFields,
 } from "../contribution-shared/row-contract";
 
+import type { ResolvedReceiptDeliverySelection } from "./receipt-delivery";
 import type { ContributionDesignationSet } from "@asym/database/types";
 
 export type ContributionDetailDonationInput = {
@@ -100,6 +101,14 @@ export interface ContributionDetailInput {
     reason: string;
     requestedByProfileId: string | null;
     createdAt: string;
+    /**
+     * Requester's proposed updated-receipt delivery action (#263).
+     * Intentionally excluded from the revision fingerprint: display-only
+     * context that must not invalidate concurrent saves.
+     */
+    receiptDeliveryProposal?: ResolvedReceiptDeliverySelection | null;
+    /** Receipt-visible fields this request's payload would change (#263). */
+    receiptAffectedFields?: string[];
   }>;
   /** Applied/reversed adjustment records linked to this donation (ADR-CD-004). */
   adjustments?: ContributionAdjustmentRecord[];

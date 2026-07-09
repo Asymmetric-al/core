@@ -371,6 +371,9 @@ export function ContributionDetailOverlay({
       errorMessage={detailErrorMessage}
       providerProof={detailQuery.data?.providerProof ?? null}
       recurring={detailQuery.data?.recurring}
+      correctionRequests={detailQuery.data?.correctionRequests}
+      receiptDelivery={detailQuery.data?.receiptDelivery ?? null}
+      onDecided={onActionSuccess}
       isLoading={Boolean(validDonationId && detailQuery.isPending)}
       isOpen={Boolean(donationId)}
       onClose={onClose}
