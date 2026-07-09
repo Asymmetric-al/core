@@ -16,28 +16,29 @@ Use this doc when planning or changing Statement Studio tables, migrations, RLS,
 6. Add explicit grants and RLS together in migrations.
 7. Run focused SQL/type/route verification.
 
-## Canonical Persistence (Phase 0 decision)
+## Canonical Persistence (Phase 0 proposal pending HITL merge)
 
-**Phase 0 (#312) must name one canonical Postgres model before SS-01+ ships
-schema.** The repo already has native PDF Studio tables from
+**Phase 0 (#312) proposes one canonical Postgres migration base before SS-01+
+ships schema.** The repo already has native PDF Studio tables from
 `supabase/migrations/20260515140948_native_pdf_studio_foundation.sql`:
 
 - `pdf_templates`, `pdf_template_versions`, `pdf_template_renders`,
   `pdf_template_artifacts` (and related native PDF Studio tables).
 
-**Default posture:** extend and rename these `pdf_*` tables rather than
-introducing parallel `document_*` tables. The `document_*` names below are
-**conceptual** labels for product language and gap analysis only. Phase 0
-output must map each concept to an existing table, a renamed column, a view,
-or an explicitly justified net-new table with a retirement plan for any
-duplicate vocabulary.
+**Proposal:** extend these `pdf_*` tables rather than introducing parallel
+`document_*` tables. Rename an existing table only through an explicit
+migration/cutover. The `document_*` names below are **conceptual** labels for
+product language and gap analysis only. Each concept must map to an existing
+table/column, an intentional extension, or an explicitly justified net-new
+table without duplicating template, version, render, or artifact truth.
 
-**Single store module:** `packages/api` (or the Phase 0–chosen owner) exposes
+**Single store module:** `packages/api` exposes
 one persistence seam; feature slices must not write parallel table families.
 
 ## Core Tables
 
-Recommended model shape (conceptual — map to `pdf_*` in Phase 0):
+Recommended model shape (conceptual - map existing concepts to `pdf_*` and add
+only missing catalog/assignment/variable/retention concepts):
 
 - `document_job_catalog`: system-owned standard document jobs.
 - `document_template_library`: system-owned starter templates and starter versions.
@@ -48,11 +49,17 @@ Recommended model shape (conceptual — map to `pdf_*` in Phase 0):
 - `document_artifacts` (conceptual alias for **`pdf_template_artifacts`** /
   **`pdf_template_renders`** — do not create a second artifact table family):
   generated PDF artifact records shared safely across app surfaces.
-- `document_artifact_events`: audit history for render, download, purge, retention, rollback, and assignment changes.
+- `pdf_template_audit_events`: canonical audit history for render, download,
+  purge, retention, rollback, and assignment changes; do not add a parallel
+  `document_artifact_events` table.
 - `document_variable_catalog`: platform variable definitions.
 - `tenant_document_variables`: tenant labels, grouping, fallbacks, visibility, custom variables, and mappings.
 
-Phase 0 should choose exact table names. User-facing product language is Statement Studio; internal names can migrate pragmatically.
+Phase 0 proposes retaining the existing `pdf_*` names as the canonical
+migration base.
+Foundation work may choose `pdf_*` names for the missing concepts, but it must
+not introduce a second template/version/render/artifact vocabulary or store.
+User-facing product language remains Statement Studio.
 
 ## Defaults
 

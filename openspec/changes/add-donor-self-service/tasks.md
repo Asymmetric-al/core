@@ -16,9 +16,22 @@
 
 ## 3. Annual statements
 
-- [ ] 3.1 Statement generation for receiptable gifts by year per tenant policy
-      (finance/legal review of statement language before production).
-- [ ] 3.2 Donor download from the portal; delivery recorded.
+- [ ] 3.1 The Giving/statement domain builds the canonical frozen, versioned
+      annual-statement snapshot for receiptable gifts by year and tenant policy,
+      including corrections, refunds, currency, identity, raw values, frozen
+      display strings/locale, source IDs, and policy version (finance/legal
+      review before production).
+- [ ] 3.2 Statement Studio resolves the assigned immutable template and creates
+      the private artifact by binding frozen official display fields, without
+      recalculating or reformatting source facts.
+- [ ] 3.3 The donor BFF authorizes the recipient on every download, exposes only
+      the current eligible artifact, and records delivery/download.
+- [ ] 3.4 Contribution corrections/refunds/relinks supersede or void stale
+      statement artifacts per policy and link replacement lineage without
+      erasing retained audit history.
+- [ ] 3.5 Outbound delivery uses the approved Phase 6 communication seam and
+      document delivery adapter; authenticated self-download remains available
+      without creating a second send/log path.
 
 ## 4. Verification
 
@@ -26,5 +39,6 @@
       donor-owned only, idempotent, and reflected in Mission Control from the
       same records.
 - [ ] 4.2 E2E: donor pauses and cancels a recurring gift; updates a payment
-      method; downloads a statement.
+      method; downloads the current statement; cannot access another donor's or
+      a superseded statement artifact.
 - [ ] 4.3 Archive this change after deployment verification.

@@ -5,13 +5,15 @@ product inside Mission Control. It must become the platform's own custom PDF
 and statement product surface, not Unlayer, not an email editor pretending to
 make PDFs, and not a thin wrapper around disconnected exports.
 
-The product must use pdfx and React PDF as deeply as makes sense while keeping
-the saved template format Asym-owned, tenant-safe, versioned, auditable, and
-usable by non-technical tenant admins.
+The product must keep its saved template format Asym-owned, tenant-safe,
+versioned, auditable, and usable by non-technical tenant admins. Rendering stays
+behind a provider-neutral server boundary.
 
-**Render-stack note:** Statement Studio's target production path is pdfx + React PDF.
-Reconcile with the in-flight native PDF Studio + DocRaptor stack documented in
-`docs/guides/features/pdf-studio.md` during Phase 0 (#312) before cutover.
+**Phase 0 proposal (effective on AL-312 HITL merge):** Qualify the in-flight
+native PDF Studio server-side DocRaptor adapter, then use it as the sole
+first-slice provider. The repo has no pdfx or React PDF runtime path; adding one
+now would create a competing greenfield stack. See `phase-0-audit-brief.md` for
+qualification, parity, cutover, rollback, and template-migration gates.
 
 ## Triggers
 
@@ -39,9 +41,8 @@ Use it for:
    operational depth, donor and missionary dashboards expose role-scoped
    slices, and tenant safety is non-negotiable. **Phase 0 (#312) deliverable:**
    add `openspec/changes/add-statement-studio/` (proposal, design, tasks, spec
-   deltas for boundaries and data access) and link it from this doc set—this
-   PR documents intent; OpenSpec change lands in the implementation slice, not
-   in the docs-only planning PR.
+   deltas for boundaries and data access) and link it from this doc set. AL-312
+   now supplies that proposed change.
 3. Load the repo Supabase skill before any database, Auth, Storage, Realtime,
    Edge Function, RLS, migration, or Supabase CLI work.
 4. Load the Supabase Postgres best-practices skill before schema, RLS, index,
@@ -105,7 +106,7 @@ statement templates. It should provide:
 - A broad white-label starter library inside Templates, with production-ready
   jobs and template-ready demo jobs clearly labeled.
 - A PDF-native editor built on an Asym-owned constrained JSON template schema,
-  compiled to pdfx and React PDF at render time.
+  compiled through the provider-neutral server renderer boundary.
 - Immutable template versions with draft, preview, publish, set-as-default, and
   rollback workflows.
 - Tenant-scoped assignment records that map a document job and optional scope
@@ -332,7 +333,9 @@ UX requirements:
 - Use a new canonical Statement Studio engine for Asym-owned PDF templates.
 - Persist templates as a constrained Asym JSON block/tree schema, not JSX, raw
   pdfx registry JSON, HTML, direct React props, or Unlayer design JSON.
-- Compile the validated template schema to pdfx and React PDF at render time.
+- Compile the validated template schema through the server-only renderer port.
+  Pending qualification and AL-312 HITL approval, the first production provider
+  is DocRaptor per the Phase 0 proposal.
 - Store immutable published versions with content hashes and schema versions.
 - Store drafts separately from published versions.
 - Allow clone, edit, preview, publish, assign, replace, and rollback workflows.
@@ -397,7 +400,9 @@ Current official Supabase posture checked on 2026-06-12:
 
 ### Core Data Model
 
-Phase 0 should choose exact names, but the model must cover these concepts:
+Phase 0 retained the existing `pdf_*` family as the canonical migration base.
+Foundation work must map or add these concepts without creating a parallel
+template/version/render/artifact store:
 
 - System document job catalog.
 - System starter template library and starter versions.
@@ -548,6 +553,10 @@ Tenant-custom variable support:
 - Registered custom fields on approved entities.
 - Safe no-code derived variables: concatenate, format date, format currency,
   conditional fallback, sum, count, approved filters, simple boolean display.
+- Official receipt/statement money and date fields are excluded from these
+  transformations. Their source snapshot carries frozen display strings plus
+  raw values and locale/version metadata; templates bind those fields and never
+  recompute or reformat them.
 
 Do not support:
 
@@ -1015,7 +1024,7 @@ Create issues from this PRD as epics and thin vertical slices:
 - Product shell and IA issue.
 - Supabase foundation schema/RLS/Storage issue.
 - Template schema and validation issue.
-- Renderer and pdfx/React PDF integration issue.
+- Renderer port and DocRaptor artifact integration issue.
 - Starter Library issue.
 - Variables registry/source maps issue.
 - Tenant custom variables issue.
@@ -1154,14 +1163,26 @@ Definition of done:
 
 ## Further Notes
 
-### Open Questions For Phase 0
+### Phase 0 Answers And Remaining Gates
 
-- What exact table names should be retained, renamed, or introduced to balance
-  migration cost with product clarity?
-- Which current PDF templates, if any, should be migrated rather than removed?
-- Which first-slice route should become canonical for donor annual statement
-  generation and artifact download?
-- How much of the existing native builder schema can be reused safely?
+- Retain the `pdf_*` family and extend it with missing job, assignment,
+  variable, recipient/source, and retention concepts; do not create parallel
+  document tables.
+- Reuse the Asym schema, preflight, and server DocRaptor provider boundary.
+  Complete version/artifact/Storage behavior; do not adopt the raw JSON editor
+  or client-supplied production data route as product behavior.
+- Keep `donor.statement.annual_giving` as the first donor-facing production job
+  through the existing donor BFF route, after the canonical frozen statement
+  snapshot/version seam and finance/legal approval exist. Coordinate with the
+  newer proposed Phase 7 issues #579, #580, #583, and #584 rather than creating
+  a parallel context or formatting model.
+- Keep legacy tenant templates until hosted data is inventoried and each
+  template has an approved migrate/archive/delete disposition.
+- Re-groom issue #322 so the official statement context, private artifact path,
+  and policy approval are explicit blockers.
+
+### Remaining Implementation Questions
+
 - Should batch rendering use the platform's existing job mechanism or add a new
   dedicated execution path?
 - Which document classes need legal retention defaults by jurisdiction or
@@ -1183,12 +1204,13 @@ Definition of done:
 
 ## Checklist
 
-- [ ] Phase 0 audit completed before implementation.
+- [x] Phase 0 audit completed before implementation.
 - [ ] Statement Studio product shell is clean, token-driven, and non-technical.
 - [ ] Supabase skill is used for all database/Supabase work.
 - [ ] Supabase CLI is used for migration and database verification.
 - [ ] RLS, grants, Storage, indexes, and tenant boundaries are explicit.
-- [ ] Template schema is Asym-owned and compiled to pdfx/React PDF.
+- [ ] Template schema is Asym-owned and compiled through the approved
+      server-only renderer port.
 - [ ] Variables have source maps, readiness, sensitivity, and validation.
 - [ ] Starter library is broad, white-label, and tenant-brandable.
 - [ ] Assignments support standard jobs and tenant custom assignments.

@@ -50,9 +50,20 @@ until settled. Unknown-donor gifts MUST NOT appear on any donor's statement
 unless later matched, and statement language MUST be finance/legal reviewed
 before production use.
 
+Giving MUST produce the frozen, versioned statement context from canonical
+donation/correction truth, including raw structured values and frozen official
+display strings with locale/formatting version metadata. The document-production
+capability MUST resolve the assigned immutable template and private artifact,
+bind those frozen strings, and avoid recalculating or reformatting official
+facts. The donor BFF MUST authorize the recipient, expose only the current
+eligible artifact, and record delivery/download. A later correction, refund, or
+donor relink MUST supersede or void stale output per policy while preserving
+correction and artifact lineage.
+
 #### Scenario: A donor downloads last year's statement
 
 - WHEN a donor requests a statement for a completed year
 - THEN the statement includes exactly their settled, receiptable gifts for that
   year from canonical records
+- AND the portal does not present a superseded or void statement as current
 - AND the delivery or download is recorded

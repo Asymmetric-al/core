@@ -16,12 +16,18 @@ Use this doc when auditing, removing, replacing, or migrating legacy PDF Studio 
 6. Update docs, env examples, tests, and route references.
 7. Keep the Unlayer allowlist verification script in sync when removing legacy paths.
 
-## Approved Boundary
+## Proposed Phase 0 Boundary (pending HITL merge)
 
-- New templates, assignments, publishing, rendering, and defaults use the custom pdfx/React PDF path (Statement Studio target state).
-- Reconcile with in-flight native PDF Studio + DocRaptor work in `docs/guides/features/pdf-studio.md` during Phase 0; do not run two production render stacks without an explicit migration decision.
-- Unlayer is legacy-only and not a dependency.
-- Existing Unlayer PDF templates may be migrated if useful or removed if Phase 0 confirms removal is acceptable.
+- New templates, assignments, publishing, rendering, and defaults use the
+  Asym-owned schema and Statement Studio lifecycle.
+- Phase 0 proposes the existing server-side DocRaptor adapter as the sole
+  first-slice provider behind a renderer port after qualification and HITL
+  approval. Do not run a second production stack without an explicit migration
+  decision.
+- Unlayer is not a dependency of new Statement Studio templates; it remains a
+  temporary compatibility dependency for the exercised legacy editor/export.
+- Existing Unlayer templates may be migrated, archived, or removed only after
+  hosted tenant-template inventory and verified replacement/cutover.
 - The rebuild is a clean product replacement, not a compatibility layer.
 
 ## Removal Targets To Audit

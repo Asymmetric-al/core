@@ -1,14 +1,14 @@
 # Statement Studio
 
-Statement Studio is the planned rebuild of PDF Studio as a fully usable staff-facing Mission Control product for building, assigning, rendering, and managing tenant-safe PDFs and statements.
+Statement Studio is the planned replacement for PDF Studio: a fully usable staff-facing Mission Control product for building, assigning, rendering, and managing tenant-safe PDFs and statements.
 
-It must not be built on Unlayer, and it must not be an email editor pretending to make PDFs. New work should use the custom Statement Studio product model, with pdfx and React PDF used as deeply as makes sense.
+It must not be built on Unlayer, and it must not be an email editor pretending to make PDFs. New work uses the custom Statement Studio product model and an Asym-owned template schema.
 
-**Render stack:** Target production path is pdfx + React PDF on an Asym-owned
-template schema. Phase 0 (#312) reconciles this with the in-flight native PDF
-Studio + DocRaptor stack (`docs/guides/features/pdf-studio.md`) and records a
-single cutover decision—no dual production render stacks without an explicit
-migration plan.
+**Phase 0 proposal (pending HITL merge):** Qualify the current server-side
+DocRaptor adapter, then use it as the sole first-slice provider behind a
+provider-neutral port. The repo has no pdfx or React PDF runtime path, so adding
+either now would create a second greenfield stack. See
+`phase-0-audit-brief.md` for the qualification and migration gates.
 
 ## Triggers
 
@@ -22,16 +22,25 @@ Use this documentation when planning or implementing:
 ## Workflow Steps
 
 1. Read this `README.md`.
-2. Read `phase-0-audit-brief.md` before implementation.
+2. Read the completed `phase-0-audit-brief.md`, its evidence appendix, and the
+   `add-statement-studio` OpenSpec change before implementation.
 3. Load `docs/ai/skills/supabase/SKILL.md`, `docs/ai/rules/backend.md`, and `supabase/AGENTS.md` before any Supabase/database work.
 4. Load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` for schema, RLS, indexes, query, or migration work.
 5. Load `docs/ai/rules/frontend.md` before UI work.
 6. Keep UI on shared `@asym/ui` components and Maia/Zinc design tokens.
-7. Implement in vertical slices, starting with `donor.statement.annual_giving` unless Phase 0 finds a stronger first slice.
+7. Start with the safe sample-data/admin tracer defined by Phase 0. Keep
+   `donor.statement.annual_giving` as the first donor-facing production job only
+   after its canonical statement snapshot/version and finance/legal gates are
+   complete.
 
 ## Documentation Map
 
-- `phase-0-audit-brief.md` - required implementation audit output.
+- `phase-0-audit-brief.md` - completed research, proposed Phase 0 decisions, and
+  implementation gates.
+- `phase-0-research-evidence.md` - primary-source runtime, schema, migration,
+  Storage, and test evidence behind the audit.
+- `openspec/changes/add-statement-studio/` - proposed durable product and
+  boundary contract.
 - `handoff.md` - current PR, issue, skill, and next-agent handoff context.
 - `prd.md` - issue-source PRD covering scope, phases, UX, Supabase posture, variables, starter jobs, integrations, and testing.
 - `issues.md` - published vertical-slice map (#310 parent, #312–#364) with archival draft bodies.
@@ -50,6 +59,9 @@ Use this documentation when planning or implementing:
 - User-facing product name: Statement Studio.
 - Existing `/pdf` routes and `pdf_*` internals can migrate pragmatically, but users should not see two competing product names.
 - Persisted templates use an Asym-owned JSON template schema, not JSX, raw pdfx registry JSON, HTML, or direct React props.
+- Pending AL-312 HITL approval, the first production renderer is the qualified
+  server-only DocRaptor adapter behind a provider port; do not run a second
+  official renderer without an explicit migration change.
 - Production renders resolve variables server-side from tenant-scoped DTOs.
 - Generated PDFs are exposed through tenant-aware artifact access, not direct cross-dashboard table reads.
 - Tenant admins control how templates, defaults, variables, retention, and capabilities are used inside platform safety floors.
@@ -58,7 +70,7 @@ Use this documentation when planning or implementing:
 
 Final gate before implementation:
 
-- [ ] Phase 0 audit brief exists.
+- [x] Phase 0 audit brief and evidence exist.
 - [ ] UX/IA uses shared design tokens and components.
 - [ ] Supabase/backend rules were loaded for database work.
 - [ ] RLS, grants, Storage, indexes, and tenant boundaries are explicit.

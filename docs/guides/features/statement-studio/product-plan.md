@@ -18,7 +18,10 @@ Use this plan when defining Statement Studio scope, product behavior, implementa
 
 - Fully usable staff-facing product inside Mission Control.
 - Own custom Statement Studio surface, not Unlayer and not an email editor.
-- Uses pdfx and React PDF where they fit the template model and render pipeline.
+- Uses an Asym-owned template schema and provider-neutral render boundary. Phase
+  0 proposes qualifying the current server-only DocRaptor integration for the
+  first production path; renderer replacement remains a later explicit
+  migration decision.
 - White-label, tenant-brandable, accessible, printable, and reliable.
 - Tenant-aware across Mission Control, Donor Dashboard, and Missionary Dashboard.
 
@@ -51,10 +54,15 @@ Owning product surfaces own source facts:
 1. Foundation: schema, RLS, grants, Storage, template JSON, versioning, artifact model.
 2. Editor MVP: create, edit, sample preview, real preview, publish.
 3. Assignments: standard jobs, tenant defaults, custom assignments.
-4. First production jobs: `donor.statement.annual_giving`, then `donor.receipt.single`, then `missionary.statement.monthly_giving`.
-5. Tables/repeaters: donor lists, finance reports, event roster/badge, schedules.
-6. Starter library: broad white-label catalog, design variants, fixtures.
-7. Batch rendering, retention automation, purge/storage management, governance.
+4. Infrastructure tracer: synthetic admin-only preview selection, render,
+   private artifact, download, and audit; never a production assignment/job.
+5. First production jobs: `donor.statement.annual_giving` after its canonical
+   statement snapshot/version and finance/legal gates, then
+   `donor.receipt.single` after receipt-truth reconciliation, then
+   `missionary.statement.monthly_giving`.
+6. Tables/repeaters: donor lists, finance reports, event roster/badge, schedules.
+7. Starter library: broad white-label catalog, design variants, fixtures.
+8. Batch rendering, retention automation, purge/storage management, governance.
 
 ## Capability Groups
 
