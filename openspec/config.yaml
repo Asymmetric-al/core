@@ -1,10 +1,37 @@
-project:
-  name: asymmetric-al-core
-  description: >
-    OpenSpec metadata for the Asymmetric.al core monorepo instruction system.
-guidance:
-  keep_repo_owned_instructions: true
-  note: >
-    This repo hand-maintains AGENTS.md, Cursor rules and commands, and Copilot
-    instruction files. Review any OpenSpec-generated instruction diffs manually
-    before applying them.
+schema: spec-driven
+
+context: |
+  Asymmetric.al core: Bun + Turborepo monorepo for an all-in-one platform for
+  Christian missions sending organizations (support-raising operating model).
+  Three Next.js App Router apps — Mission Control/admin, donor, missionary —
+  plus the public tenant website experience, with shared workspace packages
+  (api, auth, database, env, ui).
+  Tech: Next.js 16.2.x, React 19.2.x, TypeScript 6.0.x, Tailwind v4, Supabase,
+  Stripe, TanStack Query, Inngest (workflow orchestration), Twenty (CRM
+  backing subsystem), Payload (CMS engine for Web Studio).
+  Spec layout is two-layered: openspec/specs/platform-* are durable
+  intent-layer specs (product intent, surfaces, principles, boundaries);
+  the capability specs (donation-lifecycle, contribution-operations, crm-core,
+  workflow-orchestration, agent-instruction-system) hold verifiable system
+  behavior. openspec/project.md carries fuller repo conventions and must stay
+  aligned with AGENTS.md.
+
+rules:
+  proposal:
+    - Read openspec/project.md plus the relevant intent and capability specs
+      before proposing.
+    - Create a change only when durable behavior, workflow, or long-lived
+      conventions shift; spikes and tooling-only work may skip spec deltas.
+  specs:
+    - Intent-layer specs (platform-*) capture durable product intent; their
+      scenarios may describe agent decision-making.
+    - Capability specs capture verifiable system behavior; write scenarios as
+      WHEN/THEN about the product, not agent guidance.
+    - Name new capabilities for the durable capability, not the current vendor
+      or implementation.
+    - The canonical priority ladder lives in platform-principles; do not
+      restate a competing ordering in another spec.
+  tasks:
+    - Do not bulk-regenerate AGENTS.md, Cursor, Copilot, or Codex instruction
+      files; this repo hand-maintains them. Review any OpenSpec-generated
+      instruction diffs manually before applying.
