@@ -369,6 +369,64 @@ describe("decideContributionCorrectionRequest", () => {
     ).toBe(true);
   });
 
+  it("approves requests when the applied correction reports failed receipt delivery", async () => {
+    const state: StubState = { request: pendingRequest(), auditInserts: [] };
+    state.request.receipt_delivery_proposal = { choice: "email" };
+    const dependencies = approverDependencies(state);
+    dependencies.applyCorrection.mockResolvedValueOnce({
+      before: { amount: 25_000 },
+      after: { amount: 20_000 },
+      status: "applied" as const,
+      adjustmentId: "adj-1",
+      idempotentReplay: false,
+      receiptOutcome: {
+        status: "failed" as const,
+        reason:
+          "The updated receipt email could not be sent. Check email send logs for provider details.",
+        snapshotId: "snap-1",
+        affectedFields: ["amount"],
+        requested: { choice: "email" as const },
+        confirmed: { choice: "email" as const },
+      },
+    });
+
+    const outcome = await decideContributionCorrectionRequest({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      decision: "approve",
+      deciderProfileId: "approver-1",
+      deciderCapabilities: [
+        "contributions.approve_corrections",
+        "contributions.apply_corrections",
+      ],
+      dependencies,
+    });
+
+    expect(state.request.status).toBe("approved");
+    expect(state.request.applied_adjustment_id).toBe("adj-1");
+    expect(outcome.result?.receiptOutcome).toMatchObject({
+      status: "failed",
+      snapshotId: "snap-1",
+    });
+    expect(state.auditInserts).toContainEqual(
+      expect.objectContaining({
+        downstreamEffects: expect.objectContaining({
+          decision: "approved",
+          receiptSnapshotId: "snap-1",
+          receiptDeliveryRequested: {
+            choice: "email",
+            deferReason: null,
+          },
+          receiptDeliveryConfirmed: {
+            choice: "email",
+            deferReason: null,
+          },
+        }),
+      }),
+    );
+  });
+
   it("requires a rejection reason and records requester follow-up work", async () => {
     const state: StubState = { request: pendingRequest(), auditInserts: [] };
 

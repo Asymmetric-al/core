@@ -2,6 +2,7 @@ import type {
   CrmGiftHistoryColumnSettings,
   CrmGiftHistoryFiltersSortSettings,
   CrmGiftHistoryViewSettings,
+  CrmTableRowActionPreference,
   CrmViewSettingsLayer,
   CrmViewSettingsScope,
   CrmViewSettingsSource,
@@ -258,4 +259,25 @@ export function canManageCrmTenantDefaults(input: {
     input.profileId &&
     input.delegatedManagerProfileIds.includes(input.profileId),
   );
+}
+
+/**
+ * Tenant-default manageability against the loaded tenant default record.
+ * Both the tenant-default write gate and the GET response flag that drives
+ * UI visibility (issue #272) call this one function, so what the client is
+ * shown can never be broader than what the write endpoint enforces.
+ */
+export function resolveCanManageCrmTenantDefaults(input: {
+  capabilities: string[];
+  profileId: string | null;
+  tenantDefault: Pick<CrmTableRowActionPreference, "settings"> | null;
+}): boolean {
+  const delegatedManagerProfileIds =
+    input.tenantDefault?.settings?.delegatedManagerProfileIds ?? [];
+
+  return canManageCrmTenantDefaults({
+    capabilities: input.capabilities,
+    profileId: input.profileId,
+    delegatedManagerProfileIds,
+  });
 }
