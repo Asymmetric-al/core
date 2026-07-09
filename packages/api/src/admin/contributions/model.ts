@@ -1,5 +1,6 @@
 import {
   buildSharedContributionRowFields,
+  normalizeSharedPaymentStatus,
   type SharedContributionCorrectionInput,
   type SharedContributionCrmPostStatus,
   type SharedContributionPaymentStatus,
@@ -181,13 +182,7 @@ export function normalizeContributionGridStatus(
   if (status === "processing") {
     return "processing";
   }
-  if (status === "completed") {
-    return "completed";
-  }
-  if (status === "failed" || status === "refunded") {
-    return status;
-  }
-  return "pending";
+  return normalizeSharedPaymentStatus(status);
 }
 
 function normalizeType(

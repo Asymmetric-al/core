@@ -9,6 +9,7 @@
  */
 
 import { summarizeContributionDesignationSet } from "./designation-set";
+import { SETTLED_DONATION_STATUS_SET } from "../../reads/settled-donation-statuses";
 
 import type {
   ContributionDesignationSet,
@@ -165,13 +166,15 @@ export function formatSharedContributionAmount(
 export function normalizeSharedPaymentStatus(
   status: string | null | undefined,
 ): SharedContributionPaymentStatus {
-  if (status === "processing" || status === "pending") {
-    return "pending";
+  if (typeof status === "string" && SETTLED_DONATION_STATUS_SET.has(status)) {
+    return "completed";
   }
   if (status === "failed" || status === "refunded") {
     return status;
   }
-  return "completed";
+  // Unknown money state is never presented as settled. Processing, pending,
+  // null, and unrecognized legacy values all stay pending until confirmed.
+  return "pending";
 }
 
 export function normalizeSharedReceiptStatus(

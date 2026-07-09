@@ -1,9 +1,28 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSharedContributionRowFields } from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
-import { buildContributionGridRow } from "../../../../../packages/api/src/admin/contributions/model";
+import {
+  buildSharedContributionRowFields,
+  normalizeSharedPaymentStatus,
+} from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
+import {
+  buildContributionGridRow,
+  normalizeContributionGridStatus,
+} from "../../../../../packages/api/src/admin/contributions/model";
+import { SETTLED_DONATION_STATUSES } from "../../../../../packages/api/src/reads/settled-donation-statuses";
 
 describe("api/admin/contributions/model", () => {
+  it("classifies settled and unknown payment statuses consistently", () => {
+    for (const settledStatus of SETTLED_DONATION_STATUSES) {
+      expect(normalizeContributionGridStatus(settledStatus)).toBe("completed");
+      expect(normalizeSharedPaymentStatus(settledStatus)).toBe("completed");
+    }
+
+    for (const unknownStatus of [null, undefined, "unexpected_status"]) {
+      expect(normalizeContributionGridStatus(unknownStatus)).toBe("pending");
+      expect(normalizeSharedPaymentStatus(unknownStatus)).toBe("pending");
+    }
+  });
+
   it("builds a UI-safe contribution row with nonprofit admin fields", () => {
     const row = buildContributionGridRow({
       donation: {
