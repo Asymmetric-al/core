@@ -5,7 +5,9 @@ import { describe, expect, it, vi } from "vitest";
 import { workflowEventEnvelopeSchema } from "../../../../../packages/api/src/workflows/events";
 import {
   createOrReuseDispatchRequest,
+  dispatchLedgerRequest,
   requestWorkflowDispatch,
+  type WorkflowDispatchRequest,
   type WorkflowDispatchRequestRow,
 } from "../../../../../packages/api/src/workflows/ledger";
 
@@ -72,13 +74,18 @@ function createLedgerClientMock(options: LedgerClientMockOptions) {
     }),
   });
 
-  const updateSingle = vi
+  const updateMaybeSingle = vi
     .fn()
     .mockResolvedValue({ data: options.updateData ?? null, error: null });
+  const updateIn = vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle }),
+  });
+  const updateEq = {
+    in: updateIn,
+    select: vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle }),
+  };
   const update = vi.fn().mockReturnValue({
-    eq: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({ single: updateSingle }),
-    }),
+    eq: vi.fn().mockReturnValue(updateEq),
   });
 
   const from = vi.fn().mockReturnValue({ upsert, select, update });
@@ -215,6 +222,74 @@ describe("workflow dispatch ledger (#288)", () => {
         dispatch_attempts: 1,
       }),
     );
+    expect(mock.update().eq).toHaveBeenCalledWith("id", REQUEST_ID);
+  });
+
+  it("does not downgrade a dispatched row when a concurrent handoff records failure", async () => {
+    const request: WorkflowDispatchRequest = {
+      id: REQUEST_ID,
+      tenantId: TENANT_ID,
+      productArea: "donations",
+      workflowName: "donations/saga.recovery.requested",
+      subject: { type: "donation_saga_outbox", id: "outbox-1" },
+      idempotencyKey: "donation-saga/outbox-1",
+      schemaVersion: 1,
+      status: "pending",
+      dispatchAttempts: 0,
+      nextAttemptAt: "2026-06-11T00:00:00.000Z",
+      lastErrorCode: null,
+      lastErrorMessage: null,
+      eventIds: [],
+      context: {},
+      dispatchedAt: null,
+      deadLetterAt: null,
+      createdAt: "2026-06-11T00:00:00.000Z",
+      updatedAt: "2026-06-11T00:00:00.000Z",
+    };
+
+    const dispatchedRow = ledgerRow({
+      status: "dispatched",
+      dispatch_attempts: 1,
+      event_ids: ["evt-winner"],
+    });
+
+    const updateMaybeSingle = vi
+      .fn()
+      .mockResolvedValueOnce({ data: null, error: null })
+      .mockResolvedValueOnce({ data: dispatchedRow, error: null });
+    const updateIn = vi.fn().mockReturnValue({
+      select: vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle }),
+    });
+    const updateEq = { in: updateIn };
+    const update = vi.fn().mockReturnValue({
+      eq: vi.fn().mockReturnValue(updateEq),
+    });
+
+    const existingSingle = vi
+      .fn()
+      .mockResolvedValue({ data: dispatchedRow, error: null });
+    const from = vi.fn().mockReturnValue({
+      update,
+      select: vi.fn().mockReturnValue({
+        eq: vi.fn().mockReturnValue({ single: existingSingle }),
+      }),
+    });
+
+    const dispatcher = vi.fn().mockResolvedValue({
+      dispatched: false,
+      eventIds: [],
+      error: "connect ECONNREFUSED",
+    });
+
+    const result = await dispatchLedgerRequest(
+      { client: { from } as never, dispatcher },
+      request,
+    );
+
+    expect(result.outcome).toBe("dispatched");
+    expect(result.request.status).toBe("dispatched");
+    expect(result.error).toBeNull();
+    expect(updateIn).toHaveBeenCalledWith("status", ["pending", "failed"]);
   });
 
   it("records a failed immediate dispatch so a later scan can recover it", async () => {
