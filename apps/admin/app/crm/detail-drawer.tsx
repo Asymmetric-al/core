@@ -96,10 +96,13 @@ export function DetailDrawer({
   contact,
   onClose,
   onOpenGift,
+  onRowRefresh,
 }: {
   contact: CrmRecord;
   onClose: () => void;
   onOpenGift: (donationId: string) => void;
+  /** Notifies the host after an inline operation refreshes shared row data. */
+  onRowRefresh?: () => void;
 }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [noteBody, setNoteBody] = useState("");
@@ -994,7 +997,12 @@ export function DetailDrawer({
           setInlineOperation(null);
           onOpenGift(donationId);
         }}
-        onRowRefresh={() => void detailQuery.refetch()}
+        onRowRefresh={async () => {
+          const refreshed = await detailQuery.refetch();
+          if (!refreshed.isError) {
+            onRowRefresh?.();
+          }
+        }}
       />
       {pendingReset && resetPreview ? (
         <Dialog open onOpenChange={(open) => !open && setPendingReset(null)}>

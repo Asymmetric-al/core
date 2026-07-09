@@ -49,6 +49,10 @@ import {
   ContributionDetailOverlay,
   isContributionGiftParam,
 } from "../contributions/contribution-detail-overlay";
+import {
+  ContributionFreshnessIndicator,
+  useContributionFreshness,
+} from "../contributions/freshness-indicator";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
@@ -67,6 +71,7 @@ export default function MissionControlCRM() {
   const [openGiftId, setOpenGiftId] = useState<string | null>(
     () => selectedGiftParam,
   );
+  const { markFreshness, showFreshness } = useContributionFreshness();
 
   useEffect(() => {
     setOpenGiftId(selectedGiftParam);
@@ -336,6 +341,7 @@ export default function MissionControlCRM() {
         }
       >
         <div className="flex flex-col min-h-[400px]">
+          <ContributionFreshnessIndicator show={showFreshness} />
           <AnimatePresence mode="wait">
             {view === "table" ? (
               <motion.div
@@ -517,6 +523,7 @@ export default function MissionControlCRM() {
           contact={selectedRecord}
           onClose={() => selectRecord(null)}
           onOpenGift={openGift}
+          onRowRefresh={markFreshness}
         />
       )}
 
@@ -524,6 +531,7 @@ export default function MissionControlCRM() {
         donationId={openGiftId}
         sourceSurface="donor_crm_record"
         onClose={closeGift}
+        onActionSuccess={markFreshness}
       />
     </>
   );

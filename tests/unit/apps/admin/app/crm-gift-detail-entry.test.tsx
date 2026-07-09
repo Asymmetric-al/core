@@ -2,6 +2,7 @@
 
 import { QueryProvider } from "@asym/database/providers";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -716,7 +717,13 @@ describe("apps/admin/app/crm gift detail entry", () => {
   it("submits inline operations through the shared contract and stays in CRM", async () => {
     const donationId = "00000000-0000-4000-8000-00000000d003";
     mockSearch = `donor=${DONOR_RECORD_ID}`;
-    const detailRefetch = vi.fn().mockResolvedValue({});
+    let resolveDetailRefetch: (value: { isError: boolean }) => void = () => {};
+    const detailRefetch = vi.fn(
+      () =>
+        new Promise<{ isError: boolean }>((resolve) => {
+          resolveDetailRefetch = resolve;
+        }),
+    );
     useAdminCrmRecordDetailMock.mockReturnValue(
       mockQuery({
         data: crmDonorDetailFor(donationId),
@@ -768,6 +775,15 @@ describe("apps/admin/app/crm gift detail entry", () => {
     });
     fireEvent.click(submit);
 
+    await waitFor(() => {
+      expect(detailRefetch).toHaveBeenCalled();
+    });
+    expect(view.queryByText("Updated just now")).toBeNull();
+
+    await act(async () => {
+      resolveDetailRefetch({ isError: false });
+    });
+
     // The result stays in CRM — no navigation away.
     expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
     expect(view.getByText(/audit event: audit-9/i)).toBeTruthy();
@@ -789,8 +805,72 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(typeof body.idempotencyKey).toBe("string");
     expect(body.idempotencyKey.length).toBeGreaterThan(10);
 
-    // Shared row data refreshes in place after the operation.
-    expect(detailRefetch).toHaveBeenCalled();
+    // Freshness appears only after the shared row refetch succeeds.
+    expect(view.getByText("Updated just now")).toBeTruthy();
+  });
+
+  it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00c";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-10",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    expect(view.queryByText("Updated just now")).toBeNull();
+    const sendReceipt = await view.findByRole("button", {
+      name: /send receipt/i,
+    });
+
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+    fireEvent.click(sendReceipt);
+
+    const indicator = await view.findByText("Updated just now");
+    expect(indicator.textContent).toBe("Updated just now");
+
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenCalledWith("/crm", {
+        scroll: false,
+      });
+    });
+
+    const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 8000,
+    );
+    expect(freshnessTimerCall).toBeTruthy();
+    act(() => {
+      (freshnessTimerCall![0] as () => void)();
+    });
+    expect(view.queryByText("Updated just now")).toBeNull();
+    setTimeoutSpy.mockRestore();
   });
 
   it("opens the full contribution detail from the result panel without leaving CRM", async () => {
@@ -893,7 +973,9 @@ describe("apps/admin/app/crm gift detail entry", () => {
     fireEvent.click(trigger);
     const shell = await view.findByTestId("contribution-operation-shell");
 
-    fireEvent.click(within(shell).getByRole("button", { name: "Cancel" }));
+    fireEvent.click(
+      await within(shell).findByRole("button", { name: "Cancel" }),
+    );
 
     await waitFor(() => {
       expect(view.queryByTestId("contribution-operation-shell")).toBeNull();

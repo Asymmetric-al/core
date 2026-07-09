@@ -1,7 +1,13 @@
 /** @vitest-environment jsdom */
 
 import { QueryProvider } from "@asym/database/providers";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+} from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -194,6 +200,23 @@ function makeDetailPayload(donationId: string, donorName: string) {
         historyUpdatedImmediately: true,
         amount: 10000,
         currency: "USD",
+      },
+    },
+  };
+}
+
+function makeReceiptActionablePayload(donationId: string, donorName: string) {
+  const base = makeDetailPayload(donationId, donorName);
+  return {
+    contribution: {
+      ...base.contribution,
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "pending",
+        crmPostStatus: null,
+        reviewReason: null,
+        twentyRecordId: null,
       },
     },
   };
@@ -872,7 +895,7 @@ describe("apps/admin/app/contributions/page-client", () => {
 
   it("smart close removes only the gift selection from route state", async () => {
     const donationId = "00000000-0000-4000-8000-000000000125";
-    mockSearch = `status=completed&gift=${donationId}`;
+    mockSearch = `status=completed&search=sarah&gift=${donationId}`;
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => makeDetailPayload(donationId, "Smart Close Donor"),
@@ -890,7 +913,7 @@ describe("apps/admin/app/contributions/page-client", () => {
     );
 
     expect(routerReplaceMock).toHaveBeenCalledWith(
-      "/contributions?status=completed",
+      "/contributions?status=completed&search=sarah",
       { scroll: false },
     );
   });
@@ -952,6 +975,45 @@ describe("apps/admin/app/contributions/page-client", () => {
     await waitFor(() => {
       expect(document.activeElement).toBe(opener);
     });
+  });
+
+  it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012c";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Freshness Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Freshness Donor")).toBeTruthy();
+    expect(view.queryByText("Updated just now")).toBeNull();
+
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    const indicator = await view.findByText("Updated just now");
+    expect(indicator.textContent).toBe("Updated just now");
+
+    const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 8000,
+    );
+    expect(freshnessTimerCall).toBeTruthy();
+    act(() => {
+      (freshnessTimerCall![0] as () => void)();
+    });
+    expect(view.queryByText("Updated just now")).toBeNull();
+    setTimeoutSpy.mockRestore();
   });
 
   it("invalidates every shared contribution surface after contribution mutations", async () => {

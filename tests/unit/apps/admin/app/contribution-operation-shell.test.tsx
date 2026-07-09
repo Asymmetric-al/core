@@ -1,13 +1,21 @@
 /** @vitest-environment jsdom */
 
-import { QueryProvider } from "@asym/database/providers";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { getQueryClient, QueryProvider } from "@asym/database/providers";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ContributionOperationShell,
   OPERATION_DEFINITIONS,
 } from "../../../../../apps/admin/app/contributions/operation-shell";
+import { contributionDetailQueryKey } from "../../../../../apps/admin/app/contributions/contribution-detail-overlay";
+import { useAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
@@ -141,6 +149,13 @@ function fetchMockForShell(
 
 let fetchDescriptor: PropertyDescriptor | undefined;
 
+function HubAmountProbe() {
+  const contributionsQuery = useAdminContributions();
+  const amountCents = contributionsQuery.data?.[0]?.amountCents;
+
+  return <p>Hub amount: {amountCents ?? "loading"}</p>;
+}
+
 describe("ContributionOperationShell", () => {
   beforeEach(() => {
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
@@ -148,6 +163,7 @@ describe("ContributionOperationShell", () => {
 
   afterEach(() => {
     cleanup();
+    getQueryClient().clear();
     vi.clearAllMocks();
     if (fetchDescriptor) {
       Object.defineProperty(globalThis, "fetch", fetchDescriptor);
@@ -490,6 +506,283 @@ describe("ContributionOperationShell", () => {
         ),
       ).toHaveLength(1);
     });
+  });
+
+  it("protects and reloads a draft after a background revision refresh", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ab";
+    const initialDetail = makeDetail({
+      id: donationId,
+      revision: "2026-05-01T00:00:00.000Z#0",
+    });
+    initialDetail.shared = {
+      ...initialDetail.shared,
+      donationId,
+      amountCents: 25_000,
+    };
+    const refreshedDetail = {
+      ...initialDetail,
+      revision: "2026-05-02T00:00:00.000Z#1",
+      shared: {
+        ...initialDetail.shared,
+        amountCents: 30_000,
+      },
+    };
+    let detailFetchCount = 0;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-stale-recovery",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        detailFetchCount += 1;
+        return {
+          ok: true,
+          json: async () => ({
+            contribution:
+              detailFetchCount === 1 ? initialDetail : refreshedDetail,
+          }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("$250.00")).toBeTruthy();
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "fix" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+
+    act(() => {
+      getQueryClient().setQueryData(
+        contributionDetailQueryKey(donationId),
+        refreshedDetail,
+      );
+    });
+    expect(await view.findByText("$300.00")).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("150");
+    expect(
+      await view.findByText(/gift changed while you were editing/i),
+    ).toBeTruthy();
+    expect(
+      view.getByRole("button", { name: "Reload latest gift" }),
+    ).toBeTruthy();
+    expect(view.getByRole("button", { name: "Discard draft" })).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions")),
+    ).toHaveLength(0);
+
+    fireEvent.click(view.getByRole("button", { name: "Reload latest gift" }));
+    await waitFor(() => {
+      expect(
+        view.queryByText(/gift changed while you were editing/i),
+      ).toBeNull();
+    });
+    expect(view.getByText("$300.00")).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("");
+    expect((view.getByLabelText("Reason") as HTMLTextAreaElement).value).toBe(
+      "",
+    );
+    expect(
+      (view.getByRole("checkbox") as HTMLButtonElement).getAttribute(
+        "data-checked",
+      ),
+    ).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "reviewed latest detail" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await view.findByText("Operation completed.");
+    const actionCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/actions"),
+    );
+    expect(actionCalls).toHaveLength(1);
+    const retryBody = JSON.parse(
+      (actionCalls[0]![1] as RequestInit).body as string,
+    );
+    expect(retryBody.expectedRevision).toBe("2026-05-02T00:00:00.000Z#1");
+  });
+
+  it("preserves a draft and offers recovery when the server rejects a stale save", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ac";
+    const detail = makeDetail({
+      id: donationId,
+      revision: "2026-05-01T00:00:00.000Z#0",
+    });
+    const onClose = vi.fn();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: false,
+            status: 409,
+            init,
+            json: async () => ({
+              error:
+                "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={onClose}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "fix stale gift" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText(/changed since you loaded/i)).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("150");
+    expect(
+      view.getByRole("button", { name: "Reload latest gift" }),
+    ).toBeTruthy();
+    fireEvent.click(view.getByRole("button", { name: "Discard draft" }));
+    expect(onClose).toHaveBeenCalledOnce();
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.expectedRevision).toBe("2026-05-01T00:00:00.000Z#0");
+  });
+
+  it("refreshes an active Hub consumer after a CRM operation succeeds", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ad";
+    const detail = makeDetail({ id: donationId });
+    detail.shared = { ...detail.shared, donationId };
+    let hubFetchCount = 0;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url === "/api/admin/contributions") {
+          hubFetchCount += 1;
+          return {
+            ok: true,
+            json: async () => ({
+              rows: [
+                {
+                  id: donationId,
+                  amountCents: hubFetchCount === 1 ? 25_000 : 20_000,
+                },
+              ],
+            }),
+          };
+        }
+        if (url.includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-cross-surface",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <HubAmountProbe />
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("Hub amount: 25000")).toBeTruthy();
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText("Operation completed.")).toBeTruthy();
+    expect(await view.findByText("Hub amount: 20000")).toBeTruthy();
+    expect(hubFetchCount).toBeGreaterThanOrEqual(2);
   });
 
   it("renders receipt delivery options with inline blocked reasons", async () => {
