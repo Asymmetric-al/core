@@ -270,7 +270,8 @@ describe("contribution operations detail read model", () => {
       }),
       expect.objectContaining({
         actionType: "refund",
-        available: true,
+        available: false,
+        blockedReason: "Refund processing is not available yet.",
       }),
     ]);
 
@@ -362,12 +363,13 @@ describe("contribution operations detail read model", () => {
       expect(entry.nextStep).toMatch(/valid/i);
     }
 
-    // A check gift with no provider charge cannot use provider refunds.
+    // The route-level provider-safe refund workflow is not wired yet (#700),
+    // so detail never advertises a submit path that would return 501.
     const refundEntry = detail.actionAvailability.find(
       (entry) => entry.actionType === "refund",
     );
     expect(refundEntry?.available).toBe(false);
-    expect(refundEntry?.blockedReason).toMatch(/no payment provider charge/i);
+    expect(refundEntry?.blockedReason).toMatch(/not available yet/i);
   });
 
   it("exposes a first-class designation set for split gifts that reconciles to the gift amount", () => {
@@ -969,11 +971,11 @@ describe("contribution operations detail read model", () => {
     });
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: false,
-      blockedReason: expect.stringMatching(/completed payments/i),
+      blockedReason: expect.stringMatching(/not available yet/i),
     });
   });
 
-  it("allows refunds when Stripe proof has only a payment intent id", () => {
+  it("keeps PaymentIntent proof while refund execution remains unavailable", () => {
     const detail = buildContributionDetail({
       donation: donationInput({
         stripePaymentIntentId: "pi_only",
@@ -992,8 +994,8 @@ describe("contribution operations detail read model", () => {
     expect(detail.payment.stripe.paymentIntentId).toBe("pi_only");
     expect(detail.payment.stripe.chargeId).toBeNull();
     expect(availabilityFor(detail, "refund")).toMatchObject({
-      available: true,
-      blockedReason: null,
+      available: false,
+      blockedReason: "Refund processing is not available yet.",
     });
   });
 

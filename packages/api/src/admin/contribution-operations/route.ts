@@ -21,11 +21,15 @@ import {
   assertReceiptSnapshotPdfCapability,
   renderContributionReceiptSnapshotPdf,
 } from "./receipt-pdf";
+import {
+  assertContributionRouteActionSupported,
+  isContributionRouteActionSupported,
+  unsupportedContributionRouteActionMessage,
+} from "./route-action-support";
 import { loadContributionDetailFromSupabase } from "./store";
 import {
   CONTRIBUTION_ACTION_TYPES,
   CONTRIBUTION_SOURCE_SURFACES,
-  type ContributionActionType,
   type ContributionPermission,
 } from "./types";
 import {
@@ -49,43 +53,10 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 
 export { replayStripeEventThroughContributionOperations };
 export { projectContributionActionResultForViewer };
-
-const UNSUPPORTED_ROUTE_ACTION_TYPES = new Set<ContributionActionType>([
-  "metadata_update",
-  "refund",
-  "donor_relink",
-]);
-
-export function isContributionRouteActionSupported(
-  actionType: ContributionActionType,
-): boolean {
-  return !UNSUPPORTED_ROUTE_ACTION_TYPES.has(actionType);
-}
-
-function unsupportedRouteActionMessage(
-  actionType: ContributionActionType,
-): string {
-  switch (actionType) {
-    case "metadata_update":
-      return "metadata_update is not supported by this route yet.";
-    case "refund":
-      return "refund is not supported by this route until provider refund dependencies are wired.";
-    case "donor_relink":
-      return "donor_relink is not supported by this route until donor relink dependencies are wired.";
-    default:
-      return `${actionType} is not supported by this route.`;
-  }
-}
-
-export function assertContributionRouteActionSupported(
-  actionType: ContributionActionType,
-): void {
-  if (isContributionRouteActionSupported(actionType)) {
-    return;
-  }
-
-  throw new ApiHttpError(501, unsupportedRouteActionMessage(actionType));
-}
+export {
+  assertContributionRouteActionSupported,
+  isContributionRouteActionSupported,
+} from "./route-action-support";
 
 const actionTypeSchema = z
   .enum(CONTRIBUTION_ACTION_TYPES)
@@ -96,7 +67,7 @@ const actionTypeSchema = z
 
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: unsupportedRouteActionMessage(actionType),
+      message: unsupportedContributionRouteActionMessage(actionType),
     });
   });
 
@@ -146,27 +117,28 @@ export const GET = withOperation(
         "Missing contribution id.",
       );
 
-      const detail = await loadContributionDetailFromSupabase({
-        supabaseAdmin,
-        tenantId: auth.tenantId,
-        contributionId,
-      });
+      const [detail, approvalPolicy] = await Promise.all([
+        loadContributionDetailFromSupabase({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          contributionId,
+        }),
+        loadCorrectionApprovalPolicy({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+        }),
+      ]);
       const viewerCapabilities = resolveContributionCapabilities(auth);
       const projected = projectContributionDetailForViewer(
         detail,
         viewerCapabilities,
+        { approvalPolicy },
       );
 
-      // The approval policy only shapes correction-request decidability, so
-      // skip the extra tenant-policy read on the common path where a gift has
-      // no pending correction requests at all.
       const correctionRequests =
         projected.correctionRequests.length > 0
           ? projectCorrectionRequestsForViewer(projected.correctionRequests, {
-              policy: await loadCorrectionApprovalPolicy({
-                supabaseAdmin,
-                tenantId: auth.tenantId,
-              }),
+              policy: approvalPolicy,
               viewerProfileId: auth.profileId,
               viewerCapabilities,
             })
@@ -235,6 +207,7 @@ export const POST = withOperation(
       const projectedResult = projectContributionActionResultForViewer(
         result,
         resolveContributionCapabilities(auth),
+        { approvalPolicy },
       );
 
       return NextResponse.json({ result: projectedResult, requestId });
@@ -300,6 +273,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         ? projectContributionActionResultForViewer(
             outcome.result,
             resolveContributionCapabilities(auth),
+            { approvalPolicy: outcome.approvalPolicy },
           )
         : null;
 

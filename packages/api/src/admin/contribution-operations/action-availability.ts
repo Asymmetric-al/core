@@ -1,4 +1,5 @@
 import { getContributionActionRiskLevel } from "./policy";
+import { isContributionRouteActionSupported } from "./route-action-support";
 
 import type { ContributionActionType, ContributionRiskLevel } from "./types";
 
@@ -151,6 +152,15 @@ function refundAvailability(
   paymentStatus: string | null,
   refund: NonNullable<BuildContributionActionAvailabilityInput["refund"]>,
 ): ContributionActionAvailability {
+  if (!isContributionRouteActionSupported("refund")) {
+    return entry("refund", {
+      available: false,
+      blockedReason: "Refund processing is not available yet.",
+      nextStep:
+        "Use the provider-safe refund workflow once finance enables it.",
+    });
+  }
+
   if (
     !isCompletedPaymentStatus(paymentStatus) &&
     paymentStatus !== "refunded"

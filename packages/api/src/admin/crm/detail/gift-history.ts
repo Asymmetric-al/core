@@ -8,6 +8,7 @@ import {
   type SharedContributionDonorInput,
 } from "../../contribution-shared/row-contract";
 
+import type { CorrectionApprovalPolicy } from "../../contribution-operations/approval-policy";
 import type {
   ContributionDesignationSet,
   CrmGiftHistoryRow,
@@ -32,6 +33,10 @@ export interface BuildCrmGiftHistoryRowInput {
   };
   /** Viewer capabilities filter which operations surface inline (#270). */
   viewerCapabilities?: string[];
+  /** Tenant policy must match the shared contribution operation executor. */
+  approvalPolicy?: CorrectionApprovalPolicy | null;
+  /** Unified parent/designation link failure state from contribution detail. */
+  hasCrmPostFailure?: boolean;
 }
 
 /**
@@ -74,15 +79,20 @@ export function buildCrmGiftHistoryRow(
         }
       : null,
     paymentStatus: donation.status,
+    hasCrmPostFailure: input.hasCrmPostFailure,
     refund: {
       amountCents: shared.amountCents,
       refundedAmountCents: shared.refundedAmountCents,
-      hasProviderCharge: Boolean(input.provider?.stripeChargeId),
+      hasProviderCharge: Boolean(
+        input.provider?.stripeChargeId || input.provider?.stripePaymentIntentId,
+      ),
     },
   });
   const inlineActions = buildInlineContributionActions({
     availability,
     providerPaymentIntentId: input.provider?.stripePaymentIntentId ?? null,
+    providerChargeId: input.provider?.stripeChargeId ?? null,
+    approvalPolicy: input.approvalPolicy,
     viewerCapabilities: input.viewerCapabilities ?? [],
   });
 

@@ -116,7 +116,7 @@ describe("admin/contribution-operations/action-availability", () => {
     expect(pendingEntry.blockedReason).toMatch(/not completed/i);
   });
 
-  it("normalizes provider success aliases for receipt and refund availability", () => {
+  it("normalizes provider success aliases for receipt availability", () => {
     for (const paymentStatus of ["succeeded", "success"]) {
       const entries = buildContributionActionAvailability({
         stagedGift: {
@@ -134,8 +134,25 @@ describe("admin/contribution-operations/action-availability", () => {
       });
 
       expect(availabilityFor(entries, "resend_receipt").available).toBe(true);
-      expect(availabilityFor(entries, "refund").available).toBe(true);
     }
+  });
+
+  it("does not advertise refund while the shared route cannot execute it", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: null,
+      paymentStatus: "completed",
+      refund: {
+        amountCents: 12_00,
+        refundedAmountCents: 0,
+        hasProviderCharge: true,
+      },
+    });
+
+    expect(availabilityFor(entries, "refund")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/not available/i),
+      nextStep: expect.stringMatching(/provider-safe refund workflow/i),
+    });
   });
 
   it("labels every entry with the policy risk level", () => {

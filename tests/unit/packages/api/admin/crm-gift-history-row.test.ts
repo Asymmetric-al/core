@@ -291,6 +291,48 @@ describe("admin/crm/detail/gift-history", () => {
     ).toContain("stripe_replay");
   });
 
+  it("keeps PaymentIntent-only refund proof aligned with blocked detail availability", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift,
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: null },
+      viewerCapabilities: ["contributions.run_refunds"],
+    });
+
+    expect(
+      row.inlineActions.entries.find((entry) => entry.actionType === "refund"),
+    ).toMatchObject({
+      actionType: "refund",
+      available: false,
+      blockedReason: "Refund processing is not available yet.",
+    });
+  });
+
+  it("keeps provider replay available for charge-only gifts like contribution detail", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift,
+      provider: { stripePaymentIntentId: null, stripeChargeId: "ch_1" },
+      viewerCapabilities: ["contributions.use_provider_actions"],
+    });
+
+    expect(
+      row.inlineActions.entries.find(
+        (entry) => entry.actionType === "stripe_replay",
+      ),
+    ).toMatchObject({
+      actionType: "stripe_replay",
+      available: true,
+      blockedReason: null,
+    });
+  });
+
   it("keeps no-staged-gift workflow actions visible with blocked reasons (#258)", () => {
     const row = buildCrmGiftHistoryRow({
       donation,
@@ -325,12 +367,15 @@ describe("admin/crm/detail/gift-history", () => {
       expect(entry.blockedReason).not.toMatch(/invalid|missing donation/i);
     }
 
-    // Refund does not require a staged gift; with a provider charge it stays
-    // available so read-only gifts keep their financial operations.
+    // Refund does not require a staged gift, but the shared route currently
+    // blocks it until the provider-safe finance workflow is wired (#700).
     const refundEntry = row.inlineActions.entries.find(
       (entry) => entry.actionType === "refund",
     );
-    expect(refundEntry?.available).toBe(true);
+    expect(refundEntry).toMatchObject({
+      available: false,
+      blockedReason: "Refund processing is not available yet.",
+    });
   });
 
   it("hides inline operations the viewer has no capability for", () => {

@@ -122,6 +122,7 @@ const baseTables: Record<string, Row[]> = {
       donation_id: "donation-1",
       id: "link-1",
       link_status: "active",
+      scope: "parent",
       staged_gift_id: "staged-gift-1",
       tenant_id: "tenant-1",
       twenty_record_id: "twenty-gift-1",
@@ -245,6 +246,106 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWriteMode: "disabled",
       platformPaymentTruth: true,
       twentyIsPaymentTruth: false,
+    });
+  });
+
+  it("loads the tenant approval policy once and applies it to inline gift actions", async () => {
+    const requestCapableViewer = [
+      "contributions.view_detail",
+      "contributions.request_corrections",
+    ];
+    let policyLoads = 0;
+    const fixture = createSupabaseFixture(baseTables);
+    const countingSupabase = {
+      from(table: string) {
+        if (table === "contribution_approval_policies") {
+          policyLoads += 1;
+        }
+        return fixture.from(table);
+      },
+    };
+
+    const conservative = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: countingSupabase as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: requestCapableViewer,
+    });
+
+    expect(policyLoads).toBe(1);
+    expect(
+      conservative.giftHistory[0]?.inlineActions?.entries
+        .map((entry) => entry.actionType)
+        .sort(),
+    ).toEqual([
+      "amount_correction",
+      "fund_correction",
+      "refund",
+      "stripe_replay",
+    ]);
+
+    const relaxed = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        contribution_approval_policies: [
+          {
+            escalation_hours: null,
+            ownership_mode: "no_approval_required",
+            reminder_hours: 24,
+            stronger_approval_categories: [],
+            suppressed_gates: [],
+            tenant_id: "tenant-1",
+          },
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: requestCapableViewer,
+    });
+
+    expect(relaxed.giftHistory[0]?.inlineActions?.entries).toEqual([]);
+    expect(
+      relaxed.giftHistory[0]?.inlineActions?.nextBestActionType,
+    ).toBeNull();
+  });
+
+  it("uses failed designation links in the same retry availability as detail", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donation_crm_links: [
+          ...baseTables.donation_crm_links,
+          {
+            allocation_id: "allocation-1",
+            donation_id: "donation-1",
+            id: "link-designation-1",
+            link_status: "failed",
+            scope: "designation",
+            staged_gift_id: "staged-gift-1",
+            tenant_id: "tenant-1",
+            twenty_record_id: null,
+          },
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: ["contributions.retry_crm_post"],
+    });
+
+    expect(
+      detail.giftHistory[0]?.inlineActions.entries.find(
+        (entry) => entry.actionType === "retry_staged_gift",
+      ),
+    ).toMatchObject({
+      actionType: "retry_staged_gift",
+      available: true,
+      blockedReason: null,
     });
   });
 

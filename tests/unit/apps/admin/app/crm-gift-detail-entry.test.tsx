@@ -793,6 +793,98 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(detailRefetch).toHaveBeenCalled();
   });
 
+  it("submits an inline correction through the projected detail contract", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00f";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const detailRefetch = vi.fn().mockResolvedValue({});
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({
+        data: crmDonorDetailFor(donationId),
+        refetch: detailRefetch,
+      }),
+    );
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-10",
+                approvalStatus: "pending_approval",
+                correctionRequestId: "request-10",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(
+      await view.findByRole("button", { name: "More gift actions" }),
+    );
+    fireEvent.click(await view.findByText("Correct gift amount"));
+
+    const shell = await view.findByTestId("contribution-operation-shell");
+    expect(
+      within(shell).queryByText(/not available for the current gift/i),
+    ).toBeNull();
+
+    fireEvent.change(await within(shell).findByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(within(shell).getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(within(shell).getByRole("checkbox"));
+    const submit = within(shell).getByRole("button", {
+      name: "Correct gift amount",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
+    expect(
+      view.getByText(/correction request submitted for approval/i),
+    ).toBeTruthy();
+    expect(routerPushMock).not.toHaveBeenCalled();
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "amount_correction",
+      contributionId: donationId,
+      stagedGiftId: "staged-1",
+      sourceSurface: "donor_crm_record",
+      reason: "Donor reported the wrong amount",
+      expectedRevision: "2026-05-01T00:00:00.000Z#0",
+      payload: { amount: 20_000 },
+    });
+    expect(detailRefetch).toHaveBeenCalled();
+  });
+
   it("opens the full contribution detail from the result panel without leaving CRM", async () => {
     const donationId = "00000000-0000-4000-8000-00000000d00c";
     mockSearch = `donor=${DONOR_RECORD_ID}`;

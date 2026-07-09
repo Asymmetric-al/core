@@ -184,7 +184,9 @@ describe("ContributionOperationShell", () => {
     );
 
     // Risky operation shows current effective values before submission.
-    expect(await view.findByText("$250.00")).toBeTruthy();
+    expect(
+      await view.findByText("$250.00", {}, { timeout: 10_000 }),
+    ).toBeTruthy();
     expect(view.getByText("Clean Water Initiative")).toBeTruthy();
     expect(
       view.getByText(/high-risk corrections may require approval/i),

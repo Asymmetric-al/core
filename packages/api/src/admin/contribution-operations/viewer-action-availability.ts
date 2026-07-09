@@ -1,0 +1,118 @@
+import { correctionRequiresApproval } from "./approval-policy";
+import { requiredCapabilitiesForContributionAction } from "./permissions";
+import { getContributionActionRiskLevel } from "./policy";
+
+import type { ContributionActionAvailability } from "./action-availability";
+import type { CorrectionApprovalPolicy } from "./approval-policy";
+import type {
+  CrmGiftInlineActionEntry,
+  CrmGiftInlineActionType,
+} from "@asym/database/types";
+
+/**
+ * Viewer- and policy-scoped availability shared by CRM inline actions and the
+ * contribution-detail contract. Keeping this derivation in one module makes
+ * the two entry surfaces authorized-identical by construction (issue #270).
+ */
+
+export const CRM_INLINE_CONTRIBUTION_ACTION_TYPES = [
+  "amount_correction",
+  "fund_correction",
+  "resend_receipt",
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "refund",
+  "stripe_replay",
+] as const satisfies readonly CrmGiftInlineActionType[];
+
+const CORRECTION_REQUEST_ACTION_TYPES = [
+  "amount_correction",
+  "fund_correction",
+] as const;
+
+type CorrectionRequestActionType =
+  (typeof CORRECTION_REQUEST_ACTION_TYPES)[number];
+
+/**
+ * These operations have a real approval-request execution path in the current
+ * executor. Direct execution still requires each operation's stronger
+ * capability after approval.
+ */
+export function isCorrectionRequestActionType(
+  actionType: string,
+): actionType is CorrectionRequestActionType {
+  return (CORRECTION_REQUEST_ACTION_TYPES as readonly string[]).includes(
+    actionType,
+  );
+}
+
+export function isContributionOperationActionType(
+  actionType: string,
+): actionType is CrmGiftInlineActionType {
+  return (CRM_INLINE_CONTRIBUTION_ACTION_TYPES as readonly string[]).includes(
+    actionType,
+  );
+}
+
+export function stripeReplayAvailability(
+  paymentIntentId: string | null,
+  chargeId: string | null,
+): ContributionActionAvailability {
+  if (!paymentIntentId && !chargeId) {
+    return {
+      actionType: "stripe_replay",
+      available: false,
+      blockedReason: "This gift has no provider payment events to replay.",
+      nextStep:
+        "Webhook replay applies to gifts processed through the payment provider.",
+      riskLevel: "high",
+    };
+  }
+
+  return {
+    actionType: "stripe_replay",
+    available: true,
+    blockedReason: null,
+    nextStep: null,
+    riskLevel: "high",
+  };
+}
+
+export function buildCorrectionActionAvailability(): CrmGiftInlineActionEntry[] {
+  return CORRECTION_REQUEST_ACTION_TYPES.map((actionType) => ({
+    actionType,
+    available: true,
+    blockedReason: null,
+    nextStep: null,
+    riskLevel: getContributionActionRiskLevel(actionType),
+  }));
+}
+
+export function requiredCapabilitiesForContributionOperation(
+  actionType: CrmGiftInlineActionType,
+  approvalPolicy: CorrectionApprovalPolicy,
+): ReturnType<typeof requiredCapabilitiesForContributionAction> {
+  const mode = correctionRequiresApproval({
+    actionType,
+    policy: approvalPolicy,
+  })
+    ? "request"
+    : "direct";
+
+  return requiredCapabilitiesForContributionAction(actionType, { mode });
+}
+
+export function viewerCanUseContributionOperation(input: {
+  actionType: CrmGiftInlineActionType;
+  approvalPolicy: CorrectionApprovalPolicy;
+  viewerCapabilities: string[];
+}): boolean {
+  const requiredCapabilities = requiredCapabilitiesForContributionOperation(
+    input.actionType,
+    input.approvalPolicy,
+  );
+
+  return requiredCapabilities.some((capability) =>
+    input.viewerCapabilities.includes(capability),
+  );
+}

@@ -133,6 +133,7 @@ export {
   stripeReplayAvailability,
   type ContributionProviderProof,
   type ContributionReceiptDeliveryView,
+  type ProjectContributionDetailOptions,
   type ViewerProjectedContributionDetail,
   type ViewerProjectedCorrectionRequest,
 } from "./viewer-projection";

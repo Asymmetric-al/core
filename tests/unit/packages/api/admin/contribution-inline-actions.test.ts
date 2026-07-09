@@ -34,6 +34,8 @@ const FINANCE_STAFF_CAPABILITIES = [
   "contributions.retry_crm_post",
 ];
 
+const APPLY_ONLY_CAPABILITIES = ["contributions.apply_corrections"];
+
 const APPROVAL_SUPPRESSED_POLICY = resolveCorrectionApprovalPolicy({
   ownership_mode: "no_approval_required",
   suppressed_gates: [],
@@ -116,6 +118,89 @@ describe("admin/contribution-operations/inline-actions", () => {
 
     expect(inlineReplay).toEqual(projectedReplay);
     expect(inlineReplay?.available).toBe(false);
+  });
+
+  it("finds a detail availability entry for every inline entry a viewer can open (#270)", () => {
+    const cases = [
+      {
+        approvalPolicy: undefined,
+        expectedActionTypes: [
+          "amount_correction",
+          "fund_correction",
+          "refund",
+          "stripe_replay",
+        ],
+        viewerCapabilities: DONOR_CARE_CAPABILITIES,
+      },
+      {
+        approvalPolicy: undefined,
+        expectedActionTypes: [
+          "amount_correction",
+          "approve_staged_gift",
+          "fund_correction",
+        ],
+        viewerCapabilities: APPLY_ONLY_CAPABILITIES,
+      },
+      {
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        expectedActionTypes: [],
+        viewerCapabilities: DONOR_CARE_CAPABILITIES,
+      },
+      {
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+        expectedActionTypes: [
+          "amount_correction",
+          "approve_staged_gift",
+          "fund_correction",
+        ],
+        viewerCapabilities: APPLY_ONLY_CAPABILITIES,
+      },
+    ] as const;
+
+    for (const {
+      approvalPolicy,
+      expectedActionTypes,
+      viewerCapabilities,
+    } of cases) {
+      const detail = {
+        actionAvailability: availabilityFor(),
+        payment: {
+          stripe: {
+            paymentIntentId: "pi_1",
+            chargeId: null,
+            refundIds: [],
+            replayContext: null,
+          },
+        },
+        recurring: { agreement: null },
+      } as unknown as ContributionDetail;
+
+      const projected = projectContributionDetailForViewer(
+        detail,
+        [...viewerCapabilities],
+        { approvalPolicy },
+      );
+      const inline = buildInlineContributionActions({
+        availability: availabilityFor(),
+        providerPaymentIntentId: "pi_1",
+        approvalPolicy,
+        viewerCapabilities: [...viewerCapabilities],
+      });
+
+      expect(inline.entries.map((entry) => entry.actionType).sort()).toEqual(
+        [...expectedActionTypes].sort(),
+      );
+      expect(
+        projected.actionAvailability.map((entry) => entry.actionType).sort(),
+      ).toEqual([...expectedActionTypes].sort());
+      for (const inlineEntry of inline.entries) {
+        expect(
+          projected.actionAvailability.find(
+            (entry) => entry.actionType === inlineEntry.actionType,
+          ),
+        ).toEqual(inlineEntry);
+      }
+    }
   });
 
   it("allows provider replay when only a charge id is available", () => {
@@ -313,10 +398,10 @@ describe("admin/contribution-operations/inline-actions", () => {
       viewerCapabilities: ALL_CAPABILITIES,
     });
 
-    const refundEntry = inline.entries.find(
-      (entry) => entry.actionType === "refund",
+    const correctionEntry = inline.entries.find(
+      (entry) => entry.actionType === "amount_correction",
     );
-    expect(refundEntry?.available).toBe(true);
+    expect(correctionEntry?.available).toBe(true);
     expect(inline.nextBestActionType).toBeNull();
   });
 

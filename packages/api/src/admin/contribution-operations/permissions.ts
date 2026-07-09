@@ -53,7 +53,7 @@ export function assertContributionActionPermission(
   actionType: ContributionActionType,
   options: { mode?: "direct" | "request" } = {},
 ): void {
-  const requiredCapabilities = requiredCapabilitiesForAction(
+  const requiredCapabilities = requiredCapabilitiesForContributionAction(
     actionType,
     options,
   );
@@ -125,11 +125,17 @@ const APPROVAL_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
   "payment_state_correction",
 ]);
 
-function requiredCapabilitiesForAction(
+export function directContributionCapabilityForAction(
+  actionType: ContributionActionType,
+): ContributionCapability {
+  return CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+}
+
+export function requiredCapabilitiesForContributionAction(
   actionType: ContributionActionType,
   options: { mode?: "direct" | "request" },
 ): ContributionCapability[] {
-  const directCapability = CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+  const directCapability = directContributionCapabilityForAction(actionType);
 
   if (
     options.mode === "request" &&

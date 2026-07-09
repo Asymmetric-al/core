@@ -1,5 +1,6 @@
 import { buildCrmGiftHistoryRow } from "./gift-history";
 import { ApiHttpError } from "../../../shared/http-errors";
+import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -68,6 +69,7 @@ interface DonationCrmLinkRow {
   id: string;
   donation_id: string | null;
   staged_gift_id: string | null;
+  scope: string | null;
   link_status: string | null;
   twenty_record_id: string | null;
 }
@@ -255,44 +257,53 @@ export async function getAdminCrmDonorDetail(input: {
   const donations = donationRows.slice(0, GIFT_HISTORY_LIMIT);
 
   const donationIds = mergeUniqueIds(donations.map((donation) => donation.id));
-  const [stagedGiftResult, activityResult, pledgeResult, duplicateResult] =
-    await Promise.all([
-      donationIds.length > 0
-        ? input.supabaseAdmin
-            .from("staged_gifts")
-            .select(
-              "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
-            )
-            .eq("tenant_id", input.tenantId)
-            .in("donation_id", donationIds)
-        : Promise.resolve({ data: [], error: null }),
-      input.supabaseAdmin
-        .from("donor_activities")
-        .select("id, type, title, description, amount, date, created_at")
-        .eq("donor_id", donor.id)
-        .order("date", { ascending: false })
-        .limit(50),
-      input.supabaseAdmin
-        .from("donor_pledges")
-        .select(
-          "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
-        )
-        .eq("tenant_id", input.tenantId)
-        .eq("donor_id", donor.id)
-        .order("updated_at", { ascending: false })
-        .limit(50),
-      input.supabaseAdmin
-        .from("crm_merge_candidates")
-        .select(
-          "id, candidate_twenty_record_id, confidence, score, match_reasons",
-        )
-        .eq("tenant_id", input.tenantId)
-        .eq("source_entity_type", "donor_profile")
-        .eq("source_entity_id", donor.id)
-        .eq("status", "pending")
-        .order("score", { ascending: false })
-        .limit(10),
-    ]);
+  const [
+    stagedGiftResult,
+    activityResult,
+    pledgeResult,
+    duplicateResult,
+    approvalPolicy,
+  ] = await Promise.all([
+    donationIds.length > 0
+      ? input.supabaseAdmin
+          .from("staged_gifts")
+          .select(
+            "id, donation_id, fund_id, missionary_id, receipt_status, crm_post_status, status, twenty_record_id, posted_at, created_at",
+          )
+          .eq("tenant_id", input.tenantId)
+          .in("donation_id", donationIds)
+      : Promise.resolve({ data: [], error: null }),
+    input.supabaseAdmin
+      .from("donor_activities")
+      .select("id, type, title, description, amount, date, created_at")
+      .eq("donor_id", donor.id)
+      .order("date", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("donor_pledges")
+      .select(
+        "id, amount, frequency, status, missionary_id, fund_id, next_payment_date, updated_at",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("donor_id", donor.id)
+      .order("updated_at", { ascending: false })
+      .limit(50),
+    input.supabaseAdmin
+      .from("crm_merge_candidates")
+      .select(
+        "id, candidate_twenty_record_id, confidence, score, match_reasons",
+      )
+      .eq("tenant_id", input.tenantId)
+      .eq("source_entity_type", "donor_profile")
+      .eq("source_entity_id", donor.id)
+      .eq("status", "pending")
+      .order("score", { ascending: false })
+      .limit(10),
+    loadCorrectionApprovalPolicy({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+    }),
+  ]);
   assertNoError(stagedGiftResult.error, "Failed to load staged gift links.");
   assertNoError(activityResult.error, "Failed to load donor activities.");
   assertNoError(pledgeResult.error, "Failed to load donor commitments.");
@@ -301,12 +312,23 @@ export async function getAdminCrmDonorDetail(input: {
   const pledges = (pledgeResult.data ?? []) as PledgeRow[];
 
   const stagedGiftIds = mergeUniqueIds(stagedGifts.map((gift) => gift.id));
+  const designationLinkPromise =
+    stagedGiftIds.length > 0
+      ? input.supabaseAdmin
+          .from("donation_crm_links")
+          .select(
+            "id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
+          )
+          .eq("tenant_id", input.tenantId)
+          .eq("scope", "designation")
+          .in("staged_gift_id", stagedGiftIds)
+      : Promise.resolve({ data: [], error: null });
   const [linkResult, sharedInputs] = await Promise.all([
     stagedGiftIds.length > 0
       ? input.supabaseAdmin
           .from("donation_crm_links")
           .select(
-            "id, donation_id, staged_gift_id, link_status, twenty_record_id",
+            "id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
           )
           .eq("tenant_id", input.tenantId)
           .eq("scope", "parent")
@@ -326,7 +348,14 @@ export async function getAdminCrmDonorDetail(input: {
     }),
   ]);
   assertNoError(linkResult.error, "Failed to load donation CRM links.");
+  const designationLinkResult = await designationLinkPromise;
+  assertNoError(
+    designationLinkResult.error,
+    "Failed to load designation CRM links.",
+  );
   const links = (linkResult.data ?? []) as DonationCrmLinkRow[];
+  const designationLinks = (designationLinkResult.data ??
+    []) as DonationCrmLinkRow[];
 
   const {
     correctionsByDonationId,
@@ -339,15 +368,22 @@ export async function getAdminCrmDonorDetail(input: {
   const stagedByDonationId = new Map(
     stagedGifts.map((gift) => [gift.donation_id, gift]),
   );
-  const linkByStagedGiftId = new Map(
+  const parentLinkByStagedGiftId = new Map(
     links
-      .filter((link) => link.staged_gift_id)
+      .filter((link) => link.staged_gift_id && link.scope === "parent")
       .map((link) => [link.staged_gift_id!, link]),
+  );
+  const failedStagedGiftIds = new Set(
+    [...links, ...designationLinks]
+      .filter((link) => link.staged_gift_id && link.link_status === "failed")
+      .map((link) => link.staged_gift_id!),
   );
 
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
-    const link = stagedGift ? linkByStagedGiftId.get(stagedGift.id) : null;
+    const link = stagedGift
+      ? parentLinkByStagedGiftId.get(stagedGift.id)
+      : null;
     const effectiveResult = effectiveByDonationId.get(donation.id);
     const effective = effectiveResult?.effective ?? {
       amountCents: toCents(donation.amount),
@@ -408,6 +444,10 @@ export async function getAdminCrmDonorDetail(input: {
         stripeChargeId: donation.stripe_charge_id,
       },
       viewerCapabilities: input.viewerCapabilities ?? [],
+      approvalPolicy,
+      hasCrmPostFailure: stagedGift
+        ? failedStagedGiftIds.has(stagedGift.id)
+        : false,
     });
   });
 

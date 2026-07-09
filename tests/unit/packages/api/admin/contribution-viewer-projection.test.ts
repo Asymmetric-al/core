@@ -49,7 +49,7 @@ function makeDetail() {
 }
 
 describe("admin/contribution-operations/viewer-projection", () => {
-  it("redacts provider identifiers and provider actions for normal staff", () => {
+  it("redacts provider proof while preserving the approval-request affordance", () => {
     const projected = projectContributionDetailForViewer(makeDetail(), [
       "contributions.view_detail",
       "contributions.request_corrections",
@@ -61,10 +61,10 @@ describe("admin/contribution-operations/viewer-projection", () => {
     expect(projected.payment.stripe.replayContext).toBeNull();
     expect(projected.providerProof).toBeNull();
     expect(
-      projected.actionAvailability.some(
+      projected.actionAvailability.find(
         (entry) => entry.actionType === "stripe_replay",
       ),
-    ).toBe(false);
+    ).toMatchObject({ actionType: "stripe_replay", available: true });
 
     // Payment summary stays available for routine workflows.
     expect(projected.payment.status).toBe("completed");

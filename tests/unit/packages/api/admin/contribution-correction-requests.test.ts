@@ -372,6 +372,9 @@ describe("decideContributionCorrectionRequest", () => {
     expect(state.request.decided_by_profile_id).toBe("approver-1");
     expect(state.request.applied_adjustment_id).toBe("adj-1");
     expect(outcome.result?.adjustmentId).toBe("adj-1");
+    expect(outcome.approvalPolicy).toMatchObject({
+      ownershipMode: "separation_of_duties",
+    });
     expect(
       state.auditInserts.some(
         (event) =>

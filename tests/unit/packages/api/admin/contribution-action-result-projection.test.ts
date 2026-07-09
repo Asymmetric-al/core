@@ -123,4 +123,39 @@ describe("admin/contribution-operations route action-result projection", () => {
       projectContributionActionResultForViewer(result, DONOR_CARE_CAPABILITIES),
     ).toBe(result);
   });
+
+  it("shapes canonical availability under the tenant policy like the GET contract", () => {
+    const projected = projectContributionActionResultForViewer(
+      makeResult(),
+      DONOR_CARE_CAPABILITIES,
+      {
+        approvalPolicy: {
+          ownershipMode: "no_approval_required",
+          suppressedGates: [],
+          strongerApprovalCategories: [],
+          reminderHours: 24,
+          escalationHours: null,
+        },
+      },
+    );
+    const canonical = projected.canonicalContribution as {
+      actionAvailability: Array<{ actionType: string }>;
+    };
+    const actionTypes = canonical.actionAvailability.map(
+      (entry) => entry.actionType,
+    );
+    expect(actionTypes).not.toContain("amount_correction");
+    expect(actionTypes).not.toContain("fund_correction");
+
+    const defaulted = projectContributionActionResultForViewer(
+      makeResult(),
+      DONOR_CARE_CAPABILITIES,
+    );
+    const defaultedCanonical = defaulted.canonicalContribution as {
+      actionAvailability: Array<{ actionType: string }>;
+    };
+    expect(
+      defaultedCanonical.actionAvailability.map((entry) => entry.actionType),
+    ).toContain("amount_correction");
+  });
 });
