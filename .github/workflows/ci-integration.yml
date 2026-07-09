@@ -152,6 +152,10 @@ jobs:
       PAYLOAD_DATABASE_URI: postgresql://postgres:postgres@localhost:5432/asymmetrical_test
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
+      # Zero-config bypass: the example.supabase.co placeholder is a
+      # non-confidential datasource, so no E2E_AUTH_SECRET /
+      # E2E_AUTH_ALLOWED_SUPABASE_REFS is needed (built-in fallback key +
+      # implicit allowlist). A real Supabase project would require both.
       E2E_AUTH_BYPASS: "true"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
       NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
@@ -265,6 +269,12 @@ jobs:
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
       E2E_AUTH_BYPASS: "true"
+      # Required secrets for the datasource-bound bypass against the hosted demo project.
+      # Develop PRs switch to the example placeholder before app startup below.
+      #   E2E_AUTH_SECRET                 — HMAC signing key shared by producer + verifiers
+      #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)
+      E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
+      E2E_AUTH_ALLOWED_SUPABASE_REFS: ${{ secrets.E2E_AUTH_ALLOWED_SUPABASE_REFS }}
       PLAYWRIGHT_ADMIN_BASE_URL: "http://127.0.0.1:3030"
       PLAYWRIGHT_INCLUDE_ADMIN: "1"
       PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
@@ -298,6 +308,11 @@ jobs:
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
+      - name: Use placeholder Supabase for develop E2E
+        if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
       - name: Start donor app
         run: |
           nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &

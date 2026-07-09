@@ -16,15 +16,14 @@ const actor = { tenantId: "tenant-1", actorProfileId: "profile-9" };
 
 function deps(): OfflineEntryDependencies & {
   resolveKnownDonor: ReturnType<typeof vi.fn>;
-  insertContribution: ReturnType<typeof vi.fn>;
-  appendAudit: ReturnType<typeof vi.fn>;
+  recordContributionWithAudit: ReturnType<typeof vi.fn>;
 } {
   return {
     resolveKnownDonor: vi.fn().mockResolvedValue({ donorId: "donor-created" }),
-    insertContribution: vi
-      .fn()
-      .mockResolvedValue({ contributionId: "contrib-1" }),
-    appendAudit: vi.fn().mockResolvedValue({ auditEventId: "audit-1" }),
+    recordContributionWithAudit: vi.fn().mockResolvedValue({
+      contributionId: "contrib-1",
+      auditEventId: "audit-1",
+    }),
   };
 }
 
@@ -66,13 +65,15 @@ describe("recordOfflineContribution", () => {
     expect(res.donorId).toBeNull();
     expect(res.donorIdentityStatus).toBe("unknown_offline");
     expect(res.receiptStatus).toBe("not_receiptable");
-    expect(d.insertContribution).toHaveBeenCalledWith(
+    expect(d.recordContributionWithAudit).toHaveBeenCalledWith(
       expect.objectContaining({
-        donor_id: null,
-        tenant_id: "tenant-1",
-        entered_by_user_id: "profile-9",
-        source: "offline",
-        donor_identity_status: "unknown_offline",
+        row: expect.objectContaining({
+          donor_id: null,
+          tenant_id: "tenant-1",
+          entered_by_user_id: "profile-9",
+          source: "offline",
+          donor_identity_status: "unknown_offline",
+        }),
       }),
     );
   });
@@ -91,25 +92,28 @@ describe("recordOfflineContribution", () => {
     });
     expect(res.donorId).toBe("donor-created");
     expect(res.receiptStatus).toBe("pending");
-    expect(d.insertContribution).toHaveBeenCalledWith(
+    expect(d.recordContributionWithAudit).toHaveBeenCalledWith(
       expect.objectContaining({
-        donor_id: "donor-created",
-        anonymous_to_recipient: true,
-        source: "offline",
+        row: expect.objectContaining({
+          donor_id: "donor-created",
+          anonymous_to_recipient: true,
+          source: "offline",
+        }),
       }),
     );
   });
 
-  it("always writes exactly one audit event tagged offline", async () => {
+  it("persists the contribution row and audit event through one atomic dependency", async () => {
     await recordOfflineContribution({ input: unknownGift, actor, deps: d });
-    expect(d.appendAudit).toHaveBeenCalledTimes(1);
-    expect(d.appendAudit).toHaveBeenCalledWith(
+    expect(d.recordContributionWithAudit).toHaveBeenCalledTimes(1);
+    expect(d.recordContributionWithAudit).toHaveBeenCalledWith(
       expect.objectContaining({
-        actionType: "offline_gift_entry",
-        sourceSurface: "offline",
-        contributionId: "contrib-1",
-        actorProfileId: "profile-9",
-        donorMode: "unknown_offline",
+        audit: expect.objectContaining({
+          actionType: "offline_gift_entry",
+          sourceSurface: "offline",
+          actorProfileId: "profile-9",
+          donorMode: "unknown_offline",
+        }),
       }),
     );
   });

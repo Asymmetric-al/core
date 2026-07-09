@@ -288,7 +288,7 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 
 To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
 
-**Personal/global slash-command use (optional):** The canonical skills under `docs/ai/skills/` can also be copied into your personal `~/.claude/skills/` to expose them as `/<name>` slash commands in Claude Code across **all** your projects. This is separate from how skills load **inside** this repo (AGENTS.md routing) and from the repo mirrors (`.agents/skills/`, `.cursor/skills/`); it is a per-developer convenience, not a repo requirement, and there is no repo script for it today. Copy each `docs/ai/skills/<name>/` directory (including its `references/`) to `~/.claude/skills/<name>/`; the copies are point-in-time snapshots that do **not** auto-update, so re-copy after refreshing the canonical skills. Three skills — `setup-matt-pocock-skills`, `ubiquitous-language`, `zoom-out` — carry `disable-model-invocation: true`, so they stay user-invocable via `/` but are not auto-invoked by the model.
+**Personal/global slash-command use (optional):** The canonical skills under `docs/ai/skills/` can also be copied into your personal `~/.claude/skills/` to expose them as `/<name>` slash commands in Claude Code across **all** your projects. This is separate from how skills load **inside** this repo (AGENTS.md routing) and from the repo mirrors (`.agents/skills/`, `.cursor/skills/`, `.claude/skills/`); it is a per-developer convenience, not a repo requirement, and there is no repo script for it today. Copy each `docs/ai/skills/<name>/` directory (including its `references/`) to `~/.claude/skills/<name>/`; the copies are point-in-time snapshots that do **not** auto-update, so re-copy after refreshing the canonical skills. Skills with `disable-model-invocation: true` stay user-invocable via `/` but are not auto-invoked by the model.
 
 Do **not** use `npx skills check` as a read-only check in this repo. With `skills@1.5.7`, `check` is not listed in `npx skills --help` and was observed to update project skills. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review or revert the generated `.agents/skills` and `skills-lock.json` diff.
 
@@ -359,26 +359,36 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **Mattpocock pack** ([github.com/mattpocock/skills](https://github.com/mattpocock/skills)) — routed through canonical `docs/ai/skills/` copies:
 
-| Id                                            | Notes                                                                                                                                                       |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **setup-matt-pocock-skills**                  | `docs/ai/skills/setup-matt-pocock-skills/SKILL.md` — Bootstrap agent-docs layout for other mattpocock skills.                                               |
-| **grill-with-docs**                           | `docs/ai/skills/grill-with-docs/SKILL.md` — Grill plan vs CONTEXT/ADRs (`ADR-FORMAT.md`, `CONTEXT-FORMAT.md`).                                              |
-| **grill-me**                                  | `docs/ai/skills/grill-me/SKILL.md` — Grill without docs; preserves upstream first-person wording, where "me" means the user being interviewed by the agent. |
-| **diagnose**                                  | `docs/ai/skills/diagnose/SKILL.md` — Ranked hypotheses for bugs.                                                                                            |
-| **zoom-out**                                  | `docs/ai/skills/zoom-out/SKILL.md` — Module/caller map.                                                                                                     |
-| **to-prd**                                    | `docs/ai/skills/to-prd/SKILL.md` — PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec.      |
-| **to-issues**                                 | `docs/ai/skills/to-issues/SKILL.md` — PRD → issues (**skills.sh “prd-to-issues”** naming maps here).                                                        |
-| **improve-codebase-architecture**             | `docs/ai/skills/improve-codebase-architecture/SKILL.md` — Architecture deepening.                                                                           |
-| **codebase-design**                           | `docs/ai/skills/codebase-design/SKILL.md` — Deep-module design vocabulary and seam placement.                                                               |
-| **tdd**                                       | `docs/ai/skills/tdd/SKILL.md` — Red-green-refactor + references.                                                                                            |
-| **qa**, **request-refactor-plan**             | `docs/ai/skills/qa/SKILL.md`, `docs/ai/skills/request-refactor-plan/SKILL.md` — Vendored from upstream **`skills/deprecated/`** (not on default CLI list).  |
-| **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Vendored from **`skills/misc/`**.                               |
-| **ubiquitous-language**                       | `docs/ai/skills/ubiquitous-language/SKILL.md` — DDD glossary; vendored from **`skills/deprecated/`** (CLI does not expose `--skill ubiquitous-language`).   |
-| **domain-model**                              | `docs/ai/skills/domain-model/SKILL.md` — Repo-local **alias** → load **`ubiquitous-language`**.                                                             |
-| **prd-to-plan**                               | `docs/ai/skills/prd-to-plan/SKILL.md` — No upstream skill id; repo-local **router** → use **to-prd**, **to-issues**, OpenSpec.                              |
-| **write-a-prd**                               | Same as **to-prd** (CLI/skill name).                                                                                                                        |
+| Id                                            | Notes                                                                                                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ask-matt**                                  | `docs/ai/skills/ask-matt/SKILL.md` — Router over the Matt Pocock skill flows.                                                                           |
+| **setup-matt-pocock-skills**                  | `docs/ai/skills/setup-matt-pocock-skills/SKILL.md` — Bootstrap issue tracker, triage labels, and domain-doc layout for the engineering skills.          |
+| **grill-with-docs**                           | `docs/ai/skills/grill-with-docs/SKILL.md` — Run `/grilling` plus `/domain-modeling` to sharpen plans and repo language.                                 |
+| **grill-me**, **grilling**                    | `docs/ai/skills/grill-me/SKILL.md`, `docs/ai/skills/grilling/SKILL.md` — User-facing and reusable grilling loops.                                       |
+| **wayfinder**                                 | `docs/ai/skills/wayfinder/SKILL.md` — Plan work too large for one agent session as a map of investigation tickets.                                      |
+| **to-spec**                                   | `docs/ai/skills/to-spec/SKILL.md` — Spec from conversation context; replaces the old `/to-prd` route.                                                   |
+| **to-tickets**                                | `docs/ai/skills/to-tickets/SKILL.md` — Break a plan/spec/conversation into tracer-bullet tickets; replaces old `/to-plan` and `/to-issues` routes.      |
+| **implement**                                 | `docs/ai/skills/implement/SKILL.md` — Implement a spec or ticket with TDD where possible, regular type/test checks, final review, and commit.           |
+| **code-review**                               | `docs/ai/skills/code-review/SKILL.md` — Review since a fixed point on both standards and spec correctness axes.                                         |
+| **research**                                  | `docs/ai/skills/research/SKILL.md` — Research against primary sources and save a cited Markdown finding file.                                           |
+| **prototype**                                 | `docs/ai/skills/prototype/SKILL.md` — Cheap logic or UI prototypes to answer design questions before committing to a spec.                              |
+| **diagnosing-bugs**                           | `docs/ai/skills/diagnosing-bugs/SKILL.md` — Current bug/performance diagnosis loop; use this instead of the old `/diagnose` route.                      |
+| **domain-modeling**, **domain-model**         | `docs/ai/skills/domain-modeling/SKILL.md`, `docs/ai/skills/domain-model/SKILL.md` — Active domain-modeling skill plus Core compatibility alias.         |
+| **improve-codebase-architecture**             | `docs/ai/skills/improve-codebase-architecture/SKILL.md` — Architecture deepening and codebase report workflow.                                          |
+| **codebase-design**                           | `docs/ai/skills/codebase-design/SKILL.md` — Deep-module design vocabulary and seam placement.                                                           |
+| **tdd**                                       | `docs/ai/skills/tdd/SKILL.md` — Red/green TDD reference for tests worth keeping.                                                                        |
+| **triage**                                    | `docs/ai/skills/triage/SKILL.md` — Move issues/external PRs through the Matt Pocock triage state machine.                                               |
+| **resolving-merge-conflicts**                 | `docs/ai/skills/resolving-merge-conflicts/SKILL.md` — Resolve in-progress merge/rebase conflicts from primary sources.                                  |
+| **qa**, **request-refactor-plan**             | `docs/ai/skills/qa/SKILL.md`, `docs/ai/skills/request-refactor-plan/SKILL.md` — Current upstream deprecated skills retained only for compatibility.     |
+| **ubiquitous-language**                       | `docs/ai/skills/ubiquitous-language/SKILL.md` — Current upstream deprecated DDD glossary skill; prefer **domain-modeling** for active work.             |
+| **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Current upstream misc skills previously promoted into Core. |
+| **prd-to-plan**                               | `docs/ai/skills/prd-to-plan/SKILL.md` — Core compatibility router; use **to-spec** then **to-tickets**.                                                 |
 
-**Names not in upstream:** **`domain-model`** (use alias), **`prd-to-issues`** (use **to-issues**), **`write-a-prd`** (= **to-prd**), **`prd-to-plan`** (router stub). Distinct from **`docs/ai/skills/`** **`test-driven-development`** where both exist.
+Core routing note for **domain-modeling**: use `docs/agents/domain.md` and
+`CONTEXT-MAP.md` to choose the actual context file and ADR tree before writing
+in this repo.
+
+**Removed upstream routes:** `/to-prd`, `/to-plan`, `/to-issues`, `/diagnose`, and `/zoom-out` are not present in current upstream `skills/engineering/`; use `/to-spec`, `/to-tickets`, `/diagnosing-bugs`, `/ask-matt`, or `/wayfinder` as appropriate.
 
 ---
 

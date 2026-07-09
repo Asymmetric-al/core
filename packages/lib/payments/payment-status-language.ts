@@ -42,13 +42,8 @@ export interface PaymentStatusDescription {
   isFinal: boolean;
 }
 
-const FINAL_SUCCESS_STATES: ReadonlySet<DonationPaymentState> = new Set([
-  "completed",
-  "refunded",
-]);
-
 export function isFinalPaymentSuccess(state: DonationPaymentState): boolean {
-  return FINAL_SUCCESS_STATES.has(state);
+  return state === "completed";
 }
 
 function processingMessage(rail: PaymentRail, audience: Audience): string {

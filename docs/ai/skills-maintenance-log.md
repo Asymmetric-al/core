@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-06-28
+Last updated: 2026-07-09
 
 ## Scope
 
@@ -8,7 +8,8 @@ This log records the audit and full upstream refresh of the
 Asymmetric-al/core agent skill system:
 
 - Canonical skills under `docs/ai/skills/*/SKILL.md`
-- Runtime mirrors under `.agents/skills/*` and `.cursor/skills/*`
+- Runtime mirrors under `.agents/skills/*`, `.cursor/skills/*`, and
+  `.claude/skills/*`
 - Skills CLI lock metadata in `skills-lock.json`
 - Skill sync, verification, and upstream refresh scripts
 - Supporting CLI/MCP guidance for agent workflows
@@ -16,11 +17,12 @@ Asymmetric-al/core agent skill system:
 ## Source-of-Truth Pattern
 
 - Canonical repo skills are authored under `docs/ai/skills/*`.
-- `.agents/skills/*` and `.cursor/skills/*` are committed runtime mirrors.
+- `.agents/skills/*`, `.cursor/skills/*`, and `.claude/skills/*` are committed
+  runtime mirrors.
 - `scripts/sync-agent-skills.mjs` overlays canonical skills into both mirror
   roots, writes `.repo-canonical-skills.json`, prunes stale canonical mirror
   directories from the manifest, and mirrors all `.agents/skills/*` entries
-  into `.cursor/skills/*`.
+  into `.cursor/skills/*` and `.claude/skills/*`.
 - `scripts/verify-skills-sync.mjs` runs the sync script and fails on tracked or
   untracked mirror drift.
 - `scripts/refresh-upstream-skills.mjs` vendors only `supabase`,
@@ -134,6 +136,36 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
 - Installed via Skills CLI: `eve`, `create-agent`, `impeccable` (upstream id; requested `critique` is not published), `playwright-best-practices`, `codebase-design`, refreshed `setup-pre-commit`.
 - Promoted new skills into canonical `docs/ai/skills/*` with `references/upstream.md`.
 - Updated `AGENTS.md` Skill Routing and ran `bun run skills:sync`.
+
+## 2026-07-09 - Matt Pocock v1.1 engineering refresh
+
+- Ran `npx skills add mattpocock/skills -y` as requested. The Skills CLI
+  discovered 38 skills and refreshed `.agents/skills/*` plus
+  `skills-lock.json`.
+- Checked current upstream `skills/engineering/` from a fresh upstream checkout.
+  Current engineering skills are:
+  `ask-matt`, `codebase-design`, `code-review`, `diagnosing-bugs`,
+  `domain-modeling`, `grill-with-docs`, `implement`,
+  `improve-codebase-architecture`, `prototype`, `research`,
+  `resolving-merge-conflicts`, `setup-matt-pocock-skills`, `tdd`,
+  `to-spec`, `to-tickets`, `triage`, and `wayfinder`.
+- Promoted current engineering skills into canonical `docs/ai/skills/*`, plus
+  `grilling` because the current engineering skills invoke it.
+- Refreshed existing Core-promoted Matt skills still published upstream:
+  `grill-me`, `migrate-to-shoehorn`, `qa`, `request-refactor-plan`,
+  `setup-pre-commit`, and `ubiquitous-language`.
+- Removed stale renamed upstream routes from canonical and mirror roots:
+  `diagnose`, `to-prd`, `to-plan`, `to-issues`, and `zoom-out`. Use
+  `diagnosing-bugs`, `to-spec`, `to-tickets`, `ask-matt`, or `wayfinder`
+  instead.
+- Kept Core repo-local compatibility skills `domain-model` and `prd-to-plan`,
+  but updated them to route to `domain-modeling` and `to-spec`/`to-tickets`.
+- Kept the full current Skills CLI install set as mirror-only ecosystem skills
+  under `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` so Cursor,
+  Claude Code, and Codex see the same package output.
+- Removed obsolete prior Matt installs `caveman` and `write-a-skill` because
+  the current `npx skills add mattpocock/skills -y` output no longer includes
+  them. Use current upstream `writing-great-skills` for skill-writing guidance.
 
 ## Rollback Notes
 

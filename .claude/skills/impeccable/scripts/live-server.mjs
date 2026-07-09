@@ -447,22 +447,49 @@ function statOrNull(filePath) {
 // HTTP request handler
 // ---------------------------------------------------------------------------
 
+function isLocalDevOrigin(origin) {
+  if (!origin || typeof origin !== "string") return false;
+  try {
+    const parsed = new URL(origin);
+    return (
+      (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+      (parsed.protocol === "http:" || parsed.protocol === "https:")
+    );
+  } catch {
+    return false;
+  }
+}
+
+function applyDevCors(req, res) {
+  const origin = req.headers.origin;
+  if (isLocalDevOrigin(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+    res.setHeader("Vary", "Origin");
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+}
+
 function createRequestHandler({ detectScript, liveScriptParts }) {
   return (req, res) => {
     const url = new URL(req.url, `http://localhost:${state.port}`);
-    res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    const p = url.pathname;
+
     if (req.method === "OPTIONS") {
+      if (p !== "/live.js") applyDevCors(req, res);
       res.writeHead(204);
       res.end();
       return;
     }
 
-    const p = url.pathname;
-
     // --- Scripts ---
     if (p === "/live.js") {
+      const token = url.searchParams.get("token");
+      if (token !== state.token) {
+        res.writeHead(401, { "Content-Type": "text/plain" });
+        res.end("Unauthorized");
+        return;
+      }
       // Re-read from disk each request so edits to live-browser.js land on
       // the next tab reload. No-store headers prevent browser caching across
       // sessions — during iteration, a cached old script silently breaks
@@ -476,7 +503,6 @@ function createRequestHandler({ detectScript, liveScriptParts }) {
         return;
       }
       const body = assembleLiveBrowserScript({
-        token: state.token,
         port: state.port,
         vocabulary: LIVE_COMMANDS,
         parts,
@@ -489,6 +515,9 @@ function createRequestHandler({ detectScript, liveScriptParts }) {
       res.end(body);
       return;
     }
+
+    applyDevCors(req, res);
+
     if (p === "/detect.js" || p === "/") {
       if (!detectScript) {
         res.writeHead(404);
@@ -1363,7 +1392,7 @@ httpServer.listen(state.port, "127.0.0.1", () => {
   const url = `http://localhost:${state.port}`;
   console.log(`\nImpeccable live server running on ${url}`);
   console.log(`Token: ${state.token}\n`);
-  console.log(`Script: ${url}/live.js`);
+  console.log(`Script: ${url}/live.js?token=${state.token}`);
   console.log(
     "Inject: managed by live-inject.mjs; Astro source tags use is:inline automatically.",
   );

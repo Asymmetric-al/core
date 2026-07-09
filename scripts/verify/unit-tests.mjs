@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 
 export function buildVitestInvocation(args, platform = process.platform) {
   return {
@@ -23,7 +23,35 @@ function runVitest(args, spawn = spawnSync, platform = process.platform) {
   return result.status ?? 1;
 }
 
+function runDefaultBunVersionGuard() {
+  const bunVersionScriptPath = fileURLToPath(
+    new URL("./bun-version.mjs", import.meta.url),
+  );
+
+  let result = spawnSync(process.execPath, [bunVersionScriptPath], {
+    shell: false,
+    stdio: "inherit",
+  });
+
+  if (result.error) {
+    result = spawnSync("bun", ["run", "verify:bun-version"], {
+      shell: process.platform === "win32",
+      stdio: "inherit",
+    });
+  }
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  return result.status ?? 1;
+}
+
 export function runBunVersionGuard(spawn = spawnSync) {
+  if (spawn === spawnSync) {
+    return runDefaultBunVersionGuard();
+  }
+
   const result = spawn("bun run verify:bun-version", [], {
     shell: true,
     stdio: "inherit",
@@ -66,8 +94,44 @@ const isMain =
   import.meta.url === pathToFileURL(process.argv[1]).href;
 
 if (isMain) {
-  const bunVersionStatus = runUnitTests();
-  if (bunVersionStatus !== 0) {
-    process.exit(bunVersionStatus);
+  if (process.platform === "win32") {
+    const bunVersionScriptPath = fileURLToPath(
+      new URL("./bun-version.mjs", import.meta.url),
+    );
+
+    let bunVersionResult = spawnSync(process.execPath, [bunVersionScriptPath], {
+      shell: false,
+      stdio: "inherit",
+    });
+
+    if (bunVersionResult.error) {
+      bunVersionResult = spawnSync("bun", ["run", "verify:bun-version"], {
+        shell: process.platform === "win32",
+        stdio: "inherit",
+      });
+    }
+
+    if (bunVersionResult.error) {
+      throw bunVersionResult.error;
+    }
+
+    const bunVersionStatus = bunVersionResult.status ?? 1;
+
+    if (bunVersionStatus !== 0) {
+      process.exit(bunVersionStatus);
+    }
+
+    process.exit(
+      runVitest([
+        "--coverage",
+        "--maxWorkers=50%",
+        "--testTimeout=30000",
+        "--no-file-parallelism",
+        "--exclude",
+        "tests/unit/scripts/bun-version.test.ts",
+      ]),
+    );
   }
+
+  process.exit(runVitest(["--coverage"]));
 }
