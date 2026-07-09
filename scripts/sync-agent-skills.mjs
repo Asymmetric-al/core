@@ -6,6 +6,7 @@ import {
   readFile,
   readdir,
   realpath,
+  rename,
   rm,
   writeFile,
 } from "node:fs/promises";
@@ -93,6 +94,87 @@ async function overlayDirectory(sourceDir, targetDir) {
       recursive: true,
       force: true,
     });
+  }
+}
+
+function getErrorCode(error) {
+  return typeof error === "object" && error !== null && "code" in error
+    ? String(error.code)
+    : "";
+}
+
+function getTemporarySiblingPath(targetDir, label) {
+  const parentDir = path.dirname(targetDir);
+  const targetName = path.basename(targetDir);
+  const uniqueSuffix = `${process.pid}-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+
+  return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
+}
+
+async function swapStagedDirectory(stagingDir, targetDir) {
+  const backupDir = getTemporarySiblingPath(targetDir, "backup");
+  let hasBackup = false;
+
+  try {
+    await rename(targetDir, backupDir);
+    hasBackup = true;
+  } catch (error) {
+    if (getErrorCode(error) !== "ENOENT") {
+      throw error;
+    }
+  }
+
+  try {
+    await rename(stagingDir, targetDir);
+  } catch (error) {
+    if (hasBackup) {
+      await rename(backupDir, targetDir);
+    }
+    throw error;
+  }
+
+  if (hasBackup) {
+    try {
+      await rm(backupDir, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.warn(
+        `warning: failed to remove backup directory ${backupDir}`,
+        cleanupError,
+      );
+    }
+  }
+}
+
+async function replaceDirectory(sourceDir, targetDir) {
+  const sourceEntries = await readdir(sourceDir, { withFileTypes: true });
+  const parentDir = path.dirname(targetDir);
+  const stagingDir = getTemporarySiblingPath(targetDir, "staging");
+  let swapped = false;
+
+  await mkdir(parentDir, { recursive: true });
+  await rm(stagingDir, { recursive: true, force: true });
+  await mkdir(stagingDir, { recursive: true });
+
+  try {
+    for (const entry of sourceEntries) {
+      await cp(
+        path.join(sourceDir, entry.name),
+        path.join(stagingDir, entry.name),
+        {
+          recursive: true,
+          force: true,
+        },
+      );
+    }
+
+    await swapStagedDirectory(stagingDir, targetDir);
+    swapped = true;
+  } finally {
+    if (!swapped) {
+      await rm(stagingDir, { recursive: true, force: true });
+    }
   }
 }
 
@@ -259,7 +341,7 @@ async function mirrorAgentSkill(skillName, mirrorRoots) {
     }
 
     try {
-      await overlayDirectory(sourceDir, targetDir);
+      await replaceDirectory(sourceDir, targetDir);
       console.log(
         `mirrored ${skillName} -> ${path.relative(repoRoot, targetDir)}`,
       );
@@ -328,15 +410,7 @@ async function mirrorDirectoryTree(sourceRoot, targetRoot, label) {
   }
 
   // Full replace so deletions in the source propagate and no stale files remain.
-  await rm(targetRoot, { recursive: true, force: true });
-  await mkdir(targetRoot, { recursive: true });
-  for (const entry of entries) {
-    await cp(
-      path.join(sourceRoot, entry.name),
-      path.join(targetRoot, entry.name),
-      { recursive: true, force: true },
-    );
-  }
+  await replaceDirectory(sourceRoot, targetRoot);
   console.log(
     `mirrored ${label} (${entries.length}) -> ${path.relative(repoRoot, targetRoot)}`,
   );

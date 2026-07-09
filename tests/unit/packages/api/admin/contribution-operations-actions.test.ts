@@ -483,6 +483,75 @@ describe("contribution operations action executor", () => {
     );
   });
 
+  it("records correction and audit context when receipt delivery fails after correction", async () => {
+    const receiptOutcome = {
+      status: "failed" as const,
+      reason:
+        "The updated receipt email could not be sent. Check email send logs for provider details.",
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+      requested: { choice: "email" as const },
+      confirmed: { choice: "email" as const },
+    };
+    const applyCorrection = vi.fn().mockResolvedValue({
+      before: { amount: 1000 },
+      after: { amount: 1200 },
+      status: "applied",
+      adjustmentId: "adj-1",
+      idempotentReplay: false,
+      receiptOutcome,
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      amount: { value: 1200 },
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Corrected imported check amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1200 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        applyCorrection,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        beforeSummary: { amount: 1000 },
+        afterSummary: { amount: 1200 },
+        correctionType: "amount_correction",
+        status: "applied",
+      }),
+    );
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        correctionId: "correction_1",
+        downstreamEffects: expect.objectContaining({
+          receiptOutcome: "failed",
+          receiptAffectedFields: ["amount"],
+          receiptSnapshotId: "snap-1",
+          receiptDeliveryRequested: { choice: "email" },
+          receiptDeliveryConfirmed: { choice: "email" },
+        }),
+      }),
+    );
+    expect(result.correctionId).toBe("correction_1");
+    expect(result.auditEventId).toBe("audit_1");
+    expect(result.receiptOutcome).toEqual(receiptOutcome);
+  });
+
   it("normalizes and scopes direct correction fallback idempotency keys", async () => {
     const applyCorrection = vi.fn().mockResolvedValue({
       before: { amount: 1000 },

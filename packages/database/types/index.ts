@@ -44,6 +44,7 @@ export type {
   CrmNamedViewsResponse,
   CrmTablePreferencesResponse,
   CrmTableRowActionPreference,
+  CrmTenantDefaultPatch,
   CrmViewSettingsLayer,
   CrmViewSettingsPatch,
   CrmViewSettingsScope,

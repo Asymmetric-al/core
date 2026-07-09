@@ -210,17 +210,39 @@ async function recordDispatchOutcome(
     .from(LEDGER_TABLE)
     .update(patch)
     .eq("id", request.id)
+    .in("status", ["pending", "failed"])
     .select()
+    .maybeSingle();
+
+  if (updated.error) {
+    throw new Error(
+      `workflow_dispatch_request_update_failed: ${updated.error.message}`,
+    );
+  }
+
+  if (updated.data) {
+    return mapWorkflowDispatchRequestRow(
+      updated.data as WorkflowDispatchRequestRow,
+    );
+  }
+
+  // Another concurrent handoff already moved the row out of pending/failed
+  // (for example immediate dispatch vs recovery scan). Never downgrade
+  // dispatched to failed via last-writer-wins.
+  const existing = await client
+    .from(LEDGER_TABLE)
+    .select("*")
+    .eq("id", request.id)
     .single();
 
-  if (updated.error || !updated.data) {
+  if (existing.error || !existing.data) {
     throw new Error(
-      `workflow_dispatch_request_update_failed: ${updated.error?.message ?? "missing row"}`,
+      `workflow_dispatch_request_update_failed: ${existing.error?.message ?? "missing row"}`,
     );
   }
 
   return mapWorkflowDispatchRequestRow(
-    updated.data as WorkflowDispatchRequestRow,
+    existing.data as WorkflowDispatchRequestRow,
   );
 }
 
@@ -296,10 +318,13 @@ export async function dispatchLedgerRequest(
     result,
   });
 
+  const outcome: DispatchLedgerRequestResult["outcome"] =
+    updated.status === "dispatched" ? "dispatched" : "failed";
+
   return {
-    outcome: result.dispatched ? "dispatched" : "failed",
+    outcome,
     request: updated,
-    error: result.error,
+    error: outcome === "dispatched" ? null : result.error,
   };
 }
 

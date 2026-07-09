@@ -1272,14 +1272,14 @@ Component styling with Tailwind CSS, cn utility, class-variance-authority
 
 **Impact: HIGH (Predictable, maintainable styling patterns)**
 
-Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).
+Use Tailwind CSS with intelligent class merging through a cnfast-backed `cn()` utility and variant APIs (CVA).
 
-**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
+**Why:** Without Tailwind-aware class merging, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
 
 **Incorrect:**
 
 ```tsx
-// Without tailwind-merge, conflicting classes both apply
+// Without class merging, conflicting classes both apply
 className="bg-red-500 bg-blue-500" // Both classes apply, causing conflicts
 className="px-4 py-2 px-8" // Both px-4 and px-8 apply
 ```
@@ -1287,9 +1287,9 @@ className="px-4 py-2 px-8" // Both px-4 and px-8 apply
 **Correct:**
 
 ```tsx
-twMerge('bg-red-500', 'bg-blue-500'); // "bg-blue-500"
-twMerge('px-4 py-2', 'px-8'); // "py-2 px-8"
-twMerge('text-sm', 'text-lg'); // "text-lg"
+cn('bg-red-500', 'bg-blue-500'); // "bg-blue-500"
+cn('px-4 py-2', 'px-8'); // "py-2 px-8"
+cn('text-sm', 'text-lg'); // "text-lg"
 ```
 
 Apply classes in this order:
@@ -1844,8 +1844,7 @@ Missing `exports` field, pointing to source files instead of built dist, and inc
     "react-dom": "^18.0.0"
   },
   "dependencies": {
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "cnfast": "^0.0.8"
   }
 }
 ```
