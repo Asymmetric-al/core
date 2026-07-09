@@ -49,7 +49,12 @@ the `gh pr` equivalents:
       }
     ' \
     --jq '.data.repository.pullRequests.nodes
-      | map(select(["CONTRIBUTOR","FIRST_TIME_CONTRIBUTOR","FIRST_TIMER","NONE"] | index(.authorAssociation)))'
+      | map(select(
+          .authorAssociation == "CONTRIBUTOR"
+          or .authorAssociation == "FIRST_TIME_CONTRIBUTOR"
+          or .authorAssociation == "FIRST_TIMER"
+          or .authorAssociation == "NONE"
+        ))'
   ```
 
 - **Comment / label / close**: `gh pr comment`,
@@ -61,6 +66,22 @@ either. Resolve with `gh pr view 42` and fall back to `gh issue view 42`.
 ## When a skill says "publish to the issue tracker"
 
 Create a GitHub issue.
+
+Every open GitHub issue created by a skill must include exactly one `type:*`,
+one `status:*`, and one `complexity:*` label. When a skill says to apply
+`ready-for-agent`, use `status:ready` plus:
+
+- `type:feature` for feature/spec/product work, `type:bug` for defects,
+  `type:docs` for documentation-only work, `type:refactor` for behavior-neutral
+  code restructuring, otherwise `type:chore`.
+- The smallest defensible `complexity:*` from the approved scope. Use
+  `complexity:medium` only when the current context does not contain enough
+  evidence; call that default out in the issue body or publishing note.
+
+For `/to-spec`, default to `type:feature` and `complexity:hard` for broad specs,
+unless the synthesized scope clearly supports a narrower type or lower
+complexity. For `/to-tickets`, label each generated ticket from its own slice,
+not from the parent spec as a whole.
 
 ## When a skill says "fetch the relevant ticket"
 
