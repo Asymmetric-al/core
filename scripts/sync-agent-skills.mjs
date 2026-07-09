@@ -136,7 +136,14 @@ async function swapStagedDirectory(stagingDir, targetDir) {
   }
 
   if (hasBackup) {
-    await rm(backupDir, { recursive: true, force: true });
+    try {
+      await rm(backupDir, { recursive: true, force: true });
+    } catch (cleanupError) {
+      console.warn(
+        `warning: failed to remove backup directory ${backupDir}`,
+        cleanupError,
+      );
+    }
   }
 }
 
