@@ -8,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
 type ContributionsPageComponent =
-  typeof import("../../../../../apps/admin/app/contributions/page").default;
+  typeof import("../../../../../apps/admin/app/contributions/page-client").default;
 type InvalidateContributionOperationQueries =
   typeof import("../../../../../apps/admin/app/contributions/page-client").invalidateContributionOperationQueries;
 type ContributionsDataModule =
@@ -290,10 +290,8 @@ async function loadEnvSensitiveModules() {
     await import("../../../../../apps/admin/app/contributions/data");
   const pageClientModule =
     await import("../../../../../apps/admin/app/contributions/page-client");
-  const contributionsPageModule =
-    await import("../../../../../apps/admin/app/contributions/page");
 
-  ContributionsPage = contributionsPageModule.default;
+  ContributionsPage = pageClientModule.default;
   invalidateContributionOperationQueries =
     pageClientModule.invalidateContributionOperationQueries;
   boneyardContributionsFixture = dataModule.boneyardContributionsFixture;
@@ -306,7 +304,7 @@ async function loadEnvSensitiveModules() {
     databaseHooksModule.MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY;
 }
 
-describe("apps/admin/app/contributions/page", () => {
+describe("apps/admin/app/contributions/page-client", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();

@@ -159,6 +159,13 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
     expect(view.queryByRole("button", { name: /send receipt/i })).toBeNull();
     expect(view.queryByRole("button", { name: /approve/i })).toBeNull();
     expect(view.queryByRole("button", { name: /retry posting/i })).toBeNull();
+
+    // Financial truth, donor context, and designations still render fully:
+    // a missing staged gift never degrades the read-only detail (#258).
+    expect(view.getAllByText(/\$250\.00/).length).toBeGreaterThan(0);
+    expect(view.getAllByText("Sarah Mitchell").length).toBeGreaterThan(0);
+    expect(view.getAllByText(/general fund/i).length).toBeGreaterThan(0);
+    expect(view.queryByText(/invalid|missing donation|not found/i)).toBeNull();
   });
 
   it("renders available actions and blocked reasons from server availability", () => {

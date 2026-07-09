@@ -34,6 +34,12 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 
+import {
+  CorrectionApprovalPanel,
+  type ContributionCorrectionRequestView,
+} from "./correction-approval-panel";
+
+import type { ContributionReceiptDeliveryContext } from "./receipt-delivery-choice";
 import type { Contribution, ContributionStatus } from "./types";
 import type {
   ContributionActionAvailability,
@@ -192,6 +198,15 @@ interface ContributionDetailSheetProps {
     } | null;
     providerRecurrenceWithoutAgreement: boolean;
   };
+  /**
+   * Correction requests for this gift (AL-263). Pending requests the viewer
+   * can decide render an inline approval panel.
+   */
+  correctionRequests?: ContributionCorrectionRequestView[];
+  /** Updated receipt delivery context for receipt-affecting corrections. */
+  receiptDelivery?: ContributionReceiptDeliveryContext | null;
+  /** Called after a correction request decision succeeds. */
+  onDecided?: () => void;
 }
 
 const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
@@ -315,6 +330,9 @@ export function ContributionDetailSheet({
   crmPostState,
   onRetryCrmPost,
   recurring,
+  correctionRequests,
+  receiptDelivery,
+  onDecided,
 }: ContributionDetailSheetProps) {
   const open = isOpen ?? Boolean(contribution);
   const donorDisplayName = contribution
@@ -919,6 +937,15 @@ export function ContributionDetailSheet({
             </ul>
           )}
         </div>
+
+        {/* ---- Correction approvals (AL-263) ---- */}
+        {correctionRequests && correctionRequests.length > 0 && (
+          <CorrectionApprovalPanel
+            correctionRequests={correctionRequests}
+            receiptDelivery={receiptDelivery}
+            onDecided={onDecided}
+          />
+        )}
 
         {/* ---- Recurring agreement context (ADR-CD-007) ---- */}
         {recurring?.isRecurring && (
