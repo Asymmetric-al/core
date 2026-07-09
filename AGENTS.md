@@ -384,6 +384,10 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 | **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Current upstream misc skills previously promoted into Core. |
 | **prd-to-plan**                               | `docs/ai/skills/prd-to-plan/SKILL.md` — Core compatibility router; use **to-spec** then **to-tickets**.                                                 |
 
+Core routing note for **domain-modeling**: use `docs/agents/domain.md` and
+`CONTEXT-MAP.md` to choose the actual context file and ADR tree before writing
+in this repo.
+
 **Removed upstream routes:** `/to-prd`, `/to-plan`, `/to-issues`, `/diagnose`, and `/zoom-out` are not present in current upstream `skills/engineering/`; use `/to-spec`, `/to-tickets`, `/diagnosing-bugs`, `/ask-matt`, or `/wayfinder` as appropriate.
 
 ---
