@@ -929,7 +929,13 @@ async function runReceiptDelivery(input: {
     };
   }
   if (receipt.status === "failed") {
-    throw new Error("Updated receipt email failed to send.");
+    return {
+      ...base,
+      status: "failed",
+      reason:
+        "The updated receipt email could not be sent. Check email send logs for provider details.",
+      snapshotId,
+    };
   }
 
   return { ...base, status: "emailed", reason: null, snapshotId };

@@ -698,6 +698,119 @@ describe("applyContributionCorrection", () => {
     ]);
   });
 
+  it("keeps the applied adjustment when updated receipt email delivery fails", async () => {
+    sendEmailMock.mockReset();
+    sendEmailMock.mockResolvedValue({
+      success: false,
+      messageId: null,
+      correlationId: "corr-failed",
+      recipientCount: 0,
+      retryCount: 0,
+      errors: [
+        {
+          code: "provider_rejected",
+          message: "Provider rejected the updated receipt",
+        },
+      ],
+    });
+    readTenantEmailSettingsMock.mockReset();
+    readTenantEmailSettingsMock.mockResolvedValue({
+      is_connected: true,
+      resend_api_key_encrypted: "enc",
+      default_from_email: "receipts@org.example",
+      default_from_name: "Org",
+      reply_to_email: null,
+    });
+    decryptResendApiKeyMock.mockReset();
+    decryptResendApiKeyMock.mockReturnValue("re_decrypted");
+
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+      stagedGift: {
+        id: "staged-1",
+        tenant_id: TENANT_ID,
+        donation_id: DONATION_ID,
+        donor_id: "donor-1",
+        missionary_id: null,
+        fund_id: null,
+        stripe_raw_event_id: null,
+        stripe_event_id: null,
+        stripe_payment_intent_id: null,
+        stripe_charge_id: null,
+        amount: 25_000,
+        currency: "usd",
+        status: "posted",
+        donor_match_status: "matched",
+        allocation_status: "allocated",
+        review_reason: null,
+        receipt_status: "sent",
+        crm_post_status: "posted",
+        crm_outbound_job_id: null,
+        twenty_record_id: null,
+        metadata: {},
+      },
+      donor: {
+        id: "donor-1",
+        profile_id: null,
+        name: "Ada Lovelace",
+        email: "donor@example.com",
+        do_not_email: false,
+        do_not_contact: false,
+      },
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: {
+        amount: 20_000,
+        receiptDelivery: { choice: "email" },
+      },
+      actorCapabilities: ["contributions.manage_receipts"],
+    });
+
+    expect(result.status).toBe("applied");
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.adjustments[0]).toMatchObject({
+      id: "adj-1",
+      status: "applied",
+      effective_values: { amountCents: 20_000 },
+    });
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots![0]).toMatchObject({
+      id: "snap-1",
+      kind: "email",
+      content: expect.objectContaining({
+        adjustmentId: "adj-1",
+      }),
+    });
+    expect(state.emailSendLogs).toEqual([
+      expect.objectContaining({
+        idempotency_key: "contribution-receipt-snapshot/tenant-1/snap-1/email",
+        correlation_id: "corr-failed",
+        status: "failed",
+        error_code: "provider_rejected",
+        error_message: "Provider rejected the updated receipt",
+      }),
+    ]);
+    expect(state.stagedGiftUpdates).toEqual([
+      expect.objectContaining({
+        receipt_status: "failed",
+        receipt_send_log_id: "send-log-1",
+        last_error_code: "provider_rejected",
+        last_error_message: "Provider rejected the updated receipt",
+      }),
+    ]);
+    expect(result.receiptOutcome).toMatchObject({
+      status: "failed",
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+      requested: { choice: "email" },
+      confirmed: { choice: "email" },
+      reason: expect.stringMatching(/could not be sent/i),
+    });
+  });
+
   it("applies a fund correction when the fund exists for the tenant", async () => {
     const state: StubState = {
       adjustments: [],

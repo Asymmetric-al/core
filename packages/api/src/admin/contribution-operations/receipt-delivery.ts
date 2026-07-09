@@ -253,7 +253,13 @@ export function parseReceiptDeliverySelection(
 }
 
 export interface ReceiptDeliveryOutcome {
-  status: "emailed" | "pdf_generated" | "deferred" | "blocked" | "not_required";
+  status:
+    | "emailed"
+    | "pdf_generated"
+    | "deferred"
+    | "blocked"
+    | "not_required"
+    | "failed";
   reason: string | null;
   snapshotId: string | null;
   affectedFields: string[];
