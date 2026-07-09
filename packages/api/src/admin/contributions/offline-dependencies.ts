@@ -10,33 +10,34 @@ type AdminSupabaseClient = Exclude<
 >;
 
 /**
- * Offline gift entry — DB dependency binding (Gate-8 boundary).
+ * Offline gift entry DB dependency binding (Gate-8 boundary).
  *
- * The pure orchestration (`recordOfflineContribution`), the §9.3 contract, and
- * the receipt/anonymity logic are all built and unit-tested. What remains is
- * binding the three side-effects to real infra, and that is deliberately NOT
- * done here because it depends on changes that are NOT yet landed and MUST go
- * through human sign-off:
+ * The pure orchestration (`recordOfflineContribution`), the section 9.3
+ * contract, and the receipt/anonymity logic are built and unit-tested. What
+ * remains is binding the side effects to real infra, and that is deliberately
+ * not done here because it depends on changes that are not yet landed and must
+ * go through human sign-off:
  *
- *   1. The Track B §8.1 migration (adds `donor_identity_status`,
+ *   1. The Track B section 8.1 migration (adds `donor_identity_status`,
  *      `receipt_status`, `entered_by_user_id`, `anonymous_to_*` to `donations`).
  *   2. Extending `CONTRIBUTION_ACTION_TYPES` with `offline_gift_entry` and the
  *      `sourceSurface` enum with `offline`.
  *   3. A donor create/match resolver keyed on (tenant, normalized email) that
- *      does NOT leak donor existence, plus the shared
- *      `appendContributionOperationAuditEvent` audit write.
+ *      does not leak donor existence, plus an atomic contribution+audit write.
  *
  * Writing gift/money truth is a protected area (charter Gate 4 + Gate 8), so
  * until the migration + enum extension land and a maintainer wires these deps
  * against live infra, the route surfaces a precise 501 rather than inventing a
  * blind insert against columns that do not exist yet.
  *
- * See proposals/track-b/OFFLINE_GIFT_ENTRY_DESIGN.md §5 (BLOCKED-FOR-LATER).
+ * See proposals/track-b/OFFLINE_GIFT_ENTRY_DESIGN.md section 5
+ * (BLOCKED-FOR-LATER).
  */
 export const OFFLINE_ENTRY_UNBOUND_MESSAGE =
   "Offline gift entry persistence is not yet enabled: it requires the Track B " +
-  "§8.1 donations migration, the offline_gift_entry/offline enum extension, and " +
-  "a maintainer to bind the donor resolver + insert + audit deps (Gate 8).";
+  "section 8.1 donations migration, the offline_gift_entry/offline enum " +
+  "extension, and a maintainer to bind the donor resolver + atomic insert/audit " +
+  "deps (Gate 8).";
 
 class OfflineEntryUnboundError extends ApiHttpError {
   constructor() {
@@ -49,25 +50,19 @@ class OfflineEntryUnboundError extends ApiHttpError {
  * Build the injected side-effects for {@link recordOfflineContribution}.
  *
  * `supabaseAdmin` is threaded through so the maintainer PR only has to fill the
- * three function bodies (donor resolve/create, `donations` insert with the §8.1
- * columns, and `appendContributionOperationAuditEvent`) — the route, gate,
+ * donor resolver plus one atomic contribution+audit write. The route, gate,
  * validation, and orchestration around them are already wired and tested.
  */
 export function createOfflineEntryDependencies(
-  supabaseAdmin: AdminSupabaseClient,
+  _supabaseAdmin: AdminSupabaseClient,
 ): OfflineEntryDependencies {
-  // Intentionally unbound until the Gate-8 maintainer PR fills the three bodies
-  // against `supabaseAdmin` (see the module doc above). Referenced so the client
-  // stays threaded through the signature without a dead-parameter lint warning.
-  void supabaseAdmin;
+  // Intentionally unbound until the Gate-8 maintainer PR wires these closures
+  // against `_supabaseAdmin` (see the module doc above).
   return {
     resolveKnownDonor: async () => {
       throw new OfflineEntryUnboundError();
     },
-    insertContribution: async () => {
-      throw new OfflineEntryUnboundError();
-    },
-    appendAudit: async () => {
+    recordContributionWithAudit: async () => {
       throw new OfflineEntryUnboundError();
     },
   };

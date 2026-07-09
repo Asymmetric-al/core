@@ -15,20 +15,20 @@ Missionary dashboard application for Asymmetric.al.
 ## Development
 
 ```bash
-# Install dependencies
-bun install
+# From the repo root, install dependencies
+bun run setup:mission-control:cloud
 
-# Run development server (port 3002)
-bun dev
+# Run development server (port 4000)
+bun run dev:missionary
 
 # Build for production
-bun build
+bun run build:missionary
 
 # Type check
-bun typecheck
+bun run typecheck:missionary
 
 # Lint
-bun lint
+bun run lint:missionary
 ```
 
 ## Structure

@@ -1,12 +1,17 @@
 ---
 name: prd-to-plan
-description: Bridge from PRD to an implementation plan. Upstream mattpocock/skills has no skill by this id—use to-prd, OpenSpec changes, and architecture skills instead.
+description: Legacy router from PRD/spec intent to the current Matt Pocock spec and ticket flow. Prefer to-spec and to-tickets.
 ---
 
-There is **no** `prd-to-plan` skill in [mattpocock/skills](https://github.com/mattpocock/skills). Use this sequence instead:
+There is **no** `prd-to-plan` skill in
+[mattpocock/skills](https://github.com/mattpocock/skills). Use the current
+spec/ticket flow instead:
 
-1. **`to-prd`** — `docs/ai/skills/to-prd/SKILL.md` — produce the PRD
+1. **`to-spec`** - `docs/ai/skills/to-spec/SKILL.md` - produce the spec
    (align with **OpenSpec**: `openspec/specs/**`, `openspec/changes/**`).
-2. **Planning / breakdown** — **`to-issues`** (issue decomposition), **`improve-codebase-architecture`** (deepening/refactors), **`zoom-out`** (module map), plus **`docs/ai/rules/*`** as needed.
+2. **`to-tickets`** - `docs/ai/skills/to-tickets/SKILL.md` - break the spec
+   into tracer-bullet tickets with blocking edges.
+3. Use **`implement`**, **`code-review`**, **`domain-modeling`**, and
+   **`improve-codebase-architecture`** as the work moves from tickets to code.
 
 See **`references/upstream.md`**.
