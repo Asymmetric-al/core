@@ -20,6 +20,7 @@ export {
   ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY,
   useCrmTablePreferences,
   useSaveCrmRowActionPin,
+  useSaveCrmTenantDefault,
   useSaveCrmViewSettings,
 } from "./admin-crm-table-preferences";
 export {

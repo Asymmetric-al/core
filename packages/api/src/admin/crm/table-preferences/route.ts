@@ -14,7 +14,7 @@ import {
   saveCrmUserTablePreference,
   type CrmViewSettingsPatch,
 } from "./service";
-import { canManageCrmTenantDefaults } from "./view-settings";
+import { resolveCanManageCrmTenantDefaults } from "./view-settings";
 import { requireCrmAccess } from "../../../crm/auth/access";
 import {
   ApiHttpError,
@@ -174,14 +174,27 @@ export const GET = withOperation(
     });
 
     try {
+      const profileId = requireProfileId(actor.profileId);
       const preferences = await getCrmTablePreferences({
         supabaseAdmin,
         tenantId: actor.tenantId,
-        profileId: requireProfileId(actor.profileId),
+        profileId,
         tableId: resolveTableId(request),
       });
 
-      return NextResponse.json({ ...preferences, requestId });
+      // Same gate PUT_TENANT_DEFAULT enforces (issue #272): visibility of the
+      // tenant-default management UI follows the write authority exactly.
+      const canManageTenantDefaults = resolveCanManageCrmTenantDefaults({
+        capabilities: resolveContributionCapabilities(auth),
+        profileId,
+        tenantDefault: preferences.tenantDefault,
+      });
+
+      return NextResponse.json({
+        ...preferences,
+        canManageTenantDefaults,
+        requestId,
+      });
     } catch (error) {
       return toErrorResponse(
         error,
@@ -252,13 +265,11 @@ export const PUT_TENANT_DEFAULT = withOperation(
         profileId,
         tableId: body.tableId,
       });
-      const delegatedManagerProfileIds =
-        current.tenantDefault?.settings?.delegatedManagerProfileIds ?? [];
       if (
-        !canManageCrmTenantDefaults({
+        !resolveCanManageCrmTenantDefaults({
           capabilities,
           profileId,
-          delegatedManagerProfileIds,
+          tenantDefault: current.tenantDefault,
         })
       ) {
         throw new ApiHttpError(

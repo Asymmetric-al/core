@@ -3,13 +3,13 @@ source_name: mattpocock/skills (improve-codebase-architecture)
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/engineering/improve-codebase-architecture/SKILL.md
-skills_lock_hash: 5d9444ffe5c240f2d20081c42c547112e1b8c372375a14e4c98df4d94bde11e1
-last_reviewed: 2026-05-23
+skills_lock_hash: 4c4d2b6da48482c1a054aca0e09eafd61cdcbebe2bda10abd3f355bf5f6fc57c
+last_reviewed: 2026-07-09
 ---
 
 # Upstream: improve-codebase-architecture
 
-Canonical copy in this repo: `docs/ai/skills/improve-codebase-architecture/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/improve-codebase-architecture/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/mattpocock/skills
 - **Upstream path:** `skills/engineering/improve-codebase-architecture/SKILL.md`
@@ -18,6 +18,8 @@ Canonical copy in this repo: `docs/ai/skills/improve-codebase-architecture/` (mi
 ## Refresh from ecosystem
 
 1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Copy the routed skill into `docs/ai/skills/improve-codebase-architecture/` if this canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+2. Reconcile the freshly installed upstream copy from `.agents/skills/improve-codebase-architecture/` into canonical `docs/ai/skills/improve-codebase-architecture/` if this canonical copy needs updating. Treat `.agents/skills/improve-codebase-architecture/` as a temporary Skills CLI import at this point; after `bun run skills:sync`, it is generated mirror output again.
+3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
+
+This skill is **not** updated by `bun run skills:refresh-upstream`.

@@ -4,6 +4,7 @@ import {
   canManageCrmTenantDefaults,
   CRM_GIFT_HISTORY_SYSTEM_VIEW_SETTINGS,
   previewCrmViewSettingsReset,
+  resolveCanManageCrmTenantDefaults,
   resolveCrmGiftHistoryViewSettings,
 } from "../../../../../packages/api/src/admin/crm/table-preferences/view-settings";
 
@@ -150,6 +151,48 @@ describe("admin/crm/table-preferences/view-settings", () => {
         capabilities: ["contributions.run_refunds"],
         profileId: "profile-3",
         delegatedManagerProfileIds: ["profile-2"],
+      }),
+    ).toBe(false);
+  });
+
+  it("computes the GET manageability flag from the loaded tenant default record", () => {
+    // No capability, no delegation: the UI never shows the management surface.
+    expect(
+      resolveCanManageCrmTenantDefaults({
+        capabilities: ["contributions.manage_table_preferences"],
+        profileId: "profile-1",
+        tenantDefault: null,
+      }),
+    ).toBe(false);
+
+    // Capability holders manage defaults even before any tenant default exists.
+    expect(
+      resolveCanManageCrmTenantDefaults({
+        capabilities: ["crm.gift_history.manage_view_defaults"],
+        profileId: "profile-1",
+        tenantDefault: null,
+      }),
+    ).toBe(true);
+
+    // Delegates listed on the tenant default record manage it too.
+    expect(
+      resolveCanManageCrmTenantDefaults({
+        capabilities: [],
+        profileId: "profile-2",
+        tenantDefault: {
+          settings: { delegatedManagerProfileIds: ["profile-2"] },
+        },
+      }),
+    ).toBe(true);
+
+    // A tenant default with other delegates grants nothing to this profile.
+    expect(
+      resolveCanManageCrmTenantDefaults({
+        capabilities: [],
+        profileId: "profile-3",
+        tenantDefault: {
+          settings: { delegatedManagerProfileIds: ["profile-2"] },
+        },
       }),
     ).toBe(false);
   });

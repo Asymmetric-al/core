@@ -344,6 +344,12 @@ describe("contribution operations detail read model", () => {
     expect(detail.stagedGift).toBeNull();
     expect(detail.shared.amountCents).toBe(7_500);
     expect(detail.shared.designationSummary.fundName).toBe("General Fund");
+    // Receipt state stays a normal workflow state, not an error: without a
+    // staged gift the receipt has simply not been produced yet (#258).
+    expect(detail.receipt.status).toBe("pending");
+    expect(detail.shared.receiptStatus).toBe("pending");
+    // Donor context renders for read-only gifts.
+    expect(detail.donor.name).toBe("Legacy Donor");
 
     const workflowEntries = detail.actionAvailability.filter((entry) =>
       ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
@@ -470,6 +476,205 @@ describe("contribution operations detail read model", () => {
 
     // No designation is labeled primary anywhere in the payload.
     expect(detail).not.toHaveProperty("designation");
+  });
+
+  it("rebuilds the designation set from applied allocation adjustments against the effective amount (#259)", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_5",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: null,
+        fundId: "fund_1",
+        amount: 30_000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_1",
+        stripeChargeId: null,
+        giftDate: "2026-05-20",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: "2026-05-20T00:00:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "online",
+        createdAt: "2026-05-20T00:00:00.000Z",
+        updatedAt: "2026-05-20T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: "Corrected Donor",
+        email: null,
+        phone: null,
+        location: null,
+        organization: null,
+      },
+      fund: { id: "fund_1", name: "Clean Water Initiative" },
+      allocations: [
+        {
+          id: "alloc_1",
+          amount: 30_000,
+          fund_id: "fund_1",
+          missionary_id: null,
+          memo: null,
+        },
+      ],
+      allocationFunds: [
+        {
+          id: "fund_1",
+          name: "Clean Water Initiative",
+          missionary_id: null,
+          goal_amount: 50_000,
+          start_date: null,
+          end_date: null,
+        },
+        {
+          id: "fund_2",
+          name: "Martinez Family Support",
+          missionary_id: "missionary_1",
+          goal_amount: 0,
+          start_date: null,
+          end_date: null,
+        },
+      ],
+      allocationMissionaries: [
+        { id: "missionary_1", display_name: "John Martinez" },
+      ],
+      adjustments: [
+        {
+          id: "adjustment_1",
+          adjustmentType: "allocation_correction",
+          status: "applied",
+          effectiveValues: {
+            amountCents: 35_000,
+            designationLines: [
+              {
+                id: "line_1",
+                amountCents: 15_000,
+                fundId: "fund_1",
+                missionaryId: null,
+                memo: "reassigned",
+              },
+              {
+                id: "line_2",
+                amountCents: 20_000,
+                fundId: "fund_2",
+                missionaryId: "missionary_1",
+                memo: null,
+              },
+            ],
+          },
+          reason: "Donor split the corrected gift across two funds.",
+          actorProfileId: "profile_1",
+          sourceSurface: "contribution_hub",
+          createdAt: "2026-05-21T00:00:00.000Z",
+        },
+      ],
+    });
+
+    // Adjustment records replace, never rewrite: the designation set derives
+    // from the applied replacement lines and reconciles to the EFFECTIVE
+    // amount, not the original 30_000 (ADR-CD-004 + ADR-CD-008).
+    expect(detail.effective.amountCents).toBe(35_000);
+    expect(detail.designations.lines).toHaveLength(2);
+    expect(detail.designations.lines.map((line) => line.id)).toEqual([
+      "line_1",
+      "line_2",
+    ]);
+    expect(detail.designations.lines[0]).toMatchObject({
+      amountCents: 15_000,
+      fundName: "Clean Water Initiative",
+      memo: "reassigned",
+    });
+    expect(detail.designations.lines[1]).toMatchObject({
+      amountCents: 20_000,
+      fundName: "Martinez Family Support",
+      fundType: "missionary",
+      missionaryName: "John Martinez",
+    });
+    expect(detail.designations.totalAmountCents).toBe(35_000);
+    expect(detail.designations.reconcilesToGiftAmount).toBe(true);
+    expect(detail.designations.issues).toEqual([]);
+
+    // The shared summary derives from the same rebuilt set on every surface.
+    expect(detail.shared.designationSummary.lineCount).toBe(2);
+    expect(detail.shared.designationSummary.fundName).toBe("2 designations");
+  });
+
+  it("defaults fundless designation lines to General Fund and surfaces the issue in detail (#259)", () => {
+    const detail = buildContributionDetail({
+      donation: {
+        id: "donation_6",
+        tenantId: "tenant_1",
+        donorId: "donor_1",
+        missionaryId: null,
+        fundId: null,
+        amount: 12_000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_2",
+        stripeChargeId: null,
+        giftDate: "2026-05-22",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: "2026-05-22T00:00:00.000Z",
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "online",
+        createdAt: "2026-05-22T00:00:00.000Z",
+        updatedAt: "2026-05-22T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor_1",
+        profileId: null,
+        name: "Fundless Donor",
+        email: null,
+        phone: null,
+        location: null,
+        organization: null,
+      },
+      allocations: [
+        {
+          id: "alloc_fundless",
+          amount: 12_000,
+          fund_id: null,
+          missionary_id: null,
+          memo: null,
+        },
+      ],
+    });
+
+    // Invalid fundless designation states stay visible financial truth: the
+    // line defaults to General Fund and the issue is carried in the payload.
+    expect(detail.designations.lines).toHaveLength(1);
+    expect(detail.designations.lines[0]).toMatchObject({
+      fundId: null,
+      fundName: "General Fund",
+      fundType: "general",
+    });
+    expect(detail.designations.reconcilesToGiftAmount).toBe(true);
+    expect(
+      detail.designations.issues.some((issue) => /no fund/i.test(issue)),
+    ).toBe(true);
   });
 
   it("links the internal recurring agreement first and warns on provider-only recurrence", () => {
