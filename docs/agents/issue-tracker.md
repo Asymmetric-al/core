@@ -27,7 +27,7 @@ the `gh pr` equivalents:
 - **List external PRs for triage**:
   `gh pr list --state open --json number,title,body,labels,author,authorAssociation,comments`,
   then keep only `authorAssociation` of `CONTRIBUTOR`,
-  `FIRST_TIME_CONTRIBUTOR`, or `NONE`.
+  `FIRST_TIME_CONTRIBUTOR`, `FIRST_TIMER`, or `NONE`.
 - **Comment / label / close**: `gh pr comment`,
   `gh pr edit --add-label` / `--remove-label`, `gh pr close`.
 
