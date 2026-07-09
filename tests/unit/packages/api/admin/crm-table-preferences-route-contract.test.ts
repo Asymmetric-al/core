@@ -46,6 +46,30 @@ describe("admin/crm/table-preferences route contract", () => {
     );
   });
 
+  it("computes GET tenant-default manageability from the exact write gate", () => {
+    const getHandler = sourceSection(
+      routeSource,
+      "export const GET =",
+      "export const PUT =",
+    );
+    const putTenantDefault = sourceSection(
+      routeSource,
+      "export const PUT_TENANT_DEFAULT =",
+      "export const GET_NAMED_VIEWS =",
+    );
+
+    // Both the GET visibility flag and the PUT write gate go through the one
+    // shared helper, so the UI can never be shown more than it may write.
+    expect(getHandler).toContain("resolveCanManageCrmTenantDefaults({");
+    expect(getHandler).toContain(
+      "capabilities: resolveContributionCapabilities(auth)",
+    );
+    expect(getHandler).toContain("tenantDefault: preferences.tenantDefault");
+    expect(getHandler).toContain("canManageTenantDefaults,");
+    expect(putTenantDefault).toContain("resolveCanManageCrmTenantDefaults({");
+    expect(putTenantDefault).toContain("tenantDefault: current.tenantDefault");
+  });
+
   it("keeps named-view PUT compatible with hooks expecting an ok flag", () => {
     const putNamedView = sourceSection(
       routeSource,

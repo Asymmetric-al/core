@@ -27,6 +27,7 @@ const useAdminCrmRecordDetailMock = vi.fn();
 const useCreateLinkedCrmNoteMock = vi.fn();
 const useCrmTablePreferencesMock = vi.fn();
 const useSaveCrmRowActionPinMock = vi.fn();
+const useSaveCrmTenantDefaultMock = vi.fn();
 const useSaveCrmViewSettingsMock = vi.fn();
 const useCrmNamedViewsMock = vi.fn();
 const useCreateCrmNamedViewMock = vi.fn();
@@ -51,6 +52,7 @@ vi.mock("@asym/database/hooks", () => ({
   useCrmTablePreferences: useCrmTablePreferencesMock,
   useDeleteCrmNamedView: useDeleteCrmNamedViewMock,
   useSaveCrmRowActionPin: useSaveCrmRowActionPinMock,
+  useSaveCrmTenantDefault: useSaveCrmTenantDefaultMock,
   useSaveCrmViewSettings: useSaveCrmViewSettingsMock,
   useUpdateCrmNamedView: useUpdateCrmNamedViewMock,
 }));
@@ -459,6 +461,10 @@ describe("apps/admin/app/crm gift detail entry", () => {
     });
     useCrmTablePreferencesMock.mockReturnValue(mockQuery({ data: undefined }));
     useSaveCrmRowActionPinMock.mockReturnValue({
+      isPending: false,
+      mutate: vi.fn(),
+    });
+    useSaveCrmTenantDefaultMock.mockReturnValue({
       isPending: false,
       mutate: vi.fn(),
     });
@@ -1168,6 +1174,252 @@ describe("apps/admin/app/crm gift detail entry", () => {
         expect.anything(),
       );
     });
+  });
+
+  it("hides tenant-default management without the server capability flag", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00c";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: null,
+          tenantDefault: null,
+          canManageTenantDefaults: false,
+        },
+      }),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", {
+      name: "Gift history view settings",
+    });
+    fireEvent.click(trigger);
+
+    // The rest of the menu renders; the tenant-default section does not.
+    expect(await view.findByText("Reset view settings")).toBeTruthy();
+    expect(
+      view.queryByText(/set current settings as tenant default/i),
+    ).toBeNull();
+    expect(view.queryByText("Tenant default")).toBeNull();
+  });
+
+  it("saves the current resolved settings as the tenant default after confirming", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00d";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: {
+            actionId: "resend_receipt",
+            schemaVersion: 1,
+            settings: {
+              columns: { designation: false },
+              filtersSort: { sortField: "amountCents", sortDirection: "asc" },
+            },
+          },
+          tenantDefault: null,
+          canManageTenantDefaults: true,
+        },
+      }),
+    );
+    const tenantDefaultMutate = vi.fn();
+    useSaveCrmTenantDefaultMock.mockReturnValue({
+      isPending: false,
+      mutate: tenantDefaultMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", {
+      name: "Gift history view settings",
+    });
+    fireEvent.click(trigger);
+
+    fireEvent.click(
+      await view.findByText(/set current settings as tenant default/i),
+    );
+
+    // Publishing to the whole tenant always confirms first, mirroring the
+    // reset-preview idiom.
+    const confirm = await view.findByTestId("tenant-default-confirm");
+    expect(confirm.textContent).toMatch(/everyone in this tenant/i);
+    expect(tenantDefaultMutate).not.toHaveBeenCalled();
+
+    fireEvent.click(
+      within(confirm).getByRole("button", { name: "Set tenant default" }),
+    );
+
+    // The CURRENT resolved settings (user scopes merged over system defaults)
+    // and the effective pin are published wholesale as the tenant default.
+    await waitFor(() => {
+      expect(tenantDefaultMutate).toHaveBeenCalledWith(
+        {
+          columns: { designation: false, statusLine: true },
+          filtersSort: {
+            sortField: "amountCents",
+            sortDirection: "asc",
+            paymentStatus: "all",
+            issue: "all",
+          },
+          pinnedActionId: "resend_receipt",
+        },
+        expect.anything(),
+      );
+    });
+  });
+
+  it("publishes the effective (tenant-default) pin when the user record has no pin of its own", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00e";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    // A user preference record that exists (they saved columns) but pins no
+    // action of its own (actionId: null). The resolver falls that row through
+    // to the tenant default, so the row visibly shows the tenant pin — and
+    // "Set current settings as tenant default" must republish that same pin,
+    // not clear the tenant-wide default.
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: {
+            actionId: null,
+            schemaVersion: 1,
+            settings: null,
+          },
+          tenantDefault: { actionId: "fund_correction", schemaVersion: 1 },
+          canManageTenantDefaults: true,
+        },
+      }),
+    );
+    const tenantDefaultMutate = vi.fn();
+    useSaveCrmTenantDefaultMock.mockReturnValue({
+      isPending: false,
+      mutate: tenantDefaultMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", {
+      name: "Gift history view settings",
+    });
+    fireEvent.click(trigger);
+    fireEvent.click(
+      await view.findByText(/set current settings as tenant default/i),
+    );
+
+    const confirm = await view.findByTestId("tenant-default-confirm");
+    fireEvent.click(
+      within(confirm).getByRole("button", { name: "Set tenant default" }),
+    );
+
+    await waitFor(() => {
+      expect(tenantDefaultMutate).toHaveBeenCalledWith(
+        expect.objectContaining({ pinnedActionId: "fund_correction" }),
+        expect.anything(),
+      );
+    });
+  });
+
+  it("disables the tenant-default confirm button while the publish is pending", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00f";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    useCrmTablePreferencesMock.mockReturnValue(
+      mockQuery({
+        data: {
+          tableId: "crm.giftHistory",
+          schemaVersion: 1,
+          user: null,
+          tenantDefault: null,
+          canManageTenantDefaults: true,
+        },
+      }),
+    );
+    const tenantDefaultMutate = vi.fn();
+    // A publish is already in flight: the confirm button must not fire a
+    // second tenant-wide write.
+    useSaveCrmTenantDefaultMock.mockReturnValue({
+      isPending: true,
+      mutate: tenantDefaultMutate,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => contributionDetailPayloadFor(donationId),
+      }),
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    const trigger = await view.findByRole("button", {
+      name: "Gift history view settings",
+    });
+    fireEvent.click(trigger);
+    fireEvent.click(
+      await view.findByText(/set current settings as tenant default/i),
+    );
+
+    const confirm = await view.findByTestId("tenant-default-confirm");
+    const confirmButton = within(confirm).getByRole("button", {
+      name: "Saving...",
+    });
+    expect((confirmButton as HTMLButtonElement).disabled).toBe(true);
+    fireEvent.click(confirmButton);
+    expect(tenantDefaultMutate).not.toHaveBeenCalled();
   });
 
   it("applies the default named view automatically when no working preference exists", async () => {
