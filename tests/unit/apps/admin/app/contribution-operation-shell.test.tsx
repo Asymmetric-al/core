@@ -213,6 +213,13 @@ describe("ContributionOperationShell", () => {
     expect(view.getByText(/operation completed/i)).toBeTruthy();
     expect(view.getByText(/audit event: audit-1/i)).toBeTruthy();
     expect(onRowRefresh).toHaveBeenCalled();
+    // Without a host-provided handler the optional secondary action never
+    // renders — the shell never redirects on its own (ADR-CD-033).
+    expect(
+      view.queryByRole("button", { name: "View full contribution detail" }),
+    ).toBeNull();
+    // A result without a receipt outcome renders no receipt line.
+    expect(view.queryByText(/receipt:/i)).toBeNull();
 
     const actionCall = fetchMock.mock.calls.find(([url]) =>
       String(url).includes("/actions"),
@@ -297,15 +304,59 @@ describe("ContributionOperationShell", () => {
     );
 
     await view.findByText("$250.00");
-    fireEvent.click(view.getByRole("button", { name: "Send receipt" }));
+    const sendReceipt = view.getByRole("button", { name: "Send receipt" });
+    await waitFor(() =>
+      expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(sendReceipt);
 
     await view.findByTestId("operation-result-panel");
+    // The receipt outcome from the shared result renders as a result line.
+    expect(view.getByText("Receipt: sent")).toBeTruthy();
     const actionCall = fetchMock.mock.calls.find(([url]) =>
       String(url).includes("/actions"),
     );
     const body = JSON.parse((actionCall![1] as RequestInit).body as string);
     expect(body.stagedGiftId).toBe("staged-1");
     expect(body.payload).toEqual({});
+  });
+
+  it("omits the receipt result line when the outcome is not required", async () => {
+    const fetchMock = fetchMockForShell({
+      auditEventId: "audit-2",
+      approvalStatus: "applied",
+      receiptOutcome: { status: "not_required" },
+      taskIds: [],
+      canonicalContribution: {},
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.resend_receipt!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    const sendReceipt = view.getByRole("button", { name: "Send receipt" });
+    await waitFor(() =>
+      expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(sendReceipt);
+
+    await view.findByTestId("operation-result-panel");
+    expect(view.getByText(/audit event: audit-2/i)).toBeTruthy();
+    // A "not required" outcome is noise, so the panel suppresses the line.
+    expect(view.queryByText(/receipt:/i)).toBeNull();
   });
 
   it("renders the server-computed blocked state instead of a submit form", async () => {
