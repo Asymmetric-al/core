@@ -10,6 +10,7 @@ import {
 import type {
   CrmTablePreferencePatch,
   CrmTablePreferencesResponse,
+  CrmTenantDefaultPatch,
 } from "@asym/database/types";
 
 export const ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY = [
@@ -161,6 +162,64 @@ export function useSaveCrmViewSettings(tableId: string) {
         queryClient.setQueryData(queryKey, context.previous);
       }
     },
+    onSettled: async () => {
+      await queryClient.invalidateQueries({ queryKey });
+    },
+  });
+}
+
+/**
+ * Tenant-default save body (#272): the same per-scope semantics as the user
+ * patch (absent = unchanged, null = scoped reset, value = replace), without
+ * `activeViewId` (named views are personal) and with the nullable delegate
+ * list (null clears all delegates).
+ */
+export type CrmTenantDefaultSavePatch = CrmTenantDefaultPatch;
+
+async function saveCrmTenantDefault(input: {
+  tableId: string;
+  patch: CrmTenantDefaultSavePatch;
+}) {
+  const response = await fetch(
+    "/api/admin/crm/table-preferences/tenant-default",
+    {
+      body: JSON.stringify({ tableId: input.tableId, ...input.patch }),
+      credentials: "same-origin",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      method: "PUT",
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error(
+      await parsePreferenceError(
+        response,
+        `Failed to save the tenant default (${response.status})`,
+      ),
+    );
+  }
+
+  return (await response.json()) as {
+    tenantDefault: CrmTablePreferencesResponse["tenantDefault"];
+  };
+}
+
+/**
+ * Saves the tenant-wide default view settings (capability-gated, audited on
+ * the server; #272). No optimistic update — the tenant default is a shared
+ * record, so we wait for the server and then invalidate the table-preferences
+ * query so the resolved user → tenant → system fallback refreshes.
+ */
+export function useSaveCrmTenantDefault(tableId: string) {
+  const queryClient = useQueryClient();
+  const queryKey = [...ADMIN_CRM_TABLE_PREFERENCES_QUERY_KEY, tableId];
+
+  return useMutation({
+    mutationFn: (patch: CrmTenantDefaultSavePatch) =>
+      saveCrmTenantDefault({ tableId, patch }),
     onSettled: async () => {
       await queryClient.invalidateQueries({ queryKey });
     },
