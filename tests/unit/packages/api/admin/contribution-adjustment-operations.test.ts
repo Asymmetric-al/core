@@ -605,8 +605,7 @@ describe("applyContributionCorrection", () => {
     decryptResendApiKeyMock.mockReset();
     decryptResendApiKeyMock.mockReturnValue("re_decrypted");
 
-    const originalReceiptKey =
-      "donation-receipt/tenant-1/donation-1/staged-1";
+    const originalReceiptKey = "donation-receipt/tenant-1/donation-1/staged-1";
     const state: StubState = {
       adjustments: [],
       insertCount: 0,
