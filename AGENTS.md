@@ -367,7 +367,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 | **grill-me**, **grilling**                    | `docs/ai/skills/grill-me/SKILL.md`, `docs/ai/skills/grilling/SKILL.md` — User-facing and reusable grilling loops.                                       |
 | **wayfinder**                                 | `docs/ai/skills/wayfinder/SKILL.md` — Plan work too large for one agent session as a map of investigation tickets.                                      |
 | **to-spec**                                   | `docs/ai/skills/to-spec/SKILL.md` — Spec from conversation context; replaces the old `/to-prd` route.                                                   |
-| **to-tickets**                                | `docs/ai/skills/to-tickets/SKILL.md` — Break a plan/spec/conversation into tracer-bullet tickets; replaces the old `/to-issues` route.                  |
+| **to-tickets**                                | `docs/ai/skills/to-tickets/SKILL.md` — Break a plan/spec/conversation into tracer-bullet tickets; replaces old `/to-plan` and `/to-issues` routes.      |
 | **implement**                                 | `docs/ai/skills/implement/SKILL.md` — Implement a spec or ticket with TDD where possible, regular type/test checks, final review, and commit.           |
 | **code-review**                               | `docs/ai/skills/code-review/SKILL.md` — Review since a fixed point on both standards and spec correctness axes.                                         |
 | **research**                                  | `docs/ai/skills/research/SKILL.md` — Research against primary sources and save a cited Markdown finding file.                                           |
@@ -384,7 +384,7 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 | **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Current upstream misc skills previously promoted into Core. |
 | **prd-to-plan**                               | `docs/ai/skills/prd-to-plan/SKILL.md` — Core compatibility router; use **to-spec** then **to-tickets**.                                                 |
 
-**Removed upstream routes:** `/to-prd`, `/to-issues`, `/diagnose`, and `/zoom-out` are not present in current upstream `skills/engineering/`; use `/to-spec`, `/to-tickets`, `/diagnosing-bugs`, `/ask-matt`, or `/wayfinder` as appropriate.
+**Removed upstream routes:** `/to-prd`, `/to-plan`, `/to-issues`, `/diagnose`, and `/zoom-out` are not present in current upstream `skills/engineering/`; use `/to-spec`, `/to-tickets`, `/diagnosing-bugs`, `/ask-matt`, or `/wayfinder` as appropriate.
 
 ---
 

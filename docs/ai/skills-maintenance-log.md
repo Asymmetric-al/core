@@ -142,7 +142,7 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
 - Ran `npx skills add mattpocock/skills -y` as requested. The Skills CLI
   discovered 38 skills and refreshed `.agents/skills/*` plus
   `skills-lock.json`.
-- Checked current upstream `skills/engineering/` from the GitHub contents API.
+- Checked current upstream `skills/engineering/` from a fresh upstream checkout.
   Current engineering skills are:
   `ask-matt`, `codebase-design`, `code-review`, `diagnosing-bugs`,
   `domain-modeling`, `grill-with-docs`, `implement`,
@@ -155,14 +155,17 @@ Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
   `grill-me`, `migrate-to-shoehorn`, `qa`, `request-refactor-plan`,
   `setup-pre-commit`, and `ubiquitous-language`.
 - Removed stale renamed upstream routes from canonical and mirror roots:
-  `diagnose`, `to-prd`, `to-issues`, and `zoom-out`. Use
+  `diagnose`, `to-prd`, `to-plan`, `to-issues`, and `zoom-out`. Use
   `diagnosing-bugs`, `to-spec`, `to-tickets`, `ask-matt`, or `wayfinder`
   instead.
 - Kept Core repo-local compatibility skills `domain-model` and `prd-to-plan`,
   but updated them to route to `domain-modeling` and `to-spec`/`to-tickets`.
-- Trimmed non-engineering/personal/in-progress skills that the non-interactive
-  CLI pulled in outside this request, so Core only promotes the requested
-  engineering flow plus already-tracked Matt compatibility skills.
+- Kept the full current Skills CLI install set as mirror-only ecosystem skills
+  under `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` so Cursor,
+  Claude Code, and Codex see the same package output.
+- Removed obsolete prior Matt installs `caveman` and `write-a-skill` because
+  the current `npx skills add mattpocock/skills -y` output no longer includes
+  them. Use current upstream `writing-great-skills` for skill-writing guidance.
 
 ## Rollback Notes
 
