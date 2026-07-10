@@ -135,9 +135,15 @@ Hardening required before the child tables receive production writers:
    immutable source reference, and exact template version. A permanent URL is
    not a sufficient production invariant.
 9. Production renders need a stable server-derived logical render key,
-   lease/fencing-token retry ownership, and at most one canonical artifact per
-   immutable input/template/output tuple. Provider retries must not duplicate
-   bytes, delivery, or logical completion audit.
+   lease/fencing-token retry ownership, an immutable database-time provider
+   deadline with finalization margin before lease expiry, and at most one
+   canonical artifact per immutable input/template/output tuple. Cancellation
+   must reach the provider call, while provider response, timeout, cancellation,
+   and completion use current-token compare-and-set transitions. Provider
+   retries may create duplicate remote work or token-scoped staging bytes, but
+   they must expose and retain at most one canonical artifact. Losing staging
+   bytes are durably cleaned, and delivery/logical-completion audit is not
+   duplicated.
 10. Delete bytes through the Storage API and retain an audited artifact
     tombstone. Do not delete `storage.objects` rows directly.
 
@@ -182,7 +188,9 @@ seam; Statement Studio must coordinate with it rather than introduce a parallel
 
 - tenant and legal donor identity;
 - covered period and currency partition;
-- settled and receiptable inclusion decisions;
+- frozen deductible hard-credit and approved indirect line/total partitions;
+- audit-only exclusion references with source-domain-approved reason codes for
+  pending/unsettled and still-unknown-donor candidates;
 - effective designation/allocation lines;
 - corrections, voids, and partial/full refund treatment;
 - totals and generation policy/version;

@@ -18,9 +18,11 @@
 
 - [ ] 3.1 The Giving/statement domain builds the canonical frozen, versioned
       annual-statement snapshot for receiptable gifts by year and tenant policy,
-      including corrections, refunds, currency, identity, raw values, frozen
-      display strings/locale, source IDs, and policy version (finance/legal
-      review before production).
+      including deductible hard-credit and approved indirect partitions,
+      audit-only exclusion references with source-domain-approved reason codes,
+      corrections, refunds, currency, identity, raw values, frozen display
+      strings/locale, source IDs, and policy version (finance/legal review before
+      production).
 - [ ] 3.2 Statement Studio resolves the assigned immutable template and creates
       the private artifact by binding frozen official display fields, without
       recalculating or reformatting source facts.
@@ -44,7 +46,8 @@
       the authorized donor/household subject; keeps approved indirect lines
       labeled and outside the deductible total; excludes pending/unsettled gifts
       from rendered deductible and indirect lines/totals while retaining their
-      owning-domain exclusion/audit record; excludes still-unknown-donor gifts
-      from the donor artifact; and cannot access another subject's or a
-      superseded artifact.
+      reason-bearing owning-domain exclusion/audit record; excludes
+      still-unknown-donor gifts from the donor artifact while retaining the
+      source-domain exclusion/audit record when evaluated for the run; and
+      cannot access another subject's or a superseded artifact.
 - [ ] 4.3 Archive this change after deployment verification.

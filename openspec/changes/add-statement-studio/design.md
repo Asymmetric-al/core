@@ -119,18 +119,58 @@ separately auditable beneath that logical render.
 
 A request for a completed key returns the existing canonical artifact. A request
 for a queued or running key joins or resumes it while its bounded lease remains
-valid. After lease timeout or a retryable failure, a worker may claim a new
-attempt for the same key with compare-and-set ownership, bounded backoff, an
-attempt limit, and a visible terminal failure. Concurrent or late successes use
-atomic promotion. Each claim receives a monotonically increasing fencing token.
-An attempt writes, if needed, only to a private attempt-scoped staging path
-owned by `(render_key, fencing_token)`; staged bytes are never recipient-visible.
-Canonical artifact promotion is a database compare-and-set that verifies the
-current unexpired lease/token and the unique `(tenant_id, render_key)` guard.
-Only the winning promotion may publish its token-owned object as the canonical
-artifact location. A stale or losing attempt cannot update canonical metadata
-or delete another token's object. It durably schedules cleanup for only its own
-staged object, which remains inaccessible until retried cleanup succeeds.
+valid. Each claimed attempt persists an immutable provider deadline using
+database time. That deadline must precede worker-lease expiry by a configured
+post-provider safety margin sufficient for checksum calculation, private
+staging upload, and canonical-promotion persistence. If the remaining lease
+cannot satisfy that invariant, the worker renews or reclaims ownership, or
+transitions the attempt without invoking the provider. Once the provider call
+starts, lease renewal does not extend that attempt's provider deadline.
+
+The renderer port propagates a combined cancellation signal for provider
+deadline expiry, worker shutdown, observed lease/token loss, and explicit
+operator cancellation through to the provider call. A caller/request disconnect
+only detaches that waiter from the shared logical render; it does not cancel the
+render or enter a state transition.
+
+The provider-response path uses a database-time, current-token compare-and-set
+from `provider_running` to `staging` only when `db_now()` is earlier than
+`provider_deadline_at`. The deadline path uses a database-time, current-token
+compare-and-set from `provider_running` to `retryable` only when `db_now()` is at
+or later than that deadline. This phase transition, not the local cancellation
+signal, is authoritative. If `staging` wins, the deadline handler is a no-op and
+post-provider work may use the reserved lease margin. If timeout wins, the late
+response cannot stage or promote and follows token-scoped cleanup.
+
+Retryable infrastructure cancellation uses a current-token compare-and-set to
+move a nonterminal attempt to retryable, release ownership, increment the
+attempt count, and set bounded next-attempt backoff. Exhaustion records a visible
+terminal failure. If canonical promotion already won or the worker no longer
+owns the token, that handler cannot change logical state and performs only
+token-owned cleanup. Provider cancellation is best-effort: an accepted remote
+render may continue, but a late result remains fenced and cannot become
+canonical.
+
+Explicit operator cancellation uses its own compare-and-set: it may move only a
+nonterminal logical render to `canceled` and invalidates the current fencing
+token. If cancellation wins, all late response, staging, and promotion work is
+fenced and token-cleaned. If canonical completion already won, cancellation is
+a no-op for that render and must not silently demote or delete the official
+artifact; later removal uses the explicit supersede, void, or retention
+lifecycle.
+
+After lease timeout or a retryable transition, a worker may claim a new attempt
+for the same key through compare-and-set ownership and the attempt limit.
+Concurrent or late successes use atomic promotion. Each claim receives a
+monotonically increasing fencing token. An attempt writes, if needed, only to a
+private attempt-scoped staging path owned by `(render_key, fencing_token)`;
+staged bytes are never recipient-visible. Canonical artifact promotion is a
+database compare-and-set that verifies the current unexpired lease/token and
+the unique `(tenant_id, render_key)` guard. Only the winning promotion may
+publish its token-owned object as the canonical artifact location. A stale or
+losing attempt cannot update canonical metadata or delete another token's
+object. It durably schedules cleanup for only its own staged object, which
+remains inaccessible until retried cleanup succeeds.
 
 Retries may append attempt-level diagnostics and audit events, but they do not
 duplicate the logical render-completed event. Changing the source-context hash,
@@ -211,9 +251,16 @@ recipient delivery.
 
 The Giving/statement domain must first produce the canonical immutable,
 versioned statement snapshot/run contract. It captures legal donor,
-period/currency, settled and receiptable inclusion, effective designations,
-corrections/refunds, totals, frozen display strings plus raw values and locale,
-policy version, source IDs, and a context hash. Newer proposed issues
+period/currency, and three frozen source-owned partitions: deductible settled,
+receiptable hard-credit lines and totals; approved labeled indirect
+soft-credit/DAF/matched lines and totals that never affect the deductible total;
+and audit-only exclusion references with source-domain-approved reason codes
+for pending/unsettled and still-unknown-donor candidates. It also captures
+effective designations, corrections/refunds, frozen display strings plus raw
+values and locale, policy version, source IDs, and a context hash. Excluded
+entries are never renderable donor content. Statement Studio binds the supplied
+partitions without reclassification and does not invent a parallel context or
+reason-code vocabulary. Newer proposed issues
 [#579](https://github.com/Asymmetric-al/core/issues/579),
 [#580](https://github.com/Asymmetric-al/core/issues/580), and
 [#584](https://github.com/Asymmetric-al/core/issues/584) already reserve this

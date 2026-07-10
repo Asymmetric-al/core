@@ -100,9 +100,46 @@ recorded separately beneath that logical render.
 
 A retry of a completed key MUST return the existing canonical artifact. A retry
 of a queued or running key MUST join or resume that logical render while its
-bounded lease remains valid. After lease expiry or a retryable failure, a worker
-MAY claim another attempt for the same key through compare-and-set ownership,
-with bounded backoff, an attempt limit, and visible terminal failure.
+bounded lease remains valid.
+
+Every provider invocation MUST have an immutable per-attempt deadline persisted
+from database time. The deadline MUST precede worker-lease expiry by a configured
+post-provider safety margin sufficient for checksum calculation, private
+staging upload, and canonical-promotion persistence. If the remaining lease
+cannot satisfy that invariant, the provider MUST NOT be invoked. Lease renewal
+after invocation begins MUST NOT extend the provider deadline. The renderer and
+provider call MUST receive cancellation for deadline expiry, worker shutdown,
+observed lease/token loss, and explicit operator cancellation. A caller
+disconnect MUST only detach that waiter from the shared logical render and MUST
+NOT enter a render-state transition.
+
+The provider-response path MUST use a database-time, current-token
+compare-and-set from `provider_running` to `staging` only when `db_now()` is
+earlier than `provider_deadline_at`. The deadline path MUST use a database-time,
+current-token compare-and-set from `provider_running` to `retryable` only when
+`db_now()` is at or later than that deadline. This database transition, not the
+local cancellation signal, MUST be authoritative. If `staging` wins, the
+deadline handler MUST be a no-op and post-provider work MAY use the reserved
+lease margin. If timeout wins, the late response MUST NOT stage or promote and
+MUST follow token-scoped cleanup.
+
+Retryable infrastructure cancellation MUST attempt a current-token
+compare-and-set from a nonterminal attempt to retryable, release ownership, and
+set bounded next-attempt backoff. After that transition, another retryable
+failure, or lease expiry, a worker MAY claim another attempt for the same key
+through compare-and-set ownership and an attempt limit. Exhaustion MUST become a
+visible terminal failure. If canonical promotion already won or the worker no
+longer owns the token, a retry handler MUST be a no-op for logical state and MAY
+clean up only that token's staging object.
+
+Explicit operator cancellation MUST use a compare-and-set that moves only a
+nonterminal logical render to `canceled` and invalidates its current fencing
+token. If cancellation wins, all late provider, staging, and promotion work MUST
+remain fenced and follow token-scoped cleanup. If canonical completion already
+won, cancellation MUST be a no-op for that render and MUST NOT demote or delete
+the official artifact; later removal MUST use the explicit supersede, void, or
+retention lifecycle. Explicit cancellation MUST NOT be reclassified as
+retryable.
 
 Concurrent or late successes MUST use atomic promotion and database uniqueness
 so exactly one artifact becomes canonical. Each claim MUST receive a
@@ -117,6 +154,7 @@ object; it MUST durably schedule cleanup for only its own staged object, which
 MUST remain inaccessible until retried cleanup succeeds. Attempt-level
 diagnostics and audit events MAY be appended, but retries MUST NOT create a
 second logical completion event.
+
 Source-domain issuance/version idempotency and outbound communication
 idempotency remain outside this render key; render recovery MUST NOT send a
 document or create a parallel delivery log.
@@ -129,15 +167,48 @@ document or create a parallel delivery log.
 - AND does not invoke another provider attempt or record another logical
   completion
 
+#### Scenario: A provider call exceeds its deadline
+
+- GIVEN a running provider call has an immutable deadline before lease expiry
+- WHEN the call remains in flight at that deadline
+- THEN the cancellation signal reaches the renderer/provider call
+- AND a database-time, current-token compare-and-set moves `provider_running` to
+  `retryable`, releases ownership, and schedules bounded backoff
+- AND exhausting the attempt limit records a visible terminal failure without
+  a canonical artifact
+
+#### Scenario: Provider response races the deadline
+
+- GIVEN a provider response and its deadline become ready concurrently
+- WHEN the response attempts `provider_running` to `staging` with
+  `db_now() < provider_deadline_at` and the deadline handler attempts
+  `provider_running` to `retryable` with `db_now() >= provider_deadline_at`
+- THEN the database-time phase transition authorizes exactly one path
+- AND a `staging` winner may finish within the reserved lease margin while the
+  deadline handler becomes a no-op
+- AND a response that loses cannot stage or become canonical and follows
+  token-scoped cleanup
+
+#### Scenario: Operator cancellation races canonical completion
+
+- GIVEN an operator cancels a nonterminal logical render as its worker attempts
+  canonical completion
+- WHEN both paths compare-and-set logical state and the current fencing token
+- THEN exactly one transition wins
+- AND a winning cancellation fences and cleans all late token-owned work
+- AND a winning completion makes cancellation a no-op; later removal uses the
+  supersede, void, or retention lifecycle
+
 #### Scenario: A timed-out attempt succeeds after recovery starts
 
 - GIVEN a render lease expired and a recovery worker claimed a new attempt for
   the same key
 - WHEN the original and recovery attempts both return bytes
-- THEN both attempts may stage bytes at their own token-scoped private paths,
-  but only the current-token compare-and-set promotes one canonical artifact
-- AND the losing token's object is never exposed and is durably retried for
-  cleanup until deleted
+- THEN the original response cannot pass the current-token provider-phase
+  transition or become canonical
+- AND only the recovery attempt may stage and promote with its current token
+- AND any object already staged under the original token before lease loss is
+  never exposed and is durably retried for cleanup until deleted
 - AND attempt diagnostics remain auditable without triggering outbound delivery
 
 ### Requirement: Document Persistence Enforces Same-Tenant Integrity

@@ -15,7 +15,8 @@
 
 - [ ] 2.1 Qualify DocRaptor with representative tables/repeaters, pagination,
       headers/footers, fonts/private assets, fidelity/accessibility, fail-closed
-      production mode, limits, latency, and cost fixtures; HITL approves it
+      production mode, limits, latency, timeout/abort behavior, ambiguous
+      accepted-request cancellation/cost, and cost fixtures; HITL approves it
       behind the renderer port as the sole first-slice provider or selects an
       explicit alternative.
 - [ ] 2.2 Finance/legal approve annual statement inclusion, correction,
@@ -43,11 +44,15 @@
       lease-safe retry, canonical-artifact reuse, and purge tombstones with real
       SQL/integration tests.
 - [ ] 3.6 Add DB-enforced logical render keys, bounded lease/attempt recovery,
+      immutable database-time provider deadlines shorter than leases by a
+      finalization margin, propagated deadline/worker/lease-loss cancellation,
       monotonically increasing fencing tokens, token-owned private staging
-      paths, current-token compare-and-set canonical-artifact promotion, and
-      durable token-scoped cleanup; cover concurrency, timeout, stale-writer,
-      and cleanup-retry behavior while keeping issuance under #580 and outbound
-      delivery under #581.
+      paths, current-token timeout and canonical-promotion transitions, and
+      durable token-scoped cleanup. Cover hung providers, ignored cancellation,
+      post-provider lease margin, lease loss, worker shutdown, database-time
+      provider-response-versus-deadline phase races,
+      operator-cancel-versus-completion, exhaustion, stale writers, and cleanup
+      retry while keeping issuance under #580 and outbound delivery under #581.
 
 ## 4. Safe vertical tracer
 
@@ -66,9 +71,12 @@
 - [ ] 5.1 Coordinate #322 with the newer proposed #579/#580/#583/#584 work and
       consume the approved canonical statement snapshot/version contract; do
       not introduce a parallel annual-context, run, or formatting model.
-- [ ] 5.2 Verify that the contract covers eligibility, corrections/refunds,
-      currency, identity, totals, raw values, frozen display strings and locale,
-      source IDs, policy version, and context hash.
+- [ ] 5.2 Verify that the contract covers the #579-owned deductible
+      hard-credit, approved indirect, and audit-only exclusion partitions;
+      source-domain-approved exclusion reason codes; corrections/refunds;
+      currency; identity; totals; raw values; frozen display strings and locale;
+      source IDs; policy version; and context hash. Statement Studio does not
+      reclassify entries or invent a parallel reason-code vocabulary.
 - [ ] 5.3 Publish and assign the annual statement template against that
       contract; official money/date fields bind frozen display strings.
 - [ ] 5.4 Render/store an immutable private artifact and expose it through the
