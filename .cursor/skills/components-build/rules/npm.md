@@ -61,8 +61,7 @@ Missing `exports` field, pointing to source files instead of built dist, and inc
     "react-dom": "^18.0.0"
   },
   "dependencies": {
-    "clsx": "^2.0.0",
-    "tailwind-merge": "^2.0.0"
+    "cnfast": "^0.0.8"
   }
 }
 ```

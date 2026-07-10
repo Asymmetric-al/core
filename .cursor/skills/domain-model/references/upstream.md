@@ -1,23 +1,29 @@
 ---
-source_name: mattpocock/skills (domain-model)
+source_name: repo-local alias (domain-model)
 source_url: https://github.com/mattpocock/skills
-source_type: github
-upstream_path: repo-local/.agents/skills/domain-model/SKILL.md
-skills_lock_hash: 1b4ab28c4099dfee2dba4567dcc752b0d89f094b81b1f671e9c4c7e7948c4d44
-last_reviewed: 2026-05-23
+source_type: repo-local-alias
+upstream_path: skills/engineering/domain-modeling/SKILL.md
+skills_lock_hash: n/a
+last_reviewed: 2026-07-09
 ---
 
 # Upstream: domain-model
 
-Canonical copy in this repo: `docs/ai/skills/domain-model/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/domain-model/` (mirrored to
+`.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via
+`bun run skills:sync`).
+
+This is a Core compatibility alias, not a published upstream skill. The current
+upstream skill is `domain-modeling`:
 
 - **Repository:** https://github.com/mattpocock/skills
-- **Upstream path:** `repo-local/.agents/skills/domain-model/SKILL.md`
+- **Upstream path:** `skills/engineering/domain-modeling/SKILL.md`
 - **Install via Skills CLI:** `npx skills add mattpocock/skills -y`
 
 ## Refresh from ecosystem
 
-1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Copy the routed skill into `docs/ai/skills/domain-model/` if this canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+1. `npx skills add mattpocock/skills -y` updates
+   `.agents/skills/domain-modeling/` and `skills-lock.json`.
+2. Refresh `docs/ai/skills/domain-modeling/` from that source.
+3. Keep this alias pointing at `docs/ai/skills/domain-modeling/SKILL.md`.
 4. Run `bun run skills:sync` and `bun run skills:verify`.

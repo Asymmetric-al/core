@@ -138,7 +138,7 @@ Reference: [MDN Semantic HTML](https://developer.mozilla.org/en-US/docs/Glossary
 4. **Extend HTML Attributes** - Always extend native element props
 5. **Export Types** - Make prop types available to consumers
 6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
+7. **Intelligent Class Merging** - Use `cn()` utility backed by cnfast
 
 ## References
 

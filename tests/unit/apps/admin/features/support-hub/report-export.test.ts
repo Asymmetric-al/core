@@ -43,6 +43,23 @@ describe("toReportCsv", () => {
     expect(csv).toContain('"Day, two"');
     expect(csv).toContain('"Weird ""label"""');
   });
+
+  it("neutralizes spreadsheet formula injection in bucket labels", () => {
+    const csv = toReportCsv({
+      ...SAMPLE,
+      buckets: [
+        {
+          key: "danger",
+          label: '=HYPERLINK("http://evil.example","x")',
+          value: 1,
+          secondaryValue: null,
+        },
+      ],
+    });
+    const lines = csv.split("\r\n");
+    expect(lines).toHaveLength(2); // header + one data row
+    expect(lines[1]).toContain(`"'=HYPERLINK(`);
+  });
 });
 
 describe("toReportJson", () => {

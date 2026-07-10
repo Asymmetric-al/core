@@ -73,6 +73,7 @@ describe("missionary portal model", () => {
           frequency: "monthly",
           tags: ["church"],
           has_active_pledge: true,
+          giving_preferences: { defaultAnonymousToRecipient: false },
         },
       ],
       tasks: [
@@ -96,6 +97,7 @@ describe("missionary portal model", () => {
             name: "Support Partner",
             email: "partner@example.com",
             avatar_url: null,
+            giving_preferences: { defaultAnonymousToRecipient: false },
           },
         },
       ],

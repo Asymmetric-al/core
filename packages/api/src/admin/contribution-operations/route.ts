@@ -9,11 +9,18 @@ import {
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { createContributionActionDependencies } from "./dependencies";
-import { replayStripeEventThroughContributionOperations } from "./operations";
+import {
+  loadReceiptDeliveryContext,
+  replayStripeEventThroughContributionOperations,
+} from "./operations";
 import {
   hasContributionPermission,
   resolveContributionCapabilities,
 } from "./permissions";
+import {
+  assertReceiptSnapshotPdfCapability,
+  renderContributionReceiptSnapshotPdf,
+} from "./receipt-pdf";
 import { loadContributionDetailFromSupabase } from "./store";
 import {
   CONTRIBUTION_ACTION_TYPES,
@@ -22,8 +29,10 @@ import {
   type ContributionPermission,
 } from "./types";
 import {
+  buildContributionReceiptDeliveryView,
   projectContributionActionResultForViewer,
   projectContributionDetailForViewer,
+  projectCorrectionRequestsForViewer,
 } from "./viewer-projection";
 import {
   ApiHttpError,
@@ -35,6 +44,7 @@ import {
   type OperationRouteContext,
 } from "../../shared/with-operation";
 
+import type { ContributionReceiptDeliveryView } from "./viewer-projection";
 import type { AuthenticatedContext } from "@asym/auth/context";
 
 export { replayStripeEventThroughContributionOperations };
@@ -138,10 +148,48 @@ export const GET = withOperation(
         tenantId: auth.tenantId,
         contributionId,
       });
-      const contribution = projectContributionDetailForViewer(
+      const viewerCapabilities = resolveContributionCapabilities(auth);
+      const projected = projectContributionDetailForViewer(
         detail,
-        resolveContributionCapabilities(auth),
+        viewerCapabilities,
       );
+
+      // The approval policy only shapes correction-request decidability, so
+      // skip the extra tenant-policy read on the common path where a gift has
+      // no pending correction requests at all.
+      const correctionRequests =
+        projected.correctionRequests.length > 0
+          ? projectCorrectionRequestsForViewer(projected.correctionRequests, {
+              policy: await loadCorrectionApprovalPolicy({
+                supabaseAdmin,
+                tenantId: auth.tenantId,
+              }),
+              viewerProfileId: auth.profileId,
+              viewerCapabilities,
+            })
+          : [];
+
+      // Delivery context only matters once a receipt was communicated; a
+      // never-sent receipt cannot be invalidated by a correction (#263).
+      let receiptDelivery: ContributionReceiptDeliveryView | null = null;
+      if (detail.shared.receiptStatus === "sent") {
+        const receiptContext = await loadReceiptDeliveryContext({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          donorId: detail.donor?.id ?? null,
+        });
+        receiptDelivery = buildContributionReceiptDeliveryView({
+          policy: receiptContext.policy,
+          donor: receiptContext.donor,
+          viewerCapabilities,
+        });
+      }
+
+      const contribution = {
+        ...projected,
+        correctionRequests,
+        receiptDelivery,
+      };
 
       return NextResponse.json({ contribution, requestId });
     } catch (error) {
@@ -262,6 +310,61 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
       return toErrorResponse(
         error,
         "Failed to decide correction request.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["staff", "admin", "super_admin"] },
+);
+
+/**
+ * Streams the durable updated-receipt PDF for a stored snapshot (#263).
+ * Binary responses pass through `withOperation` untouched — its error
+ * normalization only rewrites non-OK `application/json` bodies.
+ */
+export const GET_RECEIPT_SNAPSHOT_PDF = withOperation(
+  async ({ supabaseAdmin, auth, requestId, routeContext }) => {
+    try {
+      const snapshotId = await getRouteParam(
+        routeContext,
+        "snapshotId",
+        "Missing receipt snapshot id.",
+      );
+
+      // Tenant policy names the capability required to generate updated
+      // receipt PDFs; enforce it before touching the snapshot (ADR-CD-024).
+      const receiptContext = await loadReceiptDeliveryContext({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+        donorId: null,
+      });
+      assertReceiptSnapshotPdfCapability({
+        policy: receiptContext.policy,
+        viewerCapabilities: resolveContributionCapabilities(auth),
+      });
+
+      const rendered = await renderContributionReceiptSnapshotPdf({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+        snapshotId,
+      });
+
+      // Sanitize the filename to safe token characters. Snapshot ids are
+      // DB-generated UUIDs today, but a stray quote or control character would
+      // otherwise produce a malformed Content-Disposition header value.
+      const safeFilename = rendered.filename.replace(/[^\w.-]/g, "_");
+
+      return new NextResponse(Buffer.from(rendered.pdf), {
+        headers: {
+          "cache-control": "no-store",
+          "content-disposition": `attachment; filename="${safeFilename}"`,
+          "content-type": rendered.contentType,
+        },
+      });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to render the updated receipt PDF.",
         requestId,
       );
     }

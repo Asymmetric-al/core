@@ -15,6 +15,10 @@ import {
   getStripeObjectId,
   updateDonation,
 } from "./refunds";
+import {
+  StripeWebhookVerificationError,
+  constructVerifiedStripeEvent,
+} from "./verify-event";
 import { stageGiftFromStripeDonation } from "../giving/staged-gifts";
 import { STRIPE_EVENT_PROCESS_EVENT } from "../workflows/events";
 import { requestWorkflowDispatch } from "../workflows/ledger";
@@ -235,16 +239,11 @@ export async function handleStripeWebhookEvent(
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
-  if (!signature) {
-    return NextResponse.json(
-      { error: "Missing Stripe signature." },
-      { status: 400 },
-    );
-  }
-
   const secretKey = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
-  if (!secretKey || !webhookSecret) {
+
+  // Need the secret key to build the client that verifies the signature.
+  if (!secretKey) {
     return NextResponse.json(
       { error: "Stripe webhook is not configured." },
       { status: 500 },
@@ -256,8 +255,18 @@ export async function POST(request: NextRequest) {
   let event: Stripe.Event;
 
   try {
-    event = stripe.webhooks.constructEvent(rawBody, signature, webhookSecret);
-  } catch {
+    event = constructVerifiedStripeEvent({
+      stripe,
+      rawBody,
+      signature,
+      secret: webhookSecret,
+    });
+  } catch (error) {
+    if (error instanceof StripeWebhookVerificationError) {
+      // not_configured (missing whsec) → 500; missing/invalid signature → 400.
+      const status = error.reason === "not_configured" ? 500 : 400;
+      return NextResponse.json({ error: error.message }, { status });
+    }
     return NextResponse.json(
       { error: "Invalid Stripe signature." },
       { status: 400 },
@@ -276,7 +285,8 @@ export async function POST(request: NextRequest) {
       supabaseAdmin,
       event,
       rawBody,
-      signatureHeader: signature,
+      // Non-null here: a verified event guarantees the signature was present.
+      signatureHeader: signature ?? "",
     });
 
     // Durable storage is provider webhook acceptance. Supported tenant-scoped

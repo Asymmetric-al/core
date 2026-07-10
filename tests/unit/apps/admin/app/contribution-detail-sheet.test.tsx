@@ -159,6 +159,13 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
     expect(view.queryByRole("button", { name: /send receipt/i })).toBeNull();
     expect(view.queryByRole("button", { name: /approve/i })).toBeNull();
     expect(view.queryByRole("button", { name: /retry posting/i })).toBeNull();
+
+    // Financial truth, donor context, and designations still render fully:
+    // a missing staged gift never degrades the read-only detail (#258).
+    expect(view.getAllByText(/\$250\.00/).length).toBeGreaterThan(0);
+    expect(view.getAllByText("Sarah Mitchell").length).toBeGreaterThan(0);
+    expect(view.getAllByText(/general fund/i).length).toBeGreaterThan(0);
+    expect(view.queryByText(/invalid|missing donation|not found/i)).toBeNull();
   });
 
   it("renders available actions and blocked reasons from server availability", () => {
@@ -427,5 +434,302 @@ describe("ContributionDetailSheet designation set", () => {
     );
 
     expect(view.getByText(/do not reconcile/i)).toBeTruthy();
+  });
+});
+
+describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
+  const retryAvailableAvailability = [
+    {
+      actionType: "retry_staged_gift" as const,
+      available: true,
+      blockedReason: null,
+      nextStep: null,
+      riskLevel: "low" as const,
+    },
+  ];
+
+  const contributionWithStagedGift = () => ({
+    ...boneyardContributionsFixture[0]!,
+    stagedGiftId: "staged-1",
+    stagedGiftStatus: "posted" as const,
+    crmPostStatus: "failed" as const,
+  });
+
+  it("renders parent and child post state with per-line errors", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contributionWithStagedGift()}
+        onClose={vi.fn()}
+        crmPostState={{
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-1",
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-1",
+              status: "posted",
+              twentyRecordId: "twenty-child-1",
+              lastError: null,
+            },
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Twenty CRM posting")).toBeTruthy();
+    expect(view.getByText("Parent gift record")).toBeTruthy();
+    expect(view.getByText("twenty-parent-1")).toBeTruthy();
+    expect(view.getAllByText("Posted").length).toBe(2);
+    expect(view.getByText("Failed")).toBeTruthy();
+    expect(view.getByText("Designation alloc-2")).toBeTruthy();
+    expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
+  });
+
+  it("labels child records with the matching designation fund name", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contributionWithStagedGift()}
+        onClose={vi.fn()}
+        designations={{
+          lines: [
+            {
+              id: "alloc-2",
+              amountCents: 15_000,
+              currencyCode: "USD",
+              fundId: "fund-2",
+              fundName: "Martinez Family Support",
+              fundType: "missionary",
+              missionaryId: "missionary-1",
+              missionaryName: "John Martinez",
+              memo: null,
+              restriction: null,
+              correctionState: "none",
+            },
+          ],
+          totalAmountCents: 15_000,
+          reconcilesToGiftAmount: true,
+          issues: [],
+        }}
+        crmPostState={{
+          parent: {
+            status: "posted",
+            twentyRecordId: null,
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(view.getAllByText("Martinez Family Support").length).toBe(2);
+    expect(view.queryByText("Designation alloc-2")).toBeNull();
+  });
+
+  it("surfaces the adapter limitation as an informational note", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contributionWithStagedGift()}
+        onClose={vi.fn()}
+        crmPostState={{
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-1",
+            lastError: null,
+          },
+          designationRecords: [],
+          failedScopes: [],
+          adapterLimitation:
+            "The connected CRM adapter posts this gift as a single parent record and does not yet represent each designation line as a child record.",
+        }}
+      />,
+    );
+
+    expect(view.getByText(/single parent record/i)).toBeTruthy();
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+  });
+
+  it("invokes scoped retry for a failed designation line", () => {
+    const onRetryCrmPost = vi.fn();
+    const contribution = contributionWithStagedGift();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        actionAvailability={retryAvailableAvailability}
+        onRetryCrmPost={onRetryCrmPost}
+        crmPostState={{
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-1",
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+
+    fireEvent.click(view.getByRole("button", { name: /retry this line/i }));
+
+    expect(onRetryCrmPost).toHaveBeenCalledTimes(1);
+    expect(onRetryCrmPost).toHaveBeenCalledWith(
+      { scope: "designation", allocationId: "alloc-2" },
+      "staged-1",
+      contribution.id,
+    );
+  });
+
+  it("invokes scoped retry for a failed parent record", () => {
+    const onRetryCrmPost = vi.fn();
+    const contribution = contributionWithStagedGift();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        actionAvailability={retryAvailableAvailability}
+        onRetryCrmPost={onRetryCrmPost}
+        crmPostState={{
+          parent: {
+            status: "failed",
+            twentyRecordId: null,
+            lastError: "Twenty timed out while creating the gift record.",
+          },
+          designationRecords: [],
+          failedScopes: [{ scope: "parent" }],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(view.getByText(/timed out while creating/i)).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /retry parent record/i }));
+
+    expect(onRetryCrmPost).toHaveBeenCalledTimes(1);
+    expect(onRetryCrmPost).toHaveBeenCalledWith(
+      { scope: "parent" },
+      "staged-1",
+      contribution.id,
+    );
+  });
+
+  it("hides scoped retry buttons when the retry action is not available", () => {
+    const onRetryCrmPost = vi.fn();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contributionWithStagedGift()}
+        onClose={vi.fn()}
+        actionAvailability={[
+          {
+            actionType: "retry_staged_gift" as const,
+            available: false,
+            blockedReason: "You do not have permission to retry CRM posting.",
+            nextStep: null,
+            riskLevel: "low" as const,
+          },
+        ]}
+        onRetryCrmPost={onRetryCrmPost}
+        crmPostState={{
+          parent: {
+            status: "failed",
+            twentyRecordId: null,
+            lastError: "Twenty timed out while creating the gift record.",
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [
+            { scope: "parent" },
+            { scope: "designation", allocationId: "alloc-2" },
+          ],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(view.getByText(/timed out while creating/i)).toBeTruthy();
+  });
+
+  it("keeps the scalar Twenty field when no CRM post state is provided", () => {
+    const contribution = {
+      ...boneyardContributionsFixture[0]!,
+      crmPostStatus: "not_required" as const,
+    };
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        crmPostState={null}
+      />,
+    );
+
+    expect(view.queryByText("Twenty CRM posting")).toBeNull();
+    expect(view.getByText("Twenty")).toBeTruthy();
+    expect(view.getByText("not required")).toBeTruthy();
+  });
+
+  it("renders no CRM section when the post state carries no signal", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        crmPostState={{
+          parent: { status: null, twentyRecordId: null, lastError: null },
+          designationRecords: [],
+          failedScopes: [],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(view.queryByText("Twenty CRM posting")).toBeNull();
+    expect(view.queryByText("Parent gift record")).toBeNull();
   });
 });

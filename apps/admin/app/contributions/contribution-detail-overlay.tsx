@@ -29,6 +29,7 @@ import type { Contribution } from "./types";
 import type {
   ContributionDetail,
   ContributionSourceSurface,
+  CrmPostFailedScope,
   ViewerProjectedContributionDetail,
 } from "@asym/api/admin/contribution-operations";
 
@@ -113,12 +114,13 @@ async function postContributionOperation(input: {
   contributionId: string;
   stagedGiftId: string;
   sourceSurface: ContributionSourceSurface;
+  payload?: Record<string, unknown>;
 }) {
   const response = await fetch("/api/admin/contribution-operations/actions", {
     body: JSON.stringify({
       actionType: input.actionType,
       contributionId: input.contributionId,
-      payload: {},
+      payload: input.payload ?? {},
       sourceSurface: input.sourceSurface,
       stagedGiftId: input.stagedGiftId,
     }),
@@ -136,6 +138,23 @@ async function postContributionOperation(input: {
   }
 
   return response.json();
+}
+
+/**
+ * Scoped CRM retry payload (ADR-CD-012). A designation scope targets one
+ * failed line; a parent scope (or no scope, for the legacy retry button)
+ * retries the parent gift record.
+ */
+function crmRetryPayloadFromScope(
+  scope: CrmPostFailedScope | undefined,
+): Record<string, unknown> {
+  if (!scope) {
+    return {};
+  }
+  if (scope.scope === "designation" && scope.allocationId) {
+    return { scope: "designation", allocationId: scope.allocationId };
+  }
+  return { scope: "parent" };
 }
 
 function contributionTypeFromDetail(
@@ -330,10 +349,16 @@ export function ContributionDetailOverlay({
     },
   });
   const retryMutation = useMutation({
-    mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
+    mutationFn: (input: {
+      contributionId: string;
+      stagedGiftId: string;
+      scope?: CrmPostFailedScope;
+    }) =>
       postContributionOperation({
-        ...input,
         actionType: "retry_staged_gift",
+        contributionId: input.contributionId,
+        stagedGiftId: input.stagedGiftId,
+        payload: crmRetryPayloadFromScope(input.scope),
         sourceSurface,
       }),
     onError(error) {
@@ -388,7 +413,11 @@ export function ContributionDetailOverlay({
         designations={detailQuery.data?.designations}
         errorMessage={detailErrorMessage}
         providerProof={detailQuery.data?.providerProof ?? null}
+        crmPostState={detailQuery.data?.crm ?? null}
         recurring={detailQuery.data?.recurring}
+        correctionRequests={detailQuery.data?.correctionRequests}
+        receiptDelivery={detailQuery.data?.receiptDelivery ?? null}
+        onDecided={onActionSuccess}
         isLoading={Boolean(validDonationId && detailQuery.isPending)}
         isOpen={Boolean(donationId)}
         onClose={onClose}
@@ -398,6 +427,9 @@ export function ContributionDetailOverlay({
         }
         onRetryStagedGift={(stagedGiftId, contributionId) =>
           retryMutation.mutate({ contributionId, stagedGiftId })
+        }
+        onRetryCrmPost={(scope, stagedGiftId, contributionId) =>
+          retryMutation.mutate({ contributionId, stagedGiftId, scope })
         }
         onSendReceipt={(stagedGiftId, contributionId) =>
           receiptMutation.mutate({ contributionId, stagedGiftId })
@@ -409,6 +441,7 @@ export function ContributionDetailOverlay({
           receiptMutation.isPending
         }
       />
+
       <ContributionOperationShell
         open={refundShellOpen}
         onClose={() => setRefundDonationId(null)}

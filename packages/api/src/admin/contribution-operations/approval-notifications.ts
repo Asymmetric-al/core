@@ -1,9 +1,11 @@
+import { deliverApprovalEmailNotifications } from "./approval-notification-email";
 import {
   loadContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
+import type { ApprovalEmailDependencies } from "./approval-notification-email";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionCorrectionRequest } from "./correction-requests";
 import type { ContributionOperationAuditEventInput } from "./types";
@@ -275,15 +277,21 @@ function filterEligibleApproversForRequest(input: {
   );
 }
 
+/**
+ * Upserts planned notifications and returns the dedupe keys of the rows this
+ * call actually created. Callers must deliver email only for the returned
+ * subset: a partial insert (some rows already recorded by an earlier attempt)
+ * would otherwise re-send emails whose provider idempotency key has expired.
+ */
 async function insertApprovalNotifications(
   supabaseAdmin: SupabaseAdmin,
   tenantId: string,
   requestId: string,
   notifications: PlannedApprovalNotification[],
   payload: Record<string, unknown>,
-): Promise<number> {
+): Promise<string[]> {
   if (notifications.length === 0) {
-    return 0;
+    return [];
   }
 
   const { data, error } = await supabaseAdmin
@@ -300,13 +308,28 @@ async function insertApprovalNotifications(
       })),
       { onConflict: "tenant_id,dedupe_key", ignoreDuplicates: true },
     )
-    .select("id");
+    .select("dedupe_key");
 
   if (error) {
     throw new Error(error.message);
   }
 
-  return Array.isArray(data) ? data.length : 0;
+  if (!Array.isArray(data)) {
+    return [];
+  }
+  return data
+    .map((row) => (typeof row.dedupe_key === "string" ? row.dedupe_key : null))
+    .filter((key): key is string => key !== null);
+}
+
+function filterNotificationsByDedupeKeys(
+  notifications: PlannedApprovalNotification[],
+  insertedDedupeKeys: string[],
+): PlannedApprovalNotification[] {
+  const inserted = new Set(insertedDedupeKeys);
+  return notifications.filter((notification) =>
+    inserted.has(notification.dedupeKey),
+  );
 }
 
 async function appendApprovalAuditEvent(input: {
@@ -367,6 +390,13 @@ async function dismissUnlinkedApprovalTask(input: {
   }
 }
 
+/**
+ * Stamps the SLA field and inserts the round's notifications in one atomic
+ * RPC. Unlike the workflow/outcome paths, delivery here does not need an
+ * inserted-subset filter: the round-scoped dedupe keys are all fresh for a
+ * given round, the stamp and inserts commit together, and replays bail on
+ * `stamped === false`, so a mixed partial insert cannot reach delivery.
+ */
 async function ensurePendingCorrectionRequestSlaNotifications(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -421,6 +451,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   requestId: string;
+  dependencies?: ApprovalEmailDependencies;
 }): Promise<{ approvalTaskId: string | null; notificationsCreated: number }> {
   const request = await loadContributionCorrectionRequest(input);
   if (request.status !== "pending") {
@@ -513,7 +544,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     }
   }
 
-  const notificationsCreated = await insertApprovalNotifications(
+  const insertedDedupeKeys = await insertApprovalNotifications(
     input.supabaseAdmin,
     input.tenantId,
     request.id,
@@ -523,6 +554,7 @@ export async function ensureCorrectionApprovalWorkflow(input: {
       actionType: request.actionType,
     },
   );
+  const notificationsCreated = insertedDedupeKeys.length;
 
   if (approvalTaskLinked || notificationsCreated > 0) {
     await appendApprovalAuditEvent({
@@ -543,6 +575,27 @@ export async function ensureCorrectionApprovalWorkflow(input: {
     });
   }
 
+  // Deliver email only for notifications this call actually created — pure
+  // replays stay quiet, and a partial insert (earlier attempt died mid-way)
+  // must not re-send rows recorded before, because the provider idempotency
+  // key only dedupes within its retention window (#262).
+  if (notificationsCreated > 0) {
+    await deliverApprovalEmailNotifications({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      notifications: filterNotificationsByDedupeKeys(
+        plan.notifications,
+        insertedDedupeKeys,
+      ),
+      context: {
+        requestId: request.id,
+        donationId: request.donationId,
+        actionType: request.actionType,
+      },
+      dependencies: input.dependencies,
+    });
+  }
+
   return { approvalTaskId, notificationsCreated };
 }
 
@@ -557,6 +610,7 @@ export async function recordCorrectionApprovalOutcome(input: {
   request: ContributionCorrectionRequest;
   decision: "approved" | "rejected";
   decisionReason: string | null;
+  dependencies?: ApprovalEmailDependencies;
 }): Promise<void> {
   if (input.request.approvalTaskId) {
     const completedAt = new Date().toISOString();
@@ -575,25 +629,101 @@ export async function recordCorrectionApprovalOutcome(input: {
   }
 
   if (input.request.requestedByProfileId) {
-    await insertApprovalNotifications(
+    const requesterProfileId = input.request.requestedByProfileId;
+    // Outcome email follows the same double opt-in the approval-request
+    // channel uses: the tenant setting AND the requester preference must both
+    // enable email. Preferences still only pick channels (#262). These loads
+    // exist solely to gate the email channel, so they are best-effort: a
+    // settings/preferences read failure falls back to email-off instead of
+    // failing a decision that has already applied.
+    let settings = resolveApprovalNotificationSettings(null);
+    let requesterPreference = resolveApproverNotificationPreference(null);
+    try {
+      [settings, requesterPreference] = await Promise.all([
+        loadApprovalNotificationSettings(input.supabaseAdmin, input.tenantId),
+        loadRequesterNotificationPreference(
+          input.supabaseAdmin,
+          input.tenantId,
+          requesterProfileId,
+        ),
+      ]);
+    } catch {
+      settings = resolveApprovalNotificationSettings(null);
+      requesterPreference = resolveApproverNotificationPreference(null);
+    }
+
+    const outcomeNotifications: PlannedApprovalNotification[] = [
+      {
+        recipientProfileId: requesterProfileId,
+        channel: "in_app",
+        kind: "outcome",
+        dedupeKey: `correction-request/${input.request.id}/outcome/${input.decision}/requester`,
+      },
+    ];
+    if (settings.emailEnabled && requesterPreference.emailEnabled) {
+      outcomeNotifications.push({
+        recipientProfileId: requesterProfileId,
+        channel: "email",
+        kind: "outcome",
+        dedupeKey: `correction-request/${input.request.id}/outcome/${input.decision}/email/requester`,
+      });
+    }
+
+    const insertedDedupeKeys = await insertApprovalNotifications(
       input.supabaseAdmin,
       input.tenantId,
       input.request.id,
-      [
-        {
-          recipientProfileId: input.request.requestedByProfileId,
-          channel: "in_app",
-          kind: "outcome",
-          dedupeKey: `correction-request/${input.request.id}/outcome/${input.decision}/requester`,
-        },
-      ],
+      outcomeNotifications,
       {
         decision: input.decision,
         decisionReason: input.decisionReason,
         donationId: input.request.donationId,
       },
     );
+
+    if (insertedDedupeKeys.length > 0) {
+      await deliverApprovalEmailNotifications({
+        supabaseAdmin: input.supabaseAdmin,
+        tenantId: input.tenantId,
+        notifications: filterNotificationsByDedupeKeys(
+          outcomeNotifications,
+          insertedDedupeKeys,
+        ),
+        context: {
+          requestId: input.request.id,
+          donationId: input.request.donationId,
+          actionType: input.request.actionType,
+          decision: input.decision,
+          decisionReason: input.decisionReason,
+        },
+        dependencies: input.dependencies,
+      });
+    }
   }
+}
+
+async function loadRequesterNotificationPreference(
+  supabaseAdmin: SupabaseAdmin,
+  tenantId: string,
+  profileId: string,
+): Promise<ApproverNotificationPreference> {
+  const { data, error } = await supabaseAdmin
+    .from("contribution_approval_notification_preferences")
+    .select("in_app_enabled, email_enabled")
+    .eq("tenant_id", tenantId)
+    .eq("profile_id", profileId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return resolveApproverNotificationPreference(
+    data as {
+      in_app_enabled?: boolean | null;
+      email_enabled?: boolean | null;
+    } | null,
+  );
 }
 
 /**
@@ -606,6 +736,7 @@ export async function processCorrectionApprovalSla(input: {
   tenantId: string;
   policy: { reminderHours: number; escalationHours: number | null };
   now?: string;
+  dependencies?: ApprovalEmailDependencies;
 }): Promise<{ remindersSent: number; escalationsSent: number }> {
   const now = input.now ?? new Date().toISOString();
   const { data, error } = await input.supabaseAdmin
@@ -676,6 +807,20 @@ export async function processCorrectionApprovalSla(input: {
           continue;
         }
         remindersSent += reminderDelivery.notificationsCreated;
+
+        if (reminderDelivery.notificationsCreated > 0) {
+          await deliverApprovalEmailNotifications({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            notifications: plan.notifications,
+            context: {
+              requestId,
+              donationId: asString(row.donation_id) ?? "",
+              actionType: asString(row.action_type) ?? "correction",
+            },
+            dependencies: input.dependencies,
+          });
+        }
       }
 
       if (sla.escalationDue) {
@@ -705,6 +850,20 @@ export async function processCorrectionApprovalSla(input: {
           continue;
         }
         escalationsSent += escalationDelivery.notificationsCreated;
+
+        if (escalationDelivery.notificationsCreated > 0) {
+          await deliverApprovalEmailNotifications({
+            supabaseAdmin: input.supabaseAdmin,
+            tenantId: input.tenantId,
+            notifications: plan.notifications,
+            context: {
+              requestId,
+              donationId: asString(row.donation_id) ?? "",
+              actionType: asString(row.action_type) ?? "correction",
+            },
+            dependencies: input.dependencies,
+          });
+        }
       }
     } catch (error) {
       failures.push({
