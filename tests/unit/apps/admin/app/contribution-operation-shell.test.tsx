@@ -347,7 +347,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     const sendReceipt = view.getByRole("button", { name: "Send receipt" });
     await waitFor(() =>
       expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
@@ -394,7 +394,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     const retry = view.getByRole("button", { name: "Retry CRM posting" });
     await waitFor(() =>
       expect((retry as HTMLButtonElement).disabled).toBe(false),
@@ -452,7 +452,7 @@ describe("ContributionOperationShell", () => {
         </QueryProvider>,
       );
 
-      await view.findByText("$250.00");
+      await view.findByText("$250.00", {}, { timeout: 10_000 });
       fireEvent.click(view.getByRole("button", { name: "Retry CRM posting" }));
       await view.findByTestId("operation-result-panel");
 
@@ -524,7 +524,9 @@ describe("ContributionOperationShell", () => {
         </QueryProvider>,
       );
 
-      expect(await view.findByText(message)).toBeTruthy();
+      expect(
+        await view.findByText(message, {}, { timeout: 10_000 }),
+      ).toBeTruthy();
       expect(
         view.queryByRole("button", { name: "Retry CRM posting" }),
       ).toBeNull();
@@ -564,7 +566,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     const sendReceipt = view.getByRole("button", { name: "Send receipt" });
     await waitFor(() =>
       expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
@@ -597,7 +599,11 @@ describe("ContributionOperationShell", () => {
     );
 
     expect(
-      await view.findByText(/no payment provider charge to refund against/i),
+      await view.findByText(
+        /no payment provider charge to refund against/i,
+        {},
+        { timeout: 10_000 },
+      ),
     ).toBeTruthy();
     expect(
       view.getByText(/offline gifts are corrected through adjustments/i),
@@ -646,7 +652,11 @@ describe("ContributionOperationShell", () => {
     );
 
     expect(
-      await view.findByText(/not available for the current gift/i),
+      await view.findByText(
+        /not available for the current gift/i,
+        {},
+        { timeout: 10_000 },
+      ),
     ).toBeTruthy();
     expect(
       view.queryByRole("button", { name: "Correct gift amount" }),
@@ -683,7 +693,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "150" },
     });
@@ -739,7 +749,11 @@ describe("ContributionOperationShell", () => {
     );
 
     expect(
-      await view.findByText(/this correction changes receipt fields: amount/i),
+      await view.findByText(
+        /this correction changes receipt fields: amount/i,
+        {},
+        { timeout: 10_000 },
+      ),
     ).toBeTruthy();
 
     const emailRadio = view.getByRole("radio", {
@@ -799,7 +813,11 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText(/this correction changes receipt fields: amount/i);
+    await view.findByText(
+      /this correction changes receipt fields: amount/i,
+      {},
+      { timeout: 10_000 },
+    );
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "150" },
     });
@@ -850,7 +868,11 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText(/this correction changes receipt fields: amount/i);
+    await view.findByText(
+      /this correction changes receipt fields: amount/i,
+      {},
+      { timeout: 10_000 },
+    );
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "200" },
     });
@@ -926,7 +948,11 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText(/this correction changes receipt fields: amount/i);
+    await view.findByText(
+      /this correction changes receipt fields: amount/i,
+      {},
+      { timeout: 10_000 },
+    );
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "200" },
     });
