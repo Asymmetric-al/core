@@ -871,7 +871,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
     fireEvent.click(submit);
 
     expect(await within(shell).findByText("Operation completed.")).toBeTruthy();
-    const warning = within(shell).getByRole("alert");
+    const warning = await within(shell).findByRole("alert");
     expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
     expect(view.queryByText("Updated just now")).toBeNull();
     expect(detailRefetch).toHaveBeenCalledOnce();

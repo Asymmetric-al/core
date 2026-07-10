@@ -477,6 +477,33 @@ export function ContributionOperationShell({
   const validationMessage =
     amountError ?? fundError ?? deliveryError ?? reasonError ?? confirmError;
 
+  const refreshAfterOperation = async (
+    completedResult: ContributionActionResult,
+  ) => {
+    const refreshResults = await Promise.allSettled([
+      Promise.resolve().then(() =>
+        invalidateContributionOperationQueries(queryClient),
+      ),
+      Promise.resolve().then(() => onRowRefresh?.()),
+    ]);
+    const refreshErrors = refreshResults.flatMap((refreshResult) =>
+      refreshResult.status === "rejected" ? [refreshResult.reason] : [],
+    );
+    if (refreshErrors.length === 0) {
+      return;
+    }
+
+    console.error(
+      "Contribution operation succeeded, but refresh failed.",
+      refreshErrors,
+    );
+    setPhase((currentPhase) =>
+      currentPhase.name === "success" && currentPhase.result === completedResult
+        ? { ...currentPhase, refreshFailed: true }
+        : currentPhase,
+    );
+  };
+
   const handleSubmit = async () => {
     if (!donationId || validationMessage || blocked || hasBackgroundConflict) {
       return;
@@ -527,32 +554,13 @@ export function ContributionOperationShell({
       return;
     }
 
-    const refreshErrors: unknown[] = [];
-    try {
-      await invalidateContributionOperationQueries(queryClient);
-    } catch (refreshError) {
-      refreshErrors.push(refreshError);
-    }
-    try {
-      await onRowRefresh?.();
-    } catch (refreshError) {
-      refreshErrors.push(refreshError);
-    }
-
-    const refreshFailed = refreshErrors.length > 0;
-    if (refreshFailed) {
-      console.error(
-        "Contribution operation succeeded, but refresh failed.",
-        refreshErrors,
-      );
-    }
-
     setPhase({
       name: "success",
       result,
       submittedReceiptDelivery: receiptDeliverySelection,
-      refreshFailed,
+      refreshFailed: false,
     });
+    void refreshAfterOperation(result);
   };
 
   const handleReloadLatestDetail = async () => {

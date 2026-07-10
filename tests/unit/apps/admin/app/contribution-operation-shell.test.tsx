@@ -268,10 +268,18 @@ describe("ContributionOperationShell", () => {
     });
     const invalidationError = new Error("shared invalidation failed");
     const rowRefreshError = new Error("CRM refetch failed");
+    let rejectInvalidation: (reason?: unknown) => void = () => undefined;
+    const invalidation = new Promise<void>((_resolve, reject) => {
+      rejectInvalidation = reject;
+    });
+    let rejectRowRefresh: (reason?: unknown) => void = () => undefined;
+    const rowRefresh = new Promise<void>((_resolve, reject) => {
+      rejectRowRefresh = reject;
+    });
     const invalidateQueries = vi
       .spyOn(getQueryClient(), "invalidateQueries")
-      .mockRejectedValueOnce(invalidationError);
-    const onRowRefresh = vi.fn().mockRejectedValue(rowRefreshError);
+      .mockReturnValueOnce(invalidation);
+    const onRowRefresh = vi.fn().mockReturnValue(rowRefresh);
     const consoleError = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
@@ -302,16 +310,150 @@ describe("ContributionOperationShell", () => {
     expect(
       await view.findByText("Correction request submitted for approval."),
     ).toBeTruthy();
-    const warning = view.getByRole("alert");
+    expect(invalidateQueries).toHaveBeenCalled();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+
+    await act(async () => {
+      rejectInvalidation(invalidationError);
+      rejectRowRefresh(rowRefreshError);
+      await Promise.resolve();
+    });
+
+    const warning = await view.findByRole("alert");
     expect(warning.textContent).toMatch(/the submission succeeded/i);
     expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
     expect(warning.textContent).toMatch(/will retry loading current values/i);
     expect(view.queryByRole("button", { name: "Retry" })).toBeNull();
-    expect(invalidateQueries).toHaveBeenCalled();
-    expect(onRowRefresh).toHaveBeenCalledOnce();
     expect(consoleError).toHaveBeenCalledWith(
       "Contribution operation succeeded, but refresh failed.",
       [invalidationError, rowRefreshError],
+    );
+  });
+
+  it("does not apply late refresh failures to a newer result", async () => {
+    const actionResults = [
+      {
+        auditEventId: "audit-late-refresh-a",
+        adjustmentId: "adj-late-refresh-a",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      {
+        auditEventId: "audit-late-refresh-b",
+        adjustmentId: "adj-late-refresh-b",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+    ];
+    let actionIndex = 0;
+    const detail = makeDetail();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url.includes("/actions")) {
+          const result = actionResults[actionIndex++]!;
+          return {
+            ok: true,
+            json: async () => ({ result }),
+            init,
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const invalidationError = new Error("late shared invalidation failure");
+    const rowRefreshError = new Error("late CRM refetch failure");
+    let rejectInvalidation: (reason?: unknown) => void = () => undefined;
+    const invalidation = new Promise<void>((_resolve, reject) => {
+      rejectInvalidation = reject;
+    });
+    let rejectRowRefresh: (reason?: unknown) => void = () => undefined;
+    const rowRefresh = new Promise<void>((_resolve, reject) => {
+      rejectRowRefresh = reject;
+    });
+    vi.spyOn(getQueryClient(), "invalidateQueries").mockReturnValueOnce(
+      invalidation,
+    );
+    const onRowRefresh = vi
+      .fn()
+      .mockReturnValueOnce(rowRefresh)
+      .mockResolvedValue(undefined);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const shell = (open: boolean) => (
+      <QueryProvider>
+        <ContributionOperationShell
+          open={open}
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+          onRowRefresh={onRowRefresh}
+        />
+      </QueryProvider>
+    );
+    const view = render(shell(true));
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText("Operation completed.")).toBeTruthy();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+
+    view.rerender(shell(false));
+    view.rerender(shell(true));
+    expect(await view.findByText("$250.00")).toBeTruthy();
+    expect(view.queryByText("Operation completed.")).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "210" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "submit a newer correction" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await waitFor(() => {
+      expect(view.getByTestId("operation-result-panel").textContent).toContain(
+        "audit-late-refresh-b",
+      );
+      expect(onRowRefresh).toHaveBeenCalledTimes(2);
+    });
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+
+    await act(async () => {
+      rejectInvalidation(invalidationError);
+      rejectRowRefresh(rowRefreshError);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        "Contribution operation succeeded, but refresh failed.",
+        [invalidationError, rowRefreshError],
+      );
+    });
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+    expect(view.getByTestId("operation-result-panel").textContent).toContain(
+      "audit-late-refresh-b",
     );
   });
 
