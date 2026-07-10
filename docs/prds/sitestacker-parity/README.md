@@ -201,6 +201,19 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   and the **recurring-commitment** object with dunning + a self-serve portal.
   Groomed 2026-07-09 (decisions D1–D25 + five ruthless adversarial reviews).
   Tracked by epic #690 + children #691–#713.
+- [`phase-14-donor-credit-operations.md`](./phase-14-donor-credit-operations.md)
+  — the Phase 14 plan (Donor Credit Operations: Soft Credits, DAFs, Tributes &
+  Matching Gifts): the operational credit layer on the Phase 13 ledger — one
+  `contribution_credits` spine (typed roles, three amount classes, recognition
+  as a derivation), DAF sponsor/advisor operations with an entry-gated
+  automatic thank-you stream, tribute/memorial gifts with an amount-suppressed
+  second letter stream, the matching-gift expectancy lifecycle with the
+  employer's separate legal gift, church remittance attribution feeding the
+  missionary supporter roster, household recognition derived at read, and
+  capped standing rules — all behind the Phase 7 document walls. Groomed and
+  committed 2026-07-10 (decision families D1–D5 + five close-outs; three
+  ruthless adversarial fleets + two focused design passes). Issues not yet
+  minted.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

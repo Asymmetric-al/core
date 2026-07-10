@@ -707,6 +707,115 @@ Lapsed = involuntary (the card failed after retries) and RECOVERABLE — the win
 Canceled = the donor chose to stop — terminal. Keeping them distinct is what makes recovery possible.
 _Avoid_: folding an involuntary lapse into "canceled"
 
+**Hard credit** (Phase 14):
+The single legal donor's receiptable claim on a gift (Phase 7 A8); the only input
+to the Legal vocabulary.
+_Avoid_: two hard credits on one gift; hard credit as a recognition row
+
+**Soft credit (recognition)** (Phase 14):
+A recognition-only, structurally non-receiptable (`is_receiptable = FALSE`)
+`contribution_credits` row; never mints a receipt, never enters a money total.
+_Avoid_: a credit amount in any receipt/deductible/cash/ledger sum
+
+**Credit role** (Phase 14):
+The TEXT+CHECK why-this-party-is-recognized label on a credit row; fixed v1
+registry, each role in exactly one amount class.
+_Avoid_: tenant-custom roles (those are Phase 11 custom fields); reports that
+inspect roles case-by-case instead of dispatching on the class
+
+**Amount class** (Phase 14):
+The role registry's arithmetic contract for a credit's amount — `allocation`
+(required and bounded; member rows under one line sum ≤ that line),
+`recognition` (defaults to full scope; cross-party sum deliberately unbounded —
+both-spouses-full is legal), `annotation` (always NULL; never in any sum).
+_Avoid_: bounding recognition across parties; an annotation carrying an amount
+
+**The recognition fold** (Phase 14):
+The ONE canonical read model deriving recognition amounts
+(`LEAST(amount_minor, scope_effective_minor)`, 0 when the scope is
+reversed/voided), keyed on the Phase 13 `effective_seq` cursor; the sole
+aggregator every credit surface consumes.
+_Avoid_: a second recognition aggregator; a raw-table credit sum
+
+**Legal vs Recognition vocabulary** (Phase 14):
+The permanent two-vocabulary reporting split: "Legal giving" (hard credit only,
+the Phase 13 effective fold) vs "Recognition giving" (the recognition fold over
+credits) — side-by-side is fine, blended is never fine (the CiviCRM "Both" trap).
+_Avoid_: one mixed column summing both; a money surface that doesn't declare
+which vocabulary it speaks
+
+**Credit generation run** (Phase 14):
+The resumable, idempotent fan-out job record behind generator-minted credits
+(full-target-set upsert against the identity key).
+_Avoid_: a fan-out that duplicates rows on retry or cannot resume mid-batch
+
+**DAF sponsor / DAF advisor / advisor identity tier** (Phase 14):
+The fund-owning charity (per-tenant org party, `org_type = daf_sponsor`) — the
+hard-credit legal donor of a grant; the recommending human behind it —
+recognition-only, thanked with a $0 non-receipt acknowledgment; and the
+per-grant record of what the sponsor's paperwork disclosed
+(`full | fund_name_only | anonymous`).
+_Avoid_: receipting the advisor; a global shared sponsor registry
+
+**Fund-name memory** (Phase 14):
+Confirm-once rules mapping (sponsor, fund name) → an attributed household, with
+provenance chips and inline reversibility.
+_Avoid_: silent auto-attribution without a staff-confirmed rule
+
+**Tribute / honoree / notify party** (Phase 14):
+The reusable honor-or-memorial record; the person it honors (party-linked or
+name-only); a person watching the tribute with channel/frequency/total
+preferences.
+_Avoid_: a junk party for a name-only honoree; a notify party modeled as a donor
+
+**Coverage item** (Phase 14):
+A `tribute_notification_items` row — the (notify party, header) truth of who
+has been told about which gift, written in the letter's transaction.
+_Avoid_: deriving coverage from send events; per-tribute coverage grain (a
+watcher of two merged tributes would be told twice)
+
+**Decay cadence** (Phase 14):
+The age-anchored tribute-letter pace (weekly in tribute weeks 0–4, then
+≥28-day gaps); no automatic stop ever — an uncovered gift always eventually
+composes.
+_Avoid_: an automatic stop; a fixed calendar pace that turns a gift trickle
+into 52 condolence letters a year
+
+**Matching expectancy** (Phase 14):
+The anticipated-but-not-money record of an employer match; advisory amounts
+only, never in any fold.
+_Avoid_: an expectancy in any money surface (neither Legal nor Recognition);
+expectancy as a pledge
+
+**Settlement link** (Phase 14):
+The `matching_gift_settlements` junction row binding one received employer line
+to one expectancy; the line IS the amount.
+_Avoid_: an amount column on the settlement; a 1:1 spawned-header column (dies
+on the first real batch check)
+
+**Payer-of-record** (Phase 14):
+The legal donor of a match/workplace check: whoever actually paid (defaults to
+the employer; intermediaries like GE Foundation/Benevity are real payers).
+_Avoid_: receipting the employer for an intermediary-paid check
+
+**Payer intelligence registry** (Phase 14):
+`party_payer_aliases`: org-keyed payer alias strings with `payer_kind`, feeding
+one matcher and one triage surface; unmatched strings fail closed.
+_Avoid_: separate DAF and workplace matchers; silently misfiling an unmatched
+payer string
+
+**Supporter roster / support path** (Phase 14):
+`getSupporterRoster`: the designation-centric read model showing one row per
+supporting party with direct and via-paths, both lenses, zero copies. A support
+path is one element of a roster row's `paths[]`:
+`{path_kind, via_party, legal/recognized amounts, dates}`.
+_Avoid_: a materialized roster table; per-path rows that double-count a party
+
+**Attribution Inbox** (Phase 14):
+The finite, owned worklist of Not-Provided DAF gifts (the same worklist idiom
+reused for matching-gift aging and tributes awaiting setup).
+_Avoid_: per-record nag emails; an unbounded review queue
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

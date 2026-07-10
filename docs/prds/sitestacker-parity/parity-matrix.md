@@ -164,6 +164,13 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   donations (employee gift + company-match receipted to the company).
 - **Evidence:** needs per-area check.
 - **Open questions:** demand/priority.
+- **Ownership note (2026-07-10):** soft-credit / DAF / tribute / matching-gift
+  **operations** ownership moves to Phase 14 (Donor Credit Operations);
+  Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model)
+  retains document compliance (the receipt/acknowledgment/notification walls);
+  Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) retains
+  capture shape. PRD:
+  [`phase-14-donor-credit-operations.md`](./phase-14-donor-credit-operations.md).
 
 ### 8. Pledges & offline recurring commitments
 

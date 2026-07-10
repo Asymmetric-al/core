@@ -29,6 +29,12 @@
 - [x] 2b.4 Record the roadmap-governance durable requirement in this change's
       `platform-product-intent` delta.
 
+## 2c. Phase 14 (Donor Credit Operations) (2026-07-10)
+
+- [x] 2c.1 Record the donor-credit recognition-separation durable requirement
+      in this change's `platform-product-intent` delta (per
+      `docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`).
+
 ## 3. Verification
 
 - [x] 3.1 `bunx @fission-ai/openspec@latest validate --strict` passes for this

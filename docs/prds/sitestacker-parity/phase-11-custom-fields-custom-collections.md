@@ -1,7 +1,7 @@
 # Phase 11 — Custom Fields & Custom Collections
 
 **Slug:** `custom-fields` · **Roadmap position:** Phase 11 of 41 (roadmap v2) ·
-**Status:** PRD (design ratified 2026-07-08 via grill-with-docs; all 13 decisions D1–D13 deep-researched, adversarially verified, and passed a final best-practice + cross-decision congruence sweep — READY).
+**Status:** PRD (design ratified 2026-07-08 via grill-with-docs; all 13 decisions D1–D13 deep-researched, adversarially verified, and passed a final best-practice + cross-decision congruence sweep — READY). Tracked by epic #645 + children #646–#664.
 
 **Hard dependencies (must land before build):** Phase 9 _Full CRM Depth & Relationship Graph_ (Party spine, record shell + the reserved **Custom Fields socket**, list engine / saved views / governed CSV export, `crm_relationships` stored edges, the B15 write-path, `crm_audit_events`/`crm_activity_events`) · Phase 3 _Minimum Permission & Role-Scoped Projection Foundation_ (`field_policies`, `resolveProjection`, `assertEditableForSurface`, `emitGovernedCsv`, fail-closed default) · Phase 10 _Sensitive-Data Classification & Restricted-Ministry Safety_ (`security_level`, `effectiveSensitivity`, `publicationFirewall.toPublicProjection`, `party_restricted`, retro-scrub, telemetry redaction).
 

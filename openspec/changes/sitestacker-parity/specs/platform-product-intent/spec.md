@@ -60,3 +60,27 @@ retroactively where they are historical records.
 - THEN the change lands as a roadmap revision with an old→new mapping table and
   a same-commit congruence sweep of live PRDs, program docs, and open issues
 - AND no document or issue is left citing a moved number without the mapping
+
+### Requirement: Donor-Credit Recognition Stays Structurally Separate From Money Truth
+
+Donor-credit operations SHALL keep recognition structurally separate from
+money truth — across soft credits, DAF advisor recognition, tribute
+notifications, matching-gift expectancies, and church-member attribution.
+Recognition
+rows SHALL never mint receipts, SHALL never enter money totals (receipt,
+deductible, cash, or ledger), and SHALL render only through the governed
+recognition read models. Reporting SHALL keep two vocabularies — Legal giving
+(hard credit only) and Recognition giving — and SHALL never blend them into
+one mixed column. Detailed behavior is specified in
+`docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`
+(Phase 14 (Donor Credit Operations)).
+
+#### Scenario: A recognition row is recorded against a contribution
+
+- WHEN a soft-credit, DAF-advisor, tribute, matching-gift, or church-member
+  attribution row is recorded against a contribution
+- THEN no receipt is minted from it, no receipt/deductible/cash/ledger total
+  includes it, and every surface that shows it reads through the governed
+  recognition read models
+- AND no column, export, or API field sums Legal giving and Recognition
+  giving together

@@ -27,6 +27,13 @@ platform boundaries already warn against.
   renumbering-map + congruence-sweep rule for any future re-sequencing.
   Roadmap v2 renumbered every phase above 9; pre-2026-07-07 documents citing
   higher numbers are decoded via the roadmap's v1→v2 map.
+- **Amended 2026-07-10 (Phase 14 (Donor Credit Operations)):** add a third
+  durable requirement recording that donor-credit operations (soft credits,
+  DAF advisor recognition, tribute notifications, matching-gift expectancies,
+  church-member attribution) keep recognition structurally separate from money
+  truth — recognition rows never mint receipts, never enter money totals, and
+  render only through the governed recognition read models — per
+  `docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`.
 
 ## Impact
 

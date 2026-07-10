@@ -132,10 +132,10 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)   | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
 | **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**             | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                           |
 | **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
-| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `PRD exists`                                                   |
-| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11               | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists`                                                   |
+| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                           |
+| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11               | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                           |
 | **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7        | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                           |
-| **14** | `donor-credit-ops`           | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts                                                            | 13, 7, 9                | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `future (needs PRD)`                                           |
+| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (grilled 2026-07-10)                              |
 | **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7           | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `future (needs PRD)`                                           |
 | **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **13**, 9, 6            | 14, 15; enhanced by 17 (pledge reminders)             | Contributions and CRM                                           | `future (needs PRD)`                                           |
 | **17** | `system-messages`            | System Messages & Template Management                                                                                             | 6, 2, 3                 | 7                                                     | Email Studio / System Messages                                  | `future (needs PRD)`                                           |
@@ -810,6 +810,13 @@ schema headroom); church bulk remittances; how gifts to restricted workers
 
 ### Phase 14 — Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts (`donor-credit-ops`)
 
+> **PRD:** [`phase-14-donor-credit-operations.md`](./phase-14-donor-credit-operations.md)
+> — grill-complete 2026-07-10 (decision families D1–D5 + five consolidated
+> close-outs; three ruthless adversarial review fleets — the 17-category D1
+> and D4 passes plus the D3 pass — and two focused design passes). The "open
+> questions for grooming" below are **resolved** in the PRD (see the dated
+> note on that paragraph). Groomed-not-built.
+
 **What this phase is (plain language).** Real gifts are rarely simple. A
 donor gives through a **donor-advised fund** (Fidelity Charitable is the
 legal donor; the advisor gets a thank-you that is explicitly _not_ a tax
@@ -843,8 +850,13 @@ them later.
   templates.
 - **Matching gifts** as an expectancy lifecycle: identified → submitted →
   employer verified → received; the match is a **separate legal gift on the
-  employer's record** mirroring fund/designation, with automatic soft credit
-  to the employee on both expectancy and payment.
+  employer's record** mirroring fund/designation, with the employee
+  soft-credited when the match is received (expectancy stages mint zero
+  credit rows — only the received employer contribution generates the
+  line-scoped employee credit; Phase 14 (Donor Credit Operations) D1.12).
+  _(Amended 2026-07-10, Phase 14 (Donor Credit Operations) D1.12: corrected
+  from the earlier "automatic soft credit to the employee on both expectancy
+  and payment" — expectancy stages mint zero credit rows.)_
 - **Affiliated-party rules**: standing rules like "always soft-credit person
   X when org Y gives" (the NPSP affiliation-driven pattern), powering
   church-giving and org-giving recognition reports.
@@ -858,7 +870,14 @@ never party edges (Phase 9 guardrail).
 Donation / HEPdata) — defer or seam; church-facing statements vs
 member-facing acknowledgments (what each sees); whether standing soft-credit
 rules are per-relationship-type or per-party; how credit surfaces rank in
-the donor-development portfolio views (27).
+the donor-development portfolio views (27). _(Amended 2026-07-10 — all four
+answered by the Phase 14 (Donor Credit Operations) PRD: employer-database
+integrations → rung 2, seam-only (D4); church-facing statements vs member
+acknowledgments → no member letters at all — the missionary supporter
+roster instead (D5); standing-rule granularity → capped per-party v1
+(D1.13); portfolio ranking → formally deferred to Phase 27 (Donor
+Development & Portfolio Management), which consumes the Phase 14 read
+models.)_
 
 ---
 
