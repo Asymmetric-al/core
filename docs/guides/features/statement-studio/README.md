@@ -4,11 +4,11 @@ Statement Studio is the planned replacement for PDF Studio: a fully usable staff
 
 It must not be built on Unlayer, and it must not be an email editor pretending to make PDFs. New work uses the custom Statement Studio product model and an Asym-owned template schema.
 
-**Phase 0 proposal (pending HITL merge):** Qualify the current server-side
-DocRaptor adapter, then use it as the sole first-slice provider behind a
-provider-neutral port. The repo has no pdfx or React PDF runtime path, so adding
-either now would create a second greenfield stack. See
-`phase-0-audit-brief.md` for the qualification and migration gates.
+**Phase 0 decision:** Use the current server-side DocRaptor adapter as the
+first-slice provider candidate behind a provider-neutral port. Production use
+still requires provider qualification and HITL approval. The repo has no pdfx or
+React PDF runtime path, so adding either now would create a second greenfield
+stack. See `phase-0-audit-brief.md` for the qualification and migration gates.
 
 ## Triggers
 
@@ -35,7 +35,7 @@ Use this documentation when planning or implementing:
 
 ## Documentation Map
 
-- `phase-0-audit-brief.md` - completed research, proposed Phase 0 decisions, and
+- `phase-0-audit-brief.md` - completed research, Phase 0 decisions, and
   implementation gates.
 - `phase-0-research-evidence.md` - primary-source runtime, schema, migration,
   Storage, and test evidence behind the audit.
@@ -59,9 +59,10 @@ Use this documentation when planning or implementing:
 - User-facing product name: Statement Studio.
 - Existing `/pdf` routes and `pdf_*` internals can migrate pragmatically, but users should not see two competing product names.
 - Persisted templates use an Asym-owned JSON template schema, not JSX, raw pdfx registry JSON, HTML, or direct React props.
-- Pending AL-312 HITL approval, the first production renderer is the qualified
-  server-only DocRaptor adapter behind a provider port; do not run a second
-  official renderer without an explicit migration change.
+- The first production renderer candidate is the server-only DocRaptor adapter
+  behind a provider port. Enable it only after provider qualification and HITL
+  approval; do not run a second official renderer without an explicit migration
+  change.
 - Production renders resolve variables server-side from tenant-scoped DTOs.
 - Generated PDFs are exposed through tenant-aware artifact access, not direct cross-dashboard table reads.
 - Tenant admins control how templates, defaults, variables, retention, and capabilities are used inside platform safety floors.

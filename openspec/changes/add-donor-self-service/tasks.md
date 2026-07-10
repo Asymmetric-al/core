@@ -39,6 +39,12 @@
       donor-owned only, idempotent, and reflected in Mission Control from the
       same records.
 - [ ] 4.2 E2E: donor pauses and cancels a recurring gift; updates a payment
-      method; downloads the current statement; cannot access another donor's or
-      a superseded statement artifact.
+      method; downloads the current statement; verifies deductible lines and
+      totals use only #579-approved settled, receiptable hard-credit gifts for
+      the authorized donor/household subject; keeps approved indirect lines
+      labeled and outside the deductible total; excludes pending/unsettled gifts
+      from rendered deductible and indirect lines/totals while retaining their
+      owning-domain exclusion/audit record; excludes still-unknown-donor gifts
+      from the donor artifact; and cannot access another subject's or a
+      superseded artifact.
 - [ ] 4.3 Archive this change after deployment verification.

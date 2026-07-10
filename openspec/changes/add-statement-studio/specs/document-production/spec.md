@@ -4,10 +4,10 @@
 
 ### Requirement: Statement Studio Owns Document Production, Not Domain Truth
 
-Statement Studio MUST own templates, immutable versions, document-job
-assignments, rendering, generated artifacts, retention, purge, and document
-production audit. The domain that owns the source facts MUST authorize the
-request and build the versioned render context.
+Statement Studio MUST own templates, mutable drafts, immutable published
+versions, document-job assignments, rendering, generated artifacts, retention,
+purge, and document production audit. The domain that owns the source facts
+MUST authorize the request and build the versioned render context.
 
 Statement Studio MUST NOT independently recompute money, legal-donor identity,
 receipt or statement eligibility, corrections, refunds, designations,
@@ -88,6 +88,57 @@ without durable bytes and metadata MUST NOT count as a completed artifact.
 - WHEN rendering succeeds but private upload or artifact persistence fails
 - THEN the operation reports a failed or partial state honestly
 - AND does not advertise a downloadable production document
+
+### Requirement: Production Rendering Is Idempotent Across Retries
+
+For each production artifact kind, Statement Studio MUST derive a non-null,
+server-controlled render key from the job key, scope, subject/recipient,
+canonical source-context reference and hash, immutable template-version ID, and
+artifact kind. The database MUST enforce at most one logical render and one
+canonical artifact for each `(tenant_id, render_key)`. Provider attempts MAY be
+recorded separately beneath that logical render.
+
+A retry of a completed key MUST return the existing canonical artifact. A retry
+of a queued or running key MUST join or resume that logical render while its
+bounded lease remains valid. After lease expiry or a retryable failure, a worker
+MAY claim another attempt for the same key through compare-and-set ownership,
+with bounded backoff, an attempt limit, and visible terminal failure.
+
+Concurrent or late successes MUST use atomic promotion and database uniqueness
+so exactly one artifact becomes canonical. Each claim MUST receive a
+monotonically increasing fencing token. An attempt MUST write, if needed, only
+to a private attempt-scoped staging path owned by `(render_key, fencing_token)`;
+staged bytes MUST never be recipient-visible. Canonical artifact promotion MUST
+be a database compare-and-set that verifies the current unexpired lease/token
+and the unique `(tenant_id, render_key)` guard. Only the winning promotion MAY
+publish its token-owned object as the canonical artifact location. A stale or
+losing attempt MUST NOT update canonical metadata or delete another token's
+object; it MUST durably schedule cleanup for only its own staged object, which
+MUST remain inaccessible until retried cleanup succeeds. Attempt-level
+diagnostics and audit events MAY be appended, but retries MUST NOT create a
+second logical completion event.
+Source-domain issuance/version idempotency and outbound communication
+idempotency remain outside this render key; render recovery MUST NOT send a
+document or create a parallel delivery log.
+
+#### Scenario: A completed production render is retried
+
+- GIVEN a canonical artifact exists for a production render key
+- WHEN a client, queue, or provider callback repeats that render request
+- THEN Statement Studio returns the existing canonical artifact
+- AND does not invoke another provider attempt or record another logical
+  completion
+
+#### Scenario: A timed-out attempt succeeds after recovery starts
+
+- GIVEN a render lease expired and a recovery worker claimed a new attempt for
+  the same key
+- WHEN the original and recovery attempts both return bytes
+- THEN both attempts may stage bytes at their own token-scoped private paths,
+  but only the current-token compare-and-set promotes one canonical artifact
+- AND the losing token's object is never exposed and is durably retried for
+  cleanup until deleted
+- AND attempt diagnostics remain auditable without triggering outbound delivery
 
 ### Requirement: Document Persistence Enforces Same-Tenant Integrity
 

@@ -19,9 +19,9 @@ Use this plan when defining Statement Studio scope, product behavior, implementa
 - Fully usable staff-facing product inside Mission Control.
 - Own custom Statement Studio surface, not Unlayer and not an email editor.
 - Uses an Asym-owned template schema and provider-neutral render boundary. Phase
-  0 proposes qualifying the current server-only DocRaptor integration for the
-  first production path; renderer replacement remains a later explicit
-  migration decision.
+  0 selects the current server-only DocRaptor integration as the provider
+  candidate; production use remains gated on qualification and HITL approval,
+  and renderer replacement requires a later explicit migration decision.
 - White-label, tenant-brandable, accessible, printable, and reliable.
 - Tenant-aware across Mission Control, Donor Dashboard, and Missionary Dashboard.
 

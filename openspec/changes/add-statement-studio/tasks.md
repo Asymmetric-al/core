@@ -28,7 +28,8 @@
 ## 3. Tenant-safe foundation
 
 - [ ] 3.1 Extend the `pdf_*` family with job catalog/settings, scoped immutable
-      version assignments, variables, recipient/source, and retention concepts.
+      version assignments, variables, recipient/source, retention, and logical
+      render idempotency/canonical-artifact concepts.
 - [ ] 3.2 Backfill/require tenant identity, add same-tenant composite foreign
       keys, and make published version content immutable. Coordinate with the
       approved #505/#516 isolation foundation and reuse its tenant guard,
@@ -38,8 +39,15 @@
 - [ ] 3.4 Add one `packages/api` persistence/orchestration seam and generated DB
       types; app routes remain thin.
 - [ ] 3.5 Prove cross-tenant rejection, immutable versions, capability
-      differences, private paths, portal denial, and purge tombstones with real
+      differences, private paths, portal denial, concurrent-render convergence,
+      lease-safe retry, canonical-artifact reuse, and purge tombstones with real
       SQL/integration tests.
+- [ ] 3.6 Add DB-enforced logical render keys, bounded lease/attempt recovery,
+      monotonically increasing fencing tokens, token-owned private staging
+      paths, current-token compare-and-set canonical-artifact promotion, and
+      durable token-scoped cleanup; cover concurrency, timeout, stale-writer,
+      and cleanup-retry behavior while keeping issuance under #580 and outbound
+      delivery under #581.
 
 ## 4. Safe vertical tracer
 
@@ -47,8 +55,9 @@
       sample data only; sample outputs are purpose-tagged, visibly non-official,
       admin-only, non-assignable, and non-deliverable.
 - [ ] 4.2 Prove immutable version, preview-only template selection, server
-      render, private upload, artifact metadata, admin download, and audit with
-      `letterhead.simple` or the annual starter in non-official sample mode.
+      render, retry convergence, private upload, canonical artifact metadata,
+      admin download, and audit with `letterhead.simple` or the annual starter
+      in non-official sample mode.
 - [ ] 4.3 Keep production endpoints from accepting browser-supplied official
       domain contexts.
 

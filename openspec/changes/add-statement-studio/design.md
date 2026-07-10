@@ -13,8 +13,9 @@
 
 ## Phase 0 Decisions
 
-1. Extend the existing `pdf_*` persistence family; do not create parallel
-   `document_*` tables.
+1. Extend the existing `pdf_*` template/version/render/artifact/audit
+   persistence family; missing concepts must extend that family rather than
+   create a parallel `document_*` store.
 2. Use a safe admin/sample-data tracer before an official financial document.
 3. Keep `donor.statement.annual_giving` as the first donor-facing production
    job, but gate it on the canonical frozen statement snapshot/version contract
@@ -26,8 +27,9 @@
 5. Retire Unlayer only after replacement authoring/render/download and deployed
    tenant-template disposition are verified.
 
-Merging this HITL change approves those decisions. Until then they are proposed
-Phase 0 outcomes, not permission to enable official-document production.
+PR #715 is the approval record for these Phase 0 decisions. Provider
+qualification, finance/legal review, and the production gates below remain
+separate; this change does not enable official-document production.
 
 ## Ownership Boundary
 
@@ -59,7 +61,8 @@ the context for validation and audit, not template-side calculation.
 Map the current tables as follows:
 
 - `pdf_templates`: tenant template aggregate and legacy source root;
-- `pdf_template_versions`: immutable content and lifecycle versions;
+- `pdf_template_versions`: mutable draft working state plus immutable
+  published/archive snapshots enforced by the lifecycle seam;
 - `pdf_template_renders`: attempts, provider state, inputs by reference, and
   diagnostics;
 - `pdf_template_artifacts`: exact version/source/output metadata;
@@ -105,6 +108,38 @@ Before runtime writers use the child tables:
     links replacement context/artifact lineage, and keeps stale output out of
     the portal's current-document view without erasing retained history.
 
+### Render idempotency and retry recovery
+
+For every production output, Statement Studio derives a non-null server-side
+render key from the canonical serialization of job key, scope,
+subject/recipient, source-context reference and hash, immutable template-version
+ID, and artifact kind. The database enforces one logical render and at most one
+canonical artifact per `(tenant_id, render_key)`. Provider attempts remain
+separately auditable beneath that logical render.
+
+A request for a completed key returns the existing canonical artifact. A request
+for a queued or running key joins or resumes it while its bounded lease remains
+valid. After lease timeout or a retryable failure, a worker may claim a new
+attempt for the same key with compare-and-set ownership, bounded backoff, an
+attempt limit, and a visible terminal failure. Concurrent or late successes use
+atomic promotion. Each claim receives a monotonically increasing fencing token.
+An attempt writes, if needed, only to a private attempt-scoped staging path
+owned by `(render_key, fencing_token)`; staged bytes are never recipient-visible.
+Canonical artifact promotion is a database compare-and-set that verifies the
+current unexpired lease/token and the unique `(tenant_id, render_key)` guard.
+Only the winning promotion may publish its token-owned object as the canonical
+artifact location. A stale or losing attempt cannot update canonical metadata
+or delete another token's object. It durably schedules cleanup for only its own
+staged object, which remains inaccessible until retried cleanup succeeds.
+
+Retries may append attempt-level diagnostics and audit events, but they do not
+duplicate the logical render-completed event. Changing the source-context hash,
+assigned template version, or artifact kind creates a new key and preserves
+lineage. For annual statements, #580 supplies the immutable statement
+version/snapshot reference and owns issuance/content-hash idempotency; #581 owns
+version-scoped `communication_events` delivery dedupe. A render retry never
+sends a document or creates a parallel delivery log.
+
 Preview routes may accept safe sample contexts. Production routes must resolve
 domain contexts server-side and must not accept official `dataContext` values
 from the browser.
@@ -122,9 +157,10 @@ treated as recipient authorization. Public `document-uploads` and `email-assets`
 buckets are ineligible.
 
 Before production, the schema and persistence seam MUST coordinate with the
-approved Phase 4 isolation foundation (#505/#516) and reuse its composite-key,
-tenant-guard, `FORCE RLS`, and permanent cross-tenant negative-test posture.
-Statement Studio does not invent a competing tenant-isolation primitive.
+approved platform tenant-isolation Phase 4 foundation (#505/#516) and reuse its
+composite-key, tenant-guard, `FORCE RLS`, and permanent cross-tenant
+negative-test posture. Statement Studio does not invent a competing
+tenant-isolation primitive.
 
 Authenticated portal self-download may be implemented through the role-scoped
 BFF once artifact authorization is proven. Outbound email/delivery MUST wait for
@@ -177,10 +213,13 @@ The Giving/statement domain must first produce the canonical immutable,
 versioned statement snapshot/run contract. It captures legal donor,
 period/currency, settled and receiptable inclusion, effective designations,
 corrections/refunds, totals, frozen display strings plus raw values and locale,
-policy version, source IDs, and a context hash. Newer proposed issues #579,
-#580, and #584 already reserve this ownership; implementation coordinates with
-that seam rather than creating a parallel `AnnualGivingStatementContext`. This
-also aligns with `add-donor-self-service` without duplicating its truth.
+policy version, source IDs, and a context hash. Newer proposed issues
+[#579](https://github.com/Asymmetric-al/core/issues/579),
+[#580](https://github.com/Asymmetric-al/core/issues/580), and
+[#584](https://github.com/Asymmetric-al/core/issues/584) already reserve this
+ownership; implementation coordinates with that seam rather than creating a
+parallel `AnnualGivingStatementContext`. This also aligns with
+`add-donor-self-service` without duplicating its truth.
 
 The current live `.txt` route remains non-official until the artifact path is
 ready. Receipt production follows only after the live donor receipt,

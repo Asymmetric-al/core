@@ -1,7 +1,8 @@
 # Statement Studio Phase 0 Audit Brief
 
-Status: research and proposal complete on 2026-07-10 against `origin/develop`
-at `25b5aae6`; decisions remain proposed until AL-312 HITL review and merge.
+Status: research and the Phase 0 decision package were completed on 2026-07-10
+against `origin/develop` at `25b5aae6`. PR #715 is the merge/approval record;
+provider qualification and the finance/legal gates below remain separate.
 
 This is the decision brief. The path-by-path primary-source inventory is in
 [`phase-0-research-evidence.md`](./phase-0-research-evidence.md), and the
@@ -20,8 +21,8 @@ Use this audit before:
 
 ## Workflow Steps
 
-1. Treat the decisions below as the proposed Phase 0 outcome; merging this
-   HITL change is the owner approval point.
+1. Treat the decisions below as the Phase 0 direction; PR #715 merge records
+   repo approval of the decision package.
 2. Use the evidence appendix when a finding needs exact source paths or test
    boundaries.
 3. Implement only the safe shell/sample-data tracer until the financial and
@@ -29,9 +30,9 @@ Use this audit before:
 4. Re-groom downstream issues when their current dependency graph would skip a
    gate identified here.
 
-## Proposed Decisions (effective on HITL merge)
+## Phase 0 Decisions
 
-| Question                          | Phase 0 proposal                                                                                                                                                                                                                                                    |
+| Question                          | Phase 0 decision                                                                                                                                                                                                                                                    |
 | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Is AL-312 obsolete?               | No. The placeholder audit was never completed, and newer receipt/correction work made the audit more important. It remains a docs/HITL ticket.                                                                                                                      |
 | Canonical persistence             | Extend the existing `pdf_templates` and `pdf_template_*` family. Do not create a parallel `document_*` store.                                                                                                                                                       |
@@ -90,14 +91,14 @@ store.
 
 Reuse the existing concepts as follows:
 
-| Existing table                                     | Canonical role                                      |
-| -------------------------------------------------- | --------------------------------------------------- |
-| `pdf_templates`                                    | Tenant template aggregate and legacy migration root |
-| `pdf_template_versions`                            | Immutable draft/published content                   |
-| `pdf_template_renders`                             | Render attempt and diagnostics                      |
-| `pdf_template_artifacts`                           | Durable output metadata                             |
-| `pdf_template_audit_events`                        | Append-only lifecycle, access, and purge audit      |
-| `pdf_template_batches` / `pdf_template_batch_jobs` | Batch orchestration                                 |
+| Existing table                                     | Canonical role                                                                                     |
+| -------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `pdf_templates`                                    | Tenant template aggregate and legacy migration root                                                |
+| `pdf_template_versions`                            | Mutable draft working state; immutable published/archive snapshots, enforced by the lifecycle seam |
+| `pdf_template_renders`                             | Render attempt and diagnostics                                                                     |
+| `pdf_template_artifacts`                           | Durable output metadata                                                                            |
+| `pdf_template_audit_events`                        | Append-only lifecycle, access, and purge audit                                                     |
+| `pdf_template_batches` / `pdf_template_batch_jobs` | Batch orchestration                                                                                |
 
 Add only the missing concepts: system job catalog, tenant job settings, scoped
 assignments/defaults, variable catalog/tenant overrides, and retention policy.
@@ -133,8 +134,12 @@ Hardening required before the child tables receive production writers:
 8. Production artifacts must require a private bucket/path, checksum, size,
    immutable source reference, and exact template version. A permanent URL is
    not a sufficient production invariant.
-9. Delete bytes through the Storage API and retain an audited artifact
-   tombstone. Do not delete `storage.objects` rows directly.
+9. Production renders need a stable server-derived logical render key,
+   lease/fencing-token retry ownership, and at most one canonical artifact per
+   immutable input/template/output tuple. Provider retries must not duplicate
+   bytes, delivery, or logical completion audit.
+10. Delete bytes through the Storage API and retain an audited artifact
+    tombstone. Do not delete `storage.objects` rows directly.
 
 Donor and missionary downloads must use authenticated portal BFF routes that
 re-authorize tenant, role, recipient, subject, and document state before
@@ -205,7 +210,7 @@ Safe sequence:
    `SAMPLE - NOT AN OFFICIAL DOCUMENT`; it cannot be assigned or delivered.
 2. Job settings/assignment, render/artifact lifecycle, private Storage, and
    authorized download with cross-tenant tests. Coordinate with the proposed
-   Phase 4 isolation foundation
+   platform tenant-isolation Phase 4 foundation
    ([#505](https://github.com/Asymmetric-al/core/issues/505) and
    [#516](https://github.com/Asymmetric-al/core/issues/516)); reuse its approved
    composite-key, tenant-guard, `FORCE RLS`, and permanent negative-test posture
@@ -290,4 +295,5 @@ send through that seam.
 - [x] RLS, same-tenant integrity, Storage, artifact, and deployment risks are explicit.
 - [x] An evidence-based safe tracer and first donor-facing job recommendation is recorded.
 - [x] Reuse, replace, retire, and delete decisions are actionable.
-- [ ] HITL review/merge approves the proposed decisions.
+- [x] The HITL decision package is complete and linked to PR #715; merge records
+      repo approval of the Phase 0 decisions.

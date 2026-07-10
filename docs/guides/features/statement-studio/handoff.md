@@ -25,13 +25,14 @@ path is safe to change.
   2026-07-03.
 - Parent planning issue
   [#310](https://github.com/Asymmetric-al/core/issues/310) closed on 2026-07-09.
-- [#312](https://github.com/Asymmetric-al/core/issues/312) is implemented by
-  the completed audit/evidence and proposed OpenSpec change in this branch; it
-  remains HITL until reviewed and merged.
+- [#312](https://github.com/Asymmetric-al/core/issues/312) is delivered by the
+  completed audit/evidence and proposed OpenSpec change in
+  [PR #715](https://github.com/Asymmetric-al/core/pull/715). Before that PR
+  merges, its decisions remain proposed; merge records the HITL approval.
 - Canonical implementation issues remain #314 through #364, but their original
   dependency graph predates the Phase 0 findings.
 
-## Approved-When-Merged Decisions
+## Phase 0 Decisions
 
 - Product name: Statement Studio; existing `/pdf` and `pdf_*` internals migrate
   pragmatically.
@@ -102,7 +103,8 @@ synthetic fixtures and reference public issue/file paths.
 
 - [x] Phase 0 audit and evidence are complete.
 - [x] Renderer, canonical persistence, first job, and legacy posture are recorded.
-- [ ] AL-312 HITL review/merge approves the proposed decisions.
+- [x] The AL-312 HITL decision package is complete; PR #715 merge records
+      approval of the proposed decisions.
 - [ ] #322 is re-groomed before production statement work.
 - [ ] Hosted migration and legacy-template state are inspected before cutover.
 - [ ] Each implementation slice uses the appropriate repo skills and checks.

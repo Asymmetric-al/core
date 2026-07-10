@@ -55,9 +55,9 @@ object and direct file reads.
 - At audit start, the Statement Studio PRD named pdfx + React PDF as the target
   and explicitly delegated reconciliation with native PDF Studio + DocRaptor to
   Phase 0. There is no `pdfx` or `@react-pdf/renderer` runtime dependency or
-  import under `apps/**` or `packages/**` on the audited commit. The completed
-  audit proposes qualifying the existing server-side DocRaptor adapter behind a
-  provider port for the first slice, pending HITL approval.
+  import under `apps/**` or `packages/**` on the audited commit. Phase 0 selects
+  the existing server-side DocRaptor adapter as the provider candidate behind a
+  port; production use remains gated on qualification and HITL approval.
 - The PRD also asks Phase 0 to add
   `openspec/changes/add-statement-studio/`
   (`docs/guides/features/statement-studio/prd.md:36-43`). No Statement Studio
@@ -220,7 +220,11 @@ object and direct file reads.
   purge/tombstone, and download-audit fields. Those are required before donor or
   missionary portal access can be authorized. The planning guide requires
   private Storage and tenant-aware paths/downloads
-  (`docs/guides/features/statement-studio/data-model.md:86-101`).
+  (`docs/guides/features/statement-studio/data-model.md:92-102`).
+- Native render has no stable logical render key, lease/fencing-token recovery,
+  or canonical-artifact uniqueness contract. Client, queue, or provider retries
+  could therefore create duplicate official output once persistence is wired;
+  foundation work must define that boundary before enabling production.
 - Tenant safety is only partially encoded relationally: child rows carry
   `tenant_id`, but their foreign keys reference parent IDs alone rather than a
   composite `(tenant_id, id)`. The RLS predicates authorize the child row's

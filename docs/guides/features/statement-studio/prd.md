@@ -9,11 +9,12 @@ The product must keep its saved template format Asym-owned, tenant-safe,
 versioned, auditable, and usable by non-technical tenant admins. Rendering stays
 behind a provider-neutral server boundary.
 
-**Phase 0 proposal (effective on AL-312 HITL merge):** Qualify the in-flight
-native PDF Studio server-side DocRaptor adapter, then use it as the sole
-first-slice provider. The repo has no pdfx or React PDF runtime path; adding one
-now would create a competing greenfield stack. See `phase-0-audit-brief.md` for
-qualification, parity, cutover, rollback, and template-migration gates.
+**Phase 0 decision:** The in-flight native PDF Studio server-side DocRaptor
+adapter is the first-slice provider candidate. If provider qualification and
+HITL approval pass, use it as the sole first-slice provider. The repo has no pdfx
+or React PDF runtime path; adding one now would create a competing greenfield
+stack. See `phase-0-audit-brief.md` for qualification, parity, cutover, rollback,
+and template-migration gates.
 
 ## Triggers
 
@@ -334,8 +335,9 @@ UX requirements:
 - Persist templates as a constrained Asym JSON block/tree schema, not JSX, raw
   pdfx registry JSON, HTML, direct React props, or Unlayer design JSON.
 - Compile the validated template schema through the server-only renderer port.
-  Pending qualification and AL-312 HITL approval, the first production provider
-  is DocRaptor per the Phase 0 proposal.
+  The first production provider candidate is DocRaptor per the Phase 0 decision;
+  production enablement remains gated on provider qualification and HITL
+  approval.
 - Store immutable published versions with content hashes and schema versions.
 - Store drafts separately from published versions.
 - Allow clone, edit, preview, publish, assign, replace, and rollback workflows.

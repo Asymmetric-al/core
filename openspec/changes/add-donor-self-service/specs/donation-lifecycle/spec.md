@@ -42,13 +42,18 @@ MUST require choosing a replacement first.
 
 ### Requirement: Donors Receive Annual Giving Statements
 
-The platform MUST generate annual giving statements covering a donor's settled,
-receiptable gifts tied to their donor record, available from the donor portal
-and delivered per tenant policy. Pending or in-flight gifts (for example
-unsettled ACH or not-yet-collected recurring installments) MUST NOT appear
-until settled. Unknown-donor gifts MUST NOT appear on any donor's statement
-unless later matched, and statement language MUST be finance/legal reviewed
-before production use.
+The platform MUST generate annual giving statements whose deductible lines and
+totals cover only settled, receiptable hard-credit gifts tied to the authorized
+donor or household subject. When the canonical source context contains approved
+indirect soft-credit, DAF, or matched-gift lines supplied by the owning domain,
+the statement MUST render those lines only in a clearly labeled indirect
+section, and those lines MUST NOT enter the deductible total. Pending or
+in-flight gifts (for example unsettled ACH or not-yet-collected recurring
+installments) MUST NOT appear in deductible or indirect lines or totals in the
+donor artifact until settled; they MAY remain only in the owning domain's
+excluded/audit set with the approved reason code. Still-unknown-donor gifts MUST
+NOT appear in a donor artifact unless the owning domain later matches them, and
+statement language MUST be finance/legal reviewed before production use.
 
 Giving MUST produce the frozen, versioned statement context from canonical
 donation/correction truth, including raw structured values and frozen official
@@ -63,7 +68,9 @@ correction and artifact lineage.
 #### Scenario: A donor downloads last year's statement
 
 - WHEN a donor requests a statement for a completed year
-- THEN the statement includes exactly their settled, receiptable gifts for that
-  year from canonical records
+- THEN its deductible lines and totals include exactly the settled, receiptable
+  hard-credit gifts for the authorized donor/household subject and year
+- AND any approved indirect lines supplied by the owning domain appear only in
+  a labeled indirect section and remain excluded from the deductible total
 - AND the portal does not present a superseded or void statement as current
 - AND the delivery or download is recorded
