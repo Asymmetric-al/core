@@ -67,6 +67,7 @@ interface StagedGiftRow {
 
 interface DonationCrmLinkRow {
   id: string;
+  allocation_id: string | null;
   donation_id: string | null;
   staged_gift_id: string | null;
   scope: string | null;
@@ -312,23 +313,12 @@ export async function getAdminCrmDonorDetail(input: {
   const pledges = (pledgeResult.data ?? []) as PledgeRow[];
 
   const stagedGiftIds = mergeUniqueIds(stagedGifts.map((gift) => gift.id));
-  const designationLinkPromise =
-    stagedGiftIds.length > 0
-      ? input.supabaseAdmin
-          .from("donation_crm_links")
-          .select(
-            "id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
-          )
-          .eq("tenant_id", input.tenantId)
-          .eq("scope", "designation")
-          .in("staged_gift_id", stagedGiftIds)
-      : Promise.resolve({ data: [], error: null });
   const [linkResult, sharedInputs] = await Promise.all([
     stagedGiftIds.length > 0
       ? input.supabaseAdmin
           .from("donation_crm_links")
           .select(
-            "id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
+            "id, allocation_id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
           )
           .eq("tenant_id", input.tenantId)
           .eq("scope", "parent")
@@ -348,7 +338,28 @@ export async function getAdminCrmDonorDetail(input: {
     }),
   ]);
   assertNoError(linkResult.error, "Failed to load donation CRM links.");
-  const designationLinkResult = await designationLinkPromise;
+
+  // Designation links are keyed by allocation_id; donation_id and
+  // staged_gift_id are both nullable for this scope.
+  const stagedGiftIdByAllocationId = new Map<string, string>();
+  const allocationEntries = sharedInputs.allocationsByStagedGiftId.entries();
+  for (const [stagedGiftId, allocations] of allocationEntries) {
+    for (const allocation of allocations) {
+      stagedGiftIdByAllocationId.set(allocation.id, stagedGiftId);
+    }
+  }
+  const allocationIds = Array.from(stagedGiftIdByAllocationId.keys());
+  const designationLinkResult =
+    allocationIds.length > 0
+      ? await input.supabaseAdmin
+          .from("donation_crm_links")
+          .select(
+            "id, allocation_id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
+          )
+          .eq("tenant_id", input.tenantId)
+          .eq("scope", "designation")
+          .in("allocation_id", allocationIds)
+      : { data: [], error: null };
   assertNoError(
     designationLinkResult.error,
     "Failed to load designation CRM links.",
@@ -370,13 +381,20 @@ export async function getAdminCrmDonorDetail(input: {
   );
   const parentLinkByStagedGiftId = new Map(
     links
-      .filter((link) => link.staged_gift_id && link.scope === "parent")
+      .filter((link) => link.staged_gift_id)
       .map((link) => [link.staged_gift_id!, link]),
   );
   const failedStagedGiftIds = new Set(
     [...links, ...designationLinks]
-      .filter((link) => link.staged_gift_id && link.link_status === "failed")
-      .map((link) => link.staged_gift_id!),
+      .filter((link) => link.link_status === "failed")
+      .map(
+        (link) =>
+          link.staged_gift_id ??
+          (link.allocation_id
+            ? stagedGiftIdByAllocationId.get(link.allocation_id)
+            : null),
+      )
+      .filter((stagedGiftId): stagedGiftId is string => Boolean(stagedGiftId)),
   );
 
   const giftHistory = donations.map((donation) => {
