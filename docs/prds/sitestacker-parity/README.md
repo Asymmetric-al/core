@@ -212,8 +212,8 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   missionary supporter roster, household recognition derived at read, and
   capped standing rules — all behind the Phase 7 document walls. Groomed and
   committed 2026-07-10 (decision families D1–D5 + five close-outs; three
-  ruthless adversarial fleets + two focused design passes). Issues not yet
-  minted.
+  ruthless adversarial fleets + two focused design passes).
+  Tracked by epic #719 + children #720–#741.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
