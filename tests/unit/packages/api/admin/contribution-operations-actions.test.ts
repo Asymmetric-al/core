@@ -1517,6 +1517,47 @@ describe("contribution operations action executor", () => {
     expect(result.correctionId).toBeFalsy();
   });
 
+  it("keeps stronger approval categories gated in the executor even when suppressed (#261)", async () => {
+    const applyCorrection = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_9");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    // The tenant tried to relax everything: no approval required AND the
+    // amount gate suppressed. A stronger approval category still wins and
+    // the executor routes to a correction request instead of applying.
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Donor reported the wrong amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy({
+        ownership_mode: "no_approval_required",
+        suppressed_gates: ["amount_correction"],
+        stronger_approval_categories: ["amount_correction"],
+      }),
+      dependencies: {
+        applyCorrection,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalled();
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionRequestId).toBe("request_9");
+  });
+
   it("includes request context in confirmation-token correction request idempotency", async () => {
     const applyCorrection = vi.fn();
     const createCorrectionRequest = vi.fn().mockResolvedValue("request_2");

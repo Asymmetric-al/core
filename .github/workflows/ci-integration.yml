@@ -40,7 +40,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -50,9 +50,7 @@ jobs:
       - name: Install dependencies
         run: bun ci --no-cache --backend=copyfile
       - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+        run: bash scripts/github/install-postgresql-client.sh
       - name: Apply migrations
         run: node scripts/verify/supabase-migrations.mjs
       - name: Apply Payload migrations
@@ -95,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
@@ -165,14 +163,12 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+        run: bash scripts/github/install-postgresql-client.sh
       - name: Apply migrations
         run: node scripts/verify/supabase-migrations.mjs
       - uses: oven-sh/setup-bun@v2
@@ -273,7 +269,8 @@ jobs:
       PAYLOAD_SECRET: ci-payload-secret
       SKIP_ENV_VALIDATION: "1"
       E2E_AUTH_BYPASS: "true"
-      # Required secrets for the datasource-bound bypass against the hosted demo project:
+      # Required secrets for the datasource-bound bypass against the hosted demo project.
+      # Develop PRs switch to the example placeholder before app startup below.
       #   E2E_AUTH_SECRET                 — HMAC signing key shared by producer + verifiers
       #   E2E_AUTH_ALLOWED_SUPABASE_REFS  — project ref of the demo Supabase project (never prod)
       E2E_AUTH_SECRET: ${{ secrets.E2E_AUTH_SECRET }}
@@ -293,13 +290,11 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
       - name: Install PostgreSQL client
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
+        run: bash scripts/github/install-postgresql-client.sh
       - name: Apply migrations
         run: node scripts/verify/supabase-migrations.mjs
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -313,6 +308,11 @@ jobs:
         run: psql "$DATABASE_URL" -f supabase/seed.sql -v ON_ERROR_STOP=1
       - name: Install Playwright Chromium
         run: bunx playwright install --with-deps chromium
+      - name: Use placeholder Supabase for develop E2E
+        if: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
+        run: |
+          echo "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co" >> "$GITHUB_ENV"
+          echo "NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key" >> "$GITHUB_ENV"
       - name: Start donor app
         run: |
           nohup bun run --cwd apps/donor dev -- --port 3005 --hostname 127.0.0.1 > /tmp/donor-dev.log 2>&1 &

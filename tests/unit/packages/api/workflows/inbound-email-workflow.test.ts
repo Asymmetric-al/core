@@ -133,6 +133,33 @@ describe("inbound email workflow adapter (#294)", () => {
     });
   });
 
+  it("records the attempt and throws when the provider returns an empty body", async () => {
+    const mock = createInboundClientMock(inboundRow());
+    const provider = {
+      apiKey: "re_test",
+      fetchReceivedEmail: vi.fn().mockResolvedValue({
+        success: true,
+        data: { text: "", html: null, headers: [] },
+      }),
+      fetchAttachments: vi.fn(),
+    };
+
+    await expect(
+      retrieveInboundBody(mock.client, provider, {
+        tenantId: TENANT_ID,
+        inboundEmailRowId: ROW_ID,
+      }),
+    ).rejects.toThrow(
+      /inbound_body_retrieval_failed: provider returned empty body/,
+    );
+
+    expect(mock.updates[0]?.values).toMatchObject({
+      body_retrieval_attempts: 1,
+      body_retrieval_error: "provider returned empty body",
+    });
+    expect(mock.updates[0]?.values).not.toHaveProperty("body_retrieval_status");
+  });
+
   it("records the attempt and throws on body retrieval failure so the step retries", async () => {
     const mock = createInboundClientMock(inboundRow());
     const provider = {
@@ -195,6 +222,26 @@ describe("inbound email workflow adapter (#294)", () => {
   it("never routes a placeholder without a retrieved body", async () => {
     const mock = createInboundClientMock(
       inboundRow({ body_retrieval_status: "pending" }),
+    );
+    const route = vi.fn();
+
+    const result = await routeReadyInboundEmail(
+      mock.client,
+      { tenantId: TENANT_ID, inboundEmailRowId: ROW_ID },
+      route,
+    );
+
+    expect(result.status).toBe("skipped_no_body");
+    expect(route).not.toHaveBeenCalled();
+  });
+
+  it("never routes a placeholder marked available with empty content", async () => {
+    const mock = createInboundClientMock(
+      inboundRow({
+        body_retrieval_status: "available",
+        parsed_text: "",
+        parsed_html: null,
+      }),
     );
     const route = vi.fn();
 

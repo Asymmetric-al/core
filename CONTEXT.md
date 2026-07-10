@@ -7,10 +7,34 @@ staff operations, donor experience, missionary workspace, and background work.
 ## Language
 
 **Tenant**:
-A missions organization using the platform with its own data, permissions,
-settings, donors, missionaries, and operational history. A tenant is a product
-boundary, not an Inngest app, Inngest environment, or billing account.
-_Avoid_: Inngest tenant, customer app, billing environment
+A missions sending organization using the platform with its own data,
+permissions, settings, donors, missionaries, and operational history. The
+platform is purpose-built for organizations whose missionaries raise personal
+support; churches or other ministries are tenants only when they operate a
+sending program. An individual missionary is a user within a tenant, never a
+standalone tenant. A tenant is a product boundary, not an Inngest app, Inngest
+environment, or billing account.
+_Avoid_: Inngest tenant, customer app, billing environment, solo-missionary
+tenant
+
+**Ministry Update**:
+A missionary-authored update post — field news, prayer requests, support
+progress — created in the missionary workspace, governed by tenant moderation
+and visibility settings, and surfaced across donor, public, and communication
+experiences as one connected concept. It is not public page content and not a
+one-off email, though pages and communications may display or reference it.
+_Avoid_: newsletter, blog post, page content, donor email
+
+**Assistant**:
+An AI agent or assistant that helps a staff member, missionary, or donor
+complete a task inside the platform (drafting, suggesting, summarizing,
+routing, preparing work). An assistant acts within the authority of the human
+it serves — never a separate permission tier, never a way to widen role or
+tenant scope — and follows current AI-agent best practice: least privilege,
+human approval gates for donor-facing sends, money, operational-truth changes,
+and publication, plus full attribution and audit. It is not a human staff role.
+_Avoid_: assistant as a permission tier, autonomous money/donor/publish agent,
+human assistant job title
 
 **Site**:
 A tenant-owned public presence — one website a tenant operates, with its own
@@ -69,6 +93,99 @@ A durable product-owned key that prevents the same business effect from being
 performed twice. It is stronger than short-term workflow event deduplication
 and belongs to the product area that owns the outcome.
 _Avoid_: Inngest dedupe key, random retry key, workflow-only idempotency
+
+**Guest Giving**:
+Online giving without a pre-existing account or sign-in step. The donor still
+provides the name, email, and payment/billing details the payment method and
+organization policy require; the server creates or matches the donor record
+behind the scenes. Guest giving is not anonymous giving and not an unknown
+donor.
+_Avoid_: account-first checkout, anonymous gift, unknown donor
+
+**Claimable Donor Access**:
+Donor portal access created during checkout without a password step. The donor
+later claims it through email verification or magic link. Creating it never
+reveals whether an email already belonged to an existing donor.
+_Avoid_: forced signup, silent password creation, account-existence leak
+
+**Gift Anonymity**:
+A per-gift visibility preference hiding the donor's identity from missionary
+and public views only. Finance, admins, receipts, reconciliation, and audit
+records always retain the donor. Stored on the contribution itself; donor
+defaults only seed the per-gift choice.
+_Avoid_: donor-level-only flag, hidden-from-finance gift, deleted donor
+identity
+
+**Unknown Offline Contribution**:
+An offline gift entered when donor identity is truly unavailable (anonymous
+cash, unmarked offering-box gifts). The donor reference stays null, the gift is
+not receiptable unless donor information is later provided, and staff never
+invent fake donor data.
+_Avoid_: fake donor row, "Anonymous Anonymous" donor, receiptable unknown gift
+
+**Receipt Identity Snapshot**:
+The donor name, email, and address captured on a contribution at gift time so
+receipts, statements, and audits stay historically accurate even if the donor
+record changes later. Never exposed to missionary or public views.
+_Avoid_: live donor lookup for receipts, mutable receipt identity
+
+**Gift / Donation**:
+A donor's contribution record through the platform — one-time or a recurring
+installment — carrying amount, currency, a single designation, payment/provider
+state, and receipt state. "Gift" and "donation" are used interchangeably for
+this record. See [[one-time-donation]], [[recurring-donation]].
+_Avoid_: pledge (the recurring agreement, not the gift), staged gift (the
+post-completion record)
+
+**Fund**:
+A tenant-owned designation target — such as a general or project fund — a gift
+can be directed to, distinct from a missionary. See [[designation]].
+_Avoid_: missionary, campaign, Stripe product
+
+**Designation**:
+The single missionary or fund a gift is directed to at checkout. A gift
+designates exactly one target today; reallocation after the fact is a
+[[contribution-correction]], not a donor edit.
+_Avoid_: split gift, multi-line allocation, missionary and fund on one gift
+
+**Staged Gift**:
+The record created when a donation completes, carrying receipt status, CRM-post
+status, and designation for downstream receipting and CRM posting. It is not
+the donation record itself.
+_Avoid_: donation row, receipt, pending donation
+
+**Donor Pledge**:
+The durable record of a recurring giving agreement, linked one-to-one with a
+Stripe subscription, tracking pledge state (active, paused, cancelled) and
+progress. It is the agreement, not any single installment gift. See
+[[recurring-donation]].
+_Avoid_: individual recurring gift, subscription-only state, one-time donation
+
+**Contribution Correction**:
+A recorded staff change to a completed contribution that affects money, donor
+identity, designation, provider state, refunds, receipts, or donor-visible
+history, preserving a before/after trail rather than silently overwriting
+truth.
+_Avoid_: silent edit, direct overwrite, harmless metadata edit
+
+**Donation Saga**:
+The durable, outbox-driven process that creates a donation's payment intent and
+recovers a stuck handoff, guarded by a [[product-idempotency-key]] so a
+business effect is never performed twice.
+_Avoid_: fire-and-forget charge, retry loop as source of truth
+
+**Outbox Event**:
+A durable product-owned record that background work still needs to happen,
+written alongside the business record so a failed handoff can be recovered
+later. Donations and the shared [[workflow-dispatch-ledger]] both use this
+pattern.
+_Avoid_: job queue as source of truth, event as the business record
+
+**Dead-Letter**:
+The state a durable work item reaches after bounded automatic retries are
+exhausted without success. It stays visible for staff attention and safe manual
+replay; it never silently disappears or invents a business outcome.
+_Avoid_: hidden failure, infinite retry, silent drop
 
 **One-Time Donation**:
 A donor gift intended to be collected once through the platform's immediate
