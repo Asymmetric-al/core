@@ -584,6 +584,48 @@ describe("mission control automation dashboard summary", () => {
     });
   });
 
+  it("disables mixed CRM repost rules while preserving valid actions", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({
+            id: "mixed_crm_repost",
+            name: "Mixed CRM repost",
+            enabled: true,
+            activation_status: "active",
+            actions: [
+              { kind: "contribution_action", actionType: "crm_repost" },
+              { kind: "contribution_action", actionType: "resend_receipt" },
+            ],
+          }),
+        ],
+      },
+      mission_control_automation_activity_logs: { data: [] },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.automationRules).toEqual([
+      expect.objectContaining({
+        id: "mixed_crm_repost",
+        enabled: false,
+        activationStatus: "disabled",
+        actions: [
+          { kind: "contribution_action", actionType: "resend_receipt" },
+        ],
+      }),
+    ]);
+    expect(dashboard.summary).toMatchObject({
+      totalRules: 1,
+      activeRules: 0,
+      pausedRules: 1,
+      invalidRules: 0,
+    });
+  });
+
   it("counts persisted rules by activation state", async () => {
     const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
       mission_control_automation_rules: {

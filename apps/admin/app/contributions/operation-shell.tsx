@@ -33,6 +33,7 @@ import { useId, useMemo, useState } from "react";
 
 import {
   invalidateContributionOperationQueries,
+  isContributionGiftParam,
   useContributionDetail,
 } from "./contribution-detail-overlay";
 import {
@@ -445,6 +446,18 @@ export function ContributionOperationShell({
   }
 
   const detail = detailQuery.data;
+  const detailQueryEnabled = isContributionGiftParam(donationId);
+  const detailLoading = detailQueryEnabled && detailQuery.isPending;
+  const detailLoadBlock =
+    !detail && !detailLoading
+      ? {
+          reason:
+            detailQuery.error instanceof Error
+              ? detailQuery.error.message
+              : "Current gift detail is unavailable for this row.",
+          nextStep: "Close this action, refresh the CRM row, and try again.",
+        }
+      : null;
   const availability = useMemo(() => {
     if (!detail || !operation) {
       return null;
@@ -490,12 +503,12 @@ export function ContributionOperationShell({
       : null;
   const operationBlock =
     postingCapabilityBlock ??
+    detailLoadBlock ??
     (availability?.available ? retryTargetBlock(retryTargetScopes) : null);
-  const blocked = operationBlock
-    ? true
-    : availability
-      ? !availability.available
-      : Boolean(detail && operation);
+  const blocked =
+    !detail ||
+    Boolean(operationBlock) ||
+    (availability ? !availability.available : true);
   const blockedReason =
     operationBlock?.reason ??
     availability?.blockedReason ??
@@ -549,7 +562,13 @@ export function ContributionOperationShell({
     amountError ?? fundError ?? deliveryError ?? reasonError ?? confirmError;
 
   const handleSubmit = async () => {
-    if (!donationId || validationMessage || blocked) {
+    if (
+      !isContributionGiftParam(donationId) ||
+      !detail ||
+      !availability?.available ||
+      validationMessage ||
+      blocked
+    ) {
       return;
     }
     const receiptDeliverySelection: ReceiptDeliveryProposal | null =
@@ -564,7 +583,7 @@ export function ContributionOperationShell({
         : null;
     const basePayload = operation.buildPayload({
       values,
-      stagedGiftId: detail?.stagedGift?.id ?? null,
+      stagedGiftId: detail.stagedGift?.id ?? null,
     });
     const payload =
       operation.actionType === "retry_staged_gift"
@@ -578,13 +597,13 @@ export function ContributionOperationShell({
       const result = await submitOperation({
         actionType: operation.actionType,
         contributionId: donationId,
-        stagedGiftId: detail?.stagedGift?.id ?? null,
+        stagedGiftId: detail.stagedGift?.id ?? null,
         sourceSurface,
         reason: values.reason.trim() || null,
         confirmationToken: operation.requiresConfirmation
           ? idempotencyKey
           : null,
-        expectedRevision: detail?.revision ?? null,
+        expectedRevision: detail.revision,
         idempotencyKey,
         payload: receiptDeliverySelection
           ? { ...payload, receiptDelivery: receiptDeliverySelection }
@@ -641,13 +660,20 @@ export function ContributionOperationShell({
           {operation.description}
         </DialogDescription>
 
-        {detailQuery.isPending && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Loading current gift values…
-          </p>
+        {detailLoading && (
+          <div className="space-y-3">
+            <p role="status" className="text-sm text-muted-foreground">
+              Loading current gift values…
+            </p>
+            <div className="flex justify-end">
+              <Button variant="outline" className="h-11" onClick={onClose}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         )}
 
-        {blocked && (
+        {blocked && !detailLoading && (
           <div
             role="note"
             className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
@@ -827,7 +853,7 @@ export function ContributionOperationShell({
                 </Button>
                 <Button
                   className="h-11"
-                  disabled={Boolean(validationMessage) || detailQuery.isPending}
+                  disabled={Boolean(validationMessage) || !detail}
                   onClick={() => void handleSubmit()}
                 >
                   {phase.name === "failure" ? "Retry" : operation.title}

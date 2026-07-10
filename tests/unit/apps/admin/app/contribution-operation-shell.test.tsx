@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import { QueryProvider } from "@asym/database/providers";
+import { getQueryClient, QueryProvider } from "@asym/database/providers";
 import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -600,6 +600,69 @@ describe("ContributionOperationShell", () => {
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
     ).toBe(false);
+  });
+
+  it("keeps the operation blocked when current gift detail fails to load", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000dd";
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Current gift detail could not be loaded." }),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    getQueryClient().setQueryDefaults(
+      ["admin", "contribution-detail", donationId],
+      { retry: false },
+    );
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.resend_receipt!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(
+      await view.findByText(/current gift detail could not be loaded/i),
+    ).toBeTruthy();
+    expect(view.queryByRole("button", { name: "Send receipt" })).toBeNull();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
+  });
+
+  it("keeps the operation blocked when the contribution id cannot load detail", () => {
+    const fetchMock = vi.fn();
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId="invalid-contribution-id"
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(view.getByText(/current gift detail is unavailable/i)).toBeTruthy();
+    expect(view.queryByLabelText("Amount (USD)")).toBeNull();
+    expect(
+      view.queryByRole("button", { name: "Correct gift amount" }),
+    ).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("preserves entered form state on failure and offers retry", async () => {
