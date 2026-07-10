@@ -42,6 +42,7 @@ import type {
   ContributionActionResult,
   ContributionActionType,
   ContributionSourceSurface,
+  CrmPostFailedScope,
   ReceiptDeliveryOutcome,
 } from "@asym/api/admin/contribution-operations";
 
@@ -199,7 +200,7 @@ export const OPERATION_DEFINITIONS: Record<
     description: "Retries the failed CRM posting for this gift.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The gift reposts to the CRM."],
+    downstreamEffects: ["The failed CRM record is retried."],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -241,6 +242,44 @@ type ShellPhase =
       submittedReceiptDelivery: ReceiptDeliveryProposal | null;
     }
   | { name: "failure"; message: string };
+
+function retryPayloadForScope(
+  scope: CrmPostFailedScope | null,
+): Record<string, unknown> {
+  if (scope?.scope === "designation" && scope.allocationId?.trim()) {
+    return {
+      scope: "designation",
+      allocationId: scope.allocationId,
+    };
+  }
+
+  return { scope: "parent" };
+}
+
+function retryTargetBlock(
+  failedScopes: CrmPostFailedScope[],
+): { reason: string; nextStep: string } | null {
+  if (failedScopes.length > 1) {
+    return {
+      reason:
+        "More than one CRM posting failed, so this inline action cannot safely choose a retry target.",
+      nextStep:
+        "Open full contribution detail to retry one failed record at a time.",
+    };
+  }
+
+  const [scope] = failedScopes;
+  if (scope?.scope === "designation" && !scope.allocationId?.trim()) {
+    return {
+      reason:
+        "The failed designation cannot be targeted safely because its allocation identity is missing.",
+      nextStep:
+        "Open full contribution detail to review the CRM posting state before retrying.",
+    };
+  }
+
+  return null;
+}
 
 async function submitOperation(input: {
   actionType: ContributionActionType;
@@ -394,13 +433,24 @@ export function ContributionOperationShell({
     return null;
   }
 
-  const blocked = availability
-    ? !availability.available
-    : Boolean(detail && operation);
+  const failedRetryScopes =
+    operation.actionType === "retry_staged_gift"
+      ? (detail?.crm.failedScopes ?? [])
+      : [];
+  const retryBlock = availability?.available
+    ? retryTargetBlock(failedRetryScopes)
+    : null;
+  const blocked = retryBlock
+    ? true
+    : availability
+      ? !availability.available
+      : Boolean(detail && operation);
   const blockedReason =
+    retryBlock?.reason ??
     availability?.blockedReason ??
     "This operation is not available for the current gift.";
   const blockedNextStep =
+    retryBlock?.nextStep ??
     availability?.nextStep ??
     "Refresh the gift detail or choose another action.";
   const amountError = (() => {
@@ -465,6 +515,13 @@ export function ContributionOperationShell({
       values,
       stagedGiftId: detail?.stagedGift?.id ?? null,
     });
+    const payload =
+      operation.actionType === "retry_staged_gift"
+        ? {
+            ...basePayload,
+            ...retryPayloadForScope(failedRetryScopes[0] ?? null),
+          }
+        : basePayload;
     setPhase({ name: "submitting" });
     try {
       const result = await submitOperation({
@@ -479,8 +536,8 @@ export function ContributionOperationShell({
         expectedRevision: detail?.revision ?? null,
         idempotencyKey,
         payload: receiptDeliverySelection
-          ? { ...basePayload, receiptDelivery: receiptDeliverySelection }
-          : basePayload,
+          ? { ...payload, receiptDelivery: receiptDeliverySelection }
+          : payload,
       });
       await invalidateContributionOperationQueries(queryClient);
       onRowRefresh?.();
@@ -549,6 +606,15 @@ export function ContributionOperationShell({
             </p>
             {blockedNextStep && (
               <p className="text-xs text-muted-foreground">{blockedNextStep}</p>
+            )}
+            {retryBlock && onOpenFullDetail && donationId && (
+              <Button
+                variant="outline"
+                className="mt-3 h-11"
+                onClick={() => onOpenFullDetail(donationId)}
+              >
+                View full contribution detail
+              </Button>
             )}
           </div>
         )}

@@ -9,6 +9,8 @@ import {
   OPERATION_DEFINITIONS,
 } from "../../../../../apps/admin/app/contributions/operation-shell";
 
+import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
+
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
   ADMIN_CRM_RECORDS_QUERY_KEY: ["admin", "crm", "records"],
@@ -104,6 +106,46 @@ function makeReceiptDelivery(overrides: Partial<Record<string, unknown>> = {}) {
     requireDeliveryAction: false,
     donor: { email: null, doNotEmail: false },
     ...overrides,
+  };
+}
+
+function makeRetryDetail(
+  donationId: string,
+  failedScopes: CrmPostFailedScope[],
+) {
+  const detail = makeDetail();
+  return {
+    ...detail,
+    id: donationId,
+    shared: { ...detail.shared, donationId },
+    actionAvailability: [
+      {
+        actionType: "retry_staged_gift",
+        available: true,
+        blockedReason: null,
+        nextStep: null,
+        riskLevel: "medium",
+      },
+    ],
+    crm: {
+      parent: {
+        status: failedScopes.some((scope) => scope.scope === "parent")
+          ? "failed"
+          : "posted",
+        twentyRecordId: "crm-parent-1",
+        lastError: null,
+      },
+      designationRecords: failedScopes
+        .filter((scope) => scope.scope === "designation")
+        .map((scope) => ({
+          allocationId: scope.allocationId,
+          status: "failed",
+          twentyRecordId: null,
+          lastError: "The designation post failed.",
+        })),
+      failedScopes,
+      adapterLimitation: null,
+    },
   };
 }
 
@@ -322,6 +364,180 @@ describe("ContributionOperationShell", () => {
     expect(body.stagedGiftId).toBe("staged-1");
     expect(body.payload).toEqual({});
   });
+
+  it("submits the failed designation scope through the shared retry contract", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ab";
+    const allocationId = "00000000-0000-4000-8000-0000000000ac";
+    const fetchMock = fetchMockForShell(
+      {
+        auditEventId: "audit-retry-1",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      makeRetryDetail(donationId, [{ scope: "designation", allocationId }]),
+    );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.retry_staged_gift!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    const retry = view.getByRole("button", { name: "Retry CRM posting" });
+    await waitFor(() =>
+      expect((retry as HTMLButtonElement).disabled).toBe(false),
+    );
+    fireEvent.click(retry);
+
+    await view.findByTestId("operation-result-panel");
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.actionType).toBe("retry_staged_gift");
+    expect(body.contributionId).toBe(donationId);
+    expect(body.stagedGiftId).toBe("staged-1");
+    expect(body.payload).toEqual({ scope: "designation", allocationId });
+  });
+
+  it.each([
+    {
+      name: "a staged-gift failure without CRM scopes",
+      donationId: "00000000-0000-4000-8000-0000000000ad",
+      failedScopes: [] as CrmPostFailedScope[],
+    },
+    {
+      name: "one parent CRM failure",
+      donationId: "00000000-0000-4000-8000-0000000000b1",
+      failedScopes: [{ scope: "parent" } as const],
+    },
+  ])(
+    "keeps $name on the parent retry contract",
+    async ({ donationId, failedScopes }) => {
+      const fetchMock = fetchMockForShell(
+        {
+          auditEventId: "audit-retry-2",
+          approvalStatus: "applied",
+          taskIds: [],
+          canonicalContribution: {},
+        },
+        makeRetryDetail(donationId, failedScopes),
+      );
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMock,
+      });
+
+      const view = render(
+        <QueryProvider>
+          <ContributionOperationShell
+            open
+            onClose={vi.fn()}
+            operation={OPERATION_DEFINITIONS.retry_staged_gift!}
+            donationId={donationId}
+            sourceSurface="donor_crm_record"
+          />
+        </QueryProvider>,
+      );
+
+      await view.findByText("$250.00");
+      fireEvent.click(view.getByRole("button", { name: "Retry CRM posting" }));
+      await view.findByTestId("operation-result-panel");
+
+      const actionCall = fetchMock.mock.calls.find(([url]) =>
+        String(url).includes("/actions"),
+      );
+      const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+      expect(body.payload).toEqual({ scope: "parent" });
+    },
+  );
+
+  it.each([
+    {
+      name: "multiple failed scopes",
+      donationId: "00000000-0000-4000-8000-0000000000ae",
+      failedScopes: [
+        { scope: "parent" } as const,
+        {
+          scope: "designation" as const,
+          allocationId: "00000000-0000-4000-8000-0000000000af",
+        },
+      ],
+      message: /more than one CRM posting failed/i,
+    },
+    {
+      name: "multiple failed designation scopes",
+      donationId: "00000000-0000-4000-8000-0000000000b2",
+      failedScopes: [
+        {
+          scope: "designation" as const,
+          allocationId: "00000000-0000-4000-8000-0000000000b3",
+        },
+        {
+          scope: "designation" as const,
+          allocationId: "00000000-0000-4000-8000-0000000000b4",
+        },
+      ],
+      message: /more than one CRM posting failed/i,
+    },
+    {
+      name: "an unaddressable designation scope",
+      donationId: "00000000-0000-4000-8000-0000000000b0",
+      failedScopes: [{ scope: "designation" as const, allocationId: null }],
+      message: /failed designation cannot be targeted safely/i,
+    },
+  ])(
+    "opens full detail instead of guessing for $name",
+    async ({ donationId, failedScopes, message }) => {
+      const fetchMock = fetchMockForShell(
+        {},
+        makeRetryDetail(donationId, failedScopes),
+      );
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMock,
+      });
+      const onOpenFullDetail = vi.fn();
+
+      const view = render(
+        <QueryProvider>
+          <ContributionOperationShell
+            open
+            onClose={vi.fn()}
+            operation={OPERATION_DEFINITIONS.retry_staged_gift!}
+            donationId={donationId}
+            sourceSurface="donor_crm_record"
+            onOpenFullDetail={onOpenFullDetail}
+          />
+        </QueryProvider>,
+      );
+
+      expect(await view.findByText(message)).toBeTruthy();
+      expect(
+        view.queryByRole("button", { name: "Retry CRM posting" }),
+      ).toBeNull();
+      fireEvent.click(
+        view.getByRole("button", { name: "View full contribution detail" }),
+      );
+
+      expect(onOpenFullDetail).toHaveBeenCalledWith(donationId);
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+      ).toBe(false);
+    },
+  );
 
   it("omits the receipt result line when the outcome is not required", async () => {
     const fetchMock = fetchMockForShell({
