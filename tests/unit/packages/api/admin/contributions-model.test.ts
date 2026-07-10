@@ -21,6 +21,15 @@ describe("api/admin/contributions/model", () => {
       expect(normalizeContributionGridStatus(unknownStatus)).toBe("pending");
       expect(normalizeSharedPaymentStatus(unknownStatus)).toBe("pending");
     }
+
+    for (const passthroughStatus of ["failed", "refunded"] as const) {
+      expect(normalizeContributionGridStatus(passthroughStatus)).toBe(
+        passthroughStatus,
+      );
+      expect(normalizeSharedPaymentStatus(passthroughStatus)).toBe(
+        passthroughStatus,
+      );
+    }
   });
 
   it("builds a UI-safe contribution row with nonprofit admin fields", () => {
