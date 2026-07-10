@@ -3,6 +3,7 @@ import { ApiHttpError } from "../../../shared/http-errors";
 import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
 
+import type { CrmPostFailedScope } from "../../contribution-operations/crm-post-state";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
 
@@ -384,18 +385,37 @@ export async function getAdminCrmDonorDetail(input: {
       .filter((link) => link.staged_gift_id)
       .map((link) => [link.staged_gift_id!, link]),
   );
-  const failedStagedGiftIds = new Set(
-    [...links, ...designationLinks]
-      .filter((link) => link.link_status === "failed")
-      .map(
-        (link) =>
-          link.staged_gift_id ??
-          (link.allocation_id
-            ? stagedGiftIdByAllocationId.get(link.allocation_id)
-            : null),
-      )
-      .filter((stagedGiftId): stagedGiftId is string => Boolean(stagedGiftId)),
-  );
+  const failedScopesByStagedGiftId = new Map<string, CrmPostFailedScope[]>();
+  const appendFailedScope = (
+    stagedGiftId: string,
+    scope: CrmPostFailedScope,
+  ): void => {
+    const scopes = failedScopesByStagedGiftId.get(stagedGiftId) ?? [];
+    scopes.push(scope);
+    failedScopesByStagedGiftId.set(stagedGiftId, scopes);
+  };
+  for (const link of links) {
+    if (
+      (link.link_status === "failed" || link.link_status === "blocked") &&
+      link.staged_gift_id
+    ) {
+      appendFailedScope(link.staged_gift_id, { scope: "parent" });
+    }
+  }
+  for (const link of designationLinks) {
+    if (link.link_status !== "failed" && link.link_status !== "blocked") {
+      continue;
+    }
+    const stagedGiftId = link.allocation_id
+      ? stagedGiftIdByAllocationId.get(link.allocation_id)
+      : null;
+    if (stagedGiftId) {
+      appendFailedScope(stagedGiftId, {
+        scope: "designation",
+        allocationId: link.allocation_id,
+      });
+    }
+  }
 
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
@@ -463,9 +483,9 @@ export async function getAdminCrmDonorDetail(input: {
       },
       viewerCapabilities: input.viewerCapabilities ?? [],
       approvalPolicy,
-      hasCrmPostFailure: stagedGift
-        ? failedStagedGiftIds.has(stagedGift.id)
-        : false,
+      crmPostFailedScopes: stagedGift
+        ? (failedScopesByStagedGiftId.get(stagedGift.id) ?? [])
+        : [],
     });
   });
 

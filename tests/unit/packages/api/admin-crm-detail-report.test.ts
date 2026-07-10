@@ -356,6 +356,38 @@ describe("Phase 5 CRM donor detail and reports", () => {
       ),
     ).toMatchObject({
       actionType: "retry_staged_gift",
+      available: false,
+      blockedReason: expect.stringMatching(/designation.*not supported/i),
+    });
+  });
+
+  it("keeps paused staged gifts retryable before the queued parent link fails", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donation_crm_links: baseTables.donation_crm_links.map((link) => ({
+          ...link,
+          link_status: "queued",
+        })),
+        staged_gifts: baseTables.staged_gifts.map((stagedGift) => ({
+          ...stagedGift,
+          status: "ready_to_post",
+          crm_post_status: "blocked",
+        })),
+      }) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: ["contributions.retry_crm_post"],
+    });
+
+    expect(
+      detail.giftHistory[0]?.inlineActions.entries.find(
+        (entry) => entry.actionType === "retry_staged_gift",
+      ),
+    ).toMatchObject({
+      actionType: "retry_staged_gift",
       available: true,
       blockedReason: null,
     });

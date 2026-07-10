@@ -753,7 +753,7 @@ describe("apps/admin/app/contributions/page-client", () => {
     expect(view.getByText("Mail")).toBeTruthy();
   });
 
-  it("posts a scoped designation retry through the shared actions contract", async () => {
+  it("keeps unsupported designation retry blocked in contribution detail", async () => {
     const donationId = "00000000-0000-4000-8000-000000000131";
     mockSearch = `gift=${donationId}`;
     const baseDetail = makeDetailPayload(donationId, "Scoped Retry Donor");
@@ -771,9 +771,11 @@ describe("apps/admin/app/contributions/page-client", () => {
         actionAvailability: [
           {
             actionType: "retry_staged_gift",
-            available: true,
-            blockedReason: null,
-            nextStep: null,
+            available: false,
+            blockedReason:
+              "Designation retry is not supported by the connected CRM adapter yet.",
+            nextStep:
+              "Resolve the failed designation record in the CRM directly.",
             riskLevel: "low",
           },
         ],
@@ -829,26 +831,11 @@ describe("apps/admin/app/contributions/page-client", () => {
     expect(await view.findByText("Twenty CRM posting")).toBeTruthy();
     expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
 
-    fireEvent.click(
-      await view.findByRole("button", { name: /retry this line/i }),
-    );
-
-    await waitFor(() => {
-      expect(
-        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
-      ).toBe(true);
-    });
-
-    const actionCall = fetchMock.mock.calls.find(([url]) =>
-      String(url).includes("/actions"),
-    );
-    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
-    expect(body).toMatchObject({
-      actionType: "retry_staged_gift",
-      contributionId: donationId,
-      stagedGiftId: "staged-9",
-      payload: { scope: "designation", allocationId: "alloc-2" },
-    });
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(view.getByText(/designation retry is not supported/i)).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
   });
 
   it("strips invalid gift query params before fetching detail", async () => {

@@ -73,7 +73,7 @@ describe("admin/contribution-operations/action-availability", () => {
     );
   });
 
-  it("allows retry when unified CRM post state reports link-derived failures", () => {
+  it("allows retry when unified CRM post state reports a parent failure", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: {
         id: "staged-1",
@@ -82,7 +82,78 @@ describe("admin/contribution-operations/action-availability", () => {
         crmPostStatus: "posted",
       },
       paymentStatus: "completed",
-      hasCrmPostFailure: true,
+      crmPostFailedScopes: [{ scope: "parent" }],
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+  });
+
+  it("blocks designation-only retries until the route adapter supports them", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+      },
+      paymentStatus: "completed",
+      crmPostFailedScopes: [
+        { scope: "designation", allocationId: "allocation-1" },
+      ],
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/designation.*not supported/i),
+      nextStep: expect.stringMatching(/crm directly/i),
+    });
+  });
+
+  it("keeps an independently failed staged-gift retry available when designation retry is unsupported", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "failed",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+      },
+      paymentStatus: "completed",
+      crmPostFailedScopes: [
+        { scope: "designation", allocationId: "allocation-1" },
+      ],
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+  });
+
+  it("keeps a paused ready-to-post gift retryable when scoped links have not failed", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "ready_to_post",
+        receiptStatus: "sent",
+        crmPostStatus: "blocked",
+      },
+      paymentStatus: "completed",
+      crmPostFailedScopes: [],
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+  });
+
+  it("keeps a supported parent retry available when designation failure is also present", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+      },
+      paymentStatus: "completed",
+      crmPostFailedScopes: [
+        { scope: "parent" },
+        { scope: "designation", allocationId: "allocation-1" },
+      ],
     });
 
     expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);

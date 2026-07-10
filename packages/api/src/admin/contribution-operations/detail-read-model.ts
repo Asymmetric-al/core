@@ -729,6 +729,7 @@ export function buildContributionDetail(
         : null,
       paymentStatus: effective.paymentStatus,
       hasCrmPostFailure: crmPostState.failedScopes.length > 0,
+      crmPostFailedScopes: crmPostState.failedScopes,
       refund: {
         amountCents: effective.amountCents,
         refundedAmountCents: donation.refundAmount,

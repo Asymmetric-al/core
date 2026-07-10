@@ -1,6 +1,12 @@
 import { getContributionActionRiskLevel } from "./policy";
-import { isContributionRouteActionSupported } from "./route-action-support";
+import {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  isContributionRouteActionSupported,
+  isContributionRouteCrmRetryScopeSupported,
+} from "./route-action-support";
 
+import type { CrmPostFailedScope } from "./crm-post-state";
 import type { ContributionActionType, ContributionRiskLevel } from "./types";
 
 /**
@@ -30,6 +36,11 @@ export interface BuildContributionActionAvailabilityInput {
   paymentStatus: string | null;
   /** Unified CRM post state from parent/child links, not just staged columns. */
   hasCrmPostFailure?: boolean;
+  /**
+   * Scope-aware CRM failures. When provided, these supersede the legacy
+   * aggregate flag so unsupported designation-only retries stay unavailable.
+   */
+  crmPostFailedScopes?: CrmPostFailedScope[];
   /** Refund context: original amount, refunded so far, provider charge. */
   refund?: {
     amountCents: number;
@@ -95,15 +106,33 @@ function approveAvailability(
 function retryAvailability(
   stagedGift: ActionAvailabilityStagedGiftInput,
   hasCrmPostFailure: boolean,
+  hasRetryableCrmPostFailure: boolean,
+  hasScopedCrmPostState: boolean,
 ): ContributionActionAvailability {
-  const retryable =
+  const hasRetryableStagedGiftState =
     stagedGift.status === "failed" ||
-    stagedGift.crmPostStatus === "failed" ||
-    stagedGift.crmPostStatus === "blocked" ||
-    hasCrmPostFailure;
+    (stagedGift.status === "ready_to_post" &&
+      (stagedGift.crmPostStatus === "failed" ||
+        stagedGift.crmPostStatus === "blocked"));
+  const hasLegacyCrmPostFailure =
+    !hasScopedCrmPostState &&
+    (stagedGift.crmPostStatus === "failed" ||
+      stagedGift.crmPostStatus === "blocked");
+  const retryable =
+    hasRetryableStagedGiftState ||
+    hasLegacyCrmPostFailure ||
+    hasRetryableCrmPostFailure;
 
   if (retryable) {
     return entry("retry_staged_gift", { available: true });
+  }
+
+  if (hasCrmPostFailure) {
+    return entry("retry_staged_gift", {
+      available: false,
+      blockedReason: CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+      nextStep: CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+    });
   }
 
   return entry("retry_staged_gift", {
@@ -198,7 +227,15 @@ export function buildContributionActionAvailability(
   input: BuildContributionActionAvailabilityInput,
 ): ContributionActionAvailability[] {
   const { stagedGift, paymentStatus } = input;
-  const hasCrmPostFailure = input.hasCrmPostFailure ?? false;
+  const crmPostFailedScopes = input.crmPostFailedScopes;
+  const hasCrmPostFailure = crmPostFailedScopes
+    ? crmPostFailedScopes.length > 0
+    : (input.hasCrmPostFailure ?? false);
+  const hasRetryableCrmPostFailure = crmPostFailedScopes
+    ? crmPostFailedScopes.some((scope) =>
+        isContributionRouteCrmRetryScopeSupported(scope.scope),
+      )
+    : hasCrmPostFailure;
   const refund = input.refund ?? {
     amountCents: 0,
     refundedAmountCents: 0,
@@ -216,7 +253,12 @@ export function buildContributionActionAvailability(
 
   return [
     approveAvailability(stagedGift),
-    retryAvailability(stagedGift, hasCrmPostFailure),
+    retryAvailability(
+      stagedGift,
+      hasCrmPostFailure,
+      hasRetryableCrmPostFailure,
+      crmPostFailedScopes !== undefined,
+    ),
     receiptAvailability(stagedGift, paymentStatus),
     refundAvailability(paymentStatus, refund),
   ];

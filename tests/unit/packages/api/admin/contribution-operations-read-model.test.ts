@@ -999,7 +999,7 @@ describe("contribution operations detail read model", () => {
     });
   });
 
-  it("makes retry available when CRM link state exposes failed scopes", () => {
+  it("blocks designation-only retry when the current adapter cannot execute it", () => {
     const detail = buildContributionDetail({
       donation: donationInput(),
       stagedGift: {
@@ -1025,7 +1025,10 @@ describe("contribution operations detail read model", () => {
     expect(detail.crm.failedScopes).toEqual([
       { scope: "designation", allocationId: "alloc_1" },
     ]);
-    expect(availabilityFor(detail, "retry_staged_gift").available).toBe(true);
+    expect(availabilityFor(detail, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/designation.*not supported/i),
+    });
   });
 
   it("changes revision when adjustment state changes with the same donation timestamp and count", () => {

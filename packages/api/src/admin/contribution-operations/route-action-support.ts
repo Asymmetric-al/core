@@ -2,6 +2,13 @@ import { ApiHttpError } from "../../shared/http-errors";
 
 import type { ContributionActionType } from "./types";
 
+export type ContributionCrmRetryScope = "parent" | "designation";
+
+export const CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON =
+  "Designation retry is not supported by the connected CRM adapter yet.";
+export const CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP =
+  "Resolve the failed designation record in the CRM directly, or retry a failed parent record when one is available.";
+
 /**
  * Actions the current HTTP dependency set cannot execute safely. Keep this
  * below both route validation and availability so UI contracts never promise
@@ -17,6 +24,17 @@ export function isContributionRouteActionSupported(
   actionType: ContributionActionType,
 ): boolean {
   return !UNSUPPORTED_ROUTE_ACTION_TYPES.has(actionType);
+}
+
+/**
+ * The production route can retry the parent CRM gift record today. The
+ * designation callback remains an optional future adapter capability; do not
+ * advertise it while the wired adapter can only return 501.
+ */
+export function isContributionRouteCrmRetryScopeSupported(
+  scope: ContributionCrmRetryScope,
+): boolean {
+  return scope === "parent";
 }
 
 export function unsupportedContributionRouteActionMessage(

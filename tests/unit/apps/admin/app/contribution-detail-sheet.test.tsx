@@ -479,7 +479,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
     expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
   });
 
-  it("invokes scoped retry for a failed designation line", () => {
+  it("does not offer designation retry while the current route adapter rejects it", () => {
     const onRetryCrmPost = vi.fn();
     const contribution = contributionWithStagedGift();
 
@@ -513,14 +513,45 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       view.queryByRole("button", { name: /retry parent record/i }),
     ).toBeNull();
 
-    fireEvent.click(view.getByRole("button", { name: /retry this line/i }));
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(onRetryCrmPost).not.toHaveBeenCalled();
+    expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
+  });
 
-    expect(onRetryCrmPost).toHaveBeenCalledTimes(1);
-    expect(onRetryCrmPost).toHaveBeenCalledWith(
-      { scope: "designation", allocationId: "alloc-2" },
-      "staged-1",
-      contribution.id,
+  it("keeps generic retry for an independently failed staged gift", () => {
+    const contribution = {
+      ...contributionWithStagedGift(),
+      stagedGiftStatus: "failed" as const,
+    };
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        actionAvailability={retryAvailableAvailability}
+        onRetryStagedGift={vi.fn()}
+        crmPostState={{
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-1",
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        }}
+      />,
     );
+
+    expect(view.getByRole("button", { name: /^retry posting$/i })).toBeTruthy();
   });
 
   it("invokes scoped retry for a failed parent record", () => {
@@ -539,14 +570,27 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
             twentyRecordId: null,
             lastError: "Twenty timed out while creating the gift record.",
           },
-          designationRecords: [],
-          failedScopes: [{ scope: "parent" }],
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [
+            { scope: "parent" },
+            { scope: "designation", allocationId: "alloc-2" },
+          ],
           adapterLimitation: null,
         }}
       />,
     );
 
     expect(view.getByText(/timed out while creating/i)).toBeTruthy();
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(view.getByText(/designation retry is not supported/i)).toBeTruthy();
+    expect(view.getByText(/resolve the failed designation.*crm/i)).toBeTruthy();
 
     fireEvent.click(view.getByRole("button", { name: /retry parent record/i }));
 

@@ -99,6 +99,12 @@ export {
   isHighRiskContributionAction,
 } from "./policy";
 export {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  isContributionRouteCrmRetryScopeSupported,
+  type ContributionCrmRetryScope,
+} from "./route-action-support";
+export {
   buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   evaluateReceiptDeliveryOptions,

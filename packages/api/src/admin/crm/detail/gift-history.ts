@@ -9,6 +9,7 @@ import {
 } from "../../contribution-shared/row-contract";
 
 import type { CorrectionApprovalPolicy } from "../../contribution-operations/approval-policy";
+import type { CrmPostFailedScope } from "../../contribution-operations/crm-post-state";
 import type {
   ContributionDesignationSet,
   CrmGiftHistoryRow,
@@ -37,6 +38,8 @@ export interface BuildCrmGiftHistoryRowInput {
   approvalPolicy?: CorrectionApprovalPolicy | null;
   /** Unified parent/designation link failure state from contribution detail. */
   hasCrmPostFailure?: boolean;
+  /** Scope-aware failure state keeps unsupported child retries unavailable. */
+  crmPostFailedScopes?: CrmPostFailedScope[];
 }
 
 /**
@@ -80,6 +83,7 @@ export function buildCrmGiftHistoryRow(
       : null,
     paymentStatus: donation.status,
     hasCrmPostFailure: input.hasCrmPostFailure,
+    crmPostFailedScopes: input.crmPostFailedScopes,
     refund: {
       amountCents: shared.amountCents,
       refundedAmountCents: shared.refundedAmountCents,

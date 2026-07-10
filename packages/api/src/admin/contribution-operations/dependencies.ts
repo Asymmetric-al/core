@@ -16,7 +16,6 @@ import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
 import { sendStagedGiftReceipt } from "../../giving/receipts";
 import {
   queueStagedGiftPostingToTwenty,
-  retryStagedGiftDesignationPostingToTwenty,
   retryStagedGiftPostingToTwenty,
 } from "../../giving/staged-gifts";
 import { ApiHttpError } from "../../shared/http-errors";
@@ -44,24 +43,6 @@ export function createContributionActionDependencies(
       retryStagedGiftPostingToTwenty({
         supabaseAdmin,
         actorProfileId,
-        note,
-        stagedGiftId,
-        tenantId,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
-      }),
-    retryDesignationPost: ({
-      actorProfileId,
-      allocationId,
-      contributionId,
-      note,
-      stagedGiftId,
-      tenantId,
-    }) =>
-      retryStagedGiftDesignationPostingToTwenty({
-        supabaseAdmin,
-        actorProfileId,
-        allocationId,
-        contributionId,
         note,
         stagedGiftId,
         tenantId,

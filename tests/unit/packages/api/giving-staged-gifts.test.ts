@@ -1,11 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { enqueueCrmOutboundJob } from "../../../../packages/api/src/crm/sync/outbound";
 import {
   buildTwentyGiftSummaryPayload,
   canTransitionStagedGift,
+  queueStagedGiftPostingToTwenty,
+  retryStagedGiftPostingToTwenty,
   stageGiftFromStripeDonation,
   type StagedGiftRow,
 } from "../../../../packages/api/src/giving/staged-gifts";
+
+vi.mock("../../../../packages/api/src/crm/sync/outbound", () => ({
+  enqueueCrmOutboundJob: vi.fn(),
+}));
 
 const gift: StagedGiftRow = {
   allocationStatus: "single_allocation",
@@ -160,6 +167,145 @@ function buildSupabaseMock(
 
   return mock;
 }
+
+describe("retryStagedGiftPostingToTwenty", () => {
+  const postedGiftRow = {
+    ...stagedGiftDbRow,
+    status: "posted",
+    crm_post_status: "posted",
+  };
+  const crmConfig = {
+    outboundEnabled: true,
+  } as never;
+
+  beforeEach(() => {
+    vi.mocked(enqueueCrmOutboundJob).mockReset();
+  });
+
+  it("requeues a posted gift only when its parent CRM link is failed", async () => {
+    let stagedGiftReadCount = 0;
+    const supabaseAdmin = buildSupabaseMock({
+      staged_gifts: () => {
+        stagedGiftReadCount += 1;
+        return {
+          data:
+            stagedGiftReadCount === 1
+              ? postedGiftRow
+              : {
+                  ...postedGiftRow,
+                  status: "ready_to_post",
+                  crm_post_status: "queued",
+                  crm_outbound_job_id: "job-1",
+                },
+          error: null,
+        };
+      },
+      donation_crm_links: () => ({
+        data: { id: "link-1", link_status: "failed" },
+        error: null,
+      }),
+      staged_gift_audit_events: () => ({ data: null, error: null }),
+    }) as never;
+    vi.mocked(enqueueCrmOutboundJob).mockResolvedValue({
+      id: "job-1",
+      status: "pending",
+    } as never);
+
+    const result = await retryStagedGiftPostingToTwenty({
+      supabaseAdmin,
+      stagedGiftId: "sg-abc",
+      tenantId: "tenant-abc",
+      actorProfileId: "profile-1",
+      crmConfig,
+    });
+
+    expect(result.status).toBe("ready_to_post");
+    expect(enqueueCrmOutboundJob).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects a posted gift without a failed or blocked parent CRM link", async () => {
+    const supabaseAdmin = buildSupabaseMock({
+      staged_gifts: () => ({ data: postedGiftRow, error: null }),
+      donation_crm_links: () => ({
+        data: { id: "link-1", link_status: "active" },
+        error: null,
+      }),
+    }) as never;
+
+    await expect(
+      retryStagedGiftPostingToTwenty({
+        supabaseAdmin,
+        stagedGiftId: "sg-abc",
+        tenantId: "tenant-abc",
+        actorProfileId: "profile-1",
+        crmConfig,
+      }),
+    ).rejects.toThrow("Cannot retry staged gift from posted status.");
+    expect(enqueueCrmOutboundJob).not.toHaveBeenCalled();
+  });
+
+  it("does not let the queue path bypass parent CRM link proof", async () => {
+    const supabaseAdmin = buildSupabaseMock({
+      staged_gifts: () => ({ data: postedGiftRow, error: null }),
+      donation_crm_links: () => ({
+        data: { id: "link-1", link_status: "active" },
+        error: null,
+      }),
+    }) as never;
+
+    await expect(
+      queueStagedGiftPostingToTwenty({
+        supabaseAdmin,
+        stagedGiftId: "sg-abc",
+        tenantId: "tenant-abc",
+        actorProfileId: "profile-1",
+        crmConfig,
+      }),
+    ).rejects.toThrow("Cannot queue staged gift from posted status.");
+    expect(enqueueCrmOutboundJob).not.toHaveBeenCalled();
+  });
+
+  it("keeps posted parent-link recovery exclusive to the retry path", async () => {
+    let stagedGiftReadCount = 0;
+    const supabaseAdmin = buildSupabaseMock({
+      staged_gifts: () => {
+        stagedGiftReadCount += 1;
+        return {
+          data:
+            stagedGiftReadCount === 1
+              ? postedGiftRow
+              : {
+                  ...postedGiftRow,
+                  status: "ready_to_post",
+                  crm_post_status: "queued",
+                  crm_outbound_job_id: "job-1",
+                },
+          error: null,
+        };
+      },
+      donation_crm_links: () => ({
+        data: { id: "link-1", link_status: "failed" },
+        error: null,
+      }),
+      staged_gift_audit_events: () => ({ data: null, error: null }),
+    }) as never;
+    vi.mocked(enqueueCrmOutboundJob).mockResolvedValue({
+      id: "job-1",
+      status: "pending",
+    } as never);
+
+    await expect(
+      queueStagedGiftPostingToTwenty({
+        supabaseAdmin,
+        stagedGiftId: "sg-abc",
+        tenantId: "tenant-abc",
+        actorProfileId: "profile-1",
+        crmConfig,
+      }),
+    ).rejects.toThrow("Cannot queue staged gift from posted status.");
+    expect(enqueueCrmOutboundJob).not.toHaveBeenCalled();
+  });
+});
 
 describe("stageGiftFromStripeDonation resilience", () => {
   it("repairs a missing allocation on webhook retry (second call inserts allocation)", async () => {

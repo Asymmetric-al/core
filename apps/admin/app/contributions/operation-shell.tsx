@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  isContributionRouteCrmRetryScopeSupported,
+} from "@asym/api/admin/contribution-operations";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -278,6 +283,16 @@ function retryTargetBlock(
     };
   }
 
+  if (
+    scope?.scope === "designation" &&
+    !isContributionRouteCrmRetryScopeSupported(scope.scope)
+  ) {
+    return {
+      reason: CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+      nextStep: CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+    };
+  }
+
   return null;
 }
 
@@ -437,8 +452,17 @@ export function ContributionOperationShell({
     operation.actionType === "retry_staged_gift"
       ? (detail?.crm.failedScopes ?? [])
       : [];
+  const hasIndependentStagedGiftRetry = Boolean(
+    detail?.stagedGift?.status === "failed" ||
+    (detail?.stagedGift?.status === "ready_to_post" &&
+      (detail.stagedGift.crmPostStatus === "failed" ||
+        detail.stagedGift.crmPostStatus === "blocked")),
+  );
+  const retryTargetScopes = hasIndependentStagedGiftRetry
+    ? []
+    : failedRetryScopes;
   const retryBlock = availability?.available
-    ? retryTargetBlock(failedRetryScopes)
+    ? retryTargetBlock(retryTargetScopes)
     : null;
   const blocked = retryBlock
     ? true
@@ -519,7 +543,7 @@ export function ContributionOperationShell({
       operation.actionType === "retry_staged_gift"
         ? {
             ...basePayload,
-            ...retryPayloadForScope(failedRetryScopes[0] ?? null),
+            ...retryPayloadForScope(retryTargetScopes[0] ?? null),
           }
         : basePayload;
     setPhase({ name: "submitting" });
