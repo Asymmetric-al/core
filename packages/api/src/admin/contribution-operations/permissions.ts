@@ -58,18 +58,27 @@ export function assertContributionActionPermission(
     options,
   );
   const actorCapabilities = resolveContributionCapabilities(auth);
+  const requiresEveryCapability =
+    (actionType === "refund" || actionType === "stripe_replay") &&
+    options.mode === "request";
+  const hasRequiredCapabilities = requiresEveryCapability
+    ? requiredCapabilities.every((capability) =>
+        actorCapabilities.includes(capability),
+      )
+    : requiredCapabilities.some((capability) =>
+        actorCapabilities.includes(capability),
+      );
 
-  if (
-    requiredCapabilities.some((capability) =>
-      actorCapabilities.includes(capability),
-    )
-  ) {
+  if (hasRequiredCapabilities) {
     return;
   }
 
   throw new ApiHttpError(
     403,
-    `Forbidden: requires ${formatRequiredCapabilities(requiredCapabilities)}`,
+    `Forbidden: requires ${formatRequiredCapabilities(
+      requiredCapabilities,
+      requiresEveryCapability ? "and" : "or",
+    )}`,
   );
 }
 
@@ -149,8 +158,9 @@ export function requiredCapabilitiesForContributionAction(
 
 function formatRequiredCapabilities(
   capabilities: ContributionCapability[],
+  conjunction: "and" | "or" = "or",
 ): string {
-  return capabilities.join(" or ");
+  return capabilities.join(` ${conjunction} `);
 }
 
 const DONOR_CARE_CAPABILITIES: ContributionCapability[] = [

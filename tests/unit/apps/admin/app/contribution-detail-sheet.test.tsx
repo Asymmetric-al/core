@@ -168,7 +168,7 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
     expect(view.queryByText(/invalid|missing donation|not found/i)).toBeNull();
   });
 
-  it("renders available actions and blocked reasons from server availability", () => {
+  it("fails closed on stale posting availability while preserving safe actions", () => {
     const contribution = {
       ...boneyardContributionsFixture[0]!,
       stagedGiftId: "staged-1",
@@ -207,12 +207,15 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
       />,
     );
 
-    expect(view.getByRole("button", { name: /approve/i })).toBeTruthy();
+    expect(view.queryByRole("button", { name: /approve/i })).toBeNull();
     expect(view.getByRole("button", { name: /send receipt/i })).toBeTruthy();
     expect(view.queryByRole("button", { name: /retry posting/i })).toBeNull();
     expect(
-      view.getByText(/no failed or blocked posting to retry/i),
-    ).toBeTruthy();
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*maintained in Asym/i).length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -395,7 +398,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.getByText("Twenty CRM posting")).toBeTruthy();
+    expect(view.getByText("Historical CRM posting")).toBeTruthy();
     expect(view.getByText("Parent gift record")).toBeTruthy();
     expect(view.getByText("twenty-parent-1")).toBeTruthy();
     expect(view.getAllByText("Posted").length).toBe(2);
@@ -467,7 +470,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
           designationRecords: [],
           failedScopes: [],
           adapterLimitation:
-            "The connected CRM adapter posts this gift as a single parent record and does not yet represent each designation line as a child record.",
+            "The historical CRM posting record represents this gift as a single parent record and has no child record for each designation line.",
         }}
       />,
     );
@@ -519,7 +522,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
     expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
   });
 
-  it("keeps generic retry for an independently failed staged gift", () => {
+  it("keeps an independently failed staged gift read-only", () => {
     const contribution = {
       ...contributionWithStagedGift(),
       stagedGiftStatus: "failed" as const,
@@ -551,12 +554,18 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.getByRole("button", { name: /^retry posting$/i })).toBeTruthy();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
   });
 
-  it("invokes scoped retry for a failed parent record", () => {
+  it("does not invoke a retired scoped parent retry", () => {
     const onRetryCrmPost = vi.fn();
-    const contribution = contributionWithStagedGift();
+    const contribution = {
+      ...contributionWithStagedGift(),
+      stagedGiftStatus: "ready_to_post" as const,
+    };
 
     const view = render(
       <ContributionDetailSheet
@@ -589,17 +598,48 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
 
     expect(view.getByText(/timed out while creating/i)).toBeTruthy();
     expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
-    expect(view.getByText(/designation retry is not supported/i)).toBeTruthy();
-    expect(view.getByText(/resolve the failed designation.*crm/i)).toBeTruthy();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*maintained in Asym/i).length,
+    ).toBeGreaterThan(0);
 
-    fireEvent.click(view.getByRole("button", { name: /retry parent record/i }));
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(onRetryCrmPost).not.toHaveBeenCalled();
+  });
 
-    expect(onRetryCrmPost).toHaveBeenCalledTimes(1);
-    expect(onRetryCrmPost).toHaveBeenCalledWith(
-      { scope: "parent" },
-      "staged-1",
-      contribution.id,
+  it("hides posted parent retry even when availability is stale", () => {
+    const onRetryCrmPost = vi.fn();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contributionWithStagedGift()}
+        onClose={vi.fn()}
+        actionAvailability={retryAvailableAvailability}
+        onRetryCrmPost={onRetryCrmPost}
+        onRetryStagedGift={vi.fn()}
+        crmPostState={{
+          parent: {
+            status: "failed",
+            twentyRecordId: null,
+            lastError: "Twenty timed out while creating the gift record.",
+          },
+          designationRecords: [],
+          failedScopes: [{ scope: "parent" }],
+          adapterLimitation: null,
+        }}
+      />,
     );
+
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(onRetryCrmPost).not.toHaveBeenCalled();
   });
 
   it("hides scoped retry buttons when the retry action is not available", () => {
@@ -663,7 +703,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.queryByText("Twenty CRM posting")).toBeNull();
+    expect(view.queryByText("Historical CRM posting")).toBeNull();
     expect(view.getByText("Twenty")).toBeTruthy();
     expect(view.getByText("not required")).toBeTruthy();
   });
@@ -682,7 +722,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.queryByText("Twenty CRM posting")).toBeNull();
+    expect(view.queryByText("Historical CRM posting")).toBeNull();
     expect(view.queryByText("Parent gift record")).toBeNull();
   });
 });

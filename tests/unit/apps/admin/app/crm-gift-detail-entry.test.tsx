@@ -309,6 +309,20 @@ const inlineActionsFixture = {
   ],
 };
 
+const staleCrmRetryInlineActions = {
+  nextBestActionType: "retry_staged_gift",
+  entries: [
+    {
+      actionType: "retry_staged_gift",
+      available: true,
+      blockedReason: null,
+      nextStep: null,
+      riskLevel: "low",
+    },
+    ...inlineActionsFixture.entries,
+  ],
+};
+
 function crmDonorDetailFor(donationId: string) {
   return {
     ...crmDonorDetail,
@@ -673,6 +687,62 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
     // Entries the server filtered out never render.
     expect(view.queryByText("Replay provider webhook")).toBeNull();
+  });
+
+  it("fails closed when stale inline data advertises CRM retry as available", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d010";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const staleDetail = crmDonorDetailFor(donationId);
+    staleDetail.giftHistory[0]!.inlineActions = staleCrmRetryInlineActions;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: staleDetail }),
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => contributionDetailPayloadFor(donationId),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    expect(
+      await view.findByRole("button", { name: "Send receipt" }),
+    ).toBeTruthy();
+    expect(
+      view.queryByRole("button", { name: "CRM posting unavailable" }),
+    ).toBeNull();
+
+    fireEvent.click(view.getByRole("button", { name: "More gift actions" }));
+
+    const retryItem = (
+      await view.findByText("CRM posting unavailable")
+    ).closest("[role=menuitem]");
+    expect(retryItem?.getAttribute("aria-disabled")).toBe("true");
+    expect(retryItem?.textContent).toMatch(
+      /external CRM posting is no longer an active product workflow/i,
+    );
+    expect(retryItem?.textContent).toMatch(
+      /historical evidence.*maintained in Asym/i,
+    );
+    fireEvent.click(retryItem!);
+    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
+
+    fireEvent.click(await view.findByText("Pin row action"));
+    expect(
+      view.queryByRole("menuitemradio", {
+        name: "CRM posting unavailable",
+      }),
+    ).toBeNull();
   });
 
   it("restores donor drawer deep links even when the donor is off the loaded grid", async () => {

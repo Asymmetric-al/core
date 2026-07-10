@@ -146,7 +146,10 @@ describe("admin/contribution-operations/crm-post-state", () => {
       designationLineCount: 3,
     });
 
-    expect(state.adapterLimitation).toMatch(/single parent record/i);
+    expect(state.adapterLimitation).toMatch(
+      /historical CRM posting record.*single parent record/i,
+    );
+    expect(state.adapterLimitation).not.toMatch(/connected CRM adapter/i);
     expect(state.designationRecords).toEqual([]);
   });
 });

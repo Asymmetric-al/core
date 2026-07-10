@@ -4,6 +4,10 @@ import {
   correctionRequiresApproval,
   resolveCorrectionApprovalPolicy,
 } from "./approval-policy";
+import {
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+} from "./crm-retry-support";
 import { getContributionActionPolicy } from "./policy";
 import { ApiHttpError } from "../../shared/http-errors";
 
@@ -290,7 +294,23 @@ function assertActorPermissions(
 
   const directCapability = DIRECT_ACTION_CAPABILITY[input.actionType];
   if (hasActorCapability(input, directCapability)) {
+    const granularProviderAction =
+      input.actionType === "refund" || input.actionType === "stripe_replay";
+    if (
+      granularProviderAction &&
+      options.requiresApproval &&
+      !hasActorCapability(input, REQUEST_CORRECTION_CAPABILITY)
+    ) {
+      throw new ApiHttpError(
+        403,
+        `Forbidden: requires ${REQUEST_CORRECTION_CAPABILITY}`,
+      );
+    }
     return;
+  }
+
+  if (input.actionType === "refund" || input.actionType === "stripe_replay") {
+    throw new ApiHttpError(403, `Forbidden: requires ${directCapability}`);
   }
 
   if (isApprovalRequestAction(input.actionType)) {
@@ -931,7 +951,7 @@ export async function executeContributionAction<TContribution = unknown>(
         if (!retryDesignation) {
           throw new ApiHttpError(
             501,
-            "The connected CRM adapter does not support posting designation child records yet. Retry the parent gift record instead, or resolve the line in the CRM directly.",
+            `${CRM_POSTING_UNAVAILABLE_REASON} ${CRM_POSTING_UNAVAILABLE_NEXT_STEP}`,
           );
         }
         await retryDesignation({

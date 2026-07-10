@@ -95,6 +95,9 @@ export interface ProjectContributionDetailOptions {
   approvalPolicy?: CorrectionApprovalPolicy | null;
 }
 
+const REDACTED_HISTORICAL_CRM_ERROR =
+  "Historical CRM posting failed. Provider details are available to authorized operators.";
+
 /**
  * Pure viewer projection of the tenant receipt delivery policy + donor
  * context, evaluated against the viewer's capabilities (#263).
@@ -220,6 +223,25 @@ export function projectContributionDetailForViewer(
         agreement: detail.recurring.agreement
           ? { ...detail.recurring.agreement, stripeSubscriptionId: null }
           : null,
+      },
+      stagedGift: detail.stagedGift
+        ? { ...detail.stagedGift, twentyRecordId: null }
+        : null,
+      crm: {
+        ...detail.crm,
+        twentyRecordId: null,
+        parent: {
+          ...detail.crm.parent,
+          twentyRecordId: null,
+          lastError: detail.crm.parent.lastError
+            ? REDACTED_HISTORICAL_CRM_ERROR
+            : null,
+        },
+        designationRecords: detail.crm.designationRecords.map((record) => ({
+          ...record,
+          twentyRecordId: null,
+          lastError: record.lastError ? REDACTED_HISTORICAL_CRM_ERROR : null,
+        })),
       },
       // Hide provider/admin actions entirely for unauthorized viewers
       // (ADR-CD-018 mixed visibility: irrelevant or unauthorized → hidden).

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { buildContributionActionAvailability } from "../../../../../packages/api/src/admin/contribution-operations/action-availability";
 import { resolveCorrectionApprovalPolicy } from "../../../../../packages/api/src/admin/contribution-operations/approval-policy";
+import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
 import {
   buildInlineContributionActions,
   pickNextBestInlineContributionAction,
@@ -66,6 +67,54 @@ function availabilityFor(input?: {
   });
 }
 
+function detailForProjection(input: {
+  paymentIntentId: string | null;
+  chargeId: string | null;
+}): ContributionDetail {
+  const detail = buildContributionDetail({
+    donation: {
+      id: "donation-1",
+      tenantId: "tenant-1",
+      donorId: null,
+      missionaryId: null,
+      fundId: null,
+      amount: 25_000,
+      currency: "usd",
+      status: "completed",
+      donationType: "one_time",
+      paymentMethod: "card",
+      isRecurring: false,
+      recurringInterval: null,
+      notes: null,
+      stripePaymentIntentId: input.paymentIntentId,
+      stripeChargeId: input.chargeId,
+      giftDate: "2026-05-01T00:00:00.000Z",
+      campaignId: null,
+      pledgeId: null,
+      processedAt: null,
+      completedAt: "2026-05-01T00:00:00.000Z",
+      failedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      refundedAt: null,
+      refundAmount: 0,
+      source: "online",
+      createdAt: "2026-05-01T00:00:00.000Z",
+      updatedAt: "2026-05-01T00:00:00.000Z",
+    },
+    stagedGift: {
+      id: postedStagedGift.id,
+      status: postedStagedGift.status,
+      receiptStatus: postedStagedGift.receiptStatus,
+      crmPostStatus: postedStagedGift.crmPostStatus,
+      reviewReason: null,
+      twentyRecordId: null,
+    },
+  });
+  detail.actionAvailability = availabilityFor();
+  return detail;
+}
+
 describe("admin/contribution-operations/inline-actions", () => {
   it("reuses the exact detail availability entries for workflow actions", () => {
     const availability = availabilityFor();
@@ -86,18 +135,10 @@ describe("admin/contribution-operations/inline-actions", () => {
   });
 
   it("matches the viewer projection for provider replay availability", () => {
-    const detailBase = {
-      actionAvailability: availabilityFor(),
-      payment: {
-        stripe: {
-          paymentIntentId: null,
-          chargeId: null,
-          refundIds: [],
-          replayContext: null,
-        },
-      },
-      recurring: { agreement: null },
-    } as unknown as ContributionDetail;
+    const detailBase = detailForProjection({
+      paymentIntentId: null,
+      chargeId: null,
+    });
 
     const projected = projectContributionDetailForViewer(
       detailBase,
@@ -124,12 +165,7 @@ describe("admin/contribution-operations/inline-actions", () => {
     const cases = [
       {
         approvalPolicy: undefined,
-        expectedActionTypes: [
-          "amount_correction",
-          "fund_correction",
-          "refund",
-          "stripe_replay",
-        ],
+        expectedActionTypes: ["amount_correction", "fund_correction"],
         viewerCapabilities: DONOR_CARE_CAPABILITIES,
       },
       {
@@ -162,18 +198,10 @@ describe("admin/contribution-operations/inline-actions", () => {
       expectedActionTypes,
       viewerCapabilities,
     } of cases) {
-      const detail = {
-        actionAvailability: availabilityFor(),
-        payment: {
-          stripe: {
-            paymentIntentId: "pi_1",
-            chargeId: null,
-            refundIds: [],
-            replayContext: null,
-          },
-        },
-        recurring: { agreement: null },
-      } as unknown as ContributionDetail;
+      const detail = detailForProjection({
+        paymentIntentId: "pi_1",
+        chargeId: null,
+      });
 
       const projected = projectContributionDetailForViewer(
         detail,
@@ -316,7 +344,7 @@ describe("admin/contribution-operations/inline-actions", () => {
     }
   });
 
-  it("allows donor-care staff to request approval-gated inline actions", () => {
+  it("allows donor-care staff to request non-provider approval-gated inline actions", () => {
     const inline = buildInlineContributionActions({
       availability: availabilityFor(),
       providerPaymentIntentId: "pi_1",
@@ -326,10 +354,26 @@ describe("admin/contribution-operations/inline-actions", () => {
     expect(inline.entries.map((entry) => entry.actionType).sort()).toEqual([
       "amount_correction",
       "fund_correction",
-      "refund",
-      "stripe_replay",
     ]);
   });
+
+  it.each([
+    ["refund", "contributions.run_refunds"],
+    ["stripe_replay", "contributions.use_provider_actions"],
+  ] as const)(
+    "requires request capability in addition to the direct capability for approval-gated %s",
+    (actionType, directCapability) => {
+      const inline = buildInlineContributionActions({
+        availability: availabilityFor(),
+        providerPaymentIntentId: "pi_1",
+        viewerCapabilities: [directCapability],
+      });
+
+      expect(
+        inline.entries.find((entry) => entry.actionType === actionType),
+      ).toBeUndefined();
+    },
+  );
 
   it("hides request-only correction entries when approval policy allows direct apply", () => {
     const inline = buildInlineContributionActions({
@@ -357,9 +401,21 @@ describe("admin/contribution-operations/inline-actions", () => {
     expect(actionTypes).toContain("retry_staged_gift");
     expect(actionTypes).not.toContain("refund");
     expect(actionTypes).not.toContain("stripe_replay");
+
+    const postingEntries = inline.entries.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift"].includes(entry.actionType),
+    );
+    expect(postingEntries).toHaveLength(2);
+    for (const entry of postingEntries) {
+      expect(entry.available).toBe(false);
+      expect(entry.blockedReason).toMatch(
+        /no longer an active product workflow/i,
+      );
+      expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
+    }
   });
 
-  it("promotes approval, then retry, then receipt as the next-best action", () => {
+  it("never promotes retired CRM posting actions and falls through to receipt", () => {
     const needsReview = buildInlineContributionActions({
       availability: availabilityFor({
         stagedGift: { ...postedStagedGift, status: "needs_review" },
@@ -367,16 +423,34 @@ describe("admin/contribution-operations/inline-actions", () => {
       providerPaymentIntentId: "pi_1",
       viewerCapabilities: ALL_CAPABILITIES,
     });
-    expect(needsReview.nextBestActionType).toBe("approve_staged_gift");
+    expect(needsReview.nextBestActionType).toBe("resend_receipt");
 
     const failedPost = buildInlineContributionActions({
       availability: availabilityFor({
-        stagedGift: { ...postedStagedGift, crmPostStatus: "failed" },
+        stagedGift: {
+          ...postedStagedGift,
+          status: "failed",
+          crmPostStatus: "failed",
+        },
       }),
       providerPaymentIntentId: "pi_1",
       viewerCapabilities: ALL_CAPABILITIES,
     });
-    expect(failedPost.nextBestActionType).toBe("retry_staged_gift");
+    expect(failedPost.nextBestActionType).toBe("resend_receipt");
+
+    for (const inline of [needsReview, failedPost]) {
+      const postingEntries = inline.entries.filter((entry) =>
+        ["approve_staged_gift", "retry_staged_gift"].includes(entry.actionType),
+      );
+      expect(postingEntries).toHaveLength(2);
+      for (const entry of postingEntries) {
+        expect(entry.available).toBe(false);
+        expect(entry.blockedReason).toMatch(
+          /no longer an active product workflow/i,
+        );
+        expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
+      }
+    }
 
     const settled = buildInlineContributionActions({
       availability: availabilityFor(),

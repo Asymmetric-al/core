@@ -753,7 +753,7 @@ describe("apps/admin/app/contributions/page-client", () => {
     expect(view.getByText("Mail")).toBeTruthy();
   });
 
-  it("keeps unsupported designation retry blocked in contribution detail", async () => {
+  it("keeps historical designation failures visible while CRM posting stays unavailable", async () => {
     const donationId = "00000000-0000-4000-8000-000000000131";
     mockSearch = `gift=${donationId}`;
     const baseDetail = makeDetailPayload(donationId, "Scoped Retry Donor");
@@ -773,9 +773,9 @@ describe("apps/admin/app/contributions/page-client", () => {
             actionType: "retry_staged_gift",
             available: false,
             blockedReason:
-              "Designation retry is not supported by the connected CRM adapter yet.",
+              "CRM posting actions are unavailable because external CRM posting is no longer an active product workflow.",
             nextStep:
-              "Resolve the failed designation record in the CRM directly.",
+              "Treat the recorded posting state as historical evidence. Current CRM data is maintained in Asym; any future provider recovery requires a new audited integration workflow.",
             riskLevel: "low",
           },
         ],
@@ -828,11 +828,16 @@ describe("apps/admin/app/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(await view.findByText("Twenty CRM posting")).toBeTruthy();
+    expect(await view.findByText("Historical CRM posting")).toBeTruthy();
     expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
 
     expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
-    expect(view.getByText(/designation retry is not supported/i)).toBeTruthy();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*Asym/i).length,
+    ).toBeGreaterThan(0);
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
     ).toBe(false);

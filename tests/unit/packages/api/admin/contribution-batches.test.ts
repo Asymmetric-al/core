@@ -21,7 +21,7 @@ import {
 describe("bulk contribution action catalog", () => {
   it("allows preview skipping only for configured low-risk actions", () => {
     expect(isBulkPreviewSkippable("resend_receipt")).toBe(true);
-    expect(isBulkPreviewSkippable("crm_repost")).toBe(true);
+    expect(isBulkPreviewSkippable("crm_repost")).toBe(false);
     expect(isBulkPreviewSkippable("refund")).toBe(false);
     expect(isBulkPreviewSkippable("amount_correction")).toBe(false);
   });
@@ -44,8 +44,8 @@ describe("bulk contribution action catalog", () => {
     );
     expect(getBulkContributionActionPolicy("crm_repost")).toEqual(
       expect.objectContaining({
-        riskLevel: "low",
-        requiresPreview: false,
+        riskLevel: "high",
+        requiresPreview: true,
       }),
     );
   });
@@ -297,6 +297,27 @@ describe("bulk contribution preview and execution", () => {
     });
 
     expect(parsed.records[0]?.payload).toEqual({ amount: 2500 });
+  });
+
+  it("rejects retired CRM repost batch inputs", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    const { batchRequestSchema } =
+      await import("../../../../../packages/api/src/admin/contribution-batches/route");
+
+    const parsed = batchRequestSchema.safeParse({
+      actionType: "crm_repost",
+      confirmationToken: "confirm",
+      records: [
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          stagedGiftId: "00000000-0000-4000-8000-000000000002",
+          payload: {},
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(false);
   });
 
   it("rejects duplicate contribution ids in a batch request", async () => {

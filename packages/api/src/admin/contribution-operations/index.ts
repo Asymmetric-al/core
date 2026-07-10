@@ -101,9 +101,12 @@ export {
 export {
   CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
   CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
   isContributionRouteCrmRetryScopeSupported,
   type ContributionCrmRetryScope,
-} from "./route-action-support";
+} from "./crm-retry-support";
 export {
   buildReceiptSnapshotContent,
   computeReceiptAffectedFields,

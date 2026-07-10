@@ -20,19 +20,19 @@ describe("admin/contribution-operations/action-availability", () => {
       paymentStatus: "completed",
     });
 
-    for (const actionType of [
-      "approve_staged_gift",
-      "retry_staged_gift",
-      "resend_receipt",
-    ]) {
+    for (const actionType of ["approve_staged_gift", "retry_staged_gift"]) {
       const entry = availabilityFor(entries, actionType);
       expect(entry.available).toBe(false);
-      expect(entry.blockedReason).toMatch(/no staged gift/i);
-      expect(entry.nextStep).toBeTruthy();
-      // The donation itself must never be described as missing or invalid.
-      expect(entry.blockedReason).not.toMatch(/invalid|missing donation/i);
-      expect(entry.nextStep).toMatch(/valid/i);
+      expect(entry.blockedReason).toMatch(
+        /no longer an active product workflow/i,
+      );
+      expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
     }
+
+    const receiptEntry = availabilityFor(entries, "resend_receipt");
+    expect(receiptEntry.available).toBe(false);
+    expect(receiptEntry.blockedReason).toMatch(/no staged gift/i);
+    expect(receiptEntry.nextStep).toMatch(/valid/i);
   });
 
   it("computes staged-gift action availability from workflow state", () => {
@@ -46,9 +46,13 @@ describe("admin/contribution-operations/action-availability", () => {
       paymentStatus: "completed",
     });
 
-    expect(availabilityFor(reviewable, "approve_staged_gift").available).toBe(
-      true,
-    );
+    expect(availabilityFor(reviewable, "approve_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
     expect(availabilityFor(reviewable, "retry_staged_gift").available).toBe(
       false,
     );
@@ -67,13 +71,19 @@ describe("admin/contribution-operations/action-availability", () => {
       paymentStatus: "completed",
     });
 
-    expect(availabilityFor(failed, "retry_staged_gift").available).toBe(true);
+    expect(availabilityFor(failed, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
     expect(availabilityFor(failed, "approve_staged_gift").available).toBe(
       false,
     );
   });
 
-  it("allows retry when unified CRM post state reports a parent failure", () => {
+  it("fails closed when a posted gift reports a parent CRM failure", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: {
         id: "staged-1",
@@ -85,7 +95,53 @@ describe("admin/contribution-operations/action-availability", () => {
       crmPostFailedScopes: [{ scope: "parent" }],
     });
 
-    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
+  });
+
+  it("fails closed on a legacy posted scalar CRM failure", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "posted",
+        receiptStatus: "sent",
+        crmPostStatus: "failed",
+      },
+      paymentStatus: "completed",
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
+  });
+
+  it("keeps parent CRM retry unavailable while the provider-neutral workflow is missing", () => {
+    const entries = buildContributionActionAvailability({
+      stagedGift: {
+        id: "staged-1",
+        status: "ready_to_post",
+        receiptStatus: "sent",
+        crmPostStatus: "posted",
+      },
+      paymentStatus: "completed",
+      crmPostFailedScopes: [{ scope: "parent" }],
+    });
+
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+    });
   });
 
   it("blocks designation-only retries until the route adapter supports them", () => {
@@ -104,12 +160,14 @@ describe("admin/contribution-operations/action-availability", () => {
 
     expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
       available: false,
-      blockedReason: expect.stringMatching(/designation.*not supported/i),
-      nextStep: expect.stringMatching(/crm directly/i),
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
     });
   });
 
-  it("keeps an independently failed staged-gift retry available when designation retry is unsupported", () => {
+  it("keeps an independently failed staged-gift retry unavailable", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: {
         id: "staged-1",
@@ -123,10 +181,15 @@ describe("admin/contribution-operations/action-availability", () => {
       ],
     });
 
-    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+    });
   });
 
-  it("keeps a paused ready-to-post gift retryable when scoped links have not failed", () => {
+  it("keeps a paused ready-to-post gift visible but not retryable", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: {
         id: "staged-1",
@@ -138,14 +201,19 @@ describe("admin/contribution-operations/action-availability", () => {
       crmPostFailedScopes: [],
     });
 
-    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+    });
   });
 
-  it("keeps a supported parent retry available when designation failure is also present", () => {
+  it("keeps mixed CRM failures unavailable", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: {
         id: "staged-1",
-        status: "posted",
+        status: "ready_to_post",
         receiptStatus: "sent",
         crmPostStatus: "posted",
       },
@@ -156,8 +224,37 @@ describe("admin/contribution-operations/action-availability", () => {
       ],
     });
 
-    expect(availabilityFor(entries, "retry_staged_gift").available).toBe(true);
+    expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+    });
   });
+
+  it.each(["refunded", "voided"])(
+    "does not advertise a parent CRM retry from terminal %s state",
+    (status) => {
+      const entries = buildContributionActionAvailability({
+        stagedGift: {
+          id: "staged-1",
+          status,
+          receiptStatus: "sent",
+          crmPostStatus: "failed",
+        },
+        paymentStatus: "completed",
+        crmPostFailedScopes: [{ scope: "parent" }],
+      });
+
+      expect(availabilityFor(entries, "retry_staged_gift")).toMatchObject({
+        available: false,
+        blockedReason: expect.stringMatching(
+          /no longer an active product workflow/i,
+        ),
+        nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+      });
+    },
+  );
 
   it("blocks receipt sends for suppressed receipts and uncompleted payments", () => {
     const suppressed = buildContributionActionAvailability({

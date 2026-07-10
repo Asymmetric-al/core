@@ -1,13 +1,20 @@
+import {
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+} from "./crm-retry-support";
 import { ApiHttpError } from "../../shared/http-errors";
 
 import type { ContributionActionType } from "./types";
 
-export type ContributionCrmRetryScope = "parent" | "designation";
-
-export const CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON =
-  "Designation retry is not supported by the connected CRM adapter yet.";
-export const CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP =
-  "Resolve the failed designation record in the CRM directly, or retry a failed parent record when one is available.";
+export {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+  isContributionRouteCrmRetryScopeSupported,
+  type ContributionCrmRetryScope,
+} from "./crm-retry-support";
 
 /**
  * Actions the current HTTP dependency set cannot execute safely. Keep this
@@ -15,6 +22,9 @@ export const CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP =
  * an operation that the shared endpoint will reject.
  */
 const UNSUPPORTED_ROUTE_ACTION_TYPES = new Set<ContributionActionType>([
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "crm_repost",
   "metadata_update",
   "refund",
   "donor_relink",
@@ -26,21 +36,14 @@ export function isContributionRouteActionSupported(
   return !UNSUPPORTED_ROUTE_ACTION_TYPES.has(actionType);
 }
 
-/**
- * The production route can retry the parent CRM gift record today. The
- * designation callback remains an optional future adapter capability; do not
- * advertise it while the wired adapter can only return 501.
- */
-export function isContributionRouteCrmRetryScopeSupported(
-  scope: ContributionCrmRetryScope,
-): boolean {
-  return scope === "parent";
-}
-
 export function unsupportedContributionRouteActionMessage(
   actionType: ContributionActionType,
 ): string {
   switch (actionType) {
+    case "approve_staged_gift":
+    case "retry_staged_gift":
+    case "crm_repost":
+      return `${CRM_POSTING_UNAVAILABLE_REASON} ${CRM_POSTING_UNAVAILABLE_NEXT_STEP}`;
     case "metadata_update":
       return "metadata_update is not supported by this route yet.";
     case "refund":

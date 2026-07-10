@@ -1,5 +1,3 @@
-import { serverEnv } from "@asym/env";
-
 import { ensureCorrectionApprovalWorkflow } from "./approval-notifications";
 import { createContributionCorrectionRequestInSupabase } from "./correction-requests";
 import { sendContributionCorrectionNotificationFromSupabase } from "./notifications/store";
@@ -12,12 +10,7 @@ import {
   createContributionCorrectionRecord,
   loadContributionDetailFromSupabase,
 } from "./store";
-import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
 import { sendStagedGiftReceipt } from "../../giving/receipts";
-import {
-  queueStagedGiftPostingToTwenty,
-  retryStagedGiftPostingToTwenty,
-} from "../../giving/staged-gifts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { resolveLatestStripeEventIdForDonation } from "../../stripe/replay";
 
@@ -30,24 +23,6 @@ export function createContributionActionDependencies(
   return {
     sendReceipt: ({ stagedGiftId, tenantId }) =>
       sendStagedGiftReceipt({ supabaseAdmin, stagedGiftId, tenantId }),
-    approveStagedGift: ({ actorProfileId, note, stagedGiftId, tenantId }) =>
-      queueStagedGiftPostingToTwenty({
-        supabaseAdmin,
-        actorProfileId,
-        note,
-        stagedGiftId,
-        tenantId,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
-      }),
-    retryStagedGift: ({ actorProfileId, note, stagedGiftId, tenantId }) =>
-      retryStagedGiftPostingToTwenty({
-        supabaseAdmin,
-        actorProfileId,
-        note,
-        stagedGiftId,
-        tenantId,
-        crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
-      }),
     applyCorrection: (correctionInput) =>
       applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
     resolveReplayStripeEventId: async ({

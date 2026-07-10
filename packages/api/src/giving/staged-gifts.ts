@@ -507,57 +507,14 @@ export function buildTwentyGiftSummaryPayload(gift: StagedGiftRow): JsonRecord {
   };
 }
 
-async function hasRetryableParentCrmLink(input: {
-  supabaseAdmin: SupabaseAdminClient;
-  stagedGift: StagedGiftRow;
-}): Promise<boolean> {
-  const link = await input.supabaseAdmin
-    .from("donation_crm_links")
-    .select("id, link_status")
-    .eq("tenant_id", input.stagedGift.tenantId)
-    .eq("staged_gift_id", input.stagedGift.id)
-    .eq("crm_provider", "twenty")
-    .eq("scope", "parent")
-    .maybeSingle();
-  requireNoError(link.error, "Failed to read donation CRM link.");
-
-  if (!isJsonRecord(link.data)) {
-    return false;
-  }
-
-  const linkStatus = asString(link.data.link_status);
-  return linkStatus === "failed" || linkStatus === "blocked";
-}
-
 export async function queueStagedGiftPostingToTwenty(
   input: StagedGiftPostingInput,
 ): Promise<StagedGiftRow> {
-  return queueStagedGiftPostingToTwentyForMode(input, "queue");
-}
-
-type StagedGiftPostingMode = "queue" | "retry";
-
-async function queueStagedGiftPostingToTwentyForMode(
-  input: StagedGiftPostingInput,
-  mode: StagedGiftPostingMode,
-): Promise<StagedGiftRow> {
   const gift = await loadStagedGiftById(input);
-  const canRetryFailedParent =
-    mode === "retry" &&
-    gift.status === "posted" &&
-    (await hasRetryableParentCrmLink({
-      supabaseAdmin: input.supabaseAdmin,
-      stagedGift: gift,
-    }));
-  const canPost =
-    mode === "queue"
-      ? canTransitionStagedGift(gift.status, "ready_to_post")
-      : ["failed", "ready_to_post"].includes(gift.status) ||
-        canRetryFailedParent;
-  if (!canPost) {
+  if (!canTransitionStagedGift(gift.status, "ready_to_post")) {
     throw new ApiHttpError(
       409,
-      `Cannot ${mode} staged gift from ${gift.status} status.`,
+      `Cannot queue staged gift from ${gift.status} status.`,
     );
   }
 
@@ -648,7 +605,15 @@ async function queueStagedGiftPostingToTwentyForMode(
 export async function retryStagedGiftPostingToTwenty(
   input: StagedGiftPostingInput,
 ): Promise<StagedGiftRow> {
-  return queueStagedGiftPostingToTwentyForMode(input, "retry");
+  const gift = await loadStagedGiftById(input);
+  if (!["failed", "ready_to_post"].includes(gift.status)) {
+    throw new ApiHttpError(
+      409,
+      `Cannot retry staged gift from ${gift.status} status.`,
+    );
+  }
+
+  return queueStagedGiftPostingToTwenty(input);
 }
 
 export async function retryStagedGiftDesignationPostingToTwenty(

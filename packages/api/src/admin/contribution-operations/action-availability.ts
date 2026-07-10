@@ -1,10 +1,11 @@
-import { getContributionActionRiskLevel } from "./policy";
 import {
-  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
-  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
-  isContributionRouteActionSupported,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
   isContributionRouteCrmRetryScopeSupported,
-} from "./route-action-support";
+} from "./crm-retry-support";
+import { getContributionActionRiskLevel } from "./policy";
+import { isContributionRouteActionSupported } from "./route-action-support";
 
 import type { CrmPostFailedScope } from "./crm-post-state";
 import type { ContributionActionType, ContributionRiskLevel } from "./types";
@@ -84,8 +85,23 @@ function blockedWithoutStagedGift(
 }
 
 function approveAvailability(
-  stagedGift: ActionAvailabilityStagedGiftInput,
+  stagedGift: ActionAvailabilityStagedGiftInput | null,
 ): ContributionActionAvailability {
+  if (
+    !isContributionCrmPostingSupported() ||
+    !isContributionRouteActionSupported("approve_staged_gift")
+  ) {
+    return entry("approve_staged_gift", {
+      available: false,
+      blockedReason: CRM_POSTING_UNAVAILABLE_REASON,
+      nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+    });
+  }
+
+  if (!stagedGift) {
+    return blockedWithoutStagedGift("approve_staged_gift");
+  }
+
   if (
     stagedGift.status === "received" ||
     stagedGift.status === "needs_review"
@@ -104,11 +120,26 @@ function approveAvailability(
 }
 
 function retryAvailability(
-  stagedGift: ActionAvailabilityStagedGiftInput,
+  stagedGift: ActionAvailabilityStagedGiftInput | null,
   hasCrmPostFailure: boolean,
   hasRetryableCrmPostFailure: boolean,
   hasScopedCrmPostState: boolean,
 ): ContributionActionAvailability {
+  if (
+    !isContributionCrmPostingSupported() ||
+    !isContributionRouteActionSupported("retry_staged_gift")
+  ) {
+    return entry("retry_staged_gift", {
+      available: false,
+      blockedReason: CRM_POSTING_UNAVAILABLE_REASON,
+      nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+    });
+  }
+
+  if (!stagedGift) {
+    return blockedWithoutStagedGift("retry_staged_gift");
+  }
+
   const hasRetryableStagedGiftState =
     stagedGift.status === "failed" ||
     (stagedGift.status === "ready_to_post" &&
@@ -130,8 +161,8 @@ function retryAvailability(
   if (hasCrmPostFailure) {
     return entry("retry_staged_gift", {
       available: false,
-      blockedReason: CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
-      nextStep: CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+      blockedReason: CRM_POSTING_UNAVAILABLE_REASON,
+      nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
     });
   }
 
@@ -244,8 +275,13 @@ export function buildContributionActionAvailability(
 
   if (!stagedGift) {
     return [
-      blockedWithoutStagedGift("approve_staged_gift"),
-      blockedWithoutStagedGift("retry_staged_gift"),
+      approveAvailability(null),
+      retryAvailability(
+        null,
+        hasCrmPostFailure,
+        hasRetryableCrmPostFailure,
+        crmPostFailedScopes !== undefined,
+      ),
       blockedWithoutStagedGift("resend_receipt"),
       refundAvailability(paymentStatus, refund),
     ];

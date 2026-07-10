@@ -3,7 +3,6 @@ import { ApiHttpError } from "../../../shared/http-errors";
 import { loadCorrectionApprovalPolicy } from "../../contribution-operations/correction-requests";
 import { loadSharedContributionRowInputs } from "../../contribution-shared/row-inputs";
 
-import type { CrmPostFailedScope } from "../../contribution-operations/crm-post-state";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { CrmDonorDetailResponse, UserRole } from "@asym/database/types";
 
@@ -68,10 +67,8 @@ interface StagedGiftRow {
 
 interface DonationCrmLinkRow {
   id: string;
-  allocation_id: string | null;
   donation_id: string | null;
   staged_gift_id: string | null;
-  scope: string | null;
   link_status: string | null;
   twenty_record_id: string | null;
 }
@@ -319,7 +316,7 @@ export async function getAdminCrmDonorDetail(input: {
       ? input.supabaseAdmin
           .from("donation_crm_links")
           .select(
-            "id, allocation_id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
+            "id, donation_id, staged_gift_id, link_status, twenty_record_id",
           )
           .eq("tenant_id", input.tenantId)
           .eq("scope", "parent")
@@ -339,35 +336,7 @@ export async function getAdminCrmDonorDetail(input: {
     }),
   ]);
   assertNoError(linkResult.error, "Failed to load donation CRM links.");
-
-  // Designation links are keyed by allocation_id; donation_id and
-  // staged_gift_id are both nullable for this scope.
-  const stagedGiftIdByAllocationId = new Map<string, string>();
-  const allocationEntries = sharedInputs.allocationsByStagedGiftId.entries();
-  for (const [stagedGiftId, allocations] of allocationEntries) {
-    for (const allocation of allocations) {
-      stagedGiftIdByAllocationId.set(allocation.id, stagedGiftId);
-    }
-  }
-  const allocationIds = Array.from(stagedGiftIdByAllocationId.keys());
-  const designationLinkResult =
-    allocationIds.length > 0
-      ? await input.supabaseAdmin
-          .from("donation_crm_links")
-          .select(
-            "id, allocation_id, donation_id, staged_gift_id, scope, link_status, twenty_record_id",
-          )
-          .eq("tenant_id", input.tenantId)
-          .eq("scope", "designation")
-          .in("allocation_id", allocationIds)
-      : { data: [], error: null };
-  assertNoError(
-    designationLinkResult.error,
-    "Failed to load designation CRM links.",
-  );
   const links = (linkResult.data ?? []) as DonationCrmLinkRow[];
-  const designationLinks = (designationLinkResult.data ??
-    []) as DonationCrmLinkRow[];
 
   const {
     correctionsByDonationId,
@@ -380,48 +349,15 @@ export async function getAdminCrmDonorDetail(input: {
   const stagedByDonationId = new Map(
     stagedGifts.map((gift) => [gift.donation_id, gift]),
   );
-  const parentLinkByStagedGiftId = new Map(
+  const linkByStagedGiftId = new Map(
     links
       .filter((link) => link.staged_gift_id)
       .map((link) => [link.staged_gift_id!, link]),
   );
-  const failedScopesByStagedGiftId = new Map<string, CrmPostFailedScope[]>();
-  const appendFailedScope = (
-    stagedGiftId: string,
-    scope: CrmPostFailedScope,
-  ): void => {
-    const scopes = failedScopesByStagedGiftId.get(stagedGiftId) ?? [];
-    scopes.push(scope);
-    failedScopesByStagedGiftId.set(stagedGiftId, scopes);
-  };
-  for (const link of links) {
-    if (
-      (link.link_status === "failed" || link.link_status === "blocked") &&
-      link.staged_gift_id
-    ) {
-      appendFailedScope(link.staged_gift_id, { scope: "parent" });
-    }
-  }
-  for (const link of designationLinks) {
-    if (link.link_status !== "failed" && link.link_status !== "blocked") {
-      continue;
-    }
-    const stagedGiftId = link.allocation_id
-      ? stagedGiftIdByAllocationId.get(link.allocation_id)
-      : null;
-    if (stagedGiftId) {
-      appendFailedScope(stagedGiftId, {
-        scope: "designation",
-        allocationId: link.allocation_id,
-      });
-    }
-  }
 
   const giftHistory = donations.map((donation) => {
     const stagedGift = stagedByDonationId.get(donation.id) ?? null;
-    const link = stagedGift
-      ? parentLinkByStagedGiftId.get(stagedGift.id)
-      : null;
+    const link = stagedGift ? linkByStagedGiftId.get(stagedGift.id) : null;
     const effectiveResult = effectiveByDonationId.get(donation.id);
     const effective = effectiveResult?.effective ?? {
       amountCents: toCents(donation.amount),
@@ -483,9 +419,6 @@ export async function getAdminCrmDonorDetail(input: {
       },
       viewerCapabilities: input.viewerCapabilities ?? [],
       approvalPolicy,
-      crmPostFailedScopes: stagedGift
-        ? (failedScopesByStagedGiftId.get(stagedGift.id) ?? [])
-        : [],
     });
   });
 

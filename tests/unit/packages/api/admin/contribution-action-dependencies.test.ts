@@ -5,11 +5,13 @@ import { createContributionActionDependencies } from "../../../../../packages/ap
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 describe("contribution action dependency factory", () => {
-  it("does not advertise designation retry while the production adapter rejects it", () => {
+  it("does not wire retired CRM posting operations", () => {
     const deps = createContributionActionDependencies(
       {} as AdminSupabaseClient,
     );
 
+    expect(deps.approveStagedGift).toBeUndefined();
+    expect(deps.retryStagedGift).toBeUndefined();
     expect(deps.retryDesignationPost).toBeUndefined();
   });
 });

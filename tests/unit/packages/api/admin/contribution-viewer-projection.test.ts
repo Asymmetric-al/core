@@ -4,7 +4,7 @@ import { buildContributionDetail } from "../../../../../packages/api/src/admin/c
 import { projectContributionDetailForViewer } from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
 
 function makeDetail() {
-  return buildContributionDetail({
+  const detail = buildContributionDetail({
     donation: {
       id: "donation_1",
       tenantId: "tenant_1",
@@ -45,11 +45,44 @@ function makeDetail() {
       organization: null,
     },
     fund: { id: "fund_1", name: "General Fund" },
+    stagedGift: {
+      id: "staged-1",
+      status: "posted",
+      receiptStatus: "sent",
+      crmPostStatus: "failed",
+      reviewReason: null,
+      twentyRecordId: "twenty-staged",
+    },
   });
+
+  detail.crm = {
+    ...detail.crm,
+    postStatus: "failed",
+    twentyRecordId: "twenty-summary",
+    parent: {
+      status: "failed",
+      twentyRecordId: "twenty-parent",
+      lastError: "Historical parent failure",
+    },
+    designationRecords: [
+      {
+        allocationId: "allocation-1",
+        status: "failed",
+        twentyRecordId: "twenty-designation",
+        lastError: "Historical designation failure",
+      },
+    ],
+    failedScopes: [
+      { scope: "parent" },
+      { scope: "designation", allocationId: "allocation-1" },
+    ],
+  };
+
+  return detail;
 }
 
 describe("admin/contribution-operations/viewer-projection", () => {
-  it("redacts provider proof while preserving the approval-request affordance", () => {
+  it("redacts provider proof and omits replay for request-only staff", () => {
     const projected = projectContributionDetailForViewer(makeDetail(), [
       "contributions.view_detail",
       "contributions.request_corrections",
@@ -60,11 +93,26 @@ describe("admin/contribution-operations/viewer-projection", () => {
     expect(projected.payment.stripe.refundIds).toEqual([]);
     expect(projected.payment.stripe.replayContext).toBeNull();
     expect(projected.providerProof).toBeNull();
+    expect(projected.crm.twentyRecordId).toBeNull();
+    expect(projected.crm.parent.twentyRecordId).toBeNull();
+    expect(projected.crm.designationRecords[0]?.twentyRecordId).toBeNull();
+    expect(projected.stagedGift?.twentyRecordId).toBeNull();
+    expect(projected.crm.parent.lastError).toBe(
+      "Historical CRM posting failed. Provider details are available to authorized operators.",
+    );
+    expect(projected.crm.designationRecords[0]?.lastError).toBe(
+      "Historical CRM posting failed. Provider details are available to authorized operators.",
+    );
     expect(
       projected.actionAvailability.find(
         (entry) => entry.actionType === "stripe_replay",
       ),
-    ).toMatchObject({ actionType: "stripe_replay", available: true });
+    ).toBeUndefined();
+    expect(
+      projected.actionAvailability.find(
+        (entry) => entry.actionType === "refund",
+      ),
+    ).toBeUndefined();
 
     // Payment summary stays available for routine workflows.
     expect(projected.payment.status).toBe("completed");
@@ -72,9 +120,10 @@ describe("admin/contribution-operations/viewer-projection", () => {
     expect(projected.shared.refundState).toBe("none");
   });
 
-  it("exposes provider proof, dashboard links, and safe provider actions to authorized operators", () => {
+  it("exposes provider proof, dashboard links, and replay to provider-capable requesters", () => {
     const projected = projectContributionDetailForViewer(makeDetail(), [
       "contributions.use_provider_actions",
+      "contributions.request_corrections",
     ]);
 
     expect(projected.providerProof).toMatchObject({
@@ -85,6 +134,16 @@ describe("admin/contribution-operations/viewer-projection", () => {
         charge: "https://dashboard.stripe.com/charges/ch_proof",
       },
     });
+    expect(projected.crm.twentyRecordId).toBe("twenty-summary");
+    expect(projected.crm.parent.twentyRecordId).toBe("twenty-parent");
+    expect(projected.crm.designationRecords[0]?.twentyRecordId).toBe(
+      "twenty-designation",
+    );
+    expect(projected.stagedGift?.twentyRecordId).toBe("twenty-staged");
+    expect(projected.crm.parent.lastError).toBe("Historical parent failure");
+    expect(projected.crm.designationRecords[0]?.lastError).toBe(
+      "Historical designation failure",
+    );
 
     const replayEntry = projected.actionAvailability.find(
       (entry) => entry.actionType === "stripe_replay",
@@ -100,6 +159,7 @@ describe("admin/contribution-operations/viewer-projection", () => {
 
     const projected = projectContributionDetailForViewer(detail, [
       "contributions.use_provider_actions",
+      "contributions.request_corrections",
     ]);
 
     const replayEntry = projected.actionAvailability.find(
@@ -116,6 +176,7 @@ describe("admin/contribution-operations/viewer-projection", () => {
 
     const projected = projectContributionDetailForViewer(detail, [
       "contributions.use_provider_actions",
+      "contributions.request_corrections",
     ]);
 
     const replayEntry = projected.actionAvailability.find(
@@ -126,5 +187,18 @@ describe("admin/contribution-operations/viewer-projection", () => {
       paymentIntent: null,
       charge: "https://dashboard.stripe.com/charges/ch_only",
     });
+  });
+
+  it("keeps provider proof visible but omits approval-gated replay without request capability", () => {
+    const projected = projectContributionDetailForViewer(makeDetail(), [
+      "contributions.use_provider_actions",
+    ]);
+
+    expect(projected.providerProof?.paymentIntentId).toBe("pi_proof");
+    expect(
+      projected.actionAvailability.find(
+        (entry) => entry.actionType === "stripe_replay",
+      ),
+    ).toBeUndefined();
   });
 });

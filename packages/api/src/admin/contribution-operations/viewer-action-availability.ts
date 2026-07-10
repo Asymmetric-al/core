@@ -111,8 +111,18 @@ export function viewerCanUseContributionOperation(input: {
     input.actionType,
     input.approvalPolicy,
   );
+  const requiresEveryCapability =
+    (input.actionType === "refund" || input.actionType === "stripe_replay") &&
+    correctionRequiresApproval({
+      actionType: input.actionType,
+      policy: input.approvalPolicy,
+    });
 
-  return requiredCapabilities.some((capability) =>
-    input.viewerCapabilities.includes(capability),
-  );
+  return requiresEveryCapability
+    ? requiredCapabilities.every((capability) =>
+        input.viewerCapabilities.includes(capability),
+      )
+    : requiredCapabilities.some((capability) =>
+        input.viewerCapabilities.includes(capability),
+      );
 }

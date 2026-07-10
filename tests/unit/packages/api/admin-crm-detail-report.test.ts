@@ -122,7 +122,6 @@ const baseTables: Record<string, Row[]> = {
       donation_id: "donation-1",
       id: "link-1",
       link_status: "active",
-      scope: "parent",
       staged_gift_id: "staged-gift-1",
       tenant_id: "tenant-1",
       twenty_record_id: "twenty-gift-1",
@@ -226,7 +225,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     expect(detail.giftHistory[0]).toMatchObject({
       currencyCode: "USD",
       stagedGiftId: "staged-gift-1",
-      twentyRecordId: "twenty-gift-1",
+      twentyRecordId: null,
     });
     expect(detail.giftHistoryTruncated).toBe(false);
     expect(detail.timeline.map((entry) => entry.kind)).toEqual(
@@ -247,6 +246,19 @@ describe("Phase 5 CRM donor detail and reports", () => {
       platformPaymentTruth: true,
       twentyIsPaymentTruth: false,
     });
+  });
+
+  it("exposes historical provider record ids only to provider operators", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "admin",
+      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: ["contributions.use_provider_actions"],
+    });
+
+    expect(detail.giftHistory[0]?.twentyRecordId).toBe("twenty-gift-1");
   });
 
   it("loads the tenant approval policy once and applies it to inline gift actions", async () => {
@@ -279,12 +291,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
       conservative.giftHistory[0]?.inlineActions?.entries
         .map((entry) => entry.actionType)
         .sort(),
-    ).toEqual([
-      "amount_correction",
-      "fund_correction",
-      "refund",
-      "stripe_replay",
-    ]);
+    ).toEqual(["amount_correction", "fund_correction"]);
 
     const relaxed = await getAdminCrmDonorDetail({
       crmWritesEnabled: false,
@@ -313,38 +320,19 @@ describe("Phase 5 CRM donor detail and reports", () => {
     ).toBeNull();
   });
 
-  it("uses failed designation links in the same retry availability as detail", async () => {
+  it("keeps a legacy aggregate failure blocked after the gift is posted", async () => {
     const detail = await getAdminCrmDonorDetail({
       crmWritesEnabled: false,
       donorId: "donor-1",
       role: "staff",
       supabaseAdmin: createSupabaseFixture({
         ...baseTables,
-        donation_crm_links: [
-          ...baseTables.donation_crm_links,
-          {
-            allocation_id: "allocation-1",
-            donation_id: null,
-            id: "link-designation-1",
-            link_status: "failed",
-            scope: "designation",
-            staged_gift_id: null,
-            tenant_id: "tenant-1",
-            twenty_record_id: null,
-          },
-        ],
-        staged_gift_allocations: [
-          {
-            amount: 12500,
-            created_at: "2026-05-10T00:00:00.000Z",
-            fund_id: "fund-1",
-            id: "allocation-1",
-            memo: null,
-            missionary_id: "missionary-1",
-            staged_gift_id: "staged-gift-1",
-            tenant_id: "tenant-1",
-          },
-        ],
+        donation_crm_links: [],
+        staged_gifts: baseTables.staged_gifts.map((stagedGift) => ({
+          ...stagedGift,
+          crm_post_status: "failed",
+          status: "posted",
+        })),
       }) as never,
       tenantId: "tenant-1",
       viewerCapabilities: ["contributions.retry_crm_post"],
@@ -355,13 +343,15 @@ describe("Phase 5 CRM donor detail and reports", () => {
         (entry) => entry.actionType === "retry_staged_gift",
       ),
     ).toMatchObject({
-      actionType: "retry_staged_gift",
       available: false,
-      blockedReason: expect.stringMatching(/designation.*not supported/i),
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
     });
   });
 
-  it("keeps paused staged gifts retryable before the queued parent link fails", async () => {
+  it("keeps paused staged-gift posting state historical and non-executable", async () => {
     const detail = await getAdminCrmDonorDetail({
       crmWritesEnabled: false,
       donorId: "donor-1",
@@ -388,8 +378,11 @@ describe("Phase 5 CRM donor detail and reports", () => {
       ),
     ).toMatchObject({
       actionType: "retry_staged_gift",
-      available: true,
-      blockedReason: null,
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
     });
   });
 

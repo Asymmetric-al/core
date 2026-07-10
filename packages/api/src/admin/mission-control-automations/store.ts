@@ -47,17 +47,50 @@ function toActivationStatus(value: unknown): AutomationActivationStatus {
   return "draft";
 }
 
+function normalizePersistedAutomationActions(value: unknown): {
+  actions: unknown[];
+  retiredCrmRepostRemoved: boolean;
+} {
+  const rawActions = Array.isArray(value) ? value : [];
+  let retiredCrmRepostRemoved = false;
+  const actions = rawActions.filter((action) => {
+    const retiredCrmRepost =
+      isRecord(action) &&
+      action.kind === "contribution_action" &&
+      action.actionType === "crm_repost";
+
+    if (retiredCrmRepost) {
+      retiredCrmRepostRemoved = true;
+      return false;
+    }
+
+    return true;
+  });
+
+  if (retiredCrmRepostRemoved && actions.length === 0) {
+    actions.push({ kind: "create_task", issueType: "crm_post_failed" });
+  }
+
+  return { actions, retiredCrmRepostRemoved };
+}
+
 function toAutomationRule(row: JsonRecord): AutomationRule {
+  const normalizedActions = normalizePersistedAutomationActions(row.actions);
+
   return automationRuleSchema.parse({
     id: asString(row.id) ?? undefined,
     name: asString(row.name) ?? "Untitled automation",
     mode: asString(row.mode) ?? "advanced",
     trigger: row.trigger,
     conditions: Array.isArray(row.conditions) ? row.conditions : [],
-    actions: Array.isArray(row.actions) ? row.actions : [],
+    actions: normalizedActions.actions,
     runMode: asString(row.run_mode) ?? "automatic",
-    enabled: row.enabled === true,
-    activationStatus: toActivationStatus(row.activation_status),
+    enabled: normalizedActions.retiredCrmRepostRemoved
+      ? false
+      : row.enabled === true,
+    activationStatus: normalizedActions.retiredCrmRepostRemoved
+      ? "disabled"
+      : toActivationStatus(row.activation_status),
   });
 }
 

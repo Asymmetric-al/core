@@ -9,7 +9,6 @@ import {
 } from "../../contribution-shared/row-contract";
 
 import type { CorrectionApprovalPolicy } from "../../contribution-operations/approval-policy";
-import type { CrmPostFailedScope } from "../../contribution-operations/crm-post-state";
 import type {
   ContributionDesignationSet,
   CrmGiftHistoryRow,
@@ -36,10 +35,6 @@ export interface BuildCrmGiftHistoryRowInput {
   viewerCapabilities?: string[];
   /** Tenant policy must match the shared contribution operation executor. */
   approvalPolicy?: CorrectionApprovalPolicy | null;
-  /** Unified parent/designation link failure state from contribution detail. */
-  hasCrmPostFailure?: boolean;
-  /** Scope-aware failure state keeps unsupported child retries unavailable. */
-  crmPostFailedScopes?: CrmPostFailedScope[];
 }
 
 /**
@@ -51,6 +46,9 @@ export function buildCrmGiftHistoryRow(
   input: BuildCrmGiftHistoryRowInput,
 ): CrmGiftHistoryRow {
   const { donation, donor, fund, missionary, stagedGift } = input;
+  const canViewProviderIdentifiers = (input.viewerCapabilities ?? []).includes(
+    "contributions.use_provider_actions",
+  );
 
   const shared = buildSharedContributionRowFields({
     donation,
@@ -82,8 +80,6 @@ export function buildCrmGiftHistoryRow(
         }
       : null,
     paymentStatus: donation.status,
-    hasCrmPostFailure: input.hasCrmPostFailure,
-    crmPostFailedScopes: input.crmPostFailedScopes,
     refund: {
       amountCents: shared.amountCents,
       refundedAmountCents: shared.refundedAmountCents,
@@ -117,7 +113,9 @@ export function buildCrmGiftHistoryRow(
     missionaryId: shared.designationSummary.missionaryId,
     missionaryName: shared.designationSummary.missionaryName,
     stagedGiftId: stagedGift?.id ?? null,
-    twentyRecordId: stagedGift?.twenty_record_id ?? null,
+    twentyRecordId: canViewProviderIdentifiers
+      ? (stagedGift?.twenty_record_id ?? null)
+      : null,
     inlineActions,
   };
 }

@@ -3,8 +3,11 @@
 import {
   CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
   CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
   isContributionRouteCrmRetryScopeSupported,
-} from "@asym/api/admin/contribution-operations";
+} from "@asym/api/admin/contribution-operations/crm-retry-support";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
 import { Button } from "@asym/ui/components/shadcn/button";
@@ -142,10 +145,10 @@ export const OPERATION_DEFINITIONS: Record<
       "Moves this gift's designation to a different fund through an audited adjustment.",
     category: "correction",
     riskCopy:
-      "Changing the fund affects donor intent records, receipts, and CRM posting. High-risk corrections may require approval.",
+      "Changing the fund affects donor intent records, receipts, and CRM reporting. High-risk corrections may require approval.",
     downstreamEffects: [
       "Designation summary changes in CRM and the Contributions Hub.",
-      "CRM posting and receipts may need follow-up.",
+      "CRM records and receipts may need follow-up.",
     ],
     requiresReason: true,
     requiresConfirmation: true,
@@ -188,11 +191,12 @@ export const OPERATION_DEFINITIONS: Record<
   },
   approve_staged_gift: {
     actionType: "approve_staged_gift",
-    title: "Approve and post gift",
-    description: "Approves the staged gift and queues it for CRM posting.",
+    title: "CRM posting unavailable",
+    description:
+      "Recorded posting state is historical while CRM data is maintained in Asym.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The gift posts to the CRM as workflow metadata."],
+    downstreamEffects: [],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -201,11 +205,12 @@ export const OPERATION_DEFINITIONS: Record<
   },
   retry_staged_gift: {
     actionType: "retry_staged_gift",
-    title: "Retry CRM posting",
-    description: "Retries the failed CRM posting for this gift.",
+    title: "CRM posting unavailable",
+    description:
+      "Recorded posting failures are historical while CRM data is maintained in Asym.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The failed CRM record is retried."],
+    downstreamEffects: [],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -233,7 +238,7 @@ export const OPERATION_CATEGORY_LABELS: Record<OperationCategory, string> = {
   correction: "Correction",
   receipt: "Receipt",
   refund: "Refund",
-  crm: "CRM / Twenty",
+  crm: "Historical CRM",
   provider: "Provider / Admin",
 };
 
@@ -264,6 +269,13 @@ function retryPayloadForScope(
 function retryTargetBlock(
   failedScopes: CrmPostFailedScope[],
 ): { reason: string; nextStep: string } | null {
+  const executableScopes = failedScopes.filter((scope) =>
+    isContributionRouteCrmRetryScopeSupported(scope.scope),
+  );
+  if (executableScopes.length === 1) {
+    return null;
+  }
+
   if (failedScopes.length > 1) {
     return {
       reason:
@@ -461,20 +473,35 @@ export function ContributionOperationShell({
   const retryTargetScopes = hasIndependentStagedGiftRetry
     ? []
     : failedRetryScopes;
-  const retryBlock = availability?.available
-    ? retryTargetBlock(retryTargetScopes)
-    : null;
-  const blocked = retryBlock
+  const retryTargetScope =
+    retryTargetScopes.find((scope) =>
+      isContributionRouteCrmRetryScopeSupported(scope.scope),
+    ) ??
+    retryTargetScopes[0] ??
+    null;
+  const postingCapabilityBlock =
+    (operation.actionType === "approve_staged_gift" ||
+      operation.actionType === "retry_staged_gift") &&
+    !isContributionCrmPostingSupported()
+      ? {
+          reason: CRM_POSTING_UNAVAILABLE_REASON,
+          nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+        }
+      : null;
+  const operationBlock =
+    postingCapabilityBlock ??
+    (availability?.available ? retryTargetBlock(retryTargetScopes) : null);
+  const blocked = operationBlock
     ? true
     : availability
       ? !availability.available
       : Boolean(detail && operation);
   const blockedReason =
-    retryBlock?.reason ??
+    operationBlock?.reason ??
     availability?.blockedReason ??
     "This operation is not available for the current gift.";
   const blockedNextStep =
-    retryBlock?.nextStep ??
+    operationBlock?.nextStep ??
     availability?.nextStep ??
     "Refresh the gift detail or choose another action.";
   const amountError = (() => {
@@ -543,7 +570,7 @@ export function ContributionOperationShell({
       operation.actionType === "retry_staged_gift"
         ? {
             ...basePayload,
-            ...retryPayloadForScope(retryTargetScopes[0] ?? null),
+            ...retryPayloadForScope(retryTargetScope),
           }
         : basePayload;
     setPhase({ name: "submitting" });
@@ -631,7 +658,7 @@ export function ContributionOperationShell({
             {blockedNextStep && (
               <p className="text-xs text-muted-foreground">{blockedNextStep}</p>
             )}
-            {retryBlock && onOpenFullDetail && donationId && (
+            {operationBlock && onOpenFullDetail && donationId && (
               <Button
                 variant="outline"
                 className="mt-3 h-11"
