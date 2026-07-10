@@ -420,6 +420,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     if (fetchDescriptor) {
       Object.defineProperty(globalThis, "fetch", fetchDescriptor);
@@ -807,6 +808,77 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
     // Freshness appears only after the shared row refetch succeeds.
     expect(view.getByText("Updated just now")).toBeTruthy();
+  });
+
+  it("keeps inline success visible when the CRM row refetch fails", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d010";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const refetchError = new Error("CRM gift history refresh failed");
+    const detailRefetch = vi.fn().mockResolvedValue({
+      error: refetchError,
+      isError: true,
+    });
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({
+        data: crmDonorDetailFor(donationId),
+        refetch: detailRefetch,
+      }),
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-refresh-failed",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+    const shell = await view.findByTestId("contribution-operation-shell");
+    const submit = await within(shell).findByRole("button", {
+      name: "Send receipt",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    expect(await within(shell).findByText("Operation completed.")).toBeTruthy();
+    const warning = within(shell).getByRole("alert");
+    expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
+    expect(view.queryByText("Updated just now")).toBeNull();
+    expect(detailRefetch).toHaveBeenCalledOnce();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Contribution operation succeeded, but refresh failed.",
+      [refetchError],
+    );
   });
 
   it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {

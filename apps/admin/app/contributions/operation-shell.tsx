@@ -239,6 +239,7 @@ type ShellPhase =
       result: ContributionActionResult;
       /** The delivery selection submitted with this operation, if any. */
       submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+      refreshFailed: boolean;
     }
   | { name: "failure"; message: string; staleSave: boolean };
 
@@ -495,8 +496,9 @@ export function ContributionOperationShell({
       stagedGiftId: detail?.stagedGift?.id ?? null,
     });
     setPhase({ name: "submitting" });
+    let result: ContributionActionResult;
     try {
-      const result = await submitOperation({
+      result = await submitOperation({
         actionType: operation.actionType,
         contributionId: donationId,
         stagedGiftId: detail?.stagedGift?.id ?? null,
@@ -511,13 +513,6 @@ export function ContributionOperationShell({
           ? { ...basePayload, receiptDelivery: receiptDeliverySelection }
           : basePayload,
       });
-      await invalidateContributionOperationQueries(queryClient);
-      await onRowRefresh?.();
-      setPhase({
-        name: "success",
-        result,
-        submittedReceiptDelivery: receiptDeliverySelection,
-      });
     } catch (error) {
       // Failure preserves the entered form state for recovery (ADR-CD-033).
       const message =
@@ -529,7 +524,35 @@ export function ContributionOperationShell({
           error instanceof ContributionOperationRequestError &&
           error.status === 409,
       });
+      return;
     }
+
+    const refreshErrors: unknown[] = [];
+    try {
+      await invalidateContributionOperationQueries(queryClient);
+    } catch (refreshError) {
+      refreshErrors.push(refreshError);
+    }
+    try {
+      await onRowRefresh?.();
+    } catch (refreshError) {
+      refreshErrors.push(refreshError);
+    }
+
+    const refreshFailed = refreshErrors.length > 0;
+    if (refreshFailed) {
+      console.error(
+        "Contribution operation succeeded, but refresh failed.",
+        refreshErrors,
+      );
+    }
+
+    setPhase({
+      name: "success",
+      result,
+      submittedReceiptDelivery: receiptDeliverySelection,
+      refreshFailed,
+    });
   };
 
   const handleReloadLatestDetail = async () => {
@@ -818,6 +841,15 @@ export function ContributionOperationShell({
                 ? "Correction request submitted for approval."
                 : "Operation completed."}
             </p>
+            {phase.refreshFailed && (
+              <Alert role="alert">
+                <AlertDescription>
+                  The submission succeeded, but the displayed gift data may be
+                  stale because refresh failed. Closing and reopening this gift
+                  will retry loading current values.
+                </AlertDescription>
+              </Alert>
+            )}
             <ul className="space-y-0.5 text-xs text-muted-foreground">
               {phase.result.correctionRequestId && (
                 <li>Approval request: {phase.result.correctionRequestId}</li>

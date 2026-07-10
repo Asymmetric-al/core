@@ -999,9 +999,12 @@ export function DetailDrawer({
         }}
         onRowRefresh={async () => {
           const refreshed = await detailQuery.refetch();
-          if (!refreshed.isError) {
-            onRowRefresh?.();
+          if (refreshed.isError) {
+            throw refreshed.error instanceof Error
+              ? refreshed.error
+              : new Error("Could not refresh the CRM gift history.");
           }
+          onRowRefresh?.();
         }}
       />
       {pendingReset && resetPreview ? (

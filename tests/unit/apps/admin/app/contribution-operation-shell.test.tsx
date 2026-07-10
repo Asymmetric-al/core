@@ -164,6 +164,7 @@ describe("ContributionOperationShell", () => {
   afterEach(() => {
     cleanup();
     getQueryClient().clear();
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     if (fetchDescriptor) {
       Object.defineProperty(globalThis, "fetch", fetchDescriptor);
@@ -251,6 +252,67 @@ describe("ContributionOperationShell", () => {
     });
     expect(typeof body.idempotencyKey).toBe("string");
     expect(body.idempotencyKey.length).toBeGreaterThan(10);
+  });
+
+  it("keeps a successful operation successful when post-submit refresh fails", async () => {
+    const fetchMock = fetchMockForShell({
+      auditEventId: "audit-refresh-warning",
+      adjustmentId: "adj-refresh-warning",
+      approvalStatus: "pending_approval",
+      taskIds: [],
+      canonicalContribution: {},
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const invalidationError = new Error("shared invalidation failed");
+    const rowRefreshError = new Error("CRM refetch failed");
+    const invalidateQueries = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockRejectedValueOnce(invalidationError);
+    const onRowRefresh = vi.fn().mockRejectedValue(rowRefreshError);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+          onRowRefresh={onRowRefresh}
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(
+      await view.findByText("Correction request submitted for approval."),
+    ).toBeTruthy();
+    const warning = view.getByRole("alert");
+    expect(warning.textContent).toMatch(/the submission succeeded/i);
+    expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
+    expect(warning.textContent).toMatch(/will retry loading current values/i);
+    expect(view.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(invalidateQueries).toHaveBeenCalled();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Contribution operation succeeded, but refresh failed.",
+      [invalidationError, rowRefreshError],
+    );
   });
 
   it("labels amount fields with the loaded contribution currency", async () => {
