@@ -72,7 +72,7 @@ those contracts and add a gate — they never relax them. [VERIFIED-REPO: opensp
   posture. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#418 (this change):** owns the release-switch state, emergency-off state, the single consult/abort gate,
   observability of that state, and the disabled-blocks-autonomy test contract.
-- **#420 (kill-switch control path):** owns the granular per-domain switches (US-35) that *drive* the state
+- **#420 (kill-switch control path):** owns the granular per-domain switches (US-35) that _drive_ the state
   this kernel persists; #418 defines the state, #420 defines the controls. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#437 (final release switch + launch verification):** owns the actual flip to enabled after end-to-end
   checks; the switch stays off until then. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
