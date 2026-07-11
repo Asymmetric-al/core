@@ -1110,6 +1110,26 @@ export async function executeContributionAction<TContribution = unknown>(
           afterSummary: { refundAmount: amount },
         }),
       );
+      if (providerOutcome.status === "pending") {
+        const providerReferenceId = normalizedToken(
+          providerOutcome.referenceId,
+        );
+        if (!providerReferenceId) {
+          throw new Error(
+            "Pending refund outcome is missing its provider reference.",
+          );
+        }
+
+        const linkAndReconcilePendingRefundAttempt = requireDependency(
+          input.dependencies,
+          "linkAndReconcilePendingRefundAttempt",
+        );
+        await linkAndReconcilePendingRefundAttempt({
+          tenantId: input.tenantId,
+          providerReferenceId,
+          correctionId,
+        });
+      }
       const auditEventId = await appendAuditEvent(
         input,
         auditInput(input, {

@@ -1,6 +1,11 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  convergePendingContributionRefundWorkflow,
+  loadContributionRefundAttemptByProviderReference,
+} from "../admin/contribution-operations/store";
 import { createStripeClient } from "./client";
 import {
   claimStripeRawEvent,
@@ -39,8 +44,162 @@ export interface StripeWebhookOutcome {
   handled: boolean;
   paymentIntentId?: string;
   pledgeId?: string;
+  providerRefundId?: string;
   reason?: string;
   stagedGiftId?: string | null;
+}
+
+interface StripeRefundReconciliationApi {
+  refunds: {
+    retrieve(
+      id: string,
+      params?: Stripe.RefundRetrieveParams,
+    ): Promise<Stripe.Refund>;
+  };
+  charges: {
+    retrieve(id: string): Promise<Stripe.Charge>;
+  };
+}
+
+async function createTenantStripeRefundClient(params: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+}): Promise<StripeRefundReconciliationApi> {
+  const { data, error } = await params.supabaseAdmin
+    .from("tenants")
+    .select("stripe_secret_key")
+    .eq("id", params.tenantId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  const tenant = data as { stripe_secret_key?: string | null } | null;
+  const secretKey =
+    tenant?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
+  if (!secretKey) {
+    throw new Error("Stripe is not configured for refund reconciliation.");
+  }
+
+  return createStripeClient(secretKey);
+}
+
+/**
+ * Shared terminal lifecycle for refund webhooks and the aged-pending safety
+ * sweep. The provider refund id is the durable join key; tenant context keeps
+ * the lookup and provider credentials isolated to the owning organization.
+ */
+export async function reconcileStripeRefundLifecycle(params: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  refund: Stripe.Refund;
+  stripe?: StripeRefundReconciliationApi;
+}): Promise<StripeWebhookOutcome> {
+  const { supabaseAdmin, tenantId, refund } = params;
+  const attempt = await loadContributionRefundAttemptByProviderReference({
+    supabaseAdmin,
+    tenantId,
+    providerReferenceId: refund.id,
+  });
+
+  if (!attempt) {
+    return {
+      action: "refund_attempt_not_matched",
+      handled: true,
+      providerRefundId: refund.id,
+      reason: "No pending contribution refund matched the Stripe refund.",
+    };
+  }
+
+  if (attempt.providerOutcome && attempt.providerOutcome.status !== "pending") {
+    return {
+      action: "refund_already_reconciled",
+      donationId: attempt.donationId,
+      handled: true,
+      providerRefundId: refund.id,
+    };
+  }
+
+  if (refund.status === "pending" || refund.status === "requires_action") {
+    return {
+      action: "refund_pending",
+      donationId: attempt.donationId,
+      handled: true,
+      providerRefundId: refund.id,
+    };
+  }
+
+  if (refund.status !== "succeeded") {
+    await convergePendingContributionRefundWorkflow({
+      supabaseAdmin,
+      attempt,
+      providerOutcome: {
+        provider: "stripe",
+        status: "failed",
+        referenceId: refund.id,
+        errorCode: refund.failure_reason ?? refund.status ?? "refund_failed",
+        errorMessage: `Stripe reported refund status ${refund.status ?? "failed"}.`,
+      },
+    });
+    return {
+      action: "refund_failed",
+      donationId: attempt.donationId,
+      handled: true,
+      providerRefundId: refund.id,
+    };
+  }
+
+  const stripe =
+    params.stripe ??
+    (await createTenantStripeRefundClient({ supabaseAdmin, tenantId }));
+  let charge: Stripe.Charge;
+  if (typeof refund.charge === "object" && refund.charge !== null) {
+    charge = refund.charge;
+  } else {
+    const chargeId = getStripeObjectId(refund.charge);
+    if (!chargeId) {
+      throw new Error("Stripe refund did not identify a charge to reconcile.");
+    }
+    charge = await stripe.charges.retrieve(chargeId);
+  }
+
+  const localOutcome = await applyRefundedChargeToDonation(
+    supabaseAdmin,
+    charge,
+  );
+  if (
+    localOutcome.action === "charge_refund_missing_payment_intent" ||
+    localOutcome.action === "charge_refund_not_matched"
+  ) {
+    throw new Error("Stripe refund did not converge to a local donation.");
+  }
+
+  await convergePendingContributionRefundWorkflow({
+    supabaseAdmin,
+    attempt,
+    providerOutcome: {
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: refund.id,
+    },
+  });
+
+  return {
+    ...localOutcome,
+    action: "refund_succeeded",
+    providerRefundId: refund.id,
+  };
+}
+
+export async function reconcileStripeRefundByProviderId(params: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  providerRefundId: string;
+}): Promise<StripeWebhookOutcome> {
+  const stripe = await createTenantStripeRefundClient(params);
+  const refund = await stripe.refunds.retrieve(params.providerRefundId, {
+    expand: ["charge"],
+  });
+  return reconcileStripeRefundLifecycle({ ...params, refund, stripe });
 }
 
 /**
@@ -53,6 +212,9 @@ const WORKFLOW_DISPATCHED_STRIPE_EVENT_TYPES = new Set<string>([
   "payment_intent.payment_failed",
   "payment_intent.canceled",
   "payment_intent.processing",
+  "refund.created",
+  "refund.updated",
+  "refund.failed",
   "charge.refunded",
   "customer.subscription.updated",
   "customer.subscription.deleted",
@@ -68,6 +230,7 @@ export function isWorkflowDispatchedStripeEventType(
 
 interface StripeWebhookProcessingContext {
   rawEventId?: string | null;
+  reconcileRefund?: typeof reconcileStripeRefundByProviderId;
   stripeEventId?: string | null;
   tenantId?: string | null;
 }
@@ -201,6 +364,26 @@ export async function handleStripeWebhookEvent(
         status: "processing",
         context,
       });
+    case "refund.created":
+    case "refund.updated":
+    case "refund.failed": {
+      const refund = event.data.object as Stripe.Refund;
+      if (!context.tenantId) {
+        return {
+          action: "refund_tenant_not_resolved",
+          handled: true,
+          providerRefundId: refund.id,
+          reason: "Stripe refund did not resolve to an organization.",
+        };
+      }
+      const reconcileRefund =
+        context.reconcileRefund ?? reconcileStripeRefundByProviderId;
+      return reconcileRefund({
+        supabaseAdmin,
+        tenantId: context.tenantId,
+        providerRefundId: refund.id,
+      });
+    }
     case "charge.refunded":
       return applyRefundedChargeToDonation(
         supabaseAdmin,
@@ -360,6 +543,7 @@ export async function POST(request: NextRequest) {
         donationId: outcome.donationId,
         handled: outcome.handled,
         paymentIntentId: outcome.paymentIntentId,
+        providerRefundId: outcome.providerRefundId,
         reason: outcome.reason,
         stagedGiftId: outcome.stagedGiftId,
       },

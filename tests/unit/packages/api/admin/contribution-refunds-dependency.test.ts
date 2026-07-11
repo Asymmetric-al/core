@@ -1,8 +1,20 @@
 import { serverEnv } from "@asym/env";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../../../../../packages/api/src/stripe/webhooks", () => ({
+  reconcileStripeRefundByProviderId: vi.fn().mockResolvedValue({
+    action: "refund_pending",
+    handled: true,
+  }),
+}));
 
 import { createContributionActionDependencies } from "../../../../../packages/api/src/admin/contribution-operations/dependencies";
 import { refundContributionThroughStripe } from "../../../../../packages/api/src/admin/contribution-operations/refunds";
+import {
+  convergePendingContributionRefundWorkflow,
+  loadContributionRefundAttemptByProviderReference,
+} from "../../../../../packages/api/src/admin/contribution-operations/store";
+import { reconcileStripeRefundByProviderId } from "../../../../../packages/api/src/stripe/webhooks";
 import {
   correctionStatusForProviderOutcome,
   isFailedProviderOutcomeStatus,
@@ -30,6 +42,7 @@ interface SupabaseStubOptions {
   tenant?: Row | null;
   donationUpdateError?: string | null;
   refundAttempts?: Row[];
+  corrections?: Row[];
 }
 
 function donationRow(overrides: Row = {}): Row {
@@ -90,6 +103,11 @@ class TableQuery {
     return this;
   }
 
+  is(column: string, value: unknown) {
+    this.filters[column] = value;
+    return this;
+  }
+
   in() {
     return this;
   }
@@ -104,7 +122,17 @@ class TableQuery {
 
   private match(): Row[] {
     return this.rows.filter((row) =>
-      Object.entries(this.filters).every(([key, value]) => row[key] === value),
+      Object.entries(this.filters).every(([key, value]) => {
+        const jsonPath = key.match(/^(.+)->>(.+)$/);
+        if (!jsonPath) return row[key] === value;
+        const jsonValue = row[jsonPath[1]!];
+        return (
+          typeof jsonValue === "object" &&
+          jsonValue !== null &&
+          !Array.isArray(jsonValue) &&
+          (jsonValue as Row)[jsonPath[2]!] === value
+        );
+      }),
     );
   }
 
@@ -186,9 +214,11 @@ function createSupabaseStub(options: SupabaseStubOptions): {
   client: AdminSupabaseClient;
   updates: RecordedUpdate[];
   refundAttempts: Row[];
+  corrections: Row[];
 } {
   const updates: RecordedUpdate[] = [];
   const refundAttempts = options.refundAttempts ?? [];
+  const corrections = options.corrections ?? [];
   const tenant =
     options.tenant === undefined
       ? { id: TENANT_ID, stripe_secret_key: TENANT_STRIPE_KEY }
@@ -200,7 +230,7 @@ function createSupabaseStub(options: SupabaseStubOptions): {
     staged_gift_allocations: [],
     contribution_adjustments: [],
     contribution_operation_audit_events: [],
-    contribution_corrections: [],
+    contribution_corrections: corrections,
     contribution_correction_requests: [],
     contribution_refund_attempts: refundAttempts,
     donation_crm_links: [],
@@ -221,7 +251,7 @@ function createSupabaseStub(options: SupabaseStubOptions): {
     },
   } as unknown as AdminSupabaseClient;
 
-  return { client, updates, refundAttempts };
+  return { client, updates, refundAttempts, corrections };
 }
 
 interface RecordedRefundCreate {
@@ -361,6 +391,7 @@ function refundAttemptRow(overrides: Row = {}): Row {
     state: "claimed",
     provider_outcome: null,
     provider_reference_id: null,
+    correction_id: null,
     finalized_at: null,
     created_at: "2026-07-10T17:00:00.000Z",
     updated_at: "2026-07-10T17:00:00.000Z",
@@ -395,6 +426,198 @@ describe("contribution refundContribution dependency", () => {
       message: expect.stringMatching(/no payment provider charge/i),
     });
     expect(stub.updates).toHaveLength(0);
+  });
+
+  it("links and immediately reconciles a pending refund through the dependency factory", async () => {
+    const stub = createSupabaseStub({
+      donation: donationRow(),
+      refundAttempts: [
+        refundAttemptRow({
+          state: "finalized",
+          provider_reference_id: "re_pending_1",
+          provider_outcome: {
+            provider: "stripe",
+            status: "pending",
+            referenceId: "re_pending_1",
+          },
+          finalized_at: "2026-07-10T17:01:00.000Z",
+        }),
+      ],
+    });
+    const deps = createContributionActionDependencies(stub.client);
+    vi.mocked(reconcileStripeRefundByProviderId).mockImplementationOnce(
+      async () => {
+        // Reconciliation must run after the correction link is durable, so an
+        // already-terminal provider result can converge the linked workflow.
+        expect(stub.refundAttempts[0]?.correction_id).toBe("correction-1");
+        return { action: "refund_pending", handled: true };
+      },
+    );
+
+    await deps.linkAndReconcilePendingRefundAttempt!({
+      tenantId: TENANT_ID,
+      providerReferenceId: "re_pending_1",
+      correctionId: "correction-1",
+    });
+
+    expect(stub.refundAttempts[0]).toMatchObject({
+      provider_reference_id: "re_pending_1",
+      correction_id: "correction-1",
+    });
+    expect(reconcileStripeRefundByProviderId).toHaveBeenCalledWith({
+      supabaseAdmin: stub.client,
+      tenantId: TENANT_ID,
+      providerRefundId: "re_pending_1",
+    });
+  });
+
+  it("keeps a durable pending link when the immediate provider reread fails", async () => {
+    const stub = createSupabaseStub({
+      donation: donationRow(),
+      refundAttempts: [
+        refundAttemptRow({
+          state: "finalized",
+          provider_reference_id: "re_pending_retry",
+          provider_outcome: {
+            provider: "stripe",
+            status: "pending",
+            referenceId: "re_pending_retry",
+          },
+          finalized_at: "2026-07-10T17:01:00.000Z",
+        }),
+      ],
+    });
+    vi.mocked(reconcileStripeRefundByProviderId).mockRejectedValueOnce(
+      new Error("temporary Stripe timeout"),
+    );
+
+    await expect(
+      createContributionActionDependencies(stub.client)
+        .linkAndReconcilePendingRefundAttempt!({
+        tenantId: TENANT_ID,
+        providerReferenceId: "re_pending_retry",
+        correctionId: "correction-retry",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(stub.refundAttempts[0]).toMatchObject({
+      provider_reference_id: "re_pending_retry",
+      correction_id: "correction-retry",
+      provider_outcome: { status: "pending" },
+    });
+  });
+
+  it.each([
+    ["succeeded", "applied"],
+    ["failed", "failed"],
+  ] as const)(
+    "converges a linked pending attempt to %s without leaving its correction pending",
+    async (providerStatus, correctionStatus) => {
+      const correctionId = "correction-1";
+      const stub = createSupabaseStub({
+        donation: donationRow(),
+        corrections: [
+          {
+            id: correctionId,
+            tenant_id: TENANT_ID,
+            donation_id: DONATION_ID,
+            status: "pending",
+            applied_at: null,
+            failed_at: null,
+          },
+        ],
+        refundAttempts: [
+          refundAttemptRow({
+            state: "finalized",
+            provider_reference_id: "re_pending_1",
+            correction_id: correctionId,
+            provider_outcome: {
+              provider: "stripe",
+              status: "pending",
+              referenceId: "re_pending_1",
+            },
+            finalized_at: "2026-07-10T17:01:00.000Z",
+          }),
+        ],
+      });
+      const attempt = await loadContributionRefundAttemptByProviderReference({
+        supabaseAdmin: stub.client,
+        tenantId: TENANT_ID,
+        providerReferenceId: "re_pending_1",
+      });
+      expect(attempt).not.toBeNull();
+
+      const result = await convergePendingContributionRefundWorkflow({
+        supabaseAdmin: stub.client,
+        attempt: attempt!,
+        providerOutcome: {
+          provider: "stripe",
+          status: providerStatus,
+          referenceId: "re_pending_1",
+        },
+      });
+
+      expect(result).toEqual({ converged: true });
+      expect(stub.corrections[0]).toMatchObject({
+        status: correctionStatus,
+        applied_at: correctionStatus === "applied" ? expect.any(String) : null,
+        failed_at: correctionStatus === "failed" ? expect.any(String) : null,
+      });
+      expect(stub.refundAttempts[0]!.provider_outcome).toMatchObject({
+        status: providerStatus,
+        referenceId: "re_pending_1",
+      });
+    },
+  );
+
+  it("keeps terminal attempt and correction state monotonic on duplicate events", async () => {
+    const stub = createSupabaseStub({
+      donation: donationRow(),
+      corrections: [
+        {
+          id: "correction-1",
+          tenant_id: TENANT_ID,
+          donation_id: DONATION_ID,
+          status: "applied",
+          applied_at: "2026-07-10T17:02:00.000Z",
+          failed_at: null,
+        },
+      ],
+      refundAttempts: [
+        refundAttemptRow({
+          state: "finalized",
+          provider_reference_id: "re_terminal_1",
+          correction_id: "correction-1",
+          provider_outcome: {
+            provider: "stripe",
+            status: "succeeded",
+            referenceId: "re_terminal_1",
+          },
+          finalized_at: "2026-07-10T17:01:00.000Z",
+        }),
+      ],
+    });
+    const attempt = await loadContributionRefundAttemptByProviderReference({
+      supabaseAdmin: stub.client,
+      tenantId: TENANT_ID,
+      providerReferenceId: "re_terminal_1",
+    });
+
+    const result = await convergePendingContributionRefundWorkflow({
+      supabaseAdmin: stub.client,
+      attempt: attempt!,
+      providerOutcome: {
+        provider: "stripe",
+        status: "failed",
+        referenceId: "re_terminal_1",
+      },
+    });
+
+    expect(result).toEqual({ converged: false });
+    expect(stub.corrections[0]!.status).toBe("applied");
+    expect((stub.refundAttempts[0]!.provider_outcome as Row).status).toBe(
+      "succeeded",
+    );
   });
 
   describe("blocked reasons (server-enforced before any provider call)", () => {

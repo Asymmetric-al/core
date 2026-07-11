@@ -958,6 +958,9 @@ describe("contribution operations action executor", () => {
       referenceId: "re_pending_1",
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const linkAndReconcilePendingRefundAttempt = vi
+      .fn()
+      .mockResolvedValue(undefined);
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
     const loadContributionDetail = vi.fn().mockResolvedValue({
       id: "donation_1",
@@ -978,6 +981,7 @@ describe("contribution operations action executor", () => {
       dependencies: {
         refundContribution,
         createCorrectionRecord,
+        linkAndReconcilePendingRefundAttempt,
         appendAuditEvent,
         loadContributionDetail,
       },
@@ -995,7 +999,51 @@ describe("contribution operations action executor", () => {
         }),
       }),
     );
+    expect(linkAndReconcilePendingRefundAttempt).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      providerReferenceId: "re_pending_1",
+      correctionId: "correction_1",
+    });
+    expect(createCorrectionRecord.mock.invocationCallOrder[0]).toBeLessThan(
+      linkAndReconcilePendingRefundAttempt.mock.invocationCallOrder[0]!,
+    );
+    expect(
+      linkAndReconcilePendingRefundAttempt.mock.invocationCallOrder[0],
+    ).toBeLessThan(appendAuditEvent.mock.invocationCallOrder[0]!);
     expect(result.providerOutcome?.status).toBe("pending");
+  });
+
+  it("does not link terminal refund outcomes to pending reconciliation", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: "re_succeeded_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const linkAndReconcilePendingRefundAttempt = vi.fn();
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        linkAndReconcilePendingRefundAttempt,
+        appendAuditEvent: vi.fn().mockResolvedValue("audit_1"),
+        loadContributionDetail: vi.fn().mockResolvedValue({ id: "donation_1" }),
+      },
+    });
+
+    expect(linkAndReconcilePendingRefundAttempt).not.toHaveBeenCalled();
   });
 
   it("preserves platform-generated reconciliation messages for local_update_failed refunds", async () => {

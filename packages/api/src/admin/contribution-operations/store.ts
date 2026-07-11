@@ -13,6 +13,8 @@ type SupabaseAdmin = AdminSupabaseClient;
 type JsonRecord = Record<string, unknown>;
 
 const CONTRIBUTION_REFUND_ATTEMPTS_TABLE = "contribution_refund_attempts";
+export const REFUND_RECONCILIATION_BATCH_SIZE = 25;
+export const REFUND_RECONCILIATION_MIN_AGE_MS = 5 * 60 * 1000;
 const REFUND_ATTEMPT_CONFLICT_MESSAGE =
   "This idempotency key is already assigned to another refund request.";
 const REDACTED_PROVIDER_ERROR_MESSAGE =
@@ -31,6 +33,7 @@ interface ContributionRefundAttemptRow {
   state: "claimed" | "finalized";
   provider_outcome: unknown;
   provider_reference_id: string | null;
+  correction_id: string | null;
   claimed_at: string;
   finalized_at: string | null;
   created_at: string;
@@ -46,6 +49,7 @@ export interface ContributionRefundAttempt {
   state: "claimed" | "finalized";
   providerOutcome: ContributionProviderOutcome | null;
   providerReferenceId: string | null;
+  correctionId: string | null;
   claimedAt: string;
   finalizedAt: string | null;
   createdAt: string;
@@ -144,6 +148,7 @@ function mapContributionRefundAttempt(
     state: row.state,
     providerOutcome: mapStoredProviderOutcome(row.provider_outcome),
     providerReferenceId: row.provider_reference_id,
+    correctionId: row.correction_id ?? null,
     claimedAt: row.claimed_at,
     finalizedAt: row.finalized_at,
     createdAt: row.created_at,
@@ -272,6 +277,192 @@ export async function finalizeContributionRefundAttempt(input: {
   }
 
   return mapContributionRefundAttempt(data as ContributionRefundAttemptRow);
+}
+
+export async function loadContributionRefundAttemptByProviderReference(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  providerReferenceId: string;
+}): Promise<ContributionRefundAttempt | null> {
+  const { data, error } = await input.supabaseAdmin
+    .from(CONTRIBUTION_REFUND_ATTEMPTS_TABLE)
+    .select("*")
+    .eq("tenant_id", input.tenantId)
+    .eq("provider_reference_id", input.providerReferenceId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(
+      `contribution_refund_attempt_provider_load_failed: ${error.message}`,
+    );
+  }
+
+  return data
+    ? mapContributionRefundAttempt(data as ContributionRefundAttemptRow)
+    : null;
+}
+
+export async function linkPendingContributionRefundAttemptToCorrection(input: {
+  supabaseAdmin: SupabaseAdmin;
+  tenantId: string;
+  providerReferenceId: string;
+  correctionId: string;
+}): Promise<ContributionRefundAttempt> {
+  const attempt = await loadContributionRefundAttemptByProviderReference(input);
+  if (
+    !attempt ||
+    attempt.state !== "finalized" ||
+    attempt.providerOutcome?.status !== "pending"
+  ) {
+    throw new Error("pending_contribution_refund_attempt_not_found");
+  }
+
+  if (attempt.correctionId === input.correctionId) {
+    return attempt;
+  }
+  if (attempt.correctionId) {
+    throw new Error("contribution_refund_attempt_correction_conflict");
+  }
+
+  const timestamp = new Date().toISOString();
+  const { data, error } = await input.supabaseAdmin
+    .from(CONTRIBUTION_REFUND_ATTEMPTS_TABLE)
+    .update({ correction_id: input.correctionId, updated_at: timestamp })
+    .eq("id", attempt.id)
+    .eq("tenant_id", input.tenantId)
+    .is("correction_id", null)
+    .select("*")
+    .maybeSingle();
+
+  if (error || !data) {
+    throw new Error(
+      `contribution_refund_attempt_link_failed: ${error?.message ?? "missing row"}`,
+    );
+  }
+
+  return mapContributionRefundAttempt(data as ContributionRefundAttemptRow);
+}
+
+export async function listAgedPendingContributionRefundAttempts(input: {
+  supabaseAdmin: SupabaseAdmin;
+  now?: Date;
+}): Promise<ContributionRefundAttempt[]> {
+  const now = input.now ?? new Date();
+  const cutoff = new Date(
+    now.getTime() - REFUND_RECONCILIATION_MIN_AGE_MS,
+  ).toISOString();
+  const { data, error } = await input.supabaseAdmin
+    .from(CONTRIBUTION_REFUND_ATTEMPTS_TABLE)
+    .select("*")
+    .eq("state", "finalized")
+    .eq("provider_outcome->>status", "pending")
+    .not("provider_reference_id", "is", null)
+    .lte("finalized_at", cutoff)
+    .order("finalized_at", { ascending: true })
+    .order("id", { ascending: true })
+    .limit(REFUND_RECONCILIATION_BATCH_SIZE);
+
+  if (error) {
+    throw new Error(
+      `contribution_refund_attempt_pending_scan_failed: ${error.message}`,
+    );
+  }
+
+  return ((data ?? []) as ContributionRefundAttemptRow[]).map(
+    mapContributionRefundAttempt,
+  );
+}
+
+export async function convergePendingContributionRefundWorkflow(input: {
+  supabaseAdmin: SupabaseAdmin;
+  attempt: ContributionRefundAttempt;
+  providerOutcome: ContributionProviderOutcome & {
+    status: "succeeded" | "failed";
+  };
+}): Promise<{ converged: boolean }> {
+  // Terminal attempt outcomes are immutable. Duplicate or out-of-order
+  // provider events may observe them again, but must never try to rewrite the
+  // linked correction or fail because the pending compare-and-set matches no
+  // row.
+  if (
+    !input.attempt.correctionId ||
+    input.attempt.state !== "finalized" ||
+    input.attempt.providerOutcome?.status !== "pending"
+  ) {
+    return { converged: false };
+  }
+
+  const correctionStatus =
+    input.providerOutcome.status === "succeeded" ? "applied" : "failed";
+  const { data: existingCorrection, error: correctionLoadError } =
+    await input.supabaseAdmin
+      .from("contribution_corrections")
+      .select("id, status")
+      .eq("id", input.attempt.correctionId)
+      .eq("tenant_id", input.attempt.tenantId)
+      .eq("donation_id", input.attempt.donationId)
+      .maybeSingle();
+
+  if (correctionLoadError || !isRecord(existingCorrection)) {
+    throw new Error(
+      `contribution_refund_correction_load_failed: ${correctionLoadError?.message ?? "missing row"}`,
+    );
+  }
+
+  const existingStatus = asString(existingCorrection.status);
+  if (existingStatus !== "pending" && existingStatus !== correctionStatus) {
+    return { converged: false };
+  }
+
+  const timestamp = new Date().toISOString();
+  const providerOutcome = sanitizeProviderOutcome(input.providerOutcome);
+
+  if (existingStatus === "pending") {
+    const correctionValues = {
+      status: correctionStatus,
+      provider_outcome: providerOutcome,
+      applied_at: correctionStatus === "applied" ? timestamp : null,
+      failed_at: correctionStatus === "failed" ? timestamp : null,
+      updated_at: timestamp,
+    };
+    const { data: updatedCorrection, error: correctionUpdateError } =
+      await input.supabaseAdmin
+        .from("contribution_corrections")
+        .update(correctionValues)
+        .eq("id", input.attempt.correctionId)
+        .eq("tenant_id", input.attempt.tenantId)
+        .eq("status", "pending")
+        .select("id")
+        .maybeSingle();
+
+    if (correctionUpdateError || !updatedCorrection) {
+      throw new Error(
+        `contribution_refund_correction_converge_failed: ${correctionUpdateError?.message ?? "missing row"}`,
+      );
+    }
+  }
+
+  // Deliberately update the attempt second. If this write fails, its pending
+  // provider outcome keeps the row in the recovery scan and the already-
+  // terminal correction can be recognized on retry without being overwritten.
+  const { data: updatedAttempt, error: attemptUpdateError } =
+    await input.supabaseAdmin
+      .from(CONTRIBUTION_REFUND_ATTEMPTS_TABLE)
+      .update({ provider_outcome: providerOutcome, updated_at: timestamp })
+      .eq("id", input.attempt.id)
+      .eq("tenant_id", input.attempt.tenantId)
+      .eq("correction_id", input.attempt.correctionId)
+      .eq("provider_outcome->>status", "pending")
+      .select("id")
+      .maybeSingle();
+
+  if (attemptUpdateError || !updatedAttempt) {
+    throw new Error(
+      `contribution_refund_attempt_converge_failed: ${attemptUpdateError?.message ?? "missing row"}`,
+    );
+  }
+
+  return { converged: true };
 }
 
 export async function appendContributionOperationAuditEvent(input: {

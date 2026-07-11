@@ -22,9 +22,19 @@ describe("contribution refund attempts migration", () => {
     expect(migrationSql).toContain("state TEXT NOT NULL DEFAULT 'claimed'");
     expect(migrationSql).toContain("provider_outcome JSONB");
     expect(migrationSql).toContain("provider_reference_id TEXT");
+    expect(migrationSql).toContain(
+      "correction_id UUID REFERENCES public.contribution_corrections(id) ON DELETE SET NULL",
+    );
     expect(migrationSql).toContain("finalized_at TIMESTAMPTZ");
     expect(migrationSql).toContain(
       "ON public.contribution_refund_attempts (donation_id)",
+    );
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (tenant_id, provider_reference_id)",
+    );
+    expect(migrationSql).toContain("WHERE provider_reference_id IS NOT NULL");
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (correction_id)",
     );
   });
 
@@ -40,6 +50,24 @@ describe("contribution refund attempts migration", () => {
     );
     expect(migrationSql).toContain(
       "contribution refund attempt donation tenant mismatch",
+    );
+    expect(migrationSql).toMatch(
+      /FROM public\.contribution_corrections\s+WHERE id = NEW\.correction_id\s+AND tenant_id = NEW\.tenant_id\s+AND donation_id = NEW\.donation_id/,
+    );
+    expect(migrationSql).toContain(
+      "contribution refund attempt correction tenant mismatch",
+    );
+    expect(migrationSql).toContain(
+      "BEFORE INSERT OR UPDATE OF tenant_id, donation_id, correction_id",
+    );
+  });
+
+  it("indexes the exact bounded pending-reconciliation scan", () => {
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (finalized_at ASC, id ASC)",
+    );
+    expect(migrationSql).toMatch(
+      /WHERE state = 'finalized'\s+AND provider_outcome ->> 'status' = 'pending'\s+AND provider_reference_id IS NOT NULL/,
     );
   });
 

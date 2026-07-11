@@ -11,6 +11,7 @@ import { refundContributionThroughStripe } from "./refunds";
 import {
   appendContributionOperationAuditEvent,
   createContributionCorrectionRecord,
+  linkPendingContributionRefundAttemptToCorrection,
   loadContributionDetailFromSupabase,
 } from "./store";
 import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
@@ -22,6 +23,7 @@ import {
 } from "../../giving/staged-gifts";
 import { ApiHttpError } from "../../shared/http-errors";
 import { resolveLatestStripeEventIdForDonation } from "../../stripe/replay";
+import { reconcileStripeRefundByProviderId } from "../../stripe/webhooks";
 
 import type { ContributionActionDependencies } from "./types";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
@@ -72,6 +74,23 @@ export function createContributionActionDependencies(
       applyContributionCorrection({ supabaseAdmin, ...correctionInput }),
     refundContribution: (refundInput) =>
       refundContributionThroughStripe({ supabaseAdmin, ...refundInput }),
+    linkAndReconcilePendingRefundAttempt: async (linkInput) => {
+      await linkPendingContributionRefundAttemptToCorrection({
+        supabaseAdmin,
+        ...linkInput,
+      });
+      try {
+        await reconcileStripeRefundByProviderId({
+          supabaseAdmin,
+          tenantId: linkInput.tenantId,
+          providerRefundId: linkInput.providerReferenceId,
+        });
+      } catch {
+        // The durable link is the recovery boundary. A transient provider read
+        // must not make an action retry create a second correction; the bounded
+        // aged-pending sweep will retry this same linked attempt.
+      }
+    },
     resolveReplayStripeEventId: async ({
       payload,
       tenantId,

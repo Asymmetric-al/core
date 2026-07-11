@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS public.contribution_refund_attempts (
         CHECK (state IN ('claimed', 'finalized')),
     provider_outcome JSONB,
     provider_reference_id TEXT,
+    correction_id UUID REFERENCES public.contribution_corrections(id) ON DELETE SET NULL,
     claimed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     finalized_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -33,6 +34,23 @@ CREATE INDEX IF NOT EXISTS idx_contribution_refund_attempts_tenant_donation
 CREATE INDEX IF NOT EXISTS idx_contribution_refund_attempts_donation
     ON public.contribution_refund_attempts (donation_id);
 
+CREATE UNIQUE INDEX IF NOT EXISTS idx_contribution_refund_attempts_tenant_provider_reference
+    ON public.contribution_refund_attempts (tenant_id, provider_reference_id)
+    WHERE provider_reference_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_contribution_refund_attempts_correction
+    ON public.contribution_refund_attempts (correction_id)
+    WHERE correction_id IS NOT NULL;
+
+-- The recovery worker only reads finalized attempts whose provider outcome is
+-- still pending. Oldest-first ordering plus the id tie-breaker keeps every
+-- bounded scan deterministic.
+CREATE INDEX IF NOT EXISTS idx_contribution_refund_attempts_pending_provider
+    ON public.contribution_refund_attempts (finalized_at ASC, id ASC)
+    WHERE state = 'finalized'
+      AND provider_outcome ->> 'status' = 'pending'
+      AND provider_reference_id IS NOT NULL;
+
 CREATE OR REPLACE FUNCTION public.enforce_contribution_refund_attempt_tenant_ref()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -49,12 +67,23 @@ BEGIN
             USING ERRCODE = '23503';
     END IF;
 
+    IF NEW.correction_id IS NOT NULL AND NOT EXISTS (
+        SELECT 1
+        FROM public.contribution_corrections
+        WHERE id = NEW.correction_id
+          AND tenant_id = NEW.tenant_id
+          AND donation_id = NEW.donation_id
+    ) THEN
+        RAISE EXCEPTION 'contribution refund attempt correction tenant mismatch'
+            USING ERRCODE = '23503';
+    END IF;
+
     RETURN NEW;
 END;
 $$;
 
 CREATE TRIGGER enforce_contribution_refund_attempt_tenant_ref
-    BEFORE INSERT OR UPDATE OF tenant_id, donation_id
+    BEFORE INSERT OR UPDATE OF tenant_id, donation_id, correction_id
     ON public.contribution_refund_attempts
     FOR EACH ROW
     EXECUTE FUNCTION public.enforce_contribution_refund_attempt_tenant_ref();
