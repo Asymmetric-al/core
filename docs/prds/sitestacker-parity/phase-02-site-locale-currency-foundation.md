@@ -214,13 +214,14 @@ rather than a cautious, reversible, production-safe migration.
   settings, not just locale and currency. This is the recorded justification against adding a
   `site_settings` table when the next setting arrives.
 - **A2. Tenant owns the money; site owns the presentation.** The merchant/settlement identity stays
-  at the tenant (one standalone Stripe account per tenant — the repo resolves the tenant's stored
-  Stripe secret key, no Stripe Connect). A site declares a **presentment currency** and **locale**
+  at the tenant (one **Stripe Connect connected account** per tenant — the tenant owns the money via
+  a connected account accessed with `{stripeAccount:'acct_…'}`, not a stored secret key; see Phase 13
+  (Campaign, Designation, Contribution Ledger & Giving Cart) D1 §A topology). A site declares a **presentment currency** and **locale**
   as display facets. **Phase 2 constraint:** a site's presentment currency **must equal** the
   tenant's settlement currency — we never show "priced in EUR, charged in USD." A nullable per-site
   payment-account override is **reserved** (unused) for a future genuinely-separate processor.
   Verified against Stripe docs: one standalone account can present 135+ currencies, so multi-currency
-  later needs **no** per-site accounts.
+  later needs **no** per-site accounts. _(Amended 2026-07-11, Phase 15 (Offline Gift & Batch Entry) D4: the tenant's merchant identity is a Stripe Connect connected account accessed with `{stripeAccount:'acct_…'}` (Phase 13 D1 §A topology), not a stored standalone secret key — the earlier "standalone account / stored secret key / no Stripe Connect" wording is superseded; the presentment=settlement constraint and the reserved per-site override are unchanged.)\_
 - **A3. Dual representation in one database.** Payload and Supabase share a **single Postgres**
   (Payload in schema `cms`, app data in `public`; the Payload DB URL falls back to the Supabase DB
   URL). So a site is represented by `public.sites` (operational source of truth: identity, tenant

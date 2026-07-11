@@ -214,6 +214,16 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   committed 2026-07-10 (decision families D1–D5 + five close-outs; three
   ruthless adversarial fleets + two focused design passes).
   Tracked by epic #719 + children #720–#741.
+- [`phase-15-offline-gift-batch-entry.md`](./phase-15-offline-gift-batch-entry.md)
+  — the Phase 15 plan (Offline Gift & Batch Entry): the professional offline
+  batch-entry workbench — **one front door** (all staff-entered offline money
+  flows through a single gift-entry-batch commit service), **validate = post**
+  with a frozen-original control total and high-risk auto-route, **native phone
+  card (embedded SAQ-A Payment Element + server-confirm MOTO) and ACH** payments,
+  **deposit grouping** as the operational deposit-state axis, reusable batch
+  **templates**, and the per-batch **Send-acknowledgments gate** that releases
+  held batch-origin rows into the existing acknowledgment pipeline. Groomed
+  2026-07-11.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

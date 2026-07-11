@@ -84,3 +84,27 @@ one mixed column. Detailed behavior is specified in
   recognition read models
 - AND no column, export, or API field sums Legal giving and Recognition
   giving together
+
+### Requirement: Offline Money Enters Only Through the Governed Batch-Commit Path
+
+All staff-entered offline money MUST enter through the single gift-entry-batch
+commit service — the one front door (Phase 15 D1) — and nothing else in the
+platform MUST write offline money (Phase 39 no-offline-money-writes). A batch's
+declared control totals MUST never be silently erased on a mismatch: the
+declared originals stay frozen and any override is an audited, reason-carrying
+event (Phase 15 D2). A clean validation IS the commit (validate = post,
+Phase 15 D5) and every commit MUST be audited; a high-risk batch MUST route to a
+second reviewer. Detailed behavior is specified in
+`docs/prds/sitestacker-parity/phase-15-offline-gift-batch-entry.md`
+(Phase 15 (Offline Gift & Batch Entry)).
+
+#### Scenario: Staff-entered offline money is committed
+
+- WHEN a staff member commits a batch of offline gifts (check, cash, church
+  remittance, phone card/ACH)
+- THEN the money is written only through the gift-entry-batch commit service,
+  the batch's declared control totals are reconciled with any mismatch surfaced
+  as an audited override rather than silently overwritten, and the commit is
+  recorded as an audited validate = post event
+- AND no offline gift reaches the ledger through any path other than that
+  commit service

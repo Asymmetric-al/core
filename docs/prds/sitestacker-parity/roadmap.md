@@ -896,11 +896,14 @@ operations (14) it must capture during entry.
 **What it covers.**
 
 - **Gift-entry batches** with the Blackbaud-shaped lifecycle: draft →
-  **validate** (non-mutating, repeatable) → approve → **commit**
-  (all-or-nothing, idempotent) → **export** (locks the batch forever) —
-  explicitly distinct from the existing `contribution_operation_batches`
-  (bulk _actions_ over existing gifts; the naming guardrail lives in the
-  phase-00 locked dependencies).
+  **validate** (non-mutating, repeatable) → **commit** (all-or-nothing,
+  idempotent) → **export** (locks the batch forever) — explicitly distinct
+  from the existing `contribution_operation_batches` (bulk _actions_ over
+  existing gifts; the naming guardrail lives in the phase-00 locked
+  dependencies). _(Amended 2026-07-11, Phase 15 (Offline Gift & Batch Entry)
+  D5: a clean **validate = post** — the separate `approve` stage collapses into
+  validate by default; a second approver / quorum is an opt-in per-tenant
+  control, and a high-risk batch is auto-routed to a second reviewer.)_
 - **Keyboard-first grid entry** (TanStack Table + Virtual): batch templates
   with preset columns and default values; control totals (expected count/
   amount vs entered); inline donor lookup/create with dedupe warnings; per-
@@ -910,10 +913,17 @@ operations (14) it must capture during entry.
 - **Non-cash gifts**: stock (ticker, share count, gift date, high/low-average
   FMV, receipts that never state a value per IRS Pub 561), in-kind with
   description + FMV handling.
-- **Phone gifts, two lanes** (settled disposition, restated): send-secure-
-  link by default; org-level opt-in to **Stripe-hosted MOTO surfaces only**.
-  **Staff never key card data into any surface this platform renders**
-  (SAQ-A guardrail).
+- **Phone gifts, two lanes** (settled disposition, restated per D4): the
+  **primary** card lane is the **native embedded Stripe Payment Element keyed
+  by staff** (SAQ-A) + **server-confirm MOTO**; the Stripe-hosted secure-link
+  is the **fallback**. **Asym never stores, logs, or processes raw card or
+  bank-account details** — staff key into a Stripe-owned iframe this platform
+  embeds but cannot read (SAQ-A guardrail). _(Amended 2026-07-11, Phase 15
+  (Offline Gift & Batch Entry) D4: the native embedded SAQ-A Element is now the
+  primary phone-card flow and the hosted secure-link is the fallback — the
+  earlier "send-secure-link by default / staff never key card data into any
+  surface this platform renders" wording is superseded; the guardrail is
+  restated as never store/log/process raw card or bank-account details.)_
 
 **Boundaries & guardrails.** Batch totals must reconcile before posting.
 Batches are immutable after export; late refunds post as compensating
@@ -1142,8 +1152,12 @@ reports.
   three-view pattern); per-tenant designation→GL-code mapping (13);
   idempotent re-export; exported artifacts immutable and archived. CSV/IIF-
   style first; live QuickBooks API sync deferred.
-- **Deposit reports** for offline batches (15) tying entry batches to bank
-  deposits.
+- **Bank-statement tie-out** for offline batches (15): Phase 20 owns the **GL
+  undeposited-funds account** and reconciling the entry batches' deposits
+  against the **bank statement** — the deposit slip/report artifact and the
+  operational deposit-state axis are **Phase 15's**. _(Amended 2026-07-11,
+  Phase 15 (Offline Gift & Batch Entry): split so Phase 15 and Phase 20 don't
+  both claim "deposit reports".)_
 - **Refund/chargeback/fee accounting** as compensating entries in the
   current period (never reopening exported batches).
 - **Open→closed→exported period discipline** (CiviCRM pattern: closed can

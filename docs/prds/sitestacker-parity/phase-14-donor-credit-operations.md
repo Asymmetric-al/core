@@ -1359,7 +1359,7 @@ the amount-omitted default) — [D4.10]
 - acknowledgment_hold_until — timestamptz NULL
 ```
 
-The "Unacknowledged" work view is a **derived partial-index query** over these columns — no queue table exists anywhere in this stream [D2].
+The "Unacknowledged" work view is a **derived partial-index query** over these columns — no queue table exists anywhere in this stream [D2]. _(Amended 2026-07-11, Phase 15 NF3: a `held` row arriving from a batch/import commit is distinguished by a `batch_gate_pending` **origin reason carried on the gift's existing entry-origin metadata — no new column** — so the per-batch Send-acknowledgments gate releases exactly those rows into the acknowledgment pipeline; imports stay `held`.)_
 
 ### Tribute objects [D3]
 
@@ -1742,7 +1742,7 @@ The matching-gift ingest socket is an **event-shape contract, not an integration
 
 - **The remittance attribution sub-grid contract (VIABILITY-critical).** Phase 14 ships the v1 remittance keying surface — the D2 picker verbatim + **copy-last-remittance prefill** (month 2+ = confirm-not-retype) + **CSV paste** with staged preview (matched / create-new / ambiguous classes; bulk-create behind ONE explicit confirm with dupe flags; per-row ambiguity holds so one bad name never blocks the batch) [D5, D1 forward-carried]. Phase 15's batch grid must implement this **same named contract** as a sub-grid per remittance line — attributions remain capture-INPUT that generates `contribution_credits`; the grid never writes credit rows directly [D1.14].
 - **The per-row match-capture cell contract.** Phase 15's grid owes a per-row DAF / soft-credit / tribute / matching capture cell (REAL expectation: `docs/prds/sitestacker-parity/roadmap.md:885-889`); Phase 14 defines the cell's behavior now — the one-checkbox expectancy create with employer prefilled from the Phase 9 employment relationship + evidence chip, zero other required fields [D4.6]. Phase 14 itself **owns the minimal single-header multi-line employer-check entry surface** (the repo has none); Phase 15 owns the fast grid [D4.6].
-- **Batch imports never auto-send** — the D2 guardrail (8) binds Phase 15's commit step exactly as it binds Phase 30 imports: committing a batch advances axes and generates credits through the normal generators, but acknowledgment sends require the entry-gated flow's identity confidence, and batch/import-origin rows suppress auto-send [D2, D3.9].
+- **Batch imports never auto-send** — the D2 guardrail (8) binds Phase 15's commit step exactly as it binds Phase 30 imports: committing a batch advances axes and generates credits through the normal generators, but acknowledgment sends require the entry-gated flow's identity confidence, and batch/import-origin rows land in `held` (origin reason `batch_gate_pending`); the explicit per-batch **Send-acknowledgments gate** (Phase 15 NF3) is the human edge that releases them into the existing acknowledgment pipeline; imports stay `held` (nothing auto-sends) [D2, D3.9]. _(Amended 2026-07-11, Phase 15 NF3: a batch commit no longer merely "suppresses auto-send" — batch/import-origin rows land `held` with origin reason `batch_gate_pending`, and the per-batch Send-acknowledgments gate is the human edge that releases them into the acknowledgment pipeline; imports never pass the gate, so nothing auto-sends.)_
 
 ### Phase 20 (Accounting Exports & Reconciliation) — exclusions
 

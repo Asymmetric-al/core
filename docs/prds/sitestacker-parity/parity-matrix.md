@@ -146,7 +146,7 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 - **Acceptance test:** staff batch-enter a stack of offline checks and reconcile
   to a bank deposit.
 - **Evidence:** add-guest-giving change (PR #462).
-- **Open questions:** batch UI + reconciliation depth.
+- **Open questions:** batch UI + reconciliation depth. **Resolved by the Phase 15 PRD.**
 
 ### 7. Soft credits, affiliated donors & DAF handling
 

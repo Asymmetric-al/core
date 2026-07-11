@@ -933,6 +933,137 @@ The finite, owned worklist of Not-Provided DAF gifts (the same worklist idiom
 reused for matching-gift aging and tributes awaiting setup).
 _Avoid_: per-record nag emails; an unbounded review queue
 
+**Gift-entry batch** (Phase 15):
+`gift_entry_batches`: the professional offline-entry container — draft →
+validate → commit — distinct from `contribution_operation_batches` (bulk
+_actions_ over existing gifts). The one front door: all staff-entered offline
+money enters through its single commit service (D1).
+_Avoid_: reusing `contribution_operation_batches` for entry; a second offline
+money-write path that bypasses the batch commit
+
+**Quick entry** (Phase 15):
+The keyboard-first grid (TanStack Table + Virtual) where an operator keys a
+stack of mail gifts fast, no mouse, one row per gift.
+_Avoid_: a mouse-driven form per gift; a grid slower than Excel that breeds
+shadow spreadsheets
+
+**Validation (non-mutating, revision-bound)** (Phase 15):
+The repeatable pre-commit check over a batch revision — it reads and reports,
+never mutates, and its verdict is bound to the revision it ran against (a later
+edit re-opens validation).
+_Avoid_: validation that writes rows; a stale pass carried across an edit
+
+**Control total + governed override** (Phase 15):
+The expected count/amount the operator declares up front, checked against
+entered totals; a mismatch is never silently erased — the declared originals
+stay frozen and an override is an audited, reason-carrying event (D2).
+_Avoid_: silently overwriting the declared total; an unlogged override
+
+**Validate = post** (Phase 15):
+The D5 default: a clean validate IS the commit — there is no separate always-on
+approve gate. A second approver / quorum is an opt-in per-tenant control.
+_Avoid_: a mandatory second-approver step on every batch; treating approve as a
+distinct always-on stage
+
+**High-risk auto-route** (Phase 15):
+The exception to validate = post: a batch tripping a high-risk signal is routed
+to a second reviewer automatically, without forcing that ceremony on ordinary
+batches.
+_Avoid_: routing every batch to review; letting a high-risk batch self-commit
+
+**New-operator soft-guard** (Phase 15):
+A gentle, temporary extra check for a first-time / new enterer — a soft guard,
+not a hard lock — that relaxes as the operator builds a track record.
+_Avoid_: a permanent hard block on new staff; no guard at all
+
+**Escape valve / carry-forward follow-on batch** (Phase 15):
+When a batch cannot fully commit (a bad row, an unresolved donor), the good
+rows commit and the remainder carries forward into a linked follow-on batch —
+the operator is never stuck against an all-or-nothing wall.
+_Avoid_: blocking the whole batch on one bad row; silently dropping the
+remainder
+
+**Deposit group** (Phase 15):
+`deposit_groups`: the artifact tying a set of offline gifts to one bank deposit
+(slip/report), with a **nullable gift-grain link** from each gift to its group.
+Phase 15 owns this operational artifact; Phase 20 owns the GL undeposited-funds
+account and bank-statement tie-out.
+_Avoid_: a flat `deposit_reference` string on the gift; Phase 15 claiming the
+GL account or statement reconciliation
+
+**Undeposited funds** (Phase 15):
+The operational state of recorded offline money not yet assigned to a deposit
+group — "in the drawer, not yet at the bank." The GL undeposited-funds account
+is Phase 20's.
+_Avoid_: conflating the operational undeposited set with the GL account
+
+**Deposit-state (6th orthogonal axis)** (Phase 15):
+The sixth orthogonal contribution axis (beside payment, ledger/posting,
+receipt, accounting-export, review): `undeposited → deposited → cleared`. Its
+own state machine (D6), NOT a chain of posting gates on the money.
+_Avoid_: modeling deposited/cleared as posting preconditions; a single blended
+status
+
+**Deposit assignment event** (Phase 15):
+The append-only event that assigns a gift to (or removes it from) a deposit
+group — deposit-state moves by event, never a silent `UPDATE`.
+_Avoid_: mutating a gift's deposit column in place; an unaudited reassignment
+
+**Settlement rail (bank-direct vs `stripe_rail`)** (Phase 15):
+`settlement_rail`: the discriminator for how an ACH gift settles — bank-direct
+(deposit-grouped like a check) vs `stripe_rail` (settles via payout).
+Deposit-eligibility keys on this, NOT on `gift_method` (amends Phase 13 D4 A1).
+_Avoid_: keying deposit-eligibility on `gift_method`; assuming one ACH rail
+
+**Settles-via-payout** (Phase 15):
+The Stripe-rail settlement path: money arrives as a Stripe payout, reconciled
+through the payout, not grouped into an offline bank deposit.
+_Avoid_: deposit-grouping a Stripe-rail gift; reconciling a payout as a manual
+deposit
+
+**Batch template** (Phase 15):
+A saved preset of columns + default values for a recurring entry shape (a mail
+appeal, a church remittance) so operators start pre-configured.
+_Avoid_: re-keying the same column setup every batch; a template that mutates a
+committed batch
+
+**Config-frozen / safety-live** (Phase 15):
+The posture split for a batch's settings: config-frozen once entry begins (the
+template/columns/totals stop shifting under the operator) while safety checks
+stay live (validation, guards, high-risk routing keep running).
+_Avoid_: config that shifts mid-entry; disabling safety checks to "go faster"
+
+**Phone-gift lane** (Phase 15):
+The staff-takes-a-card-over-the-phone path. Primary lane = the native embedded
+Stripe Payment Element keyed by staff (SAQ-A) + server-confirm MOTO; the
+Stripe-hosted secure-link is the fallback lane (D4).
+_Avoid_: staff keying raw PANs into an Asym-rendered field; treating
+secure-link as the only lane
+
+**MOTO (server-confirm flag)** (Phase 15):
+Mail-order/telephone-order: the server-confirm flag set on the PaymentIntent
+for a keyed phone gift, telling Stripe this is a MOTO transaction.
+_Avoid_: omitting the MOTO flag on a phone gift; client-only confirmation for
+MOTO
+
+**TEL / Financial-Connections ACH lane** (Phase 15):
+The phone-ACH path: a TEL-authorized bank debit captured via Stripe Financial
+Connections rather than a keyed card.
+_Avoid_: storing raw bank-account numbers; skipping TEL authorization capture
+
+**`take_phone_payment` capability** (Phase 15):
+The gated permission that lets a role open the phone-gift lane — server-side
+enforced, off by default.
+_Avoid_: exposing the phone lane to every staff role; a client-only capability
+check
+
+**Send-acknowledgments gate** (Phase 15):
+The explicit per-batch human edge (NF3) that releases batch-origin rows — which
+land `held` with origin reason `batch_gate_pending` — into the existing
+acknowledgment pipeline. Imports stay `held`; nothing auto-sends.
+_Avoid_: auto-sending acknowledgments on batch commit; a batch that sends
+without the gate
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

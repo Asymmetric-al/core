@@ -332,15 +332,21 @@ Before creating issues or tickets, check:
   explicitly non-sensitive metadata, zero PCI impact); a **"request payment
   method update" secure-link action socket** (setup-mode Checkout / billing-
   portal deep link, sent + audited via the Phase 6 seam) lights up with Phase 6;
-  **phone gifts (Phase 15 — Offline Gift & Batch Entry) run two lanes** —
-  send-secure-link by default, org-level opt-in to Stripe-hosted MOTO surfaces
-  only; **offline recurring methods are attributes of the commitment**
-  (Phase 16, no stored instrument); the **donor self-service wallet is
-  Phase 25**. **Hard program guardrail: staff never key card data into any
-  surface this platform renders** — staff-keyed PANs are a gated Stripe MOTO
-  channel and would break the platform's SAQ-A posture; orgs that insist use
-  Stripe-hosted gated surfaces under their own PCI responsibility, outside
-  this app.
+  **phone gifts (Phase 15 — Offline Gift & Batch Entry) run two lanes** — the
+  **primary** card lane is the **native embedded Stripe Payment Element keyed
+  by staff** (SAQ-A) + **server-confirm MOTO**, with the Stripe-hosted
+  secure-link as the **fallback** (phone-ACH rides the TEL /
+  Financial-Connections lane); **offline recurring methods are attributes of
+  the commitment** (Phase 16, no stored instrument); the **donor self-service
+  wallet is Phase 25**. **Hard program guardrail: Asym never stores, logs, or
+  processes raw card or bank-account details** — staff key into a Stripe-owned
+  iframe this app embeds but cannot read, which **keeps** the platform's SAQ-A
+  posture; a raw PAN never touches an Asym-rendered field or server.
+  _(Amended 2026-07-11, Phase 15 (Offline Gift & Batch Entry) D4: the native
+  embedded SAQ-A Element is now the primary phone-card lane and the hosted
+  secure-link is the fallback — the earlier "send-secure-link by default /
+  staff never key card data into any surface this platform renders /
+  staff-keyed PANs would break SAQ-A" wording is superseded.)_
 
 - **Do not present any later phase (9–40) as implemented or live.** Phase 9's
   PRD landed 2026-07-06 (groomed, not built); no PRD files exist for phases
