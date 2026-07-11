@@ -146,7 +146,7 @@ capabilities that already have code lives in
 | **12** | Full Role & Permission Configuration                                             | 3, 10, 11                                        | `PRD exists` (epic #665 + #666–#687)                           |
 | **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `PRD exists` (epic #690 + #691–#713)                           |
 | **14** | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts           | 13, 7, 9                                         | `PRD exists` (epic #719 + #720–#741)                           |
-| **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists`                                                   |
+| **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists (epic #758 + #759–#786)`                           |
 | **16** | Pledges & Recurring Commitments                                                  | **13**, 9, 6                                     | `future (needs PRD)`                                           |
 | **17** | System Messages & Template Management                                            | 6, 2, 3                                          | `future (needs PRD)`                                           |
 | **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `future (needs PRD)`                                           |

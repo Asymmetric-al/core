@@ -223,7 +223,7 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   **deposit grouping** as the operational deposit-state axis, reusable batch
   **templates**, and the per-batch **Send-acknowledgments gate** that releases
   held batch-origin rows into the existing acknowledgment pipeline. Groomed
-  2026-07-11.
+  2026-07-11. Tracked by epic #758 + children #759–#786.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
