@@ -13,7 +13,9 @@ Use this doc when planning or implementing variable catalogs, source maps, custo
 3. Create source-map records for built-in variables.
 4. Add tenant-level labels, grouping, fallbacks, formatting, sample values, and custom variables.
 5. Validate variables before preview, publish, assignment, and production render.
-6. Resolve production variables on the server at render time.
+6. Resolve production variables on the server. Official receipt/statement
+   display values are frozen by the source domain at issuance and bound at
+   render time; they are not recomputed by Statement Studio.
 
 ## Variable Families
 
@@ -56,6 +58,11 @@ Tenant admins can create or customize:
 - Aliases to approved fields.
 - Registered custom fields for approved entities.
 - Simple no-code derived variables such as concatenate, format date, format currency, conditional fallback, sum, count, and approved filters.
+
+Those transformations are not available for official receipt/statement money
+or date fields. Their source contract supplies raw structured values plus frozen
+display strings and locale/formatting version metadata; templates bind the
+approved display fields.
 
 Do not allow raw SQL, arbitrary joins, arbitrary JSON path expressions, arbitrary
 JavaScript, unsafe resolver access, or cross-tenant references.
