@@ -21,7 +21,7 @@ and **redacted replay/debug packages so failures can be investigated without sto
 makes that a spec-level contract. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:142]
 
 **Retention-category nuance (audit finding):** the partner's model-policy answer sets gateway/model-call
-logging to **metadata-only, 14–30 day rolling** — *tighter* than the PRD's 180-day default. So gateway-usage
+logging to **metadata-only, 14–30 day rolling** — _tighter_ than the PRD's 180-day default. So gateway-usage
 telemetry needs its **own retention category**, not the default. [PARTNER-RESPONSE 2026-07-02]
 (see `track-b/PROPOSAL_421_NOTES.md`)
 

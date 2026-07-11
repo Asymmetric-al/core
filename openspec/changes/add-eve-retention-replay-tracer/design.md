@@ -16,7 +16,7 @@ change specifies their **lifecycle**.
   longer windows; larger artifacts MAY expire earlier when their purpose lapses.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:415]
 - **A dedicated short category for gateway/model-call telemetry: metadata-only, 14–30 day rolling** — no
-  prompt/response bodies. This is *tighter* than the 180-day default and must be its own category.
+  prompt/response bodies. This is _tighter_ than the 180-day default and must be its own category.
   [PARTNER-RESPONSE 2026-07-02]
 - **Incident/legal holds override retention** and prevent deletion of affected records until cleared; set
   and clear are recorded human actions. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:307]
@@ -45,7 +45,7 @@ change specifies their **lifecycle**.
 ## Verification contract
 
 - `openspec validate --strict` passes; `eve-judge --change` PASS; `cite-verify` clean; `qa-gates.sh
-  --change` machine gates (0/1/3) PASS. [VERIFIED-REPO: docs/ai/rules/openspec.md]
+--change` machine gates (0/1/3) PASS. [VERIFIED-REPO: docs/ai/rules/openspec.md]
 - When implemented (later PR), retention tests MUST cover 180-day defaults, category overrides, artifact
   expiration, incident holds, and deletion jobs.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:590]
