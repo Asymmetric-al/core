@@ -123,6 +123,11 @@ describe("emilkowalski skill pack", () => {
       "improve-animations",
       "AUDIT.md",
     );
+    const planTemplate = readSkillFile(
+      "docs/ai/skills",
+      "improve-animations",
+      "PLAN-TEMPLATE.md",
+    );
     const standards = readSkillFile(
       "docs/ai/skills",
       "review-animations",
@@ -137,6 +142,12 @@ describe("emilkowalski skill pack", () => {
       "most UI animations stay under 300ms; modals and drawers may use 200–500ms",
     );
     expect(audit).toContain("modals/drawers above 500ms");
+    expect(planTemplate).toContain("## Triggers");
+    expect(planTemplate).toContain("## Workflow");
+    expect(planTemplate).toContain("## Checklist");
+    expect(planTemplate).toContain(
+      "The trigger still applies in the current checkout",
+    );
     expect(standards).toContain(
       "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
     );

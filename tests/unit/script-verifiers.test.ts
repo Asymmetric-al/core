@@ -832,15 +832,32 @@ describe("refresh-upstream-skills", () => {
           "# Plan",
           "",
           "```markdown",
+          "# NNN — <Short imperative title>",
+          "",
+          "- **Estimated scope**: <n files, rough size>",
+          "",
+          "## Problem",
+          "",
           "\u200B```css",
           "  transition:",
           "    transform var(--duration-standard) var(--ease-out-soft),",
           "    opacity var(--duration-standard) var(--ease-out-soft);",
           "  transform-origin: var(--transform-origin);",
           "\u200B```",
+          "",
+          "## Target",
+          "",
           "\u200B```css",
           "/* second example */",
           "\u200B```",
+          "",
+          "## Steps",
+          "",
+          "1. <One concrete edit per step: file, what changes, resulting code.>",
+          "",
+          "## Verification",
+          "",
+          "- **Done when**: <machine- or eye-checkable completion criteria>.",
           "```",
           "",
           "## Notes for the plan author",
@@ -896,6 +913,18 @@ describe("refresh-upstream-skills", () => {
         { force: true },
       );
     }
+    const sourcePlanTemplatePath = path.join(
+      tempRoot,
+      ".agents/skills/improve-animations/PLAN-TEMPLATE.md",
+    );
+    const sourcePlanTemplate = await readFile(sourcePlanTemplatePath, "utf8");
+    await writeFile(
+      sourcePlanTemplatePath,
+      sourcePlanTemplate.replace(
+        "- [ ] The trigger still applies in the current checkout; drift since the\n      recorded commit does not invalidate the workflow.",
+        "- [ ] The trigger still applies at the commit recorded above.",
+      ),
+    );
 
     runNodeScript(
       tempRoot,
@@ -932,6 +961,18 @@ describe("refresh-upstream-skills", () => {
       ),
     ).resolves.toContain(
       "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
+    );
+    const refreshedPlanTemplate = await readFile(
+      path.join(tempRoot, "docs/ai/skills/improve-animations/PLAN-TEMPLATE.md"),
+      "utf8",
+    );
+    expect(refreshedPlanTemplate).toContain("## Triggers");
+    expect(refreshedPlanTemplate).toContain("## Workflow");
+    expect(refreshedPlanTemplate).toContain("## Checklist");
+    expect(refreshedPlanTemplate).not.toContain("## Steps\n");
+    expect(refreshedPlanTemplate.match(/^## Checklist$/gm)).toHaveLength(1);
+    expect(refreshedPlanTemplate).toContain(
+      "The trigger still applies in the current checkout",
     );
     await expect(
       readFile(

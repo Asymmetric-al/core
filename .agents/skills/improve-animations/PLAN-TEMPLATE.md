@@ -11,6 +11,11 @@ Every plan written by `improve-animations` follows this structure. The executor 
 - **Category**: <audit category>
 - **Estimated scope**: <n files, rough size>
 
+## Triggers
+
+- Apply this plan when: <observable animation problem and affected interaction>.
+- Do not apply when: <conditions that make the finding irrelevant or unsafe>.
+
 ## Problem
 
 What is wrong, where, and why it matters to how the product feels. Cite every
@@ -46,7 +51,7 @@ imitate (token names, file placement, prop patterns):
 - Easing tokens live in `src/styles/tokens.css`; add new curves there, e.g. `--ease-out: cubic-bezier(0.23, 1, 0.32, 1);`
 - <exemplar file:line that already does this correctly>
 
-## Steps
+## Workflow
 
 1. <One concrete edit per step: file, what changes, resulting code.>
 2. …
@@ -67,6 +72,15 @@ imitate (token names, file placement, prop patterns):
   - In DevTools, set playback to 10% (Animations panel) and confirm <detail>.
   - Toggle `prefers-reduced-motion` (Rendering panel) and confirm movement is dropped but opacity feedback remains.
 - **Done when**: <machine- or eye-checkable completion criteria>.
+
+## Checklist
+
+- [ ] The trigger still applies in the current checkout; drift since the
+      recorded commit does not invalidate the workflow.
+- [ ] Every workflow step names the file, edit, and intended result.
+- [ ] Boundaries and stop conditions are explicit.
+- [ ] Mechanical, feel, slow-motion, and reduced-motion checks pass.
+- [ ] The stated completion criteria are observable and satisfied.
 ````
 
 ## Notes for the plan author
