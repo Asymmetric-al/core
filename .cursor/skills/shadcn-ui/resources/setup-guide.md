@@ -160,12 +160,8 @@ The init command creates/updates several files:
 **src/lib/utils.ts**:
 
 ```typescript
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cnfast";
+export type { ClassValue } from "cnfast";
 ```
 
 **Updated tailwind.config.js**:

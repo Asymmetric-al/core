@@ -3,13 +3,13 @@ source_name: mattpocock/skills (migrate-to-shoehorn)
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/misc/migrate-to-shoehorn/SKILL.md
-skills_lock_hash: de4da4c11d924fac79c924b2ee3d2db4a5cb98386eb490a599119463d036ae72
-last_reviewed: 2026-05-23
+skills_lock_hash: 67fdd18f8f4f7c89b3003eb944220679272738c1deb680719fd2e282495d87f4
+last_reviewed: 2026-07-09
 ---
 
 # Upstream: migrate-to-shoehorn
 
-Canonical copy in this repo: `docs/ai/skills/migrate-to-shoehorn/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/migrate-to-shoehorn/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/mattpocock/skills
 - **Upstream path:** `skills/misc/migrate-to-shoehorn/SKILL.md`
@@ -18,6 +18,8 @@ Canonical copy in this repo: `docs/ai/skills/migrate-to-shoehorn/` (mirrored to 
 ## Refresh from ecosystem
 
 1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Copy the routed skill into `docs/ai/skills/migrate-to-shoehorn/` if this canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+2. Reconcile the freshly installed upstream copy from `.agents/skills/migrate-to-shoehorn/` into canonical `docs/ai/skills/migrate-to-shoehorn/` if this canonical copy needs updating. Treat `.agents/skills/migrate-to-shoehorn/` as a temporary Skills CLI import at this point; after `bun run skills:sync`, it is generated mirror output again.
+3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
+
+This skill is **not** updated by `bun run skills:refresh-upstream`.

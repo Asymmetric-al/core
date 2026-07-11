@@ -137,7 +137,7 @@ Reference these guidelines when:
 
 ### 11. Styling
 
-- `styling-cn-utility` - Combine clsx and tailwind-merge
+- `styling-cn-utility` - Use the shared `cn()` utility backed by cnfast
 - `styling-order` - Base -> Variants -> Conditionals -> User overrides
 - `styling-cva` - Class Variance Authority for variants
 - `styling-css-variables` - Dynamic values with CSS variables
@@ -195,7 +195,7 @@ For the complete guide with all rules expanded: `AGENTS.md`
 4. **Extend HTML Attributes** - Always extend native element props
 5. **Export Types** - Make prop types available to consumers
 6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
+7. **Intelligent Class Merging** - Use `cn()` utility backed by cnfast
 
 ## Authors
 

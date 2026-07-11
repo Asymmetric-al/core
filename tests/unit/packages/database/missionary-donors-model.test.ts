@@ -12,10 +12,10 @@ const TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const CREATED_AT = "2026-01-01T00:00:00Z";
 
 // The ID-namespace split this model has to bridge (see supabase/seed.sql):
-//  - donors.missionary_id stores a PROFILE id (FK -> profiles.id), and the
-//    missionary app calls the hook with profile.id.
-//  - donor_pledges.missionary_id stores a MISSIONARIES.id (FK -> missionaries.id),
-//    which is a different value than the profile id.
+// - donors.missionary_id stores a PROFILE id (FK -> profiles.id), and the
+//   missionary app calls the hook with profile.id.
+// - donor_pledges.missionary_id stores a MISSIONARIES.id (FK -> missionaries.id),
+//   which is a different value than the profile id.
 const MISSIONARY_PROFILE_ID = "11111111-1111-1111-1111-111111111111";
 const OTHER_MISSIONARY_PROFILE_ID = "99999999-9999-9999-9999-999999999999";
 const MISSIONARIES_ROW_ID = "20000000-0000-0000-0000-000000000001";
@@ -73,8 +73,8 @@ function makePledge(overrides: Partial<PledgeRow> = {}): PledgeRow {
     id: "60000000-0000-0000-0000-000000000001",
     tenant_id: TENANT_ID,
     donor_id: "30000000-0000-0000-0000-000000000001",
-    // Deliberately the missionaries.id, NOT the profile id — this is what the
-    // seed inserts and what previously broke the recurring-donations list.
+    // Deliberately the missionaries.id, not the profile id. This mirrors seed
+    // data and is what previously broke the recurring-donations list.
     missionary_id: MISSIONARIES_ROW_ID,
     fund_id: null,
     amount: 3000,
@@ -144,7 +144,7 @@ describe("buildMissionaryDonorRows", () => {
     expect(rows[0].recurring_donations[0]).toMatchObject({
       id: pledge.id,
       amount: 3000,
-      frequency: "monthly",
+      frequency: "Monthly",
       status: "active",
     });
   });
@@ -192,6 +192,32 @@ describe("buildMissionaryDonorRows", () => {
       id: activity.id,
       type: "gift",
     });
+  });
+
+  it("does not leak an activity whose donor belongs to a different missionary", () => {
+    const myDonor = makeDonor({
+      id: "30000000-0000-0000-0000-000000000001",
+      missionary_id: MISSIONARY_PROFILE_ID,
+    });
+    const otherDonor = makeDonor({
+      id: "30000000-0000-0000-0000-000000000002",
+      missionary_id: OTHER_MISSIONARY_PROFILE_ID,
+    });
+    const otherActivity = makeActivity({
+      id: "activity-other",
+      donor_id: otherDonor.id,
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [myDonor, otherDonor],
+      activities: [otherActivity],
+      pledges: [],
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe(myDonor.id);
+    expect(rows[0].activities).toHaveLength(0);
   });
 
   it("returns no rows when the missionary id is missing", () => {
@@ -262,6 +288,40 @@ describe("buildMissionaryDonorRows", () => {
     });
 
     expect(rows[0].type).toBe(expected);
+  });
+
+  it("normalizes lowercase pledge frequency for monthly pledge math", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const pledge = makePledge({
+      donor_id: donor.id,
+      frequency: "quarterly",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [],
+      pledges: [pledge],
+    });
+
+    expect(rows[0].recurring_donations[0].frequency).toBe("Quarterly");
+  });
+
+  it("normalizes lowercase online gift type", () => {
+    const donor = makeDonor({ missionary_id: MISSIONARY_PROFILE_ID });
+    const activity = makeActivity({
+      donor_id: donor.id,
+      gift_type: "online",
+    });
+
+    const rows = buildMissionaryDonorRows({
+      missionaryId: MISSIONARY_PROFILE_ID,
+      donors: [donor],
+      activities: [activity],
+      pledges: [],
+    });
+
+    expect(rows[0].activities[0].gift_type).toBe("Online");
   });
 
   it("normalizes done activity status to Completed", () => {
