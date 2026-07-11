@@ -50,7 +50,7 @@ kill-switch state**. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impl
   per-domain switches that drive that state, not the kernel that persists it.
   [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
 - The **audit-record shape** (actor, initiator, identity mode, policy, action, target, result, redacted
-  evidence) remains #419's scope; #420 only requires that each actuation *emits* one.
+  evidence) remains #419's scope; #420 only requires that each actuation _emits_ one.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - The **model-policy** capability (named roles, Gateway-primary routing, eval-gated activation) is #421's
   scope; #420 only requires a switch that can disable/revoke model-policy changes and that policy checks read
