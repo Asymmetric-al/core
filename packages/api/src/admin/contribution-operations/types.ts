@@ -1,6 +1,8 @@
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ReceiptDeliveryOutcome } from "./receipt-delivery";
 
+export type { ReceiptDeliveryOutcome };
+
 export const CONTRIBUTION_ACTION_TYPES = [
   "resend_receipt",
   "approve_staged_gift",
