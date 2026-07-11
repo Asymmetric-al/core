@@ -65,18 +65,18 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
 ## What Does Not Change
 
 - The **single consult/approval gate** and the disabled-by-default release-switch/emergency-off **state**
-  remain #418's scope; #423 defines the *policy content* (which zone, which write class, which budget) that
+  remain #418's scope; #423 defines the _policy content_ (which zone, which write class, which budget) that
   the gate evaluates, not the kernel that enforces the gate.
   [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
 - The **audit-record shape** (actor, initiator, identity mode, policy, action, target, result, redacted
-  evidence) remains #419's scope; #423 only requires that each policy/budget decision *emits* one.
+  evidence) remains #419's scope; #423 only requires that each policy/budget decision _emits_ one.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - The **kill-switch control path** (per-domain switches incl. production-writes and force-approval) remains
-  #420's scope; #423's budget/approval checks are consumed *alongside* kill-switch state, not in place of it,
+  #420's scope; #423's budget/approval checks are consumed _alongside_ kill-switch state, not in place of it,
   and force-approval still overrides any allow this policy would grant.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - The **model-policy** capability (named roles, Gateway-primary routing, eval gates) remains #421's scope;
-  #423 only applies budgets/rate limits *to* those roles/subagents/judges and depends on #421 for their
+  #423 only applies budgets/rate limits _to_ those roles/subagents/judges and depends on #421 for their
   definition. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - The durable trust boundaries — CRM as operational truth, sensitive operations server-side-only, tenant
   isolation — remain `platform-boundaries` scope; this policy inherits and tightens them.

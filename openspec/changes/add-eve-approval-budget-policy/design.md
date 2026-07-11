@@ -21,7 +21,7 @@ ADR-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS
 ## Context
 
 ADR-0002 established the governance kernel's single consult gate and the disabled-by-default
-release-switch/emergency-off **state**, but the *content* of the policy that gate evaluates — which trust
+release-switch/emergency-off **state**, but the _content_ of the policy that gate evaluates — which trust
 zone an action belongs to, which write class it is, and whether budget remains — was deferred to later
 slices. #423 is the slice that supplies that content. The PRD requires it directly: US-29 wants "separate
 approval policies for engineering, product or admin actions, and memory, so that different trust zones have
@@ -79,7 +79,7 @@ this policy sits on top of those boundaries and only tightens them.
 - **#417 (ADR-0001, foundation):** owns the autonomy contract, protected-area set, and governance data model
   at spec level. #423 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#418 (ADR-0002, governance kernel):** owns the single consult gate and the release-switch/emergency-off
-  **state**. #423 supplies the policy *content* the gate evaluates; it does not own the gate.
+  **state**. #423 supplies the policy _content_ the gate evaluates; it does not own the gate.
   [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
 - **#419 (ADR-0003, audit tracer):** owns the **audit-record shape**. #423 requires that each policy/budget
   decision emits one; it does not redefine the record.
@@ -89,7 +89,7 @@ this policy sits on top of those boundaries and only tightens them.
   restrictive result wins, and force-approval overrides any allow this policy grants.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#421 (model policy):** owns named roles, Gateway-primary routing, and eval gates. #423 applies
-  budgets/rate limits *to* those roles/subagents/judges and depends on #421 for their definition — hence the
+  budgets/rate limits _to_ those roles/subagents/judges and depends on #421 for their definition — hence the
   blocked-by-5 dependency. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#423 (this change):** owns the trust-zone approval rules, the operational-vs-business-data write
   classification, and the hard-budget/rate-limit policy that the gate, kill-switch checks, and model policy
@@ -127,7 +127,7 @@ this policy sits on top of those boundaries and only tightens them.
   and US-31 draw a durable line between operational records and sensitive business data; a flat allowlist
   loses that line and defaults unknown writes unsafely.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
-- **Soft/advisory budgets.** Rejected: US-42 requires *hard* budgets and rate limits so autonomous runs
+- **Soft/advisory budgets.** Rejected: US-42 requires _hard_ budgets and rate limits so autonomous runs
   "cannot burn unbounded spend"; advisory limits are bypassable.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
 - **Ungated or self-service emergency override.** Rejected: the override must require a dedicated permission
