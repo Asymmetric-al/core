@@ -69,7 +69,7 @@ makes those a spec-level contract.
 ## Expected Outcome
 
 - A validated OpenSpec change (`bunx @fission-ai/openspec@latest validate add-eve-admin-memory-tracer
-  --strict`) that makes private admin memory — categories, hard exclusions, audited auto-save, full admin
+--strict`) that makes private admin memory — categories, hard exclusions, audited auto-save, full admin
   control, and a disabled future-tenant schema — a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
 - A clear boundary: #419 defines the **shape** of the audit event a memory write emits, #418 holds the
