@@ -10,7 +10,7 @@
 
 ## Why
 
-The repo needs a durable, spec-level contract for Eve as an autonomous operations layer *before*
+The repo needs a durable, spec-level contract for Eve as an autonomous operations layer _before_
 any runtime code exists. The parent PRD is explicit that PR 1 is spec-first: it "must define the
 OpenSpec change, initial autonomy ADR, governance data model at spec level, rollout order, feature
 flags, and verification contract before runtime implementation proceeds," and that "no runtime code
