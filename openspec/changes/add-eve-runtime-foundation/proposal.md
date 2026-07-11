@@ -42,7 +42,7 @@ AGENTS and OpenSpec as higher authority than agent memory or provider plugins (U
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:399]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:339]
 
-This slice matters to the partner boundary: the standalone runtime is the host that will eventually *call*
+This slice matters to the partner boundary: the standalone runtime is the host that will eventually _call_
 models, so it is exactly where the fleet's shared **GPU inference gateway** would be invoked. Specifying #425
 as an isolated, release-switch-off package that resolves models **only through #421's policy** — Gateway-primary,
 any direct provider a controlled non-default fallback — is what keeps that gateway a **proposed, non-default,
