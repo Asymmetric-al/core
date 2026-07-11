@@ -16,43 +16,51 @@ Use this doc when planning or changing Statement Studio tables, migrations, RLS,
 6. Add explicit grants and RLS together in migrations.
 7. Run focused SQL/type/route verification.
 
-## Canonical Persistence (Phase 0 decision)
+## Canonical Persistence (Phase 0 Decision)
 
-**Phase 0 (#312) must name one canonical Postgres model before SS-01+ ships
-schema.** The repo already has native PDF Studio tables from
+**Phase 0 (#312) selects one canonical Postgres migration base before SS-01+
+ships schema.** The repo already has native PDF Studio tables from
 `supabase/migrations/20260515140948_native_pdf_studio_foundation.sql`:
 
 - `pdf_templates`, `pdf_template_versions`, `pdf_template_renders`,
   `pdf_template_artifacts` (and related native PDF Studio tables).
 
-**Default posture:** extend and rename these `pdf_*` tables rather than
-introducing parallel `document_*` tables. The `document_*` names below are
-**conceptual** labels for product language and gap analysis only. Phase 0
-output must map each concept to an existing table, a renamed column, a view,
-or an explicitly justified net-new table with a retirement plan for any
-duplicate vocabulary.
+**Decision:** extend these existing `pdf_*` tables rather than introducing a
+parallel `document_*` template/version/render/artifact/audit store. Rename an
+existing table only through an explicit migration/cutover. The missing product
+concepts below do not prescribe SQL identifiers; implementation must map each to
+an existing table/column, an intentional extension, or an explicitly justified
+net-new `pdf_*` table without duplicating truth.
 
-**Single store module:** `packages/api` (or the Phase 0–chosen owner) exposes
+**Single store module:** `packages/api` exposes
 one persistence seam; feature slices must not write parallel table families.
 
-## Core Tables
+## Core Persistence Concepts
 
-Recommended model shape (conceptual — map to `pdf_*` in Phase 0):
+Phase 0 ratifies these existing table names and roles:
 
-- `document_job_catalog`: system-owned standard document jobs.
-- `document_template_library`: system-owned starter templates and starter versions.
-- `tenant_document_job_settings`: tenant activation, labels, visibility, and capability overrides.
-- `tenant_document_template_assignments`: tenant default mapping for job plus optional scope.
-- `pdf_templates` or future renamed tenant template table: tenant-owned template records.
-- `pdf_template_versions` or future renamed version table: immutable draft/published/archive versions.
-- `document_artifacts` (conceptual alias for **`pdf_template_artifacts`** /
-  **`pdf_template_renders`** — do not create a second artifact table family):
-  generated PDF artifact records shared safely across app surfaces.
-- `document_artifact_events`: audit history for render, download, purge, retention, rollback, and assignment changes.
-- `document_variable_catalog`: platform variable definitions.
-- `tenant_document_variables`: tenant labels, grouping, fallbacks, visibility, custom variables, and mappings.
+| Product concept                | Canonical persistence direction                                                     |
+| ------------------------------ | ----------------------------------------------------------------------------------- |
+| Tenant template aggregate      | `pdf_templates`                                                                     |
+| Template working/version state | Mutable drafts and immutable published/archive snapshots in `pdf_template_versions` |
+| Render attempts                | `pdf_template_renders`                                                              |
+| Generated artifact metadata    | `pdf_template_artifacts`                                                            |
+| Lifecycle/access/purge audit   | `pdf_template_audit_events`                                                         |
+| Batch orchestration            | `pdf_template_batches` and `pdf_template_batch_jobs`                                |
 
-Phase 0 should choose exact table names. User-facing product language is Statement Studio; internal names can migrate pragmatically.
+The remaining product concepts are requirements, not approved table names:
+
+- system document-job catalog;
+- system starter-template ownership;
+- tenant job settings and scoped assignments;
+- variable catalog and tenant overrides;
+- retention and storage-threshold policy.
+
+The foundation change must map each missing concept to an extension of the
+existing `pdf_*` family, a column/view, or an explicitly justified net-new
+`pdf_*` table. It must not turn conceptual `document_*` labels into a parallel
+template, version, render, artifact, or audit store. User-facing product
+language remains Statement Studio.
 
 ## Defaults
 
