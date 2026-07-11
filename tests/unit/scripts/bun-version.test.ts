@@ -61,7 +61,7 @@ function canRunBunVersionGuard(): boolean {
     const bashBunDir = toBashPath(path.dirname(bunPath));
     const result = spawnSync(
       "bash",
-      ["-lc", "command -v bun >/dev/null 2>&1 && bun --version >/dev/null"],
+      ["-c", "command -v bun >/dev/null 2>&1 && bun --version >/dev/null"],
       {
         cwd: repoRoot,
         env: {

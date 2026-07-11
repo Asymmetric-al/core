@@ -1,138 +1,110 @@
 # Statement Studio Handoff
 
-Generated: 2026-06-13 Asia/Bangkok
+Updated: 2026-07-10 Asia/Bangkok
 
 ## Triggers
 
-Use this handoff when a fresh agent is picking up Statement Studio planning or
-implementation work from PR #367 and needs the current repo, PR, issue, and
-verification state without rereading the full conversation.
+Use this handoff when picking up Statement Studio after the AL-312 Phase 0
+audit, reviewing a downstream issue, or deciding whether a legacy/native PDF
+path is safe to change.
 
 ## Workflow Steps
 
-1. Open PR [#367](https://github.com/Asymmetric-al/core/pull/367).
-2. Read parent issue
-   [#310](https://github.com/Asymmetric-al/core/issues/310).
-3. Read this directory's `README.md`, `prd.md`, `issues.md`, and
-   `phase-0-audit-brief.md`.
-4. Start implementation from issue
-   [#312](https://github.com/Asymmetric-al/core/issues/312) unless the user
-   gives a newer explicit priority.
-5. Follow the issue dependency graph in `issues.md` and #310.
-6. Use the suggested skills below before touching their domains.
+1. Read `README.md`, `phase-0-audit-brief.md`, and
+   `phase-0-research-evidence.md`.
+2. Read `openspec/changes/add-statement-studio/` before implementation.
+3. Read the relevant PRD/supporting docs and the live GitHub issue.
+4. Treat source-domain contexts, private artifacts, and role-scoped BFF access
+   as gates, not later cleanup.
+5. Load the repo skills/rulebooks for the files being changed.
 
 ## Current State
 
 - Repository: `Asymmetric-al/core`
-- Planning PR: [#367 - Document Statement Studio rebuild plan](https://github.com/Asymmetric-al/core/pull/367) (docs-only; verify mergeability and required CI on GitHub before merge)
-- Parent planning issue:
-  [#310 - AL-310: PRD - Statement Studio rebuild and implementation backlog](https://github.com/Asymmetric-al/core/issues/310)
-- Canonical implementation issues: `#312` through `#364` (even numbers),
-  mapping to `SS-00` through `SS-26`
-- Temporary duplicate issues from automated publishing were closed with comments
-  pointing to the canonical issue.
-- Rebase PR #367 onto latest `develop` and confirm `gh pr checks --required`
-  before treating docs as merge-ready.
+- Planning PR [#367](https://github.com/Asymmetric-al/core/pull/367) merged on
+  2026-07-03.
+- Parent planning issue
+  [#310](https://github.com/Asymmetric-al/core/issues/310) closed on 2026-07-09.
+- [#312](https://github.com/Asymmetric-al/core/issues/312) is delivered by the
+  completed audit/evidence and proposed OpenSpec change in
+  [PR #715](https://github.com/Asymmetric-al/core/pull/715). Before that PR
+  merges, its decisions remain proposed; merge records the HITL approval.
+- Canonical implementation issues remain #314 through #364, but their original
+  dependency graph predates the Phase 0 findings.
 
-## Source Artifacts
+## Phase 0 Decisions
 
-Read these in order:
-
-1. `README.md`
-2. `prd.md`
-3. `issues.md`
-4. `phase-0-audit-brief.md`
-5. `product-plan.md`
-6. `data-model.md`
-7. `variables.md`
-8. `starter-template-catalog.md`
-9. `ux-ia.md`
-10. `integration-map.md`
-11. `rendering-artifacts-retention.md`
-12. `legacy-pdf-studio-removal.md`
-13. `testing-fixtures.md`
-
-## Critical Decisions Already Captured
-
-- Product name: Statement Studio.
-- New implementation must not be built on Unlayer.
-- New implementation must not be an email editor pretending to generate PDFs.
-- Persisted templates use an Asym-owned JSON schema compiled through pdfx and
-  React PDF where appropriate.
-- Production renders resolve server-side from tenant-scoped DTOs.
+- Product name: Statement Studio; existing `/pdf` and `pdf_*` internals migrate
+  pragmatically.
+- Extend the existing `pdf_templates` / `pdf_template_*` family; no parallel
+  document persistence family.
+- Use an Asym-owned template schema. New work does not depend on Unlayer or
+  treat an email editor as the PDF product.
+- Qualify the existing server-only DocRaptor adapter, then use it as the sole
+  first-slice provider behind a renderer port. A later renderer replacement is
+  a separate migration decision.
+- Start infrastructure with an admin/sample-data tracer. Keep
+  `donor.statement.annual_giving` as the first donor-facing production job only
+  after a canonical frozen statement snapshot/version and finance/legal
+  approval.
+- Production renders resolve source-domain contexts server-side.
+  Browser-supplied financial `dataContext` is never official input.
 - Generated PDFs are private, tenant-aware artifacts exposed through authorized
-  access paths, not direct cross-dashboard table reads.
-- Tenant admins can customize templates, variables, defaults, assignments,
-  retention, and capabilities within platform safety floors.
-- UI must use shared `@asym/ui` components and Maia/Zinc design tokens.
-- Database, RLS, Storage, Auth, migration, seed, query, and Supabase client work
-  must load the repo Supabase skill and use Supabase CLI verification.
+  Mission Control/donor/missionary BFF paths.
+- Unlayer is retire-later; delete nothing before hosted tenant-template
+  inventory and verified replacement.
 
 ## Recommended Next Work
 
-Start with
-[#312 - SS-00 Phase 0 Statement Studio audit and first-slice confirmation](https://github.com/Asymmetric-al/core/issues/312).
+After AL-312 is reviewed and merged:
 
-The Phase 0 audit should confirm:
+1. Re-groom [#322](https://github.com/Asymmetric-al/core/issues/322) with the
+   newer proposed statement issues
+   [#579](https://github.com/Asymmetric-al/core/issues/579),
+   [#580](https://github.com/Asymmetric-al/core/issues/580),
+   [#583](https://github.com/Asymmetric-al/core/issues/583), and
+   [#584](https://github.com/Asymmetric-al/core/issues/584). Canonical facts,
+   run/version ownership, frozen formatting, portal cutover, private artifact
+   authorization, and finance/legal approval are production blockers;
+   completing #320 alone is not sufficient.
+2. Allow [#314](https://github.com/Asymmetric-al/core/issues/314) to proceed only
+   as the Statement Studio shell, starter catalog, tenant-safe foundation, and
+   safe sample preview. Do not turn it into an official statement render.
+3. Implement the OpenSpec foundation in thin vertical slices: same-tenant
+   constraints, immutable versions, assignments, server capabilities, private
+   Storage, artifacts, retention, and tests. Coordinate tenant isolation with
+   #505/#516 and outbound delivery with #552-#554/#581; do not create parallel
+   guard or communication infrastructure.
+4. Prove the pipeline with `letterhead.simple` or the annual starter in
+   non-official sample mode before connecting Giving truth.
 
-- Current legacy PDF Studio and Unlayer dependencies.
-- Current donor receipt and annual statement behavior.
-- Current data owner boundaries for donor, missionary, events, finance,
-  reports, care, legal, tasks, and CMS.
-- Current Supabase/RLS/Storage posture and risks.
-- What should be reused, replaced, retired, or deleted.
-- Whether `donor.statement.annual_giving` remains the best first production
-  slice.
-
-After #312, follow the dependency graph in #310 or `issues.md`. Do not start by
-editing legacy Unlayer UI unless the Phase 0 audit explicitly identifies a safe
-removal or migration step.
-
-## Suggested Skills
-
-- `repo-entry`: orientation and repo instruction routing.
-- `supabase`: required for any Supabase database, Auth, Storage, Realtime, Edge
-  Functions, CLI, RLS, or migration work.
-- `supabase-postgres-best-practices`: schema, query, index, policy, RLS, or
-  migration performance work.
-- `vercel-react-best-practices`: React and Next.js implementation quality.
-- `nextjs-app-router` or the repo's relevant Next.js skill: App Router,
-  rendering, routing, and data-fetching work.
-- `frontend-design` or repo frontend rules: Statement Studio UX/UI work using
-  shared design tokens.
-- `to-issues`: only if future PRD changes need new vertical-slice issues.
-- `handoff`: use again when pausing after implementation progress.
+Do not begin with legacy Unlayer removal or a second renderer stack.
 
 ## Verification Expectations
 
-For documentation-only changes:
+For foundation/runtime work:
 
-- Run focused Prettier checks on touched docs.
-- Confirm each new workflow doc includes `## Triggers`, `## Workflow Steps`, and
-  `## Checklist`.
-- Keep links to GitHub issues current.
+- Read installed Next.js docs before changing Next.js routes or components.
+- Load the Supabase and Supabase Postgres skills before schema/RLS/Storage work.
+- Verify hosted migration state before assuming committed tables exist.
+- Test cross-tenant foreign keys, immutable versions, capability differences,
+  private Storage paths, recipient denial, artifact integrity, and purge
+  tombstones through public seams.
+- Keep app routes thin and production context resolution inside shared
+  server/source-domain modules.
 
-For implementation changes:
+## Security and Privacy Notes
 
-- Read installed Next.js docs before Next.js coding.
-- Use the Supabase skill and Supabase CLI before database/Supabase work.
-- Add focused tests for tenant safety, variable resolution, assignments,
-  rendering, artifact access, and UI smoke paths based on the slice.
-- Let GitHub Actions settle and inspect failures directly.
-
-## Security and privacy notes
-
-This handoff intentionally contains no secrets, tokens, credentials, donor
-personal data, missionary personal data, or tenant private records. Keep future
-handoffs at the same level: reference artifacts and public GitHub issue numbers
-instead of copying sensitive runtime data.
+Do not copy donor, missionary, tenant, payment, care, or legal production data
+into samples, handoffs, template JSON, render requests, or audit fixtures. Use
+synthetic fixtures and reference public issue/file paths.
 
 ## Checklist
 
-- [ ] Start from #312 before implementation unless the user explicitly redirects.
-- [ ] Read the PRD and issue map before editing code.
-- [ ] Use the Supabase skill and CLI for Supabase work.
-- [ ] Use shared design tokens for UI work.
-- [ ] Keep every Statement Studio slice tenant-safe and tenant-aware.
-- [ ] Update the handoff if meaningful implementation progress changes the next
-      agent's starting point.
+- [x] Phase 0 audit and evidence are complete.
+- [x] Renderer, canonical persistence, first job, and legacy posture are recorded.
+- [x] The AL-312 HITL decision package is complete; PR #715 merge records
+      approval of the proposed decisions.
+- [ ] #322 is re-groomed before production statement work.
+- [ ] Hosted migration and legacy-template state are inspected before cutover.
+- [ ] Each implementation slice uses the appropriate repo skills and checks.

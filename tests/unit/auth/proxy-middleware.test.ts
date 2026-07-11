@@ -27,6 +27,8 @@ vi.mock("@asym/database/supabase/config", () => ({
 
 const originalE2EAuthBypass = process.env.E2E_AUTH_BYPASS;
 const originalNodeEnv = process.env.NODE_ENV;
+const originalE2ESecret = process.env.E2E_AUTH_SECRET;
+const originalE2EAllowlist = process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS;
 
 function createMockRequest(
   url: string,
@@ -69,6 +71,8 @@ describe("apps/donor/proxy (auth middleware)", () => {
     vi.clearAllMocks();
     process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
     process.env.NODE_ENV = originalNodeEnv;
+    process.env.E2E_AUTH_SECRET = "proxy-middleware-test-secret";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
     mockedCreateServerClient.mockReturnValue({
       auth: {
         getUser: mockedGetUser,
@@ -80,6 +84,8 @@ describe("apps/donor/proxy (auth middleware)", () => {
   afterEach(() => {
     process.env.E2E_AUTH_BYPASS = originalE2EAuthBypass;
     process.env.NODE_ENV = originalNodeEnv;
+    process.env.E2E_AUTH_SECRET = originalE2ESecret;
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = originalE2EAllowlist;
     vi.restoreAllMocks();
   });
 
@@ -130,7 +136,7 @@ describe("apps/donor/proxy (auth middleware)", () => {
     process.env.E2E_AUTH_BYPASS = "1";
     process.env.NODE_ENV = "development";
     mockedGetUser.mockResolvedValue({ data: { user: null } });
-    const cookieValue = createE2EAuthCookieValue({
+    const cookieValue = await createE2EAuthCookieValue({
       userId: "e2e-donor-user",
       role: "donor",
       tenantId: null,
@@ -146,6 +152,32 @@ describe("apps/donor/proxy (auth middleware)", () => {
 
     expect(response.status).toBe(200);
     expect(response.headers.get("location")).toBeNull();
+  });
+
+  it("throws before serving when bypass is enabled against a non-allowlisted datasource", async () => {
+    mockedGetSupabasePublicConfig.mockReturnValue({
+      url: "https://prodxxxx.supabase.co",
+      key: "anon-key",
+      keyType: "anon",
+    });
+    process.env.E2E_AUTH_BYPASS = "1";
+    process.env.NODE_ENV = "development";
+    process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS = "example";
+    mockedGetUser.mockResolvedValue({ data: { user: null } });
+    const errorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    await expect(
+      invokeDonorProxy(
+        "https://example.test/donor-dashboard?tab=history",
+        undefined,
+        "localhost:3005",
+      ),
+    ).rejects.toThrow(/allowlisted/i);
+    expect(errorSpy).toHaveBeenCalledWith(
+      expect.stringContaining("E2E bypass blocked"),
+    );
   });
 
   it("fails closed on protected routes when public Supabase config is missing", async () => {

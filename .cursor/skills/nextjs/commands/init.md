@@ -43,7 +43,7 @@ cd <project-name>
 npx shadcn@latest init
 
 # Recommended utilities
-npm install clsx tailwind-merge
+npm install cnfast
 ```
 
 ### 4. Create Utility Functions
@@ -51,12 +51,8 @@ npm install clsx tailwind-merge
 Create `src/lib/utils.ts`:
 
 ```typescript
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cnfast";
+export type { ClassValue } from "cnfast";
 ```
 
 ### 5. Configure for App Router

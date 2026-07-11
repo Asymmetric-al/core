@@ -397,6 +397,62 @@ describe("buildMissionaryDonorRows", () => {
     });
   });
 
+  it("normalizes persisted frequency, gift type, and activity status values for presentation", () => {
+    const rows = buildMissionaryDonorRows({
+      missionaryProfileId,
+      donors: [
+        {
+          ...namedDonor,
+          id: "donor-normalized",
+          name: "Normalized Partner",
+          frequency: "monthly",
+        },
+      ],
+      activities: [
+        {
+          id: "act-normalized",
+          donor_id: "donor-normalized",
+          type: "gift",
+          date: "2026-07-01",
+          created_at: "2026-07-01",
+          title: "Normalized gift",
+          status: "failed",
+          gift_type: "online",
+        },
+      ],
+      pledges: [
+        {
+          id: "pledge-normalized",
+          donor_id: "donor-normalized",
+          missionary_id: "missionary-row-id-1",
+          amount: 250,
+          frequency: "quarterly",
+          status: "active",
+          start_date: "2026-02-01",
+          created_at: "2026-02-01",
+          total_paid: 750,
+          total_expected: 1500,
+        },
+      ],
+    });
+
+    expect(rows).toHaveLength(1);
+    expect(rows[0]).toMatchObject({
+      frequency: "Monthly",
+      activities: [
+        expect.objectContaining({
+          status: "Failed",
+          gift_type: "Online",
+        }),
+      ],
+      recurring_donations: [
+        expect.objectContaining({
+          frequency: "Quarterly",
+        }),
+      ],
+    });
+  });
+
   it("leaks NO raw identity of anonymous donors anywhere in their payloads", () => {
     for (const id of ["donor-A", "donor-D", "donor-E", "donor-F"]) {
       expect(rows.find((r) => r.id === id)?.name).toBe("Anonymous donor");
