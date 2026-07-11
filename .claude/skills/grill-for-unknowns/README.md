@@ -1,6 +1,6 @@
 # grill-for-unknowns
 
-`grill-for-unknowns` is an agent skill — usable with Hermes, Claude Code, and Codex — for getting an agent and user to a shared understanding before complex implementation work begins.
+`grill-for-unknowns` is an agent skill — usable with Hermes and, in Core, Codex, Cursor, and Claude Code — for getting an agent and user to a shared understanding before complex implementation work begins.
 
 It combines:
 
@@ -50,11 +50,11 @@ The skill asks the agent to separate:
 This skill is substantially inspired by, and should be treated as an adaptation/fork of, Matt Pocock’s skill composition around `grill-with-docs`:
 
 - Matt Pocock’s `grill-with-docs` skill:  
-  https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md
+  https://github.com/mattpocock/skills/blob/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/engineering/grill-with-docs/SKILL.md
 - Matt Pocock’s `domain-modeling` skill:  
-  https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling
+  https://github.com/mattpocock/skills/tree/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/engineering/domain-modeling
 - Matt Pocock’s `grilling` skill:  
-  https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md
+  https://github.com/mattpocock/skills/blob/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/productivity/grilling/SKILL.md
 
 The core `grill-with-docs` idea is:
 
@@ -85,7 +85,7 @@ The upstream skills are deliberately minimal and compositional: `grilling` is a 
 
 1. **It covers gaps an interview can't see.** The upstream loop only handles known unknowns — questions someone already knows to ask. The four-quadrant taxonomy adds explicit tactics for unknown knowns (the user's unverbalized taste, extracted through cheap prototypes and contrasting references instead of questions the user can't answer) and unknown unknowns (a blindspot pass over docs/source/tests before the interview starts).
 2. **It defines what a good question is.** "Relentless" is a personality, not a quality bar. Here every question must be material, grounded in evidence, and answerable, using a template that forces a citation, a why-it-matters, and a recommended default. Low-risk unknowns become labeled assumptions instead of questions at all.
-3. **It is self-contained.** `grill-with-docs` silently depends on two other skills being installed; an agent that loads only the headline file gets almost nothing. This skill inlines the grilling loop and the domain-modeling rules, so it works dropped into any agent — Hermes, Claude Code, or Codex.
+3. **It is self-contained.** `grill-with-docs` silently depends on two other skills being installed; an agent that loads only the headline file gets almost nothing. This skill inlines the grilling loop and the domain-modeling rules, so it works dropped into any agent — Hermes, Codex, Cursor, or Claude Code.
 4. **It extends past the planning boundary.** Upstream ends at "don't build until shared understanding is confirmed." This skill covers what happens after alignment: a launch packet for subagents and long-running coding agents, a deviation policy (continue-and-log vs. stop-and-ask), implementation notes for newly discovered unknowns, and a post-implementation explainer/quiz.
 5. **It produces durable artifacts.** Session ledgers, launch packets, implementation notes, `CONTEXT.md`, and ADRs give the shared understanding a reusable written shape instead of leaving it in the chat transcript.
 
@@ -95,9 +95,11 @@ The upstream skills are deliberately minimal and compositional: `grilling` is a 
 grill-for-unknowns/
 ├── SKILL.md
 ├── README.md
+├── LICENSE
 ├── references/
+│   ├── domain-modeling-add-on.md
 │   ├── upstream-lineage.md
-│   └── domain-modeling-add-on.md
+│   └── upstream.md
 └── templates/
     ├── ADR.md
     ├── CONTEXT.md

@@ -37,5 +37,7 @@ Canonical copy in this repo: `docs/ai/skills/animation-vocabulary/`, mirrored to
   refresh command.
 - `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim`
   remain higher-priority implementation guidance.
+- Core labels the four prose output examples as `text` fences so markdown lint
+  remains deterministic after refresh.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.

@@ -41,7 +41,7 @@ Turn a vague description of a motion or effect into the precise term, so the use
 
 The user describes an effect loosely. You return the matching term(s) in this format:
 
-```
+```text
 **Stagger** — Animate several items one after another with a small delay between each, creating a cascade.
 ```
 
@@ -62,7 +62,7 @@ If several terms could fit, list the best match first, then 1–2 alternates wit
 User: "What's it called when a popover seems to grow out of the button you clicked instead of from its middle?"
 Output:
 
-```
+```text
 **Origin-aware animation** — An element animates out of its trigger, like a popover growing from the button that opened it instead of from its own center which is the default in CSS.
 ```
 
@@ -70,7 +70,7 @@ Output:
 User: "The thing where one image turns into another image."
 Output:
 
-```
+```text
 **Morph** — One shape smoothly turns into another shape, e.g. Dynamic Island.
 
 Close alternates:
@@ -82,7 +82,7 @@ Close alternates:
 User: "That iOS scroll where it resists and snaps back when you pull too far."
 Output:
 
-```
+```text
 **Rubber-banding** — Resistance and snap-back when you drag past a boundary (the iOS overscroll feel).
 ```
 

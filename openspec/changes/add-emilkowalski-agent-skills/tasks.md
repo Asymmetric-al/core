@@ -1,3 +1,5 @@
+# Tasks
+
 ## 1. Canonical skills and provenance
 
 - [x] 1.1 Install the current upstream pack and record its lock metadata.

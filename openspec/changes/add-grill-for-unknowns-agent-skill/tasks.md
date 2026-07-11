@@ -1,3 +1,5 @@
+# Tasks
+
 ## 1. Canonical skill and provenance
 
 - [x] 1.1 Inventory the live upstream tree, version, commit, and license.

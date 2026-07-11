@@ -37,5 +37,7 @@ Canonical copy in this repo: `docs/ai/skills/review-animations/`, mirrored to
   refresh command.
 - `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim`
   remain higher-priority implementation guidance.
+- Core qualifies the general 300ms duration rule with the documented
+  modal/drawer exception, capped at 500ms and justified above 300ms.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.

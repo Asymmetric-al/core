@@ -38,7 +38,7 @@ Decision order for easing:
 --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1); /* iOS-like drawer curve */
 ```
 
-Duration budgets — **UI animations stay under 300ms**:
+Duration budgets — **most UI animations stay under 300ms; modals and drawers may use 200–500ms when the larger spatial transition warrants it**:
 
 | Element                  | Duration      |
 | ------------------------ | ------------- |
@@ -48,7 +48,7 @@ Duration budgets — **UI animations stay under 300ms**:
 | Modals, drawers          | 200–500ms     |
 | Marketing / explanatory  | Can be longer |
 
-Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).
+Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on ordinary UI, modals/drawers above 500ms, modal/drawer durations above 300ms without a documented reason, or tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).
 
 ## 3. Physicality & origin
 

@@ -2,6 +2,26 @@
 
 Use this when a grill-for-unknowns session reveals fuzzy terminology, overloaded concepts, or durable architectural/product decisions.
 
+## Triggers
+
+- A grill reveals ambiguous, conflicting, or overloaded domain terms.
+- A material decision is hard to reverse, surprising without context, and
+  represents a real trade-off.
+- Do not create domain files merely because the templates exist.
+
+## Workflow
+
+1. Inspect the repository's existing language, context maps, and ADR location
+   before proposing new files or terms.
+2. Challenge ambiguous language during the grill and select one canonical term
+   only when the evidence and user decision support it.
+3. Create or update `CONTEXT.md` lazily for durable domain language, using the
+   format below and the bundled template only when it fits the repository.
+4. Offer an ADR only when all three ADR criteria below are satisfied, then use
+   the repository's existing format and numbering convention.
+5. Verify that recorded terms and decisions match current source evidence and
+   the user's confirmed understanding.
+
 ## Repository files
 
 Most projects can use:
@@ -93,3 +113,15 @@ Use `../templates/ADR.md` as the skeleton: a short title plus 1-3 sentences (con
 - Deliberate deviation from the obvious path.
 - Constraint not visible in code.
 - Non-obvious rejected alternative.
+
+## Checklist
+
+- [ ] The trigger is a real terminology or durable-decision need, not template
+      availability.
+- [ ] Existing repository language and documentation were inspected first.
+- [ ] Each recorded term is canonical, concise, and supported by evidence.
+- [ ] Files were created or changed lazily in the repository's established
+      locations and formats.
+- [ ] Every ADR satisfies all three criteria and records the real trade-off.
+- [ ] The resulting domain model was checked against source evidence and the
+      user's confirmed decision.

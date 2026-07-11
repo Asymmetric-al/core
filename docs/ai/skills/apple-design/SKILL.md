@@ -141,7 +141,7 @@ When a gesture ends, the animation must **continue at the finger's exact velocit
 
 Pass the pointer's release velocity as the spring's initial velocity. Some spring APIs want **relative** velocity — normalize it by the remaining distance to the target:
 
-```
+```text
 relativeVelocity = gestureVelocity / (targetValue − currentValue)
 ```
 

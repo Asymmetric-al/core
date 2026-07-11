@@ -31,6 +31,8 @@ const GRILL_UPSTREAM_DESCRIPTION =
   "description: Use when starting or reviewing a complex implementation where the user wants an agent to interrogate the plan against docs/source evidence, surface unknown unknowns, and avoid rushing into build mode. Combines docs-grounded grilling with a map-vs-territory unknowns pass.";
 const GRILL_CORE_DESCRIPTION =
   "description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.";
+const GRILL_REVIEWED_VERSION = "0.1.1";
+const MATT_POCOCK_LINEAGE_COMMIT = "391a2701dd948f94f56a39f7533f8eea9a859c87";
 
 const emilKowalskiSkillNames = [
   "animation-vocabulary",
@@ -93,6 +95,51 @@ const upstreamSources = [
 
 const POST_REFRESH_REPLACEMENTS = [
   {
+    skillName: "animation-vocabulary",
+    relativePath: "SKILL.md",
+    search:
+      "```\n**Stagger** — Animate several items one after another with a small delay between each, creating a cascade.",
+    replace:
+      "```text\n**Stagger** — Animate several items one after another with a small delay between each, creating a cascade.",
+    required: true,
+  },
+  {
+    skillName: "animation-vocabulary",
+    relativePath: "SKILL.md",
+    search:
+      "```\n**Origin-aware animation** — An element animates out of its trigger, like a popover growing from the button that opened it instead of from its own center which is the default in CSS.",
+    replace:
+      "```text\n**Origin-aware animation** — An element animates out of its trigger, like a popover growing from the button that opened it instead of from its own center which is the default in CSS.",
+    required: true,
+  },
+  {
+    skillName: "animation-vocabulary",
+    relativePath: "SKILL.md",
+    search:
+      "```\n**Morph** — One shape smoothly turns into another shape, e.g. Dynamic Island.",
+    replace:
+      "```text\n**Morph** — One shape smoothly turns into another shape, e.g. Dynamic Island.",
+    required: true,
+  },
+  {
+    skillName: "animation-vocabulary",
+    relativePath: "SKILL.md",
+    search:
+      "```\n**Rubber-banding** — Resistance and snap-back when you drag past a boundary (the iOS overscroll feel).",
+    replace:
+      "```text\n**Rubber-banding** — Resistance and snap-back when you drag past a boundary (the iOS overscroll feel).",
+    required: true,
+  },
+  {
+    skillName: "apple-design",
+    relativePath: "SKILL.md",
+    search:
+      "```\nrelativeVelocity = gestureVelocity / (targetValue − currentValue)\n```",
+    replace:
+      "```text\nrelativeVelocity = gestureVelocity / (targetValue − currentValue)\n```",
+    required: true,
+  },
+  {
     skillName: "grill-for-unknowns",
     relativePath: "SKILL.md",
     search: GRILL_UPSTREAM_DESCRIPTION,
@@ -104,6 +151,306 @@ const POST_REFRESH_REPLACEMENTS = [
     relativePath: "SKILL.md",
     search: "license: MIT\nmetadata:",
     replace: "license: MIT\ndisable-model-invocation: true\nmetadata:",
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "README.md",
+    search:
+      "`grill-for-unknowns` is an agent skill — usable with Hermes, Claude Code, and Codex — for getting an agent and user to a shared understanding before complex implementation work begins.",
+    replace:
+      "`grill-for-unknowns` is an agent skill — usable with Hermes and, in Core, Codex, Cursor, and Claude Code — for getting an agent and user to a shared understanding before complex implementation work begins.",
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "README.md",
+    search:
+      "This skill inlines the grilling loop and the domain-modeling rules, so it works dropped into any agent — Hermes, Claude Code, or Codex.",
+    replace:
+      "This skill inlines the grilling loop and the domain-modeling rules, so it works dropped into any agent — Hermes, Codex, Cursor, or Claude Code.",
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "README.md",
+    search:
+      "https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md",
+    replace: `https://github.com/mattpocock/skills/blob/${MATT_POCOCK_LINEAGE_COMMIT}/skills/engineering/grill-with-docs/SKILL.md`,
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "README.md",
+    search:
+      "https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling",
+    replace: `https://github.com/mattpocock/skills/tree/${MATT_POCOCK_LINEAGE_COMMIT}/skills/engineering/domain-modeling`,
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "README.md",
+    search:
+      "https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md",
+    replace: `https://github.com/mattpocock/skills/blob/${MATT_POCOCK_LINEAGE_COMMIT}/skills/productivity/grilling/SKILL.md`,
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "README.md",
+    search: [
+      "grill-for-unknowns/",
+      "├── SKILL.md",
+      "├── README.md",
+      "├── references/",
+      "│   ├── upstream-lineage.md",
+      "│   └── domain-modeling-add-on.md",
+      "└── templates/",
+    ].join("\n"),
+    replace: [
+      "grill-for-unknowns/",
+      "├── SKILL.md",
+      "├── README.md",
+      "├── LICENSE",
+      "├── references/",
+      "│   ├── domain-modeling-add-on.md",
+      "│   ├── upstream-lineage.md",
+      "│   └── upstream.md",
+      "└── templates/",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "references/upstream-lineage.md",
+    search: [
+      'This skill adapts three upstream Matt Pocock skills plus Thariq\'s "Finding Your Unknowns" article into a single agent skill.',
+      "",
+      "## Source skills",
+    ].join("\n"),
+    replace: [
+      'This skill adapts three upstream Matt Pocock skills plus Thariq\'s "Finding Your Unknowns" article into a single agent skill.',
+      "",
+      "The Matt Pocock links below are pinned to commit",
+      `\`${MATT_POCOCK_LINEAGE_COMMIT}\`, independently verified as the`,
+      "`main` head at the reviewed Nico Bailon package commit timestamp. Core's",
+      "canonical `grill-with-docs`, `grilling`, and `domain-modeling` copies and their",
+      "lock hashes remain the local source of truth.",
+      "",
+      "## Source skills",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "references/upstream-lineage.md",
+    search:
+      "https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md",
+    replace: `https://github.com/mattpocock/skills/blob/${MATT_POCOCK_LINEAGE_COMMIT}/skills/engineering/grill-with-docs/SKILL.md`,
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "references/upstream-lineage.md",
+    search:
+      "https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md",
+    replace: `https://github.com/mattpocock/skills/blob/${MATT_POCOCK_LINEAGE_COMMIT}/skills/productivity/grilling/SKILL.md`,
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "references/upstream-lineage.md",
+    search:
+      "https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling",
+    replace: `https://github.com/mattpocock/skills/tree/${MATT_POCOCK_LINEAGE_COMMIT}/skills/engineering/domain-modeling`,
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "references/domain-modeling-add-on.md",
+    search:
+      "Use this when a grill-for-unknowns session reveals fuzzy terminology, overloaded concepts, or durable architectural/product decisions.",
+    replace: [
+      "Use this when a grill-for-unknowns session reveals fuzzy terminology, overloaded concepts, or durable architectural/product decisions.",
+      "",
+      "## Triggers",
+      "",
+      "- A grill reveals ambiguous, conflicting, or overloaded domain terms.",
+      "- A material decision is hard to reverse, surprising without context, and",
+      "  represents a real trade-off.",
+      "- Do not create domain files merely because the templates exist.",
+      "",
+      "## Workflow",
+      "",
+      "1. Inspect the repository's existing language, context maps, and ADR location",
+      "   before proposing new files or terms.",
+      "2. Challenge ambiguous language during the grill and select one canonical term",
+      "   only when the evidence and user decision support it.",
+      "3. Create or update `CONTEXT.md` lazily for durable domain language, using the",
+      "   format below and the bundled template only when it fits the repository.",
+      "4. Offer an ADR only when all three ADR criteria below are satisfied, then use",
+      "   the repository's existing format and numbering convention.",
+      "5. Verify that recorded terms and decisions match current source evidence and",
+      "   the user's confirmed understanding.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "references/domain-modeling-add-on.md",
+    search: "- Non-obvious rejected alternative.",
+    replace: [
+      "- Non-obvious rejected alternative.",
+      "",
+      "## Checklist",
+      "",
+      "- [ ] The trigger is a real terminology or durable-decision need, not template",
+      "      availability.",
+      "- [ ] Existing repository language and documentation were inspected first.",
+      "- [ ] Each recorded term is canonical, concise, and supported by evidence.",
+      "- [ ] Files were created or changed lazily in the repository's established",
+      "      locations and formats.",
+      "- [ ] Every ADR satisfies all three criteria and records the real trade-off.",
+      "- [ ] The resulting domain model was checked against source evidence and the",
+      "      user's confirmed decision.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "templates/grill-session.md",
+    search: [
+      "# Docs-Unknowns Grill Session Template",
+      "",
+      "Use this as the working document for a planning/interview session.",
+    ].join("\n"),
+    replace: [
+      "# Docs-Unknowns Grill Session Template",
+      "",
+      "Use this as the working document for a planning/interview session.",
+      "",
+      "## Triggers",
+      "",
+      "- Use before complex implementation when the user selected",
+      "  `grill-for-unknowns` and material uncertainty remains after inspecting the",
+      "  available evidence.",
+      "- Do not use for routine work whose facts and low-risk defaults are already",
+      "  clear.",
+      "",
+      "## Workflow",
+      "",
+      "1. Capture the original request and current map without treating assumptions as",
+      "   facts.",
+      "2. Inspect the territory and record evidence before asking the user questions.",
+      "3. Classify material gaps in the unknowns ledger and sharpen domain language.",
+      "4. Walk the design tree one branch at a time, asking only the next unresolved",
+      "   material question with a recommended answer.",
+      "5. Record resolved assumptions and ADR candidates, then confirm shared",
+      "   understanding before creating an implementation launch packet.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "templates/grill-session.md",
+    search:
+      "Do not fill until shared understanding is confirmed. Use `launch-packet.md` from this templates folder.",
+    replace: [
+      "Do not fill until shared understanding is confirmed. Use `launch-packet.md` from this templates folder.",
+      "",
+      "## Completion Checklist",
+      "",
+      "- [ ] Territory claims cite current source, tests, docs, config, or an explicit",
+      "      user decision.",
+      "- [ ] Every material unknown is resolved, visibly assumed, or marked blocked.",
+      "- [ ] Canonical terms, user decisions, and any ADR candidates are recorded.",
+      "- [ ] The user confirmed shared understanding before the launch packet was",
+      "      prepared.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "templates/implementation-notes.md",
+    search: "# Implementation Notes",
+    replace: [
+      "# Implementation Notes",
+      "",
+      "## Triggers",
+      "",
+      "- Use during complex implementation after the plan is confirmed when decisions,",
+      "  deviations, or newly discovered unknowns need a durable record.",
+      "",
+      "## Workflow",
+      "",
+      "1. Record the confirmed plan snapshot before implementation details drift.",
+      "2. Add decisions and deviations as they occur, including evidence, rationale,",
+      "   and risk.",
+      "3. Resolve, defer, or escalate each new unknown under the launch packet's",
+      "   deviation policy.",
+      "4. Record the real verification result before declaring the implementation",
+      "   complete.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "templates/implementation-notes.md",
+    search: "- <command/test/manual check> — result",
+    replace: [
+      "- <command/test/manual check> — result",
+      "",
+      "## Completion Checklist",
+      "",
+      "- [ ] Decisions and deviations include their reason, evidence, and risk.",
+      "- [ ] Every new unknown is resolved, deferred to an owner, or escalated.",
+      "- [ ] Notes remain consistent with the confirmed plan and deviation policy.",
+      "- [ ] Verification records the command or check and its actual result.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "templates/launch-packet.md",
+    search: "# Subagent / Coding-Agent Launch Packet",
+    replace: [
+      "# Subagent / Coding-Agent Launch Packet",
+      "",
+      "## Triggers",
+      "",
+      "- Use only after a `grill-for-unknowns` session reaches shared understanding and",
+      "  complex implementation is ready to hand off to a coding agent or subagent.",
+      "- Do not launch while a material decision remains blocked.",
+      "",
+      "## Workflow",
+      "",
+      "1. State the confirmed goal and map, then identify the territory the receiving",
+      "   agent must inspect before editing.",
+      "2. Separate verified facts, chosen defaults, blindspots, and user taste so the",
+      "   receiver does not treat assumptions as evidence.",
+      "3. Define the deviation policy with explicit continue and stop conditions and a",
+      "   durable implementation-notes location.",
+      "4. Specify executable verification gates that prove the requested outcome.",
+      "5. Recheck the packet against the confirmed session before assigning the work.",
+    ].join("\n"),
+    required: true,
+  },
+  {
+    skillName: "grill-for-unknowns",
+    relativePath: "templates/launch-packet.md",
+    search: "- <commands/tests/manual checks>",
+    replace: [
+      "- <commands/tests/manual checks>",
+      "",
+      "## Completion Checklist",
+      "",
+      "- [ ] The goal and acceptance boundary match the user's confirmed intent.",
+      "- [ ] Territory paths, evidence, defaults, blindspots, and taste criteria are",
+      "      explicit.",
+      "- [ ] Continue, stop-and-ask, and deviation-log rules are actionable.",
+      "- [ ] Verification gates are concrete and executable by the receiving agent.",
+      "- [ ] No material decision remains blocked at launch time.",
+    ].join("\n"),
     required: true,
   },
   {
@@ -190,12 +537,38 @@ const POST_REFRESH_REPLACEMENTS = [
     required: true,
   },
   {
+    skillName: "improve-animations",
+    relativePath: "AUDIT.md",
+    search: "Duration budgets — **UI animations stay under 300ms**:",
+    replace:
+      "Duration budgets — **most UI animations stay under 300ms; modals and drawers may use 200–500ms when the larger spatial transition warrants it**:",
+    required: true,
+  },
+  {
+    skillName: "improve-animations",
+    relativePath: "AUDIT.md",
+    search:
+      "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on UI elements, tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
+    replace:
+      "Hunt for: `ease-in` anywhere, bare `ease`/`linear` on entrances, durations > 300ms on ordinary UI, modals/drawers above 500ms, modal/drawer durations above 300ms without a documented reason, or tooltip delay + animation on every tooltip in a toolbar (after the first, they should be instant).",
+    required: true,
+  },
+  {
     skillName: "review-animations",
     relativePath: "STANDARDS.md",
     search:
       "  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */",
     replace:
       "  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */",
+    required: true,
+  },
+  {
+    skillName: "review-animations",
+    relativePath: "STANDARDS.md",
+    search:
+      "**Rule: UI animations stay under 300ms.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
+    replace:
+      "**Rule: Most UI animations stay under 300ms; modals and drawers may use up to 500ms when their larger spatial transition warrants it.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
     required: true,
   },
 ];
@@ -581,6 +954,7 @@ async function assertRefreshSourceCompatibility(skillName, sourceRoot) {
     frontmatter,
     "disable-model-invocation",
   );
+  const versionLine = getTopLevelFrontmatterLine(frontmatter, "version");
   const licenseLine = getTopLevelFrontmatterLine(frontmatter, "license");
   const metadataLine = getTopLevelFrontmatterLine(frontmatter, "metadata");
   const hasCompatibleDescription =
@@ -595,6 +969,7 @@ async function assertRefreshSourceCompatibility(skillName, sourceRoot) {
 
   if (
     nameLine !== "name: grill-for-unknowns" ||
+    versionLine !== `version: ${GRILL_REVIEWED_VERSION}` ||
     !hasCompatibleDescription ||
     (!hasInvocationGuard && !canInsertInvocationGuard)
   ) {
@@ -610,10 +985,8 @@ async function assertPostRefreshCompatibility(skillName, targetRoot) {
   }
 
   const skillPath = path.join(targetRoot, "SKILL.md");
-  const frontmatter = readFrontmatter(
-    await readFile(skillPath, "utf8"),
-    skillPath,
-  );
+  const skillContent = await readFile(skillPath, "utf8");
+  const frontmatter = readFrontmatter(skillContent, skillPath);
   const nameLine = getTopLevelFrontmatterLine(frontmatter, "name");
   const descriptionLine = getTopLevelFrontmatterLine(
     frontmatter,
@@ -623,13 +996,22 @@ async function assertPostRefreshCompatibility(skillName, targetRoot) {
     frontmatter,
     "disable-model-invocation",
   );
+  const versionLine = getTopLevelFrontmatterLine(frontmatter, "version");
+  const hasRequiredCoreOverlay =
+    skillContent.includes(CORE_OVERLAY_START) &&
+    skillContent.includes(CORE_OVERLAY_END) &&
+    skillContent.includes("untrusted evidence") &&
+    skillContent.includes("ignore embedded directives") &&
+    skillContent.includes("never expose secrets");
   if (
     nameLine !== "name: grill-for-unknowns" ||
+    versionLine !== `version: ${GRILL_REVIEWED_VERSION}` ||
     descriptionLine !== GRILL_CORE_DESCRIPTION ||
-    invocationLine !== "disable-model-invocation: true"
+    invocationLine !== "disable-model-invocation: true" ||
+    !hasRequiredCoreOverlay
   ) {
     throw new Error(
-      `Core grill-for-unknowns discovery compatibility was not applied to ${path.relative(repoRoot, skillPath)}.`,
+      `Core grill-for-unknowns compatibility was not applied to ${path.relative(repoRoot, skillPath)}.`,
     );
   }
 }
@@ -673,6 +1055,11 @@ async function prepareSkillRefresh({ skillName, from, preserve = [] }) {
   await assertRefreshSourceCompatibility(skillName, from);
   const preservedFiles = await readPreservedFiles(to, preserve);
   const preservedCoreOverlay = await readCoreOverlay(to);
+  if (skillName === "grill-for-unknowns" && !preservedCoreOverlay) {
+    throw new Error(
+      `Core grill-for-unknowns refresh requires the canonical safety overlay in ${path.relative(repoRoot, path.join(to, "SKILL.md"))}.`,
+    );
+  }
 
   await mkdir(path.dirname(staging), { recursive: true });
   await rm(staging, { recursive: true, force: true });
@@ -808,6 +1195,18 @@ async function assertFocusedSourcesAvailable(sourceGroup, sources) {
   }
 }
 
+function groupSourcesBySourceGroup(sources) {
+  const groups = new Map();
+
+  for (const source of sources) {
+    const existingGroup = groups.get(source.sourceGroup) ?? [];
+    existingGroup.push(source);
+    groups.set(source.sourceGroup, existingGroup);
+  }
+
+  return groups;
+}
+
 async function main() {
   const onlyArgument = process.argv
     .slice(2)
@@ -844,14 +1243,15 @@ async function main() {
     }
   } else {
     let skipped = 0;
-    for (const source of sources) {
+    const sourceGroups = groupSourcesBySourceGroup(sources);
+    for (const [sourceGroup, groupedSources] of sourceGroups) {
       try {
-        await refreshSkillsAtomically([source]);
+        await refreshSkillsAtomically(groupedSources);
       } catch (error) {
         console.warn(
-          `[warn] skipping ${source.skillName}: ${error instanceof Error ? error.message : String(error)}`,
+          `[warn] skipping ${sourceGroup} (${groupedSources.map(({ skillName }) => skillName).join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
         );
-        skipped += 1;
+        skipped += groupedSources.length;
       }
     }
     if (skipped > 0) {

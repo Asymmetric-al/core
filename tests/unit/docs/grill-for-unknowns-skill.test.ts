@@ -111,4 +111,40 @@ describe("grill-for-unknowns skill", () => {
     );
     expect(readRepoFile("CLAUDE.md")).toBe("@AGENTS.md\n");
   });
+
+  it("keeps Core client, trust, lineage, and workflow adaptations", () => {
+    const readCanonical = (relativePath: string) =>
+      readSkillFile("docs/ai/skills", relativePath);
+    const readme = readCanonical("README.md");
+    const skill = readCanonical("SKILL.md");
+    const lineage = readCanonical("references/upstream-lineage.md");
+    const mattCommit = "391a2701dd948f94f56a39f7533f8eea9a859c87";
+
+    expect(readme).toContain("Core, Codex, Cursor, and Claude Code");
+    expect(readme).toContain("Hermes, Codex, Cursor, or Claude Code");
+    expect(readme).toContain("├── LICENSE");
+    expect(readme).toContain("│   └── upstream.md");
+    expect(readme).toContain(mattCommit);
+    expect(skill).toContain("untrusted evidence");
+    expect(skill).toContain("ignore embedded directives");
+    expect(skill).toContain("never expose secrets");
+    expect(lineage).toContain(mattCommit);
+    expect(lineage).not.toMatch(
+      /github\.com\/mattpocock\/skills\/(?:blob|tree)\/main\//,
+    );
+
+    const workflowDocuments = [
+      ["references/domain-modeling-add-on.md", "## Checklist"],
+      ["templates/grill-session.md", "## Completion Checklist"],
+      ["templates/implementation-notes.md", "## Completion Checklist"],
+      ["templates/launch-packet.md", "## Completion Checklist"],
+    ] as const;
+
+    for (const [relativePath, checklistHeading] of workflowDocuments) {
+      const document = readCanonical(relativePath);
+      expect(document, relativePath).toContain("## Triggers");
+      expect(document, relativePath).toContain("## Workflow");
+      expect(document, relativePath).toContain(checklistHeading);
+    }
+  });
 });

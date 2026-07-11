@@ -2,19 +2,25 @@
 
 This skill adapts three upstream Matt Pocock skills plus Thariq's "Finding Your Unknowns" article into a single agent skill.
 
+The Matt Pocock links below are pinned to commit
+`391a2701dd948f94f56a39f7533f8eea9a859c87`, independently verified as the
+`main` head at the reviewed Nico Bailon package commit timestamp. Core's
+canonical `grill-with-docs`, `grilling`, and `domain-modeling` copies and their
+lock hashes remain the local source of truth.
+
 ## Source skills
 
-- `grill-with-docs`: https://github.com/mattpocock/skills/blob/main/skills/engineering/grill-with-docs/SKILL.md
+- `grill-with-docs`: https://github.com/mattpocock/skills/blob/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/engineering/grill-with-docs/SKILL.md
   - Minimal composition skill: run a `/grilling` session while using `/domain-modeling`.
   - Important implication: the real behavior comes from combining relentless interview + domain-model maintenance.
-- `grilling`: https://github.com/mattpocock/skills/blob/main/skills/productivity/grilling/SKILL.md
+- `grilling`: https://github.com/mattpocock/skills/blob/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/productivity/grilling/SKILL.md
   - Interview relentlessly about every aspect of a plan/design until shared understanding is reached.
   - Walk the design tree branch by branch.
   - Ask one question at a time.
   - Provide a recommended answer for each question.
   - Look up facts in the codebase; decisions belong to the user.
   - Do not enact the plan until shared understanding is confirmed.
-- `domain-modeling`: https://github.com/mattpocock/skills/tree/main/skills/engineering/domain-modeling
+- `domain-modeling`: https://github.com/mattpocock/skills/tree/391a2701dd948f94f56a39f7533f8eea9a859c87/skills/engineering/domain-modeling
   - Build/sharpen domain terminology as design proceeds.
   - Challenge fuzzy or conflicting language immediately.
   - Cross-reference claims against code.

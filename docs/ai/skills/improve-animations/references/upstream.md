@@ -40,5 +40,7 @@ Canonical copy in this repo: `docs/ai/skills/improve-animations/`, mirrored to
 - `PLAN-TEMPLATE.md` uses a four-backtick outer fence and ordinary
   three-backtick CSS fences so Prettier cannot collapse upstream's zero-width
   nested-fence escape.
+- Core qualifies the general 300ms duration budget with the documented
+  200–500ms modal/drawer exception and requires justification above 300ms.
 - Update `source_commit`, `upstream_skill_commit`, and `last_reviewed`
   whenever the vendored upstream changes.

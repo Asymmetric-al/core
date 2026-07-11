@@ -2,6 +2,25 @@
 
 Use this as the working document for a planning/interview session.
 
+## Triggers
+
+- Use before complex implementation when the user selected
+  `grill-for-unknowns` and material uncertainty remains after inspecting the
+  available evidence.
+- Do not use for routine work whose facts and low-risk defaults are already
+  clear.
+
+## Workflow
+
+1. Capture the original request and current map without treating assumptions as
+   facts.
+2. Inspect the territory and record evidence before asking the user questions.
+3. Classify material gaps in the unknowns ledger and sharpen domain language.
+4. Walk the design tree one branch at a time, asking only the next unresolved
+   material question with a recommended answer.
+5. Record resolved assumptions and ADR candidates, then confirm shared
+   understanding before creating an implementation launch packet.
+
 ## Request
 
 <User's original request>
@@ -93,3 +112,12 @@ Only if hard to reverse + surprising without context + real trade-off.
 ## Implementation launch packet
 
 Do not fill until shared understanding is confirmed. Use `launch-packet.md` from this templates folder.
+
+## Completion Checklist
+
+- [ ] Territory claims cite current source, tests, docs, config, or an explicit
+      user decision.
+- [ ] Every material unknown is resolved, visibly assumed, or marked blocked.
+- [ ] Canonical terms, user decisions, and any ADR candidates are recorded.
+- [ ] The user confirmed shared understanding before the launch packet was
+      prepared.

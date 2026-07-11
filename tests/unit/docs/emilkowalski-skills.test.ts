@@ -106,4 +106,39 @@ describe("emilkowalski skill pack", () => {
       readSkillFile("docs/ai/skills", "review-animations", "SKILL.md"),
     ).toContain("disable-model-invocation: true");
   });
+
+  it("keeps Core markdown and duration compatibility adaptations", () => {
+    const vocabulary = readSkillFile(
+      "docs/ai/skills",
+      "animation-vocabulary",
+      "SKILL.md",
+    );
+    const appleDesign = readSkillFile(
+      "docs/ai/skills",
+      "apple-design",
+      "SKILL.md",
+    );
+    const audit = readSkillFile(
+      "docs/ai/skills",
+      "improve-animations",
+      "AUDIT.md",
+    );
+    const standards = readSkillFile(
+      "docs/ai/skills",
+      "review-animations",
+      "STANDARDS.md",
+    );
+
+    expect(vocabulary.match(/^```text$/gm)).toHaveLength(4);
+    expect(appleDesign).toContain(
+      "```text\nrelativeVelocity = gestureVelocity /",
+    );
+    expect(audit).toContain(
+      "most UI animations stay under 300ms; modals and drawers may use 200–500ms",
+    );
+    expect(audit).toContain("modals/drawers above 500ms");
+    expect(standards).toContain(
+      "Most UI animations stay under 300ms; modals and drawers may use up to 500ms",
+    );
+  });
 });
