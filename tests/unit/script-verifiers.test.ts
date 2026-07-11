@@ -1,5 +1,13 @@
 import { execFileSync, execSync } from "node:child_process";
-import { cp, mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import {
+  access,
+  cp,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import path from "node:path";
 
 import { afterEach, describe, expect, it } from "vitest";
@@ -30,8 +38,12 @@ async function copyScript(tempRoot: string, relativePath: string) {
   await cp(sourcePath, targetPath);
 }
 
-function runNodeScript(tempRoot: string, relativePath: string) {
-  return execFileSync(process.execPath, [relativePath], {
+function runNodeScript(
+  tempRoot: string,
+  relativePath: string,
+  arguments_: string[] = [],
+) {
+  return execFileSync(process.execPath, [relativePath, ...arguments_], {
     cwd: tempRoot,
     encoding: "utf8",
     env: isolatedGitEnv,
@@ -403,6 +415,219 @@ describe("verify-skills-sync", () => {
 });
 
 describe("sync-agent-skills", () => {
+  it("prunes removed canonical files while preserving runtime-only assets", async () => {
+    const tempRoot = await createTempRepo("sync-skills-stale-files");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    const canonicalSkillRoot = path.join(
+      tempRoot,
+      "docs/ai/skills/sample-skill",
+    );
+    await mkdir(canonicalSkillRoot, { recursive: true });
+    await writeFile(
+      path.join(canonicalSkillRoot, "SKILL.md"),
+      "---\nname: sample-skill\ndescription: Sample\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalSkillRoot, "CURRENT.md"),
+      "current companion\n",
+    );
+
+    const runtimeRoots = [".agents/skills", ".cursor/skills", ".claude/skills"];
+    for (const runtimeRoot of runtimeRoots) {
+      const runtimeSkillRoot = path.join(tempRoot, runtimeRoot, "sample-skill");
+      await mkdir(runtimeSkillRoot, { recursive: true });
+      await writeFile(path.join(runtimeSkillRoot, "STALE.md"), "stale\n");
+      await writeFile(
+        path.join(runtimeSkillRoot, "RUNTIME-ONLY.md"),
+        "runtime only\n",
+      );
+      await writeJson(
+        path.join(tempRoot, runtimeRoot, ".repo-canonical-skills.json"),
+        {
+          version: 2,
+          canonicalSkills: ["sample-skill"],
+          canonicalSkillFiles: {
+            "sample-skill": ["SKILL.md", "STALE.md"],
+          },
+        },
+      );
+    }
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of runtimeRoots) {
+      const runtimeSkillRoot = path.join(tempRoot, runtimeRoot, "sample-skill");
+      await expect(
+        access(path.join(runtimeSkillRoot, "STALE.md")),
+      ).rejects.toThrow();
+      await expect(
+        readFile(path.join(runtimeSkillRoot, "CURRENT.md"), "utf8"),
+      ).resolves.toBe("current companion\n");
+      await expect(
+        readFile(path.join(runtimeSkillRoot, "RUNTIME-ONLY.md"), "utf8"),
+      ).resolves.toBe("runtime only\n");
+    }
+  });
+
+  it("removes stale ecosystem files from Cursor and Claude Code mirrors", async () => {
+    const tempRoot = await createTempRepo("sync-skills-ecosystem-stale-files");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/canonical-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/canonical-skill/SKILL.md"),
+      "---\nname: canonical-skill\ndescription: Canonical\n---\n",
+    );
+
+    const ecosystemSkillRoot = path.join(
+      tempRoot,
+      ".agents/skills/ecosystem-skill",
+    );
+    await mkdir(ecosystemSkillRoot, { recursive: true });
+    await writeFile(
+      path.join(ecosystemSkillRoot, "SKILL.md"),
+      "---\nname: ecosystem-skill\ndescription: Ecosystem\n---\n",
+    );
+
+    for (const runtimeRoot of [".cursor/skills", ".claude/skills"]) {
+      const mirrorSkillRoot = path.join(
+        tempRoot,
+        runtimeRoot,
+        "ecosystem-skill",
+      );
+      await mkdir(mirrorSkillRoot, { recursive: true });
+      await writeFile(path.join(mirrorSkillRoot, "STALE.md"), "stale\n");
+    }
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of [".cursor/skills", ".claude/skills"]) {
+      const mirrorSkillRoot = path.join(
+        tempRoot,
+        runtimeRoot,
+        "ecosystem-skill",
+      );
+      await expect(
+        access(path.join(mirrorSkillRoot, "STALE.md")),
+      ).rejects.toThrow();
+      await expect(
+        readFile(path.join(mirrorSkillRoot, "SKILL.md"), "utf8"),
+      ).resolves.toBe(
+        "---\nname: ecosystem-skill\ndescription: Ecosystem\n---\n",
+      );
+    }
+  });
+
+  it("prunes only owned files when an entire canonical skill is removed", async () => {
+    const tempRoot = await createTempRepo("sync-skills-stale-skill");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/active-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/active-skill/SKILL.md"),
+      "---\nname: active-skill\ndescription: Active\n---\n",
+    );
+
+    const runtimeRoots = [".agents/skills", ".cursor/skills", ".claude/skills"];
+    for (const runtimeRoot of runtimeRoots) {
+      const retiredSkillRoot = path.join(
+        tempRoot,
+        runtimeRoot,
+        "retired-skill",
+      );
+      await mkdir(retiredSkillRoot, { recursive: true });
+      await writeFile(path.join(retiredSkillRoot, "SKILL.md"), "retired\n");
+      await writeFile(
+        path.join(retiredSkillRoot, "RUNTIME-ONLY.md"),
+        "runtime only\n",
+      );
+      await writeJson(
+        path.join(tempRoot, runtimeRoot, ".repo-canonical-skills.json"),
+        {
+          version: 2,
+          canonicalSkills: ["retired-skill"],
+          canonicalSkillFiles: {
+            "retired-skill": ["SKILL.md"],
+          },
+        },
+      );
+    }
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of runtimeRoots) {
+      const retiredSkillRoot = path.join(
+        tempRoot,
+        runtimeRoot,
+        "retired-skill",
+      );
+      await expect(
+        access(path.join(retiredSkillRoot, "SKILL.md")),
+      ).rejects.toThrow();
+      await expect(
+        readFile(path.join(retiredSkillRoot, "RUNTIME-ONLY.md"), "utf8"),
+      ).resolves.toBe("runtime only\n");
+    }
+  });
+
+  it("fails safely when a v1 manifest cannot distinguish stale canonical files", async () => {
+    const tempRoot = await createTempRepo("sync-skills-v1-migration");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/active-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/active-skill/SKILL.md"),
+      "---\nname: active-skill\ndescription: Active\n---\n",
+    );
+
+    const runtimeRoots = [".agents/skills", ".cursor/skills", ".claude/skills"];
+    for (const runtimeRoot of runtimeRoots) {
+      const retiredSkillRoot = path.join(
+        tempRoot,
+        runtimeRoot,
+        "retired-skill",
+      );
+      await mkdir(retiredSkillRoot, { recursive: true });
+      await writeFile(path.join(retiredSkillRoot, "SKILL.md"), "retired\n");
+      await writeFile(
+        path.join(retiredSkillRoot, "RUNTIME-ONLY.md"),
+        "runtime only\n",
+      );
+      await writeJson(
+        path.join(tempRoot, runtimeRoot, ".repo-canonical-skills.json"),
+        {
+          version: 1,
+          canonicalSkills: ["retired-skill"],
+        },
+      );
+    }
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs"),
+    ).toThrow(/Cannot safely prune stale canonical skill/);
+
+    for (const runtimeRoot of runtimeRoots) {
+      const retiredSkillRoot = path.join(
+        tempRoot,
+        runtimeRoot,
+        "retired-skill",
+      );
+      await expect(
+        readFile(path.join(retiredSkillRoot, "SKILL.md"), "utf8"),
+      ).resolves.toBe("retired\n");
+      await expect(
+        readFile(path.join(retiredSkillRoot, "RUNTIME-ONLY.md"), "utf8"),
+      ).resolves.toBe("runtime only\n");
+    }
+  });
+
   it("refuses traversal-like entries in the canonical skills manifest", async () => {
     const tempRoot = await createTempRepo("sync-skills-manifest-unsafe");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
@@ -429,6 +654,244 @@ describe("sync-agent-skills", () => {
     expect(() =>
       runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs"),
     ).toThrow(/Refusing unsafe canonical skill directory name/);
+  });
+
+  it("refuses traversal-like canonical file ownership entries", async () => {
+    const tempRoot = await createTempRepo("sync-skills-file-manifest-unsafe");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    await mkdir(path.join(tempRoot, "docs/ai/skills/anim"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, "docs/ai/skills/anim/SKILL.md"),
+      "---\nname: anim\n---\n",
+    );
+    await writeJson(
+      path.join(tempRoot, ".agents/skills/.repo-canonical-skills.json"),
+      {
+        version: 2,
+        canonicalSkills: ["anim"],
+        canonicalSkillFiles: { anim: ["../outside.md"] },
+      },
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs"),
+    ).toThrow(/Refusing unsafe canonical skill file/);
+  });
+});
+
+describe("refresh-upstream-skills", () => {
+  it("rejects an empty focused-refresh filter instead of refreshing every source", async () => {
+    const tempRoot = await createTempRepo("refresh-empty-only");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=",
+      ]),
+    ).toThrow(/non-empty source group/);
+  });
+
+  it("fails a focused Emil Kowalski refresh before mutation when a source is missing", async () => {
+    const tempRoot = await createTempRepo("refresh-emil-missing-source");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/animation-vocabulary/SKILL.md",
+    );
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, "canonical stays intact\n");
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=emilkowalski/skills",
+      ]),
+    ).toThrow(/Focused upstream refresh/);
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      "canonical stays intact\n",
+    );
+  });
+
+  it("keeps Emil discovery replacements idempotent across repeated focused refreshes", async () => {
+    const tempRoot = await createTempRepo("refresh-emil-idempotent");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const fixtures = {
+      "animation-vocabulary": { "SKILL.md": "# Animation vocabulary\n" },
+      "apple-design": { "SKILL.md": "# Apple design\n" },
+      "emil-design-eng": {
+        "SKILL.md": [
+          "---",
+          "name: emil-design-eng",
+          "description: This skill encodes Emil Kowalski's philosophy on UI polish, component design, animation decisions, and the invisible details that make software feel great.",
+          "---",
+          "",
+          "# Emil design engineering",
+          "",
+          'import { useSpring } from "motion/react";',
+          "`transform-origin: var(--transform-origin)`",
+          "/* Base UI (this repo) */",
+          "Use Base UI's `var(--transform-origin)`",
+          "",
+        ].join("\n"),
+      },
+      "improve-animations": {
+        "AUDIT.md":
+          "# Audit\n  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */\n  .popover { transform-origin: var(--radix-popover-content-transform-origin); } /* Radix */\n  .popover { transform-origin: var(--transform-origin); }                       /* Base UI */\n",
+        "PLAN-TEMPLATE.md": [
+          "# Plan",
+          "",
+          "```markdown",
+          "\u200B```css",
+          "  transition:",
+          "    transform var(--duration-standard) var(--ease-out-soft),",
+          "    opacity var(--duration-standard) var(--ease-out-soft);",
+          "  transform-origin: var(--transform-origin);",
+          "\u200B```",
+          "\u200B```css",
+          "/* second example */",
+          "\u200B```",
+          "```",
+          "",
+          "## Notes for the plan author",
+          "",
+        ].join("\n"),
+        "SKILL.md": "# Improve animations\n",
+      },
+      "review-animations": {
+        "SKILL.md": "# Review animations\n`var(--transform-origin)`\n",
+        "STANDARDS.md":
+          "# Standards\n  .popover {\n    transform-origin: var(--transform-origin);\n  } /* Base UI */\n",
+      },
+    } as const;
+
+    for (const [skillName, files] of Object.entries(fixtures)) {
+      const skillRoot = path.join(tempRoot, ".agents/skills", skillName);
+      await mkdir(skillRoot, { recursive: true });
+      for (const [fileName, content] of Object.entries(files)) {
+        await writeFile(path.join(skillRoot, fileName), content);
+      }
+    }
+
+    const refreshArguments = ["--only=emilkowalski/skills"];
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      refreshArguments,
+    );
+
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/emil-design-eng/SKILL.md",
+    );
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/emil-design-eng/SKILL.md",
+    );
+    await cp(canonicalSkillPath, sourceSkillPath, { force: true });
+    await cp(
+      path.join(tempRoot, "docs/ai/skills/improve-animations/PLAN-TEMPLATE.md"),
+      path.join(tempRoot, ".agents/skills/improve-animations/PLAN-TEMPLATE.md"),
+      { force: true },
+    );
+
+    runNodeScript(
+      tempRoot,
+      "scripts/refresh-upstream-skills.mjs",
+      refreshArguments,
+    );
+
+    const refreshedContent = await readFile(canonicalSkillPath, "utf8");
+    const companionSuffix =
+      "Use as a craft companion after Core's frontend, emil-design-engineering, and anim guidance.";
+    expect(refreshedContent.split(companionSuffix)).toHaveLength(2);
+    await expect(
+      readFile(
+        path.join(tempRoot, "docs/ai/skills/improve-animations/AUDIT.md"),
+        "utf8",
+      ),
+    ).resolves.not.toContain("/* Radix */");
+
+    const firstCanonicalPath = path.join(
+      tempRoot,
+      "docs/ai/skills/animation-vocabulary/SKILL.md",
+    );
+    const reviewCanonicalPath = path.join(
+      tempRoot,
+      "docs/ai/skills/review-animations/STANDARDS.md",
+    );
+    const stableFirstCanonical = await readFile(firstCanonicalPath, "utf8");
+    const stableReviewCanonical = await readFile(reviewCanonicalPath, "utf8");
+    await writeFile(
+      path.join(tempRoot, ".agents/skills/review-animations/STANDARDS.md"),
+      "# Upstream drift removed the reviewed compatibility target\n",
+    );
+
+    expect(() =>
+      runNodeScript(
+        tempRoot,
+        "scripts/refresh-upstream-skills.mjs",
+        refreshArguments,
+      ),
+    ).toThrow(/failed without changing canonical skills/);
+    await expect(readFile(firstCanonicalPath, "utf8")).resolves.toBe(
+      stableFirstCanonical,
+    );
+    await expect(readFile(reviewCanonicalPath, "utf8")).resolves.toBe(
+      stableReviewCanonical,
+    );
+  });
+
+  it("rejects drifted Grill frontmatter before replacing the canonical skill", async () => {
+    const tempRoot = await createTempRepo("refresh-grill-frontmatter-drift");
+    await copyScript(tempRoot, "scripts/refresh-upstream-skills.mjs");
+
+    const sourceSkillPath = path.join(
+      tempRoot,
+      ".agents/skills/grill-for-unknowns/SKILL.md",
+    );
+    await mkdir(path.dirname(sourceSkillPath), { recursive: true });
+    await writeFile(
+      sourceSkillPath,
+      [
+        "---",
+        "name: grill-for-unknowns",
+        "description: Upstream changed this discovery contract.",
+        "version: 0.2.0",
+        "license: MIT",
+        "metadata:",
+        "  version: 0.2.0",
+        "# description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.",
+        "# disable-model-invocation: true",
+        "---",
+        "",
+        "# Docs + Unknowns Grill",
+        "",
+        "An example must not spoof the discovery metadata checks:",
+        "description: Use only when the user explicitly invokes grill-for-unknowns or asks for a map-vs-territory unknowns pass, blindspot discovery, unknown-known prototypes, or a subagent launch packet before implementation.",
+        "disable-model-invocation: true",
+        "",
+      ].join("\n"),
+    );
+
+    const canonicalSkillPath = path.join(
+      tempRoot,
+      "docs/ai/skills/grill-for-unknowns/SKILL.md",
+    );
+    await mkdir(path.dirname(canonicalSkillPath), { recursive: true });
+    await writeFile(canonicalSkillPath, "canonical stays intact\n");
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/refresh-upstream-skills.mjs", [
+        "--only=nicobailon/grill-for-unknowns",
+      ]),
+    ).toThrow(/Incompatible grill-for-unknowns frontmatter/);
+    await expect(readFile(canonicalSkillPath, "utf8")).resolves.toBe(
+      "canonical stays intact\n",
+    );
   });
 });
 

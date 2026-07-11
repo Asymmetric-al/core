@@ -103,6 +103,8 @@
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",
     "skills:refresh-upstream": "node scripts/refresh-upstream-skills.mjs",
+    "skills:refresh-emilkowalski": "node scripts/refresh-upstream-skills.mjs --only=emilkowalski/skills",
+    "skills:refresh-grill-for-unknowns": "node scripts/refresh-upstream-skills.mjs --only=nicobailon/grill-for-unknowns",
     "skills:refresh-inngest": "node scripts/refresh-inngest-skills.mjs",
     "check:motion": "node scripts/check-motion-patterns.mjs",
     "legal:validate": "bun run --cwd apps/donor legal:validate",
