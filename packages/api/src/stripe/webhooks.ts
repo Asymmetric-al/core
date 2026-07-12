@@ -1,6 +1,11 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
+import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
+import {
+  convergePendingContributionRefundWorkflow,
+  loadContributionRefundAttemptByProviderReference,
+} from "../admin/contribution-operations/store";
 import { createStripeClient } from "./client";
 import {
   claimStripeRawEvent,
@@ -10,17 +15,22 @@ import {
 } from "./event-store";
 import { updateInvoicePledge, updateSubscriptionPledge } from "./recurring";
 import {
+  applyRefundedChargeToDonation,
+  findDonationByPaymentIntentId,
+  getStripeObjectId,
+  updateDonation,
+} from "./refunds";
+import {
   StripeWebhookVerificationError,
   constructVerifiedStripeEvent,
 } from "./verify-event";
-import {
-  markStagedGiftRefunded,
-  stageGiftFromStripeDonation,
-} from "../giving/staged-gifts";
+import { stageGiftFromStripeDonation } from "../giving/staged-gifts";
 import { STRIPE_EVENT_PROCESS_EVENT } from "../workflows/events";
 import { requestWorkflowDispatch } from "../workflows/ledger";
 
 import type Stripe from "stripe";
+
+export { getStripeObjectId };
 
 const TERMINAL_PAID_STATUSES = new Set(["completed", "refunded"]);
 
@@ -28,27 +38,168 @@ type SupabaseAdminClient = NonNullable<
   ReturnType<typeof getAdminClient>["client"]
 >;
 
-interface DonationWebhookRow {
-  id: string;
-  tenant_id: string | null;
-  donor_id: string | null;
-  missionary_id: string | null;
-  fund_id: string | null;
-  amount: number;
-  currency: string | null;
-  status: string;
-  stripe_payment_intent_id: string | null;
-  stripe_charge_id: string | null;
-}
-
 export interface StripeWebhookOutcome {
   action: string;
   donationId?: string;
   handled: boolean;
   paymentIntentId?: string;
   pledgeId?: string;
+  providerRefundId?: string;
   reason?: string;
   stagedGiftId?: string | null;
+}
+
+interface StripeRefundReconciliationApi {
+  refunds: {
+    retrieve(
+      id: string,
+      params?: Stripe.RefundRetrieveParams,
+    ): Promise<Stripe.Refund>;
+  };
+  charges: {
+    retrieve(id: string): Promise<Stripe.Charge>;
+  };
+}
+
+async function createTenantStripeRefundClient(params: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+}): Promise<StripeRefundReconciliationApi> {
+  const { data, error } = await params.supabaseAdmin
+    .from("tenants")
+    .select("stripe_secret_key")
+    .eq("id", params.tenantId)
+    .maybeSingle();
+
+  if (error) throw new Error(error.message);
+
+  const tenant = data as { stripe_secret_key?: string | null } | null;
+  const secretKey =
+    tenant?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
+  if (!secretKey) {
+    throw new Error("Stripe is not configured for refund reconciliation.");
+  }
+
+  return createStripeClient(secretKey);
+}
+
+/**
+ * Shared terminal lifecycle for refund webhooks and the aged-pending safety
+ * sweep. The provider refund id is the durable join key; tenant context keeps
+ * the lookup and provider credentials isolated to the owning organization.
+ */
+export async function reconcileStripeRefundLifecycle(params: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  refund: Stripe.Refund;
+  stripe?: StripeRefundReconciliationApi;
+}): Promise<StripeWebhookOutcome> {
+  const { supabaseAdmin, tenantId, refund } = params;
+  const attempt = await loadContributionRefundAttemptByProviderReference({
+    supabaseAdmin,
+    tenantId,
+    providerReferenceId: refund.id,
+  });
+
+  if (!attempt) {
+    return {
+      action: "refund_attempt_not_matched",
+      handled: true,
+      providerRefundId: refund.id,
+      reason: "No pending contribution refund matched the Stripe refund.",
+    };
+  }
+
+  if (attempt.providerOutcome && attempt.providerOutcome.status !== "pending") {
+    return {
+      action: "refund_already_reconciled",
+      donationId: attempt.donationId,
+      handled: true,
+      providerRefundId: refund.id,
+    };
+  }
+
+  if (refund.status === "pending" || refund.status === "requires_action") {
+    return {
+      action: "refund_pending",
+      donationId: attempt.donationId,
+      handled: true,
+      providerRefundId: refund.id,
+    };
+  }
+
+  if (refund.status !== "succeeded") {
+    await convergePendingContributionRefundWorkflow({
+      supabaseAdmin,
+      attempt,
+      providerOutcome: {
+        provider: "stripe",
+        status: "failed",
+        referenceId: refund.id,
+        errorCode: refund.failure_reason ?? refund.status ?? "refund_failed",
+        errorMessage: `Stripe reported refund status ${refund.status ?? "failed"}.`,
+      },
+    });
+    return {
+      action: "refund_failed",
+      donationId: attempt.donationId,
+      handled: true,
+      providerRefundId: refund.id,
+    };
+  }
+
+  const stripe =
+    params.stripe ??
+    (await createTenantStripeRefundClient({ supabaseAdmin, tenantId }));
+  let charge: Stripe.Charge;
+  if (typeof refund.charge === "object" && refund.charge !== null) {
+    charge = refund.charge;
+  } else {
+    const chargeId = getStripeObjectId(refund.charge);
+    if (!chargeId) {
+      throw new Error("Stripe refund did not identify a charge to reconcile.");
+    }
+    charge = await stripe.charges.retrieve(chargeId);
+  }
+
+  const localOutcome = await applyRefundedChargeToDonation(
+    supabaseAdmin,
+    charge,
+  );
+  if (
+    localOutcome.action === "charge_refund_missing_payment_intent" ||
+    localOutcome.action === "charge_refund_not_matched"
+  ) {
+    throw new Error("Stripe refund did not converge to a local donation.");
+  }
+
+  await convergePendingContributionRefundWorkflow({
+    supabaseAdmin,
+    attempt,
+    providerOutcome: {
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: refund.id,
+    },
+  });
+
+  return {
+    ...localOutcome,
+    action: "refund_succeeded",
+    providerRefundId: refund.id,
+  };
+}
+
+export async function reconcileStripeRefundByProviderId(params: {
+  supabaseAdmin: SupabaseAdminClient;
+  tenantId: string;
+  providerRefundId: string;
+}): Promise<StripeWebhookOutcome> {
+  const stripe = await createTenantStripeRefundClient(params);
+  const refund = await stripe.refunds.retrieve(params.providerRefundId, {
+    expand: ["charge"],
+  });
+  return reconcileStripeRefundLifecycle({ ...params, refund, stripe });
 }
 
 /**
@@ -61,6 +212,9 @@ const WORKFLOW_DISPATCHED_STRIPE_EVENT_TYPES = new Set<string>([
   "payment_intent.payment_failed",
   "payment_intent.canceled",
   "payment_intent.processing",
+  "refund.created",
+  "refund.updated",
+  "refund.failed",
   "charge.refunded",
   "customer.subscription.updated",
   "customer.subscription.deleted",
@@ -76,22 +230,9 @@ export function isWorkflowDispatchedStripeEventType(
 
 interface StripeWebhookProcessingContext {
   rawEventId?: string | null;
+  reconcileRefund?: typeof reconcileStripeRefundByProviderId;
   stripeEventId?: string | null;
   tenantId?: string | null;
-}
-
-export function getStripeObjectId(
-  value: string | { id?: string | null } | null | undefined,
-) {
-  if (typeof value === "string") {
-    return value.length > 0 ? value : null;
-  }
-
-  if (value && typeof value.id === "string" && value.id.length > 0) {
-    return value.id;
-  }
-
-  return null;
 }
 
 export function getPaymentIntentLatestChargeId(
@@ -109,40 +250,6 @@ function getPaymentIntentErrorMessage(paymentIntent: Stripe.PaymentIntent) {
     paymentIntent.last_payment_error?.message ??
     "Stripe reported that the payment intent did not complete."
   );
-}
-
-async function findDonationByPaymentIntentId(
-  supabaseAdmin: SupabaseAdminClient,
-  paymentIntentId: string,
-) {
-  const { data, error } = await supabaseAdmin
-    .from("donations")
-    .select(
-      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, stripe_payment_intent_id, stripe_charge_id",
-    )
-    .eq("stripe_payment_intent_id", paymentIntentId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  return (data ?? null) as DonationWebhookRow | null;
-}
-
-async function updateDonation(
-  supabaseAdmin: SupabaseAdminClient,
-  donationId: string,
-  values: Record<string, unknown>,
-) {
-  const { error } = await supabaseAdmin
-    .from("donations")
-    .update(values)
-    .eq("id", donationId);
-
-  if (error) {
-    throw new Error(error.message);
-  }
 }
 
 async function updatePaymentIntentDonation(params: {
@@ -226,61 +333,6 @@ async function updatePaymentIntentDonation(params: {
   } satisfies StripeWebhookOutcome;
 }
 
-async function updateRefundedChargeDonation(
-  supabaseAdmin: SupabaseAdminClient,
-  charge: Stripe.Charge,
-) {
-  const paymentIntentId = getStripeObjectId(charge.payment_intent);
-  if (!paymentIntentId) {
-    return {
-      action: "charge_refund_missing_payment_intent",
-      handled: true,
-      reason: "Stripe charge did not include a payment intent.",
-    } satisfies StripeWebhookOutcome;
-  }
-
-  const donation = await findDonationByPaymentIntentId(
-    supabaseAdmin,
-    paymentIntentId,
-  );
-
-  if (!donation) {
-    return {
-      action: "charge_refund_not_matched",
-      handled: true,
-      paymentIntentId,
-      reason: "No donation matched the refunded Stripe charge.",
-    } satisfies StripeWebhookOutcome;
-  }
-
-  const timestamp = new Date().toISOString();
-  const refundAmount = charge.amount_refunded ?? 0;
-  const isFullRefund = refundAmount >= donation.amount;
-
-  await updateDonation(supabaseAdmin, donation.id, {
-    refund_amount: refundAmount,
-    refunded_at: refundAmount > 0 ? timestamp : null,
-    status: isFullRefund ? "refunded" : donation.status,
-    stripe_charge_id: charge.id,
-    updated_at: timestamp,
-  });
-  const stagedGift = await markStagedGiftRefunded({
-    supabaseAdmin,
-    donationId: donation.id,
-    tenantId: donation.tenant_id,
-    stripeChargeId: charge.id,
-    fullRefund: isFullRefund,
-  });
-
-  return {
-    action: isFullRefund ? "charge_refunded" : "charge_partially_refunded",
-    donationId: donation.id,
-    handled: true,
-    paymentIntentId,
-    stagedGiftId: stagedGift?.id ?? null,
-  } satisfies StripeWebhookOutcome;
-}
-
 export async function handleStripeWebhookEvent(
   supabaseAdmin: SupabaseAdminClient,
   event: Stripe.Event,
@@ -312,8 +364,28 @@ export async function handleStripeWebhookEvent(
         status: "processing",
         context,
       });
+    case "refund.created":
+    case "refund.updated":
+    case "refund.failed": {
+      const refund = event.data.object as Stripe.Refund;
+      if (!context.tenantId) {
+        return {
+          action: "refund_tenant_not_resolved",
+          handled: true,
+          providerRefundId: refund.id,
+          reason: "Stripe refund did not resolve to an organization.",
+        };
+      }
+      const reconcileRefund =
+        context.reconcileRefund ?? reconcileStripeRefundByProviderId;
+      return reconcileRefund({
+        supabaseAdmin,
+        tenantId: context.tenantId,
+        providerRefundId: refund.id,
+      });
+    }
     case "charge.refunded":
-      return updateRefundedChargeDonation(
+      return applyRefundedChargeToDonation(
         supabaseAdmin,
         event.data.object as Stripe.Charge,
       );
@@ -471,6 +543,7 @@ export async function POST(request: NextRequest) {
         donationId: outcome.donationId,
         handled: outcome.handled,
         paymentIntentId: outcome.paymentIntentId,
+        providerRefundId: outcome.providerRefundId,
         reason: outcome.reason,
         stagedGiftId: outcome.stagedGiftId,
       },

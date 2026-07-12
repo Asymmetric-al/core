@@ -52,7 +52,6 @@ export { projectContributionActionResultForViewer };
 
 const UNSUPPORTED_ROUTE_ACTION_TYPES = new Set<ContributionActionType>([
   "metadata_update",
-  "refund",
   "donor_relink",
 ]);
 
@@ -68,8 +67,6 @@ function unsupportedRouteActionMessage(
   switch (actionType) {
     case "metadata_update":
       return "metadata_update is not supported by this route yet.";
-    case "refund":
-      return "refund is not supported by this route until provider refund dependencies are wired.";
     case "donor_relink":
       return "donor_relink is not supported by this route until donor relink dependencies are wired.";
     default:

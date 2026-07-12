@@ -80,6 +80,10 @@ export {
   loadReceiptDeliveryContext,
 } from "./operations";
 export {
+  refundContributionThroughStripe,
+  type RefundContributionThroughStripeInput,
+} from "./refunds";
+export {
   assertAllowedPaymentStateCorrectionStatus,
   isAllowedPaymentStateCorrectionStatus,
   type PaymentStateCorrectionStatus,
@@ -156,6 +160,7 @@ export type {
 export {
   CONTRIBUTION_ACTION_TYPES,
   CONTRIBUTION_SOURCE_SURFACES,
+  isFailedProviderOutcomeStatus,
 } from "./types";
 export type {
   ContributionDetail,

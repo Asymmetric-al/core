@@ -216,6 +216,97 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
   });
 });
 
+describe("ContributionDetailSheet refund entry point", () => {
+  const availableRefundEntry = {
+    actionType: "refund" as const,
+    available: true,
+    blockedReason: null,
+    nextStep: null,
+    riskLevel: "high" as const,
+  };
+  const blockedRefundEntry = {
+    actionType: "refund" as const,
+    available: false,
+    blockedReason:
+      "This gift has no payment provider charge to refund against.",
+    nextStep:
+      "Offline gifts are corrected through adjustments rather than provider refunds.",
+    riskLevel: "high" as const,
+  };
+
+  it("enables Refund gift and reports the contribution id when refund is available", () => {
+    const onRefund = vi.fn();
+    const contribution = boneyardContributionsFixture[0]!;
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        actionAvailability={[availableRefundEntry]}
+        onRefund={onRefund}
+      />,
+    );
+
+    const refundButton = view.getByRole("button", { name: /refund gift/i });
+    expect(refundButton).toHaveProperty("disabled", false);
+
+    fireEvent.click(refundButton);
+    expect(onRefund).toHaveBeenCalledWith(contribution.id);
+  });
+
+  it("renders a blocked refund disabled with the server reason inline", () => {
+    const onRefund = vi.fn();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        actionAvailability={[blockedRefundEntry]}
+        onRefund={onRefund}
+      />,
+    );
+
+    const refundButton = view.getByRole("button", { name: /refund gift/i });
+    expect(refundButton).toHaveProperty("disabled", true);
+
+    expect(
+      view.getByText(/no payment provider charge to refund against/i),
+    ).toBeTruthy();
+    expect(
+      view.getByText(/corrected through adjustments rather than provider/i),
+    ).toBeTruthy();
+
+    fireEvent.click(refundButton);
+    expect(onRefund).not.toHaveBeenCalled();
+  });
+
+  it("renders no refund affordance without an onRefund handler or refund entry", () => {
+    const withoutHandler = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        actionAvailability={[availableRefundEntry]}
+      />,
+    );
+    expect(
+      withoutHandler.queryByRole("button", { name: /refund gift/i }),
+    ).toBeNull();
+    cleanup();
+
+    const withoutEntry = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        actionAvailability={[]}
+        onRefund={vi.fn()}
+      />,
+    );
+    expect(
+      withoutEntry.queryByRole("button", { name: /refund gift/i }),
+    ).toBeNull();
+  });
+});
+
 describe("ContributionDetailSheet provider proof", () => {
   it("shows role-gated provider proof with dashboard links when provided", () => {
     const view = render(
