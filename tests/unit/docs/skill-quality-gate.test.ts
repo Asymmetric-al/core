@@ -12,15 +12,23 @@ const vendoredSkillPaths = [
   "docs/ai/skills/supabase/SKILL.md",
   "docs/ai/skills/components-build/SKILL.md",
   "docs/ai/skills/emil-design-eng/SKILL.md",
+  "docs/ai/skills/grill-for-unknowns/SKILL.md",
   "docs/ai/skills/resend-cli/SKILL.md",
   ".agents/skills/supabase/SKILL.md",
   ".agents/skills/components-build/SKILL.md",
   ".agents/skills/emil-design-eng/SKILL.md",
+  ".agents/skills/grill-for-unknowns/SKILL.md",
   ".agents/skills/resend-cli/SKILL.md",
   ".cursor/skills/supabase/SKILL.md",
   ".cursor/skills/components-build/SKILL.md",
   ".cursor/skills/emil-design-eng/SKILL.md",
+  ".cursor/skills/grill-for-unknowns/SKILL.md",
   ".cursor/skills/resend-cli/SKILL.md",
+  ".claude/skills/supabase/SKILL.md",
+  ".claude/skills/components-build/SKILL.md",
+  ".claude/skills/emil-design-eng/SKILL.md",
+  ".claude/skills/grill-for-unknowns/SKILL.md",
+  ".claude/skills/resend-cli/SKILL.md",
 ] as const;
 
 describe("skill quality gate overlays", () => {
