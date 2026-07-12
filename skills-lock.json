@@ -13,6 +13,18 @@
       "skillPath": "skills/agent-email-inbox/SKILL.md",
       "computedHash": "6280018b559b3a932bf0f610146978ca3416e2b2bf21f62c45dbad4d3ccd1282"
     },
+    "animation-vocabulary": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/animation-vocabulary/SKILL.md",
+      "computedHash": "280c6688ef2568ad92f40c4dc638f0cc5cde0f49bdd6debd097410aa9945f44f"
+    },
+    "apple-design": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/apple-design/SKILL.md",
+      "computedHash": "0d19303902efa64eace10e6b183eb29ef3220d424c1a7fd1eafc52adde216932"
+    },
     "ask-matt": {
       "source": "mattpocock/skills",
       "sourceType": "github",
@@ -91,6 +103,12 @@
       "skillPath": "skills/email-best-practices/SKILL.md",
       "computedHash": "d0d264878e1201196115a47106e0def3282e6be1a5a2b231e2ef39a4641203da"
     },
+    "emil-design-eng": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/emil-design-eng/SKILL.md",
+      "computedHash": "ac3fc5b4e206488ffc408a2806f829bb2e5eaf518fded09be34790685c2b3a0d"
+    },
     "eve": {
       "source": "vercel/eve",
       "sourceType": "github",
@@ -102,6 +120,12 @@
       "sourceType": "github",
       "skillPath": "skills/misc/git-guardrails-claude-code/SKILL.md",
       "computedHash": "a04bf71be9abc44ca3b00e2f1740b37d2e471abadd20d43a31bccff7135baedf"
+    },
+    "grill-for-unknowns": {
+      "source": "nicobailon/grill-for-unknowns",
+      "sourceType": "github",
+      "skillPath": "plugins/grill-for-unknowns/SKILL.md",
+      "computedHash": "8e5fa5e057cbd0833170ca7f31ecb569bcce689b8e2c8f14cf8f4072ac85c395"
     },
     "grill-me": {
       "source": "mattpocock/skills",
@@ -150,6 +174,12 @@
       "sourceType": "github",
       "skillPath": "skills/improve/SKILL.md",
       "computedHash": "992d71e2ed2a83e7f25d8522d069f090e2ea16286ec29ea86f84cfa05c0c2430"
+    },
+    "improve-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/improve-animations/SKILL.md",
+      "computedHash": "ff9991a8d6dabb24411daaf6de570e3b6826323459d514d90d7f6371bbdbdbe1"
     },
     "improve-codebase-architecture": {
       "source": "mattpocock/skills",
@@ -270,6 +300,12 @@
       "sourceType": "github",
       "skillPath": "skills/engineering/resolving-merge-conflicts/SKILL.md",
       "computedHash": "9050aa34dc026b5b28f5b63003a8742d0669daa6b2916c7a0f082ca9bfa50184"
+    },
+    "review-animations": {
+      "source": "emilkowalski/skills",
+      "sourceType": "github",
+      "skillPath": "skills/review-animations/SKILL.md",
+      "computedHash": "26bec85a9bfe7cfbfd500ff1ffebc7819ac0cef75cf068c4a97b5af865ccccf7"
     },
     "scaffold-exercises": {
       "source": "mattpocock/skills",

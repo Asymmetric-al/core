@@ -23,7 +23,10 @@ This skill is the **compact entry point** for the instruction and skill system. 
 1. Read and follow root **`AGENTS.md`** (Next.js managed block, routing, Nia, MCP, monorepo commands).
 2. For **canonical** task skills maintained by this repo, use **`docs/ai/skills/*/SKILL.md`** and the **Skill Routing** section in `AGENTS.md`.
 3. After changing skills under `docs/ai/skills/`, run **`bun run skills:sync`** and ensure **`bun run skills:verify`** passes before committing.
-4. Optional tool-specific or ecosystem skills may exist only under **`.cursor/skills/`**; use them when their `SKILL.md` description matches the task.
+4. Optional tool-specific or ecosystem skills may originate under
+   **`.agents/skills/`** and be mirrored into **`.cursor/skills/`** and
+   **`.claude/skills/`**; use them only when their `SKILL.md` description
+   matches and they remain subordinate to canonical repo guidance.
 
 ## Checklist
 
