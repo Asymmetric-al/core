@@ -425,6 +425,15 @@ export function ContributionOperationShell({
   const captureDraftRevision = () => {
     setDraftRevision((current) => current ?? detail?.revision ?? null);
   };
+  // Pin the revision the staffer is acting on as soon as detail is ready.
+  // Input-free operations (send receipt, retry) never touch a field, so
+  // waiting for the first edit would let a background refetch silently
+  // re-point expectedRevision at data the staffer never reviewed. State is
+  // adjusted during render (React's documented pattern), guarded so it runs
+  // once per draft.
+  if (nextOpenKey && latestRevision !== null && draftRevision === null) {
+    setDraftRevision(latestRevision);
+  }
   const isRefundOperation = operation?.actionType === "refund";
   // The refundable basis is the ORIGINAL charged amount (what the provider
   // charged), matching the server availability payload and the refund
@@ -462,10 +471,6 @@ export function ContributionOperationShell({
     amountPrefillKey !== nextOpenKey
   ) {
     setAmountPrefillKey(nextOpenKey);
-    // The prefilled amount is a draft value derived from the loaded
-    // revision, so record that revision for stale-draft reconciliation just
-    // like a manual edit would.
-    captureDraftRevision();
     setValues((prev) => ({
       ...prev,
       amountDollars: (remainingRefundableCents / 100).toFixed(2),
@@ -564,7 +569,12 @@ export function ContributionOperationShell({
   ) => {
     const refreshResults = await Promise.allSettled([
       Promise.resolve().then(() =>
-        invalidateContributionOperationQueries(queryClient),
+        // throwOnError: failed refetches must reject so the stale-data
+        // warning below can surface them (default invalidation resolves
+        // even when the triggered refetches fail).
+        invalidateContributionOperationQueries(queryClient, {
+          throwOnError: true,
+        }),
       ),
       Promise.resolve().then(() => onRowRefresh?.()),
     ]);
@@ -632,13 +642,17 @@ export function ContributionOperationShell({
       // Failure preserves the entered form state for recovery (ADR-CD-033).
       const message =
         error instanceof Error ? error.message : "The operation failed.";
-      setPhase({
-        name: "failure",
-        message,
-        staleSave:
-          error instanceof ContributionOperationRequestError &&
-          error.status === 409,
-      });
+      const staleSave =
+        error instanceof ContributionOperationRequestError &&
+        error.status === 409;
+      setPhase({ name: "failure", message, staleSave });
+      if (staleSave) {
+        // The server saw a newer revision than this client. Refresh the
+        // cached detail in the background so the "current values" summary
+        // is honest and a discarded-then-reopened dialog does not start
+        // from the same stale snapshot and hit the same 409 again.
+        void detailQuery.refetch();
+      }
       return;
     }
 

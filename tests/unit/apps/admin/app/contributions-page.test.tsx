@@ -1146,21 +1146,41 @@ describe("apps/admin/app/contributions/page-client", () => {
 
     await invalidateContributionOperationQueries(queryClient as never);
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["admin", "contribution-detail"] },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ADMIN_CRM_RECORDS_QUERY_KEY_VALUE },
+      { throwOnError: false },
+    );
+  });
+
+  it("propagates throwOnError so refresh failures can surface to callers", async () => {
+    const queryClient = {
+      invalidateQueries: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await invalidateContributionOperationQueries(queryClient as never, {
+      throwOnError: true,
     });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
-    });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["admin", "contribution-detail"],
-    });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE,
-    });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ADMIN_CRM_RECORDS_QUERY_KEY_VALUE,
-    });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(5);
+    for (const call of queryClient.invalidateQueries.mock.calls) {
+      expect(call[1]).toEqual({ throwOnError: true });
+    }
   });
 
   it("does not show load failed while the query is pending", () => {

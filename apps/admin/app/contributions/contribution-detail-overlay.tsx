@@ -56,23 +56,37 @@ export function isContributionGiftParam(value: string | null): value is string {
  */
 export async function invalidateContributionOperationQueries(
   queryClient: QueryClient,
+  options?: {
+    /**
+     * TanStack Query resolves `invalidateQueries` even when the triggered
+     * refetches fail. Callers that surface a stale-data warning on refresh
+     * failure (the operation shell) opt into rejection instead.
+     */
+    throwOnError?: boolean;
+  },
 ) {
+  const refetchOptions = { throwOnError: options?.throwOnError ?? false };
   await Promise.all([
-    queryClient.invalidateQueries({
-      queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY,
-    }),
-    queryClient.invalidateQueries({
-      queryKey: ADMIN_CRM_RECORDS_QUERY_KEY,
-    }),
+    queryClient.invalidateQueries(
+      { queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY },
+      refetchOptions,
+    ),
+    queryClient.invalidateQueries(
+      { queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY },
+      refetchOptions,
+    ),
+    queryClient.invalidateQueries(
+      { queryKey: ADMIN_CONTRIBUTION_DETAIL_QUERY_KEY },
+      refetchOptions,
+    ),
+    queryClient.invalidateQueries(
+      { queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY },
+      refetchOptions,
+    ),
+    queryClient.invalidateQueries(
+      { queryKey: ADMIN_CRM_RECORDS_QUERY_KEY },
+      refetchOptions,
+    ),
   ]);
 }
 
