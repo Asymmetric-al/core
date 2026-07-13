@@ -2,6 +2,14 @@
 
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
+import {
   Table,
   TableBody,
   TableCell,
@@ -10,22 +18,18 @@ import {
   TableRow,
 } from "@asym/ui/components/shadcn/table";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
+import { UserRound } from "lucide-react";
 
+import { Link } from "../routing";
 import { StudioLayout } from "../shell/studio-layout";
 
 type MissionaryRow = {
   id: string;
-  profile?: { full_name?: string | null; display_name?: string | null } | null;
+  profile?: { display_name?: string | null; full_name?: string | null } | null;
 };
 
 export function MissionariesHubView() {
-  const {
-    data: missionaries,
-    error: missionariesError,
-    isError: missionariesIsError,
-    isPending: missionariesIsPending,
-  } = useQuery({
+  const missionariesQuery = useQuery({
     queryKey: ["web-studio", "admin-missionaries-hub"],
     queryFn: async () => {
       const res = await fetch("/api/admin/missionaries?limit=200", {
@@ -47,18 +51,18 @@ export function MissionariesHubView() {
             Missionary directory
           </h1>
           <p className="mt-2 text-muted-foreground text-sm">
-            Canonical missionary records from Supabase. Use “Create giving page”
-            to open the template flow with this missionary pre-selected.
+            Canonical missionary records from Supabase. Use the create action to
+            open the template flow with this missionary pre-selected.
           </p>
         </div>
 
-        {missionariesIsError ? (
+        {missionariesQuery.isError ? (
           <p className="text-destructive text-sm">
-            {(missionariesError as Error).message}
+            {(missionariesQuery.error as Error).message}
           </p>
         ) : null}
 
-        <div className="rounded-xl border border-border bg-card shadow-sm">
+        <div className="rounded-lg border border-border bg-card shadow-sm">
           <Table>
             <TableHeader>
               <TableRow>
@@ -68,44 +72,89 @@ export function MissionariesHubView() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {missionariesIsPending ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={3}
-                    className="text-muted-foreground text-sm"
-                  >
-                    Loading…
-                  </TableCell>
-                </TableRow>
-              ) : (
-                (missionaries ?? []).map((m) => {
-                  const label =
-                    m.profile?.full_name?.trim() ||
-                    m.profile?.display_name?.trim() ||
-                    m.id;
-                  return (
-                    <TableRow key={m.id}>
-                      <TableCell className="font-medium">{label}</TableCell>
-                      <TableCell className="font-mono text-muted-foreground text-xs">
-                        {m.id}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button size="sm" asChild>
-                          <Link
-                            href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(m.id)}`}
-                          >
-                            Create giving page
-                          </Link>
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              )}
+              <MissionariesHubTableRows
+                isPending={missionariesQuery.isPending}
+                missionaries={missionariesQuery.data}
+              />
             </TableBody>
           </Table>
         </div>
       </div>
     </StudioLayout>
   );
+}
+
+function MissionariesHubTableRows({
+  isPending,
+  missionaries,
+}: {
+  isPending: boolean;
+  missionaries?: MissionaryRow[];
+}) {
+  if (isPending) {
+    return Array.from({ length: 4 }).map((_, index) => (
+      <TableRow key={index}>
+        <TableCell>
+          <Skeleton className="h-5 w-40" />
+        </TableCell>
+        <TableCell>
+          <Skeleton className="h-4 w-56" />
+        </TableCell>
+        <TableCell className="flex justify-end">
+          <Skeleton className="h-8 w-36" />
+        </TableCell>
+      </TableRow>
+    ));
+  }
+
+  const rows = missionaries ?? [];
+
+  if (rows.length === 0) {
+    return (
+      <TableRow>
+        <TableCell colSpan={3}>
+          <Empty className="border-0 py-10">
+            <EmptyHeader>
+              <EmptyMedia variant="icon">
+                <UserRound className="size-5" />
+              </EmptyMedia>
+              <EmptyTitle>No missionaries found</EmptyTitle>
+              <EmptyDescription>
+                Missionary records will appear here after they are available
+                from Supabase.
+              </EmptyDescription>
+            </EmptyHeader>
+          </Empty>
+        </TableCell>
+      </TableRow>
+    );
+  }
+
+  return rows.map((missionary) => {
+    const label =
+      missionary.profile?.full_name?.trim() ||
+      missionary.profile?.display_name?.trim() ||
+      missionary.id;
+
+    return (
+      <TableRow key={missionary.id}>
+        <TableCell className="font-medium">{label}</TableCell>
+        <TableCell className="font-mono text-muted-foreground text-xs">
+          {missionary.id}
+        </TableCell>
+        <TableCell className="text-right">
+          <Button
+            size="sm"
+            render={
+              <Link
+                href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
+              />
+            }
+          >
+            Create giving page
+          </Button>
+        </TableCell>
+      </TableRow>
+    );
+  });
 }

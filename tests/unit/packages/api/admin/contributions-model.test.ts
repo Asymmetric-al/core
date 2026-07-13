@@ -64,7 +64,9 @@ describe("api/admin/contributions/model", () => {
 
     expect(row.id).toBe("donation-1");
     expect(row.donorName).toBe("Alice Johnson");
-    expect(row.status).toBe("pending");
+    // Processing stays distinct from pending: delayed-notification rails
+    // (e.g. ACH) must never be collapsed toward a more final-looking state.
+    expect(row.status).toBe("processing");
     expect(row.type).toBe("One-time");
     expect(row.paymentMethod).toBe("Credit Card");
     expect(row.source).toBe("Online");

@@ -219,6 +219,14 @@ const supportMessageSchema = z.object({
   emailHeaders: supportEmailHeadersSchema.nullable(),
   outboundSendLogId: z.string().nullable(),
   inboundEmailId: z.string().nullable(),
+  /**
+   * Staff-visible inbound attachment state sourced from the inbound email
+   * record (pending/retrying/failed/available). Never provider internals.
+   */
+  inboundAttachmentStatus: z
+    .enum(["none", "pending", "retrying", "failed", "available"])
+    .nullable()
+    .optional(),
   postedAt: isoString,
   createdAt: isoString,
   updatedAt: isoString,

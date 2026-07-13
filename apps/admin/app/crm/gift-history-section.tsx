@@ -5,6 +5,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   DeleteNamedViewDialog,
   NamedViewNameDialog,
+  TenantDefaultDialog,
   ViewSettingsResetDialog,
 } from "./gift-history-dialogs";
 import { GiftHistoryRows } from "./gift-history-rows";
@@ -60,8 +61,10 @@ export function GiftHistorySection({
               />
               <GiftHistoryViewSettingsMenu
                 settings={giftHistory.viewSettings}
+                canManageTenantDefaults={giftHistory.canManageTenantDefaults}
                 onPatch={giftHistory.saveViewSettings}
                 onRequestReset={giftHistory.requestViewSettingsReset}
+                onRequestSetTenantDefault={giftHistory.requestSetTenantDefault}
               />
             </div>
           </div>
@@ -101,6 +104,12 @@ export function GiftHistorySection({
         description={giftHistory.resetPreview?.description}
         onCancel={giftHistory.closePendingReset}
         onConfirm={giftHistory.confirmPendingReset}
+      />
+      <TenantDefaultDialog
+        open={giftHistory.pendingTenantDefault}
+        isSaving={giftHistory.isSavingTenantDefault}
+        onCancel={giftHistory.closePendingTenantDefault}
+        onConfirm={giftHistory.confirmSetTenantDefault}
       />
       <NamedViewNameDialog
         state={giftHistory.viewNameDialog}

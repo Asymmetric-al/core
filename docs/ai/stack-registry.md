@@ -35,7 +35,7 @@ Nia keywords:
 
 - Tailwind CSS v4
 - Base UI
-- shadcn/ui (Radix UI primitives)
+- shadcn/ui (Base UI primitives, `base-maia` style)
 - Lucide icons
 - MAIA theme, Zinc palette
 - Fonts: Inter, Syne, Geist Mono
@@ -46,7 +46,7 @@ Nia keywords:
 
 - tailwind, className, cn, tw
 - Base UI, @base-ui/react, drawer, dialog, select, tooltip
-- shadcn, components/ui, radix
+- shadcn, components/shadcn, base-maia
 - lucide-react
 - MAIA, Zinc, theme, next-themes
 - Inter, Syne, Geist Mono, fonts
@@ -172,6 +172,10 @@ Nia keywords:
 - zapier
 - chatwoot
 - documenso
+
+Agent tooling note: official Inngest agent skills are vendored under
+`docs/ai/skills/inngest-*` for integration planning and implementation work.
+This does not move Inngest out of planned/referenced product status.
 
 ## "When user mentions X, include these stack tags"
 

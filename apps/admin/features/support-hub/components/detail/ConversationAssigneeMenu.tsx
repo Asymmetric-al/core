@@ -38,34 +38,38 @@ export function ConversationAssigneeMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          className="h-8 gap-2 rounded-lg px-2 text-[12px] font-medium text-zinc-700"
-          aria-label={assignee ? `Assigned to ${assignee.name}` : "Unassigned"}
-        >
-          {assignee ? (
-            <Avatar className="size-5 border border-zinc-100">
-              <AvatarImage
-                src={assignee.avatarUrl ?? undefined}
-                alt={assignee.name}
-              />
-              <AvatarFallback className="text-[10px] font-semibold">
-                {assignee.name.charAt(0)}
-              </AvatarFallback>
-            </Avatar>
-          ) : (
-            <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-amber-300 text-amber-600">
-              <UserRound className="size-3" />
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-8 gap-2 rounded-lg px-2 text-[12px] font-medium text-zinc-700"
+            aria-label={
+              assignee ? `Assigned to ${assignee.name}` : "Unassigned"
+            }
+          >
+            {assignee ? (
+              <Avatar className="size-5 border border-zinc-100">
+                <AvatarImage
+                  src={assignee.avatarUrl ?? undefined}
+                  alt={assignee.name}
+                />
+                <AvatarFallback className="text-[10px] font-semibold">
+                  {assignee.name.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+            ) : (
+              <span className="flex size-5 items-center justify-center rounded-full border border-dashed border-amber-300 text-amber-600">
+                <UserRound className="size-3" />
+              </span>
+            )}
+            <span className="truncate text-[12px]">
+              {assignee?.name ?? "Unassigned"}
             </span>
-          )}
-          <span className="truncate text-[12px]">
-            {assignee?.name ?? "Unassigned"}
-          </span>
-        </Button>
-      </DropdownMenuTrigger>
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel className="text-[10px] uppercase tracking-widest text-zinc-400">
           Assign conversation
@@ -73,7 +77,7 @@ export function ConversationAssigneeMenu({
         <DropdownMenuSeparator />
         {currentAgentId ? (
           <DropdownMenuItem
-            onSelect={() =>
+            onClick={() =>
               assign.mutate({
                 conversationId: conversation.id,
                 assigneeAgentId: currentAgentId,
@@ -86,7 +90,7 @@ export function ConversationAssigneeMenu({
           </DropdownMenuItem>
         ) : null}
         <DropdownMenuItem
-          onSelect={() =>
+          onClick={() =>
             assign.mutate({
               conversationId: conversation.id,
               assigneeAgentId: null,
@@ -103,7 +107,7 @@ export function ConversationAssigneeMenu({
           return (
             <DropdownMenuItem
               key={agent.id}
-              onSelect={() =>
+              onClick={() =>
                 assign.mutate({
                   conversationId: conversation.id,
                   assigneeAgentId: agent.id,

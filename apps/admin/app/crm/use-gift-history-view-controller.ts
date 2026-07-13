@@ -12,6 +12,7 @@ import {
   useCrmTablePreferences,
   useDeleteCrmNamedView,
   useSaveCrmRowActionPin,
+  useSaveCrmTenantDefault,
   useSaveCrmViewSettings,
   useUpdateCrmNamedView,
 } from "@asym/database/hooks";
@@ -48,6 +49,9 @@ export function useGiftHistoryViewController({
     CRM_GIFT_HISTORY_TABLE_ID,
   );
   const saveViewSettingsMutate = saveViewSettingsMutation.mutate;
+  const saveTenantDefaultMutation = useSaveCrmTenantDefault(
+    CRM_GIFT_HISTORY_TABLE_ID,
+  );
   const namedViewsQuery = useCrmNamedViews(CRM_GIFT_HISTORY_TABLE_ID);
   const createViewMutation = useCreateCrmNamedView(CRM_GIFT_HISTORY_TABLE_ID);
   const updateViewMutation = useUpdateCrmNamedView(CRM_GIFT_HISTORY_TABLE_ID);
@@ -60,6 +64,7 @@ export function useGiftHistoryViewController({
   const [pendingReset, setPendingReset] = useState<CrmViewSettingsScope | null>(
     null,
   );
+  const [pendingTenantDefault, setPendingTenantDefault] = useState(false);
   const [viewNameDialog, setViewNameDialog] =
     useState<ViewNameDialogState | null>(null);
   const [viewNameInput, setViewNameInput] = useState("");
@@ -246,6 +251,43 @@ export function useGiftHistoryViewController({
     setPendingReset(null);
   };
 
+  // Server-computed flag (#272): visibility follows the tenant-default write
+  // gate (capability holders and delegated managers) exactly.
+  const canManageTenantDefaults =
+    tablePreferences?.canManageTenantDefaults === true;
+
+  /**
+   * Publishes the CURRENT resolved settings (user → tenant → system) and the
+   * effective pinned row action as the tenant default (#272). Delegates on
+   * the tenant default record are left unchanged.
+   */
+  const confirmSetTenantDefault = () => {
+    const effectivePinnedActionId =
+      tablePreferences?.user?.actionId ??
+      tablePreferences?.tenantDefault?.actionId ??
+      null;
+    saveTenantDefaultMutation.mutate(
+      {
+        columns: viewSettings.columns,
+        filtersSort: viewSettings.filtersSort,
+        pinnedActionId: effectivePinnedActionId,
+      },
+      {
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to save the tenant default.",
+          );
+        },
+        onSuccess: () => {
+          toast.success("Tenant default updated for gift history.");
+        },
+      },
+    );
+    setPendingTenantDefault(false);
+  };
+
   const closeViewNameDialog = () => {
     setViewNameDialog(null);
     setViewNameInput("");
@@ -259,13 +301,17 @@ export function useGiftHistoryViewController({
   return {
     activeViewId,
     applyNamedView,
+    canManageTenantDefaults,
     closeDeleteViewDialog,
     closeInlineOperation: () => setInlineOperation(null),
     closePendingReset: () => setPendingReset(null),
+    closePendingTenantDefault: () => setPendingTenantDefault(false),
     closeViewNameDialog,
     confirmDeleteView,
     confirmPendingReset,
+    confirmSetTenantDefault,
     deleteViewDialog,
+    isSavingTenantDefault: saveTenantDefaultMutation.isPending,
     giftRows,
     inlineOperation,
     namedViews,
@@ -286,7 +332,9 @@ export function useGiftHistoryViewController({
       setViewNameInput(view.name);
       setViewNameDialog({ mode: "rename", view });
     },
+    pendingTenantDefault,
     pinRowAction,
+    requestSetTenantDefault: () => setPendingTenantDefault(true),
     requestViewSettingsReset: setPendingReset,
     resetPreview,
     runInlineOperation: (donationId: string, operation: OperationDefinition) =>

@@ -53,30 +53,32 @@ export function LabelFilter({ value, onValueChange }: LabelFilterProps) {
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          className={cn(
-            "h-10 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-[13px] font-medium text-zinc-700",
-            activeCount > 0 && "border-zinc-300 text-zinc-900",
-          )}
-        >
-          <Tag className="size-3.5 text-zinc-400" />
-          <span>Labels</span>
-          {activeCount > 0 ? (
-            <Badge
-              variant="secondary"
-              className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-zinc-900 px-1.5 text-[11px] font-semibold tabular-nums text-white"
-            >
-              {activeCount}
-            </Badge>
-          ) : null}
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            aria-haspopup="listbox"
+            aria-expanded={open}
+            className={cn(
+              "h-10 gap-2 rounded-xl border-zinc-200 bg-white px-3 text-[13px] font-medium text-zinc-700",
+              activeCount > 0 && "border-zinc-300 text-zinc-900",
+            )}
+          >
+            <Tag className="size-3.5 text-zinc-400" />
+            <span>Labels</span>
+            {activeCount > 0 ? (
+              <Badge
+                variant="secondary"
+                className="h-5 min-w-[1.25rem] justify-center rounded-md border-transparent bg-zinc-900 px-1.5 text-[11px] font-semibold tabular-nums text-white"
+              >
+                {activeCount}
+              </Badge>
+            ) : null}
+          </Button>
+        }
+      />
       <PopoverContent align="start" className="w-64 p-0">
         <Command>
           <CommandInput placeholder="Search labels..." className="h-9" />

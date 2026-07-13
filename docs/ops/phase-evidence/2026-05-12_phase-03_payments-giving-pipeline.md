@@ -23,6 +23,7 @@ Production completion remains blocked by provider access and runtime prerequisit
   - `packages/api/src/stripe/webhooks.ts`
   - `packages/api/src/stripe/event-store.ts`
   - `packages/api/src/stripe/replay.ts`
+  - `packages/api/src/workflows/functions/stripe-event-processing.ts`
 - Giving domain services:
   - `packages/api/src/giving/staged-gifts.ts`
   - `packages/api/src/giving/receipts.ts`
@@ -119,6 +120,15 @@ Provider/dashboard status:
 - `DATABASE_URL` is required only for the disposable migration verifier in this pass and was missing.
 - Sentry runtime DSNs are the Phase 3 observability requirement. Sourcemap upload and `SENTRY_AUTH_TOKEN` are Phase 11 observability work unless a build/deploy explicitly fails because sourcemap upload is required.
 
+Refund lifecycle hardening (2026-07-11 local implementation):
+
+- `refund.created`, `refund.updated`, and `refund.failed` are stored and routed through the durable Stripe event dispatcher when tenant context resolves.
+- Processing re-reads the refund by provider refund id with tenant-scoped Stripe credentials, so delayed or out-of-order webhook payloads cannot regress terminal state.
+- Refund webhooks and the scheduled recovery path share the same pending-attempt lifecycle. `charge.refunded` remains supported as a compatibility convergence event.
+- The existing two-minute recovery schedule also scans an age-gated, deterministic batch of at most 25 pending refund attempts. Each provider failure is isolated, sanitized in the workflow result, and left pending for the next scheduled retry.
+- Focused verification passed: `bun run --cwd packages/api typecheck` and 188 tests across 13 contribution-operation, refund, Stripe webhook/workflow, UI-shell, and migration-contract test files.
+- A workspace-wide `bun run typecheck` attempt remains blocked outside this change by `packages/ui/components/shadcn/rich-text-editor/toolbar.tsx` referencing a missing `ChainedCommands.toggleItalic` member.
+
 ## Commands Run
 
 Baseline before implementation:
@@ -188,6 +198,9 @@ Missing provider proofs:
   - `payment_intent.payment_failed`
   - `payment_intent.canceled`
   - `payment_intent.processing`
+  - `refund.created`
+  - `refund.updated`
+  - `refund.failed`
   - `charge.refunded`
 - Resend verified sending domain and webhook endpoint:
   - `https://admin.asymmetric.al/api/email/webhooks/resend`

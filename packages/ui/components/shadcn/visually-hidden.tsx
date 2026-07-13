@@ -1,13 +1,16 @@
 "use client";
 
-import { VisuallyHidden as VisuallyHiddenPrimitive } from "radix-ui";
 import * as React from "react";
 
-function VisuallyHidden({
-  ...props
-}: React.ComponentProps<typeof VisuallyHiddenPrimitive.Root>) {
+import { cn } from "@asym/ui/lib/utils";
+
+function VisuallyHidden({ className, ...props }: React.ComponentProps<"span">) {
   return (
-    <VisuallyHiddenPrimitive.Root data-slot="visually-hidden" {...props} />
+    <span
+      data-slot="visually-hidden"
+      className={cn("sr-only", className)}
+      {...props}
+    />
   );
 }
 

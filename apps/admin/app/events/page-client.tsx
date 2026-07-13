@@ -3,6 +3,7 @@
 import { useEventAttendees } from "@asym/database/hooks";
 import { motion } from "@asym/lib/motion";
 import { formatCurrency, getInitials } from "@asym/lib/utils";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Avatar,
@@ -1258,6 +1259,8 @@ function EventsAttendeesTab() {
 export default function EventsPage() {
   const [activeView, setActiveView] = useState<EventsView>("dashboard");
   const [event, _setEvent] = useState<ConferenceEvent>(INITIAL_EVENTS[0]!);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   return (
     <PageShell
@@ -1278,7 +1281,13 @@ export default function EventsPage() {
         </div>
       }
     >
-      <div className="space-y-5 animate-in fade-in duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]">
+      <div
+        className={cn(
+          "space-y-5",
+          !withinRouteVt &&
+            "animate-in fade-in duration-[var(--duration-standard)] ease-[var(--ease-out-soft)]",
+        )}
+      >
         <Tabs
           value={activeView}
           onValueChange={(value) => {
@@ -1291,25 +1300,25 @@ export default function EventsPage() {
           <TabsList className="rounded-xl border border-zinc-200 bg-zinc-100/50 p-1">
             <TabsTrigger
               value="dashboard"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="config"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Configuration
             </TabsTrigger>
             <TabsTrigger
               value="speakers"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Speakers
             </TabsTrigger>
             <TabsTrigger
               value="attendees"
-              className="rounded-lg data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg data-active:bg-white data-active:shadow-sm"
             >
               Attendees
             </TabsTrigger>

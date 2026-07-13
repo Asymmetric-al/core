@@ -262,15 +262,11 @@ describe("@asym/ui ReactEmailEditor", () => {
     expect((body.get("file") as File).name).toBe("hero.png");
   });
 
-  it("blocks legacy Unlayer editing when the legacy flag is disabled", () => {
-    render(
-      <EmailStudioEditor builder="unlayer" legacyUnlayerEnabled={false} />,
-    );
+  it("renders the React Email editor (Unlayer removed from Email Studio)", async () => {
+    render(<EmailStudioEditor />);
 
-    expect(
-      screen.getByText(
-        "Legacy Unlayer editing is disabled for this environment.",
-      ),
-    ).toBeTruthy();
+    await waitFor(() =>
+      expect(screen.getByTestId("mock-react-email-editor")).toBeTruthy(),
+    );
   });
 });

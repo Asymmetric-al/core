@@ -83,6 +83,11 @@ describe("ci-integration workflow contract", () => {
     expect(testE2e).toContain("continue-on-error:");
     expect(testE2e).toContain("github.base_ref == 'develop'");
     expect(testE2e).toContain("refs/heads/develop");
+    expect(testE2e).toContain("Use placeholder Supabase for develop E2E");
+    expect(testE2e).toContain(
+      "NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co",
+    );
+    expect(testE2e).toContain("NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key");
 
     expect(integrationGate).toContain(
       "needs: [migrate, smoke, e2e-smoke-gate]",
@@ -100,6 +105,18 @@ describe("ci-integration workflow contract", () => {
 
   it("does not require the broad chromium inventory in CI integration", () => {
     expect(workflow).not.toContain("run: bun run test:e2e --project=chromium");
+  });
+
+  it("keeps the blocking smoke job on the shared Bun install contract", () => {
+    const smoke = jobBlock(workflow, "smoke");
+    const testE2eSmoke = jobBlock(workflow, "test-e2e-smoke");
+
+    expect(smoke).toContain("nohup bun run --cwd apps/donor dev");
+    expect(smoke).toContain("/tmp/donor-dev.log");
+    expect(testE2eSmoke).toContain("bun-version: ${{ env.BUN_VERSION }}");
+    expect(testE2eSmoke).toContain("run: bun ci --no-cache --backend=copyfile");
+    expect(testE2eSmoke).not.toContain('bun-version: "1.3.4"');
+    expect(testE2eSmoke).not.toContain("bun install --frozen-lockfile");
   });
 
   it("runs the resolved smoke inventory under projects that include each file", () => {

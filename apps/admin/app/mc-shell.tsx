@@ -40,6 +40,7 @@ import ProfileDropdown, {
   type ProfileDropdownMenuItem,
 } from "@asym/ui/components/shadcn-studio/blocks/dropdown-profile";
 import { RouteMainViewTransitionBoundary } from "@asym/ui/components/view-transitions";
+import { ThemeProvider } from "@asym/ui/lib/theme-provider";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Activity,
@@ -71,7 +72,6 @@ import type { MCBootstrapState } from "@asym/lib/mission-control/bootstrap";
 import type { ReactNode } from "react";
 
 import { ClientOnly } from "@/features/mission-control/components/client-only";
-import { ThemeProvider } from "@/lib/theme-provider";
 
 /* ------------------------------------------------------------------ */
 /*  Navigation data                                                    */
@@ -159,30 +159,32 @@ function NavSection({
                   className="group/collapsible"
                 >
                   <SidebarMenuItem>
-                    <CollapsibleTrigger asChild>
-                      <SidebarMenuButton
-                        tooltip={item.title}
-                        className={cn(
-                          "h-8 rounded-md px-2 transition-colors",
-                          isActive
-                            ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
-                            : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
-                        )}
-                      >
-                        <AppIcon
-                          icon={item.icon}
-                          animated={isActive}
+                    <CollapsibleTrigger
+                      render={
+                        <SidebarMenuButton
+                          tooltip={item.title}
                           className={cn(
-                            "size-4 shrink-0",
-                            isActive ? "text-zinc-800" : "text-zinc-500",
+                            "h-8 rounded-md px-2 transition-colors",
+                            isActive
+                              ? "bg-zinc-100 text-zinc-950 font-semibold shadow-sm ring-1 ring-zinc-950/5"
+                              : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
                           )}
-                        />
-                        <span className="text-[13px] truncate">
-                          {item.title}
-                        </span>
-                        <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90" />
-                      </SidebarMenuButton>
-                    </CollapsibleTrigger>
+                        >
+                          <AppIcon
+                            icon={item.icon}
+                            animated={isActive}
+                            className={cn(
+                              "size-4 shrink-0",
+                              isActive ? "text-zinc-800" : "text-zinc-500",
+                            )}
+                          />
+                          <span className="text-[13px] truncate">
+                            {item.title}
+                          </span>
+                          <ChevronRight className="ml-auto size-3.5 text-zinc-500 transition-transform duration-200 group-data-open/collapsible:rotate-90" />
+                        </SidebarMenuButton>
+                      }
+                    />
                     <CollapsibleContent>
                       <SidebarMenuSub>
                         {item.items.map((sub) => {
@@ -190,7 +192,7 @@ function NavSection({
                           return (
                             <SidebarMenuSubItem key={sub.href}>
                               <SidebarMenuSubButton
-                                asChild
+                                render={<Link href={sub.href} />}
                                 isActive={subActive}
                                 className={cn(
                                   "transition-colors",
@@ -199,11 +201,9 @@ function NavSection({
                                     : "text-zinc-600 hover:text-zinc-950",
                                 )}
                               >
-                                <Link href={sub.href}>
-                                  <span className="text-[13px] truncate">
-                                    {sub.title}
-                                  </span>
-                                </Link>
+                                <span className="text-[13px] truncate">
+                                  {sub.title}
+                                </span>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
                           );
@@ -218,7 +218,12 @@ function NavSection({
             return (
               <SidebarMenuItem key={item.href}>
                 <SidebarMenuButton
-                  asChild
+                  render={
+                    <Link
+                      href={item.href}
+                      className="flex items-center gap-2.5"
+                    />
+                  }
                   isActive={isActive}
                   tooltip={item.title}
                   className={cn(
@@ -228,17 +233,15 @@ function NavSection({
                       : "text-zinc-700 hover:bg-zinc-50 hover:text-zinc-950",
                   )}
                 >
-                  <Link href={item.href} className="flex items-center gap-2.5">
-                    <AppIcon
-                      icon={item.icon}
-                      animated={isActive}
-                      className={cn(
-                        "size-4 shrink-0",
-                        isActive ? "text-zinc-800" : "text-zinc-500",
-                      )}
-                    />
-                    <span className="text-[13px] truncate">{item.title}</span>
-                  </Link>
+                  <AppIcon
+                    icon={item.icon}
+                    animated={isActive}
+                    className={cn(
+                      "size-4 shrink-0",
+                      isActive ? "text-zinc-800" : "text-zinc-500",
+                    )}
+                  />
+                  <span className="text-[13px] truncate">{item.title}</span>
                 </SidebarMenuButton>
               </SidebarMenuItem>
             );

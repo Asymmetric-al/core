@@ -23,7 +23,7 @@ import {
 import { useState, useMemo } from "react";
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Collapsible,
   CollapsibleContent,
@@ -82,19 +82,21 @@ export function PDFStudioSetupStatus({
   if (variant === "badge") {
     return (
       <Dialog>
-        <DialogTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
-              currentStatus.color,
-              className,
-            )}
-          >
-            <Icon className="size-3" />
-            {currentStatus.label}
-          </button>
-        </DialogTrigger>
+        <DialogTrigger
+          render={
+            <button
+              type="button"
+              className={cn(
+                "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
+                currentStatus.color,
+                className,
+              )}
+            >
+              <Icon className="size-3" />
+              {currentStatus.label}
+            </button>
+          }
+        />
         <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>PDF Studio Configuration</DialogTitle>
@@ -121,12 +123,14 @@ export function PDFStudioSetupStatus({
         </div>
         {showSetupButton && status.status !== "white_label" && (
           <Dialog>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm" className="h-7">
-                <Settings className="size-3.5 mr-1.5" />
-                Setup
-              </Button>
-            </DialogTrigger>
+            <DialogTrigger
+              render={
+                <Button variant="outline" size="sm" className="h-7">
+                  <Settings className="size-3.5 mr-1.5" />
+                  Setup
+                </Button>
+              }
+            />
             <DialogContent className="sm:max-w-[500px]">
               <DialogHeader>
                 <DialogTitle>PDF Studio Configuration</DialogTitle>
@@ -224,29 +228,31 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       {status.status !== "white_label" && (
         <>
           <Collapsible open={isSetupOpen} onOpenChange={setIsSetupOpen}>
-            <CollapsibleTrigger asChild>
-              <button
-                type="button"
-                className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors"
-              >
-                <div className="flex items-center gap-2">
-                  <Settings className="size-4" />
-                  <span className="text-sm font-medium">
-                    Basic Setup Instructions
-                  </span>
-                </div>
-                {isSetupOpen ? (
-                  <ChevronUp className="size-4" />
-                ) : (
-                  <ChevronDown className="size-4" />
-                )}
-              </button>
-            </CollapsibleTrigger>
+            <CollapsibleTrigger
+              render={
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full p-3 rounded-lg bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10 transition-colors"
+                >
+                  <div className="flex items-center gap-2">
+                    <Settings className="size-4" />
+                    <span className="text-sm font-medium">
+                      Basic Setup Instructions
+                    </span>
+                  </div>
+                  {isSetupOpen ? (
+                    <ChevronUp className="size-4" />
+                  ) : (
+                    <ChevronDown className="size-4" />
+                  )}
+                </button>
+              }
+            />
             <CollapsibleContent className="pt-2">
-              <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
+              <div className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                 {PDF_STUDIO_SETUP_INSTRUCTIONS.steps.map((step) => (
                   <div key={step.step} className="flex gap-3">
-                    <div className="flex-shrink-0 size-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                    <div className="flex-shrink-0 size-6 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
                       {step.step}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -285,7 +291,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                           href={step.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 mt-1"
                         >
                           Open Unlayer Dashboard
                           <ExternalLink className="size-3" />
@@ -303,29 +309,31 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
               open={isWhiteLabelOpen}
               onOpenChange={setIsWhiteLabelOpen}
             >
-              <CollapsibleTrigger asChild>
-                <button
-                  type="button"
-                  className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors"
-                >
-                  <div className="flex items-center gap-2">
-                    <Crown className="size-4" />
-                    <span className="text-sm font-medium">
-                      Upgrade to White-Label
-                    </span>
-                  </div>
-                  {isWhiteLabelOpen ? (
-                    <ChevronUp className="size-4" />
-                  ) : (
-                    <ChevronDown className="size-4" />
-                  )}
-                </button>
-              </CollapsibleTrigger>
+              <CollapsibleTrigger
+                render={
+                  <button
+                    type="button"
+                    className="flex items-center justify-between w-full p-3 rounded-lg bg-chart-4/10 border border-chart-4/30 text-chart-4 hover:bg-chart-4/15 transition-colors"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Crown className="size-4" />
+                      <span className="text-sm font-medium">
+                        Upgrade to White-Label
+                      </span>
+                    </div>
+                    {isWhiteLabelOpen ? (
+                      <ChevronUp className="size-4" />
+                    ) : (
+                      <ChevronDown className="size-4" />
+                    )}
+                  </button>
+                }
+              />
               <CollapsibleContent className="pt-2">
-                <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
+                <div className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                   {PDF_STUDIO_SETUP_INSTRUCTIONS.whiteLabelSteps.map((step) => (
                     <div key={step.step} className="flex gap-3">
-                      <div className="flex-shrink-0 size-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                      <div className="flex-shrink-0 size-6 rounded-full bg-chart-4/15 text-chart-4 flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -409,12 +417,15 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
       )}
 
       <div className="flex justify-end">
-        <Button variant="outline" size="sm" asChild>
-          <a href={status.setupUrl} target="_blank" rel="noopener noreferrer">
-            Open Unlayer Dashboard
-            <ExternalLink className="size-3.5 ml-1.5" />
-          </a>
-        </Button>
+        <a
+          href={status.setupUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Open Unlayer Dashboard
+          <ExternalLink className="size-3.5 ml-1.5" />
+        </a>
       </div>
     </div>
   );

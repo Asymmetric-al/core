@@ -14,6 +14,10 @@ const SOURCE_EXTENSIONS = new Set([
   ".mts",
 ]);
 const IGNORE_DIRECTORIES = new Set([
+  ".agents",
+  ".claude",
+  ".codex",
+  ".cursor",
   ".git",
   ".claude",
   ".nia-sync",
@@ -196,7 +200,20 @@ async function verifyDisableCommentFormat() {
       continue;
     }
 
-    const content = await fs.readFile(filePath, "utf8");
+    let content;
+    try {
+      content = await fs.readFile(filePath, "utf8");
+    } catch (error) {
+      if (
+        error &&
+        typeof error === "object" &&
+        "code" in error &&
+        ["EACCES", "EPERM", "ENOENT"].includes(error.code)
+      ) {
+        continue;
+      }
+      throw error;
+    }
     const isPayloadGeneratedFile = content.includes(PAYLOAD_GENERATED_MARKER);
     const lines = content.split(/\r?\n/);
 

@@ -85,6 +85,39 @@ afterEach(() => {
 });
 
 describe("DataTableResponsive mobile mode", () => {
+  it("does not warn when modern virtualization config relies on internal defaults", async () => {
+    installMatchMedia(false);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+    render(
+      <DataTableResponsive
+        columns={columns}
+        data={data}
+        config={{
+          enableFilters: false,
+          enablePagination: false,
+          enableRowSelection: false,
+          virtualization: {
+            enabled: true,
+            estimateSize: 84,
+            overscan: 8,
+            containerHeight: 640,
+          },
+        }}
+      />,
+    );
+
+    await act(async () => {});
+
+    const overlapWarnings = warn.mock.calls.filter(([message]) =>
+      String(message).includes(
+        "useDataTableVirtualization received overlapping modern",
+      ),
+    );
+
+    expect(overlapWarnings).toHaveLength(0);
+  });
+
   it("switches from table view to card view when the mobile media query starts matching", async () => {
     const media = installMatchMedia(false);
 

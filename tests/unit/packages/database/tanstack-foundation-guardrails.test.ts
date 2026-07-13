@@ -13,7 +13,10 @@ const clientDbPath = fileURLToPath(
   ),
 );
 const hooksPath = fileURLToPath(
-  new URL("../../../../packages/database/hooks/hooks.ts", import.meta.url),
+  new URL(
+    "../../../../packages/database/hooks/missionary-donors.ts",
+    import.meta.url,
+  ),
 );
 
 describe("TanStack foundation guardrails", () => {

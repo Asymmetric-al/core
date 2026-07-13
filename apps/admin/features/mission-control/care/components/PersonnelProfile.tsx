@@ -240,7 +240,7 @@ function OverviewTabContentSection({
                   <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className={cn(
-                        "h-full rounded-full transition-all",
+                        "h-full rounded-full transition-colors",
                         value > 80
                           ? "bg-emerald-500"
                           : value > 50
@@ -727,7 +727,7 @@ export function PersonnelProfile({
               <TabsTrigger
                 key={tab}
                 value={tab}
-                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-[state=active]:text-zinc-900 data-[state=active]:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
+                className="px-0 py-3 text-sm font-semibold text-zinc-500 data-active:text-zinc-900 data-active:shadow-[0_2px_0_0_#0f172a] rounded-none transition-none capitalize"
               >
                 {tab.replace("-", " ")}
               </TabsTrigger>

@@ -1,14 +1,14 @@
 "use client";
 
 import { useReducedMotion } from "@asym/lib/motion";
-import { EASE_OUT_SOFT } from "@asym/lib/motion-presets";
 import {
   LazyMotion,
   domAnimation,
-  m,
+  motion as m,
   type HTMLMotionProps,
   type Transition,
-} from "motion/react";
+} from "@asym/lib/motion";
+import { EASE_OUT_SOFT } from "@asym/lib/motion-presets";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";

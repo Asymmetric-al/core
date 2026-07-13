@@ -5,7 +5,6 @@ import {
 } from "@asym/auth/context";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { type NextRequest, NextResponse } from "next/server";
-import Stripe from "stripe";
 
 import { resolveRequiredIdempotencyKey } from "./idempotency";
 import { processDonationSagaOutboxEvent } from "./saga";
@@ -13,10 +12,7 @@ import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
-
-function getStripeClient(secretKey: string): Stripe {
-  return new Stripe(secretKey, { apiVersion: "2025-02-24.acacia" });
-}
+import { createStripeClient } from "../stripe/client";
 
 function parseRpcObject<T extends Record<string, unknown>>(
   value: unknown,
@@ -28,6 +24,24 @@ function parseRpcObject<T extends Record<string, unknown>>(
   }
   return typeof value === "object" ? (value as T) : null;
 }
+
+const normalizeStripeKey = (value: unknown): string | null => {
+  if (typeof value !== "string") return null;
+  const trimmedValue = value.trim();
+  return trimmedValue.length > 0 ? trimmedValue : null;
+};
+
+const resolveStripeKey = (
+  tenantValue: unknown,
+  environmentValue: unknown,
+): string | null =>
+  normalizeStripeKey(tenantValue) ?? normalizeStripeKey(environmentValue);
+
+const stripeConfigurationError = () =>
+  NextResponse.json(
+    { error: "Checkout configuration is incomplete for this organization" },
+    { status: 500 },
+  );
 
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
@@ -47,16 +61,19 @@ export const POST = withOperation(
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const stripeSecretKey =
-      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      return NextResponse.json(
-        { error: "Stripe not configured for this organization" },
-        { status: 500 },
-      );
+    const stripeSecretKey = resolveStripeKey(
+      tenant.stripe_secret_key,
+      process.env.STRIPE_SECRET_KEY,
+    );
+    const publishableKey = resolveStripeKey(
+      tenant.stripe_publishable_key,
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    );
+    if (!stripeSecretKey || !publishableKey) {
+      return stripeConfigurationError();
     }
 
-    const stripe = getStripeClient(stripeSecretKey);
+    const stripe = createStripeClient(stripeSecretKey);
     const amountInCents = Math.round(amount * 100);
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
 
@@ -140,9 +157,7 @@ export const POST = withOperation(
       outboxId,
       idempotencyKey,
       replayed: Boolean(beginResult?.replayed),
-      publishableKey:
-        tenant.stripe_publishable_key ??
-        process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+      publishableKey,
     });
   },
   { roles: ["donor", "admin", "staff", "super_admin"] },
@@ -158,6 +173,28 @@ export async function GET(request: NextRequest) {
     const auth = await getAuthContext(request);
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
+
+    const { data: tenant, error: tenantError } = await supabaseAdmin
+      .from("tenants")
+      .select("stripe_secret_key, stripe_publishable_key")
+      .eq("id", ctx.tenantId)
+      .single();
+
+    if (tenantError || !tenant) {
+      return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
+    }
+
+    const stripeSecretKey = resolveStripeKey(
+      tenant.stripe_secret_key,
+      process.env.STRIPE_SECRET_KEY,
+    );
+    const publishableKey = resolveStripeKey(
+      tenant.stripe_publishable_key,
+      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
+    );
+    if (!stripeSecretKey || !publishableKey) {
+      return stripeConfigurationError();
+    }
 
     const { searchParams } = new URL(request.url);
     const { missionary_id: missionaryId, fund_id: fundId } =
@@ -239,6 +276,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       designations,
       donor: donor || null,
+      publishableKey,
     });
   } catch (error) {
     return toErrorResponse(error);

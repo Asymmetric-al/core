@@ -238,19 +238,21 @@ export function DateRangeFilter({
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
-      <PopoverTrigger asChild>
-        <Button
-          variant="outline"
-          className={cn(
-            "h-8 w-[240px] justify-start px-2 text-left text-sm font-normal",
-            !displayValue && "text-muted-foreground",
-            className,
-          )}
-        >
-          <CalendarIcon className="mr-2 size-3.5" />
-          {displayValue ?? placeholder}
-        </Button>
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <Button
+            variant="outline"
+            className={cn(
+              "h-8 w-[240px] justify-start px-2 text-left text-sm font-normal",
+              !displayValue && "text-muted-foreground",
+              className,
+            )}
+          >
+            <CalendarIcon className="mr-2 size-3.5" />
+            {displayValue ?? placeholder}
+          </Button>
+        }
+      />
       <PopoverContent className="w-auto p-0" align={align}>
         <div className="flex">
           <div className="border-r p-2 w-[140px]">
@@ -344,7 +346,13 @@ export function QuickDateFilter({
   );
 
   return (
-    <Select value={selectedPreset} onValueChange={handleChange}>
+    <Select
+      value={selectedPreset}
+      onValueChange={(presetId) => {
+        if (presetId === null) return;
+        handleChange(presetId);
+      }}
+    >
       <SelectTrigger className={cn("h-8 w-[160px] text-sm", className)}>
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

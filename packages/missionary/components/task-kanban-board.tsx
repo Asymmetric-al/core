@@ -376,7 +376,7 @@ function KanbanCard({ task, isOverlay, onEdit, onComplete }: KanbanCardProps) {
       ref={setNodeRef}
       style={style}
       className={cn(
-        "rounded-2xl border-zinc-200/60 shadow-sm hover:shadow-md transition-all group cursor-default select-none bg-white",
+        "rounded-2xl border-zinc-200/60 shadow-sm transition-shadow [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md group cursor-default select-none bg-white",
         isOverlay && "shadow-2xl border-zinc-900/10 ring-1 ring-zinc-900/5",
       )}
     >

@@ -6,13 +6,32 @@ import {
   getPaymentIntentLatestChargeId,
   handleStripeWebhookEvent,
   POST,
+  reconcileStripeRefundLifecycle,
 } from "../../../../packages/api/src/stripe/webhooks";
 
 import type { NextRequest } from "next/server";
 
 const mockState = vi.hoisted(() => ({
   adminClient: null as unknown,
+  convergePendingRefundWorkflow: vi.fn(),
+  loadRefundAttemptByProviderReference: vi.fn(),
 }));
+
+vi.mock(
+  "../../../../packages/api/src/admin/contribution-operations/store",
+  async () => {
+    const actual = await vi.importActual<
+      typeof import("../../../../packages/api/src/admin/contribution-operations/store")
+    >("../../../../packages/api/src/admin/contribution-operations/store");
+    return {
+      ...actual,
+      convergePendingContributionRefundWorkflow:
+        mockState.convergePendingRefundWorkflow,
+      loadContributionRefundAttemptByProviderReference:
+        mockState.loadRefundAttemptByProviderReference,
+    };
+  },
+);
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () =>
@@ -21,7 +40,10 @@ vi.mock("@asym/database/supabase/admin", () => ({
       : { client: null, error: "Supabase admin client unavailable." },
 }));
 
-function createSupabaseDonationMock(row: Record<string, unknown> | null) {
+function createSupabaseDonationMock(
+  row: Record<string, unknown> | null,
+  options: { claimStripeRawEvent?: { claimed: boolean } } = {},
+) {
   const updateValues: Record<string, unknown>[] = [];
   const rawEvents: Record<string, unknown>[] = [];
   const stagedGifts: Record<string, unknown>[] = [];
@@ -45,7 +67,10 @@ function createSupabaseDonationMock(row: Record<string, unknown> | null) {
         };
       }
 
-      return Promise.resolve({ data: { claimed: true }, error: null });
+      return Promise.resolve({
+        data: options.claimStripeRawEvent ?? { claimed: true },
+        error: null,
+      });
     }
     return Promise.resolve({ data: {}, error: null });
   });
@@ -142,10 +167,22 @@ function createSupabaseDonationMock(row: Record<string, unknown> | null) {
       };
     }
 
-    if (
-      table === "staged_gift_allocations" ||
-      table === "staged_gift_audit_events"
-    ) {
+    if (table === "staged_gift_allocations") {
+      const makeFilter = () => {
+        const filter = {
+          eq: vi.fn(() => filter),
+          limit: vi.fn(() => filter),
+          maybeSingle: vi.fn(async () => ({ data: null, error: null })),
+        };
+        return filter;
+      };
+      return {
+        insert: vi.fn(async () => ({ error: null })),
+        select: vi.fn(() => makeFilter()),
+      };
+    }
+
+    if (table === "staged_gift_audit_events") {
       return {
         insert: vi.fn(async () => ({ error: null })),
       };
@@ -200,6 +237,8 @@ describe("Stripe webhook handler", () => {
     process.env.STRIPE_SECRET_KEY = "sk_test_unit";
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_unit";
     mockState.adminClient = null;
+    mockState.convergePendingRefundWorkflow.mockReset();
+    mockState.loadRefundAttemptByProviderReference.mockReset();
   });
 
   afterEach(() => {
@@ -276,6 +315,49 @@ describe("Stripe webhook handler", () => {
     });
   });
 
+  it("ignores duplicate raw Stripe events after the idempotency claim is rejected", async () => {
+    const supabase = createSupabaseDonationMock(
+      {
+        amount: 5000,
+        id: "donation-1",
+        status: "pending",
+        stripe_payment_intent_id: "pi_1",
+      },
+      {
+        claimStripeRawEvent: { claimed: false },
+      },
+    );
+    mockState.adminClient = supabase.client;
+
+    const response = await POST(
+      createSignedStripeRequest(
+        {
+          data: {
+            object: {
+              id: "pi_1",
+              latest_charge: "ch_1",
+              object: "payment_intent",
+            },
+          },
+          id: "evt_duplicate",
+          object: "event",
+          type: "payment_intent.succeeded",
+        },
+        "whsec_unit",
+      ),
+    );
+
+    await expect(response.json()).resolves.toMatchObject({
+      action: "stripe_event_already_recorded",
+      eventId: "evt_duplicate",
+      eventType: "payment_intent.succeeded",
+      handled: true,
+      received: true,
+    });
+    expect(response.status).toBe(200);
+    expect(supabase.update).not.toHaveBeenCalled();
+  });
+
   it("rejects webhook requests with an invalid signature", async () => {
     const supabase = createSupabaseDonationMock({
       amount: 5000,
@@ -339,6 +421,77 @@ describe("Stripe webhook handler", () => {
     expect(supabase.update).not.toHaveBeenCalled();
   });
 
+  it("marks canceled payment intent events as failed", async () => {
+    const supabase = createSupabaseDonationMock({
+      amount: 5000,
+      id: "donation-1",
+      status: "pending",
+      stripe_payment_intent_id: "pi_1",
+    });
+
+    const outcome = await handleStripeWebhookEvent(
+      supabase.client as never,
+      {
+        data: {
+          object: {
+            id: "pi_1",
+            object: "payment_intent",
+          },
+        },
+        id: "evt_canceled",
+        object: "event",
+        type: "payment_intent.canceled",
+      } as never,
+    );
+
+    expect(outcome).toMatchObject({
+      action: "payment_intent_failed",
+      donationId: "donation-1",
+      handled: true,
+      paymentIntentId: "pi_1",
+    });
+    expect(supabase.updateValues[0]).toMatchObject({
+      failed_at: expect.any(String),
+      status: "failed",
+      updated_at: expect.any(String),
+    });
+  });
+
+  it("marks processing payment intent events as processing", async () => {
+    const supabase = createSupabaseDonationMock({
+      amount: 5000,
+      id: "donation-1",
+      status: "pending",
+      stripe_payment_intent_id: "pi_1",
+    });
+
+    const outcome = await handleStripeWebhookEvent(
+      supabase.client as never,
+      {
+        data: {
+          object: {
+            id: "pi_1",
+            object: "payment_intent",
+          },
+        },
+        id: "evt_processing",
+        object: "event",
+        type: "payment_intent.processing",
+      } as never,
+    );
+
+    expect(outcome).toMatchObject({
+      action: "payment_intent_processing",
+      donationId: "donation-1",
+      handled: true,
+      paymentIntentId: "pi_1",
+    });
+    expect(supabase.updateValues[0]).toMatchObject({
+      status: "processing",
+      updated_at: expect.any(String),
+    });
+  });
+
   it("marks fully refunded charges as refunded", async () => {
     const supabase = createSupabaseDonationMock({
       amount: 5000,
@@ -376,6 +529,123 @@ describe("Stripe webhook handler", () => {
       status: "refunded",
       stripe_charge_id: "ch_1",
       updated_at: expect.any(String),
+    });
+  });
+
+  it.each(["refund.created", "refund.updated", "refund.failed"])(
+    "re-reads authoritative provider state for %s by tenant and refund id",
+    async (eventType) => {
+      const reconcileRefund = vi.fn().mockResolvedValue({
+        action: "refund_succeeded",
+        handled: true,
+        providerRefundId: "re_1",
+      });
+
+      const outcome = await handleStripeWebhookEvent(
+        {} as never,
+        {
+          data: {
+            object: {
+              id: "re_1",
+              object: "refund",
+              // This payload may be stale; the handler must not trust it.
+              status: "pending",
+            },
+          },
+          id: `evt_${eventType}`,
+          object: "event",
+          type: eventType,
+        } as never,
+        {
+          tenantId: "tenant-1",
+          reconcileRefund,
+        },
+      );
+
+      expect(reconcileRefund).toHaveBeenCalledWith({
+        supabaseAdmin: {},
+        tenantId: "tenant-1",
+        providerRefundId: "re_1",
+      });
+      expect(outcome.action).toBe("refund_succeeded");
+    },
+  );
+
+  it("keeps refund events without tenant context handled but unreconciled", async () => {
+    const reconcileRefund = vi.fn();
+
+    const outcome = await handleStripeWebhookEvent(
+      {} as never,
+      {
+        data: {
+          object: {
+            id: "re_unscoped",
+            object: "refund",
+            status: "succeeded",
+          },
+        },
+        id: "evt_refund_unscoped",
+        object: "event",
+        type: "refund.updated",
+      } as never,
+      { reconcileRefund },
+    );
+
+    expect(outcome).toMatchObject({
+      action: "refund_tenant_not_resolved",
+      handled: true,
+      providerRefundId: "re_unscoped",
+    });
+    expect(reconcileRefund).not.toHaveBeenCalled();
+  });
+
+  it("converges a failed authoritative refund through the pending correction lifecycle", async () => {
+    mockState.loadRefundAttemptByProviderReference.mockResolvedValue({
+      id: "attempt-1",
+      tenantId: "tenant-1",
+      donationId: "donation-1",
+      providerOutcome: {
+        provider: "stripe",
+        status: "pending",
+        referenceId: "re_1",
+      },
+    });
+    mockState.convergePendingRefundWorkflow.mockResolvedValue({
+      converged: true,
+    });
+
+    const outcome = await reconcileStripeRefundLifecycle({
+      supabaseAdmin: {} as never,
+      tenantId: "tenant-1",
+      refund: {
+        id: "re_1",
+        object: "refund",
+        status: "failed",
+        failure_reason: "lost_or_stolen_card",
+      } as never,
+    });
+
+    expect(mockState.loadRefundAttemptByProviderReference).toHaveBeenCalledWith(
+      {
+        supabaseAdmin: {},
+        tenantId: "tenant-1",
+        providerReferenceId: "re_1",
+      },
+    );
+    expect(mockState.convergePendingRefundWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        supabaseAdmin: {},
+        providerOutcome: expect.objectContaining({
+          provider: "stripe",
+          referenceId: "re_1",
+          status: "failed",
+        }),
+      }),
+    );
+    expect(outcome).toMatchObject({
+      action: "refund_failed",
+      donationId: "donation-1",
+      providerRefundId: "re_1",
     });
   });
 });

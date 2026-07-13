@@ -212,14 +212,14 @@ export function TaskRow({
         "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
           ? "bg-zinc-50/50 border-zinc-100"
-          : "bg-white border-zinc-200 hover-lift hover:border-zinc-300 hover:shadow-md",
+          : "bg-white border-zinc-200 hover-lift hover:border-zinc-300 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md",
       )}
     >
       <div className="mt-1 relative">
         <Checkbox
           checked={isCompleted}
           onCheckedChange={onComplete}
-          className="size-5 rounded-md border-zinc-300 data-[state=checked]:bg-emerald-500 data-[state=checked]:border-emerald-500"
+          className="size-5 rounded-md border-zinc-300 data-checked:bg-emerald-500 data-checked:border-emerald-500"
         />
       </div>
 
@@ -320,14 +320,16 @@ export function TaskRow({
       </div>
 
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
-          >
-            <MoreHorizontal className="size-4" />
-          </Button>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 shrink-0 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-lg"
+            />
+          }
+        >
+          <MoreHorizontal className="size-4" />
         </DropdownMenuTrigger>
         <DropdownMenuContent
           align="end"
@@ -349,13 +351,11 @@ export function TaskRow({
           </DropdownMenuItem>
           {task.donor && (
             <DropdownMenuItem
-              asChild
+              render={<Link href={`/donors?selected=${task.donor.id}`} />}
               className="rounded-lg text-xs font-medium py-2 cursor-pointer"
             >
-              <Link href={`/donors?selected=${task.donor.id}`}>
-                <User className="mr-2 size-3.5 text-zinc-400" />
-                View Partner
-              </Link>
+              <User className="mr-2 size-3.5 text-zinc-400" />
+              View Partner
             </DropdownMenuItem>
           )}
           <DropdownMenuSeparator className="my-1 bg-zinc-100" />

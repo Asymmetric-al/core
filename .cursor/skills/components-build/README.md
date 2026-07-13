@@ -1,3 +1,9 @@
+> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
+> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
+> style in `packages/ui`. Ignore any Radix UI guidance below — never add
+> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
+> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
+
 # Components Build Skill
 
 An agent skill for building modern, composable, and accessible React UI components following the [components.build](https://components.build) specification. Co-authored by Hayden Bleasel and shadcn.
@@ -132,7 +138,7 @@ Reference: [MDN Semantic HTML](https://developer.mozilla.org/en-US/docs/Glossary
 4. **Extend HTML Attributes** - Always extend native element props
 5. **Export Types** - Make prop types available to consumers
 6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
+7. **Intelligent Class Merging** - Use `cn()` utility backed by cnfast
 
 ## References
 

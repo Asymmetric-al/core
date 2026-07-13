@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-05-23
+Last updated: 2026-07-12
 
 ## Scope
 
@@ -8,7 +8,8 @@ This log records the audit and full upstream refresh of the
 Asymmetric-al/core agent skill system:
 
 - Canonical skills under `docs/ai/skills/*/SKILL.md`
-- Runtime mirrors under `.agents/skills/*` and `.cursor/skills/*`
+- Runtime mirrors under `.agents/skills/*`, `.cursor/skills/*`, and
+  `.claude/skills/*`
 - Skills CLI lock metadata in `skills-lock.json`
 - Skill sync, verification, and upstream refresh scripts
 - Supporting CLI/MCP guidance for agent workflows
@@ -16,16 +17,20 @@ Asymmetric-al/core agent skill system:
 ## Source-of-Truth Pattern
 
 - Canonical repo skills are authored under `docs/ai/skills/*`.
-- `.agents/skills/*` and `.cursor/skills/*` are committed runtime mirrors.
-- `scripts/sync-agent-skills.mjs` overlays canonical skills into both mirror
-  roots, writes `.repo-canonical-skills.json`, prunes stale canonical mirror
-  directories from the manifest, and mirrors all `.agents/skills/*` entries
-  into `.cursor/skills/*`.
+- `.agents/skills/*`, `.cursor/skills/*`, and `.claude/skills/*` are committed
+  runtime mirrors.
+- `scripts/sync-agent-skills.mjs` overlays canonical skills into all three
+  runtime roots, records canonical file ownership in
+  `.repo-canonical-skills.json`, prunes stale canonical-owned files (including
+  files from removed canonical skills), and mirrors all `.agents/skills/*`
+  entries into `.cursor/skills/*` and `.claude/skills/*` while preserving
+  runtime-only assets.
 - `scripts/verify-skills-sync.mjs` runs the sync script and fails on tracked or
   untracked mirror drift.
-- `scripts/refresh-upstream-skills.mjs` vendors only `supabase`,
-  `supabase-postgres-best-practices`, `npm-deps-cleanup`, and
-  `emil-design-engineering` into `docs/ai/skills/*`.
+- `scripts/refresh-upstream-skills.mjs` vendors selected configured sources,
+  including Supabase, `npm-deps-cleanup`, animations.dev
+  `emil-design-engineering`, `emilkowalski/skills`, and
+  `nicobailon/grill-for-unknowns` into `docs/ai/skills/*`.
 
 ## Baseline
 
@@ -126,6 +131,89 @@ Completed 2026-05-23:
 - `bun run test:unit` — pass after raising the donor Next config dynamic import
   test timeout to 15 seconds
 - `bun run ci:preflight` — pass
+
+## 2026-06-28 — eve + ecosystem skills
+
+Branch: `chore/add-eve-and-ecosystem-skills` from `origin/production`.
+
+- Installed via Skills CLI: `eve`, `create-agent`, `impeccable` (upstream id; requested `critique` is not published), `playwright-best-practices`, `codebase-design`, refreshed `setup-pre-commit`.
+- Promoted new skills into canonical `docs/ai/skills/*` with `references/upstream.md`.
+- Updated `AGENTS.md` Skill Routing and ran `bun run skills:sync`.
+
+## 2026-07-09 - Matt Pocock v1.1 engineering refresh
+
+- Ran `npx skills add mattpocock/skills -y` as requested. The Skills CLI
+  discovered 38 skills and refreshed `.agents/skills/*` plus
+  `skills-lock.json`.
+- Checked current upstream `skills/engineering/` from a fresh upstream checkout.
+  Current engineering skills are:
+  `ask-matt`, `codebase-design`, `code-review`, `diagnosing-bugs`,
+  `domain-modeling`, `grill-with-docs`, `implement`,
+  `improve-codebase-architecture`, `prototype`, `research`,
+  `resolving-merge-conflicts`, `setup-matt-pocock-skills`, `tdd`,
+  `to-spec`, `to-tickets`, `triage`, and `wayfinder`.
+- Promoted current engineering skills into canonical `docs/ai/skills/*`, plus
+  `grilling` because the current engineering skills invoke it.
+- Refreshed existing Core-promoted Matt skills still published upstream:
+  `grill-me`, `migrate-to-shoehorn`, `qa`, `request-refactor-plan`,
+  `setup-pre-commit`, and `ubiquitous-language`.
+- Removed stale renamed upstream routes from canonical and mirror roots:
+  `diagnose`, `to-prd`, `to-plan`, `to-issues`, and `zoom-out`. Use
+  `diagnosing-bugs`, `to-spec`, `to-tickets`, `ask-matt`, or `wayfinder`
+  instead.
+- Kept Core repo-local compatibility skills `domain-model` and `prd-to-plan`,
+  but updated them to route to `domain-modeling` and `to-spec`/`to-tickets`.
+- Kept the full current Skills CLI install set as mirror-only ecosystem skills
+  under `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` so Cursor,
+  Claude Code, and Codex see the same package output.
+- Removed obsolete prior Matt installs `caveman` and `write-a-skill` because
+  the current `npx skills add mattpocock/skills -y` output no longer includes
+  them. Use current upstream `writing-great-skills` for skill-writing guidance.
+
+## 2026-07-11 - Emil Kowalski design-engineering pack
+
+- Confirmed live upstream `emilkowalski/skills` at
+  `7bb7061b5cf7de15ea1aeaf00fbd9e6592a20fce` contains exactly five skills:
+  `animation-vocabulary`, `apple-design`, `emil-design-eng`,
+  `improve-animations`, and `review-animations`.
+- Ran `npx --yes skills@latest add emilkowalski/skills -y`; the Skills CLI
+  installed all five complete trees into `.agents/skills/` and recorded them in
+  `skills-lock.json`.
+- Promoted the complete trees into `docs/ai/skills/`, including
+  `improve-animations/{AUDIT.md,PLAN-TEMPLATE.md}` and
+  `review-animations/STANDARDS.md`.
+- Preserved the upstream MIT notice, pack commit, per-skill source path, and
+  focused refresh workflow beside every canonical skill.
+- Added marked Core overlays so `docs/ai/rules/frontend.md`, Base UI, shared
+  motion tokens, global reduced-motion behavior, and existing routing remain
+  authoritative.
+- Added `bun run skills:refresh-emilkowalski` for focused future updates.
+- Extended the canonical manifest with per-skill file ownership so removed
+  companion files cannot remain stale in Codex, Cursor, or Claude Code while
+  runtime-only assets remain intact.
+- Added an OpenSpec change and focused parity/regression tests for the durable
+  workflow update.
+
+## 2026-07-12 - Grill for Unknowns
+
+- Confirmed live upstream `nicobailon/grill-for-unknowns` at
+  `dc132fc8be26529579cff896e7618550d0d9736b` contains one version `0.1.1`
+  skill with ten interdependent plugin files.
+- Ran `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`; the
+  Skills CLI installed the complete tree into `.agents/skills/` and recorded
+  its source path and content hash in `skills-lock.json`.
+- Promoted the complete plugin tree into
+  `docs/ai/skills/grill-for-unknowns/`, retaining the upstream README, MIT
+  license, lineage references, and all five templates.
+- Added pinned Core provenance, explicit-only discovery metadata, and a marked
+  overlay that keeps OpenSpec, source evidence, canonical domain-modeling
+  formats, and user-authorized mutation scope authoritative.
+- Added `bun run skills:refresh-grill-for-unknowns` for focused future updates
+  and documented non-overlapping routing with `grilling`, `grill-with-docs`,
+  `grill-me`, and `wayfinder`.
+- Made the focused refresh fail before canonical mutation when upstream
+  frontmatter drifts beyond the reviewed explicit-only compatibility transform.
+- Added a dedicated OpenSpec change and focused cross-runtime parity tests.
 
 ## Rollback Notes
 
