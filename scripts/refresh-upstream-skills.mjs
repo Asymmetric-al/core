@@ -740,7 +740,7 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "pr-review-canvas",
     relativePath: "SKILL.md",
     search:
-      "--jq '[.[] | {key: (.filename | gsub(\"[^a-zA-Z0-9]\"; \"_\")), value: (.patch // \"\")}] | from_entries' \\",
+      '--jq \'[.[] | {key: (.filename | gsub("[^a-zA-Z0-9]"; "_")), value: (.patch // "")}] | from_entries\' \\',
     replace:
       "--jq '[.[] | {key: .filename, value: (.patch // \"\")}] | from_entries' \\",
     required: true,
@@ -757,9 +757,9 @@ const POST_REFRESH_REPLACEMENTS = [
     skillName: "pr-review-canvas",
     relativePath: "SKILL.md",
     search:
-      "The diff data keys should match the `data-diff` attribute values in the HTML:\n\n```html\n<div data-diff=\"path_to_file_ts\"></div>\n```",
+      'The diff data keys should match the `data-diff` attribute values in the HTML:\n\n```html\n<div data-diff="path_to_file_ts"></div>\n```',
     replace:
-      "The diff data keys are the exact PR filenames (so distinct files can never collide), and each `data-diff` attribute value must match one of them:\n\n```html\n<div data-diff=\"path/to/file.ts\"></div>\n```",
+      'The diff data keys are the exact PR filenames (so distinct files can never collide), and each `data-diff` attribute value must match one of them:\n\n```html\n<div data-diff="path/to/file.ts"></div>\n```',
     required: true,
   },
   // pr-review-canvas: replace the sentinel JSON via a formatting-tolerant
