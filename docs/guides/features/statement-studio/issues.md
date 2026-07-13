@@ -73,7 +73,7 @@ Use it for:
 2. Read Phase 0 and supporting Statement Studio docs before implementation.
 3. Use the issue overview to confirm slice granularity and dependencies.
 4. Track work on the published GitHub issues in the table below; open new issues
-   only when the PRD changes materially (use the `to-issues` skill).
+   only when the PRD changes materially (use the `to-tickets` skill).
 5. When adding new slices, create blocker issues first so later issues can
    reference real tracker IDs.
 6. Apply exactly one repo label from each issue-label category:

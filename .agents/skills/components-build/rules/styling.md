@@ -2,40 +2,36 @@
 title: Component Styling with Tailwind CSS
 impact: HIGH
 impactDescription: Predictable, maintainable styling patterns
-tags: styling, tailwind, cn, clsx, tailwind-merge, cva, class-variance-authority
+tags: styling, tailwind, cn, cnfast, cva, class-variance-authority
 ---
 
 ## Component Styling with Tailwind CSS
 
-Use Tailwind CSS with intelligent class merging (`tailwind-merge`), conditional classes (`clsx`), and variant APIs (CVA).
+Use Tailwind CSS with intelligent class merging through a cnfast-backed `cn()` utility and variant APIs (CVA).
 
 ### The `cn` Utility Function
 
 ```tsx
-import { type ClassValue, clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cnfast";
+export type { ClassValue } from "cnfast";
 ```
 
-**Why:** Without `tailwind-merge`, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
+**Why:** Without Tailwind-aware class merging, conflicting classes both apply. The `cn` utility resolves conflicts intelligently.
 
 ### Class Merging
 
 **Incorrect:**
 ```tsx
-// Without tailwind-merge, conflicting classes both apply
+// Without class merging, conflicting classes both apply
 className="bg-red-500 bg-blue-500" // Both classes apply, causing conflicts
 className="px-4 py-2 px-8" // Both px-4 and px-8 apply
 ```
 
 **Correct:**
 ```tsx
-twMerge('bg-red-500', 'bg-blue-500'); // "bg-blue-500"
-twMerge('px-4 py-2', 'px-8'); // "py-2 px-8"
-twMerge('text-sm', 'text-lg'); // "text-lg"
+cn('bg-red-500', 'bg-blue-500'); // "bg-blue-500"
+cn('px-4 py-2', 'px-8'); // "py-2 px-8"
+cn('text-sm', 'text-lg'); // "text-lg"
 ```
 
 ### Component Pattern: Order Matters
@@ -70,7 +66,7 @@ const Component = ({ className, variant, isActive, ...props }: ComponentProps) =
 };
 ```
 
-### Conditional Classes with `clsx`
+### Conditional Classes with `cn`
 
 ```tsx
 cn('base', isActive && 'active');

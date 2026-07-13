@@ -200,6 +200,17 @@ export const env = createEnv({
     ),
     ALLOW_DEMO_ACCOUNTS: optionalBoolean,
     E2E_AUTH_BYPASS: optionalBoolean,
+    /** HMAC secret used to sign/verify E2E bypass cookies. Non-production only. */
+    E2E_AUTH_SECRET: z
+      .string()
+      .min(16, "E2E_AUTH_SECRET must be at least 16 characters")
+      .optional(),
+    /**
+     * Comma-separated Supabase project refs (or datasource hostnames) that the
+     * E2E bypass may run against. Binds the bypass to datasource identity so it
+     * cannot grant access against a production project.
+     */
+    E2E_AUTH_ALLOWED_SUPABASE_REFS: z.string().optional(),
     PLAYWRIGHT_BASE_URL: z.string().url().optional(),
     PLAYWRIGHT_PORT: z.string().optional(),
     VERIFY_E2E_PROJECTS: z.string().optional(),
@@ -347,6 +358,8 @@ export const env = createEnv({
     CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
     ALLOW_DEMO_ACCOUNTS: process.env.ALLOW_DEMO_ACCOUNTS,
     E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS,
+    E2E_AUTH_SECRET: process.env.E2E_AUTH_SECRET,
+    E2E_AUTH_ALLOWED_SUPABASE_REFS: process.env.E2E_AUTH_ALLOWED_SUPABASE_REFS,
     PLAYWRIGHT_BASE_URL: process.env.PLAYWRIGHT_BASE_URL,
     PLAYWRIGHT_PORT: process.env.PLAYWRIGHT_PORT,
     VERIFY_E2E_PROJECTS: process.env.VERIFY_E2E_PROJECTS,
@@ -437,6 +450,21 @@ if (
 ) {
   throw new Error(
     "Missing Supabase public key. Set NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY.",
+  );
+}
+
+// Defense in depth: the E2E auth bypass must never be enabled on a protected
+// deployment (production or hosted protected non-production). `isE2EAuthBypassEnabled`
+// already blocks it when NODE_ENV === "production", but protected non-production
+// targets report NODE_ENV !== "production", so gate on deployment identity here too.
+const e2eAuthBypassRaw = process.env.E2E_AUTH_BYPASS?.trim().toLowerCase();
+if (
+  !process.env.SKIP_ENV_VALIDATION &&
+  isProtectedRuntimeDeployment &&
+  (e2eAuthBypassRaw === "true" || e2eAuthBypassRaw === "1")
+) {
+  throw new Error(
+    "E2E_AUTH_BYPASS must not be enabled in protected deployments.",
   );
 }
 

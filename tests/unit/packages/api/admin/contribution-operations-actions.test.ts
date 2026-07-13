@@ -483,6 +483,75 @@ describe("contribution operations action executor", () => {
     );
   });
 
+  it("records correction and audit context when receipt delivery fails after correction", async () => {
+    const receiptOutcome = {
+      status: "failed" as const,
+      reason:
+        "The updated receipt email could not be sent. Check email send logs for provider details.",
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+      requested: { choice: "email" as const },
+      confirmed: { choice: "email" as const },
+    };
+    const applyCorrection = vi.fn().mockResolvedValue({
+      before: { amount: 1000 },
+      after: { amount: 1200 },
+      status: "applied",
+      adjustmentId: "adj-1",
+      idempotentReplay: false,
+      receiptOutcome,
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      amount: { value: 1200 },
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Corrected imported check amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1200 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        applyCorrection,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        beforeSummary: { amount: 1000 },
+        afterSummary: { amount: 1200 },
+        correctionType: "amount_correction",
+        status: "applied",
+      }),
+    );
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        correctionId: "correction_1",
+        downstreamEffects: expect.objectContaining({
+          receiptOutcome: "failed",
+          receiptAffectedFields: ["amount"],
+          receiptSnapshotId: "snap-1",
+          receiptDeliveryRequested: { choice: "email" },
+          receiptDeliveryConfirmed: { choice: "email" },
+        }),
+      }),
+    );
+    expect(result.correctionId).toBe("correction_1");
+    expect(result.auditEventId).toBe("audit_1");
+    expect(result.receiptOutcome).toEqual(receiptOutcome);
+  });
+
   it("normalizes and scopes direct correction fallback idempotency keys", async () => {
     const applyCorrection = vi.fn().mockResolvedValue({
       before: { amount: 1000 },
@@ -880,6 +949,193 @@ describe("contribution operations action executor", () => {
       }),
     );
     expect(result.providerOutcome?.status).toBe("failed");
+  });
+
+  it("records pending provider outcomes as pending corrections, never applied", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "pending",
+      referenceId: "re_pending_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const linkAndReconcilePendingRefundAttempt = vi
+      .fn()
+      .mockResolvedValue(undefined);
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        linkAndReconcilePendingRefundAttempt,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    // Stripe accepted but has not confirmed (e.g. ACH refunds pend for
+    // days): the correction record must not assert finality (#265).
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        correctionType: "refund",
+        status: "pending",
+        providerOutcome: expect.objectContaining({
+          status: "pending",
+          referenceId: "re_pending_1",
+        }),
+      }),
+    );
+    expect(linkAndReconcilePendingRefundAttempt).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      providerReferenceId: "re_pending_1",
+      correctionId: "correction_1",
+    });
+    expect(createCorrectionRecord.mock.invocationCallOrder[0]).toBeLessThan(
+      linkAndReconcilePendingRefundAttempt.mock.invocationCallOrder[0]!,
+    );
+    expect(
+      linkAndReconcilePendingRefundAttempt.mock.invocationCallOrder[0],
+    ).toBeLessThan(appendAuditEvent.mock.invocationCallOrder[0]!);
+    expect(result.providerOutcome?.status).toBe("pending");
+  });
+
+  it("does not link terminal refund outcomes to pending reconciliation", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: "re_succeeded_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const linkAndReconcilePendingRefundAttempt = vi.fn();
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        linkAndReconcilePendingRefundAttempt,
+        appendAuditEvent: vi.fn().mockResolvedValue("audit_1"),
+        loadContributionDetail: vi.fn().mockResolvedValue({ id: "donation_1" }),
+      },
+    });
+
+    expect(linkAndReconcilePendingRefundAttempt).not.toHaveBeenCalled();
+  });
+
+  it("preserves platform-generated reconciliation messages for local_update_failed refunds", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "local_update_failed",
+      referenceId: "re_1",
+      errorCode: "local_update_failed",
+      errorMessage:
+        "The Stripe refund succeeded but no local donation record matched the refunded charge. Reconcile the gift against the provider reference.",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    // The message is platform-generated (never raw provider text), and
+    // redacting it to "Provider action failed" would tell staff the exact
+    // opposite of the truth — the provider refund DID complete (#265).
+    expect(result.providerOutcome?.status).toBe("local_update_failed");
+    expect(result.providerOutcome?.errorMessage).toContain(
+      "Stripe refund succeeded",
+    );
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        status: "failed",
+        providerOutcome: expect.objectContaining({
+          errorMessage: expect.stringContaining("Stripe refund succeeded"),
+        }),
+      }),
+    );
+  });
+
+  it("preserves the provider-verified remaining amount for refund_exceeds_provider_remaining failures", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "failed",
+      errorCode: "refund_exceeds_provider_remaining",
+      errorMessage:
+        "Refund amount exceeds the provider's remaining refundable amount of $50.00. A refund may still be pending provider confirmation.",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 6000 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(result.providerOutcome?.errorMessage).toContain("$50.00");
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({ status: "failed" }),
+    );
   });
 
   it("rejects fractional refund amounts before calling the provider", async () => {
@@ -1446,6 +1702,47 @@ describe("contribution operations action executor", () => {
     expect(result.correctionRequestId).toBe("request_1");
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionId).toBeFalsy();
+  });
+
+  it("keeps stronger approval categories gated in the executor even when suppressed (#261)", async () => {
+    const applyCorrection = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_9");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    // The tenant tried to relax everything: no approval required AND the
+    // amount gate suppressed. A stronger approval category still wins and
+    // the executor routes to a correction request instead of applying.
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Donor reported the wrong amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy({
+        ownership_mode: "no_approval_required",
+        suppressed_gates: ["amount_correction"],
+        stronger_approval_categories: ["amount_correction"],
+      }),
+      dependencies: {
+        applyCorrection,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalled();
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionRequestId).toBe("request_9");
   });
 
   it("includes request context in confirmation-token correction request idempotency", async () => {

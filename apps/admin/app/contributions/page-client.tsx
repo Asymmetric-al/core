@@ -30,7 +30,11 @@ export { invalidateContributionOperationQueries } from "./contribution-detail-ov
 const USE_MOCK_CONTRIBUTIONS_UI =
   process.env.NEXT_PUBLIC_ADMIN_CONTRIBUTIONS_USE_MOCK === "1";
 
-export default function ContributionsPage() {
+export default function ContributionsPage({
+  canManageContributions = false,
+}: {
+  canManageContributions?: boolean;
+}) {
   const contributionsQuery = useAdminContributions();
   const needsAttentionQuery = useMissionControlNeedsAttention();
   const queryClient = useQueryClient();
@@ -153,7 +157,11 @@ export default function ContributionsPage() {
       title={CONTRIBUTIONS_PAGE_META.title}
       description={CONTRIBUTIONS_PAGE_META.description}
       density={CONTRIBUTIONS_PAGE_META.density}
-      actions={<ContributionsPageActions />}
+      actions={
+        <ContributionsPageActions
+          canManageContributions={canManageContributions}
+        />
+      }
     >
       <div data-testid="mc-contributions-live">
         {showFreshness && (

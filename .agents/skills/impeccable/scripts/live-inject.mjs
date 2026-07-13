@@ -16,7 +16,10 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { resolveLiveConfigPath } from "./lib/impeccable-paths.mjs";
+import {
+  resolveLiveConfigPath,
+  readLiveServerInfo,
+} from "./lib/impeccable-paths.mjs";
 import {
   applySvelteKitLiveAdapter,
   detectSvelteKitProject,
@@ -72,7 +75,7 @@ Insert or remove the live mode script tag in the project's HTML entry point.
 Reads configuration from .impeccable/live/config.json.
 
 Modes:
-  --port PORT   Insert script tag pointing at http://localhost:PORT/live.js
+  --port PORT   Insert script tag pointing at http://localhost:PORT/live.js?token=...
   --remove      Remove the script tag (if present)
   --check       Print whether .impeccable/live/config.json exists and its content
 
@@ -179,11 +182,13 @@ Output (JSON):
     process.exit(1);
   }
   const gitIgnore = ensureLiveGitIgnores(process.cwd());
+  const liveToken = resolveLiveAccessToken(port);
 
   if (svelteKit) {
     const adapterResult = applySvelteKitLiveAdapter({
       cwd: process.cwd(),
       port,
+      token: liveToken,
       config,
     });
     console.log(
@@ -204,7 +209,7 @@ Output (JSON):
       return { file: relFile, error: "file_not_found" };
     const content = fs.readFileSync(absFile, "utf-8");
     const withoutOld = revertCspMeta(removeTag(content, config.commentSyntax));
-    const withTag = insertTag(withoutOld, config, port, relFile);
+    const withTag = insertTag(withoutOld, config, port, relFile, liveToken);
     if (withTag === withoutOld) {
       return {
         file: relFile,
@@ -427,7 +432,28 @@ function commentClose(syntax) {
   return syntax === "jsx" ? "*/}" : "-->";
 }
 
-function buildTagBlock(syntax, port, filePath) {
+function resolveLiveAccessToken(port) {
+  const record = readLiveServerInfo(process.cwd());
+  const info = record?.info;
+  if (!info || typeof info.token !== "string" || !info.token) {
+    throw new Error(
+      "Live server token unavailable. Start live-server.mjs before running live-inject.",
+    );
+  }
+  if (Number(info.port) !== Number(port)) {
+    throw new Error(
+      `Live server port mismatch: inject --port ${port} but server.json has ${info.port}`,
+    );
+  }
+  return info.token;
+}
+
+function buildLiveScriptSrc(port, token) {
+  const qs = token ? `?token=${encodeURIComponent(token)}` : "";
+  return `http://localhost:${port}/live.js${qs}`;
+}
+
+function buildTagBlock(syntax, port, filePath, token) {
   const open = commentOpen(syntax);
   const close = commentClose(syntax);
   // Astro processes <script> tags by default and rewrites src to its own
@@ -443,9 +469,9 @@ function buildTagBlock(syntax, port, filePath) {
     "\n" +
     "<script " +
     scriptAttrs +
-    'src="http://localhost:' +
-    port +
-    '/live.js"></script>\n' +
+    'src="' +
+    buildLiveScriptSrc(port, token) +
+    '"></script>\n' +
     open +
     " " +
     MARKER_CLOSE_TEXT +
@@ -472,10 +498,10 @@ function readLineEndingAt(content, index) {
   return "";
 }
 
-function insertTag(content, config, port, filePath) {
+function insertTag(content, config, port, filePath, token) {
   const lineEnding = detectLineEnding(content);
   const block = normalizeLineEndings(
-    buildTagBlock(config.commentSyntax, port, filePath),
+    buildTagBlock(config.commentSyntax, port, filePath, token),
     lineEnding,
   );
   // insertBefore: match the LAST occurrence. Anchors like `</body>` naturally

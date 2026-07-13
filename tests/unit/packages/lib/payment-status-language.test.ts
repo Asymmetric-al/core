@@ -21,15 +21,15 @@ describe("payment status language (#292)", () => {
     expect(isFinalPaymentSuccess("processing")).toBe(false);
   });
 
-  it("treats only completed and refunded as final payment success states", () => {
+  it("treats only completed as a final payment success state", () => {
     expect(isFinalPaymentSuccess("completed")).toBe(true);
-    expect(isFinalPaymentSuccess("refunded")).toBe(true);
     for (const state of [
       "pending",
       "processing",
       "requires_action",
       "verification_required",
       "failed",
+      "refunded",
       "dead_letter",
     ] as const) {
       expect(isFinalPaymentSuccess(state), state).toBe(false);

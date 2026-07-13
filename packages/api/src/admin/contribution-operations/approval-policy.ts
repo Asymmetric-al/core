@@ -130,3 +130,30 @@ export function assertCanDecideCorrectionRequest(input: {
     );
   }
 }
+
+/**
+ * Non-throwing mirror of {@link assertCanDecideCorrectionRequest} for viewer
+ * projections (#263). Must stay in behavioral parity with the assertion —
+ * enforced by a unit test — so what the UI shows never diverges from what the
+ * decision endpoint enforces.
+ */
+export function canDecideCorrectionRequest(input: {
+  policy: CorrectionApprovalPolicy;
+  request: { requestedByProfileId: string | null };
+  deciderProfileId: string | null;
+  deciderCapabilities: string[];
+}): boolean {
+  if (
+    !input.deciderCapabilities.includes("contributions.approve_corrections")
+  ) {
+    return false;
+  }
+
+  const decidesOwnRequest =
+    input.policy.ownershipMode === "separation_of_duties" &&
+    input.request.requestedByProfileId !== null &&
+    input.deciderProfileId !== null &&
+    input.request.requestedByProfileId === input.deciderProfileId;
+
+  return !decidesOwnRequest;
+}
