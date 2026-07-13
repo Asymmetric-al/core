@@ -144,26 +144,6 @@ function normalizeDonorAddress(value: unknown): MissionaryDonorAddress {
   };
 }
 
-function normalizeActivityStatus(
-  value: string | null | undefined,
-): string | undefined {
-  if (!value) {
-    return undefined;
-  }
-
-  switch (value.toLowerCase()) {
-    case "failed":
-      return "Failed";
-    case "completed":
-    case "done":
-      return "Completed";
-    case "pending":
-      return "Pending";
-    default:
-      return value;
-  }
-}
-
 function normalizePreferredContact(
   value: string | null | undefined,
 ): MissionaryDonorRow["preferred_contact"] {
@@ -201,20 +181,65 @@ function normalizeActivityType(
   }
 }
 
+function normalizeActivityStatus(
+  value: string | null | undefined,
+): string | undefined {
+  if (!value) {
+    return undefined;
+  }
+
+  switch (value.toLowerCase()) {
+    case "failed":
+      return "Failed";
+    case "completed":
+    case "done":
+      return "Completed";
+    case "pending":
+      return "Pending";
+    default:
+      return value;
+  }
+}
+
 function normalizeGiftType(
   value: string | null | undefined,
 ): GiftType | undefined {
-  switch (value) {
-    case "Check":
-    case "Cash":
-    case "Bank Transfer":
-    case "Stock":
-    case "In-Kind":
-      return value;
-    case "Online":
+  switch (value?.toLowerCase()) {
+    case "online":
       return "Online";
+    case "check":
+      return "Check";
+    case "cash":
+      return "Cash";
+    case "bank transfer":
+    case "bank_transfer":
+      return "Bank Transfer";
+    case "stock":
+      return "Stock";
+    case "in-kind":
+    case "in_kind":
+      return "In-Kind";
     default:
       return undefined;
+  }
+}
+
+function normalizeFrequency(value: string | null | undefined): string {
+  switch (value?.toLowerCase()) {
+    case "monthly":
+      return "Monthly";
+    case "quarterly":
+      return "Quarterly";
+    case "annually":
+    case "annual":
+    case "yearly":
+      return "Annually";
+    case "one-time":
+    case "one_time":
+    case "onetime":
+      return "One-Time";
+    default:
+      return value ?? "One-Time";
   }
 }
 
@@ -230,7 +255,7 @@ function createInitials(name: string | null | undefined) {
 }
 
 export interface BuildMissionaryDonorRowsInput {
-  /** The missionary's profile id (`profiles.id`) — the namespace used by `donors.missionary_id`. */
+  /** The missionary's profile id (`profiles.id`), the namespace used by `donors.missionary_id`. */
   missionaryId: string | null | undefined;
   donors: readonly DonorCollectionRow[];
   activities: readonly DonorActivityCollectionRow[];
@@ -250,10 +275,9 @@ export interface BuildMissionaryDonorRowsInput {
  * helper receives the missionary's `profiles.id`. Comparing the two never
  * matches, which previously left `recurring_donations` permanently empty. The
  * pledge already belongs to a donor that has been missionary-scoped above, so
- * `donor_id` is the correct (and only needed) scope — mirroring how activities
- * are scoped here.
+ * `donor_id` is the correct scope, mirroring how activities are scoped here.
  *
- * **Window skew:** donors, activities, and pledges each load independent bounded
+ * Window skew: donors, activities, and pledges can each load independent bounded
  * windows. After loading more donors, a partner row may show activities but an
  * empty `recurring_donations` until pledges are paged in via `loadMore`.
  */
@@ -289,7 +313,6 @@ export function buildMissionaryDonorRows(
 
   const pledgesByDonor = new Map<string, MissionaryRecurringDonation[]>();
   for (const pledge of pledges) {
-    // Scope through donor_id only — see the namespace note in the JSDoc above.
     if (!pledge.donor_id) {
       continue;
     }
@@ -298,7 +321,7 @@ export function buildMissionaryDonorRows(
     donorPledges.push({
       id: pledge.id,
       amount: pledge.amount,
-      frequency: pledge.frequency ?? "Monthly",
+      frequency: normalizeFrequency(pledge.frequency ?? "Monthly"),
       status: normalizeRecurringStatus(pledge.status),
       start_date: pledge.start_date ?? pledge.created_at,
       end_date: pledge.end_date ?? undefined,
@@ -323,7 +346,7 @@ export function buildMissionaryDonorRows(
       total_given: donor.total_given ?? 0,
       last_gift_date: donor.last_gift_date,
       last_gift_amount: donor.last_gift_amount ?? null,
-      frequency: donor.frequency ?? "One-Time",
+      frequency: normalizeFrequency(donor.frequency),
       email: donor.email ?? "",
       phone: donor.phone ?? "",
       mobile: donor.mobile ?? undefined,

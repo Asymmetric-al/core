@@ -1,4 +1,5 @@
 import {
+  assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
@@ -275,15 +276,21 @@ async function authenticateE2EBypass({
     return null;
   }
 
+  // Bind the bypass to datasource identity, not NODE_ENV: refuse to grant a
+  // bypass identity unless the configured Supabase project is allowlisted.
+  assertSupabaseDatasourceAllowedForE2EBypass(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+  );
+
   const host = headers.get("host");
   const surfaceCookieName = getE2EAuthCookieNameForProxyHost(host);
   const e2eSession =
-    parseE2EAuthCookieValue(
+    (await parseE2EAuthCookieValue(
       readCookieValue(requestCookies, surfaceCookieName),
-    ) ??
-    parseE2EAuthCookieValue(
+    )) ??
+    (await parseE2EAuthCookieValue(
       readCookieValue(requestCookies, E2E_AUTH_COOKIE_NAME),
-    );
+    ));
   if (!e2eSession) {
     return null;
   }

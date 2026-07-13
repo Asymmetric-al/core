@@ -1,3 +1,4 @@
+import { CSV_UTF8_BOM, csvSafeCell } from "@asym/lib/csv";
 import { format } from "date-fns";
 
 import type { Table, Row, RowData, Column } from "../tanstack";
@@ -16,30 +17,6 @@ export interface ExportOptions<TData> {
 export interface ExportColumn {
   id: string;
   header: string;
-}
-
-// CSV formula injection (OWASP): a cell starting with one of these is run as a
-// formula by Excel/Sheets/LibreOffice. Prefix with a single quote so the value
-// is treated as text. Applied to every header and cell before delimiter/quote
-// escaping.
-const FORMULA_TRIGGER = /^[=+\-@\t\r\n]/;
-
-function neutralizeFormula(value: string): string {
-  return FORMULA_TRIGGER.test(value) ? `'${value}` : value;
-}
-
-function escapeCSVValue(value: string, delimiter: string): string {
-  const stringValue = neutralizeFormula(String(value ?? ""));
-  const needsQuotes =
-    stringValue.includes(delimiter) ||
-    stringValue.includes('"') ||
-    stringValue.includes("\n") ||
-    stringValue.includes("\r");
-
-  if (needsQuotes) {
-    return `"${stringValue.replace(/"/g, '""')}"`;
-  }
-  return stringValue;
 }
 
 function getColumnHeader<TData extends RowData>(
@@ -113,7 +90,7 @@ export function exportToCSV<TData extends RowData>(
 
   if (includeHeaders) {
     const headerRow = exportColumns
-      .map((column) => escapeCSVValue(getColumnHeader(column), delimiter))
+      .map((column) => csvSafeCell(getColumnHeader(column)))
       .join(delimiter);
     lines.push(headerRow);
   }
@@ -124,10 +101,10 @@ export function exportToCSV<TData extends RowData>(
       const formatter = formatters[column.id];
 
       if (formatter) {
-        return escapeCSVValue(formatter(value, row.original), delimiter);
+        return csvSafeCell(formatter(value, row.original));
       }
 
-      return escapeCSVValue(formatValue(value), delimiter);
+      return csvSafeCell(formatValue(value));
     });
     lines.push(values.join(delimiter));
   }
@@ -139,7 +116,9 @@ export function downloadCSV(
   csv: string,
   filename: string = "export.csv",
 ): void {
-  const blob = new Blob(["\ufeff" + csv], { type: "text/csv;charset=utf-8;" });
+  const blob = new Blob([CSV_UTF8_BOM + csv], {
+    type: "text/csv;charset=utf-8;",
+  });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.setAttribute("href", url);

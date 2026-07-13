@@ -5,12 +5,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 /**
  * Missionary "Partners" donor rows.
  *
- * SECURITY (spec §7.2/§12.1): this hook fetches the SERVER-redacted endpoint
+ * This hook fetches the server-redacted endpoint
  * `GET /api/missionary/donors` (`@asym/api/missionary-portal/donors`). It must
- * NOT read the raw `donors` table client-side — a donor who is anonymous to the
- * missionary is redacted server-side, so raw identity never reaches the client.
- * (Previously this joined the client `donors`/`donor_activities`/`donor_pledges`
- * collections via `.select("*")`, which leaked raw identity — now removed.)
+ * not read the raw `donors` table client-side: anonymous donor identity is
+ * stripped server-side before data reaches the browser.
  */
 
 export type ActivityType =
@@ -100,7 +98,7 @@ export interface MissionaryDonorRow {
   activities: MissionaryDonorActivity[];
   recurring_donations: MissionaryRecurringDonation[];
   has_active_pledge: boolean;
-  /** True when the row is redacted (donor anonymous to this missionary). */
+  /** True when the row is redacted because the donor is anonymous to this missionary. */
   is_anonymous?: boolean;
 }
 
@@ -128,9 +126,11 @@ async function fetchMissionaryDonorRowsPage(
     let message = `Failed to load donors (${response.status})`;
     try {
       const body = (await response.json()) as { error?: unknown };
-      if (body?.error) message = String(body.error);
+      if (body?.error) {
+        message = String(body.error);
+      }
     } catch {
-      // keep the status-based message
+      // Keep the status-based message.
     }
     throw new Error(message);
   }
@@ -161,7 +161,9 @@ export function useMissionaryDonorRows(
   const data = query.data?.pages.flatMap((page) => page.donors) ?? [];
 
   async function loadMore() {
-    if (!query.hasNextPage || query.isFetchingNextPage) return;
+    if (!query.hasNextPage || query.isFetchingNextPage) {
+      return;
+    }
     await query.fetchNextPage();
   }
 
