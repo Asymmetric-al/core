@@ -89,15 +89,18 @@ describe("admin/contribution-operations/viewer-projection", () => {
         riskLevel: "high",
       });
     }
-    // Provider replay is NOT offered to request-capable-only staff: the
-    // executor routes replay solely through contributions.use_provider_actions
-    // (it is not an approval-request action), so surfacing it here would
-    // dead-end in a 403.
+    // Provider replay follows the same approval-request path under the default
+    // policy, while its provider identifiers and proof remain redacted.
     expect(
-      projected.actionAvailability.some(
+      projected.actionAvailability.find(
         (entry) => entry.actionType === "stripe_replay",
       ),
-    ).toBe(false);
+    ).toMatchObject({
+      actionType: "stripe_replay",
+      available: true,
+      blockedReason: null,
+      riskLevel: "high",
+    });
 
     // Payment summary stays available for routine workflows.
     expect(projected.payment.status).toBe("completed");
