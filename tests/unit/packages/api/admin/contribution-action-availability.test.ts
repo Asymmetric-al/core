@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import { buildContributionActionAvailability } from "../../../../../packages/api/src/admin/contribution-operations/action-availability";
+import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
+
+import type { ContributionDetailInput } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
 
 function availabilityFor(
   entries: ReturnType<typeof buildContributionActionAvailability>,
@@ -147,5 +150,110 @@ describe("admin/contribution-operations/action-availability", () => {
     for (const entry of entries) {
       expect(["low", "medium", "high"]).toContain(entry.riskLevel);
     }
+  });
+
+  describe("refund availability basis in the detail read model", () => {
+    function detailDonation(
+      overrides: Partial<ContributionDetailInput["donation"]> = {},
+    ): ContributionDetailInput["donation"] {
+      return {
+        id: "donation-1",
+        tenantId: "tenant-1",
+        donorId: null,
+        missionaryId: null,
+        fundId: null,
+        amount: 5000,
+        currency: "usd",
+        status: "completed",
+        donationType: "one_time",
+        paymentMethod: "card",
+        isRecurring: false,
+        recurringInterval: null,
+        notes: null,
+        stripePaymentIntentId: "pi_1",
+        stripeChargeId: "ch_1",
+        giftDate: "2026-06-01",
+        campaignId: null,
+        pledgeId: null,
+        processedAt: null,
+        completedAt: null,
+        failedAt: null,
+        errorCode: null,
+        errorMessage: null,
+        refundedAt: null,
+        refundAmount: 0,
+        source: "online",
+        createdAt: "2026-06-01T00:00:00.000Z",
+        updatedAt: "2026-06-01T00:00:00.000Z",
+        ...overrides,
+      };
+    }
+
+    function refundEntryFor(
+      detail: ReturnType<typeof buildContributionDetail>,
+    ) {
+      const entry = detail.actionAvailability.find(
+        (item) => item.actionType === "refund",
+      );
+      if (!entry) {
+        throw new Error("No refund availability entry.");
+      }
+      return entry;
+    }
+
+    it("blocks fully refunded gifts even when an adjustment raised the effective amount", () => {
+      // Original charge 50.00 fully refunded; a later amount correction
+      // raised the effective amount to 100.00. The provider can still only
+      // refund what it charged, so refund must stay blocked.
+      const detail = buildContributionDetail({
+        donation: detailDonation({
+          status: "refunded",
+          refundAmount: 5000,
+          refundedAt: "2026-06-02T00:00:00.000Z",
+        }),
+        adjustments: [
+          {
+            id: "adjustment-1",
+            adjustmentType: "amount_correction",
+            status: "applied",
+            effectiveValues: { amountCents: 10_000 },
+            reason: "Recorded amount was wrong",
+            actorProfileId: null,
+            sourceSurface: "api",
+            createdAt: "2026-06-03T00:00:00.000Z",
+          },
+        ],
+      });
+
+      const entry = refundEntryFor(detail);
+      expect(entry.available).toBe(false);
+      expect(entry.blockedReason).toMatch(/already fully refunded/i);
+    });
+
+    it("keeps partially refunded gifts refundable when an adjustment lowered the effective amount", () => {
+      // Original charge 50.00 with 20.00 refunded; a correction lowered the
+      // effective amount to 10.00. The remaining 30.00 is still refundable
+      // against the original provider charge.
+      const detail = buildContributionDetail({
+        donation: detailDonation({
+          refundAmount: 2000,
+          refundedAt: "2026-06-02T00:00:00.000Z",
+        }),
+        adjustments: [
+          {
+            id: "adjustment-1",
+            adjustmentType: "amount_correction",
+            status: "applied",
+            effectiveValues: { amountCents: 1000 },
+            reason: "Recorded amount was wrong",
+            actorProfileId: null,
+            sourceSurface: "api",
+            createdAt: "2026-06-03T00:00:00.000Z",
+          },
+        ],
+      });
+
+      expect(refundEntryFor(detail).available).toBe(true);
+    });
   });
 });

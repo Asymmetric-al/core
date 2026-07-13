@@ -298,6 +298,10 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`emil-design-engineering`** is not in `skills-lock.json`; refresh it with the animations.dev installer into `~/.cursor/skills/`, then the same `skills:refresh-upstream` → `skills:sync` / `skills:verify` loop (see root `README.md`). Apply the same pattern for other vendored packages by extending `scripts/refresh-upstream-skills.mjs`.
 
+**Emil Kowalski skill pack** ([`emilkowalski/skills`](https://github.com/emilkowalski/skills)): refresh all five lockfile-managed skills with `npx --yes skills@latest add emilkowalski/skills -y`, then run `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Canonical copies, reviewed commit SHAs, source paths, and the MIT notice live under `docs/ai/skills/{animation-vocabulary,apple-design,emil-design-eng,improve-animations,review-animations}/references/`. The focused refresh preserves marked Core overlays; still review the upstream inventory for newly added or removed skills before syncing.
+
+**`grill-for-unknowns`** ([`nicobailon/grill-for-unknowns`](https://github.com/nicobailon/grill-for-unknowns)): refresh the lockfile-managed skill with `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`, then run `bun run skills:refresh-grill-for-unknowns`, `bun run skills:sync`, and `bun run skills:verify`. The complete canonical plugin tree, reviewed commit, lineage, MIT notice, and Core overlay live under `docs/ai/skills/grill-for-unknowns/`. Review upstream inventory and discovery metadata before syncing; the focused refresh preserves Core's explicit-only route.
+
 **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). Refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
@@ -321,10 +325,13 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
 - **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
-- **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
-- **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
-- **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
-- **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
+- **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first and use `docs/ai/skills/anim/SKILL.md` for Core's operative Base UI, token, route-transition, and reduced-motion contract.
+- **Current Emil Kowalski craft companion:** `docs/ai/skills/emil-design-eng/SKILL.md`; it is subordinate to `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` when generic upstream examples conflict with Core.
+- **Animation-effect naming / reverse lookup only:** `docs/ai/skills/animation-vocabulary/SKILL.md`; do not use it as an implementation or review standard.
+- **Apple-style physical and gesture-driven interfaces:** `docs/ai/skills/apple-design/SKILL.md` for momentum, interruptibility, rubber-banding, springs, depth, and translucent materials; Core's Base UI and motion contracts still win.
+- **Whole-codebase animation audit and self-contained plans:** `docs/ai/skills/improve-animations/SKILL.md`; source-read-only during audit/plan modes, with implementation authorized only by an explicit `execute <plan>` request.
+- **Strict motion-only diff review:** `docs/ai/skills/review-animations/SKILL.md`; explicit invocation only across every client. Preserve upstream `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor.
+- **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`; use only when API details are needed after the applicable craft and repo-contract skills.
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
 - **ReUI registry components, examples, blocks, Motion Icons, or ReUI MCP workflows:** `docs/ai/skills/reui/SKILL.md` (vendored from ReUI agent skills; mirrored into `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 - **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
@@ -346,10 +353,11 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Durable backend AI agents ([vercel/eve](https://github.com/vercel/eve)):** `docs/ai/skills/eve/SKILL.md`
 - **Scaffold a new eve agent from an interview ([ikindacodes/ship-eve](https://github.com/ikindacodes/ship-eve)):** `docs/ai/skills/create-agent/SKILL.md` (pair with **eve**)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
+- **Explicit deep unknown discovery before implementation:** `docs/ai/skills/grill-for-unknowns/SKILL.md` only when the user invokes `grill-for-unknowns` or specifically requests a map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet. It owns that session's interview loop; do not pair it redundantly with `grilling` or `grill-with-docs`. Generic "grill/stress-test this plan" requests continue to use `grilling`; normal repo-backed grilling plus domain persistence uses `grill-with-docs`; work too large for one context uses `wayfinder`.
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
-**Extra Cursor-packaged skills:** optional mirror-only ecosystem installs under **`.agents/skills/<name>/`** and **`.cursor/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+**Extra ecosystem skills:** optional mirror-only installs originate under **`.agents/skills/<name>/`** and are mirrored into **`.cursor/skills/<name>/`** and **`.claude/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
 
 **Inngest plugins for agent clients:**
 

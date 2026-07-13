@@ -7,6 +7,7 @@ import {
   fireEvent,
   render,
   waitFor,
+  within,
 } from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -80,6 +81,29 @@ vi.mock(
 vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
 }));
+
+/**
+ * Compat shim for the AL-265 split: the operation shell (mounted by the
+ * detail overlay for refunds) imports `isFailedProviderOutcomeStatus`, whose
+ * export lands with the server-side refund work. Until then, mirror the
+ * spec'd failed provider-outcome statuses; once the real export exists this
+ * mock passes it straight through.
+ */
+vi.mock("@asym/api/admin/contribution-operations", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const fallbackIsFailedProviderOutcomeStatus = (status: string) =>
+    status === "failed" ||
+    status === "local_update_failed" ||
+    status === "canceled" ||
+    status === "requires_action";
+  return {
+    ...actual,
+    isFailedProviderOutcomeStatus:
+      typeof actual.isFailedProviderOutcomeStatus === "function"
+        ? actual.isFailedProviderOutcomeStatus
+        : fallbackIsFailedProviderOutcomeStatus,
+  };
+});
 
 vi.mock("@asym/ui/components/boneyard-skeleton", () => ({
   BoneyardSkeleton: ({
@@ -193,6 +217,14 @@ function makeDetailPayload(donationId: string, donorName: string) {
       },
       auditEvents: [],
       corrections: [],
+      // Original donation truth — the refund shell derives its figures from
+      // this basis, never the adjusted effective amount (#265).
+      original: {
+        amountCents: 10000,
+        fundId: "fund_1",
+        missionaryId: null,
+        paymentStatus: "completed",
+      },
       tasks: [],
       batches: [],
       donorVisible: {
@@ -752,6 +784,97 @@ describe("apps/admin/app/contributions/page-client", () => {
       "/api/admin/contribution-operations/00000000-0000-4000-8000-000000000124",
       { headers: { accept: "application/json" } },
     );
+  });
+
+  it("opens the shared refund operation shell from the Hub detail overlay", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012a";
+    mockSearch = `gift=${donationId}`;
+    const detailPayload = makeDetailPayload(donationId, "Refund Donor");
+    const refundableDetail = {
+      contribution: {
+        ...detailPayload.contribution,
+        revision: "2026-05-26T00:00:00.000Z#0",
+        actionAvailability: [
+          {
+            actionType: "refund",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "high",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => refundableDetail,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    // The Hub entry point renders enabled when refund is available.
+    const refundButton = await view.findByRole("button", {
+      name: /refund gift/i,
+    });
+    expect(refundButton).toHaveProperty("disabled", false);
+    fireEvent.click(refundButton);
+
+    // The existing reusable operation shell opens with refund context rows.
+    const shell = await view.findByTestId("contribution-operation-shell");
+    expect(
+      within(shell).getByRole("heading", { name: "Refund gift" }),
+    ).toBeTruthy();
+    expect(await within(shell).findByText("Remaining refundable")).toBeTruthy();
+    // Current amount and remaining refundable both show the $100.00 gift.
+    expect(within(shell).getAllByText("$100.00").length).toBeGreaterThanOrEqual(
+      2,
+    );
+  });
+
+  it("renders a blocked refund reason inline in the Hub detail overlay", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012b";
+    mockSearch = `gift=${donationId}`;
+    const detailPayload = makeDetailPayload(donationId, "Blocked Refund Donor");
+    const blockedDetail = {
+      contribution: {
+        ...detailPayload.contribution,
+        revision: "2026-05-26T00:00:00.000Z#0",
+        actionAvailability: [
+          {
+            actionType: "refund",
+            available: false,
+            blockedReason:
+              "This gift has no payment provider charge to refund against.",
+            nextStep:
+              "Offline gifts are corrected through adjustments rather than provider refunds.",
+            riskLevel: "high",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => blockedDetail,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    const refundButton = await view.findByRole("button", {
+      name: /refund gift/i,
+    });
+    expect(refundButton).toHaveProperty("disabled", true);
+    expect(
+      view.getByText(/no payment provider charge to refund against/i),
+    ).toBeTruthy();
+    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
   });
 
   it("renders deep-linked detail source and anonymous state from shared row fields", async () => {
