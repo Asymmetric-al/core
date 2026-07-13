@@ -3,7 +3,7 @@
 import { eq, useLiveQuery } from "@tanstack/react-db";
 import { type z } from "zod";
 
-import { locationsCollection } from "../collections";
+import { locationsCollection } from "../collections/client-db";
 import { type locationSchema } from "../collections/schemas/app";
 
 export type PublicLocation = z.output<typeof locationSchema>;

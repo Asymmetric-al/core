@@ -1,5 +1,8 @@
 "use client";
 
+import { type z } from "zod";
+
+import { type LazySupabaseCollection } from "./supabase-collection";
 import { assetsCollection, locationsCollection } from "./tables/app";
 import {
   followsCollection,
@@ -51,24 +54,9 @@ export interface CollectionRegistryEntry {
   notes: string;
 }
 
-function supabaseEntry(
+function supabaseEntry<TSchema extends z.ZodType>(
   name: string,
-  collection:
-    | typeof profilesCollection
-    | typeof missionariesCollection
-    | typeof donorsCollection
-    | typeof donorActivitiesCollection
-    | typeof donorPledgesCollection
-    | typeof donationsCollection
-    | typeof assetsCollection
-    | typeof fundsCollection
-    | typeof followsCollection
-    | typeof locationsCollection
-    | typeof postCommentsCollection
-    | typeof postFiresCollection
-    | typeof postLikesCollection
-    | typeof postPrayersCollection
-    | typeof postsCollection,
+  collection: LazySupabaseCollection<TSchema>,
   options: Pick<CollectionRegistryEntry, "rls" | "mutationPolicy" | "notes">,
 ): CollectionRegistryEntry {
   return {

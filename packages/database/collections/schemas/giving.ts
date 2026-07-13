@@ -29,7 +29,8 @@ export const donorPledgeSchema = z.object({
   donor_id: z.string().nullable(),
   missionary_id: z.string().nullable(),
   fund_id: z.string().nullable(),
-  amount: z.number(),
+  // Mirrors the DB CHECK constraint donor_pledges_amount_nonnegative.
+  amount: z.number().nonnegative(),
   currency: z.string(),
   frequency: z.string().nullable(),
   status: z.string(),
@@ -47,8 +48,9 @@ export const donorPledgeSchema = z.object({
   pause_reason: z.string().nullable(),
   paused_at: z.string().nullable(),
   next_charge_at: z.string().nullable(),
-  total_paid: z.number(),
-  total_expected: z.number(),
+  // Mirror donor_pledges_total_paid_nonnegative / _total_expected_nonnegative.
+  total_paid: z.number().nonnegative(),
+  total_expected: z.number().nonnegative(),
   payments_completed: z.number().int().nullable(),
   payments_remaining: z.number().int().nullable(),
   payment_method: z.string().nullable(),
@@ -62,7 +64,8 @@ export const donationSchema = z.object({
   donor_id: z.string().nullable(),
   missionary_id: z.string().nullable(),
   fund_id: z.string().nullable(),
-  amount: z.number(),
+  // Mirrors the DB CHECK constraint donations_amount_nonnegative.
+  amount: z.number().nonnegative(),
   currency: z.string(),
   status: donationStatusSchema,
   donation_type: z.string().nullable(),
@@ -81,7 +84,8 @@ export const donationSchema = z.object({
   error_message: z.string().nullable(),
   stripe_charge_id: z.string().nullable(),
   refunded_at: z.string().nullable(),
-  refund_amount: z.number(),
+  // Mirrors the DB CHECK constraint donations_refund_amount_nonnegative.
+  refund_amount: z.number().nonnegative(),
   source: z.string().nullable(),
   created_at: z.string().min(1),
   updated_at: z.string().min(1),

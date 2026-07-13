@@ -73,6 +73,11 @@ CREATE POLICY "profiles staff tenant select"
 -- users. Writes remain constrained by server commands or table-specific RLS
 -- added later; this migration only establishes safe read visibility for live
 -- browser collections.
+--
+-- The legacy demo-wide anon "public read" policy is dropped from every visible
+-- table so this migration's policies are the single read contract: content
+-- tables with publication state expose only published/public rows, and the
+-- interaction tables expose only rows attached to a browser-visible post.
 GRANT SELECT ON TABLE public.missionaries TO anon, authenticated;
 GRANT SELECT ON TABLE public.funds TO anon, authenticated;
 GRANT SELECT ON TABLE public.posts TO anon, authenticated;
@@ -87,6 +92,7 @@ GRANT SELECT ON TABLE public.assets TO anon, authenticated;
 DO $$
 DECLARE
   visible_table text;
+  visible_predicate text;
 BEGIN
   FOREACH visible_table IN ARRAY ARRAY[
     'missionaries',
@@ -104,13 +110,45 @@ BEGIN
     IF to_regclass(format('public.%I', visible_table)) IS NOT NULL THEN
       EXECUTE format('ALTER TABLE public.%I ENABLE ROW LEVEL SECURITY', visible_table);
 
+      -- Replace the demo-wide anon policy so stale unrestricted reads cannot
+      -- survive alongside the row-filtered policies defined below.
+      EXECUTE format('DROP POLICY IF EXISTS "public read" ON public.%I', visible_table);
       EXECUTE format(
         'DROP POLICY IF EXISTS "tanstack browser authenticated select" ON public.%I',
         visible_table
       );
       EXECUTE format(
-        'CREATE POLICY "tanstack browser authenticated select" ON public.%I FOR SELECT TO authenticated USING (true)',
+        'DROP POLICY IF EXISTS "tanstack browser read" ON public.%I',
         visible_table
+      );
+
+      -- Posts carry status/visibility state; only published, public rows are
+      -- browser-table visible. Draft and partners_only posts stay behind the
+      -- auth-gated server feed (`GET /api/posts`). Interaction rows inherit the
+      -- parent post's browser visibility. Locations expose published rows only.
+      IF visible_table = 'posts' THEN
+        visible_predicate := $pred$(status = 'published' AND visibility = 'public')$pred$;
+      ELSIF visible_table IN ('post_comments', 'post_likes', 'post_prayers', 'post_fires') THEN
+        visible_predicate := format(
+          $pred$EXISTS (
+            SELECT 1
+            FROM public.posts parent_post
+            WHERE parent_post.id = %I.post_id
+              AND parent_post.status = 'published'
+              AND parent_post.visibility = 'public'
+          )$pred$,
+          visible_table
+        );
+      ELSIF visible_table = 'locations' THEN
+        visible_predicate := $pred$(status = 'published')$pred$;
+      ELSE
+        visible_predicate := 'true';
+      END IF;
+
+      EXECUTE format(
+        'CREATE POLICY "tanstack browser read" ON public.%I FOR SELECT TO anon, authenticated USING (%s)',
+        visible_table,
+        visible_predicate
       );
     END IF;
   END LOOP;
@@ -225,7 +263,7 @@ CREATE POLICY "donor pledges owner or staff select"
 REVOKE ALL ON TABLE public.donor_feed_preferences FROM anon, authenticated;
 REVOKE ALL ON TABLE public.follower_requests FROM anon, authenticated;
 REVOKE ALL ON TABLE public.missionary_tasks FROM anon, authenticated;
-REVOKE ALL ON TABLE public.pdf_templates FROM anon;
+REVOKE ALL ON TABLE public.pdf_templates FROM anon, authenticated;
 
 DO $$
 DECLARE
