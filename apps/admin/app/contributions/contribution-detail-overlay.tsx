@@ -129,11 +129,19 @@ async function postContributionOperation(input: {
   stagedGiftId: string;
   sourceSurface: ContributionSourceSurface;
   payload?: Record<string, unknown>;
+  /**
+   * Revision of the detail the staffer is acting on (ADR-CD-022). The server
+   * rejects the action with a 409 when the gift changed since this load, so
+   * direct Send receipt / Approve / Retry never execute against unreviewed
+   * data.
+   */
+  expectedRevision?: string | null;
 }) {
   const response = await fetch("/api/admin/contribution-operations/actions", {
     body: JSON.stringify({
       actionType: input.actionType,
       contributionId: input.contributionId,
+      expectedRevision: input.expectedRevision ?? null,
       payload: input.payload ?? {},
       sourceSurface: input.sourceSurface,
       stagedGiftId: input.stagedGiftId,
@@ -347,6 +355,7 @@ export function ContributionDetailOverlay({
       postContributionOperation({
         ...input,
         actionType: "approve_staged_gift",
+        expectedRevision: detailQuery.data?.revision ?? null,
         sourceSurface,
       }),
     onError(error) {
@@ -372,6 +381,7 @@ export function ContributionDetailOverlay({
         actionType: "retry_staged_gift",
         contributionId: input.contributionId,
         stagedGiftId: input.stagedGiftId,
+        expectedRevision: detailQuery.data?.revision ?? null,
         payload: crmRetryPayloadFromScope(input.scope),
         sourceSurface,
       }),
@@ -391,6 +401,7 @@ export function ContributionDetailOverlay({
       postContributionOperation({
         ...input,
         actionType: "resend_receipt",
+        expectedRevision: detailQuery.data?.revision ?? null,
         sourceSurface,
       }),
     onError(error) {

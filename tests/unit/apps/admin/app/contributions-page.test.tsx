@@ -138,6 +138,7 @@ function makeDetailPayload(donationId: string, donorName: string) {
   return {
     contribution: {
       id: donationId,
+      revision: "2026-05-26T00:00:00.000Z#0",
       shared: {
         donationId,
         amountCents: 10000,
@@ -1137,6 +1138,45 @@ describe("apps/admin/app/contributions/page-client", () => {
     });
     expect(view.queryByText("Updated just now")).toBeNull();
     setTimeoutSpy.mockRestore();
+  });
+
+  it("sends the loaded detail revision with direct overlay staged-gift actions", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012d";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Revision Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Revision Donor")).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+      ).toBe(true);
+    });
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    // Stale-save protection (ADR-CD-022): direct Send receipt / Approve /
+    // Retry must pin the revision the staffer reviewed so the server can
+    // 409 when the gift changed since this load.
+    expect(body.expectedRevision).toBe("2026-05-26T00:00:00.000Z#0");
+    expect(body.actionType).toBe("resend_receipt");
   });
 
   it("invalidates every shared contribution surface after contribution mutations", async () => {
