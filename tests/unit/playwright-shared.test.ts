@@ -42,9 +42,9 @@ describe("normalizeLocalBaseUrl", () => {
   });
 
   it("passes remote URLs through untouched", () => {
-    expect(normalizeLocalBaseUrl("https://donor-preview.vercel.app", 3000)).toBe(
-      "https://donor-preview.vercel.app",
-    );
+    expect(
+      normalizeLocalBaseUrl("https://donor-preview.vercel.app", 3000),
+    ).toBe("https://donor-preview.vercel.app");
   });
 
   it("falls back to the default for invalid URLs", () => {

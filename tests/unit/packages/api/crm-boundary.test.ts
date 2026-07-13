@@ -153,9 +153,7 @@ describe("Twenty CRM package and app boundary", () => {
     expect(
       readRepoFile("tooling/eslint-config/restricted-imports.mjs"),
     ).toMatch(/@asym\/api\/crm\/client/);
-    expect(readRepoFile("eslint.config.mjs")).toMatch(
-      /appRestrictedImports\(/,
-    );
+    expect(readRepoFile("eslint.config.mjs")).toMatch(/appRestrictedImports\(/);
     expect(readRepoFile("scripts/verify/data-boundary-check.mjs")).toMatch(
       /TWENTY_API_KEY/,
     );

@@ -1,4 +1,8 @@
-import { defineConfig, devices, type PlaywrightTestConfig } from "@playwright/test";
+import {
+  defineConfig,
+  devices,
+  type PlaywrightTestConfig,
+} from "@playwright/test";
 
 /**
  * Shared Playwright surface configuration.
@@ -104,9 +108,7 @@ export function isLocalBaseUrl(baseUrl: string): boolean {
   }
 }
 
-export function getWorkerCount(
-  env: NodeJS.ProcessEnv = process.env,
-): number {
+export function getWorkerCount(env: NodeJS.ProcessEnv = process.env): number {
   const envWorkers = Number(env.PLAYWRIGHT_WORKERS);
   if (Number.isFinite(envWorkers) && envWorkers > 0) {
     return envWorkers;
