@@ -103,14 +103,7 @@ function getQuery(callback: QueryOnceCallback): QueryIr {
 }
 
 function getColumnName(expression: unknown): string {
-  if (
-    typeof expression !== "object" ||
-    expression === null ||
-    !("type" in expression) ||
-    expression.type !== "ref" ||
-    !("path" in expression) ||
-    !Array.isArray(expression.path)
-  ) {
+  if (!isColumnRefExpression(expression)) {
     throw new Error("queryOnce filters must use table column references.");
   }
 
@@ -324,27 +317,22 @@ function isSimpleSupabaseRead(query: QueryIr): boolean {
   const hasOffset = query.offset !== undefined;
 
   return Boolean(
-    query.from.type === "collectionRef" &&
-      query.select === undefined &&
-      (query.where ?? []).every(canApplyWhere) &&
-      orderBy.every((order) =>
-        isSupportedColumnRefExpression(order.expression),
-      ) &&
-      (!hasOffset || (query.limit !== undefined && hasOrderBy)) &&
-      !query.join?.length &&
-      !query.distinct &&
-      !hasServerOnlyFeatures(query),
+    isNonAggregateCollectionReadShape(query) &&
+    orderBy.every((order) =>
+      isSupportedColumnRefExpression(order.expression),
+    ) &&
+    (!hasOffset || (query.limit !== undefined && hasOrderBy)),
   );
 }
 
 function isNonAggregateCollectionReadShape(query: QueryIr): boolean {
   return Boolean(
     query.from.type === "collectionRef" &&
-      query.select === undefined &&
-      (query.where ?? []).every(canApplyWhere) &&
-      !query.join?.length &&
-      !query.distinct &&
-      !hasServerOnlyFeatures(query),
+    query.select === undefined &&
+    (query.where ?? []).every(canApplyWhere) &&
+    !query.join?.length &&
+    !query.distinct &&
+    !hasServerOnlyFeatures(query),
   );
 }
 
@@ -389,7 +377,9 @@ async function executeSimpleSupabaseRead<TCallback extends QueryOnceCallback>(
   }
 
   if (query.singleResult) {
-    return data?.[0] as Awaited<ReturnType<typeof supabaseQueryOnce<TCallback>>>;
+    return data?.[0] as Awaited<
+      ReturnType<typeof supabaseQueryOnce<TCallback>>
+    >;
   }
 
   return (data ?? []) as Awaited<
@@ -406,7 +396,10 @@ export async function querySupabaseCollectionOnce<
   const client = supabase ?? (await createClient());
   const query = getQuery(callback);
 
-  if (isNonAggregateCollectionReadShape(query) && hasUnsupportedOrderBy(query)) {
+  if (
+    isNonAggregateCollectionReadShape(query) &&
+    hasUnsupportedOrderBy(query)
+  ) {
     throw new Error(
       "queryOnce orderBy must use physical table column references.",
     );

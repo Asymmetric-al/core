@@ -1,3 +1,7 @@
+import { readFileSync, realpathSync } from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const supabaseQueryOnceMock = vi.hoisted(() => vi.fn());
@@ -697,4 +701,83 @@ describe("querySupabaseCollectionOnce", () => {
       expect(supabaseQueryOnceMock).toHaveBeenCalledWith(callback, client);
     },
   );
+
+  it("exposes the helper through the @asym/database package export map", async () => {
+    const packageDir = path.resolve(__dirname, "../../../../packages/database");
+    const packageJson = JSON.parse(
+      readFileSync(path.join(packageDir, "package.json"), "utf8"),
+    ) as {
+      exports?: Record<string, { types?: string; default?: string }>;
+    };
+
+    const exportEntry = packageJson.exports?.["./collections/query-once"];
+    expect(exportEntry?.default).toBe("./collections/query-once.ts");
+    expect(exportEntry?.types).toBe("./collections/query-once.ts");
+
+    const exportedModule = (await import(
+      pathToFileURL(path.join(packageDir, "collections/query-once.ts")).href
+    )) as Record<string, unknown>;
+    expect(typeof exportedModule.querySupabaseCollectionOnce).toBe("function");
+  });
+
+  it("parses real @tanstack/db query builders on the fast path (IR contract guard)", async () => {
+    // Import @tanstack/db through its resolved real path so the test shares
+    // the exact module instance the helper uses (Bun isolated-linker layout).
+    const tanstackDbDir = realpathSync(
+      path.resolve(
+        __dirname,
+        "../../../../packages/database/node_modules/@tanstack/db",
+      ),
+    );
+    const tanstackDb = (await import(
+      pathToFileURL(path.join(tanstackDbDir, "dist/esm/index.js")).href
+    )) as {
+      createCollection: (options: unknown) => unknown;
+      localOnlyCollectionOptions: (config: unknown) => unknown;
+      eq: (left: unknown, right: unknown) => unknown;
+    };
+
+    const { calls, client } = createSupabaseStub([{ id: "post-1" }]);
+    interface PostRow {
+      id: string;
+      status: string;
+      created_at: string;
+    }
+    const postsCollection = tanstackDb.createCollection(
+      tanstackDb.localOnlyCollectionOptions({
+        id: "posts",
+        getKey: (row: PostRow) => row.id,
+      }),
+    );
+
+    const callback = ((queryBuilder: {
+      from(source: unknown): {
+        where(predicate: unknown): {
+          orderBy(
+            selector: unknown,
+            direction: "asc" | "desc",
+          ): { limit(count: number): unknown };
+        };
+      };
+    }) =>
+      queryBuilder
+        .from({ post: postsCollection })
+        .where(({ post }: { post: PostRow }) =>
+          tanstackDb.eq(post.status, "published"),
+        )
+        .orderBy(({ post }: { post: PostRow }) => post.created_at, "desc")
+        .limit(3)) as unknown as QueryOnceCallback;
+
+    const result = await querySupabaseCollectionOnce(callback, client);
+
+    expect(result).toEqual([{ id: "post-1" }]);
+    expect(calls).toEqual([
+      ["from", "posts"],
+      ["select", "*"],
+      ["eq", "status", "published"],
+      ["order", "created_at", { ascending: false }],
+      ["limit", 3],
+    ]);
+    expect(supabaseQueryOnceMock).not.toHaveBeenCalled();
+  });
 });
