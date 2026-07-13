@@ -1,11 +1,10 @@
-import { serverEnv } from "@asym/env";
-
 import { loadContributionDetailFromSupabase } from "./operations";
 import {
   claimContributionRefundAttempt,
   finalizeContributionRefundAttempt,
   loadContributionRefundAttempt,
 } from "./store";
+import { loadTenantStripeSecretKey } from "./tenant-stripe-key";
 import { ApiHttpError } from "../../shared/http-errors";
 import { createStripeClient } from "../../stripe/client";
 import {
@@ -86,19 +85,7 @@ async function resolveTenantStripeSecretKey(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<string> {
-  const { data, error } = await input.supabaseAdmin
-    .from("tenants")
-    .select("id, stripe_secret_key")
-    .eq("id", input.tenantId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const tenantRow = data as { stripe_secret_key?: string | null } | null;
-  const secretKey =
-    tenantRow?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
+  const secretKey = await loadTenantStripeSecretKey(input);
 
   if (!secretKey) {
     throw new ApiHttpError(

@@ -1,4 +1,4 @@
-import { serverEnv } from "@asym/env";
+import { loadTenantStripeSecretKey } from "./tenant-stripe-key";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -66,19 +66,7 @@ export async function resolveProviderDashboardTestMode(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<boolean> {
-  const { data, error } = await input.supabaseAdmin
-    .from("tenants")
-    .select("id, stripe_secret_key")
-    .eq("id", input.tenantId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const tenantRow = data as { stripe_secret_key?: string | null } | null;
-  const secretKey =
-    tenantRow?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
+  const secretKey = await loadTenantStripeSecretKey(input);
 
   return isStripeTestModeKey(secretKey);
 }
