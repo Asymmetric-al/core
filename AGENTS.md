@@ -278,7 +278,7 @@ Load rulebooks before editing files in their domain.
 
 ## Skill Routing (Deterministic)
 
-Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/`.
+Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/`. The singular `.agent/skills/` path is not a supported mirror and is rejected by `bun run skills:verify`.
 
 - **Repo entry / instruction map (default orientation for repo work):** `docs/ai/skills/repo-entry/SKILL.md`
 
