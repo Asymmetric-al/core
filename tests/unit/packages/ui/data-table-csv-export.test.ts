@@ -31,6 +31,9 @@ function makeTable(
   } as never;
 }
 
+// Serialization goes through the shared `csvSafeCell` (@asym/lib/csv): every
+// field is always double-quoted per RFC 4180, and a leading formula trigger
+// (=, +, -, @, TAB, CR, LF) is neutralized with a single-quote prefix.
 describe("exportToCSV — formula injection neutralization", () => {
   it("prefixes a cell value starting with '=' with a single quote", () => {
     const table = makeTable(
@@ -39,7 +42,7 @@ describe("exportToCSV — formula injection neutralization", () => {
     );
     const csv = exportToCSV(table);
     // header row then data row; the cell should be neutralized to '=1+1
-    expect(csv).toBe("Formula\n'=1+1");
+    expect(csv).toBe('"Formula"\n"\'=1+1"');
   });
 
   it("prefixes values starting with '+', '-', '@', and tab", () => {
@@ -54,7 +57,7 @@ describe("exportToCSV — formula injection neutralization", () => {
     );
     const csv = exportToCSV(table);
     const dataLine = csv.split("\n")[1];
-    expect(dataLine).toBe("'+1,'-1,'@x,'\tindented");
+    expect(dataLine).toBe('"\'+1","\'-1","\'@x","\'\tindented"');
   });
 
   it("prefixes values starting with carriage return or line feed", () => {
@@ -66,23 +69,22 @@ describe("exportToCSV — formula injection neutralization", () => {
       [{ cr: "\r=1+1", lf: "\n=1+1" }],
     );
     const csv = exportToCSV(table);
-    expect(csv).toBe('CR,LF\n"\'\r=1+1","\'\n=1+1"');
+    expect(csv).toBe('"CR","LF"\n"\'\r=1+1","\'\n=1+1"');
   });
 
   it("quotes a formula+delimiter cell after neutralization", () => {
-    // '=a,b contains the delimiter so it must be wrapped in quotes.
     const table = makeTable([{ id: "val", header: "Val" }], [{ val: "=a,b" }]);
     const csv = exportToCSV(table);
-    expect(csv).toBe(`Val\n"'=a,b"`);
+    expect(csv).toBe(`"Val"\n"'=a,b"`);
   });
 
-  it("does not alter a benign cell value", () => {
+  it("quotes but does not formula-prefix a benign cell value", () => {
     const table = makeTable(
       [{ id: "name", header: "Name" }],
       [{ name: "Acme Inc" }],
     );
     const csv = exportToCSV(table);
-    expect(csv).toBe("Name\nAcme Inc");
+    expect(csv).toBe('"Name"\n"Acme Inc"');
   });
 
   it("neutralizes a header that starts with '='", () => {
@@ -92,6 +94,6 @@ describe("exportToCSV — formula injection neutralization", () => {
     );
     const csv = exportToCSV(table);
     const headerLine = csv.split("\n")[0];
-    expect(headerLine).toBe("'=SUM(A1:A10)");
+    expect(headerLine).toBe('"\'=SUM(A1:A10)"');
   });
 });
