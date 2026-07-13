@@ -21,8 +21,9 @@ such as `TWENTY_API_KEY` or `TWENTY_WEBHOOK_SECRET`.
 
 The CI script scans API route handlers for direct Supabase imports and app
 source for raw Twenty client imports or server-only Twenty credential usage.
-This is why `apps/donor/app/auth/callback/route.ts` is not included in the API
-route Supabase scope: it lives under `app/auth/`, not `app/api/`.
+Routes outside `app/api/` (for example `apps/donor/app/auth/callback/route.ts`,
+which now re-exports `GET` from `@asym/api/auth/callback`) are outside the API
+route Supabase scope but follow the same delegation pattern.
 
 ## Workflow
 
@@ -41,12 +42,11 @@ and cannot become the normal Mission Control product or support path.
 
 ## Approved Exceptions
 
-| File                                    | Allowed import                   | Justification                                                                                  |
-| --------------------------------------- | -------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `apps/donor/app/auth/callback/route.ts` | `@asym/database/supabase/server` | Auth callback must exchange an auth code for a session before any API-layer delegation exists. |
-| `apps/*/app/api/health/route.ts`        | `@asym/database/supabase/server` | Health endpoints are minimal connectivity probes; no business logic to delegate to API layer.  |
-| Any GraphQL handler (if present)        | `@asym/database/supabase/server` | The GraphQL gateway is itself a data-layer boundary.                                           |
-| `packages/lib/audit/logger.ts`          | internal                         | Audit logger is infrastructure, not a route handler.                                           |
+| File                             | Allowed import                   | Justification                                                                                 |
+| -------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
+| `apps/*/app/api/health/route.ts` | `@asym/database/supabase/server` | Health endpoints are minimal connectivity probes; no business logic to delegate to API layer. |
+| Any GraphQL handler (if present) | `@asym/database/supabase/server` | The GraphQL gateway is itself a data-layer boundary.                                          |
+| `packages/lib/audit/logger.ts`   | internal                         | Audit logger is infrastructure, not a route handler.                                          |
 
 ## How to add a new exception
 
