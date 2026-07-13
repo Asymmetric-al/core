@@ -10,6 +10,7 @@ import {
   listEmailTemplateVersions,
   readEmailTemplate,
 } from "../../../email/template-store";
+import { asString, isRecord } from "../../../shared/json-coerce";
 import { createMissionControlTaskInSupabase } from "../../mission-control-tasks/store";
 
 import type { MissionControlLinkedRecord } from "../../mission-control-tasks/types";
@@ -29,14 +30,6 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 type SupabaseAdmin = AdminSupabaseClient;
 
 type JsonRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 function asStringArray(value: unknown): string[] {
   return Array.isArray(value)

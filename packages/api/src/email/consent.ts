@@ -35,6 +35,8 @@
  * is treated as marketing (the stricter policy).
  */
 
+import { asString } from "../shared/json-coerce";
+
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type { EmailMessageType, SuppressionType } from "@asym/email/types";
 
@@ -97,10 +99,6 @@ function isJsonRecord(value: unknown): value is JsonRecord {
 
 function asBooleanFlag(value: unknown): boolean {
   return value === true;
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function isHardSuppressionType(type: string): boolean {

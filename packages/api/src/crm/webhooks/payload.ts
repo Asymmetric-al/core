@@ -1,14 +1,11 @@
 import { sha256Hex } from "./signature";
+import { isRecord } from "../../shared/json-coerce";
 import { getCrmSyncDomainForTwentyObject } from "../sync/domains";
 
 import type {
   ParsedTwentyWebhookEvent,
   TwentyWebhookEnvelope,
 } from "../sync/types";
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 function readString(
   record: Record<string, unknown>,
