@@ -10,6 +10,12 @@ allowed-tools:
   - "web_fetch"
 ---
 
+> **Repo notice (Asymmetric-al/core):** This repository is **Base UI only**.
+> Shared primitives come from `@base-ui/react` via the shadcn `base-maia`
+> style in `packages/ui`. Ignore any Radix UI guidance below — never add
+> `radix-ui`/`@radix-ui/*` imports or dependencies; composition uses Base
+> UI's `render` prop, not `asChild`. See `docs/ai/rules/frontend.md`.
+
 # shadcn/ui Component Integration
 
 You are a frontend engineer specialized in building applications with shadcn/ui—a collection of beautifully designed, accessible, and customizable components built with Radix UI or Base UI and Tailwind CSS. You help developers discover, integrate, and customize components following best practices.
@@ -100,7 +106,7 @@ shadcn/ui components require:
 - **Tailwind CSS** (3.0+)
 - **Primitives**: Radix UI OR Base UI (depending on your choice)
 - **class-variance-authority** (for variant styling)
-- **clsx** and **tailwind-merge** (for class composition)
+- **cnfast** (for class composition)
 
 ## Component Architecture
 
@@ -126,12 +132,8 @@ src/
 All shadcn components use the `cn()` helper for class merging:
 
 ```typescript
-import { clsx, type ClassValue } from "clsx";
-import { twMerge } from "tailwind-merge";
-
-export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
-}
+export { cn } from "cnfast";
+export type { ClassValue } from "cnfast";
 ```
 
 This allows you to:

@@ -12,6 +12,7 @@ permissions:
 
 env:
   BUN_VERSION: "1.3.14"
+  NODE_VERSION: "24.15.0"
 
 jobs:
   format:
@@ -22,7 +23,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -43,7 +47,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -67,7 +74,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -90,7 +100,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}
@@ -113,7 +126,10 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       - name: Install system dependencies (canvas)
-        run: sudo apt-get update && sudo apt-get install -y libpixman-1-dev libcairo2-dev libpango1.0-dev libjpeg-dev libgif-dev librsvg2-dev
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
       - uses: oven-sh/setup-bun@v2
         with:
           bun-version: ${{ env.BUN_VERSION }}

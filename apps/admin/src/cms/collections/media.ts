@@ -12,6 +12,7 @@ import type { CollectionConfig } from "payload";
 
 export const Media: CollectionConfig = {
   slug: "media",
+  versions: false,
   admin: {
     defaultColumns: ["filename", "alt", "tenant", "updatedAt"],
     useAsTitle: "filename",

@@ -9,15 +9,46 @@ and UI.
 
 ## Product And Platform Intent (OpenSpec)
 
-Durable big-picture context for **what we build** and **why** lives in four
-top-level specs (OpenSpec discovers `openspec/specs/<id>/spec.md`):
+The spec tree is two-layered (OpenSpec discovers `openspec/specs/<id>/spec.md`):
+
+**Intent layer** — durable big-picture context for **what we build** and
+**why**. Scenarios in these specs may describe agent decision-making:
 
 | Spec                                                               | Path                                             |
 | ------------------------------------------------------------------ | ------------------------------------------------ |
-| Product intent (goals, scope, long-horizon success)                | `openspec/specs/platform-product-intent/spec.md` |
+| Product intent (customer, goals, scope, long-horizon success)      | `openspec/specs/platform-product-intent/spec.md` |
 | Surfaces (admin, donor, missionary, public UX intent)              | `openspec/specs/platform-surfaces/spec.md`       |
-| Principles (decision criteria)                                     | `openspec/specs/platform-principles/spec.md`     |
+| Principles (canonical priority ladder, decision criteria)          | `openspec/specs/platform-principles/spec.md`     |
 | System boundaries (trust contracts, CRM/CMS, scope, sensitive ops) | `openspec/specs/platform-boundaries/spec.md`     |
+
+**Capability layer** — verifiable behavior contracts for specific system
+capabilities. Scenarios are written as system behavior (WHEN/THEN about the
+product). The current capability specs are `donation-lifecycle`,
+`contribution-operations`, `crm-core`, `identity-and-access`,
+`workflow-orchestration`, and `agent-instruction-system`; new feature-level
+contracts get their own capability spec (named for the durable capability, not
+the current vendor) rather than growing the intent specs.
+
+**Capability spec backlog** — shipped subsystems that still lack a capability
+spec, in rough priority order. Each needs code-grounded authoring before it
+governs current truth; add them in follow-up work rather than growing the
+intent specs:
+
+1. `support-hub` / inbound-communications (tenant-safe inbound email routing,
+   support conversations — many terms already in `CONTEXT.md`).
+2. `outbound-communications` / email-studio (templates, versioning, single
+   Resend send boundary — `contribution-operations` and `platform-boundaries`
+   already delegate to it).
+3. `mission-control-automations` (declarative definitions, `automation:manage`
+   gate, preview + test run before activation).
+4. `mission-control-tasks` (one shared staff task model; Needs Attention as a
+   view, not a separate model).
+5. `public-website-cms` (published-only, tenant-scoped reads; Payload runtime
+   isolated to admin).
+
+Missionary-workspace role-scoping folds into `identity-and-access`; reporting,
+mobilization, and documents stay on this watch-list until their money or
+permission depth warrants a spec.
 
 Structural detail (directory trees, diagrams, route tables) remains in
 `docs/guides/architecture/overview.md`. Keep OpenSpec intent and architecture
@@ -42,7 +73,7 @@ docs aligned when behavior or naming changes.
 - Task runner: Turborepo (`turbo` 2.9.x)
 - Framework: Next.js `16.2.6` across all Next.js workspaces
 - React: `19.2.x`
-- TypeScript: `5.9.x`
+- TypeScript: `6.0.x`
 - Styling: Tailwind CSS `v4`, Base UI, shadcn/ui Maia theme
 - Data and auth: Supabase
 - Payments: Stripe
@@ -74,7 +105,7 @@ The repo already has a strong, hand-maintained instruction system:
   `.github/copilot-instructions.md`, and `.github/instructions/*.instructions.md`
   are helper layers that must stay coherent with `AGENTS.md`.
 - Canonical repo-local skills live under `docs/ai/skills/*/SKILL.md`; mirrors in
-  `.cursor/skills/*` and `.agents/skills/*` are runtime copies, not the source
+  `.cursor/skills/*`, `.agents/skills/*`, and `.claude/skills/*` (plus `.claude/commands/` and `.claude/agents/`) are runtime copies, not the source
   of truth.
 - Optional **Skills CLI** or vendored ecosystem installs (for example
   mattpocock packs) are mirror-only helpers under `.agents/skills/<name>/`
@@ -108,6 +139,13 @@ The repo already has a strong, hand-maintained instruction system:
 - Use `openspec/specs/**` for the current intended behavior of durable systems.
 - Use `openspec/changes/**` for proposed or active work that changes behavior,
   workflow, or long-lived repo conventions.
+- Archive a change promptly once its work has shipped and been verified
+  (`bunx @fission-ai/openspec@latest archive <change> --yes`). Completed
+  changes left active make `openspec/specs/**` stale, because their deltas
+  never merge into current truth.
+- The OpenSpec change is the canonical feature-definition unit (`proposal.md`
+  for why/what, `design.md` for how). PRDs under `docs/prds/` are optional
+  supporting narrative linked from a change; on conflict, OpenSpec wins.
 - Before non-trivial feature work, behavior changes, or multi-step project work,
   read this file plus the relevant specs and active changes.
 - Use `bunx @fission-ai/openspec@latest <command>` as the repo-safe default for
@@ -122,6 +160,20 @@ The repo already has a strong, hand-maintained instruction system:
 - Do not run `openspec update` casually in this repo. The repo hand-maintains
   AGENTS, Cursor, Copilot, and Codex-facing instruction files, and bulk
   regeneration could overwrite or duplicate important routing logic.
+
+## Current-State Notes (transient, not durable intent)
+
+These record where the shipped product does not yet match durable intent, so
+agents do not mistake scaffolding for the intended contract. Remove each note
+when the gap closes.
+
+- The public `/workers` missionary directory and missionary profile pages
+  render demo scaffolding from `@asym/mock-data` with a mock checkout that does
+  not call the real donate API. They are not yet backed by real CRM missionary
+  entities or CMS page content. The durable intent (CRM owns the missionary,
+  CMS owns the page, public giving is native) lives in `platform-boundaries`
+  and `platform-surfaces`; the mock pages are placeholder scaffolding, not the
+  contract.
 
 ## Validation Commands
 

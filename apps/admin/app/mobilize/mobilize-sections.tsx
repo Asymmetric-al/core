@@ -84,69 +84,6 @@ const TABLE_TABS: readonly MobilizeTab[] = [
   "ready",
 ];
 
-export const MOCK_CANDIDATES: Candidate[] = [
-  {
-    id: "1",
-    name: "Sarah Jenkins",
-    email: "sarah.j@example.com",
-    phone: "+1 (555) 123-4567",
-    role: "Medical Officer",
-    location: "Denver, CO",
-    stage: "Vetting",
-    readiness: 45,
-    appliedDate: "2023-10-01",
-    tags: ["RN", "Spanish Speaker"],
-  },
-  {
-    id: "2",
-    name: "Michael Ross",
-    email: "mike.ross@example.com",
-    phone: "+1 (555) 987-6543",
-    role: "Education Specialist",
-    location: "Austin, TX",
-    stage: "Training",
-    readiness: 85,
-    appliedDate: "2023-09-15",
-    tags: ["ESL Certified", "Leadership"],
-  },
-  {
-    id: "3",
-    name: "Emily Blunt",
-    email: "emily.b@example.com",
-    phone: "+1 (555) 456-7890",
-    role: "Logistics Coordinator",
-    location: "Seattle, WA",
-    stage: "Applied",
-    readiness: 10,
-    appliedDate: "2023-10-20",
-    tags: ["Supply Chain"],
-  },
-  {
-    id: "4",
-    name: "David Kim",
-    email: "d.kim@example.com",
-    phone: "+1 (555) 222-3333",
-    role: "Community Development",
-    location: "Chicago, IL",
-    stage: "Ready",
-    readiness: 100,
-    appliedDate: "2023-08-10",
-    tags: ["Agriculture", "French Speaker"],
-  },
-  {
-    id: "5",
-    name: "Jessica Chen",
-    email: "jess.chen@example.com",
-    phone: "+1 (555) 444-5555",
-    role: "Medical Officer",
-    location: "Boston, MA",
-    stage: "Deployed",
-    readiness: 100,
-    appliedDate: "2023-06-01",
-    tags: ["MD", "Trauma Care"],
-  },
-];
-
 const StatCard = ({
   title,
   value,
@@ -603,19 +540,19 @@ export function MobilizeCandidateDetailSheet({
                 <TabsList className="bg-transparent h-auto p-0 gap-6">
                   <TabsTrigger
                     value="overview"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-[state=active]:text-zinc-900 transition-all"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
                   >
                     Overview
                   </TabsTrigger>
                   <TabsTrigger
                     value="vetting"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-[state=active]:text-zinc-900 transition-all"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
                   >
                     Vetting Checklist
                   </TabsTrigger>
                   <TabsTrigger
                     value="placement"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-zinc-900 data-[state=active]:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-[state=active]:text-zinc-900 transition-all"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-zinc-900 data-active:shadow-none rounded-none px-1 py-3 text-sm font-medium text-zinc-500 data-active:text-zinc-900 transition-[color,border-color]"
                   >
                     Placement
                   </TabsTrigger>

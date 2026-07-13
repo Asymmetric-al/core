@@ -58,6 +58,7 @@ function run(command, args) {
 }
 
 run(process.execPath, ["scripts/sync-agent-skills.mjs"]);
+run(process.execPath, ["scripts/verify/inngest-skill-references.mjs"]);
 
 const diffResult = spawnSync(
   "git",
@@ -69,6 +70,9 @@ const diffResult = spawnSync(
     "--",
     ".agents/skills",
     ".cursor/skills",
+    ".claude/skills",
+    ".claude/commands",
+    ".claude/agents",
   ],
   { cwd: repoRoot, env: gitSafeEnv, stdio: "inherit" },
 );
@@ -94,6 +98,9 @@ const untrackedResult = spawnSync(
     "--",
     ".agents/skills",
     ".cursor/skills",
+    ".claude/skills",
+    ".claude/commands",
+    ".claude/agents",
   ],
   {
     cwd: repoRoot,
@@ -141,7 +148,7 @@ if (unsupportedMirrorResult.error) {
 if (unsupportedMirrorResult.stdout.trim()) {
   console.error(unsupportedMirrorResult.stdout.trim());
   console.error(
-    "Unsupported singular skill mirror detected. Use `.agents/skills` and `.cursor/skills`; remove `.agent/skills`.",
+    "Unsupported singular skill mirror detected. Use `.agents/skills`, `.cursor/skills`, and `.claude/skills`; remove `.agent/skills`.",
   );
   process.exit(1);
 }

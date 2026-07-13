@@ -29,7 +29,8 @@ export type AuditAction =
   | "org_post_created"
   | "comment_moderated"
   | "comment_deleted_by_admin"
-  | "profile_updated";
+  | "profile_updated"
+  | "email_send_suppressed";
 
 export interface AuditLogEntry {
   tenantId: string;
@@ -42,7 +43,34 @@ export interface AuditLogEntry {
   userAgent?: string;
 }
 
-export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
+/**
+ * System/service audit event with no human actor. `audit_logs.user_id` is
+ * nullable, so transactional and system-triggered actions (e.g. an outbound
+ * email suppressed by the consent gate) can be recorded without an
+ * AuthenticatedContext.
+ */
+export interface SystemAuditLogEntry {
+  tenantId: string;
+  action: AuditAction;
+  resourceType: string;
+  resourceId?: string;
+  details?: Record<string, unknown>;
+  ipAddress?: string;
+  userAgent?: string;
+}
+
+interface AuditLogRow {
+  tenant_id: string;
+  user_id: string | null;
+  action: string;
+  resource_type: string;
+  resource_id: string | null;
+  details: Record<string, unknown>;
+  ip_address: string | null;
+  user_agent: string | null;
+}
+
+async function writeAuditLog(row: AuditLogRow): Promise<void> {
   const supabaseAdmin = createAdminClient();
   if (!supabaseAdmin) {
     console.warn("[audit] Skipping audit log: Admin client unavailable");
@@ -50,19 +78,39 @@ export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
   }
 
   try {
-    await supabaseAdmin.from("audit_logs").insert({
-      tenant_id: entry.tenantId,
-      user_id: entry.userId,
-      action: entry.action,
-      resource_type: entry.resourceType,
-      resource_id: entry.resourceId || null,
-      details: entry.details || {},
-      ip_address: entry.ipAddress || null,
-      user_agent: entry.userAgent || null,
-    });
+    await supabaseAdmin.from("audit_logs").insert(row);
   } catch (error) {
     console.error("Failed to write audit log:", error);
   }
+}
+
+export async function logAuditEvent(entry: AuditLogEntry): Promise<void> {
+  await writeAuditLog({
+    tenant_id: entry.tenantId,
+    user_id: entry.userId,
+    action: entry.action,
+    resource_type: entry.resourceType,
+    resource_id: entry.resourceId || null,
+    details: entry.details || {},
+    ip_address: entry.ipAddress || null,
+    user_agent: entry.userAgent || null,
+  });
+}
+
+/** Record an audit event for a system/service action (no human actor). */
+export async function logSystemAuditEvent(
+  entry: SystemAuditLogEntry,
+): Promise<void> {
+  await writeAuditLog({
+    tenant_id: entry.tenantId,
+    user_id: null,
+    action: entry.action,
+    resource_type: entry.resourceType,
+    resource_id: entry.resourceId || null,
+    details: entry.details || {},
+    ip_address: entry.ipAddress || null,
+    user_agent: entry.userAgent || null,
+  });
 }
 
 export function createAuditLogger(

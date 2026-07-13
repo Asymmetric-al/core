@@ -7,6 +7,7 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { safeNextParam } from "./demo-login";
 import {
+  assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
@@ -24,6 +25,7 @@ export interface AuthMiddlewareOptions {
   publicRoutes?: string[];
   authRoutes?: string[];
   protectedRoutePrefixes?: string[];
+  unauthenticatedRedirects?: UnauthenticatedRedirectRule[];
   loginPath?: string;
   redirectAuthenticatedTo?: string;
   unauthorizedRedirectTo?: string;
@@ -32,6 +34,12 @@ export interface AuthMiddlewareOptions {
   resolveSession?: (
     request: NextRequest,
   ) => Promise<{ userId: string | null; role: UserRole | null }>;
+}
+
+export interface UnauthenticatedRedirectRule {
+  prefix: string;
+  redirectTo: string;
+  preserveNext?: boolean;
 }
 
 const DEFAULT_AUTH_ROUTES = ["/login", "/register"] as const;
@@ -66,6 +74,30 @@ function buildRedirectUrl(
     url.searchParams.set("next", next);
   }
   return url;
+}
+
+function findUnauthenticatedRedirectRule(
+  pathname: string,
+  rules: UnauthenticatedRedirectRule[],
+) {
+  return rules.find((rule) => matchesProtectedPrefix(pathname, rule.prefix));
+}
+
+function buildUnauthenticatedRedirectUrl(
+  request: NextRequest,
+  loginPath: string,
+  rules: UnauthenticatedRedirectRule[],
+) {
+  const rule = findUnauthenticatedRedirectRule(request.nextUrl.pathname, rules);
+  const redirectPath = rule?.redirectTo ?? loginPath;
+  const shouldPreserveNext = rule?.preserveNext ?? true;
+  const next = shouldPreserveNext
+    ? safeNextParam(
+        `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+      )
+    : null;
+
+  return buildRedirectUrl(request, redirectPath, next);
 }
 
 function logMissingSupabaseConfig(
@@ -109,6 +141,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const publicRoutes = options.publicRoutes ?? [];
   const authRoutes = options.authRoutes ?? [...DEFAULT_AUTH_ROUTES];
   const protectedRoutePrefixes = options.protectedRoutePrefixes ?? ["/"];
+  const unauthenticatedRedirects = options.unauthenticatedRedirects ?? [];
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
   const allowedRoles = options.allowedRoles;
@@ -133,11 +166,16 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     if (!url || !key) {
       if (requiresAuthentication) {
         logMissingSupabaseConfig(pathname, config);
-        const next = safeNextParam(
-          `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+        const redirectUrl = buildUnauthenticatedRedirectUrl(
+          request,
+          loginPath,
+          unauthenticatedRedirects,
         );
-        const redirectUrl = buildRedirectUrl(request, loginPath, next);
-        redirectUrl.searchParams.set("error", "auth_misconfigured");
+        if (
+          !findUnauthenticatedRedirectRule(pathname, unauthenticatedRedirects)
+        ) {
+          redirectUrl.searchParams.set("error", "auth_misconfigured");
+        }
         return NextResponse.redirect(redirectUrl);
       }
 
@@ -180,40 +218,39 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     } = await supabase.auth.getUser();
     let userId = user?.id ?? null;
 
-    // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
-    // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`).
-    // Proxy may not see `E2E_AUTH_BYPASS`; also allow outside production so
-    // local `next dev` can mirror tests that use surface cookies.
-    if (
-      !userId &&
-      (isE2EAuthBypassEnabled() || process.env.NODE_ENV !== "production") &&
-      isProtectedRoute(pathname, protectedRoutePrefixes)
-    ) {
+    const isProtectedPath = isProtectedRoute(pathname, protectedRoutePrefixes);
+    const e2eAuthBypassEnabled = isE2EAuthBypassEnabled();
+
+    // Bind the bypass to datasource identity, not NODE_ENV: when the bypass flag
+    // is on, refuse to honor an E2E cookie unless the configured Supabase project
+    // is allowlisted (throws before serving a bypassed request).
+    if (!userId && e2eAuthBypassEnabled && isProtectedPath) {
+      assertSupabaseDatasourceAllowedForE2EBypass(url);
+
+      // Playwright + demo-account set per-app `asym_e2e_auth_*` cookies while
+      // Supabase has no user (see `E2E_AUTH_COOKIE_NAMES`). Honor both surface
+      // cookies and the legacy cookie only when the explicit bypass is enabled.
       const e2eCookieName = getE2EAuthCookieNameForProxyHost(
         request.headers.get("host"),
       );
       const rawCookie = e2eCookieName
         ? request.cookies.get(e2eCookieName)?.value
         : undefined;
-      const e2eSession = parseE2EAuthCookieValue(rawCookie);
+      const e2eSession = await parseE2EAuthCookieValue(rawCookie);
       if (e2eSession && isRoleAllowedForApp(e2eSession.role, allowedRoles)) {
         userId = e2eSession.userId;
       }
-    }
 
-    if (
-      !userId &&
-      isE2EAuthBypassEnabled() &&
-      isProtectedRoute(pathname, protectedRoutePrefixes)
-    ) {
-      const legacySession = parseE2EAuthCookieValue(
-        request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
-      );
-      if (
-        legacySession &&
-        isRoleAllowedForApp(legacySession.role, allowedRoles)
-      ) {
-        userId = legacySession.userId;
+      if (!userId) {
+        const legacySession = await parseE2EAuthCookieValue(
+          request.cookies.get(E2E_AUTH_COOKIE_NAME)?.value,
+        );
+        if (
+          legacySession &&
+          isRoleAllowedForApp(legacySession.role, allowedRoles)
+        ) {
+          userId = legacySession.userId;
+        }
       }
     }
 
@@ -225,11 +262,14 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
       return supabaseResponse;
     }
 
-    if (isProtectedRoute(pathname, protectedRoutePrefixes) && !userId) {
-      const next = safeNextParam(
-        `${request.nextUrl.pathname}${request.nextUrl.search || ""}`,
+    if (isProtectedPath && !userId) {
+      return NextResponse.redirect(
+        buildUnauthenticatedRedirectUrl(
+          request,
+          loginPath,
+          unauthenticatedRedirects,
+        ),
       );
-      return NextResponse.redirect(buildRedirectUrl(request, loginPath, next));
     }
 
     return supabaseResponse;

@@ -2,10 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import {
   MISSIONARY_SETTINGS_HEADER_VT_NAME,
-  MISSIONARY_SHELL_AVATAR_VT_NAME,
   crmRecordAvatarTransitionName,
   crmRecordTitleTransitionName,
-  workerAvatarTransitionName,
   workerHeroImageTransitionName,
   workerTitleTransitionName,
 } from "../../../../packages/lib/view-transitions/names";
@@ -13,7 +11,6 @@ import {
 describe("view-transitions/names", () => {
   it("builds stable worker transition names from ids", () => {
     expect(workerHeroImageTransitionName("w-1")).toBe("worker-hero:w-1");
-    expect(workerAvatarTransitionName("w-1")).toBe("worker-avatar:w-1");
     expect(workerTitleTransitionName("w-1")).toBe("worker-title:w-1");
   });
 
@@ -24,8 +21,7 @@ describe("view-transitions/names", () => {
     );
   });
 
-  it("exposes fixed shell/settings name constants", () => {
-    expect(MISSIONARY_SHELL_AVATAR_VT_NAME).toBe("missionary-shell-avatar");
+  it("exposes fixed settings name constants", () => {
     expect(MISSIONARY_SETTINGS_HEADER_VT_NAME).toBe(
       "missionary-settings-header",
     );

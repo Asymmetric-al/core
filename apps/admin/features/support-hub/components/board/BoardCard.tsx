@@ -75,7 +75,7 @@ export function BoardCard({
       data-conversation-id={conversation.id}
       className={cn(
         "group rounded-2xl border bg-white shadow-sm transition-shadow",
-        "border-zinc-100 hover:shadow-md focus-within:shadow-md",
+        "border-zinc-100 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md focus-within:shadow-md",
         isFirstReplyPastDue && "border-l-2 border-l-rose-300",
         isEscalated && "ring-1 ring-rose-200",
         isSelected && "ring-1 ring-zinc-900",

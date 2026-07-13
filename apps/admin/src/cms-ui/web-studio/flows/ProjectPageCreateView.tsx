@@ -12,8 +12,6 @@ import {
 import { useAuth, useConfig } from "@payloadcms/ui";
 import { useForm } from "@tanstack/react-form";
 import { useQuery } from "@tanstack/react-query";
-import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
 import { formatAdminURL } from "payload/shared";
 import { Suspense, useMemo, useState } from "react";
 
@@ -23,6 +21,7 @@ import {
   buildTenantsQuery,
   isSuperAdminUser,
 } from "./tenant-picker";
+import { Link, useRouter, useSearchParams } from "../routing";
 import { buildWebStudioCreateFromTemplateUrl } from "./web-studio-create-api";
 import { StudioLayout } from "../shell/studio-layout";
 
@@ -191,8 +190,13 @@ function ProjectPageCreateViewContent() {
               <div className="flex flex-col gap-2">
                 <Label>Fund</Label>
                 <Select
-                  value={field.state.value || undefined}
-                  onValueChange={(v) => field.handleChange(v)}
+                  value={field.state.value || null}
+                  onValueChange={(v) => {
+                    if (v === null) {
+                      return;
+                    }
+                    field.handleChange(v);
+                  }}
                   disabled={fundsQuery.isPending || fundsQuery.isError}
                 >
                   <SelectTrigger>

@@ -17,6 +17,11 @@ These repo-owned sections are intentionally kept on top of the vendored
 components.build skill. If upstream refreshes replace this file, reconcile this
 overlay before running `bun run skills:sync`.
 
+**Base UI only:** shared primitives come from `@base-ui/react` via the shadcn
+`base-maia` style in `packages/ui`. Where the vendored spec references Radix
+or `asChild`, use Base UI's `render` prop instead and never add
+`radix-ui`/`@radix-ui/*`. See `docs/ai/rules/frontend.md`.
+
 ### Triggers
 
 - Creating, reviewing, or refactoring reusable React components, component APIs, slots, or composition patterns.
@@ -52,24 +57,24 @@ Reference these guidelines when:
 
 ## Rule Categories by Priority
 
-| Priority | Category        | Focus                            | Prefix            |
-| -------- | --------------- | -------------------------------- | ----------------- |
-| 1        | Overview        | Specification scope and goals    | `overview`        |
-| 2        | Principles      | Core design philosophy           | `principles`      |
-| 3        | Definitions     | Common terminology               | `definitions`     |
-| 4        | Composition     | Breaking down complex components | `composition`     |
-| 5        | Accessibility   | Keyboard, screen readers, ARIA   | `accessibility`   |
-| 6        | State           | Controlled/uncontrolled patterns | `state`           |
-| 7        | Types           | TypeScript props and interfaces  | `types`           |
-| 8        | Polymorphism    | Element switching with `as` prop | `polymorphism`    |
-| 9        | As-Child        | Radix Slot composition pattern   | `as-child`        |
-| 10       | Data Attributes | `data-state` and `data-slot`     | `data-attributes` |
-| 11       | Styling         | Tailwind CSS, cn utility, CVA    | `styling`         |
-| 12       | Design Tokens   | CSS variables and theming        | `design-tokens`   |
-| 13       | Documentation   | Component documentation          | `documentation`   |
-| 14       | Registry        | Component registries             | `registry`        |
-| 15       | NPM             | Publishing to npm                | `npm`             |
-| 16       | Marketplaces    | Component marketplaces           | `marketplaces`    |
+| Priority | Category        | Focus                                          | Prefix            |
+| -------- | --------------- | ---------------------------------------------- | ----------------- |
+| 1        | Overview        | Specification scope and goals                  | `overview`        |
+| 2        | Principles      | Core design philosophy                         | `principles`      |
+| 3        | Definitions     | Common terminology                             | `definitions`     |
+| 4        | Composition     | Breaking down complex components               | `composition`     |
+| 5        | Accessibility   | Keyboard, screen readers, ARIA                 | `accessibility`   |
+| 6        | State           | Controlled/uncontrolled patterns               | `state`           |
+| 7        | Types           | TypeScript props and interfaces                | `types`           |
+| 8        | Polymorphism    | Element switching with `as` prop               | `polymorphism`    |
+| 9        | As-Child        | Slot composition (this repo: Base UI `render`) | `as-child`        |
+| 10       | Data Attributes | `data-state` and `data-slot`                   | `data-attributes` |
+| 11       | Styling         | Tailwind CSS, cn utility, CVA                  | `styling`         |
+| 12       | Design Tokens   | CSS variables and theming                      | `design-tokens`   |
+| 13       | Documentation   | Component documentation                        | `documentation`   |
+| 14       | Registry        | Component registries                           | `registry`        |
+| 15       | NPM             | Publishing to npm                              | `npm`             |
+| 16       | Marketplaces    | Component marketplaces                         | `marketplaces`    |
 
 ## Quick Reference
 
@@ -122,7 +127,7 @@ Reference these guidelines when:
 
 ### 9. As-Child
 
-- `as-child-slot` - Radix Slot for prop merging
+- `as-child-slot` - Slot-style prop merging (in this repo use Base UI's `render` prop)
 - `as-child-composition` - Compose with child components
 
 ### 10. Data Attributes
@@ -132,7 +137,7 @@ Reference these guidelines when:
 
 ### 11. Styling
 
-- `styling-cn-utility` - Combine clsx and tailwind-merge
+- `styling-cn-utility` - Use the shared `cn()` utility backed by cnfast
 - `styling-order` - Base -> Variants -> Conditionals -> User overrides
 - `styling-cva` - Class Variance Authority for variants
 - `styling-css-variables` - Dynamic values with CSS variables
@@ -190,7 +195,7 @@ For the complete guide with all rules expanded: `AGENTS.md`
 4. **Extend HTML Attributes** - Always extend native element props
 5. **Export Types** - Make prop types available to consumers
 6. **Support Both State Patterns** - Controlled and uncontrolled
-7. **Intelligent Class Merging** - Use `cn()` utility with tailwind-merge
+7. **Intelligent Class Merging** - Use `cn()` utility backed by cnfast
 
 ## Authors
 

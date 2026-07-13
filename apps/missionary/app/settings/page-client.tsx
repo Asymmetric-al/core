@@ -2,7 +2,8 @@
 
 import { siteConfig } from "@asym/config/site-client";
 import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { PageHeader } from "@asym/ui/components/page-header";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -13,6 +14,7 @@ import {
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Switch } from "@asym/ui/components/shadcn/switch";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Mail,
   Gift,
@@ -29,8 +31,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import * as React from "react";
-
-import { PageHeader } from "@/components/page-header";
 
 interface NotificationSetting {
   id: string;
@@ -137,7 +137,7 @@ function NotificationRow({
             onCheckedChange={(checked) =>
               onChange(setting.id, "inApp", checked)
             }
-            className="data-[state=checked]:bg-zinc-900"
+            className="data-checked:bg-zinc-900"
           />
         </div>
         <div className="flex flex-col items-center gap-2">
@@ -149,7 +149,7 @@ function NotificationRow({
             onCheckedChange={(checked) =>
               onChange(setting.id, "email", checked)
             }
-            className="data-[state=checked]:bg-zinc-900"
+            className="data-checked:bg-zinc-900"
           />
         </div>
         <div className="flex flex-col items-center gap-2">
@@ -159,7 +159,7 @@ function NotificationRow({
           <Switch
             checked={setting.sms}
             onCheckedChange={(checked) => onChange(setting.id, "sms", checked)}
-            className="data-[state=checked]:bg-zinc-900"
+            className="data-checked:bg-zinc-900"
           />
         </div>
       </div>
@@ -244,7 +244,7 @@ export default function SettingsPage() {
               <div className="pt-4">
                 <Button
                   variant="outline"
-                  className="h-11 rounded-2xl border-zinc-200 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-all"
+                  className="h-11 rounded-2xl border-zinc-200 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                 >
                   <ShieldCheck className="mr-2 size-4" />
                   Update Password
@@ -294,25 +294,23 @@ export default function SettingsPage() {
                   Access your public ministry home page and donor portal.
                 </p>
               </div>
-              <Button
-                variant="outline"
-                className="w-full h-11 rounded-2xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group"
-                asChild
+              <a
+                href={siteConfig.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={cn(
+                  buttonVariants({ variant: "outline" }),
+                  "w-full h-11 rounded-2xl border-zinc-200 text-[10px] font-black uppercase tracking-widest text-zinc-900 group",
+                )}
               >
-                <a
-                  href={siteConfig.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  Visit Website
-                  <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                </a>
-              </Button>
+                Visit Website
+                <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
             </CardContent>
           </Card>
 
           <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-[2rem] overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-700">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
               <Layout className="size-32" />
             </div>
             <CardHeader className="pt-8 px-8 relative z-10">
@@ -324,7 +322,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8 pt-2 space-y-4 relative z-10">
-              <div className="p-5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-all">
+              <div className="p-5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-[color,background-color,border-color,box-shadow,transform,opacity]">
                 <div className="flex items-center gap-4">
                   <div className="size-10 rounded-xl bg-white flex items-center justify-center">
                     <Mail className="size-5 text-zinc-900" />
@@ -339,7 +337,7 @@ export default function SettingsPage() {
                 <ChevronRight className="size-4 text-zinc-600 group-hover:text-white transition-colors" />
               </div>
 
-              <div className="p-5 bg-white/5 rounded-2xl border border-dashed border-white/20 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-all">
+              <div className="p-5 bg-white/5 rounded-2xl border border-dashed border-white/20 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-[color,background-color,border-color,box-shadow,transform,opacity]">
                 <div className="flex items-center gap-4 opacity-50">
                   <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center">
                     <Layout className="size-5 text-white" />
@@ -390,7 +388,7 @@ export default function SettingsPage() {
                     Access advanced API tools
                   </p>
                 </div>
-                <Switch className="data-[state=checked]:bg-zinc-900" />
+                <Switch className="data-checked:bg-zinc-900" />
               </div>
               <div className="flex items-center justify-between">
                 <div className="space-y-0.5">
@@ -401,10 +399,7 @@ export default function SettingsPage() {
                     Try new dashboard widgets
                   </p>
                 </div>
-                <Switch
-                  defaultChecked
-                  className="data-[state=checked]:bg-zinc-900"
-                />
+                <Switch defaultChecked className="data-checked:bg-zinc-900" />
               </div>
             </CardContent>
           </Card>

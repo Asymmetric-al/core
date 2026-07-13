@@ -23,6 +23,14 @@ let fetchPublishedCmsPageResult: (
   slugSegments: string[],
   hostOverride?: string,
 ) => Promise<unknown>;
+let fetchPublishedCmsUpdates: (
+  limit?: number,
+  hostOverride?: string,
+) => Promise<Array<Record<string, unknown>>>;
+let fetchPublishedCmsUpdatesResult: (
+  limit?: number,
+  hostOverride?: string,
+) => Promise<unknown>;
 let fetchPublishedMissionaryGivingPageResult: (
   missionaryId: string,
   hostOverride?: string,
@@ -45,6 +53,8 @@ beforeAll(async () => {
 
   buildPublicCmsPagePath = donorModule.buildPublicCmsPagePath;
   fetchPublishedCmsPageResult = donorModule.fetchPublishedCmsPageResult;
+  fetchPublishedCmsUpdates = donorModule.fetchPublishedCmsUpdates;
+  fetchPublishedCmsUpdatesResult = donorModule.fetchPublishedCmsUpdatesResult;
   fetchPublishedMissionaryGivingPageResult =
     donorModule.fetchPublishedMissionaryGivingPageResult;
   fetchPublishedProjectPageResult = donorModule.fetchPublishedProjectPageResult;
@@ -312,6 +322,94 @@ describe("donor CMS content helpers", () => {
       statusCode: 503,
       error: "CMS unavailable",
     });
+  });
+
+  it("classifies invalid published page payloads as CMS response failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ page: { id: "p1" } }), {
+          status: 200,
+        }),
+      ),
+    );
+
+    await expect(
+      fetchPublishedCmsPageResult(["home"], "alpha.example.org"),
+    ).resolves.toEqual({
+      status: "unavailable",
+      statusCode: 502,
+      error: "Invalid CMS response",
+    });
+  });
+
+  it("returns only record-shaped updates from the public CMS updates payload", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          updates: [
+            { id: "u1", title: "Published update" },
+            null,
+            "invalid",
+            ["also invalid"],
+          ],
+        }),
+        { status: 200 },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      fetchPublishedCmsUpdates(3, "Alpha.Example.org:443"),
+    ).resolves.toEqual([{ id: "u1", title: "Published update" }]);
+    expect(fetchMock).toHaveBeenCalledWith(
+      "http://127.0.0.1:3030/api/cms/public/updates?limit=3",
+      expect.objectContaining({
+        headers: { "x-forwarded-host": "Alpha.Example.org:443" },
+        next: {
+          revalidate: 60,
+          tags: ["public-cms", "public-cms:host:alpha.example.org"],
+        },
+      }),
+    );
+  });
+
+  it("returns an empty updates array for invalid public CMS updates payloads", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ updates: "not-array" }), {
+          status: 200,
+        }),
+      ),
+    );
+
+    await expect(
+      fetchPublishedCmsUpdates(5, "alpha.example.org"),
+    ).resolves.toEqual([]);
+  });
+
+  it("classifies public CMS update failures as structured CMS response failures", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(
+        new Response(JSON.stringify({ error: "Tenant not found" }), {
+          status: 404,
+        }),
+      ),
+    );
+
+    await expect(
+      fetchPublishedCmsUpdatesResult(5, "alpha.example.org"),
+    ).resolves.toEqual({
+      status: "unavailable",
+      statusCode: 404,
+      error: "Tenant not found",
+    });
+
+    await expect(
+      fetchPublishedCmsUpdates(5, "alpha.example.org"),
+    ).resolves.toEqual([]);
   });
 
   it("keeps route handling distinct for missing pages and CMS outages", () => {
