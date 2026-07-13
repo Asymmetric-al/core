@@ -11,6 +11,9 @@ const repoRoot = path.resolve(path.dirname(scriptPath), "..", "..");
 export const missionControlCloudEnvDefaults = {
   ASYM_USE_CI_ENV_DEFAULTS: "1",
   SKIP_ENV_VALIDATION: "1",
+  // No E2E_AUTH_SECRET / E2E_AUTH_ALLOWED_SUPABASE_REFS needed: the
+  // example.supabase.co placeholder is a non-confidential datasource, so the
+  // bypass auto-uses a built-in fallback key and is implicitly allowlisted.
   E2E_AUTH_BYPASS: "true",
   NEXT_PUBLIC_SUPABASE_URL: "https://example.supabase.co",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "example-anon-key",

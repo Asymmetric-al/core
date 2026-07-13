@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
-import { MISSIONARY_SHELL_AVATAR_VT_NAME } from "@asym/lib/view-transitions";
 import {
   Avatar,
   AvatarFallback,
@@ -22,7 +21,6 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@asym/ui/components/shadcn/tooltip";
-import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
 import {
   Camera,
@@ -229,14 +227,14 @@ export function AvatarUploadArea({
       whileTap={{ scale: 0.97 }}
       transition={springTransition}
     >
-      <SharedNamedViewTransition name={MISSIONARY_SHELL_AVATAR_VT_NAME}>
-        <Avatar className="size-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
-          <AvatarImage src={avatarUrl} />
-          <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
-            {initials || "U"}
-          </AvatarFallback>
-        </Avatar>
-      </SharedNamedViewTransition>
+      {/* No shared VT name: the persistent sidebar avatar was the only other
+          surface and can never form a legal unmount/mount pair. */}
+      <Avatar className="size-24 sm:h-28 sm:w-28 border-4 border-white shadow-lg">
+        <AvatarImage src={avatarUrl} />
+        <AvatarFallback className="bg-zinc-900 text-lg sm:text-xl font-bold text-white uppercase">
+          {initials || "U"}
+        </AvatarFallback>
+      </Avatar>
 
       <motion.div
         className="absolute inset-0 rounded-full bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center"
@@ -265,7 +263,7 @@ export function CoverUploadArea({ coverUrl }: { coverUrl: string }) {
   return (
     <motion.div
       className={cn(
-        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-all relative overflow-hidden cursor-pointer",
+        "w-full aspect-[3/1] rounded-xl sm:rounded-2xl border-2 border-dashed flex flex-col items-center justify-center transition-colors relative overflow-hidden cursor-pointer",
         coverUrl
           ? "border-transparent"
           : "border-zinc-200 bg-zinc-50 hover:bg-zinc-100 hover:border-zinc-300",
@@ -508,38 +506,36 @@ export function ProfileHeaderActions({
       <Tooltip>
         <TooltipTrigger
           render={
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleCopyLink}
-                className="h-9 px-3 text-xs font-medium"
-              >
-                <AnimatePresence mode="wait">
-                  {copiedLink ? (
-                    <motion.div
-                      key="check"
-                      initial={{ scale: 0.95, rotate: -90, opacity: 0 }}
-                      animate={{ scale: 1, rotate: 0 }}
-                      exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
-                      transition={springTransition}
-                    >
-                      <Check className="size-4 text-emerald-600" />
-                    </motion.div>
-                  ) : (
-                    <motion.div
-                      key="copy"
-                      initial={{ scale: 0.95, opacity: 0 }}
-                      animate={{ scale: 1 }}
-                      exit={{ scale: 0.95, opacity: 0 }}
-                      transition={springTransition}
-                    >
-                      <Copy className="size-4" />
-                    </motion.div>
-                  )}
-                </AnimatePresence>
-              </Button>
-            </motion.div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCopyLink}
+              className="h-9 px-3 text-xs font-medium"
+            >
+              <AnimatePresence mode="wait">
+                {copiedLink ? (
+                  <motion.div
+                    key="check"
+                    initial={{ scale: 0.95, rotate: -90, opacity: 0 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    exit={{ scale: 0.95, rotate: 90, opacity: 0 }}
+                    transition={springTransition}
+                  >
+                    <Check className="size-4 text-emerald-600" />
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    key="copy"
+                    initial={{ scale: 0.95, opacity: 0 }}
+                    animate={{ scale: 1 }}
+                    exit={{ scale: 0.95, opacity: 0 }}
+                    transition={springTransition}
+                  >
+                    <Copy className="size-4" />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </Button>
           }
         />
         <TooltipContent>Copy profile link</TooltipContent>
@@ -548,22 +544,20 @@ export function ProfileHeaderActions({
       <Tooltip>
         <TooltipTrigger
           render={
-            <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-              <a
-                href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "sm" }),
-                  "h-9 px-3 text-xs font-medium",
-                )}
-              >
-                <Eye className="mr-1.5 size-4" />
-                <span className="hidden sm:inline">View Public Page</span>
-                <span className="sm:hidden">View</span>
-                <ExternalLink className="ml-1 size-3 opacity-50" />
-              </a>
-            </motion.div>
+            <a
+              href={`/workers/${profile.firstName?.toLowerCase()}-${profile.lastName?.toLowerCase()}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "sm" }),
+                "h-9 px-3 text-xs font-medium",
+              )}
+            >
+              <Eye className="mr-1.5 size-4" />
+              <span className="hidden sm:inline">View Public Page</span>
+              <span className="sm:hidden">View</span>
+              <ExternalLink className="ml-1 size-3 opacity-50" />
+            </a>
           }
         />
         <TooltipContent>View your public profile</TooltipContent>

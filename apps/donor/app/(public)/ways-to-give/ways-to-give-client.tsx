@@ -34,7 +34,7 @@ export function WaysToGiveClient() {
 
       <section className="py-24 container mx-auto px-6 -mt-24 relative z-20">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          <Card className="shadow-2xl shadow-zinc-950/20 border-none hover:-translate-y-2 transition-transform duration-300 rounded-3xl overflow-hidden bg-white relative group">
+          <Card className="shadow-2xl shadow-zinc-950/20 border-none [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-2 transition-transform duration-300 rounded-3xl overflow-hidden bg-white relative group">
             <div className="absolute top-0 left-0 w-full h-1.5 bg-blue-600" />
             <CardContent className="p-10 space-y-6">
               <div className="size-14 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-2 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-300">
@@ -61,7 +61,7 @@ export function WaysToGiveClient() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-xl shadow-zinc-200/50 border-none hover:-translate-y-2 transition-transform duration-300 rounded-3xl overflow-hidden bg-white group">
+          <Card className="shadow-xl shadow-zinc-200/50 border-none [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-2 transition-transform duration-300 rounded-3xl overflow-hidden bg-white group">
             <CardContent className="p-10 space-y-6">
               <div className="size-14 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-2 group-hover:bg-emerald-600 group-hover:text-white transition-colors duration-300">
                 <TrendingUp className="size-7" />
@@ -84,7 +84,7 @@ export function WaysToGiveClient() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-xl shadow-zinc-200/50 border-none hover:-translate-y-2 transition-transform duration-300 rounded-3xl overflow-hidden bg-white group">
+          <Card className="shadow-xl shadow-zinc-200/50 border-none [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-2 transition-transform duration-300 rounded-3xl overflow-hidden bg-white group">
             <CardContent className="p-10 space-y-6">
               <div className="size-14 bg-purple-50 rounded-2xl flex items-center justify-center text-purple-600 mb-2 group-hover:bg-purple-600 group-hover:text-white transition-colors duration-300">
                 <Landmark className="size-7" />
@@ -107,7 +107,7 @@ export function WaysToGiveClient() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg shadow-zinc-200/50 border border-zinc-100 hover:border-zinc-300 transition-all rounded-3xl">
+          <Card className="shadow-lg shadow-zinc-200/50 border border-zinc-100 hover:border-zinc-300 transition-colors rounded-3xl">
             <CardContent className="p-8 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="size-12 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-600">
@@ -124,7 +124,7 @@ export function WaysToGiveClient() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg shadow-zinc-200/50 border border-zinc-100 hover:border-zinc-300 transition-all rounded-3xl">
+          <Card className="shadow-lg shadow-zinc-200/50 border border-zinc-100 hover:border-zinc-300 transition-colors rounded-3xl">
             <CardContent className="p-8 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="size-12 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-600">
@@ -141,7 +141,7 @@ export function WaysToGiveClient() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-lg shadow-zinc-200/50 border border-zinc-100 hover:border-zinc-300 transition-all rounded-3xl">
+          <Card className="shadow-lg shadow-zinc-200/50 border border-zinc-100 hover:border-zinc-300 transition-colors rounded-3xl">
             <CardContent className="p-8 space-y-4">
               <div className="flex items-center gap-4">
                 <div className="size-12 bg-zinc-100 rounded-xl flex items-center justify-center text-zinc-600">

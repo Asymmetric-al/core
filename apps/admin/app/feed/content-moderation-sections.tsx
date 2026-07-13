@@ -1026,7 +1026,7 @@ function RecentActivityPanel() {
           animate={{ opacity: 1, x: 0 }}
           transition={{ ...smoothTransition, delay: idx * 0.08 }}
           whileHover={{ x: 4 }}
-          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-all cursor-pointer"
+          className="flex items-center gap-3 p-2.5 rounded-xl hover:bg-muted/50 transition-[color,background-color,border-color,box-shadow,transform,opacity] cursor-pointer"
         >
           <motion.div
             whileHover={{ scale: 1.1, rotate: 5 }}

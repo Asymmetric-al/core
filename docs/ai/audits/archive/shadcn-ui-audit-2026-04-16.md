@@ -1,7 +1,7 @@
+# shadcn/ui Full Turbo-repo Audit — 2026-04-16
+
 > **ARCHIVED (2026-06):** Historical audit from the Radix era. The UI layer
 > is now Base UI only — see docs/ai/audits/base-ui-only-migration.md.
-
-# shadcn/ui Full Turbo-repo Audit — 2026-04-16
 
 > Superseded status: historical reference only. A 2026-04 follow-up audit found the current tree pinned to `base-maia`, `iconLibrary: lucide`, `baseColor: zinc`, and `bun run verify:shadcn-diff` reports no drift. Re-check the current working tree before applying any recommendations below.
 
@@ -76,7 +76,7 @@ These are correct-by-design and must be preserved by any refactor:
 3. **`new-york` style + Zinc palette** — the intentional "Maia soft + rounded" look is encoded as OKLCH tokens + `--radius: 1rem`.
 4. **Deep-import-first convention** (`import { Button } from "@asym/ui/components/shadcn/button"`) with a curated barrel at `@asym/ui/components/shadcn` — keeps tree-shaking clean. The deep-import pattern is used in hundreds of call-sites across all three apps.
 5. **Next.js config hygiene** — `transpilePackages: ["@asym/ui", …]`, `optimizePackageImports: ["@asym/ui", "lucide-react", "@radix-ui/react-icons"]` everywhere, and `cacheComponents: true` — all correct for Next.js 16 + Turbopack.
-6. **`cn` helper** (`packages/ui/lib/utils.ts`) is the canonical shadcn helper (clsx + tailwind-merge).
+6. **`cn` helper** (`packages/ui/lib/utils.ts`) is the canonical shadcn helper (cnfast-backed).
 7. **Reduced-motion base rule** in `styles/globals.css` and a robust **touch-target rule** for `pointer: coarse` — both exceed the default shadcn template.
 8. **Form system intentionally replaced** — the repo uses a custom `@tanstack/react-form` wrapper (`Asym*Field` + `useAsymForm`), now moved to `packages/ui/components/primitives/tanstack-form.tsx`. Upstream shadcn v4 officially documents TanStack Form as an alternative to `react-hook-form` (`content/docs/forms/tanstack-form.mdx`), so keeping this is aligned with current guidance.
 

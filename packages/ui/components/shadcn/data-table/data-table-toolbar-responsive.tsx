@@ -264,9 +264,12 @@ export function DataTableToolbarResponsive<TData>({
                     disabled={urlStatePending}
                     className="h-9 gap-2 rounded-xl"
                   >
-                    <Columns className="size-4" />
+                    <Columns data-icon="inline-start" />
                     <span className="hidden md:inline">Columns</span>
-                    <ChevronDown className="size-3.5 opacity-50" />
+                    <ChevronDown
+                      data-icon="inline-end"
+                      className="opacity-50"
+                    />
                   </Button>
                 }
               />
@@ -379,7 +382,7 @@ function MobileFiltersDrawer<TData>({
             className="h-9 gap-2 rounded-xl"
             disabled={urlStatePending}
           >
-            <SlidersHorizontal className="size-4" />
+            <SlidersHorizontal data-icon="inline-start" />
             <span>Filters</span>
             {activeFilterCount > 0 && (
               <Badge

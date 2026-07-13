@@ -1,5 +1,12 @@
 "use client";
 
+import {
+  formatPostRelativeTime,
+  postAuthorName,
+  postImages,
+  postTitle,
+  useDonorFeedPosts,
+} from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import {
   Avatar,
@@ -34,9 +41,12 @@ import {
   Check,
   BookmarkCheck,
   CornerDownRight,
+  Loader2,
 } from "lucide-react";
 import Image from "next/image";
 import React, { useState, useMemo } from "react";
+
+import type { PostWithAuthor } from "@asym/database/types";
 
 // --- Types ---
 type ContentType = "Update" | "Prayer" | "Story" | "Video";
@@ -54,7 +64,7 @@ interface Comment {
 }
 
 interface Post {
-  id: number;
+  id: string | number;
   workerId: string;
   workerName: string;
   workerTitle: string;
@@ -73,133 +83,6 @@ interface Post {
   prayed?: boolean;
   saved?: boolean;
 }
-
-// --- Mock Data ---
-const MOCK_POSTS: Post[] = [
-  {
-    id: 1,
-    workerId: "w1",
-    workerName: "The Miller Family",
-    workerTitle: "Education & Development",
-    workerAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    location: "Chiang Mai, Thailand",
-    time: "2 hours ago",
-    readTime: "3 min read",
-    type: "Update",
-    title: "Clean Water Flowing in Northern Village",
-    content: `
-      <p>We are absolutely thrilled to announce that the new well in the northern village is fully operational! Over <strong>500 families</strong> now have access to clean, safe drinking water.</p>
-      <p>This changes everything for this community. No more 5-mile walks for water in the scorching heat. Children can attend school on time, and waterborne diseases will drop significantly.</p>
-      <blockquote>"Water is life. You have given us our future back." — Village Elder</blockquote>
-      <p>Thank you to everyone who donated to the <em>Water for Life</em> campaign. This victory belongs to you as much as it belongs to them.</p>
-    `,
-    images: [
-      "https://images.unsplash.com/photo-1509099836639-18ba1795216d?q=80&w=1931&auto=format&fit=crop",
-    ],
-    likes: 42,
-    prayers: 12,
-    comments: [
-      {
-        id: "c1",
-        author: "Jane Doe",
-        avatar: "",
-        text: "This is incredible news! So happy for them. 🙌",
-        time: "1h ago",
-        likes: 4,
-        replies: [
-          {
-            id: "r1",
-            author: "The Miller Family",
-            authorTitle: "Worker",
-            avatar:
-              "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-            text: "Thank you Jane! Your support made this possible.",
-            time: "45m ago",
-            likes: 1,
-          },
-        ],
-      },
-      {
-        id: "c2",
-        author: "Robert Fox",
-        authorTitle: "Monthly Partner",
-        avatar:
-          "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&auto=format&fit=crop&q=60",
-        text: "Praise God! Worth every penny.",
-        time: "30m ago",
-        likes: 2,
-        replies: [],
-      },
-    ],
-    saved: true,
-  },
-  {
-    id: 2,
-    workerId: "w2",
-    workerName: "Dr. Sarah Smith",
-    workerTitle: "Medical Mission",
-    workerAvatar:
-      "https://images.unsplash.com/photo-1576765608535-5f04d1e3f289?fit=facearea&facepad=2&w=256&h=256&q=80",
-    location: "Nairobi, Kenya",
-    time: "Yesterday",
-    readTime: "1 min read",
-    type: "Update",
-    title: "Urgent: Customs Delay",
-    content: `
-      <p>Please remember our medical supply shipment in your thoughts. It has been held up at customs for 3 days now.</p>
-      <p>We are running low on essential antibiotics and insulin. We have provided all requested documentation, but the process is stalled. We are trusting for a breakthrough tomorrow morning.</p>
-    `,
-    likes: 15,
-    prayers: 89,
-    comments: [],
-    prayed: true,
-  },
-  {
-    id: 3,
-    workerId: "w1",
-    workerName: "The Miller Family",
-    workerTitle: "Education & Development",
-    workerAvatar:
-      "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?fit=facearea&facepad=2&w=256&h=256&q=80",
-    location: "Chiang Mai, Thailand",
-    time: "3 days ago",
-    readTime: "4 min read",
-    type: "Story",
-    title: "Dreaming Big: Meet Aroon",
-    content: `
-      <p>Meet Aroon. He's 8 years old and just attended his first English class today. Before our center opened, he spent his days collecting recyclables to help his family.</p>
-      <p>He told us his dream is to become a <strong>pilot</strong> so he can see the world. When asked why, he said:</p>
-      <p><em>"I want to see if the clouds look different in other places."</em></p>
-      <p>With your support, we're helping kids like Aroon stay in school and dream big dreams. We provided him with a uniform, books, and a hot meal today.</p>
-    `,
-    images: [
-      "https://images.unsplash.com/photo-1488521787991-ed7bbaae773c?w=1200&auto=format&fit=crop&q=80",
-    ],
-    likes: 124,
-    prayers: 5,
-    comments: [
-      {
-        id: "c2",
-        author: "John Doe",
-        avatar: "",
-        text: "Go Aroon! We are cheering for you.",
-        time: "2d ago",
-        likes: 1,
-        replies: [],
-      },
-      {
-        id: "c3",
-        author: "Mary Johnson",
-        avatar: "",
-        text: "That smile says it all.",
-        time: "2d ago",
-        likes: 0,
-        replies: [],
-      },
-    ],
-  },
-];
 
 // --- Components ---
 
@@ -222,7 +105,7 @@ const FeedFilter = ({
             className={cn(
               "px-5 py-2 rounded-full text-xs font-semibold uppercase tracking-widest transition-[background-color,border-color,color,box-shadow,transform] duration-200 border select-none whitespace-nowrap flex items-center gap-2",
               current === type
-                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg hover:shadow-xl transform scale-[1.02]"
+                ? "bg-zinc-900 text-white border-zinc-900 shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl scale-[1.02]"
                 : "bg-white text-zinc-500 border-zinc-200/60 hover:bg-zinc-50 hover:border-zinc-300 hover:text-zinc-900 shadow-sm",
             )}
           >
@@ -610,10 +493,10 @@ const CommentsSection = ({
 
 const PostCard: React.FC<{
   post: Post;
-  onLike: (id: number) => void;
-  onPray: (id: number) => void;
-  onSave: (id: number) => void;
-  onAddComment: (id: number, text: string, parentId?: string) => void;
+  onLike: (id: string | number) => void;
+  onPray: (id: string | number) => void;
+  onSave: (id: string | number) => void;
+  onAddComment: (id: string | number, text: string, parentId?: string) => void;
 }> = ({ post, onLike, onPray, onSave, onAddComment }) => {
   const [showComments, setShowComments] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -625,7 +508,7 @@ const PostCard: React.FC<{
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-50px" }}
       transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-      className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6 sm:p-8 overflow-hidden hover:shadow-md transition-shadow duration-300"
+      className="bg-white rounded-2xl border border-zinc-200 shadow-sm p-6 sm:p-8 overflow-hidden [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md transition-shadow duration-300"
     >
       {/* Meta Header */}
       <div className="flex items-center justify-between mb-6">
@@ -752,9 +635,57 @@ const PostCard: React.FC<{
   );
 };
 
+/** Map a server feed post (`PostWithAuthor`) into the feed's view shape. */
+function toFeedPost(post: PostWithAuthor): Post {
+  return {
+    id: post.id,
+    workerId: post.missionary_id,
+    workerName: postAuthorName(post),
+    workerTitle: "Field Partner",
+    workerAvatar: post.author.avatar_url ?? "",
+    location: "",
+    time: formatPostRelativeTime(post.created_at),
+    type: "Update",
+    title: postTitle(post),
+    content: post.content,
+    images: postImages(post),
+    likes: post.like_count,
+    prayers: post.prayer_count,
+    comments: [],
+    liked: post.user_liked ?? false,
+    prayed: post.user_prayed ?? false,
+    saved: false,
+  };
+}
+
 export default function DonorFeedPage() {
   const [filter, setFilter] = useState<FilterType>("All");
-  const [posts, setPosts] = useState<Post[]>(MOCK_POSTS);
+  const feedQuery = useDonorFeedPosts();
+
+  // The server feed is the immutable base snapshot; local like/pray/save/comment
+  // interactions are tracked as per-post overrides and merged during render.
+  // Deriving (rather than syncing into state via an effect) keeps a single source
+  // of truth and satisfies react-hooks/set-state-in-effect.
+  const basePosts = useMemo<Post[]>(
+    () => (feedQuery.data ?? []).map(toFeedPost),
+    [feedQuery.data],
+  );
+  const [overrides, setOverrides] = useState<
+    Record<string | number, Partial<Post>>
+  >({});
+  const posts = useMemo<Post[]>(
+    () =>
+      basePosts.map((p) =>
+        p.id in overrides ? { ...p, ...overrides[p.id] } : p,
+      ),
+    [basePosts, overrides],
+  );
+
+  // Resolve a post's current (base + override) value for computing the next override.
+  const currentPost = (id: string | number): Post | undefined => {
+    const base = basePosts.find((p) => p.id === id);
+    return base ? { ...base, ...overrides[id] } : undefined;
+  };
 
   // --- Filter Logic ---
   const filteredPosts = useMemo(() => {
@@ -764,41 +695,48 @@ export default function DonorFeedPage() {
   }, [posts, filter]);
 
   // --- Handlers ---
-  const handleLike = (id: number) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              likes: p.liked ? p.likes - 1 : p.likes + 1,
-              liked: !p.liked,
-            }
-          : p,
-      ),
-    );
+  const handleLike = (id: string | number) => {
+    const cur = currentPost(id);
+    if (!cur) return;
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        likes: cur.liked ? cur.likes - 1 : cur.likes + 1,
+        liked: !cur.liked,
+      },
+    }));
   };
 
-  const handlePray = (id: number) => {
-    setPosts((prev) =>
-      prev.map((p) =>
-        p.id === id
-          ? {
-              ...p,
-              prayers: p.prayed ? p.prayers - 1 : p.prayers + 1,
-              prayed: !p.prayed,
-            }
-          : p,
-      ),
-    );
+  const handlePray = (id: string | number) => {
+    const cur = currentPost(id);
+    if (!cur) return;
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: {
+        ...prev[id],
+        prayers: cur.prayed ? cur.prayers - 1 : cur.prayers + 1,
+        prayed: !cur.prayed,
+      },
+    }));
   };
 
-  const handleSave = (id: number) => {
-    setPosts((prev) =>
-      prev.map((p) => (p.id === id ? { ...p, saved: !p.saved } : p)),
-    );
+  const handleSave = (id: string | number) => {
+    const cur = currentPost(id);
+    if (!cur) return;
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], saved: !cur.saved },
+    }));
   };
 
-  const handleAddComment = (id: number, text: string, parentId?: string) => {
+  const handleAddComment = (
+    id: string | number,
+    text: string,
+    parentId?: string,
+  ) => {
+    const cur = currentPost(id);
+    if (!cur) return;
     const newComment: Comment = {
       id: `new_${Date.now()}`,
       author: "You",
@@ -809,26 +747,18 @@ export default function DonorFeedPage() {
       replies: [],
     };
 
-    setPosts((prev) =>
-      prev.map((p) => {
-        if (p.id === id) {
-          if (parentId) {
-            // Find parent and add reply
-            const updatedComments = p.comments.map((c) => {
-              if (c.id === parentId) {
-                return { ...c, replies: [...(c.replies || []), newComment] };
-              }
-              return c;
-            });
-            return { ...p, comments: updatedComments };
-          } else {
-            // Add root comment
-            return { ...p, comments: [...p.comments, newComment] };
-          }
-        }
-        return p;
-      }),
-    );
+    const updatedComments = parentId
+      ? cur.comments.map((c) =>
+          c.id === parentId
+            ? { ...c, replies: [...(c.replies || []), newComment] }
+            : c,
+        )
+      : [...cur.comments, newComment];
+
+    setOverrides((prev) => ({
+      ...prev,
+      [id]: { ...prev[id], comments: updatedComments },
+    }));
   };
 
   return (
@@ -849,42 +779,66 @@ export default function DonorFeedPage() {
 
       {/* Feed Stream */}
       <div className="space-y-6">
-        <AnimatePresence mode="popLayout">
-          {filteredPosts.map((post) => (
-            <PostCard
-              key={post.id}
-              post={post}
-              onLike={handleLike}
-              onPray={handlePray}
-              onSave={handleSave}
-              onAddComment={handleAddComment}
-            />
-          ))}
-        </AnimatePresence>
-
-        {filteredPosts.length === 0 && (
-          <div className="py-32 text-center">
-            <div className="inline-flex items-center justify-center size-20 rounded-full bg-zinc-50 text-zinc-200 mb-6">
-              <BookmarkCheck className="size-10" />
-            </div>
-            <h3 className="text-xl font-semibold text-zinc-900 mb-2 uppercase tracking-tighter">
-              No posts found
-            </h3>
-            <p className="text-zinc-400 max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
-              {filter === "Saved"
-                ? "You haven't bookmarked any updates yet. Tap the bookmark icon on any post to save it here."
-                : "Try changing the filter or check back later for new stories."}
+        {feedQuery.isLoading ? (
+          <div className="flex flex-col items-center justify-center py-32 gap-4">
+            <Loader2 className="size-8 text-muted-foreground animate-spin" />
+            <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
+              Loading updates…
             </p>
-            {filter === "Saved" && (
-              <Button
-                variant="link"
-                onClick={() => setFilter("All")}
-                className="mt-4 text-zinc-900 font-semibold uppercase tracking-widest text-[10px]"
-              >
-                Browse All Updates
-              </Button>
-            )}
           </div>
+        ) : feedQuery.error ? (
+          <div className="py-32 text-center">
+            <div className="inline-flex items-center justify-center size-20 rounded-full bg-destructive/10 text-destructive mb-6">
+              <Globe className="size-10" />
+            </div>
+            <h3 className="text-xl font-semibold text-foreground mb-2 uppercase tracking-tighter">
+              Couldn&apos;t load updates
+            </h3>
+            <p className="text-muted-foreground max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
+              Something went wrong reaching the field. Please check back in a
+              moment.
+            </p>
+          </div>
+        ) : (
+          <>
+            <AnimatePresence mode="popLayout">
+              {filteredPosts.map((post) => (
+                <PostCard
+                  key={post.id}
+                  post={post}
+                  onLike={handleLike}
+                  onPray={handlePray}
+                  onSave={handleSave}
+                  onAddComment={handleAddComment}
+                />
+              ))}
+            </AnimatePresence>
+
+            {filteredPosts.length === 0 && (
+              <div className="py-32 text-center">
+                <div className="inline-flex items-center justify-center size-20 rounded-full bg-zinc-50 dark:bg-muted text-zinc-200 dark:text-muted-foreground mb-6">
+                  <BookmarkCheck className="size-10" />
+                </div>
+                <h3 className="text-xl font-semibold text-zinc-900 dark:text-foreground mb-2 uppercase tracking-tighter">
+                  No posts found
+                </h3>
+                <p className="text-zinc-400 dark:text-muted-foreground max-w-xs mx-auto text-xs font-semibold uppercase tracking-widest">
+                  {filter === "Saved"
+                    ? "You haven't bookmarked any updates yet. Tap the bookmark icon on any post to save it here."
+                    : "Check back later for new stories from the partners you empower."}
+                </p>
+                {filter === "Saved" && (
+                  <Button
+                    variant="link"
+                    onClick={() => setFilter("All")}
+                    className="mt-4 text-zinc-900 dark:text-foreground font-semibold uppercase tracking-widest text-[10px]"
+                  >
+                    Browse All Updates
+                  </Button>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 

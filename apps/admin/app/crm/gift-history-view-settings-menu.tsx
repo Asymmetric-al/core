@@ -26,17 +26,24 @@ import type {
 
 /**
  * One CRM gift-history view settings surface (#272): columns, filters/sort,
- * and granular resets. The server preference record is authoritative;
- * toggles save optimistically through the preferences mutation.
+ * granular resets, and — for capability holders and delegated managers only
+ * (server-computed flag) — tenant-default management. The server preference
+ * record is authoritative; toggles save optimistically through the
+ * preferences mutation.
  */
 export function GiftHistoryViewSettingsMenu({
   settings,
+  canManageTenantDefaults,
   onPatch,
   onRequestReset,
+  onRequestSetTenantDefault,
 }: {
   settings: CrmGiftHistoryViewSettings;
+  /** Server-computed (#272); mirrors the tenant-default write gate exactly. */
+  canManageTenantDefaults: boolean;
   onPatch: (patch: ViewSettingsPatch) => void;
   onRequestReset: (scope: CrmViewSettingsScope) => void;
+  onRequestSetTenantDefault: () => void;
 }) {
   const sortValue = `${settings.filtersSort.sortField}:${settings.filtersSort.sortDirection}`;
 
@@ -178,6 +185,17 @@ export function GiftHistoryViewSettingsMenu({
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
+        {canManageTenantDefaults ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Tenant default
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onRequestSetTenantDefault}>
+              Set current settings as tenant default…
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

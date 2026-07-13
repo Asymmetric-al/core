@@ -229,7 +229,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           <Collapsible open={isSetupOpen} onOpenChange={setIsSetupOpen}>
             <CollapsibleTrigger
               render={
-                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-blue-50 border border-blue-200 text-blue-700 hover:bg-blue-100 transition-colors">
+                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10 transition-colors">
                   <div className="flex items-center gap-2">
                     <Settings className="size-4" />
                     <span className="text-sm font-medium">
@@ -245,10 +245,10 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
               }
             />
             <CollapsibleContent className="pt-2">
-              <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
+              <div className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                 {PDF_STUDIO_SETUP_INSTRUCTIONS.steps.map((step) => (
                   <div key={step.step} className="flex gap-3">
-                    <div className="flex-shrink-0 size-6 rounded-full bg-blue-100 text-blue-700 flex items-center justify-center text-xs font-bold">
+                    <div className="flex-shrink-0 size-6 rounded-full bg-primary/15 text-primary flex items-center justify-center text-xs font-bold">
                       {step.step}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -287,7 +287,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                           href={step.url}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 mt-1"
+                          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary/80 mt-1"
                         >
                           Open Unlayer Dashboard
                           <ExternalLink className="size-3" />
@@ -307,7 +307,7 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
             >
               <CollapsibleTrigger
                 render={
-                  <button className="flex items-center justify-between w-full p-3 rounded-lg bg-amber-50 border border-amber-200 text-amber-700 hover:bg-amber-100 transition-colors">
+                  <button className="flex items-center justify-between w-full p-3 rounded-lg bg-chart-4/10 border border-chart-4/30 text-chart-4 hover:bg-chart-4/15 transition-colors">
                     <div className="flex items-center gap-2">
                       <Crown className="size-4" />
                       <span className="text-sm font-medium">
@@ -323,10 +323,10 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
                 }
               />
               <CollapsibleContent className="pt-2">
-                <div className="space-y-3 p-3 rounded-lg bg-muted/50 border border-border">
+                <div className="flex flex-col gap-3 p-3 rounded-lg bg-muted/50 border border-border">
                   {PDF_STUDIO_SETUP_INSTRUCTIONS.whiteLabelSteps.map((step) => (
                     <div key={step.step} className="flex gap-3">
-                      <div className="flex-shrink-0 size-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-bold">
+                      <div className="flex-shrink-0 size-6 rounded-full bg-chart-4/15 text-chart-4 flex items-center justify-center text-xs font-bold">
                         {step.step}
                       </div>
                       <div className="flex-1 min-w-0">

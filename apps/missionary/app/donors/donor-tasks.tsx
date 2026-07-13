@@ -175,7 +175,7 @@ export function DonorTasks({
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.03 }}
-                    className="group flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-4 transition-all hover:border-zinc-200"
+                    className="group flex items-start gap-3 rounded-xl border border-zinc-100 bg-white p-4 transition-colors hover:border-zinc-200"
                   >
                     <motion.div whileTap={{ scale: 0.97 }} className="mt-0.5">
                       <Checkbox

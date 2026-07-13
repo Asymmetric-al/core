@@ -253,7 +253,7 @@ function TaskTitleField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="title">
       {(field) => (
         <field.TextField
-          inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+          inputClassName="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Task Title *"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="e.g., Call to thank for donation"
@@ -285,7 +285,7 @@ function TaskTypeSelectField({ form }: { form: MissionaryTaskFormApi }) {
               onValueChange={(value) => field.handleChange(value as TaskType)}
               value={field.state.value}
             >
-              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+              <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
                 <SelectValue placeholder="Select type">
                   {selectedTaskType ? (
                     <div className="flex items-center gap-2">
@@ -348,7 +348,7 @@ function PrioritySelectField({ form }: { form: MissionaryTaskFormApi }) {
             onValueChange={(value) => field.handleChange(value as TaskPriority)}
             value={field.state.value}
           >
-            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
               <SelectValue placeholder="Select priority" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-zinc-100">
@@ -450,7 +450,7 @@ function StatusSelectField({ form }: { form: MissionaryTaskFormApi }) {
             onValueChange={(value) => field.handleChange(value as TaskStatus)}
             value={field.state.value}
           >
-            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
+            <SelectTrigger className="h-12 rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5">
               <SelectValue placeholder="Select status" />
             </SelectTrigger>
             <SelectContent className="rounded-xl border-zinc-100">
@@ -643,7 +643,7 @@ function TaskDescriptionField({ form }: { form: MissionaryTaskFormApi }) {
     <form.AppField name="description">
       {(field) => (
         <field.TextareaField
-          inputClassName="min-h-[80px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+          inputClassName="min-h-[80px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
           label="Description"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Add details about this task..."
@@ -660,7 +660,7 @@ function TaskNotesField({ form }: { form: MissionaryTaskFormApi }) {
         <field.TextareaField
           description="These notes are only visible to you"
           descriptionClassName="text-xs text-zinc-400"
-          inputClassName="min-h-[60px] resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-all focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
+          inputClassName="min-h-[60px] resize-none rounded-xl border-transparent bg-amber-50/50 font-medium transition-[color,background-color,border-color,box-shadow,transform,opacity] focus:bg-amber-50 focus:ring-2 focus:ring-amber-900/5"
           label="Internal Notes"
           labelClassName="text-[10px] font-black uppercase tracking-widest text-zinc-400"
           placeholder="Private notes (not visible to partner)..."

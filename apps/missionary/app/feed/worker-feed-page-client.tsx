@@ -3,6 +3,7 @@
 
 import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
   AvatarFallback,
@@ -70,7 +71,7 @@ import {
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Image from "next/image";
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import { toast } from "sonner";
 
 import { buildSecurityDialogState, SECURITY_OPTIONS } from "./feed-model";
@@ -87,8 +88,6 @@ import type {
   Visibility,
 } from "./feed-model";
 import type { MediaItem } from "@asym/database/types";
-
-import { PageHeader } from "@/components/page-header";
 
 const RichTextEditor = dynamic(
   () =>
@@ -142,6 +141,14 @@ function FollowerRequestItem({
   const [status, setStatus] = useState<
     "pending" | "processing" | "approved" | "ignored" | "collapsing"
   >("pending");
+  const mountedRef = useRef(true);
+
+  useEffect(() => {
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+    };
+  }, []);
 
   const handleAction = async (action: "approve" | "ignore") => {
     setStatus("processing");
@@ -160,8 +167,10 @@ function FollowerRequestItem({
       setStatus(action === "approve" ? "approved" : "ignored");
 
       setTimeout(() => {
+        if (!mountedRef.current) return;
         setStatus("collapsing");
         setTimeout(() => {
+          if (!mountedRef.current) return;
           onResolve(request.id, action === "approve");
         }, 400);
       }, 1500);
@@ -450,7 +459,7 @@ function ReactionButton({
           handleClick();
         }}
         className={cn(
-          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-all duration-300 font-semibold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
+          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 font-semibold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
           isActive
             ? cn(bg, activeColor, "shadow-sm ring-1 ring-black/5")
             : "text-muted-foreground bg-card border border-border",
@@ -561,7 +570,11 @@ function CommentSection({
                           <DropdownMenu>
                             <DropdownMenuTrigger
                               render={
-                                <button className="text-muted-foreground/50 hover:text-destructive transition-colors">
+                                <button
+                                  type="button"
+                                  aria-label="Comment actions"
+                                  className="text-muted-foreground/50 hover:text-destructive transition-colors"
+                                >
                                   <MoreHorizontal className="size-3" />
                                 </button>
                               }
@@ -701,7 +714,7 @@ function CommentSection({
                         whileTap={{ scale: 0.97 }}
                         onClick={() => submitReply(comment.id)}
                         disabled={!replyText}
-                        className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-all"
+                        className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                       >
                         <CornerDownRight className="size-4" />
                       </motion.button>
@@ -732,7 +745,7 @@ function CommentSection({
           value={text}
           onChange={(e) => setText(e.target.value)}
           placeholder="Write a comment…"
-          className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-all"
+          className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           onKeyDown={(e) =>
             e.key === "Enter" && text && (onAddComment(text), setText(""))
           }
@@ -740,7 +753,7 @@ function CommentSection({
         <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
           <Button
             size="icon"
-            className="absolute right-1.5 top-1.5 size-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-all shadow-sm rounded-lg"
+            className="absolute right-1.5 top-1.5 size-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-sm rounded-lg"
             onClick={() => {
               if (text) {
                 onAddComment(text);
@@ -800,7 +813,7 @@ function PostCard({
       <MotionCard
         whileHover={{ y: -2 }}
         transition={springTransition}
-        className="overflow-hidden border border-border shadow-sm hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl group bg-card"
+        className="overflow-hidden border border-border shadow-sm hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl group bg-card"
       >
         <CardHeader className="p-4 sm:p-6 pb-3 sm:pb-4 flex flex-row items-start justify-between gap-y-0">
           <div className="flex gap-3 sm:gap-4">
@@ -854,6 +867,7 @@ function PostCard({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Post actions"
                   className="size-9 sm:h-10 sm:w-10 text-muted-foreground hover:text-foreground rounded-xl hover-scale-subtle"
                 >
                   <MoreHorizontal className="size-5 sm:h-6 sm:w-6" />
@@ -906,7 +920,7 @@ function PostCard({
                 initial={{ opacity: 0, scale: 0.98 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ delay: 0.15 }}
-                className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-all duration-500"
+                className="rounded-xl sm:rounded-2xl overflow-hidden border border-border shadow-md group-hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500"
               >
                 {post.media.length === 1 && singleMedia ? (
                   <div className="relative w-full h-auto min-h-[200px] max-h-[400px] sm:max-h-[600px]">
@@ -935,8 +949,8 @@ function PostCard({
                         </CarouselItem>
                       ))}
                     </CarouselContent>
-                    <CarouselPrevious className="left-2 sm:left-4 bg-background/80 border-none hover:bg-background transition-all shadow-md" />
-                    <CarouselNext className="right-2 sm:right-4 bg-background/80 border-none hover:bg-background transition-all shadow-md" />
+                    <CarouselPrevious className="left-2 sm:left-4 bg-background/80 border-none hover:bg-background transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-md" />
+                    <CarouselNext className="right-2 sm:right-4 bg-background/80 border-none hover:bg-background transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-md" />
                   </Carousel>
                 )}
               </motion.div>
@@ -975,7 +989,7 @@ function PostCard({
             <motion.button
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-all group/comm"
+              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-[color,background-color,border-color,box-shadow,transform,opacity] group/comm"
               onClick={() =>
                 setExpandedComments(
                   expandedComments === post.id ? null : post.id,
@@ -1140,7 +1154,7 @@ function SecurityAccessDialog({
                       whileHover={{ scale: 1.005 }}
                       whileTap={{ scale: 0.995 }}
                       className={cn(
-                        "w-full text-left p-4 rounded-xl border-2 transition-all duration-200",
+                        "w-full text-left p-4 rounded-xl border-2 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-200",
                         isSelected
                           ? cn(borderColor, bgColor, "ring-2", ringColor)
                           : "border-border bg-card hover:border-muted-foreground/30 hover:bg-muted/30",
@@ -1206,7 +1220,7 @@ function SecurityAccessDialog({
                         </div>
                         <div
                           className={cn(
-                            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-all",
+                            "size-5 rounded-full border-2 flex items-center justify-center shrink-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                             isSelected
                               ? cn(borderColor, bgColor)
                               : "border-border",
@@ -1424,7 +1438,7 @@ function PostComposerActions({
             size="sm"
             disabled={isUploading}
             onClick={simulateUpload}
-            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-all"
+            className="h-8 text-muted-foreground gap-1.5 font-semibold text-[9px] uppercase tracking-wider hover:bg-muted rounded-lg px-2.5 border border-border transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             {isUploading ? (
               <motion.div
@@ -1647,7 +1661,7 @@ function PostComposerCard({
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="flex-1 min-w-0 transition-all"
+            className="flex-1 min-w-0 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
           >
             <RichTextEditor
               value={postContent}
@@ -1814,7 +1828,7 @@ function FeedPostsTabsSection({
                       <MotionCard
                         whileHover={{ y: -2 }}
                         transition={springTransition}
-                        className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-all duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
+                        className="overflow-hidden border border-border hover:border-muted-foreground/30 hover:shadow-lg transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-500 rounded-2xl sm:rounded-3xl bg-card p-4 sm:p-6 lg:p-8"
                       >
                         <div className="flex flex-col sm:flex-row items-start justify-between gap-4 sm:gap-6 lg:gap-8">
                           <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">

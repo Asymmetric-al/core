@@ -1,4 +1,8 @@
 import { runtimeEnvFlags, serverEnv } from "@asym/env";
+import {
+  isProductionDeployment,
+  isProtectedNonProductionDeployment,
+} from "@asym/env/target-env";
 import { NextResponse } from "next/server";
 
 import { getTwentyCrmHealth } from "../../crm/health";
@@ -13,22 +17,11 @@ type TwentyCrmHealthRouteFlags = Pick<
 export function isTwentyCrmDevelopmentHealthEnabled(
   flags: TwentyCrmHealthRouteFlags = runtimeEnvFlags,
 ): boolean {
-  const targetEnv = flags.VERCEL_TARGET_ENV?.toLowerCase();
-  const vercelEnv = flags.VERCEL_ENV?.toLowerCase();
-
-  if (targetEnv === "production" || vercelEnv === "production") {
+  if (isProductionDeployment(flags)) {
     return false;
   }
 
-  // "development" is the built-in local dev target; "core-development" is the hosted Vercel
-  // custom environment for the develop branch (VERCEL_TARGET_ENV="core-development",
-  // VERCEL_ENV="preview"). "staging" is a retained legacy alias kept protected until a Vercel
-  // inventory proves no deployment still reports it (rollbacks / in-flight builds).
-  if (
-    targetEnv === "development" ||
-    targetEnv === "core-development" ||
-    targetEnv === "staging"
-  ) {
+  if (isProtectedNonProductionDeployment(flags)) {
     return true;
   }
 

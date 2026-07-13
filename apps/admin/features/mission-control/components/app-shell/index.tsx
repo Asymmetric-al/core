@@ -44,7 +44,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 // import Logo from "@asym/ui/components/shadcn-studio/logo";
-// import { DashboardFooter } from "@/components/dashboard-footer";
 
 const navigation = [
   { name: "Overview", href: "/", icon: LayoutDashboard },
@@ -97,7 +96,7 @@ export function AppShell({
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200",
+                    "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors duration-200",
                     isActive
                       ? "bg-zinc-900 text-white shadow-lg shadow-zinc-200"
                       : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100/50",
@@ -178,7 +177,7 @@ export function AppShell({
                           href={item.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all",
+                            "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors",
                             isActive
                               ? "bg-zinc-900 text-white"
                               : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
@@ -225,7 +224,7 @@ export function AppShell({
               <input
                 type="text"
                 placeholder="Search command center..."
-                className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all"
+                className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-[background-color,box-shadow]"
               />
             </div>
 

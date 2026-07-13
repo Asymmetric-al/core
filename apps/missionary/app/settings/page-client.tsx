@@ -2,6 +2,7 @@
 
 import { siteConfig } from "@asym/config/site-client";
 import { MISSIONARY_SETTINGS_HEADER_VT_NAME } from "@asym/lib/view-transitions";
+import { PageHeader } from "@asym/ui/components/page-header";
 import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
@@ -30,8 +31,6 @@ import {
   ExternalLink,
 } from "lucide-react";
 import * as React from "react";
-
-import { PageHeader } from "@/components/page-header";
 
 interface NotificationSetting {
   id: string;
@@ -245,7 +244,7 @@ export default function SettingsPage() {
               <div className="pt-4">
                 <Button
                   variant="outline"
-                  className="h-11 rounded-2xl border-zinc-200 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-all"
+                  className="h-11 rounded-2xl border-zinc-200 px-6 text-[10px] font-black uppercase tracking-widest text-zinc-500 hover:text-zinc-900 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                 >
                   <ShieldCheck className="mr-2 size-4" />
                   Update Password
@@ -311,7 +310,7 @@ export default function SettingsPage() {
           </Card>
 
           <Card className="border-none bg-zinc-900 text-white shadow-2xl shadow-zinc-300/50 rounded-[2rem] overflow-hidden relative group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-all duration-700">
+            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 group-hover:rotate-12 transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-700">
               <Layout className="size-32" />
             </div>
             <CardHeader className="pt-8 px-8 relative z-10">
@@ -323,7 +322,7 @@ export default function SettingsPage() {
               </CardDescription>
             </CardHeader>
             <CardContent className="px-8 pb-8 pt-2 space-y-4 relative z-10">
-              <div className="p-5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-all">
+              <div className="p-5 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-[color,background-color,border-color,box-shadow,transform,opacity]">
                 <div className="flex items-center gap-4">
                   <div className="size-10 rounded-xl bg-white flex items-center justify-center">
                     <Mail className="size-5 text-zinc-900" />
@@ -338,7 +337,7 @@ export default function SettingsPage() {
                 <ChevronRight className="size-4 text-zinc-600 group-hover:text-white transition-colors" />
               </div>
 
-              <div className="p-5 bg-white/5 rounded-2xl border border-dashed border-white/20 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-all">
+              <div className="p-5 bg-white/5 rounded-2xl border border-dashed border-white/20 flex items-center justify-between group cursor-pointer hover:bg-white/10 transition-[color,background-color,border-color,box-shadow,transform,opacity]">
                 <div className="flex items-center gap-4 opacity-50">
                   <div className="size-10 rounded-xl bg-white/10 flex items-center justify-center">
                     <Layout className="size-5 text-white" />

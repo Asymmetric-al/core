@@ -189,17 +189,7 @@ function Card({ children, header, footer }) {
 ## The `render` Pattern
 
 Allow rendering as a different element while preserving behavior. This repo
-uses Base UI's `render` prop (there is no `asChild` here):
-
-```jsx
-// Render as button (default)
-<Button>Click me</Button>
-
-// Render as link
-<Button render={<a href="/page" />} nativeButton={false}>
-  Click me
-</Button>
-```
+uses Base UI's `render` prop (there is no `asChild` here).
 
 For link-style buttons, prefer styling the link with `buttonVariants`
 instead of rendering `Button` as a link:
@@ -210,6 +200,19 @@ import { buttonVariants } from "@asym/ui/components/shadcn/button";
 <Link href="/page" className={cn(buttonVariants({ variant: "outline" }))}>
   Click me
 </Link>;
+```
+
+When you must keep button behavior on a non-link element, use `render` on
+`Button` (not on links):
+
+```jsx
+// Render as button (default)
+<Button>Click me</Button>
+
+// Render as custom element with button semantics
+<Button render={<span role="presentation" />} nativeButton={false}>
+  Click me
+</Button>
 ```
 
 ## Forwarding Refs

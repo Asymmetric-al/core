@@ -240,7 +240,7 @@ function OverviewTabContentSection({
                   <div className="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
                     <div
                       className={cn(
-                        "h-full rounded-full transition-all",
+                        "h-full rounded-full transition-colors",
                         value > 80
                           ? "bg-emerald-500"
                           : value > 50

@@ -6,6 +6,7 @@ import { invalidateSupabaseTableQuery } from "@asym/database/query-keys";
 import { useAuth } from "@asym/lib/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { AddPartnerDialog } from "@asym/missionary/components/add-partner-dialog";
+import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
   AvatarFallback,
@@ -129,8 +130,6 @@ import type {
   RecurringStatus,
 } from "./donor-types";
 import type { Profile } from "@asym/database/types";
-
-import { PageHeader } from "@/components/page-header";
 
 function currentDisplayDate(): Date {
   return new globalThis.Date();
@@ -270,7 +269,7 @@ function StatCard({
       whileHover={{ y: -2, boxShadow: "0 8px 30px rgba(0,0,0,0.08)" }}
       whileTap={onClick ? { scale: 0.98 } : undefined}
       className={cn(
-        "border-zinc-200 bg-white shadow-sm transition-all rounded-xl",
+        "border-zinc-200 bg-white shadow-sm transition-[color,background-color,border-color,box-shadow,transform,opacity] rounded-xl",
         onClick && "cursor-pointer",
         isActive && "border-blue-400 ring-2 ring-blue-100",
       )}
@@ -335,6 +334,9 @@ type DonorsPageViewModel = {
     selected: Donor | null;
     selectById: (id: string) => void;
     clearSelection: () => void;
+    hasMore: boolean;
+    isLoadingMore: boolean;
+    loadMore: () => Promise<void>;
   };
   filters: {
     searchTerm: string;
@@ -434,6 +436,14 @@ export function useDonorsPageView(): DonorsPageViewModel {
       invalidateSupabaseTableQuery(queryClient, "donor_pledges"),
     ]);
   }, [queryClient]);
+
+  const loadMoreDonors = React.useCallback(async () => {
+    try {
+      await donorsQuery.loadMore();
+    } catch {
+      toast.error("Could not load more partners. Please try again.");
+    }
+  }, [donorsQuery]);
 
   const filteredDonors = React.useMemo(
     () =>
@@ -798,6 +808,9 @@ export function useDonorsPageView(): DonorsPageViewModel {
       selected: selectedDonor,
       selectById: selectDonorById,
       clearSelection: clearSelectedDonor,
+      hasMore: donorsQuery.hasMore,
+      isLoadingMore: donorsQuery.isLoadingMore,
+      loadMore: loadMoreDonors,
     },
     filters: {
       searchTerm,
@@ -887,6 +900,9 @@ export function DonorsPageContent({
     selected: selectedDonor,
     selectById,
     clearSelection,
+    hasMore: hasMoreDonors,
+    isLoadingMore: isLoadingMoreDonors,
+    loadMore: loadMoreDonors,
   } = donors;
   const {
     searchTerm,
@@ -946,9 +962,13 @@ export function DonorsPageContent({
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
-          label="Total Partners"
-          value={donorRows.length}
-          subtext={`${activeCount} active`}
+          label={hasMoreDonors ? "Partners loaded" : "Total Partners"}
+          value={hasMoreDonors ? `${donorRows.length}+` : donorRows.length}
+          subtext={
+            hasMoreDonors
+              ? `${activeCount} active in loaded window`
+              : `${activeCount} active`
+          }
           icon={Users}
           iconBg="bg-zinc-50 border-zinc-100"
           iconColor="text-zinc-900"
@@ -957,7 +977,7 @@ export function DonorsPageContent({
         <StatCard
           label="Total Given"
           value={formatCurrency(totalGiven)}
-          subtext="Lifetime"
+          subtext={hasMoreDonors ? "Lifetime (loaded window)" : "Lifetime"}
           icon={Heart}
           iconBg="bg-emerald-50 border-emerald-100"
           iconColor="text-emerald-600"
@@ -966,7 +986,11 @@ export function DonorsPageContent({
         <StatCard
           label="Recurring Donations"
           value={activePledgeCount}
-          subtext={`${formatCurrency(monthlyPledgeTotal)}/mo`}
+          subtext={
+            hasMoreDonors
+              ? `${formatCurrency(monthlyPledgeTotal)}/mo (loaded window)`
+              : `${formatCurrency(monthlyPledgeTotal)}/mo`
+          }
           icon={Repeat}
           iconBg="bg-blue-50 border-blue-100"
           iconColor="text-blue-600"
@@ -977,7 +1001,11 @@ export function DonorsPageContent({
         <StatCard
           label="Needs Attention"
           value={atRiskCount + lapsedCount}
-          subtext={`${atRiskCount} at risk, ${lapsedCount} lapsed`}
+          subtext={
+            hasMoreDonors
+              ? `${atRiskCount} at risk, ${lapsedCount} lapsed (loaded window)`
+              : `${atRiskCount} at risk, ${lapsedCount} lapsed`
+          }
           icon={AlertCircle}
           iconBg="bg-amber-50 border-amber-100"
           iconColor="text-amber-600"
@@ -1143,7 +1171,7 @@ export function DonorsPageContent({
                 <Search className="absolute left-3 top-2.5 size-4 text-zinc-400" />
                 <Input
                   placeholder="Search partners..."
-                  className="pl-9 bg-zinc-50 border-zinc-100 focus:bg-white focus:border-zinc-300 transition-all h-10 rounded-xl text-sm"
+                  className="pl-9 bg-zinc-50 border-zinc-100 focus:bg-white focus:border-zinc-300 transition-[color,background-color,border-color,box-shadow,transform,opacity] h-10 rounded-xl text-sm"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
@@ -1319,6 +1347,26 @@ export function DonorsPageContent({
                 )}
               </ScrollArea>
             </div>
+            {hasMoreDonors && !error && !isLoading && (
+              <div className="border-t border-zinc-100 p-3 shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={loadMoreDonors}
+                  disabled={isLoadingMoreDonors}
+                  className="w-full h-9 rounded-xl text-[10px] font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-900"
+                >
+                  {isLoadingMoreDonors ? (
+                    <>
+                      <Loader2 className="size-3.5 mr-2 animate-spin" />
+                      Loading partners
+                    </>
+                  ) : (
+                    "Load more partners"
+                  )}
+                </Button>
+              </div>
+            )}
           </Card>
         </motion.div>
 
@@ -1823,7 +1871,7 @@ export function DonorsPageContent({
                                             boxShadow:
                                               "0 8px 30px rgba(0,0,0,0.08)",
                                           }}
-                                          className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-all"
+                                          className="bg-white p-4 rounded-2xl border border-zinc-200 hover:border-zinc-300 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                                         >
                                           <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2 mb-1">
                                             <div className="space-y-1">
@@ -1969,7 +2017,7 @@ export function DonorsPageContent({
                                     variants={fadeInUp}
                                     transition={{ delay: i * 0.05 }}
                                     whileHover={{ y: -2 }}
-                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
+                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                                   >
                                     <div className="flex items-center gap-3">
                                       <div
@@ -2030,7 +2078,7 @@ export function DonorsPageContent({
                                   <motion.div
                                     variants={fadeInUp}
                                     whileHover={{ y: -2 }}
-                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-all"
+                                    className="flex items-center justify-between p-4 bg-zinc-50 rounded-2xl border border-zinc-100 group hover:border-zinc-200 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
                                   >
                                     <div className="flex items-center gap-3">
                                       <div className="size-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center shrink-0">
@@ -2322,7 +2370,7 @@ export function DonorsPageContent({
                                       transition={{ delay: i * 0.1 }}
                                       whileHover={{ y: -2 }}
                                       className={cn(
-                                        "p-5 rounded-2xl border transition-all",
+                                        "p-5 rounded-2xl border transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                                         recurring.status === "active"
                                           ? "bg-linear-to-br from-emerald-50/80 to-emerald-50/30 border-emerald-200"
                                           : "bg-zinc-50 border-zinc-200",
@@ -2716,7 +2764,7 @@ export function DonorsPageContent({
                   whileTap={{ scale: 0.98 }}
                   onClick={() => tagEditor.toggleTag(tag.id)}
                   className={cn(
-                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-all",
+                    "px-3 py-1.5 rounded-full text-xs font-semibold border transition-[color,background-color,border-color,box-shadow,transform,opacity]",
                     tagEditor.selectedTags.includes(tag.id)
                       ? cn(tag.color, "ring-2 ring-offset-1 ring-zinc-400")
                       : "bg-zinc-50 text-zinc-400 border-zinc-200 hover:bg-zinc-100",

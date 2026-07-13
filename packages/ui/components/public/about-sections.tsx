@@ -1,6 +1,12 @@
 "use client";
 
 import {
+  LazyMotion,
+  domAnimation,
+  motion as m,
+  useReducedMotion,
+} from "@asym/lib/motion";
+import {
   DURATION_STANDARD,
   EASE_OUT_SOFT,
   propsFadeRiseInView,
@@ -9,8 +15,8 @@ import {
   STAGGER_MEDIUM,
   STAGGER_TIGHT,
 } from "@asym/lib/motion-presets";
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { Target, Users, Shield, Heart, Globe, Sparkles } from "lucide-react";
-import { LazyMotion, domAnimation, m, useReducedMotion } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -199,7 +205,7 @@ export function AboutValues() {
                   delay: reduceMotion ? 0 : idx * STAGGER_MEDIUM,
                 }}
               >
-                <Card className="group border-none bg-white rounded-2xl shadow-lg hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
+                <Card className="group border-none bg-white rounded-2xl shadow-lg [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-1 transition-[transform,box-shadow] duration-300 ease-out h-full">
                   <CardContent className="pt-10 pb-8 px-8 flex flex-col items-center text-center gap-y-6 h-full">
                     <div
                       className={cn(
@@ -286,7 +292,7 @@ export function AboutLeadership() {
                 }}
                 className="group cursor-pointer"
               >
-                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-zinc-100 shadow-xl group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
+                <div className="relative aspect-[3/4] mb-8 overflow-hidden rounded-2xl bg-zinc-100 shadow-xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-emerald-500/10 transition-shadow duration-300 ease-out">
                   <Image
                     src={person.img}
                     alt={`${person.name}, ${person.role} at GiveHope`}
@@ -346,7 +352,7 @@ export function AboutCTA() {
                 View Directory
               </Link>
               <Link
-                href="/checkout?fund=general"
+                href={buildCheckoutHref({ fundId: "general" })}
                 className={cn(
                   buttonVariants({ size: "lg", variant: "outline" }),
                   "h-14 px-10 rounded-full bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-lg font-semibold font-syne backdrop-blur-xl transition-colors duration-200 ease-out",

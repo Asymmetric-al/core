@@ -78,7 +78,7 @@ export function TaskRow({
         "transition-[border-color,box-shadow] duration-[var(--duration-micro)] ease-[var(--ease-out-soft)]",
         isCompleted
           ? "bg-[oklch(0.985_0.002_265)]/50 border-[oklch(0.915_0.003_265)] opacity-75"
-          : "bg-white border-[oklch(0.915_0.003_265)] hover-lift hover:border-[oklch(0.205_0.015_265)] hover:shadow-xl",
+          : "bg-white border-[oklch(0.915_0.003_265)] hover-lift hover:border-[oklch(0.205_0.015_265)] [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-xl",
       )}
     >
       <div className="mt-1.5 relative z-10">
@@ -141,6 +141,7 @@ export function TaskRow({
                 <Button
                   variant="ghost"
                   size="icon"
+                  aria-label="Task actions"
                   className="size-10 shrink-0 text-[oklch(0.915_0.003_265)] hover:text-[oklch(0.145_0.015_265)] hover:bg-[oklch(0.965_0.003_265)] rounded-xl"
                 >
                   <MoreHorizontal className="size-5" />

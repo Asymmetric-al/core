@@ -14,9 +14,10 @@ export const adminBaseURL =
   `http://localhost:${adminPort}`;
 
 /**
- * Next dev responds to `/_next/static/` with redirects (308) in some setups, which
- * breaks Playwright `webServer` readiness. A stable app route is more reliable.
+ * Next dev responds to `/_next/static/` with redirects (308) in some setups,
+ * which breaks Playwright `webServer` readiness. Use a DB-independent endpoint
+ * so strict/local Playwright startup does not depend on Supabase being seeded.
  */
 export function nextDevReadyURL(base: string): string {
-  return `${base.replace(/\/$/, "")}/login`;
+  return `${base.replace(/\/$/, "")}/api/playwright-ready`;
 }

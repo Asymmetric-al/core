@@ -159,7 +159,7 @@ Use these variables when wiring server-side defaults/webhooks:
 - `RESEND_ENCRYPTION_KEY` (required to encrypt/decrypt tenant API keys at rest)
 
 All three variables are server-only and are validated by `packages/env` for
-development and production deployments:
+protected deployments:
 
 - `RESEND_API_KEY` must start with `re_`.
 - `RESEND_WEBHOOK_SECRET` must start with `whsec_`.
@@ -179,6 +179,73 @@ Single email requests are capped at 50 recipients. Future campaign and bulk
 delivery work must use explicit chunking/batching before calling Resend; batch
 sends are limited to 100 email objects and do not support attachments or
 scheduling.
+
+## Consent & Suppression Enforcement (Outbound)
+
+Resend does **not** manage a suppression list for transactional email, so the
+application enforces its own consent before every outbound send. The single,
+reusable, fail-closed gate is `evaluateEmailConsent()` in
+[`packages/api/src/email/consent.ts`](../../../packages/api/src/email/consent.ts).
+Call it (or a path that already does) before `sendEmail`.
+
+### Enforcement model
+
+Enforcement is **message-type aware**, matching the CAN-SPAM "transactional or
+relationship" carve-out and this schema's own `EmailMessageType` +
+`bypassListManagement` design. A donation receipt or a contribution-correction
+notice is _transactional_; a campaign or appeal is _marketing_.
+
+| Signal (per recipient)                         | Blocks marketing | Blocks transactional |
+| ---------------------------------------------- | :--------------: | :------------------: |
+| donor `do_not_contact` (all channels)          |        ✔         |          ✔           |
+| suppression `bounce` (dead address)            |        ✔         |          ✔           |
+| suppression `spam` (complaint)                 |        ✔         |          ✔           |
+| suppression `manual` (admin/provider block)    |        ✔         |          ✔           |
+| donor `do_not_email` (email opt-out)           |        ✔         |          ✘           |
+| suppression `unsubscribe` (marketing list-out) |        ✔         |          ✘           |
+
+Rationale: a transactional receipt is not stopped by a _marketing_ opt-out
+(`do_not_email` / `unsubscribe`), but a global `do_not_contact`, a hard bounce,
+or a spam complaint always stops it — the last two also protect deliverability
+and honor Resend's terms. Because one address can carry both an `unsubscribe`
+and a `bounce`, the gate reads **all** suppression rows for the address, not
+just one.
+
+### Fail-closed
+
+`evaluateEmailConsent()` **throws** if consent cannot be determined (a lookup
+error). Callers must not send when consent is unverifiable; a thrown error keeps
+the send retryable rather than permanently marking a recipient suppressed. An
+unrecognized message type is treated as marketing (stricter).
+
+### Audit trail
+
+When a send is skipped, a system-actor audit event is written via
+`logSystemAuditEvent()` (action `email_send_suppressed`, `audit_logs.user_id`
+is null for these). Path-specific bookkeeping also records it: donation receipts
+set `staged_gifts.receipt_status = 'suppressed'`; correction notices log a
+`suppressed` `contribution_notification_events` row and raise a follow-up task.
+
+### Gated paths (today)
+
+- `sendStagedGiftReceipt` — donation receipts (transactional).
+- `sendContributionCorrectionNotification` — correction notices (transactional);
+  the Supabase adapter (`notifications/store.ts`) injects the gate.
+- `template-test-send` — Email Studio test sends (uses the template's message
+  type; returns `422 consent_*` if the recipient is blocked). Skipped only when
+  the admin client is unavailable.
+
+### Not yet gated (must gate when built)
+
+- The `notification_queue` and `contribution_approval_notifications` tables have
+  **no email consumer/worker yet**. Any future consumer must call
+  `evaluateEmailConsent()` before sending.
+- Campaign/marketing sends do not exist yet. When added they must pass
+  `messageType: "marketing"` (which honors every opt-out) and additionally
+  respect campaign suppression groups.
+- The low-level Resend **connection test** (`packages/api/src/email/test-send.ts`)
+  is intentionally left ungated: it is a diagnostic "is Resend connected" send to
+  an admin-entered address, not donor mail.
 
 ## Error Codes
 
