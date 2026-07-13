@@ -589,6 +589,25 @@ describe("contribution operations detail read model", () => {
     });
     expect(oneTime.recurring.providerRecurrenceWithoutAgreement).toBe(false);
     expect(oneTime.shared.recurringLinkState).toBe("none");
+
+    // A one-time gift under a recurring agreement keeps its one-time label;
+    // the pledge link only drives agreement-context visibility (ADR-CD-007).
+    const oneTimeWithAgreementLink = buildContributionDetail({
+      donation: {
+        ...base,
+        isRecurring: false,
+        recurringInterval: null,
+        pledgeId: "pledge_1",
+      },
+    });
+    expect(oneTimeWithAgreementLink.recurring.isRecurring).toBe(false);
+    expect(oneTimeWithAgreementLink.recurring.pledgeId).toBe("pledge_1");
+    expect(
+      oneTimeWithAgreementLink.recurring.providerRecurrenceWithoutAgreement,
+    ).toBe(false);
+    expect(oneTimeWithAgreementLink.shared.recurringLinkState).toBe(
+      "agreement_linked",
+    );
   });
 
   it("keeps the revision stable when agreement gift-history context changes", () => {

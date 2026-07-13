@@ -462,8 +462,9 @@ async function loadContributionOperationDetail(input: {
     ? (pledgeGiftHistoryResult.data as JsonRecord[])
     : [];
   const latestPledgeGiftRow = pledgeGiftHistoryRows[0];
-  const pledgeLinkedGiftCount =
-    pledgeGiftHistoryResult.count ?? pledgeGiftHistoryRows.length;
+  // The query is limited to 1 row, so row length can never stand in for the
+  // exact count; treat a missing count as zero rather than undercounting.
+  const pledgeLinkedGiftCount = pledgeGiftHistoryResult.count ?? 0;
   const pledgeLastLinkedGiftAt =
     latestPledgeGiftRow !== undefined && isRecord(latestPledgeGiftRow)
       ? asString(latestPledgeGiftRow.gift_date)

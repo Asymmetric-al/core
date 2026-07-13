@@ -627,10 +627,11 @@ export function buildContributionDetail(
   const hasInternalRecurringLink = Boolean(
     donation.pledgeId || hasLoadedRecurringAgreement,
   );
+  // Own-recurrence fields only: pledge/agreement links drive section
+  // visibility, not the gift's recurring label — a one-time gift under a
+  // recurring agreement must stay labeled one-time (ADR-CD-007).
   const isRecurringGift = Boolean(
-    donation.isRecurring ||
-    donation.recurringInterval ||
-    hasInternalRecurringLink,
+    donation.isRecurring || donation.recurringInterval,
   );
   const providerRecurrenceWithoutAgreement = Boolean(
     (donation.isRecurring || donation.recurringInterval) &&
