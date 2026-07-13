@@ -1,5 +1,6 @@
 import {
   buildSharedContributionRowFields,
+  canonicalizeSharedPaymentStatusInput,
   normalizeSharedPaymentStatus,
   type SharedContributionCorrectionInput,
   type SharedContributionCrmPostStatus,
@@ -179,7 +180,7 @@ type RawStagedGift = {
 export function normalizeContributionGridStatus(
   status: string | null | undefined,
 ): ContributionGridStatus {
-  if (status === "processing") {
+  if (canonicalizeSharedPaymentStatusInput(status) === "processing") {
     return "processing";
   }
   return normalizeSharedPaymentStatus(status);

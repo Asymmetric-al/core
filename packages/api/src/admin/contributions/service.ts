@@ -4,6 +4,7 @@ import {
   type AdminContributionsParams,
   type ContributionSortField,
 } from "./query";
+import { SETTLED_DONATION_STATUSES } from "../../reads/settled-donation-statuses";
 import { ApiHttpError } from "../../shared/http-errors";
 import {
   applyEffectiveContributionToDonation,
@@ -89,6 +90,28 @@ type StagedGiftRow = {
 };
 
 const PENDING_STATUSES = ["pending", "processing"] as const;
+
+/**
+ * Expands staff-facing status filters to the raw donation statuses that the
+ * grid normalizer maps onto them, so a filtered response never drops rows the
+ * unfiltered response labels with the requested status. "pending" covers the
+ * in-flight raw states and "completed" covers the legacy settled aliases.
+ */
+export function expandContributionStatusFilters(
+  statuses: readonly string[],
+): string[] {
+  const expanded = statuses.flatMap((status) => {
+    if (status === "pending") {
+      return [...PENDING_STATUSES];
+    }
+    if (status === "completed") {
+      return [...SETTLED_DONATION_STATUSES];
+    }
+    return [status];
+  });
+  return Array.from(new Set(expanded));
+}
+
 type DonationColumn = SupabaseColumn<Donation>;
 
 const SORT_COLUMN_BY_FIELD = {
@@ -184,10 +207,10 @@ function applyBaseFilters<TQuery extends ContributionQueryBuilder<TQuery>>(
   const { filters, search } = params;
 
   if (filters.statuses.length > 0) {
-    const statuses = filters.statuses.flatMap((status) =>
-      status === "pending" ? [...PENDING_STATUSES] : [status],
+    query = query.in(
+      "status",
+      expandContributionStatusFilters(filters.statuses),
     );
-    query = query.in("status", Array.from(new Set(statuses)));
   }
 
   if (filters.contributionTypes.length > 0) {
