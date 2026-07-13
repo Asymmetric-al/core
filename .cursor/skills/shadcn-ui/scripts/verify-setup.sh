@@ -88,7 +88,7 @@ if [ -f "src/lib/utils.ts" ] || [ -f "lib/utils.ts" ]; then
     
     # Check for cn function
     UTILS_FILE=$(find . -name "utils.ts" | grep "lib" | head -n 1)
-    if grep -q "export function cn" "$UTILS_FILE"; then
+    if grep -q 'export .*cn.*from "cnfast"' "$UTILS_FILE" || grep -q "export function cn" "$UTILS_FILE"; then
         echo -e "${GREEN}✓${NC} cn() utility function present"
     else
         echo -e "${RED}✗${NC} cn() utility function missing"
@@ -104,7 +104,7 @@ if [ -f "package.json" ]; then
     
     # Required dependencies
     REQUIRED_DEPS=("react" "tailwindcss")
-    RECOMMENDED_DEPS=("class-variance-authority" "clsx" "tailwind-merge" "tailwindcss-animate")
+    RECOMMENDED_DEPS=("class-variance-authority" "cnfast" "tailwindcss-animate")
     
     for dep in "${REQUIRED_DEPS[@]}"; do
         if grep -q "\"$dep\"" package.json; then

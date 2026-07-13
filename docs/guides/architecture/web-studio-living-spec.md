@@ -34,6 +34,24 @@
 | **Access**               | `apps/admin/src/cms/access/*` + tenant hooks on collections; public routes use `overrideAccess: true` with explicit `where` (tenant + published).                       |
 | **Preferences**          | Payload preferences API; keys in `apps/admin/src/cms-ui/web-studio/preferences/keys.ts`.                                                                                |
 
+### Payload 4 spike status
+
+Web Studio currently runs on Payload `4.0.0-internal.1f9ae9a` as an explicit
+spike dependency. This proves the admin CMS engine can boot, migrate, render
+native Web Studio routes, and keep public CMS boundaries intact on the internal
+Payload 4 line; it is not yet the final stable dependency contract.
+
+Graduation criteria before treating Payload 4 as the durable baseline:
+
+- replace internal Payload packages with a supported stable channel or an
+  explicitly approved pinned internal release;
+- keep `bun run cms:migrate`, `bun run cms:migrate:status`, and
+  `bun run cms:importmap` on Node.js `24.15.0+`;
+- keep `bun run typecheck:admin`, `bun run build:admin`,
+  `bun run test:unit:cms`, and CMS Playwright smoke green against Postgres;
+- keep donor/missionary apps consuming public CMS APIs rather than importing
+  Payload runtime code.
+
 ---
 
 ## 3. Current shipped scope
@@ -200,7 +218,7 @@ Giving CTAs on CMS pages resolve into the donor checkout flow with validated `mi
 | Topic                        | Fact                                                                                           |
 | ---------------------------- | ---------------------------------------------------------------------------------------------- |
 | Global Payload editor        | `lexicalEditor()` in `apps/admin/payload.config.ts`                                            |
-| Package                      | `@payloadcms/richtext-lexical@^3.84.1`                                                         |
+| Package                      | `@payloadcms/richtext-lexical@4.0.0-internal.1f9ae9a`                                          |
 | TipTap in Web Studio tree    | **Not used** — no imports under `cms-ui/web-studio/`                                           |
 | TipTap in monorepo           | Root `package.json` / skills support **other** surfaces; **not** the Payload admin editor path |
 | Rich text in `layout` blocks | Block fields of type `richText` use the same Lexical editor                                    |
@@ -311,20 +329,21 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 
 ## 17. Package version inventory (**from `apps/admin/package.json`**)
 
-| Package                        | Version  |
-| ------------------------------ | -------- |
-| `payload`                      | ^3.84.1  |
-| `@payloadcms/next`             | ^3.84.1  |
-| `@payloadcms/db-postgres`      | ^3.84.1  |
-| `@payloadcms/richtext-lexical` | ^3.84.1  |
-| `next`                         | 16.2.6   |
-| `react` / `react-dom`          | 19.2.3   |
-| `@base-ui/react`               | 1.3.0    |
-| `@tanstack/react-form`         | 1.28.6   |
-| `@tanstack/react-query`        | ^5.90.21 |
-| `@tanstack/react-table`        | ^8.21.3  |
-| `@tanstack/db`                 | ^0.5.16  |
-| `@supabase/ssr`                | ^0.8.0   |
+| Package                           | Version                |
+| --------------------------------- | ---------------------- |
+| `payload`                         | 4.0.0-internal.1f9ae9a |
+| `@payloadcms/next`                | 4.0.0-internal.1f9ae9a |
+| `@payloadcms/db-postgres`         | 4.0.0-internal.1f9ae9a |
+| `@payloadcms/richtext-lexical`    | 4.0.0-internal.1f9ae9a |
+| `@payloadcms/storage-vercel-blob` | 4.0.0-internal.1f9ae9a |
+| `next`                            | 16.2.6                 |
+| `react` / `react-dom`             | 19.2.3                 |
+| `@base-ui/react`                  | 1.3.0                  |
+| `@tanstack/react-form`            | 1.28.6                 |
+| `@tanstack/react-query`           | ^5.90.21               |
+| `@tanstack/react-table`           | ^8.21.3                |
+| `@tanstack/db`                    | ^0.5.16                |
+| `@supabase/ssr`                   | ^0.8.0                 |
 
 ---
 
@@ -374,7 +393,7 @@ Handled inside Payload’s default edit view and field components. **Risk:** rep
 | Custom views vs fork                                  | Upgrade-safe, supported extension points |
 | Mission Control shell owns list/default edit          | Product UX; Payload owns fields          |
 | TanStack Form only outside Payload document body      | Avoid duplicate form engines             |
-| Lexical as editor                                     | Payload 3 default path in this repo      |
+| Lexical as editor                                     | Payload rich text path in this repo      |
 | Separate collections for templates / giving / project | Clear access, previews, public routes    |
 | `create-from-template` as Payload endpoint            | Same `req`, access control, audit hooks  |
 | Thin Next routes for staff DB reads                   | `data-access-boundary.md` compliance     |

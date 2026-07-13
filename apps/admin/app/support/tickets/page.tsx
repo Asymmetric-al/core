@@ -1,6 +1,6 @@
 import { loadSupportTicketList } from "@asym/api/admin/support/loaders";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -50,12 +50,15 @@ export default async function SupportTicketsPage({
     >
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2">
-          <Button asChild variant="outline">
-            <Link href={supportHubRoutes.home}>Back to Support Hub</Link>
-          </Button>
-          <Button asChild>
-            <Link href={supportHubRoutes.newTicket}>New ticket</Link>
-          </Button>
+          <Link
+            href={supportHubRoutes.home}
+            className={buttonVariants({ variant: "outline" })}
+          >
+            Back to Support Hub
+          </Link>
+          <Link href={supportHubRoutes.newTicket} className={buttonVariants()}>
+            New ticket
+          </Link>
         </div>
 
         <form className="grid gap-3 rounded-3xl border border-border bg-card p-4 md:grid-cols-[minmax(0,1fr)_180px_180px_auto]">
@@ -160,11 +163,15 @@ export default async function SupportTicketsPage({
                         </span>
                       ) : null}
                     </div>
-                    <Button asChild size="sm" variant="outline">
-                      <Link href={supportHubRoutes.ticket(ticket.id)}>
-                        Open thread
-                      </Link>
-                    </Button>
+                    <Link
+                      href={supportHubRoutes.ticket(ticket.id)}
+                      className={buttonVariants({
+                        size: "sm",
+                        variant: "outline",
+                      })}
+                    >
+                      Open thread
+                    </Link>
                   </div>
                 </article>
               ))

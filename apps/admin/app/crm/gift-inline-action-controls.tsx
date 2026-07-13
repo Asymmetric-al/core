@@ -103,16 +103,18 @@ export function GiftInlineActionControls({
         </span>
       ) : null}
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="size-8 text-muted-foreground"
-            aria-label="More gift actions"
-          >
-            <MoreHorizontal className="size-4" aria-hidden="true" />
-          </Button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger
+          render={
+            <Button
+              variant="ghost"
+              size="icon"
+              className="size-8 text-muted-foreground"
+              aria-label="More gift actions"
+            >
+              <MoreHorizontal className="size-4" aria-hidden="true" />
+            </Button>
+          }
+        />
         <DropdownMenuContent align="end" className="w-64">
           {groups.map((group, index) => (
             <DropdownMenuGroup key={group.category}>
@@ -123,19 +125,49 @@ export function GiftInlineActionControls({
               {group.items.map(({ definition, entry }) => (
                 <DropdownMenuItem
                   key={entry.actionType}
+                  // The base DropdownMenuItem already dims disabled entries
+                  // (data-disabled:opacity-50); no extra muted color, so the
+                  // blocked reason stays legible — that's the point of showing
+                  // it (#270).
                   className={
-                    entry.available ? undefined : "text-muted-foreground"
+                    entry.available ? undefined : "flex-col items-start gap-0.5"
+                  }
+                  // A blocked entry keeps the same server-computed reason and
+                  // next step the detail surface shows (#270), so staff learn
+                  // why an action is unavailable without leaving the row.
+                  title={
+                    entry.available
+                      ? undefined
+                      : [entry.blockedReason, entry.nextStep]
+                          .filter(Boolean)
+                          .join(". ") || undefined
                   }
                   disabled={!entry.available}
-                  onSelect={() => {
+                  onClick={() => {
                     if (entry.available) {
                       onRunOperation(definition);
                     }
                   }}
                 >
-                  {definition.title}
-                  {entry.available ? null : (
-                    <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
+                  {entry.available ? (
+                    definition.title
+                  ) : (
+                    <>
+                      <span className="flex w-full items-center">
+                        {definition.title}
+                        <DropdownMenuShortcut>Blocked</DropdownMenuShortcut>
+                      </span>
+                      {entry.blockedReason ? (
+                        <span className="text-xs font-normal">
+                          {entry.blockedReason}
+                        </span>
+                      ) : null}
+                      {entry.nextStep ? (
+                        <span className="text-xs font-normal">
+                          {entry.nextStep}
+                        </span>
+                      ) : null}
+                    </>
                   )}
                 </DropdownMenuItem>
               ))}

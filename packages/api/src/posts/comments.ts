@@ -6,6 +6,15 @@ export async function GET(
   { params }: { params: Promise<{ postId: string }> },
 ) {
   const supabase = await createClient();
+
+  // Explicit auth check — do not rely on RLS alone. (finding 06 Gap 3)
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const { postId } = await params;
 
   const { data: comments, error } = await supabase

@@ -1,5 +1,8 @@
+import { getAuthContext, requireRole } from "@asym/auth/context";
 import { createClient } from "@asym/database/supabase/server";
 import { NextResponse } from "next/server";
+
+import { toErrorResponse } from "../shared/http-errors";
 
 import type { OrgPostVisibility } from "@asym/database/types";
 
@@ -44,15 +47,12 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
+    // Explicit admin role gate — this mutates a tenant-wide setting; do not
+    // rely on RLS alone. (finding 06 Gap 2) Maps Unauthorized→401, Forbidden→403.
+    const auth = await getAuthContext(request);
+    requireRole(auth, ["admin", "super_admin"]);
+
     const supabase = await createClient();
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
-
-    if (!user) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-    }
-
     const body = await request.json();
     const visibility = body.orgPostVisibility as OrgPostVisibility;
 
@@ -79,9 +79,8 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ orgPostVisibility: visibility });
   } catch (error) {
     console.error("Error updating org settings:", error);
-    return NextResponse.json(
-      { error: "Failed to update settings" },
-      { status: 500 },
-    );
+    // Maps the requireRole throw (Unauthorized→401 / Forbidden→403) and any
+    // other error to a correct status instead of a blanket 500.
+    return toErrorResponse(error, "Failed to update settings");
   }
 }

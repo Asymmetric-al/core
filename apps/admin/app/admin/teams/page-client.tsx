@@ -38,7 +38,7 @@ export default function TeamsPage() {
       description="Organize users and departments with shared, granular permissions."
       density="compact"
       actions={<TeamsPageActions />}
-      contentClassName="space-y-8 animate-in fade-in duration-500"
+      contentClassName="space-y-8"
     >
       <div className="grid gap-6">
         <TeamsTableCard

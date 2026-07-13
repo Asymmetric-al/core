@@ -1,8 +1,11 @@
 import {
   createE2EAuthCookieValue,
   getE2EAuthCookieNameForRequest,
+  hasE2EAuthSecret,
   isE2EAuthBypassEnabled,
+  isSupabaseDatasourceAllowedForE2EBypass,
 } from "@asym/auth";
+import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "@asym/auth/constants";
 import { APP_ROLES, type AppRole } from "@asym/auth/roles";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
 import { serverEnv } from "@asym/env";
@@ -92,6 +95,32 @@ function appRoleToUserRole(role: AppRole): UserRole {
   return "admin";
 }
 
+type E2EBypassReadiness = { ready: true } | { ready: false; reason: string };
+
+/**
+ * Whether the E2E bypass can actually mint a cookie that the verifiers will
+ * honor here. Mirrors the two controls those verifiers enforce (signing secret
+ * present + datasource allowlisted) so the demo endpoint fails fast and reports
+ * availability honestly, instead of minting a cookie the middleware will reject.
+ */
+function getE2EBypassReadiness(): E2EBypassReadiness {
+  if (!hasE2EAuthSecret()) {
+    return {
+      ready: false,
+      reason:
+        "No E2E signing key for this datasource. Loopback and the example.supabase.co placeholder work with no setup; a real Supabase project requires an explicit E2E_AUTH_SECRET.",
+    };
+  }
+  if (!isSupabaseDatasourceAllowedForE2EBypass(getSupabasePublicConfig().url)) {
+    return {
+      ready: false,
+      reason:
+        "Supabase datasource is not allowlisted (E2E_AUTH_ALLOWED_SUPABASE_REFS).",
+    };
+  }
+  return { ready: true };
+}
+
 function createAuthClient(request: Request) {
   const pendingCookies: PendingCookie[] = [];
   const { url, key } = getSupabasePublicConfig();
@@ -167,8 +196,17 @@ function toSafeDemoError(rawMessage: string | undefined) {
 
 export async function GET() {
   if (isE2EAuthBypassEnabled()) {
+    const readiness = getE2EBypassReadiness();
+    const available = readiness.ready;
     return NextResponse.json({
-      availableRoles: { admin: true, missionary: true, donor: true },
+      availableRoles: {
+        admin: available,
+        missionary: available,
+        donor: available,
+      },
+      ...(readiness.ready
+        ? {}
+        : { reason: `E2E bypass misconfigured: ${readiness.reason}` }),
     });
   }
   if (!isDemoEndpointEnabled()) {
@@ -211,18 +249,34 @@ export async function POST(request: Request) {
     }
 
     if (isE2EAuthBypassEnabled()) {
+      // Fail fast (and consistently with the verifiers) rather than minting a
+      // cookie the middleware would reject: require the signing secret and an
+      // allowlisted datasource before granting a bypass session.
+      const readiness = getE2EBypassReadiness();
+      if (!readiness.ready) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Demo login unavailable",
+            code: "DEMO_E2E_BYPASS_MISCONFIGURED",
+            detail: readiness.reason,
+          },
+          { status: 503 },
+        );
+      }
+
       const e2eRole = appRoleToUserRole(role);
+      const cookieName = getE2EAuthCookieNameForRequest(request);
       const response = NextResponse.json({ ok: true, role, bypass: true });
       const secure = new URL(request.url).protocol === "https:";
-
-      const cookieName = getE2EAuthCookieNameForRequest(request);
       if (cookieName) {
         response.cookies.set(
           cookieName,
-          createE2EAuthCookieValue({
+          await createE2EAuthCookieValue({
             userId: `e2e-${role}-user`,
             role: e2eRole,
-            tenantId: null,
+            tenantId: DEMO_TENANT_ID,
+            profileId: DEMO_PROFILE_ID,
           }),
           {
             httpOnly: true,

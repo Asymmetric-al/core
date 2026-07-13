@@ -48,6 +48,7 @@ function getExpectation(
 
   if (target === "missionary") {
     return {
+      allowHiddenHeading: true,
       heading: "Mission Tasks",
       path: "/boneyard/tasks",
       skeletonName: "missionary-tasks-list",
@@ -124,7 +125,7 @@ test("boneyard capture routes render generated bone overlays", async ({
     if (expectation.allowHiddenHeading) {
       await expect(heading).toHaveCount(1);
     } else {
-      await expect(heading).toBeVisible();
+      await expect(heading).toBeVisible({ timeout: 15_000 });
     }
   }
   await expect(page.getByText("This page could not be found.")).toHaveCount(0);

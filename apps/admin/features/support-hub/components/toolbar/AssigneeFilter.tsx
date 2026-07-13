@@ -31,7 +31,10 @@ export function AssigneeFilter({ value, onValueChange }: AssigneeFilterProps) {
   const { data: agents } = useSupportAgents();
   const selectValue = value.length === 0 ? ANY_VALUE : value;
 
-  const handleChange = (next: string) => {
+  const handleChange = (next: string | null) => {
+    if (next === null) {
+      return;
+    }
     if (next === ANY_VALUE) {
       onValueChange("");
       return;

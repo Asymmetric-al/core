@@ -46,16 +46,18 @@ export function GiftHistoryViewSwitcher({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="h-8 max-w-36 gap-1 truncate text-xs"
-          aria-label="Gift history views"
-        >
-          {label}
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="outline"
+            size="sm"
+            className="h-8 max-w-36 gap-1 truncate text-xs"
+            aria-label="Gift history views"
+          >
+            {label}
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-64">
         {views.length > 0 ? (
           <DropdownMenuRadioGroup
@@ -82,28 +84,28 @@ export function GiftHistoryViewSwitcher({
           </DropdownMenuLabel>
         )}
         <DropdownMenuSeparator />
-        <DropdownMenuItem onSelect={onSaveCurrentAs}>
+        <DropdownMenuItem onClick={onSaveCurrentAs}>
           Save current as view…
         </DropdownMenuItem>
         {activeView ? (
           <>
-            <DropdownMenuItem onSelect={() => onRename(activeView)}>
+            <DropdownMenuItem onClick={() => onRename(activeView)}>
               Rename “{activeView.name}”…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onDuplicate(activeView)}>
+            <DropdownMenuItem onClick={() => onDuplicate(activeView)}>
               Duplicate
             </DropdownMenuItem>
             {activeView.isDefault ? null : (
-              <DropdownMenuItem onSelect={() => onSetDefault(activeView)}>
+              <DropdownMenuItem onClick={() => onSetDefault(activeView)}>
                 Set as default
               </DropdownMenuItem>
             )}
-            <DropdownMenuItem onSelect={() => onResetToSaved(activeView)}>
+            <DropdownMenuItem onClick={() => onResetToSaved(activeView)}>
               Reset to saved view
             </DropdownMenuItem>
             <DropdownMenuItem
               variant="destructive"
-              onSelect={() => onDelete(activeView)}
+              onClick={() => onDelete(activeView)}
             >
               Delete view…
             </DropdownMenuItem>

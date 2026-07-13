@@ -20,6 +20,7 @@ import {
   useCrmTablePreferences,
   useDeleteCrmNamedView,
   useSaveCrmRowActionPin,
+  useSaveCrmTenantDefault,
   useSaveCrmViewSettings,
   useUpdateCrmNamedView,
 } from "@asym/database/hooks";
@@ -118,6 +119,9 @@ export function DetailDrawer({
     CRM_GIFT_HISTORY_TABLE_ID,
   );
   const saveViewSettingsMutate = saveViewSettingsMutation.mutate;
+  const saveTenantDefaultMutation = useSaveCrmTenantDefault(
+    CRM_GIFT_HISTORY_TABLE_ID,
+  );
   const [inlineOperation, setInlineOperation] = useState<{
     donationId: string;
     operation: OperationDefinition;
@@ -125,6 +129,7 @@ export function DetailDrawer({
   const [pendingReset, setPendingReset] = useState<CrmViewSettingsScope | null>(
     null,
   );
+  const [pendingTenantDefault, setPendingTenantDefault] = useState(false);
 
   const pinRowAction = (actionId: string | null) => {
     savePinMutation.mutate(actionId, {
@@ -319,6 +324,43 @@ export function DetailDrawer({
             : { columns: null, filtersSort: null, pinnedActionId: null };
     saveViewSettings(patch);
     setPendingReset(null);
+  };
+
+  // Server-computed flag (#272): visibility follows the tenant-default write
+  // gate (capability holders and delegated managers) exactly.
+  const canManageTenantDefaults =
+    tablePreferences?.canManageTenantDefaults === true;
+
+  /**
+   * Publishes the CURRENT resolved settings (user → tenant → system) and the
+   * effective pinned row action as the tenant default (#272). Delegates on
+   * the tenant default record are left unchanged.
+   */
+  const confirmSetTenantDefault = () => {
+    const effectivePinnedActionId =
+      tablePreferences?.user?.actionId ??
+      tablePreferences?.tenantDefault?.actionId ??
+      null;
+    saveTenantDefaultMutation.mutate(
+      {
+        columns: viewSettings.columns,
+        filtersSort: viewSettings.filtersSort,
+        pinnedActionId: effectivePinnedActionId,
+      },
+      {
+        onError: (error) => {
+          toast.error(
+            error instanceof Error
+              ? error.message
+              : "Failed to save the tenant default.",
+          );
+        },
+        onSuccess: () => {
+          toast.success("Tenant default updated for gift history.");
+        },
+      },
+    );
+    setPendingTenantDefault(false);
   };
 
   const summarizeContact = async () => {
@@ -598,13 +640,13 @@ export function DetailDrawer({
                 <TabsList className="bg-transparent h-9 p-0 gap-6 border-b border-border w-full rounded-none justify-start">
                   <TabsTrigger
                     value="activity"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
                   >
                     Activity
                   </TabsTrigger>
                   <TabsTrigger
                     value="properties"
-                    className="bg-transparent border-b-2 border-transparent data-[state=active]:border-foreground data-[state=active]:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
+                    className="bg-transparent border-b-2 border-transparent data-active:border-foreground data-active:text-foreground rounded-none px-0 py-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground shadow-none"
                   >
                     Properties
                   </TabsTrigger>
@@ -719,8 +761,12 @@ export function DetailDrawer({
                           />
                           <GiftHistoryViewSettingsMenu
                             settings={viewSettings}
+                            canManageTenantDefaults={canManageTenantDefaults}
                             onPatch={saveViewSettings}
                             onRequestReset={setPendingReset}
+                            onRequestSetTenantDefault={() =>
+                              setPendingTenantDefault(true)
+                            }
                           />
                         </div>
                       </div>
@@ -968,6 +1014,42 @@ export function DetailDrawer({
               </Button>
               <Button className="h-11" onClick={confirmPendingReset}>
                 Reset
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      ) : null}
+      {pendingTenantDefault ? (
+        <Dialog
+          open
+          onOpenChange={(open) => !open && setPendingTenantDefault(false)}
+        >
+          <DialogContent
+            className="sm:max-w-md"
+            data-testid="tenant-default-confirm"
+          >
+            <DialogTitle>Set tenant default</DialogTitle>
+            <DialogDescription>
+              The current columns, filters, sort, and pinned row action become
+              the default for everyone in this tenant. Personal view settings
+              are not changed and keep overriding the tenant default.
+            </DialogDescription>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                className="h-11"
+                onClick={() => setPendingTenantDefault(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="h-11"
+                disabled={saveTenantDefaultMutation.isPending}
+                onClick={confirmSetTenantDefault}
+              >
+                {saveTenantDefaultMutation.isPending
+                  ? "Saving..."
+                  : "Set tenant default"}
               </Button>
             </div>
           </DialogContent>

@@ -1,6 +1,8 @@
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ReceiptDeliveryOutcome } from "./receipt-delivery";
 
+export type { ReceiptDeliveryOutcome };
+
 export const CONTRIBUTION_ACTION_TYPES = [
   "resend_receipt",
   "approve_staged_gift",
@@ -80,6 +82,43 @@ export interface ContributionProviderOutcome {
   errorCode?: string | null;
   errorMessage?: string | null;
   raw?: Record<string, unknown>;
+}
+
+/**
+ * Provider-outcome statuses recorded as failed corrections. Shared by the
+ * action executor and UI surfaces so both sides classify outcomes the same
+ * way: `local_update_failed` means the provider action succeeded but the
+ * local record did not converge, which still requires staff attention.
+ */
+const FAILED_PROVIDER_OUTCOME_STATUSES: ReadonlySet<string> = new Set([
+  "failed",
+  "local_update_failed",
+  "canceled",
+  "requires_action",
+]);
+
+export function isFailedProviderOutcomeStatus(
+  status: string | null | undefined,
+): boolean {
+  return status != null && FAILED_PROVIDER_OUTCOME_STATUSES.has(status);
+}
+
+/**
+ * Correction status recorded for a provider outcome. A pending provider
+ * outcome (for example an ACH refund Stripe accepted but has not confirmed)
+ * must be recorded as "pending" — never "applied" — so the correction and
+ * audit trail do not imply finality before the provider confirms (#265).
+ */
+export function correctionStatusForProviderOutcome(
+  status: string | null | undefined,
+): "applied" | "failed" | "pending" {
+  if (isFailedProviderOutcomeStatus(status)) {
+    return "failed";
+  }
+  if (status === "pending") {
+    return "pending";
+  }
+  return "applied";
 }
 
 export interface ContributionCorrectionRecordInput {
@@ -215,6 +254,16 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     expectedRevision?: string | null;
     idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
+  /**
+   * Links a provider-accepted pending refund attempt to the correction that
+   * represents it, then immediately reconciles against authoritative provider
+   * state so a terminal transition cannot be missed between insert and link.
+   */
+  linkAndReconcilePendingRefundAttempt?: (input: {
+    tenantId: string;
+    providerReferenceId: string;
+    correctionId: string;
+  }) => Promise<void>;
   appendAuditEvent?: (
     input: ContributionOperationAuditEventInput,
   ) => Promise<string>;

@@ -107,10 +107,10 @@ export function DataTableResponsiveInner<TData, TValue>({
     manualPagination = false,
     manualSorting = false,
     manualFiltering = false,
-    enableVirtualization: configVirtualizationEnabled = false,
-    virtualRowHeight = 56,
-    virtualOverscan = 8,
-    virtualContainerHeight = 640,
+    enableVirtualization: configVirtualizationEnabled,
+    virtualRowHeight,
+    virtualOverscan,
+    virtualContainerHeight,
     stickyHeader = false,
   } = config;
 
@@ -133,9 +133,10 @@ export function DataTableResponsiveInner<TData, TValue>({
       id: "select",
       header: ({ table }) => (
         <Checkbox
-          checked={
-            table.getIsAllPageRowsSelected() ||
-            (table.getIsSomePageRowsSelected() && "indeterminate")
+          checked={table.getIsAllPageRowsSelected()}
+          indeterminate={
+            table.getIsSomePageRowsSelected() &&
+            !table.getIsAllPageRowsSelected()
           }
           onCheckedChange={(value) => {
             table.toggleAllPageRowsSelected(!!value);

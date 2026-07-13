@@ -11,12 +11,7 @@ import {
 import type { Metadata } from "next";
 
 import { fetchPublishedCmsUpdates } from "@/lib/cms/client";
-
-function makeDisplayDate(value?: string | number | Date): Date {
-  return value === undefined
-    ? new globalThis.Date()
-    : new globalThis.Date(value);
-}
+import { makeDisplayDate } from "@/lib/dates";
 
 export const metadata: Metadata = pageMetadata.home;
 
@@ -45,7 +40,7 @@ export default async function HomePage() {
             {latestUpdates.map((update) => (
               <article
                 key={String(update.id)}
-                className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out hover:-translate-y-0.5 hover:shadow-md"
+                className="rounded-xl border border-zinc-200 bg-white p-4 shadow-sm transition-[transform,box-shadow] duration-200 ease-out [@media(hover:hover)_and_(pointer:fine)]:hover:-translate-y-0.5 [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md"
               >
                 <p className="text-xs font-medium text-zinc-500">
                   {typeof update.publishedAt === "string"

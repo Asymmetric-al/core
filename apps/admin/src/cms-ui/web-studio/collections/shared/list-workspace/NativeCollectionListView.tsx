@@ -2,7 +2,15 @@
 
 import { FilterBar } from "@asym/ui/components/primitives/filter-bar";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
+import {
+  Empty,
+  EmptyDescription,
+  EmptyHeader,
+  EmptyMedia,
+  EmptyTitle,
+} from "@asym/ui/components/shadcn/empty";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { cn } from "@asym/ui/lib/utils";
 import {
   ListControls,
@@ -15,11 +23,11 @@ import {
   usePreferences,
   useTableColumns,
 } from "@payloadcms/ui";
-import { Plus } from "lucide-react";
-import Link from "next/link";
+import { FileSearch, Plus } from "lucide-react";
 import { formatAdminURL } from "payload/shared";
 import { useEffect, useMemo, useState } from "react";
 
+import { Link } from "../../../routing";
 import { StudioLayout } from "../../../shell/studio-layout";
 import { getWebStudioCollectionConfig } from "../../config";
 
@@ -163,20 +171,21 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
         <PageShell
           title={title}
           description={studioConfig.description}
+          density="compact"
           className="gap-8 p-0 pb-12"
           headerClassName="border-0 pb-6"
           actions={
             hasCreatePermission && createHref ? (
-              <Button
-                size="sm"
-                className="font-semibold uppercase tracking-wide"
-                asChild
+              <Link
+                href={createHref}
+                className={cn(
+                  buttonVariants({ size: "sm" }),
+                  "font-semibold uppercase tracking-wide",
+                )}
               >
-                <Link href={createHref}>
-                  <Plus className="mr-2 size-4" />
-                  {studioConfig.createLabel}
-                </Link>
-              </Button>
+                <Plus className="mr-2 size-4" />
+                {studioConfig.createLabel}
+              </Link>
             ) : null
           }
         >
@@ -214,7 +223,7 @@ export function NativeCollectionListView(props: NativeCollectionListViewProps) {
             }}
           />
 
-          <div className="rounded-xl border border-border bg-card shadow-sm">
+          <div className="rounded-lg border border-border bg-card shadow-sm">
             <div
               className={cn(
                 "border-border border-b px-4 py-3",
@@ -283,6 +292,26 @@ function NativeCollectionTableBridge({
   const rows = data?.docs ?? [];
 
   if (!InitialTable) {
+    if (!data) {
+      return <Skeleton className="h-48 w-full rounded-lg" />;
+    }
+
+    if (rows.length === 0) {
+      return (
+        <Empty className="border border-border">
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileSearch className="size-5" />
+            </EmptyMedia>
+            <EmptyTitle>No documents found</EmptyTitle>
+            <EmptyDescription>
+              Adjust the current search or filters to show matching documents.
+            </EmptyDescription>
+          </EmptyHeader>
+        </Empty>
+      );
+    }
+
     return (
       <div className="payload-table-native">
         <Table columns={columns} data={rows} />

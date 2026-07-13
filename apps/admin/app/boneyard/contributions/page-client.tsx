@@ -26,11 +26,11 @@ export default function BoneyardContributionsCapturePage() {
     <PageShell
       title="Contributions"
       description="Track and manage all donations and contributions."
-      actions={<ContributionsPageActions />}
+      actions={<ContributionsPageActions canManageContributions={false} />}
     >
       <BoneyardSkeleton
         name="admin-contributions-content"
-        loading={true}
+        loading={false}
         fixture={skeletonContent}
         snapshotConfig={{
           excludeSelectors: ["[data-no-skeleton]", "svg.lucide", "svg"],

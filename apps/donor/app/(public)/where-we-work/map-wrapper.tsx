@@ -1,6 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import {
   Map,
   MapMarker,
@@ -446,17 +447,19 @@ function MarkerDot({
 
           <div
             className={cn(
-              "relative transition-all duration-200 ease-out cursor-pointer",
-              isSelected ? "z-50" : "z-10 hover:z-40",
+              // Grow via transform (GPU, no layout) instead of width/height:
+              // the wrapper scales so the dot and its pulse halo grow together.
+              "relative cursor-pointer origin-center transition-transform duration-200 ease-out",
+              isSelected
+                ? "z-50 scale-[1.75]"
+                : "z-10 hover:z-40 [@media(hover:hover)_and_(pointer:fine)]:hover:scale-125",
             )}
           >
             <div
               className={cn(
-                "rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-all duration-200 ease-out",
+                "size-2 rounded-full border-[1.5px] border-white/90 dark:border-zinc-900/90 shadow-md transition-shadow duration-200 ease-out",
                 colors.bg,
-                isSelected
-                  ? "size-3.5 ring-[3px] shadow-lg"
-                  : "size-2 hover:size-2.5",
+                isSelected && "ring-2 shadow-lg",
                 isSelected && colors.ring,
               )}
             />
@@ -585,7 +588,11 @@ function DetailDialog({
                     View Profile
                   </Button>
                 </Link>
-                <Link href={`/checkout?missionary=${location.linked_id}`}>
+                <Link
+                  href={buildCheckoutHref({
+                    missionaryId: location.linked_id,
+                  })}
+                >
                   <Button
                     variant="secondary"
                     size="icon"
@@ -693,7 +700,11 @@ function MobileDetailSheet({
                     View Profile
                   </Button>
                 </Link>
-                <Link href={`/checkout?missionary=${location.linked_id}`}>
+                <Link
+                  href={buildCheckoutHref({
+                    missionaryId: location.linked_id,
+                  })}
+                >
                   <Button
                     variant="secondary"
                     size="icon"

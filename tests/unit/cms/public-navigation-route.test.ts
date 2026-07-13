@@ -98,7 +98,7 @@ describe("public navigation route", () => {
     });
   });
 
-  it("returns null navigation when no docs are published", async () => {
+  it("returns null navigation when the tenant has no navigation docs", async () => {
     const find = vi.fn().mockResolvedValue({ docs: [] });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({

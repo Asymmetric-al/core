@@ -15,6 +15,12 @@ The vendored mirror is **not** imported by application code.
 
 ## Initial setup
 
+The current admin runtime spike uses Payload `4.0.0-internal.1f9ae9a` packages
+from the registry in `apps/admin/package.json`. The vendored upstream mirror is
+still a historical audit/planning reference at `v3.77.0` until a stable Payload
+4 tag is selected for the mirror. Do not import the mirror into runtime code or
+subtree-pull an internal build without a dedicated upgrade decision.
+
 ```bash
 git remote add payload-upstream https://github.com/payloadcms/payload.git
 git fetch payload-upstream --tags
@@ -41,6 +47,7 @@ git subtree pull --prefix=vendor/payload-upstream payload-upstream v3.78.0 --squ
    - `@payloadcms/next`
    - `@payloadcms/db-postgres`
    - `@payloadcms/richtext-lexical`
+   - `@payloadcms/storage-vercel-blob`
 2. Update subtree mirror to the same tag.
 3. Run scoped checks:
    - `bun run typecheck:admin`
