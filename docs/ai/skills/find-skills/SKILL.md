@@ -39,9 +39,9 @@ and are prepared to review and revert the full diff.
 
 ### Repo-local skills (Asymmetric-al/core)
 
-Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical repo-owned skills live under `docs/ai/skills/` and are mirrored to `.cursor/skills/` and `.agents/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
+Before searching the public index, check **`docs/ai/skills/`** and **`AGENTS.md` → Skill Routing**. Canonical repo-owned skills live under `docs/ai/skills/` and are mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` with `bun run skills:sync` (CI: `bun run skills:verify`).
 
-Use the canonical docs path when routing or documenting repo-critical skills. Treat `.cursor/skills/` and `.agents/skills/` as shared runtime mirrors for tool compatibility, not the primary authoring location.
+Use the canonical docs path when routing or documenting repo-critical skills. Treat `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` as runtime mirrors for tool compatibility, not the primary authoring location.
 
 Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/` or `.agents/skills/`. Those are optional unless the repo explicitly promotes them into `docs/ai/skills/`.
 
@@ -58,6 +58,10 @@ Some extra ecosystem or tool-specific skills may exist only in `.cursor/skills/`
 **Example — Resend app integration:** app-level Resend integration in this monorepo is documented in `docs/guides/features/resend-integration.md`.
 
 **Example — bendc frontend guidelines:** semantic HTML, CSS discipline, and vanilla JS readability patterns from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) are covered by `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored `README.md` under `references/`); maintainer refresh notes are in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`. Use **`docs/ai/rules/frontend.md`** first for `apps/*` and `packages/ui` work.
+
+**Example — Emil Kowalski design-engineering pack:** the five skills from [`emilkowalski/skills`](https://github.com/emilkowalski/skills) are canonical under `docs/ai/skills/{animation-vocabulary,apple-design,emil-design-eng,improve-animations,review-animations}/`. Refresh with `npx --yes skills@latest add emilkowalski/skills -y`, then `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Follow the narrow routes and Core precedence in `AGENTS.md` rather than treating the installer output as authoritative.
+
+**Example — Grill for Unknowns:** the complete [`nicobailon/grill-for-unknowns`](https://github.com/nicobailon/grill-for-unknowns) plugin is canonical under `docs/ai/skills/grill-for-unknowns/`. Refresh with `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`, then `bun run skills:refresh-grill-for-unknowns`, `bun run skills:sync`, and `bun run skills:verify`. It is explicit-only in Core: use it for a requested map-vs-territory, blindspot, unknown-known prototype, or launch-packet workflow; generic grilling stays with `grilling` or `grill-with-docs`.
 
 **Example — Payload CMS:**
 

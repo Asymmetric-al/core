@@ -90,6 +90,48 @@ describe("donor portal auth and ownership", () => {
     );
   });
 
+  it("returns the deterministic E2E donor portal snapshot when admin Supabase is unavailable", async () => {
+    const originalBypass = process.env.E2E_AUTH_BYPASS;
+    process.env.E2E_AUTH_BYPASS = "true";
+    getAdminClientMock.mockReturnValue({
+      client: null,
+      error:
+        "Admin endpoints are disabled because SUPABASE_SERVICE_ROLE_KEY is not configured.",
+    });
+    getAuthContextMock.mockResolvedValue({
+      isAuthenticated: true,
+      userId: "e2e-donor-user",
+      tenantId: "00000000-0000-0000-0000-000000000001",
+      role: "donor",
+      profileRole: "donor",
+      memberships: [],
+      profileId: "11111111-1111-1111-1111-111111111111",
+      email: null,
+    });
+    requireRoleMock.mockImplementation(() => undefined);
+
+    try {
+      const response = await getDonorPortal(request());
+      const payload = (await response.json()) as {
+        portal?: {
+          profile?: { id: string; displayName: string };
+          donations?: unknown[];
+          recurringGifts?: unknown[];
+        };
+      };
+
+      expect(response.status).toBe(200);
+      expect(payload.portal?.profile).toMatchObject({
+        id: "11111111-1111-1111-1111-111111111111",
+        displayName: "Jordan Hale",
+      });
+      expect(payload.portal?.donations?.length).toBeGreaterThan(0);
+      expect(payload.portal?.recurringGifts?.length).toBeGreaterThan(0);
+    } finally {
+      process.env.E2E_AUTH_BYPASS = originalBypass;
+    }
+  });
+
   it("scopes donor receipt lookup by donation id, tenant, and donor", async () => {
     const query = createQueryMock({
       data: {

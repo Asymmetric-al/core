@@ -163,6 +163,23 @@ export async function retrieveInboundBody(
     );
   }
 
+  const parsedText = received.data.text?.trim() ?? "";
+  const parsedHtml = received.data.html?.trim() ?? null;
+
+  if (!parsedText && !parsedHtml) {
+    await client
+      .from(INBOUND_TABLE)
+      .update({
+        body_retrieval_attempts: attempts,
+        body_retrieval_error: "provider returned empty body",
+      })
+      .eq("id", row.id);
+
+    throw new Error(
+      "inbound_body_retrieval_failed: provider returned empty body",
+    );
+  }
+
   const headers = received.data.headers ?? null;
   const messageIdHeader =
     getHeaderValue(headers, ["message-id", "message_id"]) ??
@@ -178,8 +195,8 @@ export async function retrieveInboundBody(
   const updated = await client
     .from(INBOUND_TABLE)
     .update({
-      parsed_text: received.data.text ?? "",
-      parsed_html: received.data.html ?? null,
+      parsed_text: parsedText,
+      parsed_html: parsedHtml,
       message_id_header: messageIdHeader,
       in_reply_to_header: inReplyToHeader,
       references_headers: referencesHeaders,
@@ -361,6 +378,16 @@ export async function routeReadyInboundEmail(
       messageId: null,
       reason:
         "Support Hub routing requires the received email body; the placeholder stays pending.",
+    };
+  }
+
+  if (!row.parsed_text?.trim() && !row.parsed_html?.trim()) {
+    return {
+      status: "skipped_no_body",
+      conversationId: null,
+      messageId: null,
+      reason:
+        "Support Hub routing requires non-empty email content; empty placeholders are not routed.",
     };
   }
 

@@ -30,6 +30,17 @@ export interface BuildCrmGiftHistoryRowInput {
     stripePaymentIntentId: string | null;
     stripeChargeId: string | null;
   };
+  /**
+   * Refund availability basis (#265). The refundable basis is the ORIGINAL
+   * donation amount (what the provider charged) — never the adjusted
+   * effective amount — matching the contribution detail read model and the
+   * refund adapter. Callers that feed effective-adjusted values into
+   * `donation.amount` (like the CRM detail service) MUST provide this;
+   * when omitted, the donation amount input is used as-is.
+   */
+  refundBasis?: {
+    originalAmountCents: number;
+  };
   /** Viewer capabilities filter which operations surface inline (#270). */
   viewerCapabilities?: string[];
 }
@@ -75,7 +86,10 @@ export function buildCrmGiftHistoryRow(
       : null,
     paymentStatus: donation.status,
     refund: {
-      amountCents: shared.amountCents,
+      // Original charged amount, not the effective (adjusted) amount, so the
+      // CRM inline refund entry agrees with contribution detail and the
+      // refund adapter after amount corrections (#265).
+      amountCents: input.refundBasis?.originalAmountCents ?? shared.amountCents,
       refundedAmountCents: shared.refundedAmountCents,
       hasProviderCharge: Boolean(input.provider?.stripeChargeId),
     },

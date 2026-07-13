@@ -5,6 +5,7 @@ export {
 export { executeContributionAction } from "./actions";
 export {
   assertCanDecideCorrectionRequest,
+  canDecideCorrectionRequest,
   correctionRequiresApproval,
   resolveCorrectionApprovalPolicy,
   type CorrectionApprovalOwnershipMode,
@@ -74,7 +75,14 @@ export {
   validateContributionCorrectionTemplate,
   type ContributionCorrectionTemplateVariantRef,
 } from "./notifications/templates";
-export { applyContributionCorrection } from "./operations";
+export {
+  applyContributionCorrection,
+  loadReceiptDeliveryContext,
+} from "./operations";
+export {
+  refundContributionThroughStripe,
+  type RefundContributionThroughStripeInput,
+} from "./refunds";
 export {
   assertAllowedPaymentStateCorrectionStatus,
   isAllowedPaymentStateCorrectionStatus,
@@ -95,9 +103,11 @@ export {
   isHighRiskContributionAction,
 } from "./policy";
 export {
+  buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   evaluateReceiptDeliveryOptions,
   parseReceiptDeliverySelection,
+  parseReceiptSnapshotContent,
   resolveConfirmedReceiptDelivery,
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
@@ -106,15 +116,29 @@ export {
   type ReceiptDeliveryOption,
   type ReceiptDeliveryOutcome,
   type ReceiptDeliverySelection,
+  type ReceiptSnapshotContentV1,
+  type ReceiptSnapshotDesignationLineV1,
+  type ReceiptSnapshotSourceDetail,
+  type ResolvedReceiptDeliverySelection,
   type TenantReceiptDeliveryPolicy,
   type TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 export {
+  assertReceiptSnapshotPdfCapability,
+  buildUpdatedReceiptHtml,
+  renderContributionReceiptSnapshotPdf,
+  type RenderedContributionReceiptSnapshotPdf,
+} from "./receipt-pdf";
+export {
+  buildContributionReceiptDeliveryView,
   projectContributionActionResultForViewer,
   projectContributionDetailForViewer,
+  projectCorrectionRequestsForViewer,
   stripeReplayAvailability,
   type ContributionProviderProof,
+  type ContributionReceiptDeliveryView,
   type ViewerProjectedContributionDetail,
+  type ViewerProjectedCorrectionRequest,
 } from "./viewer-projection";
 
 export type {
@@ -136,6 +160,7 @@ export type {
 export {
   CONTRIBUTION_ACTION_TYPES,
   CONTRIBUTION_SOURCE_SURFACES,
+  isFailedProviderOutcomeStatus,
 } from "./types";
 export type {
   ContributionDetail,

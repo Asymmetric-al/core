@@ -124,12 +124,30 @@ export interface CrmTablePreferencesResponse {
   schemaVersion: number;
   user: CrmTableRowActionPreference | null;
   tenantDefault: CrmTableRowActionPreference | null;
+  /**
+   * Server-computed from the same gates the tenant-default write enforces
+   * (capability or delegation on the tenant default record, issue #272), so
+   * UI visibility can never be broader than the write gate. Absent on older
+   * server responses; treat as false.
+   */
+  canManageTenantDefaults?: boolean;
 }
 
 export type CrmTablePreferencePatch = CrmViewSettingsPatch & {
   /** Hook-only pin field; settings scopes are handled by CrmViewSettingsPatch. */
   pinnedActionId?: string | null;
 };
+
+/**
+ * Tenant-default save body (issue #272): the user-preference patch minus
+ * `activeViewId` (named views are personal), plus the nullable delegate list
+ * already carried by {@link CrmViewSettingsPatch}. Matches the server's
+ * `tenantDefaultSchema`.
+ */
+export type CrmTenantDefaultPatch = Omit<
+  CrmTablePreferencePatch,
+  "activeViewId"
+>;
 
 export function applyCrmTablePreferencePatch(
   response: CrmTablePreferencesResponse,

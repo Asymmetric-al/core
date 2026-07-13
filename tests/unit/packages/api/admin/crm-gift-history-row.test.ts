@@ -291,6 +291,132 @@ describe("admin/crm/detail/gift-history", () => {
     ).toContain("stripe_replay");
   });
 
+  it("keeps inline refunds available on the original basis when an adjustment lowered the effective amount (#265)", () => {
+    // $50.00 charge, $20.00 refunded, amount correction lowered the
+    // effective amount to $10.00. The CRM detail service feeds EFFECTIVE
+    // values into donation.amount, so without the original refund basis the
+    // inline entry would wrongly report the gift as fully refunded.
+    const row = buildCrmGiftHistoryRow({
+      donation: {
+        ...donation,
+        amount: 1_000,
+        refund_amount: 2_000,
+      },
+      donor,
+      fund,
+      missionary,
+      stagedGift: { ...stagedGift, twenty_record_id: null },
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+      refundBasis: { originalAmountCents: 5_000 },
+      viewerCapabilities: [
+        "contributions.view_detail",
+        "contributions.run_refunds",
+      ],
+    });
+
+    const refundEntry = row.inlineActions.entries.find(
+      (entry) => entry.actionType === "refund",
+    );
+    expect(refundEntry).toMatchObject({
+      available: true,
+      blockedReason: null,
+    });
+
+    // Parity with the contribution detail derivation on the same original
+    // basis (detail-read-model feeds donation.amount, the raw original).
+    const detailAvailability = buildContributionActionAvailability({
+      stagedGift: {
+        id: stagedGift.id,
+        status: stagedGift.status,
+        receiptStatus: stagedGift.receipt_status,
+        crmPostStatus: stagedGift.crm_post_status,
+      },
+      paymentStatus: donation.status,
+      refund: {
+        amountCents: 5_000,
+        refundedAmountCents: 2_000,
+        hasProviderCharge: true,
+      },
+    });
+    expect(refundEntry).toEqual(
+      detailAvailability.find((entry) => entry.actionType === "refund"),
+    );
+  });
+
+  it("blocks inline refunds on fully refunded gifts even when an adjustment raised the effective amount (#265)", () => {
+    // $50.00 charge fully refunded; an amount correction raised the
+    // effective amount to $100.00. The provider cannot refund more than it
+    // charged, so the inline entry must stay blocked.
+    const row = buildCrmGiftHistoryRow({
+      donation: {
+        ...donation,
+        amount: 10_000,
+        refund_amount: 5_000,
+        status: "refunded",
+      },
+      donor,
+      fund,
+      missionary,
+      stagedGift: { ...stagedGift, twenty_record_id: null },
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+      refundBasis: { originalAmountCents: 5_000 },
+      viewerCapabilities: [
+        "contributions.view_detail",
+        "contributions.run_refunds",
+      ],
+    });
+
+    const refundEntry = row.inlineActions.entries.find(
+      (entry) => entry.actionType === "refund",
+    );
+    expect(refundEntry).toMatchObject({
+      available: false,
+      blockedReason: "This gift is already fully refunded.",
+    });
+  });
+
+  it("keeps no-staged-gift workflow actions visible with blocked reasons (#258)", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift: null,
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+      viewerCapabilities: [
+        "contributions.view_detail",
+        "contributions.request_corrections",
+        "contributions.apply_corrections",
+        "contributions.manage_receipts",
+        "contributions.retry_crm_post",
+        "contributions.run_refunds",
+        "contributions.use_provider_actions",
+      ],
+    });
+
+    // Workflow actions stay visible with reasons instead of disappearing,
+    // and never call the donation itself invalid.
+    const workflowEntries = row.inlineActions.entries.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
+        entry.actionType,
+      ),
+    );
+    expect(workflowEntries.length).toBeGreaterThan(0);
+    for (const entry of workflowEntries) {
+      expect(entry.available).toBe(false);
+      expect(entry.blockedReason).toMatch(/no staged gift/i);
+      expect(entry.nextStep).toMatch(/valid/i);
+      expect(entry.blockedReason).not.toMatch(/invalid|missing donation/i);
+    }
+
+    // Refund does not require a staged gift; with a provider charge it stays
+    // available so read-only gifts keep their financial operations.
+    const refundEntry = row.inlineActions.entries.find(
+      (entry) => entry.actionType === "refund",
+    );
+    expect(refundEntry?.available).toBe(true);
+  });
+
   it("hides inline operations the viewer has no capability for", () => {
     const row = buildCrmGiftHistoryRow({
       donation,
