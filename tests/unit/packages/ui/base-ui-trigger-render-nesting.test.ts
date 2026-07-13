@@ -4,11 +4,16 @@ import path from "node:path";
 import { glob } from "glob";
 import { describe, expect, it } from "vitest";
 
+import { SOURCE_GLOBS } from "./base-ui-source-globs";
+
 /**
  * Base UI trigger components use the `render` prop to supply the clickable
- * element. Content placed as JSX children between opening/closing trigger tags
- * is ignored at runtime, so icons and labels silently disappear after the Radix
- * → Base UI migration. Triggers with `render=` must self-close.
+ * element. When the render element carries children of its own, prop merging
+ * gives those precedence and any JSX children placed between the trigger tags
+ * are silently dropped (verified against `@base-ui/react` 1.5.0), so icons and
+ * labels can disappear after the Radix → Base UI migration. Keeping all
+ * content inside the render element and self-closing the trigger removes that
+ * split-content hazard.
  */
 
 const TRIGGER_NAMES = [
@@ -26,14 +31,6 @@ const TRIGGER_NAMES = [
   "AccordionTrigger",
   "DrawerTrigger",
 ] as const;
-
-const SOURCE_GLOBS = [
-  "apps/*/app/**/*.tsx",
-  "apps/*/features/**/*.tsx",
-  "apps/*/components/**/*.tsx",
-  "apps/*/src/**/*.tsx",
-  "packages/*/components/**/*.tsx",
-];
 
 const repoRoot = path.resolve(__dirname, "../../../..");
 
