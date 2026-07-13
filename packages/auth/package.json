@@ -15,7 +15,8 @@
     "./e2e-auth": "./e2e-auth.ts",
     "./constants": "./constants.ts",
     "./roles": "./roles.ts",
-    "./demo-login": "./demo-login.ts"
+    "./demo-login": "./demo-login.ts",
+    "./auth-screen": "./auth-screen.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
