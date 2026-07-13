@@ -1,5 +1,10 @@
 import { asPayload, createContributionBatchPreview } from "./preview";
 import { summarizeContributionBatchResults } from "./results";
+import {
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+} from "../contribution-operations/crm-retry-support";
 
 import type {
   ContributionBatchStatus,
@@ -8,6 +13,26 @@ import type {
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const PERSISTED_BATCH_CHUNK_SIZE = 25;
+
+/**
+ * CRM posting actions retired from the batch request schema. Persisted rows
+ * created before the retirement may still carry them (`crm_repost` was
+ * batch-creatable), so the persisted processor retires those batches cleanly
+ * instead of claiming items into an executor whose dependency set no longer
+ * supports them (mirrors the automation-store retirement path).
+ */
+const RETIRED_CRM_BATCH_ACTION_TYPES = new Set<string>([
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "crm_repost",
+]);
+
+function isRetiredCrmBatchAction(actionType: string): boolean {
+  return (
+    !isContributionCrmPostingSupported() &&
+    RETIRED_CRM_BATCH_ACTION_TYPES.has(actionType)
+  );
+}
 const RUNNING_ITEM_STALE_AFTER_MS = 5 * 60 * 1000;
 const OPEN_ITEM_STALE_AFTER_MS = 30 * 60 * 1000;
 
@@ -538,6 +563,37 @@ export async function processPersistedContributionBatch(input: {
         failed: Number(batchRow.failed_count ?? 0),
         followUpTasksCreated: Number(batchRow.follow_up_task_count ?? 0),
       },
+    };
+  }
+
+  // Retire persisted batches for retired CRM posting operations without
+  // claiming their items: executing them would fail every item on a missing
+  // CRM dependency and spawn provider-failed follow-up tasks.
+  if (isRetiredCrmBatchAction(actionType)) {
+    await markOpenBatchItemsFailed({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      batchId: input.batchId,
+      reason: `${CRM_POSTING_UNAVAILABLE_REASON} ${CRM_POSTING_UNAVAILABLE_NEXT_STEP}`,
+    });
+
+    const summary = await readBatchItemSummary({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      batchId: input.batchId,
+    });
+    const status = await updateBatchProgress({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      batchId: input.batchId,
+      summary,
+      finalize: true,
+    });
+
+    return {
+      results: [],
+      status,
+      summary: getPublicSummary(summary),
     };
   }
 
