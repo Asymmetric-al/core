@@ -407,6 +407,11 @@ export async function getAdminCrmDonorDetail(input: {
         stripePaymentIntentId: donation.stripe_payment_intent_id,
         stripeChargeId: donation.stripe_charge_id,
       },
+      // The donation input above carries EFFECTIVE values for display; the
+      // refund basis must stay the raw original charged amount (#265).
+      refundBasis: {
+        originalAmountCents: toCents(donation.amount),
+      },
       viewerCapabilities: input.viewerCapabilities ?? [],
     });
   });
