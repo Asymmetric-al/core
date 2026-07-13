@@ -11,15 +11,25 @@ import {
   useQueryClient,
   type QueryClient,
 } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
 
 import { ContributionDetailSheet } from "./contribution-detail-sheet";
+// Intentional module cycle with ./operation-shell: the shell reuses this
+// file's detail query + invalidation helpers, and the overlay mounts the
+// shell for refunds. Both sides only reference the other inside function
+// bodies, so evaluation order is safe.
+import {
+  ContributionOperationShell,
+  OPERATION_DEFINITIONS,
+} from "./operation-shell";
 import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution } from "./types";
 import type {
   ContributionDetail,
   ContributionSourceSurface,
+  CrmPostFailedScope,
   ViewerProjectedContributionDetail,
 } from "@asym/api/admin/contribution-operations";
 
@@ -104,12 +114,13 @@ async function postContributionOperation(input: {
   contributionId: string;
   stagedGiftId: string;
   sourceSurface: ContributionSourceSurface;
+  payload?: Record<string, unknown>;
 }) {
   const response = await fetch("/api/admin/contribution-operations/actions", {
     body: JSON.stringify({
       actionType: input.actionType,
       contributionId: input.contributionId,
-      payload: {},
+      payload: input.payload ?? {},
       sourceSurface: input.sourceSurface,
       stagedGiftId: input.stagedGiftId,
     }),
@@ -127,6 +138,23 @@ async function postContributionOperation(input: {
   }
 
   return response.json();
+}
+
+/**
+ * Scoped CRM retry payload (ADR-CD-012). A designation scope targets one
+ * failed line; a parent scope (or no scope, for the legacy retry button)
+ * retries the parent gift record.
+ */
+function crmRetryPayloadFromScope(
+  scope: CrmPostFailedScope | undefined,
+): Record<string, unknown> {
+  if (!scope) {
+    return {};
+  }
+  if (scope.scope === "designation" && scope.allocationId) {
+    return { scope: "designation", allocationId: scope.allocationId };
+  }
+  return { scope: "parent" };
 }
 
 function contributionTypeFromDetail(
@@ -275,6 +303,14 @@ export function ContributionDetailOverlay({
     : null;
   const detailQuery = useContributionDetail(validDonationId);
 
+  // Refund entry point (issue #265): the sheet's "Refund gift" action opens
+  // the shared operation shell for the gift it was requested for. Keying the
+  // open state by donation id means switching or closing the gift can never
+  // leave a stale refund dialog pointed at another contribution.
+  const [refundDonationId, setRefundDonationId] = useState<string | null>(null);
+  const refundShellOpen =
+    refundDonationId !== null && refundDonationId === validDonationId;
+
   /**
    * Stale-save recovery (ADR-CD-022): when the server rejects a save
    * because the gift changed, refetch the latest detail so the staff member
@@ -313,10 +349,16 @@ export function ContributionDetailOverlay({
     },
   });
   const retryMutation = useMutation({
-    mutationFn: (input: { contributionId: string; stagedGiftId: string }) =>
+    mutationFn: (input: {
+      contributionId: string;
+      stagedGiftId: string;
+      scope?: CrmPostFailedScope;
+    }) =>
       postContributionOperation({
-        ...input,
         actionType: "retry_staged_gift",
+        contributionId: input.contributionId,
+        stagedGiftId: input.stagedGiftId,
+        payload: crmRetryPayloadFromScope(input.scope),
         sourceSurface,
       }),
     onError(error) {
@@ -364,31 +406,50 @@ export function ContributionDetailOverlay({
         : null;
 
   return (
-    <ContributionDetailSheet
-      contribution={contribution}
-      actionAvailability={detailQuery.data?.actionAvailability}
-      designations={detailQuery.data?.designations}
-      errorMessage={detailErrorMessage}
-      providerProof={detailQuery.data?.providerProof ?? null}
-      recurring={detailQuery.data?.recurring}
-      isLoading={Boolean(validDonationId && detailQuery.isPending)}
-      isOpen={Boolean(donationId)}
-      onClose={onClose}
-      onRetry={validDonationId ? () => void detailQuery.refetch() : undefined}
-      onApproveStagedGift={(stagedGiftId, contributionId) =>
-        approveMutation.mutate({ contributionId, stagedGiftId })
-      }
-      onRetryStagedGift={(stagedGiftId, contributionId) =>
-        retryMutation.mutate({ contributionId, stagedGiftId })
-      }
-      onSendReceipt={(stagedGiftId, contributionId) =>
-        receiptMutation.mutate({ contributionId, stagedGiftId })
-      }
-      isActionPending={
-        approveMutation.isPending ||
-        retryMutation.isPending ||
-        receiptMutation.isPending
-      }
-    />
+    <>
+      <ContributionDetailSheet
+        contribution={contribution}
+        actionAvailability={detailQuery.data?.actionAvailability}
+        designations={detailQuery.data?.designations}
+        errorMessage={detailErrorMessage}
+        providerProof={detailQuery.data?.providerProof ?? null}
+        crmPostState={detailQuery.data?.crm ?? null}
+        recurring={detailQuery.data?.recurring}
+        correctionRequests={detailQuery.data?.correctionRequests}
+        receiptDelivery={detailQuery.data?.receiptDelivery ?? null}
+        onDecided={onActionSuccess}
+        isLoading={Boolean(validDonationId && detailQuery.isPending)}
+        isOpen={Boolean(donationId)}
+        onClose={onClose}
+        onRetry={validDonationId ? () => void detailQuery.refetch() : undefined}
+        onApproveStagedGift={(stagedGiftId, contributionId) =>
+          approveMutation.mutate({ contributionId, stagedGiftId })
+        }
+        onRetryStagedGift={(stagedGiftId, contributionId) =>
+          retryMutation.mutate({ contributionId, stagedGiftId })
+        }
+        onRetryCrmPost={(scope, stagedGiftId, contributionId) =>
+          retryMutation.mutate({ contributionId, stagedGiftId, scope })
+        }
+        onSendReceipt={(stagedGiftId, contributionId) =>
+          receiptMutation.mutate({ contributionId, stagedGiftId })
+        }
+        onRefund={(contributionId) => setRefundDonationId(contributionId)}
+        isActionPending={
+          approveMutation.isPending ||
+          retryMutation.isPending ||
+          receiptMutation.isPending
+        }
+      />
+
+      <ContributionOperationShell
+        open={refundShellOpen}
+        onClose={() => setRefundDonationId(null)}
+        operation={OPERATION_DEFINITIONS.refund}
+        donationId={refundDonationId}
+        sourceSurface={sourceSurface}
+        onRowRefresh={onActionSuccess}
+      />
+    </>
   );
 }

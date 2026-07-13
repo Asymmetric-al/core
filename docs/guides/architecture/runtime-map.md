@@ -31,6 +31,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/contribution-batches`                              | Node.js (no `runtime` segment export) | Bulk contribution operations, admin client    |
 | admin      | `/api/admin/contribution-batches/[batchId]/process`            | Node.js (no `runtime` segment export) | Bulk contribution background processing       |
 | admin      | `/api/admin/contributions`                                     | Node.js (no `runtime` segment export) | Admin client                                  |
+| admin      | `/api/admin/contributions/offline`                             | Node.js (no `runtime` segment export) | Offline gift entry, admin client              |
 | admin      | `/api/admin/contributions/reconcile`                           | Node.js (no `runtime` segment export) | Giving reconciliation, admin client           |
 | admin      | `/api/admin/contributions/replay`                              | Node.js (no `runtime` segment export) | Giving replay tooling, Stripe SDK             |
 | admin      | `/api/admin/contributions/staged-gifts`                        | Node.js (no `runtime` segment export) | Finance review queue, admin client            |
@@ -148,6 +149,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/pdf-templates/native/migration-report`                   | Node.js (no `runtime` segment export) | Native PDF Studio migration report            |
 | admin      | `/api/pdf-templates/native/preview`                            | Node.js (no `runtime` segment export) | Native PDF Studio browser preview             |
 | admin      | `/api/pdf-templates/native/render`                             | Node.js (no `runtime` segment export) | Native PDF Studio server render adapter       |
+| admin      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe     |
 | admin      | `/api/webhooks/stripe`                                         | Node.js (no `runtime` segment export) | Stripe SDK, admin client                      |
 | donor      | `/api/auth/cleanup-demo-users`                                 | Node.js (no `runtime` segment export) | Admin client                                  |
 | donor      | `/api/auth/demo-account`                                       | Node.js (no `runtime` segment export) | Demo auth server action                       |
@@ -164,6 +166,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | donor      | `/api/follower-requests/[requestId]`                           | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | donor      | `/api/graphql`                                                 | Node.js (no `runtime` segment export) | graphql-yoga, `next/headers` cookies()        |
 | donor      | `/api/health`                                                  | Node.js (no `runtime` segment export) | Shared release-health probe                   |
+| donor      | `/api/playwright-ready`                                        | Node.js (no `runtime` segment export) | DB-independent Playwright readiness probe     |
 | donor      | `/api/posts`                                                   | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | donor      | `/api/posts/[postId]`                                          | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
 | donor      | `/api/posts/[postId]/comments`                                 | Node.js (no `runtime` segment export) | `next/headers` cookies(), server client       |
@@ -203,3 +206,4 @@ full inventory around long dynamic path names.
 | admin | `/api/admin/contribution-operations/[contributionId]`                         | Node.js (no `runtime` segment export) | Contribution operation detail             |
 | admin | `/api/admin/contribution-operations/actions`                                  | Node.js (no `runtime` segment export) | Contribution operation action executor    |
 | admin | `/api/admin/contribution-operations/correction-requests/[requestId]/decision` | Node.js (no `runtime` segment export) | Contribution correction approval decision |
+| admin | `/api/admin/contribution-operations/receipt-snapshots/[snapshotId]/pdf`       | Node.js (no `runtime` segment export) | Updated receipt snapshot PDF download     |

@@ -1,18 +1,22 @@
+import { csvSafeCell } from "@asym/lib/csv";
+
 import type { SupportReportSeries } from "../types";
 
 /**
  * Render a `SupportReportSeries` into a CSV string. Safe against commas,
- * quotes, and newlines inside bucket labels. The caller is responsible for
- * triggering a browser download (see `downloadReportBlob`).
+ * quotes, and newlines inside bucket labels, and neutralizes spreadsheet
+ * formula injection in donor-controlled bucket labels via `csvSafeCell`. The
+ * caller is responsible for triggering a browser download (see
+ * `downloadReportBlob`).
  */
 export function toReportCsv(series: SupportReportSeries): string {
   const header = ["key", "label", "value", "secondary"].join(",");
   const rows = series.buckets.map((bucket) =>
     [
-      csvCell(bucket.key),
-      csvCell(bucket.label),
-      csvCell(String(bucket.value)),
-      csvCell(
+      csvSafeCell(bucket.key),
+      csvSafeCell(bucket.label),
+      csvSafeCell(String(bucket.value)),
+      csvSafeCell(
         bucket.secondaryValue === null ? "" : String(bucket.secondaryValue),
       ),
     ].join(","),
@@ -70,12 +74,4 @@ export function downloadReportBlob(file: ReportExportFile): boolean {
   // Give Safari a tick before revoking the URL — keeps the download reliable.
   setTimeout(() => URL.revokeObjectURL(url), 1000);
   return true;
-}
-
-function csvCell(value: string): string {
-  if (value === "") return "";
-  if (/[",\r\n]/.test(value)) {
-    return `"${value.replace(/"/g, '""')}"`;
-  }
-  return value;
 }

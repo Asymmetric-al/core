@@ -8,6 +8,11 @@ The "Give Hope" tenant you may see in the UI is a demo/test frontend and not the
 Follow the canonical Quickstart in `README.md`:
 
 ```bash
+# Credential-free Mission Control sandbox:
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+
+# Hosted Supabase app development:
 bun run setup
 # set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
@@ -25,7 +30,7 @@ bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-This starts the admin app at `http://localhost:3030` with gitignored Cloud Agent defaults. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders in `.env.local` before testing live Supabase data or real auth.
+This installs dependencies, verifies skill mirrors, and starts the admin app at `http://localhost:3030` with gitignored Cloud Agent defaults. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders in `.env.local` before testing live Supabase data or real auth.
 
 Optional MCP tooling configuration for contributors is documented in `docs/mcp-config.example.toml`.
 

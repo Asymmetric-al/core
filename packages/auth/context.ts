@@ -4,7 +4,9 @@ import { createServerClient } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 
+import { DEMO_PROFILE_ID, DEMO_TENANT_ID } from "./constants";
 import {
+  assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
   isE2EAuthBypassEnabled,
@@ -19,7 +21,6 @@ import {
 
 import type { UserRole } from "@asym/database/types";
 
-const DEFAULT_TENANT_ID = "00000000-0000-0000-0000-000000000001";
 const MEMBERSHIP_ROLES = new Set(["donor", "missionary", "staff"]);
 const STAFF_SUBROLES = new Set([
   "finance",
@@ -143,14 +144,17 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
+  // Bind the bypass to datasource identity, not NODE_ENV: refuse to grant a
+  // bypass identity unless the configured Supabase project is allowlisted.
+  assertSupabaseDatasourceAllowedForE2EBypass(getSupabasePublicConfig().url);
   const cookieStore = await cookies();
   const host = (await headers()).get("host");
   const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
   let e2eSession = e2eCookieName
-    ? parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
+    ? await parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
     : null;
   if (!e2eSession) {
-    e2eSession = parseE2EAuthCookieValue(
+    e2eSession = await parseE2EAuthCookieValue(
       cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
     );
   }
@@ -162,7 +166,8 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
     profileRole,
     memberships: [],
   });
-  const tenantIdForBypass = e2eSession.tenantId ?? DEFAULT_TENANT_ID;
+  const tenantIdForBypass = e2eSession.tenantId ?? DEMO_TENANT_ID;
+  const profileIdForBypass = e2eSession.profileId ?? DEMO_PROFILE_ID;
   return {
     userId: e2eSession.userId,
     email: null,
@@ -170,7 +175,7 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
     role,
     profileRole,
     memberships: [],
-    profileId: null,
+    profileId: profileIdForBypass,
     isAuthenticated: true,
   };
 }
@@ -233,7 +238,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
     typeof profile.tenant_id === "string"
       ? profile.tenant_id
       : profileRole === "super_admin"
-        ? DEFAULT_TENANT_ID
+        ? DEMO_TENANT_ID
         : null;
   const memberships = await loadMembershipsForTenant(
     adminClient ?? supabase,
