@@ -50,9 +50,11 @@ export function HealthHeatmap({ data, days = 90 }: HeatmapProps) {
             <Tooltip key={date}>
               <TooltipTrigger
                 render={
-                  <div
+                  <button
+                    type="button"
+                    aria-label={`Activity for ${date}`}
                     className={cn(
-                      "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400",
+                      "w-3 h-3 rounded-sm cursor-pointer transition-colors hover:ring-1 hover:ring-zinc-400 focus-visible:ring-1 focus-visible:ring-zinc-400 focus-visible:outline-none",
                       getColor(intensity),
                     )}
                   />
