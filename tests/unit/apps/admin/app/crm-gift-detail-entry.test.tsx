@@ -79,6 +79,28 @@ vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
 }));
 
+/**
+ * Compat shim for the AL-265 split: the operation shell imports
+ * `isFailedProviderOutcomeStatus`, whose export lands with the server-side
+ * refund work. Until then, mirror the spec'd failed provider-outcome
+ * statuses; once the real export exists this mock passes it straight through.
+ */
+vi.mock("@asym/api/admin/contribution-operations", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const fallbackIsFailedProviderOutcomeStatus = (status: string) =>
+    status === "failed" ||
+    status === "local_update_failed" ||
+    status === "canceled" ||
+    status === "requires_action";
+  return {
+    ...actual,
+    isFailedProviderOutcomeStatus:
+      typeof actual.isFailedProviderOutcomeStatus === "function"
+        ? actual.isFailedProviderOutcomeStatus
+        : fallbackIsFailedProviderOutcomeStatus,
+  };
+});
+
 const DONOR_RECORD_ID = "record-donor-1";
 const DONATION_ID = "00000000-0000-4000-8000-00000000d001";
 

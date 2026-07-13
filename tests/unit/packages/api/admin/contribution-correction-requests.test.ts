@@ -384,6 +384,55 @@ describe("decideContributionCorrectionRequest", () => {
     ).toBe(true);
   });
 
+  it("applies approved refund requests despite a stale stored revision (no 409)", async () => {
+    const state: StubState = { request: pendingRequest(), auditInserts: [] };
+    state.request.action_type = "refund";
+    state.request.payload = { amount: 5000 };
+    state.request.reason = "Donor requested a refund";
+    // Stored at request time and stale by construction: creating the request
+    // inserts a request row and an audit event, both of which change the
+    // detail revision fingerprint before anyone can approve (#265).
+    state.request.expected_revision = "revision-at-request-time";
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: "re_1",
+    });
+    const dependencies = {
+      ...approverDependencies(state),
+      refundContribution,
+    };
+
+    const outcome = await decideContributionCorrectionRequest({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      decision: "approve",
+      deciderProfileId: "approver-1",
+      deciderCapabilities: [
+        "contributions.approve_corrections",
+        "contributions.run_refunds",
+      ],
+      dependencies,
+    });
+
+    // The stale pre-request revision must NOT be replayed into the apply:
+    // the pending-status compare-and-set plus the approver's review are the
+    // concurrency control at apply time.
+    expect(refundContribution).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tenantId: TENANT_ID,
+        contributionId: "donation-1",
+        amount: 5000,
+        expectedRevision: null,
+        confirmationToken: `correction-request/${REQUEST_ID}`,
+        idempotencyKey: `correction-request-apply/${TENANT_ID}/${REQUEST_ID}`,
+      }),
+    );
+    expect(state.request.status).toBe("approved");
+    expect(outcome.result?.providerOutcome?.status).toBe("succeeded");
+  });
+
   it("passes requester and approver receipt delivery choices into the approved correction payload", async () => {
     const state: StubState = { request: pendingRequest(), auditInserts: [] };
     state.request.receipt_delivery_proposal = {

@@ -59,13 +59,30 @@ describe("admin/contribution-operations route contract", () => {
     );
   });
 
+  it("accepts refund now that provider refund dependencies are wired", () => {
+    expect(isContributionRouteActionSupported("refund")).toBe(true);
+    expect(() =>
+      assertContributionRouteActionSupported("refund"),
+    ).not.toThrow();
+
+    const parsed = actionRequestSchema.safeParse({
+      ...VALID_ACTION_REQUEST,
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm-refund",
+      payload: { amount: 5_000 },
+    });
+
+    expect(parsed.success).toBe(true);
+    expect(parsed.data?.actionType).toBe("refund");
+  });
+
   it("rejects action types this route dependency set cannot execute", () => {
     const unsupportedActions: ContributionActionType[] = [
       "approve_staged_gift",
       "retry_staged_gift",
       "crm_repost",
       "metadata_update",
-      "refund",
       "donor_relink",
     ];
 

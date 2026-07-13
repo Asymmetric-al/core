@@ -731,7 +731,10 @@ export function buildContributionDetail(
       hasCrmPostFailure: crmPostState.failedScopes.length > 0,
       crmPostFailedScopes: crmPostState.failedScopes,
       refund: {
-        amountCents: effective.amountCents,
+        // Refundable basis is the ORIGINAL donation amount (what the
+        // provider charged), never the adjusted effective amount, so the
+        // availability payload agrees with the refund adapter (issue #265).
+        amountCents: donation.amount,
         refundedAmountCents: donation.refundAmount,
         hasProviderCharge: Boolean(
           donation.stripeChargeId || donation.stripePaymentIntentId,
