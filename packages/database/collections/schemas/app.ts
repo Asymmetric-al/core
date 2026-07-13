@@ -6,7 +6,9 @@ export const locationSchema = z.object({
   title: z.string().min(1),
   lat: z.number(),
   lng: z.number(),
-  type: z.enum(["missionary", "project", "custom"]),
+  // Matches the seeded/browser-visible location types, including partner
+  // briefing pins (see supabase/seed.sql locations insert).
+  type: z.enum(["missionary", "project", "custom", "partner"]),
   linked_id: z.string().nullable(),
   summary: z.string().nullable(),
   image_public_id: z.string().nullable(),
