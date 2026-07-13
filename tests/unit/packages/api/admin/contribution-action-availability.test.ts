@@ -308,7 +308,7 @@ describe("admin/contribution-operations/action-availability", () => {
     }
   });
 
-  it("does not advertise refund while the shared route cannot execute it", () => {
+  it("advertises refund now that the shared route can execute it (AL-265)", () => {
     const entries = buildContributionActionAvailability({
       stagedGift: null,
       paymentStatus: "completed",
@@ -320,9 +320,9 @@ describe("admin/contribution-operations/action-availability", () => {
     });
 
     expect(availabilityFor(entries, "refund")).toMatchObject({
-      available: false,
-      blockedReason: expect.stringMatching(/not available/i),
-      nextStep: expect.stringMatching(/provider-safe refund workflow/i),
+      available: true,
+      blockedReason: null,
+      nextStep: null,
     });
   });
 

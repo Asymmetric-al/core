@@ -319,12 +319,14 @@ describe("admin/crm/detail/gift-history", () => {
       ],
     });
 
+    // PaymentIntent-only proof satisfies the refund executor, so the inline
+    // entry advertises refund exactly like contribution detail (AL-265).
     expect(
       row.inlineActions.entries.find((entry) => entry.actionType === "refund"),
     ).toMatchObject({
       actionType: "refund",
-      available: false,
-      blockedReason: "Refund processing is not available yet.",
+      available: true,
+      blockedReason: null,
     });
   });
 
@@ -388,9 +390,12 @@ describe("admin/crm/detail/gift-history", () => {
       stagedGift: { ...stagedGift, twenty_record_id: null },
       provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
       refundBasis: { originalAmountCents: 5_000 },
+      // Approval-gated refunds require the requester to hold BOTH the refund
+      // and correction-request capabilities (#270 authorization parity).
       viewerCapabilities: [
         "contributions.view_detail",
         "contributions.run_refunds",
+        "contributions.request_corrections",
       ],
     });
 
@@ -440,9 +445,12 @@ describe("admin/crm/detail/gift-history", () => {
       stagedGift: { ...stagedGift, twenty_record_id: null },
       provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
       refundBasis: { originalAmountCents: 5_000 },
+      // Approval-gated refunds require the requester to hold BOTH the refund
+      // and correction-request capabilities (#270 authorization parity).
       viewerCapabilities: [
         "contributions.view_detail",
         "contributions.run_refunds",
+        "contributions.request_corrections",
       ],
     });
 
@@ -498,14 +506,14 @@ describe("admin/crm/detail/gift-history", () => {
       nextStep: expect.stringMatching(/valid/i),
     });
 
-    // Refund does not require a staged gift, but the shared route currently
-    // blocks it until the provider-safe finance workflow is wired (#700).
+    // Refund does not require a staged gift; with a completed payment and
+    // provider proof it stays available even on no-staged-gift rows (AL-265).
     const refundEntry = row.inlineActions.entries.find(
       (entry) => entry.actionType === "refund",
     );
     expect(refundEntry).toMatchObject({
-      available: false,
-      blockedReason: "Refund processing is not available yet.",
+      available: true,
+      blockedReason: null,
     });
   });
 

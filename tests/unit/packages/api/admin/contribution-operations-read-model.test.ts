@@ -278,8 +278,8 @@ describe("contribution operations detail read model", () => {
       }),
       expect.objectContaining({
         actionType: "refund",
-        available: false,
-        blockedReason: "Refund processing is not available yet.",
+        available: true,
+        blockedReason: null,
       }),
     ]);
 
@@ -378,13 +378,15 @@ describe("contribution operations detail read model", () => {
       nextStep: expect.stringMatching(/valid/i),
     });
 
-    // The route-level provider-safe refund workflow is not wired yet (#700),
-    // so detail never advertises a submit path that would return 501.
+    // Refund execution is wired (AL-265), but a gift without any provider
+    // charge still has nothing to refund against.
     const refundEntry = detail.actionAvailability.find(
       (entry) => entry.actionType === "refund",
     );
     expect(refundEntry?.available).toBe(false);
-    expect(refundEntry?.blockedReason).toMatch(/not available yet/i);
+    expect(refundEntry?.blockedReason).toMatch(
+      /no payment provider charge to refund against/i,
+    );
   });
 
   it("exposes a first-class designation set for split gifts that reconciles to the gift amount", () => {
@@ -986,11 +988,11 @@ describe("contribution operations detail read model", () => {
     });
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: false,
-      blockedReason: expect.stringMatching(/not available yet/i),
+      blockedReason: expect.stringMatching(/only completed payments/i),
     });
   });
 
-  it("keeps PaymentIntent proof while refund execution remains unavailable", () => {
+  it("keeps PaymentIntent-only proof refundable now that execution is wired", () => {
     const detail = buildContributionDetail({
       donation: donationInput({
         stripePaymentIntentId: "pi_only",
@@ -1008,9 +1010,11 @@ describe("contribution operations detail read model", () => {
 
     expect(detail.payment.stripe.paymentIntentId).toBe("pi_only");
     expect(detail.payment.stripe.chargeId).toBeNull();
+    // The refund executor accepts a PaymentIntent as provider proof, so a
+    // PaymentIntent-only gift advertises refund (AL-265).
     expect(availabilityFor(detail, "refund")).toMatchObject({
-      available: false,
-      blockedReason: "Refund processing is not available yet.",
+      available: true,
+      blockedReason: null,
     });
   });
 
