@@ -33,7 +33,7 @@ Status values also include **`out-of-scope`** (we chose not to pursue).
 | 5   | Campaign, designation, contribution ledger, giving cart                       | Partial (v)  | unconf | No         | Mission Control + public                                 |
 | 6   | Offline gift batch entry                                                      | Partial (v)  | unconf | No         | Mission Control                                          |
 | 7   | Soft credits, affiliated donors, DAF handling                                 | ? (v)        | unconf | No         | Mission Control (Phase 7 owns)                           |
-| 8   | Pledges & offline recurring commitments                                       | Partial (v)  | unconf | No         | Mission Control + donor                                  |
+| 8   | Pledges & recurring commitments                                               | Partial (v)  | unconf | No         | Mission Control + donor                                  |
 | 9   | Receipt & PDF template system                                                 | Partial (v)  | unconf | No         | Mission Control (Phase 7 owns facts/compliance layer)    |
 | 10  | Year-end statement operations                                                 | Partial (v)  | unconf | No         | Mission Control + donor (Phase 7 owns eligibility rules) |
 | 11  | Accounting exports & reconciliation                                           | ? (v)        | unconf | No         | Mission Control                                          |
@@ -172,17 +172,26 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   capture shape. PRD:
   [`phase-14-donor-credit-operations.md`](./phase-14-donor-credit-operations.md).
 
-### 8. Pledges & offline recurring commitments
+### 8. Pledges & recurring commitments
 
 - **Benchmark:** SiteStacker pledges / recurring commitments. (s)
-- **Current state:** `donor_pledges` model exists and reflects Stripe
-  subscription state; **donor-initiated recurring creation not yet shipped**
-  (add-recurring-giving, PR #462). Offline recurring commitments partial. (v)
-- **Depends on:** #5.
-- **Acceptance test:** a donor/staff can create a pledge and track progress
-  against it.
-- **Evidence:** add-recurring-giving change (PR #462).
-- **Open questions:** offline (non-Stripe) commitment tracking.
+- **Current state:** legacy `donor_pledges` and `pledge_charge_attempts` shapes
+  exist as prototype/migration evidence, and the repo consumes some Stripe
+  subscription events, but the Phase 16 automatic-recurring and fixed-total-
+  pledge domains are **not built**. The stale `add-recurring-giving` proposal is
+  superseded where it conflicts with the Phase 16 PRD. (v)
+- **Depends on:** #5, the Phase 13 append-only contribution ledger, Phase 9
+  CRM projections, Phase 6 communication history, Phase 12 authorization, and
+  Phase 15 offline money entry.
+- **Acceptance test:** a donor can start and safely manage automatic recurring
+  giving with donor-anchored dates; staff can provide authorization-bound
+  service; missionaries see cash-first, privacy-safe recurring support; and
+  staff can record the uncommon fixed-total pledge and fulfill it from posted
+  contributions without confusing expectations with money.
+- **Evidence:**
+  [`phase-16-pledges-recurring-commitments.md`](./phase-16-pledges-recurring-commitments.md),
+  its dated congruence package, research evidence, and ADRs 0012–0017.
+- **Open questions:** none at product-contract level; D1–D19 are ratified.
 
 ### 9. Receipt & PDF template system
 

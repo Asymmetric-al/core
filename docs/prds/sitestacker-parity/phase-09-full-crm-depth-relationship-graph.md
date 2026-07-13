@@ -427,27 +427,44 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   - **Giving-tab reserved columns (the four ratified in D4):** soft-credit
     rows (light up with Phase 7 `gift_credits`); per-gift
     receipt/acknowledgment status (Phase 7 facts; Phases 18/19 rendering);
-    pledge-fulfillment status (on-track/behind — Phase 16 computation); and
+    commitment support health (Phase 16 derived multi-axis lifecycle,
+    attention reasons, fulfillment progress, and certainty—not one writable
+    `on-track/behind` flag); and
     statement history plus a re-send affordance (Phase 19).
+  - **Dated Phase 16 dashboard amendment (2026-07-13):** the missionary
+    hierarchy is cash received this month first; automatic recurring outcomes
+    this month second; the privacy-safe recurring-support list third; goal
+    coverage and a clearly labeled 12-month forecast after that; and a quiet
+    “Other commitments” section only when fixed-total pledges actually exist.
+    “Next scheduled donation” never implies success. Apply anonymity,
+    restricted-ministry policy, and small-cell/coarsening rules before both
+    row display and aggregation. Missionaries may filter and view but may not
+    mutate donor intent, payment methods, schedules, or authorization.
 
 - **A11 — Payments (D4a): read metadata, never key card data.** Phase 9
   **ships** a read-only "Payment instruments" panel (Giving tab section):
-  brand/last4/expiry/default/wallet via the Stripe PaymentMethods API keyed
-  on `donors.stripe_customer_id` — Stripe classifies these fields as
+  brand/last4/expiry/default/wallet via the Stripe PaymentMethods API. **Phase
+  16 amendment (2026-07-13):** lookup MUST resolve through the exact
+  tenant/account/livemode/Commitment-Party/provider-Customer binding and active
+  authorization lineage; `donors.stripe_customer_id` is migration evidence,
+  never sufficient authority or lookup scope. Stripe classifies these fields as
   non-sensitive/storable; **zero PCI impact, SAQ-A intact**. Phase 9
   **reserves an action socket** (not an edit form): "Request payment method
   update" mints a setup-mode Checkout Session / billing-portal deep link
   (portal sessions already exist in
   `packages/api/src/donor-portal/billing.ts`) and sends via the Phase 6
   seam — lights up with Phase 6;
-  donor-side completion is Phase 25. **HARD PROGRAM GUARDRAIL (restated for
-  Phases 15, 16, 25): staff NEVER key card data into any surface this
-  platform renders — no admin-app card form, ever.** Orgs that insist use
-  Stripe-hosted gated surfaces (Dashboard manual entry / Terminal MOTO) under
-  their own PCI responsibility, outside our app chrome. Phone gifts (P15):
-  default send-secure-link; org-level opt-in to Stripe-hosted MOTO. Offline
-  recurring (P16): payment-method-as-attribute of the commitment, no stored
-  instrument. (D4a.)
+  donor-side completion is Phase 25. **HARD PROGRAM GUARDRAIL (amended
+  2026-07-11 by Phase 15 and extended 2026-07-13 by Phase 16): Asym never
+  stores, logs, or processes raw card or bank-account details.** A donor or
+  authorized staff operator may enter payment details only into a
+  provider-owned hosted or embedded field that Asym cannot read. Phase 15's
+  native embedded SAQ-A Payment Element + server-confirmed MOTO lane is the
+  primary phone-card flow; its hosted secure link is the fallback. Phase 16
+  staff service may reuse only a legally supported provider-owned flow after
+  independently proving operator authority, the Commitment Party's
+  instruction, and collection authorization. Recurring ACH is not silently
+  treated as TEL, and no checkbox manufactures a mandate. (D4a.)
 
 - **A12 — Phase 27 reservations (D4b), zero-rework contract.** (a) a
   **staff-assignment edge-type family** seeded in `crm_relationship_types`
@@ -563,8 +580,11 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   allowed endpoint kinds; partial-unique enforcement; never hard-deletes.
 - **B3 — Derived-edge views + provenance UNION surface.** Pins
   **`supports_policy_v1` = "a settled (adjustment-folded) gift in the
-  trailing 365 days OR an active pledge/recurring commitment"** — named,
-  versioned, and **displayed on the edge**; FINANCE-provenance visibility.
+  trailing 365 days OR eligible current recurring intent OR an explicitly
+  qualifying fixed-total pledge"** — named, versioned, and **displayed on the
+  edge** with provenance. A fixed pledge or scheduled occurrence never enters
+  a cash-received total; unknown/stale provider control is not healthy current
+  recurring support. FINANCE-provenance visibility.
 - **B4 — Derived-roles view.** Frozen output contract
   `(party_id, role_key, since/until, provenance)`; schema-shape-tested.
 - **B5 — Header/overview read model.** The A10 header contract in one query
@@ -598,8 +618,10 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
 - **B14 — CSV export.** Through Phase 3 governance (A18).
 - **B15 — Write-path command core.** The A17 transaction shape, shared by
   every mutating operation.
-- **B16 — Payment-instruments adapter.** Read-only Stripe PaymentMethods
-  fetch keyed on `donors.stripe_customer_id`; metadata fields only.
+- **B16 — Payment-instruments adapter.** Read-only Stripe PaymentMethods fetch
+  through the exact tenant/account/livemode/Party/provider-Customer binding;
+  metadata fields only. A legacy unscoped `donors.stripe_customer_id` lookup is
+  forbidden.
 
 ### C. Predecessor plug-ins & amendment ledger
 

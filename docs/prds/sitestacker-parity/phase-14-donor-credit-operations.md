@@ -199,19 +199,19 @@ Stories are grouped by actor and numbered continuously. Every story traces to a 
 76. As a **finance staffer**, I want CSV paste with a staged preview classifying rows matched / create-new / ambiguous — bulk-create behind ONE explicit confirm with dupe flags, per-row ambiguity holds — so that one bad name never blocks the batch. `[D5]`
 77. As a **finance staffer**, I want member allocation rows bounded so their sum never exceeds their church line (generator + deferred-trigger enforced), so that attribution can never invent money. `[D1.3]`
 78. As a **finance staffer**, I want remittance-created parties to carry provenance and enter the Phase 9 dupe-review stream eagerly — name-only parties CREATED, not held — so that visibility wins now and identity binds later. `[D5]`
-79. As a **missionary**, I want church members who give through my supporting church on my supporter roster with via-church chips, per-path recognized amounts, dates, fund (alias-governed), commitment status, and recency, so that I finally see the people behind the church check. `[D5]`
+79. As a **missionary**, I want church members who give through my supporting church on my supporter roster with via-church chips, per-path recognized amounts, dates, fund (alias-governed), and a support/recency label — plus commitment status only when a typed Phase 16 recurring or fixed-pledge subject exists — so that I finally see the people behind the church check without recognition inventing a commitment. `[D5]` _(Amended 2026-07-13, Phase 16 A13/D11/D14.)_
 80. As a **missionary**, I want Mrs. Jones who gives directly AND through her church shown as ONE row with distinct paths inside (direct legal amounts; church_member recognized amounts), so that one person never appears twice or double-counts. `[D5]`
 81. As a **missionary**, I want anonymous members folded into one "Anonymous church members (N)" sub-row per church path, so that anonymity is honored while support stays visible. `[D5, D3.8]`
 82. As a **missionary**, I want a do-not-contact supporter visible with the contact affordance suppressed and no reason shown, so that I respect the boundary without learning private details. `[D5]`
 83. As a **missionary**, I want members visible-NOT-contactable in v1 — no contact details, no contact affordance, zero auto-enrollment into any Phase 6 stream; a member becomes contactable only by acting directly (direct gift, portal signup, explicit opt-in with consent provenance) — so that I can never accidentally email 200 church members who have never heard of us. `[D5 close-out 1]`
 84. As a **missionary**, I want roster AGGREGATE tiles in the Legal vocabulary only, per-row display in Recognition with via-chips, so that my totals reconcile to real money while rows tell the recognition story. `[D5, D1.4]`
-85. As a **missionary**, I want roster membership via `supports_policy_v2` — recognized fold > 0 on any effective line in scope trailing 365 days OR an active commitment; lapsed band 365–730d display-only; drop after 730d — so that a church skipping a month never falsely lapses a supporter. `[D5]`
+85. As a **missionary**, I want roster membership via `supports_policy_v2` — recognized fold > 0 on any effective line in scope trailing 365 days OR a typed Phase 16 active commitment; lapsed band 365–730d display-only; drop after 730d — so that a church skipping a month never falsely lapses a supporter. `[D5]` _(Amended 2026-07-13, Phase 16 A13.)_
 86. As a **missionary**, I want corrections to self-heal silently through the recognition fold (no notification to me), so that bookkeeping noise never reaches my dashboard. `[D5]`
 87. As a **missionary**, I want a member who changes churches to simply grow a second path (nothing migrates), and two churches attributing the same member to be legal distinct facts — with multi-currency shown as per-currency subtotals, never a scalar — so that real-world messiness never corrupts the roster. `[D5]`
 88. As a **missionary who left the field**, I want my roster to end at designation un-assignment and my successor to inherit it — designation assignment effective-dated, resolved at read — so that roster scope always reflects who holds the designation. `[D5]`
 89. As a **finance staffer**, I want the staff FINANCE roster projection — a designation-pivot sibling page of the Phase 9 Giving tab with full parties, attribution-split math, provenance chips — consuming the SAME `getSupporterRoster` read model as the missionary view, with a "perfectly aligned" acceptance fixture reconciling it to `getPartyCreditActivity` in both lenses, so that staff and missionary numbers can never diverge. `[D5]`
 90. As a **missionary**, I want org-sourced roster rows VIEW-ONLY with provenance chips (flag-not-edit), so that I can report a problem without corrupting attribution truth. `[D5]`
-91. As a **missionary**, I want a member covered by a standing rule to read as a recurring supporter in the commitment loop, so that faithful via-church giving looks like the commitment it is. `[D5]`
+91. As a **missionary**, I want a member covered by a standing rule to receive a clear repeat-support/recency label without being represented as a recurring or fixed commitment, so that faithful via-church recognition is visible without inventing promise, fulfillment, or Party authority. `[D5]` _(Amended 2026-07-13, Phase 16 A13/D11/D14.)_
 92. As a **church member**, I want my via-church attribution NEVER on my own portal or statement — the church was receipted, not me — so that I'm never confused into claiming a deduction that isn't mine. `[D5 close-out 2]`
 93. As a **church treasurer**, I want NO member thank-you letters generated from our remittance breakdown, so that our members hear from their church, not a stranger. `[D5]`
 
@@ -244,7 +244,7 @@ Stories are grouped by actor and numbered continuously. Every story traces to a 
 
 ### Missionaries — visibility floor
 
-112. As a **missionary**, I want to see only display name, city/state, per-path amounts/dates/fund, via-chips, commitment status, and recency — NEVER home address, email, phone, notes, household internals, provenance internals, or staff notes — so that I can shepherd relationships without holding PII I don't need. `[D5]`
+112. As a **missionary**, I want to see only display name, city/state, per-path amounts/dates/fund, via-chips, support/recency label, and commitment status only for a typed Phase 16 subject — NEVER home address, email, phone, notes, household internals, provenance internals, or staff notes — so that I can shepherd relationships without holding PII I don't need. `[D5]` _(Amended 2026-07-13, Phase 16 A13.)_
 113. As a **missionary**, I want every credit surface in my workspace to inherit FINANCE visibility floors through `resolveProjection` (fail-closed census rows), so that nothing reaches me the boundary hasn't cleared. `[D1.10]`
 114. As a **missionary**, I want the never-leak guarantees enforced by fixture: no other missionaries' supporters (enumeration guard), no church-wide totals, no member giving to other designations, no residual arithmetic, no PII beyond the v1 set, no restricted existence via counts, no anonymous unmasking via cross-referencing. `[D5]`
 
@@ -1044,7 +1044,7 @@ The design load case is the real one: a church remitting for **~20 members every
 
 Phase 9 pinned **`supports_policy_v1` = "a settled (adjustment-folded) gift in the trailing 365 days OR an active pledge/recurring commitment"** as the named, versioned derived-edge policy (REAL anchor: `docs/prds/sitestacker-parity/phase-09-full-crm-depth-relationship-graph.md`, B3). That policy is hard-credit-grained — a church member has no settled gift of record and would never qualify. Phase 14 therefore mints:
 
-- **`supports_policy_v2` = "recognized fold > 0 on any effective line in scope trailing 365d OR active commitment"** — evaluated over the recognition fold, so via-church members, DAF advisors, and matched employees qualify as supporters.
+- **`supports_policy_v2` = "recognized fold > 0 on any effective line in scope trailing 365d OR typed Phase 16 active commitment"** — evaluated over the recognition fold, so via-church members, DAF advisors, and matched employees qualify as supporters without recognition itself manufacturing a commitment.
 - **Scope: the ROSTER only.** **Phase 9's v1 EDGE stays untouched this phase** — the derived `supports` edge in the relationship graph continues to run `supports_policy_v1`; revisiting whether the edge itself should upgrade to v2 is **deferred to Phase 28 (Missionary Workspace Depth & Support-Raising CRM)**. Minting v2 for one consumer, versioned, is the lean shape; silently changing the meaning of an already-groomed edge is not.
 - **Lapsed band: 365–730 days, display-only.** A supporter whose last recognized activity falls in the trailing 365–730d window renders in a "lapsed" band (a visual state on the roster, never a stored status, never a trigger for any automation). **Drop after 730d** — the row leaves the roster entirely.
 - **Refund-to-zero exits active at the next cursor advance** — no special machinery; the fold going to 0 simply stops satisfying the predicate. **A church skipping a month is irrelevant until the 365d cliff** — the policy is deliberately coarse so ordinary remittance jitter produces zero roster churn.
@@ -1053,11 +1053,12 @@ Phase 9 pinned **`supports_policy_v1` = "a settled (adjustment-folded) gift in t
 
 What the missionary sees is a **projection of the roster read model through `resolveProjection`** (FORWARD: Phase 3 (Minimum Permission & Role-Scoped Projection Foundation) chokepoint), floored, fail-closed, with census rows for every new record type [D1.9, D1.10]. The v1 contract, verbatim from the ratified design:
 
-> **Missionary sees (v1): display name, city/state, per-path recognized amounts + dates + fund (alias-governed), via-chip, commitment status, recency. NEVER: home address / email / phone / notes / household internals / provenance internals / staff notes.**
+> **Missionary sees (v1): display name, city/state, per-path recognized amounts + dates + fund (alias-governed), via-chip, support/recency label, and commitment status only when backed by a typed Phase 16 recurring or fixed-pledge subject. NEVER: home address / email / phone / notes / household internals / provenance internals / staff notes.**
 
 Binding details:
 
 - **The NEVER list is a floor, not a default.** No tenant configuration, role grant, or future phase may add those fields to this projection without a new ratified decision; fund names pass through the Phase 10 (Sensitive-Data Classification & Restricted-Ministry Safety Foundation) alias governance (alias/fund-code, never a restricted worker's legal name).
+- **Recognition never creates commitment truth.** A standing rule or recognition history may drive only the roster's support/recency label. It never infers a Phase 16 recurring/fixed commitment, fulfillment, or Commitment Party authority. The commitment-status field remains absent unless the row joins to a typed Phase 16 subject through that capability's authoritative projection. _(Amended 2026-07-13, Phase 16 A13/D11/D14.)_
 - **Org-sourced rows are VIEW-ONLY with provenance chips** (MPDX precedent: **flag-not-edit**). A missionary who spots a wrong attribution gets a **flag affordance** — "this looks wrong" routes a task to tenant staff with the row's provenance attached — and never an edit surface. The church's breakdown is the tenant's record; the missionary is a reader of it.
 - **Anonymous members → ONE aggregated sub-row per church path:** "Anonymous church members (N)" with a combined recognized amount — the D3.8 crowd-blend idiom (counting beats omission arithmetic; omitting anonymous members would let a missionary infer them by subtracting the named rows from the church total).
 - **`do_not_contact` members are visible, contact affordance suppressed, no reason shown.** Visibility is the founder's requirement; contactability is section J's; the reason a person is do-not-contact is staff-private.
@@ -1105,7 +1106,7 @@ Four postures imported from the design pass's market study, binding on the build
 1. **Never force church-XOR-member** — the TntConnect failure mode is making the operator choose whether the church _or_ the member "gave"; our model holds both simultaneously (church = legal/hard credit; members = bounded allocation recognition) so the question never arises.
 2. **The roster unit aligns to household grain** per D1.12 — spouses attribute at the grain the tenant's records hold them in; the roster's household path (section I) handles the rest.
 3. **Org-sourced rows are view-only** (MPDX flag-not-edit — H.5).
-4. **Attribution plugs into the commitment loop** — a member with a standing rule (section K) reads as a recurring supporter on the roster (commitment status in the v1 field set), so via-church support participates in support-raising math the same way a direct recurring gift does.
+4. **Attribution informs repeat-support recognition, not the commitment loop** — a member with a standing rule (section K) receives a clear repeat-support/recency label on the roster. The rule never creates or fulfills a recurring/fixed commitment and never grants Commitment Party authority. Commitment status and commitment-side support-raising math appear only when a typed Phase 16 subject independently exists. _(Amended 2026-07-13, Phase 16 A13/D11/D14.)_
 
 ---
 
@@ -1638,7 +1639,7 @@ The D1.14/D3.14/D4.14 congruence commit adds these terms to the root `CONTEXT.md
 - **payer intelligence registry** — `party_payer_aliases`: org-keyed payer alias strings with `payer_kind`, feeding one matcher and one triage surface; unmatched strings fail closed.
 - **supporter roster** — `getSupporterRoster`: the designation-centric read model showing one row per supporting party with direct and via-paths, both lenses, zero copies.
 - **support path** — one element of a roster row's `paths[]`: `{path_kind, via_party, legal/recognized amounts, dates}`.
-- **supports policy v2** — the roster-only churn predicate: recognized fold > 0 on any effective line in scope in the trailing 365 days OR an active commitment.
+- **supports policy v2** — the roster-only churn predicate: recognized fold > 0 on any effective line in scope in the trailing 365 days OR a typed Phase 16 active commitment; recognition alone never infers commitment status.
 - **attribution inbox** — the finite, owned worklist of Not-Provided DAF gifts (the same worklist idiom reused for matching-gift aging and tributes awaiting setup).
 
 ## Permissions, Separation of Duties & Audit
@@ -1816,7 +1817,7 @@ One deduplicated tier merging the D1 substrate fixtures, D3.14's nine, D4.14's t
 27. The missionary view never exposes **church-wide totals**.
 28. The missionary view never exposes a **member's giving to other designations**.
 29. The missionary view renders **zero residual split arithmetic** (attributed/unattributed reconciliation is FINANCE-under-clearance only).
-30. The missionary view carries **no PII beyond the v1 field set** (display name, city/state, per-path recognized amounts + dates + fund alias, via-chip, commitment status, recency).
+30. The missionary view carries **no PII beyond the v1 field set** (display name, city/state, per-path recognized amounts + dates + fund alias, via-chip, support/recency label, and commitment status only for a typed Phase 16 subject).
 31. **No restricted existence via counts:** visible counts are computed post-projection, so a restricted member's absence is arithmetically undetectable.
 32. **No anonymous unmasking via cross-referencing:** anonymous members fold into one aggregated "Anonymous church members (N)" sub-row per church path.
 33. **Restricted-tier invisibility end-to-end:** a restricted credited/honoree/notify/employee party means the credit/tribute/expectancy row is OMITTED from all external egress and from staff below clearance — **invisibility, not aliasing** (an aliased credit still confirms a relationship) [D1.10, D3.14, D4.10].

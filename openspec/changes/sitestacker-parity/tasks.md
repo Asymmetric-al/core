@@ -35,10 +35,38 @@
       in this change's `platform-product-intent` delta (per
       `docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`).
 
+## 2d. Phase 16 (Pledges & Recurring Commitments) (2026-07-13)
+
+- [x] 2d.1 Record the separate recurring-commitment/fixed-total-pledge truth
+      boundary and the Phase 16 lifecycle scenarios in this change's
+      `platform-product-intent` delta, including exact featured-cadence,
+      line-term/schedule, final-date, pause, count-once linkage, payment/ledger,
+      and product-owned-recovery contracts.
+- [x] 2d.2 Correct the merged legacy recurring-lifecycle wording through this
+      change's dated `donation-lifecycle` `MODIFIED` delta, keeping occurrence
+      execution, payment finality, ledger posting, and retry authority separate.
+- [x] 2d.3 Reconcile `add-recurring-giving` so it consumes explicit groups,
+      stable independently manageable lines, effective line-term versions,
+      schedule epochs, compatible billing cohorts, exact provider-item
+      bindings, product-owned recovery, and separate payment/ledger evidence
+      instead of one subscription linked to one legacy pledge.
+- [x] 2d.4 Reconcile the recurring portion of `add-donor-self-service` with
+      line/cohort scopes, separate append-only term/schedule/lifecycle facts,
+      truthful pause/resume, date validation, in-flight/finality states,
+      provider-retry exclusion, and provider-control quarantine without
+      changing its statement work.
+- [x] 2d.5 Record the closed D11 fulfillment-authority contract: exact provider
+      lineage, authenticated donor instruction, or approved authenticated
+      versioned structured-remittance mapping may each auto-apply independently;
+      authority/version/revocation and source/target conservation fail closed,
+      structured authority winners serialize deterministically, donor instructions
+      are single-use, apply and invalidation share an authority fence, correction
+      evidence/targets remain distinct from application authority, and heuristic
+      evidence remains suggestion-only.
+
 ## 3. Verification
 
-- [x] 3.1 `bunx @fission-ai/openspec@latest validate --strict` passes for this
-      change.
+- [x] 3.1 `bunx @fission-ai/openspec@latest validate --all --strict` passes.
 - [ ] 3.2 Archive this change once Phase 0 is accepted (Phase 0 is done when the
       picture is complete and honest, per `phase-00-baseline.md`).
 

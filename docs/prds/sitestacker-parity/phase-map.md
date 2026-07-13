@@ -147,7 +147,7 @@ capabilities that already have code lives in
 | **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `PRD exists` (epic #690 + #691–#713)                           |
 | **14** | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts           | 13, 7, 9                                         | `PRD exists` (epic #719 + #720–#741)                           |
 | **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists (epic #758 + #759–#786)`                           |
-| **16** | Pledges & Recurring Commitments                                                  | **13**, 9, 6                                     | `future (needs PRD)`                                           |
+| **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `future (needs PRD)`                                           |
 | **17** | System Messages & Template Management                                            | 6, 2, 3                                          | `future (needs PRD)`                                           |
 | **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `future (needs PRD)`                                           |
 | **19** | Year-End Statement Operations                                                    | 7, 18, 17, **13**, 6                             | `future (needs PRD)`                                           |
@@ -336,21 +336,29 @@ Before creating issues or tickets, check:
   **primary** card lane is the **native embedded Stripe Payment Element keyed
   by staff** (SAQ-A) + **server-confirm MOTO**, with the Stripe-hosted
   secure-link as the **fallback** (phone-ACH rides the TEL /
-  Financial-Connections lane); **offline recurring methods are attributes of
-  the commitment** (Phase 16, no stored instrument); the **donor self-service
-  wallet is Phase 25**. **Hard program guardrail: Asym never stores, logs, or
-  processes raw card or bank-account details** — staff key into a Stripe-owned
-  iframe this app embeds but cannot read, which **keeps** the platform's SAQ-A
-  posture; a raw PAN never touches an Asym-rendered field or server.
+  Financial-Connections lane); **Phase 16 automatic recurring collection uses
+  provider-owned payment fields and exact cohort bindings**. A fixed-total
+  pledge never owns a payment instrument or executor; it may be fulfilled by
+  posted gifts, including gifts from a separately authorized and explicitly
+  linked recurring commitment. The **donor self-
+  service wallet is Phase 25**. Phase 16 staff service may reuse only a
+  provider-supported path after independent authority/instruction/
+  authorization checks; recurring ACH is not silently treated as TEL. **Hard
+  program guardrail: Asym never stores, logs, or processes raw card or bank-
+  account details**—staff key into a Stripe-owned iframe this app embeds but
+  cannot read, which **keeps** the platform's SAQ-A posture; a raw PAN never
+  touches an Asym-rendered field or server.
   _(Amended 2026-07-11, Phase 15 (Offline Gift & Batch Entry) D4: the native
   embedded SAQ-A Element is now the primary phone-card lane and the hosted
   secure-link is the fallback — the earlier "send-secure-link by default /
   staff never key card data into any surface this platform renders /
   staff-keyed PANs would break SAQ-A" wording is superseded.)_
 
-- **Do not present any later phase (9–40) as implemented or live.** Phase 9's
-  PRD landed 2026-07-06 (groomed, not built); no PRD files exist for phases
-  10–40 yet; the matrix's `Built?` cells marked `(v)` still need per-area code
+- **Do not present any later phase (9–40) as implemented or live.** Groomed
+  PRDs through Phase 15 are planning contracts, not build proof. The Phase 16
+  spec package is authored from ratified D1–D19, but its roadmap/phase-map
+  status remains conservative until the separate `/to-tickets` publication
+  step. The matrix's `Built?` cells marked `(v)` still need per-area code
   verification, and all `Live?` cells are `unconf`.
 
 ## Related documents

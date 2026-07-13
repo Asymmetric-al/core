@@ -133,9 +133,9 @@ _Avoid_: live donor lookup for receipts, mutable receipt identity
 A donor's contribution record through the platform — one-time or a recurring
 installment — carrying amount, currency, a single designation, payment/provider
 state, and receipt state. "Gift" and "donation" are used interchangeably for
-this record. See [[one-time-donation]], [[recurring-donation]].
-_Avoid_: pledge (the recurring agreement, not the gift), staged gift (the
-post-completion record)
+this record. See [[one-time-donation]], [[recurring-giving]].
+_Avoid_: fixed-total pledge or recurring commitment (intent records, not
+received gifts), staged gift (the post-completion record)
 
 **Fund**:
 A tenant-owned designation target — such as a general or project fund — a gift
@@ -154,12 +154,14 @@ status, and designation for downstream receipting and CRM posting. It is not
 the donation record itself.
 _Avoid_: donation row, receipt, pending donation
 
-**Donor Pledge**:
-The durable record of a recurring giving agreement, linked one-to-one with a
-Stripe subscription, tracking pledge state (active, paused, cancelled) and
-progress. It is the agreement, not any single installment gift. See
-[[recurring-donation]].
-_Avoid_: individual recurring gift, subscription-only state, one-time donation
+**Fixed-total pledge**:
+The canonical record of a Commitment Party's explicit promise to give a
+cumulative amount. Received contributions may fulfill it through authoritative
+applications, but the pledge itself is not money, donor debt, automatic payment
+authority, or an accounting receivable by default; collection method does not
+determine its type.
+_Avoid_: recurring commitment, provider subscription, received gift, donor debt,
+accounting receivable by default
 
 **Contribution Correction**:
 A recorded staff change to a completed contribution that affects money, donor
@@ -192,11 +194,11 @@ A donor gift intended to be collected once through the platform's immediate
 donation flow. Its payment recovery may use the donation saga and outbox model.
 _Avoid_: Subscription donation, recurring pledge
 
-**Recurring Donation**:
-A donor commitment intended to collect repeated gifts over time. Its payment
-lifecycle belongs to Stripe Billing or subscription-oriented payment flows, not
-manual renewal loops built from one-time donation attempts.
-_Avoid_: Repeated one-time donation, manual renewal PaymentIntent loop
+**Recurring giving**:
+The donor-facing product for arranging repeated gifts. Its intent is recorded
+as a recurring commitment, and each received installment is a separate gift;
+use "Give monthly" or "Recurring gift" in donor-facing language.
+_Avoid_: subscription, fixed-total pledge, one donation charged repeatedly
 
 **Payment Authorization Checkpoint**:
 The earliest reliable payment state known during checkout. For cards, debit
@@ -647,9 +649,11 @@ _Avoid_: party_roles table, role tags detached from their relationship
 
 **Supports policy**:
 The named, versioned definition of when a supports edge exists (v1: a
-settled (adjustment-folded) gift in the trailing 365 days OR an active
-pledge/recurring commitment). Displayed with the edge; never a hidden code
-threshold.
+settled, adjustment-folded gift in the trailing 365 days OR eligible current
+recurring intent OR an explicitly qualifying fixed-total pledge). The edge
+displays its provenance and policy version; unknown or stale provider control
+cannot appear as healthy current recurring support. Recurring expectations and
+fixed-pledge expectations never enter cash-received totals.
 _Avoid_: unstated support thresholds, staff-entered supports edges
 
 **Saved view / List (segment)**:
@@ -796,6 +800,14 @@ real estate, in-kind vehicle) or a church remittance. Distinct from the gift's t
 recurring) and from its designation.
 _Avoid_: tender as gift type; a card-only ledger
 
+**Collection arrangement** (Phase 16):
+How a recurring commitment expects future gifts to arrive — provider-automated or
+manual/external — including the provenance needed to interpret its expected occurrences. A
+fixed-total pledge has no collection arrangement, payment instrument, mandate, or executor; any
+automatic support linked to it remains a separately authorized recurring commitment. The
+arrangement is independent of the tender recorded on any received gift.
+_Avoid_: payment channel as commitment type; provider status as donor intent; collection mode on a fixed pledge
+
 **Fee-cover** (Phase 13):
 An extra amount, on top of the intended gift, that covers processing fees so ~100% reaches the
 field. Configured per tenant and per payment method (optional or, for a method, mandatory);
@@ -814,15 +826,480 @@ bounded (≤5-deep) parent/child hierarchy. NOT an email blast, a public page, a
 fundraiser, an appeal, a source code, or a designation.
 _Avoid_: the email-blast/fundraiser conflation; adding a campaign total to a fund total
 
-**Recurring commitment** (Phase 13):
-The donor-owned monthly-giving agreement (Asym owns the intent + designation lines; Stripe merely
-executes the charges). One Stripe subscription per recurring line, grouped for the donor.
-_Avoid_: the Stripe subscription as the commitment; a pledge (a fixed promised total) as a recurring gift
+**Recurring commitment** (Phase 16):
+The canonical record of recurring support: an amount and cadence with no explicitly promised
+cumulative balance, even when it has a planned end. Collection may be manual or provider-automated;
+provider objects execute collection but never define the donor's intent.
+_Avoid_: fixed-total pledge; provider subscription as the commitment; projected total as promised balance
 
-**Lapsed vs canceled** (Phase 13):
-Lapsed = involuntary (the card failed after retries) and RECOVERABLE — the win-back signal.
-Canceled = the donor chose to stop — terminal. Keeping them distinct is what makes recovery possible.
-_Avoid_: folding an involuntary lapse into "canceled"
+**Gift mode** (Phase 16):
+Whether a donor authorizes one gift or recurring giving. A one-time gift has no recurring cadence,
+next occurrence, pause, or recurring-support projection.
+_Avoid_: one-time as a cadence; one-time gift as an ended recurring commitment
+
+**Recurring cadence** (Phase 16):
+The canonical calendar rule for how often one recurring amount is expected. Its meaning is exact
+and independent of display wording or provider representation.
+_Avoid_: ambiguous biweekly or bimonthly labels; provider interval as donor intent
+
+**Recurring-giving group** (Phase 16):
+An explicit donor-facing arrangement that holds one or more recurring commitment lines for one
+tenant, one immutable Commitment Party, one legal payer and collection-authorizer context, and one
+currency. It is created or changed deliberately and is never inferred from shared donor, contact,
+payment, amount, date, or cadence facts.
+_Avoid_: inferred household bundle; provider subscription; one mandatory group per donor
+
+**Recurring commitment line** (Phase 16):
+One independently manageable, destination-specific recurring intent within a recurring-giving
+group. Its identity and history survive changes to how a provider collects it.
+_Avoid_: subscription item as business identity; rewriting prior gift allocations
+
+**Billing cohort** (Phase 16):
+The lines within a recurring-giving group that can honestly share cadence and anchor semantics,
+authorization lineage, connected account and provider Customer, collection behavior and capability,
+and one explicit execution-leg set. The cohort has one leg for an ordinary cadence and two monthly
+legs for the twice-monthly 1st/15th cadence; its lines share each applicable leg's invoice and
+payment. A group has more than one cohort only when a real collection incompatibility requires
+separate disclosed charges.
+_Avoid_: visual-only grouping of separate charges; arbitrary technical partition
+
+**Composite recurring schedule** (Phase 16):
+One donor-authorized cadence that contains more than one fixed collection slot in a period. The
+Phase 16 form is twice monthly on the 1st and 15th while preserving one recurring intent.
+_Avoid_: every two weeks; duplicate business lines; arbitrary tenant-authored date pairs
+
+**Execution leg** (Phase 16):
+One provider-side collection schedule under a billing cohort. An ordinary cadence has one explicit
+leg; the twice-monthly composite cadence has two monthly legs. Every leg remains subordinate to the
+cohort's canonical recurring intent and the donor manages the cohort as one request.
+_Avoid_: hidden second commitment; one leg presented as the whole recurring gift
+
+**Grandfathered cadence** (Phase 16):
+An existing recurring cadence that remains active and manageable after a tenant stops offering it
+for new selection.
+_Avoid_: disabling a choice as cancellation; hiding an existing unsupported-looking schedule
+
+**Monthly equivalent** (Phase 16):
+A clearly labeled planning measure that normalizes recurring schedules for comparison. It is not
+the donor's actual cadence, a receivable, or money received.
+_Avoid_: monthly gift when the cadence is not monthly; recurring projection as cash
+
+**Execution binding** (Phase 16):
+The effective-dated link between one recurring execution leg and the external provider object
+currently carrying out that leg's collection, together with exact per-leg item bindings for every
+participating recurring commitment line. It records execution without becoming donor intent or
+business identity.
+_Avoid_: provider ID as the commitment; overwriting prior provider links
+
+**Initial recurring gift** (Phase 16):
+The first actual contribution authorized while creating a payment-backed recurring commitment. It
+fulfills the first scheduled occurrence when the continuing schedule begins that day; otherwise it
+remains linked to, but outside, the future continuing series.
+_Avoid_: test charge; verification charge; duplicate first recurrence
+
+**Continuing schedule anchor** (Phase 16):
+The donor-authorized local calendar date from which a recurring commitment's continuing expected
+occurrences are generated in the arrangement's giving timezone.
+_Avoid_: settlement date; retry date; arbitrary organization billing day; provider timestamp as intent
+
+**Expected scheduled occurrence** (Phase 16):
+An authorized future execution slot generated by a recurring commitment's calendar rule. It is
+expected support, not donor debt, a pledge receivable, a payment attempt, or money received.
+_Avoid_: invoice as commitment truth; forecast as receivable; retry as a new occurrence
+
+**Recurring schedule epoch** (Phase 16):
+An effective-dated version of a recurring commitment line's future calendar intent and its compatible
+billing cohort execution. A later epoch changes future expectations without rewriting prior ones.
+_Avoid_: editing historical anchors in place; provider subscription as schedule history
+
+**Final eligible gift date** (Phase 16):
+An optional, line-scoped, inclusive boundary after which no new scheduled attempt or retry may begin.
+Its absence is the automatic checkout default and requires no donor choice or confirmation.
+_Avoid_: required end date; hidden duration; last successful gift date; automatic lapse
+
+**Skipped recurring occurrence** (Phase 16):
+A donor-authorized suppression of one named, still-unclaimed expected scheduled occurrence. It
+creates no debt or catch-up gift and does not move the continuing schedule anchor.
+_Avoid_: forgiven receivable; skipped payment retry; re-anchored schedule
+
+**Planned recurring pause** (Phase 16):
+A donor-authorized bounded or indefinite interval that suppresses new expected occurrences and
+not-yet-started collection attempts while preserving the original schedule grid and relationship.
+It is neither payment failure nor lapse nor cancellation.
+_Avoid_: delinquent donor; hidden recurring line; provider pause state as the only business truth
+
+**Ended as scheduled** (Phase 16):
+The donor-intent state reached when a recurring commitment line passes its final eligible gift date.
+It says nothing about whether prior payments succeeded and is not fixed-total pledge completion.
+_Avoid_: completed pledge; completed with shortfall; automatic cancellation
+
+**Restarted recurring gift** (Phase 16):
+A newly authorized recurring commitment and provider-binding epoch linked to a formerly canceled
+gift's visible history. It never resurrects the canceled authorization or collects missed periods.
+_Avoid_: reactivating a canceled provider subscription; silent catch-up; overwritten history
+
+**Collection health** (Phase 16):
+The payment-backed billing cohort's readiness to collect future scheduled gifts, separate from donor
+intent, occurrence payment state, and provider synchronization.
+_Avoid_: subscription status as donor intent; processing as lapse; payment failure as cancellation
+
+**Failed-occurrence recovery** (Phase 16):
+A bounded opportunity to reattempt one existing failed scheduled occurrence without creating donor
+debt, changing the recurring grid, or generating another ordinary occurrence.
+_Avoid_: catch-up balance; second recurrence engine; retry as a new scheduled gift
+
+**Recurring collection failure episode** (Phase 16):
+A continuous collection-health condition linking a triggering failed occurrence with its later
+scheduled recovery cycles until recurring collection succeeds or the donor supplies new authorization.
+_Avoid_: donor debt period; cancellation; one mutable failed gift
+
+**Scheduled recovery cycle** (Phase 16):
+One of the three later normally scheduled occurrences that remains eligible for failed-occurrence
+recovery during the same collection failure episode; it is a new gift occurrence, never old debt.
+_Avoid_: calendar recovery month; catch-up installment; retry of the earlier missed gift
+
+**Schedule-only recovery** (Phase 16):
+The collection mode after scheduled recovery cycles are exhausted: ordinary scheduled occurrences
+continue, but accelerated retry slots do not, until the failure episode resolves.
+_Avoid_: retired recurring gift; paused giving; lapsed merely from repeated soft misses
+
+**At-risk continuing support** (Phase 16):
+Collection health where scheduled gifts have been missed but donor intent and future safe ordinary
+occurrences continue. It is neither received support, donor debt, cancellation, nor lapse.
+_Avoid_: active-and-healthy; delinquent donor; automatic gifts stopped
+
+**Schedule-first recovery** (Phase 16):
+The rule that an unresolved missed gift closes before the next normal scheduled occurrence becomes
+collectable. The current gift is never silently stacked with an older recovery attempt.
+_Avoid_: automatic catch-up; two collectable occurrences; retry-driven schedule drift
+
+**Retry slot** (Phase 16):
+One bounded opportunity inside a failed-occurrence recovery case, tied to a fixed local candidate
+date. An automatic or donor-substituted attempt may consume it, but it never creates extra budget.
+_Avoid_: queued job; infrastructure retry; new scheduled occurrence; bonus manual attempt
+
+**Balanced card recovery** (Phase 16):
+The platform-owned card profile allowing at most +2/+4 slots for weekly occurrences and +2/+4/+6
+slots for every other supported cadence, always subject to stricter live safety facts.
+_Avoid_: tenant-authored retry schedule; Stripe Dashboard policy; guaranteed attempt
+
+**Stop recovery for one missed gift** (Phase 16):
+The donor instruction that ends every unstarted retry slot for one failed occurrence while leaving
+the recurring arrangement and its next normal occurrence intact.
+_Avoid_: pause recurring giving; cancel recurring giving; forgive debt
+
+**Material communication transition** (Phase 16):
+A payment or recovery state change that gives its recipient genuinely new human meaning and can
+therefore justify a new product message. A raw provider attempt, duplicate event, or unchanged retry
+failure is not one by itself.
+_Avoid_: one email per webhook; one email per processor attempt; retry count as message policy
+
+**Communication intent** (Phases 6 and 16):
+The durable, tenant-scoped pre-dispatch request that one exact meaning be evaluated for one exact
+recipient and channel under the shared consent, suppression, rendering, and delivery seam. Its
+permanent semantic key prevents duplicate submission. It is not proof that a message was queued,
+sent, delivered, read, or understood; an actual communication event is recorded only by the Phase 6
+send seam.
+_Avoid_: domain-owned email queue; communication event before send; provider message ID as dedupe
+
+**Communication delivery profile version** (Phase 6):
+An immutable tenant email-delivery snapshot that binds the governed sender identity, reply-to contact
+point, underlying tenant email settings revision/hash, channel, and operational eligibility used when
+a communication intent is submitted. It supplies delivery configuration, never consent, template
+content, recipient authority, or domain eligibility.
+_Avoid_: mutable sender setting on a reminder; template as reply-to authority; provider API key in domain data
+
+**Required-notice override** (Phase 16):
+A current network, payment-rail, jurisdiction, provider, authorization, or authentication duty that
+requires communication even when the product's normal same-state quiet period would suppress a
+discretionary message. It is effective-dated, attributable to a rule and delivery owner, and
+evidenced separately.
+_Avoid_: optional reminder; tenant preference overriding a mandatory notice; silent compliance guess
+
+**Communication delivery owner** (Phase 16):
+The one recorded party responsible for sending a particular message reason for a tenant, provider
+account, rail, mode, and jurisdiction: Asym, the provider/network/bank, or intentionally nobody when
+no message is required. Two owners must never send the equivalent message.
+_Avoid_: duplicate Stripe and Asym email; template as sender policy; unowned mandatory notice
+
+**Donor-substituted retry** (Phase 16):
+A donor-confirmed attempt to collect the named scheduled gift now that atomically consumes or fences
+the earliest remaining retry slot before charging. Updating a payment method alone never performs
+this action, and it never creates additional retry budget.
+_Avoid_: generic give once during an active retry window; save-card-and-charge; bonus retry
+
+**ACH authorization lineage** (Phase 16):
+The effective-dated, tenant- and provider-bound history of one reusable bank-debit authority and its
+credential continuity. Account verification, a reusable token, and payment success are not themselves authorization.
+_Avoid_: bank account as mandate; verified means authorized; replacing history when a token changes
+
+**ACH recovery-open occurrence** (Phase 16):
+An exact returned billing-cohort occurrence that remains eligible for one donor-confirmed ACH
+reinitiation. It is unresolved and recoverable, not terminally missed or money the donor owes.
+_Avoid_: missed gift; outstanding balance; automatic retry queue
+
+**Donor-confirmed ACH reinitiation** (Phase 16):
+One donor-authorized re-presentation of the exact eligible returned billing-cohort occurrence under
+the same proven ACH identity and authorization lineage. It never changes the normal schedule or collects another miss.
+_Avoid_: card retry slot; generic new PaymentIntent; catch-up debit; staff-initiated bank retry
+
+**ACH return-exposed success** (Phase 16):
+A provider-confirmed ACH success that can post and receipt but can still be corrected by a later bank
+return. A later return appends a reversal and supersession instead of rewriting the original success.
+_Avoid_: irreversible settlement; guaranteed final ACH payment; overwriting successful history
+
+**Safety-suppressed occurrence** (Phase 16):
+An expected occurrence for which no debit was initiated because an earlier bank debit remained
+unresolved or another live safety gate failed. It is neither donor-skipped nor failed nor debt.
+_Avoid_: missed payment; donor skip; catch-up balance; schedule drift
+
+**Terminal missed occurrence** (Phase 16):
+An expected occurrence whose collection and permitted recovery opportunities have ended without a
+received gift. It can never reopen or become a balance collected by a later occurrence.
+_Avoid_: recovery available; overdue invoice; dormant retry candidate
+
+**Pledge expectation plan** (Phase 16):
+An optional, evidence-bound, non-executing arrangement of named expected dates and amounts for a
+fixed-total pledge; it may cover all or only an explicitly identified part of the remaining promise.
+Its absence is an honest no-plan state, and by itself it never charges, invoices, creates debt, posts
+cash, or authorizes a reminder.
+_Avoid_: payment schedule; automatic collection plan; fabricated due dates; installment receivable
+
+**Unscheduled pledge expectation** (Phase 16):
+The explicit remaining promised amount of a fixed pledge that genuinely has no dated installment
+schedule. It is an expectation target, not a fabricated occurrence, invoice, or cash balance.
+_Avoid_: fake due date; overall balance used as a silent allocation shortcut; donor debt
+
+**Donor-requested pledge change** (Phase 16):
+An accepted, evidence-backed change to a fixed-total pledge's current donor terms made on the
+Commitment Party's instruction. It preserves the earlier promise and received-gift history.
+_Avoid_: direct edit; plan-only timing change; internal expectation release; entry correction
+
+**Donor-requested pledge ending** (Phase 16):
+An accepted Commitment Party instruction that resolves the still-unfulfilled part of a fixed-total
+pledge as no longer intended. It preserves the original promise and fulfillment history and does not
+itself prove that automatic collection stopped.
+_Avoid_: internal expectation release; provider cancellation; fulfilled pledge; accounting write-off
+
+**Internal expectation release** (Phase 16):
+The organization's decision to stop forecasting an exact unfulfilled pledge amount without asserting
+that the Commitment Party changed the promise. It is neither fulfillment, a collection stop, nor an
+accounting write-off.
+_Avoid_: donor cancellation; forgiven donor debt; received gift; provider stop
+
+**Pledge entry correction** (Phase 16):
+An evidence-backed replacement or invalidation of a fixed-total pledge fact that was wrong when
+recorded, with the erroneous fact retained in history. It is not a later donor change or internal release.
+_Avoid_: hard delete; silent overwrite; donor amendment disguised as correction; cross-tenant move
+
+**Pledge authority review** (Phase 16):
+The quarantine for a fixed-total pledge whose original authorization is disputed or not yet proven;
+it is excluded from active forecasting and reminders until evidence resolves it.
+_Avoid_: automatic correction; assumed donor ending; active promise while authority is unknown
+
+**Applied above current commitment** (Phase 16):
+The derived amount by which authoritative fulfillment exceeds a later valid current donor-affirmed
+pledge total. It does not by itself create a refund, future credit, negative remaining expected amount,
+or receipt change.
+_Avoid_: overpayment automatically owed back; unapplied gift; catch-up credit
+
+**Fulfillment application** (Phase 16):
+An append-only, exact-amount relationship showing that one effective contribution designation line
+satisfied one named expected occurrence or unscheduled pledge expectation.
+_Avoid_: mutable paid counter; commitment-header payment; fuzzy match as fact
+
+**Fulfillment operation** (Phase 16):
+One authoritative instruction that groups the complete set of fulfillment applications for a gift
+or correction so the allocation is understood and accepted as one whole.
+_Avoid_: unrelated row edits; partially accepted allocation; cloned gift or receipt
+
+**Fulfillment authority** (Phase 16):
+The proven current source of intent that permits a new fulfillment application or reapplication:
+complete frozen provider lineage, an authenticated donor instruction, an approved exact remittance
+mapping, or staff confirmation.
+_Avoid_: name, date, amount, memo, OCR, soft credit, or relationship similarity as proof
+
+**Fulfillment correction evidence** (Phase 16):
+The immutable canonical source-correction or staff match-correction fact that authorizes an inverse
+or uncertain-vector retraction against exact prior fulfillment operations and entries. It is distinct
+from application authority and remains usable when that earlier authority has expired or been revoked.
+_Avoid_: reusing stale donor/provider/remittance authority; blocking a refund or return on old authority
+
+**Commitment match** (Phase 16):
+The independently stated relationship between a received gift and the support expectation it
+fulfills. Its certainty never changes whether the gift itself was received or correctly designated.
+_Avoid_: “unapplied” as if money were missing; matching status as payment finality
+
+**Coverage under review** (Phase 16):
+The honest state used when a correction leaves several prior fulfillment applications affected but
+the evidence cannot identify which expectation changed. No affected period is claimed as definitely
+fulfilled until the allocation is resolved.
+_Avoid_: oldest-first guess; newest-first guess; silent proportional reversal
+
+**The effective fulfillment fold** (Phase 16):
+The one derived view of current commitment coverage after append-only applications, inverses, and
+review holds. Donor, staff, missionary, reporting, and automation projections share this truth.
+_Avoid_: mutable fulfillment total; role-specific arithmetic; stale projection authorizing a write
+
+**Current support summary** (Phase 16):
+A role-safe, freshness-qualified interpretation of one recurring commitment line or fixed pledge at
+one evaluation time. It is derived from underlying facts and is never a writable donor status.
+_Avoid_: donor health label; manually entered on-track status; provider status copied as support truth
+
+**Support attention reason** (Phase 16):
+A factual concern that can coexist with the current lifecycle statement, such as recovery in progress,
+a prior scheduled gift not received, or coverage under review.
+_Avoid_: one worst-state badge; hidden secondary fact; person-level risk score
+
+**Collection lapse** (Phase 16):
+The billing-cohort state where future automatic collection is proved unavailable or safely parked.
+Its consequence may appear on permitted line projections, but it is never a label for the donor.
+_Avoid_: missed gift; paused or canceled donor; historical supporter; ordinary soft-failure count
+
+**Projection freshness** (Phase 16):
+The stated point through which every required source fact is known current enough to support a derived
+summary. Stale or contradictory inputs require updating/review language, not a confident conclusion.
+_Avoid_: hidden stale cache; unknown defaults to active; old status presented as current
+
+**Offline review-after instant** (Phase 16):
+The bounded, timezone- and resolver-qualified operational instant after which an expected manually
+delivered gift needs staff attention. It never replaces the donor's promised date or creates debt,
+receipt, fulfillment, or accounting truth.
+_Avoid_: rewritten due date; automatic donor blame; organization-wide arbitrary billing date
+
+**Historical support band** (Phase 16):
+A relationship-reporting facet based on prior support recency. It is not collection lapse, current
+commitment health, donor intent, or authorization.
+_Avoid_: lapsed donor; current recurring status; trigger treated as financial truth
+
+**Received support for a period** (Phase 16):
+Effective legal-money designation value credited within one governed reporting period and viewer
+scope. It is not planned support, processor payout, or spendable field-account balance.
+_Avoid_: scheduled gift as cash; pending ACH as received; commitment total as revenue
+
+**Online recurring month plan** (Phase 16):
+The full calendar-month set of normal automatic-online recurring occurrences, counted once each and
+partitioned by actual outcome. Retries and recovery update an occurrence but never add planned support.
+_Avoid_: future-only schedule mislabeled as the full month; retry as another expected gift; guarantee of cash
+
+**Monthly support goal coverage** (Phase 16):
+A planning comparison between an approved monthly support goal and cadence-normalized recurring
+support, with health and collection composition visible. It is neither received cash nor a dated forecast.
+_Avoid_: percent raised; monthly equivalent as actual cadence; fixed-total pledge divided into monthly support
+
+**Support projection snapshot** (Phase 16):
+A role-safe, currency- and period-scoped set of received, planned-occurrence, and goal-coverage facts
+qualified by its source cursors and freshness. It is read-only and never authorizes money movement.
+_Avoid_: mutable dashboard counter; stale value presented as current; projection used as payment authority
+
+**Commitment Party** (Phase 16):
+The one person, household, or organization Party whose declared giving intent a commitment records; the owner is immutable business history unless a governed same-Party merge repairs its identifier.
+_Avoid_: payer; service contact; Stripe customer; recognized supporter; editable owner
+
+**Representative authority** (Phase 16):
+Evidence that an identified person may act for another Party within stated purposes, actions, and effective dates. It is distinct from an ordinary relationship, staff capability, portal identity, or payment authorization.
+_Avoid_: treasurer title as permission; household membership as access; generic authorized-contact flag
+
+**Service contact** (Phase 16):
+A recipient and contact point designated for a particular commitment communication purpose. Receiving a message grants no ownership, access, management authority, payment authority, legal-donor status, or recognition.
+_Avoid_: primary contact as authorized representative; email recipient as commitment owner
+
+**Campaign commitment reminder** (Phase 16):
+A purpose-specific stewardship communication about one current named fixed-total pledge expectation. It is neither a recurring-payment notice nor a claim that the Commitment Party owes a debt or failed to give.
+_Avoid_: collection notice; invoice; recurring-payment failure message; generic scheduled gift reminder
+
+**Gentle reminder profile** (Phase 16):
+The one bounded campaign-commitment reminder shape: at most one courtesy message before a named expected date and one source-aware follow-up after its review window. It is not a tenant-authored cadence or communication journey.
+_Avoid_: dunning sequence; repeat until paid; custom reminder workflow; due-date message
+
+**Tenant reminder maximum** (Phase 16):
+The organization-wide ceiling allowing no automated campaign commitment reminders, only the upcoming stage, or the upcoming stage plus one follow-up. It can only narrow platform behavior and never authorizes contact by itself.
+_Avoid_: per-pledge cadence; force-send setting; automatic enrollment; policy bypass
+
+**Pledge reminder enrollment** (Phase 16):
+The deliberate, current-plan choice to make the tenant-permitted reminder stages available for exact named expectations and one current purpose-bound Service contact. A saved date, imported pledge, tenant setting, or prior plan is not enrollment.
+_Avoid_: reminder-by-default; schedule as consent; inherited enrollment; import opt-in
+
+**Reminder candidate** (Phase 16):
+One derived opportunity for an enrolled Gentle reminder profile stage. It is neither permission nor a queued or delivered message and must still satisfy current pledge, source, recipient, policy, and duplicate truth.
+_Avoid_: guaranteed send; provider-scheduled email as authority; stale queued reminder
+
+**Upcoming commitment reminder** (Phase 16):
+The first possible Gentle reminder profile stage, fixed thirty calendar days before a current named expected date. A passed stage is skipped rather than sent as catch-up.
+_Avoid_: arbitrary lead time; due-date notice; late backfill
+
+**Source-aware commitment follow-up** (Phase 16):
+The second possible Gentle reminder profile stage at the Offline review-after instant, available only when current fulfillment, matching, coverage, recipient, and communication policy still make it truthful and permitted.
+_Avoid_: automatic overdue notice; follow-up despite stale source; third reminder
+
+**Purpose-specific reminder stop** (Phase 16):
+A recipient instruction ending future campaign commitment reminders for the governed purpose and contact point without changing the pledge, its expectations, or broader authority.
+_Avoid_: pledge cancellation; donor-requested pledge ending; global contact preference inferred from one stop
+
+**Expected remitter** (Phase 16):
+An optional, provenance-bearing expectation about who may transmit a future commitment payment. It is a matching hint only, never fulfillment, legal-donor, receipt, ownership, or collection authority.
+_Avoid_: expected payer as legal donor; remitter hint as cash; payer field as permission
+
+**Collection authorizer** (Phase 16):
+The identified human and evidence approving one version of an automatic payment arrangement's terms and future use. A saved payment method, prior successful charge, representative relationship, or staff capability is not this authorization.
+_Avoid_: payment-method holder inferred from token; contact as mandate signer; staff approval as donor consent
+
+**Party instruction** (Phase 16):
+Evidence that the commitment Party or its currently authorized representative requested exact commitment terms or a specific lifecycle change. It is distinct from staff capability, payment authorization, and notification after the fact.
+_Avoid_: staff says donor approved; relationship as instruction; audit entry as consent
+
+**Staff-assisted recurring-support command** (Phase 16):
+A recurring-support action operated by tenant staff from a Party instruction, with separate operator authority and any required collection authorization. Staff operate the service case but never impersonate the Party, representative, cardholder, or account holder.
+_Avoid_: proxy consent; staff impersonation; capability-only financial change
+
+**Protective collection block** (Phase 16):
+A governed stop on future automatic collection because collection is unsafe or unauthorized, while preserving the underlying commitment intent and truthful reason. It is neither donor cancellation nor permission to redirect, retry, or enlarge support.
+_Avoid_: forced cancellation; silent redirection; compliance stop as donor choice
+
+**Posted legal donor** (Phase 16):
+The contribution-specific Party frozen on a received gift's legal header from its actual evidence. It is never copied blindly from the commitment Party, expected remitter, collection authorizer, or recognition.
+_Avoid_: commitment owner as automatic receipt owner; payer hint as hard credit
+
+**Recognition Party** (Phase 16):
+A Party receiving Phase 14 recognition-only attribution for a contribution or support relationship. Recognition never owns the commitment, authorizes action, fulfills an occurrence, becomes cash, or receives a tax receipt.
+_Avoid_: soft credit as promise ownership; recognition as legal giving; recognition as payment authority
+
+**Normal-date ACH soft-return runway** (Phase 16):
+The collection-health window tracking repeated normally scheduled insufficient-funds returns on one
+authorization lineage, independently of whether an individual occurrence is recovered by the donor.
+_Avoid_: donor debt aging; recovery attempt count; cancellation timer
+
+**Communication delivery evidence** (Phase 16):
+The append-only facts showing what happened to a communication intent, such as queued, submitted,
+provider accepted, delivered to the recipient's mail server, delivery unconfirmed, suppressed,
+bounced, complained, corrected, or manually resent. None proves the person read or understood it.
+_Avoid_: donor aware; sent means read; overwriting a prior message after corrected payment truth
+
+**Recurring executor** (Phase 16):
+The provider-side collection arrangement for one compatible recurring billing cohort. It has one explicit execution leg for an ordinary cadence and two monthly legs for the twice-monthly 1st/15th cadence. Each applicable line has an exact provider-item binding in each leg. It is separate from the donor's group or line intent, Asym's command posture, and any individual payment outcome.
+_Avoid_: commitment; recurring status; payment method; schedule alone
+
+**Provider-control state** (Phase 16):
+The evidence-backed truth about whether Asym can currently observe and safely direct a recurring executor through its payment provider. It is separate from donor intent, executor activity, payment outcome, cash, and communication delivery.
+_Avoid_: Stripe status; active or inactive; connection flag; donor lifecycle
+
+**Control unknown** (Phase 16):
+A provider-control state in which Asym cannot prove safe control of the recurring executor or prove that the executor has stopped. Suppressing Asym commands is not provider-confirmed stop.
+_Avoid_: parked; paused; stopped; canceled; safe
+
+**Proof-gated cohort recovery** (Phase 16):
+The return of only those affected recurring executors whose same-binding identity, current control, missing-interval and in-flight reconciliation, authorization, and absence of a competing executor have all been proven. Reconnection alone is never recovery.
+_Avoid_: reconnect and resume; replay everything; bulk restore by staff assertion
+
+**Lapsed vs canceled** (Phase 16):
+Lapsed is a derived display label used only when future automatic collection is
+actually unavailable or safely parked for an involuntary, recoverable reason;
+repeated soft missed occurrences alone remain at-risk continuing support.
+Canceled means the donor chose to stop and is terminal for that authorization.
+The authoritative facts remain separate intent, schedule, collection, payment,
+provider-control, and health axes.
+_Avoid_: writable lapsed status; folding an involuntary lapse into canceled;
+marking repeated ordinary misses lapsed
 
 **Hard credit** (Phase 14):
 The single legal donor's receiptable claim on a gift (Phase 7 A8); the only input
@@ -1099,9 +1576,10 @@ The workflow event ID only helps avoid duplicate handoffs."
 Developer: "Can recurring donations use the same retry loop as one-time
 donations?"
 
-Domain expert: "No. A recurring donation has its own subscription lifecycle.
-One-time donation recovery and recurring donation billing should be designed as
-separate payment concepts."
+Domain expert: "No. Recurring giving has its own product-owned schedule,
+occurrence, and rail-specific recovery lifecycle; provider subscriptions are
+execution legs, not the business authority. One-time donation saga recovery and
+recurring occurrence recovery remain separate payment concepts."
 
 Developer: "If an ACH donor finishes checkout, is the payment final?"
 

@@ -34,10 +34,25 @@ platform boundaries already warn against.
   truth — recognition rows never mint receipts, never enter money totals, and
   render only through the governed recognition read models — per
   `docs/prds/sitestacker-parity/phase-14-donor-credit-operations.md`.
+- **Amended 2026-07-13 (Phase 16 (Pledges & Recurring Commitments)):** add a
+  durable truth-boundary requirement that keeps open-ended recurring
+  commitments, fixed-total pledges, stable line identity, effective line terms,
+  schedule epochs, occurrence execution, fulfillment, payment finality, ledger
+  posting, and received money as separate facts. Pin exactly one featured
+  cadence (monthly whenever enabled), donor-controlled and twice-validated
+  schedule boundaries, count-once effective recurring-to-fixed linkage,
+  unchanged-grid pause/manage commands, and product-owned bounded recovery.
+  Reconcile the merged `donation-lifecycle` contract and the active
+  `add-recurring-giving` and `add-donor-self-service` changes so none can still
+  authorize the superseded one-Stripe-subscription-to-one-legacy-pledge model or
+  provider-owned retry policy. Detailed behavior is governed by the Phase 16
+  PRD, dated congruence package, and ADRs.
 
 ## Impact
 
-- Affected specs: `platform-product-intent`
+- Affected specs: `platform-product-intent`, `donation-lifecycle`
 - Affected docs: `docs/prds/sitestacker-parity/**` (including `roadmap.md`,
   the source of truth for phase architecture), the Phase 0 evidence file
+- Reconciled active changes: `add-recurring-giving`,
+  `add-donor-self-service`
 - No product code changes (this change is baseline + governance only).

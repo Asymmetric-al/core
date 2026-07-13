@@ -4,6 +4,20 @@
 
 > Buildable synthesis of the Phase 3 grill (decisions D1–D12) plus a nonprofit-CRM/CMS best-practice validation and a gap-check verified against the live schema on this branch. Grounded in the repo as of drafting; **specific file/line references may drift** — treat them as pointers, not contracts. New canonical terms are reconciled in **Glossary & OpenSpec** below and must be added to the repo-root `CONTEXT.md`.
 
+> **Phase 16 downstream registration amendment (2026-07-13).** Phase 16 adds
+> recurring groups, lines, billing cohorts, execution legs, schedule epochs,
+> occurrences, collection attempts, command/evidence journals,
+> provider-control incidents, fixed-total pledges and expectations, fulfillment
+> applications, authority evidence, reminder records, and derived support-health
+> projections to this phase's record/projection/egress census. They are born
+> blind on every surface until their fields and row scopes are classified.
+> Mission Control, donor portal, missionary dashboard, communication rendering,
+> reporting, and governed export MUST all call the same `resolveProjection`
+> boundary. Exact next dates, donor identity, authorization evidence, payment
+> metadata, provider identifiers, decline/return facts, and restricted-ministry
+> relationships receive explicit per-surface classification; no new Phase 16
+> reader or export may bypass the floor because it is a projection or aggregate.
+
 ---
 
 ## Problem Statement

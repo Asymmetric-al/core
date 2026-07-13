@@ -40,7 +40,20 @@ A **shared, server-only public-content contract** — one choke-point that every
 
 7. **Faithful, safe preview via Next.js Draft Mode.** Staff preview renders the **real page** (not a separate template) through the same reader with drafts on, behind a signed-secret route that authenticates the user, checks the tenant, enables Draft Mode (which makes the request dynamic so drafts are never cached), and marks the response `noindex`. A shareable non-staff review link and real-time Live Preview are reserved.
 
-8. **Guest-first identity continuity.** Browsing creates no record; a donor record is created only on a **completed gift** (Phase 4's unclaimed-donor lifecycle); the tenant-branded thank-you **invites — never forces** — a magic-link account claim into the donor portal; the emailed receipt is the always-on continuity. Phase 5 owns the public surface and honors Phase 4's rules; Phase 4 owns the identity services behind it.
+8. **Guest-first identity continuity.** Browsing and abandoned forms create no
+   donor or commitment record. A one-time donor record is created only on a
+   **completed gift** (Phase 4's unclaimed-donor lifecycle). _(Amended
+   2026-07-13 for Phase 16 recurring giving: once the processor accepts a
+   recurring authorization and returns a durable initial-payment state, the
+   idempotent server saga persists the donor, recurring agreement, occurrence,
+   and attempt even when an ACH payment is still processing. Processing is
+   labeled processing—not received, paid, or receipted—and a failed
+   pre-acceptance handoff creates no successful arrangement.)_ The
+   tenant-branded thank-you **invites — never forces** — a magic-link account
+   claim into the donor portal; the applicable receipt or truthful processing
+   confirmation is the always-on continuity. Phase 5 owns the public surface
+   and honors Phase 4's rules; Phases 4/16 own the identity and recurring
+   services behind it.
 
 9. **A generalizable proof slice.** One page type — the missionary giving page — is refactored from mock data onto the full contract (resolve → isolated published read → serialize → resolve/validate references → enumeration-safe validated handoff → cache/invalidate → Draft Mode preview), built as **configuration over the shared primitives** so a project, event, or campaign page later is "add a config and a renderer," not "rebuild the plumbing."
 
@@ -232,7 +245,12 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - [ ] The giving CTA hands off through the resolver; checkout re-validates every reference server-side; the form is enumeration-safe and constant-time and never pre-fills/exposes saved data to an unauthenticated session; the handoff carries reserved `site_id`/`source_code`/`currency`/`locale`/`entry_method`.
 - [ ] Published reads are cached with the tenant passed as an argument (cache-key isolation) + tenant/document tags; publishing fires a signed, constant-time-verified admin→public signal that invalidates the right tags; a bounded `cacheLife` backstop is in place; no route-segment config exists.
 - [ ] Preview renders the real page via Draft Mode behind a signed-secret, tenant-checked route; drafts are never cached, never public, and `noindex`; the shipped admin preview remains as interim.
-- [ ] Guest-first continuity: no record on browse; a record only on a completed gift; a tenant-branded thank-you offering an optional magic-link claim; an always-sent branded receipt; the Phase-3 reveal-gate respected.
+- [ ] Guest-first continuity: no record on browse or abandonment; a one-time
+      record only on a completed gift; for Phase 16 recurring giving, an
+      accepted agreement plus durable initial-payment state persists exactly
+      once even when ACH is processing, without calling the funds received or
+      issuing a successful-payment receipt; a tenant-branded result offers an
+      optional magic-link claim and respects the Phase-3 reveal gate.
 - [ ] The public surface wires the Phase-2/3/4 seams (C): site branding, CMS site-scoping, `entry_method`, `rendered_locale`, anonymity masking, and the consent gate.
 - [ ] Error behavior: unknown host → "site not found"; valid tenant + missing page → tenant-branded 404; baseline public security headers set.
 - [ ] The missionary-giving-page proof slice runs the full contract end-to-end, is built as configuration over the shared primitives (a second page type would need no reader/serializer/resolver changes), meets the accessibility gate, and passes the parity test.

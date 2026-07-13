@@ -42,6 +42,16 @@ A **rules-first, server-only receipt & statement engine** — the system of reco
 
 2. **Issue-on-accept eligibility with a per-method state machine.** A first-class, **reason-carrying** rule decides receiptability from the gift's _effective_ state (via the shipped `deriveEffectiveContribution` fold), enforced at both **issuance** and **read**. A receipt issues as soon as a gift is **accepted** — card on capture, ACH on `payment_intent.processing` (pre-settlement, for donor UX), offline on recorded-received — settlement is a **no-op**, and a receipt is voided/superseded **only** on a negative terminal event. ACH post-success returns arrive as `charge.dispute.created` (final → void immediately); card disputes are contestable (hold → void on lost, reinstate on won); a partial refund **supersedes with a reduced amount**. A minimal, jurisdiction-aware policy surface (`hold_ach_receipt_until_settled`, `ach_hold_window`, `high_value_ach_threshold`, `year_end_ach_policy`) keeps it pro-donor by default without a combinatorial matrix.
 
+   **Dated Phase 16 recurring-ACH amendment (2026-07-13).** For a Phase 16
+   recurring ACH occurrence, `payment_intent.processing` creates a truthful
+   initiation/submission confirmation only—it is not the official successful-
+   payment receipt and must not say the gift was received or paid. The official
+   receipt issues after processor-confirmed success. A later ACH return appends
+   the exact inverse/supersession and notifies through the existing document and
+   communication contracts; history is never deleted. This narrow amendment
+   governs Phase 16 recurring ACH only and does not rewrite the card or settled
+   offline-tender rules.
+
 3. **The full donor-credit model behind every document.** Every gift has **exactly one hard-credit legal donor** (`donations.donor_id`, the sole receipt owner and frozen-snapshot subject) and **zero or more soft credits** (`gift_credits`, recognition-only, `is_receiptable = FALSE` — a hard invariant that never enters a money total). Donor becomes a typed **party** on a thin `parties` supertype (`party_kind ∈ {person, household, org}` + reserved `'group'`, with `org_type` distinguishing church/business/DAF-sponsor/foundation on the org subtype — amended 2026-07-06 per Phase 9 §C2; see A9). A **household is a group of persons, never an account that absorbs them.** DAF grants receipt the sponsor and give the advisor a **$0-deductible acknowledgment**; a matching gift is **two donations** (employee gift + company match receipted to the company); a tribute is a gift annotation whose notify party gets a **notification**, never a receipt.
 
 4. **The three-document wall, enforced structurally.** A **tax receipt** (legal donor only; may carry deductibility + EIN), an **acknowledgment** (soft-credited parties; **no** deductibility language), and a **notification** (tribute notify party; **amount hidden**; never a tax document). Acknowledgment and notification templates have **no access to deductibility or amount merge-fields** — a wrong-party tax statement is impossible by construction, not by staff memory.
@@ -143,8 +153,17 @@ Underneath, everything lives **server-only at the Asym boundary** in new `packag
 - **A5 — Eligibility is a reason-carrying rule, enforced at issuance and read.** A pure evaluator reads the gift's effective state and returns `{ eligible, reason_code, evaluated_at }`; issuance creates no receipt version when not eligible (recording the reason), and every read/download path re-checks (or reads the frozen verdict / latest non-voided version). This finally assigns the dormant `receipt_status` values `not_required` and `suppressed`. Payment/refund state is Asym-owned and computed from the effective fold — Stripe reports state; it never decides receiptability. (D2.)
 
 - **A6 — Issue-on-accept per payment method; settlement is a no-op; negative terminal events void/supersede.** "Accepted" = card captured / ACH `payment_intent.processing` / offline recorded-received (never `requires_payment_method`/`requires_action`/`requires_capture`/`canceled`). The receipt lifecycle actions are `issue | noop_confirm | void | supersede_reduced | under_review_hold | no_receipt | reinstate`, keyed by (event, method). **ACH post-success returns arrive as `charge.dispute.created`** (final, non-contestable → void immediately + notify); **card disputes** withdraw funds but are contestable → `under_review_hold` on `created`, `void` on `closed/lost`, `reinstate` on `closed/won`; **partial refund** → `supersede_reduced`. This requires new `charge.dispute.*` ingestion in the Stripe event processor (a currently-unhandled correctness hole). (D2.)
+  _(Amended 2026-07-13 for Phase 16 recurring ACH: “accepted” at
+  `payment_intent.processing` is sufficient to persist the agreement,
+  occurrence, attempt, and processing confirmation, but not to run the
+  successful-receipt `issue` action. That action waits for confirmed success;
+  failed processing produces no successful receipt. A post-success return
+  still follows the exact void/supersession path above.)_
 
 - **A7 — Jurisdiction/method policy knobs, not a matrix.** Default issue-on-accept everywhere. The only knobs: `hold_ach_receipt_until_settled` (default off US, forced on for CRA/stricter), `ach_hold_window`, `high_value_ach_threshold`, `year_end_ach_policy`. Everything else (void-supersede, donor notification, statement exclusion, audit, idempotency) is always-on. (D2.)
+  _(Amended 2026-07-13: Phase 16 recurring ACH always uses success-only
+  official receipting; this is a product contract, not a tenant toggle. Tenant
+  policy may be stricter but may not label processing funds received.)_
 
 - **A8 — One hard-credit legal donor per gift; soft credit is recognition-only and structurally non-receiptable.** `donations.donor_id` stays the single legal donor and sole receipt owner (unchanged invariant). `gift_credits` holds 0..N soft credits with `is_receiptable = FALSE` enforced by DB CHECK **and** service layer; a soft credit can never mint a receipt or enter any money/receipt/cash total. Do not add a second donor FK to `donations`. (D3.) _(Amended 2026-07-10, Phase 14 (Donor Credit Operations) D1.14: the `donations.donor_id` phrasing now reads through the Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) ledger — the single legal donor is the `contribution_headers` frozen legal-donor snapshot — and `gift_credits` is renamed `contribution_credits` (keyed to `contribution_headers` + optional line scope); the one-hard-credit-donor invariant is unchanged.)_
 

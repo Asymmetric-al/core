@@ -7,6 +7,22 @@
 
 **Downstream consumers (this phase defines the contracts they build on):** Phase 13 contribution-ledger (money-plane consumes the resolver; SoD-conflict pairs) · Phase 30 imports-migration · Phase 31 platform-api (public REST/webhooks) · Phase 33 reporting-BI (report permissions as their own model; aggregate small-cell suppression) · Phase 34 workflow-engine · Phase 6 communication/merge · Phase 38 member-care case product & exposure report · Phase 40 AI (every AI egress routes through this resolver).
 
+**Phase 16 downstream capability amendment (2026-07-13).** Phase 16 consumes
+this spine for separate capabilities covering recurring/fixed-pledge view,
+authorization-bound recurring service, fixed-pledge create/change/end/release/
+correction, reminder-policy/enrollment administration, provider-control
+incident response, restricted authorization-evidence view, and governed
+report/export access. The Phase 16 PRD owns the exact capability keys and their
+command matrix; Phase 12 owns their registry, active-assignment, epoch,
+projection, audit, purpose, and tenant-axis enforcement. Staff capability proves
+only operator authority. It never proves Party instruction, cardholder/account-
+holder collection authorization, promise ownership, or provider control. The
+server derives the action class and independently validates all required gates;
+role names, UI visibility, a generic consent checkbox, or a second staff click
+cannot manufacture missing donor authority. System schedulers and reconcilers
+use separately registered service-principal capabilities and the same tenant/
+purpose/audit boundaries, never a staff-role shortcut.
+
 **Posture note (fresh-build).** The product has **no production users** (ADR-0001). Design correct-from-start; there is no end-user data to migrate. But the current auth code (`packages/auth/permissions.ts`, `packages/auth/context.ts`, `supabase/migrations/20260226113000_authz_memberships_foundation.sql`) contains the MVP "all staff subroles share broad admin access" posture and several **live cross-tenant hazards** this phase retires as its first task (see **§ Ship-First Substrate**). Make **no "live/shipped" claims** without evidence. A cross-tenant or cross-clearance exposure of a restricted-ministry worker is a **physical-safety event**, not a privacy incident — this is the design's controlling constraint.
 
 ---

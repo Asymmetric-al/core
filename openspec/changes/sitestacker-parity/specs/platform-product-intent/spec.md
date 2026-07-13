@@ -108,3 +108,336 @@ second reviewer. Detailed behavior is specified in
   recorded as an audited validate = post event
 - AND no offline gift reaches the ledger through any path other than that
   commit service
+
+### Requirement: Recurring Support And Fixed-Total Pledges Preserve Separate Truth
+
+Phase 16 (Pledges & Recurring Commitments) MUST treat a recurring commitment
+and a fixed-total pledge as separate operational aggregates. A recurring
+commitment records repeated support without an explicitly promised cumulative
+balance; a fixed-total pledge records an explicit cumulative promise. A
+collection arrangement, provider subscription, mandate, invoice, payment
+attempt, expected occurrence, fulfillment application, recognition record, or
+posted contribution MUST NOT redefine one aggregate as the other. Only an
+authoritative posted contribution records received money, and neither aggregate
+MUST mint cash, a receipt, or an accounting entry merely because intent or an
+expectation exists.
+
+An online recurring arrangement MUST use one explicit recurring-giving group
+with stable, independently manageable destination-line identities. A line-term
+change MUST append a new effective line-term version; a calendar change MUST
+append a separate schedule epoch. The schedule epoch is authoritative for the
+calendar grid, while the matching line-term version is the frozen donor-
+disclosure snapshot. They MUST agree at every effective boundary or fail closed.
+Only compatible current line terms and schedule epochs MAY share a billing
+cohort and its explicit provider execution legs; every line MUST retain an exact
+provider-item binding in every applicable leg so one line cannot be mutated
+through another. Ordinary cadences use one execution leg; twice-monthly uses two
+monthly legs for the 1st and 15th without becoming two donor commitments.
+
+The product-owned, effective-dated calendar schedule and named occurrence
+ledger MUST remain authoritative for donor intent and scheduled execution.
+Occurrence execution, provider-confirmed payment finality, canonical
+contribution/ledger posting, and receipt eligibility MUST remain separate
+folds. Provider success MUST NOT itself claim ledger posting, and ledger posting
+MUST NOT move the schedule. Current tenant/account/mode binding, application
+ownership, capability, provider-object, in-flight-work, and reconciliation
+evidence MUST govern what Asym can prove about executor control. Donor-intent
+lifecycle, schedule, occurrence execution, payment finality, ledger posting,
+collection health, provider control/reconciliation, fulfillment,
+communication eligibility, and projection freshness MUST remain separate axes
+rather than one mutable pledge status.
+
+Every commitment or pledge MUST have one immutable Commitment Party. Current
+representative authority, service contact by purpose, expected remitter,
+collection authorizer, posted legal donor, and recognition Party MUST remain
+separate, effective-dated roles. Household membership, organization contact,
+payment identity, DAF advice, remittance, recognition, and merge similarity
+MUST NOT transfer or infer the Commitment Party or collection authority. A real
+owner change MUST supersede the old aggregate and create a newly authorized
+successor.
+
+A fixed-total pledge MUST be total-first. Its optional plan MAY use one date,
+even installments, or custom dates and MUST preserve any undated remainder.
+Management MUST classify changes as donor-requested change, donor-requested
+ending, internal expectation release, or entry correction; each classification
+MUST use its own append-only fold and exact inverse/restore rules. No plan,
+pledge, release, or correction may manufacture money, debt, recognition,
+collection authority, or automatic reminders.
+
+A separately authorized recurring line MAY fulfill a fixed-total pledge only
+through an explicit, effective-dated, same-tenant link to one compatible fixed-
+pledge line on a civil date. In v1, overlapping effective links for the same
+recurring line and civil date MUST be rejected. The recurring fulfillment
+application consumes source capacity exactly once; any fixed-pledge coverage is
+an append-only temporal allocation to the exact then-current pledge plan and
+target and MUST NOT consume source money or target capacity a second time.
+Later pledge-plan versions MAY allocate only remaining capacity, and a reversal
+MUST append the exact inverse rather than recomputing history.
+
+Staff recurring service MUST independently prove operator capability, the
+Commitment Party's instruction, and collection authorization. The server MUST
+derive one of four truthful outcomes—Apply now, Complete with donor now,
+Awaiting authorization, or Collection blocked—without making staff re-enter
+raw card or bank credentials into Asym-owned fields. Broad staff access MUST
+not become ambient authority, bulk widening, or a checkbox that manufactures a
+card/ACH mandate.
+
+Every material command or fulfillment operation MUST be tenant-scoped,
+authority-bound, append-only, idempotent, revision-fenced, reconcilable, and
+role-projected. Unknown provider control, identity, tenant, authorization,
+payment outcome, matching evidence, or source freshness MUST fail closed rather
+than guess. Detailed behavior is governed by
+`docs/prds/sitestacker-parity/phase-16-pledges-recurring-commitments.md`
+(Phase 16 (Pledges & Recurring Commitments)) and its dated 2026-07-13
+cross-PRD congruence package.
+
+Automatic fulfillment MUST use one of three independent closed application-proof types:
+exact frozen provider lineage; an authenticated donor instruction with exact
+source-to-target allocations; or an approved authenticated structured-remittance
+source and immutable versioned exact-line mapping. Every path MUST re-prove
+tenant, Commitment Party, currency, designation, source/target capacity, current
+revision, and non-revoked authority. A structured source or mapping approval MAY
+be narrowed, revoked, expired, or superseded prospectively, but MUST NOT rewrite
+a completed application. One authenticated donor instruction MUST authorize at
+most one original application. Source and mapping version/supersession identities
+MUST be tenant-scoped and unique, their supersession chains MUST be acyclic, and
+locked atomic approval/supersession MUST leave at most one current approved source
+per source key and one current approved mapping per authenticated source-line
+identity. Lifecycle commands MUST be permanently semantically idempotent.
+
+An inverse or uncertain-vector retraction MUST use immutable, same-tenant
+canonical correction evidence tied to the complete typed set of affected original
+operations and exact entries, including a vector spanning several operations;
+it MUST NOT require or reuse the original application authority. A later reapply
+MUST use new current application authority. Names,
+amount/date proximity, memo/OCR text, relationships, generic source IDs, and
+incomplete or conflicting evidence MAY create a suggestion only.
+
+#### Scenario: Compatible lines share one exact executor mapping
+
+- GIVEN a donor explicitly creates one recurring-giving group with two
+  compatible destination lines
+- WHEN the current provider adapter creates their recurring executor
+- THEN the compatible lines share one billing cohort and the minimum explicit
+  execution legs required by their cadence
+- AND each line binds to its exact provider item in every applicable leg and remains independently
+  identifiable and manageable
+- AND the platform never infers the group from donor, email, payment method,
+  cadence, date, or provider metadata
+
+#### Scenario: Tenant cadence choices stay truthful and grandfathered
+
+- WHEN a tenant configures the supported cadences for a giving experience
+- THEN exactly one enabled cadence is featured; it is monthly whenever monthly
+  is enabled, otherwise the tenant must atomically select one other enabled
+  cadence
+- AND alternate enabled cadences remain progressively discoverable with exact
+  amount-per-occurrence wording
+- AND the only recurring cadence values are weekly, every two weeks, twice
+  monthly on the 1st and 15th, every four weeks, monthly, quarterly, semiannual,
+  and annual; one-time is separate and daily is excluded
+- AND every schedule is calculated by the same versioned calendar engine
+- AND later availability changes affect new arrangements only and never mutate
+  an existing donor schedule
+- AND checkout applies no end date without asking an extra question; a donor
+  sees the optional inclusive final-date control only after choosing to use it
+
+#### Scenario: A future continuing date does not suppress or duplicate the initial contribution
+
+- GIVEN a donor selects a future date for the continuing recurring schedule
+- WHEN the donor submits the recurring arrangement
+- THEN one actual initial contribution per disclosed compatible billing cohort
+  is attempted immediately, never one per line or twice-monthly leg
+- AND each cohort freezes exactly one executor-invoice or product-triggered
+  owner for that attempt, never both or neither
+- AND the review distinguishes that contribution from the first continuing
+  occurrence on the donor-selected date
+- AND a schedule that begins today never produces a second same-day charge
+
+#### Scenario: Donor-controlled schedule boundaries are validated twice
+
+- GIVEN checkout defaults the continuing anchor to the current civil date in
+  the arrangement's frozen giving timezone
+- WHEN a donor keeps that date or selects a valid future continuing date and an
+  optional inclusive final eligible date
+- THEN the server-owned preview rejects a past continuing date and rejects a
+  final eligible date before the first continuing occurrence
+- AND the apply command repeats those checks under lock; equality with the first
+  continuing occurrence permits that one occurrence
+- AND for twice-monthly giving, an off-slot default advances to the next 1st or
+  15th and a donor-selected continuing date must itself be a 1st or 15th
+
+#### Scenario: Calendar schedules preserve their intended grid
+
+- WHEN a schedule crosses a short month, leap year, daylight-saving transition,
+  timezone-data change, or fixed twice-monthly boundary
+- THEN the frozen giving-timezone and preferred-anchor rules generate the same
+  intended calendar grid using clamp-and-recover behavior where needed
+- AND a late attempt, retry, processing delay, settlement, or return never
+  re-anchors later occurrences
+
+#### Scenario: Lifecycle changes preserve history and create no debt
+
+- WHEN an authorized donor skips an occurrence, pauses, resumes, cancels, or
+  changes the next recurring date
+- THEN the command applies prospectively through one revision-fenced command
+  and the correct append-only fact: a new line-term version for changed terms, a
+  new schedule epoch only for calendar changes, or immutable skip, pause,
+  resume, or cancellation facts for lifecycle changes
+- AND it never overwrites history, recalls an already submitted payment,
+  prorates, catches up, back-charges, silently charges, or moves the unchanged
+  normal grid
+- AND a donor-requested next date of today may attempt one occurrence only
+  after a separate explicit confirmation of its exact amount and date
+- AND a line-specific change splits the line from a shared cohort atomically
+  when compatibility requires it
+- AND paused-grid occurrences remain as suppressed facts; a bounded resume date
+  is an eligibility boundary rather than a promised charge date, an indefinite
+  pause resumes only by command, and neither pause nor resume proves an external
+  executor stopped or creates an immediate charge
+
+#### Scenario: Card recovery remains bounded and schedule-first
+
+- GIVEN a later card occurrence soft-fails with retry-permitted evidence
+- WHEN the Phase 16 recovery policy evaluates it
+- THEN weekly occurrences receive at most the frozen +2 and +4 local-date slots
+  and other cadences receive at most +2, +4, and +6, subject to every live
+  provider, authorization, lifecycle, time-window, and rolling-safety guard
+- AND only actual provider attempts consume the occurrence budget
+- AND the triggering occurrence plus at most three later normally scheduled
+  soft-failed occurrences may receive those bursts before later occurrences
+  become schedule-only until recovery
+- AND every missed occurrence closes independently without debt, catch-up, or
+  anchor drift
+- AND the configured provider subscription owns ordinary renewals only;
+  provider-native automatic retries are disabled or proved unable to overlap
+  Phase 16 recovery commands, and the provider never chooses product retry
+  eligibility or timing
+
+#### Scenario: ACH recovery requires exact donor-confirmed authority
+
+- GIVEN one ordinary recurring ACH entry returns unsuccessful
+- WHEN the donor has not completed a proof-valid one-use recovery grant for the
+  exact billing-cohort occurrence
+- THEN the platform performs no silent same-occurrence re-presentment
+- AND the normal future schedule remains intact with a separate one-time gift
+  available as the safe fallback
+- AND an R01 or R09 recovery may run only when the actual provider and ODFI path
+  proves lawful same-entry treatment, exclusive execution ownership, current
+  authorization, and semantic idempotency
+
+#### Scenario: Communications follow meaningful state and current proof
+
+- WHEN recurring-payment state reaches a new donor-relevant meaning or an
+  explicitly enrolled fixed-pledge reminder stage becomes due
+- THEN the product creates one semantically idempotent candidate through the
+  governed Phase 6 communication spine
+- AND the candidate re-proves current truth, purpose, recipient authority,
+  consent, suppression, template, and duplicate state before submission
+- AND fixed-total pledge reminders remain Off until explicit current-plan
+  enrollment and a tenant may only narrow the single two-touch maximum
+
+#### Scenario: Provider-control loss quarantines unsafe work
+
+- WHEN current evidence cannot prove the expected tenant, account, mode,
+  ownership, capability, executor, or in-flight outcome
+- THEN the affected binding enters control quarantine and unsafe new attempts,
+  widening commands, stale replays, and replacement executors are suppressed
+- AND the platform does not claim that the external executor stopped
+- AND reconnection enters read-only reconciliation; a different executor can
+  activate only after old-stop proof, in-flight resolution, and current
+  authorization
+
+#### Scenario: A fixed-total pledge is total-first and creates no money
+
+- WHEN authorized staff records a fixed-total pledge
+- THEN the pledge requires its promised total and may optionally add one-date,
+  even-installment, or custom expectation lines with an explicit undated
+  remainder
+- AND the record creates no automatic charge, receipt, contribution, revenue,
+  receivable, accounting entry, fulfillment, or reminder enrollment
+
+#### Scenario: Fulfillment applications conserve and reverse exactly
+
+- GIVEN an authoritative contribution designation line is eligible to fulfill a
+  named expectation line
+- WHEN a permitted application is recorded
+- THEN one immutable operation conserves the applied amount across its signed
+  source-to-target entries without changing legal donor, recognition, or money
+  finality
+- AND an exact reversal appends exact inverse entries
+- AND ambiguous matching or partial reversal retracts uncertain coverage for
+  review instead of guessing
+
+#### Scenario: Independent automatic fulfillment proofs fail closed
+
+- GIVEN exact provider lineage, an authenticated donor instruction, or an
+  approved authenticated structured-remittance mapping independently names one
+  contribution line and its target allocations
+- WHEN the fulfillment command re-proves current tenant, Commitment Party,
+  currency, designation, source/target capacity, revision, and authority
+- THEN each proof type may independently authorize one conserved automatic
+  application under its closed authority type
+- AND missing, stale, revoked, superseded, ambiguous, or conflicting proof
+  creates a suggestion or review case only
+- AND revoking a structured source or mapping prevents unstarted automatic work
+  without rewriting a completed application
+- AND a later canonical source reversal exact-inverts the original entries even
+  when that application authority is expired or revoked, while an ambiguous
+  partial reversal names every affected prior operation and retracts the complete
+  uncertain entry vector for review
+
+#### Scenario: Fulfillment authority concurrency and replay are deterministic
+
+- GIVEN two approval or supersession commands race for the same structured-source
+  or authenticated source-line mapping grain
+- WHEN both commands execute with the same expected authority-head revision
+- THEN one current approved winner is committed atomically and the stale command
+  conflicts without creating a second winner
+- AND replaying either semantic operation key returns its first outcome
+- AND concurrent or repeated submission of one authenticated donor instruction
+  returns one original application rather than consuming the instruction twice
+
+#### Scenario: Application and invalidation serialize on one authority fence
+
+- GIVEN a fulfillment application races revocation or supersession of its
+  structured source/mapping authority or invalidation of its donor instruction
+- WHEN both commands execute
+- THEN both use the same deterministic authority-grain lock before source and
+  sorted-target locks
+- AND the application either commits first as valid history or observes the
+  invalidation and fails without writing fulfillment
+- AND an ambiguous partial reversal can create only a complete vector retraction,
+  while an exact full reversal can create only an exact inverse
+
+#### Scenario: Linked recurring support fulfills a fixed pledge exactly once
+
+- GIVEN one recurring fulfillment application has one effective, compatible
+  recurring-to-fixed link for its recurring line and civil date
+- WHEN the application contributes coverage to the linked fixed pledge
+- THEN the recurring application consumes source capacity once and the fixed-
+  pledge coverage allocation records the exact plan version and target without
+  consuming money or capacity again
+- AND an overlapping link is rejected, a later plan uses only remaining
+  capacity, and reversal appends the exact inverse without rewriting history
+
+#### Scenario: Execution, payment, and received money do not collapse
+
+- WHEN a named recurring occurrence's execution is submitted and its linked
+  payment later processes, succeeds, fails, returns, or is reversed
+- THEN occurrence execution state, provider payment-finality state, and
+  canonical contribution/ledger posting each advance from their own authority
+- AND provider success does not itself claim ledger posting or receipt
+  eligibility, and no late payment or posting event moves the scheduled grid
+
+#### Scenario: Each surface receives one role-safe view of the same facts
+
+- WHEN donor, authorized staff, missionary, reporting, or communication
+  surfaces read recurring support or a fixed-total pledge
+- THEN they consume the same cursor-backed derived fold after tenant, role,
+  designation, anonymity, restricted-worker, and freshness rules apply
+- AND they show schedule, payment, provider-control, fulfillment, and health as
+  separate permitted facts
+- AND missionaries remain cash-first, automatic-recurring-first, view-only, and
+  free of payment credentials, provider identifiers, decline details,
+  authorization evidence, and pledge-reminder noise

@@ -119,49 +119,49 @@ or feeds this phase but does not gate its start; "enhanced by" links point
 forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 `future (needs PRD)`.
 
-| #      | Slug                         | Phase                                                                                                                             | Hard deps               | Soft / consumes / enhanced by                         | Owner surface / system                                          | Status                                                         |
-| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ----------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
-| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                       | —                                                     | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                   |
-| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                       | —                                                     | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                |
-| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                       | —                                                     | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                       |
-| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                    | —                                                     | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                       |
-| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                    | —                                                     | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                       |
-| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                 | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                       |
-| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5              | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                       |
-| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3) | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                       |
-| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)   | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
-| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**             | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                           |
-| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
-| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                           |
-| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11               | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                           |
-| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7        | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                           |
-| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                           |
-| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7           | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                           |
-| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **13**, 9, 6            | 14, 15; enhanced by 17 (pledge reminders)             | Contributions and CRM                                           | `future (needs PRD)`                                           |
-| **17** | `system-messages`            | System Messages & Template Management                                                                                             | 6, 2, 3                 | 7                                                     | Email Studio / System Messages                                  | `future (needs PRD)`                                           |
-| **18** | `document-templates`         | Receipt & PDF Template System                                                                                                     | 7, **13**, 17           | 6                                                     | PDF/Statement Studio, receipt services                          | `future (needs PRD)`                                           |
-| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6    | 9, 4                                                  | Mission Control Contributions/Finance                           | `future (needs PRD)`                                           |
-| **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2       | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
-| **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4            | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                           |
-| **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3         | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                           |
-| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                 | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5 |
-| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 23                | 13                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                           |
-| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6          | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                           |
-| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17          | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                           |
-| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13         | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                         |
-| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27     | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                           |
-| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                    | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                           |
-| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3     | 14                                                    | Mission Control Data Tools                                      | `future (needs PRD)`                                           |
-| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6              | 9, 13                                                 | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                           |
-| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31         | —                                                     | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                           |
-| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3          | 11, 15, 16, 30                                        | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)   |
-| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6    | 13 (registration fees), 33                            | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                           |
-| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3        | 33                                                    | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)              |
-| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22        | —                                                     | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                           |
-| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36 | 10                                                    | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                           |
-| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29         | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                           |
-| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28             | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                           |
-| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33  | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                           |
+| #      | Slug                         | Phase                                                                                                                             | Hard deps                                   | Soft / consumes / enhanced by                         | Owner surface / system                                          | Status                                                         |
+| ------ | ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------- | -------------------------------------------------------------- |
+| **0**  | `baseline`                   | [Baseline, Governance & Evidence](./phase-00-baseline.md)                                                                         | —                                           | —                                                     | Docs, OpenSpec, parity matrix, evidence                         | `PRD exists`                                                   |
+| **1**  | `ownership-matrix`           | [Source-of-Truth Ownership Matrix](./phase-01-source-of-truth-ownership-matrix.md)                                                | 0                                           | —                                                     | OpenSpec, architecture docs, `packages/api`                     | `PRD exists` (ruled 2026-07-06)                                |
+| **2**  | `site-locale-currency`       | [Site, Locale & Currency Foundation](./phase-02-site-locale-currency-foundation.md)                                               | 1                                           | —                                                     | Tenant/site settings, public context, giving primitives         | `PRD exists` (epic #477)                                       |
+| **3**  | `permission-floor`           | [Minimum Permission & Role-Scoped Projection Foundation](./phase-03-minimum-permission-role-scoped-projection-foundation.md)      | 1, 2                                        | —                                                     | `packages/api` authz/projections, Mission Control               | `PRD exists` (epic #489)                                       |
+| **4**  | `identity-claiming`          | [Identity & Account-Claiming Foundation](./phase-04-identity-account-claiming-foundation.md)                                      | 2, 3                                        | —                                                     | Identity services, account claiming, tenant membership          | `PRD exists` (epic #503)                                       |
+| **5**  | `public-runtime`             | [Public Website Runtime Contract](./phase-05-public-website-runtime-contract.md)                                                  | 2, 3, 4                                     | —                                                     | Public Website, Web Studio, Payload, donor public routes        | `PRD exists` (epic #520)                                       |
+| **6**  | `comms-event-model`          | [Shared Communication Event Model](./phase-06-shared-communication-event-model.md)                                                | 2, 3, 4, 5                                  | —                                                     | Communication services, CRM timeline, provider adapters         | `PRD exists` (epic #550)                                       |
+| **7**  | `receipt-rules-credit`       | [Receipt & Statement Compliance Rules + Donor Identity/Credit Model](./phase-07-receipt-statement-compliance-and-donor-credit.md) | **4, 6, 3** (PRD C1–C3)                     | 2, 5                                                  | Receipt/statement services, finance rules, party/credit model   | `PRD exists` (epic #566)                                       |
+| **8**  | `crm-operating`              | [CRM Operating Foundation](./phase-08-crm-operating-foundation.md) _(re-groomed → Operations Observability & Data-Health)_        | none (build-now core)                       | 6 (emailed path), 9 (reserved sockets)                | Mission Control CRM Operations, `packages/api/src/crm`          | `PRD exists` (re-groomed 2026-07-07, ADR-0001; epic #587)      |
+| **9**  | `crm-depth-graph`            | [Full CRM Depth & Relationship Graph](./phase-09-full-crm-depth-relationship-graph.md)                                            | **4, 7, 3**                                 | 8 (operations visibility only)                        | Mission Control CRM (Asym Postgres)                             | `PRD exists` (epic #604 + #605–#627)                           |
+| **10** | `sensitive-safety`           | [Sensitive-Data Classification & Restricted-Ministry Safety Foundation](./phase-10-sensitive-data-safety.md)                      | **3, 9**                                    | 4, 5, 6                                               | Mission Control, security projections, Member Care seams        | `PRD exists` (grilled 2026-07-07; epic #628 + #629–#641)       |
+| **11** | `custom-fields`              | Custom Fields & Custom Collections                                                                                                | 9, 10, 3                                    | —                                                     | Mission Control CRM configuration                               | `PRD exists` (epic #645 + #646–#664)                           |
+| **12** | `permission-config`          | Full Role & Permission Configuration                                                                                              | 3, 10, 11                                   | —                                                     | Mission Control Admin, `packages/api` authz                     | `PRD exists` (epic #665 + #666–#687)                           |
+| **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                            | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                           |
+| **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                    | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                           |
+| **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                               | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                           |
+| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `future (needs PRD)`                                           |
+| **17** | `system-messages`            | System Messages & Template Management                                                                                             | 6, 2, 3                                     | 7                                                     | Email Studio / System Messages                                  | `future (needs PRD)`                                           |
+| **18** | `document-templates`         | Receipt & PDF Template System                                                                                                     | 7, **13**, 17                               | 6                                                     | PDF/Statement Studio, receipt services                          | `future (needs PRD)`                                           |
+| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6                        | 9, 4                                                  | Mission Control Contributions/Finance                           | `future (needs PRD)`                                           |
+| **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2                           | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
+| **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4                                | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                           |
+| **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                             | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                           |
+| **23** | `web-studio-cms`             | CMS / Site Planner Dynamic Content Parity                                                                                         | 5, 3, 2                                     | 22                                                    | Web Studio, Payload, Public Website                             | `future (needs PRD)` — deps allow an early start after Phase 5 |
+| **24** | `multi-site-management`      | Full Multi-Site, Language & Currency Management                                                                                   | 2, 5, 23                                    | 13                                                    | Tenant settings, Web Studio, Contributions settings             | `future (needs PRD)`                                           |
+| **25** | `donor-portal-depth`         | Donor Dashboard Depth                                                                                                             | 4, 3, 13, 7, 6                              | 17, 19                                                | Donor Portal                                                    | `future (needs PRD)`                                           |
+| **26** | `support-hub`                | Support Hub & Conversation Management                                                                                             | 6, 3, 4, 9, 17                              | —                                                     | Support Hub, communication services, `packages/api`             | `future (needs PRD)` — **new in v2**                           |
+| **27** | `donor-development`          | Donor Development & Portfolio Management _(beyond-parity differentiator)_                                                         | **9**, 3, 6, 13                             | consumes 14, 16; 26; enhanced by 33, 34               | Mission Control CRM (Development)                               | `future (needs PRD)` (was v1 Phase 33)                         |
+| **28** | `missionary-workspace-depth` | Missionary Workspace Depth & Support-Raising CRM                                                                                  | 9, 13, 16, 6, 3, 27                         | 26                                                    | Missionary Workspace                                            | `future (needs PRD)`                                           |
+| **29** | `files-documents`            | File Manager & Document Management                                                                                                | 3, 9                                        | 18, 26, the shipped workflow-orchestration runtime    | Documents/File Manager, CRM, Workflows, Web Studio              | `future (needs PRD)`                                           |
+| **30** | `imports-migration`          | Imports & Migration Tools                                                                                                         | 9, 13, 11, 29, 4, 3                         | 14                                                    | Mission Control Data Tools                                      | `future (needs PRD)`                                           |
+| **31** | `platform-api`               | Platform API, Webhooks & Connector Framework                                                                                      | 1, 3, 4, 6                                  | 9, 13                                                 | Platform API, Integrations, Admin                               | `future (needs PRD)` — **new in v2**                           |
+| **32** | `newsletter-sync`            | Mailchimp / Newsletter Sync with Suppression Handling                                                                             | 6, 3, 28, 4, 31                             | —                                                     | Missionary Workspace settings, MC integrations                  | `future (needs PRD)`                                           |
+| **33** | `reporting-bi`               | Reporting & BI / Report Studio                                                                                                    | 9, 13, 7, 6, 3                              | 11, 15, 16, 30                                        | Report Studio                                                   | `future (needs PRD)` — deps allow an early start (see lanes)   |
+| **34** | `workflow-engine`            | Configurable Automation & Workflow Engine                                                                                         | 9, 11, 12, 29, 17, 6                        | 13 (registration fees), 33                            | Automations/Workflows in Mission Control                        | `future (needs PRD)`                                           |
+| **35** | `contribution-triggers`      | Spark-Style Contribution Triggers                                                                                                 | **34**, 13, 6, 3                            | 33                                                    | Automations, Contributions                                      | `future (needs PRD)` (confirmed separate from 34)              |
+| **36** | `p2p-campaigns`              | Peer-to-Peer & Advocacy Campaigns                                                                                                 | 5, 13, 25, 3, 22                            | —                                                     | Public Website, Donor Portal, Contributions                     | `future (needs PRD)`                                           |
+| **37** | `events-groups`              | Event / Opportunity Workflows & Group Management                                                                                  | 5, 9, 13, 6, 29, 34, 36                     | 10                                                    | Event Hub, Public Website, CRM, Workflows                       | `future (needs PRD)`                                           |
+| **38** | `member-care-ops`            | Member Care, Crisis & Restricted-Ministry Operations                                                                              | 10, 3, 4, 9, 29                             | 6, 12, 26, 34                                         | Member Care, Mission Control, security-sensitive projections    | `future (needs PRD)` — **new in v2**                           |
+| **39** | `field-first-ux`             | Mobile, Low-Bandwidth & Conflict-Safe Field Experience                                                                            | 3, 4, 9, 28                                 | 31                                                    | Cross-surface UX, `packages/api` concurrency contracts          | `future (needs PRD)` — **new in v2**                           |
+| **40** | `data-stewardship-ai`        | Data Stewardship, Global Search & AI Operator Workbench                                                                           | 3, 4, 8, 9, 13, 30, 33                      | 6, 11, 34                                             | Mission Control, Data Tools, Search, AI Assist                  | `future (needs PRD)` — **new in v2**                           |
 
 **Out of scope (deliberate):** **child sponsorship** (tracked as an
 out-of-scope row in [`parity-matrix.md`](./parity-matrix.md)).
@@ -940,45 +940,84 @@ format; whether stock gifts ship v1 or fast-follow.
 
 ### Phase 16 — Pledges & Recurring Commitments (`pledges-commitments`)
 
-**What this phase is (plain language).** Missionary support runs on
-**promises**: "we'll give $200/month." The org must see expected support
-separately from received cash — who is on track, who is behind, whose
-commitment lapsed — and match arriving gifts against those promises. This
-phase separates **expected money** (commitment + schedule) from **received
-money** (ledger transactions), for both online recurring and offline
-commitments (church pledges, faith promises, check-by-mail supporters).
+> **PRD:**
+> [`phase-16-pledges-recurring-commitments.md`](./phase-16-pledges-recurring-commitments.md)
+> — grill-complete 2026-07-13 (ratified decisions D1–D19, each researched and
+> adversarially hardened). The PRD is planning only; dispatch remains a
+> separate founder decision.
+
+**What this phase is (plain language).** The flagship experience is modern
+**automatic recurring giving** by card or ACH: donors create a clean recurring
+arrangement, choose when it runs, manage each destination without losing the
+grouped experience, and recover safely when a payment fails. Staff and
+missionaries see received cash and scheduled recurring support truthfully,
+without treating a scheduled charge as guaranteed money. A separate,
+deliberately quiet **fixed-total pledge** workflow records the uncommon legacy
+case where a donor promises a total and fulfills it over time through later
+online or offline gifts.
 
 **Why it sits here.** After the ledger (13); enriched by credit ops (14) and
 batch entry (15, where fulfillment matching happens for offline gifts).
 
 **What it covers.**
 
-- **Commitment + schedule model** (the Nonprofit Cloud pattern, chosen over
-  NPSP's pre-created installment rows): expectations are projections, not
-  ledger rows; expected-vs-received rollups (month/quarter/year).
-- Both **fixed-total pledges** (with installments) and **open-ended monthly
-  support commitments** (the missions "faith promise" — no fixed total);
-  Stripe-billed recurring and offline commitments in one model. **Offline
-  recurring methods are attributes of the commitment** (settled ruling — no
-  stored instrument).
-- **Fulfillment matching**: incoming gifts (online or batch) matched to open
-  installments; short/over payments handled.
-- **Lapse automation**: configurable Active → Lapsed → Closed day thresholds
-  (NPSP-style), driving the Phase 9 Giving-tab fulfillment status and the
-  Phase 27/28 partner-health views.
-- **Dunning & payment-method update**: failed-payment retry surfaces, and
-  pledge reminders through Phase 17 templates + the Phase 6 seam (consent-
-  gated).
-- Replaces the prototype `donor_pledges` denormalized counters outright.
+- **Two distinct aggregates, never one universal pledge record:** automatic
+  recurring commitments and fixed-total pledges. Collection arrangements,
+  posted contributions, recognition, fulfillment, and health remain separate
+  facts connected by explicit typed references.
+- **Recurring groups with independently manageable destination lines** and
+  compatible billing cohorts. Each cohort has the minimum explicit execution-leg
+  set its authorized cadence requires: one leg for an ordinary cadence and two
+  monthly legs for the twice-monthly 1st/15th cadence. One provider subscription
+  represents exactly one leg; every applicable line has an exact provider-item
+  binding in every applicable leg by durable identifier—never by array position.
+- **Donor-controlled scheduling:** monthly is featured when enabled; tenants
+  may offer weekly, every two weeks, twice monthly, every four weeks, monthly,
+  quarterly, semiannual, and annual. The first gift is attempted immediately;
+  the donor chooses the continuing anchor date; calendar math uses a frozen
+  IANA giving time zone and clamp-and-recover short-month rules. No end date is
+  the frictionless default.
+- **Truthful donor, staff, and missionary management:** skip one occurrence,
+  pause until a chosen date or indefinitely, cancel, restart with fresh
+  authorization, change schedules with projected-date previews, and manage
+  payment methods through provider-owned fields. Staff service-desk actions
+  are broad but authorization-bound; missionaries remain read-only.
+- **Rail-specific recovery:** Asym owns retry policy while Stripe executes
+  payments. Card retries use the bounded ratified burst and runway; ACH is not
+  silently represented. Missed occurrences never become collectible debt and
+  are never silently back-charged. Provider-control loss quarantines unsafe
+  mutations until proof-based recovery.
+- **Occurrence-level fulfillment:** posted Phase 13/15 designation lines are
+  applied to expected occurrences through immutable, conserved fulfillment
+  applications. Recognition and legal-donor facts remain Phase 14/7 truth.
+- **Derived multi-axis support health and cash-first dashboards:** cash received
+  this month comes first, then automatic recurring outcomes and the recurring
+  list. Fixed-total pledges appear only when relevant and never dominate the
+  missionary experience.
+- **Lightweight fixed-total pledges:** total first, optional dated plan, explicit
+  undated remainder, four truthful change/end/release/correction operations,
+  and optional two-touch reminders only after explicit enrollment. Tenant
+  policy may only narrow or disable reminders; all tenants start with them off.
+- Replaces the prototype `donor_pledges` and `pledge_charge_attempts` shapes as
+  product authority; those tables remain migration evidence, not the target.
 
 **Boundaries & guardrails.** Dashboards must always distinguish pledged
-support from received gifts. Commitments never mint ledger rows before money
-arrives.
+or scheduled support from received gifts. Commitments and pledges never mint
+ledger rows before money arrives. The Phase 13 append-only contribution ledger
+remains the sole money truth; Phase 6 owns communication delivery history;
+Phase 17 owns editable message content; Phase 12 owns authorization; Stripe
+executes but does not own Asym intent. No status label, dashboard total,
+provider object, retry counter, or fulfillment suggestion may become a second
+writable truth. Daily giving is excluded. No stale Phase 13 recurring ticket
+may be dispatched without the dated Phase 16 supersession.
 
-**Open questions for grooming.** Which lapse thresholds ship as tenant
-defaults; who may edit a commitment on the donor's behalf; reminder cadence
-governance (donor-facing nudges are Phase 25/28 surfaces); church pledges as
-org-party commitments — reporting shape.
+**Grooming close-out.** D1–D19 resolve aggregate boundaries, grouping,
+cadences, donor anchors, pause/cancel semantics, card and ACH recovery,
+notifications, fulfillment, support health, dashboard hierarchy, Party roles,
+staff service, provider-control loss, fixed-pledge planning and changes, and
+reminder governance. There are no open product choices left in this roadmap
+section; implementation details are pinned in the Phase 16 PRD, ADRs, dated
+congruence package, research evidence, and OpenSpec delta.
 
 ---
 
@@ -1400,12 +1439,17 @@ runs (19).
 
 **What it covers.**
 
-- **Recurring control** built as custom UI on Stripe APIs — explicitly
-  **not** the hosted billing portal, which can't pause and blocks many
-  updates: change amount/date/designation, pause 1–12 months, skip an
-  installment, cancel with reason capture, one-click reactivate; pause/skip
-  semantics reconciled with the Phase 16 commitment model (does a pause show
-  "behind" on the missionary's board? — decided at grooming with 16/28).
+- **Recurring control** built as custom UI over the Phase 16 server-command
+  and provider-adapter contracts — explicitly **not** delegated to the hosted
+  billing portal. Donors can change eligible future amount/date/designation
+  terms, skip one named occurrence, pause until a date or indefinitely,
+  resume a pause, and cancel. Restart after cancellation requires fresh
+  authorization and creates a linked successor; it never resurrects the old
+  authorization. The portal consumes Phase 16's separate donor-intent,
+  schedule/occurrence, payment/collection-health, and provider-control/
+  reconciliation facts. A planned pause is shown truthfully as paused, never
+  inferred as behind or lapsed. Phase 25 owns the donor-facing portal UX and
+  wallet completion, not a second lifecycle or retry authority.
 - **Wallet**: add/remove/set-default payment methods (the settled
   disposition's donor-side completion), network card-updater, pre-expiry and
   failed-payment notices with self-service recovery links (17).
@@ -1966,10 +2010,13 @@ onto this engine or stay scoped; background-check/e-sign integrations
 ### Phase 35 — Spark-Style Contribution Triggers (`contribution-triggers`)
 
 **What this phase is (plain language).** Gift-driven automation: first-time
-gift → welcome series; large gift → notify the rep; failed recurring →
-recovery sequence; lapsed → re-engagement. SiteStacker calls this Spark. It
-is a **trigger catalog on top of the Phase 34 engine** reacting to _settled
-contribution facts_ — never raw Stripe events.
+gift → welcome series; large gift → notify the rep; contribution inactivity →
+an appropriately consented re-engagement path. SiteStacker calls this Spark.
+It is a **trigger catalog on top of the Phase 34 engine**. Contribution
+triggers react to _settled contribution facts_ only, never raw Stripe events.
+Any recurring-failure or recurring-health action consumes an explicit typed
+Phase 16 occurrence/health transition; it never infers one from an absent gift
+and never owns payment retry, dunning, or a duplicate recovery sequence.
 
 **Why it sits here.** Firm, locked: the engine (34) precedes it. Also needs
 the ledger (13) and comms (6).
@@ -1983,19 +2030,27 @@ the ledger (13) and comms (6).
   affiliated person.
 - **Actions**: enroll in workflow/journey, send templated message
   (consent-gated), create task (rep/missionary), change record
-  type/tags, dashboard notification.
+  type/tags, dashboard notification. A send prompted by a Phase 16 transition
+  must use Phase 16's recorded domain-transition meaning and purpose-specific recipient projection, the Phase 6 dispatch spine,
+  Phase 17 content, and the same permanent semantic dedupe key; Phase 35 cannot
+  create a second message for the same meaning.
 - **Timing modes**: immediate (event-fired) and scheduled/batch (cron-
-  evaluated conditions like "no gift in N months" — the lapsed sweep),
-  as distinct evaluation modes (CiviRules pattern).
+  evaluated conditions like "no settled gift in N months"), as distinct
+  evaluation modes (CiviRules pattern). That condition is explicitly
+  **contribution inactivity**, not a person-, Party-, pledge-, or recurring-
+  line `lapsed` state, and it cannot override Phase 16's multi-axis health.
 - **Idempotency everywhere**: settled-fact triggers with dedupe keys;
   refund/adjustment compensations never re-fire welcome journeys.
 - **Trigger observability**: per-rule fire history, dry-run against
   historical data, kill switch.
 
-**Boundaries & guardrails.** Fires from settled contribution facts only.
-Every send crosses the consent gate. The open question from the matrix
-(thin catalog vs distinct surface) is resolved **at Phase 34 grooming** and
-recorded here.
+**Boundaries & guardrails.** Contribution rules fire from settled contribution
+facts only. Recurring-state rules may consume only named Phase 16 transitions
+and remain downstream of Phase 16 recovery and communication-eligibility
+policy. Every send crosses the Phase 6 consent/dispatch gate and the permanent
+semantic-dedupe fence; no Phase 35 rule schedules a provider retry or duplicates
+a Phase 16 state-change notice. The open question from the matrix (thin catalog
+vs distinct surface) is resolved **at Phase 34 grooming** and recorded here.
 
 ---
 

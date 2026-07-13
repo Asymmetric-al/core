@@ -224,6 +224,17 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   **templates**, and the per-batch **Send-acknowledgments gate** that releases
   held batch-origin rows into the existing acknowledgment pipeline. Groomed
   2026-07-11. Tracked by epic #758 + children #759–#786.
+- [`phase-16-pledges-recurring-commitments.md`](./phase-16-pledges-recurring-commitments.md)
+  — the Phase 16 plan (Pledges & Recurring Commitments): automatic card/ACH
+  recurring giving is the flagship, with donor-anchored civil-date schedules,
+  grouped independently manageable lines, compatible provider cohorts,
+  rail-specific recovery, proof-gated provider-control quarantine, and clean
+  donor/staff/missionary management. A separate, deliberately quiet fixed-total
+  pledge domain supplies optional plans, conserved fulfillment, four truthful
+  change operations, and opt-in tenant-controlled gentle reminders without
+  turning the legacy workflow into the primary product. Groomed 2026-07-13
+  (ratified D1–D19; official-source research, six ADRs, dated cross-PRD
+  congruence, and OpenSpec reconciliation). Planning only; not dispatched.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

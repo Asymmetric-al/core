@@ -379,6 +379,32 @@ _All site settings that need a home before their consuming phase are **typed col
   - **Not** site-scoped (stay tenant-wide): funds/designations, donor/CRM tables, and **Media**
     (Media is already tenant-scoped today via its `tenant` relationship + access hooks; per-site
     asset isolation, if ever needed, is later work — no Media change in Phase 2).
+
+#### Dated Phase 16 amendment — giving time zone (2026-07-13)
+
+Phase 16 (Pledges & Recurring Commitments) adds one required tenant-level
+**`giving_timezone`** setting in `org_settings`. It is a canonical IANA time-zone
+identifier used only for recurring schedule intent: donor-selected local dates,
+occurrence cutoffs, retry candidate dates, and projected dates. It is separate
+from Phase 7's `tax_timezone`, because a recurring schedule's civil date and a
+gift's legal tax year answer different questions and may legitimately differ.
+
+- Every recurring schedule epoch freezes the effective `giving_timezone`; a
+  later tenant-setting change affects new epochs only and never silently moves
+  an existing donor's dates.
+- Checkout displays the donor's effective giving-zone date before consent. The
+  browser time zone, server time zone, Stripe UTC timestamp, settlement time,
+  and staff locale are never implicit fallbacks.
+- A tenant must choose the setting during onboarding. Missing or invalid config
+  fails closed for recurring creation and schedule mutation. Demo/seed data may
+  carry an explicit deterministic IANA value, but production code must not hide
+  missing configuration behind a US default.
+- Reads of historical epochs use the frozen zone even if current tenant config
+  is absent. This preserves explainability without permitting new writes.
+- Phase 16 owns the one shared civil-date schedule engine and its DST,
+  short-month, leap-year, and twice-monthly test matrix; Phase 2 owns only the
+  governed tenant setting and validation contract.
+
 - **Reserved override-resolution contract (D9 shape, storage deferred):** for receipts and system
   messages, a setting/message resolves in the order **tenant default → site override → locale
   override**. Phase 2 reserves this _ordering contract_ only, as a reserved ordering contract for the
@@ -475,8 +501,12 @@ write-up.
   reserved money-context columns + reserved rate-snapshot shape only; presentment = settlement.)
 - **Per-site deep giving-behavior settings** — anonymous-giving toggle, recurring options, minimum/
   maximum amounts, cover-fees, payment-method selection, and success/failure redirect behavior.
-  Named and **reserved for the giving-cart phase**, not built here. Per A1a, when each of these
-  lands it becomes a typed column on `public.sites`, not a `site_*_settings` table.
+  Named and **reserved for later giving phases**, not built here. Per A1a, the anonymous-giving,
+  amount, cover-fees, payment-method, and redirect settings become typed columns on `public.sites`
+  when their owning phases land, not a `site_*_settings` table. _(Amended 2026-07-13 by Phase 16
+  (Pledges & Recurring Commitments): recurring-cadence availability is the deliberate exception.
+  Phase 16 owns it as tenant-scoped, versioned recurring-policy records with grandfathered existing
+  schedules; there is no per-site cadence override unless a later phase explicitly ratifies one.)_
 - **Receipt compliance** (legal name/address/tax-language storage), **accounting exports**, **gift
   triggers**, **reports** — deferred to Phase 7 (Receipt & Statement Compliance Rules +
   donor-identity/credit model) and the later reporting/export phases; Phase 2 reserves the primitives
