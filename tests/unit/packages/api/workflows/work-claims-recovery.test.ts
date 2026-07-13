@@ -111,15 +111,18 @@ function createScanClientMock(options: ScanClientOptions) {
   const inFilter = vi.fn().mockReturnValue({ lte });
   const select = vi.fn().mockReturnValue({ in: inFilter });
 
-  const updateSingle = vi.fn().mockImplementation(() =>
+  const updateMaybeSingle = vi.fn().mockImplementation(() =>
     Promise.resolve({
       data: recoverableRow({ status: "dispatched" }),
       error: null,
     }),
   );
-  const updateIn = vi.fn();
-  updateIn.mockImplementation(() => ({
-    in: updateIn,
+  const statusIn = vi.fn().mockReturnValue({
+    select: vi.fn().mockReturnValue({ maybeSingle: updateMaybeSingle }),
+  });
+  const batchIn = vi.fn();
+  batchIn.mockImplementation(() => ({
+    in: batchIn,
     then: (
       onFulfilled?: (value: { data: null; error: null }) => unknown,
       onRejected?: (reason: unknown) => unknown,
@@ -129,11 +132,10 @@ function createScanClientMock(options: ScanClientOptions) {
         onRejected,
       ),
   }));
+  const updateEq = { in: statusIn };
   const update = vi.fn().mockReturnValue({
-    eq: vi.fn().mockReturnValue({
-      select: vi.fn().mockReturnValue({ single: updateSingle }),
-    }),
-    in: updateIn,
+    eq: vi.fn().mockReturnValue(updateEq),
+    in: batchIn,
   });
 
   const from = vi.fn().mockReturnValue({ select, update });
@@ -150,7 +152,13 @@ function createScanClientMock(options: ScanClientOptions) {
     return Promise.resolve({ data: true, error: null });
   });
 
-  return { client: { from, rpc } as never, from, update, updateIn, rpc };
+  return {
+    client: { from, rpc } as never,
+    from,
+    update,
+    updateIn: batchIn,
+    rpc,
+  };
 }
 
 describe("dispatch recovery scan (#289)", () => {

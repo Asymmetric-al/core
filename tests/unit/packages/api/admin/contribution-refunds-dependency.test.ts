@@ -1,8 +1,20 @@
 import { serverEnv } from "@asym/env";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+vi.mock("../../../../../packages/api/src/stripe/webhooks", () => ({
+  reconcileStripeRefundByProviderId: vi.fn().mockResolvedValue({
+    action: "refund_pending",
+    handled: true,
+  }),
+}));
 
 import { createContributionActionDependencies } from "../../../../../packages/api/src/admin/contribution-operations/dependencies";
 import { refundContributionThroughStripe } from "../../../../../packages/api/src/admin/contribution-operations/refunds";
+import {
+  convergePendingContributionRefundWorkflow,
+  loadContributionRefundAttemptByProviderReference,
+} from "../../../../../packages/api/src/admin/contribution-operations/store";
+import { reconcileStripeRefundByProviderId } from "../../../../../packages/api/src/stripe/webhooks";
 import {
   correctionStatusForProviderOutcome,
   isFailedProviderOutcomeStatus,
@@ -29,6 +41,8 @@ interface SupabaseStubOptions {
   donation: Row;
   tenant?: Row | null;
   donationUpdateError?: string | null;
+  refundAttempts?: Row[];
+  corrections?: Row[];
 }
 
 function donationRow(overrides: Row = {}): Row {
@@ -56,6 +70,8 @@ function donationRow(overrides: Row = {}): Row {
 class TableQuery {
   private filters: Record<string, unknown> = {};
   private patch: Record<string, unknown> | null = null;
+  private upsertPayload: Record<string, unknown> | null = null;
+  private ignoreDuplicates = false;
 
   constructor(
     private readonly table: string,
@@ -73,7 +89,21 @@ class TableQuery {
     return this;
   }
 
+  upsert(
+    payload: Record<string, unknown>,
+    options?: { ignoreDuplicates?: boolean },
+  ) {
+    this.upsertPayload = payload;
+    this.ignoreDuplicates = options?.ignoreDuplicates ?? false;
+    return this;
+  }
+
   eq(column: string, value: unknown) {
+    this.filters[column] = value;
+    return this;
+  }
+
+  is(column: string, value: unknown) {
     this.filters[column] = value;
     return this;
   }
@@ -92,21 +122,61 @@ class TableQuery {
 
   private match(): Row[] {
     return this.rows.filter((row) =>
-      Object.entries(this.filters).every(([key, value]) => row[key] === value),
+      Object.entries(this.filters).every(([key, value]) => {
+        const jsonPath = key.match(/^(.+)->>(.+)$/);
+        if (!jsonPath) return row[key] === value;
+        const jsonValue = row[jsonPath[1]!];
+        return (
+          typeof jsonValue === "object" &&
+          jsonValue !== null &&
+          !Array.isArray(jsonValue) &&
+          (jsonValue as Row)[jsonPath[2]!] === value
+        );
+      }),
     );
   }
 
   private result(): { data: unknown; error: { message: string } | null } {
+    if (this.upsertPayload) {
+      const existing = this.rows.find(
+        (row) =>
+          row.tenant_id === this.upsertPayload?.tenant_id &&
+          row.idempotency_key === this.upsertPayload?.idempotency_key,
+      );
+      if (existing && this.ignoreDuplicates) {
+        return { data: [], error: null };
+      }
+
+      const now = new Date().toISOString();
+      const inserted = {
+        id: `refund-attempt-${this.rows.length + 1}`,
+        provider_outcome: null,
+        provider_reference_id: null,
+        finalized_at: null,
+        created_at: now,
+        updated_at: now,
+        ...this.upsertPayload,
+      };
+      this.rows.push(inserted);
+      return { data: [inserted], error: null };
+    }
+
     if (this.patch) {
       if (this.updateError) {
         return { data: null, error: { message: this.updateError } };
       }
-      this.updates.push({
-        table: this.table,
-        patch: this.patch,
-        filters: this.filters,
-      });
-      return { data: null, error: null };
+      const matchedRows = this.match();
+      for (const row of matchedRows) {
+        Object.assign(row, this.patch);
+      }
+      if (this.table === "donations") {
+        this.updates.push({
+          table: this.table,
+          patch: this.patch,
+          filters: this.filters,
+        });
+      }
+      return { data: matchedRows, error: null };
     }
     return { data: this.match(), error: null };
   }
@@ -118,10 +188,12 @@ class TableQuery {
   }
 
   single() {
-    const data = this.match()[0] ?? null;
+    const { data: resultData, error: resultError } = this.result();
+    const rows = Array.isArray(resultData) ? resultData : [];
+    const data = rows[0] ?? null;
     return Promise.resolve({
       data,
-      error: data ? null : { message: "not found" },
+      error: resultError ?? (data ? null : { message: "not found" }),
     });
   }
 
@@ -141,8 +213,12 @@ class TableQuery {
 function createSupabaseStub(options: SupabaseStubOptions): {
   client: AdminSupabaseClient;
   updates: RecordedUpdate[];
+  refundAttempts: Row[];
+  corrections: Row[];
 } {
   const updates: RecordedUpdate[] = [];
+  const refundAttempts = options.refundAttempts ?? [];
+  const corrections = options.corrections ?? [];
   const tenant =
     options.tenant === undefined
       ? { id: TENANT_ID, stripe_secret_key: TENANT_STRIPE_KEY }
@@ -154,8 +230,9 @@ function createSupabaseStub(options: SupabaseStubOptions): {
     staged_gift_allocations: [],
     contribution_adjustments: [],
     contribution_operation_audit_events: [],
-    contribution_corrections: [],
+    contribution_corrections: corrections,
     contribution_correction_requests: [],
+    contribution_refund_attempts: refundAttempts,
     donation_crm_links: [],
   };
 
@@ -174,7 +251,7 @@ function createSupabaseStub(options: SupabaseStubOptions): {
     },
   } as unknown as AdminSupabaseClient;
 
-  return { client, updates };
+  return { client, updates, refundAttempts, corrections };
 }
 
 interface RecordedRefundCreate {
@@ -304,6 +381,24 @@ function refundInput(
   };
 }
 
+function refundAttemptRow(overrides: Row = {}): Row {
+  return {
+    id: "refund-attempt-1",
+    tenant_id: TENANT_ID,
+    donation_id: DONATION_ID,
+    idempotency_key: IDEMPOTENCY_KEY,
+    requested_amount: 5000,
+    state: "claimed",
+    provider_outcome: null,
+    provider_reference_id: null,
+    correction_id: null,
+    finalized_at: null,
+    created_at: "2026-07-10T17:00:00.000Z",
+    updated_at: "2026-07-10T17:00:00.000Z",
+    ...overrides,
+  };
+}
+
 describe("contribution refundContribution dependency", () => {
   it("wires refundContribution to the Stripe adapter through the dependency factory", async () => {
     const stub = createSupabaseStub({
@@ -331,6 +426,198 @@ describe("contribution refundContribution dependency", () => {
       message: expect.stringMatching(/no payment provider charge/i),
     });
     expect(stub.updates).toHaveLength(0);
+  });
+
+  it("links and immediately reconciles a pending refund through the dependency factory", async () => {
+    const stub = createSupabaseStub({
+      donation: donationRow(),
+      refundAttempts: [
+        refundAttemptRow({
+          state: "finalized",
+          provider_reference_id: "re_pending_1",
+          provider_outcome: {
+            provider: "stripe",
+            status: "pending",
+            referenceId: "re_pending_1",
+          },
+          finalized_at: "2026-07-10T17:01:00.000Z",
+        }),
+      ],
+    });
+    const deps = createContributionActionDependencies(stub.client);
+    vi.mocked(reconcileStripeRefundByProviderId).mockImplementationOnce(
+      async () => {
+        // Reconciliation must run after the correction link is durable, so an
+        // already-terminal provider result can converge the linked workflow.
+        expect(stub.refundAttempts[0]?.correction_id).toBe("correction-1");
+        return { action: "refund_pending", handled: true };
+      },
+    );
+
+    await deps.linkAndReconcilePendingRefundAttempt!({
+      tenantId: TENANT_ID,
+      providerReferenceId: "re_pending_1",
+      correctionId: "correction-1",
+    });
+
+    expect(stub.refundAttempts[0]).toMatchObject({
+      provider_reference_id: "re_pending_1",
+      correction_id: "correction-1",
+    });
+    expect(reconcileStripeRefundByProviderId).toHaveBeenCalledWith({
+      supabaseAdmin: stub.client,
+      tenantId: TENANT_ID,
+      providerRefundId: "re_pending_1",
+    });
+  });
+
+  it("keeps a durable pending link when the immediate provider reread fails", async () => {
+    const stub = createSupabaseStub({
+      donation: donationRow(),
+      refundAttempts: [
+        refundAttemptRow({
+          state: "finalized",
+          provider_reference_id: "re_pending_retry",
+          provider_outcome: {
+            provider: "stripe",
+            status: "pending",
+            referenceId: "re_pending_retry",
+          },
+          finalized_at: "2026-07-10T17:01:00.000Z",
+        }),
+      ],
+    });
+    vi.mocked(reconcileStripeRefundByProviderId).mockRejectedValueOnce(
+      new Error("temporary Stripe timeout"),
+    );
+
+    await expect(
+      createContributionActionDependencies(stub.client)
+        .linkAndReconcilePendingRefundAttempt!({
+        tenantId: TENANT_ID,
+        providerReferenceId: "re_pending_retry",
+        correctionId: "correction-retry",
+      }),
+    ).resolves.toBeUndefined();
+
+    expect(stub.refundAttempts[0]).toMatchObject({
+      provider_reference_id: "re_pending_retry",
+      correction_id: "correction-retry",
+      provider_outcome: { status: "pending" },
+    });
+  });
+
+  it.each([
+    ["succeeded", "applied"],
+    ["failed", "failed"],
+  ] as const)(
+    "converges a linked pending attempt to %s without leaving its correction pending",
+    async (providerStatus, correctionStatus) => {
+      const correctionId = "correction-1";
+      const stub = createSupabaseStub({
+        donation: donationRow(),
+        corrections: [
+          {
+            id: correctionId,
+            tenant_id: TENANT_ID,
+            donation_id: DONATION_ID,
+            status: "pending",
+            applied_at: null,
+            failed_at: null,
+          },
+        ],
+        refundAttempts: [
+          refundAttemptRow({
+            state: "finalized",
+            provider_reference_id: "re_pending_1",
+            correction_id: correctionId,
+            provider_outcome: {
+              provider: "stripe",
+              status: "pending",
+              referenceId: "re_pending_1",
+            },
+            finalized_at: "2026-07-10T17:01:00.000Z",
+          }),
+        ],
+      });
+      const attempt = await loadContributionRefundAttemptByProviderReference({
+        supabaseAdmin: stub.client,
+        tenantId: TENANT_ID,
+        providerReferenceId: "re_pending_1",
+      });
+      expect(attempt).not.toBeNull();
+
+      const result = await convergePendingContributionRefundWorkflow({
+        supabaseAdmin: stub.client,
+        attempt: attempt!,
+        providerOutcome: {
+          provider: "stripe",
+          status: providerStatus,
+          referenceId: "re_pending_1",
+        },
+      });
+
+      expect(result).toEqual({ converged: true });
+      expect(stub.corrections[0]).toMatchObject({
+        status: correctionStatus,
+        applied_at: correctionStatus === "applied" ? expect.any(String) : null,
+        failed_at: correctionStatus === "failed" ? expect.any(String) : null,
+      });
+      expect(stub.refundAttempts[0]!.provider_outcome).toMatchObject({
+        status: providerStatus,
+        referenceId: "re_pending_1",
+      });
+    },
+  );
+
+  it("keeps terminal attempt and correction state monotonic on duplicate events", async () => {
+    const stub = createSupabaseStub({
+      donation: donationRow(),
+      corrections: [
+        {
+          id: "correction-1",
+          tenant_id: TENANT_ID,
+          donation_id: DONATION_ID,
+          status: "applied",
+          applied_at: "2026-07-10T17:02:00.000Z",
+          failed_at: null,
+        },
+      ],
+      refundAttempts: [
+        refundAttemptRow({
+          state: "finalized",
+          provider_reference_id: "re_terminal_1",
+          correction_id: "correction-1",
+          provider_outcome: {
+            provider: "stripe",
+            status: "succeeded",
+            referenceId: "re_terminal_1",
+          },
+          finalized_at: "2026-07-10T17:01:00.000Z",
+        }),
+      ],
+    });
+    const attempt = await loadContributionRefundAttemptByProviderReference({
+      supabaseAdmin: stub.client,
+      tenantId: TENANT_ID,
+      providerReferenceId: "re_terminal_1",
+    });
+
+    const result = await convergePendingContributionRefundWorkflow({
+      supabaseAdmin: stub.client,
+      attempt: attempt!,
+      providerOutcome: {
+        provider: "stripe",
+        status: "failed",
+        referenceId: "re_terminal_1",
+      },
+    });
+
+    expect(result).toEqual({ converged: false });
+    expect(stub.corrections[0]!.status).toBe("applied");
+    expect((stub.refundAttempts[0]!.provider_outcome as Row).status).toBe(
+      "succeeded",
+    );
   });
 
   describe("blocked reasons (server-enforced before any provider call)", () => {
@@ -595,7 +882,7 @@ describe("contribution refundContribution dependency", () => {
   });
 
   describe("idempotency and duplicates", () => {
-    it("maps the same executor idempotency key to the same namespaced Stripe key", async () => {
+    it("recovers a terminal outcome without repeating local or provider work", async () => {
       const stub = createSupabaseStub({ donation: donationRow() });
       const stripe = createStripeStub(() => stripeRefund());
       const run = () =>
@@ -607,15 +894,140 @@ describe("contribution refundContribution dependency", () => {
         );
 
       await run();
-      await run();
+      const recovered = await run();
 
-      expect(stripe.calls).toHaveLength(2);
+      expect(stripe.calls).toHaveLength(1);
       expect(stripe.calls[0]!.options.idempotencyKey).toBe(
         `${IDEMPOTENCY_KEY}:refund`,
       );
-      expect(stripe.calls[1]!.options.idempotencyKey).toBe(
-        stripe.calls[0]!.options.idempotencyKey,
+      expect(
+        stub.updates.filter((update) => update.table === "donations"),
+      ).toHaveLength(1);
+      expect(recovered).toEqual({
+        provider: "stripe",
+        status: "succeeded",
+        referenceId: "re_1",
+      });
+      expect(stub.refundAttempts[0]).toMatchObject({
+        state: "finalized",
+        provider_reference_id: "re_1",
+        provider_outcome: {
+          provider: "stripe",
+          status: "succeeded",
+          referenceId: "re_1",
+        },
+        finalized_at: expect.any(String),
+      });
+    });
+
+    it.each([
+      {
+        label: "another donation",
+        contributionId: "donation-2",
+        amount: 5000,
+      },
+      {
+        label: "another amount",
+        contributionId: DONATION_ID,
+        amount: 4000,
+      },
+    ])(
+      "rejects reuse of a refund key for $label before any provider call",
+      async ({ contributionId, amount }) => {
+        const stub = createSupabaseStub({
+          donation: donationRow(),
+          refundAttempts: [refundAttemptRow()],
+        });
+        const stripe = createStripeStub(() => stripeRefund());
+
+        await expect(
+          refundContributionThroughStripe(
+            refundInput({
+              supabaseAdmin: stub.client,
+              createStripe: stripe.createStripe,
+              contributionId,
+              amount,
+            }),
+          ),
+        ).rejects.toMatchObject({
+          status: 409,
+          message: expect.stringMatching(/idempotency key.*another refund/i),
+        });
+        expect(stripe.calls).toHaveLength(0);
+      },
+    );
+
+    it("replays an ambiguous full refund with the original key after local and live state converge", async () => {
+      const donation = donationRow();
+      const stub = createSupabaseStub({ donation });
+      const firstStripe = createStripeStub(() => {
+        throw {
+          type: "StripeConnectionError",
+          message: "Connection dropped after Stripe accepted the refund.",
+        };
+      });
+
+      await expect(
+        refundContributionThroughStripe(
+          refundInput({
+            supabaseAdmin: stub.client,
+            createStripe: firstStripe.createStripe,
+          }),
+        ),
+      ).rejects.toMatchObject({ status: 502 });
+      expect(stub.refundAttempts[0]).toMatchObject({
+        donation_id: DONATION_ID,
+        requested_amount: 5000,
+        state: "claimed",
+        provider_outcome: null,
+      });
+
+      donation.status = "refunded";
+      donation.refund_amount = 5000;
+      donation.updated_at = "2026-07-10T18:00:00.000Z";
+      const retryStripe = createStripeStub(() => stripeRefund(), {
+        liveCharge: liveCharge({ amount_refunded: 5000 }),
+      });
+
+      const outcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: retryStripe.createStripe,
+          expectedRevision: "revision-before-first-attempt",
+        }),
       );
+
+      expect(retryStripe.chargeRetrieves).toHaveLength(0);
+      expect(retryStripe.calls).toHaveLength(1);
+      expect(retryStripe.calls[0]!.options.idempotencyKey).toBe(
+        `${IDEMPOTENCY_KEY}:refund`,
+      );
+      expect(outcome).toEqual({
+        provider: "stripe",
+        status: "succeeded",
+        referenceId: "re_1",
+      });
+
+      donation.status = "completed";
+      donation.refund_amount = 0;
+      const newKeyStripe = createStripeStub(() => stripeRefund(), {
+        liveCharge: liveCharge({ amount_refunded: 5000 }),
+      });
+      const newKeyOutcome = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: newKeyStripe.createStripe,
+          expectedRevision: null,
+          idempotencyKey: `${IDEMPOTENCY_KEY}-new`,
+        }),
+      );
+
+      expect(newKeyOutcome).toMatchObject({
+        status: "failed",
+        errorCode: "refund_exceeds_provider_remaining",
+      });
+      expect(newKeyStripe.chargeRetrieves).toEqual(["ch_1"]);
+      expect(newKeyStripe.calls).toHaveLength(0);
     });
 
     it("returns the charge_already_refunded backstop as a failed outcome without touching the donation", async () => {
@@ -654,7 +1066,7 @@ describe("contribution refundContribution dependency", () => {
           type: "StripeCardError",
           rawType: "card_error",
           code: "expired_or_canceled_card",
-          message: "The card used for this payment has expired.",
+          message: "The card used by donor@example.com has expired.",
         };
       });
 
@@ -669,8 +1081,21 @@ describe("contribution refundContribution dependency", () => {
         provider: "stripe",
         status: "failed",
         errorCode: "expired_or_canceled_card",
-        errorMessage: "The card used for this payment has expired.",
+        errorMessage: "The card used by donor@example.com has expired.",
       });
+      expect(stub.refundAttempts[0]).toMatchObject({
+        state: "finalized",
+        provider_outcome: {
+          provider: "stripe",
+          status: "failed",
+          errorCode: "expired_or_canceled_card",
+          errorMessage:
+            "Provider action failed. Check provider logs for details.",
+        },
+      });
+      expect(
+        (stub.refundAttempts[0]?.provider_outcome as Row).errorMessage,
+      ).not.toContain("donor@example.com");
       expect(stub.updates).toHaveLength(0);
     });
 
@@ -767,6 +1192,25 @@ describe("contribution refundContribution dependency", () => {
       });
       expect(stub.updates).toHaveLength(0);
       expect(isFailedProviderOutcomeStatus(outcome.status)).toBe(false);
+      expect(stub.refundAttempts[0]).toMatchObject({
+        state: "finalized",
+        provider_reference_id: "re_1",
+        provider_outcome: {
+          provider: "stripe",
+          status: "pending",
+          referenceId: "re_1",
+        },
+      });
+
+      const recovered = await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+          expectedRevision: "now-stale",
+        }),
+      );
+      expect(recovered).toEqual(outcome);
+      expect(stripe.calls).toHaveLength(1);
     });
 
     it("surfaces provider-declared failures with the failure reason and no local write", async () => {

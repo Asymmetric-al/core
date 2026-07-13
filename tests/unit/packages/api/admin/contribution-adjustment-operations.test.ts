@@ -1,4 +1,22 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+const { sendEmailMock, readTenantEmailSettingsMock, decryptResendApiKeyMock } =
+  vi.hoisted(() => ({
+    sendEmailMock: vi.fn(),
+    readTenantEmailSettingsMock: vi.fn(),
+    decryptResendApiKeyMock: vi.fn(() => "re_decrypted"),
+  }));
+
+vi.mock("@asym/email", () => ({ sendEmail: sendEmailMock }));
+vi.mock("../../../../../packages/api/src/email/settings-store", () => ({
+  readTenantEmailSettings: readTenantEmailSettingsMock,
+}));
+vi.mock("../../../../../packages/api/src/email/crypto", () => ({
+  decryptResendApiKey: decryptResendApiKeyMock,
+}));
+vi.mock("@asym/lib/audit/logger", () => ({
+  logSystemAuditEvent: vi.fn().mockResolvedValue(undefined),
+}));
 
 import { applyContributionCorrection } from "../../../../../packages/api/src/admin/contribution-operations/operations";
 
@@ -32,6 +50,9 @@ interface StubState {
   donor?: Record<string, unknown> | null;
   policy?: Record<string, unknown> | null;
   snapshots?: Array<Record<string, unknown>>;
+  emailSendLogs?: Array<Record<string, unknown>>;
+  stagedGiftUpdates?: Array<Record<string, unknown>>;
+  suppressions?: Array<Record<string, unknown>>;
   funds?: Array<string | { id: string; name?: string | null }>;
   missionaries?: string[];
 }
@@ -39,6 +60,7 @@ interface StubState {
 class QueryBuilder {
   private operation: "select" | "insert" = "select";
   private insertPayload: Record<string, unknown> | null = null;
+  private updatePayload: Record<string, unknown> | null = null;
   private wantsSingle = false;
   private inValues: unknown[] = [];
 
@@ -57,7 +79,17 @@ class QueryBuilder {
     return this;
   }
 
+  update(payload: Record<string, unknown>) {
+    this.operation = "update";
+    this.updatePayload = payload;
+    return this;
+  }
+
   eq() {
+    return this;
+  }
+
+  ilike() {
     return this;
   }
 
@@ -92,6 +124,11 @@ class QueryBuilder {
       return { data: donationRow, error: null };
     }
     if (this.table === "staged_gifts") {
+      if (this.operation === "update") {
+        const updates = (this.state.stagedGiftUpdates ??= []);
+        updates.push(this.updatePayload ?? {});
+        return { data: null, error: null };
+      }
       return { data: this.state.stagedGift ?? null, error: null };
     }
     if (this.table === "donors") {
@@ -145,6 +182,31 @@ class QueryBuilder {
         return { data: { id: row.id }, error: null };
       }
       return { data: null, error: null };
+    }
+    if (this.table === "email_suppressions") {
+      return { data: this.state.suppressions ?? [], error: null };
+    }
+    if (this.table === "email_send_logs") {
+      if (this.operation === "insert" && this.insertPayload) {
+        const logs = (this.state.emailSendLogs ??= []);
+        const key = this.insertPayload.idempotency_key;
+        const duplicate =
+          typeof key === "string" &&
+          logs.some((row) => row.idempotency_key === key);
+        if (duplicate) {
+          return {
+            data: null,
+            error: { code: "23505", message: "duplicate idempotency key" },
+          };
+        }
+        const row = {
+          id: `send-log-${logs.length + 1}`,
+          ...this.insertPayload,
+        };
+        logs.push(row);
+        return { data: { id: row.id }, error: null };
+      }
+      return { data: [], error: null };
     }
     if (this.table === "contribution_adjustments") {
       if (this.operation === "insert") {
@@ -275,6 +337,95 @@ describe("applyContributionCorrection", () => {
     expect(first.idempotentReplay).toBe(false);
     expect(second.idempotentReplay).toBe(true);
     expect(second.adjustmentId).toBe(first.adjustmentId);
+  });
+
+  it("replays idempotently with stable effective summaries and no new writes (#260)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+    };
+
+    const first = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-replay",
+    });
+    expect(first.before.amount).toBe(25_000);
+    expect(first.after.amount).toBe(20_000);
+
+    const replay = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-replay",
+    });
+
+    // The replay reports the already-applied effective truth on both sides:
+    // nothing is recomputed against the original, nothing new is written,
+    // and no receipt delivery re-runs.
+    expect(replay.idempotentReplay).toBe(true);
+    expect(replay.before.amount).toBe(20_000);
+    expect(replay.after.amount).toBe(20_000);
+    expect(replay.receiptOutcome).toBeNull();
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.insertCount).toBe(1);
+  });
+
+  it("rejects a stale retry before consulting the idempotency key (#260)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+    };
+
+    await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-stale-retry",
+    });
+
+    // A retry carrying a revision that no longer matches is a stale save
+    // first: optimistic concurrency wins over idempotent replay so the
+    // caller reloads and re-reviews instead of silently replaying.
+    await expect(
+      applyContributionCorrection({
+        ...baseInput(state),
+        idempotencyKey: "key-stale-retry",
+        expectedRevision: "stale-revision-from-before-first-save",
+      }),
+    ).rejects.toMatchObject({
+      status: 409,
+      message: expect.stringMatching(/reload the latest detail/i),
+    });
+
+    expect(state.adjustments).toHaveLength(1);
+  });
+
+  it("derives later corrections from the accumulated effective values, not the original (#260)", async () => {
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+    };
+
+    const first = await applyContributionCorrection({
+      ...baseInput(state),
+      idempotencyKey: "key-first",
+    });
+    expect(first.before.amount).toBe(25_000);
+    expect(first.after.amount).toBe(20_000);
+
+    const second = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: { amount: 18_000 },
+      idempotencyKey: "key-second",
+    });
+
+    // A genuinely new correction after an intervening change starts from the
+    // effective value the first adjustment produced — original donation truth
+    // stays 25_000 in the database and is never rewritten.
+    expect(second.idempotentReplay).toBe(false);
+    expect(second.before.amount).toBe(20_000);
+    expect(second.after.amount).toBe(18_000);
+    expect(state.adjustments).toHaveLength(2);
+    expect(state.adjustments.map((row) => row.idempotency_key)).toEqual([
+      "key-first",
+      "key-second",
+    ]);
   });
 
   it("records a deferred receipt outcome for receipt-affecting corrections", async () => {
@@ -408,6 +559,256 @@ describe("applyContributionCorrection", () => {
     });
     expect(state.snapshots).toHaveLength(1);
     expect(state.snapshots![0]).toMatchObject({ kind: "pdf" });
+    // Versioned, self-contained render input (#263): the PDF renders from the
+    // snapshot alone, so donor/gift identity is captured at correction time.
+    expect(state.snapshots![0].content).toMatchObject({
+      version: 1,
+      donationId: DONATION_ID,
+      donorName: "Anonymous",
+      giftDate: "2026-05-01",
+      currencyCode: "USD",
+      effective: {
+        amountCents: 20_000,
+        fundId: null,
+        missionaryId: null,
+        paymentStatus: "completed",
+      },
+      designationLines: [
+        expect.objectContaining({
+          amountCents: 20_000,
+          fundName: "General Fund",
+        }),
+      ],
+      affectedFields: ["amount"],
+      adjustmentId: "adj-1",
+      generatedAt: expect.any(String),
+    });
+  });
+
+  it("emails updated receipt snapshots without colliding with the original receipt send log", async () => {
+    sendEmailMock.mockReset();
+    sendEmailMock.mockResolvedValue({
+      success: true,
+      messageId: "msg-updated",
+      correlationId: "corr-updated",
+      recipientCount: 1,
+      retryCount: 0,
+    });
+    readTenantEmailSettingsMock.mockReset();
+    readTenantEmailSettingsMock.mockResolvedValue({
+      is_connected: true,
+      resend_api_key_encrypted: "enc",
+      default_from_email: "receipts@org.example",
+      default_from_name: "Org",
+      reply_to_email: null,
+    });
+    decryptResendApiKeyMock.mockReset();
+    decryptResendApiKeyMock.mockReturnValue("re_decrypted");
+
+    const originalReceiptKey = "donation-receipt/tenant-1/donation-1/staged-1";
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+      stagedGift: {
+        id: "staged-1",
+        tenant_id: TENANT_ID,
+        donation_id: DONATION_ID,
+        donor_id: "donor-1",
+        missionary_id: null,
+        fund_id: null,
+        stripe_raw_event_id: null,
+        stripe_event_id: null,
+        stripe_payment_intent_id: null,
+        stripe_charge_id: null,
+        amount: 25_000,
+        currency: "usd",
+        status: "posted",
+        donor_match_status: "matched",
+        allocation_status: "allocated",
+        review_reason: null,
+        receipt_status: "sent",
+        crm_post_status: "posted",
+        crm_outbound_job_id: null,
+        twenty_record_id: null,
+        metadata: {},
+      },
+      donor: {
+        id: "donor-1",
+        profile_id: null,
+        name: "Ada Lovelace",
+        email: "donor@example.com",
+        do_not_email: false,
+        do_not_contact: false,
+      },
+      emailSendLogs: [
+        {
+          id: "send-log-original",
+          tenant_id: TENANT_ID,
+          idempotency_key: originalReceiptKey,
+        },
+      ],
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: {
+        amount: 20_000,
+        receiptDelivery: { choice: "email" },
+      },
+      actorCapabilities: ["contributions.manage_receipts"],
+    });
+
+    const updatedReceiptKey =
+      "contribution-receipt-snapshot/tenant-1/snap-1/email";
+    expect(result.receiptOutcome).toMatchObject({
+      status: "emailed",
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+    });
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots![0]).toMatchObject({
+      kind: "email",
+      content: expect.objectContaining({
+        effective: expect.objectContaining({ amountCents: 20_000 }),
+        adjustmentId: "adj-1",
+      }),
+    });
+    expect(sendEmailMock).toHaveBeenCalledWith(
+      "re_decrypted",
+      expect.objectContaining({
+        subject: "Updated donation receipt for $200.00",
+        html: expect.stringContaining("updated receipt amount"),
+        text: expect.stringContaining("updated receipt amount is $200.00"),
+        idempotencyKey: updatedReceiptKey,
+      }),
+    );
+    expect(sendEmailMock.mock.calls[0]?.[1].idempotencyKey).not.toBe(
+      originalReceiptKey,
+    );
+    expect(state.emailSendLogs).toHaveLength(2);
+    expect(state.emailSendLogs!.map((row) => row.idempotency_key)).toEqual([
+      originalReceiptKey,
+      updatedReceiptKey,
+    ]);
+    expect(state.stagedGiftUpdates).toEqual([
+      expect.objectContaining({
+        receipt_status: "sent",
+        receipt_send_log_id: "send-log-2",
+      }),
+    ]);
+  });
+
+  it("keeps the applied adjustment when updated receipt email delivery fails", async () => {
+    sendEmailMock.mockReset();
+    sendEmailMock.mockResolvedValue({
+      success: false,
+      messageId: null,
+      correlationId: "corr-failed",
+      recipientCount: 0,
+      retryCount: 0,
+      errors: [
+        {
+          code: "provider_rejected",
+          message: "Provider rejected the updated receipt",
+        },
+      ],
+    });
+    readTenantEmailSettingsMock.mockReset();
+    readTenantEmailSettingsMock.mockResolvedValue({
+      is_connected: true,
+      resend_api_key_encrypted: "enc",
+      default_from_email: "receipts@org.example",
+      default_from_name: "Org",
+      reply_to_email: null,
+    });
+    decryptResendApiKeyMock.mockReset();
+    decryptResendApiKeyMock.mockReturnValue("re_decrypted");
+
+    const state: StubState = {
+      adjustments: [],
+      insertCount: 0,
+      stagedGift: {
+        id: "staged-1",
+        tenant_id: TENANT_ID,
+        donation_id: DONATION_ID,
+        donor_id: "donor-1",
+        missionary_id: null,
+        fund_id: null,
+        stripe_raw_event_id: null,
+        stripe_event_id: null,
+        stripe_payment_intent_id: null,
+        stripe_charge_id: null,
+        amount: 25_000,
+        currency: "usd",
+        status: "posted",
+        donor_match_status: "matched",
+        allocation_status: "allocated",
+        review_reason: null,
+        receipt_status: "sent",
+        crm_post_status: "posted",
+        crm_outbound_job_id: null,
+        twenty_record_id: null,
+        metadata: {},
+      },
+      donor: {
+        id: "donor-1",
+        profile_id: null,
+        name: "Ada Lovelace",
+        email: "donor@example.com",
+        do_not_email: false,
+        do_not_contact: false,
+      },
+    };
+
+    const result = await applyContributionCorrection({
+      ...baseInput(state),
+      payload: {
+        amount: 20_000,
+        receiptDelivery: { choice: "email" },
+      },
+      actorCapabilities: ["contributions.manage_receipts"],
+    });
+
+    expect(result.status).toBe("applied");
+    expect(state.adjustments).toHaveLength(1);
+    expect(state.adjustments[0]).toMatchObject({
+      id: "adj-1",
+      status: "applied",
+      effective_values: { amountCents: 20_000 },
+    });
+    expect(state.snapshots).toHaveLength(1);
+    expect(state.snapshots![0]).toMatchObject({
+      id: "snap-1",
+      kind: "email",
+      content: expect.objectContaining({
+        adjustmentId: "adj-1",
+      }),
+    });
+    expect(state.emailSendLogs).toEqual([
+      expect.objectContaining({
+        idempotency_key: "contribution-receipt-snapshot/tenant-1/snap-1/email",
+        correlation_id: "corr-failed",
+        status: "failed",
+        error_code: "provider_rejected",
+        error_message: "Provider rejected the updated receipt",
+      }),
+    ]);
+    expect(state.stagedGiftUpdates).toEqual([
+      expect.objectContaining({
+        receipt_status: "failed",
+        receipt_send_log_id: "send-log-1",
+        last_error_code: "provider_rejected",
+        last_error_message: "Provider rejected the updated receipt",
+      }),
+    ]);
+    expect(result.receiptOutcome).toMatchObject({
+      status: "failed",
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+      requested: { choice: "email" },
+      confirmed: { choice: "email" },
+      reason: expect.stringMatching(/could not be sent/i),
+    });
   });
 
   it("applies a fund correction when the fund exists for the tenant", async () => {

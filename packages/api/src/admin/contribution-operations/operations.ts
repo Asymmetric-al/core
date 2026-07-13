@@ -1,12 +1,13 @@
 import { buildContributionDetail } from "./detail-read-model";
 import { assertAllowedPaymentStateCorrectionStatus } from "./payment-status-allowlist";
 import {
+  buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   parseReceiptDeliverySelection,
   resolveTenantReceiptDeliveryPolicy,
   validateReceiptDeliverySelection,
 } from "./receipt-delivery";
-import { sendStagedGiftReceipt } from "../../giving/receipts";
+import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
 import {
   loadStripeRawEventForReplay,
@@ -23,6 +24,7 @@ import type { ContributionDetail } from "./detail-read-model";
 import type {
   ReceiptDeliveryOutcome,
   ReceiptDeliverySelection,
+  ReceiptSnapshotContentV1,
   TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 import type {
@@ -295,6 +297,24 @@ function mapCrmLinks(rows: unknown): CrmPostLinkInput[] {
   }));
 }
 
+/**
+ * Which receipt fields a pending correction request would change (#263).
+ * Stored payloads may be malformed or reference unadapted action types;
+ * the detail payload degrades to "no receipt fields" instead of failing.
+ */
+function correctionRequestReceiptAffectedFields(
+  actionType: string,
+  payload: Record<string, unknown>,
+): string[] {
+  try {
+    return computeReceiptAffectedFields(
+      correctionEffectiveValues(actionType as ContributionActionType, payload),
+    );
+  } catch {
+    return [];
+  }
+}
+
 async function loadContributionOperationDetail(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
@@ -371,7 +391,7 @@ async function loadContributionOperationDetail(input: {
     input.supabaseAdmin
       .from("contribution_correction_requests")
       .select(
-        "id, action_type, status, reason, requested_by_profile_id, created_at",
+        "id, action_type, status, reason, requested_by_profile_id, created_at, payload, receipt_delivery_proposal",
       )
       .eq("tenant_id", input.tenantId)
       .eq("donation_id", input.contributionId)
@@ -490,14 +510,26 @@ async function loadContributionOperationDetail(input: {
     ),
     correctionRequests: (
       (correctionRequestResult.data ?? []) as JsonRecord[]
-    ).map((request) => ({
-      id: asString(request.id) ?? "",
-      actionType: asString(request.action_type) ?? "unknown",
-      status: asString(request.status) ?? "pending",
-      reason: asString(request.reason) ?? "",
-      requestedByProfileId: asString(request.requested_by_profile_id),
-      createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
-    })),
+    ).map((request) => {
+      const actionType = asString(request.action_type) ?? "unknown";
+      const payload = isRecord(request.payload) ? request.payload : {};
+
+      return {
+        id: asString(request.id) ?? "",
+        actionType,
+        status: asString(request.status) ?? "pending",
+        reason: asString(request.reason) ?? "",
+        requestedByProfileId: asString(request.requested_by_profile_id),
+        createdAt: asString(request.created_at) ?? new Date(0).toISOString(),
+        receiptDeliveryProposal: parseReceiptDeliverySelection(
+          request.receipt_delivery_proposal,
+        ),
+        receiptAffectedFields: correctionRequestReceiptAffectedFields(
+          actionType,
+          payload,
+        ),
+      };
+    }),
     adjustments,
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
@@ -755,7 +787,7 @@ function summarizeEffectiveDetail(detail: ContributionDetail) {
   };
 }
 
-async function loadReceiptDeliveryContext(input: {
+export async function loadReceiptDeliveryContext(input: {
   supabaseAdmin: SupabaseAdmin;
   tenantId: string;
   donorId: string | null;
@@ -803,7 +835,7 @@ async function insertReceiptSnapshot(input: {
   contributionId: string;
   adjustmentId: string | null;
   kind: "email" | "pdf";
-  content: Record<string, unknown>;
+  content: ReceiptSnapshotContentV1;
 }): Promise<string | null> {
   const { data, error } = await input.supabaseAdmin
     .from("contribution_receipt_snapshots")
@@ -834,7 +866,7 @@ async function runReceiptDelivery(input: {
   selection: ReceiptDeliverySelection;
   affectedFields: string[];
   requested: ReceiptDeliverySelection | null;
-  snapshotContent: Record<string, unknown>;
+  snapshotContent: ReceiptSnapshotContentV1;
 }): Promise<ReceiptDeliveryOutcome> {
   const base = {
     affectedFields: input.affectedFields,
@@ -873,11 +905,6 @@ async function runReceiptDelivery(input: {
     };
   }
 
-  await sendStagedGiftReceipt({
-    supabaseAdmin: input.supabaseAdmin,
-    tenantId: input.tenantId,
-    stagedGiftId: input.stagedGiftId,
-  });
   const snapshotId = await insertReceiptSnapshot({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
@@ -886,6 +913,42 @@ async function runReceiptDelivery(input: {
     kind: "email",
     content: input.snapshotContent,
   });
+
+  if (!snapshotId) {
+    throw new Error("Updated receipt email snapshot was not created.");
+  }
+
+  const receipt = await sendUpdatedReceiptSnapshotEmail({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    stagedGiftId: input.stagedGiftId,
+    snapshotId,
+    content: input.snapshotContent,
+  });
+
+  if (receipt.status === "suppressed") {
+    // The consent gate blocked the send (do_not_contact, or a bounced/
+    // complained/suppressed address). No email went out; surface it as
+    // blocked with a clear reason while preserving the snapshot allocated for
+    // the attempted updated receipt action.
+    return {
+      ...base,
+      status: "blocked",
+      reason:
+        "The donor has opted out of contact or the recipient address is on the suppression list, so the updated receipt email was not sent.",
+      snapshotId,
+    };
+  }
+  if (receipt.status === "failed") {
+    return {
+      ...base,
+      status: "failed",
+      reason:
+        "The updated receipt email could not be sent. Check email send logs for provider details.",
+      snapshotId,
+    };
+  }
+
   return { ...base, status: "emailed", reason: null, snapshotId };
 }
 
@@ -1026,10 +1089,11 @@ export async function applyContributionCorrection(input: {
         selection: deliverySelection,
         affectedFields,
         requested: requestedDelivery ?? deliverySelection,
-        snapshotContent: {
-          effective: after.effective,
-          designationLines: after.designations.lines,
-        },
+        snapshotContent: buildReceiptSnapshotContent({
+          detail: after,
+          affectedFields,
+          adjustmentId,
+        }),
       });
     } else {
       receiptOutcome = {

@@ -14,7 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { ReactNode } from "react";
 
 type ContributionsPageComponent =
-  typeof import("../../../../../apps/admin/app/contributions/page").default;
+  typeof import("../../../../../apps/admin/app/contributions/page-client").default;
 type InvalidateContributionOperationQueries =
   typeof import("../../../../../apps/admin/app/contributions/page-client").invalidateContributionOperationQueries;
 type ContributionsDataModule =
@@ -206,7 +206,14 @@ function makeDetailPayload(donationId: string, donorName: string) {
         providerRecurrenceWithoutAgreement: false,
       },
       stagedGift: null,
-      crm: { postStatus: null, twentyRecordId: null },
+      crm: {
+        postStatus: null,
+        twentyRecordId: null,
+        parent: { status: null, twentyRecordId: null, lastError: null },
+        designationRecords: [],
+        failedScopes: [],
+        adapterLimitation: null,
+      },
       auditEvents: [],
       corrections: [],
       // Original donation truth — the refund shell derives its figures from
@@ -320,10 +327,8 @@ async function loadEnvSensitiveModules() {
     await import("../../../../../apps/admin/app/contributions/data");
   const pageClientModule =
     await import("../../../../../apps/admin/app/contributions/page-client");
-  const contributionsPageModule =
-    await import("../../../../../apps/admin/app/contributions/page");
 
-  ContributionsPage = contributionsPageModule.default;
+  ContributionsPage = pageClientModule.default;
   invalidateContributionOperationQueries =
     pageClientModule.invalidateContributionOperationQueries;
   boneyardContributionsFixture = dataModule.boneyardContributionsFixture;
@@ -336,7 +341,7 @@ async function loadEnvSensitiveModules() {
     databaseHooksModule.MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY;
 }
 
-describe("apps/admin/app/contributions/page", () => {
+describe("apps/admin/app/contributions/page-client", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
@@ -609,6 +614,14 @@ describe("apps/admin/app/contributions/page", () => {
           crm: {
             postStatus: "failed",
             twentyRecordId: null,
+            parent: {
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the gift record.",
+            },
+            designationRecords: [],
+            failedScopes: [{ scope: "parent" }],
+            adapterLimitation: null,
           },
           auditEvents: [],
           corrections: [],
@@ -720,7 +733,14 @@ describe("apps/admin/app/contributions/page", () => {
           refund: { status: "none", amount: 0, refundedAt: null },
           recurring: { isRecurring: false, interval: null, pledgeId: null },
           stagedGift: null,
-          crm: { postStatus: null, twentyRecordId: null },
+          crm: {
+            postStatus: null,
+            twentyRecordId: null,
+            parent: { status: null, twentyRecordId: null, lastError: null },
+            designationRecords: [],
+            failedScopes: [],
+            adapterLimitation: null,
+          },
           auditEvents: [],
           corrections: [],
           tasks: [],
@@ -859,6 +879,104 @@ describe("apps/admin/app/contributions/page", () => {
 
     expect(await view.findByText("Anonymous Donor")).toBeTruthy();
     expect(view.getByText("Mail")).toBeTruthy();
+  });
+
+  it("posts a scoped designation retry through the shared actions contract", async () => {
+    const donationId = "00000000-0000-4000-8000-000000000131";
+    mockSearch = `gift=${donationId}`;
+    const baseDetail = makeDetailPayload(donationId, "Scoped Retry Donor");
+    const detailPayload = {
+      contribution: {
+        ...baseDetail.contribution,
+        stagedGift: {
+          id: "staged-9",
+          status: "posted",
+          receiptStatus: "sent",
+          crmPostStatus: "failed",
+          reviewReason: null,
+          twentyRecordId: null,
+        },
+        actionAvailability: [
+          {
+            actionType: "retry_staged_gift",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "low",
+          },
+        ],
+        crm: {
+          postStatus: "failed",
+          twentyRecordId: null,
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-9",
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        },
+      },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-31",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => detailPayload,
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    expect(await view.findByText("Twenty CRM posting")).toBeTruthy();
+    expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
+
+    fireEvent.click(
+      await view.findByRole("button", { name: /retry this line/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+      ).toBe(true);
+    });
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "retry_staged_gift",
+      contributionId: donationId,
+      stagedGiftId: "staged-9",
+      payload: { scope: "designation", allocationId: "alloc-2" },
+    });
   });
 
   it("strips invalid gift query params before fetching detail", async () => {

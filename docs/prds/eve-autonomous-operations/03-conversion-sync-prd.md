@@ -21,8 +21,7 @@ GitHub issues that no longer match the PRD and plan.
 ## Solution
 
 Create a conversion-only PRD that records the planning artifacts, GitHub issues,
-sync checks, and guardrails created during the Eve PRD-to-plan-to-issues
-conversion.
+sync checks, and guardrails created during the Eve spec-to-tickets conversion.
 
 This PRD does not define new Eve product scope. It documents the conversion
 state that must be preserved so future AI agents can safely build from the Eve
