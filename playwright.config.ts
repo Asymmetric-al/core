@@ -3,6 +3,15 @@ import path from "path";
 import { defineConfig, devices } from "@playwright/test";
 
 import { nextDevReadyURL } from "./tests/e2e/base-urls";
+import {
+  devServerCommand,
+  getWorkerCount,
+  isLocalHostname,
+  normalizeLocalBaseUrl,
+  shouldReuseExistingServer,
+} from "./tests/e2e/playwright-shared";
+
+export { shouldReuseExistingServer };
 
 const DEFAULT_DONOR_PORT = 3005;
 const DEFAULT_ADMIN_PORT = 3030;
@@ -12,7 +21,6 @@ const DEFAULT_SUPABASE_ANON_KEY = "example-anon-key";
 const DEFAULT_PAYLOAD_DATABASE_URI =
   "postgresql://postgres:postgres@127.0.0.1:54322/postgres";
 const DEFAULT_PAYLOAD_SECRET = "playwright-secret";
-const DEFAULT_LOCAL_WORKERS = 1;
 const DEFAULT_PROJECT_TEST_IGNORE = Object.freeze([
   "**/upload-crop.spec.ts",
   "**/donor-giving-history.spec.ts",
@@ -48,19 +56,6 @@ function withCiEquivalentEnvDefaults(
   };
 }
 
-function normalizeHostname(hostname: string): string {
-  return hostname.trim().toLowerCase().replace(/\.+$/, "");
-}
-
-function isLocalHostname(hostname: string): boolean {
-  const normalized = normalizeHostname(hostname).replace(/^\[(.*)\]$/, "$1");
-  return (
-    normalized === "localhost" ||
-    normalized === "127.0.0.1" ||
-    normalized === "::1"
-  );
-}
-
 function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   const nextEnv = withCiEquivalentEnvDefaults(env);
 
@@ -70,32 +65,6 @@ function withPlaywrightEnvDefaults(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
   }
 
   return nextEnv;
-}
-
-function getWorkerCount(): number {
-  const envWorkers = Number(process.env.PLAYWRIGHT_WORKERS);
-  if (Number.isFinite(envWorkers) && envWorkers > 0) {
-    return envWorkers;
-  }
-
-  return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
-}
-
-export function shouldReuseExistingServer(
-  env: NodeJS.ProcessEnv = process.env,
-): boolean {
-  const configuredValue =
-    env.PLAYWRIGHT_REUSE_EXISTING_SERVER?.trim().toLowerCase();
-
-  if (configuredValue === "1" || configuredValue === "true") {
-    return true;
-  }
-
-  if (configuredValue === "0" || configuredValue === "false") {
-    return false;
-  }
-
-  return !env.CI;
 }
 
 export function resolveDonorBaseUrlEnv(
@@ -160,26 +129,11 @@ function getLocalBaseUrlAndPort(defaultPort: number): {
   }
 }
 
-function normalizeBaseUrl(baseUrl: string, defaultPort: number): string {
-  try {
-    const url = new URL(baseUrl);
-    if (!isLocalHostname(url.hostname)) {
-      return baseUrl;
-    }
-
-    const port =
-      url.port || String(url.protocol === "https:" ? 443 : defaultPort);
-    return `http://${DEFAULT_LOCAL_HOSTNAME}:${port}`;
-  } catch {
-    return `http://${DEFAULT_LOCAL_HOSTNAME}:${defaultPort}`;
-  }
-}
-
 const { baseURL, port } = getLocalBaseUrlAndPort(DEFAULT_DONOR_PORT);
 const adminPort = Number(
   process.env.PLAYWRIGHT_ADMIN_PORT || DEFAULT_ADMIN_PORT,
 );
-const adminBaseURL = normalizeBaseUrl(
+const adminBaseURL = normalizeLocalBaseUrl(
   resolveAdminBaseUrlEnv() || `http://${DEFAULT_LOCAL_HOSTNAME}:${adminPort}`,
   adminPort,
 );
@@ -207,7 +161,7 @@ const PLAYWRIGHT_WEB_SERVER_TIMEOUT_MS = Number(
 );
 
 const donorServer = {
-  command: `node -e "try{require('fs').rmSync('apps/donor/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/donor dev:playwright -- --port ${port} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
+  command: devServerCommand("donor", port, DEFAULT_LOCAL_HOSTNAME),
   env: {
     ...resolvedEnv,
     // Match admin Playwright server: bypass must be on in dev or middleware/RSC
@@ -227,7 +181,7 @@ const donorServer = {
 } as const;
 
 const adminServer = {
-  command: `node -e "try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}" && bun run --cwd apps/admin dev:playwright -- --port ${adminPort} --hostname ${DEFAULT_LOCAL_HOSTNAME}`,
+  command: devServerCommand("admin", adminPort, DEFAULT_LOCAL_HOSTNAME),
   env: {
     ...resolvedEnv,
     NEXT_PUBLIC_SUPABASE_ANON_KEY: supabaseAnonKey,
