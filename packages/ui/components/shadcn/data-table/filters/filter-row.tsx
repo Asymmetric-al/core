@@ -103,7 +103,13 @@ export function FilterRow({
         className,
       )}
     >
-      <Select value={condition.field} onValueChange={handleFieldChange}>
+      <Select
+        value={condition.field}
+        onValueChange={(newFieldId) => {
+          if (newFieldId === null) return;
+          handleFieldChange(newFieldId);
+        }}
+      >
         <SelectTrigger className="h-8 w-[160px] text-sm">
           <SelectValue placeholder="Select field" />
         </SelectTrigger>
@@ -116,7 +122,13 @@ export function FilterRow({
         </SelectContent>
       </Select>
 
-      <Select value={condition.operator} onValueChange={handleOperatorChange}>
+      <Select
+        value={condition.operator}
+        onValueChange={(newOperator) => {
+          if (newOperator === null) return;
+          handleOperatorChange(newOperator);
+        }}
+      >
         <SelectTrigger className="h-8 w-[160px] text-sm">
           <SelectValue placeholder="Select operator" />
         </SelectTrigger>

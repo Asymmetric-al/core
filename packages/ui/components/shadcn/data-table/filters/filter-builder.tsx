@@ -62,12 +62,14 @@ export function FilterBuilder({
   if (variant === "sheet") {
     return (
       <Sheet>
-        <SheetTrigger asChild>
-          <FilterTriggerButton
-            activeCount={activeCount}
-            className={className}
-          />
-        </SheetTrigger>
+        <SheetTrigger
+          render={
+            <FilterTriggerButton
+              activeCount={activeCount}
+              className={className}
+            />
+          }
+        />
         <SheetContent side="right" className="w-full sm:max-w-lg">
           <SheetHeader>
             <SheetTitle>Advanced Filters</SheetTitle>
@@ -95,9 +97,14 @@ export function FilterBuilder({
 
   return (
     <Popover>
-      <PopoverTrigger asChild>
-        <FilterTriggerButton activeCount={activeCount} className={className} />
-      </PopoverTrigger>
+      <PopoverTrigger
+        render={
+          <FilterTriggerButton
+            activeCount={activeCount}
+            className={className}
+          />
+        }
+      />
       <PopoverContent
         className="w-auto min-w-[400px] max-w-[600px] p-4"
         align={align}

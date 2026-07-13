@@ -525,6 +525,7 @@ function donorParticipant(
 function toMessage(
   row: SupabaseRow,
   attachments: SupportMessageAttachment[],
+  inboundAttachmentStatus: SupportMessage["inboundAttachmentStatus"] = null,
 ): SupportMessage {
   return {
     id: String(row.id),
@@ -545,6 +546,7 @@ function toMessage(
         : (asJsonRecord(row.email_headers) as SupportEmailHeaders),
     outboundSendLogId: asString(row.outbound_send_log_id),
     inboundEmailId: asString(row.inbound_email_id),
+    inboundAttachmentStatus,
     postedAt: iso(row.posted_at),
     createdAt: iso(row.created_at),
     updatedAt: iso(row.updated_at),
@@ -684,9 +686,15 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
             ? query.is("assignee_agent_id", null)
             : query.eq("assignee_agent_id", filter.assigneeAgentId);
       }
-      const { data, error } = await query;
+      const SUPPORT_CONVERSATIONS_LIST_CAP = 2000;
+      const { data, error } = await query.limit(SUPPORT_CONVERSATIONS_LIST_CAP);
       assertDb(error, "support_conversations.select");
       const rows = (data ?? []) as unknown as SupabaseRow[];
+      if (rows.length === SUPPORT_CONVERSATIONS_LIST_CAP) {
+        console.warn(
+          "support-hub: support_conversations list hit row cap; results may be truncated before in-memory filters.",
+        );
+      }
 
       const [snapshot, labelsById] = await Promise.all([
         tenantSnapshot(),
@@ -719,15 +727,24 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
       return hydrateConversation(await oneRow("support_conversations", id));
     },
     async listMessages(conversationId) {
-      const { data, error } = await client()
-        .from("support_messages")
-        .select("*")
-        .eq("tenant_id", tenantId())
-        .eq("conversation_id", conversationId)
-        .order("posted_at", { ascending: false })
-        .limit(2000);
-      assertDb(error, "support_messages.select");
-      const messages = ((data ?? []) as unknown as SupabaseRow[]).reverse();
+      const pageSize = 1000;
+      const messagesDesc: SupabaseRow[] = [];
+      for (let offset = 0; ; offset += pageSize) {
+        const { data, error } = await client()
+          .from("support_messages")
+          .select("*")
+          .eq("tenant_id", tenantId())
+          .eq("conversation_id", conversationId)
+          .order("posted_at", { ascending: false })
+          .range(offset, offset + pageSize - 1);
+        assertDb(error, "support_messages.select");
+        const page = (data ?? []) as unknown as SupabaseRow[];
+        messagesDesc.push(...page);
+        if (page.length < pageSize) {
+          break;
+        }
+      }
+      const messages = messagesDesc.reverse();
 
       if (messages.length === 0) return [];
 
@@ -755,9 +772,45 @@ export const supabaseSupportHubAdapter: SupportHubAdapter = {
         attachmentsByMessage.set(messageId, current);
       }
 
-      return messages.map((row) =>
-        toMessage(row, attachmentsByMessage.get(String(row.id)) ?? []),
-      );
+      // Inbound attachment retrieval state, surfaced per message so staff
+      // see pending/retrying/failed/available without provider internals.
+      const inboundEmailIds = [
+        ...new Set(
+          messages
+            .map((row) => asString(row.inbound_email_id))
+            .filter((value): value is string => Boolean(value)),
+        ),
+      ];
+      const attachmentStatusByInboundId = new Map<
+        string,
+        SupportMessage["inboundAttachmentStatus"]
+      >();
+      if (inboundEmailIds.length > 0) {
+        const { data: inboundRows, error: inboundError } = await client()
+          .from("email_inbound_messages")
+          .select("id, attachment_retrieval_status")
+          .eq("tenant_id", tenantId())
+          .in("id", inboundEmailIds);
+        assertDb(inboundError, "email_inbound_messages.attachment_status");
+        for (const inboundRow of inboundRows ?? []) {
+          attachmentStatusByInboundId.set(
+            String(inboundRow.id),
+            (inboundRow.attachment_retrieval_status ??
+              null) as SupportMessage["inboundAttachmentStatus"],
+          );
+        }
+      }
+
+      return messages.map((row) => {
+        const inboundEmailId = asString(row.inbound_email_id);
+        return toMessage(
+          row,
+          attachmentsByMessage.get(String(row.id)) ?? [],
+          inboundEmailId
+            ? (attachmentStatusByInboundId.get(inboundEmailId) ?? null)
+            : null,
+        );
+      });
     },
     async assign(input: AssignConversationInput) {
       const patch: JsonRecord = {

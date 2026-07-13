@@ -8,6 +8,11 @@ The "Give Hope" tenant name that appears in some demo defaults is a test fronten
 Follow the canonical Quickstart in `README.md`:
 
 ```bash
+# Credential-free Mission Control sandbox:
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+
+# Hosted Supabase app development:
 bun run setup
 # set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
@@ -73,27 +78,30 @@ This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `
 
 ## Troubleshooting
 
-| Issue                      | Quick fix                                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Supabase envs missing      | Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.                                       |
-| Supabase URL not reachable | Verify the URL or request access to the shared dev project.                                                               |
-| Demo login disabled        | Ensure `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` are set for pre-seeded users. |
+| Issue                       | Quick fix                                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| No Supabase credentials yet | Run `bun run setup:mission-control:cloud` and then `bun run dev:mission-control` for a credential-free Mission Control sandbox. |
+| Supabase envs missing       | Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.                                             |
+| Supabase URL not reachable  | Verify the URL or request access to the shared dev project.                                                                     |
+| Demo login disabled         | Ensure `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` are set for pre-seeded users.       |
 
 ## Common Commands
 
-| Command                                                               | Description                                       |
-| --------------------------------------------------------------------- | ------------------------------------------------- |
-| `bun run setup`                                                       | Initial setup (env + deps + verify)               |
-| `bun run verify`                                                      | Validate dev server + basic connectivity          |
-| `bun run dev`                                                         | Start all apps in dev mode                        |
-| `bun run dev:admin`                                                   | Start admin app only                              |
-| `bun run dev:donor`                                                   | Start donor app only                              |
-| `bun run dev:missionary`                                              | Start missionary app only                         |
-| `bun run lint`                                                        | Lint all apps and packages                        |
-| `bun run typecheck`                                                   | Type-check all apps and packages                  |
-| `bun run build`                                                       | Build all apps and packages                       |
-| `bun run test:e2e`                                                    | Run Playwright E2E tests                          |
-| `bun run react-doctor:first-party -- --full --offline --fail-on none` | Run the configured first-party React Doctor audit |
+| Command                                                               | Description                                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `bun run setup`                                                       | Hosted Supabase setup (env + deps + verify)                    |
+| `bun run setup:mission-control:cloud`                                 | Credential-free Mission Control setup for disposable sandboxes |
+| `bun run dev:mission-control`                                         | Run the Mission Control admin app in credential-free mode      |
+| `bun run verify`                                                      | Validate dev server + basic connectivity                       |
+| `bun run dev`                                                         | Start all apps in dev mode                                     |
+| `bun run dev:admin`                                                   | Start admin app only                                           |
+| `bun run dev:donor`                                                   | Start donor app only                                           |
+| `bun run dev:missionary`                                              | Start missionary app only                                      |
+| `bun run lint`                                                        | Lint all apps and packages                                     |
+| `bun run typecheck`                                                   | Type-check all apps and packages                               |
+| `bun run build`                                                       | Build all apps and packages                                    |
+| `bun run test:e2e`                                                    | Run Playwright E2E tests                                       |
+| `bun run react-doctor:first-party -- --full --offline --fail-on none` | Run the configured first-party React Doctor audit              |
 
 Build troubleshooting and CI-parity commands are documented in `docs/guides/development/build-runbook.md`.
 Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`), while app builds compile through Next.js.
@@ -230,7 +238,7 @@ import { SITE_CONFIG, NAVIGATION } from "@asym/config";
 import { env } from "@asym/env";
 
 // App-specific feature components (within an app)
-import { TilePage, SidebarNav } from "@/features/mission-control";
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 
 // App-specific components (within an app)
 import { DashboardLayout } from "@/components/layouts";
@@ -240,7 +248,8 @@ import { DashboardLayout } from "@/components/layouts";
 
 ```typescript
 // apps/admin/app/(admin)/mc/my-page/page.tsx
-import { PageHeader, TilePage } from '@/features/mission-control'
+import { PageHeader } from '@/features/mission-control/components/patterns/page-header'
+import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -306,7 +315,7 @@ touch apps/donor/app/\(donor\)/donor-dashboard/my-page/page.tsx
 
 ```typescript
 // apps/admin/app/(admin)/mc/my-page/page.tsx
-import { TilePage } from '@/features/mission-control'
+import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -334,9 +343,9 @@ export default function MyPage() {
 
 Edit the appropriate navigation file:
 
-- **Admin:** `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
-- **Missionary:** `apps/missionary/features/missionary/components/app-shell/sidebar-nav.tsx`
-- **Donor:** `apps/donor/features/donor/components/app-shell/sidebar-nav.tsx`
+- **Admin:** `apps/admin/app/mc-shell.tsx` (shell + sidebar navigation)
+- **Missionary:** `apps/missionary/components/app-sidebar.tsx`
+- **Donor:** `apps/donor/features/donor/components/DonorSubNav.tsx`
 
 ## Adding a New Component
 

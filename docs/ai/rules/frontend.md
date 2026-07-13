@@ -14,7 +14,7 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - Foundational HTML, CSS, and vanilla JS craft (semantics, selector discipline, a11y hygiene, readable JS) are summarized for agents in **`docs/ai/skills/bendc-frontend-guidelines/SKILL.md`** (vendored from [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines)). That skill is **subordinate to this file** and to motion skills when they conflict. Tokens, Tailwind, TypeScript strictness, and motion gates in this doc always win.
 - Shared UI primitives live in `packages/ui`. Apps should consume them via `@asym/ui`.
 - Do not generate shadcn components inside `apps/*`.
-- Keep existing Radix-based shared components working while migration continues.
+- All shared primitives are Base UI (`@base-ui/react`) via the shadcn `base-maia` style. The repo is Base UI only.
 - For app code, follow the existing feature structure already used in each app.
 
 ### Imports
@@ -26,9 +26,9 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 ### Component and primitive policy
 
-- Base UI first for new components and refactors.
-- Use Radix only when Base UI does not cover the primitive or when maintaining existing Radix surfaces.
-- If introducing new direct `@radix-ui/*` usage in app code, add a short comment near the import explaining why.
+- Base UI for all behavior-heavy primitives. Never add `radix-ui` or `@radix-ui/*` imports, dependencies, or `--radix-*` CSS variables.
+- Composition uses Base UI's `render` prop — `asChild` does not exist here. For link-style buttons, prefer `buttonVariants` on the `Link`/`<a>` over rendering `Button` as a link.
+- State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated.
 - Use `'use client'` only when required (hooks, state, browser APIs).
 - Reuse existing shared primitives before creating new ones.
 
@@ -48,7 +48,7 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 - **No `transition: all` / `transition-all`.** Specify exact properties (e.g. `transition-[transform,box-shadow]` or one of the shared utilities below).
 - **Press feedback is automatic on `<Button>`.** Don't add `active:scale-[0.98]` inline. Native `<button>` elements that don't use the shadcn `Button` should add the `.press-feedback` utility.
 - **Hover-on-touch is a bug.** Any `hover:scale-*`, `hover:-translate-*`, or `hover:shadow-*` lift must be wrapped in `@media (hover: hover) and (pointer: fine)`. Use `.hover-lift` / `.hover-scale-subtle` (already gated) when possible; otherwise `[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-[…]`.
-- **Popovers / tooltips / dropdowns / selects scale from their trigger** via `transform-origin: var(--radix-*-content-transform-origin)` (already wired in shared primitives). Modals stay `transform-origin: center`.
+- **Popovers / tooltips / dropdowns / selects scale from their trigger** via `transform-origin: var(--transform-origin)` (Base UI positioner variable, already wired in shared primitives — `origin-(--transform-origin)` in Tailwind). Modals stay `transform-origin: center`.
 - **Route transitions** belong to `RouteMainViewTransitionBoundary`. Don't compete with it — when a `motion.div` lives inside a route VT layer, suppress its entrance via `useWithinViewTransitionRouteLayer()` (see `PageShell`).
 - **Don't animate keyboard-initiated actions** (⌘K command palette is intentionally instant).
 - **Don't animate `width` / `height` / layout properties.** Use `transform: scaleX/scaleY/translate` instead. The impact meter in `packages/ui/components/public/home-sections.tsx` is the canonical example.
@@ -102,7 +102,7 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 - [ ] `'use client'` only where required
 - [ ] Shared `@asym/ui` primitives reused when possible
 - [ ] New/refactored primitives follow Base UI first policy
-- [ ] New direct app-level Radix imports include a short justification comment
+- [ ] No `radix-ui`/`@radix-ui/*` imports anywhere; composition uses Base UI `render`, not `asChild`
 - [ ] Tailwind uses tokens (no arbitrary values)
 - [ ] TanStack Query used for async server data
 - [ ] Complex client forms use TanStack Form + Zod

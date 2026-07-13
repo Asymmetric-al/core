@@ -1,11 +1,24 @@
-"use client";
+import * as React from "react";
 
-import { AspectRatio as AspectRatioPrimitive } from "radix-ui";
+import { cn } from "@asym/ui/lib/utils";
 
 function AspectRatio({
+  ratio = 1,
+  className,
   ...props
-}: React.ComponentProps<typeof AspectRatioPrimitive.Root>) {
-  return <AspectRatioPrimitive.Root data-slot="aspect-ratio" {...props} />;
+}: React.ComponentProps<"div"> & { ratio?: number }) {
+  return (
+    <div
+      data-slot="aspect-ratio"
+      style={
+        {
+          "--ratio": ratio,
+        } as React.CSSProperties
+      }
+      className={cn("relative aspect-(--ratio)", className)}
+      {...props}
+    />
+  );
 }
 
 export { AspectRatio };

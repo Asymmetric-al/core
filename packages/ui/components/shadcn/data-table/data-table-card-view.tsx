@@ -152,11 +152,10 @@ function DataTableCardItem<TData>({
   return (
     <Card
       className={cn(
-        "relative overflow-hidden transition-all rounded-xl",
-        "hover:shadow-md hover:border-primary/20",
-        "active:scale-[0.99]",
+        "relative overflow-hidden rounded-xl transition-[background-color,border-color]",
         isSelected && "border-primary bg-primary/5",
-        isRowClickable && "cursor-pointer",
+        isRowClickable &&
+          "press-feedback cursor-pointer [@media(hover:hover)_and_(pointer:fine)]:hover:shadow-md [@media(hover:hover)_and_(pointer:fine)]:hover:border-primary/20",
       )}
       onClick={() => onRowClick?.(row)}
       onKeyDown={handleCardKeyDown}

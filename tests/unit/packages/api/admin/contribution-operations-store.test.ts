@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { loadContributionDetailFromSupabase } from "../../../../../packages/api/src/admin/contribution-operations/store";
+import {
+  createContributionCorrectionRecord,
+  loadContributionDetailFromSupabase,
+} from "../../../../../packages/api/src/admin/contribution-operations/store";
 
+import type { ContributionCorrectionRecordInput } from "../../../../../packages/api/src/admin/contribution-operations/types";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 type QueryResult = {
@@ -355,6 +359,8 @@ describe("contribution operations store", () => {
         reason: "Needs review",
         requestedByProfileId: "profile_requester",
         createdAt: "2026-05-06T00:00:00.000Z",
+        receiptDeliveryProposal: null,
+        receiptAffectedFields: [],
       },
     ]);
     expect(detail.crm.parent.twentyRecordId).toBe("twenty_parent");
@@ -461,4 +467,94 @@ describe("contribution operations store", () => {
       "Correct Worker",
     );
   });
+});
+
+function createCorrectionInsertStub(): {
+  client: AdminSupabaseClient;
+  inserts: Array<Record<string, unknown>>;
+} {
+  const inserts: Array<Record<string, unknown>> = [];
+  const client = {
+    from(table: string) {
+      if (table !== "contribution_corrections") {
+        throw new Error(`Unexpected Supabase table query: ${table}`);
+      }
+      return {
+        insert(payload: Record<string, unknown>) {
+          inserts.push(payload);
+          return {
+            select() {
+              return {
+                single: () =>
+                  Promise.resolve({
+                    data: { id: "correction-1" },
+                    error: null,
+                  }),
+              };
+            },
+          };
+        },
+      };
+    },
+  } as unknown as AdminSupabaseClient;
+
+  return { client, inserts };
+}
+
+function correctionRecordInput(
+  overrides: Partial<ContributionCorrectionRecordInput> = {},
+): ContributionCorrectionRecordInput {
+  return {
+    tenantId: "tenant-1",
+    contributionId: "donation-1",
+    actorProfileId: "profile-1",
+    sourceSurface: "contribution_hub",
+    correctionType: "refund",
+    reason: "Donor requested a refund",
+    ...overrides,
+  };
+}
+
+describe("createContributionCorrectionRecord", () => {
+  it("stamps applied_at for applied corrections (including the default status)", async () => {
+    const explicit = createCorrectionInsertStub();
+    await createContributionCorrectionRecord({
+      supabaseAdmin: explicit.client,
+      correction: correctionRecordInput({ status: "applied" }),
+    });
+
+    const defaulted = createCorrectionInsertStub();
+    await createContributionCorrectionRecord({
+      supabaseAdmin: defaulted.client,
+      correction: correctionRecordInput(),
+    });
+
+    expect(explicit.inserts[0]).toMatchObject({
+      status: "applied",
+      applied_at: expect.any(String),
+    });
+    expect(defaulted.inserts[0]).toMatchObject({
+      status: "applied",
+      applied_at: expect.any(String),
+    });
+  });
+
+  it.each(["pending", "failed"] as const)(
+    "records %s corrections without an applied_at timestamp",
+    async (status) => {
+      const stub = createCorrectionInsertStub();
+
+      await createContributionCorrectionRecord({
+        supabaseAdmin: stub.client,
+        correction: correctionRecordInput({ status }),
+      });
+
+      // A correction that has not (or never) applied must not carry an
+      // applied timestamp implying finality (#265).
+      expect(stub.inserts[0]).toMatchObject({
+        status,
+        applied_at: null,
+      });
+    },
+  );
 });

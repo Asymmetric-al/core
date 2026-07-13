@@ -299,11 +299,11 @@ async function ensureInitialAllocation(input: {
     .from("staged_gift_allocations")
     .select("id")
     .eq("staged_gift_id", input.stagedGiftId)
-    .eq("is_initial", true)
     .limit(1)
     .maybeSingle();
   requireNoError(existing.error, "Failed to read staged gift allocations.");
   if (isJsonRecord(existing.data)) {
+    // Any allocation row (initial or reviewed admin split) blocks stale full re-insert on webhook replay.
     return;
   }
 

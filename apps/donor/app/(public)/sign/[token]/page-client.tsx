@@ -1,7 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Dialog,
   DialogContent,
@@ -94,9 +94,15 @@ export default function SignStudioPublicSigningPage({
               >
                 <Download className="mr-2 size-4" /> Download Signed Copy
               </Button>
-              <Button variant="outline" size="lg" asChild className="bg-white">
-                <Link href="/">Return Home</Link>
-              </Button>
+              <Link
+                href="/"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "bg-white",
+                )}
+              >
+                Return Home
+              </Link>
             </div>
             <div className="mt-12 flex items-center justify-center gap-2 text-xs text-zinc-400">
               <ShieldCheck className="size-4" /> Securely signed with GiveHope
@@ -128,7 +134,7 @@ export default function SignStudioPublicSigningPage({
                   type="button"
                   onClick={() => setIsSignatureModalOpen(true)}
                   className={cn(
-                    "w-64 h-16 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-all relative overflow-hidden group",
+                    "w-64 h-16 border-2 rounded-lg flex items-center justify-center cursor-pointer transition-colors relative overflow-hidden group",
                     signature
                       ? "border-emerald-500 bg-emerald-50/30"
                       : "border-blue-500 border-dashed bg-blue-50/50 hover:bg-blue-50",

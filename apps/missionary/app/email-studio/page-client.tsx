@@ -1,6 +1,7 @@
 "use client";
 
 import { motion } from "@asym/lib/motion";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageHeader } from "@asym/ui/components/page-header";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -46,9 +47,12 @@ const features = [
 ];
 
 export default function EmailStudioPage() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
   return (
     <motion.div
-      initial={{ opacity: 0 }}
+      initial={withinRouteVt ? false : { opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.3 }}
       className="max-w-[1200px] mx-auto pb-20"
@@ -62,7 +66,7 @@ export default function EmailStudioPage() {
         <Card className="border-2 border-dashed border-border bg-muted/20">
           <CardContent className="flex flex-col items-center justify-center py-16 px-8 text-center">
             <motion.div
-              initial={{ scale: 0.8, opacity: 0 }}
+              initial={withinRouteVt ? false : { scale: 0.8, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1, type: "spring", stiffness: 300 }}
               className="size-20 bg-primary/10 rounded-2xl flex items-center justify-center mb-6"
@@ -71,7 +75,7 @@ export default function EmailStudioPage() {
             </motion.div>
 
             <motion.h2
-              initial={{ opacity: 0, y: 10 }}
+              initial={withinRouteVt ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
               className="text-2xl font-semibold tracking-tight mb-2"
@@ -80,7 +84,7 @@ export default function EmailStudioPage() {
             </motion.h2>
 
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
+              initial={withinRouteVt ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="text-muted-foreground max-w-md mb-6"
@@ -90,7 +94,7 @@ export default function EmailStudioPage() {
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={withinRouteVt ? false : { opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.25 }}
             >
@@ -106,7 +110,7 @@ export default function EmailStudioPage() {
           {features.map((feature, index) => (
             <motion.div
               key={feature.title}
-              initial={{ opacity: 0, y: 20 }}
+              initial={withinRouteVt ? false : { opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 + index * 0.1 }}
             >

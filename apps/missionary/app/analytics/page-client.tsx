@@ -1,13 +1,13 @@
 "use client";
 
+import { useAuth, useDonationMetrics } from "@asym/lib/hooks";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
   ChartCard,
   KpiTile,
-  ChartLegend,
   ChartTooltip,
 } from "@asym/ui/components/primitives/chart-wrappers";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Select,
@@ -16,6 +16,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@asym/ui/components/shadcn/select";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Users,
   DollarSign,
@@ -27,6 +28,8 @@ import {
 import dynamic from "next/dynamic";
 import * as React from "react";
 
+import { resolveGivingTrendState, selectGivingTrend } from "./analytics-data";
+
 type LooseChartProps = Record<string, unknown> & { children?: React.ReactNode };
 type RechartsComponentName =
   | "BarChart"
@@ -34,12 +37,7 @@ type RechartsComponentName =
   | "XAxis"
   | "YAxis"
   | "Tooltip"
-  | "ResponsiveContainer"
-  | "PieChart"
-  | "Pie"
-  | "Cell"
-  | "Area"
-  | "AreaChart";
+  | "ResponsiveContainer";
 
 function loadRechartsComponent(name: RechartsComponentName) {
   return dynamic<LooseChartProps>(
@@ -62,46 +60,38 @@ const XAxis = loadRechartsComponent("XAxis");
 const YAxis = loadRechartsComponent("YAxis");
 const RechartsTooltip = loadRechartsComponent("Tooltip");
 const ResponsiveContainer = loadRechartsComponent("ResponsiveContainer");
-const PieChart = loadRechartsComponent("PieChart");
-const Pie = loadRechartsComponent("Pie");
-const Cell = loadRechartsComponent("Cell");
-const Area = loadRechartsComponent("Area");
-const AreaChart = loadRechartsComponent("AreaChart");
-
-const monthlyData = [
-  { month: "Jul", total: 3200, recurring: 2800, oneTime: 400 },
-  { month: "Aug", total: 3450, recurring: 2900, oneTime: 550 },
-  { month: "Sep", total: 3100, recurring: 2850, oneTime: 250 },
-  { month: "Oct", total: 4200, recurring: 3000, oneTime: 1200 },
-  { month: "Nov", total: 3800, recurring: 3100, oneTime: 700 },
-  { month: "Dec", total: 4250, recurring: 3250, oneTime: 1000 },
-];
-
-const donorSegments = [
-  { name: "Active", value: 4, color: "var(--foreground)" },
-  { name: "New", value: 2, color: "var(--muted-foreground)" },
-  { name: "At Risk", value: 1, color: "#eab308" },
-  { name: "Lapsed", value: 1, color: "var(--muted)" },
-];
-
-const yearOverYear = [
-  { month: "Jan", current: 3500, previous: 3200 },
-  { month: "Feb", current: 3800, previous: 3100 },
-  { month: "Mar", current: 4100, previous: 3400 },
-  { month: "Apr", current: 3900, previous: 3600 },
-  { month: "May", current: 4200, previous: 3800 },
-  { month: "Jun", current: 4000, previous: 3500 },
-  { month: "Jul", current: 3200, previous: 3000 },
-  { month: "Aug", current: 3450, previous: 3200 },
-  { month: "Sep", current: 3100, previous: 2900 },
-  { month: "Oct", current: 4200, previous: 3700 },
-  { month: "Nov", current: 3800, previous: 3400 },
-  { month: "Dec", current: 4250, previous: 3600 },
-];
 
 export default function AnalyticsPage() {
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
+
+  // Real giving trend: the shared donation-metrics hook aggregates the existing
+  // /api/missionaries/[id]/metrics endpoint into per-month recurring/one-time
+  // sums (no donor-identifying fields cross this boundary).
+  const { profile, loading: authLoading } = useAuth();
+  const {
+    monthlyBreakdown,
+    isLoading: metricsLoading,
+    error,
+  } = useDonationMetrics(profile?.id ?? "");
+
+  const givingTrend = React.useMemo(
+    () => selectGivingTrend(monthlyBreakdown),
+    [monthlyBreakdown],
+  );
+  const givingTrendState = resolveGivingTrendState({
+    isLoading: authLoading || metricsLoading,
+    error,
+    points: givingTrend,
+  });
+
   return (
-    <div className="space-y-6 animate-in fade-in duration-300">
+    <div
+      className={cn(
+        "space-y-6",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       <PageHeader
         title="Analytics"
         description="Detailed insights into your support network and trends."
@@ -156,6 +146,11 @@ export default function AnalyticsPage() {
           className="lg:col-span-2"
           title="Giving Trends"
           description="Support Overview"
+          isLoading={givingTrendState === "loading"}
+          isError={givingTrendState === "error"}
+          isEmpty={givingTrendState === "empty"}
+          errorMessage="We couldn't load your giving trends. Please try again."
+          emptyMessage="No giving activity yet. Recurring and one-time gifts will appear here."
           actions={
             <Select defaultValue="6m">
               <SelectTrigger className="w-[100px] h-8 rounded-lg text-[9px] font-bold uppercase tracking-wider border-zinc-200">
@@ -171,7 +166,7 @@ export default function AnalyticsPage() {
         >
           <div className="h-[250px] w-full pt-4">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={monthlyData} barGap={6}>
+              <BarChart data={givingTrend} barGap={6}>
                 <XAxis
                   dataKey="month"
                   axisLine={false}
@@ -217,109 +212,20 @@ export default function AnalyticsPage() {
         <ChartCard
           title="Partner Segments"
           description="Breakdown"
-          footer={
-            <ChartLegend
-              items={donorSegments.map((s) => ({
-                label: s.name,
-                color: s.color,
-                value: s.value,
-              }))}
-            />
-          }
+          isEmpty
+          emptyMessage="Partner segmentation is coming soon."
         >
-          <div className="h-[200px] w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
-                <Pie
-                  data={donorSegments}
-                  cx="50%"
-                  cy="50%"
-                  innerRadius={50}
-                  outerRadius={70}
-                  paddingAngle={3}
-                  dataKey="value"
-                  strokeWidth={0}
-                >
-                  {donorSegments.map((entry) => (
-                    <Cell key={entry.name} fill={entry.color} />
-                  ))}
-                </Pie>
-                <RechartsTooltip content={<ChartTooltip />} />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
+          <div className="h-[200px] w-full" />
         </ChartCard>
       </div>
 
       <ChartCard
         title="Yearly Performance"
         description="YOY Comparison"
-        actions={
-          <Badge className="bg-emerald-50 text-emerald-700 border-0 font-bold px-2 py-0.5 rounded-md text-[9px] uppercase tracking-wider">
-            +12.4% vs 2023
-          </Badge>
-        }
+        isEmpty
+        emptyMessage="Year-over-year comparison is coming soon."
       >
-        <div className="h-[250px] w-full">
-          <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={yearOverYear}>
-              <defs>
-                <linearGradient id="colorCurrent" x1="0" y1="0" x2="0" y2="1">
-                  <stop
-                    offset="5%"
-                    stopColor="var(--foreground)"
-                    stopOpacity={0.06}
-                  />
-                  <stop
-                    offset="95%"
-                    stopColor="var(--foreground)"
-                    stopOpacity={0}
-                  />
-                </linearGradient>
-              </defs>
-              <XAxis
-                dataKey="month"
-                axisLine={false}
-                tickLine={false}
-                tick={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  fill: "var(--muted-foreground)",
-                }}
-              />
-              <YAxis
-                axisLine={false}
-                tickLine={false}
-                tick={{
-                  fontSize: 9,
-                  fontWeight: 700,
-                  fill: "var(--muted-foreground)",
-                }}
-                tickFormatter={(value: number) => `$${value}`}
-                width={35}
-              />
-              <RechartsTooltip content={<ChartTooltip />} />
-              <Area
-                type="monotone"
-                dataKey="current"
-                stroke="var(--foreground)"
-                strokeWidth={2}
-                fillOpacity={1}
-                fill="url(#colorCurrent)"
-                name="2024"
-              />
-              <Area
-                type="monotone"
-                dataKey="previous"
-                stroke="var(--muted)"
-                strokeWidth={1.5}
-                strokeDasharray="4 4"
-                fill="transparent"
-                name="2023"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        </div>
+        <div className="h-[250px] w-full" />
       </ChartCard>
     </div>
   );

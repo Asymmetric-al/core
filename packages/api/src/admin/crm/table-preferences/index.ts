@@ -13,6 +13,7 @@ export {
   canManageCrmTenantDefaults,
   CRM_GIFT_HISTORY_SYSTEM_VIEW_SETTINGS,
   previewCrmViewSettingsReset,
+  resolveCanManageCrmTenantDefaults,
   resolveCrmGiftHistoryViewSettings,
   type CrmViewSettingsResetPreview,
   type ResolvedCrmViewSettings,

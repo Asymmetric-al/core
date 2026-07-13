@@ -31,7 +31,7 @@ Clickable UI should show a **pointer** cursor on hover and while pressing, witho
 
 **Where it lives:** `packages/ui/styles/globals.css`, inside `@layer base`, immediately after the `@media (pointer: coarse)` touch-target block and before `:focus-visible`.
 
-**What it does:** One rule wraps a list of selectors in `:where(...)` and sets `cursor: pointer` for native controls (buttons, links with `href`, labels with `for`, `summary`, file inputs, etc.) and common ARIA roles used by Radix/shadcn (`button`, `link`, `menuitem`, `option`, `tab`).
+**What it does:** One rule wraps a list of selectors in `:where(...)` and sets `cursor: pointer` for native controls (buttons, links with `href`, labels with `for`, `summary`, file inputs, etc.) and common ARIA roles used by Base UI/shadcn (`button`, `link`, `menuitem`, `option`, `tab`).
 
 **Why `:where`:** Specificity stays at zero so Tailwind utilities such as `cursor-default`, `cursor-text`, or `cursor-not-allowed` still override when a component needs a different affordance.
 
@@ -123,18 +123,19 @@ bun run shadcn:uikit:add button1
 
 - `packages/ui/components.json` is intentionally used for registry configuration in this repo.
 - `style` is pinned to **`base-maia`** (shadcn v4 Base UI Maia variant — see [schema](https://ui.shadcn.com/schema.json)) with **`tailwind.baseColor: zinc`**; Maia surfaces and Zinc tokens are enforced by `packages/ui/styles/globals.css`, not by app-local styling.
-- **New** components added via `shadcn add` should follow this pin (Base UI Maia codegen). **Legacy** Radix-backed primitives under `components/shadcn/*` may remain until migrated; do not assume every file matches the pin until touched.
+- All primitives under `components/shadcn/*` are **Base UI-backed** (`@base-ui/react`) following this pin. The repo is Base UI only: never add `radix-ui`/`@radix-ui/*` imports or dependencies, and compose with Base UI's `render` prop (not `asChild`).
 - Preserve existing registry entries when adding/updating components.
 - Do not manually edit `components.json`; use shadcn CLI commands from the repo root with `--cwd packages/ui`.
 
 ## Dependency Version Policy
 
-| Dependency group           | Current range | Target (future) | Trigger to switch             |
-| -------------------------- | ------------- | --------------- | ----------------------------- |
-| `@radix-ui/*`              | `^` caret     | Exact pin       | Visual regression tests in CI |
-| `class-variance-authority` | `^` caret     | Exact pin       | Same                          |
-| `clsx`                     | `^` caret     | Exact pin       | Same                          |
-| `tailwind-merge`           | `^` caret     | Exact pin       | Same                          |
+| Dependency group           | Current range | Target (future) | Trigger to switch           |
+| -------------------------- | ------------- | --------------- | --------------------------- |
+| `@base-ui/react`           | Exact pin     | Exact pin       | Already pinned (`1.5.0`)    |
+| `class-variance-authority` | `^` caret     | Exact pin       | Same                        |
+| `cnfast`                   | Exact pin     | Exact pin       | Shared `cn()` helper engine |
+| `clsx`                     | `^` caret     | Exact pin       | Same                        |
+| `tailwind-merge`           | `^` caret     | Exact pin       | Same                        |
 
 Caret ranges are a Phase 0 pragmatic choice while the team does not yet have visual regression coverage. When updating any dependency in these groups, always run `bun run build` across all apps and do a visual review before merging.
 

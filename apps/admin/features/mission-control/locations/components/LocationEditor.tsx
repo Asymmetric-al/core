@@ -263,7 +263,7 @@ export function LocationEditor({
                                 value === "__empty" ? null : value,
                               )
                             }
-                            value={field.state.value ?? undefined}
+                            value={field.state.value ?? null}
                           >
                             <SelectTrigger className="rounded-xl border-zinc-200">
                               <SelectValue
@@ -345,7 +345,7 @@ export function LocationEditor({
 
             {location?.id && onDelete ? (
               <Button
-                className="h-12 w-full rounded-xl border-red-100 text-[11px] font-bold uppercase tracking-widest text-red-600 transition-all hover:bg-red-50 hover:text-red-700"
+                className="h-12 w-full rounded-xl border-red-100 text-[11px] font-bold uppercase tracking-widest text-red-600 transition-colors hover:bg-red-50 hover:text-red-700"
                 onClick={() => {
                   if (location.id) {
                     onDelete(location.id);

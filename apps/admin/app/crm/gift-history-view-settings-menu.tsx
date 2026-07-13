@@ -26,32 +26,41 @@ import type {
 
 /**
  * One CRM gift-history view settings surface (#272): columns, filters/sort,
- * and granular resets. The server preference record is authoritative;
- * toggles save optimistically through the preferences mutation.
+ * granular resets, and — for capability holders and delegated managers only
+ * (server-computed flag) — tenant-default management. The server preference
+ * record is authoritative; toggles save optimistically through the
+ * preferences mutation.
  */
 export function GiftHistoryViewSettingsMenu({
   settings,
+  canManageTenantDefaults,
   onPatch,
   onRequestReset,
+  onRequestSetTenantDefault,
 }: {
   settings: CrmGiftHistoryViewSettings;
+  /** Server-computed (#272); mirrors the tenant-default write gate exactly. */
+  canManageTenantDefaults: boolean;
   onPatch: (patch: ViewSettingsPatch) => void;
   onRequestReset: (scope: CrmViewSettingsScope) => void;
+  onRequestSetTenantDefault: () => void;
 }) {
   const sortValue = `${settings.filtersSort.sortField}:${settings.filtersSort.sortDirection}`;
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-8 text-muted-foreground"
-          aria-label="Gift history view settings"
-        >
-          <Settings2 className="size-4" aria-hidden="true" />
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            variant="ghost"
+            size="icon"
+            className="size-8 text-muted-foreground"
+            aria-label="Gift history view settings"
+          >
+            <Settings2 className="size-4" aria-hidden="true" />
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-64">
         <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
           Columns
@@ -162,20 +171,31 @@ export function GiftHistoryViewSettingsMenu({
         <DropdownMenuSub>
           <DropdownMenuSubTrigger>Reset view settings</DropdownMenuSubTrigger>
           <DropdownMenuSubContent>
-            <DropdownMenuItem onSelect={() => onRequestReset("columns")}>
+            <DropdownMenuItem onClick={() => onRequestReset("columns")}>
               Reset columns…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("filtersSort")}>
+            <DropdownMenuItem onClick={() => onRequestReset("filtersSort")}>
               Reset filters & sort…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("pinnedAction")}>
+            <DropdownMenuItem onClick={() => onRequestReset("pinnedAction")}>
               Reset pinned row action…
             </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => onRequestReset("all")}>
+            <DropdownMenuItem onClick={() => onRequestReset("all")}>
               Reset all view settings…
             </DropdownMenuItem>
           </DropdownMenuSubContent>
         </DropdownMenuSub>
+        {canManageTenantDefaults ? (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+              Tenant default
+            </DropdownMenuLabel>
+            <DropdownMenuItem onClick={onRequestSetTenantDefault}>
+              Set current settings as tenant default…
+            </DropdownMenuItem>
+          </>
+        ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
   );

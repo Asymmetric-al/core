@@ -96,7 +96,7 @@ export function AppShell({
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all duration-200",
+                    "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors duration-200",
                     isActive
                       ? "bg-zinc-900 text-white shadow-lg shadow-zinc-200"
                       : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100/50",
@@ -148,15 +148,17 @@ export function AppShell({
         <header className="sticky top-0 z-30 flex h-16 items-center justify-between gap-4 border-b border-zinc-200 bg-white/80 px-4 backdrop-blur-md sm:px-6 lg:px-8">
           <div className="flex items-center gap-4">
             <Sheet open={isMobileMenuOpen} onOpenChange={setIsMobileMenuOpen}>
-              <SheetTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
-                >
-                  <Menu className="size-5" />
-                </Button>
-              </SheetTrigger>
+              <SheetTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="lg:hidden size-9 rounded-xl border border-zinc-200 bg-white"
+                  >
+                    <Menu className="size-5" />
+                  </Button>
+                }
+              />
               <SheetContent
                 side="left"
                 className="w-72 p-0 border-r border-zinc-200"
@@ -175,7 +177,7 @@ export function AppShell({
                           href={item.href}
                           onClick={() => setIsMobileMenuOpen(false)}
                           className={cn(
-                            "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-all",
+                            "flex items-center gap-3 px-3 py-2 text-xs font-bold uppercase tracking-widest rounded-xl transition-colors",
                             isActive
                               ? "bg-zinc-900 text-white"
                               : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
@@ -222,7 +224,7 @@ export function AppShell({
               <input
                 type="text"
                 placeholder="Search command center..."
-                className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all"
+                className="h-9 w-64 pl-10 pr-4 text-[11px] font-medium rounded-xl border border-zinc-200 bg-zinc-50/50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-zinc-900/5 transition-[background-color,box-shadow]"
               />
             </div>
 
@@ -236,19 +238,21 @@ export function AppShell({
             </Button>
 
             <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
-                >
-                  <Avatar className="size-full rounded-none">
-                    <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
-                      AD
-                    </AvatarFallback>
-                  </Avatar>
-                </Button>
-              </DropdownMenuTrigger>
+              <DropdownMenuTrigger
+                render={
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="size-9 rounded-xl border border-zinc-200 bg-white overflow-hidden"
+                  >
+                    <Avatar className="size-full rounded-none">
+                      <AvatarFallback className="bg-white text-[10px] font-bold text-zinc-400">
+                        AD
+                      </AvatarFallback>
+                    </Avatar>
+                  </Button>
+                }
+              />
               <DropdownMenuContent
                 align="end"
                 className="w-56 rounded-2xl border-zinc-200 p-2 shadow-xl"

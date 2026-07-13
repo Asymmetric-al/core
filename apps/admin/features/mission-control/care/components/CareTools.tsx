@@ -1,5 +1,6 @@
 "use client";
 
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -10,6 +11,7 @@ import {
   CommandItem,
   CommandList,
 } from "@asym/ui/components/shadcn/command";
+import { cn } from "@asym/ui/lib/utils";
 import { Search, Heart, Settings, Zap, MessageSquare } from "lucide-react";
 import { useRouter } from "next/navigation";
 import React, { useCallback } from "react";
@@ -22,6 +24,8 @@ interface CareToolsProps {
 
 export function CareTools({ personnel }: CareToolsProps) {
   const [open, setOpen] = React.useState(false);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const { push } = useRouter();
 
   // Handle keyboard shortcut (Ctrl+K or Cmd+K)
@@ -48,10 +52,16 @@ export function CareTools({ personnel }: CareToolsProps) {
   return (
     <>
       {/* Floating Action Button */}
-      <div className="fixed bottom-8 right-8 z-50 animate-in fade-in slide-in-from-bottom-8 duration-1000 delay-500">
+      <div
+        className={cn(
+          "fixed bottom-8 right-8 z-50",
+          !withinRouteVt &&
+            "animate-in fade-in slide-in-from-bottom-4 duration-300 ease-[var(--ease-out-soft)]",
+        )}
+      >
         <Button
           onClick={() => setOpen(true)}
-          className="size-14 rounded-2xl bg-primary text-primary-foreground shadow-2xl hover:scale-110 active:scale-95 transition-all duration-300 group border-none"
+          className="size-14 rounded-2xl bg-primary text-primary-foreground shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:hover:scale-105 transition-[transform,box-shadow] group border-none"
         >
           <Zap className="size-6 transition-transform group-hover:rotate-12 fill-current" />
           <span className="sr-only">Open Care Tools</span>

@@ -43,7 +43,7 @@ const Header = ({ navigationData, className }: HeaderProps) => {
   return (
     <header
       className={cn(
-        "fixed top-0 z-50 h-16 w-full transition-all duration-300",
+        "fixed top-0 z-50 h-16 w-full transition-[background-color,box-shadow,backdrop-filter] duration-300",
         {
           "bg-card/75 shadow-md backdrop-blur": isScrolled,
         },
@@ -93,8 +93,8 @@ const Header = ({ navigationData, className }: HeaderProps) => {
             </Button>
           </div>
 
-          <Button className="lg:ml-4" asChild>
-            <Link href="/">Sign In</Link>
+          <Button className="lg:ml-4" render={<Link href="/" />}>
+            Sign In
           </Button>
 
           <MenuDropdown

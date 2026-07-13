@@ -192,21 +192,31 @@ export const columns: ColumnDef<Transaction>[] = [
             <Button
               variant="ghost"
               size="sm"
+              nativeButton={false}
               className="h-8 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 rounded-lg"
-            >
-              <DownloadCloud className="size-3.5 mr-1.5" /> Receipt
-            </Button>
+              render={
+                <a
+                  href={tx.receiptUrl}
+                  download
+                  aria-label={`Download receipt for ${tx.recipient}`}
+                >
+                  <DownloadCloud className="size-3.5 mr-1.5" /> Receipt
+                </a>
+              }
+            />
           )}
           <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="size-8 text-muted-foreground hover:text-foreground rounded-xl"
-              >
-                <MoreHorizontal className="size-4" />
-              </Button>
-            </DropdownMenuTrigger>
+            <DropdownMenuTrigger
+              render={
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="size-8 text-muted-foreground hover:text-foreground rounded-xl"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              }
+            />
             <DropdownMenuContent align="end" className="rounded-xl">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
               <DropdownMenuItem className="rounded-lg">
@@ -216,9 +226,16 @@ export const columns: ColumnDef<Transaction>[] = [
                 Manage Recurring
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem className="rounded-lg">
-                <ExternalLink className="size-3 mr-2" /> Open Statement
-              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="rounded-lg"
+                render={
+                  <a
+                    href={`/api/donor/statements/${new Date(tx.date).getFullYear()}`}
+                  >
+                    <ExternalLink className="size-3 mr-2" /> Open Statement
+                  </a>
+                }
+              />
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
