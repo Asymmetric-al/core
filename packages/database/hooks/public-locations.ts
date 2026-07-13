@@ -1,10 +1,13 @@
-import { createBrowserClient } from "@asym/database/supabase";
+"use client";
+
 import { useQuery } from "@tanstack/react-query";
+
+import { createBrowserClient } from "../supabase";
 
 export type LocationType = "missionary" | "project" | "custom";
 export type LocationStatus = "draft" | "published";
 
-export interface Location {
+export interface PublicLocation {
   id: string;
   tenant_id: string;
   title: string;
@@ -21,7 +24,9 @@ export interface Location {
 }
 
 /**
- * Fetch published locations for public-facing map
+ * Published locations for public-facing maps (donor "where we work").
+ * Owns the status scoping and row shape so app code never queries the
+ * locations table directly; RLS limits anonymous reads to published rows.
  */
 export function usePublicLocations() {
   return useQuery({
@@ -35,7 +40,7 @@ export function usePublicLocations() {
         .order("sort_key", { ascending: true });
 
       if (error) throw error;
-      return data as Location[];
+      return data as PublicLocation[];
     },
   });
 }
