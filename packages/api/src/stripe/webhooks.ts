@@ -2,10 +2,6 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  convergePendingContributionRefundWorkflow,
-  loadContributionRefundAttemptByProviderReference,
-} from "../admin/contribution-operations/store";
 import { createStripeClient } from "./client";
 import {
   claimStripeRawEvent,
@@ -20,10 +16,15 @@ import {
   getStripeObjectId,
   updateDonation,
 } from "./refunds";
+import { resolveTenantStripe } from "./tenant-client";
 import {
   StripeWebhookVerificationError,
   constructVerifiedStripeEvent,
 } from "./verify-event";
+import {
+  convergePendingContributionRefundWorkflow,
+  loadContributionRefundAttemptByProviderReference,
+} from "../admin/contribution-operations/store";
 import { stageGiftFromStripeDonation } from "../giving/staged-gifts";
 import { STRIPE_EVENT_PROCESS_EVENT } from "../workflows/events";
 import { requestWorkflowDispatch } from "../workflows/ledger";
@@ -65,22 +66,15 @@ async function createTenantStripeRefundClient(params: {
   supabaseAdmin: SupabaseAdminClient;
   tenantId: string;
 }): Promise<StripeRefundReconciliationApi> {
-  const { data, error } = await params.supabaseAdmin
-    .from("tenants")
-    .select("stripe_secret_key")
-    .eq("id", params.tenantId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-
-  const tenant = data as { stripe_secret_key?: string | null } | null;
-  const secretKey =
-    tenant?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
-  if (!secretKey) {
+  const tenantStripe = await resolveTenantStripe(params);
+  if (!tenantStripe.ok) {
+    if (tenantStripe.reason === "lookup_failed") {
+      throw new Error(tenantStripe.message);
+    }
     throw new Error("Stripe is not configured for refund reconciliation.");
   }
 
-  return createStripeClient(secretKey);
+  return tenantStripe.stripe;
 }
 
 /**
@@ -422,8 +416,8 @@ export async function handleStripeWebhookEvent(
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const secretKey = serverEnv.STRIPE_SECRET_KEY;
+  const webhookSecret = serverEnv.STRIPE_WEBHOOK_SECRET;
 
   // Need the secret key to build the client that verifies the signature.
   if (!secretKey) {

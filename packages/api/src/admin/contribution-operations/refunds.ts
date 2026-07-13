@@ -1,5 +1,3 @@
-import { serverEnv } from "@asym/env";
-
 import { loadContributionDetailFromSupabase } from "./operations";
 import {
   claimContributionRefundAttempt,
@@ -14,6 +12,7 @@ import {
   describeStripeRefundError,
   retrieveLiveChargeForRefund,
 } from "../../stripe/refunds";
+import { resolveTenantStripe } from "../../stripe/tenant-client";
 
 import type { ContributionProviderOutcome } from "./types";
 import type { StripeRefundsApi } from "../../stripe/refunds";
@@ -86,28 +85,19 @@ async function resolveTenantStripeSecretKey(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<string> {
-  const { data, error } = await input.supabaseAdmin
-    .from("tenants")
-    .select("id, stripe_secret_key")
-    .eq("id", input.tenantId)
-    .maybeSingle();
+  const tenantStripe = await resolveTenantStripe(input);
 
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const tenantRow = data as { stripe_secret_key?: string | null } | null;
-  const secretKey =
-    tenantRow?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
-
-  if (!secretKey) {
+  if (!tenantStripe.ok) {
+    if (tenantStripe.reason === "lookup_failed") {
+      throw new Error(tenantStripe.message);
+    }
     throw new ApiHttpError(
       503,
       "Stripe is not configured for this organization, so provider refunds are unavailable.",
     );
   }
 
-  return secretKey;
+  return tenantStripe.secretKey;
 }
 
 export async function refundContributionThroughStripe(

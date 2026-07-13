@@ -12,7 +12,7 @@ import { donateGetQuerySchema, donatePostSchema } from "../schemas/donate";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { findDonorByProfileId } from "../shared/queries";
 import { withOperation } from "../shared/with-operation";
-import { createStripeClient } from "../stripe/client";
+import { resolveTenantStripe } from "../stripe/tenant-client";
 
 function parseRpcObject<T extends Record<string, unknown>>(
   value: unknown,
@@ -24,18 +24,6 @@ function parseRpcObject<T extends Record<string, unknown>>(
   }
   return typeof value === "object" ? (value as T) : null;
 }
-
-const normalizeStripeKey = (value: unknown): string | null => {
-  if (typeof value !== "string") return null;
-  const trimmedValue = value.trim();
-  return trimmedValue.length > 0 ? trimmedValue : null;
-};
-
-const resolveStripeKey = (
-  tenantValue: unknown,
-  environmentValue: unknown,
-): string | null =>
-  normalizeStripeKey(tenantValue) ?? normalizeStripeKey(environmentValue);
 
 const stripeConfigurationError = () =>
   NextResponse.json(
@@ -51,29 +39,21 @@ export const POST = withOperation(
       await ensureJsonBody(request),
     );
 
-    const { data: tenant, error: tenantError } = await supabaseAdmin
-      .from("tenants")
-      .select("id, stripe_secret_key, stripe_publishable_key")
-      .eq("id", ctx.tenantId)
-      .single();
-
-    if (tenantError || !tenant) {
+    const tenantStripe = await resolveTenantStripe({
+      supabaseAdmin,
+      tenantId: ctx.tenantId,
+    });
+    if (!tenantStripe.ok) {
+      if (tenantStripe.reason === "stripe_unconfigured") {
+        return stripeConfigurationError();
+      }
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
-
-    const stripeSecretKey = resolveStripeKey(
-      tenant.stripe_secret_key,
-      process.env.STRIPE_SECRET_KEY,
-    );
-    const publishableKey = resolveStripeKey(
-      tenant.stripe_publishable_key,
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    );
-    if (!stripeSecretKey || !publishableKey) {
+    if (!tenantStripe.publishableKey) {
       return stripeConfigurationError();
     }
 
-    const stripe = createStripeClient(stripeSecretKey);
+    const { stripe, publishableKey } = tenantStripe;
     const amountInCents = Math.round(amount * 100);
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
 
@@ -174,27 +154,20 @@ export async function GET(request: NextRequest) {
     requireAuth(auth);
     const ctx = auth as AuthenticatedContext;
 
-    const { data: tenant, error: tenantError } = await supabaseAdmin
-      .from("tenants")
-      .select("stripe_secret_key, stripe_publishable_key")
-      .eq("id", ctx.tenantId)
-      .single();
-
-    if (tenantError || !tenant) {
+    const tenantStripe = await resolveTenantStripe({
+      supabaseAdmin,
+      tenantId: ctx.tenantId,
+    });
+    if (!tenantStripe.ok) {
+      if (tenantStripe.reason === "stripe_unconfigured") {
+        return stripeConfigurationError();
+      }
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
-
-    const stripeSecretKey = resolveStripeKey(
-      tenant.stripe_secret_key,
-      process.env.STRIPE_SECRET_KEY,
-    );
-    const publishableKey = resolveStripeKey(
-      tenant.stripe_publishable_key,
-      process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY,
-    );
-    if (!stripeSecretKey || !publishableKey) {
+    if (!tenantStripe.publishableKey) {
       return stripeConfigurationError();
     }
+    const { publishableKey } = tenantStripe;
 
     const { searchParams } = new URL(request.url);
     const { missionary_id: missionaryId, fund_id: fundId } =

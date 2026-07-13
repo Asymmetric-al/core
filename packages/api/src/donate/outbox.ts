@@ -8,7 +8,7 @@ import { type NextRequest, NextResponse } from "next/server";
 
 import { processDueDonationSagaOutboxEvents } from "./saga";
 import { toErrorResponse } from "../shared/http-errors";
-import { createStripeClient } from "../stripe/client";
+import { resolveTenantStripe } from "../stripe/tenant-client";
 
 function parseLimit(request: NextRequest, fallback = 10): number {
   const { searchParams } = new URL(request.url);
@@ -29,25 +29,21 @@ export async function POST(request: NextRequest) {
     requireRole(auth, ["admin", "staff", "super_admin"]);
     const ctx = auth as AuthenticatedContext;
 
-    const { data: tenant, error: tenantError } = await supabaseAdmin
-      .from("tenants")
-      .select("id, stripe_secret_key")
-      .eq("id", ctx.tenantId)
-      .single();
-    if (tenantError || !tenant) {
+    const tenantStripe = await resolveTenantStripe({
+      supabaseAdmin,
+      tenantId: ctx.tenantId,
+    });
+    if (!tenantStripe.ok) {
+      if (tenantStripe.reason === "stripe_unconfigured") {
+        return NextResponse.json(
+          { error: "Stripe not configured for this organization" },
+          { status: 500 },
+        );
+      }
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const stripeSecretKey =
-      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      return NextResponse.json(
-        { error: "Stripe not configured for this organization" },
-        { status: 500 },
-      );
-    }
-
-    const stripe = createStripeClient(stripeSecretKey);
+    const { stripe } = tenantStripe;
     const limit = parseLimit(request, 10);
 
     const result = await processDueDonationSagaOutboxEvents({

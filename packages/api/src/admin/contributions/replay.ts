@@ -11,7 +11,6 @@ import {
   toErrorResponse,
 } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
-import { createStripeClient } from "../../stripe/client";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -22,6 +21,7 @@ import {
   loadStripeRawEventForReplay,
   markStripeRawEventForReplay,
 } from "../../stripe/replay";
+import { resolveTenantStripe } from "../../stripe/tenant-client";
 import { handleStripeWebhookEvent } from "../../stripe/webhooks";
 
 const replaySchema = z
@@ -45,16 +45,48 @@ const replaySchema = z
     },
   );
 
-function getStripeForReplay() {
-  const secretKey = process.env.STRIPE_SECRET_KEY;
-  if (!secretKey) {
+async function getStripeForReplay(params: {
+  supabaseAdmin: Parameters<typeof resolveTenantStripe>[0]["supabaseAdmin"];
+  tenantId: string;
+}) {
+  const tenantStripe = await resolveTenantStripe(params);
+  if (!tenantStripe.ok) {
+    if (tenantStripe.reason === "lookup_failed") {
+      throw new Error(tenantStripe.message);
+    }
     throw new ApiHttpError(
       503,
-      "STRIPE_SECRET_KEY is required to replay donation saga outbox events.",
+      "A Stripe secret key (tenant or platform) is required to replay donation saga outbox events.",
     );
   }
 
-  return createStripeClient(secretKey);
+  return tenantStripe.stripe;
+}
+
+/**
+ * The saga executor claims outbox rows by id only, so the replay endpoint is
+ * the tenant gate: an operator may only replay rows their own tenant owns —
+ * otherwise another tenant's donation would be driven on this tenant's
+ * Stripe account.
+ */
+async function requireTenantOwnedSagaOutboxRow(params: {
+  supabaseAdmin: Parameters<typeof resolveTenantStripe>[0]["supabaseAdmin"];
+  outboxId: string;
+  tenantId: string;
+}) {
+  const { data, error } = await params.supabaseAdmin
+    .from("donation_saga_outbox")
+    .select("id")
+    .eq("id", params.outboxId)
+    .eq("tenant_id", params.tenantId)
+    .maybeSingle();
+
+  if (error) {
+    throw new Error(error.message);
+  }
+  if (!data) {
+    throw new ApiHttpError(404, "Donation saga outbox event not found.");
+  }
 }
 
 export const POST = withOperation(
@@ -116,9 +148,17 @@ export const POST = withOperation(
       }
 
       if (body.donationSagaOutboxId) {
+        await requireTenantOwnedSagaOutboxRow({
+          supabaseAdmin,
+          outboxId: body.donationSagaOutboxId,
+          tenantId: auth.tenantId,
+        });
         const replayed = await processDonationSagaOutboxEvent({
           supabaseAdmin,
-          stripe: getStripeForReplay(),
+          stripe: await getStripeForReplay({
+            supabaseAdmin,
+            tenantId: auth.tenantId,
+          }),
           outboxId: body.donationSagaOutboxId,
           actorUserId: auth.userId,
         });
