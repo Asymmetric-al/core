@@ -2,56 +2,9 @@ import { defineConfig } from "eslint/config";
 import reactHooksPlugin from "eslint-plugin-react-hooks";
 
 import { baseConfig } from "@asym/eslint-config/base.mjs";
+import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs";
 
 const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
-
-const crossAppImportRestrictions = [
-  {
-    group: ["../../apps/*", "../../../apps/*", "../../../../apps/*"],
-    message:
-      "Apps cannot import from other apps. Use @asym/* packages instead.",
-  },
-  {
-    group: ["**/apps/admin/**"],
-    message: "Cannot import from apps/admin. Use @asym/* packages instead.",
-  },
-  {
-    group: ["**/apps/donor/**"],
-    message: "Cannot import from apps/donor. Use @asym/* packages instead.",
-  },
-  {
-    group: ["**/apps/missionary/**"],
-    message:
-      "Cannot import from apps/missionary. Use @asym/* packages instead.",
-  },
-];
-
-// Keep in sync with the motion/react pattern in @asym/eslint-config/base.mjs:
-// later no-restricted-imports blocks REPLACE the base rule for matching files,
-// so every block below must re-include this group or the ban silently drops.
-const motionImportRestrictions = [
-  {
-    group: ["motion/react", "framer-motion"],
-    message:
-      "Import motion APIs from @asym/lib/motion (LazyMotion m + MotionConfig reducedMotion). See docs/ai/skills/anim/SKILL.md.",
-  },
-];
-
-const rawTwentyClientImportRestrictions = [
-  {
-    group: [
-      "@asym/api/crm/client",
-      "@asym/api/crm/client/*",
-      "@asym/api/src/crm/client",
-      "@asym/api/src/crm/client/*",
-      "**/packages/api/src/crm/client",
-      "**/packages/api/src/crm/client/*",
-      "**/packages/api/src/crm/client/**",
-    ],
-    message:
-      "App code must not import raw Twenty clients. Use stable @asym/api CRM contracts and route re-exports instead.",
-  },
-];
 
 const eslintConfig = defineConfig([
   // Root fallback/orchestrator config.
@@ -72,16 +25,7 @@ const eslintConfig = defineConfig([
   {
     files: ["apps/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            ...crossAppImportRestrictions,
-            ...rawTwentyClientImportRestrictions,
-            ...motionImportRestrictions,
-          ],
-        },
-      ],
+      "no-restricted-imports": appRestrictedImports(),
     },
   },
   {
@@ -91,33 +35,27 @@ const eslintConfig = defineConfig([
       "packages/ui/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}",
     ],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            ...crossAppImportRestrictions,
-            ...rawTwentyClientImportRestrictions,
-            ...motionImportRestrictions,
-            {
-              group: ["@supabase/*"],
-              message:
-                "Client-side surfaces must consume Supabase via @asym/database wrappers, not @supabase/* directly.",
-            },
-          ],
-          paths: [
-            {
-              name: "@asym/database/supabase/admin",
-              message:
-                "UI layers must not import the admin database client directly.",
-            },
-            {
-              name: "@asym/database/supabase/server",
-              message:
-                "UI layers must not import the server database client directly.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": appRestrictedImports({
+        extraPatterns: [
+          {
+            group: ["@supabase/*"],
+            message:
+              "Client-side surfaces must consume Supabase via @asym/database wrappers, not @supabase/* directly.",
+          },
+        ],
+        extraPaths: [
+          {
+            name: "@asym/database/supabase/admin",
+            message:
+              "UI layers must not import the admin database client directly.",
+          },
+          {
+            name: "@asym/database/supabase/server",
+            message:
+              "UI layers must not import the server database client directly.",
+          },
+        ],
+      }),
     },
   },
   {
@@ -126,75 +64,62 @@ const eslintConfig = defineConfig([
     // imports are allowed there — but app boundaries still apply.
     files: ["**/src/cms-ui/**"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            ...crossAppImportRestrictions,
-            ...rawTwentyClientImportRestrictions,
-          ],
-        },
-      ],
+      "no-restricted-imports": appRestrictedImports({ exclude: ["motion"] }),
     },
   },
   {
     files: ["apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            ...crossAppImportRestrictions,
-            ...rawTwentyClientImportRestrictions,
-            {
-              group: [
-                "@asym/database/supabase",
-                "@asym/database/supabase/*",
-                "@asym/database/supabase/**",
-              ],
-              message:
-                "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead.",
-            },
-            {
-              group: ["@supabase/*"],
-              message:
-                "Route handlers must not import @supabase/* directly; use @asym/api boundaries.",
-            },
-          ],
-          paths: [
-            {
-              name: "@asym/database/supabase",
-              message:
-                "Route handlers must not import @asym/database/supabase directly; re-export handlers from @asym/api instead.",
-            },
-            {
-              name: "@asym/database/supabase/client",
-              message:
-                "Route handlers must not import @asym/database/supabase/client directly; re-export handlers from @asym/api instead.",
-            },
-            {
-              name: "@asym/database/supabase/server",
-              message:
-                "Route handlers must not import @asym/database/supabase/server directly; re-export handlers from @asym/api instead.",
-            },
-            {
-              name: "@asym/database/supabase/admin",
-              message:
-                "Route handlers must not import @asym/database/supabase/admin directly; re-export handlers from @asym/api instead.",
-            },
-            {
-              name: "@supabase/ssr",
-              message:
-                "Route handlers must not import @supabase/ssr directly; use @asym/api boundaries.",
-            },
-            {
-              name: "@supabase/supabase-js",
-              message:
-                "Route handlers must not import @supabase/supabase-js directly; use @asym/api boundaries.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": appRestrictedImports({
+        extraPatterns: [
+          {
+            group: [
+              "@asym/database/supabase",
+              "@asym/database/supabase/*",
+              "@asym/database/supabase/**",
+            ],
+            message:
+              "Route handlers must not import Supabase clients directly; re-export handlers from @asym/api instead.",
+          },
+          {
+            group: ["@supabase/*"],
+            message:
+              "Route handlers must not import @supabase/* directly; use @asym/api boundaries.",
+          },
+        ],
+        extraPaths: [
+          {
+            name: "@asym/database/supabase",
+            message:
+              "Route handlers must not import @asym/database/supabase directly; re-export handlers from @asym/api instead.",
+          },
+          {
+            name: "@asym/database/supabase/client",
+            message:
+              "Route handlers must not import @asym/database/supabase/client directly; re-export handlers from @asym/api instead.",
+          },
+          {
+            name: "@asym/database/supabase/server",
+            message:
+              "Route handlers must not import @asym/database/supabase/server directly; re-export handlers from @asym/api instead.",
+          },
+          {
+            name: "@asym/database/supabase/admin",
+            message:
+              "Route handlers must not import @asym/database/supabase/admin directly; re-export handlers from @asym/api instead.",
+          },
+          {
+            name: "@supabase/ssr",
+            message:
+              "Route handlers must not import @supabase/ssr directly; use @asym/api boundaries.",
+          },
+          {
+            name: "@supabase/supabase-js",
+            message:
+              "Route handlers must not import @supabase/supabase-js directly; use @asym/api boundaries.",
+          },
+        ],
+      }),
     },
   },
   {

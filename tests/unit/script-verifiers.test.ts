@@ -166,7 +166,15 @@ async function createEslintVerifyRepo() {
     path.join(tempRoot, "tooling/eslint-config/base.mjs"),
     [
       "export default {",
-      '  markers: ["no-restricted-imports", "../../apps/*", "**/apps/admin/**", "**/apps/donor/**", "**/apps/missionary/**"],',
+      '  markers: ["no-restricted-imports", "restrictedImports("],',
+      "};",
+    ].join("\n"),
+  );
+  await writeFile(
+    path.join(tempRoot, "tooling/eslint-config/restricted-imports.mjs"),
+    [
+      "export default {",
+      '  markers: ["../../apps/*", "**/apps/admin/**", "**/apps/donor/**", "**/apps/missionary/**"],',
       "};",
     ].join("\n"),
   );
