@@ -50,6 +50,35 @@ describe("contribution CRM retry client imports", () => {
     ).toBe("./src/admin/contribution-operations/crm-retry-support.ts");
   });
 
+  it("keeps the CRM table-preferences client graph free of next/server", () => {
+    // GiftInlineActionControls (a client component) imports
+    // resolveCrmRowAction from the table-preferences barrel, which reaches
+    // row-action -> inline-actions -> viewer-action-availability ->
+    // permissions/approval-policy. None of those modules may pull
+    // shared/http-errors (and its next/server import) into the client
+    // bundle; browser-safe throwers use shared/api-http-error instead.
+    const clientGraphModulePaths = [
+      "../../../../../packages/api/src/admin/crm/table-preferences/index.ts",
+      "../../../../../packages/api/src/admin/crm/table-preferences/row-action.ts",
+      "../../../../../packages/api/src/admin/crm/table-preferences/view-settings.ts",
+      "../../../../../packages/api/src/admin/contribution-operations/inline-actions.ts",
+      "../../../../../packages/api/src/admin/contribution-operations/viewer-action-availability.ts",
+      "../../../../../packages/api/src/admin/contribution-operations/permissions.ts",
+      "../../../../../packages/api/src/admin/contribution-operations/approval-policy.ts",
+      "../../../../../packages/api/src/admin/contribution-operations/policy.ts",
+      "../../../../../packages/api/src/shared/api-http-error.ts",
+    ].map((relativePath) =>
+      fileURLToPath(new URL(relativePath, import.meta.url)),
+    );
+
+    for (const modulePath of clientGraphModulePaths) {
+      const source = readFileSync(modulePath, "utf8");
+      expect(source).not.toMatch(
+        /from\s+"(?:next\/server|[^"]*shared\/http-errors)"/,
+      );
+    }
+  });
+
   it("keeps every retired CRM posting scope fail closed with current guidance", () => {
     expect(isContributionCrmPostingSupported()).toBe(false);
     expect(isContributionRouteCrmRetryScopeSupported("parent")).toBe(false);

@@ -169,12 +169,11 @@ describe("admin/contribution-operations/inline-actions", () => {
         viewerCapabilities: DONOR_CARE_CAPABILITIES,
       },
       {
+        // Approval-gated corrections execute as correction REQUESTS, so an
+        // apply-only viewer (no request capability) must not see them — the
+        // executor's assertCanRequestCorrection would answer 403.
         approvalPolicy: undefined,
-        expectedActionTypes: [
-          "amount_correction",
-          "approve_staged_gift",
-          "fund_correction",
-        ],
+        expectedActionTypes: ["approve_staged_gift"],
         viewerCapabilities: APPLY_ONLY_CAPABILITIES,
       },
       {
@@ -374,6 +373,22 @@ describe("admin/contribution-operations/inline-actions", () => {
       ).toBeUndefined();
     },
   );
+
+  it("requires the request capability for approval-gated correction entries", () => {
+    // Default policy requires approval, so amount/fund corrections execute
+    // through createPendingCorrectionRequest. A viewer holding only
+    // contributions.apply_corrections cannot create that request (403), so
+    // the entries must not be advertised.
+    const inline = buildInlineContributionActions({
+      availability: availabilityFor(),
+      providerPaymentIntentId: "pi_1",
+      viewerCapabilities: APPLY_ONLY_CAPABILITIES,
+    });
+
+    const actionTypes = inline.entries.map((entry) => entry.actionType);
+    expect(actionTypes).not.toContain("amount_correction");
+    expect(actionTypes).not.toContain("fund_correction");
+  });
 
   it("hides request-only correction entries when approval policy allows direct apply", () => {
     const inline = buildInlineContributionActions({

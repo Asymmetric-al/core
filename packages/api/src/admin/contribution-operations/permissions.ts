@@ -1,4 +1,4 @@
-import { ApiHttpError } from "../../shared/http-errors";
+import { ApiHttpError } from "../../shared/api-http-error";
 
 import type { ContributionActionType, ContributionPermission } from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";

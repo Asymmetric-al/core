@@ -102,6 +102,8 @@ export function requiredCapabilitiesForContributionOperation(
   return requiredCapabilitiesForContributionAction(actionType, { mode });
 }
 
+const REQUEST_CORRECTION_CAPABILITY = "contributions.request_corrections";
+
 export function viewerCanUseContributionOperation(input: {
   actionType: CrmGiftInlineActionType;
   approvalPolicy: CorrectionApprovalPolicy;
@@ -111,18 +113,32 @@ export function viewerCanUseContributionOperation(input: {
     input.actionType,
     input.approvalPolicy,
   );
-  const requiresEveryCapability =
-    (input.actionType === "refund" || input.actionType === "stripe_replay") &&
-    correctionRequiresApproval({
-      actionType: input.actionType,
-      policy: input.approvalPolicy,
-    });
+  const approvalRequired = correctionRequiresApproval({
+    actionType: input.actionType,
+    policy: input.approvalPolicy,
+  });
+  const executesAsApprovalRequest =
+    approvalRequired &&
+    requiredCapabilities.includes(REQUEST_CORRECTION_CAPABILITY);
 
-  return requiresEveryCapability
-    ? requiredCapabilities.every((capability) =>
-        input.viewerCapabilities.includes(capability),
-      )
-    : requiredCapabilities.some((capability) =>
+  if (executesAsApprovalRequest) {
+    // Provider-touching requests keep the stricter route gate: the requester
+    // must hold BOTH the direct capability and the request capability.
+    if (input.actionType === "refund" || input.actionType === "stripe_replay") {
+      return requiredCapabilities.every((capability) =>
         input.viewerCapabilities.includes(capability),
       );
+    }
+
+    // Approval-gated corrections execute through
+    // createPendingCorrectionRequest, whose gate is the request capability
+    // (assertCanRequestCorrection). Mirror it exactly so the UI never
+    // advertises a submit that the executor answers with 403 — holding only
+    // the direct apply capability is not enough to create the request.
+    return input.viewerCapabilities.includes(REQUEST_CORRECTION_CAPABILITY);
+  }
+
+  return requiredCapabilities.some((capability) =>
+    input.viewerCapabilities.includes(capability),
+  );
 }
