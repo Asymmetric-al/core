@@ -72,7 +72,8 @@ const DONOR_RELATIONSHIP_SELECT = `
   gift_count,
   frequency,
   tags,
-  has_active_pledge
+  has_active_pledge,
+  giving_preferences
 `;
 
 const TASK_SELECT = `
@@ -90,7 +91,7 @@ const TASK_SELECT = `
   is_auto_generated,
   created_at,
   updated_at,
-  donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url)
+  donor:donors!missionary_tasks_donor_id_fkey(id, name, email, avatar_url, giving_preferences)
 `;
 
 const POST_SELECT = `

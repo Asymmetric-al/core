@@ -20,17 +20,17 @@ import {
   SheetTrigger,
 } from "@asym/ui/components/shadcn/sheet";
 
-import type { ReactNode } from "react";
+import type { ReactElement } from "react";
 
 type Props = {
-  trigger: ReactNode;
+  trigger: ReactElement;
   defaultOpen?: boolean;
 };
 
 const ActivityDialog = ({ defaultOpen = false, trigger }: Props) => {
   return (
     <Sheet defaultOpen={defaultOpen}>
-      <SheetTrigger asChild>{trigger}</SheetTrigger>
+      <SheetTrigger render={trigger} />
       <SheetContent className="gap-0 sm:max-w-112 [&>button]:top-2.75 [&>button>svg]:size-5">
         <SheetHeader className="border-b py-2.25">
           <SheetTitle className="text-lg leading-6">Activity</SheetTitle>

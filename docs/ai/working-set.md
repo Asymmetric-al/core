@@ -83,6 +83,83 @@
   - Do not edit third-party vendor directories or installed agent/skill mirrors.
   - Nia tools are unavailable in this session; use repo-scoped `rg` and direct
     file reads.
+## 2026-06-07 (Inngest workflow executor grill)
+
+- Date: 2026-06-07
+- Repo: Asymmetric-al/core
+- Goal: Stress-test and sharpen the planned Inngest durable workflow executor
+  integration before implementation, with no runtime package, route, migration,
+  env var, or workflow code changes in this session.
+- Primary area:
+  - `packages/api/src/crm/**`
+  - `packages/api/src/donate/**`
+  - `packages/api/src/email/webhooks/resend.ts`
+  - `apps/admin/app/api/admin/crm/**`
+  - `apps/donor/app/api/donate/outbox/route.ts`
+  - `docs/guides/features/twenty-crm-integration/**`
+  - `docs/guides/operations/donation-saga-outbox.md`
+  - `docs/guides/features/pdf-studio.md`
+  - `docs/guides/features/inngest-workflows/stripe-donation-workflows.md`
+  - `docs/guides/features/inngest-workflows/resend-email-workflows.md`
+- Stack:
+  - Next.js App Router
+  - TypeScript
+  - Bun
+  - Turborepo
+  - Supabase Postgres
+  - Supabase Auth
+  - Twenty CRM
+  - Stripe
+  - Resend
+  - Inngest
+- Constraints:
+  - Grill-only session: ask one question at a time and wait for answers.
+  - Read repo and current official Inngest docs before the first question.
+  - Keep Inngest out of source-of-truth ownership; Supabase rows,
+    `packages/api`, audit/idempotency/replay tables, and operational logs stay
+    authoritative.
+  - Keep App Router API routes thin; business logic stays in `packages/api`.
+  - Do not put secrets, payment internals, care-sensitive content, full donor
+    records, full email bodies, attachments, rendered docs, or broad CRM
+    payloads in Inngest events.
+  - Stripe payment truth remains in Stripe objects/webhooks plus product
+    donation records. Inngest may recover, reconcile, and summarize workflow
+    progress, but it must not redefine Stripe authorization, settlement, or
+    subscription lifecycle semantics.
+  - ACH Direct Debit checkout can establish mandate/verification/processing
+    state immediately, but payment finality can arrive later through Stripe
+    status updates.
+- Evidence sources used:
+  - User-provided Inngest grill prompt
+  - `AGENTS.md`
+  - `docs/ai/{working-set,stack-registry}.md`
+  - `docs/ai/skills/{grill-with-docs,inngest,inngest-setup,inngest-api,inngest-steps,inngest-agents,inngest-events,inngest-middleware,inngest-brownfield-audit,inngest-durable-functions,inngest-flow-control}/SKILL.md`
+  - `docs/ai/skills/grill-with-docs/CONTEXT-FORMAT.md`
+  - `.agents/skills/stripe-best-practices/SKILL.md`
+  - `.agents/skills/resend/SKILL.md`
+  - `.agents/skills/resend/references/{receiving,webhooks}.md`
+  - Stripe docs for PaymentIntents, Checkout Sessions, Dynamic payment methods,
+    ACH Direct Debit, Link Instant Bank Payments, and Subscriptions.
+  - `packages/api/src/email/webhooks/resend.ts`
+  - `docs/guides/features/resend-integration.md`
+  - `supabase/schema.sql`
+- Latest grill decisions:
+  - Bulk Support Hub message moves use one shared required free-text reason for
+    the batch.
+  - The shared reason is copied into every item-level move audit entry.
+  - Every item-level move audit entry clearly records that the move came from a
+    batch move and includes a stable batch operation identifier.
+  - Batch-level summaries may supplement item-level audit, but never replace it.
+  - Bulk Support Hub message moves may partially succeed. Successful item moves
+    stay moved, failed items remain unchanged, and retry/recovery targets only
+    the failed items.
+  - Bulk move result UI includes `Retry failed` when retryable failed items
+    remain. It retries only failed items through a product server path that
+    re-checks tenant access, reloads item state, uses product work claims, and
+    links retry audit to the original batch operation.
+  - `Retry failed` reuses the original bulk move reason. Retry audit records
+    that the original reason was reused and identifies the retry attempt
+    separately from original item-level move audit entries.
 
 ## 2026-05-23 (PR 241 babysit review feedback)
 

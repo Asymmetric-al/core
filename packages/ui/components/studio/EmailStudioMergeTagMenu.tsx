@@ -42,18 +42,20 @@ export function EmailStudioMergeTagMenu({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-1.5"
-          disabled={disabled}
-        >
-          <Braces className="h-3.5 w-3.5" />
-          Merge tag
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            disabled={disabled}
+          >
+            <Braces className="h-3.5 w-3.5" />
+            Merge tag
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-72">
         <DropdownMenuLabel>Insert merge tag</DropdownMenuLabel>
         <div className="px-2 pb-2">
@@ -73,7 +75,7 @@ export function EmailStudioMergeTagMenu({
             <DropdownMenuItem
               key={tag.key}
               className="flex flex-col items-start gap-0.5"
-              onSelect={() => onInsert(tag.key)}
+              onClick={() => onInsert(tag.key)}
             >
               <span className="font-medium">{tag.label}</span>
               <span className="text-xs text-muted-foreground">

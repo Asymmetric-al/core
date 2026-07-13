@@ -56,7 +56,7 @@ const LABEL_CLASS_NAME =
   "text-[10px] font-semibold uppercase tracking-widest text-zinc-400";
 
 const FIELD_CLASS_NAME =
-  "h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5";
+  "h-11 rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5";
 
 async function updateDonor(donorId: string, value: EditDonorFormValues) {
   const outcome = await updateDonorDetails({ donorId, value });
@@ -386,7 +386,7 @@ export function EditDonorDialog({
           <form.AppField name="notes">
             {(field) => (
               <field.TextareaField
-                inputClassName="min-h-[100px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-all focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
+                inputClassName="min-h-[100px] resize-none rounded-xl border-transparent bg-zinc-50 font-medium transition-colors focus:bg-white focus:ring-2 focus:ring-zinc-900/5"
                 label="Internal Notes"
                 labelClassName={LABEL_CLASS_NAME}
               />

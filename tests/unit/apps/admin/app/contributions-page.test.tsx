@@ -1,14 +1,20 @@
 /** @vitest-environment jsdom */
 
 import { QueryProvider } from "@asym/database/providers";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import {
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ReactNode } from "react";
 
 type ContributionsPageComponent =
-  typeof import("../../../../../apps/admin/app/contributions/page").default;
+  typeof import("../../../../../apps/admin/app/contributions/page-client").default;
 type InvalidateContributionOperationQueries =
   typeof import("../../../../../apps/admin/app/contributions/page-client").invalidateContributionOperationQueries;
 type ContributionsDataModule =
@@ -32,8 +38,6 @@ const ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE = [
   "detail",
 ] as const;
 const ADMIN_CRM_RECORDS_QUERY_KEY_VALUE = ["admin", "crm", "records"] as const;
-const loadEnvSensitiveModulesTimeout =
-  process.platform === "win32" ? 120_000 : 30_000;
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE,
@@ -76,6 +80,29 @@ vi.mock(
 vi.mock("sonner", () => ({
   toast: { info: vi.fn(), error: vi.fn(), success: vi.fn() },
 }));
+
+/**
+ * Compat shim for the AL-265 split: the operation shell (mounted by the
+ * detail overlay for refunds) imports `isFailedProviderOutcomeStatus`, whose
+ * export lands with the server-side refund work. Until then, mirror the
+ * spec'd failed provider-outcome statuses; once the real export exists this
+ * mock passes it straight through.
+ */
+vi.mock("@asym/api/admin/contribution-operations", async (importOriginal) => {
+  const actual = await importOriginal<Record<string, unknown>>();
+  const fallbackIsFailedProviderOutcomeStatus = (status: string) =>
+    status === "failed" ||
+    status === "local_update_failed" ||
+    status === "canceled" ||
+    status === "requires_action";
+  return {
+    ...actual,
+    isFailedProviderOutcomeStatus:
+      typeof actual.isFailedProviderOutcomeStatus === "function"
+        ? actual.isFailedProviderOutcomeStatus
+        : fallbackIsFailedProviderOutcomeStatus,
+  };
+});
 
 vi.mock("@asym/ui/components/boneyard-skeleton", () => ({
   BoneyardSkeleton: ({
@@ -179,9 +206,24 @@ function makeDetailPayload(donationId: string, donorName: string) {
         providerRecurrenceWithoutAgreement: false,
       },
       stagedGift: null,
-      crm: { postStatus: null, twentyRecordId: null },
+      crm: {
+        postStatus: null,
+        twentyRecordId: null,
+        parent: { status: null, twentyRecordId: null, lastError: null },
+        designationRecords: [],
+        failedScopes: [],
+        adapterLimitation: null,
+      },
       auditEvents: [],
       corrections: [],
+      // Original donation truth — the refund shell derives its figures from
+      // this basis, never the adjusted effective amount (#265).
+      original: {
+        amountCents: 10000,
+        fundId: "fund_1",
+        missionaryId: null,
+        paymentStatus: "completed",
+      },
       tasks: [],
       batches: [],
       donorVisible: {
@@ -233,9 +275,14 @@ function installDom() {
   globalThis.EventTarget = dom.window.EventTarget;
   globalThis.NodeFilter = dom.window.NodeFilter;
   globalThis.MouseEvent = dom.window.MouseEvent;
+  globalThis.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
+  dom.window.PointerEvent = dom.window.MouseEvent as typeof PointerEvent;
   globalThis.KeyboardEvent = dom.window.KeyboardEvent;
   globalThis.MutationObserver = dom.window.MutationObserver;
   globalThis.getComputedStyle = dom.window.getComputedStyle;
+  globalThis.Element.prototype.getAnimations ??= function getAnimations() {
+    return [];
+  };
   globalThis.requestAnimationFrame = (callback) =>
     window.setTimeout(callback, 0);
   globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
@@ -280,10 +327,8 @@ async function loadEnvSensitiveModules() {
     await import("../../../../../apps/admin/app/contributions/data");
   const pageClientModule =
     await import("../../../../../apps/admin/app/contributions/page-client");
-  const contributionsPageModule =
-    await import("../../../../../apps/admin/app/contributions/page");
 
-  ContributionsPage = contributionsPageModule.default;
+  ContributionsPage = pageClientModule.default;
   invalidateContributionOperationQueries =
     pageClientModule.invalidateContributionOperationQueries;
   boneyardContributionsFixture = dataModule.boneyardContributionsFixture;
@@ -296,7 +341,7 @@ async function loadEnvSensitiveModules() {
     databaseHooksModule.MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY;
 }
 
-describe("apps/admin/app/contributions/page", () => {
+describe("apps/admin/app/contributions/page-client", () => {
   afterEach(() => {
     cleanup();
     vi.clearAllMocks();
@@ -339,7 +384,7 @@ describe("apps/admin/app/contributions/page", () => {
         isPending: false,
       }),
     );
-  }, loadEnvSensitiveModulesTimeout);
+  }, 60_000);
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");
@@ -569,6 +614,14 @@ describe("apps/admin/app/contributions/page", () => {
           crm: {
             postStatus: "failed",
             twentyRecordId: null,
+            parent: {
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the gift record.",
+            },
+            designationRecords: [],
+            failedScopes: [{ scope: "parent" }],
+            adapterLimitation: null,
           },
           auditEvents: [],
           corrections: [],
@@ -680,7 +733,14 @@ describe("apps/admin/app/contributions/page", () => {
           refund: { status: "none", amount: 0, refundedAt: null },
           recurring: { isRecurring: false, interval: null, pledgeId: null },
           stagedGift: null,
-          crm: { postStatus: null, twentyRecordId: null },
+          crm: {
+            postStatus: null,
+            twentyRecordId: null,
+            parent: { status: null, twentyRecordId: null, lastError: null },
+            designationRecords: [],
+            failedScopes: [],
+            adapterLimitation: null,
+          },
           auditEvents: [],
           corrections: [],
           tasks: [],
@@ -708,6 +768,97 @@ describe("apps/admin/app/contributions/page", () => {
     );
   });
 
+  it("opens the shared refund operation shell from the Hub detail overlay", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012a";
+    mockSearch = `gift=${donationId}`;
+    const detailPayload = makeDetailPayload(donationId, "Refund Donor");
+    const refundableDetail = {
+      contribution: {
+        ...detailPayload.contribution,
+        revision: "2026-05-26T00:00:00.000Z#0",
+        actionAvailability: [
+          {
+            actionType: "refund",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "high",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => refundableDetail,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    // The Hub entry point renders enabled when refund is available.
+    const refundButton = await view.findByRole("button", {
+      name: /refund gift/i,
+    });
+    expect(refundButton).toHaveProperty("disabled", false);
+    fireEvent.click(refundButton);
+
+    // The existing reusable operation shell opens with refund context rows.
+    const shell = await view.findByTestId("contribution-operation-shell");
+    expect(
+      within(shell).getByRole("heading", { name: "Refund gift" }),
+    ).toBeTruthy();
+    expect(await within(shell).findByText("Remaining refundable")).toBeTruthy();
+    // Current amount and remaining refundable both show the $100.00 gift.
+    expect(within(shell).getAllByText("$100.00").length).toBeGreaterThanOrEqual(
+      2,
+    );
+  });
+
+  it("renders a blocked refund reason inline in the Hub detail overlay", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012b";
+    mockSearch = `gift=${donationId}`;
+    const detailPayload = makeDetailPayload(donationId, "Blocked Refund Donor");
+    const blockedDetail = {
+      contribution: {
+        ...detailPayload.contribution,
+        revision: "2026-05-26T00:00:00.000Z#0",
+        actionAvailability: [
+          {
+            actionType: "refund",
+            available: false,
+            blockedReason:
+              "This gift has no payment provider charge to refund against.",
+            nextStep:
+              "Offline gifts are corrected through adjustments rather than provider refunds.",
+            riskLevel: "high",
+          },
+        ],
+      },
+    };
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => blockedDetail,
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    const refundButton = await view.findByRole("button", {
+      name: /refund gift/i,
+    });
+    expect(refundButton).toHaveProperty("disabled", true);
+    expect(
+      view.getByText(/no payment provider charge to refund against/i),
+    ).toBeTruthy();
+    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+  });
+
   it("renders deep-linked detail source and anonymous state from shared row fields", async () => {
     const donationId = "00000000-0000-4000-8000-000000000129";
     mockSearch = `gift=${donationId}`;
@@ -728,6 +879,104 @@ describe("apps/admin/app/contributions/page", () => {
 
     expect(await view.findByText("Anonymous Donor")).toBeTruthy();
     expect(view.getByText("Mail")).toBeTruthy();
+  });
+
+  it("posts a scoped designation retry through the shared actions contract", async () => {
+    const donationId = "00000000-0000-4000-8000-000000000131";
+    mockSearch = `gift=${donationId}`;
+    const baseDetail = makeDetailPayload(donationId, "Scoped Retry Donor");
+    const detailPayload = {
+      contribution: {
+        ...baseDetail.contribution,
+        stagedGift: {
+          id: "staged-9",
+          status: "posted",
+          receiptStatus: "sent",
+          crmPostStatus: "failed",
+          reviewReason: null,
+          twentyRecordId: null,
+        },
+        actionAvailability: [
+          {
+            actionType: "retry_staged_gift",
+            available: true,
+            blockedReason: null,
+            nextStep: null,
+            riskLevel: "low",
+          },
+        ],
+        crm: {
+          postStatus: "failed",
+          twentyRecordId: null,
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-9",
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        },
+      },
+    };
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-31",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => detailPayload,
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+
+    expect(await view.findByText("Twenty CRM posting")).toBeTruthy();
+    expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
+
+    fireEvent.click(
+      await view.findByRole("button", { name: /retry this line/i }),
+    );
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+      ).toBe(true);
+    });
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "retry_staged_gift",
+      contributionId: donationId,
+      stagedGiftId: "staged-9",
+      payload: { scope: "designation", allocationId: "alloc-2" },
+    });
   });
 
   it("strips invalid gift query params before fetching detail", async () => {

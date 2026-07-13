@@ -74,7 +74,7 @@ fetch(url):
         <span>Show full implementation (+173 lines)</span
         ><span class="chev">&#9654;</span>
       </div>
-      <div class="bp-body"><div data-diff="retryClient"></div></div>
+      <div class="bp-body"><div data-diff="src/retryClient.ts"></div></div>
     </div>
   </div>
 </div>
@@ -118,7 +118,7 @@ Put `<div data-diff="KEY"></div>` placeholders in your body HTML wherever you wa
 
 ```bash
 gh api repos/{owner}/{repo}/pulls/{number}/files --paginate \
-  --jq '[.[] | {key: (.filename | gsub("[^a-zA-Z0-9]"; "_")), value: (.patch // "")}] | from_entries' \
+  --jq '[.[] | {key: .filename, value: (.patch // "")}] | from_entries' \
   > /tmp/pr-patches-{number}.json
 ```
 
@@ -127,6 +127,7 @@ gh api repos/{owner}/{repo}/pulls/{number}/files --paginate \
 ```bash
 python3 <<'PY'
 import json
+import re
 from pathlib import Path
 
 patches = json.loads(Path('/tmp/pr-patches-{number}.json').read_text())
@@ -142,7 +143,16 @@ out = (
   tmpl.replace('/* INJECT_CSS */', css)
       .replace('/* INJECT_JS */', js)
       .replace('<!-- INJECT_BODY -->', html)
-      .replace('{"__PR_DIFFS_PLACEHOLDER__":true}', safe_json)
+)
+
+# Swap the sentinel JSON inside the pr-diffs-json script element without
+# depending on its exact formatting (formatters may reflow the placeholder).
+out = re.sub(
+    r'(<script id="pr-diffs-json"[^>]*>).*?(</script>)',
+    lambda match: match.group(1) + safe_json + match.group(2),
+    out,
+    count=1,
+    flags=re.DOTALL,
 )
 
 Path('/tmp/pr-review-{number}.html').write_text(out)
@@ -151,10 +161,10 @@ PY
 
 This guarantees valid JSON and script-safe HTML embedding. The agent writes body HTML to a temp file, then Python assembles everything safely.
 
-The diff data keys should match the `data-diff` attribute values in the HTML:
+The diff data keys are the exact PR filenames (so distinct files can never collide), and each `data-diff` attribute value must match one of them:
 
 ```html
-<div data-diff="path_to_file_ts"></div>
+<div data-diff="path/to/file.ts"></div>
 ```
 
 Since renderer.js loads in `<head>`, you can also call `renderDiff(target, lines)` directly from inline `<script>` tags if needed for custom use cases. The function accepts a DOM element, ID string, or CSS selector as `target`, and a string or array as `lines`.

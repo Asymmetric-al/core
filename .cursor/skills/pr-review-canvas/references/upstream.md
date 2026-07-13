@@ -3,7 +3,7 @@ source_name: cursor/plugins (pr-review-canvas)
 source_url: https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/pr-review-canvas
 source_type: github
 upstream_path: cursor-team-kit/skills/pr-review-canvas/
-skills_lock_hash: bc927f24bf3229eb38eb50583ec6e33ea21f699cbe3e1d5b6958de9c668008a8
+skills_lock_hash: 25afd9677569d0036609676903131577043ea61eced6c4d1ac2e29f338cfce9a
 last_reviewed: 2026-06-26
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/pr-review-canvas/` (mirrored to `.c
 - **Commit reviewed:** `0452e08a314c03621ec5ac1324f1ad1dd824f1a4`
 - **Upstream path:** `cursor-team-kit/skills/pr-review-canvas/`
 - **Lock skillPath:** `cursor-team-kit/skills/pr-review-canvas/SKILL.md`
-- **Computed hash:** `bc927f24bf3229eb38eb50583ec6e33ea21f699cbe3e1d5b6958de9c668008a8`
+- **Computed hash:** `25afd9677569d0036609676903131577043ea61eced6c4d1ac2e29f338cfce9a`
 
 ## Refresh from upstream
 

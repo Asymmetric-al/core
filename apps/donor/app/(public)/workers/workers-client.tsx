@@ -1,11 +1,13 @@
 "use client";
 
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import {
+  useWithinViewTransitionRouteLayer,
   workerHeroImageTransitionName,
   workerTitleTransitionName,
 } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,6 +18,7 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
+import { cn } from "@asym/ui/lib/utils";
 import {
   Search,
   MapPin,
@@ -34,10 +37,21 @@ import { useState, useMemo } from "react";
 import { QuickGiveInput } from "@/features/giving/components/QuickGiveInput";
 import { getFieldWorkers, type FieldWorker } from "@/lib/mock-data";
 
-function WorkerCard({ worker }: { worker: FieldWorker }) {
+function WorkerCard({
+  worker,
+  animateEntrance,
+}: {
+  worker: FieldWorker;
+  animateEntrance: boolean;
+}) {
   return (
-    <article className="group flex flex-col animate-fade-in-up">
-      <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-zinc-200/50 ring-1 ring-black/5 transition-all duration-500 ease-out group-hover:shadow-2xl group-hover:shadow-zinc-300/60 group-hover:-translate-y-1 group-hover:ring-emerald-500/20">
+    <article
+      className={cn(
+        "group flex flex-col",
+        animateEntrance && "animate-fade-in-up",
+      )}
+    >
+      <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-zinc-200/50 ring-1 ring-black/5 transition-[box-shadow,transform] duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-300/60 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-1 [@media(hover:hover)_and_(pointer:fine)]:group-hover:ring-emerald-500/20">
         <Link
           href={`/workers/${worker.id}`}
           className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-2xl"
@@ -61,7 +75,7 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
         <div className="absolute inset-0 opacity-90 group-hover:opacity-80 transition-opacity duration-500 pointer-events-none" />
 
         <div className="absolute top-4 left-4 z-20 transition-transform duration-500 ease-out group-hover:translate-x-0.5">
-          <Badge className="bg-white/10 backdrop-blur-md text-white border-white/20 font-medium text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-xl transition-all duration-300 group-hover:bg-white/15 group-hover:border-white/30">
+          <Badge className="bg-white/10 backdrop-blur-md text-white border-white/20 font-medium text-[10px] uppercase tracking-widest px-3 py-1.5 rounded-xl transition-colors group-hover:bg-white/15 group-hover:border-white/30">
             {worker.category}
           </Badge>
         </div>
@@ -69,13 +83,13 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
         <div className="absolute bottom-0 left-0 right-0 p-5 z-20">
           <div className="flex items-center gap-2 text-[11px] font-medium text-white/60 mb-2 uppercase tracking-wider transition-colors duration-300 group-hover:text-white/90">
             <MapPin
-              className="size-3 flex-shrink-0 text-emerald-400 transition-transform duration-300 group-hover:scale-110"
+              className="size-3 flex-shrink-0 text-emerald-400 transition-transform duration-300 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110"
               aria-hidden="true"
             />
             <span className="truncate">{worker.location}</span>
           </div>
 
-          <h2 className="text-xl sm:text-2xl font-semibold text-white leading-tight mb-4 group-hover:tracking-tight transition-all duration-300">
+          <h2 className="text-xl sm:text-2xl font-semibold text-white leading-tight mb-4">
             <Link
               href={`/workers/${worker.id}`}
               className="group/name inline-flex items-center gap-2 cursor-pointer hover:text-emerald-300 transition-colors duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 rounded-sm"
@@ -85,15 +99,18 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
               >
                 <span className="relative inline-block">
                   {worker.title}
-                  <span className="absolute -bottom-0.5 left-0 w-0 h-[2px] bg-emerald-400 transition-all duration-300 ease-out group-hover/name:w-full" />
+                  <span className="absolute -bottom-0.5 left-0 w-full h-[2px] bg-emerald-400 origin-left scale-x-0 transition-transform duration-300 ease-out group-hover/name:scale-x-100" />
                 </span>
               </SharedNamedViewTransition>
-              <ArrowRight className="size-4 sm:h-5 sm:w-5 text-emerald-400 opacity-0 -translate-x-2 transition-all duration-300 ease-out group-hover/name:opacity-100 group-hover/name:translate-x-0" />
+              <ArrowRight className="size-4 sm:h-5 sm:w-5 text-emerald-400 opacity-0 -translate-x-2 transition-[opacity,transform] duration-300 ease-out group-hover/name:opacity-100 group-hover/name:translate-x-0" />
             </Link>
           </h2>
 
           <div className="relative z-30">
-            <QuickGiveInput workerId={worker.id} />
+            <QuickGiveInput
+              missionaryId={worker.givingMissionaryId}
+              workerId={worker.id}
+            />
           </div>
         </div>
       </div>
@@ -109,6 +126,9 @@ function WorkerCard({ worker }: { worker: FieldWorker }) {
 
 export function WorkersPageClient() {
   const [searchTerm, setSearchTerm] = useState("");
+  // Route VT owns the entrance when active (incl. hero/title share morphs);
+  // only run the card fade/stagger on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
   const [categoryFilter, setCategoryFilter] = useState<string>("All");
   const [regionFilter, setRegionFilter] = useState<string>("All");
 
@@ -215,24 +235,26 @@ export function WorkersPageClient() {
 
             <div className="flex gap-2 flex-wrap sm:flex-nowrap">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
-                  >
-                    <Filter
-                      className="size-4 text-zinc-400 shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span className="truncate">
-                      {categoryFilter === "All" ? "Focus" : categoryFilter}
-                    </span>
-                    <ChevronDown
-                      className="size-3 opacity-50 shrink-0"
-                      aria-hidden="true"
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
+                    >
+                      <Filter
+                        className="size-4 text-zinc-400 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">
+                        {categoryFilter === "All" ? "Focus" : categoryFilter}
+                      </span>
+                      <ChevronDown
+                        className="size-3 opacity-50 shrink-0"
+                        aria-hidden="true"
+                      />
+                    </Button>
+                  }
+                />
                 <DropdownMenuContent
                   align="end"
                   className="w-56 p-2 rounded-xl"
@@ -255,24 +277,26 @@ export function WorkersPageClient() {
               </DropdownMenu>
 
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
-                  >
-                    <MapPin
-                      className="size-4 text-zinc-400 shrink-0"
-                      aria-hidden="true"
-                    />
-                    <span className="truncate">
-                      {regionFilter === "All" ? "Region" : regionFilter}
-                    </span>
-                    <ChevronDown
-                      className="size-3 opacity-50 shrink-0"
-                      aria-hidden="true"
-                    />
-                  </Button>
-                </DropdownMenuTrigger>
+                <DropdownMenuTrigger
+                  render={
+                    <Button
+                      variant="outline"
+                      className="h-11 sm:h-12 px-4 sm:px-5 rounded-lg sm:rounded-xl border-zinc-200 text-zinc-700 hover:bg-zinc-50 bg-white gap-2 font-medium text-sm flex-1 sm:flex-none justify-between sm:justify-start"
+                    >
+                      <MapPin
+                        className="size-4 text-zinc-400 shrink-0"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate">
+                        {regionFilter === "All" ? "Region" : regionFilter}
+                      </span>
+                      <ChevronDown
+                        className="size-3 opacity-50 shrink-0"
+                        aria-hidden="true"
+                      />
+                    </Button>
+                  }
+                />
                 <DropdownMenuContent
                   align="end"
                   className="w-56 p-2 rounded-xl"
@@ -333,9 +357,13 @@ export function WorkersPageClient() {
             {filteredWorkers.map((worker, index) => (
               <div
                 key={worker.id}
-                style={{ animationDelay: `${Math.min(index * 50, 300)}ms` }}
+                style={
+                  withinRouteVt
+                    ? undefined
+                    : { animationDelay: `${Math.min(index * 50, 300)}ms` }
+                }
               >
-                <WorkerCard worker={worker} />
+                <WorkerCard worker={worker} animateEntrance={!withinRouteVt} />
               </div>
             ))}
           </div>
@@ -384,21 +412,24 @@ export function WorkersPageClient() {
             Resources are instantly routed to the highest-priority urgent needs.
           </p>
           <div className="flex flex-col sm:flex-row justify-center gap-3 sm:gap-4">
-            <Button
-              size="lg"
-              className="h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm sm:text-base font-semibold shadow-xl w-full sm:w-auto"
-              asChild
+            <Link
+              href={buildCheckoutHref({ fundId: "general" })}
+              className={cn(
+                buttonVariants({ size: "lg" }),
+                "h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white text-zinc-900 hover:bg-zinc-100 text-sm sm:text-base font-semibold shadow-xl w-full sm:w-auto",
+              )}
             >
-              <Link href="/checkout?fund=general">Support Urgent Needs</Link>
-            </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-sm sm:text-base font-semibold backdrop-blur-xl w-full sm:w-auto"
-              asChild
+              Support Urgent Needs
+            </Link>
+            <Link
+              href="/about"
+              className={cn(
+                buttonVariants({ variant: "outline", size: "lg" }),
+                "h-12 sm:h-14 px-6 sm:px-10 rounded-xl sm:rounded-2xl bg-white/5 border-white/10 text-white hover:bg-white/10 hover:border-white/20 text-sm sm:text-base font-semibold backdrop-blur-xl w-full sm:w-auto",
+              )}
             >
-              <Link href="/about">How We Verify</Link>
-            </Button>
+              How We Verify
+            </Link>
           </div>
         </div>
       </section>

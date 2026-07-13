@@ -8,6 +8,11 @@ The "Give Hope" tenant name that appears in some demo defaults is a test fronten
 Follow the canonical Quickstart in `README.md`:
 
 ```bash
+# Credential-free Mission Control sandbox:
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+
+# Hosted Supabase app development:
 bun run setup
 # set these required values in .env.local:
 # NEXT_PUBLIC_SUPABASE_URL
@@ -31,69 +36,72 @@ Most contributor development uses a hosted Supabase project (no local DB require
 Use this matrix to decide what you need for cloud development vs production. "Required" means the related feature will not work without it.
 This table mirrors `.env.example`. Internal-only vars (for example `NODE_ENV`, `CI`, `SUPABASE_SERVICE_ROLE_KEY`) are provided by the runtime or maintainers and are not required for contributors.
 
-| Variable                                                                                                                 | Requirement                                    | Purpose                                      | Example / default                                          | Feature impact if missing                                  |
-| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
-| `NEXT_PUBLIC_SUPABASE_URL`                                                                                               | Required                                       | Supabase project URL                         | `https://your-project.supabase.co`                         | Auth + data access fail; API routes error.                 |
-| `NEXT_PUBLIC_SUPABASE_ANON_KEY`                                                                                          | Required                                       | Client-safe Supabase key                     | `your-anon-key`                                            | Client auth/data fail; middleware errors.                  |
-| `NEXT_PUBLIC_SITE_URL`                                                                                                   | Optional (dev), recommended in prod            | Base site URL for SEO + routing              | `http://localhost:3000` (default: `https://givehope.org`)  | SEO links + public URLs use fallback.                      |
-| `GOOGLE_SITE_VERIFICATION`                                                                                               | Optional                                       | Google site verification                     | empty                                                      | No verification meta tag.                                  |
-| `BING_SITE_VERIFICATION`                                                                                                 | Optional                                       | Bing site verification                       | empty                                                      | No verification meta tag.                                  |
-| `NEXT_PUBLIC_MAIN_DOMAIN`                                                                                                | Optional                                       | Main domain for subdomain routing            | `localhost:3000`                                           | Subdomain routing uses default.                            |
-| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                                                                                     | Optional (local), required for Stripe checkout | Stripe publishable key                       | `pk_test_...`                                              | Donation checkout fails.                                   |
-| `STRIPE_SECRET_KEY`                                                                                                      | Optional (local), required for Stripe API      | Stripe secret key                            | `sk_test_...`                                              | Server donation processing fails.                          |
-| `NEXT_PUBLIC_EMAIL_STUDIO_BUILDER`                                                                                       | Optional                                       | Email Studio builder runtime                 | `react_email`                                              | New templates use React Email by default.                  |
-| `NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED`                                                                        | Optional                                       | Legacy template/PDF editor toggle            | `true`                                                     | Existing Unlayer templates/PDF Studio disabled when false. |
-| `NEXT_PUBLIC_UNLAYER_PROJECT_ID`                                                                                         | Optional legacy; required for PDF export       | Legacy Unlayer project id                    | `123456`                                                   | PDF Studio export/legacy paid features disabled.           |
-| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL`                                                                                        | Optional legacy                                | Legacy Unlayer white-label toggle            | `false`                                                    | Legacy editor shows default branding.                      |
-| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS`                                                                                    | Optional legacy                                | Legacy allowed domains                       | `localhost,127.0.0.1`                                      | Extra legacy editor domains not permitted.                 |
-| `NEXT_PUBLIC_BRAND_NAME`                                                                                                 | Optional                                       | Studio brand name                            | `GiveHope`                                                 | Defaults apply.                                            |
-| `NEXT_PUBLIC_BRAND_LOGO_URL`                                                                                             | Optional                                       | Studio logo URL                              | `https://.../logo.png`                                     | Logo missing in editors.                                   |
-| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR`                                                                                        | Optional                                       | Brand primary color                          | `#0f172a`                                                  | Defaults apply.                                            |
-| `NEXT_PUBLIC_BRAND_ACCENT_COLOR`                                                                                         | Optional                                       | Brand accent color                           | `#2563eb`                                                  | Defaults apply.                                            |
-| `NEXT_PUBLIC_EMAIL_FOOTER_TEXT`                                                                                          | Optional                                       | Default email footer text                    | `YourOrg - 123 Main St`                                    | Footer empty.                                              |
-| `NEXT_PUBLIC_PDF_FOOTER_TEXT`                                                                                            | Optional                                       | Default PDF footer text                      | `YourOrg - 123 Main St`                                    | Falls back to email footer or empty.                       |
-| `DOCRAPTOR_API_KEY`                                                                                                      | Optional, server-only                          | DocRaptor API key for future PDF generation  | `...`                                                      | Unused until DocRaptor integration ships.                  |
-| `TWENTY_API_URL` / `TWENTY_API_KEY` / `TWENTY_WEBHOOK_SECRET` / `TWENTY_WORKSPACE_ID`                                    | Optional; required for CRM sync                | Twenty CRM gateway and webhook configuration | `TWENTY_API_URL=https://api.twenty.com/rest`; others empty | Twenty-backed CRM sync surfaces remain disabled.           |
-| `TWENTY_RATE_LIMIT_RPM`                                                                                                  | Optional                                       | Twenty API rate limit guard                  | `100`                                                      | Callers use default rate limit.                            |
-| `CRM_SYNC_INBOUND_ENABLED` / `CRM_SYNC_OUTBOUND_ENABLED` / `CRM_SYNC_REPLAY_ENABLED` / `CRM_SYNC_RECONCILIATION_ENABLED` | Optional                                       | CRM sync toggles                             | `false`                                                    | CRM sync workers stay disabled.                            |
-| `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS`                                                                                     | Optional                                       | Twenty webhook timestamp tolerance           | `300`                                                      | Defaults to 300 seconds.                                   |
-| `NEXT_PUBLIC_CLOUDINARY_ENABLED`                                                                                         | Optional                                       | Enable Cloudinary integration                | `false`                                                    | Cloudinary features disabled.                              |
-| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`                                                                                      | Required when Cloudinary enabled               | Cloudinary cloud name                        | `your-cloud`                                               | Uploads/media features fail.                               |
-| `NEXT_PUBLIC_CLOUDINARY_API_KEY`                                                                                         | Required when Cloudinary enabled               | Cloudinary API key                           | `your-key`                                                 | Uploads/media features fail.                               |
-| `CLOUDINARY_API_SECRET`                                                                                                  | Required when Cloudinary enabled               | Cloudinary API secret                        | `your-secret`                                              | Uploads/media features fail.                               |
-| `NEXT_PUBLIC_SENTRY_DSN`                                                                                                 | Optional                                       | Sentry DSN                                   | empty                                                      | Monitoring disabled (warning logged).                      |
-| `CRON_SECRET`                                                                                                            | Optional (recommended in prod)                 | Bearer token for cron endpoints              | `random-string`                                            | Cron endpoints unauthenticated.                            |
-| `ALLOW_DEMO_ACCOUNTS`                                                                                                    | Optional                                       | Allow demo accounts in prod                  | `false`                                                    | Demo account API disabled in production.                   |
-| `DEMO_ADMIN_EMAIL`                                                                                                       | Optional                                       | Demo admin email                             | empty                                                      | Demo admin login disabled.                                 |
-| `DEMO_MISSIONARY_EMAIL`                                                                                                  | Optional                                       | Demo missionary email                        | empty                                                      | Demo missionary login disabled.                            |
-| `DEMO_DONOR_EMAIL`                                                                                                       | Optional                                       | Demo donor email                             | empty                                                      | Demo donor login disabled.                                 |
-| `DEMO_PASSWORD`                                                                                                          | Optional                                       | Demo account password (shared)               | empty                                                      | Demo login disabled.                                       |
-| `PLAYWRIGHT_BASE_URL`                                                                                                    | Optional                                       | Base URL for Playwright                      | `http://127.0.0.1:3005`                                    | Uses default if unset.                                     |
-| `VERIFY_E2E_PROJECTS`                                                                                                    | Optional                                       | Run all Playwright projects                  | `all`                                                      | Only Chromium project runs.                                |
+| Variable                                                                                                                 | Requirement                                    | Purpose                                      | Example / default                                          | Feature impact if missing                                              |
+| ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------- | ---------------------------------------------------------------------- |
+| `NEXT_PUBLIC_SUPABASE_URL`                                                                                               | Required                                       | Supabase project URL                         | `https://your-project.supabase.co`                         | Auth + data access fail; API routes error.                             |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY`                                                                                          | Required                                       | Client-safe Supabase key                     | `your-anon-key`                                            | Client auth/data fail; middleware errors.                              |
+| `NEXT_PUBLIC_SITE_URL`                                                                                                   | Optional (dev), recommended in prod            | Base site URL for SEO + routing              | `http://localhost:3000` (default: `https://givehope.org`)  | SEO links + public URLs use fallback.                                  |
+| `GOOGLE_SITE_VERIFICATION`                                                                                               | Optional                                       | Google site verification                     | empty                                                      | No verification meta tag.                                              |
+| `BING_SITE_VERIFICATION`                                                                                                 | Optional                                       | Bing site verification                       | empty                                                      | No verification meta tag.                                              |
+| `NEXT_PUBLIC_MAIN_DOMAIN`                                                                                                | Optional                                       | Main domain for subdomain routing            | `localhost:3000`                                           | Subdomain routing uses default.                                        |
+| `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`                                                                                     | Optional (local), required for Stripe checkout | Stripe publishable key                       | `pk_test_...`                                              | Donation checkout fails.                                               |
+| `STRIPE_SECRET_KEY`                                                                                                      | Optional (local), required for Stripe API      | Stripe secret key                            | `sk_test_...`                                              | Server donation processing fails.                                      |
+| `NEXT_PUBLIC_EMAIL_STUDIO_BUILDER`                                                                                       | Optional                                       | Email Studio builder runtime                 | `react_email`                                              | Ignored by Email Studio (always React Email); retained in schema only. |
+| `NEXT_PUBLIC_EMAIL_STUDIO_LEGACY_UNLAYER_ENABLED`                                                                        | Optional                                       | Schema-only compatibility flag               | `false`                                                    | Ignored by Email Studio; PDF Studio uses its own fallback flag.        |
+| `NEXT_PUBLIC_UNLAYER_PROJECT_ID`                                                                                         | Optional legacy; required for PDF export       | Legacy Unlayer project id                    | `123456`                                                   | PDF Studio export/legacy paid features disabled.                       |
+| `NEXT_PUBLIC_UNLAYER_WHITE_LABEL`                                                                                        | Optional legacy                                | Legacy Unlayer white-label toggle            | `false`                                                    | Legacy editor shows default branding.                                  |
+| `NEXT_PUBLIC_UNLAYER_ALLOWED_DOMAINS`                                                                                    | Optional legacy                                | Legacy allowed domains                       | `localhost,127.0.0.1`                                      | Extra legacy editor domains not permitted.                             |
+| `NEXT_PUBLIC_BRAND_NAME`                                                                                                 | Optional                                       | Studio brand name                            | `GiveHope`                                                 | Defaults apply.                                                        |
+| `NEXT_PUBLIC_BRAND_LOGO_URL`                                                                                             | Optional                                       | Studio logo URL                              | `https://.../logo.png`                                     | Logo missing in editors.                                               |
+| `NEXT_PUBLIC_BRAND_PRIMARY_COLOR`                                                                                        | Optional                                       | Brand primary color                          | `#0f172a`                                                  | Defaults apply.                                                        |
+| `NEXT_PUBLIC_BRAND_ACCENT_COLOR`                                                                                         | Optional                                       | Brand accent color                           | `#2563eb`                                                  | Defaults apply.                                                        |
+| `NEXT_PUBLIC_EMAIL_FOOTER_TEXT`                                                                                          | Optional                                       | Default email footer text                    | `YourOrg - 123 Main St`                                    | Footer empty.                                                          |
+| `NEXT_PUBLIC_PDF_FOOTER_TEXT`                                                                                            | Optional                                       | Default PDF footer text                      | `YourOrg - 123 Main St`                                    | Falls back to email footer or empty.                                   |
+| `DOCRAPTOR_API_KEY`                                                                                                      | Optional, server-only                          | DocRaptor API key for future PDF generation  | `...`                                                      | Unused until DocRaptor integration ships.                              |
+| `TWENTY_API_URL` / `TWENTY_API_KEY` / `TWENTY_WEBHOOK_SECRET` / `TWENTY_WORKSPACE_ID`                                    | Optional; required for CRM sync                | Twenty CRM gateway and webhook configuration | `TWENTY_API_URL=https://api.twenty.com/rest`; others empty | Twenty-backed CRM sync surfaces remain disabled.                       |
+| `TWENTY_RATE_LIMIT_RPM`                                                                                                  | Optional                                       | Twenty API rate limit guard                  | `100`                                                      | Callers use default rate limit.                                        |
+| `CRM_SYNC_INBOUND_ENABLED` / `CRM_SYNC_OUTBOUND_ENABLED` / `CRM_SYNC_REPLAY_ENABLED` / `CRM_SYNC_RECONCILIATION_ENABLED` | Optional                                       | CRM sync toggles                             | `false`                                                    | CRM sync workers stay disabled.                                        |
+| `CRM_SYNC_WEBHOOK_TOLERANCE_SECONDS`                                                                                     | Optional                                       | Twenty webhook timestamp tolerance           | `300`                                                      | Defaults to 300 seconds.                                               |
+| `NEXT_PUBLIC_CLOUDINARY_ENABLED`                                                                                         | Optional                                       | Enable Cloudinary integration                | `false`                                                    | Cloudinary features disabled.                                          |
+| `NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME`                                                                                      | Required when Cloudinary enabled               | Cloudinary cloud name                        | `your-cloud`                                               | Uploads/media features fail.                                           |
+| `NEXT_PUBLIC_CLOUDINARY_API_KEY`                                                                                         | Required when Cloudinary enabled               | Cloudinary API key                           | `your-key`                                                 | Uploads/media features fail.                                           |
+| `CLOUDINARY_API_SECRET`                                                                                                  | Required when Cloudinary enabled               | Cloudinary API secret                        | `your-secret`                                              | Uploads/media features fail.                                           |
+| `NEXT_PUBLIC_SENTRY_DSN`                                                                                                 | Optional                                       | Sentry DSN                                   | empty                                                      | Monitoring disabled (warning logged).                                  |
+| `CRON_SECRET`                                                                                                            | Optional (recommended in prod)                 | Bearer token for cron endpoints              | `random-string`                                            | Cron endpoints unauthenticated.                                        |
+| `ALLOW_DEMO_ACCOUNTS`                                                                                                    | Optional                                       | Allow demo accounts in prod                  | `false`                                                    | Demo account API disabled in production.                               |
+| `DEMO_ADMIN_EMAIL`                                                                                                       | Optional                                       | Demo admin email                             | empty                                                      | Demo admin login disabled.                                             |
+| `DEMO_MISSIONARY_EMAIL`                                                                                                  | Optional                                       | Demo missionary email                        | empty                                                      | Demo missionary login disabled.                                        |
+| `DEMO_DONOR_EMAIL`                                                                                                       | Optional                                       | Demo donor email                             | empty                                                      | Demo donor login disabled.                                             |
+| `DEMO_PASSWORD`                                                                                                          | Optional                                       | Demo account password (shared)               | empty                                                      | Demo login disabled.                                                   |
+| `PLAYWRIGHT_BASE_URL`                                                                                                    | Optional                                       | Base URL for Playwright                      | `http://127.0.0.1:3005`                                    | Uses default if unset.                                                 |
+| `VERIFY_E2E_PROJECTS`                                                                                                    | Optional                                       | Run all Playwright projects                  | `all`                                                      | Only Chromium project runs.                                            |
 
 ## Troubleshooting
 
-| Issue                      | Quick fix                                                                                                                 |
-| -------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
-| Supabase envs missing      | Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.                                       |
-| Supabase URL not reachable | Verify the URL or request access to the shared dev project.                                                               |
-| Demo login disabled        | Ensure `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` are set for pre-seeded users. |
+| Issue                       | Quick fix                                                                                                                       |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| No Supabase credentials yet | Run `bun run setup:mission-control:cloud` and then `bun run dev:mission-control` for a credential-free Mission Control sandbox. |
+| Supabase envs missing       | Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` in `.env.local`.                                             |
+| Supabase URL not reachable  | Verify the URL or request access to the shared dev project.                                                                     |
+| Demo login disabled         | Ensure `DEMO_ADMIN_EMAIL`, `DEMO_MISSIONARY_EMAIL`, `DEMO_DONOR_EMAIL`, and `DEMO_PASSWORD` are set for pre-seeded users.       |
 
 ## Common Commands
 
-| Command                                                               | Description                                       |
-| --------------------------------------------------------------------- | ------------------------------------------------- |
-| `bun run setup`                                                       | Initial setup (env + deps + verify)               |
-| `bun run verify`                                                      | Validate dev server + basic connectivity          |
-| `bun run dev`                                                         | Start all apps in dev mode                        |
-| `bun run dev:admin`                                                   | Start admin app only                              |
-| `bun run dev:donor`                                                   | Start donor app only                              |
-| `bun run dev:missionary`                                              | Start missionary app only                         |
-| `bun run lint`                                                        | Lint all apps and packages                        |
-| `bun run typecheck`                                                   | Type-check all apps and packages                  |
-| `bun run build`                                                       | Build all apps and packages                       |
-| `bun run test:e2e`                                                    | Run Playwright E2E tests                          |
-| `bun run react-doctor:first-party -- --full --offline --fail-on none` | Run the configured first-party React Doctor audit |
+| Command                                                               | Description                                                    |
+| --------------------------------------------------------------------- | -------------------------------------------------------------- |
+| `bun run setup`                                                       | Hosted Supabase setup (env + deps + verify)                    |
+| `bun run setup:mission-control:cloud`                                 | Credential-free Mission Control setup for disposable sandboxes |
+| `bun run dev:mission-control`                                         | Run the Mission Control admin app in credential-free mode      |
+| `bun run verify`                                                      | Validate dev server + basic connectivity                       |
+| `bun run dev`                                                         | Start all apps in dev mode                                     |
+| `bun run dev:admin`                                                   | Start admin app only                                           |
+| `bun run dev:donor`                                                   | Start donor app only                                           |
+| `bun run dev:missionary`                                              | Start missionary app only                                      |
+| `bun run lint`                                                        | Lint all apps and packages                                     |
+| `bun run typecheck`                                                   | Type-check all apps and packages                               |
+| `bun run build`                                                       | Build all apps and packages                                    |
+| `bun run test:e2e`                                                    | Run Playwright E2E tests                                       |
+| `bun run react-doctor:first-party -- --full --offline --fail-on none` | Run the configured first-party React Doctor audit              |
 
 Build troubleshooting and CI-parity commands are documented in `docs/guides/development/build-runbook.md`.
 Internal package `build` tasks are source-first TypeScript validation (`tsc --noEmit`), while app builds compile through Next.js.
@@ -230,7 +238,7 @@ import { SITE_CONFIG, NAVIGATION } from "@asym/config";
 import { env } from "@asym/env";
 
 // App-specific feature components (within an app)
-import { TilePage, SidebarNav } from "@/features/mission-control";
+import { TilePage } from "@/features/mission-control/components/tiles/tile-page";
 
 // App-specific components (within an app)
 import { DashboardLayout } from "@/components/layouts";
@@ -240,7 +248,8 @@ import { DashboardLayout } from "@/components/layouts";
 
 ```typescript
 // apps/admin/app/(admin)/mc/my-page/page.tsx
-import { PageHeader, TilePage } from '@/features/mission-control'
+import { PageHeader } from '@/features/mission-control/components/patterns/page-header'
+import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -306,7 +315,7 @@ touch apps/donor/app/\(donor\)/donor-dashboard/my-page/page.tsx
 
 ```typescript
 // apps/admin/app/(admin)/mc/my-page/page.tsx
-import { TilePage } from '@/features/mission-control'
+import { TilePage } from '@/features/mission-control/components/tiles/tile-page'
 import { Card, CardContent, CardHeader, CardTitle } from '@asym/ui'
 
 export default function MyPage() {
@@ -334,9 +343,9 @@ export default function MyPage() {
 
 Edit the appropriate navigation file:
 
-- **Admin:** `apps/admin/features/mission-control/components/app-shell/sidebar-nav.tsx`
-- **Missionary:** `apps/missionary/features/missionary/components/app-shell/sidebar-nav.tsx`
-- **Donor:** `apps/donor/features/donor/components/app-shell/sidebar-nav.tsx`
+- **Admin:** `apps/admin/app/mc-shell.tsx` (shell + sidebar navigation)
+- **Missionary:** `apps/missionary/components/app-sidebar.tsx`
+- **Donor:** `apps/donor/features/donor/components/DonorSubNav.tsx`
 
 ## Adding a New Component
 

@@ -292,7 +292,7 @@ export function EditorToolbar({
   }
 
   return (
-    <TooltipProvider delayDuration={0}>
+    <TooltipProvider delay={0}>
       <div className="sticky top-0 z-10 border-b border-border bg-muted/40 backdrop-blur-sm">
         <div className="flex items-center gap-0.5 overflow-x-auto px-3 sm:px-4 py-2">
           {sections.map((section, i) => {
@@ -340,25 +340,27 @@ function ToolbarButton({
 }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Toggle
-          aria-label={tooltip}
-          size="sm"
-          pressed={active}
-          onPressedChange={onClick}
-          disabled={disabled}
-          className={cn(
-            "size-7 p-0 rounded-md transition-colors",
-            active
-              ? "bg-primary text-primary-foreground"
-              : "hover:bg-muted text-muted-foreground hover:text-foreground",
-            disabled && "opacity-40",
-            className,
-          )}
-        >
-          {children}
-        </Toggle>
-      </TooltipTrigger>
+      <TooltipTrigger
+        render={
+          <Toggle
+            aria-label={tooltip}
+            size="sm"
+            pressed={active}
+            onPressedChange={onClick}
+            disabled={disabled}
+            className={cn(
+              "size-7 p-0 rounded-md transition-colors",
+              active
+                ? "bg-primary text-primary-foreground"
+                : "hover:bg-muted text-muted-foreground hover:text-foreground",
+              disabled && "opacity-40",
+              className,
+            )}
+          >
+            {children}
+          </Toggle>
+        }
+      />
       <TooltipContent side="top" className="text-xs">
         <p>{tooltip}</p>
       </TooltipContent>
@@ -411,24 +413,28 @@ function LinkButton({
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <Tooltip>
-        <TooltipTrigger asChild>
-          <PopoverTrigger asChild>
-            <Button
-              type="button"
-              aria-label={isActive ? "Edit link" : "Add link"}
-              variant="ghost"
-              size="sm"
-              className={cn(
-                "size-7 p-0 rounded-md transition-colors",
-                isActive
-                  ? "bg-primary text-primary-foreground"
-                  : "hover:bg-muted text-muted-foreground hover:text-foreground",
-              )}
+        <TooltipTrigger
+          render={
+            <PopoverTrigger
+              render={
+                <Button
+                  type="button"
+                  aria-label={isActive ? "Edit link" : "Add link"}
+                  variant="ghost"
+                  size="sm"
+                  className={cn(
+                    "size-7 p-0 rounded-md transition-colors",
+                    isActive
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-muted text-muted-foreground hover:text-foreground",
+                  )}
+                />
+              }
             >
               <LinkIcon className="size-3.5" />
-            </Button>
-          </PopoverTrigger>
-        </TooltipTrigger>
+            </PopoverTrigger>
+          }
+        />
         <TooltipContent side="top" className="text-xs">
           Link
         </TooltipContent>
@@ -436,7 +442,7 @@ function LinkButton({
       <PopoverContent
         className="w-72 p-3 rounded-xl border-border shadow-lg"
         align="start"
-        onCloseAutoFocus={(e) => e.preventDefault()}
+        finalFocus={false}
       >
         <form onSubmit={handleSubmit} className="flex flex-col gap-2.5">
           <p className="text-xs text-muted-foreground">
@@ -484,18 +490,20 @@ function LinkButton({
 function ImageClickButton({ onClick }: { onClick: () => void }) {
   return (
     <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          aria-label="Insert image"
-          variant="ghost"
-          size="sm"
-          className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-          type="button"
-          onClick={onClick}
-        >
-          <ImageIcon className="size-3.5" />
-        </Button>
-      </TooltipTrigger>
+      <TooltipTrigger
+        render={
+          <Button
+            aria-label="Insert image"
+            variant="ghost"
+            size="sm"
+            className="size-7 p-0 rounded-md hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+            type="button"
+            onClick={onClick}
+          >
+            <ImageIcon className="size-3.5" />
+          </Button>
+        }
+      />
       <TooltipContent side="top" className="text-xs">
         Image
       </TooltipContent>
@@ -542,23 +550,25 @@ function ImageButton({
         disabled={isUploading}
       />
       <Tooltip>
-        <TooltipTrigger asChild>
-          <Button
-            aria-label={isUploading ? "Uploading image" : "Upload image"}
-            variant="ghost"
-            size="sm"
-            className={cn(
-              "size-7 p-0 rounded-md transition-colors",
-              "hover:bg-muted text-muted-foreground hover:text-foreground",
-              isUploading && "animate-pulse",
-            )}
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={isUploading}
-          >
-            <ImageIcon className="size-3.5" />
-          </Button>
-        </TooltipTrigger>
+        <TooltipTrigger
+          render={
+            <Button
+              aria-label={isUploading ? "Uploading image" : "Upload image"}
+              variant="ghost"
+              size="sm"
+              className={cn(
+                "size-7 p-0 rounded-md transition-colors",
+                "hover:bg-muted text-muted-foreground hover:text-foreground",
+                isUploading && "animate-pulse",
+              )}
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              disabled={isUploading}
+            >
+              <ImageIcon className="size-3.5" />
+            </Button>
+          }
+        />
         <TooltipContent side="top" className="text-xs">
           {isUploading ? "Uploading..." : "Image"}
         </TooltipContent>

@@ -93,13 +93,13 @@ export default function LocationsPage() {
           <TabsList className="h-10 rounded-xl border border-zinc-200 bg-zinc-100/60 p-1">
             <TabsTrigger
               value="map"
-              className="rounded-lg px-4 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg px-4 text-sm font-semibold data-active:bg-white data-active:shadow-sm"
             >
               <Layers className="mr-2 size-3.5" /> Map View
             </TabsTrigger>
             <TabsTrigger
               value="table"
-              className="rounded-lg px-4 text-sm font-semibold data-[state=active]:bg-white data-[state=active]:shadow-sm"
+              className="rounded-lg px-4 text-sm font-semibold data-active:bg-white data-active:shadow-sm"
             >
               <TableIcon className="mr-2 size-3.5" /> Data Table
             </TabsTrigger>
@@ -126,7 +126,7 @@ export default function LocationsPage() {
                 >
                   <MarkerContent>
                     <div
-                      className={`size-6 rounded-full border-4 border-white shadow-xl flex items-center justify-center transition-transform hover:scale-125 ${
+                      className={`size-6 rounded-full border-4 border-white shadow-xl flex items-center justify-center transition-transform [@media(hover:hover)_and_(pointer:fine)]:hover:scale-110 ${
                         loc.type === "missionary"
                           ? "bg-zinc-900"
                           : loc.type === "project"

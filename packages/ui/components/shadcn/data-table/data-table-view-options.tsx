@@ -36,21 +36,23 @@ export function DataTableViewOptions<TData>({
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          aria-label="Toggle columns"
-          variant="outline"
-          size="sm"
-          disabled={disabled}
-          className={cn(
-            "ml-auto hidden h-9 lg:flex gap-2 rounded-xl",
-            className,
-          )}
-        >
-          <Settings2 className="size-4" aria-hidden="true" />
-          View
-        </Button>
-      </DropdownMenuTrigger>
+      <DropdownMenuTrigger
+        render={
+          <Button
+            aria-label="Toggle columns"
+            variant="outline"
+            size="sm"
+            disabled={disabled}
+            className={cn(
+              "ml-auto hidden h-9 lg:flex gap-2 rounded-xl",
+              className,
+            )}
+          >
+            <Settings2 className="size-4" aria-hidden="true" />
+            View
+          </Button>
+        }
+      />
       <DropdownMenuContent align="end" className="w-48 rounded-xl">
         <DropdownMenuLabel>Toggle columns</DropdownMenuLabel>
         <DropdownMenuSeparator />

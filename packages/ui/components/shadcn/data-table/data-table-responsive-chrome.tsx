@@ -171,10 +171,10 @@ export function DataTableResponsiveTableView<TData>({
   emptyState?: React.ReactNode;
   defaultEmptyState: React.ReactNode;
   virtualization?: DataTableConfig["virtualization"];
-  enableVirtualization: boolean;
-  virtualRowHeight: number;
-  virtualOverscan: number;
-  virtualContainerHeight: number | string;
+  enableVirtualization?: boolean;
+  virtualRowHeight?: number;
+  virtualOverscan?: number;
+  virtualContainerHeight?: number | string;
   rowActions?: DataTableInteractiveRowAction<TData>[];
   infiniteScroll?: DataTableResponsiveProps<TData, unknown>["infiniteScroll"];
   stickyHeader?: boolean;

@@ -10,7 +10,7 @@
 ## Repo-owned skills and mirrors
 
 - Repo-owned skills are authored canonically under `docs/ai/skills/*/SKILL.md`.
-- Runtime mirrors are committed under `.agents/skills/*` and `.cursor/skills/*`.
+- Runtime mirrors are committed under `.agents/skills/*`, `.cursor/skills/*`, and `.claude/skills/*`.
 - Keep `AGENTS.md` as the routing layer. It should point at canonical files in `docs/ai/skills/*`, not at tool-specific mirrors.
 - For Codex desktop, `.agents/skills/*` is the closest repo-level match to Codex's documented skill discovery behavior.
 - For Cursor Agent Window, committed `.cursor/skills/*` improves visible availability, while `AGENTS.md` still provides the strongest always-on routing contract.
@@ -29,6 +29,41 @@
   task-agent workflows. The upstream always-on Cursor rules are intentionally
   not vendored because the skills do not depend on them and they would change
   repo-wide Cursor behavior.
+
+## Official Inngest agent tooling
+
+- Official Inngest skills are vendored canonically under
+  `docs/ai/skills/inngest-*`, with `docs/ai/skills/inngest/SKILL.md` as the
+  router.
+- These skills are for agent guidance and integration work. They do not mean
+  product runtime Inngest has been adopted in `apps/*` or `packages/*`.
+- Refresh Inngest skills with `bun run skills:refresh-inngest`, then run
+  `bun run skills:sync` and `bun run skills:verify`.
+- The Inngest dev-server MCP is configured as `inngest-dev` in root `.mcp.json`
+  and `.cursor/mcp.json`. Start the Inngest dev server first; if it falls back
+  from port `8288` to `8289` or another port, update the MCP URL to match.
+- Claude Code users who want the full official plugin can run
+  `/plugin marketplace add inngest/inngest-claude-code-plugin`, then
+  `/plugin install inngest@inngest-claude-code-plugin`.
+- Codex users can use the generated `.agents/skills/inngest-*` mirrors. If they
+  need the full upstream plugin, clone `inngest/inngest-codex-plugin` outside
+  the repo and run `/plugin install <path>/plugins/inngest`.
+
+## ReUI agent tooling
+
+- The ReUI MCP is configured as `reui` in root `.mcp.json`,
+  `.cursor/mcp.json`, and `.codex/config.toml`.
+- Claude Code reads the repo-root `.mcp.json`; Cursor reads `.cursor/mcp.json`;
+  Codex reads `.codex/config.toml`.
+- The MCP endpoint is `https://mcp.reui.io` and does not need auth headers or a
+  license key. It is for ReUI search, planning, inline APIs, and validation.
+- Free `@reui` installs use the plain-string registry in
+  `packages/ui/components.json`. Premium installs temporarily need the
+  authenticated `@reui` object form plus `REUI_LICENSE_KEY` in git-ignored
+  `.env.local` (see `docs/ai/skills/reui/rules/cli.md`). ReUI is not
+  shadcn-studio `/rui` (Refine UI).
+- The canonical ReUI skill remains `docs/ai/skills/reui/SKILL.md`; keep mirrors
+  fresh with `bun run skills:sync` and `bun run skills:verify`.
 
 ## Monorepo scoping (pick the right app first)
 

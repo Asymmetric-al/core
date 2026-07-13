@@ -14,13 +14,24 @@ Before any Next.js work, find and read the relevant doc in `node_modules/next/di
   - `<!-- BEGIN:nextjs-agent-rules --> ... <!-- END:nextjs-agent-rules -->`
   - `<!-- NEXT-AGENTS-MD-START --> ... <!-- NEXT-AGENTS-MD-END -->`
 
+### Claude Code project assets
+
+Claude Code discovers project skills, slash commands, and subagents from `.claude/`, and MCP servers from the repo-root `.mcp.json`.
+
+- `.claude/skills/`, `.claude/commands/`, and `.claude/agents/` are **generated mirrors** — do not hand-edit them. Edit the canonical source, then run `bun run skills:sync`:
+  - **Skills** → canonical `docs/ai/skills/*/SKILL.md` (plus ecosystem installs under `.agents/skills/`). Ecosystem-packaged `SKILL.md` files mirrored into `.claude/skills/` should include YAML frontmatter (`name`, `description`) when Claude Code discovery requires it; canonical `docs/ai/skills/*/SKILL.md` files are synced as-is (body-only is OK until promoted).
+  - **Commands** → `.cursor/commands/*.md`.
+  - **Subagents** → `.cursor/agents/*.md`.
+- `.mcp.json` (repo root) is read directly by Claude Code (`next-devtools`, `shadcn`) — no mirror needed.
+- `bun run skills:verify` (pre-push and CI) fails on drift between the canonical sources and the `.cursor/`, `.agents/`, and `.claude/` mirrors. `.claude/skills/` is Prettier-ignored like the other bundled skill libraries; `.claude/commands/` and `.claude/agents/` are format-checked.
+
 ## Source-of-truth order
 
 Use this order when instructions conflict:
 
 1. **OpenSpec (when `openspec/` exists in the repo):** `openspec/specs/` = merged product intent; `openspec/changes/` = proposed changes not yet folded into specs.
 2. **Repo instruction system:** root `AGENTS.md`, nearest nested `AGENTS.md`, `.cursor/rules`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.github/instructions/*.md`, `docs/ai/*` rulebooks.
-3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
+3. **Repo-local canonical skills:** `docs/ai/skills/*/SKILL.md` (mirrored into `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/` via `bun run skills:sync`; verify with `bun run skills:verify`).
 4. **Next.js API truth:** bundled docs under `node_modules/next/dist/docs/` for the installed version (then repo root `node_modules`; see **Next.js docs source of truth** below).
 5. **MCP/runtime and official CLI facts:** e.g. Next.js devtools MCP against a running dev server (see **Next.js MCP (devtools)** below), official TanStack CLI/Intent output for TanStack work, plus any other MCP servers enabled in the agent.
 6. **External docs:** prefer indexed doc search / package source (e.g. Nia) over training data; use direct official docs when needed.
@@ -209,6 +220,27 @@ This repo configures the Next.js devtools MCP server in **root** `.mcp.json` (al
 - **Use it for runtime-grounded work:** current errors, dev logs, routes, page metadata, server actions — **do not guess** these when the MCP tools can query the live dev server.
 - **Docs:** [Next.js MCP guide](https://nextjs.org/docs/app/guides/mcp) and the [`next-devtools-mcp` repository](https://github.com/vercel/next-devtools-mcp).
 
+## Inngest dev MCP (agent tooling)
+
+This repo configures the official Inngest dev-server MCP endpoint in root `.mcp.json` (also mirrored to `.cursor/mcp.json` for Cursor).
+
+- **Requirement:** An Inngest dev server must be running before the MCP endpoint is useful (for example, `npx inngest-cli@latest dev` from the app that owns an Inngest runtime integration).
+- **Default URL:** `http://127.0.0.1:8288/mcp`. If port `8288` is occupied, the dev server may use `8289` or another fallback port; update the MCP URL to match the active server.
+- **Scope:** This is agent tooling only. It does not mean this repo has adopted Inngest product runtime code, dependencies, or env vars.
+- **Claude Code:** The official Claude Code plugin can provide its own Inngest tooling and MCP wiring; repo MCP config is available when the client reads `.mcp.json`.
+
+## ReUI MCP (agent tooling)
+
+This repo configures the free ReUI MCP endpoint as `reui` in root `.mcp.json`, `.cursor/mcp.json`, and `.codex/config.toml`.
+
+- **Endpoint:** `https://mcp.reui.io` (Streamable HTTP).
+- **Scope:** Use it for ReUI registry discovery, scored search, inline component APIs, page planning, and usage validation.
+- **License:** The MCP server does not use a license key. Free `@reui` installs use the plain-string registry in `packages/ui/components.json`. Premium installs temporarily need the authenticated `@reui` object form plus `REUI_LICENSE_KEY` in git-ignored `.env.local` (see `docs/ai/skills/reui/rules/cli.md`).
+- **Not shadcn-studio `/rui`:** ReUI (`@reui`) is separate from shadcn-studio Refine UI (`/rui` in `docs/ai/rules/shadcn-studio-mcp.md`).
+- **Claude Code:** Claude Code reads the repo-root `.mcp.json`.
+- **Cursor:** Cursor reads `.cursor/mcp.json`, which mirrors the repo-root MCP server definitions.
+- **Codex:** Codex reads `.codex/config.toml` for repo-local MCP server definitions.
+
 ### TanStack CLI and Intent
 
 For any TanStack work (Query, Router, Table, DB, Form, Virtual, Start, CLI, Intent, Devtools, or related integrations), use the official TanStack CLI and official TanStack Intent skills when they exist for the installed packages. Do not use repo-local or unofficial TanStack skills.
@@ -246,7 +278,7 @@ Load rulebooks before editing files in their domain.
 
 ## Skill Routing (Deterministic)
 
-Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/` and `.agents/skills/`.
+Load the skill(s) below when the trigger matches. Canonical skill source is `docs/ai/skills/`; run `bun run skills:sync` to refresh mirrors under `.cursor/skills/`, `.agents/skills/`, and `.claude/skills/`.
 
 - **Repo entry / instruction map (default orientation for repo work):** `docs/ai/skills/repo-entry/SKILL.md`
 
@@ -255,6 +287,8 @@ Load the skill(s) below when the trigger matches. Canonical skill source is `doc
 **Keeping ecosystem skills current:** **`skills-lock.json`** pins content hashes for skills installed via the Skills CLI (see entries under `skills.*`).
 
 To **restore** those installs into `.agents/skills/` from the lockfile: `npx skills experimental_install -y`. This rewrites every skill listed in the lockfile under `.agents/skills/`; prefer `npx skills add <pkg> -y` for targeted updates.
+
+**Personal/global slash-command use (optional):** The canonical skills under `docs/ai/skills/` can also be copied into your personal `~/.claude/skills/` to expose them as `/<name>` slash commands in Claude Code across **all** your projects. This is separate from how skills load **inside** this repo (AGENTS.md routing) and from the repo mirrors (`.agents/skills/`, `.cursor/skills/`, `.claude/skills/`); it is a per-developer convenience, not a repo requirement, and there is no repo script for it today. Copy each `docs/ai/skills/<name>/` directory (including its `references/`) to `~/.claude/skills/<name>/`; the copies are point-in-time snapshots that do **not** auto-update, so re-copy after refreshing the canonical skills. Skills with `disable-model-invocation: true` stay user-invocable via `/` but are not auto-invoked by the model.
 
 Do **not** use `npx skills check` as a read-only check in this repo. With `skills@1.5.7`, `check` is not listed in `npx skills --help` and was observed to update project skills. Treat it like `skills update`: only run it when you intentionally want a full refresh and are prepared to review or revert the generated `.agents/skills` and `skills-lock.json` diff.
 
@@ -266,6 +300,10 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **Cursor Team Kit** (`cursor/plugins`, `cursor-team-kit/skills/*`) and **Babysitter** (`a5c-ai/babysitter-cursor`, `skills/babysit`) are repo-local vendored skills refreshed directly from GitHub by `bun run skills:refresh-upstream`; see each skill's `references/upstream.md`. Cursor Team Kit companion agents are vendored under `.cursor/agents/`; upstream always-on Cursor rules are intentionally not vendored because no skill depends on them and they would change repo-wide Cursor behavior.
 
+**Emil Kowalski skill pack** ([`emilkowalski/skills`](https://github.com/emilkowalski/skills)): refresh all five lockfile-managed skills with `npx --yes skills@latest add emilkowalski/skills -y`, then run `bun run skills:refresh-emilkowalski`, `bun run skills:sync`, and `bun run skills:verify`. Canonical copies, reviewed commit SHAs, source paths, and the MIT notice live under `docs/ai/skills/{animation-vocabulary,apple-design,emil-design-eng,improve-animations,review-animations}/references/`. The focused refresh preserves marked Core overlays; still review the upstream inventory for newly added or removed skills before syncing.
+
+**`grill-for-unknowns`** ([`nicobailon/grill-for-unknowns`](https://github.com/nicobailon/grill-for-unknowns)): refresh the lockfile-managed skill with `npx --yes skills@latest add nicobailon/grill-for-unknowns -y`, then run `bun run skills:refresh-grill-for-unknowns`, `bun run skills:sync`, and `bun run skills:verify`. The complete canonical plugin tree, reviewed commit, lineage, MIT notice, and Core overlay live under `docs/ai/skills/grill-for-unknowns/`. Review upstream inventory and discovery metadata before syncing; the focused refresh preserves Core's explicit-only route.
+
 **Resend CLI** (`docs/ai/skills/resend-cli/`) is vendored from the tagged [`resend/resend-cli`](https://github.com/resend/resend-cli) tree (`skills/resend-cli/`). Refresh steps live in `docs/ai/skills/resend-cli/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
 
 **`bendc-frontend-guidelines`** (`docs/ai/skills/bendc-frontend-guidelines/`) vendors [`bendc/frontend-guidelines`](https://github.com/bendc/frontend-guidelines) `README.md`. Refresh steps live in `docs/ai/skills/bendc-frontend-guidelines/references/upstream.md`; it is **not** updated by `bun run skills:refresh-upstream` today.
@@ -273,6 +311,12 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 **Payload CMS** ([`payloadcms/skills`](https://github.com/payloadcms/skills)) is vendored into `docs/ai/skills/payloadcms-payload/` and `docs/ai/skills/payloadcms-cms-migration/`. Refresh steps live in each skill's `references/upstream.md`; optional Skills CLI install is `npx skills add payloadcms/skills`; these skills are **not** updated by `bun run skills:refresh-upstream` today.
 
 **`idempotency-handling`** ([`aj-geddes/useful-ai-prompts`](https://github.com/aj-geddes/useful-ai-prompts)) is in `docs/ai/skills/idempotency-handling/`. Refresh via `npx skills add https://github.com/aj-geddes/useful-ai-prompts --skill idempotency-handling -y`, reconcile into `docs/ai/skills/idempotency-handling/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/idempotency-handling/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
+
+**`improve`** ([`shadcn/improve`](https://github.com/shadcn/improve)) is in `docs/ai/skills/improve/`. Refresh via `npx skills add shadcn/improve -y`, then **delete any project-level `.claude/skills/improve` symlink the CLI creates** (this repo routes Claude Code through `docs/ai/skills/` + this file, not `.claude/skills/`), reconcile into `docs/ai/skills/improve/` if needed, then `bun run skills:sync` and `bun run skills:verify`. See `docs/ai/skills/improve/references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today.
+
+**Official Inngest agent skills** (`docs/ai/skills/inngest-*`) are vendored from [`inngest/inngest-skills`](https://github.com/inngest/inngest-skills) and [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin). Refresh them with `bun run skills:refresh-inngest`, then `bun run skills:sync` and `bun run skills:verify`; source SHAs and licenses are documented in `docs/ai/skills/inngest/references/upstream.md`. These skills are agent tooling for integration work, not evidence of product runtime adoption. Use `docs/ai/skills/inngest/SKILL.md` as the router when unsure which Inngest skill applies.
+
+**`eve`**, **`create-agent`**, **`impeccable`**, and **`playwright-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`).
 
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
@@ -282,11 +326,16 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
-- **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first. Pair with `docs/ai/skills/motion/SKILL.md` only when `motion/react` API details are needed.
-- **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`
-- **Tasteful UI animation (timing, easing, CSS/Motion patterns):** `docs/ai/skills/anim/SKILL.md`
-- **Additional Emil design-engineering notes / companion reference:** `docs/ai/skills/emil-design-eng/SKILL.md`
+- **Frontend design critique, polish, and live UI iteration ([pbakaus/impeccable](https://github.com/pbakaus/impeccable)):** `docs/ai/skills/impeccable/SKILL.md` (subordinate to `docs/ai/rules/frontend.md`)
+- **Animation work, transitions, micro-interactions, or motion polish:** load `docs/ai/skills/emil-design-engineering/SKILL.md` first and use `docs/ai/skills/anim/SKILL.md` for Core's operative Base UI, token, route-transition, and reduced-motion contract.
+- **Current Emil Kowalski craft companion:** `docs/ai/skills/emil-design-eng/SKILL.md`; it is subordinate to `docs/ai/rules/frontend.md`, `emil-design-engineering`, and `anim` when generic upstream examples conflict with Core.
+- **Animation-effect naming / reverse lookup only:** `docs/ai/skills/animation-vocabulary/SKILL.md`; do not use it as an implementation or review standard.
+- **Apple-style physical and gesture-driven interfaces:** `docs/ai/skills/apple-design/SKILL.md` for momentum, interruptibility, rubber-banding, springs, depth, and translucent materials; Core's Base UI and motion contracts still win.
+- **Whole-codebase animation audit and self-contained plans:** `docs/ai/skills/improve-animations/SKILL.md`; source-read-only during audit/plan modes, with implementation authorized only by an explicit `execute <plan>` request.
+- **Strict motion-only diff review:** `docs/ai/skills/review-animations/SKILL.md`; explicit invocation only across every client. Preserve upstream `disable-model-invocation: true` for Claude Code, and do not auto-route it in Codex or Cursor.
+- **Motion animations (`motion/react`) implementation details:** `docs/ai/skills/motion/SKILL.md`; use only when API details are needed after the applicable craft and repo-contract skills.
 - **Recharts:** `docs/ai/skills/rechart/SKILL.md`
+- **ReUI registry components, examples, blocks, Motion Icons, or ReUI MCP workflows:** `docs/ai/skills/reui/SKILL.md` (vendored from ReUI agent skills; mirrored into `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 - **TanStack work:** use the official TanStack CLI plus current official Intent skills when `npx --yes @tanstack/intent@latest list` returns a matching package; otherwise use `tanstack doc` / `tanstack search-docs` and the repo-specific TanStack guides linked in **TanStack CLI and Intent** above.
 - **Tiptap rich text editor (`@tiptap/*`, shared editor in `@asym/ui`):** `docs/ai/skills/tiptap/SKILL.md`
 - **npm / pnpm / Yarn / Bun dependency footprint cleanup (unused deps, dedupe, lockfile closure, e18e):** `docs/ai/skills/npm-deps-cleanup/SKILL.md`
@@ -299,36 +348,59 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Vercel React + Next performance patterns:** `docs/ai/skills/vercel-react-best-practices/SKILL.md`
 - **React View Transitions + Next.js route / shared-element continuity:** `docs/ai/skills/vercel-react-view-transitions/SKILL.md`
 - **Discover/install agent skills (skills.sh, repo canonical skills):** `docs/ai/skills/find-skills/SKILL.md`
+- **Audit any codebase (bugs, security, perf, tests, tech debt, migrations, DX), suggest features/roadmap, or write self-contained handoff plans for another agent to execute ([`shadcn/improve`](https://github.com/shadcn/improve)):** `docs/ai/skills/improve/SKILL.md` — strictly read-only on source code; writes only to `plans/`. Invoke `/improve` (composes with `quick`/`deep`, `branch`, `next`, `plan <desc>`, `review-plan`, `execute`, `reconcile`, `--issues`).
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
+- **Inngest durable workflows and agent tooling:** load `docs/ai/skills/inngest/SKILL.md` when choosing a route. Use `docs/ai/skills/inngest-brownfield-audit/SKILL.md` before changing existing app workflows or fragile background work. Use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly adding Inngest runtime to an app. Use `docs/ai/skills/inngest-events/SKILL.md`, `docs/ai/skills/inngest-durable-functions/SKILL.md`, `docs/ai/skills/inngest-steps/SKILL.md`, `docs/ai/skills/inngest-flow-control/SKILL.md`, `docs/ai/skills/inngest-middleware/SKILL.md`, and `docs/ai/skills/inngest-realtime/SKILL.md` based on the feature area. Use `docs/ai/skills/inngest-agents/SKILL.md` for durable AI agent workflows, `docs/ai/skills/inngest-v3-v4-migration/SKILL.md` only if v3 usage is found, and `docs/ai/skills/inngest-api/SKILL.md` only for Inngest API or CLI operations. These tools are subordinate to OpenSpec, `AGENTS.md`, repo-local rulebooks, Next.js version docs, and runtime evidence.
+- **Playwright E2E/component/API testing patterns:** `docs/ai/skills/playwright-best-practices/SKILL.md` (subordinate to `docs/ai/rules/testing.md`)
+- **Durable backend AI agents ([vercel/eve](https://github.com/vercel/eve)):** `docs/ai/skills/eve/SKILL.md`
+- **Scaffold a new eve agent from an interview ([ikindacodes/ship-eve](https://github.com/ikindacodes/ship-eve)):** `docs/ai/skills/create-agent/SKILL.md` (pair with **eve**)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`
 - **Cursor Team Kit PR/CI/review workflows:** load the matching canonical skill under `docs/ai/skills/<skill-name>/SKILL.md` when explicitly requested or when its trigger matches: `check-compiler-errors`, `control-cli`, `control-ui`, `deslop`, `fix-ci`, `fix-merge-conflicts`, `get-pr-comments`, `loop-on-ci`, `make-pr-easy-to-review`, `new-branch-and-pr`, `pr-review-canvas`, `review-and-ship`, `run-smoke-tests`, `thermo-nuclear-code-quality-review`, `verify-this`, `weekly-review`, `what-did-i-get-done`, `workflow-from-chats`.
 - **Babysitter orchestration:** `docs/ai/skills/babysit/SKILL.md` when the user asks to babysit, orchestrate a run/process, or explicitly calls `/babysit`.
+- **Explicit deep unknown discovery before implementation:** `docs/ai/skills/grill-for-unknowns/SKILL.md` only when the user invokes `grill-for-unknowns` or specifically requests a map-vs-territory pass, blindspot/unknown-unknown discovery, unknown-known prototypes, or a subagent launch packet. It owns that session's interview loop; do not pair it redundantly with `grilling` or `grill-with-docs`. Generic "grill/stress-test this plan" requests continue to use `grilling`; normal repo-backed grilling plus domain persistence uses `grill-with-docs`; work too large for one context uses `wayfinder`.
 
 **GitHub `AL-###` issue/PR workflow:** there are no `SKILL.md` files under `docs/ai/skills/` for those flows today; follow `docs/ai/rules/general.md`. Deprecated stubs live under `skills/*/DEPRECATED.md` only.
 
-**Extra Cursor-packaged skills:** optional mirror-only ecosystem installs under **`.agents/skills/<name>/`** and **`.cursor/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+**Extra ecosystem skills:** optional mirror-only installs originate under **`.agents/skills/<name>/`** and are mirrored into **`.cursor/skills/<name>/`** and **`.claude/skills/<name>/`**. These are not canonical repo skills unless promoted into **`docs/ai/skills/<name>/`**. Refresh them with the Skills CLI or documented vendor source, then run `bun run skills:sync` and `bun run skills:verify`. Pins and hashes live in **`skills-lock.json`**. These stay **subordinate to OpenSpec** (`openspec/specs/**`, `openspec/changes/**`, `openspec/project.md`) and canonical **`docs/ai/skills/`** — see **`openspec/specs/agent-instruction-system/spec.md`**.
+
+**Inngest plugins for agent clients:**
+
+- **Codex:** The repo mirrors official Inngest skills into `.agents/skills/` through `bun run skills:sync`. If a Codex session needs the full upstream plugin, clone [`inngest/inngest-codex-plugin`](https://github.com/inngest/inngest-codex-plugin) outside the repo and run `/plugin install <path>/plugins/inngest`. Do not vendor the plugin examples, evals, or assets into this repo unless a future Codex discovery rule requires a repo-local plugin path.
+- **Claude Code:** Keep `CLAUDE.md` as `@AGENTS.md`. To install the full official Claude Code plugin, run `/plugin marketplace add inngest/inngest-claude-code-plugin`, then `/plugin install inngest@inngest-claude-code-plugin`.
+- **Cursor:** Cursor receives the official skills through generated `.cursor/skills/` mirrors and the `inngest-dev` server in `.cursor/mcp.json`.
 
 **Mattpocock pack** ([github.com/mattpocock/skills](https://github.com/mattpocock/skills)) — routed through canonical `docs/ai/skills/` copies:
 
-| Id                                            | Notes                                                                                                                                                       |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **setup-matt-pocock-skills**                  | `docs/ai/skills/setup-matt-pocock-skills/SKILL.md` — Bootstrap agent-docs layout for other mattpocock skills.                                               |
-| **grill-with-docs**                           | `docs/ai/skills/grill-with-docs/SKILL.md` — Grill plan vs CONTEXT/ADRs (`ADR-FORMAT.md`, `CONTEXT-FORMAT.md`).                                              |
-| **grill-me**                                  | `docs/ai/skills/grill-me/SKILL.md` — Grill without docs; preserves upstream first-person wording, where "me" means the user being interviewed by the agent. |
-| **diagnose**                                  | `docs/ai/skills/diagnose/SKILL.md` — Ranked hypotheses for bugs.                                                                                            |
-| **zoom-out**                                  | `docs/ai/skills/zoom-out/SKILL.md` — Module/caller map.                                                                                                     |
-| **to-prd**                                    | `docs/ai/skills/to-prd/SKILL.md` — PRD from context ([skills.sh/to-prd](https://skills.sh/mattpocock/skills/to-prd)); align PRD content with OpenSpec.      |
-| **to-issues**                                 | `docs/ai/skills/to-issues/SKILL.md` — PRD → issues (**skills.sh “prd-to-issues”** naming maps here).                                                        |
-| **improve-codebase-architecture**             | `docs/ai/skills/improve-codebase-architecture/SKILL.md` — Architecture deepening.                                                                           |
-| **tdd**                                       | `docs/ai/skills/tdd/SKILL.md` — Red-green-refactor + references.                                                                                            |
-| **qa**, **request-refactor-plan**             | `docs/ai/skills/qa/SKILL.md`, `docs/ai/skills/request-refactor-plan/SKILL.md` — Vendored from upstream **`skills/deprecated/`** (not on default CLI list).  |
-| **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Vendored from **`skills/misc/`**.                               |
-| **ubiquitous-language**                       | `docs/ai/skills/ubiquitous-language/SKILL.md` — DDD glossary; vendored from **`skills/deprecated/`** (CLI does not expose `--skill ubiquitous-language`).   |
-| **domain-model**                              | `docs/ai/skills/domain-model/SKILL.md` — Repo-local **alias** → load **`ubiquitous-language`**.                                                             |
-| **prd-to-plan**                               | `docs/ai/skills/prd-to-plan/SKILL.md` — No upstream skill id; repo-local **router** → use **to-prd**, **to-issues**, OpenSpec.                              |
-| **write-a-prd**                               | Same as **to-prd** (CLI/skill name).                                                                                                                        |
+| Id                                            | Notes                                                                                                                                                   |
+| --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **ask-matt**                                  | `docs/ai/skills/ask-matt/SKILL.md` — Router over the Matt Pocock skill flows.                                                                           |
+| **setup-matt-pocock-skills**                  | `docs/ai/skills/setup-matt-pocock-skills/SKILL.md` — Bootstrap issue tracker, triage labels, and domain-doc layout for the engineering skills.          |
+| **grill-with-docs**                           | `docs/ai/skills/grill-with-docs/SKILL.md` — Run `/grilling` plus `/domain-modeling` to sharpen plans and repo language.                                 |
+| **grill-me**, **grilling**                    | `docs/ai/skills/grill-me/SKILL.md`, `docs/ai/skills/grilling/SKILL.md` — User-facing and reusable grilling loops.                                       |
+| **wayfinder**                                 | `docs/ai/skills/wayfinder/SKILL.md` — Plan work too large for one agent session as a map of investigation tickets.                                      |
+| **to-spec**                                   | `docs/ai/skills/to-spec/SKILL.md` — Spec from conversation context; replaces the old `/to-prd` route.                                                   |
+| **to-tickets**                                | `docs/ai/skills/to-tickets/SKILL.md` — Break a plan/spec/conversation into tracer-bullet tickets; replaces old `/to-plan` and `/to-issues` routes.      |
+| **implement**                                 | `docs/ai/skills/implement/SKILL.md` — Implement a spec or ticket with TDD where possible, regular type/test checks, final review, and commit.           |
+| **code-review**                               | `docs/ai/skills/code-review/SKILL.md` — Review since a fixed point on both standards and spec correctness axes.                                         |
+| **research**                                  | `docs/ai/skills/research/SKILL.md` — Research against primary sources and save a cited Markdown finding file.                                           |
+| **prototype**                                 | `docs/ai/skills/prototype/SKILL.md` — Cheap logic or UI prototypes to answer design questions before committing to a spec.                              |
+| **diagnosing-bugs**                           | `docs/ai/skills/diagnosing-bugs/SKILL.md` — Current bug/performance diagnosis loop; use this instead of the old `/diagnose` route.                      |
+| **domain-modeling**, **domain-model**         | `docs/ai/skills/domain-modeling/SKILL.md`, `docs/ai/skills/domain-model/SKILL.md` — Active domain-modeling skill plus Core compatibility alias.         |
+| **improve-codebase-architecture**             | `docs/ai/skills/improve-codebase-architecture/SKILL.md` — Architecture deepening and codebase report workflow.                                          |
+| **codebase-design**                           | `docs/ai/skills/codebase-design/SKILL.md` — Deep-module design vocabulary and seam placement.                                                           |
+| **tdd**                                       | `docs/ai/skills/tdd/SKILL.md` — Red/green TDD reference for tests worth keeping.                                                                        |
+| **triage**                                    | `docs/ai/skills/triage/SKILL.md` — Move issues/external PRs through the Matt Pocock triage state machine.                                               |
+| **resolving-merge-conflicts**                 | `docs/ai/skills/resolving-merge-conflicts/SKILL.md` — Resolve in-progress merge/rebase conflicts from primary sources.                                  |
+| **qa**, **request-refactor-plan**             | `docs/ai/skills/qa/SKILL.md`, `docs/ai/skills/request-refactor-plan/SKILL.md` — Current upstream deprecated skills retained only for compatibility.     |
+| **ubiquitous-language**                       | `docs/ai/skills/ubiquitous-language/SKILL.md` — Current upstream deprecated DDD glossary skill; prefer **domain-modeling** for active work.             |
+| **setup-pre-commit**, **migrate-to-shoehorn** | `docs/ai/skills/setup-pre-commit/SKILL.md`, `docs/ai/skills/migrate-to-shoehorn/SKILL.md` — Current upstream misc skills previously promoted into Core. |
+| **prd-to-plan**                               | `docs/ai/skills/prd-to-plan/SKILL.md` — Core compatibility router; use **to-spec** then **to-tickets**.                                                 |
 
-**Names not in upstream:** **`domain-model`** (use alias), **`prd-to-issues`** (use **to-issues**), **`write-a-prd`** (= **to-prd**), **`prd-to-plan`** (router stub). Distinct from **`docs/ai/skills/`** **`test-driven-development`** where both exist.
+Core routing note for **domain-modeling**: use `docs/agents/domain.md` and
+`CONTEXT-MAP.md` to choose the actual context file and ADR tree before writing
+in this repo.
+
+**Removed upstream routes:** `/to-prd`, `/to-plan`, `/to-issues`, `/diagnose`, and `/zoom-out` are not present in current upstream `skills/engineering/`; use `/to-spec`, `/to-tickets`, `/diagnosing-bugs`, `/ask-matt`, or `/wayfinder` as appropriate.
 
 ---
 
@@ -462,13 +534,13 @@ Note: unit tests are currently run repo-wide with `bun run test:unit`.
 
 ### Services overview
 
-| Service                 | Port                                    | Start command                 |
-| ----------------------- | --------------------------------------- | ----------------------------- |
-| Donor app               | 3000                                    | `bun run dev:donor`           |
-| Admin app               | 3030                                    | `bun run dev:admin`           |
-| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control` |
-| Missionary app          | 4000                                    | `bun run dev:missionary`      |
-| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`              |
+| Service                 | Port                                    | Start command                                                                                                                      |
+| ----------------------- | --------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| Donor app               | 3000                                    | `node scripts/run-with-ci-env.mjs -- bun run dev:donor` (cloud); `bun run dev:donor` when root `.env.local` is loaded in the shell |
+| Admin app               | 3030                                    | `bun run dev:admin`                                                                                                                |
+| Mission Control (cloud) | 3030                                    | `bun run dev:mission-control`                                                                                                      |
+| Missionary app          | 4000                                    | `bun run dev:missionary`                                                                                                           |
+| Local Supabase          | 54321 (API), 54322 (DB), 54323 (Studio) | `supabase start`                                                                                                                   |
 
 ### Mission Control Cloud Agent startup
 
@@ -480,6 +552,16 @@ bun run dev:mission-control
 ```
 
 Then open `http://localhost:3030`. The setup command only writes gitignored `.env.local` defaults (`SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, `PAYLOAD_SECRET`, and admin Playwright URL/port). Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo-account values before testing live auth, hosted data, Payload/CMS, or database-backed admin workflows.
+
+### Donor app in cloud sandboxes
+
+After `bun run setup:mission-control:cloud`, start the donor dev server with the same CI env wrapper Turbo uses for admin and E2E (plain `bun run dev:donor` can return HTTP 500 because `NEXT_PUBLIC_*` vars from root `.env.local` are not always forwarded to the Turbo child):
+
+```bash
+node scripts/run-with-ci-env.mjs -- bun run dev:donor
+```
+
+Then open `http://localhost:3000`. For all three apps with one command, use `bun run dev:all` (loads `--env-file=.env.local`).
 
 ### Local Supabase startup
 

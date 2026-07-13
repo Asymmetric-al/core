@@ -1,8 +1,9 @@
 "use client";
 
 import { siteConfig } from "@asym/config/site-client";
+import { useWithinViewTransitionRouteLayer } from "@asym/lib/view-transitions";
 import { Badge } from "@asym/ui/components/shadcn/badge";
-import { Button } from "@asym/ui/components/shadcn/button";
+import { Button, buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -248,7 +249,7 @@ function AlertPreferencesCard() {
             </div>
             <Switch
               defaultChecked={pref.defaultChecked}
-              className="data-[state=checked]:bg-zinc-900"
+              className="data-checked:bg-zinc-900"
             />
           </div>
         ))}
@@ -327,20 +328,18 @@ function ModuleInfoCard() {
                 {siteConfig.name}
               </span>
             </div>
-            <Button
-              variant="outline"
-              className="w-full h-10 rounded-xl border-zinc-200 text-sm font-semibold text-zinc-900 group"
-              asChild
+            <a
+              href={siteConfig.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className={cn(
+                buttonVariants({ variant: "outline" }),
+                "w-full h-10 rounded-xl border-zinc-200 text-sm font-semibold text-zinc-900 group",
+              )}
             >
-              <a
-                href={siteConfig.url}
-                target="_blank"
-                rel="noopener noreferrer"
-              >
-                Visit Home Page
-                <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-              </a>
-            </Button>
+              Visit Home Page
+              <ExternalLink className="ml-2 size-3 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+            </a>
           </div>
         </div>
       </CardContent>
@@ -350,6 +349,8 @@ function ModuleInfoCard() {
 
 export default function CareSettingsPage() {
   const [saving, setSaving] = React.useState(false);
+  // Route VT owns the entrance when active; only animate on plain mounts.
+  const withinRouteVt = useWithinViewTransitionRouteLayer();
 
   const handleSave = () => {
     setSaving(true);
@@ -360,7 +361,12 @@ export default function CareSettingsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 animate-in fade-in duration-500 pb-20">
+    <div
+      className={cn(
+        "p-6 space-y-6 pb-20",
+        !withinRouteVt && "animate-in fade-in duration-300",
+      )}
+    >
       <CareSettingsHeader />
 
       <div className="grid gap-6 lg:grid-cols-12">

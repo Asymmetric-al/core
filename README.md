@@ -4,17 +4,38 @@ A high-performance Next.js 16.2.6 (App Router) Turborepo monorepo for mission-fo
 
 ## Quickstart
 
-1. **Install prerequisites:** [Bun](https://bun.sh) and Git on your PATH.
-2. **Run setup** (creates `.env.local` on first run if needed, installs dependencies, checks that committed skill mirrors match `docs/ai/skills/`, then runs repo setup checks):
+1. **Install prerequisites:** [Node.js 20.9+](https://nodejs.org/), [Bun 1.3.14](https://bun.sh), and Git on your PATH.
+2. **Choose your setup path.**
+
+### Credential-free Mission Control sandbox
+
+Use this path for a fresh clone, disposable agent environment, or first run when
+you do not have Supabase credentials yet:
+
+```bash
+bun run setup:mission-control:cloud
+bun run dev:mission-control
+```
+
+Then open `http://localhost:3030`. The setup command creates gitignored
+`.env.local` defaults, installs dependencies with the frozen lockfile, and runs
+`bun run skills:verify`.
+
+### Hosted Supabase app development
+
+Use this path when you have a Supabase project URL and anon public key:
+
+1. **Run setup** (creates `.env.local` on first run if needed, installs dependencies, checks that committed skill mirrors match `docs/ai/skills/`, then runs repo setup checks):
    - macOS / Linux / Git Bash: `bun run setup`
    - Windows PowerShell: see [Windows](#windows) below (`.\scripts\setup.ps1`).
-3. **Fill required Supabase values** in `.env.local` if the first run stopped with "missing required env vars", then run setup again.
-4. **Start dev:** `bun run dev` (or an app-specific script from `package.json`). For a single surface, `bun run dev:donor` is typical (donor on port 3000).
-5. **Optional smoke check:** `bun run verify` (implemented in `scripts/verify/index.mjs`; on Windows without a Bash shim, run `bash scripts/verify/index.sh` from Git Bash or WSL).
+2. **Fill required Supabase values** in `.env.local` if the first run stopped with "missing required env vars", then run setup again.
+3. **Start dev:** `bun run dev` (or an app-specific script from `package.json`). For a single surface, `bun run dev:donor` is typical (donor on port 3000).
+4. **Optional smoke check:** `bun run verify` (implemented in `scripts/verify/index.mjs`). Set `VERIFY_HTTP=1` and `VERIFY_BASE_URL=<app-url>` when you also want HTTP route checks.
 
-**After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/` and `.cursor/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
+**After `git pull` when skill files changed:** run `bun run skills:verify`. If it reports drift between `docs/ai/skills/` and the mirrors under `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/`, run `bun run skills:sync` and commit the updated mirror files so CI and teammates stay aligned.
 
-**Required:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`  
+**Required for hosted Supabase app development:** `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
 **Optional:** Other entries in `.env.example` (Stripe, demo accounts, etc.)
 
 `bun run dev` runs **all** apps via Turbo (`turbo run dev`). Default HTTP checks in `bun run verify` use **`http://localhost:3000`** (`VERIFY_BASE_URL`), so use `bun run dev:donor` (or point `VERIFY_BASE_URL` at the app you are running).
@@ -46,14 +67,14 @@ Security rules:
 
 ### Mission Control Cloud Agent setup
 
-Use this when a fresh Cursor Cloud Agent, or a human in the same sandbox, needs the Mission Control Dashboard without a real Supabase project.
+Use this when a fresh Cursor Cloud Agent, disposable agent environment, or human in the same sandbox needs the Mission Control Dashboard without a real Supabase project.
 
 ```bash
 bun run setup:mission-control:cloud
 bun run dev:mission-control
 ```
 
-Then open `http://localhost:3030`. The setup command writes only gitignored `.env.local` defaults: `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, placeholder public Supabase values, and the admin Playwright base URL. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo account secrets when testing live auth or hosted data.
+Then open `http://localhost:3030`. The setup command writes gitignored `.env.local` defaults, installs dependencies with `bun install --frozen-lockfile`, and runs `bun run skills:verify`. The defaults include `ASYM_USE_CI_ENV_DEFAULTS=1`, `SKIP_ENV_VALIDATION=1`, `E2E_AUTH_BYPASS=true`, `NEXT_PUBLIC_SUPABASE_URL=https://example.supabase.co`, `NEXT_PUBLIC_SUPABASE_ANON_KEY=example-anon-key`, `PAYLOAD_SECRET=cloud-agent-mission-control-placeholder`, `PLAYWRIGHT_ADMIN_BASE_URL=http://localhost:3030`, and `PLAYWRIGHT_ADMIN_PORT=3030`. Existing explicit `E2E_AUTH_BYPASS=false` values are preserved unless you pass `--force-bypass`. Replace placeholders with real Supabase/demo account secrets when testing live auth or hosted data.
 
 ### Windows
 
@@ -72,7 +93,7 @@ pwsh -File .\scripts\setup.ps1
 First run creates `.env.local`. Fill these required values, then re-run the setup:
 `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`
 
-The script order matches `bun run setup` on Unix: install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
+The script order matches `bun run setup` on Unix: verify the pinned Bun version, install dependencies (unless `-SkipInstall`), run `bun run skills:verify`, then `bun run setup:verify`. After pulling changes that touch skills, run `bun run skills:verify`; if it reports mirror drift, run `bun run skills:sync` and commit the updated mirrors.
 
 Skip dependency install if you already ran it:
 
@@ -156,17 +177,17 @@ Agent-oriented docs live under `docs/ai/`:
 
 **Canonical source:** `docs/ai/`. Root `rules/` and `skills/` contain **deprecation pointers** to `docs/ai/` (not full duplicates).
 
-**Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery) and `.cursor/skills/` (Cursor) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
+**Repo-owned skills (how it fits together):** Edit and review skills under `docs/ai/skills/<name>/SKILL.md`. `AGENTS.md` points agents at those paths for routing. The same content is copied into **committed mirrors** at `.agents/skills/` (Codex-style discovery), `.cursor/skills/` (Cursor), and `.claude/skills/` (Claude Code) by the sync script so tools can surface them without a personal global install. CI runs `bun run skills:verify` to ensure mirrors match the canonical tree.
 
 **Skill scripts (root `package.json`):**
 
-| Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| --------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/` and `.cursor/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`.                                                                                                                                                                                                                           |
-| `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                                                                                                                                                                                                                                           |
+| Command                           | What it does                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| --------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `bun run skills:sync`             | Copies canonical `docs/ai/skills/*` into `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/`, prunes stale canonical copies from mirrors, and overlays extra packs from `.agents/skills` into `.cursor/skills` where configured. Run after you edit skills under `docs/ai/skills/`.                                                                                                                                                                                                                                                                     |
+| `bun run skills:verify`           | Fails if mirrors drift from canonical sources or the git tree is dirty after sync (same check used in CI and in `bun run setup` / `scripts/setup.ps1`).                                                                                                                                                                                                                                                                                                                                                                                                         |
 | `bun run skills:refresh-upstream` | Vendors the pinned set into `docs/ai/skills/`: `supabase`, `supabase-postgres-best-practices`, and `npm-deps-cleanup` from repo-local `.agents/skills/` (after targeted Skills CLI refreshes); `emil-design-engineering` from `$HOME/.cursor/skills/` (after the animations.dev installer); Cursor Team Kit skills from `cursor/plugins`; and `babysit` from `a5c-ai/babysitter-cursor`. Use the matching upstream workflow for each skill, then run `skills:sync` / `skills:verify` (see below). |
 
-**Manual-vendored skills:** `docs/ai/skills/resend-cli/`, `docs/ai/skills/bendc-frontend-guidelines/`, `docs/ai/skills/payloadcms-payload/`, and `docs/ai/skills/payloadcms-cms-migration/` are not part of `skills:refresh-upstream`. Refresh them from the source documented in each `references/upstream.md`, then run `bun run skills:sync` and `bun run skills:verify`.
+**Manual-vendored skills:** `docs/ai/skills/resend-cli/`, `docs/ai/skills/bendc-frontend-guidelines/`, `docs/ai/skills/payloadcms-payload/`, `docs/ai/skills/payloadcms-cms-migration/`, and `docs/ai/skills/reui/` are not part of `skills:refresh-upstream`. Refresh them from the source documented in each `references/upstream.md`, then run `bun run skills:sync` and `bun run skills:verify`.
 
 When you add or change a skill **only** under `docs/ai/skills/`:
 
@@ -345,9 +366,9 @@ Build env details: `docs/guides/development/build-runbook.md`.
 
 | Package               | Version | Notes                                    |
 | --------------------- | ------- | ---------------------------------------- |
-| Next.js               | 16.2.1  | App Router + Turbopack in app configs    |
+| Next.js               | 16.2.6  | App Router + Turbopack in app configs    |
 | React                 | 19.2.3  |                                          |
-| TypeScript            | 5.9.3   |                                          |
+| TypeScript            | 6.0.3   |                                          |
 | motion                | 12.x    | Animation (successor to framer-motion)   |
 | @tanstack/react-query | 5.x     | Server state                             |
 | @supabase/ssr         | 0.8.x   | Supabase server/client helpers           |
@@ -383,7 +404,7 @@ bun run verify:supabase-money
 ## Key Conventions
 
 1. **RSC first:** Keep components as React Server Components unless interactivity requires client hooks or browser-only APIs.
-2. **Next.js 16.2.1 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
+2. **Next.js 16.2.6 compliance:** Always `await` dynamic `params` and `searchParams` in routes and layouts (follow current App Router patterns for this repo’s Next version).
 3. **Zinc and shadcn/ui Maia aesthetic:** Maia/Zinc tokens and shared UI patterns in `@asym/ui`; use `zinc-900` for primary actions and `zinc-500` for secondary text where this convention applies.
 4. **Responsive integrity:** Test UI changes on both ~375px (mobile) and ~1440px (desktop) viewports.
 
