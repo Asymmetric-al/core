@@ -1,5 +1,6 @@
 import { RetryAfterError } from "inngest";
 
+import { listAgedPendingContributionRefundAttempts } from "../../admin/contribution-operations/store";
 import {
   claimStripeRawEvent,
   completeStripeRawEvent,
@@ -7,7 +8,10 @@ import {
   recordStripeRawEventFailure,
   recordStripeRawEventFailureIfStillProcessing,
 } from "../../stripe/event-store";
-import { handleStripeWebhookEvent } from "../../stripe/webhooks";
+import {
+  handleStripeWebhookEvent,
+  reconcileStripeRefundByProviderId,
+} from "../../stripe/webhooks";
 import { runStripeEventRecoveryScan } from "../adapters/stripe-events";
 import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
@@ -110,6 +114,7 @@ export const stripeEventProcessing = inngest.createFunction(
             handled: outcome.handled,
             paymentIntentId: outcome.paymentIntentId,
             pledgeId: outcome.pledgeId,
+            providerRefundId: outcome.providerRefundId,
             reason: outcome.reason,
             stagedGiftId: outcome.stagedGiftId,
           },
@@ -150,10 +155,50 @@ export const stripeEventRecoveryScan = inngest.createFunction(
     concurrency: [{ limit: 1 }],
   },
   async ({ step }) => {
-    return await step.run("scan-failed-stripe-events", async () => {
-      const client = requireWorkflowAdminClient("stripe_event_recovery");
+    const stripeEvents = await step.run(
+      "scan-failed-stripe-events",
+      async () => {
+        const client = requireWorkflowAdminClient("stripe_event_recovery");
 
-      return await runStripeEventRecoveryScan({ client });
+        return await runStripeEventRecoveryScan({ client });
+      },
+    );
+
+    const refunds = await step.run("scan-aged-pending-refunds", async () => {
+      const supabaseAdmin = requireWorkflowAdminClient(
+        "stripe_refund_recovery",
+      );
+      const attempts = await listAgedPendingContributionRefundAttempts({
+        supabaseAdmin,
+      });
+      const outcomes = [];
+
+      // The store query is age-gated and capped at a small deterministic
+      // batch. Sequential provider reads further bound Stripe pressure.
+      for (const attempt of attempts) {
+        if (!attempt.providerReferenceId) continue;
+        try {
+          outcomes.push(
+            await reconcileStripeRefundByProviderId({
+              supabaseAdmin,
+              tenantId: attempt.tenantId,
+              providerRefundId: attempt.providerReferenceId,
+            }),
+          );
+        } catch {
+          // Leave the attempt pending for the next scheduled pass. Do not
+          // expose provider or tenant error detail in the function result.
+          outcomes.push({
+            action: "refund_reconciliation_failed",
+            handled: true,
+            providerRefundId: attempt.providerReferenceId,
+          });
+        }
+      }
+
+      return { scanned: attempts.length, outcomes };
     });
+
+    return { stripeEvents, refunds };
   },
 );
