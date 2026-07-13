@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import {
+  buildApprovalEmailContent,
+  deliverApprovalEmailNotifications,
+} from "../../../../../packages/api/src/admin/contribution-operations/approval-notification-email";
 import {
   ensureCorrectionApprovalWorkflow,
   evaluatePendingApprovalSla,
@@ -25,6 +29,7 @@ interface StubState {
   statusBeforeSlaUpdateIds: Map<string, string>;
   approvalPolicy: Record<string, unknown> | null;
   approvalSettings: Record<string, unknown> | null;
+  failingSettingsRead?: boolean;
   approvers: Array<Record<string, unknown>>;
   preferences: Array<Record<string, unknown>>;
   approvalNotifications: Array<Record<string, unknown>>;
@@ -233,6 +238,9 @@ class QueryBuilder {
     }
 
     if (this.table === "contribution_approval_notification_settings") {
+      if (this.state.failingSettingsRead) {
+        return { data: null, error: { message: "settings read failed" } };
+      }
       return { data: this.state.approvalSettings, error: null };
     }
 
@@ -245,6 +253,9 @@ class QueryBuilder {
     }
 
     if (this.table === "contribution_approval_notification_preferences") {
+      if (this.maybeSingleResult) {
+        return { data: this.state.preferences[0] ?? null, error: null };
+      }
       return { data: this.state.preferences, error: null };
     }
 
@@ -268,7 +279,7 @@ class QueryBuilder {
             ...row,
           };
           this.state.approvalNotifications.push(stored);
-          inserted.push({ id: stored.id });
+          inserted.push({ id: stored.id, dedupe_key: stored.dedupe_key });
         }
 
         return { data: inserted, error: null };
@@ -1203,5 +1214,421 @@ describe("admin/contribution-operations/approval-notifications", () => {
         (notification) => notification.correction_request_id === "request-2",
       ),
     ).toHaveLength(2);
+  });
+});
+
+describe("approval notification email delivery (#262)", () => {
+  const emailSendingSettings = {
+    apiKey: "resend-key",
+    fromEmail: "mc@example.test",
+    fromName: "Mission Control",
+    replyToEmail: null,
+  };
+
+  function emailEnabledState() {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: true,
+    };
+    state.approvers = [
+      {
+        id: "approver-1",
+        email: "approver-one@example.test",
+        display_name: "Approver One",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    state.preferences = [
+      {
+        profile_id: "approver-1",
+        in_app_enabled: true,
+        email_enabled: true,
+      },
+    ];
+    return state;
+  }
+
+  it("sends approval-request emails through the tenant sender keyed by the dedupe key", async () => {
+    const state = emailEnabledState();
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
+
+    const result = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(result.notificationsCreated).toBeGreaterThan(0);
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [apiKey, options] = sendEmail.mock.calls[0]!;
+    expect(apiKey).toBe("resend-key");
+    expect(options.to).toEqual({
+      email: "approver-one@example.test",
+      name: "Approver One",
+    });
+    expect(options.subject).toMatch(/approval needed/i);
+    expect(options.idempotencyKey).toBe(
+      `approval-notification/${TENANT_ID}/correction-request/${REQUEST_ID}/approval_requested/email/approver-1`,
+    );
+  });
+
+  it("does not resend approval emails on a pure workflow replay", async () => {
+    const state = emailEnabledState();
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
+    const dependencies = {
+      sendEmail,
+      resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+    };
+
+    await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      dependencies,
+    });
+    await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      dependencies,
+    });
+
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+  });
+
+  it("keeps the durable workflow intact when the email provider fails", async () => {
+    const state = emailEnabledState();
+    const sendEmail = vi.fn().mockRejectedValue(new Error("provider down"));
+
+    const result = await ensureCorrectionApprovalWorkflow({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      requestId: REQUEST_ID,
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(result.notificationsCreated).toBeGreaterThan(0);
+    expect(state.approvalNotifications.length).toBeGreaterThan(0);
+    expect(sendEmail).toHaveBeenCalled();
+  });
+
+  function outcomeRequest() {
+    return {
+      id: REQUEST_ID,
+      tenantId: TENANT_ID,
+      donationId: "donation-1",
+      actionType: "amount_correction" as const,
+      payload: {},
+      reason: "Donor reported the wrong amount",
+      requestedByProfileId: "requester-1",
+      sourceSurface: "donor_crm_record" as const,
+      status: "approved" as const,
+      expectedRevision: null,
+      receiptDeliveryProposal: {},
+      decidedByProfileId: "approver-1",
+      decidedAt: "2026-06-02T00:00:00.000Z",
+      decisionReason: "Verified with the donor.",
+      appliedAdjustmentId: "adjustment-1",
+      approvalTaskId: null,
+      followUpTaskId: null,
+      lastReminderAt: null,
+      escalatedAt: null,
+      createdAt: "2026-06-01T00:00:00.000Z",
+    };
+  }
+
+  it("emails the requester the outcome only with tenant and requester opt-in", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: true,
+    };
+    state.approvers = [
+      {
+        id: "requester-1",
+        email: "requester@example.test",
+        display_name: "Requester",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
+
+    await recordCorrectionApprovalOutcome({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      request: outcomeRequest(),
+      decision: "approved",
+      decisionReason: "Verified with the donor.",
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    const channels = state.approvalNotifications.map((row) => row.channel);
+    expect(channels).toContain("in_app");
+    expect(channels).toContain("email");
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [, options] = sendEmail.mock.calls[0]!;
+    expect(options.subject).toMatch(/approved/i);
+    expect(options.text).toContain("Verified with the donor.");
+  });
+
+  it("does not resend an outcome email already recorded by a partial earlier attempt", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: true,
+    };
+    state.approvers = [
+      {
+        id: "requester-1",
+        email: "requester@example.test",
+        display_name: "Requester",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    // Simulate an earlier attempt that recorded (and sent) the email row but
+    // died before the in-app row landed. The retry must create the in-app
+    // notification without re-sending the already-recorded email.
+    state.approvalNotifications = [
+      {
+        id: "notification-existing",
+        channel: "email",
+        dedupe_key: `correction-request/${REQUEST_ID}/outcome/approved/email/requester`,
+      },
+    ];
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
+
+    await recordCorrectionApprovalOutcome({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      request: outcomeRequest(),
+      decision: "approved",
+      decisionReason: "Verified with the donor.",
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    const channels = state.approvalNotifications.map((row) => row.channel);
+    expect(channels).toContain("in_app");
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("counts a resolved failure result as failed, not sent", async () => {
+    const state = stubState();
+    state.approvers = [
+      {
+        id: "approver-1",
+        email: "approver-one@example.test",
+        display_name: "Approver One",
+        first_name: null,
+        last_name: null,
+      },
+      {
+        id: "approver-2",
+        email: "approver-two@example.test",
+        display_name: "Approver Two",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    // sendEmail resolves { success: false } for provider/validation failures
+    // instead of throwing; the delivery counters must reflect that honestly.
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValueOnce({ success: true, messageId: "email-1" })
+      .mockResolvedValueOnce({
+        success: false,
+        error: "Invalid sender",
+        errorCode: "VALIDATION_ERROR",
+      });
+
+    const result = await deliverApprovalEmailNotifications({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      notifications: [
+        {
+          recipientProfileId: "approver-1",
+          channel: "email",
+          kind: "approval_requested",
+          dedupeKey: `correction-request/${REQUEST_ID}/approval_requested/email/approver-1`,
+        },
+        {
+          recipientProfileId: "approver-2",
+          channel: "email",
+          kind: "approval_requested",
+          dedupeKey: `correction-request/${REQUEST_ID}/approval_requested/email/approver-2`,
+        },
+      ],
+      context: {
+        requestId: REQUEST_ID,
+        donationId: "donation-1",
+        actionType: "amount_correction",
+      },
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(result).toEqual({ attempted: 2, sent: 1, failed: 1, skipped: 0 });
+  });
+
+  it("keeps requester outcomes in-app only when tenant email is disabled", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: false,
+    };
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    const sendEmail = vi.fn();
+
+    await recordCorrectionApprovalOutcome({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      request: outcomeRequest(),
+      decision: "rejected",
+      decisionReason: "Amount did not match the deposit.",
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(state.approvalNotifications.map((row) => row.channel)).toEqual([
+      "in_app",
+    ]);
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("escapes staff-authored decision reasons in the email html body", async () => {
+    const state = stubState();
+    state.approvalSettings = {
+      create_approval_task: true,
+      in_app_enabled: true,
+      email_enabled: true,
+    };
+    state.approvers = [
+      {
+        id: "requester-1",
+        email: "requester@example.test",
+        display_name: "Requester",
+        first_name: null,
+        last_name: null,
+      },
+    ];
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    const sendEmail = vi
+      .fn()
+      .mockResolvedValue({ success: true, messageId: "email-1" });
+
+    await recordCorrectionApprovalOutcome({
+      supabaseAdmin: createStub(state),
+      tenantId: TENANT_ID,
+      request: outcomeRequest(),
+      decision: "rejected",
+      decisionReason: 'a < b & "c" <img src=x onerror=alert(1)>',
+      dependencies: {
+        sendEmail,
+        resolveSendingSettings: vi.fn().mockResolvedValue(emailSendingSettings),
+      },
+    });
+
+    expect(sendEmail).toHaveBeenCalledTimes(1);
+    const [, options] = sendEmail.mock.calls[0]!;
+    // Text keeps the verbatim reason; html escapes it.
+    expect(options.text).toContain('a < b & "c" <img src=x onerror=alert(1)>');
+    expect(options.html).not.toContain("<img");
+    expect(options.html).toContain("&lt;img src=x onerror=alert(1)&gt;");
+    expect(options.html).toContain("a &lt; b &amp; &quot;c&quot;");
+  });
+
+  it("falls back to email-off when the gating reads fail instead of failing the decision", async () => {
+    const state = stubState();
+    state.failingSettingsRead = true;
+    state.preferences = [
+      { profile_id: "requester-1", in_app_enabled: true, email_enabled: true },
+    ];
+    const sendEmail = vi.fn();
+
+    await expect(
+      recordCorrectionApprovalOutcome({
+        supabaseAdmin: createStub(state),
+        tenantId: TENANT_ID,
+        request: outcomeRequest(),
+        decision: "approved",
+        decisionReason: null,
+        dependencies: {
+          sendEmail,
+          resolveSendingSettings: vi
+            .fn()
+            .mockResolvedValue(emailSendingSettings),
+        },
+      }),
+    ).resolves.toBeUndefined();
+
+    // The durable in-app outcome still records; email quietly stays off.
+    expect(state.approvalNotifications.map((row) => row.channel)).toEqual([
+      "in_app",
+    ]);
+    expect(sendEmail).not.toHaveBeenCalled();
+  });
+
+  it("builds product email copy without leaking financial detail", () => {
+    const requested = buildApprovalEmailContent("approval_requested", {
+      requestId: "request-1",
+      donationId: "donation-1",
+      actionType: "amount_correction",
+    });
+    expect(requested.subject).toBe(
+      "Correction approval needed: amount correction",
+    );
+    expect(requested.text).not.toMatch(/\$|amount of/i);
+
+    const outcome = buildApprovalEmailContent("outcome", {
+      requestId: "request-1",
+      donationId: "donation-1",
+      actionType: "amount_correction",
+      decision: "rejected",
+      decisionReason: "Amount did not match the deposit.",
+    });
+    expect(outcome.subject).toMatch(/rejected/);
+    expect(outcome.text).toContain("Amount did not match the deposit.");
   });
 });

@@ -129,12 +129,13 @@ bun run shadcn:uikit:add button1
 
 ## Dependency Version Policy
 
-| Dependency group           | Current range | Target (future) | Trigger to switch        |
-| -------------------------- | ------------- | --------------- | ------------------------ |
-| `@base-ui/react`           | Exact pin     | Exact pin       | Already pinned (`1.5.0`) |
-| `class-variance-authority` | `^` caret     | Exact pin       | Same                     |
-| `clsx`                     | `^` caret     | Exact pin       | Same                     |
-| `tailwind-merge`           | `^` caret     | Exact pin       | Same                     |
+| Dependency group           | Current range | Target (future) | Trigger to switch           |
+| -------------------------- | ------------- | --------------- | --------------------------- |
+| `@base-ui/react`           | Exact pin     | Exact pin       | Already pinned (`1.5.0`)    |
+| `class-variance-authority` | `^` caret     | Exact pin       | Same                        |
+| `cnfast`                   | Exact pin     | Exact pin       | Shared `cn()` helper engine |
+| `clsx`                     | `^` caret     | Exact pin       | Same                        |
+| `tailwind-merge`           | `^` caret     | Exact pin       | Same                        |
 
 Caret ranges are a Phase 0 pragmatic choice while the team does not yet have visual regression coverage. When updating any dependency in these groups, always run `bun run build` across all apps and do a visual review before merging.
 

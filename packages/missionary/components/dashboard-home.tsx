@@ -4,11 +4,6 @@ import { DEMO_PROFILE_ID } from "@asym/auth/constants";
 import { useMissionaryPortalSnapshot } from "@asym/database/hooks";
 import { useAuth } from "@asym/lib/hooks";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@asym/ui/components/shadcn/avatar";
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -18,9 +13,9 @@ import {
   CardTitle,
   CardDescription,
 } from "@asym/ui/components/shadcn/card";
+import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import {
   ArrowUpRight,
-  TrendingUp,
   AlertCircle,
   Circle,
   ArrowRight,
@@ -28,62 +23,12 @@ import {
 } from "lucide-react";
 import React from "react";
 
+import { buildMissionaryDashboardView } from "./dashboard-view";
 import { GivingBreakdownChart } from "./giving-breakdown-chart";
 import { MetricTiles } from "./metric-tiles";
 
 /** Same as demo profile id so metrics API finds the seeded missionary row. */
 const DEMO_MISSIONARY_ID = DEMO_PROFILE_ID;
-
-const MOCK_TASKS = [
-  {
-    id: 1,
-    title: "Call donor John Smith",
-    completed: false,
-    priority: "high",
-    dueDate: "Today",
-  },
-  {
-    id: 2,
-    title: "Send newsletter draft",
-    completed: false,
-    priority: "medium",
-    dueDate: "Tomorrow",
-  },
-  {
-    id: 3,
-    title: "Update ministry profile",
-    completed: false,
-    priority: "low",
-    dueDate: "Dec 30",
-  },
-  {
-    id: 4,
-    title: "Review failed payments",
-    completed: false,
-    priority: "high",
-    dueDate: "Today",
-  },
-  {
-    id: 5,
-    title: "Thank church partners",
-    completed: false,
-    priority: "medium",
-    dueDate: "Friday",
-  },
-];
-
-const MOCK_POSTS = [
-  {
-    id: 1,
-    content: "Just reached 75% of our monthly goal! Thank you partners.",
-    timestamp: "2h ago",
-  },
-  {
-    id: 2,
-    content: "New team member joining us in Nairobi next month.",
-    timestamp: "5h ago",
-  },
-];
 
 function formatSupportAmount(cents: number): string {
   const dollars = cents / 100;
@@ -110,34 +55,67 @@ function DashboardHomeContent({
   belowHeaderSlot?: React.ReactNode;
 }) {
   const portalQuery = useMissionaryPortalSnapshot();
-  const portal = portalQuery.data;
-  const support = portal?.support;
-  const goalCents = support?.goalCents ?? 600_000;
-  const raisedCents = support?.raisedCents ?? 456_000;
-  const percentFunded = support?.percentFunded ?? 76;
-  const remainingCents = Math.max(0, goalCents - raisedCents);
-  const pendingTasks =
-    portal?.tasks.filter((task) => task.status !== "completed") ?? MOCK_TASKS;
-  const latestUpdates =
-    portal?.ministryUpdates.map((update) => ({
-      id: update.id,
-      content: update.excerpt,
-      timestamp: update.createdAt
-        ? new Date(update.createdAt).toLocaleDateString()
-        : "Draft",
-    })) ?? MOCK_POSTS;
-  const alerts = [
-    {
-      id: 1,
-      text: `${pendingTasks.length} support tasks need attention`,
-      severity: "high",
-    },
-    {
-      id: 2,
-      text: `${support?.activeDonorCount ?? 0} active donor relationships`,
-      severity: "medium",
-    },
-  ];
+  const {
+    support,
+    pendingTasks,
+    updates: latestUpdates,
+    alerts,
+  } = buildMissionaryDashboardView(portalQuery.data);
+
+  if (portalQuery.isLoading) {
+    return (
+      <PageShell
+        title="Dashboard"
+        description="Your ministry at a glance"
+        contentClassName="section-gap"
+      >
+        {belowHeaderSlot}
+        <div
+          className="grid gap-4"
+          aria-busy="true"
+          aria-label="Loading dashboard"
+        >
+          <Skeleton className="h-28 w-full rounded-xl" />
+          <Skeleton className="h-64 w-full rounded-xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
+            <Skeleton className="h-56 rounded-xl lg:col-span-7" />
+            <Skeleton className="h-56 rounded-xl lg:col-span-5" />
+          </div>
+        </div>
+      </PageShell>
+    );
+  }
+
+  if (portalQuery.error) {
+    return (
+      <PageShell
+        title="Dashboard"
+        description="Your ministry at a glance"
+        contentClassName="section-gap"
+      >
+        {belowHeaderSlot}
+        <Card className="border-destructive/40 rounded-xl">
+          <CardContent className="p-6 space-y-3 text-left">
+            <p role="alert" className="text-sm font-medium text-destructive">
+              We couldn&apos;t load your dashboard.
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => portalQuery.refetch()}
+            >
+              Try again
+            </Button>
+          </CardContent>
+        </Card>
+      </PageShell>
+    );
+  }
+
+  const raisedCents = support?.raisedCents ?? 0;
+  const goalCents = support?.goalCents ?? 0;
+  const remainingCents = support?.remainingCents ?? 0;
+  const percentFunded = support?.percentFunded ?? 0;
 
   return (
     <PageShell
@@ -188,72 +166,77 @@ function DashboardHomeContent({
             <div className="absolute top-0 right-0 w-[200px] h-[200px] bg-gradient-to-br from-zinc-700/20 to-transparent rounded-full -translate-y-1/2 translate-x-1/3 blur-[40px] pointer-events-none" />
 
             <CardContent className="p-3 sm:p-4 relative z-10">
-              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-2 sm:gap-0">
-                <div>
+              {support?.hasGoal ? (
+                <>
+                  <div>
+                    <h2 className="text-zinc-500 font-semibold text-[9px] uppercase tracking-[0.2em] mb-1 leading-none">
+                      Monthly Support Goal
+                    </h2>
+                    <div className="flex items-baseline gap-2">
+                      <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-white leading-none">
+                        {formatSupportAmount(raisedCents)}
+                      </span>
+                      <span className="text-zinc-600 text-sm sm:text-base font-medium leading-none">
+                        / {formatSupportAmount(goalCents)}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="mt-2.5">
+                    <div className="flex justify-between text-[9px] mb-1 text-zinc-500 font-semibold leading-none">
+                      <span>{percentFunded}% Funded</span>
+                      <span className="text-zinc-400">
+                        {formatSupportAmount(remainingCents)} remaining
+                      </span>
+                    </div>
+                    <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
+                      {/* Animate transform: scaleX (GPU, no layout) instead of width */}
+                      <div
+                        className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
+                        style={{
+                          transform: `scaleX(${Math.min(percentFunded, 100) / 100})`,
+                        }}
+                        role="progressbar"
+                        aria-valuenow={percentFunded}
+                        aria-valuemin={0}
+                        aria-valuemax={100}
+                        aria-label="Support funded"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="mt-2.5 grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-zinc-800/50">
+                    <div className="flex flex-col gap-0">
+                      <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
+                        Gifts
+                      </span>
+                      <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
+                        {support.giftCount}
+                      </span>
+                    </div>
+                    <div className="flex flex-col gap-0">
+                      <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
+                        Active Donors
+                      </span>
+                      <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
+                        {support.activeDonorCount}
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="py-4 text-center">
                   <h2 className="text-zinc-500 font-semibold text-[9px] uppercase tracking-[0.2em] mb-1 leading-none">
                     Monthly Support Goal
                   </h2>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-xl sm:text-2xl md:text-3xl font-semibold tracking-tighter text-white leading-none">
-                      {formatSupportAmount(raisedCents)}
-                    </span>
-                    <span className="text-zinc-600 text-sm sm:text-base font-medium leading-none">
-                      / {formatSupportAmount(goalCents)}
-                    </span>
-                  </div>
+                  <p className="text-white text-sm font-medium mt-1">
+                    No support goal set yet
+                  </p>
+                  <p className="text-zinc-500 text-[10px] mt-1">
+                    Set a monthly goal to start tracking your support.
+                  </p>
                 </div>
-                <Badge
-                  variant="outline"
-                  className="border-emerald-500/30 bg-emerald-500/10 text-emerald-400 px-1.5 py-0 text-[8px] font-semibold uppercase tracking-wider w-fit"
-                >
-                  On Track
-                </Badge>
-              </div>
-
-              <div className="mt-2.5">
-                <div className="flex justify-between text-[9px] mb-1 text-zinc-500 font-semibold leading-none">
-                  <span>76% Funded</span>
-                  <span className="text-zinc-400">
-                    {formatSupportAmount(remainingCents)} remaining
-                  </span>
-                </div>
-                <div className="h-1.5 w-full bg-zinc-800 rounded-full overflow-hidden">
-                  {/* Animate transform: scaleX (GPU, no layout) instead of width */}
-                  <div
-                    className="size-full origin-left bg-white transition-transform duration-700 ease-[var(--ease-out-soft)]"
-                    style={{
-                      transform: `scaleX(${Math.min(percentFunded, 100) / 100})`,
-                    }}
-                  />
-                </div>
-              </div>
-
-              <div className="mt-2.5 grid grid-cols-3 gap-2 sm:flex sm:flex-wrap sm:gap-y-2 sm:gap-x-8 pt-2.5 border-t border-zinc-800/50">
-                <div className="flex flex-col gap-0">
-                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
-                    New Partners
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
-                    {support?.giftCount ?? 0}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0">
-                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
-                    Active Donors
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-white mt-0.5 leading-none">
-                    {support?.activeDonorCount ?? 0}
-                  </span>
-                </div>
-                <div className="flex flex-col gap-0">
-                  <span className="text-zinc-600 text-[8px] uppercase tracking-[0.1em] font-semibold leading-none">
-                    MoM Growth
-                  </span>
-                  <span className="text-sm sm:text-base font-semibold text-emerald-400 flex items-center gap-1 mt-0.5 leading-none">
-                    <TrendingUp size={14} /> {percentFunded}%
-                  </span>
-                </div>
-              </div>
+              )}
             </CardContent>
           </Card>
 
@@ -277,27 +260,29 @@ function DashboardHomeContent({
               )}
             </CardHeader>
             <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-2 p-2.5 sm:px-4 sm:pb-3">
-              {latestUpdates.slice(0, 2).map((post) => (
-                <div
-                  key={post.id}
-                  className="group flex gap-2 p-1.5 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-colors cursor-pointer"
-                >
-                  <Avatar className="size-6 shrink-0 border border-white shadow-sm">
-                    <AvatarImage
-                      src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.id}`}
-                    />
-                    <AvatarFallback className="text-[8px]">JM</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-[10px] text-zinc-700 leading-tight font-medium line-clamp-2">
-                      {post.content}
-                    </p>
-                    <p className="text-[8px] text-zinc-400 mt-0.5 font-semibold uppercase tracking-wider">
-                      {post.timestamp}
-                    </p>
+              {latestUpdates.length === 0 ? (
+                <p className="sm:col-span-2 text-[10px] text-muted-foreground text-center py-4">
+                  No ministry updates yet.
+                </p>
+              ) : (
+                latestUpdates.slice(0, 2).map((post) => (
+                  <div
+                    key={post.id}
+                    className="group flex gap-2 p-1.5 rounded-lg border border-zinc-100 hover:border-zinc-200 hover:bg-zinc-50 transition-colors cursor-pointer"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-[10px] text-zinc-700 leading-tight font-medium line-clamp-2">
+                        {post.content}
+                      </p>
+                      <p className="text-[8px] text-zinc-400 mt-0.5 font-semibold uppercase tracking-wider">
+                        {post.createdAt
+                          ? new Date(post.createdAt).toLocaleDateString()
+                          : "Draft"}
+                      </p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))
+              )}
               {setActiveTab && (
                 <Button
                   variant="outline"
@@ -345,33 +330,37 @@ function DashboardHomeContent({
                 )}
 
                 <div className="divide-y divide-zinc-50">
-                  {pendingTasks.slice(0, 4).map((task) => (
-                    <div
-                      key={task.id}
-                      className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-colors flex items-start gap-2 cursor-pointer touch-target"
-                    >
-                      <Circle className="size-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-[10px] font-semibold text-zinc-800 truncate tracking-tight leading-none">
-                          {task.title}
-                        </p>
-                        <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
-                          {task.priority === "high" && (
-                            <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-[7px] h-3 font-semibold uppercase tracking-widest px-1">
-                              Urgent
-                            </Badge>
-                          )}
-                          <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wider">
-                            {"dueDate" in task
-                              ? `Due ${task.dueDate}`
-                              : task.due_date
-                                ? `Due ${new Date(task.due_date).toLocaleDateString()}`
+                  {pendingTasks.length === 0 ? (
+                    <p className="text-[10px] text-muted-foreground text-center py-6">
+                      No tasks need attention — you&apos;re all caught up.
+                    </p>
+                  ) : (
+                    pendingTasks.slice(0, 4).map((task) => (
+                      <div
+                        key={task.id}
+                        className="group p-2 px-3 sm:px-3.5 hover:bg-zinc-50/50 transition-colors flex items-start gap-2 cursor-pointer touch-target"
+                      >
+                        <Circle className="size-3 text-zinc-300 group-hover:text-zinc-600 mt-0.5 shrink-0" />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-[10px] font-semibold text-zinc-800 truncate tracking-tight leading-none">
+                            {task.title}
+                          </p>
+                          <div className="flex items-center gap-1.5 mt-0.5 leading-none flex-wrap">
+                            {task.priority === "high" && (
+                              <Badge className="bg-red-50 text-red-600 hover:bg-red-50 border-none text-[7px] h-3 font-semibold uppercase tracking-widest px-1">
+                                Urgent
+                              </Badge>
+                            )}
+                            <span className="text-[8px] text-zinc-400 font-semibold uppercase tracking-wider">
+                              {task.dueDate
+                                ? `Due ${new Date(task.dueDate).toLocaleDateString()}`
                                 : "No due date"}
-                          </span>
+                            </span>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ))
+                  )}
                 </div>
               </div>
               <div className="p-1.5 bg-zinc-50/10 border-t border-zinc-50">

@@ -445,7 +445,13 @@ export async function decideContributionCorrectionRequest(
     actionType: request.actionType,
     reason: request.reason,
     confirmationToken: `correction-request/${request.id}`,
-    expectedRevision: request.expectedRevision,
+    // The stored pre-request expectedRevision is stale by construction:
+    // creating the request inserts a request row and an audit event, both of
+    // which change the detail revision fingerprint, so replaying it at apply
+    // time would 409 every approval. Concurrency protection here is the
+    // pending-status compare-and-set in recordDecision plus the approver's
+    // review of current state (#265).
+    expectedRevision: null,
     idempotencyKey: `correction-request-apply/${input.tenantId}/${request.id}`,
     payload: applicationPayload,
     dependencies: {
@@ -501,6 +507,7 @@ export async function decideContributionCorrectionRequest(
         correctionRequestId: request.id,
         decision: "approved",
         adjustmentId: result.adjustmentId ?? null,
+        receiptSnapshotId: result.receiptOutcome?.snapshotId ?? null,
         receiptDeliveryRequested: receiptDelivery.requested,
         receiptDeliveryConfirmed: receiptDelivery.confirmed,
         receiptDeliveryChangedByApprover: receiptDelivery.changedByApprover,

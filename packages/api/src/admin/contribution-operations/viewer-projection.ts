@@ -1,4 +1,8 @@
-import { resolveCorrectionApprovalPolicy } from "./approval-policy";
+import {
+  canDecideCorrectionRequest,
+  resolveCorrectionApprovalPolicy,
+} from "./approval-policy";
+import { evaluateReceiptDeliveryOptions } from "./receipt-delivery";
 import {
   buildCorrectionRequestAvailability,
   isContributionOperationActionType,
@@ -10,6 +14,12 @@ import {
 import type { ContributionActionAvailability } from "./action-availability";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionDetail } from "./detail-read-model";
+import type {
+  ReceiptDeliveryChoice,
+  ReceiptDeliveryDonorContext,
+  ReceiptDeliveryOption,
+  TenantReceiptDeliveryPolicy,
+} from "./receipt-delivery";
 import type {
   ContributionActionResult,
   ContributionProviderOutcome,
@@ -38,10 +48,95 @@ export interface ContributionProviderProof {
   };
 }
 
-export type ViewerProjectedContributionDetail = ContributionDetail & {
+/**
+ * Updated receipt delivery context for the detail GET payload (#263).
+ * Attached only when the gift's receipt was already sent — the only state in
+ * which a correction can invalidate a communicated receipt.
+ */
+export interface ContributionReceiptDeliveryView {
+  options: ReceiptDeliveryOption[];
+  defaultChoice: ReceiptDeliveryChoice | null;
+  deferReasonRequired: boolean;
+  requireDeliveryAction: boolean;
+  donor: ReceiptDeliveryDonorContext;
+}
+
+export type ViewerProjectedCorrectionRequest =
+  ContributionDetail["correctionRequests"][number] & {
+    /** Whether this viewer may approve/reject the request (ADR-CD-025). */
+    viewerCanDecide: boolean;
+  };
+
+export type ViewerProjectedContributionDetail = Omit<
+  ContributionDetail,
+  "correctionRequests"
+> & {
   /** Present only for viewers with contributions.use_provider_actions. */
   providerProof: ContributionProviderProof | null;
+  /**
+   * `viewerCanDecide` is attached by the detail GET route via
+   * {@link projectCorrectionRequestsForViewer}; action-result projections
+   * leave it absent.
+   */
+  correctionRequests: Array<
+    ContributionDetail["correctionRequests"][number] & {
+      viewerCanDecide?: boolean;
+    }
+  >;
+  /**
+   * Attached by the detail GET route when `shared.receiptStatus === "sent"`;
+   * `null`/absent otherwise.
+   */
+  receiptDelivery?: ContributionReceiptDeliveryView | null;
 };
+
+/**
+ * Pure viewer projection of the tenant receipt delivery policy + donor
+ * context, evaluated against the viewer's capabilities (#263).
+ */
+export function buildContributionReceiptDeliveryView(input: {
+  policy: TenantReceiptDeliveryPolicy;
+  donor: ReceiptDeliveryDonorContext;
+  viewerCapabilities: string[];
+}): ContributionReceiptDeliveryView {
+  const evaluated = evaluateReceiptDeliveryOptions({
+    policy: input.policy,
+    donor: input.donor,
+    actorCapabilities: input.viewerCapabilities,
+  });
+
+  return {
+    options: evaluated.options,
+    defaultChoice: evaluated.defaultChoice,
+    deferReasonRequired: input.policy.deferReasonRequired,
+    requireDeliveryAction: input.policy.requireDeliveryAction,
+    donor: input.donor,
+  };
+}
+
+/**
+ * Pure per-request decision projection (#263). Mirrors the decision
+ * endpoint's server-side enforcement so the UI never shows approve/reject
+ * affordances the server would refuse.
+ */
+export function projectCorrectionRequestsForViewer(
+  requests: ContributionDetail["correctionRequests"],
+  viewer: {
+    policy: CorrectionApprovalPolicy;
+    viewerProfileId: string | null;
+    viewerCapabilities: string[];
+  },
+): ViewerProjectedCorrectionRequest[] {
+  return requests.map((request) => ({
+    ...request,
+    viewerCanDecide: canDecideCorrectionRequest({
+      policy: viewer.policy,
+      request: { requestedByProfileId: request.requestedByProfileId },
+      deciderProfileId: viewer.viewerProfileId,
+      deciderCapabilities: viewer.viewerCapabilities,
+    }),
+  }));
+}
 
 export interface ProjectContributionDetailOptions {
   /**

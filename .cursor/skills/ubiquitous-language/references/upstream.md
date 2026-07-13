@@ -3,13 +3,13 @@ source_name: mattpocock/skills (ubiquitous-language)
 source_url: https://github.com/mattpocock/skills
 source_type: github
 upstream_path: skills/deprecated/ubiquitous-language/SKILL.md
-skills_lock_hash: 2449e2345b96b9f1e861c697b5eab50d03ae1254481a4306b6f815684e523b3a
-last_reviewed: 2026-05-23
+skills_lock_hash: 4828c4957014e7d9c1fd62d65e92264d6d46808089953e14d1bbba5a92dfff4d
+last_reviewed: 2026-07-09
 ---
 
 # Upstream: ubiquitous-language
 
-Canonical copy in this repo: `docs/ai/skills/ubiquitous-language/` (mirrored to `.cursor/skills/` and `.agents/skills/` via `bun run skills:sync`).
+Canonical copy in this repo: `docs/ai/skills/ubiquitous-language/` (mirrored to `.agents/skills/`, `.cursor/skills/`, and `.claude/skills/` via `bun run skills:sync`).
 
 - **Repository:** https://github.com/mattpocock/skills
 - **Upstream path:** `skills/deprecated/ubiquitous-language/SKILL.md`
@@ -18,6 +18,8 @@ Canonical copy in this repo: `docs/ai/skills/ubiquitous-language/` (mirrored to 
 ## Refresh from ecosystem
 
 1. `npx skills add mattpocock/skills -y` updates `.agents/skills/*` and `skills-lock.json`.
-2. Copy the routed skill into `docs/ai/skills/ubiquitous-language/` if this canonical copy needs updating.
-3. Preserve this `references/upstream.md` file and any repo-specific routing notes.
+2. Reconcile the freshly installed upstream copy from `.agents/skills/ubiquitous-language/` into canonical `docs/ai/skills/ubiquitous-language/` if this canonical copy needs updating. Treat `.agents/skills/ubiquitous-language/` as a temporary Skills CLI import at this point; after `bun run skills:sync`, it is generated mirror output again.
+3. Preserve or regenerate this `references/upstream.md` file with the current lock hash.
 4. Run `bun run skills:sync` and `bun run skills:verify`.
+
+This skill is **not** updated by `bun run skills:refresh-upstream`.

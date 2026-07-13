@@ -5,11 +5,19 @@ import { NextResponse } from "next/server";
 export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
+  const cronSecret = serverEnv.CRON_SECRET;
+  // Fail CLOSED: this endpoint deletes users via the admin (RLS-bypass) client
+  // and middleware exempts /api/*. If no CRON_SECRET is configured it must
+  // refuse rather than run unauthenticated. (finding 06 Gap 1)
+  if (!cronSecret) {
+    return NextResponse.json(
+      { error: "Endpoint not configured" },
+      { status: 503 },
+    );
+  }
+
   const authHeader = request.headers.get("authorization");
-  if (
-    serverEnv.CRON_SECRET &&
-    authHeader !== `Bearer ${serverEnv.CRON_SECRET}`
-  ) {
+  if (authHeader !== `Bearer ${cronSecret}`) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
