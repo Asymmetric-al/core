@@ -1,5 +1,4 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
 import { createStripeClient } from "./client";
@@ -416,8 +415,10 @@ export async function handleStripeWebhookEvent(
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
-  const secretKey = serverEnv.STRIPE_SECRET_KEY;
-  const webhookSecret = serverEnv.STRIPE_WEBHOOK_SECRET;
+  // Platform webhook credentials are read from process.env at request time:
+  // serverEnv snapshots at import, which would freeze test/runtime overrides.
+  const secretKey = process.env.STRIPE_SECRET_KEY;
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   // Need the secret key to build the client that verifies the signature.
   if (!secretKey) {
