@@ -161,6 +161,20 @@ describe("contribution operations detail read model", () => {
     expect(detail.donorVisible.historyUpdatedImmediately).toBe(true);
   });
 
+  it("passes persisted stripe refund ids through payment.stripe.refundIds", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput({ stripeRefundIds: ["re_1", "re_2"] }),
+    });
+
+    expect(detail.payment.stripe.refundIds).toEqual(["re_1", "re_2"]);
+  });
+
+  it("defaults refund ids to an empty list when the donation input omits them", () => {
+    const detail = buildContributionDetail({ donation: donationInput() });
+
+    expect(detail.payment.stripe.refundIds).toEqual([]);
+  });
+
   it("keeps partial refunds distinct from full refunds in donor-visible staff detail", () => {
     const detail = buildContributionDetail({
       donation: {

@@ -63,6 +63,16 @@ function asNullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (entry): entry is string => typeof entry === "string" && entry.length > 0,
+  );
+}
+
 function assertNoError(
   error: { message?: string } | null,
   fallback: string,
@@ -89,6 +99,7 @@ function normalizeDonation(row: JsonRecord) {
     notes: asString(row.notes),
     stripePaymentIntentId: asString(row.stripe_payment_intent_id),
     stripeChargeId: asString(row.stripe_charge_id),
+    stripeRefundIds: asStringArray(row.stripe_refund_ids),
     giftDate:
       asString(row.gift_date) ??
       asString(row.created_at) ??
@@ -312,7 +323,7 @@ async function loadContributionOperationDetail(input: {
   const donationResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, refunded_at, refund_amount, source, created_at, updated_at",
+      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, stripe_refund_ids, refunded_at, refund_amount, source, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.contributionId)
