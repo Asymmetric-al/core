@@ -142,8 +142,18 @@ export interface ContributionDetailInput {
     fundId: string | null;
     fundName: string | null;
     missionaryId: string | null;
+    missionaryName: string | null;
     nextExpectedGiftAt: string | null;
     stripeSubscriptionId: string | null;
+    /**
+     * Gift-history context: how many donations are linked to this agreement
+     * (tenant-scoped count over `donations.pledge_id`). Intentionally not
+     * part of the revision fingerprint — new gifts under the agreement must
+     * not invalidate in-flight corrections on this gift.
+     */
+    linkedGiftCount: number;
+    /** Most recent gift date among the donations linked to this agreement. */
+    lastLinkedGiftAt: string | null;
   } | null;
 }
 
@@ -626,10 +636,11 @@ export function buildContributionDetail(
   const hasInternalRecurringLink = Boolean(
     donation.pledgeId || hasLoadedRecurringAgreement,
   );
+  // Own-recurrence fields only: pledge/agreement links drive section
+  // visibility, not the gift's recurring label — a one-time gift under a
+  // recurring agreement must stay labeled one-time (ADR-CD-007).
   const isRecurringGift = Boolean(
-    donation.isRecurring ||
-    donation.recurringInterval ||
-    hasInternalRecurringLink,
+    donation.isRecurring || donation.recurringInterval,
   );
   const providerRecurrenceWithoutAgreement = Boolean(
     (donation.isRecurring || donation.recurringInterval) &&
