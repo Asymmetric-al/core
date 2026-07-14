@@ -394,6 +394,8 @@ describe("contribution operations store", () => {
         reason: "Needs review",
         requestedByProfileId: "profile_requester",
         createdAt: "2026-05-06T00:00:00.000Z",
+        receiptDeliveryProposal: null,
+        receiptAffectedFields: [],
       },
     ]);
     expect(detail.crm.parent.twentyRecordId).toBe("twenty_parent");

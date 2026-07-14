@@ -507,6 +507,7 @@ export async function decideContributionCorrectionRequest(
         correctionRequestId: request.id,
         decision: "approved",
         adjustmentId: result.adjustmentId ?? null,
+        receiptSnapshotId: result.receiptOutcome?.snapshotId ?? null,
         receiptDeliveryRequested: receiptDelivery.requested,
         receiptDeliveryConfirmed: receiptDelivery.confirmed,
         receiptDeliveryChangedByApprover: receiptDelivery.changedByApprover,

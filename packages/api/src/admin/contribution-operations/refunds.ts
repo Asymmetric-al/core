@@ -1,6 +1,10 @@
-import { serverEnv } from "@asym/env";
-
 import { loadContributionDetailFromSupabase } from "./operations";
+import {
+  claimContributionRefundAttempt,
+  finalizeContributionRefundAttempt,
+  loadContributionRefundAttempt,
+} from "./store";
+import { loadTenantStripeSecretKey } from "./tenant-stripe-key";
 import { ApiHttpError } from "../../shared/http-errors";
 import { createStripeClient } from "../../stripe/client";
 import {
@@ -81,19 +85,7 @@ async function resolveTenantStripeSecretKey(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<string> {
-  const { data, error } = await input.supabaseAdmin
-    .from("tenants")
-    .select("id, stripe_secret_key")
-    .eq("id", input.tenantId)
-    .maybeSingle();
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  const tenantRow = data as { stripe_secret_key?: string | null } | null;
-  const secretKey =
-    tenantRow?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
+  const secretKey = await loadTenantStripeSecretKey(input);
 
   if (!secretKey) {
     throw new ApiHttpError(
@@ -108,6 +100,24 @@ async function resolveTenantStripeSecretKey(input: {
 export async function refundContributionThroughStripe(
   input: RefundContributionThroughStripeInput,
 ): Promise<ContributionProviderOutcome> {
+  let refundAttempt = await loadContributionRefundAttempt({
+    supabaseAdmin: input.supabaseAdmin,
+    tenantId: input.tenantId,
+    idempotencyKey: input.idempotencyKey,
+    donationId: input.contributionId,
+    requestedAmount: input.amount,
+  });
+
+  if (refundAttempt?.state === "finalized") {
+    if (!refundAttempt.providerOutcome) {
+      throw new Error(
+        "contribution_refund_attempt_recovery_failed: finalized attempt has no provider outcome",
+      );
+    }
+    return refundAttempt.providerOutcome;
+  }
+
+  const isReplayableAttempt = refundAttempt?.state === "claimed";
   const detail = await loadContributionDetailFromSupabase({
     supabaseAdmin: input.supabaseAdmin,
     tenantId: input.tenantId,
@@ -115,7 +125,11 @@ export async function refundContributionThroughStripe(
   });
 
   // Stale-save protection (ADR-CD-022): reject before any provider call.
-  if (input.expectedRevision && input.expectedRevision !== detail.revision) {
+  if (
+    !isReplayableAttempt &&
+    input.expectedRevision &&
+    input.expectedRevision !== detail.revision
+  ) {
     throw new ApiHttpError(409, STALE_REVISION_MESSAGE);
   }
 
@@ -140,19 +154,21 @@ export async function refundContributionThroughStripe(
 
   // The refundable basis is the ORIGINAL donation amount (what Stripe
   // charged), not the adjusted effective amount (ADR-CD-004).
-  const remainingRefundableCents =
-    detail.original.amountCents - detail.refund.amount;
-  if (remainingRefundableCents <= 0) {
-    throw new ApiHttpError(400, "This gift is already fully refunded.");
-  }
-  if (input.amount > remainingRefundableCents) {
-    throw new ApiHttpError(
-      400,
-      `Refund amount exceeds the remaining refundable amount of ${formatCentsAsCurrency(
-        remainingRefundableCents,
-        detail.amount.currency,
-      )}.`,
-    );
+  if (!isReplayableAttempt) {
+    const remainingRefundableCents =
+      detail.original.amountCents - detail.refund.amount;
+    if (remainingRefundableCents <= 0) {
+      throw new ApiHttpError(400, "This gift is already fully refunded.");
+    }
+    if (input.amount > remainingRefundableCents) {
+      throw new ApiHttpError(
+        400,
+        `Refund amount exceeds the remaining refundable amount of ${formatCentsAsCurrency(
+          remainingRefundableCents,
+          detail.amount.currency,
+        )}.`,
+      );
+    }
   }
 
   const secretKey = await resolveTenantStripeSecretKey({
@@ -165,47 +181,87 @@ export async function refundContributionThroughStripe(
   // Provider-truth over-refund guard: Stripe counts pending refunds into
   // charge.amount_refunded immediately, so the live charge is the authority
   // on what remains refundable even when the local record has not converged
-  // (pending partials, ambiguous retries). Returned — not thrown — because
-  // it is provider-verified state the executor should record honestly.
-  let liveCharge: Stripe.Charge | null;
-  try {
-    liveCharge = await retrieveLiveChargeForRefund({
-      stripe,
-      paymentIntentId,
-      chargeId,
-    });
-  } catch (error) {
-    const described = describeStripeRefundError(error);
-    if (!described) {
-      throw error;
-    }
-    if (described.ambiguous) {
-      // Nothing was created yet, so a same-key retry is doubly safe.
-      throw new ApiHttpError(502, AMBIGUOUS_PROVIDER_ERROR_MESSAGE);
-    }
-    return {
-      provider: "stripe",
-      status: "failed",
-      errorCode: described.errorCode,
-      errorMessage: described.errorMessage,
-    };
-  }
-
-  if (liveCharge) {
-    const providerRemainingCents =
-      (liveCharge.amount ?? 0) - (liveCharge.amount_refunded ?? 0);
-    if (input.amount > providerRemainingCents) {
+  // for a genuinely new attempt. Returned — not thrown — because it is
+  // provider-verified state the executor should record honestly.
+  if (!isReplayableAttempt) {
+    let liveCharge: Stripe.Charge | null;
+    try {
+      liveCharge = await retrieveLiveChargeForRefund({
+        stripe,
+        paymentIntentId,
+        chargeId,
+      });
+    } catch (error) {
+      const described = describeStripeRefundError(error);
+      if (!described) {
+        throw error;
+      }
+      if (described.ambiguous) {
+        // Nothing was created yet, so a same-key retry is doubly safe.
+        throw new ApiHttpError(502, AMBIGUOUS_PROVIDER_ERROR_MESSAGE);
+      }
       return {
         provider: "stripe",
         status: "failed",
-        errorCode: "refund_exceeds_provider_remaining",
-        errorMessage: `Refund amount exceeds the provider's remaining refundable amount of ${formatCentsAsCurrency(
-          providerRemainingCents,
-          detail.amount.currency,
-        )}. A refund may still be pending provider confirmation.`,
+        errorCode: described.errorCode,
+        errorMessage: described.errorMessage,
       };
     }
+
+    if (liveCharge) {
+      const providerRemainingCents =
+        (liveCharge.amount ?? 0) - (liveCharge.amount_refunded ?? 0);
+      if (input.amount > providerRemainingCents) {
+        return {
+          provider: "stripe",
+          status: "failed",
+          errorCode: "refund_exceeds_provider_remaining",
+          errorMessage: `Refund amount exceeds the provider's remaining refundable amount of ${formatCentsAsCurrency(
+            providerRemainingCents,
+            detail.amount.currency,
+          )}. A refund may still be pending provider confirmation.`,
+        };
+      }
+    }
   }
+
+  if (!refundAttempt) {
+    const claimed = await claimContributionRefundAttempt({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      donationId: input.contributionId,
+      requestedAmount: input.amount,
+      idempotencyKey: input.idempotencyKey,
+    });
+    refundAttempt = claimed.attempt;
+
+    if (refundAttempt.state === "finalized") {
+      if (!refundAttempt.providerOutcome) {
+        throw new Error(
+          "contribution_refund_attempt_recovery_failed: finalized attempt has no provider outcome",
+        );
+      }
+      return refundAttempt.providerOutcome;
+    }
+  }
+
+  if (!refundAttempt) {
+    throw new Error(
+      "contribution_refund_attempt_claim_failed: claimed row was not returned",
+    );
+  }
+  const activeRefundAttempt = refundAttempt;
+
+  const finalizeAttempt = async (
+    providerOutcome: ContributionProviderOutcome,
+  ): Promise<ContributionProviderOutcome> => {
+    await finalizeContributionRefundAttempt({
+      supabaseAdmin: input.supabaseAdmin,
+      attempt: activeRefundAttempt,
+      providerOutcome,
+    });
+    return providerOutcome;
+  };
 
   let refundResult: Awaited<ReturnType<typeof createStripeRefund>>;
   try {
@@ -237,12 +293,12 @@ export async function refundContributionThroughStripe(
 
     // Provider-outcome honesty: return the failure so the executor records
     // the failed correction and audit event instead of losing the attempt.
-    return {
+    return finalizeAttempt({
       provider: "stripe",
       status: "failed",
       errorCode: described.errorCode,
       errorMessage: described.errorMessage,
-    };
+    });
   }
 
   const { refund, charge } = refundResult;
@@ -266,7 +322,7 @@ export async function refundContributionThroughStripe(
     } catch (error) {
       // The provider refund succeeded but the local record did not converge.
       // Keep the reference id so staff can reconcile against Stripe.
-      return {
+      return finalizeAttempt({
         provider: "stripe",
         status: "local_update_failed",
         referenceId: refund.id,
@@ -275,7 +331,7 @@ export async function refundContributionThroughStripe(
           error instanceof Error
             ? error.message
             : "Failed to apply the Stripe refund to the donation record.",
-      };
+      });
     }
 
     // The convergence routine returns handled-but-non-writing outcomes
@@ -283,40 +339,40 @@ export async function refundContributionThroughStripe(
     // throwing. Those are local-update failures, not successes: money moved
     // at Stripe while refund_amount stayed untouched.
     if (NON_CONVERGING_LOCAL_UPDATE_ACTIONS.has(localOutcome.action)) {
-      return {
+      return finalizeAttempt({
         provider: "stripe",
         status: "local_update_failed",
         referenceId: refund.id,
         errorCode: "local_update_failed",
         errorMessage:
           "The Stripe refund succeeded but no local donation record matched the refunded charge. Reconcile the gift against the provider reference.",
-      };
+      });
     }
 
-    return {
+    return finalizeAttempt({
       provider: "stripe",
       status: "succeeded",
       referenceId: refund.id,
-    };
+    });
   }
 
   // Do not imply finality before Stripe confirms: pending refunds get no
   // local write; the charge.refunded webhook converges the record later.
   const providerStatus = refund.status ?? "pending";
   if (providerStatus === "pending") {
-    return {
+    return finalizeAttempt({
       provider: "stripe",
       status: "pending",
       referenceId: refund.id,
-    };
+    });
   }
 
   // failed / canceled / requires_action — surface the provider status
   // honestly with no local write.
-  return {
+  return finalizeAttempt({
     provider: "stripe",
     status: providerStatus,
     referenceId: refund.id,
     errorCode: refund.failure_reason ?? null,
-  };
+  });
 }

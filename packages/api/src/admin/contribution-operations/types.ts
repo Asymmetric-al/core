@@ -1,6 +1,8 @@
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ReceiptDeliveryOutcome } from "./receipt-delivery";
 
+export type { ReceiptDeliveryOutcome };
+
 export const CONTRIBUTION_ACTION_TYPES = [
   "resend_receipt",
   "approve_staged_gift",
@@ -252,6 +254,16 @@ export interface ContributionActionDependencies<TContribution = unknown> {
     expectedRevision?: string | null;
     idempotencyKey: string;
   }) => Promise<ContributionProviderOutcome>;
+  /**
+   * Links a provider-accepted pending refund attempt to the correction that
+   * represents it, then immediately reconciles against authoritative provider
+   * state so a terminal transition cannot be missed between insert and link.
+   */
+  linkAndReconcilePendingRefundAttempt?: (input: {
+    tenantId: string;
+    providerReferenceId: string;
+    correctionId: string;
+  }) => Promise<void>;
   appendAuditEvent?: (
     input: ContributionOperationAuditEventInput,
   ) => Promise<string>;

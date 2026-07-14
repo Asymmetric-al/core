@@ -42,11 +42,18 @@ Project it anyway for consistency/defense-in-depth.
 
 **Adversarial-review follow-up (applied):** the result also carries
 `providerOutcome` (`referenceId` = a live Stripe `re_`/`pi_` id, plus `raw`),
-which a finance-staff user (passes refund gates via `finance:manage_contributions`
-but lacks `use_provider_actions`) would receive on a suppressed-approval refund.
-The helper now also strips `providerOutcome.referenceId`/`raw`/`errorMessage`
-for non-provider viewers, keeping `provider`/`status`/`errorCode`. Covered by the
-extended projection test.
+which any non-provider viewer would receive on a suppressed-approval refund.
+Refunds are gated by the granular `contributions.run_refunds` capability
+(`permissions.ts:103`; `DIRECT_ACTION_CAPABILITY.refund` at `actions.ts:194`),
+held only by the finance-approver / admin / super_admin capability tiers — **not**
+baseline finance staff (`FINANCE_STAFF_CAPABILITIES` omits it). The legacy
+`finance:manage_contributions` permission is explicitly excluded from authorizing
+refunds (`legacyManageCoversDirectAction` returns false for `refund`/`stripe_replay`,
+`actions.ts:219-223`). That same tier also grants `contributions.use_provider_actions`,
+so no current role reaches a direct-refund result without provider access — stripping
+`providerOutcome.referenceId`/`raw`/`errorMessage` for non-provider viewers is
+defense-in-depth (mirroring the correction-decision projection above), keeping
+`provider`/`status`/`errorCode`. Covered by the extended projection test.
 
 ## Verify / Done criteria
 

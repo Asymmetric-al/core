@@ -1,0 +1,88 @@
+import { readFileSync } from "node:fs";
+
+import { describe, expect, it } from "vitest";
+
+const migrationSql = readFileSync(
+  new URL(
+    "../../../supabase/migrations/20260710170000_contribution_refund_attempts.sql",
+    import.meta.url,
+  ),
+  "utf8",
+);
+
+describe("contribution refund attempts migration", () => {
+  it("creates a tenant-scoped replay ledger with one row per idempotency key", () => {
+    expect(migrationSql).toContain(
+      "CREATE TABLE IF NOT EXISTS public.contribution_refund_attempts",
+    );
+    expect(migrationSql).toContain("UNIQUE (tenant_id, idempotency_key)");
+    expect(migrationSql).toContain(
+      "requested_amount BIGINT NOT NULL CHECK (requested_amount > 0)",
+    );
+    expect(migrationSql).toContain("state TEXT NOT NULL DEFAULT 'claimed'");
+    expect(migrationSql).toContain("provider_outcome JSONB");
+    expect(migrationSql).toContain("provider_reference_id TEXT");
+    expect(migrationSql).toContain(
+      "correction_id UUID REFERENCES public.contribution_corrections(id) ON DELETE SET NULL",
+    );
+    expect(migrationSql).toContain("finalized_at TIMESTAMPTZ");
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (donation_id)",
+    );
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (tenant_id, provider_reference_id)",
+    );
+    expect(migrationSql).toContain("WHERE provider_reference_id IS NOT NULL");
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (correction_id)",
+    );
+  });
+
+  it("enforces that the donation belongs to the attempt tenant", () => {
+    expect(migrationSql).toContain(
+      "CREATE OR REPLACE FUNCTION public.enforce_contribution_refund_attempt_tenant_ref()",
+    );
+    expect(migrationSql).toMatch(
+      /FROM public\.donations\s+WHERE id = NEW\.donation_id\s+AND tenant_id = NEW\.tenant_id/,
+    );
+    expect(migrationSql).toContain(
+      "CREATE TRIGGER enforce_contribution_refund_attempt_tenant_ref",
+    );
+    expect(migrationSql).toContain(
+      "contribution refund attempt donation tenant mismatch",
+    );
+    expect(migrationSql).toMatch(
+      /FROM public\.contribution_corrections\s+WHERE id = NEW\.correction_id\s+AND tenant_id = NEW\.tenant_id\s+AND donation_id = NEW\.donation_id/,
+    );
+    expect(migrationSql).toContain(
+      "contribution refund attempt correction tenant mismatch",
+    );
+    expect(migrationSql).toContain(
+      "BEFORE INSERT OR UPDATE OF tenant_id, donation_id, correction_id",
+    );
+  });
+
+  it("indexes the exact bounded pending-reconciliation scan", () => {
+    expect(migrationSql).toContain(
+      "ON public.contribution_refund_attempts (finalized_at ASC, id ASC)",
+    );
+    expect(migrationSql).toMatch(
+      /WHERE state = 'finalized'\s+AND provider_outcome ->> 'status' = 'pending'\s+AND provider_reference_id IS NOT NULL/,
+    );
+  });
+
+  it("allows only the service role to read and mutate refund attempts", () => {
+    expect(migrationSql).toContain(
+      "ALTER TABLE public.contribution_refund_attempts ENABLE ROW LEVEL SECURITY",
+    );
+    expect(migrationSql).toContain(
+      "REVOKE ALL ON TABLE public.contribution_refund_attempts FROM PUBLIC, anon, authenticated",
+    );
+    expect(migrationSql).toContain(
+      "GRANT SELECT, INSERT, UPDATE ON TABLE public.contribution_refund_attempts TO service_role",
+    );
+    expect(migrationSql).not.toContain(
+      "GRANT ALL ON TABLE public.contribution_refund_attempts",
+    );
+  });
+});

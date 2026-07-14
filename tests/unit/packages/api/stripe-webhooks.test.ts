@@ -6,13 +6,32 @@ import {
   getPaymentIntentLatestChargeId,
   handleStripeWebhookEvent,
   POST,
+  reconcileStripeRefundLifecycle,
 } from "../../../../packages/api/src/stripe/webhooks";
 
 import type { NextRequest } from "next/server";
 
 const mockState = vi.hoisted(() => ({
   adminClient: null as unknown,
+  convergePendingRefundWorkflow: vi.fn(),
+  loadRefundAttemptByProviderReference: vi.fn(),
 }));
+
+vi.mock(
+  "../../../../packages/api/src/admin/contribution-operations/store",
+  async () => {
+    const actual = await vi.importActual<
+      typeof import("../../../../packages/api/src/admin/contribution-operations/store")
+    >("../../../../packages/api/src/admin/contribution-operations/store");
+    return {
+      ...actual,
+      convergePendingContributionRefundWorkflow:
+        mockState.convergePendingRefundWorkflow,
+      loadContributionRefundAttemptByProviderReference:
+        mockState.loadRefundAttemptByProviderReference,
+    };
+  },
+);
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: () =>
@@ -218,6 +237,8 @@ describe("Stripe webhook handler", () => {
     process.env.STRIPE_SECRET_KEY = "sk_test_unit";
     process.env.STRIPE_WEBHOOK_SECRET = "whsec_unit";
     mockState.adminClient = null;
+    mockState.convergePendingRefundWorkflow.mockReset();
+    mockState.loadRefundAttemptByProviderReference.mockReset();
   });
 
   afterEach(() => {
@@ -587,6 +608,123 @@ describe("Stripe webhook handler", () => {
       refund_amount: 2000,
       status: "completed",
       stripe_refund_ids: ["re_kept"],
+    });
+  });
+
+  it.each(["refund.created", "refund.updated", "refund.failed"])(
+    "re-reads authoritative provider state for %s by tenant and refund id",
+    async (eventType) => {
+      const reconcileRefund = vi.fn().mockResolvedValue({
+        action: "refund_succeeded",
+        handled: true,
+        providerRefundId: "re_1",
+      });
+
+      const outcome = await handleStripeWebhookEvent(
+        {} as never,
+        {
+          data: {
+            object: {
+              id: "re_1",
+              object: "refund",
+              // This payload may be stale; the handler must not trust it.
+              status: "pending",
+            },
+          },
+          id: `evt_${eventType}`,
+          object: "event",
+          type: eventType,
+        } as never,
+        {
+          tenantId: "tenant-1",
+          reconcileRefund,
+        },
+      );
+
+      expect(reconcileRefund).toHaveBeenCalledWith({
+        supabaseAdmin: {},
+        tenantId: "tenant-1",
+        providerRefundId: "re_1",
+      });
+      expect(outcome.action).toBe("refund_succeeded");
+    },
+  );
+
+  it("keeps refund events without tenant context handled but unreconciled", async () => {
+    const reconcileRefund = vi.fn();
+
+    const outcome = await handleStripeWebhookEvent(
+      {} as never,
+      {
+        data: {
+          object: {
+            id: "re_unscoped",
+            object: "refund",
+            status: "succeeded",
+          },
+        },
+        id: "evt_refund_unscoped",
+        object: "event",
+        type: "refund.updated",
+      } as never,
+      { reconcileRefund },
+    );
+
+    expect(outcome).toMatchObject({
+      action: "refund_tenant_not_resolved",
+      handled: true,
+      providerRefundId: "re_unscoped",
+    });
+    expect(reconcileRefund).not.toHaveBeenCalled();
+  });
+
+  it("converges a failed authoritative refund through the pending correction lifecycle", async () => {
+    mockState.loadRefundAttemptByProviderReference.mockResolvedValue({
+      id: "attempt-1",
+      tenantId: "tenant-1",
+      donationId: "donation-1",
+      providerOutcome: {
+        provider: "stripe",
+        status: "pending",
+        referenceId: "re_1",
+      },
+    });
+    mockState.convergePendingRefundWorkflow.mockResolvedValue({
+      converged: true,
+    });
+
+    const outcome = await reconcileStripeRefundLifecycle({
+      supabaseAdmin: {} as never,
+      tenantId: "tenant-1",
+      refund: {
+        id: "re_1",
+        object: "refund",
+        status: "failed",
+        failure_reason: "lost_or_stolen_card",
+      } as never,
+    });
+
+    expect(mockState.loadRefundAttemptByProviderReference).toHaveBeenCalledWith(
+      {
+        supabaseAdmin: {},
+        tenantId: "tenant-1",
+        providerReferenceId: "re_1",
+      },
+    );
+    expect(mockState.convergePendingRefundWorkflow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        supabaseAdmin: {},
+        providerOutcome: expect.objectContaining({
+          provider: "stripe",
+          referenceId: "re_1",
+          status: "failed",
+        }),
+      }),
+    );
+    expect(outcome).toMatchObject({
+      action: "refund_failed",
+      donationId: "donation-1",
+      providerRefundId: "re_1",
     });
   });
 });

@@ -12,6 +12,9 @@ const {
   recordStripeRawEventFailureMock,
   requestWorkflowDispatchMock,
   getAdminClientMock,
+  listAgedPendingRefundAttemptsMock,
+  reconcileStripeRefundByProviderIdMock,
+  runStripeEventRecoveryScanMock,
 } = vi.hoisted(() => ({
   storeStripeRawEventMock: vi.fn(),
   claimStripeRawEventMock: vi.fn(),
@@ -19,7 +22,37 @@ const {
   recordStripeRawEventFailureMock: vi.fn(),
   requestWorkflowDispatchMock: vi.fn(),
   getAdminClientMock: vi.fn(),
+  listAgedPendingRefundAttemptsMock: vi.fn(),
+  reconcileStripeRefundByProviderIdMock: vi.fn(),
+  runStripeEventRecoveryScanMock: vi.fn(),
 }));
+
+vi.mock(
+  "../../../../../packages/api/src/workflows/adapters/stripe-events",
+  async () => {
+    const actual = await vi.importActual<
+      typeof import("../../../../../packages/api/src/workflows/adapters/stripe-events")
+    >("../../../../../packages/api/src/workflows/adapters/stripe-events");
+    return {
+      ...actual,
+      runStripeEventRecoveryScan: runStripeEventRecoveryScanMock,
+    };
+  },
+);
+
+vi.mock(
+  "../../../../../packages/api/src/admin/contribution-operations/store",
+  async () => {
+    const actual = await vi.importActual<
+      typeof import("../../../../../packages/api/src/admin/contribution-operations/store")
+    >("../../../../../packages/api/src/admin/contribution-operations/store");
+    return {
+      ...actual,
+      listAgedPendingContributionRefundAttempts:
+        listAgedPendingRefundAttemptsMock,
+    };
+  },
+);
 
 vi.mock("../../../../../packages/api/src/stripe/event-store", async () => {
   const actual = await vi.importActual<
@@ -48,8 +81,21 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
+vi.mock("../../../../../packages/api/src/stripe/webhooks", async () => {
+  const actual = await vi.importActual<
+    typeof import("../../../../../packages/api/src/stripe/webhooks")
+  >("../../../../../packages/api/src/stripe/webhooks");
+  return {
+    ...actual,
+    reconcileStripeRefundByProviderId: reconcileStripeRefundByProviderIdMock,
+  };
+});
+
 import { STRIPE_EVENT_PROCESS_EVENT } from "../../../../../packages/api/src/workflows/events";
-import { stripeEventProcessing } from "../../../../../packages/api/src/workflows/functions/stripe-event-processing";
+import {
+  stripeEventProcessing,
+  stripeEventRecoveryScan,
+} from "../../../../../packages/api/src/workflows/functions/stripe-event-processing";
 import { POST } from "../../../../../packages/api/src/stripe/webhooks";
 
 const TENANT_ID = "11111111-1111-4111-8111-111111111111";
@@ -115,7 +161,12 @@ beforeEach(() => {
   recordStripeRawEventFailureMock.mockReset();
   requestWorkflowDispatchMock.mockReset();
   getAdminClientMock.mockReset();
+  listAgedPendingRefundAttemptsMock.mockReset();
+  reconcileStripeRefundByProviderIdMock.mockReset();
+  runStripeEventRecoveryScanMock.mockReset();
   getAdminClientMock.mockReturnValue({ client: {}, error: null });
+  listAgedPendingRefundAttemptsMock.mockResolvedValue([]);
+  runStripeEventRecoveryScanMock.mockResolvedValue({ dispatched: 0 });
 });
 
 afterEach(() => {
@@ -123,6 +174,47 @@ afterEach(() => {
 });
 
 describe("Stripe webhook workflow handoff (#291)", () => {
+  it.each(["refund.created", "refund.updated", "refund.failed"])(
+    "routes %s through the durable dispatcher",
+    async (eventType) => {
+      storeStripeRawEventMock.mockResolvedValue(storedEvent({ eventType }));
+      requestWorkflowDispatchMock.mockResolvedValue({
+        outcome: "dispatched",
+        request: { id: "req-refund" },
+        reused: false,
+        error: null,
+      });
+
+      const response = await POST(
+        createSignedStripeRequest(
+          {
+            id: `evt_${eventType}`,
+            object: "event",
+            type: eventType,
+            data: {
+              object: {
+                id: "re_1",
+                object: "refund",
+                metadata: { tenant_id: TENANT_ID },
+                status: eventType === "refund.failed" ? "failed" : "pending",
+              },
+            },
+          },
+          "whsec_unit",
+        ),
+      );
+
+      expect(response.status).toBe(200);
+      expect(requestWorkflowDispatchMock).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          tenantId: TENANT_ID,
+          workflowName: STRIPE_EVENT_PROCESS_EVENT,
+        }),
+      );
+      expect(claimStripeRawEventMock).not.toHaveBeenCalled();
+    },
+  );
   it("acknowledges a stored supported event after dispatching follow-up work", async () => {
     storeStripeRawEventMock.mockResolvedValue(storedEvent());
     requestWorkflowDispatchMock.mockResolvedValue({
@@ -205,6 +297,52 @@ describe("Stripe webhook workflow handoff (#291)", () => {
     expect(completeStripeRawEventMock).toHaveBeenCalledWith(
       expect.objectContaining({ status: "ignored" }),
     );
+  });
+});
+
+describe("stripe event recovery scan", () => {
+  it("isolates failures while sweeping the bounded aged-pending batch", async () => {
+    listAgedPendingRefundAttemptsMock.mockResolvedValue([
+      { tenantId: TENANT_ID, providerReferenceId: "re_pending_1" },
+      { tenantId: TENANT_ID, providerReferenceId: "re_pending_2" },
+    ]);
+    reconcileStripeRefundByProviderIdMock
+      .mockRejectedValueOnce(new Error("sensitive provider error"))
+      .mockResolvedValueOnce({
+        action: "refund_succeeded",
+        handled: true,
+        providerRefundId: "re_pending_2",
+      });
+
+    const engine = new InngestTestEngine({ function: stripeEventRecoveryScan });
+    const { result } = await engine.execute();
+
+    expect(listAgedPendingRefundAttemptsMock).toHaveBeenCalledWith({
+      supabaseAdmin: {},
+    });
+    expect(reconcileStripeRefundByProviderIdMock).toHaveBeenNthCalledWith(1, {
+      supabaseAdmin: {},
+      tenantId: TENANT_ID,
+      providerRefundId: "re_pending_1",
+    });
+    expect(reconcileStripeRefundByProviderIdMock).toHaveBeenNthCalledWith(2, {
+      supabaseAdmin: {},
+      tenantId: TENANT_ID,
+      providerRefundId: "re_pending_2",
+    });
+    expect(result).toMatchObject({
+      refunds: {
+        scanned: 2,
+        outcomes: [
+          {
+            action: "refund_reconciliation_failed",
+            providerRefundId: "re_pending_1",
+          },
+          { action: "refund_succeeded", providerRefundId: "re_pending_2" },
+        ],
+      },
+    });
+    expect(JSON.stringify(result)).not.toContain("sensitive provider error");
   });
 });
 

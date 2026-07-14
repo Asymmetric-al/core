@@ -35,6 +35,7 @@ export const AuthButton = React.forwardRef<
   return (
     <button
       ref={ref}
+      type={props.type ?? "button"}
       className={cn(authButtonVariants({ variant }), className)}
       disabled={loading || props.disabled}
       {...props}

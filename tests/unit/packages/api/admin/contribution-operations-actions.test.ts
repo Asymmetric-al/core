@@ -483,6 +483,75 @@ describe("contribution operations action executor", () => {
     );
   });
 
+  it("records correction and audit context when receipt delivery fails after correction", async () => {
+    const receiptOutcome = {
+      status: "failed" as const,
+      reason:
+        "The updated receipt email could not be sent. Check email send logs for provider details.",
+      snapshotId: "snap-1",
+      affectedFields: ["amount"],
+      requested: { choice: "email" as const },
+      confirmed: { choice: "email" as const },
+    };
+    const applyCorrection = vi.fn().mockResolvedValue({
+      before: { amount: 1000 },
+      after: { amount: 1200 },
+      status: "applied",
+      adjustmentId: "adj-1",
+      idempotentReplay: false,
+      receiptOutcome,
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+      amount: { value: 1200 },
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Corrected imported check amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1200 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        applyCorrection,
+        createCorrectionRecord,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(createCorrectionRecord).toHaveBeenCalledWith(
+      expect.objectContaining({
+        beforeSummary: { amount: 1000 },
+        afterSummary: { amount: 1200 },
+        correctionType: "amount_correction",
+        status: "applied",
+      }),
+    );
+    expect(appendAuditEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        correctionId: "correction_1",
+        downstreamEffects: expect.objectContaining({
+          receiptOutcome: "failed",
+          receiptAffectedFields: ["amount"],
+          receiptSnapshotId: "snap-1",
+          receiptDeliveryRequested: { choice: "email" },
+          receiptDeliveryConfirmed: { choice: "email" },
+        }),
+      }),
+    );
+    expect(result.correctionId).toBe("correction_1");
+    expect(result.auditEventId).toBe("audit_1");
+    expect(result.receiptOutcome).toEqual(receiptOutcome);
+  });
+
   it("normalizes and scopes direct correction fallback idempotency keys", async () => {
     const applyCorrection = vi.fn().mockResolvedValue({
       before: { amount: 1000 },
@@ -889,6 +958,9 @@ describe("contribution operations action executor", () => {
       referenceId: "re_pending_1",
     });
     const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const linkAndReconcilePendingRefundAttempt = vi
+      .fn()
+      .mockResolvedValue(undefined);
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
     const loadContributionDetail = vi.fn().mockResolvedValue({
       id: "donation_1",
@@ -909,6 +981,7 @@ describe("contribution operations action executor", () => {
       dependencies: {
         refundContribution,
         createCorrectionRecord,
+        linkAndReconcilePendingRefundAttempt,
         appendAuditEvent,
         loadContributionDetail,
       },
@@ -926,7 +999,51 @@ describe("contribution operations action executor", () => {
         }),
       }),
     );
+    expect(linkAndReconcilePendingRefundAttempt).toHaveBeenCalledWith({
+      tenantId: "tenant_1",
+      providerReferenceId: "re_pending_1",
+      correctionId: "correction_1",
+    });
+    expect(createCorrectionRecord.mock.invocationCallOrder[0]).toBeLessThan(
+      linkAndReconcilePendingRefundAttempt.mock.invocationCallOrder[0]!,
+    );
+    expect(
+      linkAndReconcilePendingRefundAttempt.mock.invocationCallOrder[0],
+    ).toBeLessThan(appendAuditEvent.mock.invocationCallOrder[0]!);
     expect(result.providerOutcome?.status).toBe("pending");
+  });
+
+  it("does not link terminal refund outcomes to pending reconciliation", async () => {
+    const refundContribution = vi.fn().mockResolvedValue({
+      provider: "stripe",
+      status: "succeeded",
+      referenceId: "re_succeeded_1",
+    });
+    const createCorrectionRecord = vi.fn().mockResolvedValue("correction_1");
+    const linkAndReconcilePendingRefundAttempt = vi.fn();
+
+    await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.run_refunds"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "refund",
+      reason: "Donor requested a refund",
+      confirmationToken: "confirm",
+      payload: { amount: 500 },
+      approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
+      dependencies: {
+        refundContribution,
+        createCorrectionRecord,
+        linkAndReconcilePendingRefundAttempt,
+        appendAuditEvent: vi.fn().mockResolvedValue("audit_1"),
+        loadContributionDetail: vi.fn().mockResolvedValue({ id: "donation_1" }),
+      },
+    });
+
+    expect(linkAndReconcilePendingRefundAttempt).not.toHaveBeenCalled();
   });
 
   it("preserves platform-generated reconciliation messages for local_update_failed refunds", async () => {
@@ -1585,6 +1702,47 @@ describe("contribution operations action executor", () => {
     expect(result.correctionRequestId).toBe("request_1");
     expect(result.approvalStatus).toBe("pending_approval");
     expect(result.correctionId).toBeFalsy();
+  });
+
+  it("keeps stronger approval categories gated in the executor even when suppressed (#261)", async () => {
+    const applyCorrection = vi.fn();
+    const createCorrectionRequest = vi.fn().mockResolvedValue("request_9");
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      id: "donation_1",
+    });
+
+    // The tenant tried to relax everything: no approval required AND the
+    // amount gate suppressed. A stronger approval category still wins and
+    // the executor routes to a correction request instead of applying.
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.request_corrections"],
+      sourceSurface: "contribution_hub",
+      contributionId: "donation_1",
+      actionType: "amount_correction",
+      reason: "Donor reported the wrong amount",
+      confirmationToken: "confirm",
+      payload: { amount: 1500 },
+      approvalPolicy: resolveCorrectionApprovalPolicy({
+        ownership_mode: "no_approval_required",
+        suppressed_gates: ["amount_correction"],
+        stronger_approval_categories: ["amount_correction"],
+      }),
+      dependencies: {
+        applyCorrection,
+        createCorrectionRequest,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(applyCorrection).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).toHaveBeenCalled();
+    expect(result.approvalStatus).toBe("pending_approval");
+    expect(result.correctionRequestId).toBe("request_9");
   });
 
   it("includes request context in confirmation-token correction request idempotency", async () => {

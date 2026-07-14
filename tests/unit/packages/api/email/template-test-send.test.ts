@@ -13,10 +13,50 @@ const {
   getAdminClientMock,
   fromMock,
   insertMock,
+  consentState,
   tenantEmailSettingsStorageUnavailableError,
 } = vi.hoisted(() => {
+  // The real consent gate runs against this client (we intentionally do NOT
+  // mock the consent module — path-based module mocks are unreliable in the
+  // full suite because of workspace-symlink realpath mismatches). `donors` and
+  // `email_suppressions` are chainable and driven by mutable `state`.
+  const state: {
+    donor: Record<string, unknown> | null;
+    suppressions: Array<{ suppression_type: string }>;
+  } = { donor: null, suppressions: [] };
+
   const insert = vi.fn().mockResolvedValue({ data: null, error: null });
-  const from = vi.fn(() => ({ insert }));
+
+  const makeQuery = (result: unknown) => {
+    const chain: Record<string, unknown> = {};
+    chain.select = vi.fn(() => chain);
+    chain.eq = vi.fn(() => chain);
+    chain.ilike = vi.fn(() => chain);
+    chain.limit = vi.fn(() => {
+      const settled = Promise.resolve(result);
+      return {
+        maybeSingle: vi.fn(() => settled),
+        then: settled.then.bind(settled),
+        catch: settled.catch.bind(settled),
+        finally: settled.finally.bind(settled),
+      };
+    });
+    return chain;
+  };
+
+  const from = vi.fn((table: string) => {
+    if (table === "email_send_logs") {
+      return { insert };
+    }
+    if (table === "donors") {
+      return makeQuery({ data: state.donor, error: null });
+    }
+    if (table === "email_suppressions") {
+      return makeQuery({ data: state.suppressions, error: null });
+    }
+    throw new Error(`Unexpected table: ${table}`);
+  });
+
   return {
     getAuthContextMock: vi.fn(),
     requireRoleMock: vi.fn(),
@@ -39,6 +79,7 @@ const {
     getAdminClientMock: vi.fn(),
     fromMock: from,
     insertMock: insert,
+    consentState: state,
     tenantEmailSettingsStorageUnavailableError: Object.assign(
       new Error("storage unavailable"),
       {
@@ -55,8 +96,10 @@ vi.mock("@asym/auth/context", () => ({
 }));
 
 vi.mock("@asym/email", async () => {
-  const actual =
-    await vi.importActual<typeof import("@asym/email")>("@asym/email");
+  const actual = (await vi.importActual("@asym/email")) as Record<
+    string,
+    unknown
+  >;
   return {
     ...actual,
     RESEND_ERROR_CODES: {
@@ -113,6 +156,9 @@ function createRequest(body: unknown): NextRequest {
 describe("api/email/templates/test-send", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Default: recipient is not a donor and not suppressed -> gate allows.
+    consentState.donor = null;
+    consentState.suppressions = [];
     vi.spyOn(globalThis.crypto, "randomUUID").mockReturnValue("uuid-1234");
     getAuthContextMock.mockResolvedValue({
       tenantId: "tenant_1",
@@ -182,5 +228,26 @@ describe("api/email/templates/test-send", () => {
         }),
       }),
     );
+  });
+
+  it("refuses to test-send to a suppressed address without calling Resend", async () => {
+    // A hard bounce blocks even a transactional test send.
+    consentState.suppressions = [{ suppression_type: "bounce" }];
+
+    const response = await POST(
+      createRequest({
+        toEmail: "bounced@example.com",
+        subject: "Hello",
+        html: "<p>Hello</p>",
+        text: "Hello",
+      }),
+    );
+    const body = await response.json();
+
+    expect(response.status).toBe(422);
+    expect(body.success).toBe(false);
+    expect(body.code).toBe("consent_suppressed");
+    expect(sendEmailMock).not.toHaveBeenCalled();
+    expect(insertMock).not.toHaveBeenCalled();
   });
 });
