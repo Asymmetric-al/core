@@ -183,6 +183,9 @@ describe("admin/contribution-shared/filters", () => {
       refunded_at: "2026-05-02T00:00:00.000Z",
       created_at: "2026-05-01T00:00:00.000Z",
       updated_at: "2026-05-02T00:00:00.000Z",
+      // Provider recurrence without a pledge: recurring_link provider_only.
+      is_recurring: true,
+      recurring_interval: "month",
     };
     const donor = { id: "donor-1", name: "Alice", email: "a@example.com" };
     const fund = { id: "fund-1", name: "Clean Water Initiative" };
@@ -207,8 +210,6 @@ describe("admin/contribution-shared/filters", () => {
         ...donation,
         donation_type: "one_time",
         payment_method: "card",
-        is_recurring: false,
-        recurring_interval: null,
         notes: null,
         stripe_payment_intent_id: "pi_9",
         campaign_id: null,
@@ -243,8 +244,10 @@ describe("admin/contribution-shared/filters", () => {
     const filters: SharedContributionFilter[][] = [
       [{ id: "receipt_affected" }],
       [{ id: "pending_correction" }],
+      [{ id: "approval_state", value: "pending" }],
       [{ id: "refund_state", value: "refunded" }],
       [{ id: "crm_post_state", value: "failed" }],
+      [{ id: "recurring_link", value: "provider_only" }],
       [{ id: "payment_status", value: "refunded" }],
       [{ id: "crm_post_state", value: "failed" }, { id: "pending_correction" }],
     ];
@@ -256,5 +259,73 @@ describe("admin/contribution-shared/filters", () => {
       expect(crmMatch.length).toBe(hubMatch.length);
       expect(crmMatch.length).toBe(1);
     }
+  });
+
+  it("keeps the payment_status meaning shared on the Hub row: a fully refunded gift whose donations.status stayed completed matches Refunded, not Completed", () => {
+    const hubRow = buildContributionGridRow({
+      donation: {
+        id: "donation-10",
+        donor_id: "donor-1",
+        missionary_id: null,
+        fund_id: "fund-1",
+        amount: 25_000,
+        currency: "usd",
+        // Stripe never rewrote the row status after the refund…
+        status: "completed",
+        donation_type: "one_time",
+        payment_method: "card",
+        is_recurring: false,
+        recurring_interval: null,
+        notes: null,
+        stripe_payment_intent_id: "pi_10",
+        gift_date: "2026-05-01",
+        campaign_id: null,
+        pledge_id: null,
+        processed_at: null,
+        completed_at: null,
+        failed_at: null,
+        error_code: null,
+        error_message: null,
+        stripe_charge_id: "ch_10",
+        refunded_at: "2026-05-02T00:00:00.000Z",
+        // …but the refund covers the full amount.
+        refund_amount: 25_000,
+        source: "online",
+        created_at: "2026-05-01T00:00:00.000Z",
+        updated_at: "2026-05-02T00:00:00.000Z",
+      },
+      donor: {
+        id: "donor-1",
+        name: "Alice",
+        email: "a@example.com",
+        phone: null,
+        type: null,
+        location: null,
+        organization: null,
+        notes: null,
+      },
+      profile: null,
+      fund: { id: "fund-1", name: "Clean Water Initiative" },
+      missionary: null,
+    });
+
+    // The Hub-only grid status keeps its extended vocabulary…
+    expect(hubRow.status).toBe("completed");
+    // …while the shared payment status carries the refund-derived meaning
+    // both surfaces must filter by (row-contract paymentStatus derivation vs
+    // normalizeContributionGridStatus divergence).
+    expect(hubRow.shared.paymentStatus).toBe("refunded");
+    expect(
+      matchesSharedContributionFilter(
+        { shared: hubRow.shared },
+        { id: "payment_status", value: "refunded" },
+      ),
+    ).toBe(true);
+    expect(
+      matchesSharedContributionFilter(
+        { shared: hubRow.shared },
+        { id: "payment_status", value: "completed" },
+      ),
+    ).toBe(false);
   });
 });
