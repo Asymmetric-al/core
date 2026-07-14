@@ -42,6 +42,12 @@ export type ContributionDetailDonationInput = {
   notes: string | null;
   stripePaymentIntentId: string | null;
   stripeChargeId: string | null;
+  /**
+   * Convergent set of Stripe refund ids persisted on the donation
+   * (`donations.stripe_refund_ids`). Optional so callers that predate the
+   * column keep working; absent means "none observed".
+   */
+  stripeRefundIds?: string[];
   giftDate: string;
   campaignId: string | null;
   pledgeId: string | null;
@@ -669,7 +675,7 @@ export function buildContributionDetail(
       stripe: {
         paymentIntentId: donation.stripePaymentIntentId,
         chargeId: donation.stripeChargeId,
-        refundIds: [],
+        refundIds: donation.stripeRefundIds ?? [],
         replayContext: null,
       },
     },
