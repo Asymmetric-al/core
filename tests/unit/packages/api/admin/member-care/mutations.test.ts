@@ -78,8 +78,12 @@ vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
 }));
 
+const { revalidateTagMock } = vi.hoisted(() => ({
+  revalidateTagMock: vi.fn(),
+}));
+
 vi.mock("next/cache", () => ({
-  revalidateTag: vi.fn(),
+  revalidateTag: revalidateTagMock,
 }));
 
 import {
@@ -149,6 +153,36 @@ describe("api/admin/member-care/mutations", () => {
       expect.objectContaining({
         activity_type: "check_in",
       }),
+    );
+  });
+
+  it("revalidates all member-care cache tags including dashboard after writes", async () => {
+    await logCareActivity("tenant-1", "user-1", {
+      personnelId: "missionary-1",
+      type: "Check-in",
+      content: "Quick check-in",
+    });
+
+    expect(revalidateTagMock).toHaveBeenCalledWith("member-care", "max");
+    expect(revalidateTagMock).toHaveBeenCalledWith(
+      "member-care:tenant-1",
+      "max",
+    );
+    expect(revalidateTagMock).toHaveBeenCalledWith(
+      "member-care:directory",
+      "max",
+    );
+    expect(revalidateTagMock).toHaveBeenCalledWith(
+      "member-care:dashboard",
+      "max",
+    );
+    expect(revalidateTagMock).toHaveBeenCalledWith(
+      "member-care:activity",
+      "max",
+    );
+    expect(revalidateTagMock).toHaveBeenCalledWith(
+      "member-care:private-notes",
+      "max",
     );
   });
 });
