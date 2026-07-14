@@ -22,6 +22,8 @@ jobs:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -46,6 +48,9 @@ jobs:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -60,7 +65,14 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - run: bun run lint
+      - name: Run affected lint on pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          TURBO_SCM_BASE: origin/${{ github.base_ref }}
+        run: bunx turbo run lint --affected --filter=./apps/* --filter=./packages/* --filter=./tooling/*
+      - name: Run full lint on protected branch pushes
+        if: github.event_name != 'pull_request'
+        run: bun run lint
       - name: Check data access boundary
         run: bun run verify:data-boundary
       - run: bun run verify:workspace-contract
@@ -73,6 +85,9 @@ jobs:
       TURBO_TEAM: ${{ vars.TURBO_TEAM }}
     steps:
       - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -87,7 +102,14 @@ jobs:
           key: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-${{ github.sha }}
           restore-keys: turbo-${{ runner.os }}-bun-${{ env.BUN_VERSION }}-
       - run: bun ci --no-cache --backend=copyfile
-      - run: bun run typecheck
+      - name: Run affected typecheck on pull requests
+        if: github.event_name == 'pull_request'
+        env:
+          TURBO_SCM_BASE: origin/${{ github.base_ref }}
+        run: bunx turbo run typecheck --affected --filter=./apps/* --filter=./packages/* --filter=./tooling/*
+      - name: Run full typecheck on protected branch pushes
+        if: github.event_name != 'pull_request'
+        run: bun run typecheck
 
   build:
     runs-on: ubuntu-latest
@@ -99,6 +121,8 @@ jobs:
       SKIP_ENV_VALIDATION: "1"
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
@@ -125,6 +149,8 @@ jobs:
       NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
       - name: Install system dependencies (canvas)
         run: bash scripts/github/install-canvas-deps.sh
       - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
