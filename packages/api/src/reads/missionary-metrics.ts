@@ -2,6 +2,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 
 import { SETTLED_DONATION_STATUSES } from "./settled-donation-statuses";
+import { READ_CACHE_TAGS } from "../shared/cache-tags";
 
 type QueryError = { message?: string } | null;
 
@@ -87,7 +88,10 @@ export async function getMissionaryMetrics(
 ): Promise<MissionaryMetrics> {
   "use cache";
 
-  applyCacheMetadata(["missionary-metrics", `missionary:${missionaryId}`]);
+  applyCacheMetadata([
+    READ_CACHE_TAGS.missionaryMetrics,
+    READ_CACHE_TAGS.missionary(missionaryId),
+  ]);
 
   const { client, error } = getAdminClient();
   if (!client) {

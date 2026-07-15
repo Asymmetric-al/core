@@ -3,8 +3,6 @@ import { createBrowserClient } from "@asym/database/supabase";
 import type { CloudinaryUploadResponse } from "./cloudinary-client";
 
 export interface SaveAssetOptions {
-  userId?: string;
-  tenantId?: string;
   purpose?: string;
   metadata?: Record<string, unknown>;
 }
@@ -29,8 +27,6 @@ export async function saveAssetMetadata(
       bytes: cloudinaryData.bytes,
       resource_type: cloudinaryData.resource_type,
       purpose: options.purpose,
-      user_id: options.userId,
-      tenant_id: options.tenantId,
       metadata: {
         ...options.metadata,
         version: cloudinaryData.version,

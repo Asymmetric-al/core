@@ -36,7 +36,7 @@ Playwright config sets this automatically when `ASYM_USE_CI_ENV_DEFAULTS=1` (see
 
 ## CI behavior
 
-- `test-e2e-smoke` runs `bun run test:e2e:smoke` and is **blocking** on `develop` through the `e2e-smoke-gate` required check.
+- `test-e2e-smoke` runs `bun run test:e2e:smoke` and is **blocking** on `develop` through `e2e-smoke-gate`, which the required `integration-gate` check depends on.
 - Smoke starts donor and admin, then runs a bounded inventory: donor auth
   preflight/usability/donate, admin Support Hub, and upload-crop under the
   donor-auth Playwright project. It is not a substitute for `bun run test:a11y`,

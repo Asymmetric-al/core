@@ -12,6 +12,7 @@ import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import Link from "next/link";
 
+import { SUPPORT_TICKETS_PAGE_META } from "../../../components/table-page-meta";
 import { deriveSupportQueueSummaries } from "../support-hub.derived";
 import { supportHubRoutes } from "../support-hub.routes";
 
@@ -45,8 +46,9 @@ export default async function SupportTicketsPage({
 
   return (
     <PageShell
-      title="Support Tickets"
-      description="Review Donor Care, Mobilization, and Existing Missionary Support requests."
+      title={SUPPORT_TICKETS_PAGE_META.title}
+      description={SUPPORT_TICKETS_PAGE_META.description}
+      density={SUPPORT_TICKETS_PAGE_META.density}
     >
       <div className="space-y-6">
         <div className="flex flex-wrap gap-2">
