@@ -54,13 +54,13 @@ See `docs/qa/pr-preview-smoke.md` and
 
 - **Required PR checks on `production`:** `ci-gate`, `integration-gate`, and
   `e2e-gate`.
-- **Required PR checks on `develop`:** `ci-gate`, `integration-gate`, and
-  `e2e-smoke-gate`.
+- **Required PR checks on `develop`:** `ci-gate` and `integration-gate`.
 - **Non-blocking informational checks:** raw `CI Integration / test-e2e` on
   `develop` must **not** be required; use the gate jobs as branch protection
   requirements. `e2e-gate` is production-only and is required for `production`.
-  `e2e-smoke-gate` enforces the bounded `test-e2e-smoke` Playwright suite on
-  `develop`.
+  `e2e-smoke-gate` is a workflow gate job (not a branch-protection check) that
+  enforces the bounded `test-e2e-smoke` Playwright suite on `develop` through
+  `integration-gate`.
 - **Repo admins:** Settings → Branches → Branch protection rules → Require status checks to pass:
   - Require the checks above.
   - Disable force pushes on `production` and `develop`.
@@ -71,7 +71,8 @@ See `docs/ci.md` for the full CI gate reference (what each check does, how to de
 
 ## Production E2E scope
 
-- The required `e2e-smoke-gate` on `develop` runs `bun run test:e2e:smoke`
+- The `e2e-smoke-gate` workflow job on `develop` (blocking through the
+  required `integration-gate`) runs `bun run test:e2e:smoke`
   (demo auth preflight paths, usability smoke, donate, upload-crop, and Support
   Hub smoke). It blocks merges without running the full broad Playwright
   inventory.
@@ -201,8 +202,9 @@ npx playwright show-report
 - `tests/unit/packages/api/email/resend-snapshot-contract.test.ts` guards the
   Resend snapshot helpers used by `packages/api` email connect flows.
 - `tests/unit/scripts/deployment-discipline.test.ts` and
-  `scripts/verify/deployment-discipline.mjs` enforce `e2e-smoke-gate` on
-  `develop` and `e2e-gate` on `production`.
+  `scripts/verify/deployment-discipline.mjs` enforce `ci-gate` +
+  `integration-gate` on `develop` and `ci-gate` + `integration-gate` +
+  `e2e-gate` on `production` as the branch-protection contexts.
 - `tests/unit/unit-test-harness.test.ts` and `tests/setup/unit-env.ts` keep unit
   tests off live secrets (`SUPABASE_SERVICE_ROLE_KEY` cleared globally).
 

@@ -1,6 +1,8 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
+import { MEMBER_CARE_CACHE_TAGS } from "../shared/cache-tags";
+
 type QueryError = { message?: string } | null;
 
 export type MemberCarePriority =
@@ -559,9 +561,9 @@ export async function readMemberCareDirectory(
   "use cache";
 
   applyCache([
-    "member-care",
-    `member-care:${tenantId}`,
-    "member-care:directory",
+    MEMBER_CARE_CACHE_TAGS.base,
+    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
+    MEMBER_CARE_CACHE_TAGS.directory,
   ]);
 
   const [directoryRows, goalRows, requirementRows] = await Promise.all([
@@ -584,10 +586,12 @@ export async function readMemberCareActivities(
   "use cache";
 
   applyCache([
-    "member-care",
-    `member-care:${tenantId}`,
-    "member-care:activity",
-    ...(missionaryId ? [`member-care:activity:${missionaryId}`] : []),
+    MEMBER_CARE_CACHE_TAGS.base,
+    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
+    MEMBER_CARE_CACHE_TAGS.activity,
+    ...(missionaryId
+      ? [MEMBER_CARE_CACHE_TAGS.activityForMissionary(missionaryId)]
+      : []),
   ]);
 
   const rows = await readActivityRows(tenantId, missionaryId);
@@ -600,9 +604,9 @@ export async function readMemberCareDashboardSnapshot(
   "use cache";
 
   applyCache([
-    "member-care",
-    `member-care:${tenantId}`,
-    "member-care:dashboard",
+    MEMBER_CARE_CACHE_TAGS.base,
+    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
+    MEMBER_CARE_CACHE_TAGS.dashboard,
   ]);
 
   const [directoryRows, activityRows, goalRows, requirementRows] =

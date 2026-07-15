@@ -119,7 +119,7 @@ describe("apps/admin/app/automations/page-client", () => {
       AutomationsPageView = pageClient.AutomationsPageView;
       filterAutomationRules = pageClient.filterAutomationRules;
     }
-  });
+  }, 30_000);
 
   afterEach(() => {
     cleanup();

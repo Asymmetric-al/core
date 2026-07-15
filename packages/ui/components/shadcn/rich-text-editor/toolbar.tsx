@@ -543,6 +543,7 @@ function ImageButton({
     <>
       <input
         type="file"
+        aria-label="Upload image file"
         accept="image/*"
         className="hidden"
         ref={fileInputRef}

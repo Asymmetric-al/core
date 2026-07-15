@@ -17,6 +17,7 @@ import {
   hasContributionPermission,
   resolveContributionCapabilities,
 } from "./permissions";
+import { resolveViewerProviderDashboardTestMode } from "./provider-dashboard";
 import {
   assertReceiptSnapshotPdfCapability,
   renderContributionReceiptSnapshotPdf,
@@ -149,9 +150,19 @@ export const GET = withOperation(
         contributionId,
       });
       const viewerCapabilities = resolveContributionCapabilities(auth);
+      // Mode-aware dashboard proof links: the tenant Stripe key is resolved
+      // only for provider-capable viewers, and only the test-mode boolean
+      // reaches the projection.
+      const providerDashboardTestMode =
+        await resolveViewerProviderDashboardTestMode({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          viewerCapabilities,
+        });
       const projected = projectContributionDetailForViewer(
         detail,
         viewerCapabilities,
+        { providerDashboardTestMode },
       );
 
       // The approval policy only shapes correction-request decidability, so
@@ -229,9 +240,19 @@ export const POST = withOperation(
         dependencies: createContributionActionDependencies(supabaseAdmin),
       });
 
+      const viewerCapabilities = resolveContributionCapabilities(auth);
+      // Same mode-aware dashboard links as GET so the canonical detail an
+      // action returns never disagrees with the detail endpoint.
+      const providerDashboardTestMode =
+        await resolveViewerProviderDashboardTestMode({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          viewerCapabilities,
+        });
       const projectedResult = projectContributionActionResultForViewer(
         result,
-        resolveContributionCapabilities(auth),
+        viewerCapabilities,
+        { providerDashboardTestMode },
       );
 
       return NextResponse.json({ result: projectedResult, requestId });
@@ -293,10 +314,19 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
       // Consistency with GET / POST actions: project provider identifiers for
       // the viewer. Not a leak today (deciders already hold
       // contributions.use_provider_actions) but kept defense-in-depth.
+      const viewerCapabilities = resolveContributionCapabilities(auth);
+      const providerDashboardTestMode = outcome.result
+        ? await resolveViewerProviderDashboardTestMode({
+            supabaseAdmin,
+            tenantId: auth.tenantId,
+            viewerCapabilities,
+          })
+        : false;
       const projectedResult = outcome.result
         ? projectContributionActionResultForViewer(
             outcome.result,
-            resolveContributionCapabilities(auth),
+            viewerCapabilities,
+            { providerDashboardTestMode },
           )
         : null;
 

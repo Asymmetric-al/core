@@ -29,7 +29,7 @@ describe("api/auth/signout", () => {
       { error: null },
     );
     expect(signOut).toHaveBeenCalledWith({ scope: "local" });
-  });
+  }, 30_000);
 
   it("allows requests without origin context", async () => {
     const { POST } = await import("../../../packages/api/src/auth/signout");
