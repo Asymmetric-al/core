@@ -604,9 +604,9 @@ export async function readMemberCareDashboardSnapshot(
   "use cache";
 
   applyCache([
-    "member-care",
-    `member-care:${tenantId}`,
-    "member-care:dashboard",
+    MEMBER_CARE_CACHE_TAGS.base,
+    MEMBER_CARE_CACHE_TAGS.tenant(tenantId),
+    MEMBER_CARE_CACHE_TAGS.dashboard,
   ]);
 
   const [directoryRows, activityRows, goalRows, requirementRows] =

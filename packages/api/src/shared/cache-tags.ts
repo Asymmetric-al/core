@@ -54,6 +54,7 @@ export const ADMIN_CACHE_TAGS = {
 export const MEMBER_CARE_CACHE_TAGS = {
   base: "member-care",
   tenant: (tenantId: string) => `member-care:${tenantId}`,
+  dashboard: "member-care:dashboard",
   directory: "member-care:directory",
   activity: "member-care:activity",
   activityForMissionary: (missionaryId: string) =>
@@ -138,6 +139,7 @@ export function revalidateMemberCareCache(tenantId: string): void {
   revalidateTags([
     memberCare.base,
     memberCare.tenant(tenantId),
+    memberCare.dashboard,
     memberCare.directory,
     memberCare.activity,
     memberCare.privateNotes,

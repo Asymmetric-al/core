@@ -73,6 +73,7 @@ describe("shared/cache-tags constant values", () => {
   it("locks the member-care tag strings shared by reads and mutations", () => {
     expect(MEMBER_CARE_CACHE_TAGS.base).toBe("member-care");
     expect(MEMBER_CARE_CACHE_TAGS.tenant("t1")).toBe("member-care:t1");
+    expect(MEMBER_CARE_CACHE_TAGS.dashboard).toBe("member-care:dashboard");
     expect(MEMBER_CARE_CACHE_TAGS.directory).toBe("member-care:directory");
     expect(MEMBER_CARE_CACHE_TAGS.activity).toBe("member-care:activity");
     expect(MEMBER_CARE_CACHE_TAGS.activityForMissionary("m1")).toBe(
@@ -194,6 +195,7 @@ describe("revalidateMemberCareCache", () => {
     expect(revalidatedTags()).toEqual([
       "member-care",
       "member-care:tenant-7",
+      "member-care:dashboard",
       "member-care:directory",
       "member-care:activity",
       "member-care:private-notes",
