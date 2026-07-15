@@ -21,6 +21,7 @@ function makeDetail() {
       notes: null,
       stripePaymentIntentId: "pi_proof",
       stripeChargeId: "ch_proof",
+      stripeRefundIds: ["re_proof_1", "re_proof_2"],
       giftDate: "2026-05-10",
       campaignId: null,
       pledgeId: null,
@@ -80,17 +81,35 @@ describe("admin/contribution-operations/viewer-projection", () => {
     expect(projected.providerProof).toMatchObject({
       paymentIntentId: "pi_proof",
       chargeId: "ch_proof",
+      refundIds: ["re_proof_1", "re_proof_2"],
       dashboardUrls: {
         paymentIntent: "https://dashboard.stripe.com/payments/pi_proof",
         charge: "https://dashboard.stripe.com/charges/ch_proof",
       },
     });
+    expect(projected.payment.stripe.refundIds).toEqual([
+      "re_proof_1",
+      "re_proof_2",
+    ]);
 
     const replayEntry = projected.actionAvailability.find(
       (entry) => entry.actionType === "stripe_replay",
     );
     expect(replayEntry?.available).toBe(true);
     expect(replayEntry?.riskLevel).toBe("high");
+  });
+
+  it("links the test-mode Stripe dashboard when the tenant key runs in test mode", () => {
+    const projected = projectContributionDetailForViewer(
+      makeDetail(),
+      ["contributions.use_provider_actions"],
+      { providerDashboardTestMode: true },
+    );
+
+    expect(projected.providerProof?.dashboardUrls).toEqual({
+      paymentIntent: "https://dashboard.stripe.com/test/payments/pi_proof",
+      charge: "https://dashboard.stripe.com/test/charges/ch_proof",
+    });
   });
 
   it("blocks webhook replay with a clear reason when no provider events exist", () => {

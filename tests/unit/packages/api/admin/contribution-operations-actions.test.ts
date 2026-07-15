@@ -155,6 +155,163 @@ describe("contribution operations action executor", () => {
     );
   });
 
+  it("rejects a stale expectedRevision before resending a receipt", async () => {
+    const sendReceipt = vi.fn();
+    const appendAuditEvent = vi.fn();
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.manage_receipts"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "resend_receipt",
+        expectedRevision: "rev-stale",
+        payload: { stagedGiftId: "staged_1" },
+        dependencies: {
+          sendReceipt,
+          appendAuditEvent,
+          loadContributionDetail,
+        },
+      }),
+    ).rejects.toThrow(/changed since you loaded it/i);
+    expect(sendReceipt).not.toHaveBeenCalled();
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a stale expectedRevision before approving a staged gift", async () => {
+    const approveStagedGift = vi.fn();
+    const appendAuditEvent = vi.fn();
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.apply_corrections"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "approve_staged_gift",
+        reason: "Reviewed staging failure",
+        expectedRevision: "rev-stale",
+        payload: { stagedGiftId: "staged_1" },
+        dependencies: {
+          approveStagedGift,
+          appendAuditEvent,
+          loadContributionDetail,
+        },
+      }),
+    ).rejects.toThrow(/changed since you loaded it/i);
+    expect(approveStagedGift).not.toHaveBeenCalled();
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a stale expectedRevision before retrying a staged gift", async () => {
+    const retryStagedGift = vi.fn();
+    const appendAuditEvent = vi.fn();
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.retry_crm_post"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "retry_staged_gift",
+        reason: "Retry parent gift post",
+        expectedRevision: "rev-stale",
+        payload: { scope: "parent", stagedGiftId: "staged_1" },
+        dependencies: {
+          retryStagedGift,
+          appendAuditEvent,
+          loadContributionDetail,
+        },
+      }),
+    ).rejects.toThrow(/changed since you loaded it/i);
+    expect(retryStagedGift).not.toHaveBeenCalled();
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("executes staged-gift actions when expectedRevision matches the canonical revision", async () => {
+    const sendReceipt = vi.fn().mockResolvedValue({
+      status: "sent",
+      sendLogId: "send_1",
+    });
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.manage_receipts"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "resend_receipt",
+      expectedRevision: "rev-current",
+      payload: { stagedGiftId: "staged_1" },
+      dependencies: {
+        sendReceipt,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(sendReceipt).toHaveBeenCalledOnce();
+    expect(result.auditEventId).toBe("audit_1");
+  });
+
+  it("skips the revision gate when the canonical loader exposes no revision", async () => {
+    // Fail-open by design: alternate canonical loaders may not compute a
+    // revision fingerprint. The production Supabase read model always does.
+    const sendReceipt = vi.fn().mockResolvedValue({
+      status: "sent",
+      sendLogId: "send_1",
+    });
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.manage_receipts"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "resend_receipt",
+      expectedRevision: "rev-anything",
+      payload: { stagedGiftId: "staged_1" },
+      dependencies: {
+        sendReceipt,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(sendReceipt).toHaveBeenCalledOnce();
+    expect(result.auditEventId).toBe("audit_1");
+  });
+
   it.each([
     {
       actionType: "resend_receipt" as const,

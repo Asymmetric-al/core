@@ -20,6 +20,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Suspense } from "react";
 
 import { BoneyardRegistry } from "./_providers/boneyard-registry";
+import { AdminTanStackDevtools } from "./_providers/tanstack-devtools";
 import { MCShell } from "./mc-shell";
 
 import type { Metadata, Viewport } from "next";
@@ -260,6 +261,7 @@ export default function RootLayout({
               </MotionProvider>
             </TooltipProvider>
           </QueryProvider>
+          <AdminTanStackDevtools />
         </ThemeProvider>
         <Toaster />
       </body>

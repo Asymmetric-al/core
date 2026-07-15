@@ -7,6 +7,7 @@ import { runCrmReconciliation } from "../../../crm/reconciliation/run";
 import { resolveCrmSyncRuntimeConfig } from "../../../crm/sync/config";
 import { isCrmSyncDomain } from "../../../crm/sync/domains";
 import { createSupabaseCrmSyncStore } from "../../../crm/sync/store";
+import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 import { ensureJsonBody, toErrorResponse } from "../../../shared/http-errors";
 import { withOperation } from "../../../shared/with-operation";
 
@@ -41,6 +42,8 @@ export const POST = withOperation(
           requestedByProfileId: actor.profileId,
         },
       );
+
+      revalidateAdminCrmCache(actor.tenantId);
 
       return NextResponse.json({ run, requestId });
     } catch (error) {

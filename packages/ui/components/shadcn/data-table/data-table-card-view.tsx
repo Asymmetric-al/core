@@ -11,10 +11,10 @@ import { Card, CardContent } from "../card";
 import { Checkbox } from "../checkbox";
 import { DataTableRowActions } from "./data-table-row-actions";
 
+import type { Row, RowData, Table } from "./tanstack";
 import type { DataTableInteractiveRowAction } from "./types";
-import type { Row, Table } from "@tanstack/react-table";
 
-interface DataTableCardViewProps<TData> {
+interface DataTableCardViewProps<TData extends RowData> {
   rows: Row<TData>[];
   primaryField?: string;
   secondaryField?: string;
@@ -29,7 +29,7 @@ interface DataTableCardViewProps<TData> {
   className?: string;
 }
 
-export function DataTableCardView<TData>({
+export function DataTableCardView<TData extends RowData>({
   rows,
   primaryField,
   secondaryField,
@@ -80,7 +80,7 @@ export function DataTableCardView<TData>({
   );
 }
 
-function DataTableCustomCard<TData>({
+function DataTableCustomCard<TData extends RowData>({
   row,
   render,
 }: {
@@ -90,7 +90,7 @@ function DataTableCustomCard<TData>({
   return <div className="relative">{render(row)}</div>;
 }
 
-interface DataTableCardItemProps<TData> {
+interface DataTableCardItemProps<TData extends RowData> {
   row: Row<TData>;
   primaryField?: string;
   secondaryField?: string;
@@ -103,7 +103,7 @@ interface DataTableCardItemProps<TData> {
   getRowActionAriaLabel?: (row: Row<TData>) => string;
 }
 
-function DataTableCardItem<TData>({
+function DataTableCardItem<TData extends RowData>({
   row,
   primaryField,
   secondaryField,
@@ -238,7 +238,7 @@ function DataTableCardItem<TData>({
   );
 }
 
-interface DataTableMobileViewProps<TData> {
+interface DataTableMobileViewProps<TData extends RowData> {
   table: Table<TData>;
   primaryField?: string;
   secondaryField?: string;
@@ -252,7 +252,7 @@ interface DataTableMobileViewProps<TData> {
   className?: string;
 }
 
-export function DataTableMobileView<TData>({
+export function DataTableMobileView<TData extends RowData>({
   table,
   primaryField,
   secondaryField,

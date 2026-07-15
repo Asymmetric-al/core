@@ -6,14 +6,14 @@ import { cn } from "@asym/ui/lib/utils";
 
 function TooltipProvider({
   delay = 300,
-  timeout = 0,
   ...props
 }: TooltipPrimitive.Provider.Props) {
+  // Keep Base UI's 400ms `timeout` default so moving between grouped triggers
+  // (toolbars, heatmap cells) opens the next tooltip instantly.
   return (
     <TooltipPrimitive.Provider
       data-slot="tooltip-provider"
       delay={delay}
-      timeout={timeout}
       {...props}
     />
   );

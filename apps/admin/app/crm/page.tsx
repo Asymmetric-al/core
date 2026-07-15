@@ -2,13 +2,14 @@ import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Suspense } from "react";
 
 import PageClient from "./page-client";
+import { CRM_PAGE_META } from "../../components/table-page-meta";
 
 function CrmPageFallback() {
   return (
     <PageShell
-      title="CRM"
-      description="Manage contacts, donors, and partner relationships."
-      density="compact"
+      title={CRM_PAGE_META.title}
+      description={CRM_PAGE_META.description}
+      density={CRM_PAGE_META.density}
     >
       <div
         role="status"

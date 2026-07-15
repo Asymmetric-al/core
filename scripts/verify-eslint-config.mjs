@@ -19,6 +19,7 @@ const IGNORE_DIRECTORIES = new Set([
   ".codex",
   ".cursor",
   ".git",
+  ".claude",
   ".nia-sync",
   ".nia_sync_local",
   ".next",
