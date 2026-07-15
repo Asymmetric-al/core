@@ -1,6 +1,7 @@
 {
   "version": 2,
   "canonicalSkills": [
+    "accessibility-review",
     "anim",
     "animation-vocabulary",
     "apple-design",
@@ -51,6 +52,7 @@
     "payloadcms-cms-migration",
     "payloadcms-payload",
     "playwright-best-practices",
+    "playwright-cli",
     "prd-to-plan",
     "prototype",
     "qa",
@@ -76,9 +78,14 @@
     "ubiquitous-language",
     "vercel-react-best-practices",
     "vercel-react-view-transitions",
+    "vitest",
     "wayfinder"
   ],
   "canonicalSkillFiles": {
+    "accessibility-review": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "anim": [
       "SKILL.md"
     ],
@@ -421,6 +428,10 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "playwright-cli": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "prd-to-plan": [
       "SKILL.md",
       "references/upstream.md"
@@ -673,6 +684,10 @@
       "references/implementation.md",
       "references/nextjs.md",
       "references/patterns.md",
+      "references/upstream.md"
+    ],
+    "vitest": [
+      "SKILL.md",
       "references/upstream.md"
     ],
     "wayfinder": [

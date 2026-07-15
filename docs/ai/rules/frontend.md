@@ -31,6 +31,10 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated.
 - Use `'use client'` only when required (hooks, state, browser APIs).
 - Reuse existing shared primitives before creating new ones.
+- For accessibility audits or fixes involving names, semantics, keyboard/focus,
+  forms/errors, announcements, contrast, touch targets, or reduced motion, load
+  `docs/ai/skills/accessibility-review/SKILL.md`. Automated axe results
+  complement but do not replace manual keyboard and focus verification.
 
 ### Styling rules
 

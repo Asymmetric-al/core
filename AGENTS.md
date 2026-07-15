@@ -317,11 +317,14 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 
 **`eve`**, **`create-agent`**, **`impeccable`**, and **`playwright-best-practices`** are vendored under `docs/ai/skills/` with refresh steps in each skill's `references/upstream.md`; **not** updated by `bun run skills:refresh-upstream` today. Upstream CLI id for Impeccable is **`impeccable`** (not `critique`).
 
+**Core-curated adapters:** **`accessibility-review`**, **`vitest`**, and **`playwright-cli`** are narrow Core-authored adaptations of reviewed upstream material. Their exact source paths, commit SHAs, licenses, compatibility decisions, and manual refresh workflows live in each skill's `references/upstream.md`; they are **not** updated by `bun run skills:refresh-upstream`. The Vitest adapter follows Core's installed Vitest 4 harness rather than its upstream skill's Vitest 5 beta target. Playwright CLI remains optional one-off browser tooling and does not replace `@playwright/test` or add a runtime dependency.
+
 - **Next.js App Router structure, rendering, data fetching:** `docs/ai/skills/nextjs-app-router/SKILL.md`
 - **Cache Components / PPR / cacheTag & invalidation:** `docs/ai/skills/cache-components/SKILL.md`
 - **React component design/refactor:** `docs/ai/skills/react-component-dev/SKILL.md`
 - **Million React Doctor / performance & health audits (`millionco/react-doctor`):** `docs/ai/skills/react-doctor/SKILL.md`
 - **Composable, accessible UI components (components.build spec):** `docs/ai/skills/components-build/SKILL.md`
+- **Accessibility audits and targeted UI remediation:** `docs/ai/skills/accessibility-review/SKILL.md` for names, semantics, keyboard/focus, forms/errors, announcements, contrast, touch targets, reduced motion, and manual + axe verification; subordinate to `docs/ai/rules/frontend.md` and `docs/ai/rules/testing.md`.
 - **shadcn/ui system usage:** `docs/ai/skills/moai-library-shadcn/SKILL.md`
 - **Base UI:** `docs/ai/skills/base-ui/SKILL.md`
 - **Semantic HTML, CSS discipline, and vanilla JS readability ([bendc/frontend-guidelines](https://github.com/bendc/frontend-guidelines)):** `docs/ai/skills/bendc-frontend-guidelines/SKILL.md` (vendored upstream text under `references/`; subordinate to `docs/ai/rules/frontend.md`, motion skills, and TypeScript lint)
@@ -351,6 +354,8 @@ To **pull newer upstream** content for Supabase: `npx skills add supabase/agent-
 - **Idempotency keys, safe retries, webhooks, payments, queue consumers:** `docs/ai/skills/idempotency-handling/SKILL.md` (subordinate to `docs/ai/rules/backend.md`; see `packages/api/src/donate/idempotency.ts` for donor API header validation)
 - **Inngest durable workflows and agent tooling:** load `docs/ai/skills/inngest/SKILL.md` when choosing a route. Use `docs/ai/skills/inngest-brownfield-audit/SKILL.md` before changing existing app workflows or fragile background work. Use `docs/ai/skills/inngest-setup/SKILL.md` only when explicitly adding Inngest runtime to an app. Use `docs/ai/skills/inngest-events/SKILL.md`, `docs/ai/skills/inngest-durable-functions/SKILL.md`, `docs/ai/skills/inngest-steps/SKILL.md`, `docs/ai/skills/inngest-flow-control/SKILL.md`, `docs/ai/skills/inngest-middleware/SKILL.md`, and `docs/ai/skills/inngest-realtime/SKILL.md` based on the feature area. Use `docs/ai/skills/inngest-agents/SKILL.md` for durable AI agent workflows, `docs/ai/skills/inngest-v3-v4-migration/SKILL.md` only if v3 usage is found, and `docs/ai/skills/inngest-api/SKILL.md` only for Inngest API or CLI operations. These tools are subordinate to OpenSpec, `AGENTS.md`, repo-local rulebooks, Next.js version docs, and runtime evidence.
 - **Playwright E2E/component/API testing patterns:** `docs/ai/skills/playwright-best-practices/SKILL.md` (subordinate to `docs/ai/rules/testing.md`)
+- **Vitest unit tests, mocking, filtering, environments, and failures:** `docs/ai/skills/vitest/SKILL.md`; use Core's installed Vitest 4 configuration and Bun commands, not generic upstream Vitest 5 beta examples or `bun test`.
+- **Interactive browser inspection with the official Playwright CLI:** `docs/ai/skills/playwright-cli/SKILL.md`; use for ad hoc live verification and evidence, not as a substitute for committed `@playwright/test` coverage.
 - **Durable backend AI agents ([vercel/eve](https://github.com/vercel/eve)):** `docs/ai/skills/eve/SKILL.md`
 - **Scaffold a new eve agent from an interview ([ikindacodes/ship-eve](https://github.com/ikindacodes/ship-eve)):** `docs/ai/skills/create-agent/SKILL.md` (pair with **eve**)
 - **Commit message creation:** `docs/ai/skills/commit/SKILL.md`

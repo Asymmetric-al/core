@@ -31,6 +31,18 @@ const vendoredSkillPaths = [
   ".claude/skills/resend-cli/SKILL.md",
 ] as const;
 
+const curatedSkillNames = [
+  "accessibility-review",
+  "playwright-cli",
+  "vitest",
+] as const;
+
+const generatedSkillRoots = [
+  ".agents/skills",
+  ".cursor/skills",
+  ".claude/skills",
+] as const;
+
 describe("skill quality gate overlays", () => {
   it("keeps vendored canonical skills and mirrors covered by repo triggers, workflow, and checklist sections", () => {
     for (const path of vendoredSkillPaths) {
@@ -55,5 +67,38 @@ describe("skill quality gate overlays", () => {
     expect(findSkills).toContain("**Example — Resend platform skills:**");
     expect(findSkills).toContain("**Example — Resend app integration:**");
     expect(findSkills).not.toContain("**Example — Resend:** **CLI** work");
+  });
+
+  it("keeps curated skills routed, attributed, and identical across generated mirrors", () => {
+    const agents = readRepoFile("AGENTS.md");
+
+    for (const skillName of curatedSkillNames) {
+      const canonicalPath = `docs/ai/skills/${skillName}`;
+      const canonicalSkill = readRepoFile(`${canonicalPath}/SKILL.md`);
+      const canonicalProvenance = readRepoFile(
+        `${canonicalPath}/references/upstream.md`,
+      );
+
+      expect(canonicalSkill, skillName).toContain("## Workflow");
+      expect(canonicalSkill, skillName).toContain("## Checklist");
+      expect(canonicalSkill, skillName).toContain("## Provenance");
+      expect(canonicalProvenance, skillName).toContain("reviewed_commit:");
+      expect(canonicalProvenance, skillName).toContain("license:");
+      expect(canonicalProvenance, skillName).toContain("## Refresh workflow");
+      expect(agents, skillName).toContain(
+        `docs/ai/skills/${skillName}/SKILL.md`,
+      );
+
+      for (const generatedRoot of generatedSkillRoots) {
+        expect(
+          readRepoFile(`${generatedRoot}/${skillName}/SKILL.md`),
+          `${generatedRoot}/${skillName}/SKILL.md`,
+        ).toBe(canonicalSkill);
+        expect(
+          readRepoFile(`${generatedRoot}/${skillName}/references/upstream.md`),
+          `${generatedRoot}/${skillName}/references/upstream.md`,
+        ).toBe(canonicalProvenance);
+      }
+    }
   });
 });
