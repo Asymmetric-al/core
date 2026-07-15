@@ -98,7 +98,9 @@ export function GiftHistorySection({
           giftHistory.closeInlineOperation();
           onOpenGift(donationId);
         }}
-        onRowRefresh={() => void onRefresh()}
+        onRowRefresh={async () => {
+          await onRefresh();
+        }}
       />
       <ViewSettingsResetDialog
         description={giftHistory.resetPreview?.description}
