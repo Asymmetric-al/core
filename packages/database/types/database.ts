@@ -281,6 +281,8 @@ export interface Donation {
   error_code: string | null;
   error_message: string | null;
   stripe_charge_id: string | null;
+  /** Convergent set of observed Stripe refund ids (provider proof only). */
+  stripe_refund_ids: string[];
   refunded_at: string | null;
   refund_amount: MoneyCents;
   source: DonationSource | null;

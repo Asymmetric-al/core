@@ -3,8 +3,8 @@
   "lint": true,
   "deadCode": true,
   "verbose": true,
-  "diff": false,
-  "failOn": "none",
+  "scope": "full",
+  "blocking": "none",
   "ignore": {
     "files": [
       ".next/**",

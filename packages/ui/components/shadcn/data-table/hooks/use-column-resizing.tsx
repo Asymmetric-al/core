@@ -168,6 +168,7 @@ export function ColumnResizeHandle({
       onMouseDown={onResize}
       onTouchStart={onResize}
       role="separator"
+      aria-label="Resize column"
       aria-orientation="vertical"
       className={
         className ??
