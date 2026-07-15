@@ -3,7 +3,7 @@ source_name: a5c-ai/babysitter-cursor (babysit)
 source_url: https://github.com/a5c-ai/babysitter-cursor/tree/develop/skills/babysit
 source_type: github
 upstream_path: skills/babysit/
-skills_lock_hash: 7b342a17574edf65807c02d04fbee0ed9f437718387973ee63339ddf79af2302
+skills_lock_hash: efdbb4205d8e0f09ca66cf1733b7b4124ddfdf2b27aeaae372477b7d729e4d2b
 last_reviewed: 2026-06-26
 ---
 
@@ -16,7 +16,7 @@ Canonical copy in this repo: `docs/ai/skills/babysit/` (mirrored to `.cursor/ski
 - **Commit reviewed:** `67f78eaae0935c93fb0ff5b51f471d819eab0134`
 - **Upstream path:** `skills/babysit/`
 - **Lock skillPath:** `skills/babysit/SKILL.md`
-- **Computed hash:** `7b342a17574edf65807c02d04fbee0ed9f437718387973ee63339ddf79af2302`
+- **Computed hash:** `efdbb4205d8e0f09ca66cf1733b7b4124ddfdf2b27aeaae372477b7d729e4d2b`
 
 ## Refresh from upstream
 

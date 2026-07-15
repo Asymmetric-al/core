@@ -185,7 +185,61 @@ const githubUpstreamGroups = [
   },
 ];
 
+const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `Read the SDK version from \`versions.json\` to ensure version compatibility:
+
+\`\`\`bash
+SDK_VERSION=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('\${PLUGIN_ROOT}/versions.json','utf8')).sdkVersion||'latest')}catch{console.log('latest')}")
+npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION
+
+CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+\`\`\`
+
+If \`babysitter\` is already installed globally at the correct version, you may use \`CLI="babysitter"\` instead.`;
+
+const BABYSIT_CORE_DEPENDENCY_BLOCK = `Resolve the repository root and read the reviewed SDK version from
+\`docs/ai/skills/babysit/versions.json\`. Stop immediately if the repository root
+or an exact package version cannot be resolved:
+
+\`\`\`bash
+REPO_ROOT=$(git rev-parse --show-toplevel) || exit 1
+SDK_VERSION=$(
+  node -e '
+const fs = require("node:fs");
+const path = require("node:path");
+
+const versionsPath = path.join(
+  process.argv[1],
+  "docs/ai/skills/babysit/versions.json",
+);
+const exactVersionPattern = /^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$/;
+
+try {
+  const versions = JSON.parse(fs.readFileSync(versionsPath, "utf8"));
+  const sdkVersion = versions.sdkVersion;
+
+  if (typeof sdkVersion !== "string" || !exactVersionPattern.test(sdkVersion)) {
+    throw new Error("sdkVersion must be a nonempty exact package version");
+  }
+
+  process.stdout.write(sdkVersion);
+} catch (error) {
+  console.error(\`Unable to resolve the pinned Babysitter SDK version: \${error.message}\`);
+  process.exit(1);
+}
+' "$REPO_ROOT"
+) || exit 1
+
+CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+\`\`\``;
+
 const POST_REFRESH_REPLACEMENTS = [
+  {
+    skillName: "babysit",
+    relativePath: "SKILL.md",
+    search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK,
+    replace: BABYSIT_CORE_DEPENDENCY_BLOCK,
+    required: true,
+  },
   {
     skillName: "animation-vocabulary",
     relativePath: "SKILL.md",

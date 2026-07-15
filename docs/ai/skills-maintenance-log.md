@@ -1,6 +1,6 @@
 # Agent Skills Maintenance Log
 
-Last updated: 2026-07-13
+Last updated: 2026-07-15
 
 ## Scope
 
@@ -65,8 +65,10 @@ Completed 2026-06-26:
   `what-did-i-get-done`, and `workflow-from-chats`.
 - Vendored Babysitter `skills/babysit/SKILL.md` into
   `docs/ai/skills/babysit/`, plus upstream `versions.json` because the
-  preserved `SKILL.md` reads `${PLUGIN_ROOT}/versions.json` to choose the SDK
-  version.
+  repository adaptation reads its reviewed `sdkVersion` from the canonical
+  repo-local copy. Resolution fails closed when that file or exact version is
+  unavailable or unsafe, and the CLI runs the validated pin through `npx`
+  without a global install.
 - Added `references/upstream.md` to every new canonical skill directory with
   `source_name`, `source_url`, `source_type: github`, `upstream_path`,
   `skills_lock_hash`, `last_reviewed`, reviewed commit, and refresh steps.
