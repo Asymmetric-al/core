@@ -146,11 +146,18 @@ are self-sufficient).
     <span className="sr-only">Open</span>
   </Button>
 </DropdownMenuTrigger>
-// AFTER — props stay on Button, children move to the trigger
-<DropdownMenuTrigger render={<Button variant="ghost" size="icon" className="x" />}>
-  <MoreHorizontal />
-  <span className="sr-only">Open</span>
-</DropdownMenuTrigger>
+// AFTER — content moves inside the render element; the trigger self-closes.
+// (If the render element ever gains its own children, trigger children are
+// silently dropped — tests/unit/packages/ui/base-ui-trigger-render-nesting
+// enforces this shape.)
+<DropdownMenuTrigger
+  render={
+    <Button variant="ghost" size="icon" className="x">
+      <MoreHorizontal />
+      <span className="sr-only">Open</span>
+    </Button>
+  }
+/>
 ```
 
 Applies to: `DialogTrigger`, `DialogClose`, `SheetTrigger`, `SheetClose`,

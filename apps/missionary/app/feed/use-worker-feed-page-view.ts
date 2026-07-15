@@ -4,14 +4,7 @@ import { isPostContentEmpty } from "@asym/ui/components/shadcn/rich-text-editor"
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 
-import {
-  appendCommentToThread,
-  createLocalCommentId,
-  removeCommentFromThread,
-} from "./feed-model";
-
 import type {
-  FeedComment,
   FollowerRequest,
   Post,
   PostStatus,
@@ -30,7 +23,6 @@ export type WorkerFeedPageViewModel = {
   isSaving: boolean;
   editingPostId: string | null;
   lastSaved: Date | null;
-  expandedComments: string | null;
   postPrivacy: Visibility;
   selectedMedia: MediaItem[];
   isUploading: boolean;
@@ -42,7 +34,6 @@ export type WorkerFeedPageViewModel = {
   setEditingPostId: (value: SetStateAction<string | null>) => void;
   setPostPrivacy: (value: SetStateAction<Visibility>) => void;
   setSelectedMedia: (value: SetStateAction<MediaItem[]>) => void;
-  setExpandedComments: (value: SetStateAction<string | null>) => void;
   setSecurityLevel: (value: SetStateAction<SecurityLevel>) => void;
   posts: Post[];
   drafts: Post[];
@@ -52,16 +43,6 @@ export type WorkerFeedPageViewModel = {
   handleEditDraft: (draft: Post) => void;
   handleDeletePost: (postId: string) => Promise<void>;
   handleResolveRequest: (id: string, approved: boolean) => void;
-  handleAddComment: (postId: string, text: string, parentId?: string) => void;
-  handleDeleteComment: (
-    postId: string,
-    commentId: string,
-    parentId?: string,
-  ) => void;
-  handleReaction: (
-    postId: string,
-    type: "heart" | "fire" | "prayer",
-  ) => Promise<void>;
 };
 
 export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
@@ -73,7 +54,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     isSaving: false,
     editingPostId: null,
     lastSaved: null,
-    expandedComments: null,
     postPrivacy: "public",
     selectedMedia: [],
     isUploading: false,
@@ -88,7 +68,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     isSaving,
     editingPostId,
     lastSaved,
-    expandedComments,
     postPrivacy,
     selectedMedia,
     isUploading,
@@ -144,11 +123,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
   const setLastSaved = useCallback(
     (value: React.SetStateAction<Date | null>) =>
       setUiField("lastSaved", value),
-    [setUiField],
-  );
-  const setExpandedComments = useCallback(
-    (value: React.SetStateAction<string | null>) =>
-      setUiField("expandedComments", value),
     [setUiField],
   );
   const setPostPrivacy = useCallback(
@@ -365,118 +339,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     toast.success(approved ? "Follower accepted" : "Request removed");
   };
 
-  const handleAddComment = useCallback(
-    (postId: string, text: string, parentId?: string) => {
-      const trimmedText = text.trim();
-      if (!trimmedText) return;
-
-      const nextComment: FeedComment = {
-        id: createLocalCommentId(),
-        content: trimmedText,
-        created_at: new Date().toISOString(),
-        author: { full_name: "You" },
-        isWorker: true,
-        replies: [],
-      };
-
-      const updatePostCollection = (collection: Post[]) =>
-        collection.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                comments: appendCommentToThread(
-                  post.comments || [],
-                  nextComment,
-                  parentId,
-                ),
-              }
-            : post,
-        );
-
-      setPosts(updatePostCollection);
-      setDrafts(updatePostCollection);
-      toast.success("Comment published");
-    },
-    [],
-  );
-
-  const handleDeleteComment = useCallback(
-    (postId: string, commentId: string, parentId?: string) => {
-      const updatePostCollection = (collection: Post[]) =>
-        collection.map((post) =>
-          post.id === postId
-            ? {
-                ...post,
-                comments: removeCommentFromThread(
-                  post.comments || [],
-                  commentId,
-                  parentId,
-                ),
-              }
-            : post,
-        );
-
-      setPosts(updatePostCollection);
-      setDrafts(updatePostCollection);
-      toast.success("Comment deleted");
-    },
-    [],
-  );
-
-  const handleReaction = async (
-    postId: string,
-    type: "heart" | "fire" | "prayer",
-  ) => {
-    const post = [...posts, ...drafts].find((p) => p.id === postId);
-    if (!post) return;
-
-    const endpointMap = { heart: "like", fire: "fire", prayer: "prayer" };
-    const statusKeyMap = {
-      heart: "user_liked",
-      fire: "user_fired",
-      prayer: "user_prayed",
-    };
-    const countKeyMap = {
-      heart: "likes_count",
-      fire: "fires_count",
-      prayer: "prayers_count",
-    };
-
-    const endpoint = endpointMap[type];
-    const statusKey = statusKeyMap[type] as keyof Post;
-    const countKey = countKeyMap[type] as keyof Post;
-
-    const isActive = post[statusKey];
-    const method = isActive ? "DELETE" : "POST";
-
-    const updatePosts = (prev: Post[]) =>
-      prev.map((p) => {
-        if (p.id === postId) {
-          return {
-            ...p,
-            [statusKey]: !isActive,
-            [countKey]: Math.max(
-              0,
-              (Number(p[countKey]) || 0) + (isActive ? -1 : 1),
-            ),
-          };
-        }
-        return p;
-      });
-
-    setPosts(updatePosts);
-    setDrafts(updatePosts);
-
-    try {
-      const res = await fetch(`/api/posts/${postId}/${endpoint}`, { method });
-      if (!res.ok) throw new Error("Failed to update reaction");
-    } catch (_err) {
-      fetchPosts("published");
-      fetchPosts("draft");
-      toast.error("Failed to update reaction");
-    }
-  };
-
   return {
     postType,
     postContent,
@@ -485,7 +347,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     isSaving,
     editingPostId,
     lastSaved,
-    expandedComments,
     postPrivacy,
     selectedMedia,
     isUploading,
@@ -497,7 +358,6 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     setEditingPostId,
     setPostPrivacy,
     setSelectedMedia,
-    setExpandedComments,
     setSecurityLevel,
     posts,
     drafts,
@@ -507,8 +367,5 @@ export function useWorkerFeedPageView(): WorkerFeedPageViewModel {
     handleEditDraft,
     handleDeletePost,
     handleResolveRequest,
-    handleAddComment,
-    handleDeleteComment,
-    handleReaction,
   };
 }

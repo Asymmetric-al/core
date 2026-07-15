@@ -187,8 +187,10 @@ export async function applyRefundedChargeToDonation(
     action: isFullRefund ? "charge_refunded" : "charge_partially_refunded",
     donationId: donation.id,
     handled: true,
+    mutated: true,
     paymentIntentId,
     stagedGiftId: stagedGift?.id ?? null,
+    tenantId: donation.tenant_id,
   } satisfies StripeWebhookOutcome;
 }
 

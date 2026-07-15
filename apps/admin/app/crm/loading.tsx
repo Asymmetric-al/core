@@ -1,15 +1,6 @@
-import {
-  PageHeaderSkeleton,
-  TableSkeleton,
-} from "@/features/mission-control/components/patterns/skeletons";
+import { TablePageFallback } from "@/components/table-page-fallback";
+import { CRM_PAGE_META } from "@/components/table-page-meta";
 
 export default function Loading() {
-  return (
-    <div className="flex h-full flex-col">
-      <PageHeaderSkeleton />
-      <div className="flex-1 p-6 lg:p-8">
-        <TableSkeleton rows={8} />
-      </div>
-    </div>
-  );
+  return <TablePageFallback {...CRM_PAGE_META} columnCount={7} rowCount={8} />;
 }

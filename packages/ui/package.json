@@ -45,7 +45,8 @@
     "./styles/*": "./styles/*",
     "./components/view-transitions": "./components/view-transitions/index.ts",
     "./components/primitives": "./components/primitives/index.ts",
-    "./components/primitives/*": "./components/primitives/*.tsx"
+    "./components/primitives/*": "./components/primitives/*.tsx",
+    "./components/ministry-update": "./components/ministry-update/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

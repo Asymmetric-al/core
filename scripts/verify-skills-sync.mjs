@@ -39,6 +39,7 @@ function resolveGitDir() {
 
 const gitDir = resolveGitDir();
 const gitArgs = [`--git-dir=${gitDir}`, `--work-tree=${repoRoot}`];
+const unsupportedMirrorPaths = [".agent/skills"];
 
 function run(command, args) {
   const result = spawnSync(command, args, {
@@ -117,6 +118,37 @@ if (untrackedResult.stdout.trim()) {
   console.error(untrackedResult.stdout.trim());
   console.error(
     "Skill mirror drift detected. Run `bun run skills:sync` and commit mirror updates.",
+  );
+  process.exit(1);
+}
+
+const unsupportedMirrorResult = spawnSync(
+  "git",
+  [
+    ...gitArgs,
+    "ls-files",
+    "--cached",
+    "--others",
+    "--exclude-standard",
+    "--",
+    ...unsupportedMirrorPaths,
+  ],
+  {
+    cwd: repoRoot,
+    encoding: "utf8",
+    env: gitSafeEnv,
+    stdio: ["inherit", "pipe", "inherit"],
+  },
+);
+
+if (unsupportedMirrorResult.error) {
+  throw unsupportedMirrorResult.error;
+}
+
+if (unsupportedMirrorResult.stdout.trim()) {
+  console.error(unsupportedMirrorResult.stdout.trim());
+  console.error(
+    "Unsupported singular skill mirror detected. Use `.agents/skills`, `.cursor/skills`, and `.claude/skills`; remove `.agent/skills`.",
   );
   process.exit(1);
 }

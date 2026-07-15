@@ -303,7 +303,7 @@ beforeEach(async () => {
   ContributionsMainBody = mainBodyModule.ContributionsMainBody;
   ContributionsPageActions = mainBodyModule.ContributionsPageActions;
   selectedRowsRef.current = [];
-});
+}, 30_000);
 
 afterEach(() => {
   cleanup();

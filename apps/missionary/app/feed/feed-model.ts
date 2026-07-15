@@ -33,7 +33,6 @@ export type WorkerFeedUiState = {
   isSaving: boolean;
   editingPostId: string | null;
   lastSaved: Date | null;
-  expandedComments: string | null;
   postPrivacy: Visibility;
   selectedMedia: MediaItem[];
   isUploading: boolean;
@@ -150,58 +149,3 @@ export const SECURITY_OPTIONS: SecurityOption[] = [
     ringColor: "ring-emerald-500/20",
   },
 ];
-
-export function createLocalCommentId() {
-  if (
-    typeof crypto !== "undefined" &&
-    typeof crypto.randomUUID === "function"
-  ) {
-    return crypto.randomUUID();
-  }
-
-  return `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-}
-
-export function appendCommentToThread(
-  comments: FeedComment[],
-  nextComment: FeedComment,
-  parentId?: string,
-): FeedComment[] {
-  if (!parentId) {
-    return [...comments, nextComment];
-  }
-
-  return comments.map((comment) =>
-    comment.id === parentId
-      ? { ...comment, replies: [...(comment.replies || []), nextComment] }
-      : comment,
-  );
-}
-
-export function removeCommentFromThread(
-  comments: FeedComment[],
-  commentId: string,
-  parentId?: string,
-): FeedComment[] {
-  if (parentId) {
-    return comments.map((comment) =>
-      comment.id === parentId
-        ? {
-            ...comment,
-            replies: (comment.replies || []).filter(
-              (reply) => reply.id !== commentId,
-            ),
-          }
-        : comment,
-    );
-  }
-
-  return comments
-    .filter((comment) => comment.id !== commentId)
-    .map((comment) => ({
-      ...comment,
-      replies: (comment.replies || []).filter(
-        (reply) => reply.id !== commentId,
-      ),
-    }));
-}

@@ -1,3 +1,4 @@
+import { getAdminClient } from "@asym/database/supabase/admin";
 import { createClient } from "@asym/database/supabase/server";
 import { type NextRequest, NextResponse } from "next/server";
 
@@ -18,7 +19,12 @@ export async function POST(
       params,
     );
 
-    const { data, error } = await supabase.rpc("atomic_like_post", {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    if (!supabaseAdmin) {
+      throw new ApiHttpError(503, adminError || "Admin client unavailable");
+    }
+
+    const { data, error } = await supabaseAdmin.rpc("atomic_like_post", {
       p_post_id: postId,
       p_user_id: userId,
       p_tenant_id: tenantId,
@@ -56,7 +62,12 @@ export async function DELETE(
       params,
     );
 
-    const { data, error } = await supabase.rpc("atomic_unlike_post", {
+    const { client: supabaseAdmin, error: adminError } = getAdminClient();
+    if (!supabaseAdmin) {
+      throw new ApiHttpError(503, adminError || "Admin client unavailable");
+    }
+
+    const { data, error } = await supabaseAdmin.rpc("atomic_unlike_post", {
       p_post_id: postId,
       p_user_id: userId,
       p_tenant_id: tenantId,
