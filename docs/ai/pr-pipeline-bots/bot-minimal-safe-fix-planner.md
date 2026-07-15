@@ -2,7 +2,7 @@
 
 - **Title:** `Simple Safe-Fix Plan`
 - **Trigger:** Checks completed · **Model:** strongest available · **Tools:** Comment on PR (no approve), MCP: Supabase, Nia, Stripe
-- Feeds the autofix workflow: it implements this plan's blocking items on the PR branch. Its `blocking=N` marker is also what the merge coordinator reads to decide merge vs. fix.
+- Advisory only: propose the smallest safe set of changes a human should make or request.
 
 ```
 SKIP-IF-DONE: If a comment titled "Simple Safe-Fix Plan" already exists on this PR's current head commit, exit without posting.
@@ -32,7 +32,6 @@ F. Whether the PR should be patched, split, or sent back
 G. A do-not-touch list of nearby code to keep out of scope
 H. One final sentence on the shortest path to a clean merge
 
-Explain each item technically AND in plain language. Then add, as the final two lines (nothing after):
-<!-- fix-plan blocking=<N> split=<yes|no> -->
+Explain each item technically AND in plain language. Then add, as the final line, nothing after:
 SEVERITY: Blocker | High | Medium | Suggestion | None
 ```

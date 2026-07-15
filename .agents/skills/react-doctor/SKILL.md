@@ -15,7 +15,7 @@ In this repository, use the repo-owned first-party helper from the repo root:
 bun run react-doctor:first-party -- --full --offline --fail-on none
 ```
 
-The human guide is `docs/guides/development/react-doctor.md`. It is the source of truth for configured ignores, advisory `failOn` behavior, and PR wording.
+The human guide is `docs/guides/development/react-doctor.md`. It is the source of truth for configured ignores, advisory `blocking` behavior, and PR wording.
 
 ## Workflow
 
@@ -76,4 +76,4 @@ Verification:
 - [ ] Findings summarized with file paths
 - [ ] Fixes applied in severity order
 - [ ] Audit re-run and configured-audit score verified
-- [ ] Known ignores and advisory `failOn` behavior reported honestly
+- [ ] Known ignores and advisory `blocking` behavior reported honestly

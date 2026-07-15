@@ -130,7 +130,7 @@ export function useSuperAdminTenantOptions() {
   } = useConfig();
 
   const isSuperAdmin = isSuperAdminUser(user);
-  const tenantsQuery = useQuery(
+  const { data, error, isError, isPending } = useQuery(
     buildTenantsQuery({
       isSuperAdmin,
       apiRoute: routes.api,
@@ -140,6 +140,9 @@ export function useSuperAdminTenantOptions() {
 
   return {
     isSuperAdmin,
-    tenantsQuery,
+    tenants: data ?? [],
+    tenantsError: error,
+    tenantsIsError: isError,
+    tenantsIsPending: isPending,
   };
 }
