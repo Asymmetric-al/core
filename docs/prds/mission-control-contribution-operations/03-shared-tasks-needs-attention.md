@@ -4,7 +4,10 @@
 
 Delivered through split PR #394. Do not create a new `status:ready`
 implementation issue from this historical PRD unless a follow-up gap is
-identified against the shipped code.
+identified against the shipped code. The "failed CRM posting" task source
+below feeds from the now-retired Twenty outbound queue, dormant per
+[ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+(2026-07-06).
 
 ## Problem statement
 

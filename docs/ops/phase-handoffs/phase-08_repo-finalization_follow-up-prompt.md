@@ -1,5 +1,9 @@
 # Phase 08 Repo Finalization - Follow-Up Prompt
 
+> **Note (2026-07-06):** Twenty CRM has since been retired
+> ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+> this file records the state as of its date.
+
 Repo: `Asymmetric-al/core`
 Branch: `production`
 Local path: `/Users/blake/Documents/asymmetrical/repos/core`

@@ -1,3 +1,7 @@
+> **RETIRED (2026-07-06, ADR-0001)** — this change is withdrawn; see the
+> banner in [proposal.md](./proposal.md). Preserved unedited as historical
+> record.
+
 ## 1. Phase 00 Strategy Package
 
 - [x] 1.1 Create the `integrate-twenty-crm-core` OpenSpec change package
