@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyDescription,
@@ -148,16 +148,12 @@ function MissionariesHubTableRows({
           {missionary.id}
         </TableCell>
         <TableCell className="text-right">
-          <Button
-            size="sm"
-            render={
-              <Link
-                href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
-              />
-            }
+          <Link
+            className={buttonVariants({ size: "sm" })}
+            href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
           >
             Create giving page
-          </Button>
+          </Link>
         </TableCell>
       </TableRow>
     );

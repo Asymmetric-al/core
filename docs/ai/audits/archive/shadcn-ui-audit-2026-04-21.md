@@ -1,7 +1,7 @@
+# shadcn/ui audit — 2026-04-21 (MCP + skill)
+
 > **ARCHIVED (2026-06):** Historical audit from the Radix era. The UI layer
 > is now Base UI only — see docs/ai/audits/base-ui-only-migration.md.
-
-# shadcn/ui audit — 2026-04-21 (MCP + skill)
 
 This audit follows the repo plan: **shadcn MCP** for registry wiring and catalog operations, **shadcn skill** (Critical Rules: styling, forms, composition, icons, CLI) for severity and remediation framing, plus **CLI** (`npx shadcn@latest`) as the documented companion to the MCP server for `info`, `docs`, `view`, `search`, and `add --dry-run/--diff`.
 
