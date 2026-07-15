@@ -16,6 +16,7 @@ import {
   EmptyMedia,
 } from "../empty";
 
+import type { ColumnDef, Row, RowData } from "./tanstack";
 import type {
   DataTableConfig,
   DataTableControlledState,
@@ -23,9 +24,8 @@ import type {
   DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
-import type { ColumnDef, Row } from "@tanstack/react-table";
 
-interface DataTableWrapperProps<TData, TValue> {
+interface DataTableWrapperProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -56,9 +56,15 @@ interface DataTableWrapperProps<TData, TValue> {
   className?: string;
   tableClassName?: string;
   toolbar?: React.ReactNode;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
 }
 
-export function DataTableWrapper<TData, TValue>({
+export function DataTableWrapper<TData extends RowData, TValue>({
   columns,
   data,
   filterFields,
@@ -80,6 +86,7 @@ export function DataTableWrapper<TData, TValue>({
   className,
   tableClassName,
   toolbar,
+  devtoolsKey,
 }: DataTableWrapperProps<TData, TValue>) {
   if (isError) {
     return (
@@ -165,6 +172,7 @@ export function DataTableWrapper<TData, TValue>({
         emptyState={customEmptyState}
         tableClassName={tableClassName}
         toolbar={toolbar}
+        devtoolsKey={devtoolsKey}
       />
     </div>
   );

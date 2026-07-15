@@ -1,8 +1,20 @@
 import path from "path";
 
+import { loadEnvConfig } from "@next/env";
 import { defineConfig, devices } from "@playwright/test";
 
 import { nextDevReadyURL } from "./tests/e2e/base-urls";
+
+// Load root .env.local (and .env*) into process.env before the webServer env
+// blocks below are computed. Without this, keys like DEMO_ADMIN_EMAIL are set
+// to "" for the dev servers, which beats .env.local inside `next dev` and
+// makes every demo-gated e2e test skip silently with exit 0. Shell-set vars
+// always win — loadEnvConfig never overrides existing process.env keys.
+// Skipped under ASYM_USE_CI_ENV_DEFAULTS (hermetic CI simulation) and under
+// Vitest (unit tests import this module and must stay off live secrets).
+if (process.env.ASYM_USE_CI_ENV_DEFAULTS !== "1" && !process.env.VITEST) {
+  loadEnvConfig(__dirname);
+}
 
 const DEFAULT_DONOR_PORT = 3005;
 const DEFAULT_ADMIN_PORT = 3030;

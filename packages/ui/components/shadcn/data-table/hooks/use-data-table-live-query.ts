@@ -2,25 +2,25 @@
 
 import { useLiveQuery } from "@tanstack/react-db";
 import { useQueryClient } from "@tanstack/react-query";
+// Sanctioned boundary exception (see ../tanstack.ts): devtools adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
+import * as React from "react";
+
+import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
 import {
   type ColumnFiltersState,
   type SortingState,
   type PaginationState,
+  type RowData,
   type RowSelectionState,
+  type Table,
   type VisibilityState,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  useReactTable,
+  createDataTableRowModels,
+  dataTableFeatures,
+  useTable,
   type ColumnDef,
   type TableOptions,
-} from "@tanstack/react-table";
-import * as React from "react";
-
-import { createEmptyFilterState, createAdvancedFilterFn } from "../filters";
+} from "../tanstack";
 
 import type {
   AdvancedFilterState,
@@ -29,7 +29,7 @@ import type {
 import type { Context, InitialQueryBuilder, QueryBuilder } from "@tanstack/db";
 
 interface UseDataTableWithLiveQueryOptions<
-  TData,
+  TData extends RowData,
   TValue,
   TContext extends Context,
 > {
@@ -52,14 +52,20 @@ interface UseDataTableWithLiveQueryOptions<
   enablePagination?: boolean;
   pageSize?: number;
   getRowId?: (row: TData) => string;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
   onSortingChange?: (sorting: SortingState) => void;
   onFiltersChange?: (filters: ColumnFiltersState) => void;
   onAdvancedFilterChange?: (filter: AdvancedFilterState) => void;
 }
 
-interface UseDataTableWithLiveQueryReturn<TData> {
-  table: ReturnType<typeof useReactTable<TData>>;
+interface UseDataTableWithLiveQueryReturn<TData extends RowData> {
+  table: Table<TData>;
   data: TData[];
   isLoading: boolean;
   error: Error | null;
@@ -82,7 +88,7 @@ interface UseDataTableWithLiveQueryReturn<TData> {
 }
 
 export function useDataTableWithLiveQuery<
-  TData,
+  TData extends RowData,
   TValue = unknown,
   TContext extends Context = Context,
 >({
@@ -97,6 +103,7 @@ export function useDataTableWithLiveQuery<
   enablePagination = true,
   pageSize = 10,
   getRowId,
+  devtoolsKey,
   onRowSelectionChange,
   onSortingChange,
   onFiltersChange,
@@ -185,8 +192,20 @@ export function useDataTableWithLiveQuery<
   }, [advancedFilter, onAdvancedFilterChange]);
 
   const tableOptions: TableOptions<TData> = {
+    features: dataTableFeatures,
+    // The core row model is automatic in v9; disabled flags skip the matching
+    // client-side row model just like the v8 `get*RowModel: undefined` paths.
+    rowModels: createDataTableRowModels<TData>({
+      filtering: enableFiltering,
+      pagination: enablePagination,
+      sorting: enableSorting,
+    }),
     data: filteredData,
-    columns,
+    // Columns with heterogeneous TValue collapse to `unknown` for the engine,
+    // mirroring v8's `ColumnDef<TData, any>[]` table option.
+    columns: columns as ColumnDef<TData, unknown>[],
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     state: {
       sorting,
       columnVisibility,
@@ -203,17 +222,13 @@ export function useDataTableWithLiveQuery<
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onPaginationChange: setPagination,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
-    getPaginationRowModel: enablePagination
-      ? getPaginationRowModel()
-      : undefined,
-    getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   };
 
-  const table = useReactTable(tableOptions);
+  const table = useTable(tableOptions);
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const selectedRows = React.useMemo(() => {
     return table.getFilteredSelectedRowModel().rows.map((row) => row.original);
@@ -253,7 +268,7 @@ export function useDataTableWithLiveQuery<
   };
 }
 
-interface UseDataTableWithSupabaseOptions<TData, TValue> {
+interface UseDataTableWithSupabaseOptions<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   tableName: string;
   select?: string;
@@ -276,9 +291,10 @@ interface UseDataTableWithSupabaseOptions<TData, TValue> {
   realtimeEvent?: "INSERT" | "UPDATE" | "DELETE" | "*";
 }
 
-export function useDataTableWithSupabase<TData, TValue = unknown>(
-  _options: UseDataTableWithSupabaseOptions<TData, TValue>,
-) {
+export function useDataTableWithSupabase<
+  TData extends RowData,
+  TValue = unknown,
+>(_options: UseDataTableWithSupabaseOptions<TData, TValue>) {
   console.warn(
     "useDataTableWithSupabase is deprecated. Use useDataTableWithLiveQuery with TanStack DB collections instead.",
   );

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { runGivingReconciliation } from "../../giving/staged-gifts";
+import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import { toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 
@@ -12,6 +13,8 @@ export const POST = withOperation(
         tenantId: auth.tenantId,
         requestedByProfileId: auth.profileId,
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ reconciliation: result, requestId });
     } catch (error) {

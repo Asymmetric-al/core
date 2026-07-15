@@ -43,7 +43,7 @@ function sourceComponentFiles() {
 
 describe("React Doctor config contracts", () => {
   it("does not keep react/no-danger globally ignored when first-party source has no runtime dangerous HTML assignments", () => {
-    const config = JSON.parse(readRepoFile("react-doctor.config.json")) as {
+    const config = JSON.parse(readRepoFile("doctor.config.json")) as {
       ignore?: { rules?: string[] };
     };
 

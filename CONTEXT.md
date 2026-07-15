@@ -25,6 +25,15 @@ experiences as one connected concept. It is not public page content and not a
 one-off email, though pages and communications may display or reference it.
 _Avoid_: newsletter, blog post, page content, donor email
 
+**Ministry Update Engagement**:
+The reactions (love/prayer/fire) and comment thread on a Ministry Update,
+owned by one shared module so counts, viewer state, and persistence behave
+identically on every surface. A surface chooses appearance and comment
+presentation; it never re-implements reaction state, optimistic updates, or
+the wire contract.
+_Avoid_: per-surface reaction forks, local-only reaction state, unpersisted
+engagement UI
+
 **Assistant**:
 An AI agent or assistant that helps a staff member, missionary, or donor
 complete a task inside the platform (drafting, suggesting, summarizing,
