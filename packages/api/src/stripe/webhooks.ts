@@ -25,6 +25,7 @@ import {
   constructVerifiedStripeEvent,
 } from "./verify-event";
 import { stageGiftFromStripeDonation } from "../giving/staged-gifts";
+import { revalidateAdminContributionsCache } from "../shared/cache-tags";
 import { STRIPE_EVENT_PROCESS_EVENT } from "../workflows/events";
 import { requestWorkflowDispatch } from "../workflows/ledger";
 
@@ -42,11 +43,14 @@ export interface StripeWebhookOutcome {
   action: string;
   donationId?: string;
   handled: boolean;
+  /** True only when the event actually wrote donation/staged-gift rows. */
+  mutated?: boolean;
   paymentIntentId?: string;
   pledgeId?: string;
   providerRefundId?: string;
   reason?: string;
   stagedGiftId?: string | null;
+  tenantId?: string | null;
 }
 
 interface StripeRefundReconciliationApi {
@@ -328,8 +332,10 @@ async function updatePaymentIntentDonation(params: {
     action: `payment_intent_${status}`,
     donationId: donation.id,
     handled: true,
+    mutated: true,
     paymentIntentId: paymentIntent.id,
     stagedGiftId,
+    tenantId: donation.tenant_id,
   } satisfies StripeWebhookOutcome;
 }
 
@@ -550,6 +556,15 @@ export async function POST(request: NextRequest) {
       stagedGiftId: outcome.stagedGiftId ?? null,
     });
     processingClaim = null;
+
+    if (outcome.mutated) {
+      // The donation / staged gift was actually written through the async
+      // Stripe pipeline. Refresh cached admin contributions reads so staff
+      // views do not serve stale settlement data. Skipped for no-op outcomes
+      // (duplicate/terminal events) to avoid needless cross-tenant
+      // invalidation. No-op until those cached reads exist.
+      revalidateAdminContributionsCache(outcome.tenantId ?? null);
+    }
 
     return NextResponse.json({
       eventId: event.id,

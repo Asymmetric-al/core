@@ -4,6 +4,8 @@ import path from "node:path";
 import { glob } from "glob";
 import { describe, expect, it } from "vitest";
 
+import { SOURCE_GLOBS } from "./base-ui-source-globs";
+
 /**
  * Base UI menu items activate via `onClick`. Radix's `onSelect` prop does not
  * exist on Base UI `Menu.Item`; because `onSelect` is also a valid DOM
@@ -18,14 +20,6 @@ const MENU_ITEM_ONSELECT = new RegExp(
     "(?:Item|CheckboxItem|RadioItem)\\b[^>]*?\\bonSelect=",
   "s",
 );
-
-const SOURCE_GLOBS = [
-  "apps/*/app/**/*.tsx",
-  "apps/*/features/**/*.tsx",
-  "apps/*/components/**/*.tsx",
-  "apps/*/src/**/*.tsx",
-  "packages/*/components/**/*.tsx",
-];
 
 const repoRoot = path.resolve(__dirname, "../../../..");
 

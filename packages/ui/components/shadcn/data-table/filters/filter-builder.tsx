@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon, FilterIcon, XIcon } from "lucide-react";
-import { useCallback } from "react";
+import { type ComponentProps, useCallback } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
@@ -130,20 +130,26 @@ export function FilterBuilder({
   );
 }
 
-interface FilterTriggerButtonProps {
+interface FilterTriggerButtonProps extends ComponentProps<typeof Button> {
   activeCount: number;
-  className?: string;
 }
 
+/**
+ * Used as a Base UI trigger `render` target; the trigger's merged props
+ * (click handler, ARIA wiring, ref) arrive as regular props and must be
+ * forwarded to the underlying `Button` or the trigger never opens.
+ */
 function FilterTriggerButton({
   activeCount,
   className,
+  ...props
 }: FilterTriggerButtonProps) {
   return (
     <Button
       variant="outline"
       size="sm"
       className={cn("h-9 gap-2 rounded-xl border-dashed", className)}
+      {...props}
     >
       <FilterIcon className="size-4" />
       <span>Filters</span>

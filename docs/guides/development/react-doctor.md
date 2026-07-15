@@ -12,7 +12,7 @@
 2. Read each configured first-party target separately; the wrapper iterates concrete React project roots under `apps/*` and React-bearing workspace packages instead of aggregate `apps` / `packages` directories.
 3. Treat the result as a configured first-party audit, not a claim that every possible React Doctor rule is enabled.
 4. Fix errors and high-confidence warnings in source code first.
-5. Keep repo-level exceptions in `react-doctor.config.json` so repeated scans are deterministic.
+5. Keep repo-level exceptions in `doctor.config.json` so repeated scans are deterministic.
 6. Pair React Doctor with the normal repo gates: format, lint, typecheck, build, unit tests, and relevant browser checks.
 
 ## Result Language
@@ -21,14 +21,14 @@ Use precise wording in PRs and release notes:
 
 - Correct: "React Doctor passes for the configured first-party audit."
 - Correct: "Known ignores are documented in `docs/guides/development/react-doctor.md`."
-- Correct: "`failOn` is advisory unless CI runs a stricter mode."
+- Correct: "`blocking` is advisory unless CI runs a stricter mode."
 - Avoid: "React Doctor proves the repo is 100/100 clean" unless every enabled and disabled rule has been audited and there are no ignored findings.
 
-The default command passes `--fail-on none` and `react-doctor.config.json` also sets `"failOn": "none"`. That keeps the audit useful during cleanup without turning every advisory rule into a local blocker. CI or a focused cleanup PR may choose a stricter mode later.
+The default command accepts legacy `--fail-on none` and normalizes it to the current React Doctor `--blocking none` flag; `doctor.config.json` also sets `"blocking": "none"`. That keeps the audit useful during cleanup without turning every advisory rule into a local blocker. CI or a focused cleanup PR may choose a stricter mode later.
 
 ## Configured Ignores
 
-The ignore list is intentionally human-readable here because `react-doctor.config.json` is JSON and cannot carry comments.
+The ignore list is intentionally human-readable here because `doctor.config.json` is JSON and cannot carry comments.
 
 | Group                             | Rules or files                                                                                                                                                                                                                                                                               | Reason                                                                                                                                                                                                                                                                                                                    | Status                                                         | Owner / area      |
 | --------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ----------------- |
@@ -51,7 +51,7 @@ The ignore list is intentionally human-readable here because `react-doctor.confi
 - [ ] React Doctor reports the expected score for each configured package target under the configured audit.
 - [ ] Any remaining findings are either fixed or documented as known exceptions.
 - [ ] Any new ignored rule has a repo-specific reason and is not masking a known bug.
-- [ ] `failOn` behavior is described honestly in the PR summary.
+- [ ] `blocking` behavior is described honestly in the PR summary.
 - [ ] Relevant format/lint/typecheck/build/test commands have been run for touched surfaces.
 
 ## Narrowed Rules

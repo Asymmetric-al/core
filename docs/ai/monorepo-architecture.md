@@ -24,6 +24,7 @@ The workspace contract is defined in `README.md` and enforced by `bun run verify
 |  |- graphql
 |  |- lib
 |  |- missionary
+|  |- mock-data
 |  `- ui
 `- tooling/
    |- eslint-config
@@ -104,6 +105,7 @@ Quick rules:
 - `packages/graphql` -> `@asym/graphql`
 - `packages/lib` -> `@asym/lib`
 - `packages/missionary` -> `@asym/missionary`
+- `packages/mock-data` -> `@asym/mock-data`
 - `packages/ui` -> `@asym/ui`
 
 ### Tooling
