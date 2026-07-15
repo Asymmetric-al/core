@@ -32,6 +32,16 @@ copied wholesale from a public catalog.
   license, Core adaptations, and refresh workflow
 - AND generated runtime mirrors are refreshed through the canonical sync
 
+#### Scenario: An agent searches for animation opportunities
+
+- WHEN an agent is asked where a Core interface would benefit from new motion
+- THEN it applies frequency, purpose, user-value, existing-ownership,
+  performance, accessibility, and reduced-motion gates
+- AND it recommends only a bounded set of evidence-backed opportunities using
+  Core's existing tokens, primitives, and route-transition ownership
+- AND it reports concrete candidates that should remain static
+- AND a no-motion verdict is treated as a successful outcome
+
 #### Scenario: A skill may later be used by Eve
 
 - WHEN a canonical filesystem skill is suitable for future Eve subagents

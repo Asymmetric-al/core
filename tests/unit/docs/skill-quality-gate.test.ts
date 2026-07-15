@@ -33,6 +33,7 @@ const vendoredSkillPaths = [
 
 const curatedSkillNames = [
   "accessibility-review",
+  "find-animation-opportunities",
   "playwright-cli",
   "vitest",
 ] as const;

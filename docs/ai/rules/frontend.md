@@ -48,6 +48,12 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 
 Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
 
+When asked where motion would genuinely help, load
+`docs/ai/skills/find-animation-opportunities/SKILL.md` for a read-only scan that
+must also identify what should remain static. It does not replace
+`improve-animations`, `review-animations`, or an explicitly authorized
+implementation task.
+
 - **Use the motion tokens, not literals.** Prefer real `--duration-*` / `--ease-*` variables (e.g. `var(--duration-standard)`, `var(--ease-out-soft)`) or `EASE_OUT_*` / `DURATION_*` from `@asym/lib/motion-presets` (not brace shorthand — the `{a,b,…}` form above is documentation-only). All motion tokens live in `packages/ui/styles/globals.css :root`.
 - **No `transition: all` / `transition-all`.** Specify exact properties (e.g. `transition-[transform,box-shadow]` or one of the shared utilities below).
 - **Press feedback is automatic on `<Button>`.** Don't add `active:scale-[0.98]` inline. Native `<button>` elements that don't use the shadcn `Button` should add the `.press-feedback` utility.

@@ -20,6 +20,7 @@
     "emil-design-eng",
     "emil-design-engineering",
     "eve",
+    "find-animation-opportunities",
     "find-skills",
     "grill-for-unknowns",
     "grill-me",
@@ -169,6 +170,10 @@
       "ui-polish.md"
     ],
     "eve": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "find-animation-opportunities": [
       "SKILL.md",
       "references/upstream.md"
     ],
