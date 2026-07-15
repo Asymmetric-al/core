@@ -9,6 +9,7 @@ import {
   queueStagedGiftPostingToTwenty,
   retryStagedGiftPostingToTwenty,
 } from "../../giving/staged-gifts";
+import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -69,6 +70,36 @@ async function appendReviewAudit(input: {
       details: input.details ?? {},
     });
 
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * Replace a staged gift's allocation split through a tenant-scoped Postgres
+ * RPC. The RPC locks the staged gift row, deletes the previous allocation set,
+ * and inserts the replacement rows in one transaction so concurrent PATCHes
+ * cannot interleave partial allocation state.
+ */
+export async function replaceStagedGiftAllocations(input: {
+  supabaseAdmin: Parameters<typeof loadStagedGiftById>[0]["supabaseAdmin"];
+  gift: { id: string; tenantId: string };
+  allocations: z.infer<typeof allocationSchema>[];
+}): Promise<void> {
+  const { supabaseAdmin, gift, allocations } = input;
+
+  const replacementRows = allocations.map((allocation) => ({
+    fund_id: allocation.fundId ?? null,
+    missionary_id: allocation.missionaryId ?? null,
+    amount: allocation.amount,
+    memo: allocation.memo ?? null,
+  }));
+
+  const { error } = await supabaseAdmin.rpc("replace_staged_gift_allocations", {
+    p_tenant_id: gift.tenantId,
+    p_staged_gift_id: gift.id,
+    p_allocations: replacementRows,
+  });
   if (error) {
     throw new Error(error.message);
   }
@@ -151,29 +182,11 @@ export const PATCH = withOperation(
           );
         }
 
-        const deleteResult = await supabaseAdmin
-          .from("staged_gift_allocations")
-          .delete()
-          .eq("staged_gift_id", gift.id);
-        if (deleteResult.error) {
-          throw new Error(deleteResult.error.message);
-        }
-
-        const insertResult = await supabaseAdmin
-          .from("staged_gift_allocations")
-          .insert(
-            body.allocations.map((allocation) => ({
-              tenant_id: gift.tenantId,
-              staged_gift_id: gift.id,
-              fund_id: allocation.fundId ?? null,
-              missionary_id: allocation.missionaryId ?? null,
-              amount: allocation.amount,
-              memo: allocation.memo ?? null,
-            })),
-          );
-        if (insertResult.error) {
-          throw new Error(insertResult.error.message);
-        }
+        await replaceStagedGiftAllocations({
+          supabaseAdmin,
+          gift: { id: gift.id, tenantId: gift.tenantId },
+          allocations: body.allocations,
+        });
 
         const allocationStatus =
           body.allocations.length > 1 ? "split" : "corrected";
@@ -203,6 +216,8 @@ export const PATCH = withOperation(
         },
       });
 
+      revalidateAdminContributionsCache(auth.tenantId);
+
       return NextResponse.json({ stagedGift: updated.data, requestId });
     } catch (error) {
       return toErrorResponse(error, "Failed to update staged gift.", requestId);
@@ -224,6 +239,8 @@ export const POST_APPROVE = withOperation(
         note: body.note,
         crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ stagedGift, requestId });
     } catch (error) {
@@ -250,6 +267,8 @@ export const POST_RETRY = withOperation(
         note: body.note,
         crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ stagedGift, requestId });
     } catch (error) {
@@ -297,6 +316,8 @@ export const POST_RECEIPT = withOperation(
         supabaseAdmin,
         tenantId: gift.tenantId,
       });
+
+      revalidateAdminContributionsCache(auth.tenantId);
 
       return NextResponse.json({ receipt, requestId });
     } catch (error) {
