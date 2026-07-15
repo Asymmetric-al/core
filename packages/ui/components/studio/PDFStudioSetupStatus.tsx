@@ -85,6 +85,7 @@ export function PDFStudioSetupStatus({
         <DialogTrigger
           render={
             <button
+              type="button"
               className={cn(
                 "inline-flex items-center gap-1.5 px-2 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider border transition-colors hover:opacity-80",
                 currentStatus.color,
@@ -229,7 +230,10 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
           <Collapsible open={isSetupOpen} onOpenChange={setIsSetupOpen}>
             <CollapsibleTrigger
               render={
-                <button className="flex items-center justify-between w-full p-3 rounded-lg bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10 transition-colors">
+                <button
+                  type="button"
+                  className="flex items-center justify-between w-full p-3 rounded-lg bg-primary/5 border border-primary/20 text-primary hover:bg-primary/10 transition-colors"
+                >
                   <div className="flex items-center gap-2">
                     <Settings className="size-4" />
                     <span className="text-sm font-medium">
@@ -307,7 +311,10 @@ function PDFStudioSetupPanel({ config, status }: PDFStudioSetupPanelProps) {
             >
               <CollapsibleTrigger
                 render={
-                  <button className="flex items-center justify-between w-full p-3 rounded-lg bg-chart-4/10 border border-chart-4/30 text-chart-4 hover:bg-chart-4/15 transition-colors">
+                  <button
+                    type="button"
+                    className="flex items-center justify-between w-full p-3 rounded-lg bg-chart-4/10 border border-chart-4/30 text-chart-4 hover:bg-chart-4/15 transition-colors"
+                  >
                     <div className="flex items-center gap-2">
                       <Crown className="size-4" />
                       <span className="text-sm font-medium">

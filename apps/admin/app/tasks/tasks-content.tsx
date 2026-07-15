@@ -22,6 +22,8 @@ import {
 
 import type { Task, TaskStatus } from "./types";
 
+import { TASKS_PAGE_META } from "@/components/table-page-meta";
+
 interface TasksUiState {
   selectedTask: Task | null;
   editingTask: Task | null;
@@ -268,9 +270,9 @@ export function TasksPageContent() {
 
   return (
     <PageShell
-      title="Mission Pipeline"
-      description="Coordinate donor outreach and field operations."
-      density="compact"
+      title={TASKS_PAGE_META.title}
+      description={TASKS_PAGE_META.description}
+      density={TASKS_PAGE_META.density}
       actions={
         <Button
           onClick={() => dispatchUi({ type: "open-create-modal" })}
