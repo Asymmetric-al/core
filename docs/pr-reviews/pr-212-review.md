@@ -34,9 +34,9 @@ Suggested fix:
 - Decide whether `docs/ai/working-set.md` remains tracked, becomes an example only, or is replaced by another workflow.
 - Run full preflight after conflict resolution.
 
-### P1 - New Nia source-check workflow can make every `production` push fail if the secret is absent
+### P1 - New Nia repository-registration workflow can make every `production` push fail if the secret is absent
 
-Evidence: `.github/workflows/nia-source-check.yml` runs on pushes to `production` and uses `${{ secrets.NIA_API_KEY }}` around lines 19-30.
+Evidence: the proposed workflow runs on pushes to `production` and uses `${{ secrets.NIA_API_KEY }}` around lines 19-30.
 
 Impact: if the secret is not configured in the repository, unrelated pushes to `production` can go red.
 
@@ -47,7 +47,7 @@ Suggested fix:
 
 ### P2 - Workflow parses source id from free-form script output
 
-Evidence: workflow line 27 uses `sed`; `scripts/nia-source-check.sh` lines 33-35 emit human-oriented output.
+Evidence: workflow line 27 uses `sed`; the proposed shell helper emits human-oriented output around lines 33-35.
 
 Impact: a wording change can break the workflow.
 

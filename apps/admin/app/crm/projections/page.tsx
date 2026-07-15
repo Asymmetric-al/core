@@ -1,5 +1,12 @@
+import { Suspense } from "react";
+
+import Loading from "./loading";
 import CrmProjectionsPageClient from "./page-client";
 
 export default function CrmProjectionsPage() {
-  return <CrmProjectionsPageClient />;
+  return (
+    <Suspense fallback={<Loading />}>
+      <CrmProjectionsPageClient />
+    </Suspense>
+  );
 }

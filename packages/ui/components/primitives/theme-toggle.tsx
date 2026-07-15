@@ -29,6 +29,7 @@ export function ThemeToggle({
     >
       {collapsed ? (
         <button
+          type="button"
           onClick={() => setTheme(isDark ? "light" : "dark")}
           className="flex size-9 items-center justify-center rounded-xl text-muted-foreground hover:bg-accent hover:text-accent-foreground transition-colors"
           aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}

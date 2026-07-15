@@ -403,6 +403,67 @@ describe("verify-skills-sync", () => {
     );
   }, 20_000);
 
+  it("fails when the unsupported singular agent skill mirror is present", async () => {
+    const tempRoot = await createSkillsVerifyRepo();
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+    execSync("git add .", {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git commit -m "sync skill mirrors"', {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    await mkdir(path.join(tempRoot, ".agent/skills/stale-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, ".agent/skills/stale-skill/SKILL.md"),
+      "# Stale skill\n",
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+    ).toThrow(/Unsupported singular skill mirror detected/);
+  }, 20_000);
+
+  it("fails when the unsupported singular agent skill mirror is staged", async () => {
+    const tempRoot = await createSkillsVerifyRepo();
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+    execSync("git add .", {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git commit -m "sync skill mirrors"', {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    await mkdir(path.join(tempRoot, ".agent/skills/stale-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, ".agent/skills/stale-skill/SKILL.md"),
+      "# Stale skill\n",
+    );
+    execSync("git add .agent/skills", {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+    ).toThrow(/Unsupported singular skill mirror detected/);
+  }, 20_000);
+
   it("prints repo context when .git discovery fails", async () => {
     const tempRoot = await createTempRepo("skills-verify-missing-git");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
