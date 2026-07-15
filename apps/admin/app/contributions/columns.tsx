@@ -258,7 +258,10 @@ export function getContributionColumns({
       // match the shared evaluator (issue #274); Hub-only "processing" stays a
       // grid-status extension.
       filterFn: (row, _columnId, filterValue) =>
-        matchesHubPaymentStatusSelection(row.original, filterValue),
+        matchesHubPaymentStatusSelection(
+          row.original as Contribution,
+          filterValue,
+        ),
       // Faceting counts by the same values the filter matches (not the grid
       // status accessor), so the chip popover counts agree with the filtered
       // rows — e.g. a refunded-but-grid-completed gift counts under Refunded.
@@ -511,7 +514,11 @@ export function getContributionColumns({
         enableHiding: false,
         enableSorting: false,
         filterFn: (row, _columnId, filterValue) =>
-          matchesHubSharedFilterSelection(row.original, chip.id, filterValue),
+          matchesHubSharedFilterSelection(
+            row.original as Contribution,
+            chip.id,
+            filterValue,
+          ),
       }),
     ),
   ];
