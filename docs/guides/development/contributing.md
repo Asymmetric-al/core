@@ -81,8 +81,10 @@ bun run test:e2e
 
 This repo uses gate jobs as required checks. Gate jobs summarize multiple underlying jobs.
 
-- **`production` required:** `ci-gate`
-- **`develop` required:** `ci-gate`, `integration-gate`, `e2e-smoke-gate`
+- **`production` required:** `ci-gate`, `integration-gate`, `e2e-gate`
+- **`develop` required:** `ci-gate`, `integration-gate` (bounded E2E smoke is
+  enforced through `integration-gate`, which depends on the `e2e-smoke-gate`
+  workflow job)
 - **`main`:** retired/protected historical branch; do not open active PRs to it.
 
 For ownership and full review policy, see `docs/guides/development/code-review-and-ownership.md`.

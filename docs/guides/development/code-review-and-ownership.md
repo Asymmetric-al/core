@@ -21,14 +21,14 @@ GitHub uses CODEOWNERS to automatically request reviews on pull requests that to
 The repo uses gate jobs as merge controls. Gate jobs are summary checks that fail when any prerequisite check fails.
 
 - `production` requires:
-  - `release-source-gate`
   - `ci-gate`
   - `integration-gate`
   - `e2e-gate`
 - `develop` requires:
   - `ci-gate`
   - `integration-gate`
-  - `e2e-smoke-gate`
+  - (`e2e-smoke-gate` is a workflow gate job enforced through
+    `integration-gate`, not a separate branch-protection check)
 - `main` is retired/protected historical history and is not an active PR or
   deploy target.
 
@@ -53,7 +53,8 @@ The repo uses gate jobs as merge controls. Gate jobs are summary checks that fai
   - portable `@cms` coverage; local-seed-only `@cms-local` proof stays in
     `bun run test:e2e:cms:local`
   - On `develop`, the full `test-e2e` job remains informational (non-blocking);
-    bounded smoke is enforced separately through `e2e-smoke-gate`
+    bounded smoke is enforced through `e2e-smoke-gate`, which `integration-gate`
+    depends on
 
 ## Contributor PR Checklist
 

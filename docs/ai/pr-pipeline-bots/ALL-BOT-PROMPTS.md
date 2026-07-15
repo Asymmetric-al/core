@@ -13,9 +13,9 @@ Per-bot source files (one each) live next to this file in `docs/ai/pr-pipeline-b
 ## How to read this
 
 - **Title** = the exact GitHub comment title the bot must use. It's the bot's identity: the
-  skip-guard, the digest, and the gate all key off it. Keep titles unique and unchanged.
+  skip-guard and digest key off it. Keep titles unique and unchanged.
 - **Tools** = what to enable in the automation. Every reviewer needs exactly one: **Comment on
-  Pull Request**. Only the Final Merge Gate flips **Allow PR Approval** on.
+  Pull Request**. Leave **Allow PR Approval** off.
 - **MCPs** = attach only the ones listed for that lane. Do **not** bulk-attach all of
   Supabase/Nia/Context7/Stripe to every bot — it's slower, noisier, and burns usage.
 - **Tier** = how often the bot re-runs (see the cheat-sheet). This is encoded in the bot's first
@@ -25,16 +25,16 @@ Per-bot source files (one each) live next to this file in `docs/ai/pr-pipeline-b
 
 ## Universal settings (apply to every reviewer)
 
-| Setting        | Value                                                                                                          |
-| -------------- | -------------------------------------------------------------------------------------------------------------- | ---- | ------ | ---------- | ------------------------------------ |
-| **Trigger**    | GitHub → **Checks completed** (repo `Asymmetric-al/core`)                                                      |
-| **Model**      | `composer-2.5` for reviewers; strongest available for the Final Merge Gate + Safe-Fix Planner                  |
-| **Tool**       | **Comment on Pull Request** — _Allow PR Approval OFF_ (the one exception is the Final Merge Gate, which is ON) |
-| **First line** | the `SKIP-IF-DONE` guard (already in each prompt below)                                                        |
-| **Last line**  | `SEVERITY: Blocker                                                                                             | High | Medium | Suggestion | None` (already in each prompt below) |
+| Setting        | Value                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------- | ---- | ------ | ---------- | ------------------------------------ |
+| **Trigger**    | GitHub → **Checks completed** (repo `Asymmetric-al/core`)                                     |
+| **Model**      | `composer-2.5` for reviewers; strongest available for the Final Merge Gate + Safe-Fix Planner |
+| **Tool**       | **Comment on Pull Request** — _Allow PR Approval OFF_                                         |
+| **First line** | the `SKIP-IF-DONE` guard (already in each prompt below)                                       |
+| **Last line**  | `SEVERITY: Blocker                                                                            | High | Medium | Suggestion | None` (already in each prompt below) |
 
-No reviewer needs a push, merge, label, or "open PR" tool. Reviewers only ever comment. Code fixes
-and merging are done by the two GitHub Actions, not by these bots.
+No reviewer needs a push, merge, label, or "open PR" tool. Reviewers only ever comment. Humans use
+the comments alongside GitHub required checks.
 
 ---
 
@@ -47,13 +47,13 @@ The only difference between tiers is the **first line** of the prompt:
 - **Tier 2 — runs once per PR** (per-PR guard):
   `…already exists anywhere on this PR, exit…`
 
-| Tier                 | Bots                                                                                   | Why                                                                                                                              |
-| -------------------- | -------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| **1 (every commit)** | Critical Bug Check · Pre-Mortem Bug Finder · Vulnerability Check                       | a rushed fix is the #1 source of _new_ bugs — these re-check the changed code every time                                         |
-| **2 (once per PR)**  | the other 14 reviewers                                                                 | a small scoped fix rarely flips these verdicts; their value is the first deep pass, so they don't re-fire on each autofix commit |
-| **0 (always)**       | Final Merge Gate (re-judges every head) + Safe-Fix Planner (re-plans the current head) | the gate is the catch-all backstop on every commit                                                                               |
+| Tier                 | Bots                                                                                   | Why                                                                                        |
+| -------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| **1 (every commit)** | Critical Bug Check · Pre-Mortem Bug Finder · Vulnerability Check                       | a rushed fix is the #1 source of _new_ bugs — these re-check the changed code every time   |
+| **2 (once per PR)**  | the other reviewers                                                                    | their value is the first deep pass, so they do not re-fire on every small follow-up commit |
+| **0 (always)**       | Final Merge Gate (re-judges every head) + Safe-Fix Planner (re-plans the current head) | holistic review and fix planning stay current as the PR changes                            |
 
-Net effect: a fix commit re-runs only **CI + the 3 Tier-1 bots + the gate** (~4 lanes, not 17).
+Net effect: a follow-up commit re-runs only **CI + the 3 Tier-1 bots + the gate/planner**.
 
 ---
 
@@ -77,7 +77,7 @@ The Iron Law: no claimed bug without root-cause investigation. Trace every issue
 
 Hunt for: data loss or corruption; race conditions that lose writes; null/undefined dereferences in critical paths; auth, permission, RLS, or tenancy bypass; broken or drifted contracts; swallowed errors; wrong status codes or inverted branch logic; missing await / async ordering mistakes; duplicate or missing side effects; stale-cache-after-mutation. Distinguish bugs the PR introduces from bugs it merely exposes. For each, note whether existing tests would catch it.
 
-This is REVIEW-ONLY. Do not modify code, do not open a PR, do not push. Fixes are handled separately by the autofix workflow.
+This is REVIEW-ONLY. Do not modify code, do not open a PR, do not push.
 
 Output: post one PR comment titled exactly "Critical Bug Check". Classify each as Confirmed bug / High-confidence likely bug / Test blind spot. For each finding give: exact files and lines, root-cause trace, the concrete trigger, evidence, the smallest safe source-level fix, and whether it must be fixed before merge. Explain every finding in precise technical terms AND in plain language. If nothing high-confidence is found, say so briefly and list what you checked. End with a one-line verdict (Safe to merge / Safe with fixes / Not safe to merge), then on the final line, nothing after it:
 SEVERITY: Blocker | High | Medium | Suggestion | None
@@ -263,8 +263,8 @@ SEVERITY: Blocker | High | Medium | Suggestion | None
 # Kept reviewers — curated to 3 (the other 7 were dropped as redundant; see end)
 
 Each below is the tightened replacement for the bloated ALL-CAPS originals: a normal-length
-prompt, the right trigger, the `SEVERITY:` line the coordinator needs, the tier guard, and trimmed
-tools. Use the working `nia` MCP (not `Nia_MCP`).
+prompt, the right trigger, the `SEVERITY:` line, the tier guard, and trimmed tools. Use the working
+`nia` MCP (not `Nia_MCP`).
 
 ## 9. Find Vulnerabilities
 
@@ -361,14 +361,11 @@ SEVERITY: Blocker | High | Medium | Suggestion | None
 
 # Gate bots
 
-## Final Merge Gate _(advisory)_
+## Final Merge Gate
 
 - **Title:** `General Merge Gate Review` · **Tier 0** (re-judges every head) · **Model:** strongest available
-- **Tools:** Comment on Pull Request (Allow PR Approval can be OFF) · **MCP:** Supabase, Nia, Stripe
-- The GitHub **merge coordinator** now decides merges from the reviewers' `SEVERITY:` lines + CI,
-  so this bot is just one more (holistic) reviewer voice — its `SEVERITY:` counts, but its
-  approval/`<!-- gate:approved -->` marker no longer drives anything (harmless if left in). No
-  `SKIP-IF-DONE` line — it uses a settle guard so it judges each new head.
+- **Tools:** Comment on Pull Request (Allow PR Approval OFF) · **MCP:** Supabase, Nia, Stripe
+- Advisory only. No `SKIP-IF-DONE` line — it uses a settle guard so it judges each new head.
 
 ```
 You are the final gate reviewer for the open pull request in Asymmetric-al/core. Act like this is the last serious review before merge into the target base branch. Do not approve by default — approval must be earned through evidence.
@@ -394,21 +391,20 @@ B. The actual top-level review comment you would leave: start with what the PR r
 
 Use the GitHub comment title: General Merge Gate Review.
 
-MERGE DECISION:
-- If, and only if, you are confident the PR is safe to merge into its base branch (no Blocker or unresolved High issues, checks green or trivially so), SUBMIT YOUR REVIEW AS AN APPROVAL, and make the approval comment body end with this exact marker on its own final line:
-<!-- gate:approved -->
-- Otherwise submit as Request Changes (real blockers) or Comment (non-blocking), with NO marker.
+MERGE RECOMMENDATION:
+- Use Comment for the review submission.
+- Recommend approval, request changes, or deferral in the comment body based on the evidence.
+- Do not submit a PR approval and do not include machine-readable approval markers.
 
 End your comment with one final line, nothing after it:
 SEVERITY: Blocker | High | Medium | Suggestion | None
 ```
 
-## Minimal Safe-Fix Planner _(feeds the autofix Action)_
+## Minimal Safe-Fix Planner
 
 - **Title:** `Simple Safe-Fix Plan` · **Tier 0** (re-plans the current head) · **Model:** strongest available
 - **Tools:** Comment on PR (approval OFF) · **MCP:** Supabase, Nia, Stripe
-- The autofix GitHub Action reads this comment and implements its **blocking** items on the PR branch.
-  The `<!-- fix-plan blocking=N -->` marker is how the Action decides whether there's work to do.
+- Advisory only: propose the smallest safe set of changes a human should make or request.
 
 ```
 SKIP-IF-DONE: If a comment titled "Simple Safe-Fix Plan" already exists on this PR's current head commit, exit without posting.
@@ -438,22 +434,6 @@ F. Whether the PR should be patched, split, or sent back
 G. A do-not-touch list of nearby code to keep out of scope
 H. One final sentence on the shortest path to a clean merge
 
-Explain each item technically AND in plain language. Then add, as the final two lines (nothing after):
-<!-- fix-plan blocking=<N> split=<yes|no> -->
+Explain each item technically AND in plain language. Then add, as the final line, nothing after:
 SEVERITY: Blocker | High | Medium | Suggestion | None
 ```
-
----
-
-# How merging actually happens (no Cursor bot decides it)
-
-There is **no merge bot.** Two GitHub workflows on the default branch do it:
-
-- **Merge coordinator** (`auto-merge.yml` → `scripts/github/merge-coordinator.mjs`) runs on a
-  schedule and on PR activity. It reads the reviewers' `SEVERITY:` lines + the Safe-Fix Plan's
-  `blocking=N` + CI, then either arms GitHub auto-merge (clean) or dispatches the autofix workflow
-  (blocking items present).
-- **Autofix** (`autofix.yml`) runs a headless `cursor-agent` that implements the plan's blocking
-  items on the PR branch, then the coordinator re-evaluates the fixed head. Bounded by a 3-round cap.
-
-See `RERUN-AND-ACTIVATION.md`. (The old Slack "Merge Captain" bot has been removed.)
