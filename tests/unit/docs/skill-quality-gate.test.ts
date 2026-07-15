@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
@@ -6,6 +6,22 @@ const root = new URL("../../../", import.meta.url);
 
 function readRepoFile(path: string) {
   return readFileSync(new URL(path, root), "utf8");
+}
+
+function listRepoFiles(path: string, relativePath = ""): string[] {
+  const directoryPath = relativePath ? `${path}/${relativePath}` : path;
+  const entries = readdirSync(new URL(directoryPath, root), {
+    withFileTypes: true,
+  });
+
+  return entries
+    .flatMap((entry) => {
+      const entryPath = relativePath
+        ? `${relativePath}/${entry.name}`
+        : entry.name;
+      return entry.isDirectory() ? listRepoFiles(path, entryPath) : [entryPath];
+    })
+    .sort();
 }
 
 const vendoredSkillPaths = [
@@ -91,6 +107,10 @@ describe("skill quality gate overlays", () => {
       );
 
       for (const generatedRoot of generatedSkillRoots) {
+        expect(
+          listRepoFiles(`${generatedRoot}/${skillName}`),
+          `${generatedRoot}/${skillName}`,
+        ).toEqual(listRepoFiles(canonicalPath));
         expect(
           readRepoFile(`${generatedRoot}/${skillName}/SKILL.md`),
           `${generatedRoot}/${skillName}/SKILL.md`,

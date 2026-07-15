@@ -42,9 +42,10 @@ is authoritative because the CLI evolves independently of Core's pinned
 1. **Find the target.** Check whether the relevant Core dev server is already
    running before starting one. Confirm the exact local URL and expected app
    state; use Next.js devtools when it can answer route/runtime questions.
-2. **Open and snapshot.** Open the route, take a shallow snapshot first, and use
-   `find` or a focused element snapshot rather than loading an unnecessarily
-   large page tree.
+2. **Open and snapshot.** Open the route and save a shallow snapshot under
+   ignored `test-results/`; the CLI's default `.playwright-cli/` output would
+   dirty this repository. Use `find` or a focused element snapshot rather than
+   loading an unnecessarily large page tree.
 3. **Act through user-facing controls.** Prefer snapshot refs or role locators.
    Refresh the snapshot after navigation or material DOM changes because refs
    are session state, not durable test selectors.
@@ -63,7 +64,7 @@ is authoritative because the CLI evolves independently of Core's pinned
 
 ```bash
 playwright-cli open http://localhost:3000
-playwright-cli snapshot --depth=4
+playwright-cli snapshot --filename=test-results/playwright-cli/snapshot.yaml --depth=4
 playwright-cli find "Sign in"
 playwright-cli click e15
 playwright-cli fill e21 "demo value"
