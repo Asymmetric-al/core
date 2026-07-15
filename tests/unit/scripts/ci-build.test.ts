@@ -11,6 +11,10 @@ import {
 
 describe("ci-build command planning", () => {
   it("uses the first available Windows Turbo binary candidate", () => {
+    // resolveTurboBin builds paths with the OS-native separator, so on Windows
+    // `result` and the mocked candidates use "\\". Normalize to forward slashes
+    // so the candidate lookup and the assertion are path-separator agnostic and
+    // pass on both Windows and the Linux CI runner.
     const existingPaths = new Set([
       "/repo/node_modules/.bin/turbo.cmd",
       "/repo/node_modules/.bin/turbo",

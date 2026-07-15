@@ -45,6 +45,10 @@ import {
 } from "./data";
 import { ContributionNeedsAttentionPanel } from "./needs-attention-panel";
 import { OfflineGiftEntryDialog } from "./offline-gift/offline-gift-entry-dialog";
+import {
+  hubSharedContributionFilterChips,
+  hubSharedFilterColumnVisibility,
+} from "./shared-filters";
 import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution, ContributionStatus } from "./types";
@@ -285,6 +289,15 @@ export function ContributionsMainBody({
     { id: "type", label: "Type", options: contributionTypeOptions },
     { id: "paymentMethod", label: "Payment", options: paymentMethodOptions },
     { id: "source", label: "Source", options: sourceOptions },
+    // Shared CRM/Hub operational and financial filters (issue #274). Each
+    // chip evaluates through the shared filter definitions so the same gift
+    // matches identically on both surfaces; chips AND together like the
+    // existing facets.
+    ...hubSharedContributionFilterChips.map((chip) => ({
+      id: chip.id,
+      label: chip.label,
+      options: chip.options,
+    })),
   ];
 
   const handleBulkDelete = (_rows: Contribution[]) => {
@@ -426,6 +439,7 @@ export function ContributionsMainBody({
         <DataTableResponsive
           columns={columns}
           data={data}
+          devtoolsKey="admin-contributions"
           filterFields={filterFields}
           searchKey="donorName"
           searchPlaceholder="Search by donor name or email..."
@@ -443,6 +457,9 @@ export function ContributionsMainBody({
             columnVisibility: {
               transactionId: false,
               source: false,
+              // Filter-only columns behind the shared filter chips stay
+              // hidden; they exist purely to evaluate shared filters.
+              ...hubSharedFilterColumnVisibility,
             },
           }}
           onRowClick={(row) => onSelectContribution(row.original)}

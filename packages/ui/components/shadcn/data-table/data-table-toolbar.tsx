@@ -10,10 +10,10 @@ import { Input } from "../input";
 import { DataTableFacetedFilter } from "./data-table-faceted-filter";
 import { DataTableViewOptions } from "./data-table-view-options";
 
+import type { RowData, Table } from "./tanstack";
 import type { DataTableFilterField } from "./types";
-import type { Table } from "@tanstack/react-table";
 
-interface DataTableToolbarProps<TData> {
+interface DataTableToolbarProps<TData extends RowData> {
   table: Table<TData>;
   filterFields?: DataTableFilterField<TData>[];
   searchKey?: string;
@@ -27,7 +27,7 @@ interface DataTableToolbarProps<TData> {
 
 const EMPTY_FILTER_FIELDS: DataTableFilterField<unknown>[] = [];
 
-export function DataTableToolbar<TData>({
+export function DataTableToolbar<TData extends RowData>({
   table,
   filterFields = EMPTY_FILTER_FIELDS as DataTableFilterField<TData>[],
   searchKey,
@@ -37,7 +37,8 @@ export function DataTableToolbar<TData>({
   className,
   children,
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0;
+  // v9 removed `table.getState()`; `table.state` is the render-read surface.
+  const isFiltered = table.state.columnFilters.length > 0;
 
   return (
     <div className={cn("flex flex-col gap-4 py-4", className)}>

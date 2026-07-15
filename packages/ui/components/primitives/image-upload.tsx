@@ -496,6 +496,7 @@ export function ImageUpload({
     >
       <input
         type="file"
+        aria-label="Upload image file"
         ref={fileInputRef}
         className="hidden"
         accept={acceptTypes}

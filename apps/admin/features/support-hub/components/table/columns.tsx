@@ -15,7 +15,7 @@ import {
 } from "./cells";
 
 import type { SupportConversation } from "../../types";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 
 export const supportConversationColumns: ColumnDef<SupportConversation>[] = [
   {

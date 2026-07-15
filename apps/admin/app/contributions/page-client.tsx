@@ -22,6 +22,7 @@ import {
 } from "./freshness-indicator";
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
+import { CONTRIBUTIONS_PAGE_META } from "../../components/table-page-meta";
 
 /**
  * Re-exported so existing consumers (tests, sibling surfaces) keep one import
@@ -137,9 +138,9 @@ export default function ContributionsPage({
 
   return (
     <PageShell
-      title="Contributions"
-      description="Track and manage all donations and contributions."
-      density="compact"
+      title={CONTRIBUTIONS_PAGE_META.title}
+      description={CONTRIBUTIONS_PAGE_META.description}
+      density={CONTRIBUTIONS_PAGE_META.density}
       actions={
         <ContributionsPageActions
           canManageContributions={canManageContributions}

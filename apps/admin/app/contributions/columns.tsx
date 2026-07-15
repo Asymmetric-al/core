@@ -15,6 +15,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
-import { type ColumnDef } from "@tanstack/react-table";
 import {
   Banknote,
   Building2,
@@ -39,6 +39,14 @@ import {
   RotateCcw,
   XCircle,
 } from "lucide-react";
+
+import {
+  getHubPaymentStatusFacetValues,
+  getHubSharedFilterFacetValue,
+  hubSharedContributionFilterChips,
+  matchesHubPaymentStatusSelection,
+  matchesHubSharedFilterSelection,
+} from "./shared-filters";
 
 import type {
   Contribution,
@@ -246,6 +254,18 @@ export function getContributionColumns({
           </Badge>
         );
       },
+      // Shared-vocabulary selections (completed/pending/failed/refunded) must
+      // match the shared evaluator (issue #274); Hub-only "processing" stays a
+      // grid-status extension.
+      filterFn: (row, _columnId, filterValue) =>
+        matchesHubPaymentStatusSelection(
+          row.original as Contribution,
+          filterValue,
+        ),
+      // Faceting counts by the same values the filter matches (not the grid
+      // status accessor), so the chip popover counts agree with the filtered
+      // rows — e.g. a refunded-but-grid-completed gift counts under Refunded.
+      getUniqueValues: (row) => getHubPaymentStatusFacetValues(row),
       enableSorting: true,
       meta: {
         label: "Status",
@@ -481,5 +501,25 @@ export function getContributionColumns({
         sticky: "right",
       },
     },
+    // Hidden filter-only columns backing the shared CRM/Hub filter chips
+    // (issue #274). They never render as data columns: the main body hides
+    // them via initial column visibility and enableHiding: false keeps them
+    // out of the Columns menu. The accessorFn only feeds faceted counts;
+    // matching always goes through the shared evaluator so Hub results
+    // cannot drift from CRM.
+    ...hubSharedContributionFilterChips.map(
+      (chip): ColumnDef<Contribution> => ({
+        id: chip.id,
+        accessorFn: (row) => getHubSharedFilterFacetValue(row, chip.id),
+        enableHiding: false,
+        enableSorting: false,
+        filterFn: (row, _columnId, filterValue) =>
+          matchesHubSharedFilterSelection(
+            row.original as Contribution,
+            chip.id,
+            filterValue,
+          ),
+      }),
+    ),
   ];
 }

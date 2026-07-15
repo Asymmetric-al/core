@@ -45,6 +45,7 @@ import { EMPTY_CELL_VALUE } from "./crm-detail-shared";
 import { DetailDrawer } from "./detail-drawer";
 import { KanbanView } from "./kanban-view";
 import { toCrmRecord, toCrmRecordFromDetail } from "./types";
+import { CRM_PAGE_META } from "../../components/table-page-meta";
 import {
   ContributionDetailOverlay,
   isContributionGiftParam,
@@ -271,9 +272,9 @@ export default function MissionControlCRM() {
   return (
     <>
       <PageShell
-        title="CRM"
-        description="Manage contacts, donors, and partner relationships."
-        density="compact"
+        title={CRM_PAGE_META.title}
+        description={CRM_PAGE_META.description}
+        density={CRM_PAGE_META.density}
         actions={
           <div className="flex items-center gap-3">
             <div className="flex bg-muted p-0.5 rounded-lg border border-border">
@@ -355,6 +356,7 @@ export default function MissionControlCRM() {
                 <DataTableResponsive
                   columns={columns}
                   data={rows}
+                  devtoolsKey="admin-crm-records"
                   isLoading={isLoading}
                   filterFields={filterFields}
                   searchColumnId="displayName"

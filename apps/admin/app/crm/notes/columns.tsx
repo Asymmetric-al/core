@@ -2,7 +2,7 @@
 
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
-import { type ColumnDef } from "@tanstack/react-table";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { Clock3, FileText } from "lucide-react";
 
 import type { CrmNoteRow } from "@asym/database/hooks";

@@ -12,6 +12,7 @@
     "./components/shadcn/data-table": "./components/shadcn/data-table/index.ts",
     "./components/shadcn/data-table/*": "./components/shadcn/data-table/*.tsx",
     "./components/shadcn/data-table/types": "./components/shadcn/data-table/types.ts",
+    "./components/shadcn/data-table/tanstack": "./components/shadcn/data-table/tanstack.ts",
     "./components/shadcn/data-grid": "./components/shadcn/data-grid/index.ts",
     "./components/shadcn/data-grid/*": "./components/shadcn/data-grid/*.tsx",
     "./components/shadcn/data-grid/types": "./components/shadcn/data-grid/types.ts",
@@ -44,7 +45,8 @@
     "./styles/*": "./styles/*",
     "./components/view-transitions": "./components/view-transitions/index.ts",
     "./components/primitives": "./components/primitives/index.ts",
-    "./components/primitives/*": "./components/primitives/*.tsx"
+    "./components/primitives/*": "./components/primitives/*.tsx",
+    "./components/ministry-update": "./components/ministry-update/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
@@ -62,7 +64,9 @@
     "@tanstack/react-db": "^0.1.82",
     "@tanstack/react-form": "1.28.6",
     "@tanstack/react-query": "^5.96.2",
-    "@tanstack/react-table": "^8.21.3",
+    "@tanstack/react-store": "^0.11.0",
+    "@tanstack/react-table": "9.0.0-beta.9",
+    "@tanstack/react-table-devtools": "9.0.0-beta.9",
     "@tanstack/react-virtual": "^3.13.23",
     "@tiptap/core": "^3.22.3",
     "@tiptap/extension-image": "^3.22.3",

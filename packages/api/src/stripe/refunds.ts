@@ -25,6 +25,7 @@ interface DonationWebhookRow {
   status: string;
   stripe_payment_intent_id: string | null;
   stripe_charge_id: string | null;
+  stripe_refund_ids: string[] | null;
 }
 
 export function getStripeObjectId(
@@ -48,7 +49,7 @@ export async function findDonationByPaymentIntentId(
   const { data, error } = await supabaseAdmin
     .from("donations")
     .select(
-      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, stripe_payment_intent_id, stripe_charge_id",
+      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, stripe_payment_intent_id, stripe_charge_id, stripe_refund_ids",
     )
     .eq("stripe_payment_intent_id", paymentIntentId)
     .maybeSingle();
@@ -76,14 +77,64 @@ export async function updateDonation(
 }
 
 /**
+ * Merges the Stripe refund ids already stored on the donation with the ids
+ * the provider reported for this convergence pass (the charge's embedded
+ * refund list plus any refund ids the caller knows directly, e.g. the refund
+ * the admin action just created).
+ *
+ * This is a UNION, not a replace: Stripe's embedded `charge.refunds` list is
+ * not guaranteed to be complete — newer API versions omit it unless expanded,
+ * and the expanded list is truncated when a charge has many refunds
+ * (`has_more`). Replacing would silently drop known ids in those cases, so
+ * the honest convergent set is "everything we have ever observed". Refund
+ * ids are provider proof pointers only; `refund_amount` remains the absolute
+ * financial truth.
+ */
+export function mergeStripeRefundIds(input: {
+  existingIds: readonly string[] | null | undefined;
+  charge: Stripe.Charge;
+  knownRefundIds?: readonly string[];
+}): string[] {
+  const chargeRefundIds = (input.charge.refunds?.data ?? [])
+    .map((refund) => getStripeObjectId(refund))
+    .filter((id): id is string => id !== null);
+
+  const merged: string[] = [];
+  const seen = new Set<string>();
+  const candidateIds = [
+    ...(input.existingIds ?? []),
+    ...chargeRefundIds,
+    ...(input.knownRefundIds ?? []),
+  ];
+  for (const id of candidateIds) {
+    if (typeof id !== "string" || id.length === 0 || seen.has(id)) {
+      continue;
+    }
+    seen.add(id);
+    merged.push(id);
+  }
+
+  return merged;
+}
+
+/**
  * Applies a refunded Stripe charge to the donation record with an absolute,
  * convergent write: `refund_amount` mirrors `charge.amount_refunded`, a full
- * refund flips the status to "refunded", and the staged gift workflow record
- * is marked refunded. Safe to run from both the webhook and admin paths.
+ * refund flips the status to "refunded", `stripe_refund_ids` converges to the
+ * union of observed refund ids, and the staged gift workflow record is marked
+ * refunded. Safe to run from both the webhook and admin paths.
  */
 export async function applyRefundedChargeToDonation(
   supabaseAdmin: AdminSupabaseClient,
   charge: Stripe.Charge,
+  options: {
+    /**
+     * Refund ids the caller already holds (e.g. the refund the admin action
+     * just created) so convergence never depends on the charge's possibly
+     * absent embedded refund list.
+     */
+    knownRefundIds?: readonly string[];
+  } = {},
 ): Promise<StripeWebhookOutcome> {
   const paymentIntentId = getStripeObjectId(charge.payment_intent);
   if (!paymentIntentId) {
@@ -117,6 +168,11 @@ export async function applyRefundedChargeToDonation(
     refunded_at: refundAmount > 0 ? timestamp : null,
     status: isFullRefund ? "refunded" : donation.status,
     stripe_charge_id: charge.id,
+    stripe_refund_ids: mergeStripeRefundIds({
+      existingIds: donation.stripe_refund_ids,
+      charge,
+      knownRefundIds: options.knownRefundIds,
+    }),
     updated_at: timestamp,
   });
   const stagedGift = await markStagedGiftRefunded({
@@ -131,8 +187,10 @@ export async function applyRefundedChargeToDonation(
     action: isFullRefund ? "charge_refunded" : "charge_partially_refunded",
     donationId: donation.id,
     handled: true,
+    mutated: true,
     paymentIntentId,
     stagedGiftId: stagedGift?.id ?? null,
+    tenantId: donation.tenant_id,
   } satisfies StripeWebhookOutcome;
 }
 

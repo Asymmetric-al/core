@@ -3,6 +3,7 @@
 import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
 import { BrandAvatar } from "@asym/ui/components/brand-logo";
+import { ReactionBar } from "@asym/ui/components/ministry-update";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -723,18 +724,7 @@ function AllPostsFeedPostCard({
               )}
 
               <div className="flex items-center gap-4 sm:gap-6 pt-1 text-xs text-muted-foreground font-medium">
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base">❤️</span>{" "}
-                  {post.likes_count}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base">🙏</span>{" "}
-                  {post.prayers_count}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base">🔥</span>{" "}
-                  {post.fires_count}
-                </span>
+                <ReactionBar update={post} readOnly comments="hidden" />
                 <span className="flex items-center gap-1.5">
                   <MessageCircle className="size-3.5" /> {post.comments_count}
                 </span>
@@ -1792,18 +1782,7 @@ function ModerationQueuePostCard({
               )}
 
               <div className="flex items-center gap-4 sm:gap-6 pt-1 text-xs text-muted-foreground font-medium">
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base">❤️</span>{" "}
-                  {post.likes_count}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base">🙏</span>{" "}
-                  {post.prayers_count}
-                </span>
-                <span className="flex items-center gap-1.5">
-                  <span className="text-sm sm:text-base">🔥</span>{" "}
-                  {post.fires_count}
-                </span>
+                <ReactionBar update={post} readOnly comments="hidden" />
                 <span className="flex items-center gap-1.5">
                   <MessageCircle className="size-3.5" /> {post.comments_count}
                 </span>

@@ -1,6 +1,6 @@
 "use client";
 
-import { Button } from "@asym/ui/components/shadcn/button";
+import { buttonVariants } from "@asym/ui/components/shadcn/button";
 import {
   Empty,
   EmptyDescription,
@@ -29,7 +29,12 @@ type MissionaryRow = {
 };
 
 export function MissionariesHubView() {
-  const missionariesQuery = useQuery({
+  const {
+    data: missionaries,
+    error: missionariesError,
+    isError: missionariesIsError,
+    isPending: missionariesIsPending,
+  } = useQuery({
     queryKey: ["web-studio", "admin-missionaries-hub"],
     queryFn: async () => {
       const res = await fetch("/api/admin/missionaries?limit=200", {
@@ -56,9 +61,9 @@ export function MissionariesHubView() {
           </p>
         </div>
 
-        {missionariesQuery.isError ? (
+        {missionariesIsError ? (
           <p className="text-destructive text-sm">
-            {(missionariesQuery.error as Error).message}
+            {(missionariesError as Error).message}
           </p>
         ) : null}
 
@@ -73,8 +78,8 @@ export function MissionariesHubView() {
             </TableHeader>
             <TableBody>
               <MissionariesHubTableRows
-                isPending={missionariesQuery.isPending}
-                missionaries={missionariesQuery.data}
+                isPending={missionariesIsPending}
+                missionaries={missionaries}
               />
             </TableBody>
           </Table>
@@ -143,16 +148,12 @@ function MissionariesHubTableRows({
           {missionary.id}
         </TableCell>
         <TableCell className="text-right">
-          <Button
-            size="sm"
-            render={
-              <Link
-                href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
-              />
-            }
+          <Link
+            className={buttonVariants({ size: "sm" })}
+            href={`/web-studio/templates?pageType=missionary_giving&missionaryId=${encodeURIComponent(missionary.id)}`}
           >
             Create giving page
-          </Button>
+          </Link>
         </TableCell>
       </TableRow>
     );
