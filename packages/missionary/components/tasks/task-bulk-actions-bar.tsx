@@ -68,12 +68,12 @@ export function TaskBulkActionsBar({
                   variant="ghost"
                   size="sm"
                   className="h-8 text-primary-foreground hover:text-primary-foreground hover:bg-primary-foreground/10"
-                />
+                >
+                  Status
+                  <ChevronDown className="size-4 ml-1" />
+                </Button>
               }
-            >
-              Status
-              <ChevronDown className="size-4 ml-1" />
-            </DropdownMenuTrigger>
+            />
             <DropdownMenuContent align="center">
               <DropdownMenuItem onClick={() => onUpdateStatus("not_started")}>
                 Not Started
