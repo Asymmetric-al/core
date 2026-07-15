@@ -187,6 +187,7 @@ function ResizableImageView({
             <Button
               variant="destructive"
               size="icon"
+              aria-label="Delete image"
               className="absolute top-2 right-2 z-20 size-7 opacity-0 transition-opacity group-hover:opacity-100"
               onClick={deleteNode}
             >

@@ -58,7 +58,12 @@ function MissionaryGivingCreateViewContent() {
     [routes.api],
   );
 
-  const missionariesQuery = useQuery({
+  const {
+    data: missionaries,
+    error: missionariesError,
+    isError: missionariesIsError,
+    isPending: missionariesIsPending,
+  } = useQuery({
     queryKey: ["web-studio", "admin-missionaries"],
     queryFn: async () => {
       const res = await fetch("/api/admin/missionaries?limit=200", {
@@ -71,7 +76,13 @@ function MissionaryGivingCreateViewContent() {
       return json.missionaries ?? [];
     },
   });
-  const { isSuperAdmin, tenantsQuery } = useSuperAdminTenantOptions();
+  const {
+    isSuperAdmin,
+    tenants,
+    tenantsError,
+    tenantsIsError,
+    tenantsIsPending,
+  } = useSuperAdminTenantOptions();
 
   const form = useForm({
     defaultValues: {
@@ -182,8 +193,8 @@ function MissionaryGivingCreateViewContent() {
                 <TenantSelectField
                   label="Tenant"
                   field={field}
-                  options={tenantsQuery.data ?? []}
-                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  options={tenants}
+                  disabled={tenantsIsPending || tenantsIsError}
                   placeholder="Select tenant"
                 />
               )}
@@ -202,15 +213,13 @@ function MissionaryGivingCreateViewContent() {
                     }
                     field.handleChange(v);
                   }}
-                  disabled={
-                    missionariesQuery.isPending || missionariesQuery.isError
-                  }
+                  disabled={missionariesIsPending || missionariesIsError}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select missionary" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(missionariesQuery.data ?? []).map((m) => {
+                    {(missionaries ?? []).map((m) => {
                       const label =
                         m.profile?.full_name?.trim() ||
                         m.profile?.display_name?.trim() ||
@@ -227,15 +236,15 @@ function MissionaryGivingCreateViewContent() {
             )}
           </form.Field>
 
-          {missionariesQuery.isError ? (
+          {missionariesIsError ? (
             <p className="text-destructive text-sm">
-              {(missionariesQuery.error as Error).message}
+              {(missionariesError as Error).message}
             </p>
           ) : null}
 
-          {tenantsQuery.isError ? (
+          {tenantsIsError ? (
             <p className="text-destructive text-sm">
-              {(tenantsQuery.error as Error).message}
+              {(tenantsError as Error).message}
             </p>
           ) : null}
 

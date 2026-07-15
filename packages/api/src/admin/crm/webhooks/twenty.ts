@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 
 import { createSupabaseCrmSyncStore } from "../../../crm/sync/store";
 import { receiveTwentyWebhook } from "../../../crm/webhooks/twenty";
+import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 
 import type { NextRequest } from "next/server";
 
@@ -43,6 +44,12 @@ export async function POST(request: NextRequest) {
       },
       result.status,
     );
+  }
+
+  if (result.status === "processed") {
+    // Inbound Twenty changes mutate CRM projections; the webhook carries no
+    // actor tenant context, so revalidate the domain-wide tags only.
+    revalidateAdminCrmCache(null);
   }
 
   return jsonResponse({

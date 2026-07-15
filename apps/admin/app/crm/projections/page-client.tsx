@@ -24,6 +24,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { getCrmProjectionShadowColumns } from "./columns";
+import { CRM_PROJECTIONS_PAGE_META } from "../../../components/table-page-meta";
 
 import type { ReactNode } from "react";
 
@@ -73,8 +74,9 @@ export default function CrmProjectionsPageClient() {
 
   return (
     <PageShell
-      title="CRM Projections"
-      description="Shadow-mode projection health across Asym surfaces."
+      title={CRM_PROJECTIONS_PAGE_META.title}
+      description={CRM_PROJECTIONS_PAGE_META.description}
+      density={CRM_PROJECTIONS_PAGE_META.density}
       actions={
         <div className="flex items-center gap-2">
           <Link

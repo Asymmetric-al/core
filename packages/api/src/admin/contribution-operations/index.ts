@@ -124,6 +124,14 @@ export {
   type TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 export {
+  isStripeTestModeKey,
+  resolveProviderDashboardTestMode,
+  resolveViewerProviderDashboardTestMode,
+  stripeDashboardUrls,
+  type StripeDashboardUrls,
+  type StripeDashboardUrlsInput,
+} from "./provider-dashboard";
+export {
   assertReceiptSnapshotPdfCapability,
   buildUpdatedReceiptHtml,
   renderContributionReceiptSnapshotPdf,
@@ -137,6 +145,7 @@ export {
   stripeReplayAvailability,
   type ContributionProviderProof,
   type ContributionReceiptDeliveryView,
+  type ContributionViewerProjectionOptions,
   type ViewerProjectedContributionDetail,
   type ViewerProjectedCorrectionRequest,
 } from "./viewer-projection";
