@@ -9,17 +9,17 @@ import {
 import { useDataTableUrlState } from "./use-data-table-url-state";
 
 import type {
-  DataTableControlledState,
-  DataTableUrlStateConfig,
-} from "../types";
-import type {
   ColumnFiltersState,
   PaginationState,
   RowSelectionState,
   SortingState,
   Updater,
   VisibilityState,
-} from "@tanstack/react-table";
+} from "../tanstack";
+import type {
+  DataTableControlledState,
+  DataTableUrlStateConfig,
+} from "../types";
 
 export interface DataTableInitialState {
   pagination?: PaginationState;

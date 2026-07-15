@@ -1,25 +1,26 @@
 import type { AdvancedFilterState, FilterFieldDefinition } from "./filters";
 import type {
+  ColumnDef,
+  ColumnFiltersState,
+  PaginationState,
+  Row,
+  RowData,
+  RowSelectionState,
+  SortingState,
+  VisibilityState,
+} from "./tanstack";
+import type {
   DataTableConfig,
   DataTableFilterField,
   DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
   DataTableControlledState,
 } from "./types";
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  PaginationState,
-  Row,
-  RowSelectionState,
-  SortingState,
-  VisibilityState,
-} from "@tanstack/react-table";
 import type * as React from "react";
 
 export type ViewMode = "table" | "card";
 
-export interface DataTableResponsiveProps<TData, TValue> {
+export interface DataTableResponsiveProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -84,6 +85,12 @@ export interface DataTableResponsiveProps<TData, TValue> {
   tableClassName?: string;
   emptyState?: React.ReactNode;
   toolbar?: React.ReactNode;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
   initialState?: {
     pagination?: PaginationState;
     sorting?: SortingState;
@@ -99,5 +106,5 @@ export const EMPTY_RESPONSIVE_FILTER_FIELDS: DataTableFilterField<unknown>[] =
 export const EMPTY_ADVANCED_FILTER_FIELDS: FilterFieldDefinition[] = [];
 export const EMPTY_RESPONSIVE_DATA_TABLE_CONFIG: DataTableConfig = {};
 export const EMPTY_RESPONSIVE_INITIAL_STATE: NonNullable<
-  DataTableResponsiveProps<unknown, unknown>["initialState"]
+  DataTableResponsiveProps<RowData, unknown>["initialState"]
 > = {};

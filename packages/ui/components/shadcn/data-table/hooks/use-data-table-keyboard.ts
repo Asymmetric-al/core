@@ -2,11 +2,11 @@
 
 import { useCallback, useRef, useState, useMemo } from "react";
 
-import type { Table, Row } from "@tanstack/react-table";
+import type { RowData, Table, Row } from "../tanstack";
 
 export interface KeyboardNavigationOptions {
   enabled?: boolean;
-  onEnterRow?: (row: Row<unknown>) => void;
+  onEnterRow?: (row: Row<RowData>) => void;
   onEscapeRow?: () => void;
   enableRowSelection?: boolean;
   enableCellNavigation?: boolean;
@@ -42,7 +42,7 @@ export interface UseDataTableKeyboardReturn {
   resetFocus: () => void;
 }
 
-export function useDataTableKeyboard<TData>(
+export function useDataTableKeyboard<TData extends RowData>(
   table: Table<TData>,
   options: KeyboardNavigationOptions = {},
 ): UseDataTableKeyboardReturn {
@@ -140,7 +140,7 @@ export function useDataTableKeyboard<TData>(
         case "Enter": {
           e.preventDefault();
           if (onEnterRow) {
-            onEnterRow(currentRow as Row<unknown>);
+            onEnterRow(currentRow as Row<RowData>);
           }
           break;
         }
@@ -182,7 +182,8 @@ export function useDataTableKeyboard<TData>(
         }
         case "PageDown": {
           e.preventDefault();
-          const pageSize = table.getState().pagination.pageSize;
+          // Event-handler snapshot read; v9 removed `table.getState()`.
+          const pageSize = table.atoms.pagination.get().pageSize;
           const nextIndex = Math.min(rowIndex + pageSize, rowCount - 1);
           setFocusedRowIndex(nextIndex);
           focusRow(nextIndex);
@@ -190,7 +191,8 @@ export function useDataTableKeyboard<TData>(
         }
         case "PageUp": {
           e.preventDefault();
-          const pageSizeUp = table.getState().pagination.pageSize;
+          // Event-handler snapshot read; v9 removed `table.getState()`.
+          const pageSizeUp = table.atoms.pagination.get().pageSize;
           const prevIndex = Math.max(rowIndex - pageSizeUp, 0);
           setFocusedRowIndex(prevIndex);
           focusRow(prevIndex);

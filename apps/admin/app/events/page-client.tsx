@@ -21,6 +21,7 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import { Progress } from "@asym/ui/components/shadcn/progress";
@@ -32,7 +33,6 @@ import {
   TabsContent,
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
-import { type ColumnDef } from "@tanstack/react-table";
 import {
   Users,
   DollarSign,

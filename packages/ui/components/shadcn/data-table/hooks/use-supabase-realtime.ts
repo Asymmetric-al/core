@@ -1,11 +1,13 @@
 "use client";
 
-import { createBrowserClient } from "@asym/database/supabase";
+import {
+  createBrowserClient,
+  type RealtimeChannel,
+} from "@asym/database/supabase";
 import { useQueryClient } from "@tanstack/react-query";
 import * as React from "react";
 
-import type { RealtimeChannel } from "@supabase/supabase-js";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef, RowData } from "../tanstack";
 
 type RealtimeEvent = "INSERT" | "UPDATE" | "DELETE" | "*";
 
@@ -189,7 +191,7 @@ export function useSupabaseRealtime<TData extends Record<string, unknown>>({
   };
 }
 
-interface UseDataTableWithRealtimeOptions<TData, TValue> {
+interface UseDataTableWithRealtimeOptions<TData extends RowData, TValue> {
   tableName: string;
   queryKey: string[];
   columns: ColumnDef<TData, TValue>[];

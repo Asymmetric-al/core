@@ -1,6 +1,6 @@
 /** @vitest-environment jsdom */
 
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "../../../../../../packages/ui/components/shadcn/data-table/tanstack";
 import { act, cleanup, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 

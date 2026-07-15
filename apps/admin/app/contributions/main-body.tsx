@@ -439,6 +439,7 @@ export function ContributionsMainBody({
         <DataTableResponsive
           columns={columns}
           data={data}
+          devtoolsKey="admin-contributions"
           filterFields={filterFields}
           searchKey="donorName"
           searchPlaceholder="Search by donor name or email..."

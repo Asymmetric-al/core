@@ -10,7 +10,7 @@ import type {
   PaginationState,
   SortingState,
   VisibilityState,
-} from "@tanstack/react-table";
+} from "../tanstack";
 
 export interface DataTableUrlStateOptions {
   pageIndexKey?: string;

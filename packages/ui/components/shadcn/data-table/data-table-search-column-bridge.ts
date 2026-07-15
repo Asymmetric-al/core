@@ -1,4 +1,4 @@
-import type { ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "./tanstack";
 
 /**
  * Splits URL-backed global search from other column filters so `nuqs` can store

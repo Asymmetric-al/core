@@ -350,6 +350,7 @@ export default function MissionControlCRM() {
                 <DataTableResponsive
                   columns={columns}
                   data={rows}
+                  devtoolsKey="admin-crm-records"
                   isLoading={isLoading}
                   filterFields={filterFields}
                   searchColumnId="displayName"

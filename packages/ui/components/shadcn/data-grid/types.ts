@@ -1,5 +1,5 @@
+import type { ColumnDef, Row } from "../data-table/tanstack";
 import type { VirtualizationConfig } from "../data-table/types";
-import type { ColumnDef, Row } from "@tanstack/react-table";
 
 export type DataGridCellType =
   | "text"
