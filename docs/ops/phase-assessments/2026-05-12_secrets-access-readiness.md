@@ -1,5 +1,11 @@
 # Secrets and Access Readiness Assessment
 
+> **Note (2026-07-06):** Twenty CRM has since been retired
+> ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+> this file records the state as of its date — do not act on its Twenty
+> remediations (the ADR instructs verify/revoke of Vercel TWENTY\_\* entries
+> instead).
+
 Generated: 2026-05-12T19:37:44+07:00
 Repo: Asymmetric-al/core
 Branch: production

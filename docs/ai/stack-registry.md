@@ -153,7 +153,8 @@ Use these tags only when a task explicitly targets integration work.
 - Payload CMS
 - @payloadcms/db-postgres (Drizzle-based)
 - Drizzle ORM
-- Twenty CRM (system of record)
+- Twenty CRM (retired 2026-07-06 — ADR-0001; Asym Postgres owns all CRM
+  truth; code dormant pending cleanup)
 - Svix (external webhooks)
 - Inngest (durable jobs/workflows)
 - Zapier (integrations)
@@ -164,7 +165,7 @@ Nia keywords:
 
 - payload, collections, globals
 - drizzle, migrations
-- twenty, crm
+- crm (Twenty retired 2026-07-06 — ADR-0001)
 - svix, webhook delivery
 - inngest, steps, retries, scheduling
 - zapier
@@ -191,7 +192,8 @@ This does not move Inngest out of planned/referenced product status.
 - "jobs/workflows/retries" -> Inngest
 - "external webhooks" -> Svix
 - "cms/content" -> Payload
-- "crm/sync" -> Twenty
+- "crm/sync" -> retired Twenty pipeline (ADR-0001); CRM work targets Asym
+  Postgres via `packages/api/src/crm`
 - "support/chat" -> Chatwoot
 - "signing/docs" -> Documenso
 

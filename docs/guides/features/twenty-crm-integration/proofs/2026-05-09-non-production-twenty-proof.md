@@ -1,5 +1,8 @@
 # Twenty CRM Non-Production Twenty Proof
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Date: 2026-05-09
 
 Environment: isolated local Docker Compose stack, project `asymtwentyproof`, scratch path `/tmp/asym-twenty-proof`.

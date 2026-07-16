@@ -22,6 +22,13 @@
 - Manual vendors document their source in
   `docs/ai/skills/<name>/references/upstream.md`; preserve repo overlays before
   syncing mirrors.
+- Cursor Team Kit skills (`cursor/plugins`) and the Babysitter `/babysit` skill
+  (`a5c-ai/babysitter-cursor`) are repo-local vendored skills refreshed by
+  `bun run skills:refresh-upstream`, not personal global installs.
+- Cursor Team Kit companion agents live under `.cursor/agents/` for Cursor
+  task-agent workflows. The upstream always-on Cursor rules are intentionally
+  not vendored because the skills do not depend on them and they would change
+  repo-wide Cursor behavior.
 
 ## Official Inngest agent tooling
 

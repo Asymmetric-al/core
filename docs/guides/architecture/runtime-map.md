@@ -24,6 +24,11 @@ commit when the deployment exposes a non-`unknown` commit.
 
 ## Route Inventory
 
+> **Note (2026-07-06):** the Twenty CRM integration is retired
+> ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+> the Twenty gateway and webhook routes below exist as dormant code and stay
+> listed until the scheduled cleanup ticket removes them.
+
 | App        | Route family                                                   | Runtime policy                        | Reason                                        |
 | ---------- | -------------------------------------------------------------- | ------------------------------------- | --------------------------------------------- |
 | admin      | `/api/admin/comments`                                          | Node.js (no `runtime` segment export) | Admin client                                  |

@@ -8,7 +8,7 @@
 - `openspec/specs/platform-surfaces/spec.md`
 - `openspec/specs/platform-boundaries/spec.md`
 - `openspec/specs/platform-principles/spec.md`
-- `openspec/changes/integrate-twenty-crm-core/*`
+- `openspec/changes/integrate-twenty-crm-core/*` (retired 2026-07-06, ADR-0001)
 - `docs/guides/architecture/data-access-boundary.md`
 - Current contribution code under:
   - `apps/admin/app/contributions/*`
