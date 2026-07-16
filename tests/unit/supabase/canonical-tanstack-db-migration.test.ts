@@ -9,6 +9,12 @@ const migrationPath = fileURLToPath(
     import.meta.url,
   ),
 );
+const realtimeCleanupMigrationPath = fileURLToPath(
+  new URL(
+    "../../../supabase/migrations/20260716235900_remove_sensitive_realtime_publications.sql",
+    import.meta.url,
+  ),
+);
 const peopleCollectionsPath = fileURLToPath(
   new URL(
     "../../../packages/database/collections/tables/people.ts",
@@ -50,6 +56,10 @@ function expectCollectionRealtimeDisabled(
 
 describe("canonical TanStack DB Supabase migration", () => {
   const migrationSql = readFileSync(migrationPath, "utf8");
+  const realtimeCleanupMigrationSql = readFileSync(
+    realtimeCleanupMigrationPath,
+    "utf8",
+  );
   const peopleCollectionsSource = readFileSync(peopleCollectionsPath, "utf8");
   const contentCollectionsSource = readFileSync(contentCollectionsPath, "utf8");
 
@@ -77,6 +87,19 @@ describe("canonical TanStack DB Supabase migration", () => {
     expect(realtimeBlock).not.toContain("pdf_templates");
     expect(realtimeBlock).not.toContain("missionaries");
     expect(realtimeBlock).not.toContain("follows");
+  });
+
+  it("removes sensitive tables from realtime with membership guards", () => {
+    for (const tableName of ["missionaries", "follows"]) {
+      const guardedDropPattern = new RegExp(
+        `IF EXISTS \\(\\s*SELECT 1\\s*FROM pg_publication_tables\\s*WHERE pubname = 'supabase_realtime'\\s*AND schemaname = 'public'\\s*AND tablename = '${tableName}'\\s*\\) THEN\\s*ALTER PUBLICATION supabase_realtime DROP TABLE public\\.${tableName};\\s*END IF;`,
+      );
+
+      expect(realtimeCleanupMigrationSql).toContain(
+        `ALTER PUBLICATION supabase_realtime DROP TABLE public.${tableName};`,
+      );
+      expect(realtimeCleanupMigrationSql).toMatch(guardedDropPattern);
+    }
   });
 
   it("explicitly disables realtime for sensitive collection definitions", () => {
