@@ -9,6 +9,8 @@ import { defineSupabaseCollection } from "../supabase-collection";
 
 const productionRlsRequired =
   "Disabled until production tenant/ownership RLS and column exposure are reviewed.";
+const missionaryRealtimeSafetyRequired =
+  "Disabled until production tenant/ownership RLS and safe column exposure are resolved before live subscriptions are enabled.";
 
 export const profilesCollection = defineSupabaseCollection({
   tableName: "profiles",
@@ -21,6 +23,7 @@ export const missionariesCollection = defineSupabaseCollection({
   tableName: "missionaries",
   schema: missionarySchema,
   keys: ["id"],
+  realtime: { enabled: false, reason: missionaryRealtimeSafetyRequired },
 });
 
 export const donorsCollection = defineSupabaseCollection({

@@ -9,9 +9,49 @@ const migrationPath = fileURLToPath(
     import.meta.url,
   ),
 );
+const peopleCollectionsPath = fileURLToPath(
+  new URL(
+    "../../../packages/database/collections/tables/people.ts",
+    import.meta.url,
+  ),
+);
+const contentCollectionsPath = fileURLToPath(
+  new URL(
+    "../../../packages/database/collections/tables/content.ts",
+    import.meta.url,
+  ),
+);
+
+function expectCollectionRealtimeDisabled(
+  collectionSource: string,
+  collectionName: string,
+) {
+  const collectionMatch = collectionSource.match(
+    new RegExp(
+      `export const ${collectionName} = defineSupabaseCollection\\(\\{[\\s\\S]*?\\n\\}\\);`,
+    ),
+  );
+
+  expect(collectionMatch).not.toBeNull();
+  const collectionDefinition = collectionMatch![0];
+  const realtimeConfigMatch = collectionDefinition.match(
+    /realtime:\s*\{\s*enabled:\s*false,\s*reason:\s*([A-Za-z_$][\w$]*)\s*\}/,
+  );
+
+  expect(realtimeConfigMatch).not.toBeNull();
+  const reasonName = realtimeConfigMatch![1];
+  const reasonMatch = collectionSource.match(
+    new RegExp(`const ${reasonName}\\s*=\\s*["']([^"']+)["'];`),
+  );
+
+  expect(reasonMatch).not.toBeNull();
+  expect(reasonMatch![1].trim()).not.toBe("");
+}
 
 describe("canonical TanStack DB Supabase migration", () => {
   const migrationSql = readFileSync(migrationPath, "utf8");
+  const peopleCollectionsSource = readFileSync(peopleCollectionsPath, "utf8");
+  const contentCollectionsSource = readFileSync(contentCollectionsPath, "utf8");
 
   it("uses duplicate-safe realtime publication checks", () => {
     expect(migrationSql).toContain("pg_publication_tables");
@@ -35,6 +75,19 @@ describe("canonical TanStack DB Supabase migration", () => {
     expect(realtimeBlock).not.toContain("donor_activities");
     expect(realtimeBlock).not.toContain("tenants");
     expect(realtimeBlock).not.toContain("pdf_templates");
+    expect(realtimeBlock).not.toContain("missionaries");
+    expect(realtimeBlock).not.toContain("follows");
+  });
+
+  it("explicitly disables realtime for sensitive collection definitions", () => {
+    expectCollectionRealtimeDisabled(
+      peopleCollectionsSource,
+      "missionariesCollection",
+    );
+    expectCollectionRealtimeDisabled(
+      contentCollectionsSource,
+      "followsCollection",
+    );
   });
 
   it("removes demo public read from sensitive browser-blocked tables", () => {

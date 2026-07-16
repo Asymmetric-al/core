@@ -8,6 +8,9 @@ import {
 } from "../schemas/content";
 import { defineSupabaseCollection } from "../supabase-collection";
 
+const followRealtimeSafetyRequired =
+  "Disabled until tenant/ownership RLS and safe column exposure are resolved before live subscriptions are enabled.";
+
 export const postsCollection = defineSupabaseCollection({
   tableName: "posts",
   schema: postSchema,
@@ -42,4 +45,5 @@ export const followsCollection = defineSupabaseCollection({
   tableName: "follows",
   schema: followSchema,
   keys: ["id"],
+  realtime: { enabled: false, reason: followRealtimeSafetyRequired },
 });

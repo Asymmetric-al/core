@@ -278,14 +278,12 @@ BEGIN
   END IF;
 
   FOREACH realtime_table IN ARRAY ARRAY[
-    'missionaries',
     'funds',
     'posts',
     'post_comments',
     'post_likes',
     'post_prayers',
     'post_fires',
-    'follows',
     'locations'
   ]
   LOOP
