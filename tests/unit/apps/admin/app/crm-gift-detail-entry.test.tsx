@@ -667,10 +667,19 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(refundItem?.hasAttribute("data-disabled")).toBe(true);
     fireEvent.click(refundItem!);
     expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
-    // Provider replay is gated on contributions.use_provider_actions, which
-    // this request-capable donor-care viewer lacks, so it is not offered at
-    // all (surfacing it would dead-end in a 403).
-    expect(view.queryByText("Replay provider webhook")).toBeNull();
+    // Provider replay can be requested for approval, but this offline gift
+    // has no provider payment evidence, so the blocked action stays visible.
+    const replayItem = view
+      .getByText("Replay provider webhook")
+      .closest("[role=menuitem]");
+    expect(replayItem?.textContent).toContain("Blocked");
+    expect(replayItem?.textContent).toContain(
+      "This gift has no provider payment events to replay.",
+    );
+    expect(replayItem?.getAttribute("aria-disabled")).toBe("true");
+    expect(replayItem?.hasAttribute("data-disabled")).toBe(true);
+    fireEvent.click(replayItem!);
+    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
     // Entries the server filtered out by capability never render.
     expect(view.queryByText("Approve and post gift")).toBeNull();
     expect(view.queryByText("Retry CRM posting")).toBeNull();
