@@ -144,11 +144,20 @@ export const GET = withOperation(
         "Missing contribution id.",
       );
 
-      const detail = await loadContributionDetailFromSupabase({
-        supabaseAdmin,
-        tenantId: auth.tenantId,
-        contributionId,
-      });
+      // The approval policy shapes which correction/replay request entries
+      // the viewer projection appends (#270), mirroring CRM inline actions,
+      // so it is loaded alongside the detail read on every request.
+      const [detail, approvalPolicy] = await Promise.all([
+        loadContributionDetailFromSupabase({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+          contributionId,
+        }),
+        loadCorrectionApprovalPolicy({
+          supabaseAdmin,
+          tenantId: auth.tenantId,
+        }),
+      ]);
       const viewerCapabilities = resolveContributionCapabilities(auth);
       // Mode-aware dashboard proof links: the tenant Stripe key is resolved
       // only for provider-capable viewers, and only the test-mode boolean
@@ -162,19 +171,15 @@ export const GET = withOperation(
       const projected = projectContributionDetailForViewer(
         detail,
         viewerCapabilities,
-        { providerDashboardTestMode },
+        { approvalPolicy, providerDashboardTestMode },
       );
 
-      // The approval policy only shapes correction-request decidability, so
-      // skip the extra tenant-policy read on the common path where a gift has
-      // no pending correction requests at all.
+      // The same tenant policy also drives correction-request decidability
+      // (#263) for viewers on gifts that have pending requests.
       const correctionRequests =
         projected.correctionRequests.length > 0
           ? projectCorrectionRequestsForViewer(projected.correctionRequests, {
-              policy: await loadCorrectionApprovalPolicy({
-                supabaseAdmin,
-                tenantId: auth.tenantId,
-              }),
+              policy: approvalPolicy,
               viewerProfileId: auth.profileId,
               viewerCapabilities,
             })
@@ -218,6 +223,7 @@ export const POST = withOperation(
   async ({ request, supabaseAdmin, auth, requestId }) => {
     try {
       const body = actionRequestSchema.parse(await ensureJsonBody(request));
+      const viewerCapabilities = resolveContributionCapabilities(auth);
       const approvalPolicy = await loadCorrectionApprovalPolicy({
         supabaseAdmin,
         tenantId: auth.tenantId,
@@ -226,7 +232,7 @@ export const POST = withOperation(
         tenantId: auth.tenantId,
         actorProfileId: auth.profileId,
         actorPermissions: actorPermissionsFromAuth(auth),
-        actorCapabilities: resolveContributionCapabilities(auth),
+        actorCapabilities: viewerCapabilities,
         approvalPolicy,
         sourceSurface: body.sourceSurface,
         contributionId: body.contributionId,
@@ -240,7 +246,6 @@ export const POST = withOperation(
         dependencies: createContributionActionDependencies(supabaseAdmin),
       });
 
-      const viewerCapabilities = resolveContributionCapabilities(auth);
       // Same mode-aware dashboard links as GET so the canonical detail an
       // action returns never disagrees with the detail endpoint.
       const providerDashboardTestMode =
@@ -252,7 +257,7 @@ export const POST = withOperation(
       const projectedResult = projectContributionActionResultForViewer(
         result,
         viewerCapabilities,
-        { providerDashboardTestMode },
+        { approvalPolicy, providerDashboardTestMode },
       );
 
       return NextResponse.json({ result: projectedResult, requestId });
@@ -298,6 +303,17 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         assertContributionRouteActionSupported(correctionRequest.actionType);
       }
 
+      // Load the tenant policy once: the decision executor consumes it, and
+      // the result projection must shape canonicalContribution availability
+      // entries under the same policy the GET contract uses (#270) — the
+      // conservative default would advertise request affordances the
+      // executor rejects for no_approval_required tenants.
+      const approvalPolicy = await loadCorrectionApprovalPolicy({
+        supabaseAdmin,
+        tenantId: auth.tenantId,
+      });
+      const viewerCapabilities = resolveContributionCapabilities(auth);
+
       const outcome = await decideContributionCorrectionRequest({
         supabaseAdmin,
         tenantId: auth.tenantId,
@@ -306,7 +322,8 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         reason: body.reason ?? null,
         receiptDelivery: body.receiptDelivery ?? null,
         deciderProfileId: auth.profileId,
-        deciderCapabilities: resolveContributionCapabilities(auth),
+        deciderCapabilities: viewerCapabilities,
+        policy: approvalPolicy,
         dependencies: createContributionActionDependencies(supabaseAdmin),
         recordOutcome: recordCorrectionApprovalOutcome,
       });
@@ -314,7 +331,6 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
       // Consistency with GET / POST actions: project provider identifiers for
       // the viewer. Not a leak today (deciders already hold
       // contributions.use_provider_actions) but kept defense-in-depth.
-      const viewerCapabilities = resolveContributionCapabilities(auth);
       const providerDashboardTestMode = outcome.result
         ? await resolveViewerProviderDashboardTestMode({
             supabaseAdmin,
@@ -326,7 +342,7 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         ? projectContributionActionResultForViewer(
             outcome.result,
             viewerCapabilities,
-            { providerDashboardTestMode },
+            { approvalPolicy, providerDashboardTestMode },
           )
         : null;
 
