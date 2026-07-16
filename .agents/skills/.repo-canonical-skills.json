@@ -1,6 +1,7 @@
 {
   "version": 2,
   "canonicalSkills": [
+    "accessibility-review",
     "anim",
     "animation-vocabulary",
     "apple-design",
@@ -24,6 +25,7 @@
     "emil-design-eng",
     "emil-design-engineering",
     "eve",
+    "find-animation-opportunities",
     "find-skills",
     "fix-ci",
     "fix-merge-conflicts",
@@ -62,6 +64,7 @@
     "payloadcms-cms-migration",
     "payloadcms-payload",
     "playwright-best-practices",
+    "playwright-cli",
     "pr-review-canvas",
     "prd-to-plan",
     "prototype",
@@ -92,12 +95,17 @@
     "vercel-react-best-practices",
     "vercel-react-view-transitions",
     "verify-this",
+    "vitest",
     "wayfinder",
     "weekly-review",
     "what-did-i-get-done",
     "workflow-from-chats"
   ],
   "canonicalSkillFiles": {
+    "accessibility-review": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "anim": [
       "SKILL.md"
     ],
@@ -202,6 +210,10 @@
       "ui-polish.md"
     ],
     "eve": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "find-animation-opportunities": [
       "SKILL.md",
       "references/upstream.md"
     ],
@@ -485,6 +497,10 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "playwright-cli": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "pr-review-canvas": [
       "SKILL.md",
       "references/upstream.md",
@@ -759,6 +775,10 @@
       "references/upstream.md"
     ],
     "verify-this": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "vitest": [
       "SKILL.md",
       "references/upstream.md"
     ],

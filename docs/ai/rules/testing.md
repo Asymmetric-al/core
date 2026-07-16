@@ -11,8 +11,19 @@ Use this when adding tests, modifying critical flows, or verifying changes.
 
 - **E2E framework:** Playwright (configured in `playwright.config.ts`).
 - **Unit tests:** Vitest (configured for `tests/unit/**/*.test.ts(x)`).
+- **Unit-test skill:** Use `docs/ai/skills/vitest/SKILL.md` for Core-specific
+  Vitest 4 test placement, filtering, mocking, environments, isolation, and
+  coverage caveats. Use `bun run test:unit` for the full gate; do not use
+  `bun test`, which selects Bun's test runner.
 - **Unit test env defaults:** `vitest.config.ts` provides `SKIP_ENV_VALIDATION=1` plus placeholder public Supabase values so unit tests can import env-sensitive modules. Tests that validate env schema behavior must override or clear those values intentionally. These defaults do not replace integration or production env validation, and no real secrets belong in test config.
 - **Accessibility:** `@axe-core/playwright`.
+- **Accessibility review:** Use
+  `docs/ai/skills/accessibility-review/SKILL.md` for remediation and manual
+  keyboard/focus checks; an axe pass alone is not a WCAG conformance claim.
+- **Interactive browser automation:** Use
+  `docs/ai/skills/playwright-cli/SKILL.md` for ad hoc live inspection and
+  evidence. It complements but never replaces committed `@playwright/test`
+  specs or the package scripts below.
 - **Performance:** Playwright-based Web Vitals assertions.
 - **Local CI parity:** Run `bun run ci:preflight` before push/PR-ready to mirror blocking GitHub checks.
 - **Fast local gate:** `bun run check` runs `lint`, `typecheck`, and `test:unit` only. Use it for tight iteration loops.

@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, readdirSync } from "node:fs";
 
 import { describe, expect, it } from "vitest";
 
@@ -6,6 +6,22 @@ const root = new URL("../../../", import.meta.url);
 
 function readRepoFile(path: string) {
   return readFileSync(new URL(path, root), "utf8");
+}
+
+function listRepoFiles(path: string, relativePath = ""): string[] {
+  const directoryPath = relativePath ? `${path}/${relativePath}` : path;
+  const entries = readdirSync(new URL(directoryPath, root), {
+    withFileTypes: true,
+  });
+
+  return entries
+    .flatMap((entry) => {
+      const entryPath = relativePath
+        ? `${relativePath}/${entry.name}`
+        : entry.name;
+      return entry.isDirectory() ? listRepoFiles(path, entryPath) : [entryPath];
+    })
+    .sort();
 }
 
 const vendoredSkillPaths = [
@@ -29,6 +45,19 @@ const vendoredSkillPaths = [
   ".claude/skills/emil-design-eng/SKILL.md",
   ".claude/skills/grill-for-unknowns/SKILL.md",
   ".claude/skills/resend-cli/SKILL.md",
+] as const;
+
+const curatedSkillNames = [
+  "accessibility-review",
+  "find-animation-opportunities",
+  "playwright-cli",
+  "vitest",
+] as const;
+
+const generatedSkillRoots = [
+  ".agents/skills",
+  ".cursor/skills",
+  ".claude/skills",
 ] as const;
 
 describe("skill quality gate overlays", () => {
@@ -55,5 +84,42 @@ describe("skill quality gate overlays", () => {
     expect(findSkills).toContain("**Example — Resend platform skills:**");
     expect(findSkills).toContain("**Example — Resend app integration:**");
     expect(findSkills).not.toContain("**Example — Resend:** **CLI** work");
+  });
+
+  it("keeps curated skills routed, attributed, and identical across generated mirrors", () => {
+    const agents = readRepoFile("AGENTS.md");
+
+    for (const skillName of curatedSkillNames) {
+      const canonicalPath = `docs/ai/skills/${skillName}`;
+      const canonicalSkill = readRepoFile(`${canonicalPath}/SKILL.md`);
+      const canonicalProvenance = readRepoFile(
+        `${canonicalPath}/references/upstream.md`,
+      );
+
+      expect(canonicalSkill, skillName).toContain("## Workflow");
+      expect(canonicalSkill, skillName).toContain("## Checklist");
+      expect(canonicalSkill, skillName).toContain("## Provenance");
+      expect(canonicalProvenance, skillName).toContain("reviewed_commit:");
+      expect(canonicalProvenance, skillName).toContain("license:");
+      expect(canonicalProvenance, skillName).toContain("## Refresh workflow");
+      expect(agents, skillName).toContain(
+        `docs/ai/skills/${skillName}/SKILL.md`,
+      );
+
+      for (const generatedRoot of generatedSkillRoots) {
+        expect(
+          listRepoFiles(`${generatedRoot}/${skillName}`),
+          `${generatedRoot}/${skillName}`,
+        ).toEqual(listRepoFiles(canonicalPath));
+        expect(
+          readRepoFile(`${generatedRoot}/${skillName}/SKILL.md`),
+          `${generatedRoot}/${skillName}/SKILL.md`,
+        ).toBe(canonicalSkill);
+        expect(
+          readRepoFile(`${generatedRoot}/${skillName}/references/upstream.md`),
+          `${generatedRoot}/${skillName}/references/upstream.md`,
+        ).toBe(canonicalProvenance);
+      }
+    }
   });
 });
