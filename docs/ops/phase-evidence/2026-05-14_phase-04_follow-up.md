@@ -1,5 +1,8 @@
 # Phase 4 Follow-Up Evidence
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Generated: 2026-05-14T10:16:00Z
 Repo: Asymmetric-al/core
 Branch: production

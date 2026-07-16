@@ -1,15 +1,18 @@
 import type {
+  CellData,
   Column,
   ColumnDef,
   Row,
+  RowData,
   Table,
+  TableFeatures,
   ColumnSizingState,
   VisibilityState,
   ColumnFiltersState,
   PaginationState,
   RowSelectionState,
   SortingState,
-} from "@tanstack/react-table";
+} from "./tanstack";
 import type * as React from "react";
 
 export type DataTableFilterVariant =
@@ -57,7 +60,7 @@ export interface DataTableAdvancedFilterField<
 }
 
 /** Legacy row mutation descriptor (not the toolbar row-actions menu). */
-export interface DataTableRowMutationAction<TData> {
+export interface DataTableRowMutationAction<TData extends RowData> {
   row: Row<TData>;
   type: "update" | "delete";
 }
@@ -65,7 +68,8 @@ export interface DataTableRowMutationAction<TData> {
 /**
  * @deprecated Use `DataTableRowMutationAction` — distinct from `DataTableInteractiveRowAction`.
  */
-export type DataTableRowAction<TData> = DataTableRowMutationAction<TData>;
+export type DataTableRowAction<TData extends RowData> =
+  DataTableRowMutationAction<TData>;
 
 /** Toolbar / menu actions on a row (table buttons, dropdown, cards). */
 export interface DataTableInteractiveRowAction<TData> {
@@ -152,7 +156,16 @@ export const MIN_COLUMN_SIZE = 50;
 export const MAX_COLUMN_SIZE = 500;
 
 declare module "@tanstack/react-table" {
-  interface ColumnMeta<TData, TValue> {
+  // v9 adds TFeatures as the FIRST generic parameter on ColumnMeta. The
+  // parameter list (including names) must mirror the upstream declaration
+  // exactly or declaration merging fails with TS2428, so the unused
+  // TFeatures parameter cannot take a leading underscore.
+  /* eslint-disable @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars -- TODO(AL-000): TS2428 requires the upstream type parameter list verbatim */
+  interface ColumnMeta<
+    TFeatures extends TableFeatures,
+    TData extends RowData,
+    TValue extends CellData = CellData,
+  > {
     filterVariant?: DataTableFilterVariant;
     filterOptions?: DataTableFilterOption[];
     cellVariant?: DataTableCellVariant;
@@ -163,6 +176,7 @@ declare module "@tanstack/react-table" {
     enableResizing?: boolean;
     sticky?: "left" | "right";
   }
+  /* eslint-enable @typescript-eslint/no-unused-vars, unused-imports/no-unused-vars */
 }
 
 export type {

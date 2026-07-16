@@ -25,13 +25,13 @@ traceable and trustworthy.
   policy, refund/provider outcome handling, donor-visible state updates, and
   extension hooks for notifications/tasks/automation/batches.
 - Keep Stripe as the payment execution and payment-method authority.
-- Keep CRM/Twenty, Payload, donor portal, and UI surfaces from becoming
-  competing gift truth.
+- Keep CRM/Twenty (Twenty retired 2026-07-06, ADR-0001), Payload, donor
+  portal, and UI surfaces from becoming competing gift truth.
 
 ## What Does Not Change
 
-- Contribution truth does not move to Twenty, Payload, or a public/donor
-  surface.
+- Contribution truth does not move to Twenty (retired 2026-07-06, ADR-0001),
+  Payload, or a public/donor surface.
 - Stripe remains payment execution authority.
 - Email template implementation, shared Mission Control tasks, automation
   builder, and bulk batch engine are owned by PRDs 2-5 and were delivered

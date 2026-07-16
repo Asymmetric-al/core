@@ -2,6 +2,7 @@ import {
   canDecideCorrectionRequest,
   resolveCorrectionApprovalPolicy,
 } from "./approval-policy";
+import { stripeDashboardUrls } from "./provider-dashboard";
 import { evaluateReceiptDeliveryOptions } from "./receipt-delivery";
 import {
   buildCorrectionRequestAvailability,
@@ -90,6 +91,26 @@ export type ViewerProjectedContributionDetail = Omit<
   receiptDelivery?: ContributionReceiptDeliveryView | null;
 };
 
+export interface ContributionViewerProjectionOptions {
+  /**
+   * Tenant correction approval policy. When omitted, the same conservative
+   * default as the executor and the CRM inline builder applies
+   * (`resolveCorrectionApprovalPolicy(null)`).
+   */
+  approvalPolicy?: CorrectionApprovalPolicy | null;
+  /**
+   * True when the tenant's resolved Stripe key is a test-mode key
+   * (sk_test_/rk_test_); dashboard proof links then point at
+   * https://dashboard.stripe.com/test/... Resolved server-side (route) only
+   * for viewers holding contributions.use_provider_actions. Defaults to
+   * live-mode links.
+   */
+  providerDashboardTestMode?: boolean;
+}
+
+export type ProjectContributionDetailOptions =
+  ContributionViewerProjectionOptions;
+
 /**
  * Pure viewer projection of the tenant receipt delivery policy + donor
  * context, evaluated against the viewer's capabilities (#263).
@@ -136,15 +157,6 @@ export function projectCorrectionRequestsForViewer(
       deciderCapabilities: viewer.viewerCapabilities,
     }),
   }));
-}
-
-export interface ProjectContributionDetailOptions {
-  /**
-   * Tenant correction approval policy. When omitted, the same conservative
-   * default as the executor and the CRM inline builder applies
-   * (`resolveCorrectionApprovalPolicy(null)`).
-   */
-  approvalPolicy?: CorrectionApprovalPolicy | null;
 }
 
 /**
@@ -206,10 +218,10 @@ function viewerScopedActionAvailability(input: {
 export function projectContributionDetailForViewer(
   detail: ContributionDetail,
   viewerCapabilities: string[],
-  options?: ProjectContributionDetailOptions,
+  options: ContributionViewerProjectionOptions = {},
 ): ViewerProjectedContributionDetail {
   const approvalPolicy =
-    options?.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
+    options.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
   const hasProviderAccess = viewerCapabilities.includes(
     "contributions.use_provider_actions",
   );
@@ -252,14 +264,11 @@ export function projectContributionDetailForViewer(
       chargeId,
       refundIds: detail.payment.stripe.refundIds,
       replayContext: detail.payment.stripe.replayContext,
-      dashboardUrls: {
-        paymentIntent: paymentIntentId
-          ? `https://dashboard.stripe.com/payments/${paymentIntentId}`
-          : null,
-        charge: chargeId
-          ? `https://dashboard.stripe.com/charges/${chargeId}`
-          : null,
-      },
+      dashboardUrls: stripeDashboardUrls({
+        paymentIntentId,
+        chargeId,
+        testMode: options.providerDashboardTestMode ?? false,
+      }),
     },
   };
 }
@@ -297,7 +306,7 @@ export function projectContributionActionResultForViewer<
 >(
   result: TResult,
   viewerCapabilities: string[],
-  options?: ProjectContributionDetailOptions,
+  options: ContributionViewerProjectionOptions = {},
 ): TResult {
   const hasProviderAccess = viewerCapabilities.includes(
     "contributions.use_provider_actions",

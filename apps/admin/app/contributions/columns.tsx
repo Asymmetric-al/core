@@ -15,6 +15,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table/data-table-column-header";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,7 +25,6 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
-import { type ColumnDef } from "@tanstack/react-table";
 import {
   Banknote,
   Building2,
@@ -258,7 +258,10 @@ export function getContributionColumns({
       // match the shared evaluator (issue #274); Hub-only "processing" stays a
       // grid-status extension.
       filterFn: (row, _columnId, filterValue) =>
-        matchesHubPaymentStatusSelection(row.original, filterValue),
+        matchesHubPaymentStatusSelection(
+          row.original as Contribution,
+          filterValue,
+        ),
       // Faceting counts by the same values the filter matches (not the grid
       // status accessor), so the chip popover counts agree with the filtered
       // rows — e.g. a refunded-but-grid-completed gift counts under Refunded.
@@ -511,7 +514,11 @@ export function getContributionColumns({
         enableHiding: false,
         enableSorting: false,
         filterFn: (row, _columnId, filterValue) =>
-          matchesHubSharedFilterSelection(row.original, chip.id, filterValue),
+          matchesHubSharedFilterSelection(
+            row.original as Contribution,
+            chip.id,
+            filterValue,
+          ),
       }),
     ),
   ];

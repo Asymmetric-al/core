@@ -9,13 +9,14 @@ import { Suspense } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import PageClient from "./page-client";
+import { CONTRIBUTIONS_PAGE_META } from "../../components/table-page-meta";
 
 function ContributionsPageFallback() {
   return (
     <PageShell
-      title="Contributions"
-      description="Track and manage all donations and contributions."
-      density="compact"
+      title={CONTRIBUTIONS_PAGE_META.title}
+      description={CONTRIBUTIONS_PAGE_META.description}
+      density={CONTRIBUTIONS_PAGE_META.density}
     >
       <ContributionsBoneyardFallback />
     </PageShell>

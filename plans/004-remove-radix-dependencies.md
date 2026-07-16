@@ -7,8 +7,10 @@
 > in `plans/README.md`.
 >
 > **Drift check (run first)**:
-> `rg -n '"radix-ui"|"@radix-ui/' packages/ui/package.json apps/admin/package.json apps/donor/package.json`
-> Expected: exactly 3 matches (listed below). If 0, the plan is done.
+> `rg -n '"radix-ui"|"@radix-ui/' packages apps package.json --glob '**/package.json'`
+> Expected: exactly 3 matches, all in the three manifests listed below. If 0,
+> the plan is done. If a match appears in any other manifest, a workspace
+> gained a Radix dep since planning — report it (see STOP conditions).
 
 ## Status
 

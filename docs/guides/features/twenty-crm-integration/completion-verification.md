@@ -1,5 +1,8 @@
 # Twenty CRM Completion Verification
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Verified at: 2026-05-09 15:09:40 +0700
 
 Branch: `production`

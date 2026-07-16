@@ -1,5 +1,9 @@
 # Readiness Verification Quality Check
 
+> **Note (2026-07-06):** Twenty CRM has since been retired
+> ([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+> this file records the state as of its date.
+
 Generated: 2026-05-12T20:03:16+07:00
 Repo: Asymmetric-al/core
 Branch: production

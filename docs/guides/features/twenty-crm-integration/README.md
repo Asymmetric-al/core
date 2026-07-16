@@ -1,5 +1,15 @@
 # Twenty CRM Integration Phase Pack
 
+> **Status (2026-07-06): Superseded — Twenty CRM retired** by
+> [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md).
+> Asym Postgres is the system of record for all CRM truth (people,
+> relationships, notes, tasks, activity); see the
+> [Phase 1 ownership matrix](../../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md).
+> No product surface reads from or depends on Twenty; the one-way mirror never
+> turns on; sync code is dormant pending a scheduled cleanup ticket. This
+> document is preserved for historical reference — do not execute its phases
+> or runbooks.
+
 ## Purpose
 
 Break the attached Deep Twenty CRM Integration Plan into implementation phases that can be executed, reviewed, and stopped independently.

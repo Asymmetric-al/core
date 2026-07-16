@@ -13,10 +13,23 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Button } from "../button";
 import { Separator } from "../separator";
+import {
+  areChromeTablePropsInterchangeable,
+  areDataTableChromeActionsEqual,
+  EMPTY_TABLE_SELECTION_SOURCE,
+  getTableSliceAtoms,
+} from "./data-table-chrome-memo";
+import { useSelector } from "./tanstack";
 
-import type { Table } from "@tanstack/react-table";
+import type {
+  ColumnFiltersState,
+  RowData,
+  RowSelectionState,
+  Table,
+  TableSelectionSource,
+} from "./tanstack";
 
-interface DataTableActionBarProps<TData> {
+interface DataTableActionBarProps<TData extends RowData> {
   table: Table<TData>;
   actions?: {
     label: string;
@@ -27,11 +40,28 @@ interface DataTableActionBarProps<TData> {
   className?: string;
 }
 
-export function DataTableActionBar<TData>({
+function DataTableActionBarImpl<TData extends RowData>({
   table,
   actions,
   className,
 }: DataTableActionBarProps<TData>) {
+  // Focused subscriptions: the memo comparator below keeps parent broadcasts out,
+  // so every state slice this chrome reads needs its own subscription.
+  const atoms = getTableSliceAtoms(table);
+  const rowSelectionSource: TableSelectionSource<
+    RowSelectionState | undefined
+  > = atoms?.rowSelection ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(rowSelectionSource);
+  // Filtered selection is derived through the filtered row model; re-render when
+  // filters change so counts and action payloads stay in sync.
+  const columnFiltersSource: TableSelectionSource<
+    ColumnFiltersState | undefined
+  > = atoms?.columnFilters ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(columnFiltersSource);
+  const globalFilterSource: TableSelectionSource<unknown> =
+    atoms?.globalFilter ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(globalFilterSource);
+
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
 
@@ -106,3 +136,21 @@ export function DataTableActionBar<TData>({
     </LazyMotion>
   );
 }
+
+const MemoizedDataTableActionBar = React.memo(
+  DataTableActionBarImpl,
+  (previous, next) =>
+    areChromeTablePropsInterchangeable(previous.table, next.table) &&
+    areDataTableChromeActionsEqual(previous.actions, next.actions) &&
+    previous.className === next.className,
+);
+
+/**
+ * Memoized with a table-aware comparator (v9's `useTable` returns a fresh
+ * wrapper object every parent render) so the bar only re-renders when row
+ * selection — the one state slice it subscribes to — actually changes. The
+ * cast restores the generic call signature `React.memo` erases; the public
+ * props are unchanged.
+ */
+export const DataTableActionBar =
+  MemoizedDataTableActionBar as typeof DataTableActionBarImpl;

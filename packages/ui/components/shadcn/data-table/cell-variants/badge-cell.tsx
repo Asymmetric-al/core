@@ -6,6 +6,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Badge } from "../../badge";
 
+import type { RowData } from "../tanstack";
 import type { BadgeCellProps, BadgeOption, BadgeVariant } from "./types";
 
 const variantStyles: Record<BadgeVariant, string> = {
@@ -30,7 +31,7 @@ const dotColors: Record<BadgeVariant, string> = {
   info: "bg-blue-500",
 };
 
-export function BadgeCell<TData>({
+export function BadgeCell<TData extends RowData>({
   value,
   className,
   options,

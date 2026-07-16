@@ -146,11 +146,18 @@ export function useAdminCrmRelationshipsGrid() {
     { id: "updatedAt", desc: true },
   ]);
   const debouncedSearch = useDebouncedValue(search, 250);
+  // Toggling appends/removes domains, so the raw array's order depends on the
+  // toggle sequence. Normalize the key to a sorted serialization so equivalent
+  // selections (e.g. people+churches vs churches+people) share one cache entry.
+  const domainsKey = React.useMemo(
+    () => [...domains].sort().join(","),
+    [domains],
+  );
 
   const relationshipsQuery = useQuery({
     queryKey: [
       ...CRM_RELATIONSHIPS_QUERY_KEY,
-      { domains, search: debouncedSearch, sorting },
+      { domains: domainsKey, search: debouncedSearch, sorting },
     ],
     queryFn: ({ signal }) =>
       fetchCrmRelationships({

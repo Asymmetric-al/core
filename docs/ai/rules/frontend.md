@@ -31,6 +31,10 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated.
 - Use `'use client'` only when required (hooks, state, browser APIs).
 - Reuse existing shared primitives before creating new ones.
+- For accessibility audits or fixes involving names, semantics, keyboard/focus,
+  forms/errors, announcements, contrast, touch targets, or reduced motion, load
+  `docs/ai/skills/accessibility-review/SKILL.md`. Automated axe results
+  complement but do not replace manual keyboard and focus verification.
 
 ### Styling rules
 
@@ -43,6 +47,12 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 ### Motion rules
 
 Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
+
+When asked where motion would genuinely help, load
+`docs/ai/skills/find-animation-opportunities/SKILL.md` for a read-only scan that
+must also identify what should remain static. It does not replace
+`improve-animations`, `review-animations`, or an explicitly authorized
+implementation task.
 
 - **Use the motion tokens, not literals.** Prefer real `--duration-*` / `--ease-*` variables (e.g. `var(--duration-standard)`, `var(--ease-out-soft)`) or `EASE_OUT_*` / `DURATION_*` from `@asym/lib/motion-presets` (not brace shorthand — the `{a,b,…}` form above is documentation-only). All motion tokens live in `packages/ui/styles/globals.css :root`.
 - **No `transition: all` / `transition-all`.** Specify exact properties (e.g. `transition-[transform,box-shadow]` or one of the shared utilities below).

@@ -44,6 +44,7 @@ export function SupportTableView({
       <DataTableResponsive<SupportConversation, unknown>
         columns={supportConversationColumns}
         data={conversations}
+        devtoolsKey="support-hub-conversations"
         searchColumnId="subject"
         searchPlaceholder="Search subjects..."
         isLoading={isLoading}

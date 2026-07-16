@@ -120,6 +120,40 @@ describe("DataTableCardView row action trigger", () => {
     expect(onRowClick).not.toHaveBeenCalled();
   });
 
+  it("keeps trigger keyboard activation separate from the card keyboard handler", () => {
+    const onRowClick = vi.fn();
+    const onActionClick = vi.fn();
+
+    render(
+      <DataTableCardView
+        rows={rows}
+        primaryField="name"
+        enableRowSelection={false}
+        onRowClick={onRowClick}
+        rowActions={[{ label: "Edit", onClick: onActionClick }]}
+      />,
+    );
+
+    const trigger = screen.getByRole("button", {
+      name: "Row actions for Ada Lovelace",
+    });
+
+    // Base UI renders the trigger as a native button, so Enter/Space open the
+    // menu via native activation (which jsdom does not simulate). Assert the
+    // element, then check that trigger keydown bubbling into the card's own
+    // Enter/Space handler never fires the row click.
+    expect(trigger.tagName).toBe("BUTTON");
+    fireEvent.keyDown(trigger, { key: "Enter" });
+    fireEvent.keyDown(trigger, { key: " " });
+    expect(onRowClick).not.toHaveBeenCalled();
+
+    // Keydown on the card itself still activates the row click.
+    fireEvent.keyDown(screen.getByRole("button", { name: /^Ada Lovelace/ }), {
+      key: "Enter",
+    });
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+  });
+
   it("renders mobile rows from the table model with forced selection and row actions", () => {
     render(
       <DataTableMobileView<Person>
