@@ -9,6 +9,7 @@ import {
 } from "./receipt-delivery";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
+import { asString, isRecord } from "../../shared/json-coerce";
 import {
   loadStripeRawEventForReplay,
   markStripeRawEventForReplay,
@@ -46,14 +47,6 @@ type JsonRecord = Record<string, unknown>;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;

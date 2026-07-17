@@ -1,7 +1,7 @@
 import { NonRetriableError } from "inngest";
 
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
-import { createStripeClient } from "../../stripe/client";
+import { resolveTenantStripe } from "../../stripe/tenant-client";
 import { runDonationSagaRecoveryScan } from "../adapters/donations";
 import { requireWorkflowAdminClient } from "../admin-client";
 import { parseWorkflowEnvelopeOrThrow } from "../envelope-guard";
@@ -36,28 +36,25 @@ export const donationSagaRecovery = inngest.createFunction(
     return await step.run("process-donation-saga-row", async () => {
       const supabaseAdmin = requireWorkflowAdminClient("donation_recovery");
 
-      const { data: tenant, error: tenantError } = await supabaseAdmin
-        .from("tenants")
-        .select("id, stripe_secret_key")
-        .eq("id", envelope.tenantId)
-        .single();
+      const tenantStripe = await resolveTenantStripe({
+        supabaseAdmin,
+        tenantId: envelope.tenantId,
+      });
 
-      if (tenantError || !tenant) {
-        throw new Error(
-          `donation_recovery_tenant_not_found: ${tenantError?.message ?? envelope.tenantId}`,
-        );
+      if (!tenantStripe.ok) {
+        if (tenantStripe.reason === "stripe_unconfigured") {
+          throw new NonRetriableError(
+            "donation_recovery_stripe_unconfigured: no Stripe secret key for tenant",
+          );
+        }
+        const detail =
+          tenantStripe.reason === "lookup_failed"
+            ? tenantStripe.message
+            : envelope.tenantId;
+        throw new Error(`donation_recovery_tenant_not_found: ${detail}`);
       }
 
-      const stripeSecretKey =
-        tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
-
-      if (!stripeSecretKey) {
-        throw new NonRetriableError(
-          "donation_recovery_stripe_unconfigured: no Stripe secret key for tenant",
-        );
-      }
-
-      const stripe = createStripeClient(stripeSecretKey);
+      const { stripe } = tenantStripe;
 
       return await processDonationSagaOutboxEvent({
         supabaseAdmin,

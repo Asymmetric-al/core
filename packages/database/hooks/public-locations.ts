@@ -7,6 +7,8 @@ import { locationsCollection } from "../collections/client-db";
 import { type locationSchema } from "../collections/schemas/app";
 
 export type PublicLocation = z.output<typeof locationSchema>;
+export type LocationType = PublicLocation["type"];
+export type LocationStatus = PublicLocation["status"];
 
 export function usePublicLocations() {
   return useLiveQuery(

@@ -1,100 +1,16 @@
-import { defineConfig, devices } from "@playwright/test";
+import {
+  ADMIN_SURFACE,
+  defineBoneyardConfig,
+  resolveSurfaceBaseUrl,
+  shouldReuseExistingServer,
+} from "./tests/e2e/playwright-shared";
 
-const DEFAULT_BASE_URL = "http://localhost:3030";
-const DEFAULT_LOCAL_WORKERS = 1;
-
-function normalizeBaseUrl(baseUrl: string): string {
-  try {
-    const parsed = new URL(baseUrl);
-    if (
-      parsed.hostname === "127.0.0.1" ||
-      parsed.hostname === "localhost" ||
-      parsed.hostname === "::1"
-    ) {
-      const port =
-        parsed.port || String(parsed.protocol === "https:" ? 443 : 3030);
-      return `http://localhost:${port}`;
-    }
-
-    return baseUrl;
-  } catch {
-    return DEFAULT_BASE_URL;
-  }
-}
-
-function getWorkerCount(): number {
-  const envWorkers = Number(process.env.PLAYWRIGHT_WORKERS);
-  if (Number.isFinite(envWorkers) && envWorkers > 0) {
-    return envWorkers;
-  }
-
-  return process.env.CI ? 1 : DEFAULT_LOCAL_WORKERS;
-}
-
-export function shouldReuseExistingServer(
-  env: NodeJS.ProcessEnv = process.env,
-): boolean {
-  const configuredValue =
-    env.PLAYWRIGHT_REUSE_EXISTING_SERVER?.trim().toLowerCase();
-
-  if (configuredValue === "1" || configuredValue === "true") {
-    return true;
-  }
-
-  if (configuredValue === "0" || configuredValue === "false") {
-    return false;
-  }
-
-  return !env.CI;
-}
+export { shouldReuseExistingServer };
 
 export function resolveAdminBaseUrl(
   env: NodeJS.ProcessEnv = process.env,
 ): string {
-  return normalizeBaseUrl(
-    env.PLAYWRIGHT_ADMIN_BASE_URL || env.QA_ADMIN_BASE_URL || DEFAULT_BASE_URL,
-  );
+  return resolveSurfaceBaseUrl(ADMIN_SURFACE, env);
 }
 
-const baseURL = resolveAdminBaseUrl();
-
-const isLocalBaseUrl = (() => {
-  try {
-    const parsed = new URL(baseURL);
-    return parsed.hostname === "127.0.0.1" || parsed.hostname === "localhost";
-  } catch {
-    return true;
-  }
-})();
-
-export default defineConfig({
-  testDir: "./tests/e2e",
-  fullyParallel: false,
-  forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 2 : 0,
-  workers: getWorkerCount(),
-  /** Admin dev + first-hit compilation can exceed the default 30s. */
-  timeout: 180_000,
-  reporter: [["list"]],
-  use: {
-    baseURL,
-    trace: "retain-on-failure",
-    screenshot: "only-on-failure",
-    video: "retain-on-failure",
-  },
-  projects: [{ name: "admin-boneyard", use: { ...devices["Desktop Chrome"] } }],
-  webServer: isLocalBaseUrl
-    ? {
-        command:
-          "node -e \"try{require('fs').rmSync('apps/admin/.next/dev/lock',{force:true})}catch{}\" && bun run --cwd apps/admin dev:playwright -- --port 3030 --hostname localhost",
-        url: baseURL,
-        env: {
-          ...process.env,
-          // Align with scripts/run-with-ci-env.mjs when tests are run without it.
-          E2E_AUTH_BYPASS: process.env.E2E_AUTH_BYPASS || "true",
-        },
-        reuseExistingServer: shouldReuseExistingServer(process.env),
-        timeout: 120000,
-      }
-    : undefined,
-});
+export default defineBoneyardConfig(ADMIN_SURFACE);

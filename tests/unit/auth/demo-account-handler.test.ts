@@ -132,6 +132,27 @@ describe("api/auth/demo-account", () => {
     });
   });
 
+  it("fails closed for roles without a portal user mapping instead of minting an admin cookie", async () => {
+    vi.resetModules();
+    process.env.E2E_AUTH_BYPASS = "true";
+
+    const { POST } =
+      await import("../../../packages/api/src/auth/demo-account");
+    const request = new Request("http://localhost:3000/api/auth/demo-account", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ role: "delivery" }),
+    });
+
+    const response = await POST(request);
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({
+      ok: false,
+      code: "DEMO_ROLE_UNSUPPORTED_FOR_BYPASS",
+    });
+    expect(response.headers.get("set-cookie")).toBeNull();
+  });
+
   it("mints a bypass cookie with zero secret config for the example placeholder", async () => {
     // The whole point of "easy for anyone to test": no E2E_AUTH_SECRET /
     // E2E_AUTH_ALLOWED_SUPABASE_REFS needed against the placeholder datasource.

@@ -1,6 +1,7 @@
 import { enqueueCrmOutboundJob } from "../crm/sync/outbound";
 import { createSupabaseCrmSyncStore } from "../crm/sync/store";
 import { ApiHttpError } from "../shared/http-errors";
+import { asString } from "../shared/json-coerce";
 
 import type { CrmSyncRuntimeConfig } from "../crm/sync/types";
 import type { getAdminClient } from "@asym/database/supabase/admin";
@@ -130,10 +131,6 @@ const ALLOWED_TRANSITIONS: Record<
 
 function isJsonRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function asNumber(value: unknown): number {

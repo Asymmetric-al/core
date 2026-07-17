@@ -5,8 +5,11 @@ import { describe, expect, it } from "vitest";
 
 import { collectAppSupabaseViolationsFromSource } from "../../../scripts/verify/data-boundary-check.mjs";
 
-const donorLocationsHookPath = fileURLToPath(
-  new URL("../../../apps/donor/lib/hooks/use-locations.ts", import.meta.url),
+const publicLocationsHookPath = fileURLToPath(
+  new URL(
+    "../../../packages/database/hooks/public-locations.ts",
+    import.meta.url,
+  ),
 );
 
 const RAW_ALLOWLISTED_FILE = "apps/admin/src/cms/auth/supabase-strategy.ts";
@@ -14,10 +17,11 @@ const BROWSER_ALLOWLISTED_FILE = "apps/admin/lib/authenticated-fetch.ts";
 const REGULAR_FILE = "apps/donor/app/example.tsx";
 
 describe("TanStack DB browser data boundary", () => {
-  it("keeps donor public locations behind @asym/database hooks", () => {
-    const source = readFileSync(donorLocationsHookPath, "utf8");
+  it("keeps public locations behind the TanStack DB collection boundary", () => {
+    const source = readFileSync(publicLocationsHookPath, "utf8");
 
-    expect(source).toContain("@asym/database/hooks");
+    expect(source).toContain("locationsCollection");
+    expect(source).toContain("useLiveQuery");
     expect(source).not.toContain("@asym/database/supabase");
     expect(source).not.toContain("supabase.from");
     expect(source).not.toContain("createBrowserClient");

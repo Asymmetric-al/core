@@ -34,6 +34,12 @@ export {
 export { useAdminCrmReport } from "./admin-crm-report";
 export { useDonorHistoryTransactions } from "./donor-history";
 export {
+  usePublicLocations,
+  type LocationStatus as PublicLocationStatus,
+  type LocationType as PublicLocationType,
+  type PublicLocation,
+} from "./public-locations";
+export {
   DONOR_FEED_POSTS_QUERY_KEY,
   fetchDonorFeedPosts,
   formatPostRelativeTime,
@@ -92,7 +98,6 @@ export {
   useUpsertLocation,
   useDeleteLocation,
 } from "./admin-locations";
-export { usePublicLocations, type PublicLocation } from "./public-locations";
 export { useMissionaryDonorRows } from "./missionary-donors";
 export {
   useCreateDonorBillingPortalSession,

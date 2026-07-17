@@ -1,5 +1,6 @@
 import { asPayload, createContributionBatchPreview } from "./preview";
 import { summarizeContributionBatchResults } from "./results";
+import { asString, isRecord } from "../../shared/json-coerce";
 
 import type {
   ContributionBatchStatus,
@@ -119,14 +120,6 @@ export async function processContributionBatch(
 }
 
 type JsonRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 function asItemStatus(value: unknown): PersistedBatchItemStatus | null {
   if (
