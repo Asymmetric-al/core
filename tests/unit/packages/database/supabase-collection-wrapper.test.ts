@@ -15,6 +15,12 @@ const wrapperPath = fileURLToPath(
     import.meta.url,
   ),
 );
+const queryOncePath = fileURLToPath(
+  new URL(
+    "../../../../packages/database/collections/query-once.ts",
+    import.meta.url,
+  ),
+);
 
 describe("Supabase collection wrapper", () => {
   const messageSchema = z.object({
@@ -55,6 +61,14 @@ describe("Supabase collection wrapper", () => {
 
     expect(source).not.toContain('from "@supabase/supabase-js"');
     expect(source).not.toContain("from '@supabase/supabase-js'");
+  });
+
+  it("keeps queryOnce in a server-safe helper module", () => {
+    const source = readFileSync(queryOncePath, "utf8");
+
+    expect(source).not.toContain('"use client"');
+    expect(source).toContain("../supabase/server");
+    expect(source).toContain("querySupabaseCollectionOnce");
   });
 
   it("types collection keys from the schema output", () => {

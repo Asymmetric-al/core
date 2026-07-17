@@ -206,7 +206,9 @@ describe("contribution operations store", () => {
     const pledgeId = "00000000-0000-4000-8000-000000000015";
     const pledgeFundId = "00000000-0000-4000-8000-000000000016";
     const stagedGiftId = "00000000-0000-4000-8000-000000000017";
-    const pledgeMissionaryId = "00000000-0000-4000-8000-000000000018";
+    const allocationId = "00000000-0000-4000-8000-000000000018";
+    const linkedAllocationId = "00000000-0000-4000-8000-000000000019";
+    const pledgeMissionaryId = "00000000-0000-4000-8000-000000000020";
     const supabaseAdmin = createSupabaseStub({
       donations: (query) => {
         // Second donations query: the tenant-scoped gift-history aggregate
@@ -233,6 +235,9 @@ describe("contribution operations store", () => {
             status: "completed",
             donation_type: "recurring",
             payment_method: "card",
+            stripe_payment_intent_id: "pi_recurring",
+            stripe_charge_id: "ch_recurring",
+            stripe_refund_ids: ["re_recurring_1", "re_recurring_2"],
             is_recurring: true,
             recurring_interval: "month",
             refund_amount: 0,
@@ -272,7 +277,25 @@ describe("contribution operations store", () => {
         },
         error: null,
       },
-      staged_gift_allocations: emptyRows,
+      staged_gift_allocations: {
+        data: [
+          {
+            id: allocationId,
+            amount: 3750,
+            fund_id: donationFundId,
+            missionary_id: null,
+            memo: null,
+          },
+          {
+            id: linkedAllocationId,
+            amount: 3750,
+            fund_id: donationFundId,
+            missionary_id: null,
+            memo: null,
+          },
+        ],
+        error: null,
+      },
       contribution_operation_audit_events: emptyRows,
       contribution_corrections: emptyRows,
       contribution_correction_requests: {
@@ -288,26 +311,76 @@ describe("contribution operations store", () => {
         ],
         error: null,
       },
-      donation_crm_links: {
-        data: [
-          {
-            id: "crm_parent",
-            scope: "parent",
-            allocation_id: null,
-            link_status: "active",
-            twenty_record_id: "twenty_parent",
-            last_error: null,
-          },
-          {
-            id: "crm_designation",
-            scope: "designation",
-            allocation_id: "allocation_1",
-            link_status: "failed",
-            twenty_record_id: null,
-            last_error: "Twenty rejected the child record.",
-          },
-        ],
-        error: null,
+      donation_crm_links: (query) => {
+        expectTenantScoped(query, tenantId);
+        const allocationIds = query.inFilters.get("allocation_id");
+        if (allocationIds) {
+          expect(new Set(allocationIds)).toEqual(
+            new Set([allocationId, linkedAllocationId]),
+          );
+          expect(query.eqFilters.get("scope")).toBe("designation");
+          return {
+            data: [
+              {
+                id: "crm_designation",
+                scope: "designation",
+                allocation_id: allocationId,
+                donation_id: null,
+                staged_gift_id: null,
+                link_status: "failed",
+                twenty_record_id: null,
+                last_error: "Twenty rejected the child record.",
+              },
+              {
+                id: "crm_designation_linked",
+                scope: "designation",
+                allocation_id: linkedAllocationId,
+                donation_id: donationId,
+                staged_gift_id: stagedGiftId,
+                link_status: "failed",
+                twenty_record_id: null,
+                last_error: "Twenty rejected the linked child record.",
+              },
+            ],
+            error: null,
+          };
+        }
+
+        if (query.eqFilters.get("staged_gift_id") === stagedGiftId) {
+          expect(query.eqFilters.get("scope")).toBe("parent");
+          return {
+            data: [
+              {
+                id: "crm_parent",
+                scope: "parent",
+                allocation_id: null,
+                donation_id: null,
+                staged_gift_id: stagedGiftId,
+                link_status: "active",
+                twenty_record_id: "twenty_parent",
+                last_error: null,
+              },
+            ],
+            error: null,
+          };
+        }
+
+        expect(query.eqFilters.get("donation_id")).toBe(donationId);
+        return {
+          data: [
+            {
+              id: "crm_designation_linked",
+              scope: "designation",
+              allocation_id: linkedAllocationId,
+              donation_id: donationId,
+              staged_gift_id: stagedGiftId,
+              link_status: "failed",
+              twenty_record_id: null,
+              last_error: "Twenty rejected the linked child record.",
+            },
+          ],
+          error: null,
+        };
       },
       donor_pledges: (query) => {
         expectTenantScoped(query, tenantId);
@@ -398,18 +471,36 @@ describe("contribution operations store", () => {
         receiptAffectedFields: [],
       },
     ]);
+    expect(detail.payment.stripe).toMatchObject({
+      paymentIntentId: "pi_recurring",
+      chargeId: "ch_recurring",
+      refundIds: ["re_recurring_1", "re_recurring_2"],
+    });
     expect(detail.crm.parent.twentyRecordId).toBe("twenty_parent");
-    expect(detail.crm.designationRecords).toEqual([
-      {
-        allocationId: "allocation_1",
-        status: "failed",
-        twentyRecordId: null,
-        lastError: "Twenty rejected the child record.",
-      },
-    ]);
-    expect(detail.crm.failedScopes).toEqual([
-      { scope: "designation", allocationId: "allocation_1" },
-    ]);
+    expect(detail.crm.designationRecords).toHaveLength(2);
+    expect(detail.crm.designationRecords).toEqual(
+      expect.arrayContaining([
+        {
+          allocationId,
+          status: "failed",
+          twentyRecordId: null,
+          lastError: "Twenty rejected the child record.",
+        },
+        {
+          allocationId: linkedAllocationId,
+          status: "failed",
+          twentyRecordId: null,
+          lastError: "Twenty rejected the linked child record.",
+        },
+      ]),
+    );
+    expect(detail.crm.failedScopes).toHaveLength(2);
+    expect(detail.crm.failedScopes).toEqual(
+      expect.arrayContaining([
+        { scope: "designation", allocationId },
+        { scope: "designation", allocationId: linkedAllocationId },
+      ]),
+    );
     expect(detail.recurring).toMatchObject({
       isRecurring: true,
       interval: "month",

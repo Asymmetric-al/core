@@ -1,4 +1,4 @@
-import { ApiHttpError } from "../../../shared/http-errors";
+import { ApiHttpError } from "../../../shared/api-http-error";
 import {
   isInlineContributionActionType,
   pickNextBestInlineContributionAction,

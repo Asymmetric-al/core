@@ -746,6 +746,7 @@ export function buildContributionDetail(
         : null,
       paymentStatus: effective.paymentStatus,
       hasCrmPostFailure: crmPostState.failedScopes.length > 0,
+      crmPostFailedScopes: crmPostState.failedScopes,
       refund: {
         // Refundable basis is the ORIGINAL donation amount (what the
         // provider charged), never the adjusted effective amount, so the

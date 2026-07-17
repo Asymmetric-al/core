@@ -1,7 +1,8 @@
 import { resolveCorrectionApprovalPolicy } from "./approval-policy";
+import { directContributionCapabilityForAction } from "./permissions";
 import {
-  buildCorrectionRequestAvailability,
-  CONTRIBUTION_OPERATION_CAPABILITY,
+  buildCorrectionActionAvailability,
+  CRM_INLINE_CONTRIBUTION_ACTION_TYPES,
   isCorrectionRequestActionType,
   stripeReplayAvailability,
   viewerCanUseContributionOperation,
@@ -31,7 +32,12 @@ import type {
 export const INLINE_ACTION_CAPABILITY: Record<
   CrmGiftInlineActionType,
   ContributionCapability
-> = CONTRIBUTION_OPERATION_CAPABILITY;
+> = Object.fromEntries(
+  CRM_INLINE_CONTRIBUTION_ACTION_TYPES.map((actionType) => [
+    actionType,
+    directContributionCapabilityForAction(actionType),
+  ]),
+) as Record<CrmGiftInlineActionType, ContributionCapability>;
 
 /**
  * Only low-risk workflow actions are ever promoted to the row's single
@@ -47,7 +53,9 @@ const NEXT_BEST_PRIORITY: CrmGiftInlineActionType[] = [
 export function isInlineContributionActionType(
   actionType: string,
 ): actionType is CrmGiftInlineActionType {
-  return actionType in INLINE_ACTION_CAPABILITY;
+  return (CRM_INLINE_CONTRIBUTION_ACTION_TYPES as readonly string[]).includes(
+    actionType,
+  );
 }
 
 export function pickNextBestInlineContributionAction(
@@ -93,11 +101,10 @@ export function buildInlineContributionActions(
         entry.actionType !== "stripe_replay",
     )
     .filter((entry) => !isCorrectionRequestActionType(entry.actionType));
-  const correctionRequestEntries =
-    buildCorrectionRequestAvailability(approvalPolicy);
+  const correctionEntries = buildCorrectionActionAvailability();
 
   const allEntries: CrmGiftInlineActionEntry[] = [
-    ...correctionRequestEntries,
+    ...correctionEntries,
     ...workflowEntries,
     {
       ...stripeReplayAvailability(

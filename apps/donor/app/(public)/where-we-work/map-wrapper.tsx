@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  usePublicLocations,
+  type PublicLocation as Location,
+} from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
 import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import {
@@ -31,10 +35,6 @@ import { cn } from "@asym/ui/lib/utils";
 import Image from "next/image";
 import Link from "next/link";
 import { useState, useMemo, useCallback, useEffect } from "react";
-
-import type { Location } from "@/lib/hooks/use-locations";
-
-import { usePublicLocations } from "@/lib/hooks/use-locations";
 
 function SearchIcon({ className }: { className?: string }) {
   return (

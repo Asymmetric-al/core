@@ -8,10 +8,6 @@
     "./utils": "./utils.ts",
     "./csv": "./csv.ts",
     "./stripe": "./stripe.ts",
-    "./cloudinary": {
-      "client": "./cloudinary/client.ts",
-      "server": "./cloudinary/server.ts"
-    },
     "./cloudinary-client": "./cloudinary-client.ts",
     "./cloudinary-server": "./cloudinary-server.ts",
     "./image-utils": "./image-utils.ts",

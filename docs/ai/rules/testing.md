@@ -218,6 +218,10 @@ npx playwright show-report
   `e2e-gate` on `production` as the branch-protection contexts.
 - `tests/unit/unit-test-harness.test.ts` and `tests/setup/unit-env.ts` keep unit
   tests off live secrets (`SUPABASE_SERVICE_ROLE_KEY` cleared globally).
+- TanStack DB browser data changes should add or update focused unit coverage
+  for collection wrapper behavior, collection registry completeness, live query
+  joins, optimistic mutation rollback, data-boundary enforcement, and
+  RLS/Realtime migration guardrails where feasible.
 
 ## Common mistakes / pitfalls
 

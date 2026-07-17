@@ -3,6 +3,7 @@ import {
   normalizeCrmPinnedActionId,
 } from "./row-action";
 import { ApiHttpError } from "../../../shared/http-errors";
+import { isRecord } from "../../../shared/json-coerce";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type {
@@ -28,10 +29,6 @@ const PREFERENCE_COLUMNS = "pinned_action_id, schema_version, settings";
 
 function firstRpcValue(data: unknown): unknown {
   return Array.isArray(data) ? data[0] : data;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function readPreferenceRpcRow(data: unknown): PreferenceRow | null {

@@ -38,37 +38,11 @@ describe("TanStack foundation guardrails", () => {
     expect(hooksSource).not.toMatch(/@ts-nocheck/);
   });
 
-  it("keeps the unbounded fetchTableRows helper off tenant-scale tables", () => {
+  it("keeps legacy client-db as a compatibility barrel", () => {
     const clientDbSource = readFileSync(clientDbPath, "utf8");
 
-    // fetchTableRows loads an entire table; it is only acceptable for small
-    // reference tables. Growth-prone tables must go through a bounded fetcher,
-    // so pin the helper's call sites to exactly the reference tables.
-    const fetchTableRowsTargets = [
-      ...clientDbSource.matchAll(
-        /fetchTableRows(?:<[\s\S]*?>)?\(\s*"([a-z_]+)"/g,
-      ),
-    ]
-      .map((match) => match[1])
-      .sort();
-
-    expect(fetchTableRowsTargets).toEqual([
-      "funds",
-      "missionaries",
-      "profiles",
-    ]);
-
-    // Each tenant-scale collection declares a bounded fetcher.
-    for (const table of [
-      "donors",
-      "donor_activities",
-      "donor_pledges",
-      "posts",
-      "donations",
-      "post_comments",
-      "follows",
-    ]) {
-      expect(clientDbSource).toContain(`table: "${table}"`);
-    }
+    expect(clientDbSource).not.toContain("queryCollectionOptions");
+    expect(clientDbSource).not.toContain("supabase.from");
+    expect(clientDbSource).not.toContain("fetchTableRows");
   });
 });

@@ -1,22 +1,18 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 
+import { ApiHttpError } from "./api-http-error";
+
+// Browser-safe modules import the class from "./api-http-error" directly;
+// this re-export keeps the server-side import surface unchanged.
+export { ApiHttpError };
+
 const STATUS_BY_ERROR_CODE: Record<string, number> = {
   "23503": 409, // foreign_key_violation
   "23505": 409, // unique_violation
   "42501": 403, // insufficient_privilege
   PGRST116: 404,
 };
-
-export class ApiHttpError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-    this.name = "ApiHttpError";
-  }
-}
 
 export async function ensureJsonBody(request: Request): Promise<unknown> {
   try {

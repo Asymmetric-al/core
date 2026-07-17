@@ -30,9 +30,13 @@ describe("resolvePreviewSmokeScope", () => {
     const config = resolvePreviewSmokeScope([
       "playwright.missionary.config.ts",
     ]);
+    const sharedConfigModule = resolvePreviewSmokeScope([
+      "tests/e2e/playwright-shared.ts",
+    ]);
 
     expect(smokeSpec.scope).toBe("all");
     expect(config.scope).toBe("all");
+    expect(sharedConfigModule.scope).toBe("all");
   });
 
   it("skips docs-only changes", () => {

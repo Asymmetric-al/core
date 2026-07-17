@@ -4,7 +4,7 @@ import { supabaseCollectionOptions } from "@supabase-labs/tanstack-db";
 import { createCollection } from "@tanstack/react-db";
 import { type z } from "zod";
 
-import { type getQueryClient } from "../providers/query-client";
+import { getQueryClient } from "../providers/query-client";
 import { createClient } from "../supabase/client";
 
 type AdapterOptions<TSchema extends z.ZodType> = Parameters<
@@ -66,7 +66,10 @@ export function createSupabaseCollection<TSchema extends z.ZodType>(
     tableName: config.tableName,
     schema: config.schema,
     keys: [...config.keys] as AdapterOptions<TSchema>["keys"],
-    queryClient: config.queryClient,
+    // Default to the app-wide query client so collection queries share the
+    // same cache/invalidation surface as the rest of the app. Without this the
+    // adapter falls back to its own internal QueryClient singleton.
+    queryClient: config.queryClient ?? getQueryClient(),
     supabase: createClient() as AdapterOptions<TSchema>["supabase"],
     realtime: realtime.enabled,
   };

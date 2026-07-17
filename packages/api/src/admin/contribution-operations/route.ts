@@ -22,11 +22,15 @@ import {
   assertReceiptSnapshotPdfCapability,
   renderContributionReceiptSnapshotPdf,
 } from "./receipt-pdf";
+import {
+  assertContributionRouteActionSupported,
+  isContributionRouteActionSupported,
+  unsupportedContributionRouteActionMessage,
+} from "./route-action-support";
 import { loadContributionDetailFromSupabase } from "./store";
 import {
   CONTRIBUTION_ACTION_TYPES,
   CONTRIBUTION_SOURCE_SURFACES,
-  type ContributionActionType,
   type ContributionPermission,
 } from "./types";
 import {
@@ -50,40 +54,10 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 
 export { replayStripeEventThroughContributionOperations };
 export { projectContributionActionResultForViewer };
-
-const UNSUPPORTED_ROUTE_ACTION_TYPES = new Set<ContributionActionType>([
-  "metadata_update",
-  "donor_relink",
-]);
-
-export function isContributionRouteActionSupported(
-  actionType: ContributionActionType,
-): boolean {
-  return !UNSUPPORTED_ROUTE_ACTION_TYPES.has(actionType);
-}
-
-function unsupportedRouteActionMessage(
-  actionType: ContributionActionType,
-): string {
-  switch (actionType) {
-    case "metadata_update":
-      return "metadata_update is not supported by this route yet.";
-    case "donor_relink":
-      return "donor_relink is not supported by this route until donor relink dependencies are wired.";
-    default:
-      return `${actionType} is not supported by this route.`;
-  }
-}
-
-export function assertContributionRouteActionSupported(
-  actionType: ContributionActionType,
-): void {
-  if (isContributionRouteActionSupported(actionType)) {
-    return;
-  }
-
-  throw new ApiHttpError(501, unsupportedRouteActionMessage(actionType));
-}
+export {
+  assertContributionRouteActionSupported,
+  isContributionRouteActionSupported,
+} from "./route-action-support";
 
 const actionTypeSchema = z
   .enum(CONTRIBUTION_ACTION_TYPES)
@@ -94,7 +68,7 @@ const actionTypeSchema = z
 
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
-      message: unsupportedRouteActionMessage(actionType),
+      message: unsupportedContributionRouteActionMessage(actionType),
     });
   });
 
@@ -303,17 +277,10 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         assertContributionRouteActionSupported(correctionRequest.actionType);
       }
 
-      // Load the tenant policy once: the decision executor consumes it, and
-      // the result projection must shape canonicalContribution availability
-      // entries under the same policy the GET contract uses (#270) — the
-      // conservative default would advertise request affordances the
-      // executor rejects for no_approval_required tenants.
-      const approvalPolicy = await loadCorrectionApprovalPolicy({
-        supabaseAdmin,
-        tenantId: auth.tenantId,
-      });
       const viewerCapabilities = resolveContributionCapabilities(auth);
 
+      // The decision service intentionally checks for an idempotent replay
+      // before lazily loading tenant policy. Do not pre-load policy here.
       const outcome = await decideContributionCorrectionRequest({
         supabaseAdmin,
         tenantId: auth.tenantId,
@@ -323,7 +290,6 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         receiptDelivery: body.receiptDelivery ?? null,
         deciderProfileId: auth.profileId,
         deciderCapabilities: viewerCapabilities,
-        policy: approvalPolicy,
         dependencies: createContributionActionDependencies(supabaseAdmin),
         recordOutcome: recordCorrectionApprovalOutcome,
       });
@@ -342,7 +308,10 @@ export const POST_CORRECTION_REQUEST_DECISION = withOperation(
         ? projectContributionActionResultForViewer(
             outcome.result,
             viewerCapabilities,
-            { approvalPolicy, providerDashboardTestMode },
+            {
+              approvalPolicy: outcome.approvalPolicy,
+              providerDashboardTestMode,
+            },
           )
         : null;
 

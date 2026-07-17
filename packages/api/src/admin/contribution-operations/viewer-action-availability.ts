@@ -1,4 +1,8 @@
 import { correctionRequiresApproval } from "./approval-policy";
+import {
+  directContributionCapabilityForAction,
+  requiredCapabilitiesForContributionAction,
+} from "./permissions";
 import { getContributionActionRiskLevel } from "./policy";
 
 import type { ContributionActionAvailability } from "./action-availability";
@@ -10,33 +14,28 @@ import type {
 } from "@asym/database/types";
 
 /**
- * Viewer-scoped availability derivation shared by CRM inline actions and the
- * contribution detail contract (issue #270).
- *
- * Both surfaces must offer the same operations with identical availability,
- * blocked reasons, and next steps — parity by construction, not parallel
- * maintenance. Every piece that depends on the viewer or tenant policy
- * (correction request entries, provider replay, capability gating) lives
- * here so `buildInlineContributionActions` and
- * `projectContributionDetailForViewer` derive from one implementation.
+ * Viewer- and policy-scoped availability shared by CRM inline actions and the
+ * contribution-detail contract. Keeping this derivation in one module makes
+ * the two entry surfaces authorized-identical by construction (issue #270).
  */
 
-/** Capability a viewer needs before an operation is surfaced (ADR-CD-024). */
-export const CONTRIBUTION_OPERATION_CAPABILITY: Record<
-  CrmGiftInlineActionType,
-  ContributionCapability
-> = {
-  amount_correction: "contributions.request_corrections",
-  fund_correction: "contributions.request_corrections",
-  resend_receipt: "contributions.manage_receipts",
-  approve_staged_gift: "contributions.apply_corrections",
-  retry_staged_gift: "contributions.retry_crm_post",
-  refund: "contributions.run_refunds",
-  stripe_replay: "contributions.use_provider_actions",
-};
+export const CRM_INLINE_CONTRIBUTION_ACTION_TYPES = [
+  "amount_correction",
+  "fund_correction",
+  "resend_receipt",
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "refund",
+  "stripe_replay",
+] as const satisfies readonly CrmGiftInlineActionType[];
 
-const REQUEST_CAPABILITY: ContributionCapability =
-  "contributions.request_corrections";
+/** Direct capability required when the operation does not create a request. */
+export const CONTRIBUTION_OPERATION_CAPABILITY = Object.fromEntries(
+  CRM_INLINE_CONTRIBUTION_ACTION_TYPES.map((actionType) => [
+    actionType,
+    directContributionCapabilityForAction(actionType),
+  ]),
+) as Record<CrmGiftInlineActionType, ContributionCapability>;
 
 const CORRECTION_REQUEST_ACTION_TYPES = [
   "amount_correction",
@@ -46,20 +45,6 @@ const CORRECTION_REQUEST_ACTION_TYPES = [
 type CorrectionRequestActionType =
   (typeof CORRECTION_REQUEST_ACTION_TYPES)[number];
 
-/**
- * Operations a request-capable viewer may submit as approval requests. These
- * must match the executor's approval-request path (isApprovalRequestAction:
- * refund + corrections, including provider replay). Request capability only
- * qualifies while the tenant policy requires approval; otherwise the direct
- * operation capability remains required.
- */
-const APPROVAL_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>([
-  "amount_correction",
-  "fund_correction",
-  "refund",
-  "stripe_replay",
-]);
-
 export function isCorrectionRequestActionType(
   actionType: string,
 ): actionType is CorrectionRequestActionType {
@@ -68,11 +53,12 @@ export function isCorrectionRequestActionType(
   );
 }
 
-/** Narrow to operations the shared capability map governs. */
 export function isContributionOperationActionType(
   actionType: string,
 ): actionType is CrmGiftInlineActionType {
-  return actionType in CONTRIBUTION_OPERATION_CAPABILITY;
+  return (CRM_INLINE_CONTRIBUTION_ACTION_TYPES as readonly string[]).includes(
+    actionType,
+  );
 }
 
 /** Provider payment proof drives replay availability (ADR-CD-015). */
@@ -100,48 +86,51 @@ export function stripeReplayAvailability(
   };
 }
 
-/**
- * Correction operations surface as adjustment-record requests over the
- * original donation truth, so they have no state precondition; approval
- * policy gates the apply step server-side (ADR-CD-004 / ADR-CD-005). When
- * the tenant policy lets corrections apply directly, the request affordance
- * is omitted because a request-only submission would be rejected by the
- * executor.
- */
-export function buildCorrectionRequestAvailability(
-  approvalPolicy: CorrectionApprovalPolicy,
-): CrmGiftInlineActionEntry[] {
-  return CORRECTION_REQUEST_ACTION_TYPES.filter((actionType) =>
-    correctionRequiresApproval({ actionType, policy: approvalPolicy }),
-  ).map((actionType) => ({
+function correctionAvailabilityEntry(
+  actionType: CorrectionRequestActionType,
+): CrmGiftInlineActionEntry {
+  return {
     actionType,
     available: true,
     blockedReason: null,
     nextStep: null,
     riskLevel: getContributionActionRiskLevel(actionType),
-  }));
+  };
 }
 
 /**
- * Capabilities that let a viewer act on an operation: the direct capability
- * always qualifies; request capability also qualifies when tenant policy
- * routes the operation through approval (ADR-CD-024 / ADR-CD-025).
+ * Correction operations surface over immutable donation truth. Which viewer
+ * can use each entry depends on whether policy routes it through a request or
+ * permits direct application; the state availability itself remains open.
  */
+export function buildCorrectionActionAvailability(): CrmGiftInlineActionEntry[] {
+  return CORRECTION_REQUEST_ACTION_TYPES.map(correctionAvailabilityEntry);
+}
+
+/** Request-routed correction entries under the supplied tenant policy. */
+export function buildCorrectionRequestAvailability(
+  approvalPolicy: CorrectionApprovalPolicy,
+): CrmGiftInlineActionEntry[] {
+  return CORRECTION_REQUEST_ACTION_TYPES.filter((actionType) =>
+    correctionRequiresApproval({ actionType, policy: approvalPolicy }),
+  ).map(correctionAvailabilityEntry);
+}
+
 export function requiredCapabilitiesForContributionOperation(
   actionType: CrmGiftInlineActionType,
   approvalPolicy: CorrectionApprovalPolicy,
 ): ContributionCapability[] {
-  const directCapability = CONTRIBUTION_OPERATION_CAPABILITY[actionType];
-  const canRequestApproval =
-    APPROVAL_REQUEST_ACTION_TYPES.has(actionType) &&
-    correctionRequiresApproval({ actionType, policy: approvalPolicy });
+  const mode = correctionRequiresApproval({
+    actionType,
+    policy: approvalPolicy,
+  })
+    ? "request"
+    : "direct";
 
-  if (!canRequestApproval || directCapability === REQUEST_CAPABILITY) {
-    return [directCapability];
-  }
-
-  return [directCapability, REQUEST_CAPABILITY];
+  return requiredCapabilitiesForContributionAction(actionType, { mode });
 }
+
+const REQUEST_CORRECTION_CAPABILITY = "contributions.request_corrections";
 
 export function viewerCanUseContributionOperation(input: {
   actionType: CrmGiftInlineActionType;
@@ -152,6 +141,27 @@ export function viewerCanUseContributionOperation(input: {
     input.actionType,
     input.approvalPolicy,
   );
+  const approvalRequired = correctionRequiresApproval({
+    actionType: input.actionType,
+    policy: input.approvalPolicy,
+  });
+  const executesAsApprovalRequest =
+    approvalRequired &&
+    requiredCapabilities.includes(REQUEST_CORRECTION_CAPABILITY);
+
+  if (executesAsApprovalRequest) {
+    // Provider-touching requests keep the stricter route gate: the requester
+    // must hold both the direct capability and the request capability.
+    if (input.actionType === "refund" || input.actionType === "stripe_replay") {
+      return requiredCapabilities.every((capability) =>
+        input.viewerCapabilities.includes(capability),
+      );
+    }
+
+    // Approval-gated corrections execute through the request path. Holding
+    // only direct apply authority cannot create that request.
+    return input.viewerCapabilities.includes(REQUEST_CORRECTION_CAPABILITY);
+  }
 
   return requiredCapabilities.some((capability) =>
     input.viewerCapabilities.includes(capability),

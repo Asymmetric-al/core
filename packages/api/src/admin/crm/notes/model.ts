@@ -1,59 +1,12 @@
+import {
+  findFirstString,
+  getNestedName,
+  isRecord,
+  timestampOrDefault,
+} from "../../../shared/json-coerce";
+
 import type { AdminCrmNotesParams } from "./query";
 import type { CrmNoteRow } from "@asym/database/types";
-
-type JsonRecord = Record<string, unknown>;
-
-const DEFAULT_TIMESTAMP = "1970-01-01T00:00:00.000Z";
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-
-  if (isRecord(value) && typeof value.value === "string") {
-    return asString(value.value);
-  }
-
-  return null;
-}
-
-function findFirstString(
-  record: JsonRecord,
-  keys: readonly string[],
-): string | null {
-  for (const key of keys) {
-    const value = asString(record[key]);
-    if (value) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
-function getNestedName(value: unknown): string | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return (
-    (findFirstString(value, ["name", "displayName", "fullName"]) ??
-      [asString(value.firstName), asString(value.lastName)]
-        .filter(Boolean)
-        .join(" ")
-        .trim()) ||
-    null
-  );
-}
 
 function previewBody(body: string): string {
   const singleLine = body.replace(/\s+/g, " ").trim();
@@ -62,19 +15,6 @@ function previewBody(body: string): string {
   }
 
   return `${singleLine.slice(0, 157).trimEnd()}...`;
-}
-
-function timestampOrDefault(value: string | null): string {
-  if (!value) {
-    return DEFAULT_TIMESTAMP;
-  }
-
-  const timestamp = new Date(value);
-  if (Number.isNaN(timestamp.getTime())) {
-    return DEFAULT_TIMESTAMP;
-  }
-
-  return timestamp.toISOString();
 }
 
 function getArrayCandidate(value: unknown): unknown[] | null {

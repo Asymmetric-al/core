@@ -1,6 +1,7 @@
 "use client";
 
 import { AnimatePresence, motion } from "@asym/lib/motion";
+import { buildCheckoutHref } from "@asym/lib/payments/checkout-designations";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { cn } from "@asym/ui/lib/utils";
 import { ArrowRight, DollarSign } from "lucide-react";
@@ -160,12 +161,7 @@ export function QuickGive({
     }
 
     const safeAmount = Math.round(amount * 100) / 100;
-    const qs = new URLSearchParams({
-      workerId,
-      amount: String(safeAmount),
-    });
-
-    push(`/checkout?${qs.toString()}`);
+    push(buildCheckoutHref({ workerId, amount: safeAmount }));
   }
 
   return (

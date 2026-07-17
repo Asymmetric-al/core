@@ -3,6 +3,8 @@ import tsParser from "@typescript-eslint/parser";
 import importXPlugin from "eslint-plugin-import-x";
 import unusedImportsPlugin from "eslint-plugin-unused-imports";
 
+import { restrictedImports } from "./restricted-imports.mjs";
+
 const tsRecommendedConfig = tsEslintPlugin.configs["flat/recommended"] ?? [];
 
 export const baseConfig = [
@@ -36,38 +38,7 @@ export const baseConfig = [
   {
     files: ["**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["../../apps/*", "../../../apps/*", "../../../../apps/*"],
-              message:
-                "Apps cannot import from other apps. Use @asym/* packages instead.",
-            },
-            {
-              group: ["**/apps/admin/**"],
-              message:
-                "Cannot import from apps/admin. Use @asym/* packages instead.",
-            },
-            {
-              group: ["**/apps/donor/**"],
-              message:
-                "Cannot import from apps/donor. Use @asym/* packages instead.",
-            },
-            {
-              group: ["**/apps/missionary/**"],
-              message:
-                "Cannot import from apps/missionary. Use @asym/* packages instead.",
-            },
-            {
-              group: ["motion/react", "framer-motion"],
-              message:
-                "Import motion APIs from @asym/lib/motion (LazyMotion m + MotionConfig reducedMotion). See docs/ai/skills/anim/SKILL.md.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": restrictedImports(),
       "import-x/no-duplicates": "error",
       "import-x/order": [
         "warn",
@@ -115,37 +86,11 @@ export const baseConfig = [
   },
   {
     // cms-ui relaxes ONLY the motion/react restriction; the cross-app import
-    // boundaries must keep applying, so re-declare the rule without the
+    // boundaries must keep applying, so re-compose the rule without the
     // motion group instead of turning it off.
     files: ["**/src/cms-ui/**"],
     rules: {
-      "no-restricted-imports": [
-        "error",
-        {
-          patterns: [
-            {
-              group: ["../../apps/*", "../../../apps/*", "../../../../apps/*"],
-              message:
-                "Apps cannot import from other apps. Use @asym/* packages instead.",
-            },
-            {
-              group: ["**/apps/admin/**"],
-              message:
-                "Cannot import from apps/admin. Use @asym/* packages instead.",
-            },
-            {
-              group: ["**/apps/donor/**"],
-              message:
-                "Cannot import from apps/donor. Use @asym/* packages instead.",
-            },
-            {
-              group: ["**/apps/missionary/**"],
-              message:
-                "Cannot import from apps/missionary. Use @asym/* packages instead.",
-            },
-          ],
-        },
-      ],
+      "no-restricted-imports": restrictedImports({ exclude: ["motion"] }),
     },
   },
   {

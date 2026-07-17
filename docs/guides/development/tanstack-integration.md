@@ -15,6 +15,7 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 | `@tanstack/react-db`             | `^0.1.82`              | `packages/database`, `packages/ui`                             | React DB bindings                       |
 | `@tanstack/query-db-collection`  | `^1.0.35`              | `packages/database`                                            | Query-backed collections                |
 | `@tanstack/db`                   | `^0.6.4`               | `packages/database`                                            | DB runtime                              |
+| `@supabase-labs/tanstack-db`     | `0.0.1` (exact)        | `packages/database`                                            | Supabase collection adapter             |
 | `@tanstack/react-virtual`        | `^3.13.23`             | `packages/ui`                                                  | Row/list virtualization                 |
 | `@tanstack/cli`                  | `^0.63.1`              | repo root (devDependency)                                      | TanStack docs + tooling                 |
 | `zod`                            | `^4.3.6`               | apps + shared packages                                         | Runtime schema validation               |
@@ -26,11 +27,11 @@ AI agents should pair official TanStack CLI docs/search output with this repo-sp
 1. **Server/cache layer (Next.js Cache Components)**
    Use `use cache`, `cacheTag`, `cacheLife`, `revalidateTag`, and `updateTag` only in server-safe code paths.
 
-2. **TanStack Query — server fetch state.**
-   Fetching, retries, cache invalidation, and optimistic mutation flows belong here. Query keys must be serializable and must include every table-state input that affects the response (pagination, sorting, filters) **plus** the `manual*` mode flags, so server-mode and client-mode results never collide in the cache.
+2. **TanStack Query — server and non-collection fetch state.**
+   Fetching, retries, cache invalidation, and optimistic mutation flows for server read models and non-collection async state belong here. Query keys must be serializable and must include every table-state input that affects the response (pagination, sorting, filters) **plus** the `manual*` mode flags, so server-mode and client-mode results never collide in the cache.
 
-3. **TanStack DB — local reactive working sets.**
-   Collection joins, live queries, and optimistic staging belong here — but only where multiple surfaces share the same data. A single-screen dataset should stay on plain Query.
+3. **TanStack DB — browser table state and local reactive working sets.**
+   Browser-visible Supabase table rows belong in shared collections and `@asym/database/hooks` by default. Collection joins, live queries, and optimistic staging also belong here when multiple surfaces share the same data. A single-screen dataset should stay on plain Query only when it is not collection-safe Supabase table state.
 
 4. **TanStack Table — view state.**
    Sorting, filtering, pagination, row selection, and column visibility belong in UI components and stay decoupled from fetch logic. The table engine never owns data freshness.
@@ -134,12 +135,22 @@ Treat v8 docs as migration context only. See the **"TanStack Table v9 (beta) sou
 
 ## Collection Ownership
 
-- **Real Supabase table collections** live in `packages/database/collections/client-db.ts`.
-- **Route-backed admin collections** live in `packages/database/collections/admin-locations.ts`.
+- **Real Supabase table collections** live under `packages/database/collections/tables/*` and use the shared `supabase-collection.ts` wrapper.
+- **The collection registry** lives in `packages/database/collections/registry.ts` and records table ownership, RLS posture, Realtime posture, mutation policy, and intentional exclusions.
+- **Route-backed admin collections** live in `packages/database/collections/admin-locations.ts` only while their server read model still provides linked entities or redaction not yet represented by safe collections.
 - **Mock/demo collections that still need TanStack DB semantics** live in:
   - `packages/database/collections/admin-workspace.ts`
   - `packages/database/collections/donor-history.ts`
-- **App code should import hooks from `@asym/database/hooks`** instead of reading app-local mock arrays or stitching browser fetches inline.
+- **App code should import hooks from `@asym/database/hooks`** instead of direct Supabase table reads, app-local mock arrays, or stitching browser fetches inline.
+
+## Browser Data Decision Tree
+
+1. **Browser-visible Supabase table rows:** use `@asym/database/hooks` backed by `packages/database/collections`.
+2. **Browser-visible joins, filters, feeds, lists, dashboards, and tables:** use TanStack DB live queries over collections.
+3. **Simple RLS-authorized single-table writes:** use collection mutations when optimistic UI is useful and the browser is allowed to form the write.
+4. **Server reads that benefit from shared query shape:** use the approved `@asym/database/collections/query-once` helper only when it is bounded and safer/clearer than a plain server Supabase query.
+5. **Privileged, multi-table, payment, email, audit, webhook, receipt, RPC counter, file, external sync, or secret-backed workflows:** use `packages/api`, Server Actions, or thin route handlers. Do not move these into collection mutations.
+6. **Reporting and aggregate-heavy workflows:** keep SQL/views/functions/server Supabase queries as the reporting engine. Collections may display bounded report results, not replace the engine.
 
 ## Provider Standard
 
@@ -179,90 +190,21 @@ const query = useQuery({
 });
 ```
 
-## TanStack DB Collection Pattern
+## Supabase TanStack DB Collection Pattern
 
 - Define collection schema with Zod.
-- Use `queryCollectionOptions` with explicit `queryKey`.
-- Keep mutation handlers transactional and error-throwing.
-- Prefer `Promise.all` for independent network calls.
-- Bound the `queryFn` for any table that grows with tenant size (see below).
-
-### Bounded collection windows
-
-Collections backed by tenant-scale tables must not fetch the whole table into
-the browser. `packages/database/collections/client-db.ts` bounds `donors`,
-`donor_activities`, `donor_pledges`, `posts`, `donations`, `post_comments`, and
-`follows` with `createBoundedTableFetcher`, which:
-
-- fetches a deterministically ordered window — the `orderBy` column with
-  `nullsFirst: false` (so null sort values land last instead of crowding out
-  real rows) plus an `id` tie-break — from offset `0` via
-  `.range(0, windowSize - 1)`;
-- always refetches from offset `0`, so invalidating the collection's query key
-  refreshes every loaded row (query collections replace their contents with
-  the `queryFn` result);
-- exposes offset continuation through the exported `*CollectionPagination`
-  objects (`donorsCollectionPagination`, etc.). `hasMore()` /`loadMore()` drive
-  the fetch, and **`subscribe` + `getSnapshot`** expose the window flag
-  reactively for `useSyncExternalStore`. Read it reactively: the flag only
-  settles after a fetch resolves, so a polled boolean would leave a stale
-  "load more" affordance when `loadMore` turns up no new rows. `loadMore` grows
-  the window by one page and invalidates the fetcher's configured query key.
-
-Consuming hooks pass continuation through rather than re-implement it.
-`useMissionaryDonorRows` reads `hasMore` via `useSyncExternalStore` over
-`donorsPagination` (donors window only) so the "Load more partners" affordance
-matches partner rows, while `loadMore` fans out through aggregated `pagination`
-(donors + activities + pledges). It returns `hasMore` / `isLoadingMore` /
-`loadMore`; the missionary donors page renders the affordance from them.
-Collection contracts (`id`, `queryKey`, `schema`, `getKey`, mutation handlers)
-stay unchanged; only the fetch is windowed.
-
-### Scoped collections for tenant-scale joins
-
-Tenant-wide collections that a view then filters client-side both over-fetch and
-can drop in-scope rows that fall outside the newest-N window. When a surface only
-needs one scope, push the filter into the query with a per-scope collection.
-`getMissionaryScopedDonorCollections(missionaryId)` returns `donors`,
-`donor_activities`, and `donor_pledges` collections (and aggregated pagination)
-scoped to one missionary, memoized per id with scope-qualified ids/query keys
-(`["donors", "missionary", id]`). `donors` filters on its `missionary_id`
-column directly (it references `profiles(id)` — the namespace the hook is called
-with). `donor_activities` and `donor_pledges` are scoped through their `donors`
-foreign key with an `!inner` embed (`donors!inner(missionary_id)`) whose
-embed-only key is stripped before the row reaches the schema: `donor_activities`
-has no `missionary_id` column, and `donor_pledges.missionary_id` references
-`missionaries(id)` (a different namespace, which is why filtering it by a profile
-id returns nothing), so the donor relationship is the correct scope for both. An
-empty scope builds disabled (`enabled: false`) collections that never hit the
-network.
-
-> **RLS note:** the demo posture in
-> `supabase/migrations/20260216153000_demo_readonly_rls.sql` grants `SELECT`
-> only `TO anon`, so these client-side collections return rows for the anonymous
-> demo but **zero rows for an authenticated session**. Surfaces that must work
-> for real signed-in users read through `packages/api` server services (e.g.
-> `missionary-portal/service.ts`), which use the admin client. Adding an
-> authenticated read path is an RLS/authorization decision, not a client change.
+- Use `defineSupabaseCollection` from `packages/database/collections/supabase-collection.ts` for real Supabase tables.
+- List every collection in `packages/database/collections/registry.ts`.
+- Default Realtime on only for user-visible tables whose RLS and payload size are appropriate.
+- Disable Realtime with a reason for finance, PII, large-payload, internal, audit, webhook, payment, and non-UI tables.
+- Keep mutation policy aligned with the registry.
 
 ```ts
-const collection = createCollection<Item>(
-  queryCollectionOptions({
-    id: "items",
-    queryKey: ["items"],
-    queryClient: getQueryClient(),
-    schema: itemSchema,
-    getKey: (item) => item.id,
-    queryFn: fetchItems,
-    onUpdate: async ({ transaction }) => {
-      await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          await updateItem(mutation.key as string, mutation.modified);
-        }),
-      );
-    },
-  }),
-);
+export const postsCollection = defineSupabaseCollection({
+  tableName: "posts",
+  schema: postSchema,
+  keys: ["id"],
+});
 ```
 
 ## Shared Virtualization Foundation
@@ -418,8 +360,9 @@ This preserves count consistency without requiring route-level SQL transactions 
 - [ ] Only externally controlled state slices are hoisted.
 - [ ] Stable `getRowId` is provided for durable records.
 - [ ] DB collection schemas are validated with Zod.
-- [ ] Collection `queryFn`s over tenant-scale tables use a bounded window with
-      deterministic ordering (no unbounded `select("*")`).
+- [ ] Browser-visible table reads go through `@asym/database/hooks` or approved collection exports.
+- [ ] Collection registry documents RLS, Realtime, keys, and mutation policy.
+- [ ] Privileged and multi-table workflows stay server-command owned.
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).

@@ -1,3 +1,5 @@
+import { isRecord } from "../shared/json-coerce";
+
 import type { getAdminClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdminClient = NonNullable<
@@ -194,10 +196,8 @@ interface GiftReceiptRow {
   status: GiftReceiptStatus;
 }
 
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
+// Intentionally different from the shared `asString`: receipt snapshot fields
+// preserve raw values (length check only, no trim-based emptiness rule).
 function asString(value: unknown): string | null {
   return typeof value === "string" && value.length > 0 ? value : null;
 }

@@ -1,3 +1,4 @@
+import { mergeCrmPostLinksByAuthority } from "./crm-post-state";
 import { buildContributionDetail } from "./detail-read-model";
 import { assertAllowedPaymentStateCorrectionStatus } from "./payment-status-allowlist";
 import {
@@ -9,6 +10,7 @@ import {
 } from "./receipt-delivery";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
+import { asString, isRecord } from "../../shared/json-coerce";
 import {
   loadStripeRawEventForReplay,
   markStripeRawEventForReplay,
@@ -46,14 +48,6 @@ type JsonRecord = Record<string, unknown>;
 
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
@@ -287,14 +281,18 @@ function collectEffectiveReferenceIds(input: {
 }
 
 function mapCrmLinks(rows: unknown): CrmPostLinkInput[] {
-  return ((rows ?? []) as JsonRecord[]).map((link) => ({
-    id: asString(link.id) ?? "",
-    scope: link.scope === "designation" ? "designation" : "parent",
-    allocationId: asString(link.allocation_id),
-    linkStatus: asString(link.link_status),
-    twentyRecordId: asString(link.twenty_record_id),
-    lastError: asString(link.last_error),
-  }));
+  const links: CrmPostLinkInput[] = ((rows ?? []) as JsonRecord[]).map(
+    (link) => ({
+      id: asString(link.id) ?? "",
+      scope: link.scope === "designation" ? "designation" : "parent",
+      allocationId: asString(link.allocation_id),
+      linkStatus: asString(link.link_status),
+      twentyRecordId: asString(link.twenty_record_id),
+      lastError: asString(link.last_error),
+    }),
+  );
+
+  return Array.from(new Map(links.map((link) => [link.id, link])).values());
 }
 
 /**
@@ -459,16 +457,60 @@ async function loadContributionOperationDetail(input: {
   const pledgeMissionaryId = pledgeRow
     ? asString(pledgeRow.missionary_id)
     : null;
-  const designationData = await loadDesignationSetData({
-    supabaseAdmin: input.supabaseAdmin,
-    tenantId: input.tenantId,
-    stagedGiftId: stagedGift?.id ?? null,
-    donationFundId: donation.fundId,
-    extraFundIds: [...effectiveReferences.fundIds, pledgeFundId],
-    extraMissionaryIds: [
-      ...effectiveReferences.missionaryIds,
-      pledgeMissionaryId,
-    ],
+  const [designationData, stagedGiftParentCrmLinksResult] = await Promise.all([
+    loadDesignationSetData({
+      supabaseAdmin: input.supabaseAdmin,
+      tenantId: input.tenantId,
+      stagedGiftId: stagedGift?.id ?? null,
+      donationFundId: donation.fundId,
+      extraFundIds: [...effectiveReferences.fundIds, pledgeFundId],
+      extraMissionaryIds: [
+        ...effectiveReferences.missionaryIds,
+        pledgeMissionaryId,
+      ],
+    }),
+    stagedGift?.id
+      ? input.supabaseAdmin
+          .from("donation_crm_links")
+          .select(
+            "id, scope, allocation_id, link_status, twenty_record_id, last_error",
+          )
+          .eq("tenant_id", input.tenantId)
+          .eq("scope", "parent")
+          .eq("staged_gift_id", stagedGift.id)
+          .order("created_at", { ascending: true })
+      : Promise.resolve({ data: [], error: null }),
+  ]);
+  assertNoError(
+    stagedGiftParentCrmLinksResult.error,
+    "Failed to load staged gift CRM record links.",
+  );
+  const allocationIds = uniqueReferenceIds(
+    designationData.allocations.map((allocation) => allocation.id),
+  );
+  const designationCrmLinksResult =
+    allocationIds.length > 0
+      ? await input.supabaseAdmin
+          .from("donation_crm_links")
+          .select(
+            "id, scope, allocation_id, link_status, twenty_record_id, last_error",
+          )
+          .eq("tenant_id", input.tenantId)
+          .eq("scope", "designation")
+          .in("allocation_id", allocationIds)
+          .order("created_at", { ascending: true })
+      : { data: [], error: null };
+  assertNoError(
+    designationCrmLinksResult.error,
+    "Failed to load designation CRM record links.",
+  );
+  const crmLinks = mergeCrmPostLinksByAuthority({
+    // A staged gift is the current parent authority. Keep it ahead of a
+    // donation-keyed legacy parent so the detail model cannot surface stale
+    // CRM status, record IDs, or errors.
+    stagedGiftParentLinks: mapCrmLinks(stagedGiftParentCrmLinksResult.data),
+    donationLinks: mapCrmLinks(crmLinksResult.data),
+    designationLinks: mapCrmLinks(designationCrmLinksResult.data),
   });
   const pledgeFund = pledgeFundId
     ? (designationData.funds.find((fund) => fund.id === pledgeFundId) ?? null)
@@ -573,7 +615,7 @@ async function loadContributionOperationDetail(input: {
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
     allocationMissionaries: designationData.missionaries,
-    crmLinks: mapCrmLinks(crmLinksResult.data),
+    crmLinks,
     recurringAgreement: pledgeRow
       ? {
           id: asString(pledgeRow.id) ?? donation.pledgeId ?? "",

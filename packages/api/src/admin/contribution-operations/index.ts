@@ -103,6 +103,15 @@ export {
   isHighRiskContributionAction,
 } from "./policy";
 export {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+  isContributionRouteCrmRetryScopeSupported,
+  type ContributionCrmRetryScope,
+} from "./crm-retry-support";
+export {
   buildReceiptSnapshotContent,
   computeReceiptAffectedFields,
   evaluateReceiptDeliveryOptions,
@@ -138,9 +147,12 @@ export {
   type RenderedContributionReceiptSnapshotPdf,
 } from "./receipt-pdf";
 export {
+  buildCorrectionActionAvailability,
   buildCorrectionRequestAvailability,
   CONTRIBUTION_OPERATION_CAPABILITY,
+  CRM_INLINE_CONTRIBUTION_ACTION_TYPES,
   isCorrectionRequestActionType,
+  isContributionOperationActionType,
   requiredCapabilitiesForContributionOperation,
   viewerCanUseContributionOperation,
 } from "./viewer-action-availability";
