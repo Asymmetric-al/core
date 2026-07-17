@@ -1,26 +1,28 @@
-# Design & ADR-0004: Eve Kill-Switch Control Path
+# Design (provisional Eve label EVE-DESIGN-0004): Eve Kill-Switch Control Path
 
-> This `design.md` doubles as **ADR-0004**, the kill-switch control-path decision required by issue #420. It
-> builds on **ADR-0002** (#418, `add-eve-governance-kernel-release-switch`) and **ADR-0003** (#419,
-> `add-eve-audit-tracer-bullet`), which both build on **ADR-0001** (#417,
-> `add-eve-autonomous-operations-foundation`), and does not restate them — it operationalizes the granular
+> **Numbering:** `EVE-DESIGN-0004` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0004**, the kill-switch control-path decision required by issue #420. It
+> builds on **EVE-DESIGN-0002** (#418, `add-eve-governance-kernel-release-switch`) and **EVE-DESIGN-0003** (#419,
+> `add-eve-audit-tracer-bullet`), which both build on **ADR-0018** (#417,
+> `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it operationalizes the granular
 > per-domain kill-switch control path that drives #418's persisted state and emits #419 audit records. When
 > accepted into `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR location (same
-> convention chosen for ADR-0001). Every grounded claim carries a `[VERIFIED-REPO: path]` citation read from
+> convention chosen for ADR-0018). Every grounded claim carries a `[VERIFIED-REPO: path]` citation read from
 > `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 
 ## Status
 
-Proposed (partner draft for #420). Supersedes nothing. Builds on ADR-0002 (#418) and ADR-0003 (#419).
+Proposed (partner draft for #420). Supersedes nothing. Builds on EVE-DESIGN-0002 (#418) and EVE-DESIGN-0003 (#419).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
 
-ADR-0002 established the governance kernel's system-wide release-switch and emergency-off **state** and
+EVE-DESIGN-0002 established the governance kernel's system-wide release-switch and emergency-off **state** and
 explicitly deferred "the granular per-domain kill-switch control path (per-domain switches for automation,
 active runs, GitHub actions, production writes, sandbox networking, dynamic workflows, model-policy changes,
-force-approval)" to #420. [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
+force-approval)" to #420. [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
 #420 is that slice. The PRD's US-35 requires "a full kill-switch suite … [to] pause all automation, stop
 active runs, disable GitHub actions, disable production writes, disable sandbox networking, disable dynamic
 workflows, revoke or disable model policy changes, and force human approval for all actions."
@@ -58,15 +60,15 @@ restrictions — they never relax them. [VERIFIED-REPO: openspec/specs/platform-
 4. **Policy checks consume switch state and cannot be bypassed.** Every policy check that gates an autonomous
    action reads the persisted app-owned switch state and blocks the action when the matching domain switch,
    the master pause, or force-approval forbids it. Checks read only persisted state — never a prompt, model
-   output, tool input, or memory claim that a switch is off — mirroring ADR-0002's non-bypass rule. Blocked
+   output, tool input, or memory claim that a switch is off — mirroring EVE-DESIGN-0002's non-bypass rule. Blocked
    actions abort and are recorded. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
    [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
 5. **The control path drives #418 state; it does not own the kernel.** #418 owns the persisted
    emergency/kill-switch state and the single consult gate; #420 owns the controls that set that state and the
    policy-check consumption of it. The two compose: #420 flips, #418 persists and is consulted.
-   [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
+   [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
 6. **Subordinate to #417, grants no new authority.** The suite only restricts autonomy; it never widens it. A
-   cleared switch does not bypass ADR-0001's protected-area blocks, production-write limits, or human-approval
+   cleared switch does not bypass ADR-0018's protected-area blocks, production-write limits, or human-approval
    requirements, nor #418's release-switch/emergency-off precedence. The change stays a spec/ADR +
    control-path contract with no live autonomous surface.
    [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
@@ -74,12 +76,12 @@ restrictions — they never relax them. [VERIFIED-REPO: openspec/specs/platform-
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract, protected-area set, and governance data model
+- **#417 (ADR-0018, foundation):** owns the autonomy contract, protected-area set, and governance data model
   at spec level. #420 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
-- **#418 (ADR-0002, governance kernel):** owns the release-switch/emergency-off **state**, the single
+- **#418 (EVE-DESIGN-0002, governance kernel):** owns the release-switch/emergency-off **state**, the single
   consult/abort gate, and observability. #420 drives that state; it does not persist or consult it itself.
-  [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
-- **#419 (ADR-0003, audit tracer):** owns the **audit-record shape**. #420 requires that each switch actuation
+  [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
+- **#419 (EVE-DESIGN-0003, audit tracer):** owns the **audit-record shape**. #420 requires that each switch actuation
   emits one; it does not redefine the record. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#420 (this change):** owns the granular per-domain **control path** — the switch set, admin/external
   actuation, audit emission, and policy-check consumption.
@@ -115,7 +117,7 @@ restrictions — they never relax them. [VERIFIED-REPO: openspec/specs/platform-
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
 - **Fold the switch state into #420.** Rejected: #418 already owns the persisted state and consult gate;
   duplicating it here would blur the state-vs-control boundary the foundation drew.
-  [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
+  [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
 - **Enforce switches from prompt/model context.** Rejected: it would be bypassable by model or tool output;
   policy checks read only persisted app-owned switch state. [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
 - **Skip audit on actuation.** Rejected: the PRD acceptance requires kill-switch changes to create audit

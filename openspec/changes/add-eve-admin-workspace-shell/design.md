@@ -1,22 +1,24 @@
-# Design & ADR-0009: Eve Admin Workspace Operations Shell
+# Design (provisional Eve label EVE-DESIGN-0009): Eve Admin Workspace Operations Shell
 
-> This `design.md` doubles as **ADR-0009**, the admin-workspace-shell decision required by issue #427. It is
-> traceable from **ADR-0002** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0003** (#419,
-> `add-eve-audit-tracer-bullet`), **ADR-0004** (#420, `add-eve-kill-switch-control-path`), **ADR-0006** (#421,
-> `add-eve-model-policy-tracer`), **#422** (`add-eve-admin-memory-tracer`), **ADR-0005** (#423,
+> **Numbering:** `EVE-DESIGN-0009` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0009**, the admin-workspace-shell decision required by issue #427. It is
+> traceable from **EVE-DESIGN-0002** (#418, `add-eve-governance-kernel-release-switch`), **EVE-DESIGN-0003** (#419,
+> `add-eve-audit-tracer-bullet`), **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0006** (#421,
+> `add-eve-model-policy-tracer`), **#422** (`add-eve-admin-memory-tracer`), **EVE-DESIGN-0005** (#423,
 > `add-eve-approval-budget-policy`), and **#424** (`add-eve-retention-replay-tracer`), and does not restate
 > them — it operationalizes the operations-first workspace shell that renders that governance state as
 > observable panels, exposes decision summaries rather than raw reasoning, and role-gates the admin controls
 > that trigger the policies those slices own, while the release switch stays off per #418. When accepted into
 > `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR location (same convention chosen
-> for ADR-0001). Every grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from
+> for ADR-0018). Every grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from
 > `Asymmetric-al/core` at commit `f535c035` on 2026-07-04.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:181]
 
 ## Status
 
-Proposed (partner draft for #427). Supersedes nothing. Traceable from ADR-0002 (#418), ADR-0003 (#419),
-ADR-0004 (#420), ADR-0006 (#421), #422 (admin memory), ADR-0005 (#423), and #424 (retention/replay).
+Proposed (partner draft for #427). Supersedes nothing. Traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419),
+EVE-DESIGN-0004 (#420), EVE-DESIGN-0006 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -122,29 +124,29 @@ boundary. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract and the protected-area set at spec level. #427 is
+- **#417 (ADR-0018, foundation):** owns the autonomy contract and the protected-area set at spec level. #427 is
   subordinate to it and renders governance state within it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:49]
-- **#418 (ADR-0002, governance kernel):** owns the governance state store and release switch. #427 renders that
+- **#418 (EVE-DESIGN-0002, governance kernel):** owns the governance state store and release switch. #427 renders that
   state; it does not define where it persists.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:62]
-- **#419 (ADR-0003, audit tracer):** owns the audit-record shape and content. #427 surfaces an audit view; it
+- **#419 (EVE-DESIGN-0003, audit tracer):** owns the audit-record shape and content. #427 surfaces an audit view; it
   does not define the record. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
-- **#420 (ADR-0004, kill switches):** owns the kill-switch control path and switch semantics. #427 surfaces the
+- **#420 (EVE-DESIGN-0004, kill switches):** owns the kill-switch control path and switch semantics. #427 surfaces the
   emergency controls that trigger them; it does not define them.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:88]
-- **#421 (ADR-0006, model policy):** owns named roles, eval-gating, and rollback protection. #427 surfaces the
+- **#421 (EVE-DESIGN-0006, model policy):** owns named roles, eval-gating, and rollback protection. #427 surfaces the
   model-policy editor over it; it does not define policy.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
 - **#422 (admin memory):** owns what memory stores and its exclusions. #427 surfaces the memory management
   panel over it; it does not define memory content.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:115]
-- **#423 (ADR-0005, approval/budget):** owns approval and budget policy. #427 surfaces the budget/approval
+- **#423 (EVE-DESIGN-0005, approval/budget):** owns approval and budget policy. #427 surfaces the budget/approval
   panels over it; it does not define policy.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
 - **#424 (retention/replay):** owns retention and replay artifacts. #427 surfaces a retention view over it; it
   does not define retention. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:142]
-- **#426 (ADR-0008, admin auth) / #428 (admin mount + global panel):** own the auth gate and the Next.js mount.
+- **#426 (EVE-DESIGN-0008, admin auth) / #428 (admin mount + global panel):** own the auth gate and the Next.js mount.
   #427 defines the shell; its exposure through that mount is auth-gated and is #428.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:195]
 

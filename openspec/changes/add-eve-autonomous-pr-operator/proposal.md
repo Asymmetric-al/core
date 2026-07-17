@@ -5,10 +5,10 @@
 > **Partner DRAFT for GitHub issue #431 ("Eve: Autonomous PR Operator and Work Initiation").** Staged in the
 > Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #423** (`add-eve-approval-budget-policy`,
-> ADR-0005), **#429** (`add-eve-sandbox-engineering-worker`, ADR-0011), and **#430**
-> (`add-eve-github-read-review-path`, ADR-0012) — the three slices the implementation plan names as #431's
-> blockers — and stands on #417 (ADR-0001), #418 (ADR-0002), #419 (ADR-0003), #420 (ADR-0004), #421 (ADR-0006),
-> and #425 (ADR-0007). It does not restate their contracts; it defines the **mutating PR operator and work
+> EVE-DESIGN-0005), **#429** (`add-eve-sandbox-engineering-worker`, EVE-DESIGN-0011), and **#430**
+> (`add-eve-github-read-review-path`, EVE-DESIGN-0012) — the three slices the implementation plan names as #431's
+> blockers — and stands on #417 (ADR-0018), #418 (EVE-DESIGN-0002), #419 (EVE-DESIGN-0003), #420 (EVE-DESIGN-0004), #421 (EVE-DESIGN-0006),
+> and #425 (EVE-DESIGN-0007). It does not restate their contracts; it defines the **mutating PR operator and work
 > initiation** path in which Eve creates issues, branches, PRs, and pushes, and labels, reruns CI, pushes safe
 > fixes, and updates PR state — issue-first, engineering-only, each operation with policy, audit, and an
 > accountable initiator, while the release switch stays off. It **never merges** (that is #432) and **never**
@@ -90,8 +90,8 @@ on an external surface.
   record shape, resolves models through #421, runs on the #425 runtime inside the #429 sandbox checkout, spends
   under #423 budgets, honors #420's `disable GitHub actions` switch, stays disabled by default while the release
   switch is off, and never bypasses #417 protected-area/approval limits or #418 emergency-off precedence.
-- Record the decision as **ADR-0013** in this change's `design.md`, building on ADR-0005 (#423), ADR-0011
-  (#429), and ADR-0012 (#430).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0013** in this change's `design.md`, building on EVE-DESIGN-0005 (#423), EVE-DESIGN-0011
+  (#429), and EVE-DESIGN-0012 (#430).
 
 ## What Does Not Change
 
@@ -133,8 +133,8 @@ on an external surface.
   merge, engineering-only autonomy with business-data writes blocked, spec-first product direction, and every
   operation with policy, audit, and an accountable initiator — a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0013 of record for the autonomous PR operator and work initiation, traceable from ADR-0005 (#423),
-  ADR-0011 (#429), and ADR-0012 (#430).
+- Provisional Eve design decision `EVE-DESIGN-0013` for the autonomous PR operator and work initiation, traceable from EVE-DESIGN-0005 (#423),
+  EVE-DESIGN-0011 (#429), and EVE-DESIGN-0012 (#430).
 - A clear boundary: #430 owns read-and-review and the accountable bot identity; #423 owns approval/budget; #419
   owns the audit shape; #421 owns model policy; #425 owns the runtime; #429 owns the sandbox; #432 owns strict
   auto-merge; #431 owns the **mutating PR operations and work initiation** those compose in, and it stays off

@@ -4,9 +4,9 @@
 
 > **Partner DRAFT for GitHub issue #425 ("Eve: Standalone Eve runtime foundation").** Staged in the Gitea
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
-> OpenSpec workflow after operator/maintainer sign-off. **Builds on #417** (`add-eve-autonomous-operations-foundation`,
-> ADR-0001), **#421** (`add-eve-model-policy-tracer`, ADR-0006), and **#423** (`add-eve-approval-budget-policy`,
-> ADR-0005) — the three slices the implementation plan names as #425's blockers. It does not restate their
+> OpenSpec workflow after operator/maintainer sign-off. **Builds on #417** (`openspec/specs/eve-autonomous-operations/spec.md`,
+> ADR-0018), **#421** (`add-eve-model-policy-tracer`, EVE-DESIGN-0006), and **#423** (`add-eve-approval-budget-policy`,
+> EVE-DESIGN-0005) — the three slices the implementation plan names as #425's blockers. It does not restate their
 > contracts; it defines the isolated Eve runtime package that resolves models through #421's policy and spends
 > under #423's budgets, while the release switch stays off. Every grounded claim carries a
 > `[VERIFIED-REPO: path:line]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
@@ -62,8 +62,8 @@ revocable** route rather than something the runtime hardcodes. [VERIFIED-REPO: d
   **layered source-of-truth order**, keeps **AGENTS/OpenSpec above memory and provider plugins**, and **grants
   no new authority** (subordinate to #417/#421/#423, never bypassing protected-area/approval limits or the
   #418 emergency-off precedence).
-- Record the decision as **ADR-0007** in this change's `design.md`, building on ADR-0001 (#417), ADR-0005
-  (#423), and ADR-0006 (#421).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0007** in this change's `design.md`, building on ADR-0018 (#417), EVE-DESIGN-0005
+  (#423), and EVE-DESIGN-0006 (#421).
 
 ## What Does Not Change
 
@@ -95,7 +95,7 @@ revocable** route rather than something the runtime hardcodes. [VERIFIED-REPO: d
   verification, self-owned session/workflow durability, #421 model resolution, #423 budgets, layered
   source-of-truth, disabled-by-default — a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0007 of record for the runtime foundation, traceable from ADR-0001 (#417), ADR-0005 (#423), and ADR-0006
+- Provisional Eve design decision `EVE-DESIGN-0007` for the runtime foundation, traceable from ADR-0018 (#417), EVE-DESIGN-0005 (#423), and EVE-DESIGN-0006
   (#421).
 - A clear boundary: #417 owns the autonomy contract; #421 owns model policy; #423 owns approval/budget; #428
   owns the admin mount; #429 owns the sandbox; #425 owns the **isolated runtime package** that composes with

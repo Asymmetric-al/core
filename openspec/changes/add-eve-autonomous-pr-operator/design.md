@@ -1,19 +1,21 @@
-# Design & ADR-0013: Eve Autonomous PR Operator and Work Initiation
+# Design (provisional Eve label EVE-DESIGN-0013): Eve Autonomous PR Operator and Work Initiation
 
-> This `design.md` doubles as **ADR-0013**, the autonomous-PR-operator-and-work-initiation decision required by
-> issue #431. It builds on **ADR-0005** (#423, `add-eve-approval-budget-policy`), **ADR-0011** (#429,
-> `add-eve-sandbox-engineering-worker`), and **ADR-0012** (#430, `add-eve-github-read-review-path`), and does not
+> **Numbering:** `EVE-DESIGN-0013` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0013**, the autonomous-PR-operator-and-work-initiation decision required by
+> issue #431. It builds on **EVE-DESIGN-0005** (#423, `add-eve-approval-budget-policy`), **EVE-DESIGN-0011** (#429,
+> `add-eve-sandbox-engineering-worker`), and **EVE-DESIGN-0012** (#430, `add-eve-github-read-review-path`), and does not
 > restate them — it operationalizes the path in which Eve initiates work issue-first and performs the mutating
 > GitHub PR operations (label, rerun CI, push safe fixes, update PR state, create issues/branches/PRs) under
 > policy, engineering-only, never merging, while the release switch stays off per #418. When accepted into
 > `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR location (same convention chosen for
-> ADR-0001). Every grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from `Asymmetric-al/core`
+> ADR-0018). Every grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from `Asymmetric-al/core`
 > at commit `f535c035` on 2026-07-04.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:236]
 
 ## Status
 
-Proposed (partner draft for #431). Supersedes nothing. Builds on ADR-0005 (#423), ADR-0011 (#429), and ADR-0012
+Proposed (partner draft for #431). Supersedes nothing. Builds on EVE-DESIGN-0005 (#423), EVE-DESIGN-0011 (#429), and EVE-DESIGN-0012
 (#430). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -123,29 +125,29 @@ than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract and protected-area set at spec level. #431's
+- **#417 (ADR-0018, foundation):** owns the autonomy contract and protected-area set at spec level. #431's
   business-data block and protected-area deference read that contract; they do not define it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#418 (ADR-0002, governance kernel):** owns disabled-by-default and emergency-off precedence. #431 stays off
+- **#418 (EVE-DESIGN-0002, governance kernel):** owns disabled-by-default and emergency-off precedence. #431 stays off
   while the release switch is off and never overrides emergency-off; it does not define the kernel.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
-- **#419 (ADR-0003, audit):** owns the audit-record shape. #431 emits an operation audit record in that shape;
+- **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #431 emits an operation audit record in that shape;
   it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
-- **#420 (ADR-0004, kill-switch):** owns the kill-switch state, including "disable GitHub actions." #431 honors
+- **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state, including "disable GitHub actions." #431 honors
   that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
-- **#421 (ADR-0006, model policy):** owns named roles and Gateway-primary routing. #431 resolves operator models
+- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #431 resolves operator models
   through that policy via the #425 runtime; it does not define routing.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
-- **#423 (ADR-0005, approval/budget):** owns trust-zone approval and hard budgets. #431's operations are gated
+- **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. #431's operations are gated
   by that policy and its model spend stays under those budgets; it does not define them.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
-- **#425 (ADR-0007, runtime foundation):** owns the isolated runtime package. #431 is operator behavior that
+- **#425 (EVE-DESIGN-0007, runtime foundation):** owns the isolated runtime package. #431 is operator behavior that
   runs on it; it is not the runtime. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:155]
-- **#429 (ADR-0011, sandbox):** owns the contained writable checkout. #431 prepares branches, safe fixes, and
+- **#429 (EVE-DESIGN-0011, sandbox):** owns the contained writable checkout. #431 prepares branches, safe fixes, and
   PRs from that sandbox checkout; it is not the sandbox.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:210]
-- **#430 (ADR-0012, read-and-review):** owns the accountable bot identity and the review/comment/inline-finding
+- **#430 (EVE-DESIGN-0012, read-and-review):** owns the accountable bot identity and the review/comment/inline-finding
   subset. #431 reuses that identity and performs the **mutating** operations #430 excludes; it does not review.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:236]
 - **#432 (slice 16, strict auto-merge):** owns merge gating and the protected-area merge-block. #431 may open and

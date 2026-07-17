@@ -5,8 +5,8 @@
 > **Partner DRAFT for GitHub issue #430 ("Eve: GitHub App Read and Review Path").** Staged in the Gitea
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #419** (`add-eve-audit-tracer-bullet`,
-> ADR-0003), **#423** (`add-eve-approval-budget-policy`, ADR-0005), **#425** (`add-eve-runtime-foundation`,
-> ADR-0007), and **#429** (`add-eve-sandbox-engineering-worker`, ADR-0011) — the four slices the implementation
+> EVE-DESIGN-0003), **#423** (`add-eve-approval-budget-policy`, EVE-DESIGN-0005), **#425** (`add-eve-runtime-foundation`,
+> EVE-DESIGN-0007), and **#429** (`add-eve-sandbox-engineering-worker`, EVE-DESIGN-0011) — the four slices the implementation
 > plan names as #430's blockers. It does not restate their contracts; it defines the **read-and-review path** in
 > which Eve responds to a GitHub PR trigger by reviewing and posting a summary plus inline findings through an
 > accountable bot identity, policy-gated and audited, with protected-area detection visible — while the release
@@ -76,8 +76,8 @@ law on an external surface. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/
   honors #420's `disable GitHub actions` switch, does not bypass GitHub branch protection or required reviews,
   stays disabled by default while the release switch is off, and never bypasses #417 protected-area or #418
   emergency-off precedence.
-- Record the decision as **ADR-0012** in this change's `design.md`, building on ADR-0003 (#419), ADR-0005
-  (#423), ADR-0007 (#425), and ADR-0011 (#429).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0012** in this change's `design.md`, building on EVE-DESIGN-0003 (#419), EVE-DESIGN-0005
+  (#423), EVE-DESIGN-0007 (#425), and EVE-DESIGN-0011 (#429).
 
 ## What Does Not Change
 
@@ -117,8 +117,8 @@ law on an external surface. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/
   mutating PR operations, policy-gated and audited comments, visible protected-area detection, and a decision
   summary with no sensitive data on GitHub — a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0012 of record for the GitHub read and review path, traceable from ADR-0003 (#419), ADR-0005 (#423),
-  ADR-0007 (#425), and ADR-0011 (#429).
+- Provisional Eve design decision `EVE-DESIGN-0012` for the GitHub read and review path, traceable from EVE-DESIGN-0003 (#419), EVE-DESIGN-0005 (#423),
+  EVE-DESIGN-0007 (#425), and EVE-DESIGN-0011 (#429).
 - A clear boundary: #419 owns the audit shape; #423 owns approval/budget; #425 owns the runtime; #429 owns the
   sandbox; #421 owns model policy; #431 owns mutating PR operations; #432 owns strict auto-merge; #430 owns the
   **read-and-review path** those compose in, and it stays off until governance is verified.

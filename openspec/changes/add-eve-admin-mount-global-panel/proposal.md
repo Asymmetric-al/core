@@ -6,8 +6,8 @@
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on the three slices it depends on —**
 > **#425** (`add-eve-runtime-foundation`, the standalone Eve runtime), **#426**
-> (`add-eve-admin-auth-session-ownership`, ADR-0008, the admin auth/session-ownership gate), and **#427**
-> (`add-eve-admin-workspace-shell`, ADR-0009, the operations-first workspace shell) — the three blockers the
+> (`add-eve-admin-auth-session-ownership`, EVE-DESIGN-0008, the admin auth/session-ownership gate), and **#427**
+> (`add-eve-admin-workspace-shell`, EVE-DESIGN-0009, the operations-first workspace shell) — the three blockers the
 > implementation plan names for slice 12. It does not restate their contracts; it defines the **admin mount and
 > global panel** that exposes the #427 shell into Mission Control through the compatible Next.js path, behind
 > the #426 auth gate, feeding the panel **basic page context only**. Every grounded claim carries a
@@ -91,9 +91,9 @@ evals, protected-area policy, kill switches, and rollback paths are verified."
   shell** and **runs on the #425 standalone runtime** without redefining either; and the change **grants no new
   authority** — it is a spec/ADR contract with no live mount code, no Next.js integration wiring, and no
   Supabase schema, it is **HITL**, and the release switch stays off until verified.
-- Record the decision as **ADR-0010** in this change's `design.md`, traceable from ADR-0007-era runtime work
-  (#425, `add-eve-runtime-foundation`), **ADR-0008** (#426, `add-eve-admin-auth-session-ownership`), and
-  **ADR-0009** (#427, `add-eve-admin-workspace-shell`).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0010** in this change's `design.md`, traceable from EVE-DESIGN-0007-era runtime work
+  (#425, `add-eve-runtime-foundation`), **EVE-DESIGN-0008** (#426, `add-eve-admin-auth-session-ownership`), and
+  **EVE-DESIGN-0009** (#427, `add-eve-admin-workspace-shell`).
 
 ## What Does Not Change
 
@@ -126,8 +126,8 @@ evals, protected-area policy, kill switches, and rollback paths are verified."
   admin mount and global panel — Next.js-compatibility-proven mount, global panel across Mission Control,
   basic-page-context-only feed, no-silent-sensitive-data boundary, and the #426 auth gate — a durable,
   spec-level contract. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0010 of record for the admin mount and global panel, traceable from #425 (runtime), ADR-0008 (#426 auth),
-  and ADR-0009 (#427 shell).
+- Provisional Eve design decision `EVE-DESIGN-0010` for the admin mount and global panel, traceable from #425 (runtime), EVE-DESIGN-0008 (#426 auth),
+  and EVE-DESIGN-0009 (#427 shell).
 - A clear boundary: #425 owns the standalone runtime; #426 owns the auth gate; #427 owns the operations-first
   shell; #428 owns the **admin mount and global panel** that exposes that shell into Mission Control, through
   the compatible Next.js path, behind the auth gate, with basic page context only.

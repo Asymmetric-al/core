@@ -1,20 +1,22 @@
-# Design & ADR-0010: Eve Admin Mount and Global Panel
+# Design (provisional Eve label EVE-DESIGN-0010): Eve Admin Mount and Global Panel
 
-> This `design.md` doubles as **ADR-0010**, the admin-mount-and-global-panel decision required by issue #428.
-> It is traceable from **ADR-0007** (#425, `add-eve-runtime-foundation`, the standalone Eve runtime), **ADR-0008**
-> (#426, `add-eve-admin-auth-session-ownership`, the admin auth/session-ownership gate), and **ADR-0009** (#427,
+> **Numbering:** `EVE-DESIGN-0010` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0010**, the admin-mount-and-global-panel decision required by issue #428.
+> It is traceable from **EVE-DESIGN-0007** (#425, `add-eve-runtime-foundation`, the standalone Eve runtime), **EVE-DESIGN-0008**
+> (#426, `add-eve-admin-auth-session-ownership`, the admin auth/session-ownership gate), and **EVE-DESIGN-0009** (#427,
 > `add-eve-admin-workspace-shell`, the operations-first workspace shell), and does not restate them — it
 > operationalizes the **admin mount and global panel** that exposes the #427 shell into Mission Control through
 > the compatible Next.js path, on the #425 runtime, behind the #426 auth gate, feeding the panel basic page
 > context only, while the release switch stays off per #418. When accepted into `Asymmetric-al/core`, its ADR
-> body should also be landed at the repo's ADR location (same convention chosen for ADR-0001). Every grounded
+> body should also be landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`). Every grounded
 > claim carries a `[VERIFIED-REPO: path:line]` citation read from `Asymmetric-al/core` at commit `f535c035` on
 > 2026-07-04. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:195]
 
 ## Status
 
-Proposed (partner draft for #428). Supersedes nothing. Traceable from ADR-0007 (#425, runtime), ADR-0008 (#426,
-admin auth), and ADR-0009 (#427, workspace shell). Subordinate to OpenSpec and `AGENTS.md`.
+Proposed (partner draft for #428). Supersedes nothing. Traceable from EVE-DESIGN-0007 (#425, runtime), EVE-DESIGN-0008 (#426,
+admin auth), and EVE-DESIGN-0009 (#427, workspace shell). Subordinate to OpenSpec and `AGENTS.md`.
 [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -120,19 +122,19 @@ verified. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract and the protected-area set at spec level. #428 is
+- **#417 (ADR-0018, foundation):** owns the autonomy contract and the protected-area set at spec level. #428 is
   subordinate to it and exposes governance-safe context within it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:49]
-- **#418 (ADR-0002, governance kernel):** owns the governance state store and release switch, which stays off
+- **#418 (EVE-DESIGN-0002, governance kernel):** owns the governance state store and release switch, which stays off
   until verified. #428 introduces neither; it mounts behind the disabled-by-default posture.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:62]
-- **#425 (ADR-0007, runtime foundation):** owns the standalone Eve runtime, its workspace package, and Node
+- **#425 (EVE-DESIGN-0007, runtime foundation):** owns the standalone Eve runtime, its workspace package, and Node
   isolation. #428 mounts that runtime into admin; it does not define it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:155]
-- **#426 (ADR-0008, admin auth):** owns tenant/user derivation from verified session context and ownership
+- **#426 (EVE-DESIGN-0008, admin auth):** owns tenant/user derivation from verified session context and ownership
   enforcement on session create/continue/stream. #428 mounts behind that gate; it does not redefine it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:168]
-- **#427 (ADR-0009, workspace shell):** owns the operations-first panel set, real-governance-state backing,
+- **#427 (EVE-DESIGN-0009, workspace shell):** owns the operations-first panel set, real-governance-state backing,
   decision summaries, and role-gating. #428 exposes that shell through the mount and global panel; it does not
   redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:181]
 - **#418–#424 (governance slices):** own the governance state store, audit record, kill switches, model policy,

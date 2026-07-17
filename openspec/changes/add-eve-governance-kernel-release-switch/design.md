@@ -1,21 +1,23 @@
-# Design & ADR-0002: Eve Governance Kernel and Release Switch
+# Design (provisional Eve label EVE-DESIGN-0002): Eve Governance Kernel and Release Switch
 
-> This `design.md` doubles as **ADR-0002**, the governance-kernel + release-switch decision required by
-> issue #418. It builds on **ADR-0001** (#417, `add-eve-autonomous-operations-foundation`) and does not
-> restate it — it operationalizes ADR-0001's "one controlled release switch, disabled by default" into a
+> **Numbering:** `EVE-DESIGN-0002` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0002**, the governance-kernel + release-switch decision required by
+> issue #418. It builds on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`) and does not
+> restate it — it operationalizes ADR-0018's "one controlled release switch, disabled by default" into a
 > concrete kernel state model and consult contract. When accepted into `Asymmetric-al/core`, its ADR body
-> should also be landed at the repo's ADR location (same convention chosen for ADR-0001).
+> should also be landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`).
 > Every grounded claim carries a `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at
 > commit `25ca4a2` on 2026-07-02. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 
 ## Status
 
-Proposed (partner draft for #418). Supersedes nothing. Builds on ADR-0001 (#417). Subordinate to OpenSpec
+Proposed (partner draft for #418). Supersedes nothing. Builds on ADR-0018 (#417). Subordinate to OpenSpec
 and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
 
-ADR-0001 established the autonomy contract at spec level and required that activation "MUST use a single
+ADR-0018 established the autonomy contract at spec level and required that activation "MUST use a single
 controlled release switch … off until governance, auth, audit, evals, protected-area policy, kill switches,
 and rollback paths are verified," with the governance data model defined before implementation.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md] #418 is the
@@ -50,10 +52,10 @@ those contracts and add a gate — they never relax them. [VERIFIED-REPO: opensp
 3. **The kernel is the single consult point; state is app-owned.** Release-switch state, emergency/kill-switch
    state, run summaries, and policy status are persisted as app-owned data (Supabase-owned governance,
    US-65). Every autonomous action reads the kernel immediately before acting and aborts + records the reason
-   when disabled or emergency-off. Eve's own session/workflow durability stays runtime-owned (per ADR-0001).
+   when disabled or emergency-off. Eve's own session/workflow durability stays runtime-owned (per ADR-0018).
    [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
 4. **Non-bypassable by construction.** Kernel decisions use only the persisted app-owned state — never a
-   prompt, model output, tool input, or memory claim that "Eve is enabled." This mirrors ADR-0001's rule that
+   prompt, model output, tool input, or memory claim that "Eve is enabled." This mirrors ADR-0018's rule that
    identity/authority derive from verified context, not model-controlled input.
    [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
    [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
@@ -61,13 +63,13 @@ those contracts and add a gate — they never relax them. [VERIFIED-REPO: opensp
    policy status; the change is accompanied by tests proving disabled mode blocks autonomous behavior, so the
    gate is verified, not cosmetic. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 6. **Subordinate to #417, grants no new authority.** The kernel only gates autonomy; it never widens it. An
-   enabled release switch does not bypass ADR-0001's protected-area blocks, production-write limits, or
+   enabled release switch does not bypass ADR-0018's protected-area blocks, production-write limits, or
    human-approval requirements. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
    [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract, layered source-of-truth, protected-area set,
+- **#417 (ADR-0018, foundation):** owns the autonomy contract, layered source-of-truth, protected-area set,
   and the governance data model at spec level. #418 is subordinate to it and reuses its release-switch
   posture. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#418 (this change):** owns the release-switch state, emergency-off state, the single consult/abort gate,

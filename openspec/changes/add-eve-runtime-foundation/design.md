@@ -1,18 +1,20 @@
-# Design & ADR-0007: Eve Standalone Runtime Foundation
+# Design (provisional Eve label EVE-DESIGN-0007): Eve Standalone Runtime Foundation
 
-> This `design.md` doubles as **ADR-0007**, the standalone-runtime decision required by issue #425. It builds
-> on **ADR-0001** (#417, `add-eve-autonomous-operations-foundation`), **ADR-0005** (#423,
-> `add-eve-approval-budget-policy`), and **ADR-0006** (#421, `add-eve-model-policy-tracer`), and does not
+> **Numbering:** `EVE-DESIGN-0007` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0007**, the standalone-runtime decision required by issue #425. It builds
+> on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), **EVE-DESIGN-0005** (#423,
+> `add-eve-approval-budget-policy`), and **EVE-DESIGN-0006** (#421, `add-eve-model-policy-tracer`), and does not
 > restate them — it operationalizes the isolated runtime package that resolves models through #421's policy,
 > spends under #423's budgets, and stays disabled by default per #418. When accepted into `Asymmetric-al/core`,
-> its ADR body should also be landed at the repo's ADR location (same convention chosen for ADR-0001). Every
+> its ADR body should also be landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`). Every
 > grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from `Asymmetric-al/core` at commit
 > `d14a2434` on 2026-07-02. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:158]
 
 ## Status
 
-Proposed (partner draft for #425). Supersedes nothing. Builds on ADR-0001 (#417), ADR-0005 (#423), and
-ADR-0006 (#421). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Proposed (partner draft for #425). Supersedes nothing. Builds on ADR-0018 (#417), EVE-DESIGN-0005 (#423), and
+EVE-DESIGN-0006 (#421). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -97,11 +99,11 @@ proposed, non-default, revocable fallback rather than a route baked into runtime
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract, protected-area set, and governance data model at
+- **#417 (ADR-0018, foundation):** owns the autonomy contract, protected-area set, and governance data model at
   spec level. #425 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#421 (ADR-0006, model policy):** owns named roles and Gateway-primary routing. #425 resolves models through
+- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #425 resolves models through
   that policy; it does not define roles or routing. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
-- **#423 (ADR-0005, approval/budget):** owns trust-zone approval and hard budgets. #425 spends under those
+- **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. #425 spends under those
   budgets; it does not define them. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
 - **#418 (governance kernel):** owns release/kill-switch **state**. #425 stays off by default and reads that
   state; it does not persist it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:408]

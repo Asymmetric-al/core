@@ -5,7 +5,7 @@
 > **Partner DRAFT for GitHub issue #419 ("Eve: Audit tracer bullet").** Staged in the Gitea `proposals`
 > repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's OpenSpec
 > workflow after operator/maintainer sign-off. **Blocked by #418** (`add-eve-governance-kernel-release-switch`,
-> plan slice 2) and subordinate to **#417** (`add-eve-autonomous-operations-foundation`) — it does not
+> plan slice 2) and subordinate to **#417** (`openspec/specs/eve-autonomous-operations/spec.md`) — it does not
 > restate those contracts, it adds the audit-record shape they assume. Every grounded claim carries a
 > `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 
@@ -42,7 +42,7 @@ auditability guarantee the whole platform rests on would be unverifiable.
   raw model reasoning), with redaction rules represented in tests; an admin can inspect **audit history and a
   high-quality decision summary** instead of raw model reasoning; and the tracer proves the record path
   end-to-end for **one safe Eve-like action** while granting **no new authority**.
-- Record the decision as **ADR-0003** in this change's `design.md`, building on ADR-0001 (#417) and ADR-0002
+- Record the decision under provisional Eve design label **EVE-DESIGN-0003** in this change's `design.md`, building on ADR-0018 (#417) and EVE-DESIGN-0002
   (#418).
 
 ## What Does Not Change
@@ -69,7 +69,7 @@ auditability guarantee the whole platform rests on would be unverifiable.
   (`bunx @fission-ai/openspec@latest validate add-eve-audit-tracer-bullet --strict`) that makes the rich
   audit record, the redacted replay/debug package, and the decision-summary contract durable, spec-level
   requirements every later Eve slice inherits. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0003 of record for the audit tracer bullet, traceable from ADR-0001 (#417) and ADR-0002 (#418).
+- Provisional Eve design decision `EVE-DESIGN-0003` for the audit tracer bullet, traceable from ADR-0018 (#417) and EVE-DESIGN-0002 (#418).
 - A clear boundary: #419 owns the audit-record **shape**, redacted-package **metadata**, and decision
   summary; #418 owns the governance **state/gate**; #424 owns audit/artifact **retention and holds**.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

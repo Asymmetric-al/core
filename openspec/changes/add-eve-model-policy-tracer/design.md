@@ -1,19 +1,21 @@
-# Design & ADR-0006: Eve Model Policy
+# Design (provisional Eve label EVE-DESIGN-0006): Eve Model Policy
 
-> This `design.md` doubles as **ADR-0006**, the shared-model-policy decision required by issue #421. It builds
-> on **ADR-0002** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0003** (#419,
-> `add-eve-audit-tracer-bullet`), and **ADR-0004** (#420, `add-eve-kill-switch-control-path`), all of which
-> build on **ADR-0001** (#417, `add-eve-autonomous-operations-foundation`), and does not restate them — it
+> **Numbering:** `EVE-DESIGN-0006` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0006**, the shared-model-policy decision required by issue #421. It builds
+> on **EVE-DESIGN-0002** (#418, `add-eve-governance-kernel-release-switch`), **EVE-DESIGN-0003** (#419,
+> `add-eve-audit-tracer-bullet`), and **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), all of which
+> build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it
 > operationalizes the shared model-policy capability whose changes the #420 kill switch can revoke and whose
 > activation is #419-audited and eval-gated. When accepted into `Asymmetric-al/core`, its ADR body should also
-> be landed at the repo's ADR location (same convention chosen for ADR-0001). Every grounded claim carries a
+> be landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`). Every grounded claim carries a
 > `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
 
 ## Status
 
-Proposed (partner draft for #421). Supersedes nothing. Builds on ADR-0002 (#418), ADR-0003 (#419), and
-ADR-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Proposed (partner draft for #421). Supersedes nothing. Builds on EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and
+EVE-DESIGN-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -89,15 +91,15 @@ constraint mandates. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract, protected-area set, and governance data model
+- **#417 (ADR-0018, foundation):** owns the autonomy contract, protected-area set, and governance data model
   at spec level. #421 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:104]
-- **#418 (ADR-0002, governance kernel):** owns the release/kill-switch **state** and the single consult gate.
+- **#418 (EVE-DESIGN-0002, governance kernel):** owns the release/kill-switch **state** and the single consult gate.
   #421 consumes the model-policy switch state; it does not persist or own it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:465]
-- **#419 (ADR-0003, audit tracer):** owns the **audit-record shape**. #421 requires that each policy
+- **#419 (EVE-DESIGN-0003, audit tracer):** owns the **audit-record shape**. #421 requires that each policy
   draft/activation/rollback/override emits one; it does not redefine the record.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:84]
-- **#420 (ADR-0004, kill-switch):** owns the **model-policy-changes switch** as one of its per-domain controls.
+- **#420 (EVE-DESIGN-0004, kill-switch):** owns the **model-policy-changes switch** as one of its per-domain controls.
   #421 owns the policy that switch revokes. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:97]
 - **#421 (this change):** owns the **model-policy capability** — named roles, Gateway-primary routing,
   controlled non-default direct-provider fallbacks, permissioned eval-gated rollback-capable edits, per-role

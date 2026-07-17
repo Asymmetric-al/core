@@ -1,20 +1,22 @@
-# Design & ADR-0012: Eve GitHub Read and Review Path
+# Design (provisional Eve label EVE-DESIGN-0012): Eve GitHub Read and Review Path
 
-> This `design.md` doubles as **ADR-0012**, the GitHub-read-and-review-path decision required by issue #430. It
-> builds on **ADR-0003** (#419, `add-eve-audit-tracer-bullet`), **ADR-0005** (#423,
-> `add-eve-approval-budget-policy`), **ADR-0007** (#425, `add-eve-runtime-foundation`), and **ADR-0011** (#429,
+> **Numbering:** `EVE-DESIGN-0012` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0012**, the GitHub-read-and-review-path decision required by issue #430. It
+> builds on **EVE-DESIGN-0003** (#419, `add-eve-audit-tracer-bullet`), **EVE-DESIGN-0005** (#423,
+> `add-eve-approval-budget-policy`), **EVE-DESIGN-0007** (#425, `add-eve-runtime-foundation`), and **EVE-DESIGN-0011** (#429,
 > `add-eve-sandbox-engineering-worker`), and does not restate them — it operationalizes the path in which Eve
 > responds to a GitHub PR trigger by reviewing and posting a summary plus inline findings through an accountable
 > bot identity, policy-gated and audited, with protected-area detection visible, while the release switch stays
 > off per #418. When accepted into `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR
-> location (same convention chosen for ADR-0001). Every grounded claim carries a `[VERIFIED-REPO: path:line]`
+> location (using the next available canonical number per `docs/adr/README.md`). Every grounded claim carries a `[VERIFIED-REPO: path:line]`
 > citation read from `Asymmetric-al/core` at commit `f535c035` on 2026-07-04.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:224]
 
 ## Status
 
-Proposed (partner draft for #430). Supersedes nothing. Builds on ADR-0003 (#419), ADR-0005 (#423), ADR-0007
-(#425), and ADR-0011 (#429). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Proposed (partner draft for #430). Supersedes nothing. Builds on EVE-DESIGN-0003 (#419), EVE-DESIGN-0005 (#423), EVE-DESIGN-0007
+(#425), and EVE-DESIGN-0011 (#429). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -110,23 +112,23 @@ non-default, revocable route rather than a hardcoded default.
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract and protected-area set at spec level. #430's
+- **#417 (ADR-0018, foundation):** owns the autonomy contract and protected-area set at spec level. #430's
   protected-area detection reads that set to surface it in review; it does not define it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#419 (ADR-0003, audit):** owns the audit-record shape. #430 emits review-action audit records in that shape;
+- **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #430 emits review-action audit records in that shape;
   it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
-- **#420 (ADR-0004, kill-switch):** owns the kill-switch state, including the "disable GitHub actions" switch.
+- **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state, including the "disable GitHub actions" switch.
   #430 honors that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
-- **#421 (ADR-0006, model policy):** owns named roles and Gateway-primary routing. #430 resolves review models
+- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #430 resolves review models
   through that policy via the #425 runtime; it does not define routing.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
-- **#423 (ADR-0005, approval/budget):** owns trust-zone approval and hard budgets. #430's comments are gated by
+- **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. #430's comments are gated by
   that policy and its model spend stays under those budgets; it does not define them.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
-- **#425 (ADR-0007, runtime foundation):** owns the isolated runtime package. #430 is review behavior that runs
+- **#425 (EVE-DESIGN-0007, runtime foundation):** owns the isolated runtime package. #430 is review behavior that runs
   on it; it is not the runtime. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:155]
-- **#429 (ADR-0011, sandbox):** owns the contained writable checkout. #430 reads the PR/repo from that sandbox
+- **#429 (EVE-DESIGN-0011, sandbox):** owns the contained writable checkout. #430 reads the PR/repo from that sandbox
   checkout; it is not the sandbox. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:210]
 - **#431 (slice 15, PR operator) and #432 (slice 16, strict auto-merge):** own mutating PR operations and merge
   gating. #430 only reviews and posts findings; every mutating action and every merge decision is theirs.
