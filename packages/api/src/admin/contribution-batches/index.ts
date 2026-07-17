@@ -17,13 +17,16 @@ export {
 } from "./results";
 
 export type {
+  ContributionBatchApiResponse,
   ContributionBatchAffectedRecord,
   ContributionBatchExecutionMode,
   ContributionBatchItemResult,
   ContributionBatchItemStatus,
+  ContributionBatchNextAction,
   ContributionBatchRecord,
   ContributionBatchRiskLevel,
   ContributionBatchSkippedRecord,
   ContributionBatchStatus,
+  ContributionBatchSummary,
   ProcessContributionBatchInput,
 } from "./types";
