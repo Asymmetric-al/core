@@ -5,6 +5,7 @@ import { z } from "zod";
 import { resolveCrmSyncRuntimeConfig } from "../../crm/sync/config";
 import { processDonationSagaOutboxEvent } from "../../donate/saga";
 import { queueStagedGiftPostingToTwenty } from "../../giving/staged-gifts";
+import { revalidateAdminContributionsCache } from "../../shared/cache-tags";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -144,6 +145,10 @@ export const POST = withOperation(
           throw error;
         }
 
+        if (outcome.mutated) {
+          revalidateAdminContributionsCache(auth.tenantId);
+        }
+
         return NextResponse.json({ replayed: outcome, requestId });
       }
 
@@ -163,6 +168,8 @@ export const POST = withOperation(
           actorUserId: auth.userId,
         });
 
+        revalidateAdminContributionsCache(auth.tenantId);
+
         return NextResponse.json({ replayed, requestId });
       }
 
@@ -175,6 +182,8 @@ export const POST = withOperation(
           note: "Operator replay by staged gift id.",
           crmConfig: resolveCrmSyncRuntimeConfig(serverEnv),
         });
+
+        revalidateAdminContributionsCache(auth.tenantId);
 
         return NextResponse.json({ replayed, requestId });
       }

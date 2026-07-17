@@ -1,46 +1,22 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { eq, useLiveQuery } from "@tanstack/react-db";
+import { type z } from "zod";
 
-import { createBrowserClient } from "../supabase";
+import { locationsCollection } from "../collections/client-db";
+import { type locationSchema } from "../collections/schemas/app";
 
-export type LocationType = "missionary" | "project" | "custom";
-export type LocationStatus = "draft" | "published";
+export type PublicLocation = z.output<typeof locationSchema>;
+export type LocationType = PublicLocation["type"];
+export type LocationStatus = PublicLocation["status"];
 
-export interface PublicLocation {
-  id: string;
-  tenant_id: string;
-  title: string;
-  lat: number;
-  lng: number;
-  type: LocationType;
-  linked_id: string | null;
-  summary: string | null;
-  image_public_id: string | null;
-  status: LocationStatus;
-  sort_key: number;
-  created_at: string;
-  updated_at: string;
-}
-
-/**
- * Published locations for public-facing maps (donor "where we work").
- * Owns the status scoping and row shape so app code never queries the
- * locations table directly; RLS limits anonymous reads to published rows.
- */
 export function usePublicLocations() {
-  return useQuery({
-    queryKey: ["locations", "public"],
-    queryFn: async () => {
-      const supabase = createBrowserClient();
-      const { data, error } = await supabase
-        .from("locations")
-        .select("*")
-        .eq("status", "published")
-        .order("sort_key", { ascending: true });
-
-      if (error) throw error;
-      return data as PublicLocation[];
-    },
-  });
+  return useLiveQuery(
+    (q) =>
+      q
+        .from({ location: locationsCollection.value })
+        .where(({ location }) => eq(location.status, "published"))
+        .orderBy(({ location }) => location.sort_key, "asc"),
+    [],
+  );
 }

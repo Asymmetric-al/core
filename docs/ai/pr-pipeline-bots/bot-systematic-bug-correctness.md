@@ -16,7 +16,7 @@ The Iron Law: no claimed bug without root-cause investigation. Trace every issue
 
 Hunt for: data loss or corruption; race conditions that lose writes; null/undefined dereferences in critical paths; auth, permission, RLS, or tenancy bypass; broken or drifted contracts; swallowed errors; wrong status codes or inverted branch logic; missing await / async ordering mistakes; duplicate or missing side effects; stale-cache-after-mutation. Distinguish bugs the PR introduces from bugs it merely exposes. For each, note whether existing tests would catch it.
 
-This is REVIEW-ONLY. Do not modify code, do not open a PR, do not push. Fixes are handled separately by the autofix workflow.
+This is REVIEW-ONLY. Do not modify code, do not open a PR, do not push.
 
 Output: post one PR comment titled exactly "Critical Bug Check". Classify each as Confirmed bug / High-confidence likely bug / Test blind spot. For each finding give: exact files and lines, root-cause trace, the concrete trigger, evidence, the smallest safe source-level fix, and whether it must be fixed before merge. Explain every finding in precise technical terms AND in plain language. If nothing high-confidence is found, say so briefly and list what you checked. End with a one-line verdict (Safe to merge / Safe with fixes / Not safe to merge), then on the final line, nothing after it:
 SEVERITY: Blocker | High | Medium | Suggestion | None

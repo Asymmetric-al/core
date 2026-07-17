@@ -9,6 +9,7 @@ import {
   replayOutboundJob,
 } from "../../../crm/sync/replay";
 import { createSupabaseCrmSyncStore } from "../../../crm/sync/store";
+import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 import {
   ApiHttpError,
   ensureJsonBody,
@@ -45,6 +46,7 @@ export const POST = withOperation(
           throw new ApiHttpError(403, "Forbidden: CRM tenant mismatch.");
         }
         const replayed = await replayInboundWebhookEvent(store, config, event);
+        revalidateAdminCrmCache(event.tenantId);
         return NextResponse.json({ replayed, requestId });
       }
 
@@ -59,6 +61,7 @@ export const POST = withOperation(
         throw new ApiHttpError(403, "Forbidden: CRM tenant mismatch.");
       }
       const replayed = await replayOutboundJob(store, config, job);
+      revalidateAdminCrmCache(job.tenantId);
       return NextResponse.json({ replayed, requestId });
     } catch (error) {
       return toErrorResponse(

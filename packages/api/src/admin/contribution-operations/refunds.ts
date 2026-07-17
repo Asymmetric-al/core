@@ -4,6 +4,7 @@ import {
   finalizeContributionRefundAttempt,
   loadContributionRefundAttempt,
 } from "./store";
+import { loadTenantStripeSecretKey } from "./tenant-stripe-key";
 import { ApiHttpError } from "../../shared/http-errors";
 import { createStripeClient } from "../../stripe/client";
 import {
@@ -12,7 +13,6 @@ import {
   describeStripeRefundError,
   retrieveLiveChargeForRefund,
 } from "../../stripe/refunds";
-import { resolveTenantStripe } from "../../stripe/tenant-client";
 
 import type { ContributionProviderOutcome } from "./types";
 import type { StripeRefundsApi } from "../../stripe/refunds";
@@ -85,19 +85,16 @@ async function resolveTenantStripeSecretKey(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<string> {
-  const tenantStripe = await resolveTenantStripe(input);
+  const secretKey = await loadTenantStripeSecretKey(input);
 
-  if (!tenantStripe.ok) {
-    if (tenantStripe.reason === "lookup_failed") {
-      throw new Error(tenantStripe.message);
-    }
+  if (!secretKey) {
     throw new ApiHttpError(
       503,
       "Stripe is not configured for this organization, so provider refunds are unavailable.",
     );
   }
 
-  return tenantStripe.secretKey;
+  return secretKey;
 }
 
 export async function refundContributionThroughStripe(
@@ -317,6 +314,10 @@ export async function refundContributionThroughStripe(
       localOutcome = await applyRefundedChargeToDonation(
         input.supabaseAdmin,
         charge,
+        // The expanded charge's embedded refund list can be absent or
+        // truncated; the refund this action just created is always part of
+        // the convergent stripe_refund_ids set.
+        { knownRefundIds: [refund.id] },
       );
     } catch (error) {
       // The provider refund succeeded but the local record did not converge.

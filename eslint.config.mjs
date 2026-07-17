@@ -6,6 +6,14 @@ import { appRestrictedImports } from "@asym/eslint-config/restricted-imports.mjs
 
 const sourceCodeFiles = "**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}";
 
+const tableEngineImportRestriction = [
+  {
+    name: "@tanstack/react-table",
+    message:
+      "Import table values/types from the boundary module @asym/ui/components/shadcn/data-table/tanstack (relative ./tanstack within shared UI), not @tanstack/react-table directly (ADR-3). @tanstack/react-table-devtools is allowed.",
+  },
+];
+
 const eslintConfig = defineConfig([
   // Root fallback/orchestrator config.
   // Individual apps/packages should define local eslint.config.mjs files.
@@ -25,7 +33,9 @@ const eslintConfig = defineConfig([
   {
     files: ["apps/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
-      "no-restricted-imports": appRestrictedImports(),
+      "no-restricted-imports": appRestrictedImports({
+        extraPaths: tableEngineImportRestriction,
+      }),
     },
   },
   {
@@ -44,6 +54,7 @@ const eslintConfig = defineConfig([
           },
         ],
         extraPaths: [
+          ...tableEngineImportRestriction,
           {
             name: "@asym/database/supabase/admin",
             message:
@@ -64,7 +75,21 @@ const eslintConfig = defineConfig([
     // imports are allowed there — but app boundaries still apply.
     files: ["**/src/cms-ui/**"],
     rules: {
-      "no-restricted-imports": appRestrictedImports({ exclude: ["motion"] }),
+      "no-restricted-imports": appRestrictedImports({
+        exclude: ["motion"],
+        extraPaths: tableEngineImportRestriction,
+      }),
+    },
+  },
+  {
+    // ADR-3 sanctioned exceptions: the boundary module is the ONE place allowed
+    // to import the engine, and types.ts augments the engine's module.
+    files: [
+      "packages/ui/components/shadcn/data-table/tanstack.ts",
+      "packages/ui/components/shadcn/data-table/types.ts",
+    ],
+    rules: {
+      "no-restricted-imports": appRestrictedImports(),
     },
   },
   {
@@ -88,6 +113,7 @@ const eslintConfig = defineConfig([
           },
         ],
         extraPaths: [
+          ...tableEngineImportRestriction,
           {
             name: "@asym/database/supabase",
             message:

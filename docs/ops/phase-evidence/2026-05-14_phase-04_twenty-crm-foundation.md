@@ -1,5 +1,8 @@
 # Phase 4 - Twenty CRM Foundation and API Gateway Evidence
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Generated: 2026-05-14
 Phase source commit at start: `44a3c24c4eabcaed0f32001f204c51b2326356d3`
 Phase 3 source commit: `6f47c0701118b25d30d0f050ec12dfc6501e7237`

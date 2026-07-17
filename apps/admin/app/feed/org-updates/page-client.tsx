@@ -8,6 +8,7 @@ import {
   BrandLogo,
   brandConfig,
 } from "@asym/ui/components/brand-logo";
+import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   AlertDialog,
@@ -525,15 +526,7 @@ function PostCard({
             transition={{ delay: 0.2 }}
             className="px-4 sm:px-6 py-3 sm:py-4 border-t bg-muted/20 flex items-center gap-6"
           >
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-              <span className="text-base">❤️</span> {post.likes_count}
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-              <span className="text-base">🙏</span> {post.prayers_count}
-            </span>
-            <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
-              <span className="text-base">🔥</span> {post.fires_count}
-            </span>
+            <ReactionBar update={post} readOnly comments="hidden" />
             <span className="flex items-center gap-1.5 text-xs text-muted-foreground font-medium">
               <MessageCircle className="size-4" /> {post.comments_count}
             </span>

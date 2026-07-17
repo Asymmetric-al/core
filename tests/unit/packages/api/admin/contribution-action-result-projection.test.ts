@@ -123,4 +123,44 @@ describe("admin/contribution-operations route action-result projection", () => {
       projectContributionActionResultForViewer(result, DONOR_CARE_CAPABILITIES),
     ).toBe(result);
   });
+
+  it("shapes canonical availability under the tenant policy, matching the GET contract", () => {
+    // The decision route must thread the loaded tenant policy into the result
+    // projection (#270): under no_approval_required the GET detail contract
+    // omits correction request entries, so the decision response's canonical
+    // contribution must omit them too — the conservative default would
+    // advertise requests the executor rejects.
+    const noApprovalPolicy = {
+      ownershipMode: "no_approval_required" as const,
+      strongerApprovalCategories: [],
+    };
+
+    const projected = projectContributionActionResultForViewer(
+      makeResult(),
+      DONOR_CARE_CAPABILITIES,
+      { approvalPolicy: noApprovalPolicy },
+    );
+    const canonical = projected.canonicalContribution as {
+      actionAvailability: Array<{ actionType: string }>;
+    };
+    const actionTypes = canonical.actionAvailability.map(
+      (entry) => entry.actionType,
+    );
+    expect(actionTypes).not.toContain("amount_correction");
+    expect(actionTypes).not.toContain("fund_correction");
+
+    // Omitting the policy falls back to the conservative default, which
+    // emits the request entries — the divergence the route must avoid by
+    // always passing the tenant policy.
+    const defaulted = projectContributionActionResultForViewer(
+      makeResult(),
+      DONOR_CARE_CAPABILITIES,
+    );
+    const defaultedCanonical = defaulted.canonicalContribution as {
+      actionAvailability: Array<{ actionType: string }>;
+    };
+    expect(
+      defaultedCanonical.actionAvailability.map((entry) => entry.actionType),
+    ).toContain("amount_correction");
+  });
 });

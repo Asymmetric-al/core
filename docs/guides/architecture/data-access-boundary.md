@@ -9,6 +9,13 @@ access, server-only vendor integrations, or CRM/Twenty access paths.
 
 `packages/api/src/*` is the single canonical layer for business database logic. Route handlers in `apps/*/app/api/` must remain thin re-exports only, and must never import `@asym/database/supabase/*`, `@supabase/ssr`, or `@supabase/supabase-js` directly.
 
+For browser-visible Supabase table data, `packages/database/collections/*` and
+`packages/database/hooks/*` are the canonical app-facing data layer. App
+components and features should use `@asym/database/hooks` instead of direct
+Supabase table reads when a collection exists. The browser Supabase client is
+reserved for approved low-level auth/session/storage helpers, not feature-local
+table reads.
+
 Twenty CRM follows the same boundary. App source must not import raw Twenty
 client wrappers from `packages/api/src/crm/client/*`, must not import
 `@asym/api/crm/client*`, and must never reference server-only Twenty secrets
@@ -30,15 +37,20 @@ route Supabase scope but follow the same delegation pattern.
 1. Put business logic and vendor calls in `packages/api/src/*`.
 2. Export stable route or service contracts from `@asym/api`.
 3. Keep `apps/*/app/api/**/route.ts` files as thin re-exports.
-4. Use `@asym/env` for server-only credentials inside packages, not raw
+4. Put browser-visible Supabase table reads in `@asym/database/hooks` backed by
+   the collection registry.
+5. Use `@asym/env` for server-only credentials inside packages, not raw
    `process.env` reads in app/runtime modules.
-5. Run `bun run verify:data-boundary` after changing routes or CRM/Twenty
+6. Run `bun run verify:data-boundary` after changing routes, app data reads, or CRM/Twenty
    access paths.
 
-Phase 07 CRM production cutover does not weaken this boundary. Operational
-runbooks, rollback, replay, restore, and support workflows must use Asym
-server-side contracts and durable CRM tables; raw Twenty UI is diagnostic only
-and cannot become the normal Mission Control product or support path.
+The Twenty CRM integration is retired
+([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+Asym Postgres owns all CRM truth (see the
+[Phase 1 ownership matrix](../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)).
+The Twenty client code is dormant pending a scheduled cleanup ticket, so the
+Twenty-specific rules above still guard real code; delete them from this guide
+only when that ticket removes the code.
 
 ## Approved Exceptions
 
@@ -59,6 +71,12 @@ and cannot become the normal Mission Control product or support path.
 - [ ] App API route handlers are thin re-exports from `@asym/api`.
 - [ ] Business database logic lives under `packages/api/src/*`.
 - [ ] Supabase clients are not imported directly from `apps/*/app/api/**`.
+- [ ] Browser table reads use `@asym/database/hooks` or approved collection
+      exports when a collection exists.
+- [ ] Browser collection mutations are limited to simple RLS-authorized
+      single-table writes.
+- [ ] Payments, donations, receipts, webhooks, audit, role changes, reporting,
+      RPC counters, and multi-table workflows remain server-command owned.
 - [ ] Raw Twenty clients stay under `packages/api/src/crm/client/*`.
 - [ ] App source does not reference `TWENTY_API_KEY`,
       `TWENTY_WEBHOOK_SECRET`, or any `NEXT_PUBLIC_TWENTY_*` secret.

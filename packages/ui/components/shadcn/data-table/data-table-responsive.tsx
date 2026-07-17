@@ -12,14 +12,15 @@ import {
   useDataTableStateWithUrl,
 } from "./hooks/use-data-table-state";
 
+import type { RowData } from "./tanstack";
 import type { DataTableUrlStateConfig } from "./types";
 
-type DataTableResponsiveBodyProps<TData, TValue> = Omit<
+type DataTableResponsiveBodyProps<TData extends RowData, TValue> = Omit<
   DataTableResponsiveProps<TData, TValue>,
   "urlState"
 >;
 
-function DataTableResponsiveBody<TData, TValue>({
+function DataTableResponsiveBody<TData extends RowData, TValue>({
   ...props
 }: DataTableResponsiveBodyProps<TData, TValue>) {
   const tableState = useDataTableStateCore({
@@ -35,7 +36,7 @@ function DataTableResponsiveBody<TData, TValue>({
   return <DataTableResponsiveInner {...props} tableState={tableState} />;
 }
 
-function DataTableResponsiveWithUrl<TData, TValue>({
+function DataTableResponsiveWithUrl<TData extends RowData, TValue>({
   urlState,
   ...props
 }: DataTableResponsiveBodyProps<TData, TValue> & {
@@ -57,7 +58,7 @@ function DataTableResponsiveWithUrl<TData, TValue>({
   return <DataTableResponsiveInner {...props} tableState={tableState} />;
 }
 
-export function DataTableResponsive<TData, TValue>({
+export function DataTableResponsive<TData extends RowData, TValue>({
   urlState,
   searchKey,
   searchColumnId,

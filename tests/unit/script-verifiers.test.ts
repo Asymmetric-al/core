@@ -411,6 +411,67 @@ describe("verify-skills-sync", () => {
     );
   }, 20_000);
 
+  it("fails when the unsupported singular agent skill mirror is present", async () => {
+    const tempRoot = await createSkillsVerifyRepo();
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+    execSync("git add .", {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git commit -m "sync skill mirrors"', {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    await mkdir(path.join(tempRoot, ".agent/skills/stale-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, ".agent/skills/stale-skill/SKILL.md"),
+      "# Stale skill\n",
+    );
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+    ).toThrow(/Unsupported singular skill mirror detected/);
+  }, 20_000);
+
+  it("fails when the unsupported singular agent skill mirror is staged", async () => {
+    const tempRoot = await createSkillsVerifyRepo();
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+    execSync("git add .", {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+    execSync('git commit -m "sync skill mirrors"', {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    await mkdir(path.join(tempRoot, ".agent/skills/stale-skill"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(tempRoot, ".agent/skills/stale-skill/SKILL.md"),
+      "# Stale skill\n",
+    );
+    execSync("git add .agent/skills", {
+      cwd: tempRoot,
+      env: isolatedGitEnv,
+      stdio: "pipe",
+    });
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-skills-sync.mjs"),
+    ).toThrow(/Unsupported singular skill mirror detected/);
+  }, 20_000);
+
   it("prints repo context when .git discovery fails", async () => {
     const tempRoot = await createTempRepo("skills-verify-missing-git");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
@@ -424,6 +485,55 @@ describe("verify-skills-sync", () => {
 });
 
 describe("sync-agent-skills", () => {
+  it("fully replaces Core-curated adapter directories", async () => {
+    const tempRoot = await createTempRepo("sync-skills-curated-adapter");
+    await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    const canonicalSkillRoot = path.join(tempRoot, "docs/ai/skills/vitest");
+    await mkdir(path.join(canonicalSkillRoot, "references"), {
+      recursive: true,
+    });
+    await writeFile(
+      path.join(canonicalSkillRoot, "SKILL.md"),
+      "---\nname: vitest\ndescription: Core Vitest\n---\n",
+    );
+    await writeFile(
+      path.join(canonicalSkillRoot, "references/upstream.md"),
+      "Core provenance\n",
+    );
+
+    const runtimeRoots = [".agents/skills", ".cursor/skills", ".claude/skills"];
+    for (const runtimeRoot of runtimeRoots) {
+      const runtimeSkillRoot = path.join(tempRoot, runtimeRoot, "vitest");
+      await mkdir(path.join(runtimeSkillRoot, "references"), {
+        recursive: true,
+      });
+      await writeFile(path.join(runtimeSkillRoot, "GENERATION.md"), "stale\n");
+      await writeFile(
+        path.join(runtimeSkillRoot, "references/core-cli.md"),
+        "stale\n",
+      );
+    }
+
+    runNodeScript(tempRoot, "scripts/sync-agent-skills.mjs");
+
+    for (const runtimeRoot of runtimeRoots) {
+      const runtimeSkillRoot = path.join(tempRoot, runtimeRoot, "vitest");
+      await expect(
+        access(path.join(runtimeSkillRoot, "GENERATION.md")),
+      ).rejects.toThrow();
+      await expect(
+        access(path.join(runtimeSkillRoot, "references/core-cli.md")),
+      ).rejects.toThrow();
+      await expect(
+        readFile(path.join(runtimeSkillRoot, "SKILL.md"), "utf8"),
+      ).resolves.toContain("description: Core Vitest");
+      await expect(
+        readFile(path.join(runtimeSkillRoot, "references/upstream.md"), "utf8"),
+      ).resolves.toBe("Core provenance\n");
+    }
+  });
+
   it("prunes removed canonical files while preserving runtime-only assets", async () => {
     const tempRoot = await createTempRepo("sync-skills-stale-files");
     await copyScript(tempRoot, "scripts/sync-agent-skills.mjs");

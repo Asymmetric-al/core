@@ -5,6 +5,7 @@ import { useState, useCallback, useMemo } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import type { RowData } from "../tanstack";
 import type { RatingCellProps } from "./types";
 
 const sizeClasses = {
@@ -13,7 +14,7 @@ const sizeClasses = {
   lg: "size-5",
 };
 
-export function RatingCell<TData>({
+export function RatingCell<TData extends RowData>({
   value,
   isEditing = false,
   onValueChange,

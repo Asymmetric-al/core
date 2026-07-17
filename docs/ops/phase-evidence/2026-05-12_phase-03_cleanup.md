@@ -1,5 +1,8 @@
 # Phase 3 Post-Completion Cleanup
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Generated: 2026-05-14 01:12:00 +07
 Repo: `Asymmetric-al/core`
 Branch: `production`

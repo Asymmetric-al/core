@@ -1,44 +1,156 @@
 # TanStack Integration Guide
 
-This guide documents the project-standard integration for TanStack Query v5, Table v8, DB, and Virtual v3 in this Next.js 16.2.6 monorepo.
+This guide documents the project-standard integration for TanStack Query v5, Table v9 (beta), DB, and Virtual v3 in this Next.js 16.2.6 monorepo.
 
-AI agents should pair official TanStack CLI docs/search output with this repo-specific guide. TanStack Intent skills apply only when the current `npx --yes @tanstack/intent@latest list` output returns a matching package; for Query/Table/Router surfaces not returned by Intent, keep using `tanstack doc`, `tanstack search-docs`, this guide, and the virtual foundation guide below.
+AI agents should pair official TanStack CLI docs/search output with this repo-specific guide. TanStack Intent skills apply only when the current `npx --yes @tanstack/intent@latest list` output returns a matching package; for Query/Table/Router surfaces not returned by Intent, keep using `tanstack doc`, `tanstack search-docs`, this guide, and the virtual foundation guide below. For Table specifically, see [v9 doc sources](#v9-doc-sources) first — tanstack.com still serves v8 docs.
 
 ## Version Matrix
 
-| Package                         | Version    | Primary workspace(s)               | Role                      |
-| ------------------------------- | ---------- | ---------------------------------- | ------------------------- |
-| `@tanstack/react-query`         | `^5.96.2`  | `packages/database`, apps          | Query state and caching   |
-| `@tanstack/react-table`         | `^8.21.3`  | `packages/ui`, apps                | Headless table state      |
-| `@tanstack/react-db`            | `^0.1.82`  | `packages/database`, `packages/ui` | React DB bindings         |
-| `@tanstack/query-db-collection` | `^1.0.35`  | `packages/database`                | Query-backed collections  |
-| `@tanstack/db`                  | `^0.6.4`   | `packages/database`                | DB runtime                |
-| `@tanstack/react-virtual`       | `^3.13.23` | `packages/ui`                      | Row/list virtualization   |
-| `@tanstack/cli`                 | `^0.63.1`  | repo root (devDependency)          | TanStack docs + tooling   |
-| `zod`                           | `^4.3.6`   | apps + shared packages             | Runtime schema validation |
+| Package                          | Version                | Primary workspace(s)                                           | Role                                    |
+| -------------------------------- | ---------------------- | -------------------------------------------------------------- | --------------------------------------- |
+| `@tanstack/react-query`          | `^5.96.2`              | `packages/database`, apps                                      | Query state and caching                 |
+| `@tanstack/react-table`          | `9.0.0-beta.9` (exact) | `packages/ui`, `packages/database`, `apps/admin`, `apps/donor` | Headless table engine (v9 beta)         |
+| `@tanstack/react-table-devtools` | `9.0.0-beta.9` (exact) | `packages/ui`, `apps/admin`                                    | Table devtools adapter/plugin           |
+| `@tanstack/react-devtools`       | `^0.10.5`              | `apps/admin`                                                   | TanStack Devtools shell (hosts plugins) |
+| `@tanstack/react-db`             | `^0.1.82`              | `packages/database`, `packages/ui`                             | React DB bindings                       |
+| `@tanstack/query-db-collection`  | `^1.0.35`              | `packages/database`                                            | Query-backed collections                |
+| `@tanstack/db`                   | `^0.6.4`               | `packages/database`                                            | DB runtime                              |
+| `@supabase-labs/tanstack-db`     | `0.0.1` (exact)        | `packages/database`                                            | Supabase collection adapter             |
+| `@tanstack/react-virtual`        | `^3.13.23`             | `packages/ui`                                                  | Row/list virtualization                 |
+| `@tanstack/cli`                  | `^0.63.1`              | repo root (devDependency)                                      | TanStack docs + tooling                 |
+| `zod`                            | `^4.3.6`               | apps + shared packages                                         | Runtime schema validation               |
 
-## Architecture Boundaries
+`@tanstack/react-table` and `@tanstack/react-table-devtools` are pinned **exactly** (no caret) in every workspace that consumes them: beta-to-beta releases can include breaking changes, and the exact pin keeps those from arriving silently through a version range. Rationale and rollout history live in `docs/guides/architecture/tanstack-table-v9-decisions.md` (ADR-1).
 
-1. **Server/cache layer (Next.js Cache Components)**  
+## Layer Responsibilities
+
+1. **Server/cache layer (Next.js Cache Components)**
    Use `use cache`, `cacheTag`, `cacheLife`, `revalidateTag`, and `updateTag` only in server-safe code paths.
 
-2. **Data layer (TanStack Query + TanStack DB)**  
-   Fetching, optimistic updates, cache invalidation, and collection joins belong here.
+2. **TanStack Query — server and non-collection fetch state.**
+   Fetching, retries, cache invalidation, and optimistic mutation flows for server read models and non-collection async state belong here. Query keys must be serializable and must include every table-state input that affects the response (pagination, sorting, filters) **plus** the `manual*` mode flags, so server-mode and client-mode results never collide in the cache.
 
-3. **View state layer (TanStack Table + TanStack Virtual)**  
-   Sorting/filter/pagination/virtualization belong in UI components and should stay decoupled from fetch logic.
+3. **TanStack DB — browser table state and local reactive working sets.**
+   Browser-visible Supabase table rows belong in shared collections and `@asym/database/hooks` by default. Collection joins, live queries, and optimistic staging also belong here when multiple surfaces share the same data. A single-screen dataset should stay on plain Query only when it is not collection-safe Supabase table state.
 
-4. **Rendering layer (App/UI components)**  
-   Components read from Query/DB state and opt into virtualization through the shared API.
+4. **TanStack Table — view state.**
+   Sorting, filtering, pagination, row selection, and column visibility belong in UI components and stay decoupled from fetch logic. The table engine never owns data freshness.
+
+5. **TanStack Store — per-slice table reactivity.**
+   Store is the reactivity engine inside Table v9 (each state slice is an atom). It powers focused subscriptions for table chrome (see below). It is not a general-purpose app store.
+
+6. **TanStack Virtual — rendering only.**
+   Virtualization is a client-side rendering optimization. It owns neither view state nor fetch policy. See `docs/guides/development/tanstack-virtual-foundation.md`.
+
+## TanStack Table v9
+
+The shared table layer runs `@tanstack/react-table@9.0.0-beta.9`. The migration kept the public component API stable; the engine-facing changes are concentrated in one boundary module.
+
+### Boundary module (the only engine import)
+
+`packages/ui/components/shadcn/data-table/tanstack.ts` is the **only** file allowed to import `@tanstack/react-table`. Apps and tests import table values/types from `@asym/ui/components/shadcn/data-table/tanstack`; shared UI imports it relatively. Sanctioned exceptions (ADR-3):
+
+- The `packages/database/hooks/*` files import engine-stable **state types** (`SortingState`, `ColumnFiltersState`) directly, because `packages/database` must not depend on `@asym/ui`.
+- The `declare module "@tanstack/react-table"` `ColumnMeta` augmentation in `packages/ui/components/shadcn/data-table/types.ts` targets the real package name (declaration merging requires it).
+- Table-creating files import `@tanstack/react-table-devtools` directly — it is a devtools adapter, not the engine, so it stays out of the boundary.
+
+Code review should reject any other direct `@tanstack/react-table` import.
+
+The boundary exports everything consumers need:
+
+- **`dataTableFeatures`** — the one explicit `tableFeatures({...})` set (10 features: column faceting, filtering, pinning, resizing, sizing, visibility, global filtering, row pagination, selection, sorting). v9 features are opt-in plugins; `stockFeatures` and `useLegacyTable` are deliberately not used (ADR-2). Adding a capability (e.g. grouping) means adding the feature here — a reviewed boundary change.
+- **`SharedTableFeatures`** — `typeof dataTableFeatures`, the feature generic bound into all shared types.
+- **`createDataTableRowModels({ filtering, sorting, pagination, faceting })`** — the shared row-model bundle for the v9 `rowModels` option; each flag registers the matching client-side row model (all default `true`).
+- **`useTable`, `flexRender`, `useSelector`** — the React entry points. `useSelector` is re-exported from `@tanstack/react-store` (a direct dependency, matching the store version `@tanstack/react-table` itself uses); import it from the boundary, not from the package.
+- **v8-named type aliases pre-bound to `SharedTableFeatures`** — `ColumnDef<TData, TValue>`, `Table<TData>`, `Row`, `Cell`, `Column`, `Header`, `HeaderGroup`, `TableOptions`, plus `VisibilityState` (the v8 name for v9's `ColumnVisibilityState`). v9 added `TFeatures` as the first generic parameter on most types; the aliases absorb it so consumer signatures keep the v8 shape, and raw `TFeatures` generics appear nowhere in app code (ADR-4).
+
+> **Beta.10 upgrade note:** `createDataTableRowModels` and every
+> `useTable({ rowModels: ... })` call site are intentionally tied to the pinned
+> `9.0.0-beta.9` option shape. TanStack Table `9.0.0-beta.10` moved row-model
+> factories into `tableFeatures(...)` slots (`filteredRowModel`,
+> `sortedRowModel`, `paginatedRowModel`, etc.). Do not bump past beta.9 without
+> migrating `dataTableFeatures`, `createDataTableRowModels`, and the direct
+> `useTable` call sites together.
+
+### Building a new table on v9
+
+- **Default: use the shared components.** `DataTable` / `DataTableResponsive` (and `DataGrid` for editable grids) are the family entry points; their public props did not change in the v9 migration (`columns`, `data`, `state`, `initialState`, `urlState`, `getRowId`, `config`, …).
+- Type columns with `ColumnDef<TData, TValue>` imported from the boundary, never from `@tanstack/react-table`.
+- For server-mode tables set `config.manualPagination` / `manualSorting` / `manualFiltering`; the shared components derive the row-model flags from them automatically (`filtering: !manualFiltering`, etc. in `data-table-body.tsx`).
+- **Direct `useTable` call sites are rare** (per ADR-4 app code consumes the shared components). If you genuinely need one, pass `features: dataTableFeatures` and `rowModels: createDataTableRowModels({...})`, and make the flags mirror the table's `manual*` flags. The core row model is automatic in v9; only filtered/sorted/paginated/faceted models are registered explicitly.
+
+> **Warning — v9 fails silently on missing row models.** When a row model is not registered, v9 skips that processing stage instead of throwing: the sorted model falls back to the unsorted model, faceted counts return an empty `Map`, and so on. A wrong flag pairing presents as a data bug ("sorting does nothing"), not an error. Registering a model alongside a `manual*` flag is harmless — the runtime checks the manual flag first — so when in doubt, register the model.
+
+### Engine state ownership
+
+Each table state slice has three possible owners, with engine precedence **`options.atoms[key]` > `options.state[key]` > internal base atom**:
+
+1. **Internal (default):** the table owns the slice. Seed defaults with `initialState`.
+2. **Controlled:** pass `state.<slice>` plus the matching `on<Slice>Change` handler. The shared components expose this through their `state` / `on*Change` props, unchanged from the v8 era.
+3. **External atoms:** pass a writable atom per slice via the v9 `atoms` table option — the preferred v9 ownership when another store must own a slice. The shared components do not currently expose this; it applies to direct `useTable` call sites only.
+
+Reading state:
+
+- **Render reads:** `table.state` — the selected state returned by `useTable` (full table state unless you pass a selector).
+- **Imperative reads** (event handlers, effects): `table.atoms.<slice>.get()` for one slice, or `table.store.state` for a full-state snapshot. Do not read `table.store.state` during render.
+- **`table.getState()` is gone in v9.**
+
+Component-level ownership rules (which slices to hoist, `urlState`, `getRowId`) are unchanged — see [Shared table state ownership](#shared-table-state-ownership).
+
+### Focused subscriptions for table chrome
+
+v9's `useTable` returns `{ ...instance, options, state }` — a **fresh wrapper object on every render** of the table-owning component. An identity compare of a `table` prop therefore never matches, so a plain `React.memo` around chrome (pagination, action bars, toolbars) never bails out, even though the underlying instance is stable.
+
+The shared pattern (see `packages/ui/components/shadcn/data-table/data-table-chrome-memo.ts`):
+
+1. Memoize chrome with comparators from `data-table-chrome-memo.ts`:
+   - **Table prop:** `React.memo(Component, (prev, next) => areChromeTablePropsInterchangeable(prev.table, next.table) && …)`. The comparator treats two wrappers as interchangeable when they share the same `atoms` map (the atoms are created once per instance and copied by reference into every wrapper) **and** the non-state option inputs feeding chrome's derived reads (`columns`, `data`, `pageCount`, `rowCount`) are unchanged.
+   - **Action arrays (action bar / floating bar):** also compare `actions` with `areDataTableChromeActionsEqual` so inline arrays with stable handlers do not defeat memoization. That helper shallow-compares every field on `DataTableChromeAction` (including `hideOnMobile` on floating-bar actions).
+2. Subscribe to exactly the slices the component renders: `useSelector(table.atoms.pagination)`, `useSelector(table.atoms.rowSelection)`, etc.
+3. **Never read `table.state` inside a component memoized this way** — once the comparator starts bailing out, the retained wrapper's `.state` snapshot is stale. Read through `useSelector` (or live `table.get*` APIs whose inputs are covered by a subscription or the comparator).
+
+`EMPTY_TABLE_SELECTION_SOURCE` and `getTableSliceAtoms` support minimal table doubles in unit tests (plain objects without atoms); such doubles still render correctly because they re-render with their parent.
+
+### Table devtools
+
+- `DataTable`, `DataTableResponsive`, and `DataGrid` accept an optional **`devtoolsKey`** prop (`DataTableWrapper` forwards it), and `useDataTableWithLiveQuery` accepts the same option. It becomes the table's `key` option — its devtools identity — and gates registration via `useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) })`. Omit it (the default) and the table stays unregistered.
+- The host shell is mounted **dev-only** in the admin app: `AdminTanStackDevtools` (`apps/admin/app/_providers/tanstack-devtools.tsx`) renders `<TanStackDevtools plugins={[tableDevtoolsPlugin()]} />` from `@tanstack/react-devtools` + `@tanstack/react-table-devtools` and returns `null` in production builds; it is wired into `apps/admin/app/layout.tsx`.
+- The adapter's default `.` entry exports no-ops whenever `NODE_ENV !== "development"`, so registration is skipped outside development and `devtoolsKey` values can stay in committed code. Beware the package's `./production` entry: it is the opposite — an always-enabled opt-in that exports the real panel/plugin/hook — so never import it expecting a no-op.
+- The beta engine requires the **`@beta`-tagged adapter**: `@tanstack/react-table-devtools` is pinned to the same `9.0.0-beta.9` as the engine. The `latest`-tagged adapter targets v8 instances and cannot read v9's Store-backed state.
+
+### Testing expectations
+
+- The characterization suite in `tests/unit/packages/ui/components/shadcn/` (`data-table-*.test.tsx`) is the **behavior oracle** for the shared table layer. It pins user-visible behavior through public interfaces and gates every engine change — it turns v9's silent row-model fallback into a visible test failure (ADR-2).
+- New table features need **behavior-first tests**: extend the characterization suite through the public component API before (or with) the implementation, not engine-internal assertions after the fact.
+- Contract tests pin **query-key stability** (e.g. `tests/unit/packages/database/admin-crm-relationships-query-key.test.tsx`, `tests/unit/packages/database/admin-crm-cache-stability-contracts.test.ts`). Table-state-derived query keys are public contracts; changing their shape invalidates caches and must be deliberate.
+
+### v9 doc sources
+
+tanstack.com Table docs and `tanstack search-docs --library table` still index **v8** content. v9 truth for this repo is:
+
+- the [`TanStack/table` `beta` branch](https://github.com/TanStack/table/tree/beta) (the repo's default branch; v9 docs under `docs/`, including the migration guide), and
+- the installed package typings under `node_modules` for the exact pinned beta.
+
+Treat v8 docs as migration context only. See the **"TanStack Table v9 (beta) source verification"** rule in `AGENTS.md` and `docs/guides/architecture/tanstack-table-v9-decisions.md` before trusting any Table doc.
 
 ## Collection Ownership
 
-- **Real Supabase table collections** live in `packages/database/collections/client-db.ts`.
-- **Route-backed admin collections** live in `packages/database/collections/admin-locations.ts`.
+- **Real Supabase table collections** live under `packages/database/collections/tables/*` and use the shared `supabase-collection.ts` wrapper.
+- **The collection registry** lives in `packages/database/collections/registry.ts` and records table ownership, RLS posture, Realtime posture, mutation policy, and intentional exclusions.
+- **Route-backed admin collections** live in `packages/database/collections/admin-locations.ts` only while their server read model still provides linked entities or redaction not yet represented by safe collections.
 - **Mock/demo collections that still need TanStack DB semantics** live in:
   - `packages/database/collections/admin-workspace.ts`
   - `packages/database/collections/donor-history.ts`
-- **App code should import hooks from `@asym/database/hooks`** instead of reading app-local mock arrays or stitching browser fetches inline.
+- **App code should import hooks from `@asym/database/hooks`** instead of direct Supabase table reads, app-local mock arrays, or stitching browser fetches inline.
+
+## Browser Data Decision Tree
+
+1. **Browser-visible Supabase table rows:** use `@asym/database/hooks` backed by `packages/database/collections`.
+2. **Browser-visible joins, filters, feeds, lists, dashboards, and tables:** use TanStack DB live queries over collections.
+3. **Simple RLS-authorized single-table writes:** use collection mutations when optimistic UI is useful and the browser is allowed to form the write.
+4. **Server reads that benefit from shared query shape:** use the approved `@asym/database/collections/query-once` helper only when it is bounded and safer/clearer than a plain server Supabase query.
+5. **Privileged, multi-table, payment, email, audit, webhook, receipt, RPC counter, file, external sync, or secret-backed workflows:** use `packages/api`, Server Actions, or thin route handlers. Do not move these into collection mutations.
+6. **Reporting and aggregate-heavy workflows:** keep SQL/views/functions/server Supabase queries as the reporting engine. Collections may display bounded report results, not replace the engine.
 
 ## Provider Standard
 
@@ -59,8 +171,8 @@ export default function RootLayout({
 ## Query + Table Integration Pattern
 
 - Put pagination/sorting/filtering in explicit serializable state.
-- Query key must include that state.
-- For server-mode tables, use `manualPagination`, `manualSorting`, and `manualFiltering`.
+- Query key must include that state (and the `manual*` flags when a surface can run in both modes).
+- For server-mode tables, use `manualPagination`, `manualSorting`, and `manualFiltering`. The shared components skip registering the matching client-side row models automatically; direct `useTable` call sites must mirror the flags themselves (see [Building a new table on v9](#building-a-new-table-on-v9)).
 - Prefer `placeholderData: keepPreviousData` in Query v5 for smoother transitions.
 - Prefer `rowCount` for server pagination totals; TanStack Table derives `pageCount` from `rowCount` + page size.
 - Use `pageCount` only when `rowCount` is unavailable.
@@ -78,90 +190,21 @@ const query = useQuery({
 });
 ```
 
-## TanStack DB Collection Pattern
+## Supabase TanStack DB Collection Pattern
 
 - Define collection schema with Zod.
-- Use `queryCollectionOptions` with explicit `queryKey`.
-- Keep mutation handlers transactional and error-throwing.
-- Prefer `Promise.all` for independent network calls.
-- Bound the `queryFn` for any table that grows with tenant size (see below).
-
-### Bounded collection windows
-
-Collections backed by tenant-scale tables must not fetch the whole table into
-the browser. `packages/database/collections/client-db.ts` bounds `donors`,
-`donor_activities`, `donor_pledges`, `posts`, `donations`, `post_comments`, and
-`follows` with `createBoundedTableFetcher`, which:
-
-- fetches a deterministically ordered window — the `orderBy` column with
-  `nullsFirst: false` (so null sort values land last instead of crowding out
-  real rows) plus an `id` tie-break — from offset `0` via
-  `.range(0, windowSize - 1)`;
-- always refetches from offset `0`, so invalidating the collection's query key
-  refreshes every loaded row (query collections replace their contents with
-  the `queryFn` result);
-- exposes offset continuation through the exported `*CollectionPagination`
-  objects (`donorsCollectionPagination`, etc.). `hasMore()` /`loadMore()` drive
-  the fetch, and **`subscribe` + `getSnapshot`** expose the window flag
-  reactively for `useSyncExternalStore`. Read it reactively: the flag only
-  settles after a fetch resolves, so a polled boolean would leave a stale
-  "load more" affordance when `loadMore` turns up no new rows. `loadMore` grows
-  the window by one page and invalidates the fetcher's configured query key.
-
-Consuming hooks pass continuation through rather than re-implement it.
-`useMissionaryDonorRows` reads `hasMore` via `useSyncExternalStore` over
-`donorsPagination` (donors window only) so the "Load more partners" affordance
-matches partner rows, while `loadMore` fans out through aggregated `pagination`
-(donors + activities + pledges). It returns `hasMore` / `isLoadingMore` /
-`loadMore`; the missionary donors page renders the affordance from them.
-Collection contracts (`id`, `queryKey`, `schema`, `getKey`, mutation handlers)
-stay unchanged; only the fetch is windowed.
-
-### Scoped collections for tenant-scale joins
-
-Tenant-wide collections that a view then filters client-side both over-fetch and
-can drop in-scope rows that fall outside the newest-N window. When a surface only
-needs one scope, push the filter into the query with a per-scope collection.
-`getMissionaryScopedDonorCollections(missionaryId)` returns `donors`,
-`donor_activities`, and `donor_pledges` collections (and aggregated pagination)
-scoped to one missionary, memoized per id with scope-qualified ids/query keys
-(`["donors", "missionary", id]`). `donors` filters on its `missionary_id`
-column directly (it references `profiles(id)` — the namespace the hook is called
-with). `donor_activities` and `donor_pledges` are scoped through their `donors`
-foreign key with an `!inner` embed (`donors!inner(missionary_id)`) whose
-embed-only key is stripped before the row reaches the schema: `donor_activities`
-has no `missionary_id` column, and `donor_pledges.missionary_id` references
-`missionaries(id)` (a different namespace, which is why filtering it by a profile
-id returns nothing), so the donor relationship is the correct scope for both. An
-empty scope builds disabled (`enabled: false`) collections that never hit the
-network.
-
-> **RLS note:** the demo posture in
-> `supabase/migrations/20260216153000_demo_readonly_rls.sql` grants `SELECT`
-> only `TO anon`, so these client-side collections return rows for the anonymous
-> demo but **zero rows for an authenticated session**. Surfaces that must work
-> for real signed-in users read through `packages/api` server services (e.g.
-> `missionary-portal/service.ts`), which use the admin client. Adding an
-> authenticated read path is an RLS/authorization decision, not a client change.
+- Use `defineSupabaseCollection` from `packages/database/collections/supabase-collection.ts` for real Supabase tables.
+- List every collection in `packages/database/collections/registry.ts`.
+- Default Realtime on only for user-visible tables whose RLS and payload size are appropriate.
+- Disable Realtime with a reason for finance, PII, large-payload, internal, audit, webhook, payment, and non-UI tables.
+- Keep mutation policy aligned with the registry.
 
 ```ts
-const collection = createCollection<Item>(
-  queryCollectionOptions({
-    id: "items",
-    queryKey: ["items"],
-    queryClient: getQueryClient(),
-    schema: itemSchema,
-    getKey: (item) => item.id,
-    queryFn: fetchItems,
-    onUpdate: async ({ transaction }) => {
-      await Promise.all(
-        transaction.mutations.map(async (mutation) => {
-          await updateItem(mutation.key as string, mutation.modified);
-        }),
-      );
-    },
-  }),
-);
+export const postsCollection = defineSupabaseCollection({
+  tableName: "posts",
+  schema: postSchema,
+  keys: ["id"],
+});
 ```
 
 ## Shared Virtualization Foundation
@@ -258,6 +301,8 @@ Shared table primitives now follow one contract:
 - `@asym/ui/components/shadcn/data-grid`
 - `@asym/ui/components/shadcn/data-grid/types`
 
+Note: `DataGrid` keeps cell-selection, focus, editing, and undo/redo state in its own React state outside the Table engine; the engine owns only row/column/sort/filter state (ADR-5).
+
 ### List Usage
 
 For non-table lists, use the same shared hook and point it at the real scroll container. If a surface is fundamentally tabular, prefer `DataTableResponsive` over a bespoke virtualized list.
@@ -287,6 +332,12 @@ const { virtualizer, virtualItems, totalSize, isEnabled } =
   - Mutations: call `revalidateTag`/`updateTag` and invalidate Query keys when needed.
 - Do not call request-bound APIs (`cookies`, `headers`, etc.) inside cached scopes.
 
+### Mission Control admin cache tags
+
+- The canonical tag registry for admin domains is `ADMIN_CACHE_TAGS` in `packages/api/src/shared/cache-tags.ts`, with the naming convention `admin:<domain>`, `admin:<domain>:tenant:<tenantId>`, and `admin:<domain>:<resource>`.
+- Admin mutation handlers (CRM notes/sync/webhooks, contributions staged gifts/replay/reconcile) call `revalidateAdminCrmCache` / `revalidateAdminContributionsCache` after successful writes, alongside the client-side `queryClient.invalidateQueries` they already trigger. Until a domain has `'use cache'` reads, revalidation is a safe no-op.
+- Future cached admin reads must `cacheTag` the broad domain tag, the tenant tag, and the most specific resource tag, so the existing revalidation calls keep them fresh.
+
 ## Counter Mutation Consistency Pattern
 
 When a mutation writes a reaction row and updates an aggregate counter via RPC, treat it as a two-step flow that must remain logically atomic for end users:
@@ -301,23 +352,29 @@ This preserves count consistency without requiring route-level SQL transactions 
 
 ## Quality Checklist
 
+- [ ] No new direct `@tanstack/react-table` imports outside the boundary module (sanctioned exceptions only).
+- [ ] Direct `useTable` call sites mirror `manual*` flags in `createDataTableRowModels` flags.
+- [ ] Memoized table chrome reads state via `useSelector(table.atoms.<slice>)`, never `table.state`.
 - [ ] Query keys include table/list state that impacts data.
 - [ ] Table manual mode aligns with API behavior.
 - [ ] Only externally controlled state slices are hoisted.
 - [ ] Stable `getRowId` is provided for durable records.
 - [ ] DB collection schemas are validated with Zod.
-- [ ] Collection `queryFn`s over tenant-scale tables use a bounded window with
-      deterministic ordering (no unbounded `select("*")`).
+- [ ] Browser-visible table reads go through `@asym/database/hooks` or approved collection exports.
+- [ ] Collection registry documents RLS, Realtime, keys, and mutation policy.
+- [ ] Privileged and multi-table workflows stay server-command owned.
 - [ ] New virtualization uses `virtualization` object config.
 - [ ] `getItemKey` is stable and uses row/item IDs.
 - [ ] Mutations trigger correct cache invalidation path (Query + Next cache tags).
 - [ ] Counter RPC mutation flows include compensating writes on partial failure.
 - [ ] URL-backed tables: expect toolbar/pagination to disable while `isUrlStatePending` is true.
+- [ ] New/changed table behavior is covered by the characterization suite.
 - [ ] Lint/typecheck/unit tests pass on affected workspaces.
 
 ## Latest Docs + Release Validation
 
 - TanStack DB docs: `https://tanstack.com/db/latest`
 - TanStack Virtual docs: `https://tanstack.com/virtual/latest`
+- TanStack Table: tanstack.com still indexes **v8** — use the [v9 doc sources](#v9-doc-sources) above for Table work.
 - Version truth for this repo is pinned via workspace `package.json` plus npm dist-tags (`npm view @tanstack/* version dist-tags`).
 - TanStack CLI is installed at the repo root to support `tanstack doc` / `tanstack search-docs` for future upgrade checks.

@@ -10,9 +10,10 @@ import { Button } from "../../button";
 import { Calendar } from "../../calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "../../popover";
 
+import type { RowData } from "../tanstack";
 import type { DateCellProps } from "./types";
 
-export function DateCell<TData>({
+export function DateCell<TData extends RowData>({
   value,
   isEditing = false,
   onValueChange,

@@ -428,11 +428,11 @@ function LinkButton({
                       ? "bg-primary text-primary-foreground"
                       : "hover:bg-muted text-muted-foreground hover:text-foreground",
                   )}
-                />
+                >
+                  <LinkIcon className="size-3.5" />
+                </Button>
               }
-            >
-              <LinkIcon className="size-3.5" />
-            </PopoverTrigger>
+            />
           }
         />
         <TooltipContent side="top" className="text-xs">
@@ -543,6 +543,7 @@ function ImageButton({
     <>
       <input
         type="file"
+        aria-label="Upload image file"
         accept="image/*"
         className="hidden"
         ref={fileInputRef}

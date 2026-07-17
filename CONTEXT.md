@@ -45,6 +45,40 @@ and publication, plus full attribution and audit. It is not a human staff role.
 _Avoid_: assistant as a permission tier, autonomous money/donor/publish agent,
 human assistant job title
 
+**Site**:
+A tenant-owned public presence — one website a tenant operates, with its own
+domain(s), branding, language, and public giving entry points. A tenant can own
+more than one site, and every tenant has at least one. A site is a presentation
+and attribution boundary beneath the tenant, not a separate tenant, billing
+account, or payment identity. Public content and public gifts belong to a site;
+the tenant remains the organization, owner, and money/merchant boundary.
+_Avoid_: site as tenant, separate-org microsite, site channel as a product
+surface (Mission Control and Donor Portal are surfaces, not sites)
+
+**Entry Method**:
+How a gift entered the system — for example public checkout, donor portal,
+offline staff entry, data import, or an API call. It is one of a gift's
+attribution axes and is kept separate from the gift's type (one-time vs
+recurring) and from where or why the gift was made.
+_Avoid_: source as gift type, channel, donation type
+
+**Source Code**:
+A short attribution tag recording what drove a gift — a specific appeal, email,
+link, QR code, or promotion — typically captured from giving-link URL
+parameters. It records marketing origin only, and stays distinct from the site
+(where the gift happened), the entry method (how it entered), and the
+designation (which fund or campaign the gift is for).
+_Avoid_: channel, entry method, designation, campaign
+
+**SiteStacker Parity**:
+Matching what SiteStacker/WMTek lets a Christian missions organization
+accomplish — its operational capability — built on Asymmetric.al's own model,
+not cloning its screens. SiteStacker is the benchmark of outcomes an org must be
+able to achieve, not a UI blueprint. Each parity area is judged by "can an org
+get the same real-world job done here?" and tracked in the parity matrix
+(`docs/prds/sitestacker-parity/`). Child sponsorship is out of scope.
+_Avoid_: SiteStacker clone, screen-for-screen copy, feature-for-feature parity
+
 **Workflow Orchestration**:
 Durable coordination of background work after authoritative product records
 exist. It does not become the source of truth for donations, CRM state,
@@ -108,9 +142,9 @@ _Avoid_: live donor lookup for receipts, mutable receipt identity
 A donor's contribution record through the platform — one-time or a recurring
 installment — carrying amount, currency, a single designation, payment/provider
 state, and receipt state. "Gift" and "donation" are used interchangeably for
-this record. See [[one-time-donation]], [[recurring-donation]].
-_Avoid_: pledge (the recurring agreement, not the gift), staged gift (the
-post-completion record)
+this record. See [[one-time-donation]], [[recurring-giving]].
+_Avoid_: fixed-total pledge or recurring commitment (intent records, not
+received gifts), staged gift (the post-completion record)
 
 **Fund**:
 A tenant-owned designation target — such as a general or project fund — a gift
@@ -129,12 +163,14 @@ status, and designation for downstream receipting and CRM posting. It is not
 the donation record itself.
 _Avoid_: donation row, receipt, pending donation
 
-**Donor Pledge**:
-The durable record of a recurring giving agreement, linked one-to-one with a
-Stripe subscription, tracking pledge state (active, paused, cancelled) and
-progress. It is the agreement, not any single installment gift. See
-[[recurring-donation]].
-_Avoid_: individual recurring gift, subscription-only state, one-time donation
+**Fixed-total pledge**:
+The canonical record of a Commitment Party's explicit promise to give a
+cumulative amount. Received contributions may fulfill it through authoritative
+applications, but the pledge itself is not money, donor debt, automatic payment
+authority, or an accounting receivable by default; collection method does not
+determine its type.
+_Avoid_: recurring commitment, provider subscription, received gift, donor debt,
+accounting receivable by default
 
 **Contribution Correction**:
 A recorded staff change to a completed contribution that affects money, donor
@@ -167,11 +203,11 @@ A donor gift intended to be collected once through the platform's immediate
 donation flow. Its payment recovery may use the donation saga and outbox model.
 _Avoid_: Subscription donation, recurring pledge
 
-**Recurring Donation**:
-A donor commitment intended to collect repeated gifts over time. Its payment
-lifecycle belongs to Stripe Billing or subscription-oriented payment flows, not
-manual renewal loops built from one-time donation attempts.
-_Avoid_: Repeated one-time donation, manual renewal PaymentIntent loop
+**Recurring giving**:
+The donor-facing product for arranging repeated gifts. Its intent is recorded
+as a recurring commitment, and each received installment is a separate gift;
+use "Give monthly" or "Recurring gift" in donor-facing language.
+_Avoid_: subscription, fixed-total pledge, one donation charged repeatedly
 
 **Payment Authorization Checkpoint**:
 The earliest reliable payment state known during checkout. For cards, debit
@@ -502,6 +538,1018 @@ attempt was a retry and links it to the original batch.
 _Avoid_: Reason fatigue, unclear retry audit, separate reason for same
 correction
 
+**CRM Write Gate** _(retired — ADR-0001)_:
+Retired at the Phase 8 re-groom (2026-07-07). It gated the first write to the
+Twenty provider; with Twenty retired and Asym Postgres owning all CRM truth,
+there is no provider write to gate. Kept as a tombstone so the term is not
+reintroduced. See `docs/prds/sitestacker-parity/phase-08-crm-operating-foundation.md`.
+
+**CRM Readiness Gate** _(retired — ADR-0001)_:
+Retired with the write gate. What survives is the **CRM health verdict** — a
+plain-language `healthy | degraded | blocked` composed from the data-health
+catalog signals, read for display, never a per-write interlock.
+_Avoid_: reintroducing a write-readiness interlock (there is no provider write)
+
+**Reactive Pause** _(retired — ADR-0001)_:
+Retired. It was an automatic halt of the outbound-to-Twenty write path (with an
+emergency global kill-switch); with no outbound writes there is nothing to
+pause or stop.
+
+**CRM Healer**:
+Redefined at the re-groom. Asym's background-work runtime **already** self-heals
+its own jobs (durable Inngest recovery scans + dead-letter/replay ledgers). The
+"CRM Healer" now names that shipped recovery machinery — which Phase 8
+**observes and escalates over**, never forks — plus the **one** net-new active
+heal Phase 8 owns: re-projecting a stale derived view (a Phase-9 concept,
+reserved until Phase 9 ships). Steady state is quiet — a green, empty
+operations screen means "handled," not "unwatched."
+_Avoid_: a second scheduler/scan next to the shipped recovery, auto-merge
+
+**Disposition Predicate**:
+The single rule governing the one reserved active heal (stale-derived-view
+re-projection): heal only when the action is idempotent, reversible, non-money,
+and well-scoped; otherwise escalate. It is a rule, not the engine of a new
+healer.
+_Avoid_: per-category handler list, heal-everything, escalate-everything
+
+**Proof-of-Health Snapshot** _(retired — ADR-0001)_:
+Retired with the write gate — it recorded the green verdict at the moment a
+write gate was opened; there is no gate to open. Escalations and the operations
+summary carry their own state/timestamps instead.
+
+**Twenty CRM (retired)**:
+A third-party CRM engine once adopted as a backing CRM provider for the
+relationship layer (read-only) and retired on 2026-07-06 by ADR-0001
+(`docs/adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md`) before any
+production use. Asym Postgres is the CRM system of record; per-record-type
+ownership lives in the Phase 1 ownership matrix
+(`docs/prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md`).
+_Avoid_: backing CRM provider, Twenty-backed surface, new work that reads or
+writes Twenty
+
+**Security level** (Phase 10):
+A person-level classification on a party (standard / sensitive / restricted /
+high-risk) that governs **publication** — whether the person's real identity may
+ever reach a public or external surface. It is orthogonal to the Phase-3 field
+`sensitivity_category` (which governs field need-to-know); the two compose with
+strictest-applicable wins. It defaults from a tenant-configurable, versioned
+country-risk table and is a fixed enum (tenants configure the mapping, not the
+tiers).
+_Avoid_: per-page visibility checkbox, a second field-classification model,
+tenant-defined tiers
+
+**Publication firewall** (Phase 10):
+The architectural invariant that a restricted worker's real name, photo, and
+location are **structurally unreachable** from every public/external egress
+(public site, CMS, donor portal, receipts, OG images, sitemaps, slugs, search,
+CSV/export, webhooks, media metadata) — enforced by one predicate at every
+egress point, not by configuring each page. Extends the Phase-5 public
+projection.
+_Avoid_: per-page authenticate checkbox, admin-configured-per-surface safety
+
+**Dual identity** (Phase 10):
+A party's separation of a **legal name** (security-classified, in a separate
+restricted table) from a public **display name / alias** (pseudonym), with
+photo, biography, region, and country as classified attributes. Public surfaces
+read only the alias projection; the legal↔alias mapping is a gated named grant.
+_Avoid_: one name field, alias stored beside legal name in the clear
+
+**Break-glass access** (Phase 10):
+A controlled emergency-access path to a restricted-tier record: it requires a
+mandatory justification, fires a real-time alert, grants time-boxed access, and
+lands in a post-hoc review queue. The primitive (grant + alert + audit) ships in
+Phase 10; the crisis-response UI is Phase 38.
+_Avoid_: a weakened gate, silent emergency bypass, unaudited override
+
+**Party**:
+The CRM supertype record: every person, household, or organization (including
+churches) is one party, with `party_kind` in person / household / org
+(`group` reserved for a later phase) and `org_type` distinguishing org
+subtypes (church, school, foundation, business, DAF sponsor, …). Parties are
+Asym operational identity — not logins, donor profiles, or public-page
+identities.
+_Avoid_: constituent table, generic CRM record, individual (use person)
+
+**Shared-PK subtype**:
+The party topology rule: a subtype row IS its party — same id in the subtype
+table (persons, households, org profiles) and in parties. For people, a
+person id and a party id are one value, so no bridge columns exist to drift.
+_Avoid_: party_id foreign keys on subtype tables, dual identity bridges
+
+**Stored edge / Derived edge**:
+A stored edge is a `crm_relationships` row — one canonical, typed, time-bound
+row per relationship, never a mirrored reciprocal pair. A derived edge is
+computed at read from source truth (supports from the giving ledger,
+household membership, org contacts) and is never persisted as a row.
+_Avoid_: persisting derived kinds, reciprocal mirror records, edges for
+gift-level facts
+
+**Provenance (graph/timeline)**:
+The label saying which source of truth produced an edge or timeline item.
+Finance-derived items inherit finance visibility rules, not generic CRM
+visibility.
+_Avoid_: unlabeled merged lists, one visibility rule for all sources
+
+**Relationship role**:
+The qualifier a party carries on a specific edge (treasurer on a
+board-member edge, coach on an applicant edge). Lives on the edge, never as
+a stored party-role table.
+_Avoid_: party_roles table, role tags detached from their relationship
+
+**Supports policy**:
+The named, versioned definition of when a supports edge exists (v1: a
+settled, adjustment-folded gift in the trailing 365 days OR eligible current
+recurring intent OR an explicitly qualifying fixed-total pledge). The edge
+displays its provenance and policy version; unknown or stale provider control
+cannot appear as healthy current recurring support. Recurring expectations and
+fixed-pledge expectations never enter cash-received totals.
+_Avoid_: unstated support thresholds, staff-entered supports edges
+
+**Saved view / List (segment)**:
+A saved view is a live, named, shareable lens over a record kind (filters +
+sort + columns; always a live query, never stored membership). A list or
+segment — a curated membership container — is a distinct, reserved future
+concept.
+_Avoid_: static list copies, views that store record membership
+
+**Staff-assignment edge**:
+The portfolio-assignment primitive: a typed edge from a staff person to any
+party, with rep roles carried as data (donor rep, regional rep, church
+relations, mobilizer). Portfolios are derived views over active
+staff-assignment edges; display roles derived from them are never an
+authorization input.
+_Avoid_: stored portfolio tables, assignment columns on records, roles as
+authorization
+
+**Lifecycle status vs cultivation stage**:
+Lifecycle status is the record's own state (active, inactive, archived,
+deceased — plus merged, derived from the Phase 4 merge tombstone, never a
+stored value). Cultivation stage is donor-development pipeline state
+(Phase 27 — Donor Development) and never appears as a lifecycle status value.
+_Avoid_: pipeline stages in record status, prospect states on the party row
+
+**Provider link (record link)**:
+A row linking an Asym record to an external provider object by id (the
+`crm_record_links` pattern, generalized — Stripe now, Mailchimp later). A
+provider id is a link, not an identity: losing or re-pointing it never
+changes who a record is or what money happened.
+_Avoid_: provider ids as primary identity, provider records as truth
+
+**Custom field** (Phase 11):
+A tenant-defined field on an approved CRM record type (person, org/church,
+household, or fund), created by a tenant admin without engineering. Its
+_definition_ (name, type, options, policy) lives in the field catalog; its
+_value_ is the data entered for one record. Every custom field is born
+classified — none exists without a visibility/edit/export/sensitivity policy.
+_Avoid_: per-tenant tables, raw EAV, an unclassified or ungoverned field
+
+**Custom collection** (Phase 11):
+A tenant-defined _repeatable_ set of custom fields under a parent record — e.g.
+a person's many Certifications. Each entry is a _collection item_; the shape is
+a _collection definition_. A collection is owned sub-data of one parent
+(cascade-deleted with it), not a relationship between two records —
+record-to-record links stay in the stored-edge relationship graph. (Renamed
+from "Configurable Entities"; "entity" retired as ambiguous.)
+_Avoid_: "entity" for this, record-reference fields inside a collection,
+rebuilding `crm_relationships` inside a collection
+
+**Field key vs value key vs label** (Phase 11):
+The field key is a field's immutable machine identity — what stored values and
+integrations reference; it never changes. The value key is an option's stable
+machine handle for import/export/API. The label is the human display name and
+can be renamed freely without breaking anything or corrupting history.
+_Avoid_: keying stored data or integrations on the label
+
+**Field catalog** (Phase 11):
+The tenant's governed list of custom-field and collection definitions plus their
+policy — the single typed, policy-annotated contract every surface (lists,
+exports, reports, imports, API, workflows) reads. No consumer touches raw stored
+values or re-derives a field's type or policy.
+_Avoid_: per-surface field logic, reading raw extension JSON outside the catalog
+
+**Hot / promoted field** (Phase 11):
+A custom field an org filters, sorts, or reports on often, promoted to fast
+typed access (an index) under a governed budget. Promotion is additive and
+reversible; most fields are never promoted.
+_Avoid_: indexing every field, unbounded promoted-index growth
+
+**Capability** (Phase 12):
+A single, enforced permission — a verb on a resource (e.g. "view a gift record",
+"run refunds", "manage permissions"). Capabilities are the _only_ thing the system
+checks to make an access decision; roles, groups, and named grants are bundles that
+resolve _into_ capabilities. A role or group _name_ is never checked to authorize.
+_Avoid_: authorizing on a role/subrole name string; treating a group as the security rule
+
+**Staff group vs named grant** (Phase 12):
+A _group_ is a set of staff who share a bundle of capabilities (Finance, Donor Care…) —
+an administrative convenience. A _named grant_ gives one person access to one record
+(e.g. one restricted worker) for a stated reason, with expiry. Both only ever _add_
+capabilities; neither can reach past the floor.
+_Avoid_: a "view all" group; a grant that widens a restricted-worker projection
+
+**The floor** (Phase 12):
+The subtract-only safety layer — field policy (Phase 3), person security level /
+clearance (Phase 10), field gates (Phase 11), purpose/consent, and residency — composed
+strictest-wins and applied last. No grant of any kind can add back what the floor removes.
+_Avoid_: a configuration path that grants around the floor; a second decision point
+
+**Active assignment** (Phase 12):
+The single organization-hat a person acts within for one request. A staffer who serves
+several orgs holds several assignments but acts within exactly one at a time; the resolver
+refuses to run without one, so data never bleeds across orgs.
+_Avoid_: a client-chosen tenant; a person-global (org-blind) permission resolution
+
+**Purpose** (Phase 12):
+The required "for what" input to every access decision — the consent / legal-basis axis.
+Being _allowed to see_ a person is not the same as being _lawful to use their data for
+this purpose_ (readable ≠ contactable). Bound to the egress surface, from a fixed list.
+_Avoid_: a caller-asserted free-text purpose; consent modeled as a second system
+
+**Protected constituent** (Phase 12):
+A whole record (person, and everything attached) hidden from non-cleared staff — modeled
+as a floor rule that makes the row _vanish_, not a hidden field. A "you can see this person
+exists" roster is itself a leak.
+_Avoid_: hiding fields but leaving the record visible; a count/roster that reveals existence
+
+**Existence oracle / uniformity** (Phase 12):
+A leak where "blocked" and "does not exist" look different (by wording, response shape, or
+timing), letting someone infer that a restricted worker exists. The platform makes denied,
+purpose-denied, and not-found _indistinguishable_ everywhere, including "view as".
+_Avoid_: a distinct "forbidden" vs "not found"; a timing difference on the restricted path
+
+**Contribution (gift)** (Phase 13):
+A donor's gift event. One payment can carry several designation lines ("$100 to the Smiths,
+$50 to the Kenya well"). Say "gift" to donors/founders; "contribution" for the data model.
+_Avoid_: donation-row-as-the-gift, one-gift-one-fund
+
+**Contribution header** (Phase 13):
+The top-level record of one payment — who gave, when, how (tender), how much in total, in what
+currency, through which site/source. The header is the canonical gift identity.
+_Avoid_: the Stripe PaymentIntent as the gift; the header as the money's source of truth for a line
+
+**Designation line** (Phase 13):
+One part of a gift directing an amount to exactly one fund or missionary. The database enforces
+that the lines always sum to the header total.
+_Avoid_: a line with two designations; a gift total that drifts from its lines
+
+**Posting** (Phase 13):
+An append-only money-effect entry beneath the ledger. A refund, correction, re-designation,
+chargeback, or NSF is a NEW posting — never an edit or delete of a settled row.
+_Avoid_: editing money in place; a `status='reversed'` flag instead of a reversing entry
+
+**The effective fold** (Phase 13):
+The one derivation that folds the append-only postings into a gift's current ("effective") truth,
+ordered by a monotonic per-header sequence. All readers go through it; raw base-row money is never
+read directly.
+_Avoid_: summing original amounts; two competing effective-value computations
+
+**Tender** (Phase 13):
+How a gift was paid — card, ACH, check, cash, or a non-cash asset (stock/securities/crypto,
+real estate, in-kind vehicle) or a church remittance. Distinct from the gift's type (one-time vs
+recurring) and from its designation.
+_Avoid_: tender as gift type; a card-only ledger
+
+**Collection arrangement** (Phase 16):
+How a recurring commitment expects future gifts to arrive — provider-automated or
+manual/external — including the provenance needed to interpret its expected occurrences. A
+fixed-total pledge has no collection arrangement, payment instrument, mandate, or executor; any
+automatic support linked to it remains a separately authorized recurring commitment. The
+arrangement is independent of the tender recorded on any received gift.
+_Avoid_: payment channel as commitment type; provider status as donor intent; collection mode on a fixed pledge
+
+**Fee-cover** (Phase 13):
+An extra amount, on top of the intended gift, that covers processing fees so ~100% reaches the
+field. Configured per tenant and per payment method (optional or, for a method, mandatory);
+a fully-deductible gift shown as its own line, never a hidden surcharge.
+_Avoid_: implying an exact fee; a mandatory card charge framed as a card surcharge
+
+**Source code** (Phase 13):
+The attribution tag for what DROVE a gift (the July newsletter, a banquet QR, a prayer letter) —
+channel × segment × message. Distinct from a campaign (the effort) and a designation (the purpose);
+it rides in the URL query (`?sc=`), never the path.
+_Avoid_: source code as campaign; free-text source; the code in the URL path
+
+**Giving campaign** (Phase 13):
+A staff-defined, time-bounded fundraising effort with goal(s) and reporting rollups. May nest in a
+bounded (≤5-deep) parent/child hierarchy. NOT an email blast, a public page, a peer-to-peer
+fundraiser, an appeal, a source code, or a designation.
+_Avoid_: the email-blast/fundraiser conflation; adding a campaign total to a fund total
+
+**Recurring commitment** (Phase 16):
+The canonical record of recurring support: an amount and cadence with no explicitly promised
+cumulative balance, even when it has a planned end. Collection may be manual or provider-automated;
+provider objects execute collection but never define the donor's intent.
+_Avoid_: fixed-total pledge; provider subscription as the commitment; projected total as promised balance
+
+**Gift mode** (Phase 16):
+Whether a donor authorizes one gift or recurring giving. A one-time gift has no recurring cadence,
+next occurrence, pause, or recurring-support projection.
+_Avoid_: one-time as a cadence; one-time gift as an ended recurring commitment
+
+**Recurring cadence** (Phase 16):
+The canonical calendar rule for how often one recurring amount is expected. Its meaning is exact
+and independent of display wording or provider representation.
+_Avoid_: ambiguous biweekly or bimonthly labels; provider interval as donor intent
+
+**Recurring-giving group** (Phase 16):
+An explicit donor-facing arrangement that holds one or more recurring commitment lines for one
+tenant, one immutable Commitment Party, one legal payer and collection-authorizer context, and one
+currency. It is created or changed deliberately and is never inferred from shared donor, contact,
+payment, amount, date, or cadence facts.
+_Avoid_: inferred household bundle; provider subscription; one mandatory group per donor
+
+**Recurring commitment line** (Phase 16):
+One independently manageable, destination-specific recurring intent within a recurring-giving
+group. Its identity and history survive changes to how a provider collects it.
+_Avoid_: subscription item as business identity; rewriting prior gift allocations
+
+**Billing cohort** (Phase 16):
+The lines within a recurring-giving group that can honestly share cadence and anchor semantics,
+authorization lineage, connected account and provider Customer, collection behavior and capability,
+and one explicit execution-leg set. The cohort has one leg for an ordinary cadence and two monthly
+legs for the twice-monthly 1st/15th cadence; its lines share each applicable leg's invoice and
+payment. A group has more than one cohort only when a real collection incompatibility requires
+separate disclosed charges.
+_Avoid_: visual-only grouping of separate charges; arbitrary technical partition
+
+**Composite recurring schedule** (Phase 16):
+One donor-authorized cadence that contains more than one fixed collection slot in a period. The
+Phase 16 form is twice monthly on the 1st and 15th while preserving one recurring intent.
+_Avoid_: every two weeks; duplicate business lines; arbitrary tenant-authored date pairs
+
+**Execution leg** (Phase 16):
+One provider-side collection schedule under a billing cohort. An ordinary cadence has one explicit
+leg; the twice-monthly composite cadence has two monthly legs. Every leg remains subordinate to the
+cohort's canonical recurring intent and the donor manages the cohort as one request.
+_Avoid_: hidden second commitment; one leg presented as the whole recurring gift
+
+**Grandfathered cadence** (Phase 16):
+An existing recurring cadence that remains active and manageable after a tenant stops offering it
+for new selection.
+_Avoid_: disabling a choice as cancellation; hiding an existing unsupported-looking schedule
+
+**Monthly equivalent** (Phase 16):
+A clearly labeled planning measure that normalizes recurring schedules for comparison. It is not
+the donor's actual cadence, a receivable, or money received.
+_Avoid_: monthly gift when the cadence is not monthly; recurring projection as cash
+
+**Execution binding** (Phase 16):
+The effective-dated link between one recurring execution leg and the external provider object
+currently carrying out that leg's collection, together with exact per-leg item bindings for every
+participating recurring commitment line. It records execution without becoming donor intent or
+business identity.
+_Avoid_: provider ID as the commitment; overwriting prior provider links
+
+**Initial recurring gift** (Phase 16):
+The first actual contribution authorized while creating a payment-backed recurring commitment. It
+fulfills the first scheduled occurrence when the continuing schedule begins that day; otherwise it
+remains linked to, but outside, the future continuing series.
+_Avoid_: test charge; verification charge; duplicate first recurrence
+
+**Continuing schedule anchor** (Phase 16):
+The donor-authorized local calendar date from which a recurring commitment's continuing expected
+occurrences are generated in the arrangement's giving timezone.
+_Avoid_: settlement date; retry date; arbitrary organization billing day; provider timestamp as intent
+
+**Expected scheduled occurrence** (Phase 16):
+An authorized future execution slot generated by a recurring commitment's calendar rule. It is
+expected support, not donor debt, a pledge receivable, a payment attempt, or money received.
+_Avoid_: invoice as commitment truth; forecast as receivable; retry as a new occurrence
+
+**Recurring schedule epoch** (Phase 16):
+An effective-dated version of a recurring commitment line's future calendar intent and its compatible
+billing cohort execution. A later epoch changes future expectations without rewriting prior ones.
+_Avoid_: editing historical anchors in place; provider subscription as schedule history
+
+**Final eligible gift date** (Phase 16):
+An optional, line-scoped, inclusive boundary after which no new scheduled attempt or retry may begin.
+Its absence is the automatic checkout default and requires no donor choice or confirmation.
+_Avoid_: required end date; hidden duration; last successful gift date; automatic lapse
+
+**Skipped recurring occurrence** (Phase 16):
+A donor-authorized suppression of one named, still-unclaimed expected scheduled occurrence. It
+creates no debt or catch-up gift and does not move the continuing schedule anchor.
+_Avoid_: forgiven receivable; skipped payment retry; re-anchored schedule
+
+**Planned recurring pause** (Phase 16):
+A donor-authorized bounded or indefinite interval that suppresses new expected occurrences and
+not-yet-started collection attempts while preserving the original schedule grid and relationship.
+It is neither payment failure nor lapse nor cancellation.
+_Avoid_: delinquent donor; hidden recurring line; provider pause state as the only business truth
+
+**Ended as scheduled** (Phase 16):
+The donor-intent state reached when a recurring commitment line passes its final eligible gift date.
+It says nothing about whether prior payments succeeded and is not fixed-total pledge completion.
+_Avoid_: completed pledge; completed with shortfall; automatic cancellation
+
+**Restarted recurring gift** (Phase 16):
+A newly authorized recurring commitment and provider-binding epoch linked to a formerly canceled
+gift's visible history. It never resurrects the canceled authorization or collects missed periods.
+_Avoid_: reactivating a canceled provider subscription; silent catch-up; overwritten history
+
+**Collection health** (Phase 16):
+The payment-backed billing cohort's readiness to collect future scheduled gifts, separate from donor
+intent, occurrence payment state, and provider synchronization.
+_Avoid_: subscription status as donor intent; processing as lapse; payment failure as cancellation
+
+**Failed-occurrence recovery** (Phase 16):
+A bounded opportunity to reattempt one existing failed scheduled occurrence without creating donor
+debt, changing the recurring grid, or generating another ordinary occurrence.
+_Avoid_: catch-up balance; second recurrence engine; retry as a new scheduled gift
+
+**Recurring collection failure episode** (Phase 16):
+A continuous collection-health condition linking a triggering failed occurrence with its later
+scheduled recovery cycles until recurring collection succeeds or the donor supplies new authorization.
+_Avoid_: donor debt period; cancellation; one mutable failed gift
+
+**Scheduled recovery cycle** (Phase 16):
+One of the three later normally scheduled occurrences that remains eligible for failed-occurrence
+recovery during the same collection failure episode; it is a new gift occurrence, never old debt.
+_Avoid_: calendar recovery month; catch-up installment; retry of the earlier missed gift
+
+**Schedule-only recovery** (Phase 16):
+The collection mode after scheduled recovery cycles are exhausted: ordinary scheduled occurrences
+continue, but accelerated retry slots do not, until the failure episode resolves.
+_Avoid_: retired recurring gift; paused giving; lapsed merely from repeated soft misses
+
+**At-risk continuing support** (Phase 16):
+Collection health where scheduled gifts have been missed but donor intent and future safe ordinary
+occurrences continue. It is neither received support, donor debt, cancellation, nor lapse.
+_Avoid_: active-and-healthy; delinquent donor; automatic gifts stopped
+
+**Schedule-first recovery** (Phase 16):
+The rule that an unresolved missed gift closes before the next normal scheduled occurrence becomes
+collectable. The current gift is never silently stacked with an older recovery attempt.
+_Avoid_: automatic catch-up; two collectable occurrences; retry-driven schedule drift
+
+**Retry slot** (Phase 16):
+One bounded opportunity inside a failed-occurrence recovery case, tied to a fixed local candidate
+date. An automatic or donor-substituted attempt may consume it, but it never creates extra budget.
+_Avoid_: queued job; infrastructure retry; new scheduled occurrence; bonus manual attempt
+
+**Balanced card recovery** (Phase 16):
+The platform-owned card profile allowing at most +2/+4 slots for weekly occurrences and +2/+4/+6
+slots for every other supported cadence, always subject to stricter live safety facts.
+_Avoid_: tenant-authored retry schedule; Stripe Dashboard policy; guaranteed attempt
+
+**Stop recovery for one missed gift** (Phase 16):
+The donor instruction that ends every unstarted retry slot for one failed occurrence while leaving
+the recurring arrangement and its next normal occurrence intact.
+_Avoid_: pause recurring giving; cancel recurring giving; forgive debt
+
+**Material communication transition** (Phase 16):
+A payment or recovery state change that gives its recipient genuinely new human meaning and can
+therefore justify a new product message. A raw provider attempt, duplicate event, or unchanged retry
+failure is not one by itself.
+_Avoid_: one email per webhook; one email per processor attempt; retry count as message policy
+
+**Communication intent** (Phases 6 and 16):
+The durable, tenant-scoped pre-dispatch request that one exact meaning be evaluated for one exact
+recipient and channel under the shared consent, suppression, rendering, and delivery seam. Its
+permanent semantic key prevents duplicate submission. It is not proof that a message was queued,
+sent, delivered, read, or understood; an actual communication event is recorded only by the Phase 6
+send seam.
+_Avoid_: domain-owned email queue; communication event before send; provider message ID as dedupe
+
+**Communication delivery profile version** (Phase 6):
+An immutable tenant email-delivery snapshot that binds the governed sender identity, reply-to contact
+point, underlying tenant email settings revision/hash, channel, and operational eligibility used when
+a communication intent is submitted. It supplies delivery configuration, never consent, template
+content, recipient authority, or domain eligibility.
+_Avoid_: mutable sender setting on a reminder; template as reply-to authority; provider API key in domain data
+
+**Required-notice override** (Phase 16):
+A current network, payment-rail, jurisdiction, provider, authorization, or authentication duty that
+requires communication even when the product's normal same-state quiet period would suppress a
+discretionary message. It is effective-dated, attributable to a rule and delivery owner, and
+evidenced separately.
+_Avoid_: optional reminder; tenant preference overriding a mandatory notice; silent compliance guess
+
+**Communication delivery owner** (Phase 16):
+The one recorded party responsible for sending a particular message reason for a tenant, provider
+account, rail, mode, and jurisdiction: Asym, the provider/network/bank, or intentionally nobody when
+no message is required. Two owners must never send the equivalent message.
+_Avoid_: duplicate Stripe and Asym email; template as sender policy; unowned mandatory notice
+
+**Donor-substituted retry** (Phase 16):
+A donor-confirmed attempt to collect the named scheduled gift now that atomically consumes or fences
+the earliest remaining retry slot before charging. Updating a payment method alone never performs
+this action, and it never creates additional retry budget.
+_Avoid_: generic give once during an active retry window; save-card-and-charge; bonus retry
+
+**ACH authorization lineage** (Phase 16):
+The effective-dated, tenant- and provider-bound history of one reusable bank-debit authority and its
+credential continuity. Account verification, a reusable token, and payment success are not themselves authorization.
+_Avoid_: bank account as mandate; verified means authorized; replacing history when a token changes
+
+**ACH recovery-open occurrence** (Phase 16):
+An exact returned billing-cohort occurrence that remains eligible for one donor-confirmed ACH
+reinitiation. It is unresolved and recoverable, not terminally missed or money the donor owes.
+_Avoid_: missed gift; outstanding balance; automatic retry queue
+
+**Donor-confirmed ACH reinitiation** (Phase 16):
+One donor-authorized re-presentation of the exact eligible returned billing-cohort occurrence under
+the same proven ACH identity and authorization lineage. It never changes the normal schedule or collects another miss.
+_Avoid_: card retry slot; generic new PaymentIntent; catch-up debit; staff-initiated bank retry
+
+**ACH return-exposed success** (Phase 16):
+A provider-confirmed ACH success that can post and receipt but can still be corrected by a later bank
+return. A later return appends a reversal and supersession instead of rewriting the original success.
+_Avoid_: irreversible settlement; guaranteed final ACH payment; overwriting successful history
+
+**Safety-suppressed occurrence** (Phase 16):
+An expected occurrence for which no debit was initiated because an earlier bank debit remained
+unresolved or another live safety gate failed. It is neither donor-skipped nor failed nor debt.
+_Avoid_: missed payment; donor skip; catch-up balance; schedule drift
+
+**Terminal missed occurrence** (Phase 16):
+An expected occurrence whose collection and permitted recovery opportunities have ended without a
+received gift. It can never reopen or become a balance collected by a later occurrence.
+_Avoid_: recovery available; overdue invoice; dormant retry candidate
+
+**Pledge expectation plan** (Phase 16):
+An optional, evidence-bound, non-executing arrangement of named expected dates and amounts for a
+fixed-total pledge; it may cover all or only an explicitly identified part of the remaining promise.
+Its absence is an honest no-plan state, and by itself it never charges, invoices, creates debt, posts
+cash, or authorizes a reminder.
+_Avoid_: payment schedule; automatic collection plan; fabricated due dates; installment receivable
+
+**Unscheduled pledge expectation** (Phase 16):
+The explicit remaining promised amount of a fixed pledge that genuinely has no dated installment
+schedule. It is an expectation target, not a fabricated occurrence, invoice, or cash balance.
+_Avoid_: fake due date; overall balance used as a silent allocation shortcut; donor debt
+
+**Donor-requested pledge change** (Phase 16):
+An accepted, evidence-backed change to a fixed-total pledge's current donor terms made on the
+Commitment Party's instruction. It preserves the earlier promise and received-gift history.
+_Avoid_: direct edit; plan-only timing change; internal expectation release; entry correction
+
+**Donor-requested pledge ending** (Phase 16):
+An accepted Commitment Party instruction that resolves the still-unfulfilled part of a fixed-total
+pledge as no longer intended. It preserves the original promise and fulfillment history and does not
+itself prove that automatic collection stopped.
+_Avoid_: internal expectation release; provider cancellation; fulfilled pledge; accounting write-off
+
+**Internal expectation release** (Phase 16):
+The organization's decision to stop forecasting an exact unfulfilled pledge amount without asserting
+that the Commitment Party changed the promise. It is neither fulfillment, a collection stop, nor an
+accounting write-off.
+_Avoid_: donor cancellation; forgiven donor debt; received gift; provider stop
+
+**Pledge entry correction** (Phase 16):
+An evidence-backed replacement or invalidation of a fixed-total pledge fact that was wrong when
+recorded, with the erroneous fact retained in history. It is not a later donor change or internal release.
+_Avoid_: hard delete; silent overwrite; donor amendment disguised as correction; cross-tenant move
+
+**Pledge authority review** (Phase 16):
+The quarantine for a fixed-total pledge whose original authorization is disputed or not yet proven;
+it is excluded from active forecasting and reminders until evidence resolves it.
+_Avoid_: automatic correction; assumed donor ending; active promise while authority is unknown
+
+**Applied above current commitment** (Phase 16):
+The derived amount by which authoritative fulfillment exceeds a later valid current donor-affirmed
+pledge total. It does not by itself create a refund, future credit, negative remaining expected amount,
+or receipt change.
+_Avoid_: overpayment automatically owed back; unapplied gift; catch-up credit
+
+**Fulfillment application** (Phase 16):
+An append-only, exact-amount relationship showing that one effective contribution designation line
+satisfied one named expected occurrence or unscheduled pledge expectation.
+_Avoid_: mutable paid counter; commitment-header payment; fuzzy match as fact
+
+**Fulfillment operation** (Phase 16):
+One authoritative instruction that groups the complete set of fulfillment applications for a gift
+or correction so the allocation is understood and accepted as one whole.
+_Avoid_: unrelated row edits; partially accepted allocation; cloned gift or receipt
+
+**Fulfillment authority** (Phase 16):
+The proven current source of intent that permits a new fulfillment application or reapplication:
+complete frozen provider lineage, an authenticated donor instruction, an approved exact remittance
+mapping, or staff confirmation.
+_Avoid_: name, date, amount, memo, OCR, soft credit, or relationship similarity as proof
+
+**Fulfillment correction evidence** (Phase 16):
+The immutable canonical source-correction or staff match-correction fact that authorizes an inverse
+or uncertain-vector retraction against exact prior fulfillment operations and entries. It is distinct
+from application authority and remains usable when that earlier authority has expired or been revoked.
+_Avoid_: reusing stale donor/provider/remittance authority; blocking a refund or return on old authority
+
+**Commitment match** (Phase 16):
+The independently stated relationship between a received gift and the support expectation it
+fulfills. Its certainty never changes whether the gift itself was received or correctly designated.
+_Avoid_: “unapplied” as if money were missing; matching status as payment finality
+
+**Coverage under review** (Phase 16):
+The honest state used when a correction leaves several prior fulfillment applications affected but
+the evidence cannot identify which expectation changed. No affected period is claimed as definitely
+fulfilled until the allocation is resolved.
+_Avoid_: oldest-first guess; newest-first guess; silent proportional reversal
+
+**The effective fulfillment fold** (Phase 16):
+The one derived view of current commitment coverage after append-only applications, inverses, and
+review holds. Donor, staff, missionary, reporting, and automation projections share this truth.
+_Avoid_: mutable fulfillment total; role-specific arithmetic; stale projection authorizing a write
+
+**Current support summary** (Phase 16):
+A role-safe, freshness-qualified interpretation of one recurring commitment line or fixed pledge at
+one evaluation time. It is derived from underlying facts and is never a writable donor status.
+_Avoid_: donor health label; manually entered on-track status; provider status copied as support truth
+
+**Support attention reason** (Phase 16):
+A factual concern that can coexist with the current lifecycle statement, such as recovery in progress,
+a prior scheduled gift not received, or coverage under review.
+_Avoid_: one worst-state badge; hidden secondary fact; person-level risk score
+
+**Collection lapse** (Phase 16):
+The billing-cohort state where future automatic collection is proved unavailable or safely parked.
+Its consequence may appear on permitted line projections, but it is never a label for the donor.
+_Avoid_: missed gift; paused or canceled donor; historical supporter; ordinary soft-failure count
+
+**Projection freshness** (Phase 16):
+The stated point through which every required source fact is known current enough to support a derived
+summary. Stale or contradictory inputs require updating/review language, not a confident conclusion.
+_Avoid_: hidden stale cache; unknown defaults to active; old status presented as current
+
+**Offline review-after instant** (Phase 16):
+The bounded, timezone- and resolver-qualified operational instant after which an expected manually
+delivered gift needs staff attention. It never replaces the donor's promised date or creates debt,
+receipt, fulfillment, or accounting truth.
+_Avoid_: rewritten due date; automatic donor blame; organization-wide arbitrary billing date
+
+**Historical support band** (Phase 16):
+A relationship-reporting facet based on prior support recency. It is not collection lapse, current
+commitment health, donor intent, or authorization.
+_Avoid_: lapsed donor; current recurring status; trigger treated as financial truth
+
+**Received support for a period** (Phase 16):
+Effective legal-money designation value credited within one governed reporting period and viewer
+scope. It is not planned support, processor payout, or spendable field-account balance.
+_Avoid_: scheduled gift as cash; pending ACH as received; commitment total as revenue
+
+**Online recurring month plan** (Phase 16):
+The full calendar-month set of normal automatic-online recurring occurrences, counted once each and
+partitioned by actual outcome. Retries and recovery update an occurrence but never add planned support.
+_Avoid_: future-only schedule mislabeled as the full month; retry as another expected gift; guarantee of cash
+
+**Monthly support goal coverage** (Phase 16):
+A planning comparison between an approved monthly support goal and cadence-normalized recurring
+support, with health and collection composition visible. It is neither received cash nor a dated forecast.
+_Avoid_: percent raised; monthly equivalent as actual cadence; fixed-total pledge divided into monthly support
+
+**Support projection snapshot** (Phase 16):
+A role-safe, currency- and period-scoped set of received, planned-occurrence, and goal-coverage facts
+qualified by its source cursors and freshness. It is read-only and never authorizes money movement.
+_Avoid_: mutable dashboard counter; stale value presented as current; projection used as payment authority
+
+**Commitment Party** (Phase 16):
+The one person, household, or organization Party whose declared giving intent a commitment records; the owner is immutable business history unless a governed same-Party merge repairs its identifier.
+_Avoid_: payer; service contact; Stripe customer; recognized supporter; editable owner
+
+**Representative authority** (Phase 16):
+Evidence that an identified person may act for another Party within stated purposes, actions, and effective dates. It is distinct from an ordinary relationship, staff capability, portal identity, or payment authorization.
+_Avoid_: treasurer title as permission; household membership as access; generic authorized-contact flag
+
+**Service contact** (Phase 16):
+A recipient and contact point designated for a particular commitment communication purpose. Receiving a message grants no ownership, access, management authority, payment authority, legal-donor status, or recognition.
+_Avoid_: primary contact as authorized representative; email recipient as commitment owner
+
+**Campaign commitment reminder** (Phase 16):
+A purpose-specific stewardship communication about one current named fixed-total pledge expectation. It is neither a recurring-payment notice nor a claim that the Commitment Party owes a debt or failed to give.
+_Avoid_: collection notice; invoice; recurring-payment failure message; generic scheduled gift reminder
+
+**Gentle reminder profile** (Phase 16):
+The one bounded campaign-commitment reminder shape: at most one courtesy message before a named expected date and one source-aware follow-up after its review window. It is not a tenant-authored cadence or communication journey.
+_Avoid_: dunning sequence; repeat until paid; custom reminder workflow; due-date message
+
+**Tenant reminder maximum** (Phase 16):
+The organization-wide ceiling allowing no automated campaign commitment reminders, only the upcoming stage, or the upcoming stage plus one follow-up. It can only narrow platform behavior and never authorizes contact by itself.
+_Avoid_: per-pledge cadence; force-send setting; automatic enrollment; policy bypass
+
+**Pledge reminder enrollment** (Phase 16):
+The deliberate, current-plan choice to make the tenant-permitted reminder stages available for exact named expectations and one current purpose-bound Service contact. A saved date, imported pledge, tenant setting, or prior plan is not enrollment.
+_Avoid_: reminder-by-default; schedule as consent; inherited enrollment; import opt-in
+
+**Reminder candidate** (Phase 16):
+One derived opportunity for an enrolled Gentle reminder profile stage. It is neither permission nor a queued or delivered message and must still satisfy current pledge, source, recipient, policy, and duplicate truth.
+_Avoid_: guaranteed send; provider-scheduled email as authority; stale queued reminder
+
+**Upcoming commitment reminder** (Phase 16):
+The first possible Gentle reminder profile stage, fixed thirty calendar days before a current named expected date. A passed stage is skipped rather than sent as catch-up.
+_Avoid_: arbitrary lead time; due-date notice; late backfill
+
+**Source-aware commitment follow-up** (Phase 16):
+The second possible Gentle reminder profile stage at the Offline review-after instant, available only when current fulfillment, matching, coverage, recipient, and communication policy still make it truthful and permitted.
+_Avoid_: automatic overdue notice; follow-up despite stale source; third reminder
+
+**Purpose-specific reminder stop** (Phase 16):
+A recipient instruction ending future campaign commitment reminders for the governed purpose and contact point without changing the pledge, its expectations, or broader authority.
+_Avoid_: pledge cancellation; donor-requested pledge ending; global contact preference inferred from one stop
+
+**Expected remitter** (Phase 16):
+An optional, provenance-bearing expectation about who may transmit a future commitment payment. It is a matching hint only, never fulfillment, legal-donor, receipt, ownership, or collection authority.
+_Avoid_: expected payer as legal donor; remitter hint as cash; payer field as permission
+
+**Collection authorizer** (Phase 16):
+The identified human and evidence approving one version of an automatic payment arrangement's terms and future use. A saved payment method, prior successful charge, representative relationship, or staff capability is not this authorization.
+_Avoid_: payment-method holder inferred from token; contact as mandate signer; staff approval as donor consent
+
+**Party instruction** (Phase 16):
+Evidence that the commitment Party or its currently authorized representative requested exact commitment terms or a specific lifecycle change. It is distinct from staff capability, payment authorization, and notification after the fact.
+_Avoid_: staff says donor approved; relationship as instruction; audit entry as consent
+
+**Staff-assisted recurring-support command** (Phase 16):
+A recurring-support action operated by tenant staff from a Party instruction, with separate operator authority and any required collection authorization. Staff operate the service case but never impersonate the Party, representative, cardholder, or account holder.
+_Avoid_: proxy consent; staff impersonation; capability-only financial change
+
+**Protective collection block** (Phase 16):
+A governed stop on future automatic collection because collection is unsafe or unauthorized, while preserving the underlying commitment intent and truthful reason. It is neither donor cancellation nor permission to redirect, retry, or enlarge support.
+_Avoid_: forced cancellation; silent redirection; compliance stop as donor choice
+
+**Posted legal donor** (Phase 16):
+The contribution-specific Party frozen on a received gift's legal header from its actual evidence. It is never copied blindly from the commitment Party, expected remitter, collection authorizer, or recognition.
+_Avoid_: commitment owner as automatic receipt owner; payer hint as hard credit
+
+**Recognition Party** (Phase 16):
+A Party receiving Phase 14 recognition-only attribution for a contribution or support relationship. Recognition never owns the commitment, authorizes action, fulfills an occurrence, becomes cash, or receives a tax receipt.
+_Avoid_: soft credit as promise ownership; recognition as legal giving; recognition as payment authority
+
+**Normal-date ACH soft-return runway** (Phase 16):
+The collection-health window tracking repeated normally scheduled insufficient-funds returns on one
+authorization lineage, independently of whether an individual occurrence is recovered by the donor.
+_Avoid_: donor debt aging; recovery attempt count; cancellation timer
+
+**Communication delivery evidence** (Phase 16):
+The append-only facts showing what happened to a communication intent, such as queued, submitted,
+provider accepted, delivered to the recipient's mail server, delivery unconfirmed, suppressed,
+bounced, complained, corrected, or manually resent. None proves the person read or understood it.
+_Avoid_: donor aware; sent means read; overwriting a prior message after corrected payment truth
+
+**Recurring executor** (Phase 16):
+The provider-side collection arrangement for one compatible recurring billing cohort. It has one explicit execution leg for an ordinary cadence and two monthly legs for the twice-monthly 1st/15th cadence. Each applicable line has an exact provider-item binding in each leg. It is separate from the donor's group or line intent, Asym's command posture, and any individual payment outcome.
+_Avoid_: commitment; recurring status; payment method; schedule alone
+
+**Provider-control state** (Phase 16):
+The evidence-backed truth about whether Asym can currently observe and safely direct a recurring executor through its payment provider. It is separate from donor intent, executor activity, payment outcome, cash, and communication delivery.
+_Avoid_: Stripe status; active or inactive; connection flag; donor lifecycle
+
+**Control unknown** (Phase 16):
+A provider-control state in which Asym cannot prove safe control of the recurring executor or prove that the executor has stopped. Suppressing Asym commands is not provider-confirmed stop.
+_Avoid_: parked; paused; stopped; canceled; safe
+
+**Proof-gated cohort recovery** (Phase 16):
+The return of only those affected recurring executors whose same-binding identity, current control, missing-interval and in-flight reconciliation, authorization, and absence of a competing executor have all been proven. Reconnection alone is never recovery.
+_Avoid_: reconnect and resume; replay everything; bulk restore by staff assertion
+
+**Lapsed vs canceled** (Phase 16):
+Lapsed is a derived display label used only when future automatic collection is
+actually unavailable or safely parked for an involuntary, recoverable reason;
+repeated soft missed occurrences alone remain at-risk continuing support.
+Canceled means the donor chose to stop and is terminal for that authorization.
+The authoritative facts remain separate intent, schedule, collection, payment,
+provider-control, and health axes.
+_Avoid_: writable lapsed status; folding an involuntary lapse into canceled;
+marking repeated ordinary misses lapsed
+
+**Hard credit** (Phase 14):
+The single legal donor's receiptable claim on a gift (Phase 7 A8); the only input
+to the Legal vocabulary.
+_Avoid_: two hard credits on one gift; hard credit as a recognition row
+
+**Soft credit (recognition)** (Phase 14):
+A recognition-only, structurally non-receiptable (`is_receiptable = FALSE`)
+`contribution_credits` row; never mints a receipt, never enters a money total.
+_Avoid_: a credit amount in any receipt/deductible/cash/ledger sum
+
+**Credit role** (Phase 14):
+The TEXT+CHECK why-this-party-is-recognized label on a credit row; fixed v1
+registry, each role in exactly one amount class.
+_Avoid_: tenant-custom roles (those are Phase 11 custom fields); reports that
+inspect roles case-by-case instead of dispatching on the class
+
+**Amount class** (Phase 14):
+The role registry's arithmetic contract for a credit's amount — `allocation`
+(required and bounded; member rows under one line sum ≤ that line),
+`recognition` (defaults to full scope; cross-party sum deliberately unbounded —
+both-spouses-full is legal), `annotation` (always NULL; never in any sum).
+_Avoid_: bounding recognition across parties; an annotation carrying an amount
+
+**The recognition fold** (Phase 14):
+The ONE canonical read model deriving recognition amounts
+(`LEAST(amount_minor, scope_effective_minor)`, 0 when the scope is
+reversed/voided), keyed on the Phase 13 `effective_seq` cursor; the sole
+aggregator every credit surface consumes.
+_Avoid_: a second recognition aggregator; a raw-table credit sum
+
+**Legal vs Recognition vocabulary** (Phase 14):
+The permanent two-vocabulary reporting split: "Legal giving" (hard credit only,
+the Phase 13 effective fold) vs "Recognition giving" (the recognition fold over
+credits) — side-by-side is fine, blended is never fine (the CiviCRM "Both" trap).
+_Avoid_: one mixed column summing both; a money surface that doesn't declare
+which vocabulary it speaks
+
+**Credit generation run** (Phase 14):
+The resumable, idempotent fan-out job record behind generator-minted credits
+(full-target-set upsert against the identity key).
+_Avoid_: a fan-out that duplicates rows on retry or cannot resume mid-batch
+
+**DAF sponsor / DAF advisor / advisor identity tier** (Phase 14):
+The fund-owning charity (per-tenant org party, `org_type = daf_sponsor`) — the
+hard-credit legal donor of a grant; the recommending human behind it —
+recognition-only, thanked with a $0 non-receipt acknowledgment; and the
+per-grant record of what the sponsor's paperwork disclosed
+(`full | fund_name_only | anonymous`).
+_Avoid_: receipting the advisor; a global shared sponsor registry
+
+**Fund-name memory** (Phase 14):
+Confirm-once rules mapping (sponsor, fund name) → an attributed household, with
+provenance chips and inline reversibility.
+_Avoid_: silent auto-attribution without a staff-confirmed rule
+
+**Tribute / honoree / notify party** (Phase 14):
+The reusable honor-or-memorial record; the person it honors (party-linked or
+name-only); a person watching the tribute with channel/frequency/total
+preferences.
+_Avoid_: a junk party for a name-only honoree; a notify party modeled as a donor
+
+**Coverage item** (Phase 14):
+A `tribute_notification_items` row — the (notify party, header) truth of who
+has been told about which gift, written in the letter's transaction.
+_Avoid_: deriving coverage from send events; per-tribute coverage grain (a
+watcher of two merged tributes would be told twice)
+
+**Decay cadence** (Phase 14):
+The age-anchored tribute-letter pace (weekly in tribute weeks 0–4, then
+≥28-day gaps); no automatic stop ever — an uncovered gift always eventually
+composes.
+_Avoid_: an automatic stop; a fixed calendar pace that turns a gift trickle
+into 52 condolence letters a year
+
+**Matching expectancy** (Phase 14):
+The anticipated-but-not-money record of an employer match; advisory amounts
+only, never in any fold.
+_Avoid_: an expectancy in any money surface (neither Legal nor Recognition);
+expectancy as a pledge
+
+**Settlement link** (Phase 14):
+The `matching_gift_settlements` junction row binding one received employer line
+to one expectancy; the line IS the amount.
+_Avoid_: an amount column on the settlement; a 1:1 spawned-header column (dies
+on the first real batch check)
+
+**Payer-of-record** (Phase 14):
+The legal donor of a match/workplace check: whoever actually paid (defaults to
+the employer; intermediaries like GE Foundation/Benevity are real payers).
+_Avoid_: receipting the employer for an intermediary-paid check
+
+**Payer intelligence registry** (Phase 14):
+`party_payer_aliases`: org-keyed payer alias strings with `payer_kind`, feeding
+one matcher and one triage surface; unmatched strings fail closed.
+_Avoid_: separate DAF and workplace matchers; silently misfiling an unmatched
+payer string
+
+**Supporter roster / support path** (Phase 14):
+`getSupporterRoster`: the designation-centric read model showing one row per
+supporting party with direct and via-paths, both lenses, zero copies. A support
+path is one element of a roster row's `paths[]`:
+`{path_kind, via_party, legal/recognized amounts, dates}`.
+_Avoid_: a materialized roster table; per-path rows that double-count a party
+
+**Attribution Inbox** (Phase 14):
+The finite, owned worklist of Not-Provided DAF gifts (the same worklist idiom
+reused for matching-gift aging and tributes awaiting setup).
+_Avoid_: per-record nag emails; an unbounded review queue
+
+**Gift-entry batch** (Phase 15):
+`gift_entry_batches`: the professional offline-entry container — draft →
+validate → commit — distinct from `contribution_operation_batches` (bulk
+_actions_ over existing gifts). The one front door: all staff-entered offline
+money enters through its single commit service (D1).
+_Avoid_: reusing `contribution_operation_batches` for entry; a second offline
+money-write path that bypasses the batch commit
+
+**Quick entry** (Phase 15):
+The keyboard-first grid (TanStack Table + Virtual) where an operator keys a
+stack of mail gifts fast, no mouse, one row per gift.
+_Avoid_: a mouse-driven form per gift; a grid slower than Excel that breeds
+shadow spreadsheets
+
+**Validation (non-mutating, revision-bound)** (Phase 15):
+The repeatable pre-commit check over a batch revision — it reads and reports,
+never mutates, and its verdict is bound to the revision it ran against (a later
+edit re-opens validation).
+_Avoid_: validation that writes rows; a stale pass carried across an edit
+
+**Control total + governed override** (Phase 15):
+The expected count/amount the operator declares up front, checked against
+entered totals; a mismatch is never silently erased — the declared originals
+stay frozen and an override is an audited, reason-carrying event (D2).
+_Avoid_: silently overwriting the declared total; an unlogged override
+
+**Validate = post** (Phase 15):
+The D5 default: a clean validate IS the commit — there is no separate always-on
+approve gate. A second approver / quorum is an opt-in per-tenant control.
+_Avoid_: a mandatory second-approver step on every batch; treating approve as a
+distinct always-on stage
+
+**High-risk auto-route** (Phase 15):
+The exception to validate = post: a batch tripping a high-risk signal is routed
+to a second reviewer automatically, without forcing that ceremony on ordinary
+batches.
+_Avoid_: routing every batch to review; letting a high-risk batch self-commit
+
+**New-operator soft-guard** (Phase 15):
+A gentle, temporary extra check for a first-time / new enterer — a soft guard,
+not a hard lock — that relaxes as the operator builds a track record.
+_Avoid_: a permanent hard block on new staff; no guard at all
+
+**Escape valve / carry-forward follow-on batch** (Phase 15):
+When a batch cannot fully commit (a bad row, an unresolved donor), the good
+rows commit and the remainder carries forward into a linked follow-on batch —
+the operator is never stuck against an all-or-nothing wall.
+_Avoid_: blocking the whole batch on one bad row; silently dropping the
+remainder
+
+**Deposit group** (Phase 15):
+`deposit_groups`: the artifact tying a set of offline gifts to one bank deposit
+(slip/report), with a **nullable gift-grain link** from each gift to its group.
+Phase 15 owns this operational artifact; Phase 20 owns the GL undeposited-funds
+account and bank-statement tie-out.
+_Avoid_: a flat `deposit_reference` string on the gift; Phase 15 claiming the
+GL account or statement reconciliation
+
+**Undeposited funds** (Phase 15):
+The operational state of recorded offline money not yet assigned to a deposit
+group — "in the drawer, not yet at the bank." The GL undeposited-funds account
+is Phase 20's.
+_Avoid_: conflating the operational undeposited set with the GL account
+
+**Deposit-state (6th orthogonal axis)** (Phase 15):
+The sixth orthogonal contribution axis (beside payment, ledger/posting,
+receipt, accounting-export, review): `undeposited → deposited → cleared`. Its
+own state machine (D6), NOT a chain of posting gates on the money.
+_Avoid_: modeling deposited/cleared as posting preconditions; a single blended
+status
+
+**Deposit assignment event** (Phase 15):
+The append-only event that assigns a gift to (or removes it from) a deposit
+group — deposit-state moves by event, never a silent `UPDATE`.
+_Avoid_: mutating a gift's deposit column in place; an unaudited reassignment
+
+**Settlement rail (bank-direct vs `stripe_rail`)** (Phase 15):
+`settlement_rail`: the discriminator for how an ACH gift settles — bank-direct
+(deposit-grouped like a check) vs `stripe_rail` (settles via payout).
+Deposit-eligibility keys on this, NOT on `gift_method` (amends Phase 13 D4 A1).
+_Avoid_: keying deposit-eligibility on `gift_method`; assuming one ACH rail
+
+**Settles-via-payout** (Phase 15):
+The Stripe-rail settlement path: money arrives as a Stripe payout, reconciled
+through the payout, not grouped into an offline bank deposit.
+_Avoid_: deposit-grouping a Stripe-rail gift; reconciling a payout as a manual
+deposit
+
+**Batch template** (Phase 15):
+A saved preset of columns + default values for a recurring entry shape (a mail
+appeal, a church remittance) so operators start pre-configured.
+_Avoid_: re-keying the same column setup every batch; a template that mutates a
+committed batch
+
+**Config-frozen / safety-live** (Phase 15):
+The posture split for a batch's settings: config-frozen once entry begins (the
+template/columns/totals stop shifting under the operator) while safety checks
+stay live (validation, guards, high-risk routing keep running).
+_Avoid_: config that shifts mid-entry; disabling safety checks to "go faster"
+
+**Phone-gift lane** (Phase 15):
+The staff-takes-a-card-over-the-phone path. Primary lane = the native embedded
+Stripe Payment Element keyed by staff (SAQ-A) + server-confirm MOTO; the
+Stripe-hosted secure-link is the fallback lane (D4).
+_Avoid_: staff keying raw PANs into an Asym-rendered field; treating
+secure-link as the only lane
+
+**MOTO (server-confirm flag)** (Phase 15):
+Mail-order/telephone-order: the server-confirm flag set on the PaymentIntent
+for a keyed phone gift, telling Stripe this is a MOTO transaction.
+_Avoid_: omitting the MOTO flag on a phone gift; client-only confirmation for
+MOTO
+
+**TEL / Financial-Connections ACH lane** (Phase 15):
+The phone-ACH path: a TEL-authorized bank debit captured via Stripe Financial
+Connections rather than a keyed card.
+_Avoid_: storing raw bank-account numbers; skipping TEL authorization capture
+
+**`take_phone_payment` capability** (Phase 15):
+The gated permission that lets a role open the phone-gift lane — server-side
+enforced, off by default.
+_Avoid_: exposing the phone lane to every staff role; a client-only capability
+check
+
+**Send-acknowledgments gate** (Phase 15):
+The explicit per-batch human edge (NF3) that releases batch-origin rows — which
+land `held` with origin reason `batch_gate_pending` — into the existing
+acknowledgment pipeline. Imports stay `held`; nothing auto-sends.
+_Avoid_: auto-sending acknowledgments on batch commit; a batch that sends
+without the gate
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"
@@ -537,9 +1585,10 @@ The workflow event ID only helps avoid duplicate handoffs."
 Developer: "Can recurring donations use the same retry loop as one-time
 donations?"
 
-Domain expert: "No. A recurring donation has its own subscription lifecycle.
-One-time donation recovery and recurring donation billing should be designed as
-separate payment concepts."
+Domain expert: "No. Recurring giving has its own product-owned schedule,
+occurrence, and rail-specific recovery lifecycle; provider subscriptions are
+execution legs, not the business authority. One-time donation saga recovery and
+recurring occurrence recovery remain separate payment concepts."
 
 Developer: "If an ACH donor finishes checkout, is the payment final?"
 

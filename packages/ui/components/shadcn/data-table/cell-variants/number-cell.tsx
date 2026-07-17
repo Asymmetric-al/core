@@ -6,9 +6,10 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Input } from "../../input";
 
+import type { RowData } from "../tanstack";
 import type { NumberCellProps } from "./types";
 
-function NumberCellEditor<TData>({
+function NumberCellEditor<TData extends RowData>({
   value,
   onValueChange,
   onEditComplete,
@@ -114,7 +115,7 @@ function NumberCellEditor<TData>({
   );
 }
 
-export function NumberCell<TData>({
+export function NumberCell<TData extends RowData>({
   value,
   isEditing = false,
   onValueChange,
