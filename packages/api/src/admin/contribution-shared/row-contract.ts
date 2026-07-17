@@ -163,19 +163,36 @@ export function formatSharedContributionAmount(
   }).format(amountCents / 100);
 }
 
+/**
+ * Canonicalizes a raw donation status before classification. Legacy and
+ * imported rows can carry casing or whitespace variants (for example
+ * "Succeeded" or " completed "), and the donor and missionary readers already
+ * lowercase before matching, so shared admin rows must agree.
+ */
+export function canonicalizeSharedPaymentStatusInput(
+  status: string | null | undefined,
+): string | null | undefined {
+  if (typeof status !== "string") {
+    return status;
+  }
+  return status.trim().toLowerCase();
+}
+
 export function normalizeSharedPaymentStatus(
   status: string | null | undefined,
 ): SharedContributionPaymentStatus {
-  // Settled values (including legacy "succeeded"/"success") are completed.
-  if (typeof status === "string" && SETTLED_DONATION_STATUS_SET.has(status)) {
+  const canonicalStatus = canonicalizeSharedPaymentStatusInput(status);
+  if (
+    typeof canonicalStatus === "string" &&
+    SETTLED_DONATION_STATUS_SET.has(canonicalStatus)
+  ) {
     return "completed";
   }
-  if (status === "failed" || status === "refunded") {
-    return status;
+  if (canonicalStatus === "failed" || canonicalStatus === "refunded") {
+    return canonicalStatus;
   }
-  // Everything else — "processing"/"pending" and any unknown or NULL status —
-  // stays pending. Unknown money is never shown as completed, matching the
-  // grid normalizer so the Hub's Status badge and shared filter agree.
+  // Unknown money state is never presented as settled. Processing, pending,
+  // null, and unrecognized legacy values all stay pending until confirmed.
   return "pending";
 }
 

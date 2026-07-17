@@ -1,9 +1,79 @@
 import { describe, expect, it } from "vitest";
 
-import { buildSharedContributionRowFields } from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
-import { buildContributionGridRow } from "../../../../../packages/api/src/admin/contributions/model";
+import {
+  buildSharedContributionRowFields,
+  normalizeSharedPaymentStatus,
+} from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
+import {
+  buildContributionGridRow,
+  normalizeContributionGridStatus,
+} from "../../../../../packages/api/src/admin/contributions/model";
+import { expandContributionStatusFilters } from "../../../../../packages/api/src/admin/contributions/service";
+import { SETTLED_DONATION_STATUSES } from "../../../../../packages/api/src/reads/settled-donation-statuses";
 
 describe("api/admin/contributions/model", () => {
+  it("classifies settled and unknown payment statuses consistently", () => {
+    for (const settledStatus of SETTLED_DONATION_STATUSES) {
+      expect(normalizeContributionGridStatus(settledStatus)).toBe("completed");
+      expect(normalizeSharedPaymentStatus(settledStatus)).toBe("completed");
+    }
+
+    for (const unknownStatus of [null, undefined, "unexpected_status"]) {
+      expect(normalizeContributionGridStatus(unknownStatus)).toBe("pending");
+      expect(normalizeSharedPaymentStatus(unknownStatus)).toBe("pending");
+    }
+
+    for (const passthroughStatus of ["failed", "refunded"] as const) {
+      expect(normalizeContributionGridStatus(passthroughStatus)).toBe(
+        passthroughStatus,
+      );
+      expect(normalizeSharedPaymentStatus(passthroughStatus)).toBe(
+        passthroughStatus,
+      );
+    }
+  });
+
+  it("canonicalizes casing and whitespace variants before classification", () => {
+    for (const settledVariant of ["Succeeded", "SUCCESS", " completed "]) {
+      expect(normalizeContributionGridStatus(settledVariant)).toBe("completed");
+      expect(normalizeSharedPaymentStatus(settledVariant)).toBe("completed");
+    }
+
+    for (const processingVariant of [
+      "Processing",
+      " processing ",
+      "PROCESSING",
+    ]) {
+      expect(normalizeContributionGridStatus(processingVariant)).toBe(
+        "processing",
+      );
+      // The shared contract has no processing state; it stays unsettled.
+      expect(normalizeSharedPaymentStatus(processingVariant)).toBe("pending");
+    }
+
+    expect(normalizeContributionGridStatus("FAILED")).toBe("failed");
+    expect(normalizeSharedPaymentStatus(" Refunded ")).toBe("refunded");
+  });
+
+  it("expands the completed status filter to every settled alias", () => {
+    expect(expandContributionStatusFilters(["completed"])).toEqual([
+      ...SETTLED_DONATION_STATUSES,
+    ]);
+    expect(expandContributionStatusFilters(["pending"])).toEqual([
+      "pending",
+      "processing",
+    ]);
+    // Combined filters dedupe raw statuses shared between expansions.
+    expect(
+      expandContributionStatusFilters(["completed", "pending", "failed"]),
+    ).toEqual([
+      ...SETTLED_DONATION_STATUSES,
+      "pending",
+      "processing",
+      "failed",
+    ]);
+  });
+
   it("builds a UI-safe contribution row with nonprofit admin fields", () => {
     const row = buildContributionGridRow({
       donation: {

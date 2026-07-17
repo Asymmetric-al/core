@@ -1,6 +1,7 @@
-import { SETTLED_DONATION_STATUS_SET } from "../../reads/settled-donation-statuses";
 import {
   buildSharedContributionRowFields,
+  canonicalizeSharedPaymentStatusInput,
+  normalizeSharedPaymentStatus,
   type SharedContributionCorrectionInput,
   type SharedContributionCrmPostStatus,
   type SharedContributionPaymentStatus,
@@ -179,19 +180,10 @@ type RawStagedGift = {
 export function normalizeContributionGridStatus(
   status: string | null | undefined,
 ): ContributionGridStatus {
-  if (status === "processing") {
+  if (canonicalizeSharedPaymentStatusInput(status) === "processing") {
     return "processing";
   }
-  // Settled values (including legacy "succeeded"/"success") show completed,
-  // matching the shared payment-status normalizer so the badge and the
-  // shared Status filter agree.
-  if (typeof status === "string" && SETTLED_DONATION_STATUS_SET.has(status)) {
-    return "completed";
-  }
-  if (status === "failed" || status === "refunded") {
-    return status;
-  }
-  return "pending";
+  return normalizeSharedPaymentStatus(status);
 }
 
 function normalizeType(
