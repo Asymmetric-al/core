@@ -6,7 +6,6 @@ import type { ContributionActionType } from "../contribution-operations/types";
 // contribution operations route actions.
 export const AUTOMATION_CONTRIBUTION_ACTION_TYPES = [
   "resend_receipt",
-  "crm_repost",
   "amount_correction",
   "designation_correction",
   "fund_correction",

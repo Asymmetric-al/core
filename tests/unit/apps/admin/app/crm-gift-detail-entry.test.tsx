@@ -318,6 +318,22 @@ function inlineActionsFor(donationId: string) {
 
 const contributionDetailPayload = contributionDetailPayloadFor(DONATION_ID);
 
+function staleCrmRetryInlineActionsFor(donationId: string) {
+  return {
+    nextBestActionType: "retry_staged_gift",
+    entries: [
+      {
+        actionType: "retry_staged_gift" as const,
+        available: true,
+        blockedReason: null,
+        nextStep: null,
+        riskLevel: "low" as const,
+      },
+      ...inlineActionsFor(donationId).entries,
+    ],
+  };
+}
+
 function crmDonorDetailFor(donationId: string) {
   return {
     ...crmDonorDetail,
@@ -645,46 +661,74 @@ describe("apps/admin/app/crm gift detail entry", () => {
     // Capability/state-filtered entries grouped by operation category.
     expect(await view.findByText("Correction")).toBeTruthy();
     expect(view.getByText("Receipt")).toBeTruthy();
-    expect(view.getByText("Refund")).toBeTruthy();
     expect(view.getByText("Correct gift amount")).toBeTruthy();
     expect(view.getByText("Correct fund designation")).toBeTruthy();
-    const refundItem = view.getByText("Refund gift").closest("[role=menuitem]");
-    expect(refundItem?.textContent).toContain("Blocked");
-    // Both the server-computed blocked reason and next step are surfaced
-    // inline (#270 gap 5), so staff learn why an action is unavailable and
-    // what to do instead without opening the shell.
-    expect(refundItem?.textContent).toContain(
-      "no payment provider charge to refund against",
-    );
-    expect(refundItem?.textContent).toContain(
-      "corrected through adjustments rather than provider refunds",
-    );
-    expect(refundItem?.getAttribute("title")).toContain(
-      "no payment provider charge to refund against",
-    );
-    expect(refundItem?.getAttribute("title")).toContain(
-      "corrected through adjustments rather than provider refunds",
-    );
-    expect(refundItem?.getAttribute("aria-disabled")).toBe("true");
-    expect(refundItem?.hasAttribute("data-disabled")).toBe(true);
-    fireEvent.click(refundItem!);
-    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
-    // Provider replay can be requested for approval, but this offline gift
-    // has no provider payment evidence, so the blocked action stays visible.
-    const replayItem = view
-      .getByText("Replay provider webhook")
-      .closest("[role=menuitem]");
-    expect(replayItem?.textContent).toContain("Blocked");
-    expect(replayItem?.textContent).toContain(
-      "This gift has no provider payment events to replay.",
-    );
-    expect(replayItem?.getAttribute("aria-disabled")).toBe("true");
-    expect(replayItem?.hasAttribute("data-disabled")).toBe(true);
-    fireEvent.click(replayItem!);
-    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+    // Provider-touching actions require their direct capabilities even when
+    // approval policy routes them through a request. Request-only staff never
+    // receive refund or replay entries, blocked or otherwise.
+    expect(view.queryByText("Refund")).toBeNull();
+    expect(view.queryByText("Refund gift")).toBeNull();
+    expect(view.queryByText("Replay provider webhook")).toBeNull();
     // Entries the server filtered out by capability never render.
     expect(view.queryByText("Approve and post gift")).toBeNull();
     expect(view.queryByText("Retry CRM posting")).toBeNull();
+  });
+
+  it("fails closed when stale inline data advertises CRM retry as available", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d010";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const staleDetail = crmDonorDetailFor(donationId);
+    staleDetail.giftHistory[0]!.inlineActions =
+      staleCrmRetryInlineActionsFor(donationId);
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: staleDetail }),
+    );
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => contributionDetailPayloadFor(donationId),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    expect(
+      await view.findByRole("button", { name: "Send receipt" }),
+    ).toBeTruthy();
+    expect(
+      view.queryByRole("button", { name: "CRM posting unavailable" }),
+    ).toBeNull();
+
+    fireEvent.click(view.getByRole("button", { name: "More gift actions" }));
+
+    const retryItem = (
+      await view.findByText("CRM posting unavailable")
+    ).closest("[role=menuitem]");
+    expect(retryItem?.getAttribute("aria-disabled")).toBe("true");
+    expect(retryItem?.textContent).toMatch(
+      /external CRM posting is no longer an active product workflow/i,
+    );
+    expect(retryItem?.textContent).toMatch(
+      /historical evidence.*maintained in Asym/i,
+    );
+    fireEvent.click(retryItem!);
+    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
+
+    fireEvent.click(await view.findByText("Pin row action"));
+    expect(
+      view.queryByRole("menuitemradio", {
+        name: "CRM posting unavailable",
+      }),
+    ).toBeNull();
   });
 
   it("restores donor drawer deep links even when the donor is off the loaded grid", async () => {
@@ -1045,6 +1089,99 @@ describe("apps/admin/app/crm gift detail entry", () => {
     });
   });
 
+  it("submits an inline correction through the projected detail contract", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00f";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const detailRefetch = vi.fn().mockResolvedValue({});
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({
+        data: crmDonorDetailFor(donationId),
+        refetch: detailRefetch,
+      }),
+    );
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-10",
+                approvalStatus: "pending_approval",
+                correctionRequestId: "request-10",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(
+      await view.findByRole("button", { name: "More gift actions" }),
+    );
+    fireEvent.click(await view.findByText("Correct gift amount"));
+
+    const shell = await view.findByTestId("contribution-operation-shell");
+    expect(
+      within(shell).queryByText(/not available for the current gift/i),
+    ).toBeNull();
+
+    fireEvent.change(await within(shell).findByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(within(shell).getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(within(shell).getByRole("checkbox"));
+    const submit = within(shell).getByRole("button", {
+      name: "Correct gift amount",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
+    expect(
+      view.getByText(/correction request submitted for approval/i),
+    ).toBeTruthy();
+    expect(routerPushMock).not.toHaveBeenCalled();
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "amount_correction",
+      contributionId: donationId,
+      stagedGiftId: "staged-1",
+      sourceSurface: "donor_crm_record",
+      reason: "Donor reported the wrong amount",
+      expectedRevision:
+        contributionDetailPayloadFor(donationId).contribution.revision,
+      payload: { amount: 20_000 },
+    });
+    expect(detailRefetch).toHaveBeenCalled();
+  });
+
   it("opens the full contribution detail from the result panel without leaving CRM", async () => {
     const donationId = "00000000-0000-4000-8000-00000000d00c";
     mockSearch = `donor=${DONOR_RECORD_ID}`;
@@ -1145,9 +1282,11 @@ describe("apps/admin/app/crm gift detail entry", () => {
     fireEvent.click(trigger);
     const shell = await view.findByTestId("contribution-operation-shell");
 
-    fireEvent.click(
-      await within(shell).findByRole("button", { name: "Cancel" }),
-    );
+    // Wait for the authoritative detail form before selecting Cancel. The
+    // loading state intentionally has its own Cancel button, which is replaced
+    // when current gift values arrive.
+    await within(shell).findByText("$250.00");
+    fireEvent.click(within(shell).getByRole("button", { name: "Cancel" }));
 
     await waitFor(() => {
       expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
@@ -1255,7 +1394,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
     ).toBeTruthy();
     // The fallback is explained, never silent (#271).
     expect(view.getByRole("note").textContent).toMatch(
-      /pinned action .* is blocked/i,
+      /pinned action .* isn't available to you/i,
     );
   });
 

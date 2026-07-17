@@ -272,6 +272,8 @@ export interface DecideCorrectionRequestInput {
 export interface DecideCorrectionRequestOutcome {
   request: ContributionCorrectionRequest;
   result?: ContributionActionResult;
+  /** Policy actually used to authorize/project a newly applied result. */
+  approvalPolicy?: CorrectionApprovalPolicy;
   idempotentReplay?: boolean;
 }
 
@@ -522,5 +524,6 @@ export async function decideContributionCorrectionRequest(
   return {
     request: decidedRequest,
     result,
+    approvalPolicy: policy,
   };
 }

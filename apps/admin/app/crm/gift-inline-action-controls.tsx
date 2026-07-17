@@ -1,5 +1,10 @@
 "use client";
 
+import {
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+} from "@asym/api/admin/contribution-operations/crm-retry-support";
 import { resolveCrmRowAction } from "@asym/api/admin/crm/table-preferences";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
@@ -27,9 +32,36 @@ import {
 } from "../contributions/operation-shell";
 
 import type {
+  CrmGiftInlineActionEntry,
   CrmGiftInlineActions,
   CrmTablePreferencesResponse,
 } from "@asym/database/types";
+
+const CRM_POSTING_ACTION_TYPES = new Set([
+  "approve_staged_gift",
+  "retry_staged_gift",
+  "crm_repost",
+]);
+
+function isCrmPostingAction(actionType: string): boolean {
+  return CRM_POSTING_ACTION_TYPES.has(actionType);
+}
+
+function normalizeCrmPostingEntry(
+  entry: CrmGiftInlineActionEntry,
+  crmPostingSupported: boolean,
+): CrmGiftInlineActionEntry {
+  if (crmPostingSupported || !isCrmPostingAction(entry.actionType)) {
+    return entry;
+  }
+
+  return {
+    ...entry,
+    available: false,
+    blockedReason: CRM_POSTING_UNAVAILABLE_REASON,
+    nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  };
+}
 
 /**
  * Server-computed inline operations for one gift row (#270): a single
@@ -51,10 +83,17 @@ export function GiftInlineActionControls({
   onRunOperation: (operation: OperationDefinition) => void;
   onPinChange: (actionId: string | null) => void;
 }) {
-  const entries = inlineActions?.entries ?? [];
+  const crmPostingSupported = isContributionCrmPostingSupported();
+  const entries = (inlineActions?.entries ?? []).map((entry) =>
+    normalizeCrmPostingEntry(entry, crmPostingSupported),
+  );
   if (entries.length === 0) {
     return null;
   }
+
+  const pinnableEntries = entries.filter(
+    (entry) => crmPostingSupported || !isCrmPostingAction(entry.actionType),
+  );
 
   const resolved = resolveCrmRowAction({
     userPin: preferences?.user ?? null,
@@ -189,7 +228,7 @@ export function GiftInlineActionControls({
                 <DropdownMenuRadioItem value="">
                   System default
                 </DropdownMenuRadioItem>
-                {entries.map((entry) => {
+                {pinnableEntries.map((entry) => {
                   const definition = OPERATION_DEFINITIONS[entry.actionType];
                   if (!definition) {
                     return null;

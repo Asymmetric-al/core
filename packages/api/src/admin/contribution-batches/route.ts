@@ -47,7 +47,6 @@ export const batchRequestSchema = z
   .object({
     actionType: z.enum([
       "resend_receipt",
-      "crm_repost",
       "refund",
       "donor_relink",
       "amount_correction",

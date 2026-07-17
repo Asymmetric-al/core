@@ -62,6 +62,9 @@ export function buildCrmGiftHistoryRow(
   input: BuildCrmGiftHistoryRowInput,
 ): CrmGiftHistoryRow {
   const { donation, donor, fund, missionary, stagedGift } = input;
+  const canViewProviderIdentifiers = (input.viewerCapabilities ?? []).includes(
+    "contributions.use_provider_actions",
+  );
 
   const shared = buildSharedContributionRowFields({
     donation,
@@ -132,7 +135,9 @@ export function buildCrmGiftHistoryRow(
     missionaryId: shared.designationSummary.missionaryId,
     missionaryName: shared.designationSummary.missionaryName,
     stagedGiftId: stagedGift?.id ?? null,
-    twentyRecordId: stagedGift?.twenty_record_id ?? null,
+    twentyRecordId: canViewProviderIdentifiers
+      ? (stagedGift?.twenty_record_id ?? null)
+      : null,
     inlineActions,
   };
 }

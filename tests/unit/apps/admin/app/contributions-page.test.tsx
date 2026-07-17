@@ -1028,7 +1028,7 @@ describe("apps/admin/app/contributions/page-client", () => {
     expect(view.getByText("Mail")).toBeTruthy();
   });
 
-  it("posts a scoped designation retry through the shared actions contract", async () => {
+  it("keeps historical designation failures visible while CRM posting stays unavailable", async () => {
     const donationId = "00000000-0000-4000-8000-000000000131";
     mockSearch = `gift=${donationId}`;
     const baseDetail = makeDetailPayload(donationId, "Scoped Retry Donor");
@@ -1046,9 +1046,11 @@ describe("apps/admin/app/contributions/page-client", () => {
         actionAvailability: [
           {
             actionType: "retry_staged_gift",
-            available: true,
-            blockedReason: null,
-            nextStep: null,
+            available: false,
+            blockedReason:
+              "CRM posting actions are unavailable because external CRM posting is no longer an active product workflow.",
+            nextStep:
+              "Treat the recorded posting state as historical evidence. Current CRM data is maintained in Asym; any future provider recovery requires a new audited integration workflow.",
             riskLevel: "low",
           },
         ],
@@ -1101,29 +1103,19 @@ describe("apps/admin/app/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(await view.findByText("Twenty CRM posting")).toBeTruthy();
+    expect(await view.findByText("Historical CRM posting")).toBeTruthy();
     expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
 
-    fireEvent.click(
-      await view.findByRole("button", { name: /retry this line/i }),
-    );
-
-    await waitFor(() => {
-      expect(
-        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
-      ).toBe(true);
-    });
-
-    const actionCall = fetchMock.mock.calls.find(([url]) =>
-      String(url).includes("/actions"),
-    );
-    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
-    expect(body).toMatchObject({
-      actionType: "retry_staged_gift",
-      contributionId: donationId,
-      stagedGiftId: "staged-9",
-      payload: { scope: "designation", allocationId: "alloc-2" },
-    });
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*Asym/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
   });
 
   it("strips invalid gift query params before fetching detail", async () => {

@@ -125,20 +125,18 @@ describe("admin/contribution-operations route action-result projection", () => {
   });
 
   it("shapes canonical availability under the tenant policy, matching the GET contract", () => {
-    // The decision route must thread the loaded tenant policy into the result
-    // projection (#270): under no_approval_required the GET detail contract
-    // omits correction request entries, so the decision response's canonical
-    // contribution must omit them too — the conservative default would
-    // advertise requests the executor rejects.
-    const noApprovalPolicy = {
-      ownershipMode: "no_approval_required" as const,
-      strongerApprovalCategories: [],
-    };
-
     const projected = projectContributionActionResultForViewer(
       makeResult(),
       DONOR_CARE_CAPABILITIES,
-      { approvalPolicy: noApprovalPolicy },
+      {
+        approvalPolicy: {
+          ownershipMode: "no_approval_required",
+          suppressedGates: [],
+          strongerApprovalCategories: [],
+          reminderHours: 24,
+          escalationHours: null,
+        },
+      },
     );
     const canonical = projected.canonicalContribution as {
       actionAvailability: Array<{ actionType: string }>;

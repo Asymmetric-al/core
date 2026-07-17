@@ -1,8 +1,16 @@
 "use client";
 
-// Import from the pure types submodule, not the package barrel: the barrel
+// Import values from pure submodules, not the package barrel: the barrel
 // re-exports server-only modules (Stripe refunds, Supabase access) that must
 // not be evaluated in this client component's bundle.
+import {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+  isContributionRouteCrmRetryScopeSupported,
+} from "@asym/api/admin/contribution-operations/crm-retry-support";
 import { isFailedProviderOutcomeStatus } from "@asym/api/admin/contribution-operations/types";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
@@ -36,6 +44,7 @@ import { useId, useMemo, useState } from "react";
 
 import {
   invalidateContributionOperationQueries,
+  isContributionGiftParam,
   useContributionDetail,
 } from "./contribution-detail-overlay";
 import {
@@ -49,6 +58,10 @@ import {
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
 
+// Type-only imports are erased at compile time, so pulling this one type
+// from the barrel does not evaluate its server-only modules in the client
+// bundle (matches contribution-detail-overlay.tsx).
+import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
 import type {
   ContributionActionResult,
   ContributionActionType,
@@ -147,10 +160,10 @@ export const OPERATION_DEFINITIONS: Record<
       "Moves this gift's designation to a different fund through an audited adjustment.",
     category: "correction",
     riskCopy:
-      "Changing the fund affects donor intent records, receipts, and CRM posting. High-risk corrections may require approval.",
+      "Changing the fund affects donor intent records, receipts, and CRM reporting. High-risk corrections may require approval.",
     downstreamEffects: [
       "Designation summary changes in CRM and the Contributions Hub.",
-      "CRM posting and receipts may need follow-up.",
+      "CRM records and receipts may need follow-up.",
     ],
     requiresReason: true,
     requiresConfirmation: true,
@@ -193,11 +206,12 @@ export const OPERATION_DEFINITIONS: Record<
   },
   approve_staged_gift: {
     actionType: "approve_staged_gift",
-    title: "Approve and post gift",
-    description: "Approves the staged gift and queues it for CRM posting.",
+    title: "CRM posting unavailable",
+    description:
+      "Recorded posting state is historical while CRM data is maintained in Asym.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The gift posts to the CRM as workflow metadata."],
+    downstreamEffects: [],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -206,11 +220,12 @@ export const OPERATION_DEFINITIONS: Record<
   },
   retry_staged_gift: {
     actionType: "retry_staged_gift",
-    title: "Retry CRM posting",
-    description: "Retries the failed CRM posting for this gift.",
+    title: "CRM posting unavailable",
+    description:
+      "Recorded posting failures are historical while CRM data is maintained in Asym.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The gift reposts to the CRM."],
+    downstreamEffects: [],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -238,7 +253,7 @@ export const OPERATION_CATEGORY_LABELS: Record<OperationCategory, string> = {
   correction: "Correction",
   receipt: "Receipt",
   refund: "Refund",
-  crm: "CRM / Twenty",
+  crm: "Historical CRM",
   provider: "Provider / Admin",
 };
 
@@ -262,6 +277,61 @@ class ContributionOperationRequestError extends Error {
     super(message);
     this.name = "ContributionOperationRequestError";
   }
+}
+
+function retryPayloadForScope(
+  scope: CrmPostFailedScope | null,
+): Record<string, unknown> {
+  if (scope?.scope === "designation" && scope.allocationId?.trim()) {
+    return {
+      scope: "designation",
+      allocationId: scope.allocationId,
+    };
+  }
+
+  return { scope: "parent" };
+}
+
+function retryTargetBlock(
+  failedScopes: CrmPostFailedScope[],
+): { reason: string; nextStep: string } | null {
+  const executableScopes = failedScopes.filter((scope) =>
+    isContributionRouteCrmRetryScopeSupported(scope.scope),
+  );
+  if (executableScopes.length === 1) {
+    return null;
+  }
+
+  if (failedScopes.length > 1) {
+    return {
+      reason:
+        "More than one CRM posting failed, so this inline action cannot safely choose a retry target.",
+      nextStep:
+        "Open full contribution detail to retry one failed record at a time.",
+    };
+  }
+
+  const [scope] = failedScopes;
+  if (scope?.scope === "designation" && !scope.allocationId?.trim()) {
+    return {
+      reason:
+        "The failed designation cannot be targeted safely because its allocation identity is missing.",
+      nextStep:
+        "Open full contribution detail to review the CRM posting state before retrying.",
+    };
+  }
+
+  if (
+    scope?.scope === "designation" &&
+    !isContributionRouteCrmRetryScopeSupported(scope.scope)
+  ) {
+    return {
+      reason: CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+      nextStep: CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+    };
+  }
+
+  return null;
 }
 
 async function submitOperation(input: {
@@ -415,6 +485,18 @@ export function ContributionOperationShell({
   }
 
   const detail = detailQuery.data;
+  const detailQueryEnabled = isContributionGiftParam(donationId);
+  const detailLoading = detailQueryEnabled && detailQuery.isPending;
+  const detailLoadBlock =
+    !detail && !detailLoading
+      ? {
+          reason:
+            detailQuery.error instanceof Error
+              ? detailQuery.error.message
+              : "Current gift detail is unavailable for this row.",
+          nextStep: "Close this action, refresh the CRM row, and try again.",
+        }
+      : null;
   const latestRevision = detail?.revision ?? null;
   const hasBackgroundConflict =
     draftRevision !== null &&
@@ -492,13 +574,48 @@ export function ContributionOperationShell({
     return null;
   }
 
-  const blocked = availability
-    ? !availability.available
-    : Boolean(detail && operation);
+  const failedRetryScopes =
+    operation.actionType === "retry_staged_gift"
+      ? (detail?.crm.failedScopes ?? [])
+      : [];
+  const hasIndependentStagedGiftRetry = Boolean(
+    detail?.stagedGift?.status === "failed" ||
+    (detail?.stagedGift?.status === "ready_to_post" &&
+      (detail.stagedGift.crmPostStatus === "failed" ||
+        detail.stagedGift.crmPostStatus === "blocked")),
+  );
+  const retryTargetScopes = hasIndependentStagedGiftRetry
+    ? []
+    : failedRetryScopes;
+  const retryTargetScope =
+    retryTargetScopes.find((scope) =>
+      isContributionRouteCrmRetryScopeSupported(scope.scope),
+    ) ??
+    retryTargetScopes[0] ??
+    null;
+  const postingCapabilityBlock =
+    (operation.actionType === "approve_staged_gift" ||
+      operation.actionType === "retry_staged_gift") &&
+    !isContributionCrmPostingSupported()
+      ? {
+          reason: CRM_POSTING_UNAVAILABLE_REASON,
+          nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+        }
+      : null;
+  const operationBlock =
+    postingCapabilityBlock ??
+    detailLoadBlock ??
+    (availability?.available ? retryTargetBlock(retryTargetScopes) : null);
+  const blocked =
+    !detail ||
+    Boolean(operationBlock) ||
+    (availability ? !availability.available : true);
   const blockedReason =
+    operationBlock?.reason ??
     availability?.blockedReason ??
     "This operation is not available for the current gift.";
   const blockedNextStep =
+    operationBlock?.nextStep ??
     availability?.nextStep ??
     "Refresh the gift detail or choose another action.";
   const amountCurrencyCode = detail?.shared.currencyCode ?? "USD";
@@ -598,7 +715,9 @@ export function ContributionOperationShell({
 
   const handleSubmit = async () => {
     if (
-      !donationId ||
+      !isContributionGiftParam(donationId) ||
+      !detail ||
+      !availability?.available ||
       validationMessage ||
       blocked ||
       hasBackgroundConflict ||
@@ -618,25 +737,32 @@ export function ContributionOperationShell({
         : null;
     const basePayload = operation.buildPayload({
       values,
-      stagedGiftId: detail?.stagedGift?.id ?? null,
+      stagedGiftId: detail.stagedGift?.id ?? null,
     });
+    const payload =
+      operation.actionType === "retry_staged_gift"
+        ? {
+            ...basePayload,
+            ...retryPayloadForScope(retryTargetScope),
+          }
+        : basePayload;
     setPhase({ name: "submitting" });
     let result: ContributionActionResult;
     try {
       result = await submitOperation({
         actionType: operation.actionType,
         contributionId: donationId,
-        stagedGiftId: detail?.stagedGift?.id ?? null,
+        stagedGiftId: detail.stagedGift?.id ?? null,
         sourceSurface,
         reason: values.reason.trim() || null,
         confirmationToken: operation.requiresConfirmation
           ? idempotencyKey
           : null,
-        expectedRevision: draftRevision ?? detail?.revision ?? null,
+        expectedRevision: draftRevision ?? detail.revision,
         idempotencyKey,
         payload: receiptDeliverySelection
-          ? { ...basePayload, receiptDelivery: receiptDeliverySelection }
-          : basePayload,
+          ? { ...payload, receiptDelivery: receiptDeliverySelection }
+          : payload,
       });
     } catch (error) {
       // Failure preserves the entered form state for recovery (ADR-CD-033).
@@ -742,13 +868,20 @@ export function ContributionOperationShell({
           {operation.description}
         </DialogDescription>
 
-        {detailQuery.isPending && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Loading current gift values…
-          </p>
+        {detailLoading && (
+          <div className="space-y-3">
+            <p role="status" className="text-sm text-muted-foreground">
+              Loading current gift values…
+            </p>
+            <div className="flex justify-end">
+              <Button variant="outline" className="h-11" onClick={onClose}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         )}
 
-        {blocked && (
+        {blocked && !detailLoading && (
           <div
             role="note"
             className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
@@ -758,6 +891,15 @@ export function ContributionOperationShell({
             </p>
             {blockedNextStep && (
               <p className="text-xs text-muted-foreground">{blockedNextStep}</p>
+            )}
+            {operationBlock && onOpenFullDetail && donationId && (
+              <Button
+                variant="outline"
+                className="mt-3 h-11"
+                onClick={() => onOpenFullDetail(donationId)}
+              >
+                View full contribution detail
+              </Button>
             )}
           </div>
         )}
@@ -965,7 +1107,10 @@ export function ContributionOperationShell({
                     disabled={
                       Boolean(validationMessage) ||
                       Boolean(pendingRefundMessage) ||
-                      detailQuery.isPending
+                      !detail ||
+                      !availability?.available ||
+                      detailQuery.isPending ||
+                      hasBackgroundConflict
                     }
                     onClick={() => void handleSubmit()}
                   >

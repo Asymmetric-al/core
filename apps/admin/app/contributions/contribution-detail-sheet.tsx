@@ -1,6 +1,14 @@
 "use client";
 
 import {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+  isContributionRouteCrmRetryScopeSupported,
+} from "@asym/api/admin/contribution-operations/crm-retry-support";
+import {
   formatSharedContributionAmount,
   SHARED_CRM_POST_STATUS_LABELS,
 } from "@asym/api/admin/contribution-shared";
@@ -172,17 +180,12 @@ interface ContributionDetailSheetProps {
    */
   providerProof?: ContributionProviderProof | null;
   /**
-   * CRM/Twenty parent + child post state (ADR-CD-012). Workflow metadata —
-   * never payment truth. When present it replaces the scalar Twenty field
-   * with a parent/child breakdown, failed-scope retries, and any adapter
-   * limitation note.
+   * Historical CRM parent + child post state (ADR-CD-012). This is audit
+   * metadata, never payment truth or an executable posting workflow.
    */
   crmPostState?: ContributionCrmPostState | null;
   /**
-   * Scoped CRM retry (ADR-CD-012): retries only the failed parent record or
-   * one failed designation line via the existing retry_staged_gift action.
-   * Buttons render only when the retry_staged_gift availability entry is
-   * available.
+   * Compatibility callback retained for a future audited provider workflow.
    */
   onRetryCrmPost?: (
     scope: CrmPostFailedScope,
@@ -230,8 +233,8 @@ const FUND_TYPE_LABELS: Record<ContributionDesignationFundType, string> = {
 const ACTION_LABELS: Partial<
   Record<ContributionActionAvailability["actionType"], string>
 > = {
-  approve_staged_gift: "Approve/Post",
-  retry_staged_gift: "Retry posting",
+  approve_staged_gift: "CRM approval/posting",
+  retry_staged_gift: "CRM posting retry",
   resend_receipt: "Send receipt",
   refund: "Refund gift",
 };
@@ -393,9 +396,34 @@ export function ContributionDetailSheet({
   const availabilityByAction = actionAvailability
     ? new Map(actionAvailability.map((entry) => [entry.actionType, entry]))
     : null;
-  const approveEntry = availabilityByAction?.get("approve_staged_gift") ?? null;
-  const retryEntry = availabilityByAction?.get("retry_staged_gift") ?? null;
+  const crmPostingSupported = isContributionCrmPostingSupported();
+  const rawApproveEntry =
+    availabilityByAction?.get("approve_staged_gift") ?? null;
+  const rawRetryEntry = availabilityByAction?.get("retry_staged_gift") ?? null;
+  const approveEntry =
+    rawApproveEntry && !crmPostingSupported
+      ? {
+          ...rawApproveEntry,
+          available: false,
+          blockedReason: CRM_POSTING_UNAVAILABLE_REASON,
+          nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+        }
+      : rawApproveEntry;
+  const retryEntry =
+    rawRetryEntry && !crmPostingSupported
+      ? {
+          ...rawRetryEntry,
+          available: false,
+          blockedReason: CRM_POSTING_UNAVAILABLE_REASON,
+          nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+        }
+      : rawRetryEntry;
   const receiptEntry = availabilityByAction?.get("resend_receipt") ?? null;
+  const designationRetryGuidanceShownInActions = Boolean(
+    retryEntry &&
+    !retryEntry.available &&
+    retryEntry.blockedReason === CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  );
   const refundEntry = availabilityByAction?.get("refund") ?? null;
   const missingStagedGiftWorkflow =
     Boolean(availabilityByAction) && !stagedGiftId;
@@ -421,25 +449,48 @@ export function ContributionDetailSheet({
   ];
 
   const canApproveGift = availabilityByAction
-    ? Boolean(stagedGiftId && approveEntry?.available)
+    ? Boolean(crmPostingSupported && stagedGiftId && approveEntry?.available)
     : stagedGiftId &&
+      crmPostingSupported &&
       (contribution.stagedGiftStatus === "received" ||
         contribution.stagedGiftStatus === "needs_review");
-  const canRetryGift = availabilityByAction
-    ? Boolean(stagedGiftId && retryEntry?.available)
-    : stagedGiftId &&
-      (contribution.stagedGiftStatus === "failed" ||
-        contribution.crmPostStatus === "failed" ||
-        contribution.crmPostStatus === "blocked");
+  const parentRetryScope =
+    crmPostState?.failedScopes.find((scope) => scope.scope === "parent") ??
+    null;
+  const hasExecutableCrmRetryState =
+    contribution.stagedGiftStatus === "failed" ||
+    contribution.stagedGiftStatus === "ready_to_post";
+  const hasRetryableStagedGiftState =
+    contribution.stagedGiftStatus === "failed" ||
+    (contribution.stagedGiftStatus === "ready_to_post" &&
+      (contribution.crmPostStatus === "failed" ||
+        contribution.crmPostStatus === "blocked"));
+  const hasLegacyCrmRetryState =
+    !crmPostState &&
+    hasExecutableCrmRetryState &&
+    (contribution.crmPostStatus === "failed" ||
+      contribution.crmPostStatus === "blocked");
+  const hasRetryableParentTarget = Boolean(
+    hasRetryableStagedGiftState ||
+    (hasExecutableCrmRetryState && parentRetryScope) ||
+    hasLegacyCrmRetryState,
+  );
+  const canRetryGift = Boolean(
+    crmPostingSupported &&
+    stagedGiftId &&
+    hasRetryableParentTarget &&
+    (availabilityByAction ? retryEntry?.available : true),
+  );
   const canSendReceipt = availabilityByAction
     ? Boolean(stagedGiftId && receiptEntry?.available)
     : !contribution.receiptSent;
   const canRetryCrmScope = Boolean(
-    stagedGiftId && retryEntry?.available && onRetryCrmPost,
+    crmPostingSupported &&
+    stagedGiftId &&
+    hasExecutableCrmRetryState &&
+    retryEntry?.available &&
+    onRetryCrmPost,
   );
-  const parentRetryScope =
-    crmPostState?.failedScopes.find((scope) => scope.scope === "parent") ??
-    null;
   /**
    * Gifts outside the CRM post workflow carry an all-null post state; render
    * the section only when there is something to report, matching the prior
@@ -704,13 +755,13 @@ export function ContributionDetailSheet({
           </>
         )}
 
-        {/* ---- CRM/Twenty post state (ADR-CD-012) ---- */}
+        {/* ---- Historical CRM post state (ADR-CD-012) ---- */}
         {crmPostState && crmPostStateHasSignal && (
           <>
             <Separator />
             <div className="space-y-3">
               <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
-                Twenty CRM posting
+                Historical CRM posting
               </p>
               {crmPostState.adapterLimitation && (
                 <Alert className="bg-muted/40">
@@ -817,25 +868,47 @@ export function ContributionDetailSheet({
                           {record.lastError}
                         </p>
                       )}
-                      {canRetryCrmScope && retryScope && allocationId && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          disabled={isActionPending}
-                          className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
-                          onClick={() =>
-                            stagedGiftId &&
-                            onRetryCrmPost?.(
-                              { scope: "designation", allocationId },
-                              stagedGiftId,
-                              contribution.id,
-                            )
-                          }
-                        >
-                          <RefreshCcw className="size-3.5" aria-hidden />
-                          Retry this line
-                        </Button>
-                      )}
+                      {retryScope &&
+                        !designationRetryGuidanceShownInActions &&
+                        !isContributionRouteCrmRetryScopeSupported(
+                          "designation",
+                        ) && (
+                          <div
+                            role="note"
+                            className="space-y-1 rounded-md border border-border bg-muted/30 p-2"
+                          >
+                            <p className="text-xs font-medium text-foreground">
+                              {CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON}
+                            </p>
+                            <p className="text-xs text-muted-foreground">
+                              {CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP}
+                            </p>
+                          </div>
+                        )}
+                      {canRetryCrmScope &&
+                        retryScope &&
+                        allocationId &&
+                        isContributionRouteCrmRetryScopeSupported(
+                          "designation",
+                        ) && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            disabled={isActionPending}
+                            className="h-8 gap-2 rounded-xl text-[10px] font-semibold uppercase tracking-widest"
+                            onClick={() =>
+                              stagedGiftId &&
+                              onRetryCrmPost?.(
+                                { scope: "designation", allocationId },
+                                stagedGiftId,
+                                contribution.id,
+                              )
+                            }
+                          >
+                            <RefreshCcw className="size-3.5" aria-hidden />
+                            Retry this line
+                          </Button>
+                        )}
                     </li>
                   );
                 })}
