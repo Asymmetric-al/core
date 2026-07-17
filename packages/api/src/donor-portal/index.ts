@@ -6,31 +6,16 @@ import {
 import { isE2EAuthBypassEnabled } from "@asym/auth/e2e-auth";
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { NextResponse } from "next/server";
-import { z } from "zod";
 
 import { getDemoDonorPortalSnapshot } from "./demo-snapshot";
 import { getDonorPortalSnapshot, resolveDonorPortalContext } from "./service";
+import { donorPortalPatchSchema } from "./settings-patch";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
 import { withOperation } from "../shared/with-operation";
 
 import type { NextRequest } from "next/server";
 
-const donorPortalPatchSchema = z
-  .object({
-    firstName: z.string().trim().max(120).optional(),
-    lastName: z.string().trim().max(120).optional(),
-    displayName: z.string().trim().max(240).optional(),
-    phone: z.string().trim().max(80).nullable().optional(),
-    avatarUrl: z.string().url().nullable().optional(),
-    preferredContact: z.string().trim().max(40).optional(),
-    receiptEmailFrequency: z.string().trim().max(40).optional(),
-    defaultUpdateFrequency: z.string().trim().max(40).nullable().optional(),
-    preferredLanguage: z.string().trim().max(20).optional(),
-    doNotContact: z.boolean().optional(),
-    doNotEmail: z.boolean().optional(),
-    givingPreferences: z.record(z.string(), z.unknown()).optional(),
-  })
-  .strict();
+const DONOR_PORTAL_UPDATE_ERROR = "Unable to update donor profile.";
 
 function fullNameFromPatch(input: {
   firstName?: string;
@@ -150,7 +135,11 @@ export const PATCH = withOperation(
         .eq("tenant_id", ctx.tenantId);
 
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("[donor-portal] Profile update failed", error);
+        return NextResponse.json(
+          { error: DONOR_PORTAL_UPDATE_ERROR },
+          { status: 500 },
+        );
       }
     }
 
@@ -163,7 +152,11 @@ export const PATCH = withOperation(
         .eq("profile_id", ctx.profileId);
 
       if (error) {
-        return NextResponse.json({ error: error.message }, { status: 500 });
+        console.error("[donor-portal] Donor update failed", error);
+        return NextResponse.json(
+          { error: DONOR_PORTAL_UPDATE_ERROR },
+          { status: 500 },
+        );
       }
     }
 

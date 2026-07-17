@@ -60,4 +60,18 @@ describe("buildGivingTrends", () => {
     ]);
     expect(out.map((p) => p.monthKey)).toEqual(["2026-05"]);
   });
+
+  it("treats non-finite amounts as zero so a bad row cannot poison a month", () => {
+    const out = buildGivingTrends([
+      d("2026-05-01", Number.NaN),
+      d("2026-05-02", 2500),
+    ]);
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({
+      monthKey: "2026-05",
+      totalCents: 2500,
+      total: 25,
+      giftCount: 2,
+    });
+  });
 });

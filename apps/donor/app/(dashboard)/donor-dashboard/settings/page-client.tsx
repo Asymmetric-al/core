@@ -1,7 +1,7 @@
 "use client";
 
 import {
-  buildDonorSettingsPatch,
+  buildDonorProfileSettingsPatch,
   buildProfileFormState,
 } from "@asym/api/donor-portal/settings-patch";
 import {
@@ -160,21 +160,18 @@ const ProfileTab = () => {
 
   const handleSave = async () => {
     setErrorMessage(null);
+    const savePatch = buildDonorProfileSettingsPatch(form);
+    if (!savePatch.ok) {
+      setErrorMessage(savePatch.errorMessage);
+      return;
+    }
+
     try {
-      await update.mutateAsync(
-        buildDonorSettingsPatch({
-          firstName: form.firstName,
-          lastName: form.lastName,
-          phone: form.phone || null,
-          avatarUrl: form.avatarUrl || null,
-        }) as Parameters<typeof update.mutateAsync>[0],
-      );
+      await update.mutateAsync(savePatch.patch);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
-    } catch (error) {
-      setErrorMessage(
-        error instanceof Error ? error.message : "Couldn't save your changes.",
-      );
+    } catch {
+      setErrorMessage("Couldn't save your changes.");
     }
   };
 
