@@ -14,14 +14,12 @@ and [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operat
       authority
 - [ ] 1.3 Validate: `bunx @fission-ai/openspec@latest validate add-eve-approval-budget-policy --strict`
 
-## 2. Record ADR-0005 (approval and budget policy)
+## 2. Record the provisional Eve design decision EVE-DESIGN-0005 (approval and budget policy)
 
-- [ ] 2.1 Author ADR-0005 in this change's `design.md`, traceable from ADR-0002 (#418), ADR-0003 (#419), and
-      ADR-0004 (#420)
-- [ ] 2.2 Confirm the ADR number and location with maintainers (same convention as ADR-0001); #421 and #422
-      ADRs are not yet authored in this partner-draft sequence, so 0005 reflects authoring order and is
-      reconciled at merge time
-- [ ] 2.3 Cross-link ADR-0005 from the parent PRD and issue #423
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0005 in this change's `design.md`, traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and
+      EVE-DESIGN-0004 (#420)
+- [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
+- [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #423
 
 ## 3. Trust-zone approval rules
 

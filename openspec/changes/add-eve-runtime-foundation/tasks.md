@@ -14,12 +14,12 @@ grounded in [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementatio
       no new authority
 - [ ] 1.3 Validate: `bunx @fission-ai/openspec@latest validate add-eve-runtime-foundation --strict`
 
-## 2. Record ADR-0007 (runtime foundation)
+## 2. Record the provisional Eve design decision EVE-DESIGN-0007 (runtime foundation)
 
-- [ ] 2.1 Author ADR-0007 in this change's `design.md`, traceable from ADR-0001 (#417), ADR-0005 (#423), and
-      ADR-0006 (#421)
-- [ ] 2.2 Land the ADR at the repo's chosen ADR location (confirm convention with maintainers, same as ADR-0001)
-- [ ] 2.3 Cross-link ADR-0007 from the parent PRD and issue #425
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0007 in this change's `design.md`, traceable from ADR-0018 (#417), EVE-DESIGN-0005 (#423), and
+      EVE-DESIGN-0006 (#421)
+- [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
+- [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #425
 
 ## 3. Package isolation and docs-first
 

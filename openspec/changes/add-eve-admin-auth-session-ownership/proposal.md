@@ -5,8 +5,8 @@
 > **Partner DRAFT for GitHub issue #426 ("Eve: Current admin auth and session ownership").** Staged in the
 > Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #422** (`add-eve-admin-memory-tracer`),
-> **#423** (`add-eve-approval-budget-policy`, ADR-0005), and **#425**
-> (`add-eve-runtime-foundation`, ADR-0007) — the three slices the implementation plan names as #426's blockers.
+> **#423** (`add-eve-approval-budget-policy`, EVE-DESIGN-0005), and **#425**
+> (`add-eve-runtime-foundation`, EVE-DESIGN-0007) — the three slices the implementation plan names as #426's blockers.
 > It does not restate their contracts; it defines the **auth and session-ownership boundary** that maps the
 > current admin identity, derives tenant and user from verified session context only, and enforces ownership on
 > every Eve session and governance-artifact access path — including the memory access #422 governs, the
@@ -77,8 +77,8 @@ protected-area policy, kill switches, and rollback paths are verified."
   before admin UI mount** (#427/#428), and applies to the **#425 runtime-hosted sessions**; and the change
   **grants no new authority** — subordinate to #417's protected-area/approval limits and #418's emergency-off
   precedence, with the release switch staying off until auth is verified.
-- Record the decision as **ADR-0008** in this change's `design.md`, building on #422 (admin memory), ADR-0005
-  (#423), and ADR-0007 (#425).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0008** in this change's `design.md`, building on #422 (admin memory), EVE-DESIGN-0005
+  (#423), and EVE-DESIGN-0007 (#425).
 
 ## What Does Not Change
 
@@ -113,8 +113,8 @@ protected-area policy, kill switches, and rollback paths are verified."
   metadata, verified-context-only tenant/user derivation, ownership enforcement on session/approval/memory/
   audit/replay access, server-side fail-closed, auth-before-mount — a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0008 of record for admin auth and session ownership, traceable from #422 (admin memory), ADR-0005 (#423), and
-  ADR-0007 (#425).
+- Provisional Eve design decision `EVE-DESIGN-0008` for admin auth and session ownership, traceable from #422 (admin memory), EVE-DESIGN-0005 (#423), and
+  EVE-DESIGN-0007 (#425).
 - A clear boundary: #417 owns the protected-area/auth contract; #419 owns the audit-record shape; #422 owns
   memory content; #423 owns approval/budget; #424 owns retention/replay; #425 hosts sessions; #427/#428 own the
   admin shell and mount; #426 owns the **auth and session-ownership gate** they all pass through.

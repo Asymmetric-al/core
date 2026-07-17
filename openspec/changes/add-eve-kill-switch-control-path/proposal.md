@@ -5,8 +5,8 @@
 > **Partner DRAFT for GitHub issue #420 ("Eve: Kill-switch control path").** Staged in the Gitea
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #418**
-> (`add-eve-governance-kernel-release-switch`, ADR-0002) and **#419** (`add-eve-audit-tracer-bullet`,
-> ADR-0003) — it does not restate those contracts, it adds the granular per-domain control path that drives
+> (`add-eve-governance-kernel-release-switch`, EVE-DESIGN-0002) and **#419** (`add-eve-audit-tracer-bullet`,
+> EVE-DESIGN-0003) — it does not restate those contracts, it adds the granular per-domain control path that drives
 > the emergency/kill-switch **state** #418 persists and records every actuation as a #419 audit record.
 > Every grounded claim carries a `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit
 > `d14a2434` on 2026-07-02.
@@ -19,7 +19,7 @@ model policy changes, and force human approval for all actions" (US-35).
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md] #418 defines
 only the system-wide release-switch and emergency-off **state**; it explicitly defers the "granular
 per-domain kill-switch control path" to #420.
-[VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md] The #420 slice makes that
+[VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md] The #420 slice makes that
 control path real. Its stated purpose is that "platform owners can stop Eve automation from the admin
 workspace before runtime integrations exist," with acceptance that kill switches cover all automation, active
 runs, GitHub actions, production writes, sandbox networking, dynamic workflows, model-policy changes, and
@@ -38,8 +38,8 @@ kill-switch state**. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impl
   action consumes kill-switch state and is blocked per-domain**, using only persisted app-owned state (not
   bypassable by prompt/model/tool/memory); and the control path **drives #418's state, is subordinate to
   #417, and grants no new authority**.
-- Record the decision as **ADR-0004** in this change's `design.md`, building on ADR-0002 (#418) and
-  ADR-0003 (#419), which both build on ADR-0001 (#417).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0004** in this change's `design.md`, building on EVE-DESIGN-0002 (#418) and
+  EVE-DESIGN-0003 (#419), which both build on ADR-0018 (#417).
 
 ## What Does Not Change
 
@@ -48,7 +48,7 @@ kill-switch state**. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impl
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - The **system-wide release-switch and emergency-off state** remain #418's scope; #420 defines the granular
   per-domain switches that drive that state, not the kernel that persists it.
-  [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
+  [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
 - The **audit-record shape** (actor, initiator, identity mode, policy, action, target, result, redacted
   evidence) remains #419's scope; #420 only requires that each actuation _emits_ one.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
@@ -66,7 +66,7 @@ kill-switch state**. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impl
   (`bunx @fission-ai/openspec@latest validate add-eve-kill-switch-control-path --strict`) that makes the
   full per-domain kill-switch control path a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0004 of record for the kill-switch control path, traceable from ADR-0002 (#418) and ADR-0003 (#419).
+- Provisional Eve design decision `EVE-DESIGN-0004` for the kill-switch control path, traceable from EVE-DESIGN-0002 (#418) and EVE-DESIGN-0003 (#419).
 - A clear boundary: #418 owns the emergency/kill-switch **state**; #419 owns the **audit record**; #421 owns
   **model policy**; #420 owns the granular per-domain **control path** that drives the state, emits the
   records, and feeds policy checks. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

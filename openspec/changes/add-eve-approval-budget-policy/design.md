@@ -1,26 +1,28 @@
-# Design & ADR-0005: Eve Approval and Budget Policy
+# Design (provisional Eve label EVE-DESIGN-0005): Eve Approval and Budget Policy
 
-> This `design.md` doubles as **ADR-0005**, the approval/budget-policy decision required by issue #423. It
-> builds on **ADR-0004** (#420, `add-eve-kill-switch-control-path`), **ADR-0003** (#419,
-> `add-eve-audit-tracer-bullet`), and **ADR-0002** (#418, `add-eve-governance-kernel-release-switch`), which
-> all build on **ADR-0001** (#417, `add-eve-autonomous-operations-foundation`), and does not restate them —
+> **Numbering:** `EVE-DESIGN-0005` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0005**, the approval/budget-policy decision required by issue #423. It
+> builds on **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0003** (#419,
+> `add-eve-audit-tracer-bullet`), and **EVE-DESIGN-0002** (#418, `add-eve-governance-kernel-release-switch`), which
+> all build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them —
 > it operationalizes the trust-zone approval policy and hard-budget policy that #418's single consult gate
-> evaluates and that emit #419 audit records. **ADR number is authoring order:** #421 and #422 ADRs are not
-> yet authored in this partner-draft sequence, so 0005 is reconciled with maintainers at merge time (same
-> "confirm ADR location/convention" caveat as ADR-0001). When accepted into `Asymmetric-al/core`, its ADR
+> evaluates and that emit #419 audit records. **The provisional label follows authoring order:** #421 and #422 ADRs are not
+> yet authored in this partner-draft sequence, so this label is replaced at implementation time per
+> `docs/adr/README.md`. When accepted into `Asymmetric-al/core`, its ADR
 > body should also be landed at the repo's ADR location. Every grounded claim carries a
 > `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 
 ## Status
 
-Proposed (partner draft for #423). Supersedes nothing. Builds on ADR-0002 (#418), ADR-0003 (#419), and
-ADR-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Proposed (partner draft for #423). Supersedes nothing. Builds on EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and
+EVE-DESIGN-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
 
-ADR-0002 established the governance kernel's single consult gate and the disabled-by-default
+EVE-DESIGN-0002 established the governance kernel's single consult gate and the disabled-by-default
 release-switch/emergency-off **state**, but the _content_ of the policy that gate evaluates — which trust
 zone an action belongs to, which write class it is, and whether budget remains — was deferred to later
 slices. #423 is the slice that supplies that content. The PRD requires it directly: US-29 wants "separate
@@ -76,15 +78,15 @@ this policy sits on top of those boundaries and only tightens them.
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract, protected-area set, and governance data model
+- **#417 (ADR-0018, foundation):** owns the autonomy contract, protected-area set, and governance data model
   at spec level. #423 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
-- **#418 (ADR-0002, governance kernel):** owns the single consult gate and the release-switch/emergency-off
+- **#418 (EVE-DESIGN-0002, governance kernel):** owns the single consult gate and the release-switch/emergency-off
   **state**. #423 supplies the policy _content_ the gate evaluates; it does not own the gate.
-  [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
-- **#419 (ADR-0003, audit tracer):** owns the **audit-record shape**. #423 requires that each policy/budget
+  [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
+- **#419 (EVE-DESIGN-0003, audit tracer):** owns the **audit-record shape**. #423 requires that each policy/budget
   decision emits one; it does not redefine the record.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
-- **#420 (ADR-0004, kill-switch):** owns the per-domain **control path** (incl. production-writes and
+- **#420 (EVE-DESIGN-0004, kill-switch):** owns the per-domain **control path** (incl. production-writes and
   force-approval). #423's budget/approval checks are consumed alongside kill-switch state; the more
   restrictive result wins, and force-approval overrides any allow this policy grants.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

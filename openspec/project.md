@@ -25,9 +25,10 @@ The spec tree is two-layered (OpenSpec discovers `openspec/specs/<id>/spec.md`):
 capabilities. Scenarios are written as system behavior (WHEN/THEN about the
 product). The current capability specs are `donation-lifecycle`,
 `contribution-operations`, `crm-core`, `identity-and-access`,
-`workflow-orchestration`, and `agent-instruction-system`; new feature-level
-contracts get their own capability spec (named for the durable capability, not
-the current vendor) rather than growing the intent specs.
+`workflow-orchestration`, `agent-instruction-system`, and
+`eve-autonomous-operations`; new feature-level contracts get their own
+capability spec (named for the durable capability, not the current vendor)
+rather than growing the intent specs.
 
 **Capability spec backlog** — shipped subsystems that still lack a capability
 spec, in rough priority order. Each needs code-grounded authoring before it

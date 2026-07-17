@@ -524,7 +524,9 @@ on together, rather than shipping as a toy foundation first.
 
 - The system needs one initial ADR covering Eve autonomy: work initiation,
   autonomous PR operation, strict auto-merge, production write policy, and
-  governance guardrails.
+  governance guardrails. The accepted decision is
+  [ADR-0018: Govern Eve autonomy behind one disabled-by-default release
+  gate](../../adr/0018-governed-eve-autonomy.md).
 
 ## Testing Decisions
 

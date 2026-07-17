@@ -13,11 +13,11 @@ and [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operat
       provably blocking; kernel subordinate to #417 and grants no new authority
 - [ ] 1.3 Validate: `bunx @fission-ai/openspec@latest validate add-eve-governance-kernel-release-switch --strict`
 
-## 2. Record ADR-0002 (governance kernel + release switch)
+## 2. Record the provisional Eve design decision EVE-DESIGN-0002 (governance kernel + release switch)
 
-- [ ] 2.1 Author ADR-0002 in this change's `design.md`, traceable from ADR-0001 (#417)
-- [ ] 2.2 Land the ADR at the repo's chosen ADR location (confirm convention with maintainers, same as ADR-0001)
-- [ ] 2.3 Cross-link ADR-0002 from the parent PRD and issue #418
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0002 in this change's `design.md`, traceable from ADR-0018 (#417)
+- [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
+- [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #418
 
 ## 3. Fix the release-switch / emergency-off state boundary
 

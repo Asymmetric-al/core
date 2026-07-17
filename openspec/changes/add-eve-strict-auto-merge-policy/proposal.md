@@ -4,10 +4,10 @@
 
 > **Partner DRAFT for GitHub issue #432 ("Eve: Strict Auto-Merge Policy").** Staged in the Gitea `proposals`
 > repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's OpenSpec workflow
-> after operator/maintainer sign-off. **Builds on #430** (`add-eve-github-read-review-path`, ADR-0012) and
-> **#431** (`add-eve-autonomous-pr-operator`, ADR-0013) — the two slices the implementation plan names as #432's
-> blockers — and stands on #417 (ADR-0001), #418 (ADR-0002), #419 (ADR-0003), #420 (ADR-0004), #421 (ADR-0006),
-> #423 (ADR-0005), #425 (ADR-0007), and #429 (ADR-0011). It does not restate their contracts; it defines the
+> after operator/maintainer sign-off. **Builds on #430** (`add-eve-github-read-review-path`, EVE-DESIGN-0012) and
+> **#431** (`add-eve-autonomous-pr-operator`, EVE-DESIGN-0013) — the two slices the implementation plan names as #432's
+> blockers — and stands on #417 (ADR-0018), #418 (EVE-DESIGN-0002), #419 (EVE-DESIGN-0003), #420 (EVE-DESIGN-0004), #421 (EVE-DESIGN-0006),
+> #423 (EVE-DESIGN-0005), #425 (EVE-DESIGN-0007), and #429 (EVE-DESIGN-0011). It does not restate their contracts; it defines the
 > single **strict auto-merge** decision — Eve may merge **only** when strict safe policy passes and protected
 > areas are absent, auto-merge is **blocked** for repo-aware protected areas, and the **human escalation path is
 > explicit** — while the release switch stays off. This is a **HITL** slice. Every grounded claim carries a
@@ -76,7 +76,7 @@ the fleet data-boundary law on the one surface where an autonomous action is irr
   identity, is gated by #423, audited in #419's record shape, resolves models through #421, runs on the #425
   runtime, honors #420's `disable GitHub actions` switch, stays disabled by default while the release switch is
   off, and never bypasses #417 protected-area/approval limits or #418 emergency-off precedence.
-- Record the decision as **ADR-0014** in this change's `design.md`, building on ADR-0012 (#430) and ADR-0013
+- Record the decision under provisional Eve design label **EVE-DESIGN-0014** in this change's `design.md`, building on EVE-DESIGN-0012 (#430) and EVE-DESIGN-0013
   (#431).
 
 ## What Does Not Change
@@ -120,7 +120,7 @@ the fleet data-boundary law on the one surface where an autonomous action is irr
   auto-merge policy — merge only when strict safe policy passes, protected-area merge-block, explicit human
   escalation, and every merge decision with policy, audit, and an accountable initiator — a durable, spec-level
   contract. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0014 of record for the strict auto-merge policy, traceable from ADR-0012 (#430) and ADR-0013 (#431).
+- Provisional Eve design decision `EVE-DESIGN-0014` for the strict auto-merge policy, traceable from EVE-DESIGN-0012 (#430) and EVE-DESIGN-0013 (#431).
 - A clear boundary: #430 owns read-and-review and the accountable bot identity; #431 owns the mutating PR
   operations and work initiation (and performs no merge); #417 owns the protected-area set; #419 owns the audit
   shape; #423 owns approval/budget; #421 owns model policy; #425 owns the runtime; #429 owns the sandbox; #432

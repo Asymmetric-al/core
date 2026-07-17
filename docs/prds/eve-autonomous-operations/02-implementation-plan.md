@@ -50,6 +50,9 @@ Parent issue: https://github.com/Asymmetric-al/core/issues/416
 
 - Type: HITL
 - Blocked by: None
+- Architecture decision:
+  [ADR-0018: Govern Eve autonomy behind one disabled-by-default release
+  gate](../../adr/0018-governed-eve-autonomy.md)
 - User stories covered: 15, 16, 17, 70, 71, 72, 76
 - What it proves: Eve autonomy is defined in OpenSpec and one initial ADR
   before runtime code exists.

@@ -5,7 +5,7 @@
 > **Partner DRAFT for GitHub issue #418 ("Eve: Governance kernel and release switch").** Staged in the
 > Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through
 > Asymmetric's OpenSpec workflow after operator/maintainer sign-off. **Builds on #417**
-> (`add-eve-autonomous-operations-foundation`) — it does not restate that contract, it operationalizes
+> (`openspec/specs/eve-autonomous-operations/spec.md`) — it does not restate that contract, it operationalizes
 > the release-switch / kill-switch-state portion of it. Every grounded claim carries a
 > `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `25ca4a2` on 2026-07-02.
 
@@ -30,7 +30,7 @@ disabled mode blocks autonomous behavior**. [VERIFIED-REPO: docs/prds/eve-autono
   release-switch state, emergency/kill-switch state, run summaries, and policy status as app-owned data and
   that **every autonomous action must consult before acting**; **observability** of that state; and that the
   kernel is **subordinate to #417 and grants no new authority** — it only gates.
-- Record the decision as ADR-0002 in this change's `design.md`, building on ADR-0001 from #417.
+- Record the decision under provisional Eve design label **EVE-DESIGN-0002** in this change's `design.md`, building on ADR-0018 from #417.
 
 ## What Does Not Change
 
@@ -50,7 +50,7 @@ disabled mode blocks autonomous behavior**. [VERIFIED-REPO: docs/prds/eve-autono
 - A validated OpenSpec change (`bunx @fission-ai/openspec@latest validate add-eve-governance-kernel-release-switch --strict`)
   that makes the release switch and disabled-by-default gate a durable, spec-level contract Eve can be built
   behind. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0002 of record for the governance kernel + release switch, traceable from ADR-0001 (#417).
+- Provisional Eve design decision `EVE-DESIGN-0002` for the governance kernel + release switch, traceable from ADR-0018 (#417).
 - A clear boundary: #418 owns the release-switch/emergency-off **state and gate**; #420 owns the granular
   kill-switch **control path**; #437 owns the final release-switch **flip** after end-to-end verification.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

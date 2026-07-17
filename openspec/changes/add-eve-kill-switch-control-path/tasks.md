@@ -13,11 +13,11 @@ and [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operat
       to #417, and grants no new authority
 - [ ] 1.3 Validate: `bunx @fission-ai/openspec@latest validate add-eve-kill-switch-control-path --strict`
 
-## 2. Record ADR-0004 (kill-switch control path)
+## 2. Record the provisional Eve design decision EVE-DESIGN-0004 (kill-switch control path)
 
-- [ ] 2.1 Author ADR-0004 in this change's `design.md`, traceable from ADR-0002 (#418) and ADR-0003 (#419)
-- [ ] 2.2 Land the ADR at the repo's chosen ADR location (confirm convention with maintainers, same as ADR-0001)
-- [ ] 2.3 Cross-link ADR-0004 from the parent PRD and issue #420
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0004 in this change's `design.md`, traceable from EVE-DESIGN-0002 (#418) and EVE-DESIGN-0003 (#419)
+- [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
+- [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #420
 
 ## 3. Enumerate the per-domain switch set
 

@@ -1,20 +1,22 @@
-# Design & ADR-0008: Eve Current Admin Auth and Session Ownership
+# Design (provisional Eve label EVE-DESIGN-0008): Eve Current Admin Auth and Session Ownership
 
-> This `design.md` doubles as **ADR-0008**, the admin-auth/session-ownership decision required by issue #426.
-> It builds on **#422** (`add-eve-admin-memory-tracer`), **ADR-0005** (#423,
-> `add-eve-approval-budget-policy`), and **ADR-0007** (#425, `add-eve-runtime-foundation`), and does not
+> **Numbering:** `EVE-DESIGN-0008` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0008**, the admin-auth/session-ownership decision required by issue #426.
+> It builds on **#422** (`add-eve-admin-memory-tracer`), **EVE-DESIGN-0005** (#423,
+> `add-eve-approval-budget-policy`), and **EVE-DESIGN-0007** (#425, `add-eve-runtime-foundation`), and does not
 > restate them — it operationalizes the auth boundary that maps the current admin identity, derives tenant and
 > user from verified session context only, and enforces ownership over the sessions #425 hosts, the memory #422
 > governs, and the approval responses #423 governs, while the release switch stays off per #418. When accepted
 > into `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR location (same convention
-> chosen for ADR-0001). Every grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from
+> chosen for ADR-0018). Every grounded claim carries a `[VERIFIED-REPO: path:line]` citation read from
 > `Asymmetric-al/core` at commit `f535c035` on 2026-07-04.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:168]
 
 ## Status
 
-Proposed (partner draft for #426). Supersedes nothing. Builds on #422 (admin memory), ADR-0005 (#423), and
-ADR-0007 (#425). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Proposed (partner draft for #426). Supersedes nothing. Builds on #422 (admin memory), EVE-DESIGN-0005 (#423), and
+EVE-DESIGN-0007 (#425). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -103,7 +105,7 @@ boundary intact when Eve later writes operational records under policy.
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract and the protected-area set (auth among them) at
+- **#417 (ADR-0018, foundation):** owns the autonomy contract and the protected-area set (auth among them) at
   spec level. #426 is subordinate to it and enforces the auth protected area.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
 - **#419 (audit tracer):** owns the audit-record shape and content. #426 requires actions be audited **under
@@ -112,12 +114,12 @@ boundary intact when Eve later writes operational records under policy.
 - **#422 (admin memory):** owns what private admin memory stores and its exclusions. #426 enforces
   **ownership** on memory access; it does not define memory content.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:431]
-- **#423 (ADR-0005, approval/budget):** owns approval and budget policy. #426 enforces **ownership** on
+- **#423 (EVE-DESIGN-0005, approval/budget):** owns approval and budget policy. #426 enforces **ownership** on
   approval-response access; it does not define approval policy.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
 - **#424 (retention/replay):** owns retention and replay artifacts. #426 enforces **ownership** on replay/debug
   access; it does not define retention. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:408]
-- **#425 (ADR-0007, runtime foundation):** hosts Eve sessions and workflow durability. #426 enforces
+- **#425 (EVE-DESIGN-0007, runtime foundation):** hosts Eve sessions and workflow durability. #426 enforces
   **ownership** over those runtime-hosted sessions; it does not host them.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:168]
 - **#427 (admin workspace shell) / #428 (admin mount):** own the workspace UI and the Next.js mount. #426 is

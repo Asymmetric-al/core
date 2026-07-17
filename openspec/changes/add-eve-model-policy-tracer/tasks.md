@@ -14,12 +14,12 @@ scope grounded in [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impleme
       models configured separately; policy consumes kill-switch state and grants no new authority
 - [ ] 1.3 Validate: `bunx @fission-ai/openspec@latest validate add-eve-model-policy-tracer --strict`
 
-## 2. Record ADR-0006 (model policy)
+## 2. Record the provisional Eve design decision EVE-DESIGN-0006 (model policy)
 
-- [ ] 2.1 Author ADR-0006 in this change's `design.md`, traceable from ADR-0002 (#418), ADR-0003 (#419), and
-      ADR-0004 (#420)
-- [ ] 2.2 Land the ADR at the repo's chosen ADR location (confirm convention with maintainers, same as ADR-0001)
-- [ ] 2.3 Cross-link ADR-0006 from the parent PRD and issue #421
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0006 in this change's `design.md`, traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and
+      EVE-DESIGN-0004 (#420)
+- [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
+- [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #421
 
 ## 3. Roles, routing, and the fallback path
 

@@ -1,19 +1,21 @@
-# Design & ADR-0011: Eve Sandbox Engineering Worker
+# Design (provisional Eve label EVE-DESIGN-0011): Eve Sandbox Engineering Worker
 
-> This `design.md` doubles as **ADR-0011**, the sandbox-engineering-worker decision required by issue #429. It
-> builds on **ADR-0004** (#420, `add-eve-kill-switch-control-path`), **ADR-0005** (#423,
-> `add-eve-approval-budget-policy`), and **ADR-0007** (#425, `add-eve-runtime-foundation`), and does not
+> **Numbering:** `EVE-DESIGN-0011` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+
+> This `design.md` uses provisional Eve design label **EVE-DESIGN-0011**, the sandbox-engineering-worker decision required by issue #429. It
+> builds on **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0005** (#423,
+> `add-eve-approval-budget-policy`), and **EVE-DESIGN-0007** (#425, `add-eve-runtime-foundation`), and does not
 > restate them — it operationalizes the contained sandbox in which the isolated #425 runtime does writable
 > engineering work, honoring #420's sandbox-networking kill switch and spending under #423's budgets, while the
 > release switch stays off per #418. When accepted into `Asymmetric-al/core`, its ADR body should also be
-> landed at the repo's ADR location (same convention chosen for ADR-0001). Every grounded claim carries a
+> landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`). Every grounded claim carries a
 > `[VERIFIED-REPO: path:line]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-04.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:210]
 
 ## Status
 
-Proposed (partner draft for #429). Supersedes nothing. Builds on ADR-0004 (#420), ADR-0005 (#423), and
-ADR-0007 (#425). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Proposed (partner draft for #429). Supersedes nothing. Builds on EVE-DESIGN-0004 (#420), EVE-DESIGN-0005 (#423), and
+EVE-DESIGN-0007 (#425). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -96,18 +98,18 @@ GPU gateway a proposed, non-default, revocable fallback. [VERIFIED-REPO: docs/pr
 
 ## Boundary with adjacent slices
 
-- **#417 (ADR-0001, foundation):** owns the autonomy contract and protected-area set at spec level. #429's
+- **#417 (ADR-0018, foundation):** owns the autonomy contract and protected-area set at spec level. #429's
   protected-file detection reads that set; it does not define it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#419 (ADR-0003, audit):** owns the audit-record shape. #429 emits egress/command audit records in that
+- **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #429 emits egress/command audit records in that
   shape; it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:99]
-- **#420 (ADR-0004, kill-switch):** owns the kill-switch state and control path, including the "disable sandbox
+- **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state and control path, including the "disable sandbox
   networking" switch. #429 honors that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:97]
-- **#421 (ADR-0006, model policy):** owns named roles and Gateway-primary routing. #429 resolves models through
+- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #429 resolves models through
   that policy via the #425 runtime; it does not define routing. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
-- **#423 (ADR-0005, approval/budget):** owns trust-zone approval and hard budgets. Sandbox work spends under
+- **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. Sandbox work spends under
   those budgets; it does not define them. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
-- **#425 (ADR-0007, runtime foundation):** owns the isolated runtime package. #429 is the contained environment
+- **#425 (EVE-DESIGN-0007, runtime foundation):** owns the isolated runtime package. #429 is the contained environment
   that runtime runs in, not the runtime. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:155]
 - **#430 (slice 14, GitHub read/review) and #431 (slice 15, PR operator):** own the GitHub identity and PR
   actions. #429 provides the contained checkout they act from; it does not perform GitHub actions.

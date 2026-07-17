@@ -5,8 +5,8 @@
 > **Partner DRAFT for GitHub issue #423 ("Eve: Approval and budget policy tracer bullet").** Staged in the
 > Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through
 > Asymmetric's OpenSpec workflow after operator/maintainer sign-off. **Builds on #418**
-> (`add-eve-governance-kernel-release-switch`, ADR-0002), **#419** (`add-eve-audit-tracer-bullet`, ADR-0003),
-> and **#420** (`add-eve-kill-switch-control-path`, ADR-0004) — it does not restate those contracts. It adds
+> (`add-eve-governance-kernel-release-switch`, EVE-DESIGN-0002), **#419** (`add-eve-audit-tracer-bullet`, EVE-DESIGN-0003),
+> and **#420** (`add-eve-kill-switch-control-path`, EVE-DESIGN-0004) — it does not restate those contracts. It adds
 > the trust-zone approval policy and the hard-budget policy that the governance kernel's single consult gate
 > consumes, that every kill-switch and policy check reads, and that emits #419 audit records. Every grounded
 > claim carries a `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on
@@ -59,15 +59,15 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
     app-owned state (never a prompt/model/tool/memory claim), the single #418 consult gate consumes them,
     every decision (allow/deny/pause/override) emits a #419 audit record, and the change grants no new
     autonomy and stays subordinate to #417.
-- Record the decision as **ADR-0005** in this change's `design.md`, building on ADR-0004 (#420), ADR-0003
-  (#419), and ADR-0002 (#418), which all build on ADR-0001 (#417).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0005** in this change's `design.md`, building on EVE-DESIGN-0004 (#420), EVE-DESIGN-0003
+  (#419), and EVE-DESIGN-0002 (#418), which all build on ADR-0018 (#417).
 
 ## What Does Not Change
 
 - The **single consult/approval gate** and the disabled-by-default release-switch/emergency-off **state**
   remain #418's scope; #423 defines the _policy content_ (which zone, which write class, which budget) that
   the gate evaluates, not the kernel that enforces the gate.
-  [VERIFIED-REPO: openspec/changes/add-eve-autonomous-operations-foundation/tasks.md]
+  [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
 - The **audit-record shape** (actor, initiator, identity mode, policy, action, target, result, redacted
   evidence) remains #419's scope; #423 only requires that each policy/budget decision _emits_ one.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
@@ -91,8 +91,8 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
   (`bunx @fission-ai/openspec@latest validate add-eve-approval-budget-policy --strict`) that makes trust-zone
   approval policy and hard-budget policy a durable, spec-level contract, provable before runtime exists.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0005 of record for the approval/budget policy, traceable from ADR-0002 (#418), ADR-0003 (#419), and
-  ADR-0004 (#420).
+- Provisional Eve design decision `EVE-DESIGN-0005` for the approval/budget policy, traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and
+  EVE-DESIGN-0004 (#420).
 - A clear boundary: #418 owns the consult gate + state; #419 owns the audit record; #420 owns the
   kill-switch control path; #421 owns model policy; **#423 owns the approval-by-trust-zone rules, the
   operational-vs-business-data write classification, and the hard-budget/rate-limit policy that all of them

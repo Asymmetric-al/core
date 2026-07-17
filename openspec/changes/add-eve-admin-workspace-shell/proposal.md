@@ -5,9 +5,9 @@
 > **Partner DRAFT for GitHub issue #427 ("Eve: Admin workspace operations shell").** Staged in the Gitea
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on the governance-state slices it renders —**
-> **#418** (`add-eve-governance-kernel-release-switch`, ADR-0002), **#419** (`add-eve-audit-tracer-bullet`,
-> ADR-0003), **#420** (`add-eve-kill-switch-control-path`, ADR-0004), **#421** (`add-eve-model-policy-tracer`,
-> ADR-0006), **#422** (`add-eve-admin-memory-tracer`), **#423** (`add-eve-approval-budget-policy`, ADR-0005),
+> **#418** (`add-eve-governance-kernel-release-switch`, EVE-DESIGN-0002), **#419** (`add-eve-audit-tracer-bullet`,
+> EVE-DESIGN-0003), **#420** (`add-eve-kill-switch-control-path`, EVE-DESIGN-0004), **#421** (`add-eve-model-policy-tracer`,
+> EVE-DESIGN-0006), **#422** (`add-eve-admin-memory-tracer`), **#423** (`add-eve-approval-budget-policy`, EVE-DESIGN-0005),
 > and **#424** (`add-eve-retention-replay-tracer`) — the seven slices the implementation plan names as #427's
 > blockers. It does not restate their contracts; it defines the **operations-first admin workspace shell** that
 > renders that governance state as observable panels, exposes decision summaries rather than raw reasoning, and
@@ -96,8 +96,8 @@ global panel is #428's scope and is gated by the #426 auth boundary, and the rel
   donor details, payment data, raw records, table rows, secrets, or sensitive form values; and the change
   **grants no new authority** — it is a spec/ADR contract with no live UI code and no governance schema, the
   admin-visible mount is deferred to #428 behind #426 auth, and the release switch stays off until verified.
-- Record the decision as **ADR-0009** in this change's `design.md`, traceable from ADR-0002 (#418), ADR-0003
-  (#419), ADR-0004 (#420), ADR-0006 (#421), #422 (admin memory), ADR-0005 (#423), and #424 (retention/replay).
+- Record the decision under provisional Eve design label **EVE-DESIGN-0009** in this change's `design.md`, traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003
+  (#419), EVE-DESIGN-0004 (#420), EVE-DESIGN-0006 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay).
 
 ## What Does Not Change
 
@@ -135,7 +135,7 @@ global panel is #428's scope and is gated by the #426 auth boundary, and the rel
   workspace shell — operations-first panel set, real-governance-state backing, decision-summaries-not-raw-
   reasoning, role-gated controls, and the no-sensitive-data boundary — a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- ADR-0009 of record for the admin workspace operations shell, traceable from the seven governance-state slices
+- Provisional Eve design decision `EVE-DESIGN-0009` for the admin workspace operations shell, traceable from the seven governance-state slices
   it renders (#418–#424).
 - A clear boundary: #418 owns the governance state store; #419 the audit record; #420 the kill switches; #421
   the model policy; #422 the memory content; #423 the approval/budget policy; #424 retention/replay; #426 the

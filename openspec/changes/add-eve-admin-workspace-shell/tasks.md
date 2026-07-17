@@ -13,12 +13,12 @@ grounded in [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementatio
       no-sensitive-data-in-the-shell; and no new authority / spec-only
 - [ ] 1.3 Validate: `bunx @fission-ai/openspec@latest validate add-eve-admin-workspace-shell --strict`
 
-## 2. Record ADR-0009 (admin workspace operations shell)
+## 2. Record the provisional Eve design decision EVE-DESIGN-0009 (admin workspace operations shell)
 
-- [ ] 2.1 Author ADR-0009 in this change's `design.md`, traceable from ADR-0002 (#418), ADR-0003 (#419),
-      ADR-0004 (#420), ADR-0006 (#421), #422 (admin memory), ADR-0005 (#423), and #424 (retention/replay)
-- [ ] 2.2 Land the ADR at the repo's chosen ADR location (confirm convention with maintainers, same as ADR-0001)
-- [ ] 2.3 Cross-link ADR-0009 from the parent PRD and issue #427
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0009 in this change's `design.md`, traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419),
+      EVE-DESIGN-0004 (#420), EVE-DESIGN-0006 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay)
+- [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
+- [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #427
 
 ## 3. Operations-first panel set and real-state backing
 
