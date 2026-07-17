@@ -95,10 +95,23 @@ export function formatPledgeCurrency(
   currency: string,
   locale?: Intl.LocalesArgument,
 ): string {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency: currency || "USD",
-  }).format(amount);
+  const normalizedCurrency = currency.trim().toUpperCase() || "USD";
+
+  try {
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: normalizedCurrency,
+    }).format(amount);
+  } catch (error) {
+    if (!(error instanceof RangeError) || normalizedCurrency === "USD") {
+      throw error;
+    }
+
+    return new Intl.NumberFormat(locale, {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  }
 }
 
 export function mapRecurringGiftToPledgeView(
