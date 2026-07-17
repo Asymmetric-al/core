@@ -67,6 +67,7 @@ Nia keywords:
 - TanStack Query
 - TanStack Table
 - TanStack DB
+- @supabase-labs/tanstack-db
 - TanStack Forms
 - React Hook Form
 - Zod
@@ -75,7 +76,8 @@ Nia keywords:
 
 - useQuery, queryKey, invalidateQueries
 - columnDef, row model
-- tanstack db
+- tanstack db, @supabase-labs/tanstack-db
+- supabaseCollectionOptions, queryOnce, collection registry, useLiveQuery
 - form, schema, validation
 - react-hook-form, zod
 

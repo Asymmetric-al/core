@@ -21,6 +21,9 @@ Use this before changing server actions, route handlers, database access, or mig
 
 - **Server-side:** Use the server client with cookie-based auth.
 - **Client-side:** Use the singleton browser client to avoid auth desync.
+- **Browser table data:** Use `@asym/database/hooks` backed by TanStack DB
+  Supabase collections by default. Do not add app-local Supabase table reads
+  when a collection exists.
 - For allowed/forbidden import boundaries by code area, see
   [`docs/guides/architecture/db-client-usage-matrix.md`](../../guides/architecture/db-client-usage-matrix.md).
 - **Route handlers:** `apps/*/app/api/**` route handlers should not import `@asym/database/supabase` (or subpaths) directly; use `@asym/api/*` handler boundaries.
@@ -44,8 +47,13 @@ Use this before changing server actions, route handlers, database access, or mig
 
 ### Data mutations
 
-- Prefer Server Actions for mutations.
-- Use TanStack Query `useMutation` for optimistic UI, paired with server actions or API routes.
+- Use TanStack DB collection mutations for simple, RLS-authorized, single-table
+  browser writes where optimistic UI is appropriate.
+- Prefer Server Actions or `packages/api` commands for privileged mutations.
+- Use TanStack Query `useMutation` for optimistic UI paired with server actions or API routes when the operation is not a collection-safe single-table write.
+- Keep Stripe, donation creation/confirmation, receipts, email, webhooks, audit
+  logs, service role operations, role changes, RPC counter workflows, file
+  processing, external sync, and multi-table writes server-command owned.
 - Validate inputs with Zod before writing.
 
 ### Skill routing
@@ -66,7 +74,8 @@ Use this before changing server actions, route handlers, database access, or mig
 ## Workflow
 
 1. Determine if the code runs on server or client.
-2. Use the correct Supabase client (server vs browser).
+2. Use the correct data surface: collection hook, server client, or admin/API
+   command boundary.
 3. Apply Zod validation before mutations.
 4. Keep auth and RLS assumptions intact.
 5. Update `.env.example` if new env vars are required.
@@ -76,7 +85,8 @@ Use this before changing server actions, route handlers, database access, or mig
 ### Implementation checklist
 
 - [ ] Server code uses `@asym/database/supabase/server`
-- [ ] Client code uses `@asym/database/supabase/client`
+- [ ] Client table reads use `@asym/database/hooks` or approved collections
+- [ ] Browser Supabase client usage is limited to approved auth/storage helpers
 - [ ] Inputs validated with Zod
 - [ ] RLS assumptions maintained
 - [ ] No service role key in client code

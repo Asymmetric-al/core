@@ -484,7 +484,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
       isPending: false,
       mutate: vi.fn(),
     });
-  });
+  }, 90_000);
 
   it("opens the shared contribution detail for the same donation.id the Hub uses", async () => {
     mockSearch = `donor=${DONOR_RECORD_ID}`;

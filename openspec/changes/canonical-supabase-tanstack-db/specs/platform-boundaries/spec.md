@@ -61,9 +61,10 @@ involving secrets.
 
 ### Requirement: Server Read Helpers Do Not Weaken Command Boundaries
 
-TanStack DB `queryOnce` MUST be used in server, route, or shared package code
-only for bounded read shaping, collection-compatible query reuse, or tests that
-compare server and browser query behavior.
+TanStack DB `queryOnce` MUST NOT be used in server, route, or shared package
+code except through an approved `@asym/database` helper for bounded read
+shaping, collection-compatible query reuse, or tests that compare server and
+browser query behavior.
 
 Server code MUST keep plain Supabase, SQL, views, functions, or existing API
 read models when they are simpler, faster, more secure, aggregate-heavy,

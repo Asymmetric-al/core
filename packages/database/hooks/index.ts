@@ -92,6 +92,7 @@ export {
   useUpsertLocation,
   useDeleteLocation,
 } from "./admin-locations";
+export { usePublicLocations, type PublicLocation } from "./public-locations";
 export { useMissionaryDonorRows } from "./missionary-donors";
 export {
   useCreateDonorBillingPortalSession,
