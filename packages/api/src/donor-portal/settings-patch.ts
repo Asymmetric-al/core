@@ -1,29 +1,23 @@
-/**
- * Donor settings form → PATCH body helpers.
- * The PATCH /api/donor/portal Zod schema is `.strict()`, so any unsupported key
- * makes the whole request throw. This builder guarantees only supported, defined
- * keys are sent. Business logic in packages/api; the settings page stays thin.
- */
+import { z } from "zod";
 
-/** Fields the PATCH schema accepts (mirrors DonorPortalPatch / the Zod schema). */
-const SUPPORTED_KEYS = [
-  "firstName",
-  "lastName",
-  "displayName",
-  "phone",
-  "avatarUrl",
-  "preferredContact",
-  "receiptEmailFrequency",
-  "defaultUpdateFrequency",
-  "preferredLanguage",
-  "doNotContact",
-  "doNotEmail",
-  "givingPreferences",
-] as const;
+export const donorPortalPatchSchema = z
+  .object({
+    firstName: z.string().trim().max(120).optional(),
+    lastName: z.string().trim().max(120).optional(),
+    displayName: z.string().trim().max(240).optional(),
+    phone: z.string().trim().max(80).nullable().optional(),
+    avatarUrl: z.string().url().nullable().optional(),
+    preferredContact: z.string().trim().max(40).optional(),
+    receiptEmailFrequency: z.string().trim().max(40).optional(),
+    defaultUpdateFrequency: z.string().trim().max(40).nullable().optional(),
+    preferredLanguage: z.string().trim().max(20).optional(),
+    doNotContact: z.boolean().optional(),
+    doNotEmail: z.boolean().optional(),
+    givingPreferences: z.record(z.string(), z.unknown()).optional(),
+  })
+  .strict();
 
-export type DonorSettingsPatch = Partial<
-  Record<(typeof SUPPORTED_KEYS)[number], unknown>
->;
+export type DonorSettingsPatch = z.infer<typeof donorPortalPatchSchema>;
 
 /** Split a snapshot `displayName` into first/last for prefill (last = remainder). */
 export function splitDisplayName(displayName: string | null | undefined): {
@@ -61,20 +55,75 @@ export function buildProfileFormState(input: {
   };
 }
 
-/**
- * Keep only PATCH-supported, defined keys. Unsupported fields (email, address,
- * per-category notification toggles, password/2FA) are dropped — they have no
- * server-side support and would trip the strict schema.
- */
 export function buildDonorSettingsPatch(
-  input: Record<string, unknown>,
+  input: DonorSettingsPatch,
 ): DonorSettingsPatch {
+  const parsed = donorPortalPatchSchema.parse(input);
   const patch: DonorSettingsPatch = {};
-  for (const key of SUPPORTED_KEYS) {
-    const value = input[key];
-    if (value !== undefined) {
-      patch[key] = value;
-    }
+
+  if (parsed.firstName !== undefined) patch.firstName = parsed.firstName;
+  if (parsed.lastName !== undefined) patch.lastName = parsed.lastName;
+  if (parsed.displayName !== undefined) patch.displayName = parsed.displayName;
+  if (parsed.phone !== undefined) patch.phone = parsed.phone;
+  if (parsed.avatarUrl !== undefined) patch.avatarUrl = parsed.avatarUrl;
+  if (parsed.preferredContact !== undefined) {
+    patch.preferredContact = parsed.preferredContact;
   }
+  if (parsed.receiptEmailFrequency !== undefined) {
+    patch.receiptEmailFrequency = parsed.receiptEmailFrequency;
+  }
+  if (parsed.defaultUpdateFrequency !== undefined) {
+    patch.defaultUpdateFrequency = parsed.defaultUpdateFrequency;
+  }
+  if (parsed.preferredLanguage !== undefined) {
+    patch.preferredLanguage = parsed.preferredLanguage;
+  }
+  if (parsed.doNotContact !== undefined) {
+    patch.doNotContact = parsed.doNotContact;
+  }
+  if (parsed.doNotEmail !== undefined) patch.doNotEmail = parsed.doNotEmail;
+  if (parsed.givingPreferences !== undefined) {
+    patch.givingPreferences = parsed.givingPreferences;
+  }
+
   return patch;
+}
+
+export type DonorProfileSettingsPatchResult =
+  | { ok: true; patch: DonorSettingsPatch }
+  | { ok: false; errorMessage: string };
+
+export function buildDonorProfileSettingsPatch(input: {
+  firstName: string;
+  lastName: string;
+  phone: string;
+  avatarUrl: string;
+}): DonorProfileSettingsPatchResult {
+  const firstName = input.firstName.trim();
+  const lastName = input.lastName.trim();
+
+  if (!firstName) {
+    return { ok: false, errorMessage: "First name is required." };
+  }
+  if (!lastName) {
+    return { ok: false, errorMessage: "Last name is required." };
+  }
+
+  const patch = {
+    firstName,
+    lastName,
+    displayName: `${firstName} ${lastName}`,
+    phone: input.phone.trim() || null,
+    avatarUrl: input.avatarUrl.trim() || null,
+  };
+
+  const parsedPatch = donorPortalPatchSchema.safeParse(patch);
+  if (!parsedPatch.success) {
+    return { ok: false, errorMessage: "Please check your profile details." };
+  }
+
+  return {
+    ok: true,
+    patch: buildDonorSettingsPatch(parsedPatch.data),
+  };
 }

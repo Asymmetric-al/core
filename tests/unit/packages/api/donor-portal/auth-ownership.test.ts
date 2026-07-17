@@ -18,7 +18,10 @@ vi.mock("@asym/auth/context", () => ({
   requireRole: requireRoleMock,
 }));
 
-import { GET as getDonorPortal } from "../../../../../packages/api/src/donor-portal";
+import {
+  GET as getDonorPortal,
+  PATCH as patchDonorPortal,
+} from "../../../../../packages/api/src/donor-portal";
 import {
   getOwnedDonation,
   getOwnedStatementDonations,
@@ -53,6 +56,22 @@ function createQueryMock<T>(result: QueryResult<T>) {
   return query;
 }
 
+function createUpdateMock<T>(result: QueryResult<T>) {
+  const query: {
+    update: ReturnType<typeof vi.fn>;
+    eq: ReturnType<typeof vi.fn>;
+    then?: PromiseLike<QueryResult<T>>["then"];
+  } = {
+    update: vi.fn(() => query),
+    eq: vi.fn(() => query),
+  };
+
+  query.then = (onFulfilled, onRejected) =>
+    Promise.resolve(result).then(onFulfilled, onRejected);
+
+  return query;
+}
+
 function request(path = "/api/donor/portal") {
   return new Request(`https://donor.example.test${path}`) as never;
 }
@@ -60,6 +79,7 @@ function request(path = "/api/donor/portal") {
 describe("donor portal auth and ownership", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    requireRoleMock.mockImplementation(() => undefined);
     getAdminClientMock.mockReturnValue({
       client: { from: vi.fn() },
       error: null,
@@ -130,6 +150,48 @@ describe("donor portal auth and ownership", () => {
     } finally {
       process.env.E2E_AUTH_BYPASS = originalBypass;
     }
+  });
+
+  it("returns a generic donor profile update error without exposing backend details", async () => {
+    const profileLookup = createQueryMock({
+      data: { id: "profile-1", tenant_id: "tenant-1" },
+      error: null,
+    });
+    const donorLookup = createQueryMock({
+      data: { id: "donor-1", tenant_id: "tenant-1", profile_id: "profile-1" },
+      error: null,
+    });
+    const profileUpdate = createUpdateMock({
+      data: null,
+      error: { message: "duplicate key value violates private constraint" },
+    });
+    const profileQueries = [profileLookup, profileUpdate];
+    const donorQueries = [donorLookup];
+    const supabase = {
+      from: vi.fn((table: string) => {
+        if (table === "profiles") return profileQueries.shift();
+        if (table === "donors") return donorQueries.shift();
+        throw new Error(`Unexpected table ${table}`);
+      }),
+    };
+    getAdminClientMock.mockReturnValue({
+      client: supabase,
+      error: null,
+    });
+
+    const response = await patchDonorPortal(
+      new Request("https://donor.example.test/api/donor/portal", {
+        body: JSON.stringify({ firstName: "Ada" }),
+        headers: { "Content-Type": "application/json" },
+        method: "PATCH",
+      }) as never,
+    );
+
+    expect(response.status).toBe(500);
+    await expect(response.json()).resolves.toMatchObject({
+      error: "Unable to update donor profile.",
+      requestId: expect.any(String),
+    });
   });
 
   it("scopes donor receipt lookup by donation id, tenant, and donor", async () => {

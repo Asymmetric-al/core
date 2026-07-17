@@ -1,11 +1,14 @@
 "use client";
 
-import { mapRecurringGiftToPledgeView } from "@asym/api/donor-portal/pledge-view";
+import {
+  formatPledgeCurrency,
+  formatPledgeDate,
+  mapRecurringGiftToPledgeView,
+} from "@asym/api/donor-portal/pledge-view";
 import {
   useCreateDonorBillingPortalSession,
   useDonorPortalSnapshot,
 } from "@asym/database/hooks";
-import { formatCurrency } from "@asym/lib/utils";
 import {
   Avatar,
   AvatarFallback,
@@ -24,17 +27,6 @@ import {
 } from "lucide-react";
 
 type PledgeView = ReturnType<typeof mapRecurringGiftToPledgeView>;
-
-function formatDate(value: string | null): string {
-  if (!value) return "—";
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "—";
-  return date.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
-}
 
 function initialsOf(name: string): string {
   return (
@@ -94,7 +86,7 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
 
         <div className="flex items-baseline gap-1.5">
           <span className="text-2xl font-semibold tracking-tight text-foreground">
-            {formatCurrency(pledge.amount)}
+            {formatPledgeCurrency(pledge.amount, pledge.currency)}
           </span>
           <span className="text-xs font-medium text-muted-foreground">
             / {pledge.frequency}
@@ -103,7 +95,7 @@ function PledgeCard({ pledge }: { pledge: PledgeView }) {
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <CalendarClock className="size-3.5" aria-hidden="true" />
-          <span>Next charge {formatDate(pledge.nextChargeDate)}</span>
+          <span>Next charge {formatPledgeDate(pledge.nextChargeDate)}</span>
         </div>
 
         {pledge.paymentMethodLabel ? (

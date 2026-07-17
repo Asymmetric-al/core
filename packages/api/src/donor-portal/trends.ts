@@ -63,7 +63,9 @@ export function buildGivingTrends(
     const key = monthKey(donation.date);
     if (!key) continue;
     const current = byMonth.get(key) ?? { totalCents: 0, giftCount: 0 };
-    current.totalCents += donation.amountCents ?? 0;
+    current.totalCents += Number.isFinite(donation.amountCents)
+      ? donation.amountCents
+      : 0;
     current.giftCount += 1;
     byMonth.set(key, current);
   }

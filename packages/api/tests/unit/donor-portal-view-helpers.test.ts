@@ -1,16 +1,16 @@
 import { describe, expect, it } from "vitest";
 
-import { mapRecurringGiftToPledgeView } from "../../src/donor-portal/pledge-view";
 import {
+  formatPledgeCurrency,
+  formatPledgeDate,
+  mapRecurringGiftToPledgeView,
+} from "../../src/donor-portal/pledge-view";
+import {
+  buildDonorProfileSettingsPatch,
   buildDonorSettingsPatch,
   buildProfileFormState,
   splitDisplayName,
 } from "../../src/donor-portal/settings-patch";
-
-/**
- * TDD — pure helpers the donor-portal views consume when wiring off MOCK_*.
- * Business logic lives in packages/api; the page-clients stay thin.
- */
 
 describe("splitDisplayName (settings prefill)", () => {
   it("splits into first + last (last = remainder)", () => {
@@ -30,7 +30,7 @@ describe("splitDisplayName (settings prefill)", () => {
   });
 });
 
-describe("buildDonorSettingsPatch — only PATCH-supported keys (schema is .strict())", () => {
+describe("buildDonorSettingsPatch", () => {
   it("includes supported, defined fields", () => {
     const patch = buildDonorSettingsPatch({
       firstName: "Ada",
@@ -54,19 +54,13 @@ describe("buildDonorSettingsPatch — only PATCH-supported keys (schema is .stri
     });
   });
 
-  it("DROPS unsupported keys (email/address/notification toggles) so .strict() never throws", () => {
-    const patch = buildDonorSettingsPatch({
-      firstName: "Ada",
-      email: "ada@example.com",
-      street: "1 Analytical Way",
-      city: "London",
-      receipts: true,
-      newsletters: false,
-    } as Record<string, unknown>);
-    expect(patch).toEqual({ firstName: "Ada" });
-    expect(patch).not.toHaveProperty("email");
-    expect(patch).not.toHaveProperty("street");
-    expect(patch).not.toHaveProperty("receipts");
+  it("rejects unsupported runtime keys through the strict schema", () => {
+    expect(() =>
+      buildDonorSettingsPatch({
+        firstName: "Ada",
+        email: "ada@example.com",
+      } as unknown as Parameters<typeof buildDonorSettingsPatch>[0]),
+    ).toThrow();
   });
 
   it("omits undefined fields (only sends what changed/present)", () => {
@@ -75,6 +69,71 @@ describe("buildDonorSettingsPatch — only PATCH-supported keys (schema is .stri
       firstName: "Ada",
     });
     expect(patch).toEqual({ firstName: "Ada" });
+  });
+
+  it("keeps explicit null values (used to clear fields)", () => {
+    const patch = buildDonorSettingsPatch({
+      phone: null,
+      avatarUrl: null,
+      firstName: "Ada",
+    });
+    expect(patch).toEqual({ phone: null, avatarUrl: null, firstName: "Ada" });
+  });
+});
+
+describe("buildDonorProfileSettingsPatch", () => {
+  it("rejects blank required name fields before building a PATCH", () => {
+    expect(
+      buildDonorProfileSettingsPatch({
+        firstName: " ",
+        lastName: "Lovelace",
+        phone: "",
+        avatarUrl: "",
+      }),
+    ).toEqual({ ok: false, errorMessage: "First name is required." });
+
+    expect(
+      buildDonorProfileSettingsPatch({
+        firstName: "Ada",
+        lastName: " ",
+        phone: "",
+        avatarUrl: "",
+      }),
+    ).toEqual({ ok: false, errorMessage: "Last name is required." });
+  });
+
+  it("trims names, derives displayName, and preserves explicit null clears", () => {
+    expect(
+      buildDonorProfileSettingsPatch({
+        firstName: " Ada ",
+        lastName: " Lovelace ",
+        phone: " ",
+        avatarUrl: "",
+      }),
+    ).toEqual({
+      ok: true,
+      patch: {
+        firstName: "Ada",
+        lastName: "Lovelace",
+        displayName: "Ada Lovelace",
+        phone: null,
+        avatarUrl: null,
+      },
+    });
+  });
+
+  it("returns a form error instead of throwing for invalid optional values", () => {
+    expect(
+      buildDonorProfileSettingsPatch({
+        firstName: "Ada",
+        lastName: "Lovelace",
+        phone: "",
+        avatarUrl: "not-a-url",
+      }),
+    ).toEqual({
+      ok: false,
+      errorMessage: "Please check your profile details.",
+    });
   });
 });
 
@@ -173,5 +232,15 @@ describe("mapRecurringGiftToPledgeView", () => {
         },
       }).recipientCategory,
     ).toBe("General");
+  });
+});
+
+describe("pledge display formatting", () => {
+  it("formats date-only next charge values without shifting the calendar day", () => {
+    expect(formatPledgeDate("2026-08-01", "en-US")).toBe("Aug 1, 2026");
+  });
+
+  it("formats pledge amounts with the pledge currency", () => {
+    expect(formatPledgeCurrency(50, "EUR", "en-US")).toBe("€50.00");
   });
 });

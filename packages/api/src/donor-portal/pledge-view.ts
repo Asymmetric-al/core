@@ -61,6 +61,46 @@ const CATEGORY: Record<
   general: "General",
 };
 
+const DATE_ONLY_PATTERN = /^(\d{4})-(\d{2})-(\d{2})$/;
+
+export function formatPledgeDate(
+  value: string | null,
+  locale?: Intl.LocalesArgument,
+): string {
+  if (!value) return "—";
+
+  const dateOnlyMatch = DATE_ONLY_PATTERN.exec(value);
+  const date = dateOnlyMatch
+    ? new Date(
+        Date.UTC(
+          Number(dateOnlyMatch[1]),
+          Number(dateOnlyMatch[2]) - 1,
+          Number(dateOnlyMatch[3]),
+        ),
+      )
+    : new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "—";
+
+  return date.toLocaleDateString(locale, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    ...(dateOnlyMatch ? { timeZone: "UTC" } : {}),
+  });
+}
+
+export function formatPledgeCurrency(
+  amount: number,
+  currency: string,
+  locale?: Intl.LocalesArgument,
+): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency || "USD",
+  }).format(amount);
+}
+
 export function mapRecurringGiftToPledgeView(
   gift: RecurringGiftInput,
 ): PledgeView {
