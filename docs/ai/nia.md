@@ -7,7 +7,6 @@ Use this guide whenever an agent or contributor:
 - searches this repo with Nia MCP
 - indexes or subscribes to docs, repositories, packages, or local sources in Nia
 - configures Nia MCP for Cursor, Claude Code, Codex, or another agent
-- runs the repo's Nia source check workflow or local script
 - considers using local sync for private folders or notes
 
 ## Source of truth
@@ -67,8 +66,7 @@ Do not commit MCP configs that contain API keys.
 
 This repo is expected to exist in Nia as the public repository source
 `Asymmetric-al/core`. GitHub repository indexing is handled by Nia's GitHub
-connector. The repo's source-check workflow only verifies that the source is
-registered and discoverable.
+connector.
 
 ### Local sync
 
@@ -153,46 +151,11 @@ Treat these as Nia workspace mutations:
 In read-only or planning modes, do not run mutation tools. Instead, document the
 intended command or MCP action.
 
-## Source check workflow
-
-The source check workflow and script verify that Nia can find this repo's
-registered repository source:
-
-- CI: `.github/workflows/nia-source-check.yml`
-- Local: `scripts/nia-source-check.sh`
-- Picker: `scripts/nia_pick_core_source.py`
-
-Local usage:
-
-```bash
-export NIA_API_KEY=...
-./scripts/nia-source-check.sh
-```
-
-Optional:
-
-```bash
-export NIA_API_URL=<NIA_API_BASE_URL_FROM_NIA_DOCS>/v2
-```
-
-The script prints the source id but never prints the API key. It fails if Nia
-does not return an exact `asymmetric-al/core` source.
-
-On `production` pushes, the workflow skips successfully with a notice when
-`NIA_API_KEY` is not configured. Once the repository secret is installed, the
-workflow validates that Nia can resolve the repository source.
-
-When `GITHUB_OUTPUT` is set, the script writes `source_id` and `registered`
-outputs for GitHub Actions. It also prints a JSON status object for logs.
-Workflows must consume the step outputs instead of parsing free-form log text.
-
 ## Repository hygiene
 
-The Nia alignment change intentionally removes previously committed local
-sync, cache, wheel, and scratch artifacts only. Runtime behavior changes are
-limited to `.github/workflows/nia-source-check.yml`,
-`scripts/nia-source-check.sh`, `scripts/nia_pick_core_source.py`, and the docs
-that describe those boundaries.
+Nia alignment changes must not commit local sync, cache, wheel, or scratch
+artifacts. Keep API keys and local Nia workspace configuration in user or global
+settings, not in the repository.
 
 ## Checklist
 
@@ -201,5 +164,4 @@ that describe those boundaries.
 - [ ] Top matches are read before editing
 - [ ] External docs/repos are justified and followed by a repo-scoped pass
 - [ ] Nia workspace mutations are not run in read-only/plan mode
-- [ ] Source-check workflows consume script outputs, not log parsing
 - [ ] API keys and local sync configs are never committed

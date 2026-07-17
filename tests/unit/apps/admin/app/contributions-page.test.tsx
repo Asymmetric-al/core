@@ -2,6 +2,7 @@
 
 import { QueryProvider } from "@asym/database/providers";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -11,6 +12,9 @@ import {
 import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { filterSharedContributions } from "../../../../../packages/api/src/admin/contribution-shared";
+
+import type { Contribution } from "../../../../../apps/admin/app/contributions/types";
 import type { ReactNode } from "react";
 
 type ContributionsPageComponent =
@@ -137,6 +141,7 @@ function makeDetailPayload(donationId: string, donorName: string) {
   return {
     contribution: {
       id: donationId,
+      revision: "2026-05-26T00:00:00.000Z#0",
       shared: {
         donationId,
         amountCents: 10000,
@@ -236,6 +241,146 @@ function makeDetailPayload(donationId: string, donorName: string) {
   };
 }
 
+function makeReceiptActionablePayload(donationId: string, donorName: string) {
+  const base = makeDetailPayload(donationId, donorName);
+  return {
+    contribution: {
+      ...base.contribution,
+      stagedGift: {
+        id: "staged_1",
+        status: "posted",
+        receiptStatus: "pending",
+        crmPostStatus: null,
+        reviewReason: null,
+        twentyRecordId: null,
+      },
+    },
+  };
+}
+
+function makeHubContribution(input: {
+  id: string;
+  donorName: string;
+  status?: Contribution["status"];
+  type?: Contribution["type"];
+  shared?: Partial<Contribution["shared"]>;
+}): Contribution {
+  const status = input.status ?? "completed";
+  return {
+    shared: {
+      donationId: input.id,
+      amountCents: 10000,
+      currencyCode: "USD",
+      giftDate: "2026-05-30T00:00:00.000Z",
+      donorId: `donor_${input.id}`,
+      donorName: input.donorName,
+      designationSummary: {
+        fundId: "fund_1",
+        fundName: "General Fund",
+        missionaryId: null,
+        missionaryName: null,
+        lineCount: 1,
+      },
+      paymentStatus: "completed",
+      receiptStatus: "pending",
+      crmPostStatus: null,
+      refundState: "none",
+      refundedAmountCents: 0,
+      correctionState: "none",
+      recurringLinkState: "none",
+      ...input.shared,
+    },
+    id: input.id,
+    donorId: `donor_${input.id}`,
+    donorName: input.donorName,
+    donorEmail: `${input.id}@example.com`,
+    donorAvatar: null,
+    donorType: null,
+    donorPhone: null,
+    donorLocation: null,
+    organizationName: null,
+    amount: 10000,
+    amountGross: 10000,
+    amountNet: null,
+    amountFee: null,
+    amountTaxDeductible: null,
+    currency: "USD",
+    date: "2026-05-30T00:00:00.000Z",
+    contributionDate: "2026-05-30T00:00:00.000Z",
+    createdAt: "2026-05-30T00:00:00.000Z",
+    updatedAt: "2026-05-30T00:00:00.000Z",
+    settlementDate: null,
+    depositDate: null,
+    status,
+    subStatus: null,
+    type: input.type ?? "One-time",
+    paymentMethod: "Credit Card",
+    source: "Online",
+    fundId: "fund_1",
+    fundCode: "GENERAL",
+    fundName: "General Fund",
+    missionaryId: null,
+    missionaryName: null,
+    campaignId: null,
+    receiptStatus: "pending",
+    receiptSent: false,
+    receiptSentAt: null,
+    stagedGiftId: null,
+    stagedGiftStatus: null,
+    stagedGiftReviewReason: null,
+    crmPostStatus: null,
+    annualStatementEligible: true,
+    entryMethod: "api",
+    reconciliationStatus: "unreconciled",
+    transactionId: `pi_${input.id}`,
+    externalTransactionId: null,
+    processorTransactionId: `pi_${input.id}`,
+    notes: null,
+    notesPreview: null,
+    isAnonymous: false,
+  };
+}
+
+function getFilterChipTrigger(label: string): HTMLElement {
+  const triggers = Array.from(
+    document.querySelectorAll('button[data-slot="popover-trigger"]'),
+  );
+  const trigger = triggers.find((candidate) =>
+    candidate.textContent?.includes(label),
+  );
+  if (!trigger) {
+    throw new Error(`Filter chip "${label}" not found`);
+  }
+  return trigger as HTMLElement;
+}
+
+/**
+ * Opens a toolbar filter chip popover (no-op when already open) and returns
+ * the popover content element so option clicks can be scoped to it.
+ */
+async function openFilterChip(label: string): Promise<HTMLElement> {
+  const trigger = getFilterChipTrigger(label);
+  if (trigger.getAttribute("aria-expanded") !== "true") {
+    fireEvent.click(trigger);
+  }
+  let popup: HTMLElement | null = null;
+  await waitFor(() => {
+    const popups = document.querySelectorAll('[data-slot="popover-content"]');
+    popup = (popups[popups.length - 1] as HTMLElement | undefined) ?? null;
+    if (!popup) {
+      throw new Error(`Popover for filter chip "${label}" did not open`);
+    }
+  });
+  return popup!;
+}
+
+async function toggleChipOption(popup: HTMLElement, optionName: RegExp) {
+  const option = await within(popup).findByRole("option", {
+    name: optionName,
+  });
+  fireEvent.click(option);
+}
+
 function mockQuery(partial: Record<string, unknown>) {
   return {
     isError: false,
@@ -283,6 +428,8 @@ function installDom() {
   globalThis.Element.prototype.getAnimations ??= function getAnimations() {
     return [];
   };
+  // cmdk (filter chip command lists) scrolls the selected item into view.
+  globalThis.Element.prototype.scrollIntoView ??= function scrollIntoView() {};
   globalThis.requestAnimationFrame = (callback) =>
     window.setTimeout(callback, 0);
   globalThis.cancelAnimationFrame = (id) => window.clearTimeout(id);
@@ -384,7 +531,7 @@ describe("apps/admin/app/contributions/page-client", () => {
         isPending: false,
       }),
     );
-  }, 60_000);
+  }, 90_000);
 
   it("exports a client component (function) that renders the contributions UI", () => {
     expect(typeof ContributionsPage).toBe("function");
@@ -881,7 +1028,7 @@ describe("apps/admin/app/contributions/page-client", () => {
     expect(view.getByText("Mail")).toBeTruthy();
   });
 
-  it("posts a scoped designation retry through the shared actions contract", async () => {
+  it("keeps historical designation failures visible while CRM posting stays unavailable", async () => {
     const donationId = "00000000-0000-4000-8000-000000000131";
     mockSearch = `gift=${donationId}`;
     const baseDetail = makeDetailPayload(donationId, "Scoped Retry Donor");
@@ -899,9 +1046,11 @@ describe("apps/admin/app/contributions/page-client", () => {
         actionAvailability: [
           {
             actionType: "retry_staged_gift",
-            available: true,
-            blockedReason: null,
-            nextStep: null,
+            available: false,
+            blockedReason:
+              "CRM posting actions are unavailable because external CRM posting is no longer an active product workflow.",
+            nextStep:
+              "Treat the recorded posting state as historical evidence. Current CRM data is maintained in Asym; any future provider recovery requires a new audited integration workflow.",
             riskLevel: "low",
           },
         ],
@@ -954,29 +1103,19 @@ describe("apps/admin/app/contributions/page-client", () => {
 
     const view = renderContributionsPage();
 
-    expect(await view.findByText("Twenty CRM posting")).toBeTruthy();
+    expect(await view.findByText("Historical CRM posting")).toBeTruthy();
     expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
 
-    fireEvent.click(
-      await view.findByRole("button", { name: /retry this line/i }),
-    );
-
-    await waitFor(() => {
-      expect(
-        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
-      ).toBe(true);
-    });
-
-    const actionCall = fetchMock.mock.calls.find(([url]) =>
-      String(url).includes("/actions"),
-    );
-    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
-    expect(body).toMatchObject({
-      actionType: "retry_staged_gift",
-      contributionId: donationId,
-      stagedGiftId: "staged-9",
-      payload: { scope: "designation", allocationId: "alloc-2" },
-    });
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*Asym/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
   });
 
   it("strips invalid gift query params before fetching detail", async () => {
@@ -1000,7 +1139,7 @@ describe("apps/admin/app/contributions/page-client", () => {
 
   it("smart close removes only the gift selection from route state", async () => {
     const donationId = "00000000-0000-4000-8000-000000000125";
-    mockSearch = `status=completed&gift=${donationId}`;
+    mockSearch = `status=completed&search=sarah&gift=${donationId}`;
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       json: async () => makeDetailPayload(donationId, "Smart Close Donor"),
@@ -1018,7 +1157,7 @@ describe("apps/admin/app/contributions/page-client", () => {
     );
 
     expect(routerReplaceMock).toHaveBeenCalledWith(
-      "/contributions?status=completed",
+      "/contributions?status=completed&search=sarah",
       { scroll: false },
     );
   });
@@ -1082,6 +1221,84 @@ describe("apps/admin/app/contributions/page-client", () => {
     });
   });
 
+  it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012c";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Freshness Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Freshness Donor")).toBeTruthy();
+    expect(view.queryByText("Updated just now")).toBeNull();
+
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    const indicator = await view.findByText("Updated just now");
+    expect(indicator.textContent).toBe("Updated just now");
+
+    const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 8000,
+    );
+    expect(freshnessTimerCall).toBeTruthy();
+    act(() => {
+      (freshnessTimerCall![0] as () => void)();
+    });
+    expect(view.queryByText("Updated just now")).toBeNull();
+    setTimeoutSpy.mockRestore();
+  });
+
+  it("sends the loaded detail revision with direct overlay staged-gift actions", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000012d";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi.fn().mockImplementation(async (url: string) => {
+      if (String(url).includes("/actions")) {
+        return { ok: true, json: async () => ({ ok: true }) };
+      }
+      return {
+        ok: true,
+        json: async () =>
+          makeReceiptActionablePayload(donationId, "Revision Donor"),
+      };
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = renderContributionsPage();
+    expect(await view.findByText("Revision Donor")).toBeTruthy();
+
+    fireEvent.click(view.getByRole("button", { name: /send receipt/i }));
+
+    await waitFor(() => {
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+      ).toBe(true);
+    });
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    // Stale-save protection (ADR-CD-022): direct Send receipt / Approve /
+    // Retry must pin the revision the staffer reviewed so the server can
+    // 409 when the gift changed since this load.
+    expect(body.expectedRevision).toBe("2026-05-26T00:00:00.000Z#0");
+    expect(body.actionType).toBe("resend_receipt");
+  });
+
   it("invalidates every shared contribution surface after contribution mutations", async () => {
     const queryClient = {
       invalidateQueries: vi.fn().mockResolvedValue(undefined),
@@ -1089,21 +1306,41 @@ describe("apps/admin/app/contributions/page-client", () => {
 
     await invalidateContributionOperationQueries(queryClient as never);
 
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY,
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ADMIN_CONTRIBUTIONS_QUERY_KEY },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ["admin", "contribution-detail"] },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE },
+      { throwOnError: false },
+    );
+    expect(queryClient.invalidateQueries).toHaveBeenCalledWith(
+      { queryKey: ADMIN_CRM_RECORDS_QUERY_KEY_VALUE },
+      { throwOnError: false },
+    );
+  });
+
+  it("propagates throwOnError so refresh failures can surface to callers", async () => {
+    const queryClient = {
+      invalidateQueries: vi.fn().mockResolvedValue(undefined),
+    };
+
+    await invalidateContributionOperationQueries(queryClient as never, {
+      throwOnError: true,
     });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: MISSION_CONTROL_NEEDS_ATTENTION_QUERY_KEY,
-    });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ["admin", "contribution-detail"],
-    });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ADMIN_CRM_RECORD_DETAIL_QUERY_KEY_VALUE,
-    });
-    expect(queryClient.invalidateQueries).toHaveBeenCalledWith({
-      queryKey: ADMIN_CRM_RECORDS_QUERY_KEY_VALUE,
-    });
+
+    expect(queryClient.invalidateQueries).toHaveBeenCalledTimes(5);
+    for (const call of queryClient.invalidateQueries.mock.calls) {
+      expect(call[1]).toEqual({ throwOnError: true });
+    }
   });
 
   it("does not show load failed while the query is pending", () => {
@@ -1132,6 +1369,202 @@ describe("apps/admin/app/contributions/page-client", () => {
     for (let i = 0; i < data.length; i++) {
       expect(data[i]).not.toBe(mockContributions[i]);
     }
+  });
+
+  describe("shared contribution filter chips (issue #274)", () => {
+    it("renders the shared filter chips and defers the inert designation_issue chip", async () => {
+      useAdminContributionsMock.mockReturnValue(
+        mockQuery({
+          data: [makeHubContribution({ id: "c1", donorName: "Donor One" })],
+        }),
+      );
+
+      const view = renderContributionsPage();
+      await waitFor(() => {
+        expect(view.getByText("Donor One")).toBeTruthy();
+      });
+
+      for (const label of [
+        "Receipt affected",
+        "Pending correction",
+        "Approval state",
+        "Refund state",
+        "CRM post state",
+        "Recurring link",
+      ]) {
+        expect(getFilterChipTrigger(label)).toBeTruthy();
+      }
+      // Deferred: grid rows carry no designation issues, so the chip could
+      // never match and must not render.
+      expect(view.queryByText("Designation issue")).toBeNull();
+    });
+
+    it("filters through the shared definitions and ANDs shared chips with the existing facets", async () => {
+      const rows = [
+        makeHubContribution({
+          id: "cora",
+          donorName: "Cora Correction",
+          shared: {
+            correctionState: "pending",
+            receiptStatus: "sent",
+            crmPostStatus: "failed",
+          },
+        }),
+        // A second pending-correction row whose CRM post state is NOT failed:
+        // it survives the first chip alongside Cora, then must be eliminated by
+        // the second chip. Without it, Cora alone survives chip 1 and a
+        // crm_post_state chip that matched everything would pass unnoticed.
+        makeHubContribution({
+          id: "cody",
+          donorName: "Cody Correction",
+          shared: {
+            correctionState: "pending",
+            crmPostStatus: "posted",
+          },
+        }),
+        makeHubContribution({ id: "carl", donorName: "Carl Clean" }),
+        makeHubContribution({
+          id: "pete",
+          donorName: "Pete Provider",
+          type: "Recurring",
+          shared: { recurringLinkState: "provider_only" },
+        }),
+      ];
+      useAdminContributionsMock.mockReturnValue(mockQuery({ data: rows }));
+
+      const view = renderContributionsPage();
+      await waitFor(() => {
+        expect(view.getByText("Cora Correction")).toBeTruthy();
+        expect(view.getByText("Cody Correction")).toBeTruthy();
+        expect(view.getByText("Carl Clean")).toBeTruthy();
+        expect(view.getByText("Pete Provider")).toBeTruthy();
+      });
+
+      // Parity oracle: the Hub UI must keep exactly the rows the shared
+      // evaluator keeps for the same filter stack. Two rows survive chip 1.
+      expect(
+        filterSharedContributions(rows, [{ id: "pending_correction" }]).map(
+          (row) => row.donorName,
+        ),
+      ).toEqual(["Cora Correction", "Cody Correction"]);
+
+      const pendingCorrectionPopup = await openFilterChip("Pending correction");
+      await toggleChipOption(pendingCorrectionPopup, /^Pending correction/);
+
+      await waitFor(() => {
+        expect(view.getByText("Cora Correction")).toBeTruthy();
+        expect(view.getByText("Cody Correction")).toBeTruthy();
+        expect(view.queryByText("Carl Clean")).toBeNull();
+        expect(view.queryByText("Pete Provider")).toBeNull();
+      });
+
+      // Stacking a second shared chip strictly reduces the set (Cody is
+      // pending-correction but posted, not failed), proving both AND semantics
+      // and that the crm_post_state chip actually discriminates.
+      expect(
+        filterSharedContributions(rows, [
+          { id: "pending_correction" },
+          { id: "crm_post_state", value: "failed" },
+        ]).map((row) => row.donorName),
+      ).toEqual(["Cora Correction"]);
+
+      const crmPostStatePopup = await openFilterChip("CRM post state");
+      await toggleChipOption(crmPostStatePopup, /^Failed/);
+
+      await waitFor(() => {
+        expect(view.getByText("Cora Correction")).toBeTruthy();
+        expect(view.queryByText("Cody Correction")).toBeNull();
+        expect(view.queryByText("Carl Clean")).toBeNull();
+        expect(view.queryByText("Pete Provider")).toBeNull();
+      });
+
+      // Existing chips still AND with the shared chips: Cora is One-time, so
+      // adding Type=Recurring empties the result set.
+      const typePopup = await openFilterChip("Type");
+      await toggleChipOption(typePopup, /^Recurring/);
+
+      await waitFor(() => {
+        expect(view.queryByText("Cora Correction")).toBeNull();
+        expect(view.getByText("No contributions found")).toBeTruthy();
+      });
+    });
+
+    it("matches Refunded via row.shared.paymentStatus when the grid status stayed completed", async () => {
+      const rows = [
+        makeHubContribution({
+          id: "rachel",
+          donorName: "Rachel Refund",
+          status: "completed",
+          shared: {
+            paymentStatus: "refunded",
+            refundState: "refunded",
+            refundedAmountCents: 10000,
+          },
+        }),
+        makeHubContribution({ id: "carl", donorName: "Carl Clean" }),
+        makeHubContribution({
+          id: "pat",
+          donorName: "Pat Processing",
+          status: "processing",
+          shared: { paymentStatus: "pending" },
+        }),
+      ];
+      useAdminContributionsMock.mockReturnValue(mockQuery({ data: rows }));
+
+      const view = renderContributionsPage();
+      await waitFor(() => {
+        expect(view.getByText("Rachel Refund")).toBeTruthy();
+      });
+
+      expect(
+        filterSharedContributions(rows, [
+          { id: "payment_status", value: "refunded" },
+        ]).map((row) => row.donorName),
+      ).toEqual(["Rachel Refund"]);
+
+      const statusPopup = await openFilterChip("Status");
+      await toggleChipOption(statusPopup, /^Refunded/);
+
+      // The fully refunded gift whose donations.status stayed "completed"
+      // must appear under Refunded (shared meaning), like it does in CRM.
+      await waitFor(() => {
+        expect(view.getByText("Rachel Refund")).toBeTruthy();
+        expect(view.queryByText("Carl Clean")).toBeNull();
+        expect(view.queryByText("Pat Processing")).toBeNull();
+      });
+
+      // Completed uses the shared meaning too: the refunded gift no longer
+      // counts as completed even though its grid status still says so.
+      await toggleChipOption(statusPopup, /^Refunded/);
+      await toggleChipOption(statusPopup, /^Completed/);
+
+      await waitFor(() => {
+        expect(view.getByText("Carl Clean")).toBeTruthy();
+        expect(view.queryByText("Rachel Refund")).toBeNull();
+        expect(view.queryByText("Pat Processing")).toBeNull();
+      });
+
+      // Hub-only "processing" keeps working as an extension selection and
+      // ORs with the shared vocabulary inside the Status chip.
+      await toggleChipOption(statusPopup, /^Processing/);
+
+      await waitFor(() => {
+        expect(view.getByText("Carl Clean")).toBeTruthy();
+        expect(view.getByText("Pat Processing")).toBeTruthy();
+        expect(view.queryByText("Rachel Refund")).toBeNull();
+      });
+
+      // The shared "pending" meaning includes delayed rails (processing).
+      await toggleChipOption(statusPopup, /^Completed/);
+      await toggleChipOption(statusPopup, /^Processing/);
+      await toggleChipOption(statusPopup, /^Pending/);
+
+      await waitFor(() => {
+        expect(view.getByText("Pat Processing")).toBeTruthy();
+        expect(view.queryByText("Carl Clean")).toBeNull();
+        expect(view.queryByText("Rachel Refund")).toBeNull();
+      });
+    });
   });
 
   it("keeps boneyard fixture timestamps deterministic", () => {

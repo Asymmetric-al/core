@@ -21,7 +21,7 @@ import {
 describe("bulk contribution action catalog", () => {
   it("allows preview skipping only for configured low-risk actions", () => {
     expect(isBulkPreviewSkippable("resend_receipt")).toBe(true);
-    expect(isBulkPreviewSkippable("crm_repost")).toBe(true);
+    expect(isBulkPreviewSkippable("crm_repost")).toBe(false);
     expect(isBulkPreviewSkippable("refund")).toBe(false);
     expect(isBulkPreviewSkippable("amount_correction")).toBe(false);
   });
@@ -44,8 +44,8 @@ describe("bulk contribution action catalog", () => {
     );
     expect(getBulkContributionActionPolicy("crm_repost")).toEqual(
       expect.objectContaining({
-        riskLevel: "low",
-        requiresPreview: false,
+        riskLevel: "high",
+        requiresPreview: true,
       }),
     );
   });
@@ -297,6 +297,27 @@ describe("bulk contribution preview and execution", () => {
     });
 
     expect(parsed.records[0]?.payload).toEqual({ amount: 2500 });
+  }, 30_000);
+
+  it("rejects retired CRM repost batch inputs", async () => {
+    process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
+    const { batchRequestSchema } =
+      await import("../../../../../packages/api/src/admin/contribution-batches/route");
+
+    const parsed = batchRequestSchema.safeParse({
+      actionType: "crm_repost",
+      confirmationToken: "confirm",
+      records: [
+        {
+          id: "00000000-0000-4000-8000-000000000001",
+          stagedGiftId: "00000000-0000-4000-8000-000000000002",
+          payload: {},
+        },
+      ],
+    });
+
+    expect(parsed.success).toBe(false);
   });
 
   it("rejects duplicate contribution ids in a batch request", async () => {
@@ -523,6 +544,112 @@ describe("bulk contribution preview and execution", () => {
         processed_count: 1,
         succeeded_count: 1,
       }),
+    );
+  });
+
+  it("retires persisted crm_repost batches without claiming items into the executor", async () => {
+    const itemUpdates: Array<Record<string, unknown>> = [];
+    const batchUpdates: Array<Record<string, unknown>> = [];
+    let openItemsFailed = false;
+    const supabaseAdmin = {
+      from(table: string) {
+        const builder = {
+          select() {
+            return builder;
+          },
+          eq() {
+            return builder;
+          },
+          in() {
+            return builder;
+          },
+          order() {
+            return builder;
+          },
+          single: async () => ({
+            data: {
+              id: "batch_1",
+              operation: "crm_repost",
+              source_surface: "bulk_action",
+              status: "running",
+              reason: "bulk repost",
+              confirmation_snapshot: { confirmationToken: "confirm_1" },
+              created_at: new Date().toISOString(),
+            },
+            error: null,
+          }),
+          update(payload: Record<string, unknown>) {
+            if (table === "contribution_operation_batch_items") {
+              itemUpdates.push(payload);
+              if (payload.status === "failed") {
+                openItemsFailed = true;
+              }
+            } else {
+              batchUpdates.push(payload);
+            }
+            return builder;
+          },
+          limit(): never {
+            throw new Error("Retired batches must not claim pending items.");
+          },
+          then<TResult>(
+            onfulfilled: (value: {
+              data?: Array<Record<string, unknown>>;
+              error: null;
+            }) => TResult,
+          ): Promise<TResult> {
+            const value = {
+              data: [
+                {
+                  id: "item_1",
+                  status: openItemsFailed ? "failed" : "pending",
+                  task_id: null,
+                  updated_at: new Date().toISOString(),
+                },
+              ],
+              error: null,
+            };
+            return Promise.resolve(value).then(onfulfilled);
+          },
+        };
+
+        return builder;
+      },
+    };
+    const executeContributionAction = vi.fn();
+
+    const result = await processPersistedContributionBatch({
+      supabaseAdmin: supabaseAdmin as never,
+      tenantId: "tenant_1",
+      batchId: "batch_1",
+      actorProfileId: "actor_1",
+      actorPermissions: ["finance:manage_contributions"],
+      actorCapabilities: ["contributions.retry_crm_post"],
+      executeContributionAction,
+    });
+
+    // Legacy rows retire cleanly: no executor call means no per-item
+    // missing-dependency failures and no provider-failed follow-up tasks.
+    expect(executeContributionAction).not.toHaveBeenCalled();
+    expect(itemUpdates).toContainEqual(
+      expect.objectContaining({
+        status: "failed",
+        error_message: expect.stringMatching(
+          /no longer an active product workflow/i,
+        ),
+      }),
+    );
+    expect(batchUpdates[0]).toEqual(
+      expect.objectContaining({
+        status: "failed",
+        processed_count: 1,
+        failed_count: 1,
+        follow_up_task_count: 0,
+      }),
+    );
+    expect(result.status).toBe("failed");
+    expect(result.summary).toEqual(
+      expect.objectContaining({ failed: 1, followUpTasksCreated: 0 }),
     );
   });
 

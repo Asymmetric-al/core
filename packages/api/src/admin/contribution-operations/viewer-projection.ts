@@ -1,5 +1,16 @@
-import { canDecideCorrectionRequest } from "./approval-policy";
+import {
+  canDecideCorrectionRequest,
+  resolveCorrectionApprovalPolicy,
+} from "./approval-policy";
+import { stripeDashboardUrls } from "./provider-dashboard";
 import { evaluateReceiptDeliveryOptions } from "./receipt-delivery";
+import {
+  buildCorrectionActionAvailability,
+  isContributionOperationActionType,
+  isCorrectionRequestActionType,
+  stripeReplayAvailability,
+  viewerCanUseContributionOperation,
+} from "./viewer-action-availability";
 
 import type { ContributionActionAvailability } from "./action-availability";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
@@ -14,6 +25,8 @@ import type {
   ContributionActionResult,
   ContributionProviderOutcome,
 } from "./types";
+
+export { stripeReplayAvailability } from "./viewer-action-availability";
 
 /**
  * Role-gated provider proof (ADR-CD-014 / ADR-CD-015).
@@ -78,6 +91,29 @@ export type ViewerProjectedContributionDetail = Omit<
   receiptDelivery?: ContributionReceiptDeliveryView | null;
 };
 
+export interface ContributionViewerProjectionOptions {
+  /**
+   * Tenant correction approval policy. When omitted, the same conservative
+   * default as the executor and the CRM inline builder applies
+   * (`resolveCorrectionApprovalPolicy(null)`).
+   */
+  approvalPolicy?: CorrectionApprovalPolicy | null;
+  /**
+   * True when the tenant's resolved Stripe key is a test-mode key
+   * (sk_test_/rk_test_); dashboard proof links then point at
+   * https://dashboard.stripe.com/test/... Resolved server-side (route) only
+   * for viewers holding contributions.use_provider_actions. Defaults to
+   * live-mode links.
+   */
+  providerDashboardTestMode?: boolean;
+}
+
+export type ProjectContributionDetailOptions =
+  ContributionViewerProjectionOptions;
+
+const REDACTED_HISTORICAL_CRM_ERROR =
+  "Historical CRM posting failed. Provider details are available to authorized operators.";
+
 /**
  * Pure viewer projection of the tenant receipt delivery policy + donor
  * context, evaluated against the viewer's capabilities (#263).
@@ -126,37 +162,76 @@ export function projectCorrectionRequestsForViewer(
   }));
 }
 
-export function stripeReplayAvailability(
-  paymentIntentId: string | null,
-  chargeId: string | null,
-): ContributionActionAvailability {
-  if (!paymentIntentId && !chargeId) {
-    return {
-      actionType: "stripe_replay",
-      available: false,
-      blockedReason: "This gift has no provider payment events to replay.",
-      nextStep:
-        "Webhook replay applies to gifts processed through the payment provider.",
-      riskLevel: "high",
-    };
-  }
+/**
+ * Viewer-scoped operation entries appended to the detail contract (#270).
+ *
+ * Correction requests and provider replay reuse the exact derivation
+ * `buildInlineContributionActions` uses, so a CRM inline affordance always
+ * finds a matching detail availability entry with identical semantics.
+ * Every entry — including the base workflow entries (approve/retry/
+ * resend/refund) — passes the same viewer-capability gate the inline
+ * builder applies, so entries the viewer cannot act on stay hidden
+ * (ADR-CD-018 mixed visibility: irrelevant or unauthorized → hidden).
+ */
+function viewerScopedActionAvailability(input: {
+  detail: ContributionDetail;
+  approvalPolicy: CorrectionApprovalPolicy;
+  viewerCapabilities: string[];
+}): ContributionActionAvailability[] {
+  const { detail, approvalPolicy, viewerCapabilities } = input;
+  const baseEntries = detail.actionAvailability.filter(
+    (entry) =>
+      entry.actionType !== "stripe_replay" &&
+      !isCorrectionRequestActionType(entry.actionType) &&
+      isContributionOperationActionType(entry.actionType) &&
+      viewerCanUseContributionOperation({
+        actionType: entry.actionType,
+        approvalPolicy,
+        viewerCapabilities,
+      }),
+  );
 
-  return {
+  const correctionEntries = buildCorrectionActionAvailability().filter(
+    (entry) =>
+      viewerCanUseContributionOperation({
+        actionType: entry.actionType,
+        approvalPolicy,
+        viewerCapabilities,
+      }),
+  );
+
+  const canUseReplay = viewerCanUseContributionOperation({
     actionType: "stripe_replay",
-    available: true,
-    blockedReason: null,
-    nextStep: null,
-    riskLevel: "high",
-  };
+    approvalPolicy,
+    viewerCapabilities,
+  });
+  const replayEntries = canUseReplay
+    ? [
+        stripeReplayAvailability(
+          detail.payment.stripe.paymentIntentId,
+          detail.payment.stripe.chargeId,
+        ),
+      ]
+    : [];
+
+  return [...baseEntries, ...correctionEntries, ...replayEntries];
 }
 
 export function projectContributionDetailForViewer(
   detail: ContributionDetail,
   viewerCapabilities: string[],
+  options: ContributionViewerProjectionOptions = {},
 ): ViewerProjectedContributionDetail {
+  const approvalPolicy =
+    options.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
   const hasProviderAccess = viewerCapabilities.includes(
     "contributions.use_provider_actions",
   );
+  const actionAvailability = viewerScopedActionAvailability({
+    detail,
+    approvalPolicy,
+    viewerCapabilities,
+  });
 
   if (!hasProviderAccess) {
     return {
@@ -176,11 +251,28 @@ export function projectContributionDetailForViewer(
           ? { ...detail.recurring.agreement, stripeSubscriptionId: null }
           : null,
       },
+      stagedGift: detail.stagedGift
+        ? { ...detail.stagedGift, twentyRecordId: null }
+        : null,
+      crm: {
+        ...detail.crm,
+        twentyRecordId: null,
+        parent: {
+          ...detail.crm.parent,
+          twentyRecordId: null,
+          lastError: detail.crm.parent.lastError
+            ? REDACTED_HISTORICAL_CRM_ERROR
+            : null,
+        },
+        designationRecords: detail.crm.designationRecords.map((record) => ({
+          ...record,
+          twentyRecordId: null,
+          lastError: record.lastError ? REDACTED_HISTORICAL_CRM_ERROR : null,
+        })),
+      },
       // Hide provider/admin actions entirely for unauthorized viewers
       // (ADR-CD-018 mixed visibility: irrelevant or unauthorized → hidden).
-      actionAvailability: detail.actionAvailability.filter(
-        (entry) => entry.actionType !== "stripe_replay",
-      ),
+      actionAvailability,
       providerProof: null,
     };
   }
@@ -189,25 +281,17 @@ export function projectContributionDetailForViewer(
 
   return {
     ...detail,
-    actionAvailability: [
-      ...detail.actionAvailability.filter(
-        (entry) => entry.actionType !== "stripe_replay",
-      ),
-      stripeReplayAvailability(paymentIntentId, chargeId),
-    ],
+    actionAvailability,
     providerProof: {
       paymentIntentId,
       chargeId,
       refundIds: detail.payment.stripe.refundIds,
       replayContext: detail.payment.stripe.replayContext,
-      dashboardUrls: {
-        paymentIntent: paymentIntentId
-          ? `https://dashboard.stripe.com/payments/${paymentIntentId}`
-          : null,
-        charge: chargeId
-          ? `https://dashboard.stripe.com/charges/${chargeId}`
-          : null,
-      },
+      dashboardUrls: stripeDashboardUrls({
+        paymentIntentId,
+        chargeId,
+        testMode: options.providerDashboardTestMode ?? false,
+      }),
     },
   };
 }
@@ -242,7 +326,11 @@ function redactProviderOutcomeForViewer(
  */
 export function projectContributionActionResultForViewer<
   TResult extends ContributionActionResult,
->(result: TResult, viewerCapabilities: string[]): TResult {
+>(
+  result: TResult,
+  viewerCapabilities: string[],
+  options: ContributionViewerProjectionOptions = {},
+): TResult {
   const hasProviderAccess = viewerCapabilities.includes(
     "contributions.use_provider_actions",
   );
@@ -255,6 +343,7 @@ export function projectContributionActionResultForViewer<
           canonicalContribution: projectContributionDetailForViewer(
             canonical as ContributionDetail,
             viewerCapabilities,
+            options,
           ),
         }
       : result;

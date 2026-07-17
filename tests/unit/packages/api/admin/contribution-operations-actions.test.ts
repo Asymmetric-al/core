@@ -29,6 +29,7 @@ describe("contribution operations action executor", () => {
         contributionId: "donation_1",
         actionType: "refund",
         payload: { amount: 1000 },
+        approvalPolicy: APPROVAL_SUPPRESSED_POLICY,
         dependencies: {},
       }),
     ).rejects.toThrow("reason");
@@ -153,6 +154,163 @@ describe("contribution operations action executor", () => {
         stagedGiftId: "staged_1",
       }),
     );
+  });
+
+  it("rejects a stale expectedRevision before resending a receipt", async () => {
+    const sendReceipt = vi.fn();
+    const appendAuditEvent = vi.fn();
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.manage_receipts"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "resend_receipt",
+        expectedRevision: "rev-stale",
+        payload: { stagedGiftId: "staged_1" },
+        dependencies: {
+          sendReceipt,
+          appendAuditEvent,
+          loadContributionDetail,
+        },
+      }),
+    ).rejects.toThrow(/changed since you loaded it/i);
+    expect(sendReceipt).not.toHaveBeenCalled();
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a stale expectedRevision before approving a staged gift", async () => {
+    const approveStagedGift = vi.fn();
+    const appendAuditEvent = vi.fn();
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.apply_corrections"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "approve_staged_gift",
+        reason: "Reviewed staging failure",
+        expectedRevision: "rev-stale",
+        payload: { stagedGiftId: "staged_1" },
+        dependencies: {
+          approveStagedGift,
+          appendAuditEvent,
+          loadContributionDetail,
+        },
+      }),
+    ).rejects.toThrow(/changed since you loaded it/i);
+    expect(approveStagedGift).not.toHaveBeenCalled();
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("rejects a stale expectedRevision before retrying a staged gift", async () => {
+    const retryStagedGift = vi.fn();
+    const appendAuditEvent = vi.fn();
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.retry_crm_post"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "retry_staged_gift",
+        reason: "Retry parent gift post",
+        expectedRevision: "rev-stale",
+        payload: { scope: "parent", stagedGiftId: "staged_1" },
+        dependencies: {
+          retryStagedGift,
+          appendAuditEvent,
+          loadContributionDetail,
+        },
+      }),
+    ).rejects.toThrow(/changed since you loaded it/i);
+    expect(retryStagedGift).not.toHaveBeenCalled();
+    expect(appendAuditEvent).not.toHaveBeenCalled();
+  });
+
+  it("executes staged-gift actions when expectedRevision matches the canonical revision", async () => {
+    const sendReceipt = vi.fn().mockResolvedValue({
+      status: "sent",
+      sendLogId: "send_1",
+    });
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi.fn().mockResolvedValue({
+      ...makeCanonicalContribution(),
+      revision: "rev-current",
+    });
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.manage_receipts"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "resend_receipt",
+      expectedRevision: "rev-current",
+      payload: { stagedGiftId: "staged_1" },
+      dependencies: {
+        sendReceipt,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(sendReceipt).toHaveBeenCalledOnce();
+    expect(result.auditEventId).toBe("audit_1");
+  });
+
+  it("skips the revision gate when the canonical loader exposes no revision", async () => {
+    // Fail-open by design: alternate canonical loaders may not compute a
+    // revision fingerprint. The production Supabase read model always does.
+    const sendReceipt = vi.fn().mockResolvedValue({
+      status: "sent",
+      sendLogId: "send_1",
+    });
+    const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
+    const loadContributionDetail = vi
+      .fn()
+      .mockResolvedValue(makeCanonicalContribution());
+
+    const result = await executeContributionAction({
+      tenantId: "tenant_1",
+      actorProfileId: "profile_1",
+      actorPermissions: [],
+      actorCapabilities: ["contributions.manage_receipts"],
+      sourceSurface: "donor_crm_record",
+      contributionId: "donation_1",
+      actionType: "resend_receipt",
+      expectedRevision: "rev-anything",
+      payload: { stagedGiftId: "staged_1" },
+      dependencies: {
+        sendReceipt,
+        appendAuditEvent,
+        loadContributionDetail,
+      },
+    });
+
+    expect(sendReceipt).toHaveBeenCalledOnce();
+    expect(result.auditEventId).toBe("audit_1");
   });
 
   it.each([
@@ -1332,7 +1490,37 @@ describe("contribution operations action executor", () => {
     );
   });
 
-  it("routes Stripe replay through correction requests under default approval policy", async () => {
+  it("rejects Stripe replay approval requests from request-only staff", async () => {
+    const replayStripeEvent = vi.fn();
+    const createCorrectionRequest = vi.fn();
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.request_corrections"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "stripe_replay",
+        reason: "Recover missing webhook",
+        confirmationToken: "confirm",
+        payload: { stripeEventId: "evt_123" },
+        approvalPolicy: resolveCorrectionApprovalPolicy(null),
+        dependencies: {
+          replayStripeEvent,
+          createCorrectionRequest,
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/contributions\.use_provider_actions/);
+
+    expect(replayStripeEvent).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).not.toHaveBeenCalled();
+  });
+
+  it("routes provider-capable Stripe replay requests through approval under default policy", async () => {
     const replayStripeEvent = vi.fn();
     const createCorrectionRequest = vi.fn().mockResolvedValue("request_8");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -1344,7 +1532,10 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: [],
-      actorCapabilities: ["contributions.request_corrections"],
+      actorCapabilities: [
+        "contributions.use_provider_actions",
+        "contributions.request_corrections",
+      ],
       sourceSurface: "donor_crm_record",
       contributionId: "donation_1",
       actionType: "stripe_replay",
@@ -1387,7 +1578,10 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: [],
-      actorCapabilities: ["contributions.request_corrections"],
+      actorCapabilities: [
+        "contributions.use_provider_actions",
+        "contributions.request_corrections",
+      ],
       sourceSurface: "donor_crm_record",
       contributionId: "donation_1",
       actionType: "stripe_replay",
@@ -1418,7 +1612,37 @@ describe("contribution operations action executor", () => {
     );
   });
 
-  it("routes refunds through correction requests under default approval policy", async () => {
+  it("rejects refund approval requests from request-only staff", async () => {
+    const refundContribution = vi.fn();
+    const createCorrectionRequest = vi.fn();
+
+    await expect(
+      executeContributionAction({
+        tenantId: "tenant_1",
+        actorProfileId: "profile_1",
+        actorPermissions: [],
+        actorCapabilities: ["contributions.request_corrections"],
+        sourceSurface: "donor_crm_record",
+        contributionId: "donation_1",
+        actionType: "refund",
+        reason: "Donor requested a refund",
+        confirmationToken: "confirm",
+        payload: { amount: 500 },
+        approvalPolicy: resolveCorrectionApprovalPolicy(null),
+        dependencies: {
+          refundContribution,
+          createCorrectionRequest,
+          appendAuditEvent: vi.fn(),
+          loadContributionDetail: vi.fn(),
+        },
+      }),
+    ).rejects.toThrow(/contributions\.run_refunds/);
+
+    expect(refundContribution).not.toHaveBeenCalled();
+    expect(createCorrectionRequest).not.toHaveBeenCalled();
+  });
+
+  it("routes refund-capable requests through approval under default policy", async () => {
     const refundContribution = vi.fn();
     const createCorrectionRequest = vi.fn().mockResolvedValue("request_9");
     const appendAuditEvent = vi.fn().mockResolvedValue("audit_1");
@@ -1430,7 +1654,10 @@ describe("contribution operations action executor", () => {
       tenantId: "tenant_1",
       actorProfileId: "profile_1",
       actorPermissions: [],
-      actorCapabilities: ["contributions.request_corrections"],
+      actorCapabilities: [
+        "contributions.run_refunds",
+        "contributions.request_corrections",
+      ],
       sourceSurface: "donor_crm_record",
       contributionId: "donation_1",
       actionType: "refund",
@@ -1630,7 +1857,7 @@ describe("contribution operations action executor", () => {
     });
   });
 
-  it("surfaces the adapter limitation when child record retries are unsupported", async () => {
+  it("surfaces the retired posting workflow when child retries have no adapter", async () => {
     await expect(
       executeContributionAction({
         tenantId: "tenant_1",
@@ -1653,7 +1880,7 @@ describe("contribution operations action executor", () => {
             .mockResolvedValue(makeCanonicalContribution()),
         },
       }),
-    ).rejects.toThrow(/does not support posting designation child records/i);
+    ).rejects.toThrow(/no longer an active product workflow/i);
   });
 
   it("creates a correction request instead of applying high-risk corrections under default policy", async () => {

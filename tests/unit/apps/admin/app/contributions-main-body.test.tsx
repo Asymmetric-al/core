@@ -19,10 +19,15 @@ import { JSDOM } from "jsdom";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { ContributionGridRow as Contribution } from "@asym/api/admin/contributions/types";
+import type {
+  ContributionBatchApiResponse,
+  ContributionBatchStatus,
+} from "@asym/api/admin/contribution-batches";
 
 const selectedRowsRef = { current: [] as unknown[] };
 const toastErrorMock = vi.fn();
 const toastSuccessMock = vi.fn();
+const toastWarningMock = vi.fn();
 const onBulkReceiptSuccessMock = vi.fn();
 
 vi.mock("@asym/lib/motion", async () => {
@@ -83,6 +88,7 @@ vi.mock("sonner", () => ({
   toast: {
     error: toastErrorMock,
     success: toastSuccessMock,
+    warning: toastWarningMock,
     info: vi.fn(),
   },
 }));
@@ -204,16 +210,55 @@ function renderPageActions(canManageContributions?: boolean) {
   );
 }
 
-function stubBatchFetch() {
-  const fetchMock = vi.fn().mockResolvedValue({
-    ok: true,
-    json: async () => ({
-      batch: {
-        status: "complete",
-        summary: { failed: 0, succeeded: 2 },
+const persistedBatchId = "batch_9";
+const persistedBatchProcessHref = `/api/admin/contribution-batches/${persistedBatchId}/process`;
+
+function makeBatchResponse(
+  overrides: {
+    status?: ContributionBatchStatus;
+    processed?: number;
+    succeeded?: number;
+    skipped?: number;
+    failed?: number;
+    followUpTasksCreated?: number;
+    includeNextAction?: boolean;
+  } = {},
+): ContributionBatchApiResponse {
+  return {
+    batch: {
+      id: persistedBatchId,
+      status: overrides.status ?? "complete",
+      executionMode: "background",
+      summary: {
+        processed: overrides.processed ?? 0,
+        succeeded: overrides.succeeded ?? 0,
+        skipped: overrides.skipped ?? 0,
+        failed: overrides.failed ?? 0,
+        followUpTasksCreated: overrides.followUpTasksCreated ?? 0,
       },
+    },
+    nextAction: overrides.includeNextAction
+      ? { method: "POST", href: persistedBatchProcessHref }
+      : undefined,
+  };
+}
+
+function okBatchResponse(
+  overrides: Parameters<typeof makeBatchResponse>[0] = {},
+) {
+  return {
+    ok: true,
+    json: async () => makeBatchResponse(overrides),
+  };
+}
+
+function stubBatchFetch() {
+  const fetchMock = vi.fn().mockResolvedValue(
+    okBatchResponse({
+      processed: 2,
+      succeeded: 2,
     }),
-  });
+  );
   Object.defineProperty(globalThis, "fetch", {
     configurable: true,
     value: fetchMock,
@@ -303,7 +348,7 @@ beforeEach(async () => {
   ContributionsMainBody = mainBodyModule.ContributionsMainBody;
   ContributionsPageActions = mainBodyModule.ContributionsPageActions;
   selectedRowsRef.current = [];
-});
+}, 30_000);
 
 afterEach(() => {
   cleanup();
@@ -450,15 +495,7 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
 
     await act(async () => {
-      resolveFetch({
-        ok: true,
-        json: async () => ({
-          batch: {
-            status: "complete",
-            summary: { failed: 0, succeeded: 1 },
-          },
-        }),
-      });
+      resolveFetch(okBatchResponse({ processed: 1, succeeded: 1 }));
     });
   });
 
@@ -525,24 +562,23 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     expect(onBulkReceiptSuccessMock).not.toHaveBeenCalled();
   });
 
-  it("describes background batches honestly instead of claiming zero results", async () => {
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      json: async () => ({
-        batch: {
-          id: "batch_9",
-          status: "running",
-          executionMode: "background",
-          summary: {
-            processed: 0,
-            succeeded: 0,
-            skipped: 0,
-            failed: 0,
-            followUpTasksCreated: 0,
-          },
-        },
-      }),
-    });
+  it("continues a background batch until the process endpoint returns a terminal result", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", processed: 25, succeeded: 25 }),
+      )
+      .mockResolvedValueOnce(
+        okBatchResponse({
+          processed: 30,
+          succeeded: 29,
+          failed: 1,
+          followUpTasksCreated: 1,
+        }),
+      );
     Object.defineProperty(globalThis, "fetch", {
       configurable: true,
       value: fetchMock,
@@ -555,9 +591,164 @@ describe("ContributionsMainBody bulk receipt confirmation", () => {
     await waitFor(() => {
       expect(toastSuccessMock).toHaveBeenCalled();
     });
-    const message = toastSuccessMock.mock.calls[0]?.[0] as string;
-    expect(message).toMatch(/background/i);
-    expect(message).not.toMatch(/0 succeeded/);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenNthCalledWith(2, persistedBatchProcessHref, {
+      method: "POST",
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(3, persistedBatchProcessHref, {
+      method: "POST",
+    });
+    expect(toastSuccessMock).toHaveBeenCalledWith(
+      "Bulk receipt batch complete: 29 succeeded, 1 failed.",
+    );
+    expect(onBulkReceiptSuccessMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("retries the existing persisted batch instead of creating another batch", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockRejectedValueOnce(new Error("Connection lost."))
+      .mockResolvedValueOnce(okBatchResponse({ processed: 1, succeeded: 1 }));
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith("Connection lost.");
+    });
+    fireEvent.click(view.getByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastSuccessMock).toHaveBeenCalledWith(
+        "Bulk receipt batch complete: 1 succeeded, 0 failed.",
+      );
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock).toHaveBeenNthCalledWith(
+      1,
+      "/api/admin/contribution-batches",
+      expect.any(Object),
+    );
+    expect(fetchMock).toHaveBeenNthCalledWith(2, persistedBatchProcessHref, {
+      method: "POST",
+    });
+    expect(fetchMock).toHaveBeenNthCalledWith(3, persistedBatchProcessHref, {
+      method: "POST",
+    });
+  });
+
+  it("shows processed progress while a later batch chunk is pending", async () => {
+    let resolveFinalProcess: (value: unknown) => void = () => {};
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", processed: 25, succeeded: 25 }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFinalProcess = resolve;
+          }),
+      );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const rows = Array.from({ length: 30 }, (_, index) =>
+      makeContribution({
+        id: `00000000-0000-4000-8000-${String(index + 1).padStart(12, "0")}`,
+      }),
+    );
+    const view = renderMainBody(rows);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    expect(
+      await view.findByRole("button", {
+        name: "Processing batch... 25 of 30",
+      }),
+    ).toBeTruthy();
+
+    await act(async () => {
+      resolveFinalProcess(okBatchResponse({ processed: 30, succeeded: 30 }));
+    });
+  });
+
+  it("shows a failure message when processing reaches a failed terminal state", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockResolvedValueOnce(
+        okBatchResponse({
+          status: "failed",
+          processed: 1,
+          failed: 1,
+          followUpTasksCreated: 1,
+        }),
+      );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastErrorMock).toHaveBeenCalledWith(
+        "Bulk receipt batch failed: 0 succeeded, 1 failed.",
+      );
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("warns when processing completes with failed or skipped items", async () => {
+    const fetchMock = vi
+      .fn()
+      .mockResolvedValueOnce(
+        okBatchResponse({ status: "running", includeNextAction: true }),
+      )
+      .mockResolvedValueOnce(
+        okBatchResponse({
+          status: "complete_with_issues",
+          processed: 3,
+          succeeded: 1,
+          failed: 1,
+          skipped: 1,
+          followUpTasksCreated: 1,
+        }),
+      );
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const view = renderMainBody([makeContribution()]);
+
+    fireEvent.click(view.getByRole("button", { name: "Send Receipts" }));
+    fireEvent.click(await view.findByRole("button", { name: "Send receipts" }));
+
+    await waitFor(() => {
+      expect(toastWarningMock).toHaveBeenCalledWith(
+        "Bulk receipt batch complete with issues: 1 succeeded, 1 failed, 1 skipped.",
+      );
+    });
+    expect(toastSuccessMock).not.toHaveBeenCalled();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 });
 

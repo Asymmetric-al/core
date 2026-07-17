@@ -3,13 +3,10 @@ import { normalizeSharedCrmPostStatus } from "../contribution-shared/row-contrac
 import type { SharedContributionCrmPostStatus } from "@asym/database/types";
 
 /**
- * CRM/Twenty parent + child post state (ADR-CD-012).
+ * Historical CRM parent + child post state (ADR-CD-012).
  *
- * One CRM parent gift record represents the donation; each designation line
- * may post as a child record under it. Failures are parent- or line-scoped so
- * retries can target the failed scope, and adapter limitations are surfaced
- * instead of silently collapsing designation detail. CRM/Twenty post state is
- * workflow metadata — never payment truth.
+ * Preserve parent- and line-scoped provider evidence for audit and support.
+ * This state is historical metadata, never payment truth or authority to post.
  */
 
 export interface CrmPostLinkInput {
@@ -46,7 +43,30 @@ export interface ContributionCrmPostState {
 }
 
 export const CRM_CHILD_RECORDS_UNSUPPORTED_MESSAGE =
-  "The connected CRM adapter posts this gift as a single parent record and does not yet represent each designation line as a child record.";
+  "The historical CRM posting record represents this gift as a single parent record and has no child record for each designation line.";
+
+/**
+ * Merge CRM link sources in current-authority order.
+ *
+ * A donation can retain a legacy donation-keyed parent link after it has been
+ * promoted to a staged gift. The staged-gift parent is the current record and
+ * must therefore precede the legacy parent because the read model selects the
+ * first parent link. Child links remain available for per-designation status,
+ * and duplicate rows are retained only from the highest-authority source.
+ */
+export function mergeCrmPostLinksByAuthority(input: {
+  stagedGiftParentLinks: CrmPostLinkInput[];
+  donationLinks: CrmPostLinkInput[];
+  designationLinks: CrmPostLinkInput[];
+}): CrmPostLinkInput[] {
+  const ordered = [
+    ...input.stagedGiftParentLinks,
+    ...input.donationLinks,
+    ...input.designationLinks,
+  ];
+
+  return Array.from(new Map(ordered.map((link) => [link.id, link])).values());
+}
 
 function normalizeLinkStatus(
   linkStatus: string | null,

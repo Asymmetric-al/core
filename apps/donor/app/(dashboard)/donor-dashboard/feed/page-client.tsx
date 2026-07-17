@@ -8,12 +8,12 @@ import {
   useDonorFeedPosts,
 } from "@asym/database/hooks";
 import { motion, AnimatePresence } from "@asym/lib/motion";
+import { ReactionBar } from "@asym/ui/components/ministry-update";
 import {
   Avatar,
   AvatarFallback,
   AvatarImage,
 } from "@asym/ui/components/shadcn/avatar";
-import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import {
   DropdownMenu,
@@ -24,23 +24,18 @@ import {
   DropdownMenuLabel,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { Facebook, Linkedin, Twitter } from "@asym/ui/components/shadcn/icons";
-import { Input } from "@asym/ui/components/shadcn/input";
 import { PostContent } from "@asym/ui/components/shadcn/rich-text-editor";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  Heart,
-  MessageCircle,
   MoreHorizontal,
   Share2,
   Bookmark,
   Globe,
-  Send,
   ImageOff,
   Link as LinkIcon,
   Mail,
   Check,
   BookmarkCheck,
-  CornerDownRight,
   Loader2,
 } from "lucide-react";
 import Image from "next/image";
@@ -51,17 +46,6 @@ import type { PostWithAuthor } from "@asym/database/types";
 // --- Types ---
 type ContentType = "Update" | "Prayer" | "Story" | "Video";
 type FilterType = "All" | "Saved" | ContentType;
-
-interface Comment {
-  id: string;
-  author: string;
-  authorTitle?: string;
-  avatar: string;
-  text: string;
-  time: string;
-  likes: number;
-  replies?: Comment[];
-}
 
 interface Post {
   id: string | number;
@@ -78,7 +62,7 @@ interface Post {
   images?: string[];
   likes: number;
   prayers: number;
-  comments: Comment[];
+  commentCount: number;
   liked?: boolean;
   prayed?: boolean;
   saved?: boolean;
@@ -125,19 +109,7 @@ const FeedFilter = ({
   );
 };
 
-const PostActions = ({
-  post,
-  onLike,
-  onPray,
-  onSave,
-  onToggleComments,
-}: {
-  post: Post;
-  onLike: () => void;
-  onPray: () => void;
-  onSave: () => void;
-  onToggleComments: () => void;
-}) => {
+const PostActions = ({ post, onSave }: { post: Post; onSave: () => void }) => {
   const [copied, setCopied] = useState(false);
   const shareUrl = `https://givehope.app/posts/${post.id}`; // Mock URL
   const shareText = `Check out this update from ${post.workerName} on Give Hope!`;
@@ -161,344 +133,108 @@ const PostActions = ({
   };
 
   return (
-    <div className="flex items-center justify-between py-2 mt-8">
-      <div className="flex items-center gap-2">
-        <motion.button
-          whileTap={{ scale: 0.85 }}
-          onClick={onLike}
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-full transition-colors duration-150 group hover:bg-zinc-50",
-            post.liked ? "text-rose-600" : "text-zinc-500 hover:text-zinc-900",
-          )}
-        >
-          <Heart
-            className={cn(
-              "size-5 transition-transform duration-150",
-              post.liked
-                ? "fill-current scale-110"
-                : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
-            )}
-            strokeWidth={post.liked ? 0 : 1.5}
-          />
-          <span className="text-xs font-semibold">{post.likes}</span>
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.85 }}
-          onClick={onPray}
-          className={cn(
-            "flex items-center gap-2 px-3 py-2 rounded-full transition-colors duration-150 group hover:bg-zinc-50",
-            post.prayed ? "text-blue-600" : "text-zinc-500 hover:text-zinc-900",
-          )}
-        >
-          <Globe
-            className={cn(
-              "size-5 transition-transform duration-150",
-              post.prayed
-                ? "scale-110"
-                : "[@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110",
-            )}
-            strokeWidth={1.5}
-          />
-          <span className="text-xs font-semibold">{post.prayers}</span>
-        </motion.button>
-
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onToggleComments}
-          className="flex items-center gap-2 px-3 py-2 rounded-full text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors duration-150 group"
-        >
-          <MessageCircle
-            className="size-5 [@media(hover:hover)_and_(pointer:fine)]:group-hover:scale-110 transition-transform"
-            strokeWidth={1.5}
-          />
-          <span className="text-xs font-semibold">{post.comments.length}</span>
-        </motion.button>
-      </div>
-
-      <div className="flex items-center gap-1">
-        <motion.button
-          whileTap={{ scale: 0.9 }}
-          onClick={onSave}
-          className={cn(
-            "p-2.5 rounded-full transition-colors",
-            post.saved
-              ? "text-zinc-900 bg-zinc-100"
-              : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
-          )}
-          title={post.saved ? "Remove from bookmarks" : "Save this post"}
-        >
-          <Bookmark
-            className={cn(
-              "size-4 transition-transform duration-150",
-              post.saved ? "fill-current scale-110" : "",
-            )}
-            strokeWidth={1.5}
-          />
-        </motion.button>
-
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={
-              <motion.button
-                aria-label="Share post"
-                whileTap={{ scale: 0.9 }}
-                className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
-              >
-                <Share2 className="size-4" strokeWidth={1.5} />
-              </motion.button>
-            }
-          />
-          <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
-              Share Update
-            </DropdownMenuLabel>
-            <DropdownMenuSeparator />
-            {typeof navigator !== "undefined" &&
-              typeof navigator.share === "function" && (
-                <DropdownMenuItem onClick={handleNativeShare}>
-                  <Share2 className="mr-2 size-4" /> Share via…
-                </DropdownMenuItem>
-              )}
-            <DropdownMenuItem onClick={handleCopyLink}>
-              {copied ? (
-                <Check className="mr-2 size-4 text-green-600" />
-              ) : (
-                <LinkIcon className="mr-2 size-4" />
-              )}
-              {copied ? "Copied!" : "Copy Link"}
-            </DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
-                  "_blank",
-                )
-              }
-            >
-              <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
-                  "_blank",
-                )
-              }
-            >
-              <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
-                  "_blank",
-                )
-              }
-            >
-              <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
-            </DropdownMenuItem>
-            <DropdownMenuItem
-              onClick={() =>
-                window.open(
-                  `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
-                )
-              }
-            >
-              <Mail className="mr-2 size-4" /> Email
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
-    </div>
-  );
-};
-
-const CommentsSection = ({
-  comments,
-  onAddComment,
-}: {
-  comments: Comment[];
-  onAddComment: (text: string, parentId?: string) => void;
-}) => {
-  const [text, setText] = useState("");
-  const [replyText, setReplyText] = useState("");
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-
-  const handleSubmit = () => {
-    if (text.trim()) {
-      onAddComment(text);
-      setText("");
-    }
-  };
-
-  const submitReply = (parentId: string) => {
-    if (replyText.trim()) {
-      onAddComment(replyText, parentId);
-      setReplyText("");
-      setReplyingTo(null);
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, height: 0 }}
-      animate={{ opacity: 1, height: "auto" }}
-      exit={{ opacity: 0, height: 0 }}
-      className="bg-zinc-50/50 rounded-2xl p-6 mt-4 border border-zinc-100/50"
-    >
-      <h4 className="text-[10px] font-semibold text-zinc-400 uppercase tracking-widest mb-6">
-        Discussion ({comments.length})
-      </h4>
-
-      <div className="space-y-6 mb-8">
-        {comments.map((comment) => (
-          <div key={comment.id} className="group">
-            <div className="flex gap-4">
-              <Avatar className="size-9 border border-white shadow-sm mt-1">
-                <AvatarImage src={comment.avatar} />
-                <AvatarFallback className="bg-white text-zinc-700 text-xs font-semibold border border-zinc-100">
-                  {comment.author[0]}
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1 space-y-1 text-left">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
-                      {comment.author}
-                    </span>
-                    {comment.authorTitle && (
-                      <Badge
-                        variant="secondary"
-                        className="text-[9px] h-4 px-1.5 bg-zinc-200/50 text-zinc-600 font-semibold uppercase tracking-widest"
-                      >
-                        {comment.authorTitle}
-                      </Badge>
-                    )}
-                  </div>
-                  <span className="text-[10px] font-semibold text-zinc-300 uppercase tracking-widest">
-                    {comment.time}
-                  </span>
-                </div>
-                <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                  {comment.text}
-                </p>
-                <button
-                  className="text-[10px] font-semibold text-zinc-400 hover:text-zinc-900 transition-colors uppercase tracking-widest"
-                  onClick={() =>
-                    setReplyingTo(replyingTo === comment.id ? null : comment.id)
-                  }
-                >
-                  Reply
-                </button>
-              </div>
-            </div>
-
-            {/* Replies */}
-            {comment.replies && comment.replies.length > 0 && (
-              <div className="ml-12 mt-3 space-y-3 pl-3 border-l-2 border-zinc-200">
-                {comment.replies.map((reply) => (
-                  <div key={reply.id} className="flex gap-3 text-left">
-                    <Avatar className="size-7 border border-white shadow-sm mt-1">
-                      <AvatarImage src={reply.avatar} />
-                      <AvatarFallback className="bg-white text-zinc-700 text-[10px] font-semibold border border-zinc-100">
-                        {reply.author[0]}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div className="flex-1 space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold text-zinc-900 uppercase tracking-tight">
-                          {reply.author}
-                        </span>
-                        {reply.authorTitle && (
-                          <Badge
-                            variant="secondary"
-                            className="text-[9px] h-4 px-1.5 bg-zinc-900 text-white font-semibold uppercase tracking-widest"
-                          >
-                            {reply.authorTitle}
-                          </Badge>
-                        )}
-                        <span className="text-[9px] font-semibold text-zinc-300 uppercase tracking-widest">
-                          • {reply.time}
-                        </span>
-                      </div>
-                      <p className="text-sm text-zinc-600 leading-relaxed font-medium">
-                        {reply.text}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            {/* Reply Input */}
-            {replyingTo === comment.id && (
-              <div className="ml-12 mt-3 pl-3">
-                <div className="relative group">
-                  <Input
-                    placeholder={`Reply to ${comment.author}…`}
-                    className="pr-10 bg-white border-zinc-200 h-9 text-xs shadow-sm pl-3 rounded-lg"
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    onKeyDown={(e) =>
-                      e.key === "Enter" && submitReply(comment.id)
-                    }
-                  />
-                  <button
-                    onClick={() => submitReply(comment.id)}
-                    disabled={!replyText.trim()}
-                    className="absolute right-1 top-1 p-1 text-zinc-400 hover:text-zinc-900 transition-colors"
-                  >
-                    <CornerDownRight className="size-3.5" />
-                  </button>
-                </div>
-              </div>
-            )}
-          </div>
-        ))}
-        {comments.length === 0 && (
-          <p className="text-sm text-zinc-400 italic text-center py-4">
-            No comments yet. Start the conversation.
-          </p>
+    <div className="flex items-center gap-1">
+      <motion.button
+        whileTap={{ scale: 0.9 }}
+        onClick={onSave}
+        className={cn(
+          "p-2.5 rounded-full transition-colors",
+          post.saved
+            ? "text-zinc-900 bg-zinc-100"
+            : "text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100",
         )}
-      </div>
+        title={post.saved ? "Remove from bookmarks" : "Save this post"}
+      >
+        <Bookmark
+          className={cn(
+            "size-4 transition-transform duration-150",
+            post.saved ? "fill-current scale-110" : "",
+          )}
+          strokeWidth={1.5}
+        />
+      </motion.button>
 
-      <div className="flex gap-3 items-center">
-        <Avatar className="size-9 border border-zinc-200 hidden sm:block">
-          <AvatarFallback className="bg-zinc-900 text-white text-xs font-semibold">
-            ME
-          </AvatarFallback>
-        </Avatar>
-        <div className="relative flex-1 group">
-          <Input
-            placeholder="Write a supportive comment…"
-            className="pr-12 bg-white border-zinc-200/80 focus:border-zinc-300 focus:ring-4 focus:ring-zinc-100 rounded-xl h-12 transition-colors duration-150 shadow-sm pl-5"
-            value={text}
-            onChange={(e) => setText(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
-          />
-          <button
-            onClick={handleSubmit}
-            disabled={!text.trim()}
-            className="absolute right-1.5 top-1.5 p-2 text-white bg-zinc-900 hover:bg-zinc-800 rounded-lg disabled:opacity-0 disabled:scale-90 transition-[background-color,opacity,transform,box-shadow] duration-150 shadow-sm size-9 flex items-center justify-center"
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={
+            <motion.button
+              aria-label="Share post"
+              whileTap={{ scale: 0.9 }}
+              className="p-2.5 text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 rounded-full transition-colors"
+            >
+              <Share2 className="size-4" strokeWidth={1.5} />
+            </motion.button>
+          }
+        />
+        <DropdownMenuContent align="end" className="w-56">
+          <DropdownMenuLabel className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+            Share Update
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {typeof navigator !== "undefined" &&
+            typeof navigator.share === "function" && (
+              <DropdownMenuItem onClick={handleNativeShare}>
+                <Share2 className="mr-2 size-4" /> Share via…
+              </DropdownMenuItem>
+            )}
+          <DropdownMenuItem onClick={handleCopyLink}>
+            {copied ? (
+              <Check className="mr-2 size-4 text-green-600" />
+            ) : (
+              <LinkIcon className="mr-2 size-4" />
+            )}
+            {copied ? "Copied!" : "Copy Link"}
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            onClick={() =>
+              window.open(
+                `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                "_blank",
+              )
+            }
           >
-            <Send className="size-4" />
-          </button>
-        </div>
-      </div>
-    </motion.div>
+            <Facebook className="mr-2 size-4 text-blue-600" /> Facebook
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              window.open(
+                `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(shareUrl)}`,
+                "_blank",
+              )
+            }
+          >
+            <Twitter className="mr-2 size-4 text-sky-500" /> X / Twitter
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              window.open(
+                `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`,
+                "_blank",
+              )
+            }
+          >
+            <Linkedin className="mr-2 size-4 text-blue-700" /> LinkedIn
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() =>
+              window.open(
+                `mailto:?subject=${encodeURIComponent(post.title || "Update from Give Hope")}&body=${encodeURIComponent(shareText + "\n\n" + shareUrl)}`,
+              )
+            }
+          >
+            <Mail className="mr-2 size-4" /> Email
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+    </div>
   );
 };
 
 const PostCard: React.FC<{
   post: Post;
-  onLike: (id: string | number) => void;
-  onPray: (id: string | number) => void;
   onSave: (id: string | number) => void;
-  onAddComment: (id: string | number, text: string, parentId?: string) => void;
-}> = ({ post, onLike, onPray, onSave, onAddComment }) => {
-  const [showComments, setShowComments] = useState(false);
+}> = ({ post, onSave }) => {
   const [imageError, setImageError] = useState(false);
 
   return (
@@ -613,24 +349,22 @@ const PostCard: React.FC<{
       </div>
 
       {/* Footer */}
-      <PostActions
-        post={post}
-        onLike={() => onLike(post.id)}
-        onPray={() => onPray(post.id)}
-        onSave={() => onSave(post.id)}
-        onToggleComments={() => setShowComments(!showComments)}
-      />
-
-      <AnimatePresence>
-        {showComments && (
-          <CommentsSection
-            comments={post.comments}
-            onAddComment={(text, parentId) =>
-              onAddComment(post.id, text, parentId)
-            }
-          />
-        )}
-      </AnimatePresence>
+      <div className="flex items-center justify-between py-2 mt-8">
+        <ReactionBar
+          update={{
+            id: post.id,
+            likes: post.likes,
+            prayers: post.prayers,
+            liked: post.liked,
+            prayed: post.prayed,
+            comment_count: post.commentCount,
+          }}
+          reactions={["love", "prayer"]}
+          appearance="quiet"
+          comments="dialog"
+        />
+        <PostActions post={post} onSave={() => onSave(post.id)} />
+      </div>
     </motion.article>
   );
 };
@@ -651,7 +385,7 @@ function toFeedPost(post: PostWithAuthor): Post {
     images: postImages(post),
     likes: post.like_count,
     prayers: post.prayer_count,
-    comments: [],
+    commentCount: post.comment_count,
     liked: post.user_liked ?? false,
     prayed: post.user_prayed ?? false,
     saved: false,
@@ -662,10 +396,12 @@ export default function DonorFeedPage() {
   const [filter, setFilter] = useState<FilterType>("All");
   const feedQuery = useDonorFeedPosts();
 
-  // The server feed is the immutable base snapshot; local like/pray/save/comment
-  // interactions are tracked as per-post overrides and merged during render.
-  // Deriving (rather than syncing into state via an effect) keeps a single source
-  // of truth and satisfies react-hooks/set-state-in-effect.
+  // The server feed is the immutable base snapshot. Reactions and comments now
+  // live in the shared ReactionBar (transport-backed persistence); the only
+  // donor-local interaction left is the bookmark, tracked as a per-post
+  // override and merged during render. Deriving (rather than syncing into state
+  // via an effect) keeps a single source of truth and satisfies
+  // react-hooks/set-state-in-effect.
   const basePosts = useMemo<Post[]>(
     () => (feedQuery.data ?? []).map(toFeedPost),
     [feedQuery.data],
@@ -695,69 +431,12 @@ export default function DonorFeedPage() {
   }, [posts, filter]);
 
   // --- Handlers ---
-  const handleLike = (id: string | number) => {
-    const cur = currentPost(id);
-    if (!cur) return;
-    setOverrides((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        likes: cur.liked ? cur.likes - 1 : cur.likes + 1,
-        liked: !cur.liked,
-      },
-    }));
-  };
-
-  const handlePray = (id: string | number) => {
-    const cur = currentPost(id);
-    if (!cur) return;
-    setOverrides((prev) => ({
-      ...prev,
-      [id]: {
-        ...prev[id],
-        prayers: cur.prayed ? cur.prayers - 1 : cur.prayers + 1,
-        prayed: !cur.prayed,
-      },
-    }));
-  };
-
   const handleSave = (id: string | number) => {
     const cur = currentPost(id);
     if (!cur) return;
     setOverrides((prev) => ({
       ...prev,
       [id]: { ...prev[id], saved: !cur.saved },
-    }));
-  };
-
-  const handleAddComment = (
-    id: string | number,
-    text: string,
-    parentId?: string,
-  ) => {
-    const cur = currentPost(id);
-    if (!cur) return;
-    const newComment: Comment = {
-      id: `new_${Date.now()}`,
-      author: "You",
-      avatar: "",
-      text,
-      time: "Just now",
-      likes: 0,
-      replies: [],
-    };
-
-    const updatedComments = parentId
-      ? cur.comments.map((c) =>
-          c.id === parentId
-            ? { ...c, replies: [...(c.replies || []), newComment] }
-            : c,
-        )
-      : [...cur.comments, newComment];
-
-    setOverrides((prev) => ({
-      ...prev,
-      [id]: { ...prev[id], comments: updatedComments },
     }));
   };
 
@@ -803,14 +482,7 @@ export default function DonorFeedPage() {
           <>
             <AnimatePresence mode="popLayout">
               {filteredPosts.map((post) => (
-                <PostCard
-                  key={post.id}
-                  post={post}
-                  onLike={handleLike}
-                  onPray={handlePray}
-                  onSave={handleSave}
-                  onAddComment={handleAddComment}
-                />
+                <PostCard key={post.id} post={post} onSave={handleSave} />
               ))}
             </AnimatePresence>
 

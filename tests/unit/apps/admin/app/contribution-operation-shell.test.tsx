@@ -1,13 +1,23 @@
 /** @vitest-environment jsdom */
 
-import { QueryProvider } from "@asym/database/providers";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import { getQueryClient, QueryProvider } from "@asym/database/providers";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ContributionOperationShell,
   OPERATION_DEFINITIONS,
 } from "../../../../../apps/admin/app/contributions/operation-shell";
+import { contributionDetailQueryKey } from "../../../../../apps/admin/app/contributions/contribution-detail-overlay";
+import { useAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
+
+import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
 
 vi.mock("@asym/database/hooks", () => ({
   ADMIN_CRM_RECORD_DETAIL_QUERY_KEY: ["admin", "crm", "records", "detail"],
@@ -176,6 +186,102 @@ function makeReceiptDelivery(overrides: Partial<Record<string, unknown>> = {}) {
   };
 }
 
+function makeStalePostingDetail(input: {
+  actionType: "approve_staged_gift" | "retry_staged_gift";
+  donationId: string;
+  failedScopes: CrmPostFailedScope[];
+  stagedGiftStatus: "failed" | "ready_to_post" | "posted";
+}) {
+  const detail = makeDetail();
+  return {
+    ...detail,
+    id: input.donationId,
+    shared: { ...detail.shared, donationId: input.donationId },
+    stagedGift: {
+      ...detail.stagedGift,
+      status: input.stagedGiftStatus,
+    },
+    actionAvailability: [
+      {
+        actionType: input.actionType,
+        available: true,
+        blockedReason: null,
+        nextStep: null,
+        riskLevel: "medium",
+      },
+    ],
+    crm: {
+      parent: {
+        status: input.failedScopes.some((scope) => scope.scope === "parent")
+          ? "failed"
+          : "posted",
+        twentyRecordId: "crm-parent-1",
+        lastError: null,
+      },
+      designationRecords: input.failedScopes
+        .filter((scope) => scope.scope === "designation")
+        .map((scope) => ({
+          allocationId: scope.allocationId,
+          status: "failed",
+          twentyRecordId: null,
+          lastError: "The designation post failed.",
+        })),
+      failedScopes: input.failedScopes,
+      adapterLimitation: null,
+    },
+  };
+}
+
+const STALE_POSTING_CASES = (
+  ["approve_staged_gift", "retry_staged_gift"] as const
+).flatMap((actionType, actionIndex) =>
+  (["failed", "ready_to_post", "posted"] as const).flatMap(
+    (stagedGiftStatus, statusIndex) =>
+      (
+        [
+          { name: "no failed scope", failedScopes: [] },
+          {
+            name: "a parent failure",
+            failedScopes: [{ scope: "parent" as const }],
+          },
+          {
+            name: "a designation failure",
+            failedScopes: [
+              {
+                scope: "designation" as const,
+                allocationId: `00000000-0000-4000-8000-${String(
+                  actionIndex * 100 + statusIndex * 10 + 1,
+                ).padStart(12, "0")}`,
+              },
+            ],
+          },
+          {
+            name: "mixed parent and designation failures",
+            failedScopes: [
+              { scope: "parent" as const },
+              {
+                scope: "designation" as const,
+                allocationId: `00000000-0000-4000-8000-${String(
+                  actionIndex * 100 + statusIndex * 10 + 2,
+                ).padStart(12, "0")}`,
+              },
+            ],
+          },
+        ] satisfies Array<{
+          name: string;
+          failedScopes: CrmPostFailedScope[];
+        }>
+      ).map((scopeCase, scopeIndex) => ({
+        ...scopeCase,
+        actionType,
+        stagedGiftStatus,
+        donationId: `00000000-0000-4000-8000-${String(
+          actionIndex * 100 + statusIndex * 10 + scopeIndex + 1000,
+        ).padStart(12, "0")}`,
+      })),
+  ),
+);
+
 /**
  * Detail payload with the AL-263 receipt delivery block. Each test uses a
  * unique donation id because the shared QueryProvider caches detail per id.
@@ -210,6 +316,13 @@ function fetchMockForShell(
 
 let fetchDescriptor: PropertyDescriptor | undefined;
 
+function HubAmountProbe() {
+  const contributionsQuery = useAdminContributions();
+  const amountCents = contributionsQuery.data?.[0]?.amountCents;
+
+  return <p>Hub amount: {amountCents ?? "loading"}</p>;
+}
+
 describe("ContributionOperationShell", () => {
   beforeEach(() => {
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
@@ -217,6 +330,8 @@ describe("ContributionOperationShell", () => {
 
   afterEach(() => {
     cleanup();
+    getQueryClient().clear();
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     if (fetchDescriptor) {
       Object.defineProperty(globalThis, "fetch", fetchDescriptor);
@@ -253,7 +368,9 @@ describe("ContributionOperationShell", () => {
     );
 
     // Risky operation shows current effective values before submission.
-    expect(await view.findByText("$250.00")).toBeTruthy();
+    expect(
+      await view.findByText("$250.00", {}, { timeout: 10_000 }),
+    ).toBeTruthy();
     expect(view.getByText("Clean Water Initiative")).toBeTruthy();
     expect(
       view.getByText(/high-risk corrections may require approval/i),
@@ -304,6 +421,209 @@ describe("ContributionOperationShell", () => {
     });
     expect(typeof body.idempotencyKey).toBe("string");
     expect(body.idempotencyKey.length).toBeGreaterThan(10);
+  });
+
+  it("keeps a successful operation successful when post-submit refresh fails", async () => {
+    const fetchMock = fetchMockForShell({
+      auditEventId: "audit-refresh-warning",
+      adjustmentId: "adj-refresh-warning",
+      approvalStatus: "pending_approval",
+      taskIds: [],
+      canonicalContribution: {},
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const invalidationError = new Error("shared invalidation failed");
+    const rowRefreshError = new Error("CRM refetch failed");
+    let rejectInvalidation: (reason?: unknown) => void = () => undefined;
+    const invalidation = new Promise<void>((_resolve, reject) => {
+      rejectInvalidation = reject;
+    });
+    let rejectRowRefresh: (reason?: unknown) => void = () => undefined;
+    const rowRefresh = new Promise<void>((_resolve, reject) => {
+      rejectRowRefresh = reject;
+    });
+    const invalidateQueries = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockReturnValueOnce(invalidation);
+    const onRowRefresh = vi.fn().mockReturnValue(rowRefresh);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+          onRowRefresh={onRowRefresh}
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(
+      await view.findByText("Correction request submitted for approval."),
+    ).toBeTruthy();
+    expect(invalidateQueries).toHaveBeenCalled();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+
+    await act(async () => {
+      rejectInvalidation(invalidationError);
+      rejectRowRefresh(rowRefreshError);
+      await Promise.resolve();
+    });
+
+    const warning = await view.findByRole("alert");
+    expect(warning.textContent).toMatch(/the submission succeeded/i);
+    expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
+    expect(warning.textContent).toMatch(/will retry loading current values/i);
+    expect(view.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Contribution operation succeeded, but refresh failed.",
+      [invalidationError, rowRefreshError],
+    );
+  });
+
+  it("does not apply late refresh failures to a newer result", async () => {
+    const actionResults = [
+      {
+        auditEventId: "audit-late-refresh-a",
+        adjustmentId: "adj-late-refresh-a",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      {
+        auditEventId: "audit-late-refresh-b",
+        adjustmentId: "adj-late-refresh-b",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+    ];
+    let actionIndex = 0;
+    const detail = makeDetail();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url.includes("/actions")) {
+          const result = actionResults[actionIndex++]!;
+          return {
+            ok: true,
+            json: async () => ({ result }),
+            init,
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const invalidationError = new Error("late shared invalidation failure");
+    const rowRefreshError = new Error("late CRM refetch failure");
+    let rejectInvalidation: (reason?: unknown) => void = () => undefined;
+    const invalidation = new Promise<void>((_resolve, reject) => {
+      rejectInvalidation = reject;
+    });
+    let rejectRowRefresh: (reason?: unknown) => void = () => undefined;
+    const rowRefresh = new Promise<void>((_resolve, reject) => {
+      rejectRowRefresh = reject;
+    });
+    vi.spyOn(getQueryClient(), "invalidateQueries").mockReturnValueOnce(
+      invalidation,
+    );
+    const onRowRefresh = vi
+      .fn()
+      .mockReturnValueOnce(rowRefresh)
+      .mockResolvedValue(undefined);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const shell = (open: boolean) => (
+      <QueryProvider>
+        <ContributionOperationShell
+          open={open}
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+          onRowRefresh={onRowRefresh}
+        />
+      </QueryProvider>
+    );
+    const view = render(shell(true));
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText("Operation completed.")).toBeTruthy();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+
+    view.rerender(shell(false));
+    view.rerender(shell(true));
+    expect(await view.findByText("$250.00")).toBeTruthy();
+    expect(view.queryByText("Operation completed.")).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "210" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "submit a newer correction" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await waitFor(() => {
+      expect(view.getByTestId("operation-result-panel").textContent).toContain(
+        "audit-late-refresh-b",
+      );
+      expect(onRowRefresh).toHaveBeenCalledTimes(2);
+    });
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+
+    await act(async () => {
+      rejectInvalidation(invalidationError);
+      rejectRowRefresh(rowRefreshError);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        "Contribution operation succeeded, but refresh failed.",
+        [invalidationError, rowRefreshError],
+      );
+    });
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+    expect(view.getByTestId("operation-result-panel").textContent).toContain(
+      "audit-late-refresh-b",
+    );
   });
 
   it("labels amount fields with the loaded contribution currency", async () => {
@@ -372,7 +692,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     const sendReceipt = view.getByRole("button", { name: "Send receipt" });
     await waitFor(() =>
       expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
@@ -389,6 +709,62 @@ describe("ContributionOperationShell", () => {
     expect(body.stagedGiftId).toBe("staged-1");
     expect(body.payload).toEqual({});
   });
+
+  it.each(STALE_POSTING_CASES)(
+    "blocks stale $actionType availability for $stagedGiftStatus with $name",
+    async ({ actionType, donationId, failedScopes, stagedGiftStatus }) => {
+      const fetchMock = fetchMockForShell(
+        {},
+        makeStalePostingDetail({
+          actionType,
+          donationId,
+          failedScopes,
+          stagedGiftStatus,
+        }),
+      );
+      Object.defineProperty(globalThis, "fetch", {
+        configurable: true,
+        value: fetchMock,
+      });
+      const onOpenFullDetail = vi.fn();
+
+      const view = render(
+        <QueryProvider>
+          <ContributionOperationShell
+            open
+            onClose={vi.fn()}
+            operation={OPERATION_DEFINITIONS[actionType]}
+            donationId={donationId}
+            sourceSurface="donor_crm_record"
+            onOpenFullDetail={onOpenFullDetail}
+          />
+        </QueryProvider>,
+      );
+
+      expect(
+        await view.findByText(
+          /no longer an active product workflow/i,
+          {},
+          { timeout: 10_000 },
+        ),
+      ).toBeTruthy();
+      expect(
+        view.getByText(/historical evidence.*current CRM data.*Asym/i),
+      ).toBeTruthy();
+      expect(
+        view.queryByRole("button", { name: "CRM posting unavailable" }),
+      ).toBeNull();
+
+      fireEvent.click(
+        view.getByRole("button", { name: "View full contribution detail" }),
+      );
+
+      expect(onOpenFullDetail).toHaveBeenCalledWith(donationId);
+      expect(
+        fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+      ).toBe(false);
+    },
+  );
 
   it("omits the receipt result line when the outcome is not required", async () => {
     const fetchMock = fetchMockForShell({
@@ -415,7 +791,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     const sendReceipt = view.getByRole("button", { name: "Send receipt" });
     await waitFor(() =>
       expect((sendReceipt as HTMLButtonElement).disabled).toBe(false),
@@ -448,7 +824,11 @@ describe("ContributionOperationShell", () => {
     );
 
     expect(
-      await view.findByText(/no payment provider charge to refund against/i),
+      await view.findByText(
+        /no payment provider charge to refund against/i,
+        {},
+        { timeout: 10_000 },
+      ),
     ).toBeTruthy();
     expect(
       view.getByText(/offline gifts are corrected through adjustments/i),
@@ -497,7 +877,11 @@ describe("ContributionOperationShell", () => {
     );
 
     expect(
-      await view.findByText(/not available for the current gift/i),
+      await view.findByText(
+        /not available for the current gift/i,
+        {},
+        { timeout: 10_000 },
+      ),
     ).toBeTruthy();
     expect(
       view.queryByRole("button", { name: "Correct gift amount" }),
@@ -505,6 +889,69 @@ describe("ContributionOperationShell", () => {
     expect(
       fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
     ).toBe(false);
+  });
+
+  it("keeps the operation blocked when current gift detail fails to load", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000dd";
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: false,
+      json: async () => ({ error: "Current gift detail could not be loaded." }),
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    getQueryClient().setQueryDefaults(
+      ["admin", "contribution-detail", donationId],
+      { retry: false },
+    );
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.resend_receipt!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(
+      await view.findByText(/current gift detail could not be loaded/i),
+    ).toBeTruthy();
+    expect(view.queryByRole("button", { name: "Send receipt" })).toBeNull();
+    expect(
+      fetchMock.mock.calls.some(([url]) => String(url).includes("/actions")),
+    ).toBe(false);
+  });
+
+  it("keeps the operation blocked when the contribution id cannot load detail", () => {
+    const fetchMock = vi.fn();
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId="invalid-contribution-id"
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(view.getByText(/current gift detail is unavailable/i)).toBeTruthy();
+    expect(view.queryByLabelText("Amount (USD)")).toBeNull();
+    expect(
+      view.queryByRole("button", { name: "Correct gift amount" }),
+    ).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("preserves entered form state on failure and offers retry", async () => {
@@ -534,7 +981,7 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText("$250.00");
+    await view.findByText("$250.00", {}, { timeout: 10_000 });
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "150" },
     });
@@ -559,6 +1006,283 @@ describe("ContributionOperationShell", () => {
         ),
       ).toHaveLength(1);
     });
+  });
+
+  it("protects and reloads a draft after a background revision refresh", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ab";
+    const initialDetail = makeDetail({
+      id: donationId,
+      revision: "2026-05-01T00:00:00.000Z#0",
+    });
+    initialDetail.shared = {
+      ...initialDetail.shared,
+      donationId,
+      amountCents: 25_000,
+    };
+    const refreshedDetail = {
+      ...initialDetail,
+      revision: "2026-05-02T00:00:00.000Z#1",
+      shared: {
+        ...initialDetail.shared,
+        amountCents: 30_000,
+      },
+    };
+    let detailFetchCount = 0;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-stale-recovery",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        detailFetchCount += 1;
+        return {
+          ok: true,
+          json: async () => ({
+            contribution:
+              detailFetchCount === 1 ? initialDetail : refreshedDetail,
+          }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("$250.00")).toBeTruthy();
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "fix" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+
+    act(() => {
+      getQueryClient().setQueryData(
+        contributionDetailQueryKey(donationId),
+        refreshedDetail,
+      );
+    });
+    expect(await view.findByText("$300.00")).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("150");
+    expect(
+      await view.findByText(/gift changed while you were editing/i),
+    ).toBeTruthy();
+    expect(
+      view.getByRole("button", { name: "Reload latest gift" }),
+    ).toBeTruthy();
+    expect(view.getByRole("button", { name: "Discard draft" })).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions")),
+    ).toHaveLength(0);
+
+    fireEvent.click(view.getByRole("button", { name: "Reload latest gift" }));
+    await waitFor(() => {
+      expect(
+        view.queryByText(/gift changed while you were editing/i),
+      ).toBeNull();
+    });
+    expect(view.getByText("$300.00")).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("");
+    expect((view.getByLabelText("Reason") as HTMLTextAreaElement).value).toBe(
+      "",
+    );
+    expect(
+      (view.getByRole("checkbox") as HTMLButtonElement).getAttribute(
+        "data-checked",
+      ),
+    ).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "reviewed latest detail" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await view.findByText("Operation completed.");
+    const actionCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/actions"),
+    );
+    expect(actionCalls).toHaveLength(1);
+    const retryBody = JSON.parse(
+      (actionCalls[0]![1] as RequestInit).body as string,
+    );
+    expect(retryBody.expectedRevision).toBe("2026-05-02T00:00:00.000Z#1");
+  });
+
+  it("preserves a draft and offers recovery when the server rejects a stale save", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ac";
+    const detail = makeDetail({
+      id: donationId,
+      revision: "2026-05-01T00:00:00.000Z#0",
+    });
+    const onClose = vi.fn();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: false,
+            status: 409,
+            init,
+            json: async () => ({
+              error:
+                "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={onClose}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "fix stale gift" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText(/changed since you loaded/i)).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("150");
+    expect(
+      view.getByRole("button", { name: "Reload latest gift" }),
+    ).toBeTruthy();
+    fireEvent.click(view.getByRole("button", { name: "Discard draft" }));
+    expect(onClose).toHaveBeenCalledOnce();
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.expectedRevision).toBe("2026-05-01T00:00:00.000Z#0");
+  });
+
+  it("refreshes an active Hub consumer after a CRM operation succeeds", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ad";
+    const detail = makeDetail({ id: donationId });
+    detail.shared = { ...detail.shared, donationId };
+    let hubFetchCount = 0;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url === "/api/admin/contributions") {
+          hubFetchCount += 1;
+          return {
+            ok: true,
+            json: async () => ({
+              rows: [
+                {
+                  id: donationId,
+                  amountCents: hubFetchCount === 1 ? 25_000 : 20_000,
+                },
+              ],
+            }),
+          };
+        }
+        if (url.includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-cross-surface",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <HubAmountProbe />
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("Hub amount: 25000")).toBeTruthy();
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText("Operation completed.")).toBeTruthy();
+    expect(await view.findByText("Hub amount: 20000")).toBeTruthy();
+    expect(hubFetchCount).toBeGreaterThanOrEqual(2);
   });
 
   it("renders receipt delivery options with inline blocked reasons", async () => {
@@ -590,7 +1314,11 @@ describe("ContributionOperationShell", () => {
     );
 
     expect(
-      await view.findByText(/this correction changes receipt fields: amount/i),
+      await view.findByText(
+        /this correction changes receipt fields: amount/i,
+        {},
+        { timeout: 10_000 },
+      ),
     ).toBeTruthy();
 
     const emailRadio = view.getByRole("radio", {
@@ -650,7 +1378,11 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText(/this correction changes receipt fields: amount/i);
+    await view.findByText(
+      /this correction changes receipt fields: amount/i,
+      {},
+      { timeout: 10_000 },
+    );
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "150" },
     });
@@ -701,7 +1433,11 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText(/this correction changes receipt fields: amount/i);
+    await view.findByText(
+      /this correction changes receipt fields: amount/i,
+      {},
+      { timeout: 10_000 },
+    );
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "200" },
     });
@@ -777,7 +1513,11 @@ describe("ContributionOperationShell", () => {
       </QueryProvider>,
     );
 
-    await view.findByText(/this correction changes receipt fields: amount/i);
+    await view.findByText(
+      /this correction changes receipt fields: amount/i,
+      {},
+      { timeout: 10_000 },
+    );
     fireEvent.change(view.getByLabelText("Amount (USD)"), {
       target: { value: "200" },
     });

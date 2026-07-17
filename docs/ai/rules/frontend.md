@@ -31,6 +31,10 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 - State styling uses Base UI data attributes: `data-open`/`data-closed`, `data-checked`, `data-pressed`, `data-active` (tabs), `data-panel-open` (collapsible/accordion triggers) — not `data-[state=...]` selectors. TanStack Table's `data-state="selected"` and the Sidebar's own `data-state` are repo-controlled and unrelated.
 - Use `'use client'` only when required (hooks, state, browser APIs).
 - Reuse existing shared primitives before creating new ones.
+- For accessibility audits or fixes involving names, semantics, keyboard/focus,
+  forms/errors, announcements, contrast, touch targets, or reduced motion, load
+  `docs/ai/skills/accessibility-review/SKILL.md`. Automated axe results
+  complement but do not replace manual keyboard and focus verification.
 
 ### Styling rules
 
@@ -43,6 +47,12 @@ Use this before changing anything in `apps/*` or `packages/ui` that affects UI.
 ### Motion rules
 
 Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-engineering/SKILL.md` first; **repo timing/CSS contract** (tokens, utilities, route VT): `docs/ai/skills/anim/SKILL.md` (summary below).
+
+When asked where motion would genuinely help, load
+`docs/ai/skills/find-animation-opportunities/SKILL.md` for a read-only scan that
+must also identify what should remain static. It does not replace
+`improve-animations`, `review-animations`, or an explicitly authorized
+implementation task.
 
 - **Use the motion tokens, not literals.** Prefer real `--duration-*` / `--ease-*` variables (e.g. `var(--duration-standard)`, `var(--ease-out-soft)`) or `EASE_OUT_*` / `DURATION_*` from `@asym/lib/motion-presets` (not brace shorthand — the `{a,b,…}` form above is documentation-only). All motion tokens live in `packages/ui/styles/globals.css :root`.
 - **No `transition: all` / `transition-all`.** Specify exact properties (e.g. `transition-[transform,box-shadow]` or one of the shared utilities below).
@@ -70,9 +80,19 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 - Do not apply shadcn/studio MCP rules for manual UI edits.
 - If you use Nia (MCP) to trace UI code, keep queries scoped to `Asymmetric-al/core` and use the preamble built from `docs/ai/working-set.md` + `docs/ai/stack-registry.md` for search calls (see `AGENTS.md#nia-mcp-usage-always-repo-scoped` and `docs/ai/nia.md`).
 
-### State management
+### Browser data and state management
 
-- **Server state:** TanStack Query v5 (`useQuery`, `useMutation`). Use array keys (e.g., `['users', id]`). Invalidate queries on mutation success.
+- **Browser-visible Supabase table data:** TanStack DB Supabase collections via
+  `@asym/database/hooks` are the default. Use live queries for joins, filters,
+  feeds, lists, dashboards, and tables when practical.
+- **Server read models / non-collection async state:** TanStack Query v5
+  (`useQuery`, `useMutation`). Use array keys (e.g., `['users', id]`).
+  Invalidate queries on mutation success when Realtime is not the sync path.
+- **Simple RLS-authorized single-table writes:** use collection mutations when
+  optimistic UI makes sense.
+- **Privileged writes:** use Server Actions, `packages/api`, or thin route
+  handlers for payments, receipts, email, webhooks, audit, role changes,
+  reporting, RPC counters, and multi-table workflows.
 - **Client state:** `useState`/`useReducer` for local state; React Context for global UI state.
 - **Do not use Zustand.** It is not installed.
 
@@ -91,9 +111,10 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 2. For Tiptap / rich text editor work, apply `skills/tiptap/SKILL.md`.
 3. Reuse shared primitives from `@asym/ui` before creating new UI.
 4. Keep Tailwind usage token-based and consistent with Maia/Zinc.
-5. Use TanStack Query for async data and invalidate on mutations.
-6. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
-7. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
+5. Use `@asym/database/hooks` for browser-visible Supabase table data.
+6. Use TanStack Query for server read models and non-collection async data; invalidate on mutations when Realtime is not the sync path.
+7. If adding a shadcn component, use `--cwd packages/ui` and verify exports.
+8. If shadcn/studio MCP is used, switch to `rules/shadcn-studio-mcp.md` and follow it exactly.
 
 ## Checklists
 
@@ -104,7 +125,9 @@ Per `AGENTS.md`: for animation craft and feel, load `docs/ai/skills/emil-design-
 - [ ] New/refactored primitives follow Base UI first policy
 - [ ] No `radix-ui`/`@radix-ui/*` imports anywhere; composition uses Base UI `render`, not `asChild`
 - [ ] Tailwind uses tokens (no arbitrary values)
-- [ ] TanStack Query used for async server data
+- [ ] Browser table reads go through `@asym/database/hooks` or collection exports
+- [ ] TanStack Query used for server read models or non-collection async data
+- [ ] Privileged mutations stay server-command owned
 - [ ] Complex client forms use TanStack Form + Zod
 - [ ] Simple/native/server-only forms use native `<form>`, `next/form`, or server actions intentionally
 

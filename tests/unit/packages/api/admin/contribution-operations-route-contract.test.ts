@@ -79,6 +79,9 @@ describe("admin/contribution-operations route contract", () => {
 
   it("rejects action types this route dependency set cannot execute", () => {
     const unsupportedActions: ContributionActionType[] = [
+      "approve_staged_gift",
+      "retry_staged_gift",
+      "crm_repost",
       "metadata_update",
       "donor_relink",
     ];
@@ -91,12 +94,26 @@ describe("admin/contribution-operations route contract", () => {
 
       expect(isContributionRouteActionSupported(actionType)).toBe(false);
       expect(parsed.success).toBe(false);
-      expect(parsed.error?.issues[0]?.message).toContain(
-        "not supported by this route",
-      );
-      expect(() => assertContributionRouteActionSupported(actionType)).toThrow(
-        /not supported by this route|dependencies are wired/,
-      );
+      const postingAction = [
+        "approve_staged_gift",
+        "retry_staged_gift",
+        "crm_repost",
+      ].includes(actionType);
+      if (postingAction) {
+        expect(parsed.error?.issues[0]?.message).toMatch(
+          /no longer an active product workflow.*historical evidence/i,
+        );
+        expect(() =>
+          assertContributionRouteActionSupported(actionType),
+        ).toThrow(/no longer an active product workflow.*historical evidence/i);
+      } else {
+        expect(parsed.error?.issues[0]?.message).toContain(
+          "not supported by this route",
+        );
+        expect(() =>
+          assertContributionRouteActionSupported(actionType),
+        ).toThrow(/not supported by this route|dependencies are wired/);
+      }
     }
   });
 

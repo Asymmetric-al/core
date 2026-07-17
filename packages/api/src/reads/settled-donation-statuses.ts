@@ -5,9 +5,9 @@ export const SETTLED_DONATION_STATUSES = [
 ] as const;
 
 /**
- * Shared membership set for every legacy donation-status reader. Keeping the
- * set next to the canonical list prevents surface-specific normalizers from
- * drifting while the legacy single-status model remains in service.
+ * Shared membership set over {@link SETTLED_DONATION_STATUSES}. Keeping it
+ * next to the canonical list ensures payment-status normalizers classify
+ * settled donations identically and cannot drift.
  */
 export const SETTLED_DONATION_STATUS_SET: ReadonlySet<string> = new Set(
   SETTLED_DONATION_STATUSES,

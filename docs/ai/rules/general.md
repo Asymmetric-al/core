@@ -26,27 +26,6 @@ Use this as the default rulebook for any repo change or AL-### issue workflow.
 
 **Rule:** Exactly one label from each category. Do not mix multiple labels from the same category.
 
-### PR automation labels
-
-`automation:*` labels are machine-owned PR orchestration labels, not part of the
-issue taxonomy above. The PR Signal Coordinator owns these labels and may add or
-remove them when CI, review-bot, and security signals change:
-
-- `automation:signals-pending`
-- `automation:ci-settled`
-- `automation:ci-failed`
-- `automation:greptile-settled`
-- `automation:bugbot-settled`
-- `automation:security-settled`
-- `automation:security-failed`
-- `automation:review-findings`
-- `automation:signal-timeout`
-- `automation:pr-intake-ready`
-
-Do not manually maintain these labels except for emergency reruns or cleanup.
-`automation:pr-intake-ready` means the PR is ready for a settled intake snapshot;
-it does **not** mean the PR is ready to merge.
-
 ### CI gates (must pass before merge)
 
 - `bun run format:check`

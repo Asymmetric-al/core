@@ -225,7 +225,7 @@ describe("Phase 5 CRM donor detail and reports", () => {
     expect(detail.giftHistory[0]).toMatchObject({
       currencyCode: "USD",
       stagedGiftId: "staged-gift-1",
-      twentyRecordId: "twenty-gift-1",
+      twentyRecordId: null,
     });
     expect(detail.giftHistoryTruncated).toBe(false);
     expect(detail.timeline.map((entry) => entry.kind)).toEqual(
@@ -245,6 +245,150 @@ describe("Phase 5 CRM donor detail and reports", () => {
       crmWriteMode: "disabled",
       platformPaymentTruth: true,
       twentyIsPaymentTruth: false,
+    });
+  });
+
+  it("exposes historical provider record ids only to provider operators", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "admin",
+      supabaseAdmin: createSupabaseFixture(baseTables) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: ["contributions.use_provider_actions"],
+    });
+
+    expect(detail.giftHistory[0]?.twentyRecordId).toBe("twenty-gift-1");
+  });
+
+  it("loads the tenant approval policy once and threads it into inline gift actions", async () => {
+    const requestCapableViewer = [
+      "contributions.view_detail",
+      "contributions.request_corrections",
+    ];
+
+    // Without a policy row, the conservative default requires approval, so
+    // request affordances surface for request-capable staff.
+    let policyLoads = 0;
+    const fixture = createSupabaseFixture(baseTables);
+    const countingSupabase = {
+      from(table: string) {
+        if (table === "contribution_approval_policies") {
+          policyLoads += 1;
+        }
+        return fixture.from(table);
+      },
+    };
+    const conservative = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: countingSupabase as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: requestCapableViewer,
+    });
+
+    expect(policyLoads).toBe(1);
+    // Provider-touching requests still require their direct provider
+    // capabilities; request-only staff receive correction requests only.
+    expect(
+      conservative.giftHistory[0]?.inlineActions?.entries
+        .map((entry) => entry.actionType)
+        .sort(),
+    ).toEqual(["amount_correction", "fund_correction"]);
+
+    // A no_approval_required tenant must not offer request-only affordances
+    // the operations route would reject with 403 (#270 gap 2).
+    const relaxed = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        contribution_approval_policies: [
+          {
+            escalation_hours: null,
+            ownership_mode: "no_approval_required",
+            reminder_hours: 24,
+            stronger_approval_categories: [],
+            suppressed_gates: [],
+            tenant_id: "tenant-1",
+          },
+        ],
+      }) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: requestCapableViewer,
+    });
+
+    expect(relaxed.giftHistory[0]?.inlineActions?.entries).toEqual([]);
+    expect(
+      relaxed.giftHistory[0]?.inlineActions?.nextBestActionType,
+    ).toBeNull();
+  });
+
+  it("keeps a legacy aggregate failure blocked after the gift is posted", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donation_crm_links: [],
+        staged_gifts: baseTables.staged_gifts.map((stagedGift) => ({
+          ...stagedGift,
+          crm_post_status: "failed",
+          status: "posted",
+        })),
+      }) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: ["contributions.retry_crm_post"],
+    });
+
+    expect(
+      detail.giftHistory[0]?.inlineActions.entries.find(
+        (entry) => entry.actionType === "retry_staged_gift",
+      ),
+    ).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
+  });
+
+  it("keeps paused staged-gift posting state historical and non-executable", async () => {
+    const detail = await getAdminCrmDonorDetail({
+      crmWritesEnabled: false,
+      donorId: "donor-1",
+      role: "staff",
+      supabaseAdmin: createSupabaseFixture({
+        ...baseTables,
+        donation_crm_links: baseTables.donation_crm_links.map((link) => ({
+          ...link,
+          link_status: "queued",
+        })),
+        staged_gifts: baseTables.staged_gifts.map((stagedGift) => ({
+          ...stagedGift,
+          status: "ready_to_post",
+          crm_post_status: "blocked",
+        })),
+      }) as never,
+      tenantId: "tenant-1",
+      viewerCapabilities: ["contributions.retry_crm_post"],
+    });
+
+    expect(
+      detail.giftHistory[0]?.inlineActions.entries.find(
+        (entry) => entry.actionType === "retry_staged_gift",
+      ),
+    ).toMatchObject({
+      actionType: "retry_staged_gift",
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
     });
   });
 

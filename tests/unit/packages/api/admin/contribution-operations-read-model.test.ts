@@ -161,6 +161,20 @@ describe("contribution operations detail read model", () => {
     expect(detail.donorVisible.historyUpdatedImmediately).toBe(true);
   });
 
+  it("passes persisted stripe refund ids through payment.stripe.refundIds", () => {
+    const detail = buildContributionDetail({
+      donation: donationInput({ stripeRefundIds: ["re_1", "re_2"] }),
+    });
+
+    expect(detail.payment.stripe.refundIds).toEqual(["re_1", "re_2"]);
+  });
+
+  it("defaults refund ids to an empty list when the donation input omits them", () => {
+    const detail = buildContributionDetail({ donation: donationInput() });
+
+    expect(detail.payment.stripe.refundIds).toEqual([]);
+  });
+
   it("keeps partial refunds distinct from full refunds in donor-visible staff detail", () => {
     const detail = buildContributionDetail({
       donation: {
@@ -259,10 +273,18 @@ describe("contribution operations detail read model", () => {
       expect.objectContaining({
         actionType: "approve_staged_gift",
         available: false,
+        blockedReason: expect.stringMatching(
+          /no longer an active product workflow/i,
+        ),
+        nextStep: expect.stringMatching(/historical evidence.*Asym/i),
       }),
       expect.objectContaining({
         actionType: "retry_staged_gift",
         available: false,
+        blockedReason: expect.stringMatching(
+          /no longer an active product workflow/i,
+        ),
+        nextStep: expect.stringMatching(/historical evidence.*Asym/i),
       }),
       expect.objectContaining({
         actionType: "resend_receipt",
@@ -271,6 +293,7 @@ describe("contribution operations detail read model", () => {
       expect.objectContaining({
         actionType: "refund",
         available: true,
+        blockedReason: null,
       }),
     ]);
 
@@ -351,23 +374,33 @@ describe("contribution operations detail read model", () => {
     // Donor context renders for read-only gifts.
     expect(detail.donor.name).toBe("Legacy Donor");
 
-    const workflowEntries = detail.actionAvailability.filter((entry) =>
-      ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
-        entry.actionType,
-      ),
+    const postingEntries = detail.actionAvailability.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift"].includes(entry.actionType),
     );
-    for (const entry of workflowEntries) {
+    expect(postingEntries).toHaveLength(2);
+    for (const entry of postingEntries) {
       expect(entry.available).toBe(false);
-      expect(entry.blockedReason).toMatch(/no staged gift/i);
-      expect(entry.nextStep).toMatch(/valid/i);
+      expect(entry.blockedReason).toMatch(
+        /no longer an active product workflow/i,
+      );
+      expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
     }
 
-    // A check gift with no provider charge cannot use provider refunds.
+    expect(availabilityFor(detail, "resend_receipt")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/no staged gift/i),
+      nextStep: expect.stringMatching(/valid/i),
+    });
+
+    // Refund execution is wired (AL-265), but a gift without any provider
+    // charge still has nothing to refund against.
     const refundEntry = detail.actionAvailability.find(
       (entry) => entry.actionType === "refund",
     );
     expect(refundEntry?.available).toBe(false);
-    expect(refundEntry?.blockedReason).toMatch(/no payment provider charge/i);
+    expect(refundEntry?.blockedReason).toMatch(
+      /no payment provider charge to refund against/i,
+    );
   });
 
   it("exposes a first-class designation set for split gifts that reconciles to the gift amount", () => {
@@ -721,12 +754,21 @@ describe("contribution operations detail read model", () => {
         currencyCode: "USD",
         fundId: "fund_1",
         fundName: "General Fund",
-        missionaryId: null,
+        missionaryId: "missionary_1",
+        missionaryName: "Riley Worker",
         nextExpectedGiftAt: "2026-07-01T00:00:00.000Z",
         stripeSubscriptionId: "sub_1",
+        linkedGiftCount: 6,
+        lastLinkedGiftAt: "2026-06-01T00:00:00.000Z",
       },
     });
     expect(linked.recurring.agreement?.id).toBe("pledge_1");
+    expect(linked.recurring.agreement).toMatchObject({
+      missionaryId: "missionary_1",
+      missionaryName: "Riley Worker",
+      linkedGiftCount: 6,
+      lastLinkedGiftAt: "2026-06-01T00:00:00.000Z",
+    });
     expect(linked.recurring.providerRecurrenceWithoutAgreement).toBe(false);
     expect(linked.shared.recurringLinkState).toBe("agreement_linked");
 
@@ -771,6 +813,66 @@ describe("contribution operations detail read model", () => {
     });
     expect(oneTime.recurring.providerRecurrenceWithoutAgreement).toBe(false);
     expect(oneTime.shared.recurringLinkState).toBe("none");
+
+    // A one-time gift under a recurring agreement keeps its one-time label;
+    // the pledge link only drives agreement-context visibility (ADR-CD-007).
+    const oneTimeWithAgreementLink = buildContributionDetail({
+      donation: {
+        ...base,
+        isRecurring: false,
+        recurringInterval: null,
+        pledgeId: "pledge_1",
+      },
+    });
+    expect(oneTimeWithAgreementLink.recurring.isRecurring).toBe(false);
+    expect(oneTimeWithAgreementLink.recurring.pledgeId).toBe("pledge_1");
+    expect(
+      oneTimeWithAgreementLink.recurring.providerRecurrenceWithoutAgreement,
+    ).toBe(false);
+    expect(oneTimeWithAgreementLink.shared.recurringLinkState).toBe(
+      "agreement_linked",
+    );
+  });
+
+  it("keeps the revision stable when agreement gift-history context changes", () => {
+    const donation = donationInput({
+      pledgeId: "pledge_1",
+      updatedAt: "2026-05-21T00:00:00.000Z",
+    });
+    const agreement = {
+      id: "pledge_1",
+      status: "active",
+      frequency: "monthly",
+      amountCents: 5_000,
+      currencyCode: "USD",
+      fundId: null,
+      fundName: null,
+      missionaryId: null,
+      missionaryName: null,
+      nextExpectedGiftAt: null,
+      stripeSubscriptionId: null,
+      linkedGiftCount: 3,
+      lastLinkedGiftAt: "2026-05-01T00:00:00.000Z",
+    };
+
+    const before = buildContributionDetail({
+      donation,
+      recurringAgreement: agreement,
+    });
+    // A new gift arriving under the same agreement changes only the
+    // gift-history context; it must not invalidate in-flight corrections
+    // on this gift via the optimistic-concurrency revision.
+    const after = buildContributionDetail({
+      donation,
+      recurringAgreement: {
+        ...agreement,
+        linkedGiftCount: 4,
+        lastLinkedGiftAt: "2026-06-01T00:00:00.000Z",
+      },
+    });
+
+    expect(after.recurring.agreement?.linkedGiftCount).toBe(4);
+    expect(after.revision).toBe(before.revision);
   });
 
   it("derives effective values from applied adjustments while preserving the original", () => {
@@ -969,11 +1071,11 @@ describe("contribution operations detail read model", () => {
     });
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: false,
-      blockedReason: expect.stringMatching(/completed payments/i),
+      blockedReason: expect.stringMatching(/only completed payments/i),
     });
   });
 
-  it("allows refunds when Stripe proof has only a payment intent id", () => {
+  it("keeps PaymentIntent-only proof refundable now that execution is wired", () => {
     const detail = buildContributionDetail({
       donation: donationInput({
         stripePaymentIntentId: "pi_only",
@@ -991,13 +1093,15 @@ describe("contribution operations detail read model", () => {
 
     expect(detail.payment.stripe.paymentIntentId).toBe("pi_only");
     expect(detail.payment.stripe.chargeId).toBeNull();
+    // The refund executor accepts a PaymentIntent as provider proof, so a
+    // PaymentIntent-only gift advertises refund (AL-265).
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: true,
       blockedReason: null,
     });
   });
 
-  it("makes retry available when CRM link state exposes failed scopes", () => {
+  it("keeps designation failure evidence while CRM posting stays unavailable", () => {
     const detail = buildContributionDetail({
       donation: donationInput(),
       stagedGift: {
@@ -1023,7 +1127,20 @@ describe("contribution operations detail read model", () => {
     expect(detail.crm.failedScopes).toEqual([
       { scope: "designation", allocationId: "alloc_1" },
     ]);
-    expect(availabilityFor(detail, "retry_staged_gift").available).toBe(true);
+    expect(detail.crm.designationRecords).toEqual([
+      expect.objectContaining({
+        allocationId: "alloc_1",
+        status: "failed",
+        lastError: "Twenty rejected the designation record.",
+      }),
+    ]);
+    expect(availabilityFor(detail, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
   });
 
   it("changes revision when adjustment state changes with the same donation timestamp and count", () => {

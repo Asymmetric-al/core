@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import { buildContributionActionAvailability } from "../../../../../packages/api/src/admin/contribution-operations/action-availability";
+import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
+import { projectContributionDetailForViewer } from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
 import { buildSharedContributionRowFields } from "../../../../../packages/api/src/admin/contribution-shared/row-contract";
 import { buildContributionGridRow } from "../../../../../packages/api/src/admin/contributions/model";
 import { buildCrmGiftHistoryRow } from "../../../../../packages/api/src/admin/crm/detail/gift-history";
@@ -36,6 +38,77 @@ const stagedGift = {
   crm_post_status: "posted",
 };
 
+const FULL_CAPABILITIES = [
+  "contributions.view_detail",
+  "contributions.request_corrections",
+  "contributions.apply_corrections",
+  "contributions.manage_receipts",
+  "contributions.retry_crm_post",
+  "contributions.run_refunds",
+  "contributions.use_provider_actions",
+];
+
+/**
+ * Contribution detail built from the same gift the CRM row uses, so parity
+ * assertions compare real derivations on both sides (#270).
+ */
+function buildDetailForParity(provider: {
+  stripePaymentIntentId: string | null;
+  stripeChargeId: string | null;
+}) {
+  return buildContributionDetail({
+    donation: {
+      id: donation.id,
+      tenantId: "tenant-1",
+      donorId: donation.donor_id,
+      missionaryId: donation.missionary_id,
+      fundId: donation.fund_id,
+      amount: donation.amount,
+      currency: donation.currency,
+      status: donation.status,
+      donationType: "one_time",
+      paymentMethod: "card",
+      isRecurring: false,
+      recurringInterval: null,
+      notes: null,
+      stripePaymentIntentId: provider.stripePaymentIntentId,
+      stripeChargeId: provider.stripeChargeId,
+      giftDate: donation.gift_date,
+      campaignId: null,
+      pledgeId: null,
+      processedAt: null,
+      completedAt: null,
+      failedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      refundedAt: donation.refunded_at,
+      refundAmount: donation.refund_amount,
+      source: "online",
+      createdAt: donation.created_at,
+      updatedAt: donation.updated_at,
+    },
+    donor: {
+      id: donor.id,
+      profileId: null,
+      name: donor.name,
+      email: donor.email,
+      phone: null,
+      location: null,
+      organization: null,
+    },
+    fund,
+    missionary: { id: missionary.id, name: missionary.display_name },
+    stagedGift: {
+      id: stagedGift.id,
+      status: stagedGift.status,
+      receiptStatus: stagedGift.receipt_status,
+      crmPostStatus: stagedGift.crm_post_status,
+      reviewReason: null,
+      twentyRecordId: null,
+    },
+  });
+}
+
 describe("admin/crm/detail/gift-history", () => {
   it("adapter-maps CRM gift history rows onto the shared row contract", () => {
     const row = buildCrmGiftHistoryRow({
@@ -45,6 +118,7 @@ describe("admin/crm/detail/gift-history", () => {
       missionary,
       stagedGift: { ...stagedGift, twenty_record_id: "twenty-1" },
       corrections: [{ status: "applied" }],
+      viewerCapabilities: ["contributions.use_provider_actions"],
     });
 
     expect(row.shared).toEqual(
@@ -240,8 +314,9 @@ describe("admin/crm/detail/gift-history", () => {
   it("exposes inline actions with detail-identical blocked reasons (#270)", () => {
     const failedStagedGift = {
       ...stagedGift,
+      status: "failed",
       crm_post_status: "failed",
-      twenty_record_id: null,
+      twenty_record_id: "twenty-history-1",
     };
     const row = buildCrmGiftHistoryRow({
       donation,
@@ -285,10 +360,90 @@ describe("admin/crm/detail/gift-history", () => {
       ).toEqual(detailEntry);
     }
 
-    expect(row.inlineActions.nextBestActionType).toBe("retry_staged_gift");
+    expect(row.inlineActions.nextBestActionType).toBe("resend_receipt");
+    const postingEntries = row.inlineActions.entries.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift"].includes(entry.actionType),
+    );
+    expect(postingEntries).toHaveLength(2);
+    for (const entry of postingEntries) {
+      expect(entry.available).toBe(false);
+      expect(entry.blockedReason).toMatch(
+        /no longer an active product workflow/i,
+      );
+      expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
+    }
     expect(
       row.inlineActions.entries.map((entry) => entry.actionType),
     ).toContain("stripe_replay");
+    expect(row.twentyRecordId).toBe(failedStagedGift.twenty_record_id);
+  });
+
+  it("keeps PaymentIntent-only refund proof aligned for refund-capable requesters", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift,
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: null },
+      viewerCapabilities: [
+        "contributions.run_refunds",
+        "contributions.request_corrections",
+      ],
+    });
+
+    // PaymentIntent-only proof satisfies the refund executor, so the inline
+    // entry advertises refund exactly like contribution detail (AL-265).
+    expect(
+      row.inlineActions.entries.find((entry) => entry.actionType === "refund"),
+    ).toMatchObject({
+      actionType: "refund",
+      available: true,
+      blockedReason: null,
+    });
+  });
+
+  it("keeps provider replay available for charge-only gifts like contribution detail", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift,
+      provider: { stripePaymentIntentId: null, stripeChargeId: "ch_1" },
+      viewerCapabilities: [
+        "contributions.use_provider_actions",
+        "contributions.request_corrections",
+      ],
+    });
+
+    expect(
+      row.inlineActions.entries.find(
+        (entry) => entry.actionType === "stripe_replay",
+      ),
+    ).toMatchObject({
+      actionType: "stripe_replay",
+      available: true,
+      blockedReason: null,
+    });
+  });
+
+  it("omits approval-gated replay when provider staff cannot request corrections", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift,
+      provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
+      viewerCapabilities: ["contributions.use_provider_actions"],
+    });
+
+    expect(
+      row.inlineActions.entries.find(
+        (entry) => entry.actionType === "stripe_replay",
+      ),
+    ).toBeUndefined();
   });
 
   it("keeps inline refunds available on the original basis when an adjustment lowered the effective amount (#265)", () => {
@@ -308,9 +463,12 @@ describe("admin/crm/detail/gift-history", () => {
       stagedGift: { ...stagedGift, twenty_record_id: null },
       provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
       refundBasis: { originalAmountCents: 5_000 },
+      // Approval-gated refunds require the requester to hold BOTH the refund
+      // and correction-request capabilities (#270 authorization parity).
       viewerCapabilities: [
         "contributions.view_detail",
         "contributions.run_refunds",
+        "contributions.request_corrections",
       ],
     });
 
@@ -360,9 +518,12 @@ describe("admin/crm/detail/gift-history", () => {
       stagedGift: { ...stagedGift, twenty_record_id: null },
       provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
       refundBasis: { originalAmountCents: 5_000 },
+      // Approval-gated refunds require the requester to hold BOTH the refund
+      // and correction-request capabilities (#270 authorization parity).
       viewerCapabilities: [
         "contributions.view_detail",
         "contributions.run_refunds",
+        "contributions.request_corrections",
       ],
     });
 
@@ -372,6 +533,69 @@ describe("admin/crm/detail/gift-history", () => {
     expect(refundEntry).toMatchObject({
       available: false,
       blockedReason: "This gift is already fully refunded.",
+    });
+  });
+
+  it("keeps refund availability identical inline and in detail for payment-intent-only gifts (#270)", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift: { ...stagedGift, twenty_record_id: null },
+      provider: { stripePaymentIntentId: "pi_only", stripeChargeId: null },
+      viewerCapabilities: FULL_CAPABILITIES,
+    });
+    const detail = buildDetailForParity({
+      stripePaymentIntentId: "pi_only",
+      stripeChargeId: null,
+    });
+
+    const detailRefund = detail.actionAvailability.find(
+      (entry) => entry.actionType === "refund",
+    );
+    const inlineRefund = row.inlineActions.entries.find(
+      (entry) => entry.actionType === "refund",
+    );
+
+    // The detail read model treats a payment intent as refundable provider
+    // proof; the CRM adapter must produce the identical entry.
+    expect(inlineRefund).toEqual(detailRefund);
+    expect(inlineRefund).toMatchObject({
+      available: true,
+      blockedReason: null,
+    });
+  });
+
+  it("keeps provider replay identical inline and in detail for charge-only gifts (#270)", () => {
+    const row = buildCrmGiftHistoryRow({
+      donation,
+      donor,
+      fund,
+      missionary,
+      stagedGift: { ...stagedGift, twenty_record_id: null },
+      provider: { stripePaymentIntentId: null, stripeChargeId: "ch_only" },
+      viewerCapabilities: FULL_CAPABILITIES,
+    });
+    const projected = projectContributionDetailForViewer(
+      buildDetailForParity({
+        stripePaymentIntentId: null,
+        stripeChargeId: "ch_only",
+      }),
+      FULL_CAPABILITIES,
+    );
+
+    const detailReplay = projected.actionAvailability.find(
+      (entry) => entry.actionType === "stripe_replay",
+    );
+    const inlineReplay = row.inlineActions.entries.find(
+      (entry) => entry.actionType === "stripe_replay",
+    );
+
+    expect(inlineReplay).toEqual(detailReplay);
+    expect(inlineReplay).toMatchObject({
+      available: true,
+      blockedReason: null,
     });
   });
 
@@ -396,25 +620,37 @@ describe("admin/crm/detail/gift-history", () => {
 
     // Workflow actions stay visible with reasons instead of disappearing,
     // and never call the donation itself invalid.
-    const workflowEntries = row.inlineActions.entries.filter((entry) =>
-      ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
-        entry.actionType,
-      ),
+    const postingEntries = row.inlineActions.entries.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift"].includes(entry.actionType),
     );
-    expect(workflowEntries.length).toBeGreaterThan(0);
-    for (const entry of workflowEntries) {
+    expect(postingEntries).toHaveLength(2);
+    for (const entry of postingEntries) {
       expect(entry.available).toBe(false);
-      expect(entry.blockedReason).toMatch(/no staged gift/i);
-      expect(entry.nextStep).toMatch(/valid/i);
+      expect(entry.blockedReason).toMatch(
+        /no longer an active product workflow/i,
+      );
+      expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
       expect(entry.blockedReason).not.toMatch(/invalid|missing donation/i);
     }
 
-    // Refund does not require a staged gift; with a provider charge it stays
-    // available so read-only gifts keep their financial operations.
+    const receiptEntry = row.inlineActions.entries.find(
+      (entry) => entry.actionType === "resend_receipt",
+    );
+    expect(receiptEntry).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/no staged gift/i),
+      nextStep: expect.stringMatching(/valid/i),
+    });
+
+    // Refund does not require a staged gift; with a completed payment and
+    // provider proof it stays available even on no-staged-gift rows (AL-265).
     const refundEntry = row.inlineActions.entries.find(
       (entry) => entry.actionType === "refund",
     );
-    expect(refundEntry?.available).toBe(true);
+    expect(refundEntry).toMatchObject({
+      available: true,
+      blockedReason: null,
+    });
   });
 
   it("hides inline operations the viewer has no capability for", () => {
@@ -423,7 +659,7 @@ describe("admin/crm/detail/gift-history", () => {
       donor,
       fund,
       missionary,
-      stagedGift: { ...stagedGift, twenty_record_id: null },
+      stagedGift: { ...stagedGift, twenty_record_id: "twenty-hidden" },
       provider: { stripePaymentIntentId: "pi_1", stripeChargeId: "ch_1" },
       viewerCapabilities: [
         "contributions.view_detail",
@@ -431,14 +667,13 @@ describe("admin/crm/detail/gift-history", () => {
       ],
     });
 
+    // Under the default approval policy, corrections, refunds, and provider
+    // replay are request-capable actions and do not require direct-execution
+    // capabilities.
     expect(
       row.inlineActions.entries.map((entry) => entry.actionType).sort(),
-    ).toEqual([
-      "amount_correction",
-      "fund_correction",
-      "refund",
-      "stripe_replay",
-    ]);
+    ).toEqual(["amount_correction", "fund_correction"]);
     expect(row.inlineActions.nextBestActionType).toBeNull();
+    expect(row.twentyRecordId).toBeNull();
   });
 });

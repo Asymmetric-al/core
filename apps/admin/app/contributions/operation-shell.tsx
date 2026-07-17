@@ -1,8 +1,16 @@
 "use client";
 
-// Import from the pure types submodule, not the package barrel: the barrel
+// Import values from pure submodules, not the package barrel: the barrel
 // re-exports server-only modules (Stripe refunds, Supabase access) that must
 // not be evaluated in this client component's bundle.
+import {
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+  CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+  CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+  CRM_POSTING_UNAVAILABLE_REASON,
+  isContributionCrmPostingSupported,
+  isContributionRouteCrmRetryScopeSupported,
+} from "@asym/api/admin/contribution-operations/crm-retry-support";
 import { isFailedProviderOutcomeStatus } from "@asym/api/admin/contribution-operations/types";
 import { formatSharedContributionAmount } from "@asym/api/admin/contribution-shared";
 import { Alert, AlertDescription } from "@asym/ui/components/shadcn/alert";
@@ -36,6 +44,7 @@ import { useId, useMemo, useState } from "react";
 
 import {
   invalidateContributionOperationQueries,
+  isContributionGiftParam,
   useContributionDetail,
 } from "./contribution-detail-overlay";
 import {
@@ -49,6 +58,10 @@ import {
   type ReceiptDeliveryValue,
 } from "./receipt-delivery-choice";
 
+// Type-only imports are erased at compile time, so pulling this one type
+// from the barrel does not evaluate its server-only modules in the client
+// bundle (matches contribution-detail-overlay.tsx).
+import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
 import type {
   ContributionActionResult,
   ContributionActionType,
@@ -147,10 +160,10 @@ export const OPERATION_DEFINITIONS: Record<
       "Moves this gift's designation to a different fund through an audited adjustment.",
     category: "correction",
     riskCopy:
-      "Changing the fund affects donor intent records, receipts, and CRM posting. High-risk corrections may require approval.",
+      "Changing the fund affects donor intent records, receipts, and CRM reporting. High-risk corrections may require approval.",
     downstreamEffects: [
       "Designation summary changes in CRM and the Contributions Hub.",
-      "CRM posting and receipts may need follow-up.",
+      "CRM records and receipts may need follow-up.",
     ],
     requiresReason: true,
     requiresConfirmation: true,
@@ -193,11 +206,12 @@ export const OPERATION_DEFINITIONS: Record<
   },
   approve_staged_gift: {
     actionType: "approve_staged_gift",
-    title: "Approve and post gift",
-    description: "Approves the staged gift and queues it for CRM posting.",
+    title: "CRM posting unavailable",
+    description:
+      "Recorded posting state is historical while CRM data is maintained in Asym.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The gift posts to the CRM as workflow metadata."],
+    downstreamEffects: [],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -206,11 +220,12 @@ export const OPERATION_DEFINITIONS: Record<
   },
   retry_staged_gift: {
     actionType: "retry_staged_gift",
-    title: "Retry CRM posting",
-    description: "Retries the failed CRM posting for this gift.",
+    title: "CRM posting unavailable",
+    description:
+      "Recorded posting failures are historical while CRM data is maintained in Asym.",
     category: "crm",
     riskCopy: null,
-    downstreamEffects: ["The gift reposts to the CRM."],
+    downstreamEffects: [],
     requiresReason: false,
     requiresConfirmation: false,
     fields: [],
@@ -238,7 +253,7 @@ export const OPERATION_CATEGORY_LABELS: Record<OperationCategory, string> = {
   correction: "Correction",
   receipt: "Receipt",
   refund: "Refund",
-  crm: "CRM / Twenty",
+  crm: "Historical CRM",
   provider: "Provider / Admin",
 };
 
@@ -250,8 +265,74 @@ type ShellPhase =
       result: ContributionActionResult;
       /** The delivery selection submitted with this operation, if any. */
       submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+      refreshFailed: boolean;
     }
-  | { name: "failure"; message: string };
+  | { name: "failure"; message: string; staleSave: boolean };
+
+class ContributionOperationRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | undefined,
+  ) {
+    super(message);
+    this.name = "ContributionOperationRequestError";
+  }
+}
+
+function retryPayloadForScope(
+  scope: CrmPostFailedScope | null,
+): Record<string, unknown> {
+  if (scope?.scope === "designation" && scope.allocationId?.trim()) {
+    return {
+      scope: "designation",
+      allocationId: scope.allocationId,
+    };
+  }
+
+  return { scope: "parent" };
+}
+
+function retryTargetBlock(
+  failedScopes: CrmPostFailedScope[],
+): { reason: string; nextStep: string } | null {
+  const executableScopes = failedScopes.filter((scope) =>
+    isContributionRouteCrmRetryScopeSupported(scope.scope),
+  );
+  if (executableScopes.length === 1) {
+    return null;
+  }
+
+  if (failedScopes.length > 1) {
+    return {
+      reason:
+        "More than one CRM posting failed, so this inline action cannot safely choose a retry target.",
+      nextStep:
+        "Open full contribution detail to retry one failed record at a time.",
+    };
+  }
+
+  const [scope] = failedScopes;
+  if (scope?.scope === "designation" && !scope.allocationId?.trim()) {
+    return {
+      reason:
+        "The failed designation cannot be targeted safely because its allocation identity is missing.",
+      nextStep:
+        "Open full contribution detail to review the CRM posting state before retrying.",
+    };
+  }
+
+  if (
+    scope?.scope === "designation" &&
+    !isContributionRouteCrmRetryScopeSupported(scope.scope)
+  ) {
+    return {
+      reason: CRM_DESIGNATION_RETRY_UNSUPPORTED_REASON,
+      nextStep: CRM_DESIGNATION_RETRY_UNSUPPORTED_NEXT_STEP,
+    };
+  }
+
+  return null;
+}
 
 async function submitOperation(input: {
   actionType: ContributionActionType;
@@ -286,7 +367,10 @@ async function submitOperation(input: {
   } | null;
 
   if (!response.ok || !body?.result) {
-    throw new Error(body?.error ?? "The operation failed.");
+    throw new ContributionOperationRequestError(
+      body?.error ?? "The operation failed.",
+      response.status,
+    );
   }
 
   return body.result;
@@ -356,7 +440,7 @@ export function ContributionOperationShell({
   sourceSurface: ContributionSourceSurface;
   /** Optional secondary action — never an automatic redirect (ADR-CD-033). */
   onOpenFullDetail?: (donationId: string) => void;
-  onRowRefresh?: () => void;
+  onRowRefresh?: () => void | Promise<void>;
 }) {
   const queryClient = useQueryClient();
   const detailQuery = useContributionDetail(open ? donationId : null);
@@ -368,11 +452,23 @@ export function ContributionOperationShell({
   const [delivery, setDelivery] = useState<ReceiptDeliveryValue | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [draftRevision, setDraftRevision] = useState<string | null>(null);
   const [amountPrefillKey, setAmountPrefillKey] = useState<string | null>(null);
   const reasonId = useId();
   const amountId = useId();
   const fundId = useId();
   const confirmId = useId();
+
+  const resetDraftState = () => {
+    setPhase({ name: "form" });
+    setValues({ reason: "", confirmed: false });
+    setDelivery(null);
+    setIdempotencyKey(crypto.randomUUID());
+    setDraftRevision(null);
+    // Re-arm the refund amount prefill so a reload after a stale draft
+    // repopulates the amount from the refreshed detail.
+    setAmountPrefillKey(null);
+  };
 
   // Reset the form whenever a different operation/gift opens. State is
   // adjusted during render (React's documented pattern) so no effect-driven
@@ -384,14 +480,42 @@ export function ContributionOperationShell({
     setOpenKey(nextOpenKey);
     setAmountPrefillKey(null);
     if (nextOpenKey) {
-      setPhase({ name: "form" });
-      setValues({ reason: "", confirmed: false });
-      setDelivery(null);
-      setIdempotencyKey(crypto.randomUUID());
+      resetDraftState();
     }
   }
 
   const detail = detailQuery.data;
+  const detailQueryEnabled = isContributionGiftParam(donationId);
+  const detailLoading = detailQueryEnabled && detailQuery.isPending;
+  const detailLoadBlock =
+    !detail && !detailLoading
+      ? {
+          reason:
+            detailQuery.error instanceof Error
+              ? detailQuery.error.message
+              : "Current gift detail is unavailable for this row.",
+          nextStep: "Close this action, refresh the CRM row, and try again.",
+        }
+      : null;
+  const latestRevision = detail?.revision ?? null;
+  const hasBackgroundConflict =
+    draftRevision !== null &&
+    latestRevision !== null &&
+    draftRevision !== latestRevision;
+  const needsStaleDraftRecovery =
+    hasBackgroundConflict || (phase.name === "failure" && phase.staleSave);
+  const captureDraftRevision = () => {
+    setDraftRevision((current) => current ?? detail?.revision ?? null);
+  };
+  // Pin the revision the staffer is acting on as soon as detail is ready.
+  // Input-free operations (send receipt, retry) never touch a field, so
+  // waiting for the first edit would let a background refetch silently
+  // re-point expectedRevision at data the staffer never reviewed. State is
+  // adjusted during render (React's documented pattern), guarded so it runs
+  // once per draft.
+  if (nextOpenKey && latestRevision !== null && draftRevision === null) {
+    setDraftRevision(latestRevision);
+  }
   const isRefundOperation = operation?.actionType === "refund";
   // The refundable basis is the ORIGINAL charged amount (what the provider
   // charged), matching the server availability payload and the refund
@@ -450,13 +574,48 @@ export function ContributionOperationShell({
     return null;
   }
 
-  const blocked = availability
-    ? !availability.available
-    : Boolean(detail && operation);
+  const failedRetryScopes =
+    operation.actionType === "retry_staged_gift"
+      ? (detail?.crm.failedScopes ?? [])
+      : [];
+  const hasIndependentStagedGiftRetry = Boolean(
+    detail?.stagedGift?.status === "failed" ||
+    (detail?.stagedGift?.status === "ready_to_post" &&
+      (detail.stagedGift.crmPostStatus === "failed" ||
+        detail.stagedGift.crmPostStatus === "blocked")),
+  );
+  const retryTargetScopes = hasIndependentStagedGiftRetry
+    ? []
+    : failedRetryScopes;
+  const retryTargetScope =
+    retryTargetScopes.find((scope) =>
+      isContributionRouteCrmRetryScopeSupported(scope.scope),
+    ) ??
+    retryTargetScopes[0] ??
+    null;
+  const postingCapabilityBlock =
+    (operation.actionType === "approve_staged_gift" ||
+      operation.actionType === "retry_staged_gift") &&
+    !isContributionCrmPostingSupported()
+      ? {
+          reason: CRM_POSTING_UNAVAILABLE_REASON,
+          nextStep: CRM_POSTING_UNAVAILABLE_NEXT_STEP,
+        }
+      : null;
+  const operationBlock =
+    postingCapabilityBlock ??
+    detailLoadBlock ??
+    (availability?.available ? retryTargetBlock(retryTargetScopes) : null);
+  const blocked =
+    !detail ||
+    Boolean(operationBlock) ||
+    (availability ? !availability.available : true);
   const blockedReason =
+    operationBlock?.reason ??
     availability?.blockedReason ??
     "This operation is not available for the current gift.";
   const blockedNextStep =
+    operationBlock?.nextStep ??
     availability?.nextStep ??
     "Refresh the gift detail or choose another action.";
   const amountCurrencyCode = detail?.shared.currencyCode ?? "USD";
@@ -522,8 +681,48 @@ export function ContributionOperationShell({
   const validationMessage =
     amountError ?? fundError ?? deliveryError ?? reasonError ?? confirmError;
 
+  const refreshAfterOperation = async (
+    completedResult: ContributionActionResult,
+  ) => {
+    const refreshResults = await Promise.allSettled([
+      Promise.resolve().then(() =>
+        // throwOnError: failed refetches must reject so the stale-data
+        // warning below can surface them (default invalidation resolves
+        // even when the triggered refetches fail).
+        invalidateContributionOperationQueries(queryClient, {
+          throwOnError: true,
+        }),
+      ),
+      Promise.resolve().then(() => onRowRefresh?.()),
+    ]);
+    const refreshErrors = refreshResults.flatMap((refreshResult) =>
+      refreshResult.status === "rejected" ? [refreshResult.reason] : [],
+    );
+    if (refreshErrors.length === 0) {
+      return;
+    }
+
+    console.error(
+      "Contribution operation succeeded, but refresh failed.",
+      refreshErrors,
+    );
+    setPhase((currentPhase) =>
+      currentPhase.name === "success" && currentPhase.result === completedResult
+        ? { ...currentPhase, refreshFailed: true }
+        : currentPhase,
+    );
+  };
+
   const handleSubmit = async () => {
-    if (!donationId || validationMessage || blocked || pendingRefundMessage) {
+    if (
+      !isContributionGiftParam(donationId) ||
+      !detail ||
+      !availability?.available ||
+      validationMessage ||
+      blocked ||
+      hasBackgroundConflict ||
+      pendingRefundMessage
+    ) {
       return;
     }
     const receiptDeliverySelection: ReceiptDeliveryProposal | null =
@@ -538,40 +737,75 @@ export function ContributionOperationShell({
         : null;
     const basePayload = operation.buildPayload({
       values,
-      stagedGiftId: detail?.stagedGift?.id ?? null,
+      stagedGiftId: detail.stagedGift?.id ?? null,
     });
+    const payload =
+      operation.actionType === "retry_staged_gift"
+        ? {
+            ...basePayload,
+            ...retryPayloadForScope(retryTargetScope),
+          }
+        : basePayload;
     setPhase({ name: "submitting" });
+    let result: ContributionActionResult;
     try {
-      const result = await submitOperation({
+      result = await submitOperation({
         actionType: operation.actionType,
         contributionId: donationId,
-        stagedGiftId: detail?.stagedGift?.id ?? null,
+        stagedGiftId: detail.stagedGift?.id ?? null,
         sourceSurface,
         reason: values.reason.trim() || null,
         confirmationToken: operation.requiresConfirmation
           ? idempotencyKey
           : null,
-        expectedRevision: detail?.revision ?? null,
+        expectedRevision: draftRevision ?? detail.revision,
         idempotencyKey,
         payload: receiptDeliverySelection
-          ? { ...basePayload, receiptDelivery: receiptDeliverySelection }
-          : basePayload,
-      });
-      await invalidateContributionOperationQueries(queryClient);
-      onRowRefresh?.();
-      setPhase({
-        name: "success",
-        result,
-        submittedReceiptDelivery: receiptDeliverySelection,
+          ? { ...payload, receiptDelivery: receiptDeliverySelection }
+          : payload,
       });
     } catch (error) {
       // Failure preserves the entered form state for recovery (ADR-CD-033).
+      const message =
+        error instanceof Error ? error.message : "The operation failed.";
+      const staleSave =
+        error instanceof ContributionOperationRequestError &&
+        error.status === 409;
+      setPhase({ name: "failure", message, staleSave });
+      if (staleSave) {
+        // The server saw a newer revision than this client. Refresh the
+        // cached detail in the background so the "current values" summary
+        // is honest and a discarded-then-reopened dialog does not start
+        // from the same stale snapshot and hit the same 409 again.
+        void detailQuery.refetch();
+      }
+      return;
+    }
+
+    setPhase({
+      name: "success",
+      result,
+      submittedReceiptDelivery: receiptDeliverySelection,
+      refreshFailed: false,
+    });
+    void refreshAfterOperation(result);
+  };
+
+  const handleReloadLatestDetail = async () => {
+    const refreshed = await detailQuery.refetch();
+    if (refreshed.isError) {
+      const reason =
+        refreshed.error instanceof Error
+          ? refreshed.error.message
+          : "Could not reload the latest gift detail.";
       setPhase({
         name: "failure",
-        message:
-          error instanceof Error ? error.message : "The operation failed.",
+        message: reason,
+        staleSave: true,
       });
+      return;
     }
+    resetDraftState();
   };
 
   const effectiveSummary = detail ? (
@@ -634,13 +868,20 @@ export function ContributionOperationShell({
           {operation.description}
         </DialogDescription>
 
-        {detailQuery.isPending && (
-          <p role="status" className="text-sm text-muted-foreground">
-            Loading current gift values…
-          </p>
+        {detailLoading && (
+          <div className="space-y-3">
+            <p role="status" className="text-sm text-muted-foreground">
+              Loading current gift values…
+            </p>
+            <div className="flex justify-end">
+              <Button variant="outline" className="h-11" onClick={onClose}>
+                Cancel
+              </Button>
+            </div>
+          </div>
         )}
 
-        {blocked && (
+        {blocked && !detailLoading && (
           <div
             role="note"
             className="rounded-lg border border-border bg-muted/30 p-4 space-y-1"
@@ -651,10 +892,20 @@ export function ContributionOperationShell({
             {blockedNextStep && (
               <p className="text-xs text-muted-foreground">{blockedNextStep}</p>
             )}
+            {operationBlock && onOpenFullDetail && donationId && (
+              <Button
+                variant="outline"
+                className="mt-3 h-11"
+                onClick={() => onOpenFullDetail(donationId)}
+              >
+                View full contribution detail
+              </Button>
+            )}
           </div>
         )}
 
         {!blocked &&
+          !detailQuery.isPending &&
           phase.name !== "success" &&
           phase.name !== "submitting" && (
             <div className="space-y-4">
@@ -699,12 +950,13 @@ export function ContributionOperationShell({
                     aria-invalid={Boolean(amountError)}
                     inputMode="decimal"
                     value={values.amountDollars ?? ""}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         amountDollars: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     className="h-11"
                   />
                   {isRefundOperation && (
@@ -727,12 +979,13 @@ export function ContributionOperationShell({
                     aria-describedby={fundError ? `${fundId}-error` : undefined}
                     aria-invalid={Boolean(fundError)}
                     value={values.fundId ?? ""}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         fundId: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     className="h-11"
                   />
                   <FieldError
@@ -747,7 +1000,10 @@ export function ContributionOperationShell({
                   affectedFields={operation.receiptFields}
                   receiptDelivery={receiptDelivery}
                   value={deliveryValue}
-                  onChange={setDelivery}
+                  onChange={(nextDelivery) => {
+                    captureDraftRevision();
+                    setDelivery(nextDelivery);
+                  }}
                   error={deliveryError}
                 />
               )}
@@ -762,12 +1018,13 @@ export function ContributionOperationShell({
                     }
                     aria-invalid={Boolean(reasonError)}
                     value={values.reason}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         reason: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     placeholder="Why is this change needed?"
                   />
                   <FieldError
@@ -789,12 +1046,13 @@ export function ContributionOperationShell({
                     }
                     aria-invalid={Boolean(confirmError)}
                     checked={values.confirmed}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         confirmed: checked === true,
-                      }))
-                    }
+                      }));
+                    }}
                     className="mt-0.5"
                   />
                   <FieldContent>
@@ -820,21 +1078,45 @@ export function ContributionOperationShell({
                 </p>
               )}
 
+              {hasBackgroundConflict && phase.name !== "failure" && (
+                <p role="alert" className="text-sm text-destructive">
+                  <CircleX className="mr-1 inline size-4" aria-hidden />
+                  This gift changed while you were editing. Review the latest
+                  current values above, then reload to start again or discard
+                  this draft.
+                </p>
+              )}
+
               <div className="flex flex-wrap justify-end gap-2 pt-1">
                 <Button variant="outline" className="h-11" onClick={onClose}>
-                  Cancel
+                  {needsStaleDraftRecovery ? "Discard draft" : "Cancel"}
                 </Button>
-                <Button
-                  className="h-11"
-                  disabled={
-                    Boolean(validationMessage) ||
-                    Boolean(pendingRefundMessage) ||
-                    detailQuery.isPending
-                  }
-                  onClick={() => void handleSubmit()}
-                >
-                  {phase.name === "failure" ? "Retry" : operation.title}
-                </Button>
+                {needsStaleDraftRecovery ? (
+                  <Button
+                    className="h-11"
+                    disabled={detailQuery.isFetching}
+                    onClick={() => void handleReloadLatestDetail()}
+                  >
+                    {detailQuery.isFetching
+                      ? "Reloading latest gift…"
+                      : "Reload latest gift"}
+                  </Button>
+                ) : (
+                  <Button
+                    className="h-11"
+                    disabled={
+                      Boolean(validationMessage) ||
+                      Boolean(pendingRefundMessage) ||
+                      !detail ||
+                      !availability?.available ||
+                      detailQuery.isPending ||
+                      hasBackgroundConflict
+                    }
+                    onClick={() => void handleSubmit()}
+                  >
+                    {phase.name === "failure" ? "Retry" : operation.title}
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -852,6 +1134,7 @@ export function ContributionOperationShell({
             operation={operation}
             donationId={donationId}
             submittedReceiptDelivery={phase.submittedReceiptDelivery}
+            refreshFailed={phase.refreshFailed}
             onOpenFullDetail={onOpenFullDetail}
             onClose={onClose}
           />
@@ -927,6 +1210,7 @@ function OperationResultPanel({
   operation,
   donationId,
   submittedReceiptDelivery,
+  refreshFailed,
   onOpenFullDetail,
   onClose,
 }: {
@@ -934,6 +1218,7 @@ function OperationResultPanel({
   operation: OperationDefinition;
   donationId: string | null;
   submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+  refreshFailed: boolean;
   onOpenFullDetail?: (donationId: string) => void;
   onClose: () => void;
 }) {
@@ -963,6 +1248,15 @@ function OperationResultPanel({
         )}
         {headline}
       </p>
+      {refreshFailed && (
+        <Alert role="alert">
+          <AlertDescription>
+            The submission succeeded, but the displayed gift data may be stale
+            because refresh failed. Closing and reopening this gift will retry
+            loading current values.
+          </AlertDescription>
+        </Alert>
+      )}
       <ul className="space-y-0.5 text-xs text-muted-foreground">
         {result.correctionRequestId && (
           <li>Approval request: {result.correctionRequestId}</li>

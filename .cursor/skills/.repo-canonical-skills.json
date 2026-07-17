@@ -1,25 +1,35 @@
 {
   "version": 2,
   "canonicalSkills": [
+    "accessibility-review",
     "anim",
     "animation-vocabulary",
     "apple-design",
     "ask-matt",
+    "babysit",
     "base-ui",
     "bendc-frontend-guidelines",
     "cache-components",
+    "check-compiler-errors",
     "code-review",
     "codebase-design",
     "commit",
     "components-build",
+    "control-cli",
+    "control-ui",
     "create-agent",
+    "deslop",
     "diagnosing-bugs",
     "domain-model",
     "domain-modeling",
     "emil-design-eng",
     "emil-design-engineering",
     "eve",
+    "find-animation-opportunities",
     "find-skills",
+    "fix-ci",
+    "fix-merge-conflicts",
+    "get-pr-comments",
     "grill-for-unknowns",
     "grill-me",
     "grill-with-docs",
@@ -42,15 +52,20 @@
     "inngest-setup",
     "inngest-steps",
     "inngest-v3-v4-migration",
+    "loop-on-ci",
+    "make-pr-easy-to-review",
     "migrate-to-shoehorn",
     "moai-library-shadcn",
     "motion",
+    "new-branch-and-pr",
     "nextjs-app-router",
     "nextjs-supabase-auth",
     "npm-deps-cleanup",
     "payloadcms-cms-migration",
     "payloadcms-payload",
     "playwright-best-practices",
+    "playwright-cli",
+    "pr-review-canvas",
     "prd-to-plan",
     "prototype",
     "qa",
@@ -63,12 +78,15 @@
     "resend-cli",
     "resolving-merge-conflicts",
     "reui",
+    "review-and-ship",
     "review-animations",
+    "run-smoke-tests",
     "setup-matt-pocock-skills",
     "setup-pre-commit",
     "supabase",
     "supabase-postgres-best-practices",
     "tdd",
+    "thermo-nuclear-code-quality-review",
     "tiptap",
     "to-spec",
     "to-tickets",
@@ -76,9 +94,18 @@
     "ubiquitous-language",
     "vercel-react-best-practices",
     "vercel-react-view-transitions",
-    "wayfinder"
+    "verify-this",
+    "vitest",
+    "wayfinder",
+    "weekly-review",
+    "what-did-i-get-done",
+    "workflow-from-chats"
   ],
   "canonicalSkillFiles": {
+    "accessibility-review": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "anim": [
       "SKILL.md"
     ],
@@ -96,6 +123,11 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "babysit": [
+      "SKILL.md",
+      "references/upstream.md",
+      "versions.json"
+    ],
     "base-ui": [
       "SKILL.md",
       "reference-links.md"
@@ -107,6 +139,10 @@
     ],
     "cache-components": [
       "SKILL.md"
+    ],
+    "check-compiler-errors": [
+      "SKILL.md",
+      "references/upstream.md"
     ],
     "code-review": [
       "SKILL.md",
@@ -124,9 +160,21 @@
     "components-build": [
       "SKILL.md"
     ],
+    "control-cli": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "control-ui": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "create-agent": [
       "SKILL.md",
       "reference.md",
+      "references/upstream.md"
+    ],
+    "deslop": [
+      "SKILL.md",
       "references/upstream.md"
     ],
     "diagnosing-bugs": [
@@ -165,8 +213,24 @@
       "SKILL.md",
       "references/upstream.md"
     ],
+    "find-animation-opportunities": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "find-skills": [
       "SKILL.md"
+    ],
+    "fix-ci": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "fix-merge-conflicts": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "get-pr-comments": [
+      "SKILL.md",
+      "references/upstream.md"
     ],
     "grill-for-unknowns": [
       "LICENSE",
@@ -375,6 +439,14 @@
     "inngest-v3-v4-migration": [
       "SKILL.md"
     ],
+    "loop-on-ci": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "make-pr-easy-to-review": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "migrate-to-shoehorn": [
       "SKILL.md",
       "references/upstream.md"
@@ -385,6 +457,10 @@
     ],
     "motion": [
       "SKILL.md"
+    ],
+    "new-branch-and-pr": [
+      "SKILL.md",
+      "references/upstream.md"
     ],
     "nextjs-app-router": [
       "SKILL.md"
@@ -420,6 +496,17 @@
     "playwright-best-practices": [
       "SKILL.md",
       "references/upstream.md"
+    ],
+    "playwright-cli": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "pr-review-canvas": [
+      "SKILL.md",
+      "references/upstream.md",
+      "renderer.js",
+      "styles.css",
+      "template.html"
     ],
     "prd-to-plan": [
       "SKILL.md",
@@ -492,10 +579,18 @@
       "rules/workflow.md",
       "tools.md"
     ],
+    "review-and-ship": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "review-animations": [
       "SKILL.md",
       "STANDARDS.md",
       "references/LICENSE.md",
+      "references/upstream.md"
+    ],
+    "run-smoke-tests": [
+      "SKILL.md",
       "references/upstream.md"
     ],
     "setup-matt-pocock-skills": [
@@ -562,6 +657,10 @@
       "mocking.md",
       "references/upstream.md",
       "tests.md"
+    ],
+    "thermo-nuclear-code-quality-review": [
+      "SKILL.md",
+      "references/upstream.md"
     ],
     "tiptap": [
       "SKILL.md",
@@ -675,7 +774,27 @@
       "references/patterns.md",
       "references/upstream.md"
     ],
+    "verify-this": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "vitest": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
     "wayfinder": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "weekly-review": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "what-did-i-get-done": [
+      "SKILL.md",
+      "references/upstream.md"
+    ],
+    "workflow-from-chats": [
       "SKILL.md",
       "references/upstream.md"
     ]

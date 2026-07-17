@@ -1,5 +1,8 @@
 # Phase 07 Web Studio UX Evidence
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Generated: 2026-05-15
 Baseline commit: `c9b688fc6bdee222b8722f0e291eae376580e358`
 Status: `complete`

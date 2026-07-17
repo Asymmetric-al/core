@@ -2,7 +2,7 @@
 
 import { useCallback, useState, useEffect } from "react";
 
-import type { ColumnSizingState, Table, Header } from "@tanstack/react-table";
+import type { ColumnSizingState, RowData, Header } from "../tanstack";
 
 export interface ColumnResizingOptions {
   enabled?: boolean;
@@ -18,7 +18,7 @@ export interface UseColumnResizingReturn {
   setColumnSizing: (sizing: ColumnSizingState) => void;
   resetColumnSizing: () => void;
   getResizeHandler: (
-    header: Header<unknown, unknown>,
+    header: Header<RowData, unknown>,
   ) => (e: React.MouseEvent | React.TouchEvent) => void;
   isResizing: boolean;
 }
@@ -49,8 +49,7 @@ function removeFromStorage(key: string) {
   } catch {}
 }
 
-export function useColumnResizing<TData>(
-  _table: Table<TData>,
+export function useColumnResizing(
   options: ColumnResizingOptions = {},
 ): UseColumnResizingReturn {
   const {
@@ -97,7 +96,7 @@ export function useColumnResizing<TData>(
   }, [persistKey, onColumnSizeChange]);
 
   const getResizeHandler = useCallback(
-    (header: Header<unknown, unknown>) => {
+    (header: Header<RowData, unknown>) => {
       if (!enabled) return () => {};
 
       return (e: React.MouseEvent | React.TouchEvent) => {
@@ -169,6 +168,7 @@ export function ColumnResizeHandle({
       onMouseDown={onResize}
       onTouchStart={onResize}
       role="separator"
+      aria-label="Resize column"
       aria-orientation="vertical"
       className={
         className ??

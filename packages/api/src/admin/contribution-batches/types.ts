@@ -11,6 +11,30 @@ export type ContributionBatchStatus =
   | "complete_with_issues"
   | "failed"
   | "cancelled";
+
+export interface ContributionBatchSummary {
+  processed: number;
+  succeeded: number;
+  skipped: number;
+  failed: number;
+  followUpTasksCreated: number;
+}
+
+export interface ContributionBatchNextAction {
+  method: "POST";
+  href: string;
+}
+
+/** Browser-safe shape returned by contribution batch create/process routes. */
+export interface ContributionBatchApiResponse {
+  batch: {
+    id?: string | null;
+    status: ContributionBatchStatus;
+    executionMode?: ContributionBatchExecutionMode;
+    summary: ContributionBatchSummary;
+  };
+  nextAction?: ContributionBatchNextAction | null;
+}
 export type ContributionBatchItemStatus = "succeeded" | "skipped" | "failed";
 
 export interface ContributionBatchRecord {

@@ -5,7 +5,6 @@ import { motion } from "@asym/lib/motion";
 import { getInitials } from "@asym/lib/utils";
 import {
   AlertDialog,
-  AlertDialogAction,
   AlertDialogCancel,
   AlertDialogContent,
   AlertDialogDescription,
@@ -36,6 +35,12 @@ import {
 import { useCallback, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import {
+  continueContributionBatch,
+  readContributionBatchResponse,
+  type ContributionBatchNextAction,
+  type ContributionBatchResponse,
+} from "./batch-continuation";
 import { getContributionColumns } from "./columns";
 import {
   contributionStatusOptions,
@@ -45,6 +50,10 @@ import {
 } from "./data";
 import { ContributionNeedsAttentionPanel } from "./needs-attention-panel";
 import { OfflineGiftEntryDialog } from "./offline-gift/offline-gift-entry-dialog";
+import {
+  hubSharedContributionFilterChips,
+  hubSharedFilterColumnVisibility,
+} from "./shared-filters";
 import { ADMIN_CONTRIBUTIONS_QUERY_KEY } from "./use-admin-contributions";
 
 import type { Contribution, ContributionStatus } from "./types";
@@ -119,12 +128,14 @@ function BulkReceiptConfirmDialog({
   onConfirm,
   onOpenChange,
   open,
+  processedCount,
   rows,
   submitting,
 }: {
   onConfirm: () => void;
   onOpenChange: (open: boolean) => void;
   open: boolean;
+  processedCount: number | null;
   rows: Contribution[];
   submitting: boolean;
 }) {
@@ -133,7 +144,9 @@ function BulkReceiptConfirmDialog({
   const missingStagedGiftCount = selectedCount - eligibleCount;
   const hasEligibleReceipts = eligibleCount > 0;
   const actionLabel = submitting
-    ? "Starting batch..."
+    ? processedCount === null
+      ? "Starting batch..."
+      : `Processing batch... ${Math.min(processedCount, selectedCount)} of ${selectedCount}`
     : hasEligibleReceipts
       ? "Send receipts"
       : "No eligible receipts";
@@ -197,17 +210,16 @@ function BulkReceiptConfirmDialog({
 
         <AlertDialogFooter>
           <AlertDialogCancel disabled={submitting}>Cancel</AlertDialogCancel>
-          <AlertDialogAction
+          <Button
             disabled={submitting || !hasEligibleReceipts}
-            onClick={(event) => {
-              event.preventDefault();
+            onClick={() => {
               if (!submitting && hasEligibleReceipts) {
                 onConfirm();
               }
             }}
           >
             {actionLabel}
-          </AlertDialogAction>
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>
@@ -237,8 +249,14 @@ export function ContributionsMainBody({
   const [pendingBulkReceiptRows, setPendingBulkReceiptRows] = useState<
     Contribution[]
   >([]);
+  const [bulkReceiptProcessedCount, setBulkReceiptProcessedCount] = useState<
+    number | null
+  >(null);
   const [isBulkReceiptSubmitting, setIsBulkReceiptSubmitting] = useState(false);
   const isBulkReceiptSubmittingRef = useRef(false);
+  const bulkReceiptContinuationRef = useRef<ContributionBatchResponse | null>(
+    null,
+  );
 
   const handleViewContribution = useCallback(
     (c: Contribution) => {
@@ -285,6 +303,15 @@ export function ContributionsMainBody({
     { id: "type", label: "Type", options: contributionTypeOptions },
     { id: "paymentMethod", label: "Payment", options: paymentMethodOptions },
     { id: "source", label: "Source", options: sourceOptions },
+    // Shared CRM/Hub operational and financial filters (issue #274). Each
+    // chip evaluates through the shared filter definitions so the same gift
+    // matches identically on both surfaces; chips AND together like the
+    // existing facets.
+    ...hubSharedContributionFilterChips.map((chip) => ({
+      id: chip.id,
+      label: chip.label,
+      options: chip.options,
+    })),
   ];
 
   const handleBulkDelete = (_rows: Contribution[]) => {
@@ -295,12 +322,16 @@ export function ContributionsMainBody({
     if (rows.length === 0) {
       return;
     }
+    bulkReceiptContinuationRef.current = null;
+    setBulkReceiptProcessedCount(null);
     setPendingBulkReceiptRows(rows);
   }, []);
 
   const handleBulkReceiptDialogOpenChange = useCallback(
     (open: boolean) => {
       if (!open && !isBulkReceiptSubmitting) {
+        bulkReceiptContinuationRef.current = null;
+        setBulkReceiptProcessedCount(null);
         setPendingBulkReceiptRows([]);
       }
     },
@@ -320,49 +351,78 @@ export function ContributionsMainBody({
     isBulkReceiptSubmittingRef.current = true;
     setIsBulkReceiptSubmitting(true);
     try {
-      const response = await fetch("/api/admin/contribution-batches", {
-        body: JSON.stringify({
-          actionType: "resend_receipt",
-          confirmationToken: crypto.randomUUID(),
-          reason: "Bulk receipt resend requested from Contribution Hub.",
-          records: rows.map((row) => ({
-            id: row.id,
-            receiptStatus: row.receiptStatus,
-            stagedGiftId: row.stagedGiftId,
-          })),
-        }),
-        headers: {
-          "content-type": "application/json",
-        },
-        method: "POST",
-      });
-      if (!response.ok) {
-        const body = (await response.json().catch(() => null)) as {
-          error?: string;
-        } | null;
-        throw new Error(body?.error ?? "Bulk receipt send failed.");
+      let batchResponse = bulkReceiptContinuationRef.current;
+      if (!batchResponse) {
+        const response = await fetch("/api/admin/contribution-batches", {
+          body: JSON.stringify({
+            actionType: "resend_receipt",
+            confirmationToken: crypto.randomUUID(),
+            reason: "Bulk receipt resend requested from Contribution Hub.",
+            records: rows.map((row) => ({
+              id: row.id,
+              receiptStatus: row.receiptStatus,
+              stagedGiftId: row.stagedGiftId,
+            })),
+          }),
+          headers: {
+            "content-type": "application/json",
+          },
+          method: "POST",
+        });
+        batchResponse = await readContributionBatchResponse(
+          response,
+          "Bulk receipt send failed.",
+        );
+        bulkReceiptContinuationRef.current = batchResponse;
       }
-      const body = (await response.json()) as {
-        batch?: {
-          status?: string;
-          summary?: { succeeded?: number; failed?: number };
-        };
+
+      const rememberContinuationAction = (
+        action: ContributionBatchNextAction,
+      ) => {
+        const currentBatch = bulkReceiptContinuationRef.current?.batch;
+        if (currentBatch) {
+          bulkReceiptContinuationRef.current = {
+            batch: currentBatch,
+            nextAction: action,
+          };
+        }
       };
-      const batchStatus = body.batch?.status ?? "completed";
-      if (batchStatus === "running") {
-        // Background batches return before any record is processed, so the
-        // zeroed summary would read as "nothing succeeded".
-        toast.success(
-          `Bulk receipt batch started: ${formatSelectedContributionCount(rows.length)} processing in the background.`,
+      const body = await continueContributionBatch({
+        fetcher: fetch,
+        initialResponse: batchResponse,
+        onContinuationAction: rememberContinuationAction,
+        onProgress: (batch) => {
+          setBulkReceiptProcessedCount(batch.summary.processed);
+          bulkReceiptContinuationRef.current = {
+            batch,
+            nextAction: bulkReceiptContinuationRef.current?.nextAction,
+          };
+        },
+      });
+      const batchStatus = body.batch.status;
+      bulkReceiptContinuationRef.current = null;
+
+      if (batchStatus === "failed" || batchStatus === "cancelled") {
+        toast.error(
+          `Bulk receipt batch ${batchStatus}: ${body.batch.summary.succeeded} succeeded, ${body.batch.summary.failed} failed.`,
+        );
+      } else if (batchStatus === "complete_with_issues") {
+        toast.warning(
+          `Bulk receipt batch complete with issues: ${body.batch.summary.succeeded} succeeded, ${body.batch.summary.failed} failed, ${body.batch.summary.skipped} skipped.`,
         );
       } else {
         toast.success(
-          `Bulk receipt batch ${batchStatus}: ${body.batch?.summary?.succeeded ?? 0} succeeded, ${body.batch?.summary?.failed ?? 0} failed.`,
+          `Bulk receipt batch ${batchStatus}: ${body.batch.summary.succeeded} succeeded, ${body.batch.summary.failed} failed.`,
         );
       }
+      setBulkReceiptProcessedCount(null);
       setPendingBulkReceiptRows([]);
       onBulkReceiptSuccess?.();
     } catch (error) {
+      // AlertDialog may request closure after its action event. Reopen it on
+      // failure so the operator can retry the saved process action instead of
+      // creating a second persisted batch.
+      setPendingBulkReceiptRows(rows);
       toast.error(
         error instanceof Error
           ? error.message
@@ -380,6 +440,7 @@ export function ContributionsMainBody({
         onConfirm={submitBulkReceipt}
         onOpenChange={handleBulkReceiptDialogOpenChange}
         open={pendingBulkReceiptRows.length > 0}
+        processedCount={bulkReceiptProcessedCount}
         rows={pendingBulkReceiptRows}
         submitting={isBulkReceiptSubmitting}
       />
@@ -426,6 +487,7 @@ export function ContributionsMainBody({
         <DataTableResponsive
           columns={columns}
           data={data}
+          devtoolsKey="admin-contributions"
           filterFields={filterFields}
           searchKey="donorName"
           searchPlaceholder="Search by donor name or email..."
@@ -443,6 +505,9 @@ export function ContributionsMainBody({
             columnVisibility: {
               transactionId: false,
               source: false,
+              // Filter-only columns behind the shared filter chips stay
+              // hidden; they exist purely to evaluate shared filters.
+              ...hubSharedFilterColumnVisibility,
             },
           }}
           onRowClick={(row) => onSelectContribution(row.original)}

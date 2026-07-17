@@ -83,14 +83,29 @@ Unacceptable:
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 ```
 
-## Migration Guide (`base.js` -> flat config)
+## Migration Guide (legacy `.eslintrc.*` -> flat config)
 
-1. Replace legacy CJS config usage with `eslint.config.mjs`.
+1. Replace legacy config usage with `eslint.config.mjs`.
 2. Import either `nextjsConfig`, `libraryConfig`, or `baseConfig`.
 3. Remove `.eslintrc.*` files once migrated.
 4. Run `bun run lint` from repository root.
 
-`base.js` is deprecated and kept only for backward compatibility.
+The legacy CJS `base.js` has been removed; all consumers use the flat-config
+exports.
+
+## Import Boundary Rules
+
+The `no-restricted-imports` boundary knowledge (cross-app import bans, the
+motion/react ban, the raw Twenty client ban) lives in
+`restricted-imports.mjs`. The rule REPLACES (never merges) earlier entries for
+a matching file, so any override block that re-declares it must carry the full
+boundary set again. Never inline pattern groups; compose the rule through the
+builders instead:
+
+- `restrictedImports({ exclude, extraPatterns, extraPaths })` — universal set
+  (cross-app + motion) for all first-party source.
+- `appRestrictedImports(...)` — universal set plus the raw Twenty client ban,
+  for app code zones.
 
 ## Adding Rules or Plugins
 

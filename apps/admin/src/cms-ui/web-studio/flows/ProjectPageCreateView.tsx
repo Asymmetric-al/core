@@ -60,7 +60,12 @@ function ProjectPageCreateViewContent() {
     [routes.api],
   );
 
-  const fundsQuery = useQuery({
+  const {
+    data: funds,
+    error: fundsError,
+    isError: fundsIsError,
+    isPending: fundsIsPending,
+  } = useQuery({
     queryKey: ["web-studio", "admin-funds"],
     queryFn: async () => {
       const res = await fetch("/api/admin/funds?limit=200", {
@@ -73,7 +78,12 @@ function ProjectPageCreateViewContent() {
       return json.funds ?? [];
     },
   });
-  const tenantsQuery = useQuery(
+  const {
+    data: tenants,
+    error: tenantsError,
+    isError: tenantsIsError,
+    isPending: tenantsIsPending,
+  } = useQuery(
     buildTenantsQuery({ isSuperAdmin, apiRoute: routes.api, serverURL }),
   );
 
@@ -177,8 +187,8 @@ function ProjectPageCreateViewContent() {
                 <TenantSelectField
                   label="Tenant"
                   field={field}
-                  options={tenantsQuery.data ?? []}
-                  disabled={tenantsQuery.isPending || tenantsQuery.isError}
+                  options={tenants ?? []}
+                  disabled={tenantsIsPending || tenantsIsError}
                   placeholder="Select tenant"
                 />
               )}
@@ -197,13 +207,13 @@ function ProjectPageCreateViewContent() {
                     }
                     field.handleChange(v);
                   }}
-                  disabled={fundsQuery.isPending || fundsQuery.isError}
+                  disabled={fundsIsPending || fundsIsError}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select fund" />
                   </SelectTrigger>
                   <SelectContent>
-                    {(fundsQuery.data ?? []).map((f) => (
+                    {(funds ?? []).map((f) => (
                       <SelectItem key={f.id} value={f.id}>
                         {f.name?.trim() || f.id}
                       </SelectItem>
@@ -214,15 +224,15 @@ function ProjectPageCreateViewContent() {
             )}
           </form.Field>
 
-          {fundsQuery.isError ? (
+          {fundsIsError ? (
             <p className="text-destructive text-sm">
-              {(fundsQuery.error as Error).message}
+              {(fundsError as Error).message}
             </p>
           ) : null}
 
-          {tenantsQuery.isError ? (
+          {tenantsIsError ? (
             <p className="text-destructive text-sm">
-              {(tenantsQuery.error as Error).message}
+              {(tenantsError as Error).message}
             </p>
           ) : null}
 

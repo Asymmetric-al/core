@@ -210,19 +210,22 @@ describe("mission control automation schemas", () => {
     );
   });
 
-  it("rejects contribution execution actions that the route cannot run yet", () => {
-    expect(() =>
-      automationRuleSchema.parse({
-        name: "Refund automation",
-        mode: "advanced",
-        trigger: { kind: "contribution_issue_created" },
-        conditions: [],
-        actions: [{ kind: "contribution_action", actionType: "refund" }],
-        runMode: "review_first",
-        enabled: false,
-      }),
-    ).toThrow();
-  });
+  it.each(["refund", "crm_repost"])(
+    "rejects unsupported %s contribution execution",
+    (actionType) => {
+      expect(() =>
+        automationRuleSchema.parse({
+          name: "Unsupported automation",
+          mode: "advanced",
+          trigger: { kind: "contribution_issue_created" },
+          conditions: [],
+          actions: [{ kind: "contribution_action", actionType }],
+          runMode: "review_first",
+          enabled: false,
+        }),
+      ).toThrow();
+    },
+  );
 
   it("allows provider-backed donor notifications without widening contribution execution", () => {
     expect(() =>
@@ -542,6 +545,87 @@ describe("mission control automation preview and evaluation", () => {
 });
 
 describe("mission control automation dashboard summary", () => {
+  it("quarantines persisted CRM repost rules without breaking dashboard reads", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({
+            id: "legacy_crm_repost",
+            name: "Legacy CRM repost",
+            enabled: true,
+            activation_status: "active",
+            actions: [
+              { kind: "contribution_action", actionType: "crm_repost" },
+            ],
+          }),
+        ],
+      },
+      mission_control_automation_activity_logs: { data: [] },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.automationRules).toEqual([
+      expect.objectContaining({
+        id: "legacy_crm_repost",
+        enabled: false,
+        activationStatus: "disabled",
+        actions: [{ kind: "create_task", issueType: "crm_post_failed" }],
+      }),
+    ]);
+    expect(dashboard.summary).toMatchObject({
+      totalRules: 1,
+      activeRules: 0,
+      pausedRules: 1,
+      invalidRules: 0,
+    });
+  });
+
+  it("disables mixed CRM repost rules while preserving valid actions", async () => {
+    const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
+      mission_control_automation_rules: {
+        data: [
+          automationRuleRow({
+            id: "mixed_crm_repost",
+            name: "Mixed CRM repost",
+            enabled: true,
+            activation_status: "active",
+            actions: [
+              { kind: "contribution_action", actionType: "crm_repost" },
+              { kind: "contribution_action", actionType: "resend_receipt" },
+            ],
+          }),
+        ],
+      },
+      mission_control_automation_activity_logs: { data: [] },
+    });
+
+    const dashboard = await loadMissionControlAutomationDashboard({
+      supabaseAdmin,
+      tenantId: "tenant_1",
+    });
+
+    expect(dashboard.automationRules).toEqual([
+      expect.objectContaining({
+        id: "mixed_crm_repost",
+        enabled: false,
+        activationStatus: "disabled",
+        actions: [
+          { kind: "contribution_action", actionType: "resend_receipt" },
+        ],
+      }),
+    ]);
+    expect(dashboard.summary).toMatchObject({
+      totalRules: 1,
+      activeRules: 0,
+      pausedRules: 1,
+      invalidRules: 0,
+    });
+  });
+
   it("counts persisted rules by activation state", async () => {
     const { supabaseAdmin } = createMissionControlAutomationsSupabaseStub({
       mission_control_automation_rules: {

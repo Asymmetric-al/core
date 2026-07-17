@@ -16,8 +16,13 @@ import {
   invalidateContributionOperationQueries,
 } from "./contribution-detail-overlay";
 import { boneyardContributionsFixture, mockContributions } from "./data";
+import {
+  ContributionFreshnessIndicator,
+  useContributionFreshness,
+} from "./freshness-indicator";
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
+import { CONTRIBUTIONS_PAGE_META } from "../../components/table-page-meta";
 
 /**
  * Re-exported so existing consumers (tests, sibling surfaces) keep one import
@@ -48,31 +53,11 @@ export default function ContributionsPage({
   const [selectedDonationId, setSelectedDonationId] = useState<string | null>(
     () => selectedGiftParam,
   );
-  const [showFreshness, setShowFreshness] = useState(false);
-  const freshnessTimerRef = useRef<number | null>(null);
+  const { markFreshness, showFreshness } = useContributionFreshness();
 
   useEffect(() => {
     setSelectedDonationId(selectedGiftParam);
   }, [selectedGiftParam]);
-
-  useEffect(() => {
-    return () => {
-      if (freshnessTimerRef.current !== null) {
-        window.clearTimeout(freshnessTimerRef.current);
-      }
-    };
-  }, []);
-
-  /** Quiet, low-noise freshness indicator after row data refreshes (ADR-CD-022). */
-  const markFreshness = useCallback(() => {
-    setShowFreshness(true);
-    if (freshnessTimerRef.current !== null) {
-      window.clearTimeout(freshnessTimerRef.current);
-    }
-    freshnessTimerRef.current = window.setTimeout(() => {
-      setShowFreshness(false);
-    }, 8000);
-  }, []);
 
   const openerElementRef = useRef<HTMLElement | null>(null);
 
@@ -153,9 +138,9 @@ export default function ContributionsPage({
 
   return (
     <PageShell
-      title="Contributions"
-      description="Track and manage all donations and contributions."
-      density="compact"
+      title={CONTRIBUTIONS_PAGE_META.title}
+      description={CONTRIBUTIONS_PAGE_META.description}
+      density={CONTRIBUTIONS_PAGE_META.density}
       actions={
         <ContributionsPageActions
           canManageContributions={canManageContributions}
@@ -163,15 +148,7 @@ export default function ContributionsPage({
       }
     >
       <div data-testid="mc-contributions-live">
-        {showFreshness && (
-          <p
-            role="status"
-            className="mb-2 text-xs text-muted-foreground"
-            data-testid="contributions-freshness"
-          >
-            Updated just now
-          </p>
-        )}
+        <ContributionFreshnessIndicator show={showFreshness} />
         {isError ? (
           <div className="flex flex-col items-center justify-center rounded-lg border border-border bg-card py-20 text-center">
             <div className="mb-4 flex size-16 items-center justify-center rounded-lg border border-destructive/20 bg-destructive/10">

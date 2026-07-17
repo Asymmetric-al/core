@@ -9,15 +9,20 @@
  * 3. Re-apply any repo-specific notes or references if the refresh overwrote them
  * 4. `bun run skills:sync` && `bun run skills:verify`
  */
+import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import {
   access,
   cp,
   mkdir,
+  mkdtemp,
+  readdir,
   readFile,
   rename,
   rm,
   writeFile,
 } from "node:fs/promises";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -25,6 +30,11 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..");
 
 const canonicalRoot = path.join(repoRoot, "docs", "ai", "skills");
+const skillsLockPath = path.join(repoRoot, "skills-lock.json");
+const lastReviewed =
+  process.env.SKILLS_REFRESH_DATE?.trim() ||
+  new Date().toISOString().slice(0, 10);
+const SAFE_CANONICAL_SKILL_DIR_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 const CORE_OVERLAY_START = "<!-- CORE-OVERLAY-START -->";
 const CORE_OVERLAY_END = "<!-- CORE-OVERLAY-END -->";
 const GRILL_UPSTREAM_DESCRIPTION =
@@ -93,7 +103,143 @@ const upstreamSources = [
   ...emilKowalskiSources,
 ];
 
+const cursorTeamKitSkillNames = [
+  "check-compiler-errors",
+  "control-cli",
+  "control-ui",
+  "deslop",
+  "fix-ci",
+  "fix-merge-conflicts",
+  "get-pr-comments",
+  "loop-on-ci",
+  "make-pr-easy-to-review",
+  "new-branch-and-pr",
+  "pr-review-canvas",
+  "review-and-ship",
+  "run-smoke-tests",
+  "thermo-nuclear-code-quality-review",
+  "verify-this",
+  "weekly-review",
+  "what-did-i-get-done",
+  "workflow-from-chats",
+];
+
+/**
+ * Repo-local vendored skills refreshed directly from GitHub (shallow clone),
+ * unlike `upstreamSources`, which copy from local install targets.
+ */
+const githubUpstreamGroups = [
+  {
+    name: "Cursor Team Kit",
+    repo: "https://github.com/cursor/plugins.git",
+    source: "cursor/plugins",
+    sourceUrl: "https://github.com/cursor/plugins",
+    ref: "main",
+    sourceRoot: "cursor-team-kit/skills",
+    skillNames: cursorTeamKitSkillNames,
+    lockSkillPath(skillName) {
+      return `cursor-team-kit/skills/${skillName}/SKILL.md`;
+    },
+    upstreamPath(skillName) {
+      return `cursor-team-kit/skills/${skillName}/`;
+    },
+    sourceUrlForSkill(skillName) {
+      return `https://github.com/cursor/plugins/tree/main/cursor-team-kit/skills/${skillName}`;
+    },
+    extraCopies: [
+      {
+        from: "cursor-team-kit/agents/ci-watcher.md",
+        to: ".cursor/agents/ci-watcher.md",
+      },
+      {
+        from: "cursor-team-kit/agents/thermo-nuclear-code-quality-review.md",
+        to: ".cursor/agents/thermo-nuclear-code-quality-review.md",
+      },
+    ],
+  },
+  {
+    name: "Babysitter Cursor",
+    repo: "https://github.com/a5c-ai/babysitter-cursor.git",
+    source: "a5c-ai/babysitter-cursor",
+    sourceUrl: "https://github.com/a5c-ai/babysitter-cursor",
+    ref: "develop",
+    sourceRoot: "skills",
+    skillNames: ["babysit"],
+    lockSkillPath() {
+      return "skills/babysit/SKILL.md";
+    },
+    upstreamPath(skillName) {
+      return `skills/${skillName}/`;
+    },
+    sourceUrlForSkill(skillName) {
+      return `https://github.com/a5c-ai/babysitter-cursor/tree/develop/skills/${skillName}`;
+    },
+    skillExtraCopies: {
+      babysit: [
+        {
+          from: "versions.json",
+          to: "versions.json",
+        },
+      ],
+    },
+  },
+];
+
+const BABYSIT_UPSTREAM_DEPENDENCY_BLOCK = `Read the SDK version from \`versions.json\` to ensure version compatibility:
+
+\`\`\`bash
+SDK_VERSION=$(node -e "try{console.log(JSON.parse(require('fs').readFileSync('\${PLUGIN_ROOT}/versions.json','utf8')).sdkVersion||'latest')}catch{console.log('latest')}")
+npm i -g @a5c-ai/babysitter-sdk@$SDK_VERSION
+
+CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+\`\`\`
+
+If \`babysitter\` is already installed globally at the correct version, you may use \`CLI="babysitter"\` instead.`;
+
+const BABYSIT_CORE_DEPENDENCY_BLOCK = `Resolve the repository root and read the reviewed SDK version from
+\`docs/ai/skills/babysit/versions.json\`. Stop immediately if the repository root
+or an exact package version cannot be resolved:
+
+\`\`\`bash
+REPO_ROOT=$(git rev-parse --show-toplevel) || exit 1
+SDK_VERSION=$(
+  node -e '
+const fs = require("node:fs");
+const path = require("node:path");
+
+const versionsPath = path.join(
+  process.argv[1],
+  "docs/ai/skills/babysit/versions.json",
+);
+const exactVersionPattern = /^(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)\\.(?:0|[1-9]\\d*)(?:-[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?(?:\\+[0-9A-Za-z-]+(?:\\.[0-9A-Za-z-]+)*)?$/;
+
+try {
+  const versions = JSON.parse(fs.readFileSync(versionsPath, "utf8"));
+  const sdkVersion = versions.sdkVersion;
+
+  if (typeof sdkVersion !== "string" || !exactVersionPattern.test(sdkVersion)) {
+    throw new Error("sdkVersion must be a nonempty exact package version");
+  }
+
+  process.stdout.write(sdkVersion);
+} catch (error) {
+  console.error(\`Unable to resolve the pinned Babysitter SDK version: \${error.message}\`);
+  process.exit(1);
+}
+' "$REPO_ROOT"
+) || exit 1
+
+CLI="npx -y @a5c-ai/babysitter-sdk@$SDK_VERSION"
+\`\`\``;
+
 const POST_REFRESH_REPLACEMENTS = [
+  {
+    skillName: "babysit",
+    relativePath: "SKILL.md",
+    search: BABYSIT_UPSTREAM_DEPENDENCY_BLOCK,
+    replace: BABYSIT_CORE_DEPENDENCY_BLOCK,
+    required: true,
+  },
   {
     skillName: "animation-vocabulary",
     relativePath: "SKILL.md",
@@ -641,6 +787,55 @@ const POST_REFRESH_REPLACEMENTS = [
       "**Rule: Most UI animations stay under 300ms; modals and drawers may use up to 500ms when their larger spatial transition warrants it.** A 180ms dropdown feels more responsive than a 400ms one. Faster spinners make load feel faster (same actual time). Instant tooltips after the first (skip delay + animation) make a toolbar feel faster.",
     required: true,
   },
+  // pr-review-canvas: use exact PR filenames as diff keys (the upstream
+  // gsub("[^a-zA-Z0-9]"; "_") normalization is lossy and lets distinct files
+  // collide onto one key).
+  {
+    skillName: "pr-review-canvas",
+    relativePath: "SKILL.md",
+    search:
+      '--jq \'[.[] | {key: (.filename | gsub("[^a-zA-Z0-9]"; "_")), value: (.patch // "")}] | from_entries\' \\',
+    replace:
+      "--jq '[.[] | {key: .filename, value: (.patch // \"\")}] | from_entries' \\",
+    required: true,
+  },
+  {
+    skillName: "pr-review-canvas",
+    relativePath: "SKILL.md",
+    search: '<div class="bp-body"><div data-diff="retryClient"></div></div>',
+    replace:
+      '<div class="bp-body"><div data-diff="src/retryClient.ts"></div></div>',
+    required: true,
+  },
+  {
+    skillName: "pr-review-canvas",
+    relativePath: "SKILL.md",
+    search:
+      'The diff data keys should match the `data-diff` attribute values in the HTML:\n\n```html\n<div data-diff="path_to_file_ts"></div>\n```',
+    replace:
+      'The diff data keys are the exact PR filenames (so distinct files can never collide), and each `data-diff` attribute value must match one of them:\n\n```html\n<div data-diff="path/to/file.ts"></div>\n```',
+    required: true,
+  },
+  // pr-review-canvas: replace the sentinel JSON via a formatting-tolerant
+  // regex — the upstream literal `.replace('{"__PR_DIFFS_PLACEHOLDER__":true}',
+  // ...)` never matches because Prettier reflows the sentinel object inside
+  // template.html, leaving every data-diff section empty.
+  {
+    skillName: "pr-review-canvas",
+    relativePath: "SKILL.md",
+    search: "import json\nfrom pathlib import Path",
+    replace: "import json\nimport re\nfrom pathlib import Path",
+    required: true,
+  },
+  {
+    skillName: "pr-review-canvas",
+    relativePath: "SKILL.md",
+    search:
+      "out = (\n  tmpl.replace('/* INJECT_CSS */', css)\n      .replace('/* INJECT_JS */', js)\n      .replace('<!-- INJECT_BODY -->', html)\n      .replace('{\"__PR_DIFFS_PLACEHOLDER__\":true}', safe_json)\n)\n\nPath('/tmp/pr-review-{number}.html').write_text(out)",
+    replace:
+      "out = (\n  tmpl.replace('/* INJECT_CSS */', css)\n      .replace('/* INJECT_JS */', js)\n      .replace('<!-- INJECT_BODY -->', html)\n)\n\n# Swap the sentinel JSON inside the pr-diffs-json script element without\n# depending on its exact formatting (formatters may reflow the placeholder).\nout = re.sub(\n    r'(<script id=\"pr-diffs-json\"[^>]*>).*?(</script>)',\n    lambda match: match.group(1) + safe_json + match.group(2),\n    out,\n    count=1,\n    flags=re.DOTALL,\n)\n\nPath('/tmp/pr-review-{number}.html').write_text(out)",
+    required: true,
+  },
 ];
 
 async function readCoreOverlay(targetRoot) {
@@ -1092,6 +1287,504 @@ function getErrorCode(error) {
     : "";
 }
 
+function assertSafeCanonicalSkillDirName(skillName, context) {
+  if (
+    typeof skillName !== "string" ||
+    !SAFE_CANONICAL_SKILL_DIR_RE.test(skillName)
+  ) {
+    throw new Error(
+      `Refusing unsafe canonical skill directory name${context ? ` (${context})` : ""}: ${JSON.stringify(skillName)}`,
+    );
+  }
+}
+
+function assertSafeRelativePath(relativePath, context) {
+  if (
+    typeof relativePath !== "string" ||
+    path.isAbsolute(relativePath) ||
+    relativePath.split(/[\\/]/).includes("..")
+  ) {
+    throw new Error(
+      `Refusing unsafe relative path${context ? ` (${context})` : ""}: ${JSON.stringify(relativePath)}`,
+    );
+  }
+}
+
+function assertPathInside(parent, child, context) {
+  const parentResolved = path.resolve(parent);
+  const childResolved = path.resolve(child);
+  const prefix = parentResolved.endsWith(path.sep)
+    ? parentResolved
+    : `${parentResolved}${path.sep}`;
+
+  if (childResolved !== parentResolved && !childResolved.startsWith(prefix)) {
+    throw new Error(
+      `Refusing path outside expected root${context ? ` (${context})` : ""}: ${childResolved}`,
+    );
+  }
+}
+
+function runGit(args, context, { capture = false } = {}) {
+  const result = spawnSync("git", args, {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: capture ? ["ignore", "pipe", "pipe"] : "inherit",
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status !== 0) {
+    const stderr = result.stderr?.trim();
+    throw new Error(
+      `${context} failed with exit ${result.status}${stderr ? `:\n${stderr}` : ""}`,
+    );
+  }
+
+  return result.stdout?.trim() ?? "";
+}
+
+async function fileExists(filePath) {
+  try {
+    await access(filePath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function sha256File(filePath) {
+  const content = await readFile(filePath);
+  return createHash("sha256").update(content).digest("hex");
+}
+
+async function listFilesRecursively(rootDir, currentDir = rootDir) {
+  const entries = await readdir(currentDir, { withFileTypes: true });
+  const files = [];
+
+  for (const entry of entries) {
+    const absolutePath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      files.push(...(await listFilesRecursively(rootDir, absolutePath)));
+    } else if (entry.isFile()) {
+      files.push(absolutePath);
+    }
+  }
+
+  return files;
+}
+
+/**
+ * Deterministic content hash over every vendored file in a skill directory
+ * (sorted relative path + bytes), so `skills-lock.json` changes whenever any
+ * copied support file changes — not only `SKILL.md`. The generated
+ * `references/upstream.md` is excluded because it embeds refresh metadata
+ * (review date) that would make the hash non-deterministic.
+ */
+async function computeVendoredTreeHash(targetRoot) {
+  const absolutePaths = await listFilesRecursively(targetRoot);
+  const relativePaths = absolutePaths
+    .map((absolutePath) =>
+      path.relative(targetRoot, absolutePath).split(path.sep).join("/"),
+    )
+    .filter((relativePath) => relativePath !== "references/upstream.md")
+    .sort();
+
+  const hash = createHash("sha256");
+  for (const relativePath of relativePaths) {
+    const content = await readFile(path.join(targetRoot, relativePath));
+    hash.update(relativePath);
+    hash.update("\0");
+    hash.update(content);
+    hash.update("\0");
+  }
+  return hash.digest("hex");
+}
+
+async function formatSkillTarget(targetRoot) {
+  const prettierBin = path.join(
+    repoRoot,
+    "node_modules",
+    ".bin",
+    process.platform === "win32" ? "prettier.cmd" : "prettier",
+  );
+
+  if (!(await fileExists(prettierBin))) {
+    console.warn(
+      `[warn] prettier not found at ${path.relative(repoRoot, prettierBin)}; copied ${path.relative(repoRoot, targetRoot)} without repo formatting`,
+    );
+    return;
+  }
+
+  const result = spawnSync(prettierBin, ["--write", targetRoot], {
+    cwd: repoRoot,
+    encoding: "utf8",
+    stdio: "inherit",
+    shell: process.platform === "win32",
+  });
+
+  if (result.error) {
+    throw result.error;
+  }
+
+  if (result.status !== 0) {
+    throw new Error(
+      `prettier failed for ${path.relative(repoRoot, targetRoot)} with exit ${result.status}`,
+    );
+  }
+}
+
+async function readSkillsLock() {
+  const raw = await readFile(skillsLockPath, "utf8");
+  const parsed = JSON.parse(raw);
+  if (typeof parsed !== "object" || parsed === null) {
+    throw new Error("skills-lock.json must contain an object");
+  }
+  if (typeof parsed.version !== "number") {
+    throw new Error("skills-lock.json is missing numeric version");
+  }
+  if (typeof parsed.skills !== "object" || parsed.skills === null) {
+    throw new Error("skills-lock.json is missing skills object");
+  }
+  return parsed;
+}
+
+async function writeSkillsLock(lockfile) {
+  const sortedSkills = Object.fromEntries(
+    Object.entries(lockfile.skills).sort(([left], [right]) =>
+      left.localeCompare(right),
+    ),
+  );
+  const sortedLockfile = {
+    version: lockfile.version,
+    skills: sortedSkills,
+  };
+  await writeFile(
+    skillsLockPath,
+    `${JSON.stringify(sortedLockfile, null, 2)}\n`,
+    "utf8",
+  );
+}
+
+function buildUpstreamMetadata({ group, skillName, hash, commitSha }) {
+  const upstreamPath = group.upstreamPath(skillName);
+  const sourceUrl = group.sourceUrlForSkill(skillName);
+  const lockSkillPath = group.lockSkillPath(skillName);
+  return `---
+source_name: ${group.source} (${skillName})
+source_url: ${sourceUrl}
+source_type: github
+upstream_path: ${upstreamPath}
+skills_lock_hash: ${hash}
+last_reviewed: ${lastReviewed}
+---
+
+# Upstream: ${skillName}
+
+Canonical copy in this repo: \`docs/ai/skills/${skillName}/\` (mirrored to \`.cursor/skills/\` and \`.agents/skills/\` via \`bun run skills:sync\`).
+
+- **Repository:** ${group.sourceUrl}
+- **Ref:** \`${group.ref}\`
+- **Commit reviewed:** \`${commitSha}\`
+- **Upstream path:** \`${upstreamPath}\`
+- **Lock skillPath:** \`${lockSkillPath}\`
+- **Computed hash:** \`${hash}\`
+
+## Refresh from upstream
+
+1. Run \`bun run skills:refresh-upstream\`.
+2. The script clones \`${group.repo}\` at \`${group.ref}\`, verifies the upstream skill directory exists, copies the full skill directory into \`docs/ai/skills/${skillName}/\`, and updates this metadata.
+3. Run \`bun run skills:sync\` and \`bun run skills:verify\` to refresh runtime mirrors.
+
+## Notes for maintainers
+
+- Do not copy secrets, tokens, or environment-specific identifiers into skill content.
+- Preserve repo-local notes in this \`references/\` directory when refreshing.
+`;
+}
+
+async function writeUpstreamMetadata({
+  targetRoot,
+  group,
+  skillName,
+  hash,
+  commitSha,
+}) {
+  const metadataPath = path.join(targetRoot, "references", "upstream.md");
+  assertPathInside(targetRoot, metadataPath, "upstream metadata");
+  await mkdir(path.dirname(metadataPath), { recursive: true });
+  await writeFile(
+    metadataPath,
+    buildUpstreamMetadata({ group, skillName, hash, commitSha }),
+    "utf8",
+  );
+}
+
+async function copySkillExtraFiles({ cloneDir, targetRoot, extraCopies = [] }) {
+  for (const extraCopy of extraCopies) {
+    assertSafeRelativePath(extraCopy.from, "skill extra source");
+    assertSafeRelativePath(extraCopy.to, "skill extra target");
+
+    const sourcePath = path.join(cloneDir, extraCopy.from);
+    const targetPath = path.join(targetRoot, extraCopy.to);
+    assertPathInside(cloneDir, sourcePath, "skill extra source");
+    assertPathInside(targetRoot, targetPath, "skill extra target");
+
+    if (!(await fileExists(sourcePath))) {
+      throw new Error(
+        `Missing required upstream support file: ${extraCopy.from}`,
+      );
+    }
+
+    await mkdir(path.dirname(targetPath), { recursive: true });
+    await cp(sourcePath, targetPath, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Read companion files (copied outside `docs/ai/skills/`, e.g. `.cursor/agents/`)
+ * into memory during the staging phase so a missing upstream file fails the group
+ * before any repo mutation, and the post-commit write is a plain buffer write.
+ */
+async function readCompanionFiles({ cloneDir, group }) {
+  const companionFiles = [];
+
+  for (const extraCopy of group.extraCopies ?? []) {
+    assertSafeRelativePath(extraCopy.from, `${group.name} companion source`);
+    assertSafeRelativePath(extraCopy.to, `${group.name} companion target`);
+
+    const sourcePath = path.join(cloneDir, extraCopy.from);
+    const targetPath = path.join(repoRoot, extraCopy.to);
+    assertPathInside(cloneDir, sourcePath, `${group.name} companion source`);
+    assertPathInside(repoRoot, targetPath, `${group.name} companion target`);
+
+    if (!(await fileExists(sourcePath))) {
+      throw new Error(
+        `Missing required upstream companion file: ${extraCopy.from}`,
+      );
+    }
+
+    companionFiles.push({
+      from: extraCopy.from,
+      targetPath,
+      content: await readFile(sourcePath),
+    });
+  }
+
+  return companionFiles;
+}
+
+async function writeCompanionFiles(companionFiles) {
+  for (const { from, targetPath, content } of companionFiles) {
+    await mkdir(path.dirname(targetPath), { recursive: true });
+    await writeFile(targetPath, content);
+    console.log(
+      `refreshed companion ${path.relative(repoRoot, targetPath)} <= ${from}`,
+    );
+  }
+}
+
+/**
+ * Stage one GitHub-vendored skill into a temporary sibling of its canonical
+ * directory: copy from the clone, copy configured support files, format with
+ * repo Prettier, hash, and regenerate `references/upstream.md`. Nothing under
+ * `docs/ai/skills/` is mutated. Returns `null` when the upstream skill is
+ * missing so the caller can warn and skip it without touching the canonical copy.
+ */
+async function prepareGithubSkillRefresh({
+  group,
+  skillName,
+  cloneDir,
+  commitSha,
+}) {
+  const upstreamSkillDir = path.join(cloneDir, group.sourceRoot, skillName);
+  const upstreamSkillFile = path.join(upstreamSkillDir, "SKILL.md");
+  const to = path.join(canonicalRoot, skillName);
+
+  assertPathInside(cloneDir, upstreamSkillDir, `${group.name} source`);
+  assertPathInside(canonicalRoot, to, `${group.name} target`);
+
+  if (!(await fileExists(upstreamSkillFile))) {
+    return null;
+  }
+
+  const staging = getTemporarySiblingPath(to, "refresh-staging");
+  await mkdir(path.dirname(staging), { recursive: true });
+  await rm(staging, { recursive: true, force: true });
+
+  try {
+    await cp(upstreamSkillDir, staging, { recursive: true });
+    await copySkillExtraFiles({
+      cloneDir,
+      targetRoot: staging,
+      extraCopies: group.skillExtraCopies?.[skillName] ?? [],
+    });
+    await formatSkillTarget(staging);
+    await applyPostRefreshReplacements(skillName, staging);
+
+    const hash = await sha256File(path.join(staging, "SKILL.md"));
+    await writeUpstreamMetadata({
+      targetRoot: staging,
+      group,
+      skillName,
+      hash,
+      commitSha,
+    });
+    const treeHash = await computeVendoredTreeHash(staging);
+
+    return {
+      refresh: { skillName, from: upstreamSkillDir, to, staging },
+      lockEntry: {
+        source: group.source,
+        sourceType: "github",
+        skillPath: group.lockSkillPath(skillName),
+        computedHash: hash,
+        treeHash,
+      },
+    };
+  } catch (error) {
+    await rm(staging, { recursive: true, force: true });
+    throw error;
+  }
+}
+
+/**
+ * Refresh one GitHub source group atomically: clone once, stage every skill in
+ * the group, then swap all staged directories into `docs/ai/skills/` with the
+ * same backup/rollback machinery used for local sources. Companion files and
+ * `lockfile.skills` entries are applied only after every swap succeeds, so a
+ * failed refresh never leaves copied skills and lock metadata out of sync.
+ */
+async function refreshGithubGroup(group, lockfile) {
+  for (const skillName of group.skillNames) {
+    assertSafeCanonicalSkillDirName(skillName, `${group.name} config`);
+  }
+
+  const tempRoot = await mkdtemp(
+    path.join(os.tmpdir(), "core-skill-upstream-"),
+  );
+  const cloneDir = path.join(tempRoot, group.source.replace(/[^\w.-]+/g, "-"));
+
+  try {
+    // Maintainers can rerun this command to pull newer upstream content without
+    // manually copy-pasting skill files from GitHub.
+    runGit(
+      ["clone", "--depth", "1", "--branch", group.ref, group.repo, cloneDir],
+      `clone ${group.name}`,
+    );
+    const commitSha = runGit(
+      ["-C", cloneDir, "rev-parse", "HEAD"],
+      `resolve ${group.name} commit`,
+      { capture: true },
+    );
+
+    const preparedRefreshes = [];
+    const lockEntries = new Map();
+
+    try {
+      for (const skillName of group.skillNames) {
+        const prepared = await prepareGithubSkillRefresh({
+          group,
+          skillName,
+          cloneDir,
+          commitSha,
+        });
+
+        if (!prepared) {
+          console.warn(
+            `[warn] skipping ${skillName}: upstream SKILL.md not found at ${path.join(group.sourceRoot, skillName, "SKILL.md")}`,
+          );
+          continue;
+        }
+
+        preparedRefreshes.push(prepared.refresh);
+        lockEntries.set(skillName, prepared.lockEntry);
+      }
+
+      const companionFiles = await readCompanionFiles({ cloneDir, group });
+
+      // Everything staged successfully — commit the swaps, then side effects.
+      await commitPreparedRefreshes(preparedRefreshes);
+      await writeCompanionFiles(companionFiles);
+      for (const [skillName, lockEntry] of lockEntries) {
+        lockfile.skills[skillName] = lockEntry;
+      }
+    } catch (error) {
+      await Promise.all(
+        preparedRefreshes.map(({ staging }) =>
+          rm(staging, { recursive: true, force: true }),
+        ),
+      );
+      throw error;
+    }
+
+    for (const { from, to } of preparedRefreshes) {
+      console.log(
+        `refreshed ${path.relative(repoRoot, to)} <= ${path.relative(cloneDir, from)}`,
+      );
+    }
+
+    return preparedRefreshes.length;
+  } finally {
+    await rm(tempRoot, { recursive: true, force: true });
+  }
+}
+
+/**
+ * Refresh the configured GitHub source groups. The lockfile is read once and
+ * written only when at least one group refreshed successfully, so a repo
+ * without `skills-lock.json` (e.g. the script-verifier fixtures) skips GitHub
+ * vendoring instead of failing the whole run.
+ */
+async function refreshGithubGroups(groups, { focused }) {
+  if (!(await fileExists(skillsLockPath))) {
+    const message =
+      "skills-lock.json not found; skipping GitHub upstream refresh";
+    if (focused) {
+      throw new Error(message);
+    }
+    console.warn(`[warn] ${message}`);
+    return 0;
+  }
+
+  const lockfile = await readSkillsLock();
+  let refreshedCount = 0;
+  let skippedGroups = 0;
+
+  for (const group of groups) {
+    try {
+      refreshedCount += await refreshGithubGroup(group, lockfile);
+    } catch (error) {
+      if (focused) {
+        throw new Error(
+          `Focused upstream refresh for ${group.source} failed without changing canonical skills`,
+          { cause: error },
+        );
+      }
+      console.warn(
+        `[warn] skipping ${group.name} (${group.skillNames.join(", ")}): ${error instanceof Error ? error.message : String(error)}`,
+      );
+      skippedGroups += 1;
+    }
+  }
+
+  if (refreshedCount > 0) {
+    await writeSkillsLock(lockfile);
+    console.log(
+      `updated skills-lock.json for ${refreshedCount} GitHub skill(s)`,
+    );
+  }
+
+  if (skippedGroups > 0) {
+    console.warn(
+      `${skippedGroups} GitHub source group(s) skipped — check network access or upstream availability to refresh them.`,
+    );
+  }
+
+  return refreshedCount;
+}
+
 function getTemporarySiblingPath(targetPath, label) {
   const parentDir = path.dirname(targetPath);
   const targetName = path.basename(targetPath);
@@ -1296,20 +1989,28 @@ async function main() {
   const sources = onlySourceGroup
     ? upstreamSources.filter((source) => source.sourceGroup === onlySourceGroup)
     : upstreamSources;
+  const githubGroups = onlySourceGroup
+    ? githubUpstreamGroups.filter((group) => group.source === onlySourceGroup)
+    : githubUpstreamGroups;
 
-  if (onlySourceGroup && sources.length === 0) {
+  if (onlySourceGroup && sources.length === 0 && githubGroups.length === 0) {
     throw new Error(`Unknown upstream source group: ${onlySourceGroup}`);
   }
 
   if (onlySourceGroup) {
-    await assertFocusedSourcesAvailable(onlySourceGroup, sources);
-    try {
-      await refreshSkillsAtomically(sources);
-    } catch (error) {
-      throw new Error(
-        `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
-        { cause: error },
-      );
+    if (sources.length > 0) {
+      await assertFocusedSourcesAvailable(onlySourceGroup, sources);
+      try {
+        await refreshSkillsAtomically(sources);
+      } catch (error) {
+        throw new Error(
+          `Focused upstream refresh for ${onlySourceGroup} failed without changing canonical skills`,
+          { cause: error },
+        );
+      }
+    }
+    if (githubGroups.length > 0) {
+      await refreshGithubGroups(githubGroups, { focused: true });
     }
   } else {
     let skipped = 0;
@@ -1329,6 +2030,7 @@ async function main() {
         `${skipped} skill(s) skipped — install their upstream sources to refresh them.`,
       );
     }
+    await refreshGithubGroups(githubUpstreamGroups, { focused: false });
   }
   console.log(
     "upstream skill refresh complete — run `bun run skills:sync` then `bun run skills:verify`",

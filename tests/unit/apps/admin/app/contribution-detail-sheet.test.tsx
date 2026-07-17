@@ -168,7 +168,7 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
     expect(view.queryByText(/invalid|missing donation|not found/i)).toBeNull();
   });
 
-  it("renders available actions and blocked reasons from server availability", () => {
+  it("fails closed on stale posting availability while preserving safe actions", () => {
     const contribution = {
       ...boneyardContributionsFixture[0]!,
       stagedGiftId: "staged-1",
@@ -207,12 +207,15 @@ describe("ContributionDetailSheet read-only gifts without staged gifts", () => {
       />,
     );
 
-    expect(view.getByRole("button", { name: /approve/i })).toBeTruthy();
+    expect(view.queryByRole("button", { name: /approve/i })).toBeNull();
     expect(view.getByRole("button", { name: /send receipt/i })).toBeTruthy();
     expect(view.queryByRole("button", { name: /retry posting/i })).toBeNull();
     expect(
-      view.getByText(/no failed or blocked posting to retry/i),
-    ).toBeTruthy();
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*maintained in Asym/i).length,
+    ).toBeGreaterThan(0);
   });
 });
 
@@ -316,7 +319,7 @@ describe("ContributionDetailSheet provider proof", () => {
         providerProof={{
           paymentIntentId: "pi_proof",
           chargeId: "ch_proof",
-          refundIds: ["re_1"],
+          refundIds: ["re_1", "re_2"],
           replayContext: null,
           dashboardUrls: {
             paymentIntent: "https://dashboard.stripe.com/payments/pi_proof",
@@ -329,6 +332,8 @@ describe("ContributionDetailSheet provider proof", () => {
     expect(view.getByText("Provider proof")).toBeTruthy();
     expect(view.getByText("pi_proof")).toBeTruthy();
     expect(view.getByText("ch_proof")).toBeTruthy();
+    expect(view.getByText("Refund IDs")).toBeTruthy();
+    expect(view.getByText("re_1, re_2")).toBeTruthy();
     expect(
       view.getByRole("link", { name: /open payment in stripe/i }),
     ).toBeTruthy();
@@ -345,6 +350,118 @@ describe("ContributionDetailSheet provider proof", () => {
 
     expect(view.queryByText("Provider proof")).toBeNull();
     expect(view.queryByText("pi_proof")).toBeNull();
+  });
+});
+
+describe("ContributionDetailSheet recurring agreement context", () => {
+  const linkedAgreement = {
+    id: "pledge-1",
+    status: "active",
+    frequency: "monthly",
+    amountCents: 5_000,
+    currencyCode: "USD",
+    fundName: "Monthly Support",
+    missionaryName: "John Martinez",
+    nextExpectedGiftAt: "2026-07-15T12:00:00.000Z",
+    stripeSubscriptionId: "sub_agreement",
+    linkedGiftCount: 6,
+    lastLinkedGiftAt: "2026-06-15T12:00:00.000Z",
+  };
+
+  it("renders the linked agreement card with terms, designation, and gift history", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: true,
+          interval: "month",
+          pledgeId: "pledge-1",
+          agreement: linkedAgreement,
+          providerRecurrenceWithoutAgreement: false,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Recurring giving")).toBeTruthy();
+    expect(view.getByText(/\$50\.00 monthly/)).toBeTruthy();
+    expect(
+      view.getByText(
+        /Monthly Support · John Martinez · active · Next expected/,
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByText(/Gifts under this agreement: 6 · Last gift/),
+    ).toBeTruthy();
+    expect(view.getByText(/sub_agreement/)).toBeTruthy();
+    expect(
+      view.queryByText(/no internal recurring agreement is linked/i),
+    ).toBeNull();
+  });
+
+  it("warns about provider-only recurrence without an internal agreement", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: true,
+          interval: "month",
+          pledgeId: null,
+          agreement: null,
+          providerRecurrenceWithoutAgreement: true,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Recurring giving")).toBeTruthy();
+    expect(
+      view.getByText(/no internal recurring agreement is linked/i),
+    ).toBeTruthy();
+    expect(view.queryByText(/Gifts under this agreement/)).toBeNull();
+  });
+
+  it("renders no recurring section for one-time gifts without recurrence", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: false,
+          interval: null,
+          pledgeId: null,
+          agreement: null,
+          providerRecurrenceWithoutAgreement: false,
+        }}
+      />,
+    );
+
+    expect(view.queryByText("Recurring giving")).toBeNull();
+    expect(view.queryByText(/Gifts under this agreement/)).toBeNull();
+  });
+
+  it("shows agreement context for a one-time gift linked to a recurring agreement", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: false,
+          interval: null,
+          pledgeId: "pledge-1",
+          agreement: linkedAgreement,
+          providerRecurrenceWithoutAgreement: false,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Recurring giving")).toBeTruthy();
+    expect(
+      view.getByText(/This gift is linked to a recurring agreement/),
+    ).toBeTruthy();
+    expect(
+      view.getByText(/Gifts under this agreement: 6 · Last gift/),
+    ).toBeTruthy();
   });
 });
 
@@ -486,7 +603,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.getByText("Twenty CRM posting")).toBeTruthy();
+    expect(view.getByText("Historical CRM posting")).toBeTruthy();
     expect(view.getByText("Parent gift record")).toBeTruthy();
     expect(view.getByText("twenty-parent-1")).toBeTruthy();
     expect(view.getAllByText("Posted").length).toBe(2);
@@ -558,7 +675,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
           designationRecords: [],
           failedScopes: [],
           adapterLimitation:
-            "The connected CRM adapter posts this gift as a single parent record and does not yet represent each designation line as a child record.",
+            "The historical CRM posting record represents this gift as a single parent record and has no child record for each designation line.",
         }}
       />,
     );
@@ -570,7 +687,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
     expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
   });
 
-  it("invokes scoped retry for a failed designation line", () => {
+  it("does not offer designation retry while the current route adapter rejects it", () => {
     const onRetryCrmPost = vi.fn();
     const contribution = contributionWithStagedGift();
 
@@ -604,19 +721,56 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       view.queryByRole("button", { name: /retry parent record/i }),
     ).toBeNull();
 
-    fireEvent.click(view.getByRole("button", { name: /retry this line/i }));
-
-    expect(onRetryCrmPost).toHaveBeenCalledTimes(1);
-    expect(onRetryCrmPost).toHaveBeenCalledWith(
-      { scope: "designation", allocationId: "alloc-2" },
-      "staged-1",
-      contribution.id,
-    );
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(onRetryCrmPost).not.toHaveBeenCalled();
+    expect(view.getByText(/rejected the designation record/i)).toBeTruthy();
   });
 
-  it("invokes scoped retry for a failed parent record", () => {
+  it("keeps an independently failed staged gift read-only", () => {
+    const contribution = {
+      ...contributionWithStagedGift(),
+      stagedGiftStatus: "failed" as const,
+    };
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contribution}
+        onClose={vi.fn()}
+        actionAvailability={retryAvailableAvailability}
+        onRetryStagedGift={vi.fn()}
+        crmPostState={{
+          parent: {
+            status: "posted",
+            twentyRecordId: "twenty-parent-1",
+            lastError: null,
+          },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [{ scope: "designation", allocationId: "alloc-2" }],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+  });
+
+  it("does not invoke a retired scoped parent retry", () => {
     const onRetryCrmPost = vi.fn();
-    const contribution = contributionWithStagedGift();
+    const contribution = {
+      ...contributionWithStagedGift(),
+      stagedGiftStatus: "ready_to_post" as const,
+    };
 
     const view = render(
       <ContributionDetailSheet
@@ -630,6 +784,55 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
             twentyRecordId: null,
             lastError: "Twenty timed out while creating the gift record.",
           },
+          designationRecords: [
+            {
+              allocationId: "alloc-2",
+              status: "failed",
+              twentyRecordId: null,
+              lastError: "Twenty rejected the designation record.",
+            },
+          ],
+          failedScopes: [
+            { scope: "parent" },
+            { scope: "designation", allocationId: "alloc-2" },
+          ],
+          adapterLimitation: null,
+        }}
+      />,
+    );
+
+    expect(view.getByText(/timed out while creating/i)).toBeTruthy();
+    expect(view.queryByRole("button", { name: /retry this line/i })).toBeNull();
+    expect(
+      view.getAllByText(/no longer an active product workflow/i).length,
+    ).toBeGreaterThan(0);
+    expect(
+      view.getAllByText(/historical evidence.*maintained in Asym/i).length,
+    ).toBeGreaterThan(0);
+
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(onRetryCrmPost).not.toHaveBeenCalled();
+  });
+
+  it("hides posted parent retry even when availability is stale", () => {
+    const onRetryCrmPost = vi.fn();
+
+    const view = render(
+      <ContributionDetailSheet
+        contribution={contributionWithStagedGift()}
+        onClose={vi.fn()}
+        actionAvailability={retryAvailableAvailability}
+        onRetryCrmPost={onRetryCrmPost}
+        onRetryStagedGift={vi.fn()}
+        crmPostState={{
+          parent: {
+            status: "failed",
+            twentyRecordId: null,
+            lastError: "Twenty timed out while creating the gift record.",
+          },
           designationRecords: [],
           failedScopes: [{ scope: "parent" }],
           adapterLimitation: null,
@@ -637,16 +840,11 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.getByText(/timed out while creating/i)).toBeTruthy();
-
-    fireEvent.click(view.getByRole("button", { name: /retry parent record/i }));
-
-    expect(onRetryCrmPost).toHaveBeenCalledTimes(1);
-    expect(onRetryCrmPost).toHaveBeenCalledWith(
-      { scope: "parent" },
-      "staged-1",
-      contribution.id,
-    );
+    expect(
+      view.queryByRole("button", { name: /retry parent record/i }),
+    ).toBeNull();
+    expect(view.queryByRole("button", { name: /^retry posting$/i })).toBeNull();
+    expect(onRetryCrmPost).not.toHaveBeenCalled();
   });
 
   it("hides scoped retry buttons when the retry action is not available", () => {
@@ -710,7 +908,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.queryByText("Twenty CRM posting")).toBeNull();
+    expect(view.queryByText("Historical CRM posting")).toBeNull();
     expect(view.getByText("Twenty")).toBeTruthy();
     expect(view.getByText("not required")).toBeTruthy();
   });
@@ -729,7 +927,7 @@ describe("ContributionDetailSheet CRM post state (ADR-CD-012)", () => {
       />,
     );
 
-    expect(view.queryByText("Twenty CRM posting")).toBeNull();
+    expect(view.queryByText("Historical CRM posting")).toBeNull();
     expect(view.queryByText("Parent gift record")).toBeNull();
   });
 });

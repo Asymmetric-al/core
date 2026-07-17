@@ -45,10 +45,15 @@ import { EMPTY_CELL_VALUE } from "./crm-detail-shared";
 import { DetailDrawer } from "./detail-drawer";
 import { KanbanView } from "./kanban-view";
 import { toCrmRecord, toCrmRecordFromDetail } from "./types";
+import { CRM_PAGE_META } from "../../components/table-page-meta";
 import {
   ContributionDetailOverlay,
   isContributionGiftParam,
 } from "../contributions/contribution-detail-overlay";
+import {
+  ContributionFreshnessIndicator,
+  useContributionFreshness,
+} from "../contributions/freshness-indicator";
 
 import type { CrmGridRow, CrmRecord } from "./types";
 
@@ -67,6 +72,7 @@ export default function MissionControlCRM() {
   const [openGiftId, setOpenGiftId] = useState<string | null>(
     () => selectedGiftParam,
   );
+  const { markFreshness, showFreshness } = useContributionFreshness();
 
   useEffect(() => {
     setOpenGiftId(selectedGiftParam);
@@ -266,9 +272,9 @@ export default function MissionControlCRM() {
   return (
     <>
       <PageShell
-        title="CRM"
-        description="Manage contacts, donors, and partner relationships."
-        density="compact"
+        title={CRM_PAGE_META.title}
+        description={CRM_PAGE_META.description}
+        density={CRM_PAGE_META.density}
         actions={
           <div className="flex items-center gap-3">
             <div className="flex bg-muted p-0.5 rounded-lg border border-border">
@@ -336,6 +342,7 @@ export default function MissionControlCRM() {
         }
       >
         <div className="flex flex-col min-h-[400px]">
+          <ContributionFreshnessIndicator show={showFreshness} />
           <AnimatePresence mode="wait">
             {view === "table" ? (
               <motion.div
@@ -349,6 +356,7 @@ export default function MissionControlCRM() {
                 <DataTableResponsive
                   columns={columns}
                   data={rows}
+                  devtoolsKey="admin-crm-records"
                   isLoading={isLoading}
                   filterFields={filterFields}
                   searchColumnId="displayName"
@@ -517,6 +525,7 @@ export default function MissionControlCRM() {
           contact={selectedRecord}
           onClose={() => selectRecord(null)}
           onOpenGift={openGift}
+          onRowRefresh={markFreshness}
         />
       )}
 
@@ -524,6 +533,7 @@ export default function MissionControlCRM() {
         donationId={openGiftId}
         sourceSurface="donor_crm_record"
         onClose={closeGift}
+        onActionSuccess={markFreshness}
       />
     </>
   );

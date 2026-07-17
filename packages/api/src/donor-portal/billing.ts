@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 
 import { resolveDonorPortalContext } from "./service";
 import { withOperation } from "../shared/with-operation";
-import { createStripeClient } from "../stripe/client";
+import { resolveTenantStripe } from "../stripe/tenant-client";
 
 export const POST = withOperation(
   async ({ supabaseAdmin, auth, request }) => {
@@ -21,26 +21,21 @@ export const POST = withOperation(
       );
     }
 
-    const { data: tenant, error: tenantError } = await supabaseAdmin
-      .from("tenants")
-      .select("id, stripe_secret_key")
-      .eq("id", ctx.tenantId)
-      .single();
-
-    if (tenantError || !tenant) {
+    const tenantStripe = await resolveTenantStripe({
+      supabaseAdmin,
+      tenantId: ctx.tenantId,
+    });
+    if (!tenantStripe.ok) {
+      if (tenantStripe.reason === "stripe_unconfigured") {
+        return NextResponse.json(
+          { error: "Stripe is not configured for this organization" },
+          { status: 503 },
+        );
+      }
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const stripeSecretKey =
-      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      return NextResponse.json(
-        { error: "Stripe is not configured for this organization" },
-        { status: 503 },
-      );
-    }
-
-    const stripe = createStripeClient(stripeSecretKey);
+    const { stripe } = tenantStripe;
     const session = await stripe.billingPortal.sessions.create({
       customer: donor.stripe_customer_id,
       return_url: new URL("/donor-dashboard/wallet", request.url).toString(),

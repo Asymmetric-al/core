@@ -1,15 +1,16 @@
 "use client";
 
-import {
-  type Row,
-  type Table as TanStackTable,
-  flexRender,
-} from "@tanstack/react-table";
 import { LayoutGrid, LayoutList } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import {
+  type Row,
+  type RowData,
+  type Table as TanStackTable,
+  flexRender,
+} from "./tanstack";
 import { Button } from "../button";
 import {
   Table,
@@ -70,7 +71,7 @@ export function DataTableViewModeToggle({
   );
 }
 
-export function DataTableResponsiveToolbar<TData>({
+export function DataTableResponsiveToolbar<TData extends RowData>({
   enableFilters,
   toolbar,
   table,
@@ -144,7 +145,7 @@ export function DataTableResponsiveToolbar<TData>({
   );
 }
 
-export function DataTableResponsiveTableView<TData>({
+export function DataTableResponsiveTableView<TData extends RowData>({
   table,
   tableColumnsLength,
   keyboard,

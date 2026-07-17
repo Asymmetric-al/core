@@ -12,6 +12,7 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { DataTableWrapper } from "@asym/ui/components/shadcn/data-table/data-table-wrapper";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { Input } from "@asym/ui/components/shadcn/input";
 import { Progress } from "@asym/ui/components/shadcn/progress";
 import {
@@ -24,7 +25,6 @@ import {
 } from "@asym/ui/components/shadcn/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
-import { type ColumnDef } from "@tanstack/react-table";
 import {
   Calendar,
   ClipboardCheck,
