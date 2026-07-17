@@ -11,6 +11,7 @@ import {
   type ReceiptDeliverySelection,
 } from "./receipt-delivery";
 import { ApiHttpError } from "../../shared/http-errors";
+import { asString, isRecord } from "../../shared/json-coerce";
 
 import type {
   ContributionActionDependencies,
@@ -24,14 +25,6 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 type SupabaseAdmin = AdminSupabaseClient;
 
 type JsonRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 export type CorrectionRequestStatus =
   | "pending"
@@ -279,6 +272,8 @@ export interface DecideCorrectionRequestInput {
 export interface DecideCorrectionRequestOutcome {
   request: ContributionCorrectionRequest;
   result?: ContributionActionResult;
+  /** Policy actually used to authorize/project a newly applied result. */
+  approvalPolicy?: CorrectionApprovalPolicy;
   idempotentReplay?: boolean;
 }
 
@@ -529,5 +524,6 @@ export async function decideContributionCorrectionRequest(
   return {
     request: decidedRequest,
     result,
+    approvalPolicy: policy,
   };
 }

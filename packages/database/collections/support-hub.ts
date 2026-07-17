@@ -6,6 +6,9 @@ import { z } from "zod";
 
 import { getQueryClient } from "../providers/query-client";
 
+// Local-only transition collections for Support Hub UI modeling. The registry
+// records that these should migrate to staff-scoped `support_*` tables, while
+// audit, inbound email, and automation side effects stay server-command owned.
 /* ------------------------------------------------------------------------ */
 /*  Constants & enums                                                        */
 /* ------------------------------------------------------------------------ */

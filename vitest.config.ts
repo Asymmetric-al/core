@@ -41,10 +41,8 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
     },
     testTimeout: 20_000,
-    hookTimeout: 60_000,
-    clearMocks: true,
     hookTimeout: 120_000,
-    testTimeout: 20_000,
+    clearMocks: true,
     /** TipTap React ships ESM subpaths; inline so `vi.mock` replaces the same module graph under coverage. */
     server: {
       deps: {

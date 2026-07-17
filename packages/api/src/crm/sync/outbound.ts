@@ -1,3 +1,4 @@
+import { isRecord } from "../../shared/json-coerce";
 import { sha256Hex } from "../webhooks/signature";
 
 import type { CrmSyncStore } from "./store";
@@ -111,10 +112,6 @@ function jobMethod(job: CrmOutboundJob) {
   if (job.jobType === "delete") return "DELETE";
   if (job.jobType === "update") return "PATCH";
   return "POST";
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function readRecordId(value: unknown, depth = 0): string | null {

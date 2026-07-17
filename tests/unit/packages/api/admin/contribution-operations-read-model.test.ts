@@ -273,10 +273,18 @@ describe("contribution operations detail read model", () => {
       expect.objectContaining({
         actionType: "approve_staged_gift",
         available: false,
+        blockedReason: expect.stringMatching(
+          /no longer an active product workflow/i,
+        ),
+        nextStep: expect.stringMatching(/historical evidence.*Asym/i),
       }),
       expect.objectContaining({
         actionType: "retry_staged_gift",
         available: false,
+        blockedReason: expect.stringMatching(
+          /no longer an active product workflow/i,
+        ),
+        nextStep: expect.stringMatching(/historical evidence.*Asym/i),
       }),
       expect.objectContaining({
         actionType: "resend_receipt",
@@ -285,6 +293,7 @@ describe("contribution operations detail read model", () => {
       expect.objectContaining({
         actionType: "refund",
         available: true,
+        blockedReason: null,
       }),
     ]);
 
@@ -365,23 +374,33 @@ describe("contribution operations detail read model", () => {
     // Donor context renders for read-only gifts.
     expect(detail.donor.name).toBe("Legacy Donor");
 
-    const workflowEntries = detail.actionAvailability.filter((entry) =>
-      ["approve_staged_gift", "retry_staged_gift", "resend_receipt"].includes(
-        entry.actionType,
-      ),
+    const postingEntries = detail.actionAvailability.filter((entry) =>
+      ["approve_staged_gift", "retry_staged_gift"].includes(entry.actionType),
     );
-    for (const entry of workflowEntries) {
+    expect(postingEntries).toHaveLength(2);
+    for (const entry of postingEntries) {
       expect(entry.available).toBe(false);
-      expect(entry.blockedReason).toMatch(/no staged gift/i);
-      expect(entry.nextStep).toMatch(/valid/i);
+      expect(entry.blockedReason).toMatch(
+        /no longer an active product workflow/i,
+      );
+      expect(entry.nextStep).toMatch(/historical evidence.*Asym/i);
     }
 
-    // A check gift with no provider charge cannot use provider refunds.
+    expect(availabilityFor(detail, "resend_receipt")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(/no staged gift/i),
+      nextStep: expect.stringMatching(/valid/i),
+    });
+
+    // Refund execution is wired (AL-265), but a gift without any provider
+    // charge still has nothing to refund against.
     const refundEntry = detail.actionAvailability.find(
       (entry) => entry.actionType === "refund",
     );
     expect(refundEntry?.available).toBe(false);
-    expect(refundEntry?.blockedReason).toMatch(/no payment provider charge/i);
+    expect(refundEntry?.blockedReason).toMatch(
+      /no payment provider charge to refund against/i,
+    );
   });
 
   it("exposes a first-class designation set for split gifts that reconciles to the gift amount", () => {
@@ -1052,11 +1071,11 @@ describe("contribution operations detail read model", () => {
     });
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: false,
-      blockedReason: expect.stringMatching(/completed payments/i),
+      blockedReason: expect.stringMatching(/only completed payments/i),
     });
   });
 
-  it("allows refunds when Stripe proof has only a payment intent id", () => {
+  it("keeps PaymentIntent-only proof refundable now that execution is wired", () => {
     const detail = buildContributionDetail({
       donation: donationInput({
         stripePaymentIntentId: "pi_only",
@@ -1074,13 +1093,15 @@ describe("contribution operations detail read model", () => {
 
     expect(detail.payment.stripe.paymentIntentId).toBe("pi_only");
     expect(detail.payment.stripe.chargeId).toBeNull();
+    // The refund executor accepts a PaymentIntent as provider proof, so a
+    // PaymentIntent-only gift advertises refund (AL-265).
     expect(availabilityFor(detail, "refund")).toMatchObject({
       available: true,
       blockedReason: null,
     });
   });
 
-  it("makes retry available when CRM link state exposes failed scopes", () => {
+  it("keeps designation failure evidence while CRM posting stays unavailable", () => {
     const detail = buildContributionDetail({
       donation: donationInput(),
       stagedGift: {
@@ -1106,7 +1127,20 @@ describe("contribution operations detail read model", () => {
     expect(detail.crm.failedScopes).toEqual([
       { scope: "designation", allocationId: "alloc_1" },
     ]);
-    expect(availabilityFor(detail, "retry_staged_gift").available).toBe(true);
+    expect(detail.crm.designationRecords).toEqual([
+      expect.objectContaining({
+        allocationId: "alloc_1",
+        status: "failed",
+        lastError: "Twenty rejected the designation record.",
+      }),
+    ]);
+    expect(availabilityFor(detail, "retry_staged_gift")).toMatchObject({
+      available: false,
+      blockedReason: expect.stringMatching(
+        /no longer an active product workflow/i,
+      ),
+      nextStep: expect.stringMatching(/historical evidence.*Asym/i),
+    });
   });
 
   it("changes revision when adjustment state changes with the same donation timestamp and count", () => {

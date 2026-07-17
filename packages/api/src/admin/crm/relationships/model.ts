@@ -1,3 +1,12 @@
+import {
+  DEFAULT_TIMESTAMP,
+  coerceString,
+  findFirstString,
+  getNestedName,
+  isRecord,
+  timestampOrDefault,
+} from "../../../shared/json-coerce";
+
 import type { AdminCrmRelationshipsParams } from "./query";
 import type {
   CrmRelationshipDomain,
@@ -6,8 +15,6 @@ import type {
 } from "@asym/database/types";
 
 type JsonRecord = Record<string, unknown>;
-
-const DEFAULT_TIMESTAMP = "1970-01-01T00:00:00.000Z";
 
 const EMPTY_DOMAIN_COUNTS: Record<CrmRelationshipDomain, number> = {
   activity: 0,
@@ -41,27 +48,6 @@ interface NormalizeResult {
   stats: NormalizeStats;
 }
 
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  if (typeof value === "string") {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-
-  if (typeof value === "number" || typeof value === "boolean") {
-    return String(value);
-  }
-
-  if (isRecord(value) && typeof value.value === "string") {
-    return asString(value.value);
-  }
-
-  return null;
-}
-
 function asNumber(value: unknown): number | null {
   if (typeof value === "number" && Number.isFinite(value)) {
     return value;
@@ -73,35 +59,6 @@ function asNumber(value: unknown): number | null {
   }
 
   return null;
-}
-
-function findFirstString(
-  record: JsonRecord,
-  keys: readonly string[],
-): string | null {
-  for (const key of keys) {
-    const value = asString(record[key]);
-    if (value) {
-      return value;
-    }
-  }
-
-  return null;
-}
-
-function getNestedName(value: unknown): string | null {
-  if (!isRecord(value)) {
-    return null;
-  }
-
-  return (
-    (findFirstString(value, ["name", "displayName", "fullName"]) ??
-      [asString(value.firstName), asString(value.lastName)]
-        .filter(Boolean)
-        .join(" ")
-        .trim()) ||
-    null
-  );
 }
 
 function normalizeKey(value: string | null): string | null {
@@ -116,19 +73,6 @@ function normalizeKey(value: string | null): string | null {
     .replace(/^-+|-+$/g, "");
 
   return normalized || null;
-}
-
-function timestampOrDefault(value: string | null): string {
-  if (!value) {
-    return DEFAULT_TIMESTAMP;
-  }
-
-  const timestamp = new Date(value);
-  if (Number.isNaN(timestamp.getTime())) {
-    return DEFAULT_TIMESTAMP;
-  }
-
-  return timestamp.toISOString();
 }
 
 function timestampOrNull(value: string | null): string | null {
@@ -219,12 +163,12 @@ function getMemberIds(record: JsonRecord): string[] {
     ? rawMemberIds
     : Array.isArray(record.members)
       ? record.members.map((member) =>
-          isRecord(member) ? getRecordId(member) : asString(member),
+          isRecord(member) ? getRecordId(member) : coerceString(member),
         )
       : [];
 
   return Array.from(
-    new Set(ids.map((id) => asString(id)).filter(Boolean) as string[]),
+    new Set(ids.map((id) => coerceString(id)).filter(Boolean) as string[]),
   ).sort((left, right) => left.localeCompare(right));
 }
 

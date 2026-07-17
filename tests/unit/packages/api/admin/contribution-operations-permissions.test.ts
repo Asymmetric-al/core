@@ -10,8 +10,6 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { ContributionActionType } from "../../../../../packages/api/src/admin/contribution-operations/types";
 
 const APPROVAL_REQUEST_ACTION_TYPES = [
-  "refund",
-  "stripe_replay",
   "donor_relink",
   "amount_correction",
   "designation_correction",
@@ -141,6 +139,37 @@ describe("contribution operations permissions", () => {
       }),
     ).toThrow("contributions.manage_receipts");
   });
+
+  it.each([
+    ["refund", "contributions.run_refunds"],
+    ["stripe_replay", "contributions.use_provider_actions"],
+  ] as const)(
+    "requires the granular capability for approval-gated %s",
+    (actionType, requiredCapability) => {
+      const donorCare = authContext({
+        memberships: [
+          {
+            tenantId: "tenant_1",
+            role: "staff",
+            staffRole: "development",
+            isActive: true,
+          },
+        ],
+      });
+      const admin = authContext({ role: "admin", profileRole: "admin" });
+
+      expect(() =>
+        assertContributionActionPermission(donorCare, actionType, {
+          mode: "request",
+        }),
+      ).toThrow(requiredCapability);
+      expect(() =>
+        assertContributionActionPermission(admin, actionType, {
+          mode: "request",
+        }),
+      ).not.toThrow();
+    },
+  );
 
   it("still blocks correction request actions without tenant staff membership", () => {
     const nonMember = authContext({ role: "staff", profileRole: "staff" });

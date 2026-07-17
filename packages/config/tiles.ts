@@ -289,7 +289,7 @@ export const tiles: Tile[] = [
       {
         label: "Start care plan",
         href: "/care/plans/new",
-        icon: "ClipboardList",
+        icon: "ClipboardPlus",
       },
       {
         label: "Request pastoral packet",

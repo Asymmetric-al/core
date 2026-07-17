@@ -1,4 +1,4 @@
-import { ApiHttpError } from "../../shared/http-errors";
+import { ApiHttpError } from "../../shared/api-http-error";
 
 import type { ContributionActionType, ContributionPermission } from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";
@@ -53,23 +53,32 @@ export function assertContributionActionPermission(
   actionType: ContributionActionType,
   options: { mode?: "direct" | "request" } = {},
 ): void {
-  const requiredCapabilities = requiredCapabilitiesForAction(
+  const requiredCapabilities = requiredCapabilitiesForContributionAction(
     actionType,
     options,
   );
   const actorCapabilities = resolveContributionCapabilities(auth);
+  const requiresEveryCapability =
+    (actionType === "refund" || actionType === "stripe_replay") &&
+    options.mode === "request";
+  const hasRequiredCapabilities = requiresEveryCapability
+    ? requiredCapabilities.every((capability) =>
+        actorCapabilities.includes(capability),
+      )
+    : requiredCapabilities.some((capability) =>
+        actorCapabilities.includes(capability),
+      );
 
-  if (
-    requiredCapabilities.some((capability) =>
-      actorCapabilities.includes(capability),
-    )
-  ) {
+  if (hasRequiredCapabilities) {
     return;
   }
 
   throw new ApiHttpError(
     403,
-    `Forbidden: requires ${formatRequiredCapabilities(requiredCapabilities)}`,
+    `Forbidden: requires ${formatRequiredCapabilities(
+      requiredCapabilities,
+      requiresEveryCapability ? "and" : "or",
+    )}`,
   );
 }
 
@@ -125,11 +134,17 @@ const APPROVAL_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
   "payment_state_correction",
 ]);
 
-function requiredCapabilitiesForAction(
+export function directContributionCapabilityForAction(
+  actionType: ContributionActionType,
+): ContributionCapability {
+  return CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+}
+
+export function requiredCapabilitiesForContributionAction(
   actionType: ContributionActionType,
   options: { mode?: "direct" | "request" },
 ): ContributionCapability[] {
-  const directCapability = CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+  const directCapability = directContributionCapabilityForAction(actionType);
 
   if (
     options.mode === "request" &&
@@ -143,8 +158,9 @@ function requiredCapabilitiesForAction(
 
 function formatRequiredCapabilities(
   capabilities: ContributionCapability[],
+  conjunction: "and" | "or" = "or",
 ): string {
-  return capabilities.join(" or ");
+  return capabilities.join(` ${conjunction} `);
 }
 
 const DONOR_CARE_CAPABILITIES: ContributionCapability[] = [

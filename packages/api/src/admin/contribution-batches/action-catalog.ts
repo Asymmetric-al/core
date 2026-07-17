@@ -5,15 +5,11 @@ import type { ContributionActionType } from "../contribution-operations/types";
 
 const PREVIEW_SKIPPABLE_LOW_RISK_ACTIONS = new Set<ContributionActionType>([
   "resend_receipt",
-  "crm_repost",
 ]);
 
 const BULK_RISK_OVERRIDES: Partial<
   Record<ContributionActionType, ContributionBatchRiskLevel>
 > = {
-  // CRM reposts are provider replays, but bulk reposting is recoverable and
-  // preview-skippable in this workflow.
-  crm_repost: "low",
   // Allocation corrections are medium-risk one at a time, but bulk allocation
   // edits can reassign financial ownership across many contributions.
   allocation_correction: "high",

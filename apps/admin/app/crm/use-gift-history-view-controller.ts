@@ -299,6 +299,7 @@ export function useGiftHistoryViewController({
     confirmPendingReset,
     confirmSetTenantDefault,
     deleteViewDialog,
+    isSavingTenantDefault: saveTenantDefaultMutation.isPending,
     giftRows,
     inlineOperation,
     namedViews,

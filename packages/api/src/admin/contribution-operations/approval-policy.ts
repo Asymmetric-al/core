@@ -3,7 +3,7 @@ import {
   CONTRIBUTION_ACTION_TYPES,
   type ContributionActionType,
 } from "./types";
-import { ApiHttpError } from "../../shared/http-errors";
+import { ApiHttpError } from "../../shared/api-http-error";
 
 /**
  * Tenant-configurable correction approval policy (ADR-CD-005 / ADR-CD-025).

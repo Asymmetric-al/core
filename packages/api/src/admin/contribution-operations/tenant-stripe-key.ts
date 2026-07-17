@@ -1,10 +1,10 @@
-import { serverEnv } from "@asym/env";
+import { resolveTenantStripe } from "../../stripe/tenant-client";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 /**
- * Shared tenant Stripe key resolution: the tenant's own key wins, the
- * platform key is the fallback, and `null` means Stripe is not configured.
+ * Shared tenant Stripe key resolution delegates to the canonical tenant
+ * resolver. `null` means the tenant is absent or Stripe is not configured.
  *
  * Both the refund adapter (which requires a key and fails with a 503) and the
  * provider dashboard mode resolution (which maps a missing key to live-mode
@@ -14,16 +14,15 @@ export async function loadTenantStripeSecretKey(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<string | null> {
-  const { data, error } = await input.supabaseAdmin
-    .from("tenants")
-    .select("id, stripe_secret_key")
-    .eq("id", input.tenantId)
-    .maybeSingle();
+  const tenantStripe = await resolveTenantStripe(input);
 
-  if (error) {
-    throw new Error(error.message);
+  if (!tenantStripe.ok) {
+    if (tenantStripe.reason === "lookup_failed") {
+      throw new Error(tenantStripe.message);
+    }
+
+    return null;
   }
 
-  const tenantRow = data as { stripe_secret_key?: string | null } | null;
-  return tenantRow?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
+  return tenantStripe.secretKey;
 }
