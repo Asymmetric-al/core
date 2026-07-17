@@ -318,19 +318,21 @@ function inlineActionsFor(donationId: string) {
 
 const contributionDetailPayload = contributionDetailPayloadFor(DONATION_ID);
 
-const staleCrmRetryInlineActions = {
-  nextBestActionType: "retry_staged_gift",
-  entries: [
-    {
-      actionType: "retry_staged_gift",
-      available: true,
-      blockedReason: null,
-      nextStep: null,
-      riskLevel: "low",
-    },
-    ...inlineActionsFor(DONATION_ID).entries,
-  ],
-};
+function staleCrmRetryInlineActionsFor(donationId: string) {
+  return {
+    nextBestActionType: "retry_staged_gift",
+    entries: [
+      {
+        actionType: "retry_staged_gift" as const,
+        available: true,
+        blockedReason: null,
+        nextStep: null,
+        riskLevel: "low" as const,
+      },
+      ...inlineActionsFor(donationId).entries,
+    ],
+  };
+}
 
 function crmDonorDetailFor(donationId: string) {
   return {
@@ -661,13 +663,13 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(view.getByText("Receipt")).toBeTruthy();
     expect(view.getByText("Correct gift amount")).toBeTruthy();
     expect(view.getByText("Correct fund designation")).toBeTruthy();
-    // Provider-touching actions require direct execution capability. They do
-    // not render for a request-only viewer, even when the underlying gift
-    // would independently block the action.
+    // Provider-touching actions require their direct capabilities even when
+    // approval policy routes them through a request. Request-only staff never
+    // receive refund or replay entries, blocked or otherwise.
     expect(view.queryByText("Refund")).toBeNull();
     expect(view.queryByText("Refund gift")).toBeNull();
     expect(view.queryByText("Replay provider webhook")).toBeNull();
-    // Retired CRM actions and other capability-filtered entries never render.
+    // Entries the server filtered out by capability never render.
     expect(view.queryByText("Approve and post gift")).toBeNull();
     expect(view.queryByText("Retry CRM posting")).toBeNull();
   });
@@ -676,7 +678,8 @@ describe("apps/admin/app/crm gift detail entry", () => {
     const donationId = "00000000-0000-4000-8000-00000000d010";
     mockSearch = `donor=${DONOR_RECORD_ID}`;
     const staleDetail = crmDonorDetailFor(donationId);
-    staleDetail.giftHistory[0]!.inlineActions = staleCrmRetryInlineActions;
+    staleDetail.giftHistory[0]!.inlineActions =
+      staleCrmRetryInlineActionsFor(donationId);
     useAdminCrmRecordDetailMock.mockReturnValue(
       mockQuery({ data: staleDetail }),
     );
@@ -1279,7 +1282,11 @@ describe("apps/admin/app/crm gift detail entry", () => {
     fireEvent.click(trigger);
     const shell = await view.findByTestId("contribution-operation-shell");
 
-    fireEvent.keyDown(shell, { key: "Escape" });
+    // Wait for the authoritative detail form before selecting Cancel. The
+    // loading state intentionally has its own Cancel button, which is replaced
+    // when current gift values arrive.
+    await within(shell).findByText("$250.00");
+    fireEvent.click(within(shell).getByRole("button", { name: "Cancel" }));
 
     await waitFor(() => {
       expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
@@ -1387,7 +1394,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
     ).toBeTruthy();
     // The fallback is explained, never silent (#271).
     expect(view.getByRole("note").textContent).toMatch(
-      /pinned action .* isn't available/i,
+      /pinned action .* isn't available to you/i,
     );
   });
 
