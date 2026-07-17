@@ -1,5 +1,6 @@
 import { getRawPayloadEvent, type StoredStripeRawEvent } from "./event-store";
 import { ApiHttpError } from "../shared/http-errors";
+import { asString } from "../shared/json-coerce";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 
@@ -13,10 +14,6 @@ const STRIPE_CONTRIBUTION_REPLAY_EVENT_TYPE = "payment_intent.succeeded";
 
 function isJsonRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function asNumber(value: unknown): number {

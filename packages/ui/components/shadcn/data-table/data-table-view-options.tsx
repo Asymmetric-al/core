@@ -14,15 +14,15 @@ import {
   DropdownMenuTrigger,
 } from "../dropdown-menu";
 
-import type { Table } from "@tanstack/react-table";
+import type { RowData, Table } from "./tanstack";
 
-interface DataTableViewOptionsProps<TData> {
+interface DataTableViewOptionsProps<TData extends RowData> {
   table: Table<TData>;
   className?: string;
   disabled?: boolean;
 }
 
-export function DataTableViewOptions<TData>({
+export function DataTableViewOptions<TData extends RowData>({
   table,
   className,
   disabled = false,

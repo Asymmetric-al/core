@@ -31,6 +31,7 @@
 
 ###
 
+# Twenty CRM retired 2026-07-06 (ADR-0001) — do not wire; block retained until the cleanup ticket removes it.
 # [mcp_servers.twenty]
 # command = "npx"
 # args = ["-y", "twenty-mcp-server", "start", "--stdio"]

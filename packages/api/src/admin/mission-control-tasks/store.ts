@@ -4,6 +4,7 @@ import {
   type NeedsAttentionRow,
 } from "./read-model";
 import { createMissionControlTask } from "./service";
+import { asString, isRecord } from "../../shared/json-coerce";
 
 import type {
   MissionControlIssueType,
@@ -13,16 +14,6 @@ import type {
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdmin = AdminSupabaseClient;
-
-type JsonRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 export async function ensureMissionControlQueue(input: {
   supabaseAdmin: SupabaseAdmin;

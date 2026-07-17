@@ -1,5 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
+import { asString } from "../shared/json-coerce";
+
 import type { getAdminClient } from "@asym/database/supabase/admin";
 import type Stripe from "stripe";
 
@@ -51,10 +53,6 @@ interface SupabaseError {
 
 function isJsonRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function asBoolean(value: unknown): boolean {

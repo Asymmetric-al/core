@@ -9,6 +9,7 @@ import {
 } from "./receipt-delivery";
 import { sendUpdatedReceiptSnapshotEmail } from "../../giving/receipts";
 import { ApiHttpError } from "../../shared/http-errors";
+import { asString, isRecord } from "../../shared/json-coerce";
 import {
   loadStripeRawEventForReplay,
   markStripeRawEventForReplay,
@@ -47,20 +48,22 @@ type JsonRecord = Record<string, unknown>;
 const UUID_PATTERN =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
-
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 function asNullableNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
+}
+
+function asStringArray(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value.filter(
+    (entry): entry is string => typeof entry === "string" && entry.length > 0,
+  );
 }
 
 function assertNoError(
@@ -89,6 +92,7 @@ function normalizeDonation(row: JsonRecord) {
     notes: asString(row.notes),
     stripePaymentIntentId: asString(row.stripe_payment_intent_id),
     stripeChargeId: asString(row.stripe_charge_id),
+    stripeRefundIds: asStringArray(row.stripe_refund_ids),
     giftDate:
       asString(row.gift_date) ??
       asString(row.created_at) ??
@@ -316,7 +320,7 @@ async function loadContributionOperationDetail(input: {
   const donationResult = await input.supabaseAdmin
     .from("donations")
     .select(
-      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, refunded_at, refund_amount, source, created_at, updated_at",
+      "id, tenant_id, donor_id, missionary_id, fund_id, amount, currency, status, donation_type, payment_method, is_recurring, recurring_interval, notes, stripe_payment_intent_id, gift_date, campaign_id, pledge_id, processed_at, completed_at, failed_at, error_code, error_message, stripe_charge_id, stripe_refund_ids, refunded_at, refund_amount, source, created_at, updated_at",
     )
     .eq("tenant_id", input.tenantId)
     .eq("id", input.contributionId)
@@ -350,6 +354,7 @@ async function loadContributionOperationDetail(input: {
     correctionRequestResult,
     crmLinksResult,
     pledgeRow,
+    pledgeGiftHistoryResult,
   ] = await Promise.all([
     maybeFetchTenantRow({
       supabaseAdmin: input.supabaseAdmin,
@@ -406,6 +411,18 @@ async function loadContributionOperationDetail(input: {
       select:
         "id, status, frequency, amount, currency, fund_id, missionary_id, next_payment_date, next_charge_at, stripe_subscription_id",
     }),
+    // Gift-history context for the linked agreement (ADR-CD-007): the total
+    // linked gift count plus the most recent gift date, without loading full
+    // donation rows.
+    donation.pledgeId
+      ? input.supabaseAdmin
+          .from("donations")
+          .select("gift_date", { count: "exact" })
+          .eq("tenant_id", input.tenantId)
+          .eq("pledge_id", donation.pledgeId)
+          .order("gift_date", { ascending: false, nullsFirst: false })
+          .limit(1)
+      : Promise.resolve({ data: [], error: null, count: 0 }),
   ]);
 
   assertNoError(stagedGiftResult.error, "Failed to load staged gift.");
@@ -419,6 +436,10 @@ async function loadContributionOperationDetail(input: {
     "Failed to load correction requests.",
   );
   assertNoError(crmLinksResult.error, "Failed to load CRM record links.");
+  assertNoError(
+    pledgeGiftHistoryResult.error,
+    "Failed to load recurring agreement gift history.",
+  );
 
   const stagedGift = isRecord(stagedGiftResult.data)
     ? {
@@ -432,6 +453,9 @@ async function loadContributionOperationDetail(input: {
     : null;
 
   const pledgeFundId = pledgeRow ? asString(pledgeRow.fund_id) : null;
+  const pledgeMissionaryId = pledgeRow
+    ? asString(pledgeRow.missionary_id)
+    : null;
   const [designationData, stagedGiftParentCrmLinksResult] = await Promise.all([
     loadDesignationSetData({
       supabaseAdmin: input.supabaseAdmin,
@@ -439,7 +463,10 @@ async function loadContributionOperationDetail(input: {
       stagedGiftId: stagedGift?.id ?? null,
       donationFundId: donation.fundId,
       extraFundIds: [...effectiveReferences.fundIds, pledgeFundId],
-      extraMissionaryIds: effectiveReferences.missionaryIds,
+      extraMissionaryIds: [
+        ...effectiveReferences.missionaryIds,
+        pledgeMissionaryId,
+      ],
     }),
     stagedGift?.id
       ? input.supabaseAdmin
@@ -484,6 +511,22 @@ async function loadContributionOperationDetail(input: {
   const pledgeFund = pledgeFundId
     ? (designationData.funds.find((fund) => fund.id === pledgeFundId) ?? null)
     : null;
+  const pledgeMissionary = pledgeMissionaryId
+    ? (designationData.missionaries.find(
+        (missionary) => missionary.id === pledgeMissionaryId,
+      ) ?? null)
+    : null;
+  const pledgeGiftHistoryRows = Array.isArray(pledgeGiftHistoryResult.data)
+    ? (pledgeGiftHistoryResult.data as JsonRecord[])
+    : [];
+  const latestPledgeGiftRow = pledgeGiftHistoryRows[0];
+  // The query is limited to 1 row, so row length can never stand in for the
+  // exact count; treat a missing count as zero rather than undercounting.
+  const pledgeLinkedGiftCount = pledgeGiftHistoryResult.count ?? 0;
+  const pledgeLastLinkedGiftAt =
+    latestPledgeGiftRow !== undefined && isRecord(latestPledgeGiftRow)
+      ? asString(latestPledgeGiftRow.gift_date)
+      : null;
   const primaryFund =
     donation.fundId !== null
       ? (designationData.funds.find((fund) => fund.id === donation.fundId) ?? {
@@ -578,11 +621,14 @@ async function loadContributionOperationDetail(input: {
           currencyCode: (asString(pledgeRow.currency) ?? "usd").toUpperCase(),
           fundId: asString(pledgeRow.fund_id),
           fundName: pledgeFund ? asString(pledgeFund.name) : null,
-          missionaryId: asString(pledgeRow.missionary_id),
+          missionaryId: pledgeMissionaryId,
+          missionaryName: pledgeMissionary?.display_name ?? null,
           nextExpectedGiftAt:
             asString(pledgeRow.next_charge_at) ??
             asString(pledgeRow.next_payment_date),
           stripeSubscriptionId: asString(pledgeRow.stripe_subscription_id),
+          linkedGiftCount: pledgeLinkedGiftCount,
+          lastLinkedGiftAt: pledgeLastLinkedGiftAt,
         }
       : null,
   });

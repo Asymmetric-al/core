@@ -9,7 +9,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import { resolveRequiredIdempotencyKey } from "../donate/idempotency";
 import { processDonationSagaOutboxEvent } from "../donate/saga";
 import { ensureJsonBody, toErrorResponse } from "../shared/http-errors";
-import { createStripeClient } from "../stripe/client";
+import { resolveTenantStripe } from "../stripe/tenant-client";
 
 function getSupabaseAdmin() {
   const { client, error } = getAdminClient();
@@ -111,22 +111,18 @@ export async function POST(request: NextRequest) {
     }
 
     const idempotencyKey = resolveRequiredIdempotencyKey(request.headers);
-    const { data: tenant, error: tenantError } = await supabaseAdmin
-      .from("tenants")
-      .select("id, stripe_secret_key")
-      .eq("id", ctx.tenantId)
-      .single();
-    if (tenantError || !tenant) {
+    const tenantStripe = await resolveTenantStripe({
+      supabaseAdmin,
+      tenantId: ctx.tenantId,
+    });
+    if (!tenantStripe.ok) {
+      if (tenantStripe.reason === "stripe_unconfigured") {
+        return NextResponse.json(
+          { error: "Stripe not configured for this organization" },
+          { status: 500 },
+        );
+      }
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
-    }
-
-    const stripeSecretKey =
-      tenant.stripe_secret_key ?? process.env.STRIPE_SECRET_KEY;
-    if (!stripeSecretKey) {
-      return NextResponse.json(
-        { error: "Stripe not configured for this organization" },
-        { status: 500 },
-      );
     }
 
     const { data: beginRaw, error: beginError } = await supabaseAdmin.rpc(
@@ -173,7 +169,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const stripe = createStripeClient(stripeSecretKey);
+    const { stripe } = tenantStripe;
     const sagaResult = await processDonationSagaOutboxEvent({
       supabaseAdmin,
       stripe,

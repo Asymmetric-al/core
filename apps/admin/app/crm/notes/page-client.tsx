@@ -25,6 +25,8 @@ import { getCrmNoteColumns } from "./columns";
 
 import type { FormEvent } from "react";
 
+import { CRM_NOTES_PAGE_META } from "@/components/table-page-meta";
+
 export default function CrmNotesPageClient() {
   const {
     configured,
@@ -76,8 +78,8 @@ export default function CrmNotesPageClient() {
 
   return (
     <PageShell
-      title="CRM Notes"
-      description="Relationship notes for staff follow-up."
+      title={CRM_NOTES_PAGE_META.title}
+      description={CRM_NOTES_PAGE_META.description}
       actions={
         <div className="flex items-center gap-2">
           <Link

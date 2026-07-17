@@ -24,6 +24,8 @@ import type {
  * Entries reuse the shared availability derivation verbatim so blocked
  * reasons, next steps, and risk levels match contribution detail exactly,
  * then get filtered to what the viewer's capabilities allow (ADR-CD-024).
+ * The viewer/policy-dependent pieces live in `viewer-action-availability`
+ * and are shared with the detail viewer projection.
  */
 
 /** Capability a viewer needs before an operation is surfaced inline. */
@@ -99,10 +101,10 @@ export function buildInlineContributionActions(
         entry.actionType !== "stripe_replay",
     )
     .filter((entry) => !isCorrectionRequestActionType(entry.actionType));
-  const correctionRequestEntries = buildCorrectionActionAvailability();
+  const correctionEntries = buildCorrectionActionAvailability();
 
   const allEntries: CrmGiftInlineActionEntry[] = [
-    ...correctionRequestEntries,
+    ...correctionEntries,
     ...workflowEntries,
     {
       ...stripeReplayAvailability(

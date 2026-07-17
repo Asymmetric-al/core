@@ -30,20 +30,31 @@ export async function resolveReactionRouteContext(
     throw new ApiHttpError(401, "Unauthorized");
   }
 
+  const { data: profile, error: profileError } = await supabase
+    .from("profiles")
+    .select("tenant_id")
+    .eq("user_id", user.id)
+    .single();
+
+  if (profileError || !profile?.tenant_id) {
+    throw new ApiHttpError(404, "Profile not found");
+  }
+
   const { data: post, error: postError } = await supabase
     .from("posts")
     .select("tenant_id")
     .eq("id", postId)
+    .eq("tenant_id", profile.tenant_id)
     .single();
 
-  if (postError || !post?.tenant_id) {
+  if (postError || post?.tenant_id !== profile.tenant_id) {
     throw new ApiHttpError(404, "Post not found");
   }
 
   return {
     postId,
     userId: user.id,
-    tenantId: post.tenant_id,
+    tenantId: profile.tenant_id,
   };
 }
 

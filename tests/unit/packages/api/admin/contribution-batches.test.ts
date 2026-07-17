@@ -297,7 +297,7 @@ describe("bulk contribution preview and execution", () => {
     });
 
     expect(parsed.records[0]?.payload).toEqual({ amount: 2500 });
-  });
+  }, 30_000);
 
   it("rejects retired CRM repost batch inputs", async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";

@@ -1,11 +1,6 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
-import { serverEnv } from "@asym/env";
 import { type NextRequest, NextResponse } from "next/server";
 
-import {
-  convergePendingContributionRefundWorkflow,
-  loadContributionRefundAttemptByProviderReference,
-} from "../admin/contribution-operations/store";
 import { createStripeClient } from "./client";
 import {
   claimStripeRawEvent,
@@ -20,11 +15,17 @@ import {
   getStripeObjectId,
   updateDonation,
 } from "./refunds";
+import { resolveTenantStripe } from "./tenant-client";
 import {
   StripeWebhookVerificationError,
   constructVerifiedStripeEvent,
 } from "./verify-event";
+import {
+  convergePendingContributionRefundWorkflow,
+  loadContributionRefundAttemptByProviderReference,
+} from "../admin/contribution-operations/store";
 import { stageGiftFromStripeDonation } from "../giving/staged-gifts";
+import { revalidateAdminContributionsCache } from "../shared/cache-tags";
 import { STRIPE_EVENT_PROCESS_EVENT } from "../workflows/events";
 import { requestWorkflowDispatch } from "../workflows/ledger";
 
@@ -42,11 +43,14 @@ export interface StripeWebhookOutcome {
   action: string;
   donationId?: string;
   handled: boolean;
+  /** True only when the event actually wrote donation/staged-gift rows. */
+  mutated?: boolean;
   paymentIntentId?: string;
   pledgeId?: string;
   providerRefundId?: string;
   reason?: string;
   stagedGiftId?: string | null;
+  tenantId?: string | null;
 }
 
 interface StripeRefundReconciliationApi {
@@ -65,22 +69,15 @@ async function createTenantStripeRefundClient(params: {
   supabaseAdmin: SupabaseAdminClient;
   tenantId: string;
 }): Promise<StripeRefundReconciliationApi> {
-  const { data, error } = await params.supabaseAdmin
-    .from("tenants")
-    .select("stripe_secret_key")
-    .eq("id", params.tenantId)
-    .maybeSingle();
-
-  if (error) throw new Error(error.message);
-
-  const tenant = data as { stripe_secret_key?: string | null } | null;
-  const secretKey =
-    tenant?.stripe_secret_key ?? serverEnv.STRIPE_SECRET_KEY ?? null;
-  if (!secretKey) {
+  const tenantStripe = await resolveTenantStripe(params);
+  if (!tenantStripe.ok) {
+    if (tenantStripe.reason === "lookup_failed") {
+      throw new Error(tenantStripe.message);
+    }
     throw new Error("Stripe is not configured for refund reconciliation.");
   }
 
-  return createStripeClient(secretKey);
+  return tenantStripe.stripe;
 }
 
 /**
@@ -328,8 +325,10 @@ async function updatePaymentIntentDonation(params: {
     action: `payment_intent_${status}`,
     donationId: donation.id,
     handled: true,
+    mutated: true,
     paymentIntentId: paymentIntent.id,
     stagedGiftId,
+    tenantId: donation.tenant_id,
   } satisfies StripeWebhookOutcome;
 }
 
@@ -422,6 +421,8 @@ export async function handleStripeWebhookEvent(
 
 export async function POST(request: NextRequest) {
   const signature = request.headers.get("stripe-signature");
+  // Platform webhook credentials are read from process.env at request time:
+  // serverEnv snapshots at import, which would freeze test/runtime overrides.
   const secretKey = process.env.STRIPE_SECRET_KEY;
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
@@ -550,6 +551,15 @@ export async function POST(request: NextRequest) {
       stagedGiftId: outcome.stagedGiftId ?? null,
     });
     processingClaim = null;
+
+    if (outcome.mutated) {
+      // The donation / staged gift was actually written through the async
+      // Stripe pipeline. Refresh cached admin contributions reads so staff
+      // views do not serve stale settlement data. Skipped for no-op outcomes
+      // (duplicate/terminal events) to avoid needless cross-tenant
+      // invalidation. No-op until those cached reads exist.
+      revalidateAdminContributionsCache(outcome.tenantId ?? null);
+    }
 
     return NextResponse.json({
       eventId: event.id,

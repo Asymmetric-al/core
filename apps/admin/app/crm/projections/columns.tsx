@@ -5,7 +5,7 @@ import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
 import { cn } from "@asym/ui/lib/utils";
 
 import type { CrmProjectionShadowRow } from "@asym/database/types";
-import type { ColumnDef } from "@tanstack/react-table";
+import type { ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 
 const DRIFT_BADGE_CLASS: Record<CrmProjectionShadowRow["driftStatus"], string> =
   {

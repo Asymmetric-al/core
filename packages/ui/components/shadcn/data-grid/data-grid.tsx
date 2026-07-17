@@ -1,16 +1,8 @@
 "use client";
 
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getSortedRowModel,
-  useReactTable,
-  type ColumnDef,
-  type HeaderGroup,
-  type Row,
-  type SortingState,
-} from "@tanstack/react-table";
+// Sanctioned boundary exception (see ../data-table/tanstack.ts): devtools
+// adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import {
   Plus,
   Trash2,
@@ -34,6 +26,16 @@ import {
   DEFAULT_HEADER_HEIGHT,
   DEFAULT_COLUMN_WIDTH,
 } from "./types";
+import {
+  createDataTableRowModels,
+  dataTableFeatures,
+  flexRender,
+  useTable,
+  type ColumnDef,
+  type HeaderGroup,
+  type Row,
+  type SortingState,
+} from "../data-table/tanstack";
 
 import type {
   DataGridColumn,
@@ -48,6 +50,12 @@ interface DataGridProps<TData extends Record<string, unknown>> {
   config?: DataGridConfig;
   callbacks?: DataGridCallbacks<TData>;
   className?: string;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
 }
 
 const EMPTY_DATA_GRID_CONFIG: DataGridConfig = {};
@@ -530,6 +538,7 @@ export function DataGrid<TData extends Record<string, unknown>>({
   config = EMPTY_DATA_GRID_CONFIG,
   callbacks = EMPTY_DATA_GRID_CALLBACKS as DataGridCallbacks<TData>,
   className,
+  devtoolsKey,
 }: DataGridProps<TData>) {
   const {
     enableSelection = true,
@@ -730,19 +739,33 @@ export function DataGrid<TData extends Record<string, unknown>>({
     ],
   );
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
+    // Mirrors the v8 setup: sorting + filtering row models, gated by their grid
+    // config flags. The global search box runs through the FILTERED row model,
+    // so register it when search is on too — v9 silently no-ops filtering when
+    // the model is absent (ADR-2).
+    rowModels: createDataTableRowModels<TData>({
+      filtering: enableFilter || enableSearch,
+      sorting: enableSort,
+      pagination: false,
+      faceting: false,
+    }),
     data: gridData,
     columns: tableColumns,
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     state: {
       sorting,
       globalFilter,
     },
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: enableFilter ? getFilteredRowModel() : undefined,
-    getSortedRowModel: enableSort ? getSortedRowModel() : undefined,
   });
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const { rows } = table.getRowModel();
   const {

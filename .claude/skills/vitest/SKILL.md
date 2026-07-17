@@ -1,52 +1,94 @@
 ---
 name: vitest
-description: Vitest fast unit testing framework powered by Vite with Jest-compatible API. Use when writing tests, mocking, configuring coverage, or working with test filtering and fixtures.
-metadata:
-  author: Anthony Fu
-  version: "2026.1.28"
-  source: Generated from https://github.com/vitest-dev/vitest, scripts located at https://github.com/antfu/skills
+description: Write, review, filter, mock, and debug Core unit tests with the repository's installed Vitest 4 configuration. Use for tests under Core's Vitest include paths, `vi.mock`/spies/timers, jsdom component tests, coverage output, focused reruns, or unit-test failures. Do not use for browser E2E flows or async Next.js Server Components.
 ---
 
-Vitest is a next-generation testing framework powered by Vite. It provides a Jest-compatible API with native ESM, TypeScript, and JSX support out of the box. Vitest shares the same config, transformers, resolvers, and plugins with your Vite app.
+# Vitest in Core
 
-**Key Features:**
-- Vite-native: Uses Vite's transformation pipeline for fast HMR-like test updates
-- Jest-compatible: Drop-in replacement for most Jest test suites
-- Smart watch mode: Only reruns affected tests based on module graph
-- Native ESM, TypeScript, JSX support without configuration
-- Multi-threaded workers for parallel test execution
-- Built-in coverage via V8 or Istanbul
-- Snapshot testing, mocking, and spy utilities
+Use the repository harness as the source of truth. Core currently resolves
+Vitest 4.1.x from `bun.lock`; verify the exact version before relying on a newly
+introduced API.
 
-> The skill is based on Vitest 3.x, generated at 2026-01-28.
+## Authority and test surface
 
-## Core
+Read these before changing tests or configuration:
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Configuration | Vitest and Vite config integration, defineConfig usage | [core-config](references/core-config.md) |
-| CLI | Command line interface, commands and options | [core-cli](references/core-cli.md) |
-| Test API | test/it function, modifiers like skip, only, concurrent | [core-test-api](references/core-test-api.md) |
-| Describe API | describe/suite for grouping tests and nested suites | [core-describe](references/core-describe.md) |
-| Expect API | Assertions with toBe, toEqual, matchers and asymmetric matchers | [core-expect](references/core-expect.md) |
-| Hooks | beforeEach, afterEach, beforeAll, afterAll, aroundEach | [core-hooks](references/core-hooks.md) |
+- `vitest.config.ts` — include globs, aliases, Node default environment,
+  timeouts, mock clearing, setup, and the custom coverage provider.
+- `tests/setup/unit-env.ts` — safe env defaults and browser shims.
+- `scripts/verify/unit-tests.mjs` — the full unit gate and platform behavior.
+- `docs/ai/rules/testing.md` — repository-wide test and CI policy.
+- `.next-docs/01-app/02-guides/testing/vitest.mdx` when testing Next.js code.
 
-## Features
+Do not use `bun test`; that selects Bun's test runner. Use Vitest through the
+committed scripts or `bunx vitest`.
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Mocking | Mock functions, modules, timers, dates with vi utilities | [features-mocking](references/features-mocking.md) |
-| Snapshots | Snapshot testing with toMatchSnapshot and inline snapshots | [features-snapshots](references/features-snapshots.md) |
-| Coverage | Code coverage with V8 or Istanbul providers | [features-coverage](references/features-coverage.md) |
-| Test Context | Test fixtures, context.expect, test.extend for custom fixtures | [features-context](references/features-context.md) |
-| Concurrency | Concurrent tests, parallel execution, sharding | [features-concurrency](references/features-concurrency.md) |
-| Filtering | Filter tests by name, file patterns, tags | [features-filtering](references/features-filtering.md) |
+## Commands
 
-## Advanced
+```bash
+# Full CI-equivalent unit suite with Core's coverage provider
+bun run test:unit
 
-| Topic | Description | Reference |
-|-------|-------------|-----------|
-| Vi Utilities | vi helper: mock, spyOn, fake timers, hoisted, waitFor | [advanced-vi](references/advanced-vi.md) |
-| Environments | Test environments: node, jsdom, happy-dom, custom | [advanced-environments](references/advanced-environments.md) |
-| Type Testing | Type-level testing with expectTypeOf and assertType | [advanced-type-testing](references/advanced-type-testing.md) |
-| Projects | Multi-project workspaces, different configs per project | [advanced-projects](references/advanced-projects.md) |
+# Focused file or directory while iterating
+bunx vitest run tests/unit/path/to/example.test.ts
+
+# Focused test name
+bunx vitest run tests/unit/path/to/example.test.ts -t "expected behavior"
+
+# Watch a focused surface
+bunx vitest tests/unit/path/to/example.test.ts
+
+# Structured failure report and targeted reruns
+bun run test:unit:feedback
+```
+
+## Workflow
+
+1. **Choose the boundary.** Test observable behavior at the smallest stable
+   public boundary. Prefer pure logic/unit coverage; use Playwright when the
+   claim depends on a real browser, routing, hydration, or an async Server
+   Component.
+2. **Place the test in an included path.** Match the existing `tests/unit`,
+   `packages/api/tests/unit`, or `packages/auth` conventions from
+   `vitest.config.ts`; do not invent a disconnected test root.
+3. **Control the environment.** The default is `node`. Add
+   `// @vitest-environment jsdom` only to files that need DOM APIs, and clean up
+   rendered components and mutated globals.
+4. **Mock boundaries, not the unit's internals.** Remember that `vi.mock` is
+   hoisted. Use `vi.hoisted` for shared mock state, dynamic imports when a module
+   must load after mocks, and `vi.importActual` for intentional partial mocks.
+5. **Reset all changed state.** `clearMocks: true` clears call history but does
+   not restore globals, timers, dates, env values, or spy implementations. Undo
+   those changes in hooks.
+6. **Run focused, then full.** Iterate on the smallest file/name filter and run
+   `bun run test:unit` before handoff.
+
+## Core-specific guardrails
+
+- Unit tests must not call live Supabase, Stripe, Resend, Payload, or network
+  services. Use deterministic fakes at repository boundaries.
+- Keep real credentials out of tests. The committed env defaults are
+  placeholders and intentionally clear the Supabase service-role key.
+- Assert behavior and durable contracts, not incidental class strings or
+  implementation order unless that order is itself the contract.
+- Prefer explicit test data builders/helpers over large untyped fixture blobs.
+- Avoid `.only`; use `.skip`/`.todo` only with a documented reason and no hidden
+  loss of required coverage.
+- Core's custom coverage output is useful evidence, but its current
+  `totalScripts: 0` summary is not a line/branch quality signal. Do not claim a
+  threshold the provider does not measure.
+
+## Checklist
+
+- [ ] The test exercises an observable contract at the right test layer.
+- [ ] The file is inside a configured include path and uses the correct env.
+- [ ] Mocks intercept external boundaries and respect Vitest hoisting.
+- [ ] Globals, env, timers, dates, spies, DOM, and module state are isolated.
+- [ ] Assertions are deterministic and do not depend on network or test order.
+- [ ] Focused tests pass, then `bun run test:unit` passes.
+- [ ] Coverage output is described without overstating its current signal.
+
+## Provenance
+
+See [references/upstream.md](references/upstream.md) for the reviewed upstream
+source, version mismatch decision, license, and refresh workflow.

@@ -753,6 +753,9 @@ describe("contribution refundContribution dependency", () => {
           refunded_at: expect.any(String),
           status: "refunded",
           stripe_charge_id: "ch_1",
+          // The created refund id persists even though the expanded charge
+          // carries no embedded refund list.
+          stripe_refund_ids: ["re_1"],
           updated_at: expect.any(String),
         },
       });
@@ -763,6 +766,38 @@ describe("contribution refundContribution dependency", () => {
         referenceId: "re_1",
       });
       expect(isFailedProviderOutcomeStatus(outcome.status)).toBe(false);
+    });
+
+    it("unions the created refund id with stored and charge-reported refund ids", async () => {
+      const stub = createSupabaseStub({
+        donation: donationRow({ stripe_refund_ids: ["re_prior"] }),
+      });
+      const stripe = createStripeStub(() =>
+        stripeRefund({
+          charge: expandedCharge({
+            refunds: {
+              data: [
+                { id: "re_prior", object: "refund" },
+                { id: "re_1", object: "refund" },
+              ],
+              has_more: false,
+              object: "list",
+            },
+          }),
+        }),
+      );
+
+      await refundContributionThroughStripe(
+        refundInput({
+          supabaseAdmin: stub.client,
+          createStripe: stripe.createStripe,
+        }),
+      );
+
+      expect(stub.updates).toHaveLength(1);
+      expect(stub.updates[0]!.patch).toMatchObject({
+        stripe_refund_ids: ["re_prior", "re_1"],
+      });
     });
   });
 

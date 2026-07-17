@@ -17,6 +17,11 @@ export default defineConfig({
       ),
       /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
+      /** Tests live outside `packages/database`; pin the Supabase adapter so `vi.mock("@supabase-labs/tanstack-db")` patches the same module as `@asym/database`. */
+      "@supabase-labs/tanstack-db": path.join(
+        rootDir,
+        "packages/database/node_modules/@supabase-labs/tanstack-db",
+      ),
     },
   },
   test: {
@@ -36,10 +41,8 @@ export default defineConfig({
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "test-anon-key",
     },
     testTimeout: 20_000,
-    hookTimeout: 60_000,
-    clearMocks: true,
     hookTimeout: 120_000,
-    testTimeout: 20_000,
+    clearMocks: true,
     /** TipTap React ships ESM subpaths; inline so `vi.mock` replaces the same module graph under coverage. */
     server: {
       deps: {

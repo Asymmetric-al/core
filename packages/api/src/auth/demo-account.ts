@@ -87,12 +87,16 @@ function getDemoConfig() {
   return { password, emails, availability };
 }
 
-/** Map AppRole to UserRole for E2E cookie (UserRole is a subset). */
-function appRoleToUserRole(role: AppRole): UserRole {
+/**
+ * Map AppRole to UserRole for the E2E cookie (UserRole is a subset). Roles
+ * without a portal user mapping return null so the bypass fails closed —
+ * defaulting them to "admin" would silently widen privilege.
+ */
+function appRoleToUserRole(role: AppRole): UserRole | null {
   if (role === "admin" || role === "missionary" || role === "donor") {
     return role;
   }
-  return "admin";
+  return null;
 }
 
 type E2EBypassReadiness = { ready: true } | { ready: false; reason: string };
@@ -266,6 +270,17 @@ export async function POST(request: Request) {
       }
 
       const e2eRole = appRoleToUserRole(role);
+      if (!e2eRole) {
+        return NextResponse.json(
+          {
+            ok: false,
+            error: "Demo login unavailable",
+            code: "DEMO_ROLE_UNSUPPORTED_FOR_BYPASS",
+            detail: `Role "${role}" has no portal user mapping for the E2E bypass.`,
+          },
+          { status: 400 },
+        );
+      }
       const cookieName = getE2EAuthCookieNameForRequest(request);
       const response = NextResponse.json({ ok: true, role, bypass: true });
       const secure = new URL(request.url).protocol === "https:";

@@ -1,13 +1,21 @@
 /** @vitest-environment jsdom */
 
 import { getQueryClient, QueryProvider } from "@asym/database/providers";
-import { cleanup, fireEvent, render, waitFor } from "@testing-library/react";
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  waitFor,
+} from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import {
   ContributionOperationShell,
   OPERATION_DEFINITIONS,
 } from "../../../../../apps/admin/app/contributions/operation-shell";
+import { contributionDetailQueryKey } from "../../../../../apps/admin/app/contributions/contribution-detail-overlay";
+import { useAdminContributions } from "../../../../../apps/admin/app/contributions/use-admin-contributions";
 
 import type { CrmPostFailedScope } from "@asym/api/admin/contribution-operations";
 
@@ -308,6 +316,13 @@ function fetchMockForShell(
 
 let fetchDescriptor: PropertyDescriptor | undefined;
 
+function HubAmountProbe() {
+  const contributionsQuery = useAdminContributions();
+  const amountCents = contributionsQuery.data?.[0]?.amountCents;
+
+  return <p>Hub amount: {amountCents ?? "loading"}</p>;
+}
+
 describe("ContributionOperationShell", () => {
   beforeEach(() => {
     fetchDescriptor = Object.getOwnPropertyDescriptor(globalThis, "fetch");
@@ -315,6 +330,8 @@ describe("ContributionOperationShell", () => {
 
   afterEach(() => {
     cleanup();
+    getQueryClient().clear();
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     if (fetchDescriptor) {
       Object.defineProperty(globalThis, "fetch", fetchDescriptor);
@@ -404,6 +421,209 @@ describe("ContributionOperationShell", () => {
     });
     expect(typeof body.idempotencyKey).toBe("string");
     expect(body.idempotencyKey.length).toBeGreaterThan(10);
+  });
+
+  it("keeps a successful operation successful when post-submit refresh fails", async () => {
+    const fetchMock = fetchMockForShell({
+      auditEventId: "audit-refresh-warning",
+      adjustmentId: "adj-refresh-warning",
+      approvalStatus: "pending_approval",
+      taskIds: [],
+      canonicalContribution: {},
+    });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const invalidationError = new Error("shared invalidation failed");
+    const rowRefreshError = new Error("CRM refetch failed");
+    let rejectInvalidation: (reason?: unknown) => void = () => undefined;
+    const invalidation = new Promise<void>((_resolve, reject) => {
+      rejectInvalidation = reject;
+    });
+    let rejectRowRefresh: (reason?: unknown) => void = () => undefined;
+    const rowRefresh = new Promise<void>((_resolve, reject) => {
+      rejectRowRefresh = reject;
+    });
+    const invalidateQueries = vi
+      .spyOn(getQueryClient(), "invalidateQueries")
+      .mockReturnValueOnce(invalidation);
+    const onRowRefresh = vi.fn().mockReturnValue(rowRefresh);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+          onRowRefresh={onRowRefresh}
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(
+      await view.findByText("Correction request submitted for approval."),
+    ).toBeTruthy();
+    expect(invalidateQueries).toHaveBeenCalled();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+
+    await act(async () => {
+      rejectInvalidation(invalidationError);
+      rejectRowRefresh(rowRefreshError);
+      await Promise.resolve();
+    });
+
+    const warning = await view.findByRole("alert");
+    expect(warning.textContent).toMatch(/the submission succeeded/i);
+    expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
+    expect(warning.textContent).toMatch(/will retry loading current values/i);
+    expect(view.queryByRole("button", { name: "Retry" })).toBeNull();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Contribution operation succeeded, but refresh failed.",
+      [invalidationError, rowRefreshError],
+    );
+  });
+
+  it("does not apply late refresh failures to a newer result", async () => {
+    const actionResults = [
+      {
+        auditEventId: "audit-late-refresh-a",
+        adjustmentId: "adj-late-refresh-a",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+      {
+        auditEventId: "audit-late-refresh-b",
+        adjustmentId: "adj-late-refresh-b",
+        approvalStatus: "applied",
+        taskIds: [],
+        canonicalContribution: {},
+      },
+    ];
+    let actionIndex = 0;
+    const detail = makeDetail();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url.includes("/actions")) {
+          const result = actionResults[actionIndex++]!;
+          return {
+            ok: true,
+            json: async () => ({ result }),
+            init,
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+    const invalidationError = new Error("late shared invalidation failure");
+    const rowRefreshError = new Error("late CRM refetch failure");
+    let rejectInvalidation: (reason?: unknown) => void = () => undefined;
+    const invalidation = new Promise<void>((_resolve, reject) => {
+      rejectInvalidation = reject;
+    });
+    let rejectRowRefresh: (reason?: unknown) => void = () => undefined;
+    const rowRefresh = new Promise<void>((_resolve, reject) => {
+      rejectRowRefresh = reject;
+    });
+    vi.spyOn(getQueryClient(), "invalidateQueries").mockReturnValueOnce(
+      invalidation,
+    );
+    const onRowRefresh = vi
+      .fn()
+      .mockReturnValueOnce(rowRefresh)
+      .mockResolvedValue(undefined);
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const shell = (open: boolean) => (
+      <QueryProvider>
+        <ContributionOperationShell
+          open={open}
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={DONATION_ID}
+          sourceSurface="donor_crm_record"
+          onRowRefresh={onRowRefresh}
+        />
+      </QueryProvider>
+    );
+    const view = render(shell(true));
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText("Operation completed.")).toBeTruthy();
+    expect(onRowRefresh).toHaveBeenCalledOnce();
+
+    view.rerender(shell(false));
+    view.rerender(shell(true));
+    expect(await view.findByText("$250.00")).toBeTruthy();
+    expect(view.queryByText("Operation completed.")).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "210" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "submit a newer correction" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await waitFor(() => {
+      expect(view.getByTestId("operation-result-panel").textContent).toContain(
+        "audit-late-refresh-b",
+      );
+      expect(onRowRefresh).toHaveBeenCalledTimes(2);
+    });
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+
+    await act(async () => {
+      rejectInvalidation(invalidationError);
+      rejectRowRefresh(rowRefreshError);
+      await Promise.resolve();
+    });
+
+    await waitFor(() => {
+      expect(consoleError).toHaveBeenCalledWith(
+        "Contribution operation succeeded, but refresh failed.",
+        [invalidationError, rowRefreshError],
+      );
+    });
+    expect(view.queryByText(/displayed gift data may be stale/i)).toBeNull();
+    expect(view.getByTestId("operation-result-panel").textContent).toContain(
+      "audit-late-refresh-b",
+    );
   });
 
   it("labels amount fields with the loaded contribution currency", async () => {
@@ -786,6 +1006,283 @@ describe("ContributionOperationShell", () => {
         ),
       ).toHaveLength(1);
     });
+  });
+
+  it("protects and reloads a draft after a background revision refresh", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ab";
+    const initialDetail = makeDetail({
+      id: donationId,
+      revision: "2026-05-01T00:00:00.000Z#0",
+    });
+    initialDetail.shared = {
+      ...initialDetail.shared,
+      donationId,
+      amountCents: 25_000,
+    };
+    const refreshedDetail = {
+      ...initialDetail,
+      revision: "2026-05-02T00:00:00.000Z#1",
+      shared: {
+        ...initialDetail.shared,
+        amountCents: 30_000,
+      },
+    };
+    let detailFetchCount = 0;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-stale-recovery",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        detailFetchCount += 1;
+        return {
+          ok: true,
+          json: async () => ({
+            contribution:
+              detailFetchCount === 1 ? initialDetail : refreshedDetail,
+          }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("$250.00")).toBeTruthy();
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "fix" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+
+    act(() => {
+      getQueryClient().setQueryData(
+        contributionDetailQueryKey(donationId),
+        refreshedDetail,
+      );
+    });
+    expect(await view.findByText("$300.00")).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("150");
+    expect(
+      await view.findByText(/gift changed while you were editing/i),
+    ).toBeTruthy();
+    expect(
+      view.getByRole("button", { name: "Reload latest gift" }),
+    ).toBeTruthy();
+    expect(view.getByRole("button", { name: "Discard draft" })).toBeTruthy();
+    expect(
+      fetchMock.mock.calls.filter(([url]) => String(url).includes("/actions")),
+    ).toHaveLength(0);
+
+    fireEvent.click(view.getByRole("button", { name: "Reload latest gift" }));
+    await waitFor(() => {
+      expect(
+        view.queryByText(/gift changed while you were editing/i),
+      ).toBeNull();
+    });
+    expect(view.getByText("$300.00")).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("");
+    expect((view.getByLabelText("Reason") as HTMLTextAreaElement).value).toBe(
+      "",
+    );
+    expect(
+      (view.getByRole("checkbox") as HTMLButtonElement).getAttribute(
+        "data-checked",
+      ),
+    ).toBeNull();
+
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "reviewed latest detail" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    await view.findByText("Operation completed.");
+    const actionCalls = fetchMock.mock.calls.filter(([url]) =>
+      String(url).includes("/actions"),
+    );
+    expect(actionCalls).toHaveLength(1);
+    const retryBody = JSON.parse(
+      (actionCalls[0]![1] as RequestInit).body as string,
+    );
+    expect(retryBody.expectedRevision).toBe("2026-05-02T00:00:00.000Z#1");
+  });
+
+  it("preserves a draft and offers recovery when the server rejects a stale save", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ac";
+    const detail = makeDetail({
+      id: donationId,
+      revision: "2026-05-01T00:00:00.000Z#0",
+    });
+    const onClose = vi.fn();
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: false,
+            status: 409,
+            init,
+            json: async () => ({
+              error:
+                "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the correction again.",
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <ContributionOperationShell
+          open
+          onClose={onClose}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "150" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "fix stale gift" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText(/changed since you loaded/i)).toBeTruthy();
+    expect(
+      (view.getByLabelText("Amount (USD)") as HTMLInputElement).value,
+    ).toBe("150");
+    expect(
+      view.getByRole("button", { name: "Reload latest gift" }),
+    ).toBeTruthy();
+    fireEvent.click(view.getByRole("button", { name: "Discard draft" }));
+    expect(onClose).toHaveBeenCalledOnce();
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body.expectedRevision).toBe("2026-05-01T00:00:00.000Z#0");
+  });
+
+  it("refreshes an active Hub consumer after a CRM operation succeeds", async () => {
+    const donationId = "00000000-0000-4000-8000-0000000000ad";
+    const detail = makeDetail({ id: donationId });
+    detail.shared = { ...detail.shared, donationId };
+    let hubFetchCount = 0;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (url === "/api/admin/contributions") {
+          hubFetchCount += 1;
+          return {
+            ok: true,
+            json: async () => ({
+              rows: [
+                {
+                  id: donationId,
+                  amountCents: hubFetchCount === 1 ? 25_000 : 20_000,
+                },
+              ],
+            }),
+          };
+        }
+        if (url.includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-cross-surface",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => ({ contribution: detail }),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <HubAmountProbe />
+        <ContributionOperationShell
+          open
+          onClose={vi.fn()}
+          operation={OPERATION_DEFINITIONS.amount_correction!}
+          donationId={donationId}
+          sourceSurface="donor_crm_record"
+        />
+      </QueryProvider>,
+    );
+
+    expect(await view.findByText("Hub amount: 25000")).toBeTruthy();
+    await view.findByText("$250.00");
+    fireEvent.change(view.getByLabelText("Amount (USD)"), {
+      target: { value: "200" },
+    });
+    fireEvent.change(view.getByLabelText("Reason"), {
+      target: { value: "correct shared amount" },
+    });
+    fireEvent.click(view.getByRole("checkbox"));
+    fireEvent.click(view.getByRole("button", { name: "Correct gift amount" }));
+
+    expect(await view.findByText("Operation completed.")).toBeTruthy();
+    expect(await view.findByText("Hub amount: 20000")).toBeTruthy();
+    expect(hubFetchCount).toBeGreaterThanOrEqual(2);
   });
 
   it("renders receipt delivery options with inline blocked reasons", async () => {

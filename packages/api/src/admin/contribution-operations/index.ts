@@ -133,11 +133,29 @@ export {
   type TenantReceiptDeliveryPolicyRow,
 } from "./receipt-delivery";
 export {
+  isStripeTestModeKey,
+  resolveProviderDashboardTestMode,
+  resolveViewerProviderDashboardTestMode,
+  stripeDashboardUrls,
+  type StripeDashboardUrls,
+  type StripeDashboardUrlsInput,
+} from "./provider-dashboard";
+export {
   assertReceiptSnapshotPdfCapability,
   buildUpdatedReceiptHtml,
   renderContributionReceiptSnapshotPdf,
   type RenderedContributionReceiptSnapshotPdf,
 } from "./receipt-pdf";
+export {
+  buildCorrectionActionAvailability,
+  buildCorrectionRequestAvailability,
+  CONTRIBUTION_OPERATION_CAPABILITY,
+  CRM_INLINE_CONTRIBUTION_ACTION_TYPES,
+  isCorrectionRequestActionType,
+  isContributionOperationActionType,
+  requiredCapabilitiesForContributionOperation,
+  viewerCanUseContributionOperation,
+} from "./viewer-action-availability";
 export {
   buildContributionReceiptDeliveryView,
   projectContributionActionResultForViewer,
@@ -146,6 +164,7 @@ export {
   stripeReplayAvailability,
   type ContributionProviderProof,
   type ContributionReceiptDeliveryView,
+  type ContributionViewerProjectionOptions,
   type ProjectContributionDetailOptions,
   type ViewerProjectedContributionDetail,
   type ViewerProjectedCorrectionRequest,

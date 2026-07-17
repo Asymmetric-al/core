@@ -13,6 +13,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -23,7 +24,6 @@ import {
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { SharedNamedViewTransition } from "@asym/ui/components/view-transitions";
 import { cn } from "@asym/ui/lib/utils";
-import { type ColumnDef } from "@tanstack/react-table";
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 
@@ -332,7 +332,10 @@ export function getCrmColumns({
         </div>
       ),
       filterFn: (row, _id, value) => {
-        const tags = row.original.tags ?? [];
+        // TanStack Table v9 types custom filterFns against the broad RowData
+        // shape instead of this table's row type, so narrow it back here.
+        const original = row.original as CrmGridRow;
+        const tags = original.tags ?? [];
         if (!Array.isArray(value) || value.length === 0) return true;
         return value.some((v: string) => tags.includes(v));
       },

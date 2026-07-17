@@ -1,26 +1,48 @@
 "use client";
 
 export {
+  createSupabaseCollection,
+  defineSupabaseCollection,
+  resolveSupabaseCollectionRealtime,
+} from "./supabase-collection";
+export type {
+  LazySupabaseCollection,
+  SupabaseCollectionConfig,
+  SupabaseCollectionKey,
+  SupabaseCollectionMetadata,
+  SupabaseCollectionRealtimeOption,
+} from "./supabase-collection";
+export {
+  collectionRegistry,
+  localOnlyCollectionRegistry,
+  supabaseTableCollectionRegistry,
+} from "./registry";
+export type {
+  CollectionMutationPolicy,
+  CollectionRegistryEntry,
+  CollectionRegistryKind,
+} from "./registry";
+export * from "./schemas/content";
+export * from "./schemas/giving";
+export * from "./schemas/people";
+export * from "./schemas/app";
+
+export {
   profilesCollection,
   missionariesCollection,
   donorsCollection,
+  assetsCollection,
   donorActivitiesCollection,
   donorPledgesCollection,
   postsCollection,
+  postFiresCollection,
   postCommentsCollection,
+  postLikesCollection,
+  postPrayersCollection,
   donationsCollection,
   fundsCollection,
   followsCollection,
-  getMissionaryScopedDonorCollections,
-  donorsCollectionPagination,
-  donorActivitiesCollectionPagination,
-  donorPledgesCollectionPagination,
-  postsCollectionPagination,
-  donationsCollectionPagination,
-  postCommentsCollectionPagination,
-  followsCollectionPagination,
-  type BoundedCollectionPagination,
-  type MissionaryScopedDonorCollections,
+  locationsCollection,
 } from "./client-db";
 
 export {

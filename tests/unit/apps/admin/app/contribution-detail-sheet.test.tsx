@@ -319,7 +319,7 @@ describe("ContributionDetailSheet provider proof", () => {
         providerProof={{
           paymentIntentId: "pi_proof",
           chargeId: "ch_proof",
-          refundIds: ["re_1"],
+          refundIds: ["re_1", "re_2"],
           replayContext: null,
           dashboardUrls: {
             paymentIntent: "https://dashboard.stripe.com/payments/pi_proof",
@@ -332,6 +332,8 @@ describe("ContributionDetailSheet provider proof", () => {
     expect(view.getByText("Provider proof")).toBeTruthy();
     expect(view.getByText("pi_proof")).toBeTruthy();
     expect(view.getByText("ch_proof")).toBeTruthy();
+    expect(view.getByText("Refund IDs")).toBeTruthy();
+    expect(view.getByText("re_1, re_2")).toBeTruthy();
     expect(
       view.getByRole("link", { name: /open payment in stripe/i }),
     ).toBeTruthy();
@@ -348,6 +350,118 @@ describe("ContributionDetailSheet provider proof", () => {
 
     expect(view.queryByText("Provider proof")).toBeNull();
     expect(view.queryByText("pi_proof")).toBeNull();
+  });
+});
+
+describe("ContributionDetailSheet recurring agreement context", () => {
+  const linkedAgreement = {
+    id: "pledge-1",
+    status: "active",
+    frequency: "monthly",
+    amountCents: 5_000,
+    currencyCode: "USD",
+    fundName: "Monthly Support",
+    missionaryName: "John Martinez",
+    nextExpectedGiftAt: "2026-07-15T12:00:00.000Z",
+    stripeSubscriptionId: "sub_agreement",
+    linkedGiftCount: 6,
+    lastLinkedGiftAt: "2026-06-15T12:00:00.000Z",
+  };
+
+  it("renders the linked agreement card with terms, designation, and gift history", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: true,
+          interval: "month",
+          pledgeId: "pledge-1",
+          agreement: linkedAgreement,
+          providerRecurrenceWithoutAgreement: false,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Recurring giving")).toBeTruthy();
+    expect(view.getByText(/\$50\.00 monthly/)).toBeTruthy();
+    expect(
+      view.getByText(
+        /Monthly Support · John Martinez · active · Next expected/,
+      ),
+    ).toBeTruthy();
+    expect(
+      view.getByText(/Gifts under this agreement: 6 · Last gift/),
+    ).toBeTruthy();
+    expect(view.getByText(/sub_agreement/)).toBeTruthy();
+    expect(
+      view.queryByText(/no internal recurring agreement is linked/i),
+    ).toBeNull();
+  });
+
+  it("warns about provider-only recurrence without an internal agreement", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: true,
+          interval: "month",
+          pledgeId: null,
+          agreement: null,
+          providerRecurrenceWithoutAgreement: true,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Recurring giving")).toBeTruthy();
+    expect(
+      view.getByText(/no internal recurring agreement is linked/i),
+    ).toBeTruthy();
+    expect(view.queryByText(/Gifts under this agreement/)).toBeNull();
+  });
+
+  it("renders no recurring section for one-time gifts without recurrence", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: false,
+          interval: null,
+          pledgeId: null,
+          agreement: null,
+          providerRecurrenceWithoutAgreement: false,
+        }}
+      />,
+    );
+
+    expect(view.queryByText("Recurring giving")).toBeNull();
+    expect(view.queryByText(/Gifts under this agreement/)).toBeNull();
+  });
+
+  it("shows agreement context for a one-time gift linked to a recurring agreement", () => {
+    const view = render(
+      <ContributionDetailSheet
+        contribution={boneyardContributionsFixture[0]!}
+        onClose={vi.fn()}
+        recurring={{
+          isRecurring: false,
+          interval: null,
+          pledgeId: "pledge-1",
+          agreement: linkedAgreement,
+          providerRecurrenceWithoutAgreement: false,
+        }}
+      />,
+    );
+
+    expect(view.getByText("Recurring giving")).toBeTruthy();
+    expect(
+      view.getByText(/This gift is linked to a recurring agreement/),
+    ).toBeTruthy();
+    expect(
+      view.getByText(/Gifts under this agreement: 6 · Last gift/),
+    ).toBeTruthy();
   });
 });
 

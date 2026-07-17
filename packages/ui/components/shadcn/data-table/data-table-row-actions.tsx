@@ -15,19 +15,19 @@ import {
 } from "../dropdown-menu";
 import { getDataTableRowActionKey } from "./data-table-row-action-key";
 
+import type { Row, RowData } from "./tanstack";
 import type { DataTableInteractiveRowAction } from "./types";
-import type { Row } from "@tanstack/react-table";
 
 const DEFAULT_ROW_ACTION_ARIA_LABEL = "Open row actions";
 
-interface DataTableRowActionsProps<TData> {
+interface DataTableRowActionsProps<TData extends RowData> {
   row: Row<TData>;
   actions: DataTableInteractiveRowAction<TData>[];
   className?: string;
   getAriaLabel?: (row: Row<TData>) => string;
 }
 
-function getRowActionTriggerLabel<TData>(
+function getRowActionTriggerLabel<TData extends RowData>(
   row: Row<TData>,
   getAriaLabel?: (row: Row<TData>) => string,
 ) {
@@ -35,7 +35,7 @@ function getRowActionTriggerLabel<TData>(
   return customLabel?.trim() || DEFAULT_ROW_ACTION_ARIA_LABEL;
 }
 
-export function DataTableRowActions<TData>({
+export function DataTableRowActions<TData extends RowData>({
   row,
   actions,
   className,

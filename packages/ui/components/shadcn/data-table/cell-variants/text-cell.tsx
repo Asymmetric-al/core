@@ -7,9 +7,10 @@ import { cn } from "@asym/ui/lib/utils";
 import { Input } from "../../input";
 import { Textarea } from "../../textarea";
 
+import type { RowData } from "../tanstack";
 import type { TextCellProps } from "./types";
 
-function TextCellEditor<TData>({
+function TextCellEditor<TData extends RowData>({
   value,
   onValueChange,
   onEditComplete,
@@ -88,7 +89,7 @@ function TextCellEditor<TData>({
   );
 }
 
-export function TextCell<TData>({
+export function TextCell<TData extends RowData>({
   value,
   isEditing = false,
   onValueChange,

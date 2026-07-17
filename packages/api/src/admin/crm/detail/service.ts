@@ -256,6 +256,10 @@ export async function getAdminCrmDonorDetail(input: {
   const donations = donationRows.slice(0, GIFT_HISTORY_LIMIT);
 
   const donationIds = mergeUniqueIds(donations.map((donation) => donation.id));
+  // The tenant approval policy is loaded once and threaded to every gift row
+  // so inline request affordances follow the real policy instead of the
+  // conservative default — otherwise no_approval_required tenants see
+  // request actions the operations route rejects (#270).
   const [
     stagedGiftResult,
     activityResult,

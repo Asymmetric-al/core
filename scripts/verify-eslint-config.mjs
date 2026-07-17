@@ -19,6 +19,7 @@ const IGNORE_DIRECTORIES = new Set([
   ".codex",
   ".cursor",
   ".git",
+  ".claude",
   ".nia-sync",
   ".nia_sync_local",
   ".next",
@@ -237,6 +238,29 @@ async function verifyDisableCommentFormat() {
 }
 
 async function verifyArchitectureRules() {
+  const restrictionsPath = path.join(
+    ROOT,
+    "tooling",
+    "eslint-config",
+    "restricted-imports.mjs",
+  );
+  const restrictionsContent = await fs.readFile(restrictionsPath, "utf8");
+
+  const requiredPatternMarkers = [
+    "../../apps/*",
+    "**/apps/admin/**",
+    "**/apps/donor/**",
+    "**/apps/missionary/**",
+  ];
+
+  for (const marker of requiredPatternMarkers) {
+    if (!restrictionsContent.includes(marker)) {
+      errors.push(
+        `Missing architecture boundary marker "${marker}" in ${toRelative(restrictionsPath)}`,
+      );
+    }
+  }
+
   const baseConfigPath = path.join(
     ROOT,
     "tooling",
@@ -245,18 +269,12 @@ async function verifyArchitectureRules() {
   );
   const baseConfigContent = await fs.readFile(baseConfigPath, "utf8");
 
-  const requiredMarkers = [
-    "no-restricted-imports",
-    "../../apps/*",
-    "**/apps/admin/**",
-    "**/apps/donor/**",
-    "**/apps/missionary/**",
-  ];
+  const requiredWiringMarkers = ["no-restricted-imports", "restrictedImports("];
 
-  for (const marker of requiredMarkers) {
+  for (const marker of requiredWiringMarkers) {
     if (!baseConfigContent.includes(marker)) {
       errors.push(
-        `Missing architecture boundary marker "${marker}" in ${toRelative(baseConfigPath)}`,
+        `Missing architecture boundary wiring "${marker}" in ${toRelative(baseConfigPath)}`,
       );
     }
   }

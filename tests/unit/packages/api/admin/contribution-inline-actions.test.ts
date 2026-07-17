@@ -190,6 +190,30 @@ describe("admin/contribution-operations/inline-actions", () => {
         ],
         viewerCapabilities: APPLY_ONLY_CAPABILITIES,
       },
+      {
+        approvalPolicy: undefined,
+        expectedActionTypes: [
+          "amount_correction",
+          "approve_staged_gift",
+          "fund_correction",
+          "refund",
+          "resend_receipt",
+          "retry_staged_gift",
+          "stripe_replay",
+        ],
+        viewerCapabilities: ALL_CAPABILITIES,
+      },
+      {
+        approvalPolicy: undefined,
+        expectedActionTypes: [
+          "amount_correction",
+          "approve_staged_gift",
+          "fund_correction",
+          "resend_receipt",
+          "retry_staged_gift",
+        ],
+        viewerCapabilities: FINANCE_STAFF_CAPABILITIES,
+      },
     ] as const;
 
     for (const {
@@ -350,6 +374,8 @@ describe("admin/contribution-operations/inline-actions", () => {
       viewerCapabilities: DONOR_CARE_CAPABILITIES,
     });
 
+    // Corrections, refund, and provider replay route through the
+    // approval-request path, so a request-capable viewer can raise them.
     expect(inline.entries.map((entry) => entry.actionType).sort()).toEqual([
       "amount_correction",
       "fund_correction",
