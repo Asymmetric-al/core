@@ -1,3 +1,4 @@
+import { mergeCrmPostLinksByAuthority } from "./crm-post-state";
 import { buildContributionDetail } from "./detail-read-model";
 import { assertAllowedPaymentStateCorrectionStatus } from "./payment-status-allowlist";
 import {
@@ -503,11 +504,14 @@ async function loadContributionOperationDetail(input: {
     designationCrmLinksResult.error,
     "Failed to load designation CRM record links.",
   );
-  const crmLinkRows = [
-    ...((crmLinksResult.data ?? []) as JsonRecord[]),
-    ...((stagedGiftParentCrmLinksResult.data ?? []) as JsonRecord[]),
-    ...((designationCrmLinksResult.data ?? []) as JsonRecord[]),
-  ];
+  const crmLinks = mergeCrmPostLinksByAuthority({
+    // A staged gift is the current parent authority. Keep it ahead of a
+    // donation-keyed legacy parent so the detail model cannot surface stale
+    // CRM status, record IDs, or errors.
+    stagedGiftParentLinks: mapCrmLinks(stagedGiftParentCrmLinksResult.data),
+    donationLinks: mapCrmLinks(crmLinksResult.data),
+    designationLinks: mapCrmLinks(designationCrmLinksResult.data),
+  });
   const pledgeFund = pledgeFundId
     ? (designationData.funds.find((fund) => fund.id === pledgeFundId) ?? null)
     : null;
@@ -611,7 +615,7 @@ async function loadContributionOperationDetail(input: {
     allocations: designationData.allocations,
     allocationFunds: designationData.funds,
     allocationMissionaries: designationData.missionaries,
-    crmLinks: mapCrmLinks(crmLinkRows),
+    crmLinks,
     recurringAgreement: pledgeRow
       ? {
           id: asString(pledgeRow.id) ?? donation.pledgeId ?? "",

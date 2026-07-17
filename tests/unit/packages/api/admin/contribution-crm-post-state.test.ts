@@ -1,8 +1,53 @@
 import { describe, expect, it } from "vitest";
 
-import { buildContributionCrmPostState } from "../../../../../packages/api/src/admin/contribution-operations/crm-post-state";
+import {
+  buildContributionCrmPostState,
+  mergeCrmPostLinksByAuthority,
+} from "../../../../../packages/api/src/admin/contribution-operations/crm-post-state";
 
 describe("admin/contribution-operations/crm-post-state", () => {
+  it("prefers the current staged-gift parent over a legacy donation parent", () => {
+    const legacyParent = {
+      id: "legacy-parent",
+      scope: "parent" as const,
+      allocationId: null,
+      linkStatus: "active",
+      twentyRecordId: "twenty-legacy",
+      lastError: null,
+    };
+    const stagedGiftParent = {
+      id: "staged-gift-parent",
+      scope: "parent" as const,
+      allocationId: null,
+      linkStatus: "failed",
+      twentyRecordId: "twenty-current",
+      lastError: "Current staged-gift post failed.",
+    };
+
+    const links = mergeCrmPostLinksByAuthority({
+      stagedGiftParentLinks: [stagedGiftParent],
+      donationLinks: [legacyParent],
+      designationLinks: [],
+    });
+    const state = buildContributionCrmPostState({
+      stagedGiftCrmPostStatus: "posted",
+      stagedGiftTwentyRecordId: "twenty-aggregate",
+      links,
+      designationLineCount: 1,
+    });
+
+    expect(links.map((link) => link.id)).toEqual([
+      "staged-gift-parent",
+      "legacy-parent",
+    ]);
+    expect(state.parent).toEqual({
+      status: "failed",
+      twentyRecordId: "twenty-current",
+      lastError: "Current staged-gift post failed.",
+    });
+    expect(state.failedScopes).toEqual([{ scope: "parent" }]);
+  });
+
   it("reports a successful parent and child posting state", () => {
     const state = buildContributionCrmPostState({
       stagedGiftCrmPostStatus: "posted",
