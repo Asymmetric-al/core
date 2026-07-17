@@ -1,5 +1,12 @@
 # Mission Control — Contribution Detail
 
+> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
+> referenced in this glossary target the now-retired Twenty pipeline and are
+> dormant per
+> [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+> (2026-07-06); "CRM post" survives only as a label over the dormant
+> staged-gift pipeline pending the Phase 8 re-groom.
+
 Staff-facing view of a single platform donation: financial truth, workflow state, and allowed actions. Opened from CRM donor history or Contributions Hub by the same `donation.id`.
 
 ## Language

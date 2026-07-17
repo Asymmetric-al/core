@@ -3,6 +3,7 @@
 
 import { TimeAgo } from "@asym/lib/hooks";
 import { motion, AnimatePresence, LayoutGroup } from "@asym/lib/motion";
+import { ReactionBar } from "@asym/ui/components/ministry-update";
 import { PageHeader } from "@asym/ui/components/page-header";
 import {
   Avatar,
@@ -35,7 +36,6 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@asym/ui/components/shadcn/dropdown-menu";
-import { Input } from "@asym/ui/components/shadcn/input";
 import { Label } from "@asym/ui/components/shadcn/label";
 import {
   isPostContentEmpty,
@@ -50,9 +50,7 @@ import {
 } from "@asym/ui/components/shadcn/tabs";
 import { cn } from "@asym/ui/lib/utils";
 import {
-  Send,
   MoreHorizontal,
-  MessageCircle,
   Loader2,
   Globe,
   ChevronDown,
@@ -60,7 +58,6 @@ import {
   Lock,
   Users,
   Check,
-  CornerDownRight,
   ShieldCheck,
   Settings,
   Pin,
@@ -79,7 +76,6 @@ import { EmptyState, LastSyncedDisplay, LoadingState } from "./feed-support-ui";
 import { useWorkerFeedPageView } from "./use-worker-feed-page-view";
 
 import type {
-  FeedComment,
   FollowerRequest,
   Post,
   PostStatus,
@@ -101,12 +97,6 @@ const RichTextEditor = dynamic(
     ),
   },
 );
-
-const fadeInUp = {
-  initial: { opacity: 0, y: 12 },
-  animate: { opacity: 1, y: 0 },
-  exit: { opacity: 0, y: -8 },
-};
 
 const staggerContainer = {
   animate: {
@@ -350,448 +340,15 @@ function FollowerRequestItem({
   );
 }
 
-function FloatingEmoji({
-  emoji,
-  offsetX,
-  offsetRotate,
-}: {
-  emoji: string;
-  offsetX: number;
-  offsetRotate: number;
-}) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, scale: 0.95, y: 0, x: 0 }}
-      animate={{
-        opacity: [0, 1, 1, 0],
-        scale: [0, 1.8, 1.2, 0.8],
-        y: [-20, -120],
-        x: offsetX,
-        rotate: offsetRotate,
-      }}
-      transition={{
-        duration: 1.2,
-        ease: "easeOut",
-        times: [0, 0.2, 0.8, 1],
-      }}
-      className="absolute pointer-events-none z-50 text-2xl filter drop-shadow-md"
-    >
-      {emoji}
-    </motion.div>
-  );
-}
-
-function ReactionButton({
-  isActive,
-  count,
-  type,
-  label,
-  onClick,
-}: {
-  isActive: boolean;
-  count: number;
-  type: "heart" | "fire" | "prayer";
-  label: string;
-  onClick: () => void;
-}) {
-  const [particles, setParticles] = useState<
-    { id: number; emoji: string; offsetX: number; offsetRotate: number }[]
-  >([]);
-
-  const config = {
-    heart: {
-      emoji: "❤️",
-      activeColor: "text-rose-600",
-      bg: "bg-rose-50",
-      hoverBg: "hover:bg-rose-50",
-    },
-    fire: {
-      emoji: "🔥",
-      activeColor: "text-amber-600",
-      bg: "bg-amber-50",
-      hoverBg: "hover:bg-amber-50",
-    },
-    prayer: {
-      emoji: "🙏",
-      activeColor: "text-primary",
-      bg: "bg-primary/10",
-      hoverBg: "hover:bg-primary/10",
-    },
-  };
-
-  const { emoji, activeColor, bg, hoverBg } = config[type];
-
-  const handleClick = () => {
-    if (!isActive) {
-      const newParticles = Array.from({ length: 8 }).map((_, i) => ({
-        id: Date.now() + i,
-        emoji: emoji,
-        offsetX: (Math.random() - 0.5) * 80,
-        offsetRotate: (Math.random() - 0.5) * 90,
-      }));
-      setParticles((prev) => [...prev, ...newParticles]);
-      setTimeout(() => {
-        setParticles((prev) =>
-          prev.filter((p) => !newParticles.find((np) => np.id === p.id)),
-        );
-      }, 1500);
-    }
-    onClick();
-  };
-
-  return (
-    <div className="relative">
-      <AnimatePresence>
-        {particles.map((p) => (
-          <FloatingEmoji
-            key={p.id}
-            emoji={p.emoji}
-            offsetX={p.offsetX}
-            offsetRotate={p.offsetRotate}
-          />
-        ))}
-      </AnimatePresence>
-      <motion.button
-        whileHover={{ scale: 1.02, y: -2 }}
-        whileTap={{ scale: 0.97 }}
-        onClick={(e) => {
-          e.stopPropagation();
-          handleClick();
-        }}
-        className={cn(
-          "relative flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-2 rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity] duration-300 font-semibold text-[11px] sm:text-xs uppercase tracking-wide overflow-hidden",
-          isActive
-            ? cn(bg, activeColor, "shadow-sm ring-1 ring-black/5")
-            : "text-muted-foreground bg-card border border-border",
-          !isActive && hoverBg,
-        )}
-      >
-        <motion.div
-          className="text-base sm:text-lg relative z-10 select-none"
-          animate={
-            isActive
-              ? {
-                  scale: [1, 1.4, 1],
-                  rotate: [0, 15, -15, 0],
-                }
-              : {}
-          }
-          transition={{ duration: 0.5, ease: "easeOut" }}
-        >
-          {emoji}
-        </motion.div>
-
-        <AnimatePresence mode="wait">
-          <motion.span
-            key={count}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            transition={{ type: "spring", stiffness: 500, damping: 30 }}
-            className="relative z-10 tabular-nums min-w-[1ch]"
-          >
-            {count > 0 ? count : label}
-          </motion.span>
-        </AnimatePresence>
-      </motion.button>
-    </div>
-  );
-}
-
-function CommentSection({
-  comments,
-  onAddComment,
-  onDeleteComment,
-  canManageComments,
-}: {
-  comments: FeedComment[];
-  onAddComment: (text: string, parentId?: string) => void;
-  onDeleteComment: (commentId: string, parentId?: string) => void;
-  canManageComments: boolean;
-}) {
-  const [text, setText] = useState("");
-  const [replyText, setReplyText] = useState("");
-  const [replyingTo, setReplyingTo] = useState<string | null>(null);
-
-  const submitReply = (parentId: string) => {
-    if (replyText.trim()) {
-      onAddComment(replyText, parentId);
-      setReplyText("");
-      setReplyingTo(null);
-    }
-  };
-
-  return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={smoothTransition}
-      className="bg-muted/30 rounded-b-2xl border-t border-border p-4 sm:p-6 space-y-4 sm:space-y-6"
-    >
-      {comments.length > 0 ? (
-        <motion.div
-          variants={staggerContainer}
-          initial="initial"
-          animate="animate"
-          className="space-y-4 sm:space-y-6"
-        >
-          {comments.map((comment, index) => (
-            <motion.div
-              key={comment.id}
-              variants={fadeInUp}
-              transition={{ delay: index * 0.05 }}
-              className="group"
-            >
-              <div className="flex gap-3 sm:gap-4 text-sm">
-                <motion.div
-                  whileHover={{ scale: 1.02 }}
-                  transition={springTransition}
-                >
-                  <Avatar className="size-8 sm:h-9 sm:w-9 bg-card border border-border mt-1 shadow-sm">
-                    <AvatarFallback className="text-[10px] text-muted-foreground font-semibold">
-                      {comment.avatar || "U"}
-                    </AvatarFallback>
-                  </Avatar>
-                </motion.div>
-                <div className="flex-1 space-y-2">
-                  <motion.div
-                    whileHover={{ y: -1 }}
-                    className="bg-card p-3 sm:p-4 rounded-2xl rounded-tl-none border border-border shadow-sm inline-block min-w-[200px] sm:min-w-[240px] relative"
-                  >
-                    <div className="flex items-center justify-between gap-2 sm:gap-4 mb-1">
-                      <span className="font-semibold text-foreground text-xs">
-                        {comment.author?.full_name || "Anonymous"}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[10px] text-muted-foreground font-medium">
-                          {new Date(comment.created_at).toLocaleDateString()}
-                        </span>
-                        {canManageComments && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger
-                              render={
-                                <button
-                                  type="button"
-                                  aria-label="Comment actions"
-                                  className="text-muted-foreground/50 hover:text-destructive transition-colors"
-                                >
-                                  <MoreHorizontal className="size-3" />
-                                </button>
-                              }
-                            />
-                            <DropdownMenuContent
-                              align="end"
-                              className="rounded-xl p-1 shadow-lg border-border"
-                            >
-                              <DropdownMenuItem
-                                onClick={() => onDeleteComment(comment.id)}
-                                className="text-destructive font-semibold text-[10px] uppercase tracking-wider rounded-lg"
-                              >
-                                <Trash2 className="size-3 mr-2" /> Delete
-                                Comment
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    </div>
-                    <p className="text-muted-foreground leading-relaxed text-sm">
-                      {comment.content}
-                    </p>
-                  </motion.div>
-                  <div className="flex items-center gap-4 pl-3">
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="text-[10px] font-semibold text-muted-foreground hover:text-foreground uppercase tracking-wider transition-colors"
-                      onClick={() =>
-                        setReplyingTo(
-                          replyingTo === comment.id ? null : comment.id,
-                        )
-                      }
-                    >
-                      Reply
-                    </motion.button>
-                    <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className="text-[10px] font-semibold text-muted-foreground hover:text-rose-600 uppercase tracking-wider transition-colors"
-                    >
-                      Like
-                    </motion.button>
-                  </div>
-                </div>
-              </div>
-
-              {comment.replies && comment.replies.length > 0 && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  className="ml-8 sm:ml-10 mt-4 space-y-4 pl-4 border-l-2 border-border"
-                >
-                  {comment.replies.map((reply, replyIndex: number) => (
-                    <motion.div
-                      key={reply.id}
-                      initial={{ opacity: 0, x: -10 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: replyIndex * 0.05 }}
-                      className="flex gap-3 sm:gap-4 text-sm"
-                    >
-                      <Avatar className="size-6 sm:h-7 sm:w-7 bg-card border border-border shadow-sm mt-1">
-                        <AvatarFallback className="text-[9px] text-muted-foreground font-semibold">
-                          {reply.author?.avatar_url || "U"}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div className="flex-1 space-y-1">
-                        <div
-                          className={cn(
-                            "p-3 rounded-2xl rounded-tl-none inline-block shadow-sm",
-                            reply.isWorker
-                              ? "bg-blue-50 border border-blue-100 text-blue-900"
-                              : "bg-card border border-border",
-                          )}
-                        >
-                          <div className="flex items-center justify-between gap-2 sm:gap-4 mb-0.5">
-                            <div className="flex items-center gap-2">
-                              <span className="font-semibold text-[11px]">
-                                {reply.author?.full_name || "Anonymous"}
-                              </span>
-                              {reply.isWorker && (
-                                <Badge
-                                  variant="secondary"
-                                  className="text-[8px] h-3.5 px-1.5 bg-blue-100 text-blue-700 border-none font-semibold uppercase tracking-wider"
-                                >
-                                  Author
-                                </Badge>
-                              )}
-                            </div>
-                            {canManageComments && (
-                              <button
-                                onClick={() =>
-                                  onDeleteComment(reply.id, comment.id)
-                                }
-                                className="text-muted-foreground/50 hover:text-destructive transition-colors opacity-0 group-hover:opacity-100"
-                              >
-                                <Trash2 className="size-2.5" />
-                              </button>
-                            )}
-                          </div>
-                          <p className="text-sm leading-relaxed opacity-90">
-                            {reply.content}
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-3 pl-2">
-                          <span className="text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
-                            {new Date(reply.created_at).toLocaleDateString()}
-                          </span>
-                        </div>
-                      </div>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              )}
-
-              <AnimatePresence>
-                {replyingTo === comment.id && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="ml-10 sm:ml-14 mt-4 flex gap-3 overflow-hidden"
-                  >
-                    <div className="relative flex-1">
-                      <Input
-                        value={replyText}
-                        onChange={(e) => setReplyText(e.target.value)}
-                        onKeyDown={(e) =>
-                          e.key === "Enter" && submitReply(comment.id)
-                        }
-                        placeholder={`Reply to ${comment.author?.full_name || "user"}…`}
-                        className="h-10 text-sm bg-card pr-10 rounded-xl shadow-sm border-border"
-                      />
-                      <motion.button
-                        whileHover={{ scale: 1.1 }}
-                        whileTap={{ scale: 0.97 }}
-                        onClick={() => submitReply(comment.id)}
-                        disabled={!replyText}
-                        className="absolute right-2 top-2 p-1.5 text-primary hover:bg-muted rounded-lg disabled:opacity-50 transition-[color,background-color,border-color,box-shadow,transform,opacity]"
-                      >
-                        <CornerDownRight className="size-4" />
-                      </motion.button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </motion.div>
-          ))}
-        </motion.div>
-      ) : (
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          className="text-xs text-muted-foreground font-medium uppercase tracking-wider text-center py-4"
-        >
-          No comments yet
-        </motion.p>
-      )}
-
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="pt-2 relative"
-      >
-        <Input
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          placeholder="Write a comment…"
-          className="h-11 sm:h-12 pr-12 bg-card shadow-sm border-border focus:border-ring rounded-xl transition-[color,background-color,border-color,box-shadow,transform,opacity]"
-          onKeyDown={(e) =>
-            e.key === "Enter" && text && (onAddComment(text), setText(""))
-          }
-        />
-        <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
-          <Button
-            size="icon"
-            className="absolute right-1.5 top-1.5 size-8 sm:h-9 sm:w-9 bg-primary hover:bg-primary/90 transition-[color,background-color,border-color,box-shadow,transform,opacity] shadow-sm rounded-lg"
-            onClick={() => {
-              if (text) {
-                onAddComment(text);
-                setText("");
-              }
-            }}
-          >
-            <Send className="size-4" />
-          </Button>
-        </motion.div>
-      </motion.div>
-    </motion.div>
-  );
-}
-
 function PostCard({
   post,
   onEdit,
   onDelete,
-  onReaction,
-  onAddComment,
-  onDeleteComment,
-  expandedComments,
-  setExpandedComments,
   index,
 }: {
   post: Post;
   onEdit: () => void;
   onDelete: () => void;
-  onReaction: (type: "heart" | "fire" | "prayer") => void;
-  onAddComment: (postId: string, text: string, parentId?: string) => void;
-  onDeleteComment: (
-    postId: string,
-    commentId: string,
-    parentId?: string,
-  ) => void;
-  expandedComments: string | null;
-  setExpandedComments: (id: string | null) => void;
   index: number;
 }) {
   const authorName = post.author
@@ -961,73 +518,10 @@ function PostCard({
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.2 }}
-            className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-muted/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0"
+            className="px-4 sm:px-6 py-3 sm:py-4 border-t border-border bg-muted/20"
           >
-            <div className="flex gap-1.5 sm:gap-2 flex-wrap">
-              <ReactionButton
-                isActive={post.user_liked || false}
-                count={post.likes_count || 0}
-                type="heart"
-                label="Love"
-                onClick={() => onReaction("heart")}
-              />
-              <ReactionButton
-                isActive={post.user_fired || false}
-                count={post.fires_count || 0}
-                type="fire"
-                label="Hot"
-                onClick={() => onReaction("fire")}
-              />
-              <ReactionButton
-                isActive={post.user_prayed || false}
-                count={post.prayers_count || 0}
-                type="prayer"
-                label="Pray"
-                onClick={() => onReaction("prayer")}
-              />
-            </div>
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              className="flex items-center gap-2 sm:gap-3 text-[11px] sm:text-xs font-semibold uppercase tracking-wider text-muted-foreground hover:text-foreground transition-[color,background-color,border-color,box-shadow,transform,opacity] group/comm"
-              onClick={() =>
-                setExpandedComments(
-                  expandedComments === post.id ? null : post.id,
-                )
-              }
-            >
-              <motion.div
-                animate={{ rotate: expandedComments === post.id ? 180 : 0 }}
-                transition={springTransition}
-              >
-                <MessageCircle className="size-4 sm:h-5 sm:w-5 text-muted-foreground/50" />
-              </motion.div>
-              {(post.comments || []).length} comments
-            </motion.button>
+            <ReactionBar update={post} appearance="chip" comments="dialog" />
           </motion.div>
-
-          <AnimatePresence>
-            {expandedComments === post.id && (
-              <motion.div
-                initial={{ height: 0, opacity: 0 }}
-                animate={{ height: "auto", opacity: 1 }}
-                exit={{ height: 0, opacity: 0 }}
-                transition={smoothTransition}
-                className="overflow-hidden"
-              >
-                <CommentSection
-                  comments={post.comments || []}
-                  canManageComments={true}
-                  onAddComment={(text, parentId) =>
-                    onAddComment(post.id, text, parentId)
-                  }
-                  onDeleteComment={(commentId, parentId) =>
-                    onDeleteComment(post.id, commentId, parentId)
-                  }
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
         </CardContent>
       </MotionCard>
     </motion.div>
@@ -1698,21 +1192,9 @@ type FeedPostsTabsSectionProps = {
   drafts: Post[];
   posts: Post[];
   isLoading: boolean;
-  expandedComments: string | null;
   setActiveTab: (value: React.SetStateAction<PostStatus>) => void;
-  setExpandedComments: (value: React.SetStateAction<string | null>) => void;
   handleEditDraft: (draft: Post) => void;
   handleDeletePost: (postId: string) => Promise<void>;
-  handleReaction: (
-    postId: string,
-    type: "heart" | "fire" | "prayer",
-  ) => Promise<void>;
-  handleAddComment: (postId: string, text: string, parentId?: string) => void;
-  handleDeleteComment: (
-    postId: string,
-    commentId: string,
-    parentId?: string,
-  ) => void;
 };
 
 function FeedPostsTabsSection({
@@ -1720,14 +1202,9 @@ function FeedPostsTabsSection({
   drafts,
   posts,
   isLoading,
-  expandedComments,
   setActiveTab,
-  setExpandedComments,
   handleEditDraft,
   handleDeletePost,
-  handleReaction,
-  handleAddComment,
-  handleDeleteComment,
 }: FeedPostsTabsSectionProps) {
   return (
     <div className="space-y-6 sm:space-y-8 lg:space-y-10">
@@ -1789,13 +1266,6 @@ function FeedPostsTabsSection({
                       index={index}
                       onEdit={() => handleEditDraft(post)}
                       onDelete={() => handleDeletePost(post.id)}
-                      onReaction={(type: "heart" | "fire" | "prayer") =>
-                        handleReaction(post.id, type)
-                      }
-                      onAddComment={handleAddComment}
-                      onDeleteComment={handleDeleteComment}
-                      expandedComments={expandedComments}
-                      setExpandedComments={setExpandedComments}
                     />
                   ))
                 ) : (
@@ -2058,14 +1528,9 @@ function WorkerFeedPageView() {
             drafts={vm.drafts}
             posts={vm.posts}
             isLoading={vm.isLoading}
-            expandedComments={vm.expandedComments}
             setActiveTab={vm.setActiveTab}
-            setExpandedComments={vm.setExpandedComments}
             handleEditDraft={vm.handleEditDraft}
             handleDeletePost={vm.handleDeletePost}
-            handleReaction={vm.handleReaction}
-            handleAddComment={vm.handleAddComment}
-            handleDeleteComment={vm.handleDeleteComment}
           />
         </motion.div>
 

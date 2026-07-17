@@ -1,4 +1,4 @@
-import type { ColumnFiltersState } from "@tanstack/react-table";
+import type { ColumnFiltersState } from "./tanstack";
 
 export type UrlColumnFiltersParseResult =
   | { ok: true; filters: ColumnFiltersState }

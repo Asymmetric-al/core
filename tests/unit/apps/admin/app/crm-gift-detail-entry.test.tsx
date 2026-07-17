@@ -2,6 +2,7 @@
 
 import { QueryProvider } from "@asym/database/providers";
 import {
+  act,
   cleanup,
   fireEvent,
   render,
@@ -18,6 +19,10 @@ import {
   it,
   vi,
 } from "vitest";
+
+import { buildContributionDetail } from "../../../../../packages/api/src/admin/contribution-operations/detail-read-model";
+import { buildInlineContributionActions } from "../../../../../packages/api/src/admin/contribution-operations/inline-actions";
+import { projectContributionDetailForViewer } from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
 
 type CrmPageComponent =
   typeof import("../../../../../apps/admin/app/crm/page").default;
@@ -215,57 +220,64 @@ const crmDonorDetail = {
   },
 };
 
-const contributionDetailPayload = {
-  contribution: {
-    id: DONATION_ID,
-    shared: sharedGiftFields,
+/**
+ * The viewer these tests simulate: donor-care staff who can request
+ * corrections and manage receipts, but cannot apply corrections, retry CRM
+ * posts, run refunds, or use provider actions (#270 / ADR-CD-024).
+ */
+const VIEWER_CAPABILITIES = [
+  "contributions.view_detail",
+  "contributions.request_corrections",
+  "contributions.manage_receipts",
+];
+
+/**
+ * Canonical server-side detail for the gift these tests use: an offline gift
+ * (no provider ids) with a posted staged gift and a completed payment, built
+ * through the real read model so every derived field matches production.
+ */
+function buildServerDetail(donationId: string) {
+  return buildContributionDetail({
+    donation: {
+      id: donationId,
+      tenantId: "tenant-1",
+      donorId: "donor-1",
+      missionaryId: null,
+      fundId: "fund-1",
+      amount: 25_000,
+      currency: "usd",
+      status: "completed",
+      donationType: "one_time",
+      paymentMethod: "card",
+      isRecurring: false,
+      recurringInterval: null,
+      notes: null,
+      stripePaymentIntentId: null,
+      stripeChargeId: null,
+      giftDate: "2026-05-01",
+      campaignId: null,
+      pledgeId: null,
+      processedAt: null,
+      completedAt: "2026-05-01T00:00:00.000Z",
+      failedAt: null,
+      errorCode: null,
+      errorMessage: null,
+      refundedAt: null,
+      refundAmount: 0,
+      source: "online",
+      createdAt: "2026-05-01T00:00:00.000Z",
+      updatedAt: "2026-05-01T00:00:00.000Z",
+    },
     donor: {
       id: "donor-1",
       profileId: null,
       name: "Alice Johnson",
       email: "alice@example.com",
-      phoneNumbers: [],
+      phone: null,
       location: null,
       organization: null,
     },
-    gift: {
-      date: "2026-05-01",
-      createdAt: "2026-05-01T00:00:00.000Z",
-      updatedAt: "2026-05-01T00:00:00.000Z",
-      source: "online",
-      campaignId: null,
-      pledgeId: null,
-    },
-    amount: {
-      value: 25_000,
-      gross: 25_000,
-      net: null,
-      fee: null,
-      taxDeductible: null,
-      currency: "USD",
-    },
-    payment: {
-      type: "one_time",
-      method: "card",
-      status: "completed",
-      lastFour: null,
-      stripe: {
-        paymentIntentId: "pi_1",
-        chargeId: null,
-        refundIds: [],
-        replayContext: null,
-      },
-    },
-    designation: {
-      fundId: "fund-1",
-      fundName: "Clean Water Initiative",
-      missionaryId: null,
-      missionaryName: null,
-      projectId: null,
-    },
-    receipt: { status: "sent", statementStatus: null },
-    refund: { status: "none", amount: 0, refundedAt: null },
-    recurring: { isRecurring: false, interval: null, pledgeId: null },
+    fund: { id: "fund-1", name: "Clean Water Initiative" },
     stagedGift: {
       id: "staged-1",
       status: "posted",
@@ -274,62 +286,37 @@ const contributionDetailPayload = {
       reviewReason: null,
       twentyRecordId: null,
     },
-    crm: {
-      postStatus: "posted",
-      twentyRecordId: null,
-      parent: { status: "posted", twentyRecordId: null, lastError: null },
-      designationRecords: [],
-      failedScopes: [],
-      adapterLimitation: null,
-    },
-    auditEvents: [],
-    corrections: [],
-    tasks: [],
-    batches: [],
-    donorVisible: {
-      status: "Succeeded",
-      historyUpdatedImmediately: true,
-      amount: 25_000,
-      currency: "USD",
-    },
-  },
-};
+  });
+}
 
-const inlineActionsFixture = {
-  nextBestActionType: "resend_receipt",
-  entries: [
-    {
-      actionType: "amount_correction",
-      available: true,
-      blockedReason: null,
-      nextStep: null,
-      riskLevel: "high",
-    },
-    {
-      actionType: "fund_correction",
-      available: true,
-      blockedReason: null,
-      nextStep: null,
-      riskLevel: "high",
-    },
-    {
-      actionType: "resend_receipt",
-      available: true,
-      blockedReason: null,
-      nextStep: null,
-      riskLevel: "low",
-    },
-    {
-      actionType: "refund",
-      available: false,
-      blockedReason:
-        "This gift has no payment provider charge to refund against.",
-      nextStep:
-        "Offline gifts are corrected through adjustments rather than provider refunds.",
-      riskLevel: "high",
-    },
-  ],
-};
+/**
+ * The GET detail contract exactly as the server emits it for this viewer —
+ * the same read model plus viewer projection the route uses, so tests cannot
+ * pass against fabricated availability entries the server never produces.
+ */
+function contributionDetailPayloadFor(donationId: string) {
+  return {
+    contribution: projectContributionDetailForViewer(
+      buildServerDetail(donationId),
+      VIEWER_CAPABILITIES,
+    ),
+  };
+}
+
+/**
+ * CRM inline actions computed by the same builder `buildCrmGiftHistoryRow`
+ * uses, fed with the identical base availability the detail contract embeds.
+ */
+function inlineActionsFor(donationId: string) {
+  return buildInlineContributionActions({
+    availability: buildServerDetail(donationId).actionAvailability,
+    providerPaymentIntentId: null,
+    providerChargeId: null,
+    viewerCapabilities: VIEWER_CAPABILITIES,
+  });
+}
+
+const contributionDetailPayload = contributionDetailPayloadFor(DONATION_ID);
 
 function crmDonorDetailFor(donationId: string) {
   return {
@@ -340,21 +327,9 @@ function crmDonorDetailFor(donationId: string) {
         id: donationId,
         donationId,
         shared: { ...sharedGiftFields, donationId },
-        inlineActions: inlineActionsFixture,
+        inlineActions: inlineActionsFor(donationId),
       },
     ],
-  };
-}
-
-function contributionDetailPayloadFor(donationId: string) {
-  return {
-    contribution: {
-      ...contributionDetailPayload.contribution,
-      id: donationId,
-      shared: { ...sharedGiftFields, donationId },
-      revision: "2026-05-01T00:00:00.000Z#0",
-      actionAvailability: inlineActionsFixture.entries,
-    },
   };
 }
 
@@ -441,6 +416,7 @@ describe("apps/admin/app/crm gift detail entry", () => {
 
   afterEach(() => {
     cleanup();
+    vi.restoreAllMocks();
     vi.clearAllMocks();
     if (fetchDescriptor) {
       Object.defineProperty(globalThis, "fetch", fetchDescriptor);
@@ -693,8 +669,22 @@ describe("apps/admin/app/crm gift detail entry", () => {
     expect(refundItem?.hasAttribute("data-disabled")).toBe(true);
     fireEvent.click(refundItem!);
     expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
-    // Entries the server filtered out never render.
-    expect(view.queryByText("Replay provider webhook")).toBeNull();
+    // Provider replay can be requested for approval, but this offline gift
+    // has no provider payment evidence, so the blocked action stays visible.
+    const replayItem = view
+      .getByText("Replay provider webhook")
+      .closest("[role=menuitem]");
+    expect(replayItem?.textContent).toContain("Blocked");
+    expect(replayItem?.textContent).toContain(
+      "This gift has no provider payment events to replay.",
+    );
+    expect(replayItem?.getAttribute("aria-disabled")).toBe("true");
+    expect(replayItem?.hasAttribute("data-disabled")).toBe(true);
+    fireEvent.click(replayItem!);
+    expect(view.queryByTestId("contribution-operation-shell")).toBeNull();
+    // Entries the server filtered out by capability never render.
+    expect(view.queryByText("Approve and post gift")).toBeNull();
+    expect(view.queryByText("Retry CRM posting")).toBeNull();
   });
 
   it("restores donor drawer deep links even when the donor is off the loaded grid", async () => {
@@ -738,7 +728,13 @@ describe("apps/admin/app/crm gift detail entry", () => {
   it("submits inline operations through the shared contract and stays in CRM", async () => {
     const donationId = "00000000-0000-4000-8000-00000000d003";
     mockSearch = `donor=${DONOR_RECORD_ID}`;
-    const detailRefetch = vi.fn().mockResolvedValue({});
+    let resolveDetailRefetch: (value: { isError: boolean }) => void = () => {};
+    const detailRefetch = vi.fn(
+      () =>
+        new Promise<{ isError: boolean }>((resolve) => {
+          resolveDetailRefetch = resolve;
+        }),
+    );
     useAdminCrmRecordDetailMock.mockReturnValue(
       mockQuery({
         data: crmDonorDetailFor(donationId),
@@ -790,6 +786,15 @@ describe("apps/admin/app/crm gift detail entry", () => {
     });
     fireEvent.click(submit);
 
+    await waitFor(() => {
+      expect(detailRefetch).toHaveBeenCalled();
+    });
+    expect(view.queryByText("Updated just now")).toBeNull();
+
+    await act(async () => {
+      resolveDetailRefetch({ isError: false });
+    });
+
     // The result stays in CRM — no navigation away.
     expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
     expect(view.getByText(/audit event: audit-9/i)).toBeTruthy();
@@ -805,14 +810,239 @@ describe("apps/admin/app/crm gift detail entry", () => {
       contributionId: donationId,
       stagedGiftId: "staged-1",
       sourceSurface: "donor_crm_record",
-      expectedRevision: "2026-05-01T00:00:00.000Z#0",
+      expectedRevision:
+        contributionDetailPayloadFor(donationId).contribution.revision,
       payload: {},
     });
     expect(typeof body.idempotencyKey).toBe("string");
     expect(body.idempotencyKey.length).toBeGreaterThan(10);
 
-    // Shared row data refreshes in place after the operation.
-    expect(detailRefetch).toHaveBeenCalled();
+    // Freshness appears only after the shared row refetch succeeds.
+    expect(view.getByText("Updated just now")).toBeTruthy();
+  });
+
+  it("keeps inline success visible when the CRM row refetch fails", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d010";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    const refetchError = new Error("CRM gift history refresh failed");
+    const detailRefetch = vi.fn().mockResolvedValue({
+      error: refetchError,
+      isError: true,
+    });
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({
+        data: crmDonorDetailFor(donationId),
+        refetch: detailRefetch,
+      }),
+    );
+    const consoleError = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-refresh-failed",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(await view.findByRole("button", { name: "Send receipt" }));
+    const shell = await view.findByTestId("contribution-operation-shell");
+    const submit = await within(shell).findByRole("button", {
+      name: "Send receipt",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    expect(await within(shell).findByText("Operation completed.")).toBeTruthy();
+    const warning = await within(shell).findByRole("alert");
+    expect(warning.textContent).toMatch(/displayed gift data may be stale/i);
+    expect(view.queryByText("Updated just now")).toBeNull();
+    expect(detailRefetch).toHaveBeenCalledOnce();
+    expect(consoleError).toHaveBeenCalledWith(
+      "Contribution operation succeeded, but refresh failed.",
+      [refetchError],
+    );
+  });
+
+  it("shows the freshness indicator after an overlay operation succeeds and auto-hides it", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00c";
+    mockSearch = `gift=${donationId}`;
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-10",
+                approvalStatus: "applied",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    expect(view.queryByText("Updated just now")).toBeNull();
+    const sendReceipt = await view.findByRole("button", {
+      name: /send receipt/i,
+    });
+
+    const setTimeoutSpy = vi.spyOn(window, "setTimeout");
+    fireEvent.click(sendReceipt);
+
+    const indicator = await view.findByText("Updated just now");
+    expect(indicator.textContent).toBe("Updated just now");
+
+    await waitFor(() => {
+      expect(routerReplaceMock).toHaveBeenCalledWith("/crm", {
+        scroll: false,
+      });
+    });
+
+    const freshnessTimerCall = setTimeoutSpy.mock.calls.find(
+      ([, delay]) => delay === 8000,
+    );
+    expect(freshnessTimerCall).toBeTruthy();
+    act(() => {
+      (freshnessTimerCall![0] as () => void)();
+    });
+    expect(view.queryByText("Updated just now")).toBeNull();
+    setTimeoutSpy.mockRestore();
+  });
+
+  it("opens and submits an inline correction request through the real detail contract", async () => {
+    const donationId = "00000000-0000-4000-8000-00000000d00c";
+    mockSearch = `donor=${DONOR_RECORD_ID}`;
+    useAdminCrmRecordDetailMock.mockReturnValue(
+      mockQuery({ data: crmDonorDetailFor(donationId) }),
+    );
+    const fetchMock = vi
+      .fn()
+      .mockImplementation(async (url: string, init?: RequestInit) => {
+        if (String(url).includes("/actions")) {
+          return {
+            ok: true,
+            init,
+            json: async () => ({
+              result: {
+                auditEventId: "audit-10",
+                approvalStatus: "pending_approval",
+                correctionRequestId: "req-1",
+                taskIds: [],
+                canonicalContribution: {},
+              },
+            }),
+          };
+        }
+        return {
+          ok: true,
+          json: async () => contributionDetailPayloadFor(donationId),
+        };
+      });
+    Object.defineProperty(globalThis, "fetch", {
+      configurable: true,
+      value: fetchMock,
+    });
+
+    const view = render(
+      <QueryProvider>
+        <CrmPage />
+      </QueryProvider>,
+    );
+
+    fireEvent.click(
+      await view.findByRole("button", { name: "More gift actions" }),
+    );
+    fireEvent.click(await view.findByText("Correct gift amount"));
+
+    // The shell resolves availability from the projected GET contract; the
+    // correction entry must exist there or the shell fails closed (#270).
+    const shell = await view.findByTestId("contribution-operation-shell");
+    const amountInput = await within(shell).findByLabelText("Amount (USD)");
+    expect(
+      within(shell).queryByText(/not available for the current gift/i),
+    ).toBeNull();
+
+    fireEvent.change(amountInput, { target: { value: "200" } });
+    fireEvent.change(within(shell).getByLabelText("Reason"), {
+      target: { value: "Donor reported the wrong amount" },
+    });
+    fireEvent.click(within(shell).getByRole("checkbox"));
+    const submit = within(shell).getByRole("button", {
+      name: "Correct gift amount",
+    });
+    await waitFor(() => {
+      expect(submit).toHaveProperty("disabled", false);
+    });
+    fireEvent.click(submit);
+
+    // The correction request lands through the shared operation contract.
+    expect(await view.findByTestId("operation-result-panel")).toBeTruthy();
+    expect(
+      view.getByText(/correction request submitted for approval/i),
+    ).toBeTruthy();
+    expect(view.getByText(/approval request: req-1/i)).toBeTruthy();
+
+    const actionCall = fetchMock.mock.calls.find(([url]) =>
+      String(url).includes("/actions"),
+    );
+    const body = JSON.parse((actionCall![1] as RequestInit).body as string);
+    expect(body).toMatchObject({
+      actionType: "amount_correction",
+      contributionId: donationId,
+      stagedGiftId: "staged-1",
+      sourceSurface: "donor_crm_record",
+      reason: "Donor reported the wrong amount",
+      expectedRevision:
+        contributionDetailPayloadFor(donationId).contribution.revision,
+      payload: { amount: 20_000 },
+    });
   });
 
   it("opens the full contribution detail from the result panel without leaving CRM", async () => {
@@ -915,7 +1145,9 @@ describe("apps/admin/app/crm gift detail entry", () => {
     fireEvent.click(trigger);
     const shell = await view.findByTestId("contribution-operation-shell");
 
-    fireEvent.click(within(shell).getByRole("button", { name: "Cancel" }));
+    fireEvent.click(
+      await within(shell).findByRole("button", { name: "Cancel" }),
+    );
 
     await waitFor(() => {
       expect(view.queryByTestId("contribution-operation-shell")).toBeNull();

@@ -5,7 +5,7 @@ import { Badge } from "@asym/ui/components/shadcn/badge";
 import {
   DeleteNamedViewDialog,
   NamedViewNameDialog,
-  TenantDefaultDialog,
+  SetTenantDefaultDialog,
   ViewSettingsResetDialog,
 } from "./gift-history-dialogs";
 import { GiftHistoryRows } from "./gift-history-rows";
@@ -36,9 +36,9 @@ export function GiftHistorySection({
       {detail?.giftHistory.length ? (
         <div className="rounded-xl border border-border bg-card p-4 shadow-sm">
           <div className="flex items-center justify-between gap-3">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
+            <h3 className="text-[10px] font-semibold uppercase tracking-[0.18em] text-muted-foreground">
               Gift history
-            </p>
+            </h3>
             <div className="flex items-center gap-1">
               <Badge variant="secondary" className="text-[10px]">
                 {giftHistory.giftRows.length}
@@ -98,16 +98,18 @@ export function GiftHistorySection({
           giftHistory.closeInlineOperation();
           onOpenGift(donationId);
         }}
-        onRowRefresh={() => void onRefresh()}
+        onRowRefresh={async () => {
+          await onRefresh();
+        }}
       />
       <ViewSettingsResetDialog
         description={giftHistory.resetPreview?.description}
         onCancel={giftHistory.closePendingReset}
         onConfirm={giftHistory.confirmPendingReset}
       />
-      <TenantDefaultDialog
+      <SetTenantDefaultDialog
         open={giftHistory.pendingTenantDefault}
-        isSaving={giftHistory.isSavingTenantDefault}
+        isSaving={giftHistory.saveTenantDefaultPending}
         onCancel={giftHistory.closePendingTenantDefault}
         onConfirm={giftHistory.confirmSetTenantDefault}
       />

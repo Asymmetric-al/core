@@ -18,17 +18,17 @@ This document provides a comprehensive overview of the codebase architecture for
 **Asymmetric.al** is a multi-tenant platform for mission-focused organizations built with:
 The "Give Hope" tenant name you may see in UI defaults is a demo/test frontend, not the organization.
 
-| Technology     | Purpose                                             |
-| -------------- | --------------------------------------------------- |
-| Next.js 16.1   | Full-stack React framework (App Router + Turbopack) |
-| React 19       | UI library with Server Components                   |
-| TypeScript 5.9 | Type safety                                         |
-| Tailwind CSS 4 | Styling                                             |
-| shadcn/ui      | Component library                                   |
-| Supabase       | Database (PostgreSQL) + Auth + Storage              |
-| TanStack Query | Server state management                             |
-| TanStack DB    | Client-side collections                             |
-| Stripe         | Payment processing                                  |
+| Technology       | Purpose                                             |
+| ---------------- | --------------------------------------------------- |
+| Next.js 16.2.6   | Full-stack React framework (App Router + Turbopack) |
+| React 19         | UI library with Server Components                   |
+| TypeScript 6.0.3 | Type safety                                         |
+| Tailwind CSS 4   | Styling                                             |
+| shadcn/ui        | Component library                                   |
+| Supabase         | Database (PostgreSQL) + Auth + Storage              |
+| TanStack Query   | Server state management                             |
+| TanStack DB      | Client-side collections                             |
+| Stripe           | Payment processing                                  |
 
 ### Application Sections
 
@@ -73,7 +73,7 @@ Data isolation is enforced via Supabase Row Level Security (RLS) using `tenant_i
 
 ## Directory Structure
 
-This is a **Turborepo monorepo** with three Next.js applications and seven shared packages:
+This is a **Turborepo monorepo** with three Next.js applications and eleven shared packages:
 
 ```
 core/
@@ -110,6 +110,11 @@ core/
 │       └── package.json
 │
 ├── packages/                  # Shared packages
+│   ├── api/                  # @asym/api - Canonical business/data-access layer
+│   │   ├── src/             # Route service contracts (posts, donations, admin, crm…)
+│   │   ├── tests/
+│   │   └── package.json
+│   │
 │   ├── auth/                 # @asym/auth - Authentication
 │   │   ├── context.ts       # Auth context provider
 │   │   ├── use-auth.ts      # Auth hook
@@ -137,11 +142,26 @@ core/
 │   │   ├── src/schema.ts    # createEnv + zod validation contract
 │   │   └── package.json
 │   │
+│   ├── graphql/              # @asym/graphql - GraphQL gateway
+│   │   ├── index.ts
+│   │   ├── handler.ts
+│   │   └── package.json
+│   │
 │   ├── lib/                  # @asym/lib - Utilities
 │   │   ├── utils.ts         # Common utilities (cn, formatters)
 │   │   ├── hooks/           # Shared React hooks
 │   │   ├── responsive.ts    # Responsive utilities
 │   │   ├── stripe.ts        # Stripe utilities
+│   │   └── package.json
+│   │
+│   ├── missionary/           # @asym/missionary - Missionary-domain components, hooks & types
+│   │   ├── components/
+│   │   ├── types/
+│   │   └── package.json
+│   │
+│   ├── mock-data/            # @asym/mock-data - Mock/demo data
+│   │   ├── donations.ts
+│   │   ├── users.ts
 │   │   └── package.json
 │   │
 │   └── ui/                   # @asym/ui - UI components

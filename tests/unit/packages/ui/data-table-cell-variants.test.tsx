@@ -1,4 +1,4 @@
-import type { Cell, Row } from "@tanstack/react-table";
+import type { Cell, Row } from "@asym/ui/components/shadcn/data-table/tanstack";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 

@@ -37,6 +37,14 @@ const motionImportRestrictions = [
   },
 ];
 
+const tableEngineImportRestriction = [
+  {
+    name: "@tanstack/react-table",
+    message:
+      "Import table values/types from the boundary module @asym/ui/components/shadcn/data-table/tanstack (relative ./tanstack within shared UI), not @tanstack/react-table directly (ADR-3). @tanstack/react-table-devtools is allowed.",
+  },
+];
+
 const rawTwentyClientImportRestrictions = [
   {
     group: [
@@ -80,6 +88,7 @@ const eslintConfig = defineConfig([
             ...rawTwentyClientImportRestrictions,
             ...motionImportRestrictions,
           ],
+          paths: [...tableEngineImportRestriction],
         },
       ],
     },
@@ -105,6 +114,7 @@ const eslintConfig = defineConfig([
             },
           ],
           paths: [
+            ...tableEngineImportRestriction,
             {
               name: "@asym/database/supabase/admin",
               message:
@@ -138,6 +148,26 @@ const eslintConfig = defineConfig([
     },
   },
   {
+    // ADR-3 sanctioned exceptions: the boundary module is the ONE place allowed
+    // to import the engine, and types.ts augments the engine's module.
+    files: [
+      "packages/ui/components/shadcn/data-table/tanstack.ts",
+      "packages/ui/components/shadcn/data-table/types.ts",
+    ],
+    rules: {
+      "no-restricted-imports": [
+        "error",
+        {
+          patterns: [
+            ...crossAppImportRestrictions,
+            ...rawTwentyClientImportRestrictions,
+            ...motionImportRestrictions,
+          ],
+        },
+      ],
+    },
+  },
+  {
     files: ["apps/*/app/api/**/*.{js,jsx,mjs,cjs,ts,tsx,mts,cts}"],
     rules: {
       "no-restricted-imports": [
@@ -162,6 +192,7 @@ const eslintConfig = defineConfig([
             },
           ],
           paths: [
+            ...tableEngineImportRestriction,
             {
               name: "@asym/database/supabase",
               message:

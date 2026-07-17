@@ -5,9 +5,10 @@ import { useMemo } from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import type { RowData } from "../tanstack";
 import type { LinkCellProps } from "./types";
 
-export function LinkCell<TData>({
+export function LinkCell<TData extends RowData>({
   value,
   row,
   className,

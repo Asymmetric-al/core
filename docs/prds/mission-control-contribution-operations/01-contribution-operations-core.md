@@ -4,7 +4,11 @@
 
 Delivered through split PRs #386-#405. Do not create a new
 `status:ready` implementation issue from this historical PRD unless a follow-up
-gap is identified against the shipped code.
+gap is identified against the shipped code. The CRM repost / CRM outbound
+posting actions referenced below target the now-retired Twenty pipeline and
+are dormant per
+[ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+(2026-07-06).
 
 ## Problem statement
 

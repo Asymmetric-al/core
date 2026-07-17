@@ -2,6 +2,7 @@
 import { cacheLife, cacheTag } from "next/cache";
 
 import { type PaginatedResult, type PaginationParams } from "./types";
+import { READ_CACHE_TAGS } from "../shared/cache-tags";
 
 type QueryError = { message?: string } | null;
 
@@ -51,7 +52,10 @@ export async function getDonorHistory(
 ): Promise<PaginatedResult<DonorHistoryItem>> {
   "use cache";
 
-  applyCacheMetadata(["donor-history", `donor:${donorId}`]);
+  applyCacheMetadata([
+    READ_CACHE_TAGS.donorHistory,
+    READ_CACHE_TAGS.donor(donorId),
+  ]);
 
   const { client, error } = getAdminClient();
   if (!client) {
@@ -128,9 +132,9 @@ export async function resolveDonorId(
   }
 
   applyCacheMetadata([
-    "donor-profile",
-    `tenant:${tenantId}`,
-    `profile:${profileId}`,
+    READ_CACHE_TAGS.donorProfile,
+    READ_CACHE_TAGS.tenant(tenantId),
+    READ_CACHE_TAGS.profile(profileId),
   ]);
 
   const { client, error } = getAdminClient();

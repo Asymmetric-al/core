@@ -6,6 +6,7 @@ import { cn } from "@asym/ui/lib/utils";
 
 import { Progress } from "../../progress";
 
+import type { RowData } from "../tanstack";
 import type { ProgressCellProps } from "./types";
 
 const sizeClasses = {
@@ -21,7 +22,7 @@ const variantColors = {
   destructive: "[&>div]:bg-destructive",
 };
 
-export function ProgressCell<TData>({
+export function ProgressCell<TData extends RowData>({
   value,
   className,
   max = 100,

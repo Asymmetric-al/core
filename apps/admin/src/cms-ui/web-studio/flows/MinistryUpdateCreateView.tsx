@@ -68,12 +68,10 @@ function MinistryUpdateCreateViewContent() {
   );
   const {
     isSuperAdmin,
-    tenantsQuery: {
-      data: tenants,
-      error: tenantsError,
-      isError: tenantsIsError,
-      isPending: tenantsIsPending,
-    },
+    tenants,
+    tenantsError,
+    tenantsIsError,
+    tenantsIsPending,
   } = useSuperAdminTenantOptions();
 
   const profilesUrl = `${serverURL}${formatAdminURL({
@@ -197,7 +195,7 @@ function MinistryUpdateCreateViewContent() {
                 <TenantSelectField
                   label="Tenant"
                   field={field}
-                  options={tenants ?? []}
+                  options={tenants}
                   disabled={tenantsIsPending || tenantsIsError}
                   placeholder="Select tenant"
                 />

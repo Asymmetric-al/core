@@ -58,6 +58,17 @@ const treeMirrors = [
 const CANONICAL_MANIFEST_FILENAME = ".repo-canonical-skills.json";
 const CANONICAL_MANIFEST_VERSION = 2;
 
+// Core-authored adapters fully own their runtime directories. Some adapters
+// replace ecosystem installs with the same name (notably `vitest`), so an
+// overlay would leave stale upstream references discoverable beside Core's
+// version-specific guidance.
+const fullyManagedCanonicalSkills = new Set([
+  "accessibility-review",
+  "find-animation-opportunities",
+  "playwright-cli",
+  "vitest",
+]);
+
 /** Single path segment: lowercase slug segments (matches docs/ai/skills/* layout). */
 const SAFE_CANONICAL_SKILL_DIR_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -450,7 +461,11 @@ async function syncCanonicalSkill(skillName) {
     const targetDir = path.join(targetRoot, skillName);
     await mkdir(targetRoot, { recursive: true });
 
-    await overlayDirectory(sourceDir, targetDir);
+    if (fullyManagedCanonicalSkills.has(skillName)) {
+      await replaceDirectory(sourceDir, targetDir);
+    } else {
+      await overlayDirectory(sourceDir, targetDir);
+    }
     console.log(`synced ${skillName} -> ${path.relative(repoRoot, targetDir)}`);
   }
 }

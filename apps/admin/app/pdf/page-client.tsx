@@ -618,7 +618,12 @@ function PDFStudioHeaderSection({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="sm" className="size-8 p-0">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="size-8 p-0"
+                aria-label="More PDF template actions"
+              >
                 <MoreHorizontal className="size-4" />
               </Button>
             }

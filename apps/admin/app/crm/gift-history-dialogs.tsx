@@ -53,6 +53,52 @@ export function ViewSettingsResetDialog({
   );
 }
 
+interface SetTenantDefaultDialogProps {
+  open: boolean;
+  isSaving: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+/**
+ * Publishing to the whole tenant always confirms first, mirroring the
+ * reset-preview idiom (#272).
+ */
+export function SetTenantDefaultDialog({
+  open,
+  isSaving,
+  onCancel,
+  onConfirm,
+}: SetTenantDefaultDialogProps) {
+  if (!open) {
+    return null;
+  }
+
+  return (
+    <Dialog open onOpenChange={(dialogOpen) => !dialogOpen && onCancel()}>
+      <DialogContent
+        className="sm:max-w-md"
+        data-testid="tenant-default-confirm"
+      >
+        <DialogTitle>Set tenant default</DialogTitle>
+        <DialogDescription>
+          The current columns, filters, sort, and pinned row action become the
+          default for everyone in this tenant. Personal view settings are not
+          changed and keep overriding the tenant default.
+        </DialogDescription>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" className="h-11" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button className="h-11" disabled={isSaving} onClick={onConfirm}>
+            {isSaving ? "Saving..." : "Set tenant default"}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 interface NamedViewNameDialogProps {
   state: ViewNameDialogState | null;
   value: string;

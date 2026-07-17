@@ -2,8 +2,8 @@ import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-const reactDoctorRunner = "npx";
-const baseArgs = ["--yes", "react-doctor@latest"];
+const reactDoctorRunner = "bunx";
+const baseArgs = ["--bun", "react-doctor@latest"];
 
 export const REACT_DOCTOR_TARGETS = Object.freeze([
   "apps/admin",

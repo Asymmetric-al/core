@@ -53,10 +53,13 @@ export function DetailDrawer({
   contact,
   onClose,
   onOpenGift,
+  onRowRefresh,
 }: {
   contact: CrmRecord;
   onClose: () => void;
   onOpenGift: (donationId: string) => void;
+  /** Notifies the host after an inline operation refreshes shared row data. */
+  onRowRefresh?: () => void;
 }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [noteBody, setNoteBody] = useState("");
@@ -376,7 +379,17 @@ export function DetailDrawer({
                     detail={detail}
                     isLoading={detailQuery.isLoading}
                     onOpenGift={onOpenGift}
-                    onRefresh={() => void detailQuery.refetch()}
+                    onRefresh={async () => {
+                      const refreshed = await detailQuery.refetch();
+                      if (refreshed.isError) {
+                        throw refreshed.error instanceof Error
+                          ? refreshed.error
+                          : new Error(
+                              "Could not refresh the CRM gift history.",
+                            );
+                      }
+                      onRowRefresh?.();
+                    }}
                   />
 
                   <div className="space-y-6 pl-4 border-l border-border ml-2">

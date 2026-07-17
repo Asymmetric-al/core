@@ -1,14 +1,15 @@
+import { resolveCorrectionApprovalPolicy } from "./approval-policy";
 import {
-  correctionRequiresApproval,
-  resolveCorrectionApprovalPolicy,
-} from "./approval-policy";
-import { getContributionActionRiskLevel } from "./policy";
-import { stripeReplayAvailability } from "./viewer-projection";
+  buildCorrectionRequestAvailability,
+  CONTRIBUTION_OPERATION_CAPABILITY,
+  isCorrectionRequestActionType,
+  stripeReplayAvailability,
+  viewerCanUseContributionOperation,
+} from "./viewer-action-availability";
 
 import type { ContributionActionAvailability } from "./action-availability";
 import type { CorrectionApprovalPolicy } from "./approval-policy";
 import type { ContributionCapability } from "./permissions";
-import type { ContributionActionType } from "./types";
 import type {
   CrmGiftInlineActionEntry,
   CrmGiftInlineActions,
@@ -22,35 +23,15 @@ import type {
  * Entries reuse the shared availability derivation verbatim so blocked
  * reasons, next steps, and risk levels match contribution detail exactly,
  * then get filtered to what the viewer's capabilities allow (ADR-CD-024).
+ * The viewer/policy-dependent pieces live in `viewer-action-availability`
+ * and are shared with the detail viewer projection.
  */
 
 /** Capability a viewer needs before an operation is surfaced inline. */
 export const INLINE_ACTION_CAPABILITY: Record<
   CrmGiftInlineActionType,
   ContributionCapability
-> = {
-  amount_correction: "contributions.request_corrections",
-  fund_correction: "contributions.request_corrections",
-  resend_receipt: "contributions.manage_receipts",
-  approve_staged_gift: "contributions.apply_corrections",
-  retry_staged_gift: "contributions.retry_crm_post",
-  refund: "contributions.run_refunds",
-  stripe_replay: "contributions.use_provider_actions",
-};
-
-const INLINE_REQUEST_CAPABILITY: ContributionCapability =
-  "contributions.request_corrections";
-
-const INLINE_CORRECTION_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>(
-  ["amount_correction", "fund_correction"],
-);
-
-const INLINE_APPROVAL_REQUEST_ACTION_TYPES = new Set<CrmGiftInlineActionType>([
-  "amount_correction",
-  "fund_correction",
-  "refund",
-  "stripe_replay",
-]);
+> = CONTRIBUTION_OPERATION_CAPABILITY;
 
 /**
  * Only low-risk workflow actions are ever promoted to the row's single
@@ -67,40 +48,6 @@ export function isInlineContributionActionType(
   actionType: string,
 ): actionType is CrmGiftInlineActionType {
   return actionType in INLINE_ACTION_CAPABILITY;
-}
-
-function correctionRequestEntry(
-  actionType: "amount_correction" | "fund_correction",
-): CrmGiftInlineActionEntry {
-  // Corrections are adjustment-record requests over the original donation
-  // truth, so they have no state precondition; approval policy gates the
-  // apply step server-side (ADR-CD-004 / ADR-CD-005).
-  return {
-    actionType,
-    available: true,
-    blockedReason: null,
-    nextStep: null,
-    riskLevel: getContributionActionRiskLevel(actionType),
-  };
-}
-
-function requiredCapabilitiesForInlineAction(
-  actionType: CrmGiftInlineActionType,
-  approvalPolicy: CorrectionApprovalPolicy,
-): ContributionCapability[] {
-  const directCapability = INLINE_ACTION_CAPABILITY[actionType];
-  const canRequestApproval =
-    INLINE_APPROVAL_REQUEST_ACTION_TYPES.has(actionType) &&
-    correctionRequiresApproval({
-      actionType: actionType as ContributionActionType,
-      policy: approvalPolicy,
-    });
-
-  if (!canRequestApproval || directCapability === INLINE_REQUEST_CAPABILITY) {
-    return [directCapability];
-  }
-
-  return [directCapability, INLINE_REQUEST_CAPABILITY];
 }
 
 export function pickNextBestInlineContributionAction(
@@ -135,6 +82,8 @@ export interface BuildInlineContributionActionsInput {
 export function buildInlineContributionActions(
   input: BuildInlineContributionActionsInput,
 ): CrmGiftInlineActions {
+  const approvalPolicy =
+    input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
   const workflowEntries = input.availability
     .filter(
       (
@@ -143,18 +92,9 @@ export function buildInlineContributionActions(
         isInlineContributionActionType(entry.actionType) &&
         entry.actionType !== "stripe_replay",
     )
-    .filter(
-      (entry) => !INLINE_CORRECTION_REQUEST_ACTION_TYPES.has(entry.actionType),
-    );
-  const approvalPolicy =
-    input.approvalPolicy ?? resolveCorrectionApprovalPolicy(null);
-  const correctionRequestEntries = (
-    ["amount_correction", "fund_correction"] as const
-  )
-    .filter((actionType) =>
-      correctionRequiresApproval({ actionType, policy: approvalPolicy }),
-    )
-    .map(correctionRequestEntry);
+    .filter((entry) => !isCorrectionRequestActionType(entry.actionType));
+  const correctionRequestEntries =
+    buildCorrectionRequestAvailability(approvalPolicy);
 
   const allEntries: CrmGiftInlineActionEntry[] = [
     ...correctionRequestEntries,
@@ -168,15 +108,13 @@ export function buildInlineContributionActions(
     },
   ];
 
-  const entries = allEntries.filter((entry) => {
-    const requiredCapabilities = requiredCapabilitiesForInlineAction(
-      entry.actionType,
+  const entries = allEntries.filter((entry) =>
+    viewerCanUseContributionOperation({
+      actionType: entry.actionType,
       approvalPolicy,
-    );
-    return requiredCapabilities.some((capability) =>
-      input.viewerCapabilities.includes(capability),
-    );
-  });
+      viewerCapabilities: input.viewerCapabilities,
+    }),
+  );
 
   return {
     nextBestActionType: pickNextBestInlineContributionAction(entries),

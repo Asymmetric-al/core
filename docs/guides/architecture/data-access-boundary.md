@@ -43,10 +43,13 @@ route Supabase scope: it lives under `app/auth/`, not `app/api/`.
 6. Run `bun run verify:data-boundary` after changing routes, app data reads, or CRM/Twenty
    access paths.
 
-Phase 07 CRM production cutover does not weaken this boundary. Operational
-runbooks, rollback, replay, restore, and support workflows must use Asym
-server-side contracts and durable CRM tables; raw Twenty UI is diagnostic only
-and cannot become the normal Mission Control product or support path.
+The Twenty CRM integration is retired
+([ADR-0001](../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md));
+Asym Postgres owns all CRM truth (see the
+[Phase 1 ownership matrix](../../prds/sitestacker-parity/phase-01-source-of-truth-ownership-matrix.md)).
+The Twenty client code is dormant pending a scheduled cleanup ticket, so the
+Twenty-specific rules above still guard real code; delete them from this guide
+only when that ticket removes the code.
 
 ## Approved Exceptions
 

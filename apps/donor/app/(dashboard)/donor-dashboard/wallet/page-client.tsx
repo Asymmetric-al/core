@@ -745,6 +745,7 @@ function MethodCard({
                     variant="ghost"
                     size="icon"
                     className="size-10 text-zinc-300 hover:text-zinc-900 hover:bg-zinc-50 rounded-full"
+                    aria-label={`More actions for ${method.bankName || `${method.brand} ending in ${method.last4}`}`}
                   >
                     <MoreHorizontal className="size-5" />
                   </Button>

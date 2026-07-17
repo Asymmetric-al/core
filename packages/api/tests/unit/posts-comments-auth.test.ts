@@ -1,7 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import type { NextRequest } from "next/server";
-
 /**
  * TDD — finding 06 Gap 3: posts/comments GET reads post_comments (+ joined
  * profiles) via the user-scoped client with no explicit auth call. Add an
@@ -17,6 +15,8 @@ vi.mock("@asym/database/supabase/server", () => ({
 }));
 
 import { GET } from "../../src/posts/comments";
+
+import type { NextRequest } from "next/server";
 
 function ctx(postId = "post-1") {
   return { params: Promise.resolve({ postId }) };

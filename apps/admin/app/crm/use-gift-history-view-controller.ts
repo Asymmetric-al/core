@@ -134,25 +134,13 @@ export function useGiftHistoryViewController({
 
   const pinRowAction = (actionId: string | null) => {
     savePinMutation.mutate(actionId, {
-      onError: (error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save the pinned row action.",
-        );
-      },
+      onError: viewMutationErrorToast,
     });
   };
 
   const saveViewSettings = (patch: ViewSettingsPatch) => {
     saveViewSettingsMutate(patch, {
-      onError: (error) => {
-        toast.error(
-          error instanceof Error
-            ? error.message
-            : "Failed to save view settings.",
-        );
-      },
+      onError: viewMutationErrorToast,
     });
   };
 
@@ -337,6 +325,7 @@ export function useGiftHistoryViewController({
     requestSetTenantDefault: () => setPendingTenantDefault(true),
     requestViewSettingsReset: setPendingReset,
     resetPreview,
+    saveTenantDefaultPending: saveTenantDefaultMutation.isPending,
     runInlineOperation: (donationId: string, operation: OperationDefinition) =>
       setInlineOperation({ donationId, operation }),
     saveViewSettings,

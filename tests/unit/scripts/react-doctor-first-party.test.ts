@@ -18,15 +18,16 @@ describe("react-doctor first-party wrapper", () => {
   });
 
   it("builds the expected React Doctor command with current CLI flags", () => {
-    expect(
-      createReactDoctorCommand("apps/admin", [
-        "--full",
-        "--offline",
-        "--fail-on",
-        "none",
-      ]).args,
-    ).toEqual([
-      "--yes",
+    const command = createReactDoctorCommand("apps/admin", [
+      "--full",
+      "--offline",
+      "--fail-on",
+      "none",
+    ]);
+
+    expect(command.command).toBe("bunx");
+    expect(command.args).toEqual([
+      "--bun",
       "react-doctor@latest",
       "apps/admin",
       "--verbose",
@@ -42,7 +43,7 @@ describe("react-doctor first-party wrapper", () => {
     expect(
       createReactDoctorCommand("packages/ui", ["--fail-on=none"]).args,
     ).toEqual([
-      "--yes",
+      "--bun",
       "react-doctor@latest",
       "packages/ui",
       "--verbose",
@@ -59,7 +60,7 @@ describe("react-doctor first-party wrapper", () => {
         "none",
       ]).args,
     ).toEqual([
-      "--yes",
+      "--bun",
       "react-doctor@latest",
       "packages/ui",
       "--verbose",
@@ -70,20 +71,23 @@ describe("react-doctor first-party wrapper", () => {
     ]);
   });
 
-  it("wraps npx through cmd.exe on Windows", () => {
+  it("wraps bunx through cmd.exe on Windows", () => {
     expect(
       createSpawnCommand(
-        { command: "npx", args: ["--yes", "react-doctor@latest"] },
+        { command: "bunx", args: ["--bun", "react-doctor@latest"] },
         { platform: "win32", comSpec: "C:\\Windows\\System32\\cmd.exe" },
       ),
     ).toEqual({
       command: "C:\\Windows\\System32\\cmd.exe",
-      args: ["/d", "/s", "/c", "npx", "--yes", "react-doctor@latest"],
+      args: ["/d", "/s", "/c", "bunx", "--bun", "react-doctor@latest"],
     });
   });
 
   it("spawns the command directly outside Windows", () => {
-    const command = { command: "npx", args: ["--yes", "react-doctor@latest"] };
+    const command = {
+      command: "bunx",
+      args: ["--bun", "react-doctor@latest"],
+    };
 
     expect(createSpawnCommand(command, { platform: "linux" })).toBe(command);
   });

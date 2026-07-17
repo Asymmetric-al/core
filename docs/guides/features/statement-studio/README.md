@@ -66,6 +66,7 @@ Use this documentation when planning or implementing:
 - Production renders resolve variables server-side from tenant-scoped DTOs.
 - Generated PDFs are exposed through tenant-aware artifact access, not direct cross-dashboard table reads.
 - Tenant admins control how templates, defaults, variables, retention, and capabilities are used inside platform safety floors.
+- **Phase 7 reconciliation (facts vs. artifact seam):** Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) owns the receipt/statement facts record — receipt versioning and immutable numbering, and the statement eligibility/inclusion snapshot. Statement Studio (the legacy PDF Studio surface) consumes those facts as render input and owns only the render artifact, its generated-artifact metadata, and retention.
 
 ## Checklist
 
