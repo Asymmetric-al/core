@@ -19,8 +19,21 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "../dropdown-menu";
+import {
+  areChromeTablePropsInterchangeable,
+  areDataTableChromeActionsEqual,
+  EMPTY_TABLE_SELECTION_SOURCE,
+  getTableSliceAtoms,
+} from "./data-table-chrome-memo";
+import { useSelector } from "./tanstack";
 
-import type { Table } from "@tanstack/react-table";
+import type {
+  ColumnFiltersState,
+  RowData,
+  RowSelectionState,
+  Table,
+  TableSelectionSource,
+} from "./tanstack";
 
 interface FloatingActionBarAction<TData> {
   label: string;
@@ -30,17 +43,32 @@ interface FloatingActionBarAction<TData> {
   hideOnMobile?: boolean;
 }
 
-interface DataTableFloatingBarProps<TData> {
+interface DataTableFloatingBarProps<TData extends RowData> {
   table: Table<TData>;
   actions?: FloatingActionBarAction<TData>[];
   className?: string;
 }
 
-export function DataTableFloatingBar<TData>({
+function DataTableFloatingBarImpl<TData extends RowData>({
   table,
   actions,
   className,
 }: DataTableFloatingBarProps<TData>) {
+  // Focused subscriptions: the memo comparator below keeps parent broadcasts out,
+  // so every state slice this chrome reads needs its own subscription.
+  const atoms = getTableSliceAtoms(table);
+  const rowSelectionSource: TableSelectionSource<
+    RowSelectionState | undefined
+  > = atoms?.rowSelection ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(rowSelectionSource);
+  const columnFiltersSource: TableSelectionSource<
+    ColumnFiltersState | undefined
+  > = atoms?.columnFilters ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(columnFiltersSource);
+  const globalFilterSource: TableSelectionSource<unknown> =
+    atoms?.globalFilter ?? EMPTY_TABLE_SELECTION_SOURCE;
+  useSelector(globalFilterSource);
+
   const selectedRows = table.getFilteredSelectedRowModel().rows;
   const selectedCount = selectedRows.length;
 
@@ -162,3 +190,21 @@ export function DataTableFloatingBar<TData>({
     </LazyMotion>
   );
 }
+
+const MemoizedDataTableFloatingBar = React.memo(
+  DataTableFloatingBarImpl,
+  (previous, next) =>
+    areChromeTablePropsInterchangeable(previous.table, next.table) &&
+    areDataTableChromeActionsEqual(previous.actions, next.actions) &&
+    previous.className === next.className,
+);
+
+/**
+ * Memoized with a table-aware comparator (v9's `useTable` returns a fresh
+ * wrapper object every parent render) so the bar only re-renders when row
+ * selection — the one state slice it subscribes to — actually changes. The
+ * cast restores the generic call signature `React.memo` erases; the public
+ * props are unchanged.
+ */
+export const DataTableFloatingBar =
+  MemoizedDataTableFloatingBar as typeof DataTableFloatingBarImpl;

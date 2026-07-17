@@ -1,11 +1,6 @@
-import {
-  getDefaultPostLoginPathForApp,
-  safeNextParam,
-} from "@asym/auth/demo-login";
-import { createClient } from "@asym/database/supabase/server";
+import { requireAnonymousVisitor } from "@asym/auth/auth-screen";
 import { serverEnv } from "@asym/env";
 import { LoginScreen } from "@asym/ui/components/auth/LoginScreen";
-import { redirect } from "next/navigation";
 
 import type { Metadata } from "next";
 
@@ -19,19 +14,10 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const params = await searchParams;
-  const rawNext = Array.isArray(params.next) ? params.next[0] : params.next;
-  const nextPath = safeNextParam(rawNext ?? null);
-  const defaultPath = getDefaultPostLoginPathForApp("admin");
-
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
-  if (user) {
-    redirect(nextPath ?? defaultPath);
-  }
+  const { nextPath } = await requireAnonymousVisitor({
+    appId: "admin",
+    searchParams: await searchParams,
+  });
 
   return (
     <LoginScreen

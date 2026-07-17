@@ -3,6 +3,7 @@ import {
   loadContributionCorrectionRequest,
   loadCorrectionApprovalPolicy,
 } from "./correction-requests";
+import { asString, isRecord } from "../../shared/json-coerce";
 import { createMissionControlTaskInSupabase } from "../mission-control-tasks";
 
 import type { ApprovalEmailDependencies } from "./approval-notification-email";
@@ -22,14 +23,6 @@ type EligibleApprover = {
   profileId: string;
   preference: ApproverNotificationPreference;
 };
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 function parseRpcObject<T extends Record<string, unknown>>(
   value: unknown,

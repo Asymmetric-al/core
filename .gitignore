@@ -35,6 +35,11 @@ yarn-error.log*
 .pnpm-debug.log*
 .turbo
 
+# ad-hoc developer artifacts (never commit)
+*.log
+*.bak
+/.tmp-*
+
 # local env files
 .env
 .env.local

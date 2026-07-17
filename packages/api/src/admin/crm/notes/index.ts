@@ -10,6 +10,7 @@ import {
 import { requireCrmAccess } from "../../../crm/auth/access";
 import { resolveCrmSyncRuntimeConfig } from "../../../crm/sync/config";
 import { createSupabaseCrmSyncStore } from "../../../crm/sync/store";
+import { revalidateAdminCrmCache } from "../../../shared/cache-tags";
 import { ensureJsonBody, toErrorResponse } from "../../../shared/http-errors";
 import { withOperation } from "../../../shared/with-operation";
 
@@ -66,6 +67,8 @@ export const POST = withOperation(
         store: createSupabaseCrmSyncStore(supabaseAdmin),
         syncConfig: resolveCrmSyncRuntimeConfig(serverEnv),
       });
+
+      revalidateAdminCrmCache(actor.tenantId);
 
       return NextResponse.json({ ...response, requestId }, { status: 202 });
     } catch (error) {

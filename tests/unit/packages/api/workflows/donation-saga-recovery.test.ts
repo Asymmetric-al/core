@@ -162,11 +162,11 @@ describe("donation saga recovery scan (#290)", () => {
 
 describe("donation saga recovery workflow function (#290)", () => {
   function mockAdminWithTenantKey(stripeSecretKey: string | null) {
-    const single = vi.fn().mockResolvedValue({
+    const maybeSingle = vi.fn().mockResolvedValue({
       data: { id: TENANT_ID, stripe_secret_key: stripeSecretKey },
       error: null,
     });
-    const eq = vi.fn().mockReturnValue({ single });
+    const eq = vi.fn().mockReturnValue({ maybeSingle });
     const select = vi.fn().mockReturnValue({ eq });
     const from = vi.fn().mockReturnValue({ select });
     getAdminClientMock.mockReturnValue({ client: { from }, error: null });

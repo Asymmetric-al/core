@@ -1,5 +1,36 @@
 # Working Set
 
+## 2026-06-26 (Cursor Team Kit and Babysitter repo-local skills)
+
+- Date: 2026-06-26
+- Repo: Asymmetric-al/core
+- Goal: Vendor Cursor Team Kit skills and the Babysitter `babysit` skill into
+  the repo-local canonical skill system, with committed Cursor/Codex mirrors,
+  lock metadata, refresh automation, and maintenance docs.
+- Primary area:
+  - `docs/ai/skills/**`
+  - `.agents/skills/**`
+  - `.cursor/skills/**`
+  - `scripts/refresh-upstream-skills.mjs`
+  - `skills-lock.json`
+  - `README.md`
+  - `docs/AI_AGENT_PLAYBOOK.md`
+  - `docs/ai/skills-maintenance-log.md`
+- Stack:
+  - Bun
+  - Node.js
+  - repo agent instructions
+  - Cursor skills
+  - Codex skills
+- Constraints:
+  - Preserve `AGENTS.md` and `CLAUDE.md` routing compatibility.
+  - Do not invent a new skill system or create global-install-only skills.
+  - Fetch current upstream files from GitHub and copy full skill directories
+    when present.
+  - Extend the existing safe refresh/sync/verify workflow.
+  - Keep changes scoped to skill canonical files, mirrors, lock metadata,
+    refresh script, and maintenance docs.
+
 ## 2026-06-16 (Remove Codex PR review automation)
 
 - Date: 2026-06-16

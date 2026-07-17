@@ -45,6 +45,7 @@ const SHARED_ALL_FILES = Object.freeze([
   "yarn.lock",
   "scripts/resolve-monorepo-root.mjs",
   "scripts/run-with-ci-env.mjs",
+  "tests/e2e/playwright-shared.ts",
 ]);
 
 const SHARED_ALL_PATTERNS = Object.freeze([

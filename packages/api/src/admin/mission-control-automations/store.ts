@@ -6,6 +6,7 @@ import {
 } from "./preview";
 import { automationRuleSchema } from "./schemas";
 import { ApiHttpError } from "../../shared/http-errors";
+import { asString, isRecord } from "../../shared/json-coerce";
 
 import type {
   AutomationActivationStatus,
@@ -27,14 +28,6 @@ const AUTOMATION_ACTIVATION_STATUSES = new Set<AutomationActivationStatus>([
   "paused",
   "disabled",
 ]);
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
-}
 
 function toActivationStatus(value: unknown): AutomationActivationStatus {
   const status = asString(value);

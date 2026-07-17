@@ -408,12 +408,49 @@ function getCanonicalStagedGiftId(contribution: unknown): string | null {
 async function assertStagedGiftBelongsToContribution<TContribution>(
   input: ExecuteContributionActionInput<TContribution>,
   stagedGiftId: string,
-) {
+): Promise<TContribution> {
   const canonicalContribution = await loadCanonicalContribution(input);
   const canonicalStagedGiftId = getCanonicalStagedGiftId(canonicalContribution);
 
   if (canonicalStagedGiftId !== stagedGiftId) {
     throw new ApiHttpError(404, "Staged gift not found for contribution.");
+  }
+
+  return canonicalContribution;
+}
+
+const STALE_REVISION_MESSAGE =
+  "This gift changed since you loaded it. Reload the latest detail, review the changes, and submit the action again.";
+
+function getCanonicalRevision(contribution: unknown): string | null {
+  if (!contribution || typeof contribution !== "object") {
+    return null;
+  }
+
+  const revision = (contribution as { revision?: unknown }).revision;
+  return typeof revision === "string" && revision.trim() ? revision : null;
+}
+
+/**
+ * Stale-save protection (ADR-CD-022) for actions without their own revision
+ * gate. Correction, refund, and provider paths compare revisions in their
+ * dedicated flows; the staged-gift actions (resend receipt, approve, retry)
+ * enforce the same contract here so a client that pinned a revision gets the
+ * 409 recovery instead of acting on detail it never reviewed. The check is
+ * skipped when the canonical loader does not expose a revision — the
+ * production Supabase read model always does.
+ */
+function assertExpectedRevisionMatches(
+  input: Pick<ExecuteContributionActionInput, "expectedRevision">,
+  contribution: unknown,
+) {
+  if (!input.expectedRevision) {
+    return;
+  }
+
+  const currentRevision = getCanonicalRevision(contribution);
+  if (currentRevision !== null && input.expectedRevision !== currentRevision) {
+    throw new ApiHttpError(409, STALE_REVISION_MESSAGE);
   }
 }
 
@@ -891,7 +928,11 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
-      await assertStagedGiftBelongsToContribution(input, stagedGiftId);
+      const canonicalBefore = await assertStagedGiftBelongsToContribution(
+        input,
+        stagedGiftId,
+      );
+      assertExpectedRevisionMatches(input, canonicalBefore);
       const sendReceipt = requireDependency(input.dependencies, "sendReceipt");
       const receipt = await sendReceipt({
         tenantId: input.tenantId,
@@ -926,7 +967,11 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
-      await assertStagedGiftBelongsToContribution(input, stagedGiftId);
+      const canonicalBefore = await assertStagedGiftBelongsToContribution(
+        input,
+        stagedGiftId,
+      );
+      assertExpectedRevisionMatches(input, canonicalBefore);
       const approve = requireDependency(
         input.dependencies,
         "approveStagedGift",
@@ -960,7 +1005,11 @@ export async function executeContributionAction<TContribution = unknown>(
       const stagedGiftId =
         input.stagedGiftId ??
         requireStringPayload(input.payload, "stagedGiftId");
-      await assertStagedGiftBelongsToContribution(input, stagedGiftId);
+      const canonicalBefore = await assertStagedGiftBelongsToContribution(
+        input,
+        stagedGiftId,
+      );
+      assertExpectedRevisionMatches(input, canonicalBefore);
       const retryScope =
         input.payload?.scope === "designation" ? "designation" : "parent";
 

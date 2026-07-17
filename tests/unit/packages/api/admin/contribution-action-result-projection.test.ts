@@ -124,7 +124,7 @@ describe("admin/contribution-operations route action-result projection", () => {
     ).toBe(result);
   });
 
-  it("shapes canonical availability under the tenant policy like the GET contract", () => {
+  it("shapes canonical availability under the tenant policy, matching the GET contract", () => {
     const projected = projectContributionActionResultForViewer(
       makeResult(),
       DONOR_CARE_CAPABILITIES,
@@ -147,6 +147,9 @@ describe("admin/contribution-operations route action-result projection", () => {
     expect(actionTypes).not.toContain("amount_correction");
     expect(actionTypes).not.toContain("fund_correction");
 
+    // Omitting the policy falls back to the conservative default, which
+    // emits the request entries — the divergence the route must avoid by
+    // always passing the tenant policy.
     const defaulted = projectContributionActionResultForViewer(
       makeResult(),
       DONOR_CARE_CAPABILITIES,

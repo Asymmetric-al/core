@@ -5,24 +5,25 @@ import * as React from "react";
 import { DataTableBody, DataTableBodyWithUrl } from "./data-table-body";
 
 import type {
+  ColumnDef,
+  ColumnFiltersState,
+  PaginationState,
+  Row,
+  RowData,
+  RowSelectionState,
+  SortingState,
+  TableOptions,
+  VisibilityState,
+} from "./tanstack";
+import type {
   DataTableControlledState,
   DataTableFilterField,
   DataTableConfig,
   DataTableInteractiveRowAction,
   DataTableUrlStateConfig,
 } from "./types";
-import type {
-  ColumnDef,
-  ColumnFiltersState,
-  PaginationState,
-  Row,
-  RowSelectionState,
-  SortingState,
-  TableOptions,
-  VisibilityState,
-} from "@tanstack/react-table";
 
-interface DataTableProps<TData, TValue> {
+interface DataTableProps<TData extends RowData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   filterFields?: DataTableFilterField<TData>[];
@@ -59,6 +60,12 @@ interface DataTableProps<TData, TValue> {
   tableClassName?: string;
   emptyState?: React.ReactNode;
   toolbar?: React.ReactNode;
+  /**
+   * Unique TanStack Table devtools `key`. When set, the table registers with
+   * TanStack Devtools (development builds only; the adapter no-ops in
+   * production).
+   */
+  devtoolsKey?: string;
   initialState?: {
     pagination?: PaginationState;
     sorting?: SortingState;
@@ -68,7 +75,7 @@ interface DataTableProps<TData, TValue> {
   };
 }
 
-export function DataTable<TData, TValue>({
+export function DataTable<TData extends RowData, TValue>({
   urlState,
   ...rest
 }: DataTableProps<TData, TValue>) {

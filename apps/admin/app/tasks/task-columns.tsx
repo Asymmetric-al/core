@@ -8,6 +8,7 @@ import {
 import { Badge } from "@asym/ui/components/shadcn/badge";
 import { Button } from "@asym/ui/components/shadcn/button";
 import { DataTableColumnHeader } from "@asym/ui/components/shadcn/data-table";
+import { type ColumnDef } from "@asym/ui/components/shadcn/data-table/tanstack";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -16,7 +17,6 @@ import {
   DropdownMenuTrigger,
 } from "@asym/ui/components/shadcn/dropdown-menu";
 import { cn } from "@asym/ui/lib/utils";
-import { type ColumnDef } from "@tanstack/react-table";
 import {
   MoreHorizontal,
   Phone,

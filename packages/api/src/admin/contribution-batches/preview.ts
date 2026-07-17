@@ -1,4 +1,5 @@
 import { getBulkContributionActionPolicy } from "./action-catalog";
+import { isRecord } from "../../shared/json-coerce";
 
 import type {
   ContributionBatchAffectedRecord,
@@ -11,10 +12,6 @@ import type { ContributionActionType } from "../contribution-operations/types";
 const IMMEDIATE_BATCH_LIMIT = 10;
 
 type JsonRecord = Record<string, unknown>;
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
 
 export function asPayload(value: unknown): JsonRecord {
   return isRecord(value) ? value : {};

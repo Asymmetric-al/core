@@ -1,5 +1,12 @@
 # Contribution Detail — grill session notes
 
+> **Note (2026-07-06):** The CRM/Twenty post state and repost/retry actions
+> referenced in this document target the now-retired Twenty pipeline and are
+> dormant per
+> [ADR-0001](../../../adr/0001-asym-postgres-owns-crm-truth-twenty-retired.md)
+> (2026-07-06); "CRM post" survives only as a label over the dormant
+> staged-gift pipeline pending the Phase 8 re-groom.
+
 > Working doc for a future PRD. Captures decisions, open questions, and codebase facts.
 > Started: 2026-05-28
 

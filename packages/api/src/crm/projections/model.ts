@@ -1,4 +1,5 @@
 import { CRM_PROJECTION_CONTRACTS } from "./contracts";
+import { isRecord } from "../../shared/json-coerce";
 
 import type {
   CrmProjectionContract,
@@ -14,10 +15,6 @@ const DEFAULT_STALE_AFTER_MS = 24 * 60 * 60 * 1000;
 
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
-}
-
-function isRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function countMetadata(states: readonly CrmProjectionState[], key: string) {

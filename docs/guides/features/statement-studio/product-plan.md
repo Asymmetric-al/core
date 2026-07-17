@@ -48,6 +48,14 @@ Owning product surfaces own source facts:
 - CMS owns project/missionary page media/content context.
 - Legal/signing owns signed documents and audit evidence.
 
+**Phase 7 reconciliation (facts vs. artifact seam):** Phase 7 (Receipt &
+Statement Compliance Rules + Donor Identity/Credit Model) owns the
+receipt/statement **facts** record — receipt versioning and immutable numbering,
+and the statement eligibility/**inclusion snapshot**. Statement Studio consumes
+those facts as **render input** and owns only the render artifact, its
+generated-artifact metadata, and retention. Statement Studio does not author or
+mutate the compliance facts.
+
 ## Phases
 
 0. Phase 0 audit brief.

@@ -147,9 +147,13 @@ describe("Twenty CRM package and app boundary", () => {
   });
 
   it("enforces the raw Twenty client import boundary in ESLint and the verifier", () => {
-    expect(readRepoFile("eslint.config.mjs")).toMatch(
-      /@asym\/api\/crm\/client/,
-    );
+    // The boundary pattern groups live in the shared restricted-imports
+    // module; the root config must compose the app set (which includes the
+    // raw Twenty client ban) rather than re-typing the patterns.
+    expect(
+      readRepoFile("tooling/eslint-config/restricted-imports.mjs"),
+    ).toMatch(/@asym\/api\/crm\/client/);
+    expect(readRepoFile("eslint.config.mjs")).toMatch(/appRestrictedImports\(/);
     expect(readRepoFile("scripts/verify/data-boundary-check.mjs")).toMatch(
       /TWENTY_API_KEY/,
     );

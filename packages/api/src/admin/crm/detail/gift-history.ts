@@ -44,7 +44,12 @@ export interface BuildCrmGiftHistoryRowInput {
   };
   /** Viewer capabilities filter which operations surface inline (#270). */
   viewerCapabilities?: string[];
-  /** Tenant policy must match the shared contribution operation executor. */
+  /**
+   * Tenant correction approval policy loaded once by the CRM detail service.
+   * When omitted, the builder falls back to the executor's conservative
+   * default, which can overpromise request affordances for
+   * no_approval_required tenants — always pass the loaded policy.
+   */
   approvalPolicy?: CorrectionApprovalPolicy | null;
 }
 
@@ -97,6 +102,9 @@ export function buildCrmGiftHistoryRow(
       // refund adapter after amount corrections (#265).
       amountCents: input.refundBasis?.originalAmountCents ?? shared.amountCents,
       refundedAmountCents: shared.refundedAmountCents,
+      // Detail parity (#270): the detail read model treats either provider id
+      // as refundable payment proof, so the CRM adapter must match or a
+      // payment-intent-only gift shows different refund availability inline.
       hasProviderCharge: Boolean(
         input.provider?.stripeChargeId || input.provider?.stripePaymentIntentId,
       ),

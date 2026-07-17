@@ -2,6 +2,7 @@ import { getAdminClient } from "@asym/database/supabase/admin";
 import { cacheLife, cacheTag } from "next/cache";
 
 import { SETTLED_DONATION_STATUSES } from "./settled-donation-statuses";
+import { READ_CACHE_TAGS } from "../shared/cache-tags";
 
 type QueryError = { message?: string } | null;
 
@@ -41,7 +42,10 @@ export async function getDashboardStats(
 ): Promise<DashboardStats> {
   "use cache";
 
-  applyCacheMetadata(["dashboard-stats", `tenant:${tenantId}`]);
+  applyCacheMetadata([
+    READ_CACHE_TAGS.dashboardStats,
+    READ_CACHE_TAGS.tenant(tenantId),
+  ]);
 
   const { client, error } = getAdminClient();
   if (!client) {
@@ -139,7 +143,10 @@ export async function getDashboardMissionaryId(
 ): Promise<string | null> {
   "use cache";
 
-  applyCacheMetadata(["dashboard-home-missionary", `tenant:${tenantId}`]);
+  applyCacheMetadata([
+    READ_CACHE_TAGS.dashboardHomeMissionary,
+    READ_CACHE_TAGS.tenant(tenantId),
+  ]);
 
   const { client, error } = getAdminClient();
   if (!client) {

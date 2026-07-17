@@ -7,6 +7,9 @@ import { z } from "zod";
 import { getQueryClient } from "../providers/query-client";
 import { adminSurfaceQueryKeys } from "../query-keys";
 
+// Route-backed transition collection. Location rows now also have a canonical
+// Supabase table collection in `tables/app.ts`, but this read model still
+// includes linked entities assembled by the server route.
 const linkedMissionarySchema = z.object({
   id: z.string().min(1),
   full_name: z.string().nullable(),

@@ -265,8 +265,19 @@ type ShellPhase =
       result: ContributionActionResult;
       /** The delivery selection submitted with this operation, if any. */
       submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+      refreshFailed: boolean;
     }
-  | { name: "failure"; message: string };
+  | { name: "failure"; message: string; staleSave: boolean };
+
+class ContributionOperationRequestError extends Error {
+  constructor(
+    message: string,
+    readonly status: number | undefined,
+  ) {
+    super(message);
+    this.name = "ContributionOperationRequestError";
+  }
+}
 
 function retryPayloadForScope(
   scope: CrmPostFailedScope | null,
@@ -356,7 +367,10 @@ async function submitOperation(input: {
   } | null;
 
   if (!response.ok || !body?.result) {
-    throw new Error(body?.error ?? "The operation failed.");
+    throw new ContributionOperationRequestError(
+      body?.error ?? "The operation failed.",
+      response.status,
+    );
   }
 
   return body.result;
@@ -426,7 +440,7 @@ export function ContributionOperationShell({
   sourceSurface: ContributionSourceSurface;
   /** Optional secondary action — never an automatic redirect (ADR-CD-033). */
   onOpenFullDetail?: (donationId: string) => void;
-  onRowRefresh?: () => void;
+  onRowRefresh?: () => void | Promise<void>;
 }) {
   const queryClient = useQueryClient();
   const detailQuery = useContributionDetail(open ? donationId : null);
@@ -438,11 +452,23 @@ export function ContributionOperationShell({
   const [delivery, setDelivery] = useState<ReceiptDeliveryValue | null>(null);
   const [idempotencyKey, setIdempotencyKey] = useState("");
   const [openKey, setOpenKey] = useState<string | null>(null);
+  const [draftRevision, setDraftRevision] = useState<string | null>(null);
   const [amountPrefillKey, setAmountPrefillKey] = useState<string | null>(null);
   const reasonId = useId();
   const amountId = useId();
   const fundId = useId();
   const confirmId = useId();
+
+  const resetDraftState = () => {
+    setPhase({ name: "form" });
+    setValues({ reason: "", confirmed: false });
+    setDelivery(null);
+    setIdempotencyKey(crypto.randomUUID());
+    setDraftRevision(null);
+    // Re-arm the refund amount prefill so a reload after a stale draft
+    // repopulates the amount from the refreshed detail.
+    setAmountPrefillKey(null);
+  };
 
   // Reset the form whenever a different operation/gift opens. State is
   // adjusted during render (React's documented pattern) so no effect-driven
@@ -454,10 +480,7 @@ export function ContributionOperationShell({
     setOpenKey(nextOpenKey);
     setAmountPrefillKey(null);
     if (nextOpenKey) {
-      setPhase({ name: "form" });
-      setValues({ reason: "", confirmed: false });
-      setDelivery(null);
-      setIdempotencyKey(crypto.randomUUID());
+      resetDraftState();
     }
   }
 
@@ -474,6 +497,25 @@ export function ContributionOperationShell({
           nextStep: "Close this action, refresh the CRM row, and try again.",
         }
       : null;
+  const latestRevision = detail?.revision ?? null;
+  const hasBackgroundConflict =
+    draftRevision !== null &&
+    latestRevision !== null &&
+    draftRevision !== latestRevision;
+  const needsStaleDraftRecovery =
+    hasBackgroundConflict || (phase.name === "failure" && phase.staleSave);
+  const captureDraftRevision = () => {
+    setDraftRevision((current) => current ?? detail?.revision ?? null);
+  };
+  // Pin the revision the staffer is acting on as soon as detail is ready.
+  // Input-free operations (send receipt, retry) never touch a field, so
+  // waiting for the first edit would let a background refetch silently
+  // re-point expectedRevision at data the staffer never reviewed. State is
+  // adjusted during render (React's documented pattern), guarded so it runs
+  // once per draft.
+  if (nextOpenKey && latestRevision !== null && draftRevision === null) {
+    setDraftRevision(latestRevision);
+  }
   const isRefundOperation = operation?.actionType === "refund";
   // The refundable basis is the ORIGINAL charged amount (what the provider
   // charged), matching the server availability payload and the refund
@@ -639,6 +681,38 @@ export function ContributionOperationShell({
   const validationMessage =
     amountError ?? fundError ?? deliveryError ?? reasonError ?? confirmError;
 
+  const refreshAfterOperation = async (
+    completedResult: ContributionActionResult,
+  ) => {
+    const refreshResults = await Promise.allSettled([
+      Promise.resolve().then(() =>
+        // throwOnError: failed refetches must reject so the stale-data
+        // warning below can surface them (default invalidation resolves
+        // even when the triggered refetches fail).
+        invalidateContributionOperationQueries(queryClient, {
+          throwOnError: true,
+        }),
+      ),
+      Promise.resolve().then(() => onRowRefresh?.()),
+    ]);
+    const refreshErrors = refreshResults.flatMap((refreshResult) =>
+      refreshResult.status === "rejected" ? [refreshResult.reason] : [],
+    );
+    if (refreshErrors.length === 0) {
+      return;
+    }
+
+    console.error(
+      "Contribution operation succeeded, but refresh failed.",
+      refreshErrors,
+    );
+    setPhase((currentPhase) =>
+      currentPhase.name === "success" && currentPhase.result === completedResult
+        ? { ...currentPhase, refreshFailed: true }
+        : currentPhase,
+    );
+  };
+
   const handleSubmit = async () => {
     if (
       !isContributionGiftParam(donationId) ||
@@ -646,6 +720,7 @@ export function ContributionOperationShell({
       !availability?.available ||
       validationMessage ||
       blocked ||
+      hasBackgroundConflict ||
       pendingRefundMessage
     ) {
       return;
@@ -672,8 +747,9 @@ export function ContributionOperationShell({
           }
         : basePayload;
     setPhase({ name: "submitting" });
+    let result: ContributionActionResult;
     try {
-      const result = await submitOperation({
+      result = await submitOperation({
         actionType: operation.actionType,
         contributionId: donationId,
         stagedGiftId: detail.stagedGift?.id ?? null,
@@ -682,27 +758,54 @@ export function ContributionOperationShell({
         confirmationToken: operation.requiresConfirmation
           ? idempotencyKey
           : null,
-        expectedRevision: detail.revision,
+        expectedRevision: draftRevision ?? detail.revision,
         idempotencyKey,
         payload: receiptDeliverySelection
           ? { ...payload, receiptDelivery: receiptDeliverySelection }
           : payload,
       });
-      await invalidateContributionOperationQueries(queryClient);
-      onRowRefresh?.();
-      setPhase({
-        name: "success",
-        result,
-        submittedReceiptDelivery: receiptDeliverySelection,
-      });
     } catch (error) {
       // Failure preserves the entered form state for recovery (ADR-CD-033).
+      const message =
+        error instanceof Error ? error.message : "The operation failed.";
+      const staleSave =
+        error instanceof ContributionOperationRequestError &&
+        error.status === 409;
+      setPhase({ name: "failure", message, staleSave });
+      if (staleSave) {
+        // The server saw a newer revision than this client. Refresh the
+        // cached detail in the background so the "current values" summary
+        // is honest and a discarded-then-reopened dialog does not start
+        // from the same stale snapshot and hit the same 409 again.
+        void detailQuery.refetch();
+      }
+      return;
+    }
+
+    setPhase({
+      name: "success",
+      result,
+      submittedReceiptDelivery: receiptDeliverySelection,
+      refreshFailed: false,
+    });
+    void refreshAfterOperation(result);
+  };
+
+  const handleReloadLatestDetail = async () => {
+    const refreshed = await detailQuery.refetch();
+    if (refreshed.isError) {
+      const reason =
+        refreshed.error instanceof Error
+          ? refreshed.error.message
+          : "Could not reload the latest gift detail.";
       setPhase({
         name: "failure",
-        message:
-          error instanceof Error ? error.message : "The operation failed.",
+        message: reason,
+        staleSave: true,
       });
+      return;
     }
+    resetDraftState();
   };
 
   const effectiveSummary = detail ? (
@@ -802,6 +905,7 @@ export function ContributionOperationShell({
         )}
 
         {!blocked &&
+          !detailQuery.isPending &&
           phase.name !== "success" &&
           phase.name !== "submitting" && (
             <div className="space-y-4">
@@ -846,12 +950,13 @@ export function ContributionOperationShell({
                     aria-invalid={Boolean(amountError)}
                     inputMode="decimal"
                     value={values.amountDollars ?? ""}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         amountDollars: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     className="h-11"
                   />
                   {isRefundOperation && (
@@ -874,12 +979,13 @@ export function ContributionOperationShell({
                     aria-describedby={fundError ? `${fundId}-error` : undefined}
                     aria-invalid={Boolean(fundError)}
                     value={values.fundId ?? ""}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         fundId: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     className="h-11"
                   />
                   <FieldError
@@ -894,7 +1000,10 @@ export function ContributionOperationShell({
                   affectedFields={operation.receiptFields}
                   receiptDelivery={receiptDelivery}
                   value={deliveryValue}
-                  onChange={setDelivery}
+                  onChange={(nextDelivery) => {
+                    captureDraftRevision();
+                    setDelivery(nextDelivery);
+                  }}
                   error={deliveryError}
                 />
               )}
@@ -909,12 +1018,13 @@ export function ContributionOperationShell({
                     }
                     aria-invalid={Boolean(reasonError)}
                     value={values.reason}
-                    onChange={(event) =>
+                    onChange={(event) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         reason: event.target.value,
-                      }))
-                    }
+                      }));
+                    }}
                     placeholder="Why is this change needed?"
                   />
                   <FieldError
@@ -936,12 +1046,13 @@ export function ContributionOperationShell({
                     }
                     aria-invalid={Boolean(confirmError)}
                     checked={values.confirmed}
-                    onCheckedChange={(checked) =>
+                    onCheckedChange={(checked) => {
+                      captureDraftRevision();
                       setValues((prev) => ({
                         ...prev,
                         confirmed: checked === true,
-                      }))
-                    }
+                      }));
+                    }}
                     className="mt-0.5"
                   />
                   <FieldContent>
@@ -967,21 +1078,45 @@ export function ContributionOperationShell({
                 </p>
               )}
 
+              {hasBackgroundConflict && phase.name !== "failure" && (
+                <p role="alert" className="text-sm text-destructive">
+                  <CircleX className="mr-1 inline size-4" aria-hidden />
+                  This gift changed while you were editing. Review the latest
+                  current values above, then reload to start again or discard
+                  this draft.
+                </p>
+              )}
+
               <div className="flex flex-wrap justify-end gap-2 pt-1">
                 <Button variant="outline" className="h-11" onClick={onClose}>
-                  Cancel
+                  {needsStaleDraftRecovery ? "Discard draft" : "Cancel"}
                 </Button>
-                <Button
-                  className="h-11"
-                  disabled={
-                    Boolean(validationMessage) ||
-                    Boolean(pendingRefundMessage) ||
-                    !detail
-                  }
-                  onClick={() => void handleSubmit()}
-                >
-                  {phase.name === "failure" ? "Retry" : operation.title}
-                </Button>
+                {needsStaleDraftRecovery ? (
+                  <Button
+                    className="h-11"
+                    disabled={detailQuery.isFetching}
+                    onClick={() => void handleReloadLatestDetail()}
+                  >
+                    {detailQuery.isFetching
+                      ? "Reloading latest gift…"
+                      : "Reload latest gift"}
+                  </Button>
+                ) : (
+                  <Button
+                    className="h-11"
+                    disabled={
+                      Boolean(validationMessage) ||
+                      Boolean(pendingRefundMessage) ||
+                      !detail ||
+                      !availability?.available ||
+                      detailQuery.isPending ||
+                      hasBackgroundConflict
+                    }
+                    onClick={() => void handleSubmit()}
+                  >
+                    {phase.name === "failure" ? "Retry" : operation.title}
+                  </Button>
+                )}
               </div>
             </div>
           )}
@@ -999,6 +1134,7 @@ export function ContributionOperationShell({
             operation={operation}
             donationId={donationId}
             submittedReceiptDelivery={phase.submittedReceiptDelivery}
+            refreshFailed={phase.refreshFailed}
             onOpenFullDetail={onOpenFullDetail}
             onClose={onClose}
           />
@@ -1074,6 +1210,7 @@ function OperationResultPanel({
   operation,
   donationId,
   submittedReceiptDelivery,
+  refreshFailed,
   onOpenFullDetail,
   onClose,
 }: {
@@ -1081,6 +1218,7 @@ function OperationResultPanel({
   operation: OperationDefinition;
   donationId: string | null;
   submittedReceiptDelivery: ReceiptDeliveryProposal | null;
+  refreshFailed: boolean;
   onOpenFullDetail?: (donationId: string) => void;
   onClose: () => void;
 }) {
@@ -1110,6 +1248,15 @@ function OperationResultPanel({
         )}
         {headline}
       </p>
+      {refreshFailed && (
+        <Alert role="alert">
+          <AlertDescription>
+            The submission succeeded, but the displayed gift data may be stale
+            because refresh failed. Closing and reopening this gift will retry
+            loading current values.
+          </AlertDescription>
+        </Alert>
+      )}
       <ul className="space-y-0.5 text-xs text-muted-foreground">
         {result.correctionRequestId && (
           <li>Approval request: {result.correctionRequestId}</li>

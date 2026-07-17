@@ -1,6 +1,7 @@
 import { loadContributionDetailFromSupabase } from "./operations";
 import { isFailedProviderOutcomeStatus } from "./types";
 import { ApiHttpError } from "../../shared/http-errors";
+import { asString, isRecord } from "../../shared/json-coerce";
 
 import type {
   ContributionCorrectionRecordInput,
@@ -10,7 +11,6 @@ import type {
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 type SupabaseAdmin = AdminSupabaseClient;
-type JsonRecord = Record<string, unknown>;
 
 const CONTRIBUTION_REFUND_ATTEMPTS_TABLE = "contribution_refund_attempts";
 export const REFUND_RECONCILIATION_BATCH_SIZE = 25;
@@ -54,14 +54,6 @@ export interface ContributionRefundAttempt {
   finalizedAt: string | null;
   createdAt: string;
   updatedAt: string;
-}
-
-function isRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
-function asString(value: unknown): string | null {
-  return typeof value === "string" && value.trim().length > 0 ? value : null;
 }
 
 function asNullableString(value: unknown): string | null {

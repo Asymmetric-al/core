@@ -11,7 +11,8 @@ import { describe, expect, it } from "vitest";
  *   `.press-feedback` utility (built into the shadcn Button base).
  *
  * The motion/react import restriction is enforced separately by ESLint
- * (tooling/eslint-config/base.mjs, no-restricted-imports).
+ * (tooling/eslint-config/restricted-imports.mjs, composed into
+ * no-restricted-imports by base.mjs and the root config).
  */
 
 const REPO_ROOT = join(__dirname, "..", "..");

@@ -15,13 +15,13 @@ vi.mock("@asym/database/supabase/server", () => ({
 }));
 vi.mock("@asym/auth/context", async () => {
   const actual =
-    await vi.importActual<typeof import("@asym/auth/context")>(
-      "@asym/auth/context",
-    );
+    await vi.importActual<typeof AuthContext>("@asym/auth/context");
   return { ...actual, getAuthContext: getAuthContextMock };
 });
 
 import { PATCH } from "../../src/admin/org-settings";
+
+import type * as AuthContext from "@asym/auth/context";
 
 function req(role: string | null, isAuthenticated = true) {
   getAuthContextMock.mockResolvedValue({

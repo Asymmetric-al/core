@@ -1,22 +1,21 @@
 "use client";
 
 import { useMediaQuery } from "@asym/lib/hooks/use-mobile";
-import {
-  type ColumnDef,
-  type Row,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+// Sanctioned boundary exception (see ./tanstack.ts): devtools adapter only.
+import { useTanStackTableDevtools } from "@tanstack/react-table-devtools";
 import { Inbox } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@asym/ui/lib/utils";
 
+import {
+  type ColumnDef,
+  type Row,
+  type RowData,
+  createDataTableRowModels,
+  dataTableFeatures,
+  useTable,
+} from "./tanstack";
 import { Checkbox } from "../checkbox";
 import { DataTableCardView } from "./data-table-card-view";
 import { DataTableFloatingBar } from "./data-table-floating-bar";
@@ -49,12 +48,12 @@ import {
 import type { UseDataTableStateReturn } from "./hooks/use-data-table-state";
 import type { DataTableFilterField } from "./types";
 
-type DataTableResponsiveBodyProps<TData, TValue> = Omit<
+type DataTableResponsiveBodyProps<TData extends RowData, TValue> = Omit<
   DataTableResponsiveProps<TData, TValue>,
   "urlState"
 >;
 
-export function DataTableResponsiveInner<TData, TValue>({
+export function DataTableResponsiveInner<TData extends RowData, TValue>({
   tableState,
   columns,
   data,
@@ -82,6 +81,7 @@ export function DataTableResponsiveInner<TData, TValue>({
   tableClassName,
   emptyState,
   toolbar,
+  devtoolsKey,
   initialState = EMPTY_RESPONSIVE_INITIAL_STATE as NonNullable<
     DataTableResponsiveProps<TData, TValue>["initialState"]
   >,
@@ -166,11 +166,14 @@ export function DataTableResponsiveInner<TData, TValue>({
     [],
   );
 
-  const tableColumns = React.useMemo(() => {
+  const tableColumns = React.useMemo<ColumnDef<TData, unknown>[]>(() => {
+    // Columns with heterogeneous TValue collapse to `unknown` for the engine,
+    // mirroring v8's `ColumnDef<TData, any>[]` table option.
+    const baseColumns = columns as ColumnDef<TData, unknown>[];
     if (enableRowSelection) {
-      return [selectColumn, ...columns];
+      return [selectColumn, ...baseColumns];
     }
-    return columns;
+    return baseColumns;
   }, [columns, enableRowSelection, selectColumn]);
 
   const advancedFilterFn = React.useMemo(() => {
@@ -206,9 +209,19 @@ export function DataTableResponsiveInner<TData, TValue>({
     }
   }, [pageCount, rowCount]);
 
-  const table = useReactTable({
+  const table = useTable({
+    features: dataTableFeatures,
+    // The core row model is automatic in v9; manual flags skip the matching
+    // client-side row model just like the v8 `get*RowModel: undefined` paths.
+    rowModels: createDataTableRowModels<TData>({
+      filtering: !manualFiltering,
+      pagination: !manualPagination,
+      sorting: !manualSorting,
+    }),
     data: filteredData,
     columns: tableColumns,
+    // Devtools identity: registration is skipped unless a key exists.
+    key: devtoolsKey,
     rowCount: resolvedRowCount,
     pageCount: resolvedPageCount,
     state: tableState.state,
@@ -225,15 +238,11 @@ export function DataTableResponsiveInner<TData, TValue>({
     onColumnFiltersChange: tableState.handlers.onColumnFiltersChange,
     onColumnVisibilityChange: tableState.handlers.onColumnVisibilityChange,
     onPaginationChange: tableState.handlers.onPaginationChange,
-    getCoreRowModel: getCoreRowModel(),
-    getFilteredRowModel: manualFiltering ? undefined : getFilteredRowModel(),
-    getPaginationRowModel: manualPagination
-      ? undefined
-      : getPaginationRowModel(),
-    getSortedRowModel: manualSorting ? undefined : getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
+
+  // Called unconditionally (hooks rules); `enabled` gates the registration,
+  // and the adapter exports a no-op outside development builds.
+  useTanStackTableDevtools(table, { enabled: Boolean(devtoolsKey) });
 
   const keyboard = useDataTableKeyboard(table, {
     enabled: enableKeyboardNavigation && viewMode === "table",

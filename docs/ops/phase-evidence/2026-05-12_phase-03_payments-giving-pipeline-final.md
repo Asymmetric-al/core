@@ -1,5 +1,8 @@
 # Phase 3 Evidence - Payments and Giving Pipeline Final Verification
 
+> **Note (2026-07-06):** Twenty CRM has since been retired (ADR-0001); this
+> file records the state as of its date.
+
 Generated: 2026-05-14 00:59:25 +07
 Phase: 3 - Payments and Giving Pipeline
 Branch: production
