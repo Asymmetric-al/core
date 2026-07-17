@@ -1,6 +1,22 @@
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import type { User } from "@supabase/supabase-js";
+
+const { clearQueryClientMock, getQueryClientMock } = vi.hoisted(() => ({
+  clearQueryClientMock: vi.fn(),
+  getQueryClientMock: vi.fn(),
+}));
+
+vi.mock("@asym/database/providers", () => ({
+  getQueryClient: getQueryClientMock,
+}));
+
+beforeEach(() => {
+  vi.resetModules();
+  clearQueryClientMock.mockReset();
+  getQueryClientMock.mockReset();
+  getQueryClientMock.mockReturnValue({ clear: clearQueryClientMock });
+});
 
 type Deferred<T> = {
   promise: Promise<T>;
@@ -106,7 +122,50 @@ describe("client session auth state", () => {
     stop();
 
     expect(states).toEqual([{ user: null, profile: null, loading: false }]);
+    expect(clearQueryClientMock).toHaveBeenCalledOnce();
     expect(unsubscribe).toHaveBeenCalled();
+  });
+
+  it("clears cached queries when the authenticated user changes", async () => {
+    const firstUser = { id: "user-1" } as User;
+    const secondUser = { id: "user-2" } as User;
+    const profileClient = createProfileClient(null);
+    let authCallback:
+      | ((event: string, session: { user: User } | null) => void)
+      | null = null;
+    const supabase = {
+      auth: {
+        getUser: vi.fn(async () => ({
+          data: { user: firstUser },
+          error: null,
+        })),
+        onAuthStateChange: vi.fn((callback) => {
+          authCallback = callback;
+          return {
+            data: { subscription: { unsubscribe: vi.fn() } },
+          };
+        }),
+      },
+      from: profileClient.from,
+    };
+    const { subscribeToClientAuthState } =
+      await import("../../../packages/auth/client-session");
+
+    const stop = subscribeToClientAuthState(vi.fn(), {
+      includeProfile: false,
+      supabase: supabase as never,
+    });
+    await flushPromises();
+
+    authCallback?.("TOKEN_REFRESHED", { user: firstUser });
+    await flushPromises();
+    expect(clearQueryClientMock).not.toHaveBeenCalled();
+
+    authCallback?.("SIGNED_IN", { user: secondUser });
+    await flushPromises();
+    expect(clearQueryClientMock).toHaveBeenCalledOnce();
+
+    stop();
   });
 });
 
@@ -190,6 +249,7 @@ describe("client session sign-out", () => {
 
     expect(result).toEqual({ ok: true, redirected: true });
     expect(browserSignOut).toHaveBeenCalledWith({ scope: "local" });
+    expect(clearQueryClientMock).toHaveBeenCalledOnce();
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 
@@ -215,6 +275,7 @@ describe("client session sign-out", () => {
       "[auth] browser signout cleanup failed",
       expect.any(Error),
     );
+    expect(clearQueryClientMock).toHaveBeenCalledOnce();
     expect(redirect).toHaveBeenCalledWith("/login");
   });
 });

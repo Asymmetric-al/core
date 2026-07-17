@@ -1,5 +1,6 @@
 "use client";
 
+import { getQueryClient } from "@asym/database/providers";
 import { createBrowserClient } from "@asym/database/supabase";
 
 import {
@@ -41,6 +42,7 @@ export type SignOutClientSessionResult =
   | { ok: false; message: string; redirected: false };
 
 let sharedBrowserClient: ClientSessionSupabase | null = null;
+let queryCacheUserId: string | null | undefined;
 
 export function getClientSessionSupabase() {
   sharedBrowserClient ??= createBrowserClient();
@@ -49,6 +51,35 @@ export function getClientSessionSupabase() {
 
 function createSignedOutState(): ClientAuthState {
   return { user: null, profile: null, loading: false };
+}
+
+function clearClientQueryCache(logger: Pick<Console, "warn">) {
+  try {
+    getQueryClient().clear();
+  } catch (error) {
+    logger.warn("[auth] query cache cleanup failed", error);
+  }
+}
+
+function isolateQueryCacheForUser(
+  user: User | null,
+  logger: Pick<Console, "warn">,
+) {
+  const nextUserId = user?.id ?? null;
+  const previousUserId = queryCacheUserId;
+  queryCacheUserId = nextUserId;
+
+  const signedOutFromKnownOrUnknownUser =
+    nextUserId === null && previousUserId !== null;
+  const switchedAuthenticatedUser =
+    previousUserId !== undefined &&
+    previousUserId !== null &&
+    nextUserId !== null &&
+    previousUserId !== nextUserId;
+
+  if (signedOutFromKnownOrUnknownUser || switchedAuthenticatedUser) {
+    clearClientQueryCache(logger);
+  }
 }
 
 async function loadProfileForUser(
@@ -110,6 +141,7 @@ export function subscribeToClientAuthState(
 
   function publishIfCurrent(nextVersion: number, state: ClientAuthState) {
     if (active && nextVersion === authStateLoadVersion) {
+      isolateQueryCacheForUser(state.user, logger);
       onState(state);
     }
   }
@@ -197,6 +229,9 @@ export async function signOutClientSession(
   } catch (error) {
     logger.warn("[auth] browser signout cleanup failed", error);
   }
+
+  queryCacheUserId = null;
+  clearClientQueryCache(logger);
 
   const redirectTo = options.redirectTo ?? DEFAULT_SIGN_OUT_REDIRECT;
   (options.redirect ?? defaultRedirect)(redirectTo);
