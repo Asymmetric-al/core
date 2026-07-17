@@ -73,8 +73,8 @@ export function MissionariesHubView() {
             </TableHeader>
             <TableBody>
               <MissionariesHubTableRows
-                isPending={missionariesIsPending}
-                missionaries={missionaries}
+                isPending={missionariesQuery.isPending}
+                missionaries={missionariesQuery.data}
               />
             </TableBody>
           </Table>
