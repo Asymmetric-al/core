@@ -122,7 +122,7 @@ before every attempt. #436 MUST NOT create a new global kill switch or self-gran
 
 ### Requirement: Notification Decisions And Outcomes Are Audited And Retained By Existing Owners
 
-#419 MUST record the explicit source initiator/trigger, #426-verified service delivery actor, event class,
+The #419 audit boundary MUST record the explicit source initiator/trigger, #426-verified service delivery actor, event class,
 policy/redaction versions, severity, dedupe outcome, channel and destination class, attempt identity, provider
 response class, and delivery result without storing credentials or unsafe payloads. Every generation and
 delivery attempt MUST execute under the verified service identity and user/tenant scope derived by #426;
@@ -145,18 +145,18 @@ controls to authorized admins. Email or Discord MUST NOT become the authoritativ
 - **THEN** the safe response class and terminal outcome are audited and visible in Mission Control
 - **AND** raw provider payloads, credentials, and unsafe content are not retained
 
-### Requirement: This Change Grants No New Delivery Or Runtime Authority
+### Requirement: This Change Grants No Uncontrolled Delivery Or Runtime Authority
 
-This change MUST remain spec-only and MUST NOT configure providers, webhooks, credentials, destinations,
-schema, event consumers, sends, or runtime activation. #425 remains the owner of event-consumer/runtime
-durability; outbound email MUST remain behind the server-side email boundary rather than a browser/provider-
-direct path. #420 remains the owner of global automation controls; #419/#424 remain owners of audit/redaction
-and retention/replay; #426 remains owner of verified identity and scope. The #418 release switch MUST remain
-off. [VERIFIED-REPO: openspec/project.md]
+This change MUST implement delivery only behind disabled and paused app-owned channel configuration, the
+existing server-side email boundary, a server-only Discord secret, verified service identity, current
+governance and budget policy, and durable claims. #425 remains the owner of event-consumer/runtime durability.
+#420 remains the owner of global automation controls; #419/#424 remain owners of audit/redaction and
+retention/replay; #426 remains owner of verified identity and scope. The #418 release switch MUST remain off
+and no live provider credential or destination may be committed. [VERIFIED-REPO: openspec/project.md]
 
 #### Scenario: The package is reviewed for scope
 
 - **GIVEN** this change is under review
 - **WHEN** repository effects are inspected
-- **THEN** only OpenSpec documents and an implementation checklist are present
-- **AND** no external message can be sent by this PR
+- **THEN** durable schema, runtime, provider boundaries, controls, tests, and documentation are present
+- **AND** no external message can be sent until separately configured channels and existing governance gates allow it

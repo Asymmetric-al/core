@@ -25,6 +25,7 @@ import {
   createEveGovernanceStore,
   loadEveGovernanceSnapshot,
 } from "@asym/api/eve/governance";
+import { enqueueEveEngineeringFindingNotifications } from "@asym/api/eve/notifications";
 import {
   claimEveSessionOwnership,
   createServiceEveSessionIdentity,
@@ -228,6 +229,10 @@ async function runClaimedMonitor(input: {
         outcome: { ...outcome },
         supabaseAdmin: input.supabaseAdmin,
         tenantId: input.config.tenantId,
+      });
+      await enqueueEveEngineeringFindingNotifications({
+        request: { finding, sourceTrigger: `engineering-monitor:${runId}` },
+        supabaseAdmin: input.supabaseAdmin,
       });
     }
     await finishEveEngineeringMonitorRun({

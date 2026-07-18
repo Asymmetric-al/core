@@ -130,7 +130,10 @@ describe("Eve runtime foundation", () => {
         "write_file.ts",
       ].sort(),
     );
-    expect(scheduleFiles).toEqual(["engineering-health.ts"]);
+    expect(scheduleFiles.sort()).toEqual([
+      "engineering-health.ts",
+      "operator-notifications.ts",
+    ]);
 
     const bash = await readFile(
       path.join(runtimeRoot, "agent/tools/bash.ts"),
@@ -166,6 +169,12 @@ describe("Eve runtime foundation", () => {
     expect(engineeringHealthSchedule).toContain(
       "runEveEngineeringMonitorSweep",
     );
+    const notificationSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/operator-notifications.ts"),
+      "utf8",
+    );
+    expect(notificationSchedule).toContain('cron: "* * * * *"');
+    expect(notificationSchedule).toContain("runEveNotificationSweep");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

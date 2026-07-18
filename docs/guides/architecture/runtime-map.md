@@ -67,6 +67,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/eve/retention`                                     | Node.js (no `runtime` segment export) | Private replay artifacts, holds, and expiry   |
 | admin      | `/api/admin/eve/governance`                                    | Node.js (no `runtime` segment export) | Eve governance, kill switches, and audit      |
 | admin      | `/api/admin/eve/model-policy`                                  | Node.js (no `runtime` segment export) | Permissioned Eve model-policy control plane   |
+| admin      | `/api/admin/eve/notifications`                                 | Node.js (no `runtime` segment export) | Safe operator notification status and control |
 | admin      | `/api/admin/funds`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/locations`                                         | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/activity`                              | Node.js (no `runtime` segment export) | Admin client                                  |

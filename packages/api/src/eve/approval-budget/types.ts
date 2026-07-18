@@ -22,6 +22,7 @@ export const EVE_POLICY_ACTION_IDS = [
   "engineering.subagent.delegate",
   "engineering.dynamic_workflow.execute",
   "engineering.monitor.collect",
+  "engineering.notification.deliver",
   "engineering.shared_context.write",
   "engineering.shared_context.resolve",
   "product.internal_status.write",

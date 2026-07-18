@@ -210,9 +210,15 @@ export async function runEveRetentionExpiry(input: {
     { p_limit: input.limit },
   );
   if (recordError) mapError(recordError);
+  const { data: notificationRecords, error: notificationRecordError } =
+    await input.supabaseAdmin.rpc("expire_eve_notification_records", {
+      p_limit: input.limit,
+    });
+  if (notificationRecordError) mapError(notificationRecordError);
   return {
     claimedArtifacts: rows.length,
     expiredArtifacts: deletedIds.length,
     records,
+    notificationRecords,
   };
 }

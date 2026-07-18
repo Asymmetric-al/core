@@ -19,7 +19,7 @@ and neither a prompt nor a model can choose where a notification goes.
 - Define dedupe, retry, suppression, pause/opt-out, delivery outcome, and audit behavior.
 - Require secrets, raw production data, donor/payment details, unsafe identity data, raw logs, unredacted replay,
   and hidden reasoning to remain out of both channels.
-- Keep the package spec-only with no provider, webhook, credential, schema, send, or runtime activation.
+- Implement the off-by-default durable lifecycle, server-side provider boundaries, Mission Control status, and operator controls.
 
 ## Impact
 
@@ -27,7 +27,7 @@ and neither a prompt nor a model can choose where a notification goes.
 - **Dependencies:** #418, #419, #420, #423, #424, #426, #427, and #435
 - **Issue covered:** #436
 - **User stories covered:** 61, 62, 63, and 64
-- **Runtime impact:** none in this PR
+- **Runtime impact:** a one-minute delivery sweep exists, but both channels ship disabled and paused and the release switch remains off
 
 ## Non-Goals
 

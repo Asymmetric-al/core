@@ -40,6 +40,18 @@ export const EVE_ACTION_CATALOG: Record<
     inputTokenCost: 0,
     outputTokenCost: 0,
   },
+  "engineering.notification.deliver": {
+    actionId: "engineering.notification.deliver",
+    trustZone: "engineering",
+    writeClass: "operational",
+    domain: "production_writes",
+    budgetScopeType: "expensive_feature",
+    budgetScopeId: "operator-notifications",
+    requestCost: 1,
+    usdMicrosCost: 100,
+    inputTokenCost: 0,
+    outputTokenCost: 0,
+  },
   "engineering.shared_context.write": {
     actionId: "engineering.shared_context.write",
     trustZone: "engineering",

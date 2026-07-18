@@ -9,7 +9,6 @@ import {
 import {
   Activity,
   ArrowDownRight,
-  BellRing,
   GitPullRequest,
   MessageSquareText,
   PanelsTopLeft,
@@ -199,13 +198,6 @@ export function EveCapabilityConnectionsPanel() {
             title="GitHub activity"
             description="The governed GitHub read and review path is not connected, so no commits, checks, reviews, or issues are presented as live activity."
             icon={<GitPullRequest aria-hidden="true" className="size-4" />}
-          />
-          <ConnectionState
-            id="eve-notifications"
-            issue="#432"
-            title="Notifications"
-            description="Email and Discord delivery are not connected, so the workspace reports no fabricated channel status or delivery history."
-            icon={<BellRing aria-hidden="true" className="size-4" />}
           />
           <ConnectionState
             availability="Mounted"
