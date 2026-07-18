@@ -1,10 +1,7 @@
 # Proposal: Eve approval and budget policy
 
-**Prepared by WNG partner fleet for Eve / Asymmetric.**
+**Implementation change for GitHub issue #423.** **Builds on #418**
 
-> **Partner DRAFT for GitHub issue #423 ("Eve: Approval and budget policy tracer bullet").** Staged in the
-> Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through
-> Asymmetric's OpenSpec workflow after operator/maintainer sign-off. **Builds on #418**
 > (`add-eve-governance-kernel-release-switch`, ADR-0019), **#419** (`add-eve-audit-tracer-bullet`, ADR-0020),
 > and **#420** (`add-eve-kill-switch-control-path`, ADR-0021) — it does not restate those contracts. It adds
 > the trust-zone approval policy and the hard-budget policy that the governance kernel's single consult gate
@@ -59,8 +56,10 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
     app-owned state (never a prompt/model/tool/memory claim), the single #418 consult gate consumes them,
     every decision (allow/deny/pause/override) emits a #419 audit record, and the change grants no new
     autonomy and stays subordinate to #417.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0005** in this change's `design.md`, building on ADR-0021 (#420), ADR-0020
-  (#419), and ADR-0019 (#418), which all build on ADR-0018 (#417).
+- Implement the policy as an app-owned catalog, three persisted zone rules,
+  target-bound approvals, deterministic locked budget windows, permissioned
+  bounded overrides, atomic audit-backed decisions, and a non-business tracer
+  effect. Record the accepted decision as ADR-0024.
 
 ## What Does Not Change
 
@@ -83,16 +82,17 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
   [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
 - #417's contract, `AGENTS.md`, `openspec/project.md`, `openspec/specs/**`, and existing CI gates remain
   authoritative and unchanged; this change is subordinate to them. [VERIFIED-REPO: AGENTS.md]
-- No Supabase schema, admin UI, or runtime code lands here — those implement this spec in later PRs.
+- No live business-data mutation or autonomous runtime lands here. The only
+  effect is a stable-key tracer artifact after the complete consult succeeds.
 
 ## Expected Outcome
 
 - A validated OpenSpec change
   (`bunx @fission-ai/openspec@latest validate add-eve-approval-budget-policy --strict`) that makes trust-zone
-  approval policy and hard-budget policy a durable, spec-level contract, provable before runtime exists.
+  approval policy and hard-budget policy a durable executable contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0005` for the approval/budget policy, traceable from ADR-0019 (#418), ADR-0020 (#419), and
-  ADR-0021 (#420).
+- Accepted ADR-0024 for the approval/budget policy, traceable from ADR-0019
+  (#418), ADR-0020 (#419), ADR-0021 (#420), and ADR-0022 (#421).
 - A clear boundary: #418 owns the consult gate + state; #419 owns the audit record; #420 owns the
   kill-switch control path; #421 owns model policy; **#423 owns the approval-by-trust-zone rules, the
   operational-vs-business-data write classification, and the hard-budget/rate-limit policy that all of them

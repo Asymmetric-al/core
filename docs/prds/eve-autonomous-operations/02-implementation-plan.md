@@ -146,6 +146,9 @@ human-controlled context](../../adr/0023-eve-private-admin-memory.md).
 
 ### 7. Approval and Budget Policy Tracer Bullet
 
+Canonical decision: [ADR-0024: Classify Eve actions by trust zone and reserve
+hard budgets atomically](../../adr/0024-eve-approval-budget-policy.md).
+
 - Type: AFK
 - Blocked by: 2, 3, 4, 5
 - User stories covered: 29, 30, 31, 42

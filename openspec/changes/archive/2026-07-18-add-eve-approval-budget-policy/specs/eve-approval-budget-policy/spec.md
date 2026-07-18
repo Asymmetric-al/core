@@ -114,7 +114,7 @@ Every approval and budget decision MUST be consumed by the #418 single consult g
 app-owned policy/budget/limit state, and MUST emit a #419 audit record identifying the actor/initiator, the
 trust zone, the write class or budget, the decision (allow, deny, pause, or override), and the reason. This
 change MUST only add gates and restrictions; it MUST NOT widen autonomy, MUST NOT bypass #417
-protected-area/approval limits or #418 emergency-off precedence, and MUST remain a spec/ADR + policy contract
+protected-area/approval limits or #418 emergency-off precedence, and MUST remain a policy/control contract
 with no live autonomous behavior. Where kill-switch state and budget/approval policy disagree, the more
 restrictive result MUST win. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
 [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
