@@ -204,4 +204,43 @@ describe("Eve governance admin view", () => {
     fireEvent.click(view.getByRole("button", { name: "Confirm engage" }));
     expect(onSetKillSwitch).toHaveBeenCalledWith("github_actions", true);
   });
+
+  it("shows failure summaries from real governed runs", () => {
+    const view = render(
+      <EveGovernanceView
+        data={{
+          system: {
+            source: "persisted",
+            releaseEnabled: false,
+            emergencyOff: false,
+            killSwitchState: createClearedEveKillSwitchState(),
+            policyStatus: "ready",
+            stateVersion: 2,
+            updatedAt: "2026-07-17T00:00:00.000Z",
+          },
+          auditHistory: [],
+          recentRuns: [
+            {
+              id: "00000000-0000-4000-8000-000000000004",
+              action: "engineering.health.inspect",
+              decision: "allowed",
+              reason: "governance_allowed",
+              status: "failed",
+              target: "ci:develop",
+              updatedAt: "2026-07-17T00:02:00.000Z",
+            },
+          ],
+        }}
+        isError={false}
+        isLoading={false}
+      />,
+    );
+
+    expect(
+      view.getByRole("heading", { name: "Governed failures" }),
+    ).toBeTruthy();
+    expect(view.getAllByText("engineering.health.inspect")).toHaveLength(2);
+    expect(view.getByText(/Target: ci:develop/)).toBeTruthy();
+    expect(view.getByText("Failed")).toBeTruthy();
+  });
 });

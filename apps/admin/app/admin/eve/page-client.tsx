@@ -37,6 +37,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Bot,
+  CircleX,
   FileSearch,
   History,
   Power,
@@ -48,6 +49,10 @@ import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveApprovalBudgetPanel } from "./approval-budget-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
 import { EveRetentionPanel } from "./retention-panel";
+import {
+  EveCapabilityConnectionsPanel,
+  EveWorkspaceIndex,
+} from "./workspace-shell";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
 
@@ -306,6 +311,24 @@ export function EveGovernanceView({
     ? "Emergency engaged"
     : "Emergency clear";
   const policyLabel = formatPolicyStatus(system.policyStatus);
+  const failures = [
+    ...data.recentRuns
+      .filter((run) => run.status === "failed")
+      .map((run) => ({
+        id: `run:${run.id}`,
+        label: run.action,
+        summary: `${run.reason}. Target: ${run.target ?? "No external target"}.`,
+        timestamp: run.updatedAt,
+      })),
+    ...data.auditHistory
+      .filter((event) => event.result === "failed")
+      .map((event) => ({
+        id: `audit:${event.id}`,
+        label: event.action,
+        summary: event.decisionSummary,
+        timestamp: event.createdAt,
+      })),
+  ].slice(0, 10);
 
   return (
     <div className="space-y-6">
@@ -359,7 +382,7 @@ export function EveGovernanceView({
         </Alert>
       ) : null}
 
-      <Card>
+      <Card id="eve-emergency-controls">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldAlert aria-hidden="true" className="size-5" />
@@ -386,7 +409,7 @@ export function EveGovernanceView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="eve-active-runs">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bot aria-hidden="true" className="size-5" />
@@ -431,7 +454,55 @@ export function EveGovernanceView({
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="eve-failures">
+        <CardHeader>
+          <CardTitle
+            aria-level={2}
+            role="heading"
+            className="flex items-center gap-2"
+          >
+            <CircleX aria-hidden="true" className="size-5" />
+            Governed failures
+          </CardTitle>
+          <CardDescription>
+            Failed run and audit summaries from app-owned governance state. No
+            raw record payloads or hidden reasoning are rendered.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {failures.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No governed failures have been recorded.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {failures.map((failure) => (
+                <li
+                  key={failure.id}
+                  className="flex flex-wrap items-start justify-between gap-3 py-3"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-medium text-foreground">
+                      {failure.label}
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {failure.summary}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <Badge variant="destructive">Failed</Badge>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {formatTimestamp(failure.timestamp)}
+                    </p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
+
+      <Card id="eve-audit">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <History aria-hidden="true" className="size-5" />
@@ -566,8 +637,8 @@ export default function EveGovernancePage() {
 
   return (
     <PageShell
-      title="Eve Governance"
-      description="Observe the release gate, emergency state, and policy readiness before autonomy is activated."
+      title="Eve Operations"
+      description="Inspect real governance state, approvals, failures, policy, memory, and emergency controls before using chat."
       density="compact"
       actions={
         <Badge variant="outline" className="gap-1.5">
@@ -576,6 +647,7 @@ export default function EveGovernancePage() {
         </Badge>
       }
     >
+      <EveWorkspaceIndex />
       <EveGovernanceView
         data={query.data}
         errorMessage={query.error?.message}
@@ -587,10 +659,11 @@ export default function EveGovernancePage() {
         }
         onSetKillSwitch={setKillSwitch}
       />
+      <EveApprovalBudgetPanel />
       <EveModelPolicyPanel />
       <EveAdminMemoryPanel />
-      <EveApprovalBudgetPanel />
       <EveRetentionPanel />
+      <EveCapabilityConnectionsPanel />
     </PageShell>
   );
 }

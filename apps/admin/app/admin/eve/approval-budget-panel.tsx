@@ -259,7 +259,7 @@ export function EveApprovalBudgetPanel() {
             )}
           </CardContent>
         </Card>
-        <Card>
+        <Card id="eve-budgets">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Gauge aria-hidden="true" className="size-5" />
@@ -335,7 +335,7 @@ export function EveApprovalBudgetPanel() {
         </Card>
       </div>
 
-      <Card>
+      <Card id="eve-approvals">
         <CardHeader>
           <CardTitle>Approval queue</CardTitle>
           <CardDescription>
@@ -417,7 +417,7 @@ export function EveApprovalBudgetPanel() {
         </CardContent>
       </Card>
 
-      <Card>
+      <Card id="eve-recent-actions">
         <CardHeader>
           <CardTitle>Recent policy decisions</CardTitle>
           <CardDescription>
