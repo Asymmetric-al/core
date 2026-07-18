@@ -1,6 +1,6 @@
 import { getAdminClient } from "@asym/database/supabase/admin";
 import { getSupabasePublicConfig } from "@asym/database/supabase/config";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, parseCookieHeader } from "@supabase/ssr";
 import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 import { cookies, headers } from "next/headers";
 
@@ -9,6 +9,7 @@ import {
   assertSupabaseDatasourceAllowedForE2EBypass,
   E2E_AUTH_COOKIE_NAME,
   getE2EAuthCookieNameForProxyHost,
+  getE2EAuthCookieNameForRequest,
   isE2EAuthBypassEnabled,
   parseE2EAuthCookieValue,
 } from "./e2e-auth";
@@ -98,6 +99,25 @@ async function createAuthContextClient(
     });
   }
 
+  if (request) {
+    const requestCookies = parseCookieHeader(
+      request.headers.get("cookie") ?? "",
+    ).flatMap(({ name, value }) =>
+      typeof value === "string" ? [{ name, value }] : [],
+    );
+
+    return createServerClient(url, key, {
+      cookies: {
+        getAll() {
+          return requestCookies;
+        },
+        // A forwarded request is immutable. Any refreshed session belongs on
+        // the originating Next.js response, not inside the Eve sidecar.
+        setAll() {},
+      },
+    });
+  }
+
   const cookieStore = await cookies();
 
   return createServerClient(url, key, {
@@ -140,22 +160,35 @@ function createUnauthenticatedContext(): AuthContext {
  * Otherwise a stale asym_e2e_auth cookie could override the real user in dev
  * (NODE_ENV !== production) whenever E2E_AUTH_BYPASS is enabled.
  */
-async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
+async function getE2EAuthBypassContext(
+  request?: Request,
+): Promise<AuthContext | null> {
   if (!isE2EAuthBypassEnabled()) {
     return null;
   }
   // Bind the bypass to datasource identity, not NODE_ENV: refuse to grant a
   // bypass identity unless the configured Supabase project is allowlisted.
   assertSupabaseDatasourceAllowedForE2EBypass(getSupabasePublicConfig().url);
-  const cookieStore = await cookies();
-  const host = (await headers()).get("host");
-  const e2eCookieName = getE2EAuthCookieNameForProxyHost(host);
+  const requestCookieMap = request
+    ? new Map(
+        parseCookieHeader(request.headers.get("cookie") ?? "").flatMap(
+          ({ name, value }) =>
+            typeof value === "string" ? [[name, value] as const] : [],
+        ),
+      )
+    : null;
+  const cookieStore = request ? null : await cookies();
+  const e2eCookieName = request
+    ? getE2EAuthCookieNameForRequest(request)
+    : getE2EAuthCookieNameForProxyHost((await headers()).get("host"));
+  const getCookieValue = (name: string): string | undefined =>
+    requestCookieMap?.get(name) ?? cookieStore?.get(name)?.value;
   let e2eSession = e2eCookieName
-    ? await parseE2EAuthCookieValue(cookieStore.get(e2eCookieName)?.value)
+    ? await parseE2EAuthCookieValue(getCookieValue(e2eCookieName))
     : null;
   if (!e2eSession) {
     e2eSession = await parseE2EAuthCookieValue(
-      cookieStore.get(E2E_AUTH_COOKIE_NAME)?.value,
+      getCookieValue(E2E_AUTH_COOKIE_NAME),
     );
   }
   if (!e2eSession) {
@@ -182,9 +215,10 @@ async function getE2EAuthBypassContext(): Promise<AuthContext | null> {
 
 async function resolveUnauthenticatedOrE2EContext(
   bearerToken: string | null,
+  request?: Request,
 ): Promise<AuthContext> {
   if (!bearerToken) {
-    const e2e = await getE2EAuthBypassContext();
+    const e2e = await getE2EAuthBypassContext(request);
     if (e2e) {
       return e2e;
     }
@@ -198,7 +232,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   const supabase = await createAuthContextClient(request);
 
   if (!supabase) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request);
   }
 
   const {
@@ -207,7 +241,7 @@ export async function getAuthContext(request?: Request): Promise<AuthContext> {
   } = await supabase.auth.getUser(bearerToken ?? undefined);
 
   if (userError || !user) {
-    return resolveUnauthenticatedOrE2EContext(bearerToken);
+    return resolveUnauthenticatedOrE2EContext(bearerToken, request);
   }
 
   const adminClient = getAdminClient().client;

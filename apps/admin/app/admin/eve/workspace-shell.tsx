@@ -139,12 +139,14 @@ export function EveWorkspaceIndex() {
 }
 
 function ConnectionState({
+  availability = "Unavailable",
   description,
   icon,
   id,
   issue,
   title,
 }: {
+  availability?: "Mounted" | "Unavailable";
   description: string;
   icon: ReactNode;
   id: string;
@@ -158,7 +160,7 @@ function ConnectionState({
           {icon}
           <h3 className="text-sm font-medium text-foreground">{title}</h3>
         </div>
-        <Badge variant="outline">Unavailable</Badge>
+        <Badge variant="outline">{availability}</Badge>
       </div>
       <p className="mt-3 text-sm text-muted-foreground">{description}</p>
       <p className="mt-3 text-xs text-muted-foreground">Owned by {issue}</p>
@@ -201,10 +203,11 @@ export function EveCapabilityConnectionsPanel() {
             icon={<BellRing aria-hidden="true" className="size-4" />}
           />
           <ConnectionState
+            availability="Mounted"
             id="eve-chat"
             issue="#428"
             title="Chat runtime"
-            description="The authenticated Eve runtime mount is intentionally deferred. Operations and governance remain the primary surface."
+            description="The authenticated Eve runtime is mounted as a global, operations-secondary panel with an explicit allowlist for page context."
             icon={<MessageSquareText aria-hidden="true" className="size-4" />}
           />
         </CardContent>
