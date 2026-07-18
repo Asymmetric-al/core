@@ -353,6 +353,13 @@ absent and belongs to #432.
   - Dynamic workflows are enabled only behind governance gates.
   - Workflow failures escalate by risk.
   - Suspicious or protected-area behavior pauses the run and records audit.
+- Implementation evidence:
+  - ADR-0035 and `docs/guides/operations/eve-dynamic-workflows.md`
+  - `packages/api/src/eve/dynamic-workflow/**`
+  - `packages/eve-runtime/agent/tools/{workflow,workflow_guard}.ts`
+  - `packages/eve-runtime/agent/hooks/subagent-audit.ts`
+  - `packages/eve-runtime/agent/lib/workflow-state.ts`
+  - `supabase/migrations/20260718074651_eve_dynamic_workflow_policy.sql`
 
 ### 19. Engineering Health Monitors
 

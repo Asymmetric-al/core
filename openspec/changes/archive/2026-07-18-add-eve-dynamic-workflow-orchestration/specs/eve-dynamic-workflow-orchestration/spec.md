@@ -130,18 +130,20 @@ an override. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomo
 - **THEN** execution continues only from a validated safe state
 - **AND** the actor, justification summary, policy decision, and resulting state are audited
 
-### Requirement: This Change Grants No New Runtime Or Production Authority
+### Requirement: This Change Grants No New Product Or Production Authority
 
-This change MUST remain a spec-only contract. #425 MUST continue to own sessions, workflow durability, and
-the workflow host; #424 MUST own retention and redacted replay for persisted workflow audit artifacts;
-app-owned systems MUST continue to own governance state; and #426 MUST continue to derive user/tenant scope
-from verified initiator context. This package MUST NOT modify canonical product/Inngest
-`workflow-orchestration`, or add runtime code, schema, tools, switches, deployments, production writes, or
-autonomous activation. [VERIFIED-REPO: openspec/project.md]
+Issue #425 MUST continue to own sessions, workflow durability, and the workflow host; #424 MUST own retention and
+redacted replay for persisted workflow audit artifacts; app-owned systems MUST continue to own governance
+state; and #426 MUST continue to derive user/tenant scope from verified initiator context. The implementation
+MAY add release-gated runtime code, governance metadata, and specialist-coordination tools required by this
+capability, but MUST NOT modify canonical product/Inngest `workflow-orchestration`, deploy or activate Eve,
+enable a provider, perform a production write, or grant authority beyond the underlying action.
+[VERIFIED-REPO: openspec/project.md]
 
 #### Scenario: The package is reviewed for scope
 
 - **GIVEN** this change is under review
 - **WHEN** its repository effects are inspected
-- **THEN** only the OpenSpec proposal, design, requirements, and implementation checklist are present
-- **AND** the #418 release switch remains off
+- **THEN** runtime code and schema remain consumers of the existing governance, ownership, budget, and audit
+  owners
+- **AND** the #418 release switch remains off and no deployment or product-workflow change occurred

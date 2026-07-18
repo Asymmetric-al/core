@@ -122,6 +122,8 @@ describe("Eve runtime foundation", () => {
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
+        "workflow.ts",
+        "workflow_guard.ts",
         "write_file.ts",
       ].sort(),
     );

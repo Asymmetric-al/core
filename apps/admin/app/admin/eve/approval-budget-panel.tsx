@@ -69,6 +69,7 @@ const ACTION_LABELS: Record<EvePolicyActionId, string> = {
   "engineering.shared_context.resolve": "Resolve shared-context conflict",
   "engineering.shared_context.write": "Write shared run context",
   "engineering.subagent.delegate": "Delegate to specialist subagent",
+  "engineering.dynamic_workflow.execute": "Execute governed dynamic workflow",
   "product.internal_status.write": "Write product/admin internal status",
   "memory.advisory.write": "Write advisory memory tracer",
   "product.donor.write": "Attempt stricter donor-data class",

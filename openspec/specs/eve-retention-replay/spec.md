@@ -10,8 +10,8 @@ Postgres.
 
 ### Requirement: Category-Based Retention With A 180-Day Default
 
-Eve governance records (audit records, run summaries, and replay/debug artifact
-metadata) MUST be retained by category with a 180-day default. Categories MAY
+Eve MUST retain governance records (audit records, run summaries, and replay/debug artifact
+metadata) by category with a 180-day default. Categories MAY
 define shorter or longer windows. Gateway/model-call telemetry MUST use a
 dedicated 30-day metadata-only category and MUST NOT contain prompt or response
 bodies.

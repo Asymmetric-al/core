@@ -94,7 +94,21 @@ not introduce a new database or runtime service.
 - **Failure loops:** terminal failure states and audited retry ceilings.
 - **Generated scope drift:** immutable authorized scope plus revalidation before execution.
 
+## Implementation
+
+- `packages/api/src/eve/dynamic-workflow/` owns strict schema, graph/scope validation, canonical digest,
+  risk classification, control composition, and the durable-state transitions.
+- Eve exposes `Workflow` with a seven-child framework cap and `workflow_guard` only to verified Core GitHub
+  sessions. The guard prepares a short-lived ticket and requires human approval for protected/high-risk plans
+  and every resume.
+- The root dispatch hook rechecks governance, session ownership, shared-context conflicts, and budget before
+  each child and applies app-owned failure escalation. Specialist model selection rechecks at session and step
+  boundaries.
+- Supabase atomically verifies the claimed session, catalog-owned governance domain, policy, and usage window,
+  then writes a service-safe decision and redacted audit.
+
 ## Rollout
 
-This PR defines only the contract. Later implementation must remain behind #418's disabled release switch and
-#420 dynamic-workflow control until focused tests and #437 launch verification pass.
+The implementation remains behind #418's disabled release switch and #420 dynamic-workflow control until
+#437 launch verification passes. This PR deploys nothing, enables no provider, and changes no product/Inngest
+workflow behavior.

@@ -22,7 +22,7 @@ const catalogSchema = z.object({
   action_id: z.enum(EVE_POLICY_ACTION_IDS),
   trust_zone: z.enum(EVE_TRUST_ZONES),
   write_class: z.enum(EVE_WRITE_CLASSES),
-  governance_domain: z.literal("production_writes"),
+  governance_domain: z.enum(["production_writes", "dynamic_workflows"]),
   budget_scope_type: z.enum(EVE_BUDGET_SCOPE_TYPES),
   budget_scope_id: z.string(),
   request_cost: z.number().int().nonnegative(),

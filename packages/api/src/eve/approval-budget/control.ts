@@ -9,6 +9,7 @@ import type {
   EvePolicyActionId,
   EvePolicyConsultResult,
 } from "./types";
+import type { EveSessionIdentity } from "../session-ownership/types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -48,7 +49,35 @@ function mapError(error: { message: string } | null): never {
     throw new ApiHttpError(400, "The approval or budget request is invalid.");
   if (message.includes("actor_tenant_mismatch"))
     throw new ApiHttpError(403, "Actor ownership could not be verified.");
+  if (message.includes("runtime_session_identity_mismatch"))
+    throw new ApiHttpError(
+      403,
+      "Runtime session ownership could not be verified.",
+    );
   throw new Error(message);
+}
+
+export async function executeEveRuntimePolicyConsult(input: {
+  actionId: EvePolicyActionId;
+  identity: EveSessionIdentity;
+  sessionId: string;
+  supabaseAdmin: AdminSupabaseClient;
+  targetKey: string;
+}): Promise<EvePolicyConsultResult> {
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "consult_eve_runtime_budget_policy",
+    {
+      p_action_id: input.actionId,
+      p_target_key: input.targetKey,
+      p_decision_id: crypto.randomUUID(),
+      p_audit_id: crypto.randomUUID(),
+      p_session_id: input.sessionId,
+      p_actor_id: input.identity.actorId,
+      p_tenant_id: input.identity.tenantId,
+    },
+  );
+  if (error || !data) return mapError(error);
+  return data as unknown as EvePolicyConsultResult;
 }
 
 export async function executeEvePolicyTracer(input: {

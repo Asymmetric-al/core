@@ -1,5 +1,32 @@
 # Working Set
 
+## 2026-07-18 (Eve dynamic workflow orchestration)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #434 as the governance-gated Eve dynamic workflow orchestration layer, stack it on PR #867, and open it for review.
+- Primary area:
+  - `packages/api/src/eve/dynamic-workflow/**`
+  - `packages/eve-runtime/agent/{tools,hooks,instructions.md}`
+  - `packages/eve-runtime/src/**`
+  - `supabase/migrations/**`
+  - `tests/unit/**`
+  - `openspec/changes/add-eve-dynamic-workflow-orchestration/**`
+- Stack:
+  - TypeScript
+  - Eve
+  - Vercel Workflow SDK
+  - Supabase Postgres
+  - Zod
+  - Vitest
+- Constraints:
+  - Generated plans are coordination data, never authorization or arbitrary executable code.
+  - Re-check persisted release, emergency-off, dynamic-workflow kill switch, identity, budget, and current policy at every governed boundary.
+  - Preserve #433 specialist caps and shared-context conflicts.
+  - Use Eve's root-only QuickJS Workflow tool only as a sandboxed subagent coordinator.
+  - Keep the global release switch off and do not activate production runtime.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, and the installed Eve docs/package source.
+
 ## 2026-06-26 (Cursor Team Kit and Babysitter repo-local skills)
 
 - Date: 2026-06-26

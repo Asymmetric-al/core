@@ -163,7 +163,8 @@
     "./eve/github-operator": "./src/eve/github-operator/index.ts",
     "./eve/strict-auto-merge": "./src/eve/strict-auto-merge/index.ts",
     "./eve/subagent-catalog": "./src/eve/subagent-catalog/index.ts",
-    "./eve/shared-context": "./src/eve/shared-context/index.ts"
+    "./eve/shared-context": "./src/eve/shared-context/index.ts",
+    "./eve/dynamic-workflow": "./src/eve/dynamic-workflow/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

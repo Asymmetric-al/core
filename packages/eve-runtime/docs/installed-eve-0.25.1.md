@@ -16,7 +16,9 @@ summary as a replacement for it.
   `concepts/execution-model-and-durability.md`, `concepts/security-model.md`,
   and `concepts/sessions-runs-and-streaming.md`
 - `guides/auth-and-route-protection.md`, `guides/session-context.md`,
-  `patterns/multi-tenant-auth.md`, and `channels/eve.mdx`
+  `guides/state.md`, `guides/hooks.md`, `guides/dynamic-capabilities.md`,
+  `guides/dynamic-workflows.md`, `patterns/multi-tenant-auth.md`, and
+  `channels/eve.mdx`
 - `evals/overview.mdx`, `evals/cases.mdx`, `evals/running.mdx`,
   `evals/targets.mdx`, and `evals/assertions.mdx`
 
@@ -62,6 +64,16 @@ summary as a replacement for it.
   or activate a production model, this foundation uses only a clearly named
   deterministic fixture. The app-owned #421 resolver remains the required
   source of any future live model plan.
+- `experimental_workflow({ maxSubagents })` exposes a root-only tool named
+  `Workflow`. Its JavaScript runs in QuickJS with only declared subagent and
+  remote-agent bridges; it has no filesystem, shell, network, environment, or
+  import access. Children receive neither Workflow nor the built-in agent.
+- Every Workflow child emits the normal `subagent.called` and
+  `subagent.completed` events. Authored hooks run after accepted events are
+  durably recorded, allowing the app boundary to stop downstream dispatch.
+- `defineState` is durable per-session state available to tools and hooks; it
+  never crosses into a child. Core uses it for the versioned plan ticket and
+  step state, not for long-term memory or shared application data.
 
 ## Security and ownership consequences
 

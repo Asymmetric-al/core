@@ -23,7 +23,9 @@ coordination predictably and audibly.
 - Require suspicious or protected-area behavior to pause before action and emit #419 audit evidence.
 - Require budgets, rate limits, kill switches, emergency-off state, and verified identity ownership to remain
   authoritative throughout the run.
-- Keep this package spec-only: it creates no runtime, workflow host, schema, tool, or production authority.
+- Implement the contract with Eve's root-only Workflow tool, an app-owned guard and state machine, continuous
+  dispatch/model gates, and a service-safe Supabase policy consultation.
+- Keep release disabled and grant no new product or production authority.
 
 ## Impact
 
@@ -31,7 +33,8 @@ coordination predictably and audibly.
 - **Dependencies:** #417, #418, #419, #420, #421, #423, #425, #426, and #433
 - **Issue covered:** #434
 - **User stories covered:** 47, 48, 49, 53, and 54
-- **Runtime impact:** none in this PR
+- **Runtime impact:** release-gated dynamic specialist coordination is installed; no provider or production
+  activation occurs in this PR
 
 ## Non-Goals
 

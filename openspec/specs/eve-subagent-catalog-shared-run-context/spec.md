@@ -55,8 +55,8 @@ docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:226
 
 ### Requirement: Delegation Is Broad But Bounded By Workflow-Specific Caps
 
-The root agent MAY delegate broadly whenever a declared specialist improves the work, and a specialist MAY
-delegate when its own policy permits it. Every workflow type MUST enforce configured subagent count/depth caps
+The root agent MUST enforce workflow-specific caps whenever it delegates; it MAY delegate broadly when a
+declared specialist improves the work. Every workflow type MUST enforce configured subagent count/depth caps
 in v1. Reaching a cap MUST stop additional delegation and produce an observable policy outcome; it MUST NOT
 silently raise or bypass the cap. Adaptive caps are future work. [VERIFIED-REPO:
 docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:230]
