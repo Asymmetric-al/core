@@ -104,8 +104,8 @@ through **#421's shared policy** (Gateway-primary; never hardcoding a model or p
 switch state from the app-owned governance store, never a prompt/model/tool claim. It MUST NOT bypass GitHub
 branch protection, required reviews, or repository policy; MUST stay **disabled by default while the release
 switch is off**; and MUST NOT bypass #417 protected-area / production-write / approval limits or #418
-emergency-off precedence. The change itself MUST remain a spec/ADR contract and MUST NOT introduce live GitHub
-App, webhook, or poster code. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
+emergency-off precedence. Live channel and poster code MUST fail closed when those controls or accountable
+identity are unavailable. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:629]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]

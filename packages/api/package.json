@@ -158,7 +158,8 @@
     "./eve/retention/types": "./src/eve/retention/types.ts",
     "./eve/session-ownership": "./src/eve/session-ownership/index.ts",
     "./eve/session-ownership/types": "./src/eve/session-ownership/types.ts",
-    "./eve/sandbox": "./src/eve/sandbox/index.ts"
+    "./eve/sandbox": "./src/eve/sandbox/index.ts",
+    "./eve/github-review": "./src/eve/github-review/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

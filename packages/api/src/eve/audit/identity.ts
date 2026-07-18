@@ -1,5 +1,6 @@
 import type { EveVerifiedAuditIdentity } from "./types";
 import type { AuthenticatedContext } from "@asym/auth/context";
+import type { UserRole } from "@asym/database/types";
 
 export function createAdminEveAuditIdentity(
   auth: AuthenticatedContext,
@@ -32,12 +33,16 @@ export function createServiceEveAuditIdentity(input: {
 
 export function createGithubBotEveAuditIdentity(input: {
   botId: string;
+  actorProfileId?: string;
+  actorRole?: UserRole;
   initiatorId: string;
   initiatorType: "github_sender" | "schedule" | "system" | "webhook";
   tenantId?: string;
 }): EveVerifiedAuditIdentity {
   return {
     actorId: input.botId,
+    actorProfileId: input.actorProfileId,
+    actorRole: input.actorRole,
     identityMode: "github_bot",
     initiatorId: input.initiatorId,
     initiatorType: input.initiatorType,

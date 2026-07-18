@@ -270,6 +270,11 @@ redacted command/write audit are delivered by issue #429 and ADR-0030.
 
 ### 14. GitHub App Read and Review Path
 
+Implementation: Eve 0.25.1's native verified GitHub App channel, automatic PR
+review trigger, policy-gated summary plus inline findings, protected-area
+visibility, output data-boundary enforcement, and accountable #419 audit are
+delivered by issue #430 and ADR-0031.
+
 - Type: AFK
 - Blocked by: 3, 7, 9, 13
 - User stories covered: 8, 9, 10, 32, 34, 60
