@@ -543,6 +543,11 @@ on together, rather than shipping as a toy foundation first.
   [ADR-0021: Restrict Eve through atomic, app-owned kill
   switches](../../adr/0021-eve-kill-switch-control.md).
 
+- The shared model-policy schema, dedicated permission, eval-gated lifecycle,
+  Gateway-primary resolver, hard limits, and atomic rollback contract are
+  defined by [ADR-0022: Govern Eve model routing through an eval-gated policy
+  control plane](../../adr/0022-eve-model-policy-control-plane.md).
+
 ## Testing Decisions
 
 - Tests should verify external behavior and policy outcomes, not private helper

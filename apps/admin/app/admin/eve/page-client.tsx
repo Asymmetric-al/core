@@ -44,6 +44,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { EveModelPolicyPanel } from "./model-policy-panel";
+
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
 
 export interface EveGovernancePageData extends EveGovernanceAdminView {
@@ -582,6 +584,7 @@ export default function EveGovernancePage() {
         }
         onSetKillSwitch={setKillSwitch}
       />
+      <EveModelPolicyPanel />
     </PageShell>
   );
 }

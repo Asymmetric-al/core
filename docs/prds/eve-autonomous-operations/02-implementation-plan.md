@@ -113,6 +113,9 @@ switches](../../adr/0021-eve-kill-switch-control.md).
 
 ### 5. Model Policy Tracer Bullet
 
+Canonical decision: [ADR-0022: Govern Eve model routing through an eval-gated
+policy control plane](../../adr/0022-eve-model-policy-control-plane.md).
+
 - Type: AFK
 - Blocked by: 2, 3, 4
 - User stories covered: 36, 37, 38, 39, 40, 41, 42, 43, 46

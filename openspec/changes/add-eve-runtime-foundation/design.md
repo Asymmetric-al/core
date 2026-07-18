@@ -4,7 +4,7 @@
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0007**, the standalone-runtime decision required by issue #425. It builds
 > on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), **EVE-DESIGN-0005** (#423,
-> `add-eve-approval-budget-policy`), and **EVE-DESIGN-0006** (#421, `add-eve-model-policy-tracer`), and does not
+> `add-eve-approval-budget-policy`), and **ADR-0022** (#421, `add-eve-model-policy-tracer`), and does not
 > restate them — it operationalizes the isolated runtime package that resolves models through #421's policy,
 > spends under #423's budgets, and stays disabled by default per #418. When accepted into `Asymmetric-al/core`,
 > its ADR body should also be landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`). Every
@@ -14,7 +14,7 @@
 ## Status
 
 Proposed (partner draft for #425). Supersedes nothing. Builds on ADR-0018 (#417), EVE-DESIGN-0005 (#423), and
-EVE-DESIGN-0006 (#421). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+ADR-0022 (#421). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -101,7 +101,7 @@ proposed, non-default, revocable fallback rather than a route baked into runtime
 
 - **#417 (ADR-0018, foundation):** owns the autonomy contract, protected-area set, and governance data model at
   spec level. #425 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #425 resolves models through
+- **#421 (ADR-0022, model policy):** owns named roles and Gateway-primary routing. #425 resolves models through
   that policy; it does not define roles or routing. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
 - **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. #425 spends under those
   budgets; it does not define them. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]
