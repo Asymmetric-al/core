@@ -3,6 +3,7 @@ import { z } from "zod";
 import { EVE_AUDIT_IDENTITY_MODES, EVE_AUDIT_RESULTS } from "./types";
 
 import type { EveAuditEventRecord, EveAuditStore } from "./types";
+import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const auditRowSchema = z.object({
@@ -107,6 +108,7 @@ export function createEveAuditStore(
 }
 
 export async function loadRecentEveAuditEvents(input: {
+  auth: AuthenticatedContext;
   supabaseAdmin: AdminSupabaseClient;
   limit?: number;
 }): Promise<EveAuditEventRecord[]> {
@@ -115,6 +117,8 @@ export async function loadRecentEveAuditEvents(input: {
     .select(
       "id, run_id, tenant_id, actor_id, actor_profile_id, actor_role, identity_mode, initiator_type, initiator_id, policy_id, policy_status, governance_state_version, action, target, result, tool_name, subagent_name, model_role, evidence_summary, change_summary, decision_summary, debug_metadata, redaction_version, created_at",
     )
+    .eq("tenant_id", input.auth.tenantId)
+    .eq("actor_profile_id", input.auth.profileId)
     .order("created_at", { ascending: false })
     .limit(input.limit ?? 50);
 

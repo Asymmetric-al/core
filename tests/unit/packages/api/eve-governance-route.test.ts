@@ -142,6 +142,11 @@ describe("Eve governance admin route", () => {
       supabaseAdmin: { from: expect.any(Function) },
     });
     expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
+      auth: expect.objectContaining({
+        userId: "user_1",
+        tenantId: "tenant_1",
+        profileId: "profile_1",
+      }),
       supabaseAdmin: { from: expect.any(Function) },
     });
     expect(traceEveAuditEventMock).not.toHaveBeenCalled();

@@ -15,6 +15,8 @@ summary as a replacement for it.
 - `concepts/context-control.md`, `concepts/default-harness.md`,
   `concepts/execution-model-and-durability.md`, `concepts/security-model.md`,
   and `concepts/sessions-runs-and-streaming.md`
+- `guides/auth-and-route-protection.md`, `guides/session-context.md`,
+  `patterns/multi-tenant-auth.md`, and `channels/eve.mdx`
 - `evals/overview.mdx`, `evals/cases.mdx`, `evals/running.mdx`,
   `evals/targets.mdx`, and `evals/assertions.mdx`
 
@@ -37,6 +39,15 @@ summary as a replacement for it.
   Workflow SDK local world and stores its data below `.eve/.workflow-data`;
   Vercel uses Vercel Workflow. That state is runtime durability, not the
   application governance store.
+- Eve route auth protects session create, continue, cancel, and stream routes,
+  carries the verified caller into `ctx.session.auth`, and fails closed when
+  the auth walk has no match. Route auth does not supply a per-session ACL;
+  applications serving multiple users or tenants must add that ownership
+  check themselves.
+- `eveChannel({ events })` can observe `turn.started`, whose runtime context
+  includes the durable session id and current verified caller. The current
+  admin binding is recorded there, while continuation, cancel, and stream
+  requests check the app-owned binding during route auth.
 - The default harness can expose shell, file, network, todo, question, and
   delegation tools. A same-slug `disableTool()` authored file removes a
   framework tool and fails discovery on an unknown slug.
@@ -57,8 +68,9 @@ summary as a replacement for it.
 - App runtime code is trusted and can read secrets; the sandbox cannot read
   `process.env`. The model sees tool schemas and results, not credentials.
 - Route auth fails closed unless anonymous access is explicitly authored. This
-  slice adds no channel and no app mount; #426 owns admin session identity and
-  ownership.
+  package now authors an admin route authenticator that maps only verified
+  Supabase admin sessions. Loopback-only `localDev()` remains last solely for
+  the deterministic local eval; it never creates an app-owned session binding.
 - Every default capability with filesystem, shell, network, question, todo, or
   delegation authority is disabled in this foundation. No custom tool,
   connection, schedule, channel, subagent, or sandbox is authored.

@@ -9,11 +9,11 @@ import { traceEveAuditEvent } from "../audit/record";
 import { createEveAuditStore, loadRecentEveAuditEvents } from "../audit/store";
 
 export const GET = withOperation(
-  async ({ supabaseAdmin, requestId }) => {
+  async ({ auth, supabaseAdmin, requestId }) => {
     try {
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents({ supabaseAdmin }),
+        loadRecentEveAuditEvents({ auth, supabaseAdmin }),
       ]);
       return NextResponse.json({ ...governance, auditHistory, requestId });
     } catch (error) {
@@ -103,7 +103,7 @@ export const PATCH = withOperation(
       });
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents({ supabaseAdmin }),
+        loadRecentEveAuditEvents({ auth, supabaseAdmin }),
       ]);
 
       return NextResponse.json({
