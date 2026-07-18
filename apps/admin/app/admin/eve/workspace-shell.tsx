@@ -18,6 +18,11 @@ import type { ReactNode } from "react";
 
 const WORKSPACE_SECTIONS = [
   {
+    id: "eve-launch-readiness",
+    label: "Launch readiness",
+    description: "Target evidence, review, activation, and canary",
+  },
+  {
     id: "eve-active-runs",
     label: "Active runs",
     description: "Current and recent governed work",

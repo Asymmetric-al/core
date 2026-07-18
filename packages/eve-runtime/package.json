@@ -6,7 +6,8 @@
   "exports": {
     "./admin-session-auth": "./src/admin-session-auth.ts",
     "./governance-boundary": "./src/governance-boundary.ts",
-    "./notification-sweep": "./src/notifications/sweep.ts"
+    "./notification-sweep": "./src/notifications/sweep.ts",
+    "./launch-watchdog": "./src/launch/watchdog.ts"
   },
   "scripts": {
     "build": "eve build",

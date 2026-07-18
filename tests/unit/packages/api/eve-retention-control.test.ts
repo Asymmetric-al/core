@@ -84,7 +84,8 @@ describe("Eve retention controls", () => {
         data: { auditRecords: 2, runSummaries: 1 },
         error: null,
       })
-      .mockResolvedValueOnce({ data: 3, error: null });
+      .mockResolvedValueOnce({ data: 3, error: null })
+      .mockResolvedValueOnce({ data: 4, error: null });
     const remove = vi
       .fn()
       .mockResolvedValueOnce({ error: null })
@@ -103,6 +104,7 @@ describe("Eve retention controls", () => {
       claimedArtifacts: 2,
       expiredArtifacts: 1,
       notificationRecords: 3,
+      launchManifests: 4,
     });
     expect(rpc).toHaveBeenNthCalledWith(
       2,
@@ -112,6 +114,9 @@ describe("Eve retention controls", () => {
       },
     );
     expect(rpc).toHaveBeenNthCalledWith(4, "expire_eve_notification_records", {
+      p_limit: 100,
+    });
+    expect(rpc).toHaveBeenNthCalledWith(5, "expire_eve_launch_manifests", {
       p_limit: 100,
     });
   });

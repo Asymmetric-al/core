@@ -48,6 +48,7 @@ import {
 import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveApprovalBudgetPanel } from "./approval-budget-panel";
 import { EveEngineeringMonitorsPanel } from "./engineering-monitors-panel";
+import { EveLaunchReadinessPanel } from "./launch-readiness-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
 import { EveNotificationsPanel } from "./notifications-panel";
 import { EveRetentionPanel } from "./retention-panel";
@@ -650,6 +651,7 @@ export default function EveGovernancePage() {
       }
     >
       <EveWorkspaceIndex />
+      <EveLaunchReadinessPanel />
       <EveGovernanceView
         data={query.data}
         errorMessage={query.error?.message}

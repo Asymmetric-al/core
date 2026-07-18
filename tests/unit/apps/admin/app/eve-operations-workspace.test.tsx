@@ -59,6 +59,7 @@ describe("Eve operations workspace", () => {
     });
 
     for (const name of [
+      "Launch readiness",
       "Active runs",
       "Approvals",
       "Recent actions",

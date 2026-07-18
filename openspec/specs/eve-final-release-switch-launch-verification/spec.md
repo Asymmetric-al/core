@@ -1,6 +1,10 @@
-# Delta for Eve Final Release Switch And Launch Verification
+# eve-final-release-switch-launch-verification Specification
 
-## ADDED Requirements
+## Purpose
+
+TBD - created by archiving change add-eve-final-release-switch-launch-verification. Update Purpose after archive.
+
+## Requirements
 
 ### Requirement: Launch Readiness Is Bound To An Exact Environment And Revision
 
@@ -105,8 +109,8 @@ reversal path MUST block readiness. [VERIFIED-REPO: openspec/changes/add-eve-kil
 
 ### Requirement: Activation Uses Only The Existing #418 Human-Controlled Transition
 
-Only a verified human with dedicated release permission MAY enable Eve, and only through #418's existing
-activation path after binding a current passing manifest, recording justification, and immediately rechecking
+The system MUST permit only a verified human with dedicated release permission to enable Eve, and MUST use
+only #418's existing activation path after binding a current passing manifest, recording justification, and immediately rechecking
 manifest freshness plus #418 emergency and #420 relevant kill-switch state. Prompts, models, tools, service
 identities, CI, merges, deployments, schedules, or ready results MUST NOT enable the switch. #437 MUST NOT
 define a second switch or change #418 persistence/semantics. [VERIFIED-REPO: openspec/changes/add-eve-governance-kernel-release-switch]
@@ -180,15 +184,16 @@ target and evidence. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-
 - **THEN** the authorized existing stop/rollback path is invoked and the incident is recorded
 - **AND** Eve does not widen permissions or self-reconfigure to continue
 
-### Requirement: This Specification Does Not Activate Eve
+### Requirement: Implementation And Deployment Do Not Activate Eve
 
-This change MUST remain spec-only and MUST NOT implement or modify the #418 switch, set environment values,
-deploy runtime, apply schema, configure credentials/providers, run a real launch, or enable autonomous
-behavior. The release switch MUST remain off after this PR. [VERIFIED-REPO: openspec/project.md]
+This implementation MUST reuse rather than redefine the #418 switch and MUST NOT seed release state, grant
+launch permissions, set environment values, configure credentials/providers, run a real launch, or enable
+autonomous behavior. Applying its migration, merging, and deploying MUST leave the release switch off until
+the explicit authorized human activation contract is satisfied. [VERIFIED-REPO: openspec/project.md]
 
 #### Scenario: The package is merged
 
-- **GIVEN** this specification is accepted and merged
+- **GIVEN** this implementation is accepted, migrated, and deployed
 - **WHEN** the repository or environment is inspected
 - **THEN** Eve remains disabled until all implementations/evidence and a later authorized human activation exist
-- **AND** the merge itself performs no activation
+- **AND** merge, migration, and deployment themselves perform no activation
