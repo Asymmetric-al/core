@@ -92,8 +92,8 @@ MUST remain available for review. [VERIFIED-REPO: docs/prds/eve-autonomous-opera
 
 ### Requirement: Comments And Issues Reuse Governed GitHub Capabilities
 
-A monitor MAY request an audited comment only through the #430 GitHub read/review path and MAY request a
-durable issue/work-initiation operation only through #431. The downstream capability MUST independently
+Every monitor comment request MUST use the #430 GitHub read/review path, and every durable
+issue/work-initiation request MUST use #431. The downstream capability MUST independently
 enforce accountable bot identity, verified initiator/service identity, current policy, approvals, protected-
 area rules, budgets, rate limits, and audit. #435 MUST NOT introduce a separate comment or issue mutation path.
 [VERIFIED-REPO: openspec/changes/add-eve-github-read-review-path]
@@ -146,15 +146,15 @@ last-run state, findings, failures, budget state, and pause state without raw hi
 - **THEN** it shows safe state, evidence references, failures, budget, and pause controls
 - **AND** it does not reveal secrets, raw protected content, or hidden model reasoning
 
-### Requirement: This Change Grants No New Runtime Or Mutation Authority
+### Requirement: Monitor Runtime Ships Off By Default And Grants No New Authority
 
-This change MUST remain spec-only and MUST NOT add a scheduler, event consumer, runtime, schema, credential,
-GitHub mutation, product scan, or autonomous activation. Existing governance remains authoritative, and the
-#418 release switch MUST remain off. [VERIFIED-REPO: openspec/project.md]
+The monitor runtime and persisted registry MUST ship disabled and paused, MUST keep the #418 release switch
+off, and MUST NOT activate a monitor, add a product scan, expose credentials, or create an ungoverned GitHub
+mutation path. Existing governance remains authoritative. [VERIFIED-REPO: openspec/project.md]
 
 #### Scenario: The package is reviewed for scope
 
 - **GIVEN** this change is under review
 - **WHEN** repository effects are inspected
-- **THEN** only OpenSpec documents and an implementation checklist are present
-- **AND** no monitor or GitHub operation is activated
+- **THEN** the exact registry, scheduler adapter, collectors, safe finding store, admin visibility, and tests are present
+- **AND** all six monitors and every downstream destination remain disabled and paused

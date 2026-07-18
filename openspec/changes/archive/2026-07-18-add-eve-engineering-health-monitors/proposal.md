@@ -18,7 +18,8 @@ opportunity scanning is explicitly deferred and must remain disabled.
 - Allow a monitor to request an audited existing #430 comment or #431 issue operation only when policy allows.
 - Require protected-area and budget/rate-limit signals to preserve the stricter governing policy.
 - Keep product-opportunity scanning and any unlisted monitor disabled by default.
-- Keep this PR spec-only with no scheduler, webhook, runtime, schema, credential, or GitHub mutation.
+- Implement the root-only Eve dispatcher, app-owned persisted registry, atomic leases, collectors, safe findings, governed follow-up composition, and Mission Control visibility.
+- Keep every monitor, destination, and the global release switch disabled and paused.
 
 ## Impact
 
@@ -27,7 +28,7 @@ opportunity scanning is explicitly deferred and must remain disabled.
 - **Composed owners:** #417, #418, #419, #420, #424, #425, #426, and #431 when policy chooses new issue creation
 - **Issue covered:** #435
 - **User stories covered:** 58, 59, and 60
-- **Runtime impact:** none in this PR
+- **Runtime impact:** one root-only five-minute dispatcher; no run is claimable until an app-owned config is deliberately enabled and unpaused after launch approval
 
 ## Non-Goals
 

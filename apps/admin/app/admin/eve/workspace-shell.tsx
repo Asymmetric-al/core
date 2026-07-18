@@ -74,6 +74,11 @@ const WORKSPACE_SECTIONS = [
     description: "Delivery connection readiness",
   },
   {
+    id: "eve-engineering-monitors",
+    label: "Engineering monitors",
+    description: "Exact signal allowlist, findings, and run health",
+  },
+  {
     id: "eve-audit",
     label: "Audit",
     description: "Redacted decision summaries",

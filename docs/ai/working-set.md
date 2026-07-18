@@ -1,5 +1,31 @@
 # Working Set
 
+## 2026-07-18 (Eve engineering health monitors)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #435 as the exact, governed engineering-health monitor set and open a stacked review PR on #868.
+- Primary area:
+  - `packages/api/src/eve/engineering-monitors/**`
+  - `packages/eve-runtime/agent/schedules/**`
+  - `packages/eve-runtime/src/monitors/**`
+  - `supabase/migrations/**`
+  - `tests/unit/**`
+  - `openspec/changes/add-eve-engineering-health-monitors/**`
+- Stack:
+  - TypeScript
+  - Eve schedules
+  - Supabase Postgres
+  - GitHub App REST API
+  - Zod
+  - Vitest
+- Constraints:
+  - Exactly six monitor types; product-opportunity and unknown scanning fail closed.
+  - App-owned persisted configuration, service identity, atomic leases, stable dedupe, safe evidence only.
+  - Reuse #430/#431 for comments/issues and recheck current governance and budgets before every boundary.
+  - Keep every monitor and the global release switch disabled in this PR.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, and installed Eve 0.25.1 docs/package source.
+
 ## 2026-07-18 (Eve dynamic workflow orchestration)
 
 - Date: 2026-07-18

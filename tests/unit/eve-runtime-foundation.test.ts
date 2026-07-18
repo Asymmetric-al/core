@@ -110,6 +110,9 @@ describe("Eve runtime foundation", () => {
       "utf8",
     );
     const toolFiles = await readdir(path.join(runtimeRoot, "agent/tools"));
+    const scheduleFiles = await readdir(
+      path.join(runtimeRoot, "agent/schedules"),
+    );
 
     expect(docs).toContain("Installed Eve 0.25.1 review");
     expect(toolFiles.sort()).toEqual(
@@ -127,6 +130,7 @@ describe("Eve runtime foundation", () => {
         "write_file.ts",
       ].sort(),
     );
+    expect(scheduleFiles).toEqual(["engineering-health.ts"]);
 
     const bash = await readFile(
       path.join(runtimeRoot, "agent/tools/bash.ts"),
@@ -153,6 +157,15 @@ describe("Eve runtime foundation", () => {
     expect(githubOperator).toContain("scanEveSandboxPath");
     expect(strictAutoMerge).toContain("defineDynamic");
     expect(strictAutoMerge).toContain("expectedHeadSha");
+
+    const engineeringHealthSchedule = await readFile(
+      path.join(runtimeRoot, "agent/schedules/engineering-health.ts"),
+      "utf8",
+    );
+    expect(engineeringHealthSchedule).toContain('cron: "*/5 * * * *"');
+    expect(engineeringHealthSchedule).toContain(
+      "runEveEngineeringMonitorSweep",
+    );
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

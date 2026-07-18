@@ -28,6 +28,18 @@ export const EVE_ACTION_CATALOG: Record<
     inputTokenCost: 200,
     outputTokenCost: 100,
   },
+  "engineering.monitor.collect": {
+    actionId: "engineering.monitor.collect",
+    trustZone: "engineering",
+    writeClass: "operational",
+    domain: "active_runs",
+    budgetScopeType: "expensive_feature",
+    budgetScopeId: "engineering-health-monitors",
+    requestCost: 1,
+    usdMicrosCost: 500,
+    inputTokenCost: 0,
+    outputTokenCost: 0,
+  },
   "engineering.shared_context.write": {
     actionId: "engineering.shared_context.write",
     trustZone: "engineering",

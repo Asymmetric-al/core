@@ -104,5 +104,6 @@ comment-only monitor outcome.
 
 ## Rollout
 
-This package defines the contract only. Implementation remains disabled behind governance until focused
-monitor tests, notification safety (#436), and final launch verification (#437) pass.
+This package implements the contract behind an off-by-default, paused persisted registry. Focused monitor
+tests prove discovery and finding behavior, while notification safety (#436) and final launch verification
+(#437) remain required before any monitor or destination can be enabled.
