@@ -8,6 +8,8 @@ coverage
 
 # next.js
 .next
+.nitro
+.output
 out
 
 # production
@@ -43,6 +45,7 @@ apps/admin/payload-types.ts
 .tmp
 .tmp-pw-artifact
 .tmp-pw-trace
+.eve
 .agent
 .agents
 .claude/worktrees
@@ -50,6 +53,7 @@ apps/admin/payload-types.ts
 .next-docs
 .nia-sync
 .traycer
+.local-secrets
 ~
 vendor/payload-upstream
 vendor/react-pdf-packages/*/

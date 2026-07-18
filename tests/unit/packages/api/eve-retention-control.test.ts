@@ -66,8 +66,16 @@ describe("Eve retention controls", () => {
       .fn()
       .mockResolvedValueOnce({
         data: [
-          { id: "a", storage_bucket: "eve-replay-artifacts", storage_path: "a" },
-          { id: "b", storage_bucket: "eve-replay-artifacts", storage_path: "b" },
+          {
+            id: "a",
+            storage_bucket: "eve-replay-artifacts",
+            storage_path: "a",
+          },
+          {
+            id: "b",
+            storage_bucket: "eve-replay-artifacts",
+            storage_path: "b",
+          },
         ],
         error: null,
       })
@@ -91,8 +99,12 @@ describe("Eve retention controls", () => {
         } as unknown as AdminSupabaseClient,
       }),
     ).resolves.toMatchObject({ claimedArtifacts: 2, expiredArtifacts: 1 });
-    expect(rpc).toHaveBeenNthCalledWith(2, "finalize_eve_replay_artifact_expiry", {
-      p_ids: ["a"],
-    });
+    expect(rpc).toHaveBeenNthCalledWith(
+      2,
+      "finalize_eve_replay_artifact_expiry",
+      {
+        p_ids: ["a"],
+      },
+    );
   });
 });

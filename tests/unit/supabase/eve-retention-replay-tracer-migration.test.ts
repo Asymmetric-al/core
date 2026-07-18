@@ -28,7 +28,9 @@ describe("Eve retention and replay migration", () => {
   });
 
   it("enforces tenant-owner paths and blocks browser table/RPC access", () => {
-    expect(sql).toContain("p_tenant_id::TEXT || '/' || p_actor_profile_id::TEXT");
+    expect(sql).toContain(
+      "p_tenant_id::TEXT || '/' || p_actor_profile_id::TEXT",
+    );
     expect(sql).toContain("eve_retention_actor_tenant_mismatch");
     expect(sql).toContain("FROM PUBLIC, anon, authenticated");
     expect(sql).not.toContain("TO authenticated;");

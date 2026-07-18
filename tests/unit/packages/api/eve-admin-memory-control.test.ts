@@ -78,12 +78,10 @@ describe("Eve admin-memory control", () => {
   });
 
   it("maps optimistic concurrency failures to a deliberate refresh response", async () => {
-    const rpc = vi
-      .fn()
-      .mockResolvedValue({
-        data: null,
-        error: { message: "stale_eve_admin_memory" },
-      });
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "stale_eve_admin_memory" },
+    });
     const { updateEveAdminMemory } =
       await import("../../../../packages/api/src/eve/admin-memory/control");
     await expect(
