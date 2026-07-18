@@ -101,6 +101,7 @@ describe("Eve governance admin route", () => {
     });
     expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
       supabaseAdmin: { from: expect.any(Function) },
+      tenantId: "tenant_1",
     });
     expect(traceEveAuditEventMock).not.toHaveBeenCalled();
     expect(await response.json()).toEqual(
@@ -111,6 +112,29 @@ describe("Eve governance admin route", () => {
         requestId: expect.any(String),
       }),
     );
+  });
+
+  it("loads global audit history for authorized super admins", async () => {
+    getAuthContextMock.mockResolvedValue({
+      userId: "user_1",
+      email: "super-admin@example.com",
+      tenantId: null,
+      role: "super_admin",
+      profileRole: "super_admin",
+      memberships: [],
+      profileId: "profile_1",
+      isAuthenticated: true,
+    });
+    const { GET } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await GET(createRequest());
+
+    expect(response.status).toBe(200);
+    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
+      supabaseAdmin: { from: expect.any(Function) },
+      tenantId: null,
+    });
   });
 
   it("records an explicit safe tracer verification under verified admin identity", async () => {
