@@ -10,13 +10,14 @@ import {
   type EveGithubPreparedReview,
 } from "@asym/api/eve/github-review";
 import { createEveGovernanceStore } from "@asym/api/eve/governance";
-import { connectGitHubCredentials } from "@vercel/connect/eve";
 import {
   defaultGitHubAuth,
   githubChannel,
   type GitHubEventContext,
   type GitHubInboundContext,
 } from "eve/channels/github";
+
+import { eveGithubCredentials } from "../../src/github/credentials";
 
 const REVIEW_TRIGGER_ACTIONS = new Set([
   "opened",
@@ -221,14 +222,9 @@ const botName =
   process.env.EVE_GITHUB_APP_SLUG?.trim() ||
   process.env.GITHUB_APP_SLUG?.trim() ||
   "eve-asymmetric";
-const connectUid = process.env.EVE_GITHUB_CONNECT_UID?.trim();
-const credentials = connectUid
-  ? connectGitHubCredentials(connectUid)
-  : undefined;
-
 export default githubChannel({
   botName,
-  ...(credentials ? { credentials } : {}),
+  ...(eveGithubCredentials ? { credentials: eveGithubCredentials } : {}),
   progress: { reactions: false },
   pullRequestContext: {
     excludedFiles: ["**/*.generated.*", "**/dist/**", "**/.next/**"],

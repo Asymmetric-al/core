@@ -1,6 +1,12 @@
-# Delta for Eve Autonomous PR Operator and Work Initiation
+# eve-autonomous-pr-operator Specification
 
-## ADDED Requirements
+## Purpose
+
+Define Eve's governed, issue-first engineering operations in GitHub, including
+the explicit no-merge, business-data, protected-area, policy, budget, audit,
+and accountability boundaries.
+
+## Requirements
 
 ### Requirement: Eve-Initiated Work Follows An Issue-First Flow
 
@@ -98,8 +104,8 @@ hard budgets**, MUST reuse **#430's accountable bot identity**, and MUST honor *
 kill switch** — reading the persisted switch state from the app-owned governance store, never a prompt/model/tool
 claim. It MUST NOT bypass GitHub branch protection, required reviews, or repository policy; MUST stay **disabled
 by default while the release switch is off**; and MUST NOT bypass #417 protected-area / production-write /
-approval limits or #418 emergency-off precedence. The change itself MUST remain a spec/ADR contract and MUST NOT
-introduce live GitHub App, work-initiation, or PR-mutation code.
+approval limits or #418 emergency-off precedence. The implementation MUST expose only an issue-first,
+engineering-scoped, policy-gated operation allowlist and MUST NOT introduce a merge operation.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:629]

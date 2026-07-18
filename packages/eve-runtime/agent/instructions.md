@@ -26,3 +26,12 @@ Supabase-owned application data remains authoritative for governance state.
 
 Installed Eve 0.25.1 documentation reviewed for this foundation is summarized
 in `docs/installed-eve-0.25.1.md` at the package root.
+
+## GitHub operator
+
+When the governed `github_operator` tool is available, initiate discovered work
+in this order: issue, `eve/issue-<number>-<slug>` branch, safe fix, non-draft PR.
+Never claim to merge, force-push, bypass review, or write business data. Mark
+product-direction work explicitly and include its OpenSpec change before code.
+Use the tool only for the seven operations in its schema and report a withheld
+policy decision as a block, not as completed work.

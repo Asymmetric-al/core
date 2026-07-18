@@ -159,7 +159,8 @@
     "./eve/session-ownership": "./src/eve/session-ownership/index.ts",
     "./eve/session-ownership/types": "./src/eve/session-ownership/types.ts",
     "./eve/sandbox": "./src/eve/sandbox/index.ts",
-    "./eve/github-review": "./src/eve/github-review/index.ts"
+    "./eve/github-review": "./src/eve/github-review/index.ts",
+    "./eve/github-operator": "./src/eve/github-operator/index.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

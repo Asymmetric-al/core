@@ -117,6 +117,7 @@ describe("Eve runtime foundation", () => {
         "agent.ts",
         "ask_question.ts",
         "bash.ts",
+        "github_operator.ts",
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
@@ -132,11 +133,17 @@ describe("Eve runtime foundation", () => {
       path.join(runtimeRoot, "agent/tools/write_file.ts"),
       "utf8",
     );
+    const githubOperator = await readFile(
+      path.join(runtimeRoot, "agent/tools/github_operator.ts"),
+      "utf8",
+    );
 
     expect(bash).toContain("scanEveSandboxCommand");
     expect(bash).toContain("recordEveSandboxAction");
     expect(writeFile).toContain("scanEveSandboxWrite");
     expect(writeFile).toContain("recordEveSandboxAction");
+    expect(githubOperator).toContain("defineDynamic");
+    expect(githubOperator).toContain("scanEveSandboxPath");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {

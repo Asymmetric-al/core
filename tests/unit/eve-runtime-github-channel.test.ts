@@ -13,7 +13,7 @@ describe("Eve GitHub channel boundary", () => {
     const source = await readFile(channelPath, "utf8");
 
     expect(source).toContain("githubChannel({");
-    expect(source).toContain("connectGitHubCredentials");
+    expect(source).toContain("eveGithubCredentials");
     expect(source).toContain("authorizeEveGithubReviewTrigger");
     expect(source).toContain("publishEveGithubReview");
     expect(source).toContain("event: review.event");

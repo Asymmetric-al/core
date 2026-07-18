@@ -4,6 +4,18 @@ export const EVE_ACTION_CATALOG: Record<
   EvePolicyActionId,
   EveActionCatalogEntry
 > = {
+  "engineering.github_operation.write": {
+    actionId: "engineering.github_operation.write",
+    trustZone: "engineering",
+    writeClass: "operational",
+    domain: "production_writes",
+    budgetScopeType: "expensive_feature",
+    budgetScopeId: "github-operator",
+    requestCost: 1,
+    usdMicrosCost: 1_000,
+    inputTokenCost: 100,
+    outputTokenCost: 50,
+  },
   "engineering.review_artifact.write": {
     actionId: "engineering.review_artifact.write",
     trustZone: "engineering",

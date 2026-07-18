@@ -2,7 +2,7 @@
 
 > **Numbering:** `EVE-DESIGN-0013` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
-> This `design.md` uses provisional Eve design label **EVE-DESIGN-0013**, the autonomous-PR-operator-and-work-initiation decision required by
+> This accepted design is promoted to **ADR-0032**, the autonomous-PR-operator-and-work-initiation decision required by
 > issue #431. It builds on **EVE-DESIGN-0005** (#423, `add-eve-approval-budget-policy`), **EVE-DESIGN-0011** (#429,
 > `add-eve-sandbox-engineering-worker`), and **EVE-DESIGN-0012** (#430, `add-eve-github-read-review-path`), and does not
 > restate them — it operationalizes the path in which Eve initiates work issue-first and performs the mutating
@@ -15,7 +15,7 @@
 
 ## Status
 
-Proposed (partner draft for #431). Supersedes nothing. Builds on EVE-DESIGN-0005 (#423), EVE-DESIGN-0011 (#429), and EVE-DESIGN-0012
+Accepted and implemented for #431. Supersedes nothing. Builds on EVE-DESIGN-0005 (#423), EVE-DESIGN-0011 (#429), and EVE-DESIGN-0012
 (#430). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -161,8 +161,8 @@ than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01
 - Existing repo gates remain required and unchanged (`format:check`, `skills:verify`, `lint`,
   `verify:workspace-contract`, `verify:eslint`, `typecheck`, `build`, `test:unit`, plus data-boundary
   verification). [VERIFIED-REPO: docs/ai/rules/general.md]
-- The slice-specific acceptance tests — labels, CI reruns, branch pushes, issue creation, PR creation, and
-  accountability metadata — land with the implementing PR, not this spec/ADR.
+- Slice-specific tests cover the closed operation vocabulary, issue-first rules, labels, CI reruns, safe-fix
+  branches, issue and PR creation, business-data boundaries, policy gating, and accountability metadata.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:546]
 
 ## Consequences
@@ -203,10 +203,8 @@ than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01
 
 ## Out of scope (this change)
 
-The GitHub App code, the work-initiation/issue-opener, the branch/PR creator, the label/CI-rerun caller, the
-safe-fix pusher, the business-data guard implementation, the spec-first enforcement code, strict auto-merge and
-its protected-area block (#432), the accountable-identity implementation (#430), the kill-switch state store
-(#420), the audit-record store (#419), the approval/budget policy (#423), the isolated runtime package (#425),
-the sandbox (#429), the model-policy capability (#421), any Supabase schema or Mission Control UI, and any live
-autonomy — all deferred to later, separately-gated slices.
+Strict auto-merge and its protected-area merge block (#432), Mission Control UI changes, a live production
+model, release enablement, branch-protection bypass, production deployment writes, and business-data writes are
+out of scope. Existing accountable identity (#430), governance (#420), audit (#419), policy (#423), runtime
+(#425), sandbox (#429), and model-policy (#421) boundaries are reused rather than reimplemented.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:241]

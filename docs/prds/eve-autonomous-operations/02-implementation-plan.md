@@ -287,6 +287,12 @@ delivered by issue #430 and ADR-0031.
 
 ### 15. Autonomous PR Operator and Work Initiation
 
+Implementation: the dynamically scoped seven-operation GitHub tool, issue-first
+branch and PR contracts, sandbox-observed safe-fix push path, business-data and
+protected-area guardrails, dedicated hard budget, accountable audit, and
+replay-safe mutations are delivered by issue #431 and ADR-0032. Merge remains
+absent and belongs to #432.
+
 - Type: AFK
 - Blocked by: 7, 13, 14
 - User stories covered: 11, 14, 15, 16, 30, 31

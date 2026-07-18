@@ -1,10 +1,8 @@
 # Proposal: Eve autonomous PR operator and work initiation
 
-**Prepared by the Eve partner fleet for Eve / Asymmetric.**
+**Accepted and implemented for Eve / Asymmetric.**
 
-> **Partner DRAFT for GitHub issue #431 ("Eve: Autonomous PR Operator and Work Initiation").** Staged in the
-> Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
-> OpenSpec workflow after operator/maintainer sign-off. **Builds on #423** (`add-eve-approval-budget-policy`,
+> **Implementation for GitHub issue #431 ("Eve: Autonomous PR Operator and Work Initiation").** Builds on #423 (`add-eve-approval-budget-policy`,
 > EVE-DESIGN-0005), **#429** (`add-eve-sandbox-engineering-worker`, EVE-DESIGN-0011), and **#430**
 > (`add-eve-github-read-review-path`, EVE-DESIGN-0012) — the three slices the implementation plan names as #431's
 > blockers — and stands on #417 (ADR-0018), #418 (ADR-0019), #419 (ADR-0020), #420 (ADR-0021), #421 (ADR-0022),
@@ -95,11 +93,9 @@ on an external surface.
 
 ## What Does Not Change
 
-- This change adds **no GitHub App code, no work-initiation/issue-opener, no branch/PR creator, no label/CI-rerun
-  caller, no safe-fix pusher, and no business-data guard implementation**; it defines the PR-operator and
-  work-initiation capability, its issue-first and engineering-only boundaries, its accountability/policy/audit
-  contract, and its verification boundary while the system stays disabled by default (per #418) and the release
-  switch stays off. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
+- This change implements the issue opener, issue-derived branch and PR creators, label and failed-CI-rerun
+  callers, sandbox-observed safe-fix pusher, PR-state updater, business-data guard, policy/audit control, and
+  accountable GitHub App credential boundary. The release switch stays off.
 - **Strict auto-merge** and its protected-area **block** remain the auto-merge policy's scope (#432, slice 16);
   this path may open and update PRs, it never merges and never bypasses branch protection or required reviews.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:387]
@@ -118,7 +114,8 @@ on an external surface.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:210]
 - No donor PII, payments, secrets, one-time codes, or tenant facts are written to GitHub or enter this path, and
   no broad business-data record is written autonomously — those boundaries are reinforced here, never relaxed. No
-  Supabase schema, Mission Control UI, or provider-client code lands. This change does not bypass GitHub branch
+  Mission Control UI or model-provider client lands. One additive Supabase policy-catalog/budget migration
+  registers the operator action. This change does not bypass GitHub branch
   protection, required reviews, or repository policy. #417's contract, `AGENTS.md`, `openspec/project.md`,
   `openspec/specs/**`, and existing CI gates remain authoritative and unchanged; this change is subordinate to
   them. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:627]
