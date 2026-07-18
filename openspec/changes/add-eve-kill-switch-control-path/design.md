@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0004` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0004**, the kill-switch control-path decision required by issue #420. It
-> builds on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`) and **EVE-DESIGN-0003** (#419,
+> builds on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`) and **ADR-0020** (#419,
 > `add-eve-audit-tracer-bullet`), which both build on **ADR-0018** (#417,
 > `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it operationalizes the granular
 > per-domain kill-switch control path that drives #418's persisted state and emits #419 audit records. When
@@ -14,7 +14,7 @@
 
 ## Status
 
-Proposed (partner draft for #420). Supersedes nothing. Builds on ADR-0019 (#418) and EVE-DESIGN-0003 (#419).
+Proposed (partner draft for #420). Supersedes nothing. Builds on ADR-0019 (#418) and ADR-0020 (#419).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -81,7 +81,7 @@ restrictions — they never relax them. [VERIFIED-REPO: openspec/specs/platform-
 - **#418 (ADR-0019, governance kernel):** owns the release-switch/emergency-off **state**, the single
   consult/abort gate, and observability. #420 drives that state; it does not persist or consult it itself.
   [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
-- **#419 (EVE-DESIGN-0003, audit tracer):** owns the **audit-record shape**. #420 requires that each switch actuation
+- **#419 (ADR-0020, audit tracer):** owns the **audit-record shape**. #420 requires that each switch actuation
   emits one; it does not redefine the record. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#420 (this change):** owns the granular per-domain **control path** — the switch set, admin/external
   actuation, audit emission, and policy-check consumption.

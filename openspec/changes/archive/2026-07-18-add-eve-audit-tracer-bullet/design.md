@@ -1,19 +1,18 @@
-# Design (provisional Eve label EVE-DESIGN-0003): Eve Audit Tracer Bullet
+# Design (ADR-0020): Eve Audit Tracer Bullet
 
-> **Numbering:** `EVE-DESIGN-0003` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
+> **Canonical decision:** Accepted as ADR-0020 by the #419 implementation PR.
 
-> This `design.md` uses provisional Eve design label **EVE-DESIGN-0003**, the audit-record + redacted-package decision required by issue
+> This `design.md` records **ADR-0020**, the audit-record + redacted-package decision required by issue
 > #419. It builds on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`) and **ADR-0019** (#418,
 > `add-eve-governance-kernel-release-switch`) and does not restate them — it defines the rich audit-record
 > shape, the redacted replay/debug package metadata, and the decision-summary contract that those slices
-> assume. When accepted into `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR
-> location (using the next available canonical number per `docs/adr/README.md`). Every grounded claim carries a
+> assume. Its canonical ADR body lives in `docs/adr/0020-eve-audit-tracer.md`. Every grounded claim carries a
 > `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 
 ## Status
 
-Proposed (partner draft for #419). Supersedes nothing. Blocked by #418 (plan slice 2); subordinate to
+Accepted for #419. Supersedes nothing. Builds on #418 (plan slice 2); subordinate to
 ADR-0018 (#417) and ADR-0019 (#418). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -123,5 +122,6 @@ they never relax it. [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
 
 ## Out of scope (this change)
 
-Supabase schema, admin UI, retention/expiry/holds machinery (#424), and any live autonomous behavior — all
-deferred to later, separately-gated slices. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+Retention/expiry/holds machinery (#424), large replay artifact storage, and any live autonomous behavior.
+The implementation includes the narrow schema, tracer, safe inspection event, and admin history surface
+needed to prove the accepted audit contract.

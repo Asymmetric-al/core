@@ -139,6 +139,8 @@
     "./workflows/notification-policy": "./src/workflows/notification-policy.ts",
     "./admin/workflows/summaries": "./src/admin/workflows/summaries.ts",
     "./admin/workflows/notification-policy": "./src/admin/workflows/notification-policy.ts",
+    "./eve/audit": "./src/eve/audit/index.ts",
+    "./eve/audit/types": "./src/eve/audit/types.ts",
     "./eve/governance": "./src/eve/governance/index.ts",
     "./eve/governance/route": "./src/eve/governance/route.ts",
     "./eve/governance/types": "./src/eve/governance/types.ts"

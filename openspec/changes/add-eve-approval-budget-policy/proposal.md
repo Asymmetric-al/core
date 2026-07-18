@@ -5,7 +5,7 @@
 > **Partner DRAFT for GitHub issue #423 ("Eve: Approval and budget policy tracer bullet").** Staged in the
 > Gitea `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through
 > Asymmetric's OpenSpec workflow after operator/maintainer sign-off. **Builds on #418**
-> (`add-eve-governance-kernel-release-switch`, ADR-0019), **#419** (`add-eve-audit-tracer-bullet`, EVE-DESIGN-0003),
+> (`add-eve-governance-kernel-release-switch`, ADR-0019), **#419** (`add-eve-audit-tracer-bullet`, ADR-0020),
 > and **#420** (`add-eve-kill-switch-control-path`, EVE-DESIGN-0004) — it does not restate those contracts. It adds
 > the trust-zone approval policy and the hard-budget policy that the governance kernel's single consult gate
 > consumes, that every kill-switch and policy check reads, and that emits #419 audit records. Every grounded
@@ -59,7 +59,7 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
     app-owned state (never a prompt/model/tool/memory claim), the single #418 consult gate consumes them,
     every decision (allow/deny/pause/override) emits a #419 audit record, and the change grants no new
     autonomy and stays subordinate to #417.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0005** in this change's `design.md`, building on EVE-DESIGN-0004 (#420), EVE-DESIGN-0003
+- Record the decision under provisional Eve design label **EVE-DESIGN-0005** in this change's `design.md`, building on EVE-DESIGN-0004 (#420), ADR-0020
   (#419), and ADR-0019 (#418), which all build on ADR-0018 (#417).
 
 ## What Does Not Change
@@ -91,7 +91,7 @@ sits on top of those boundaries; it adds restrictions and gates, it never relaxe
   (`bunx @fission-ai/openspec@latest validate add-eve-approval-budget-policy --strict`) that makes trust-zone
   approval policy and hard-budget policy a durable, spec-level contract, provable before runtime exists.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0005` for the approval/budget policy, traceable from ADR-0019 (#418), EVE-DESIGN-0003 (#419), and
+- Provisional Eve design decision `EVE-DESIGN-0005` for the approval/budget policy, traceable from ADR-0019 (#418), ADR-0020 (#419), and
   EVE-DESIGN-0004 (#420).
 - A clear boundary: #418 owns the consult gate + state; #419 owns the audit record; #420 owns the
   kill-switch control path; #421 owns model policy; **#423 owns the approval-by-trust-zone rules, the

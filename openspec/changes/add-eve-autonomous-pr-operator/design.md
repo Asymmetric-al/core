@@ -131,7 +131,7 @@ than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01
 - **#418 (ADR-0019, governance kernel):** owns disabled-by-default and emergency-off precedence. #431 stays off
   while the release switch is off and never overrides emergency-off; it does not define the kernel.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
-- **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #431 emits an operation audit record in that shape;
+- **#419 (ADR-0020, audit):** owns the audit-record shape. #431 emits an operation audit record in that shape;
   it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
 - **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state, including "disable GitHub actions." #431 honors
   that switch; it does not persist switch state.

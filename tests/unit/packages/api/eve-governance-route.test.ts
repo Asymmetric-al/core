@@ -7,6 +7,10 @@ const getAuthContextMock = vi.fn();
 const requireRoleMock = vi.fn();
 const createAuditLoggerMock = vi.fn();
 const loadEveGovernanceAdminViewMock = vi.fn();
+const createAdminEveAuditIdentityMock = vi.fn();
+const createEveAuditStoreMock = vi.fn();
+const loadRecentEveAuditEventsMock = vi.fn();
+const traceEveAuditEventMock = vi.fn();
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -26,10 +30,23 @@ vi.mock("../../../../packages/api/src/eve/governance/store", () => ({
   loadEveGovernanceAdminView: loadEveGovernanceAdminViewMock,
 }));
 
-function createRequest(): NextRequest {
-  return new Request(
-    "https://admin.example.test/api/admin/eve/governance",
-  ) as NextRequest;
+vi.mock("../../../../packages/api/src/eve/audit/identity", () => ({
+  createAdminEveAuditIdentity: createAdminEveAuditIdentityMock,
+}));
+
+vi.mock("../../../../packages/api/src/eve/audit/record", () => ({
+  traceEveAuditEvent: traceEveAuditEventMock,
+}));
+
+vi.mock("../../../../packages/api/src/eve/audit/store", () => ({
+  createEveAuditStore: createEveAuditStoreMock,
+  loadRecentEveAuditEvents: loadRecentEveAuditEventsMock,
+}));
+
+function createRequest(method = "GET"): NextRequest {
+  return new Request("https://admin.example.test/api/admin/eve/governance", {
+    method,
+  }) as NextRequest;
 }
 
 describe("Eve governance admin route", () => {
@@ -50,6 +67,10 @@ describe("Eve governance admin route", () => {
       isAuthenticated: true,
     });
     createAuditLoggerMock.mockReturnValue({});
+    createAdminEveAuditIdentityMock.mockReturnValue({ verified: true });
+    createEveAuditStoreMock.mockReturnValue({ append: vi.fn() });
+    traceEveAuditEventMock.mockResolvedValue({});
+    loadRecentEveAuditEventsMock.mockResolvedValue([]);
     loadEveGovernanceAdminViewMock.mockResolvedValue({
       system: {
         source: "persisted",
@@ -78,12 +99,66 @@ describe("Eve governance admin route", () => {
     expect(loadEveGovernanceAdminViewMock).toHaveBeenCalledWith({
       supabaseAdmin: { from: expect.any(Function) },
     });
+    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
+      supabaseAdmin: { from: expect.any(Function) },
+      tenantId: "tenant_1",
+    });
+    expect(traceEveAuditEventMock).not.toHaveBeenCalled();
     expect(await response.json()).toEqual(
       expect.objectContaining({
+        auditHistory: [],
         system: expect.objectContaining({ releaseEnabled: false }),
         recentRuns: [],
         requestId: expect.any(String),
       }),
     );
+  });
+
+  it("loads global audit history for authorized super admins", async () => {
+    getAuthContextMock.mockResolvedValue({
+      userId: "user_1",
+      email: "super-admin@example.com",
+      tenantId: null,
+      role: "super_admin",
+      profileRole: "super_admin",
+      memberships: [],
+      profileId: "profile_1",
+      isAuthenticated: true,
+    });
+    const { GET } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await GET(createRequest());
+
+    expect(response.status).toBe(200);
+    expect(loadRecentEveAuditEventsMock).toHaveBeenCalledWith({
+      supabaseAdmin: { from: expect.any(Function) },
+      tenantId: null,
+    });
+  });
+
+  it("records an explicit safe tracer verification under verified admin identity", async () => {
+    const { POST } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await POST(createRequest("POST"));
+
+    expect(response.status).toBe(201);
+    expect(createAdminEveAuditIdentityMock).toHaveBeenCalledWith(
+      expect.objectContaining({ profileId: "profile_1" }),
+    );
+    expect(traceEveAuditEventMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        event: expect.objectContaining({
+          action: "audit.tracer.verify",
+          identity: { verified: true },
+          result: "succeeded",
+        }),
+      }),
+    );
+    expect(await response.json()).toEqual({
+      auditEvent: {},
+      requestId: expect.any(String),
+    });
   });
 });

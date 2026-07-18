@@ -100,7 +100,7 @@ GPU gateway a proposed, non-default, revocable fallback. [VERIFIED-REPO: docs/pr
 
 - **#417 (ADR-0018, foundation):** owns the autonomy contract and protected-area set at spec level. #429's
   protected-file detection reads that set; it does not define it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #429 emits egress/command audit records in that
+- **#419 (ADR-0020, audit):** owns the audit-record shape. #429 emits egress/command audit records in that
   shape; it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:99]
 - **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state and control path, including the "disable sandbox
   networking" switch. #429 honors that switch; it does not persist switch state.

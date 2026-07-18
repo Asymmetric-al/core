@@ -80,6 +80,9 @@ Parent issue: https://github.com/Asymmetric-al/core/issues/416
 
 ### 3. Audit Tracer Bullet
 
+Canonical decision: [ADR-0020: Persist redacted, accountable Eve action
+records](../../adr/0020-eve-audit-tracer.md).
+
 - Type: AFK
 - Blocked by: 2
 - User stories covered: 5, 6, 7, 8, 32, 33, 34

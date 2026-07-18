@@ -42,7 +42,7 @@ auditability guarantee the whole platform rests on would be unverifiable.
   raw model reasoning), with redaction rules represented in tests; an admin can inspect **audit history and a
   high-quality decision summary** instead of raw model reasoning; and the tracer proves the record path
   end-to-end for **one safe Eve-like action** while granting **no new authority**.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0003** in this change's `design.md`, building on ADR-0018 (#417) and ADR-0019
+- Record the accepted decision as **ADR-0020** in this change's `design.md`, building on ADR-0018 (#417) and ADR-0019
   (#418).
 
 ## What Does Not Change
@@ -61,15 +61,15 @@ auditability guarantee the whole platform rests on would be unverifiable.
 - `AGENTS.md`, `openspec/project.md`, `openspec/specs/**`, `docs/ai/*`, and existing CI gates remain
   authoritative and unchanged; this change is subordinate to them. [VERIFIED-REPO: AGENTS.md]
   [VERIFIED-REPO: openspec/project.md]
-- No Supabase schema, admin UI, or runtime code lands here — those implement this spec in later PRs.
+- The implementation PR lands the service-role-only Supabase schema, reusable redaction/tracing boundary,
+  one safe read-only tracer path, and authorized admin inspection UI required to prove this slice. It adds
+  no autonomous action, retention machinery, or release-gate mutation.
 
 ## Expected Outcome
 
-- A validated OpenSpec change
-  (`bunx @fission-ai/openspec@latest validate add-eve-audit-tracer-bullet --strict`) that makes the rich
-  audit record, the redacted replay/debug package, and the decision-summary contract durable, spec-level
-  requirements every later Eve slice inherits. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0003` for the audit tracer bullet, traceable from ADR-0018 (#417) and ADR-0019 (#418).
+- A validated and archived OpenSpec capability that makes the rich audit record, redacted replay/debug
+  package, and decision-summary contract durable requirements every later Eve slice inherits.
+- Canonical ADR-0020 for the audit tracer bullet, traceable from ADR-0018 (#417) and ADR-0019 (#418).
 - A clear boundary: #419 owns the audit-record **shape**, redacted-package **metadata**, and decision
   summary; #418 owns the governance **state/gate**; #424 owns audit/artifact **retention and holds**.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

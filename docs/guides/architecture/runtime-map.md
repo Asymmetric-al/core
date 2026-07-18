@@ -61,7 +61,7 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                      |
 | admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation              |
 | admin      | `/api/admin/crm/webhooks/twenty`                               | Node.js (no `runtime` segment export) | Twenty HMAC webhook, admin client             |
-| admin      | `/api/admin/eve/governance`                                    | Node.js (no `runtime` segment export) | Eve governance state, admin client            |
+| admin      | `/api/admin/eve/governance`                                    | Node.js (no `runtime` segment export) | Eve governance and audit, admin client        |
 | admin      | `/api/admin/funds`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/locations`                                         | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/activity`                              | Node.js (no `runtime` segment export) | Admin client                                  |

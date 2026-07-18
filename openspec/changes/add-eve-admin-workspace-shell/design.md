@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0009` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0009**, the admin-workspace-shell decision required by issue #427. It is
-> traceable from **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **EVE-DESIGN-0003** (#419,
+> traceable from **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0020** (#419,
 > `add-eve-audit-tracer-bullet`), **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0006** (#421,
 > `add-eve-model-policy-tracer`), **#422** (`add-eve-admin-memory-tracer`), **EVE-DESIGN-0005** (#423,
 > `add-eve-approval-budget-policy`), and **#424** (`add-eve-retention-replay-tracer`), and does not restate
@@ -17,7 +17,7 @@
 
 ## Status
 
-Proposed (partner draft for #427). Supersedes nothing. Traceable from ADR-0019 (#418), EVE-DESIGN-0003 (#419),
+Proposed (partner draft for #427). Supersedes nothing. Traceable from ADR-0019 (#418), ADR-0020 (#419),
 EVE-DESIGN-0004 (#420), EVE-DESIGN-0006 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
@@ -130,7 +130,7 @@ boundary. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-
 - **#418 (ADR-0019, governance kernel):** owns the governance state store and release switch. #427 renders that
   state; it does not define where it persists.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:62]
-- **#419 (EVE-DESIGN-0003, audit tracer):** owns the audit-record shape and content. #427 surfaces an audit view; it
+- **#419 (ADR-0020, audit tracer):** owns the audit-record shape and content. #427 surfaces an audit view; it
   does not define the record. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
 - **#420 (EVE-DESIGN-0004, kill switches):** owns the kill-switch control path and switch semantics. #427 surfaces the
   emergency controls that trigger them; it does not define them.
