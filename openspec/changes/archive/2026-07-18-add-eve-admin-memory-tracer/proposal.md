@@ -1,11 +1,7 @@
 # Proposal: Eve private admin memory tracer bullet
 
-**Prepared by WNG partner fleet for Eve / Asymmetric.**
-
-> **Partner DRAFT for GitHub issue #422.** Staged in Gitea `proposals`; enters `core` only via OpenSpec +
-> PR after code-owner sign-off. Builds on #418 (governance state / release switch) and #419 (audit event
-> shape); does not restate them. Every grounded claim cites `[VERIFIED-REPO: path:line]` against the
-> `develop` PRD at the current tip.
+**Implementation change for GitHub issue #422.** Builds on #418 (governance
+state / release switch) and #419 (audit event shape).
 
 ## Why
 
@@ -46,12 +42,14 @@ makes those a spec-level contract.
   **future-tenant-ready but tenant operational memory stays disabled** until its rules are explicit; and
   memory access and retention **enforce user + tenant ownership** and grant **no autonomy**.
 - Record the decision as an ADR in this change's `design.md`.
+- Implement owner-and-tenant-bound Supabase storage, immutable versions,
+  category auto-save settings, full admin CRUD/search/history controls, and
+  value-free excluded-write audits under ADR-0023.
 
 ## What Does Not Change
 
-- No live memory store, no Supabase schema, no auto-save runtime, no admin UI — those land in later PRs
-  behind the #418 release switch.
-  [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:118]
+- No runtime-context retrieval or autonomous use of memory. Automatic writes
+  remain behind the disabled #418 release switch.
 - Raw secrets / credentials / payments / donor or customer PII / private keys / one-time codes / sensitive
   tenant facts are **never** stored in memory — the exclusion set is a hard boundary, not a redaction pass.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:123]

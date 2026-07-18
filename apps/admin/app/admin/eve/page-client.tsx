@@ -44,6 +44,7 @@ import {
   ShieldCheck,
 } from "lucide-react";
 
+import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
@@ -585,6 +586,7 @@ export default function EveGovernancePage() {
         onSetKillSwitch={setKillSwitch}
       />
       <EveModelPolicyPanel />
+      <EveAdminMemoryPanel />
     </PageShell>
   );
 }
