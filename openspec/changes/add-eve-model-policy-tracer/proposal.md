@@ -5,7 +5,7 @@
 > **Partner DRAFT for GitHub issue #421 ("Eve: Model policy tracer bullet").** Staged in the Gitea
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #417** (`openspec/specs/eve-autonomous-operations/spec.md`,
-> ADR-0018), **#418** (`add-eve-governance-kernel-release-switch`, EVE-DESIGN-0002), **#419**
+> ADR-0018), **#418** (`add-eve-governance-kernel-release-switch`, ADR-0019), **#419**
 > (`add-eve-audit-tracer-bullet`, EVE-DESIGN-0003), and **#420** (`add-eve-kill-switch-control-path`, EVE-DESIGN-0004) —
 > the three slices the implementation plan names as #421's blockers. It does not restate their contracts; it
 > adds the shared model-policy capability whose changes are audited by #419 and whose activation is gated by
@@ -60,7 +60,7 @@ fallbacks"; policy "uses named roles … rather than a single hard-coded model")
   budgets and rate limits** apply per role/subagent/workflow/eval/judge with an audited emergency override;
   **judge models are configured separately from agent models**; and the policy **consumes the #420
   model-policy kill-switch state, is subordinate to #417/#418, and grants no new authority**.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0006** in this change's `design.md`, building on EVE-DESIGN-0002 (#418), EVE-DESIGN-0003
+- Record the decision under provisional Eve design label **EVE-DESIGN-0006** in this change's `design.md`, building on ADR-0019 (#418), EVE-DESIGN-0003
   (#419), and EVE-DESIGN-0004 (#420), all of which build on ADR-0018 (#417).
 
 ## What Does Not Change
@@ -88,7 +88,7 @@ fallbacks"; policy "uses named roles … rather than a single hard-coded model")
   model-policy capability — named roles, Gateway-primary routing, controlled non-default direct-provider
   fallbacks, permissioned eval-gated rollback-capable edits, per-role/subagent budgets, and separate judge
   models — a durable, spec-level contract. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0006` for the model policy, traceable from EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and EVE-DESIGN-0004
+- Provisional Eve design decision `EVE-DESIGN-0006` for the model policy, traceable from ADR-0019 (#418), EVE-DESIGN-0003 (#419), and EVE-DESIGN-0004
   (#420).
 - A clear boundary: #418 owns the release/kill-switch **state**; #419 owns the **audit record**; #420 owns the
   per-domain **control path** (incl. the model-policy switch); #421 owns the **model-policy capability** whose

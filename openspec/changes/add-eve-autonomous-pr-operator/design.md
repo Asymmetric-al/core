@@ -128,7 +128,7 @@ than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01
 - **#417 (ADR-0018, foundation):** owns the autonomy contract and protected-area set at spec level. #431's
   business-data block and protected-area deference read that contract; they do not define it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#418 (EVE-DESIGN-0002, governance kernel):** owns disabled-by-default and emergency-off precedence. #431 stays off
+- **#418 (ADR-0019, governance kernel):** owns disabled-by-default and emergency-off precedence. #431 stays off
   while the release switch is off and never overrides emergency-off; it does not define the kernel.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 - **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #431 emits an operation audit record in that shape;

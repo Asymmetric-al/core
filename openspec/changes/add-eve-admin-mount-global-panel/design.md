@@ -125,7 +125,7 @@ verified. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-
 - **#417 (ADR-0018, foundation):** owns the autonomy contract and the protected-area set at spec level. #428 is
   subordinate to it and exposes governance-safe context within it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:49]
-- **#418 (EVE-DESIGN-0002, governance kernel):** owns the governance state store and release switch, which stays off
+- **#418 (ADR-0019, governance kernel):** owns the governance state store and release switch, which stays off
   until verified. #428 introduces neither; it mounts behind the disabled-by-default posture.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:62]
 - **#425 (EVE-DESIGN-0007, runtime foundation):** owns the standalone Eve runtime, its workspace package, and Node

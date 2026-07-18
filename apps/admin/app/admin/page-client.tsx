@@ -15,6 +15,7 @@ import {
 import { cn } from "@asym/ui/lib/utils";
 import {
   Shield,
+  Bot,
   Globe,
   Key,
   Sparkles,
@@ -28,6 +29,13 @@ import Link from "next/link";
 import React from "react";
 
 const MODULES = [
+  {
+    title: "Eve Governance",
+    desc: "Observe Eve's release gate, emergency state, and policy readiness.",
+    icon: Bot,
+    href: "/mc/admin/eve",
+    action: "View Eve Status",
+  },
   {
     title: "Teams & Users",
     desc: "Manage organizational units, member invites, and global permissions.",

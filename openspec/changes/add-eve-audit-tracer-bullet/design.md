@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0003` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0003**, the audit-record + redacted-package decision required by issue
-> #419. It builds on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`) and **EVE-DESIGN-0002** (#418,
+> #419. It builds on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`) and **ADR-0019** (#418,
 > `add-eve-governance-kernel-release-switch`) and does not restate them — it defines the rich audit-record
 > shape, the redacted replay/debug package metadata, and the decision-summary contract that those slices
 > assume. When accepted into `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR
@@ -14,7 +14,7 @@
 ## Status
 
 Proposed (partner draft for #419). Supersedes nothing. Blocked by #418 (plan slice 2); subordinate to
-ADR-0018 (#417) and EVE-DESIGN-0002 (#418). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+ADR-0018 (#417) and ADR-0019 (#418). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -52,7 +52,7 @@ they never relax it. [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
    under the admin's identity (US-6), background jobs under a service identity with initiator metadata
    (US-7), and GitHub actions under the bot actor plus the accountable human or trigger (US-8). The recorded
    identity mode matches the identity the #417 auth boundary resolved and is not selectable by prompt or tool
-   input — the same non-bypass rule EVE-DESIGN-0002 applies to the release switch.
+   input — the same non-bypass rule ADR-0019 applies to the release switch.
    [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
 3. **Redaction by construction: metadata in, unsafe raw data out.** The replay/debug package carries redacted
    metadata and an evidence summary only and never stores payment data, secrets, one-time codes, tenant PII,
@@ -75,7 +75,7 @@ they never relax it. [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
 - **#417 (ADR-0018, foundation):** owns identity resolution, tenant isolation, protected areas, and the
   governance data model at spec level. #419 records the identity mode it resolves; it does not define
   identity resolution. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
-- **#418 (EVE-DESIGN-0002, governance kernel):** owns the release-switch/emergency-off state and the consult/abort
+- **#418 (ADR-0019, governance kernel):** owns the release-switch/emergency-off state and the consult/abort
   gate, persisting run summaries and policy status. #419 adds the per-action audit record that gated actions
   emit into that same app-owned store. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 - **#419 (this change):** owns the rich audit-record shape, the redacted replay/debug package metadata, and

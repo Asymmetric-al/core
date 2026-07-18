@@ -528,6 +528,11 @@ on together, rather than shipping as a toy foundation first.
   [ADR-0018: Govern Eve autonomy behind one disabled-by-default release
   gate](../../adr/0018-governed-eve-autonomy.md).
 
+- The release gate, emergency precedence, mandatory consult behavior, and
+  no-new-authority boundary are defined by
+  [ADR-0019: Gate Eve autonomy through one app-owned governance
+  kernel](../../adr/0019-eve-governance-kernel.md).
+
 ## Testing Decisions
 
 - Tests should verify external behavior and policy outcomes, not private helper

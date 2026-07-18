@@ -4,7 +4,7 @@
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0005**, the approval/budget-policy decision required by issue #423. It
 > builds on **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0003** (#419,
-> `add-eve-audit-tracer-bullet`), and **EVE-DESIGN-0002** (#418, `add-eve-governance-kernel-release-switch`), which
+> `add-eve-audit-tracer-bullet`), and **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), which
 > all build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them —
 > it operationalizes the trust-zone approval policy and hard-budget policy that #418's single consult gate
 > evaluates and that emit #419 audit records. **The provisional label follows authoring order:** #421 and #422 ADRs are not
@@ -16,13 +16,13 @@
 
 ## Status
 
-Proposed (partner draft for #423). Supersedes nothing. Builds on EVE-DESIGN-0002 (#418), EVE-DESIGN-0003 (#419), and
+Proposed (partner draft for #423). Supersedes nothing. Builds on ADR-0019 (#418), EVE-DESIGN-0003 (#419), and
 EVE-DESIGN-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
 
-EVE-DESIGN-0002 established the governance kernel's single consult gate and the disabled-by-default
+ADR-0019 established the governance kernel's single consult gate and the disabled-by-default
 release-switch/emergency-off **state**, but the _content_ of the policy that gate evaluates — which trust
 zone an action belongs to, which write class it is, and whether budget remains — was deferred to later
 slices. #423 is the slice that supplies that content. The PRD requires it directly: US-29 wants "separate
@@ -80,7 +80,7 @@ this policy sits on top of those boundaries and only tightens them.
 
 - **#417 (ADR-0018, foundation):** owns the autonomy contract, protected-area set, and governance data model
   at spec level. #423 is subordinate to it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
-- **#418 (EVE-DESIGN-0002, governance kernel):** owns the single consult gate and the release-switch/emergency-off
+- **#418 (ADR-0019, governance kernel):** owns the single consult gate and the release-switch/emergency-off
   **state**. #423 supplies the policy _content_ the gate evaluates; it does not own the gate.
   [VERIFIED-REPO: openspec/specs/eve-autonomous-operations/spec.md]
 - **#419 (EVE-DESIGN-0003, audit tracer):** owns the **audit-record shape**. #423 requires that each policy/budget

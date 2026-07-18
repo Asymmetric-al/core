@@ -66,6 +66,9 @@ Parent issue: https://github.com/Asymmetric-al/core/issues/416
 
 - Type: AFK
 - Blocked by: 1
+- Architecture decision:
+  [ADR-0019: Gate Eve autonomy through one app-owned governance
+  kernel](../../adr/0019-eve-governance-kernel.md)
 - User stories covered: 25, 26, 35, 65, 70
 - What it proves: the platform can persist and display Eve system state while
   Eve remains disabled by default.
