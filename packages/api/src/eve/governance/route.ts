@@ -9,11 +9,14 @@ import { traceEveAuditEvent } from "../audit/record";
 import { createEveAuditStore, loadRecentEveAuditEvents } from "../audit/store";
 
 export const GET = withOperation(
-  async ({ supabaseAdmin, requestId }) => {
+  async ({ auth, supabaseAdmin, requestId }) => {
     try {
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents({ supabaseAdmin }),
+        loadRecentEveAuditEvents({
+          supabaseAdmin,
+          tenantId: auth.role === "super_admin" ? null : auth.tenantId,
+        }),
       ]);
       return NextResponse.json({ ...governance, auditHistory, requestId });
     } catch (error) {
