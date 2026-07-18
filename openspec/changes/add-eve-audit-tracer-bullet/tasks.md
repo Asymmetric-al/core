@@ -14,7 +14,7 @@ grounded in [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementatio
 
 ## 2. Record the provisional Eve design decision EVE-DESIGN-0003 (audit tracer bullet)
 
-- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0003 in this change's `design.md`, traceable from ADR-0018 (#417) and EVE-DESIGN-0002 (#418)
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0003 in this change's `design.md`, traceable from ADR-0018 (#417) and ADR-0019 (#418)
 - [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
 - [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #419
 

@@ -121,7 +121,7 @@ rather than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operat
 - **#417 (ADR-0018, foundation):** owns the autonomy contract and the protected-area set at spec level. #432
   reads that set to block auto-merge; it does not define it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#418 (EVE-DESIGN-0002, governance kernel):** owns disabled-by-default and emergency-off precedence. #432 stays off
+- **#418 (ADR-0019, governance kernel):** owns disabled-by-default and emergency-off precedence. #432 stays off
   while the release switch is off and never overrides emergency-off; it does not define the kernel.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 - **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #432 emits a merge-decision audit record in that

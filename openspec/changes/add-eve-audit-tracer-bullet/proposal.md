@@ -42,7 +42,7 @@ auditability guarantee the whole platform rests on would be unverifiable.
   raw model reasoning), with redaction rules represented in tests; an admin can inspect **audit history and a
   high-quality decision summary** instead of raw model reasoning; and the tracer proves the record path
   end-to-end for **one safe Eve-like action** while granting **no new authority**.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0003** in this change's `design.md`, building on ADR-0018 (#417) and EVE-DESIGN-0002
+- Record the decision under provisional Eve design label **EVE-DESIGN-0003** in this change's `design.md`, building on ADR-0018 (#417) and ADR-0019
   (#418).
 
 ## What Does Not Change
@@ -69,7 +69,7 @@ auditability guarantee the whole platform rests on would be unverifiable.
   (`bunx @fission-ai/openspec@latest validate add-eve-audit-tracer-bullet --strict`) that makes the rich
   audit record, the redacted replay/debug package, and the decision-summary contract durable, spec-level
   requirements every later Eve slice inherits. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0003` for the audit tracer bullet, traceable from ADR-0018 (#417) and EVE-DESIGN-0002 (#418).
+- Provisional Eve design decision `EVE-DESIGN-0003` for the audit tracer bullet, traceable from ADR-0018 (#417) and ADR-0019 (#418).
 - A clear boundary: #419 owns the audit-record **shape**, redacted-package **metadata**, and decision
   summary; #418 owns the governance **state/gate**; #424 owns audit/artifact **retention and holds**.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

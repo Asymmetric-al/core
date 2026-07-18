@@ -6,7 +6,7 @@ reserved in advance.
 
 An OpenSpec `design.md` may describe a proposed decision while a change is
 active, but it is not a canonical platform ADR merely because its heading uses
-a design label. Cross-change labels such as `EVE-DESIGN-0002` are namespaced
+a design label. Cross-change labels such as `EVE-DESIGN-####` are namespaced
 planning references only; they do not reserve a canonical ADR number. When an
 active design is promoted into this directory, the implementing PR must:
 

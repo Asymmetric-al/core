@@ -138,7 +138,10 @@
     "./workflows/summaries": "./src/workflows/summaries.ts",
     "./workflows/notification-policy": "./src/workflows/notification-policy.ts",
     "./admin/workflows/summaries": "./src/admin/workflows/summaries.ts",
-    "./admin/workflows/notification-policy": "./src/admin/workflows/notification-policy.ts"
+    "./admin/workflows/notification-policy": "./src/admin/workflows/notification-policy.ts",
+    "./eve/governance": "./src/eve/governance/index.ts",
+    "./eve/governance/route": "./src/eve/governance/route.ts",
+    "./eve/governance/types": "./src/eve/governance/types.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
