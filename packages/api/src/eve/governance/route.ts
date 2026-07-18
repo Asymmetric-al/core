@@ -126,5 +126,5 @@ export const PATCH = withOperation(
       );
     }
   },
-  { roles: ["admin", "super_admin"] },
+  { roles: ["super_admin"] },
 );
