@@ -533,6 +533,11 @@ on together, rather than shipping as a toy foundation first.
   [ADR-0019: Gate Eve autonomy through one app-owned governance
   kernel](../../adr/0019-eve-governance-kernel.md).
 
+- The accountable audit record, pre-persistence redaction, decision-summary,
+  and admin inspection contract are defined by
+  [ADR-0020: Persist redacted, accountable Eve action
+  records](../../adr/0020-eve-audit-tracer.md).
+
 ## Testing Decisions
 
 - Tests should verify external behavior and policy outcomes, not private helper

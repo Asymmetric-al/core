@@ -3,11 +3,12 @@
 import { cleanup, render } from "@testing-library/react";
 import { afterEach, beforeAll, describe, expect, it } from "vitest";
 
+import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
 import type { EveGovernanceAdminView } from "@asym/api/eve/governance/types";
 import type { ComponentType } from "react";
 
 type EveGovernanceViewComponent = ComponentType<{
-  data?: EveGovernanceAdminView;
+  data?: EveGovernanceAdminView & { auditHistory: EveAuditEventRecord[] };
   errorMessage?: string;
   isError: boolean;
   isLoading: boolean;
@@ -37,6 +38,7 @@ describe("Eve governance admin view", () => {
             stateVersion: 1,
             updatedAt: "2026-07-17T00:00:00.000Z",
           },
+          auditHistory: [],
           recentRuns: [],
         }}
         isError={false}
@@ -65,6 +67,7 @@ describe("Eve governance admin view", () => {
             stateVersion: 1,
             updatedAt: "2026-07-17T00:00:00.000Z",
           },
+          auditHistory: [],
           recentRuns: [],
         }}
         isError={false}
@@ -89,6 +92,7 @@ describe("Eve governance admin view", () => {
             stateVersion: 1,
             updatedAt: "1970-01-01T00:00:00.000Z",
           },
+          auditHistory: [],
           recentRuns: [],
         }}
         isError={false}
@@ -98,5 +102,57 @@ describe("Eve governance admin view", () => {
 
     expect(view.getByText("Governance state is missing")).toBeTruthy();
     expect(view.getByText(/kernel is fail-closed/i)).toBeTruthy();
+  });
+
+  it("shows redacted audit history and a decision summary", () => {
+    const view = render(
+      <EveGovernanceView
+        data={{
+          system: {
+            source: "persisted",
+            releaseEnabled: false,
+            emergencyOff: false,
+            killSwitchState: {},
+            policyStatus: "not_configured",
+            stateVersion: 1,
+            updatedAt: "2026-07-17T00:00:00.000Z",
+          },
+          recentRuns: [],
+          auditHistory: [
+            {
+              id: "00000000-0000-4000-8000-000000000001",
+              actorId: "verified-admin",
+              actorProfileId: "00000000-0000-4000-8000-000000000002",
+              actorRole: "admin",
+              tenantId: "00000000-0000-4000-8000-000000000003",
+              identityMode: "admin",
+              initiatorType: "authenticated_admin",
+              initiatorId: "verified-admin",
+              policyId: "eve-governance-kernel",
+              policyStatus: "not_configured",
+              governanceStateVersion: 1,
+              action: "governance.inspect",
+              target: "eve:global",
+              result: "succeeded",
+              modelRole: "not_used",
+              evidenceSummary: '{"releaseEnabled":false}',
+              changeSummary: '{"stateChanged":false}',
+              decisionSummary:
+                "governance.inspect succeeded. Rationale: Authorized inspection.",
+              debugMetadata: { requestId: "request-1" },
+              redactionVersion: "eve-audit-v1",
+              createdAt: "2026-07-17T00:00:00.000Z",
+            },
+          ],
+        }}
+        isError={false}
+        isLoading={false}
+      />,
+    );
+
+    expect(view.getByText("Audit history")).toBeTruthy();
+    expect(view.getByText("governance.inspect")).toBeTruthy();
+    expect(view.getAllByText(/verified-admin/)).toHaveLength(2);
+    expect(view.queryByText(/raw model reasoning contents/i)).toBeNull();
   });
 });

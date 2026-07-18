@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0012` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0012**, the GitHub-read-and-review-path decision required by issue #430. It
-> builds on **EVE-DESIGN-0003** (#419, `add-eve-audit-tracer-bullet`), **EVE-DESIGN-0005** (#423,
+> builds on **ADR-0020** (#419, `add-eve-audit-tracer-bullet`), **EVE-DESIGN-0005** (#423,
 > `add-eve-approval-budget-policy`), **EVE-DESIGN-0007** (#425, `add-eve-runtime-foundation`), and **EVE-DESIGN-0011** (#429,
 > `add-eve-sandbox-engineering-worker`), and does not restate them — it operationalizes the path in which Eve
 > responds to a GitHub PR trigger by reviewing and posting a summary plus inline findings through an accountable
@@ -15,7 +15,7 @@
 
 ## Status
 
-Proposed (partner draft for #430). Supersedes nothing. Builds on EVE-DESIGN-0003 (#419), EVE-DESIGN-0005 (#423), EVE-DESIGN-0007
+Proposed (partner draft for #430). Supersedes nothing. Builds on ADR-0020 (#419), EVE-DESIGN-0005 (#423), EVE-DESIGN-0007
 (#425), and EVE-DESIGN-0011 (#429). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -115,7 +115,7 @@ non-default, revocable route rather than a hardcoded default.
 - **#417 (ADR-0018, foundation):** owns the autonomy contract and protected-area set at spec level. #430's
   protected-area detection reads that set to surface it in review; it does not define it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
-- **#419 (EVE-DESIGN-0003, audit):** owns the audit-record shape. #430 emits review-action audit records in that shape;
+- **#419 (ADR-0020, audit):** owns the audit-record shape. #430 emits review-action audit records in that shape;
   it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
 - **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state, including the "disable GitHub actions" switch.
   #430 honors that switch; it does not persist switch state.

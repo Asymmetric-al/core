@@ -16,11 +16,23 @@ import {
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Bot, Power, ShieldCheck } from "lucide-react";
+import {
+  AlertTriangle,
+  Bot,
+  FileSearch,
+  History,
+  Power,
+  ShieldCheck,
+} from "lucide-react";
 
+import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
 import type { EveGovernanceAdminView } from "@asym/api/eve/governance/types";
 
-interface EveGovernanceResponse extends EveGovernanceAdminView {
+export interface EveGovernancePageData extends EveGovernanceAdminView {
+  auditHistory: EveAuditEventRecord[];
+}
+
+interface EveGovernanceResponse extends EveGovernancePageData {
   requestId: string;
 }
 
@@ -43,6 +55,13 @@ async function loadEveGovernance(): Promise<EveGovernanceResponse> {
 function formatPolicyStatus(status: string): string {
   const phrase = status.split("_").join(" ");
   return `${phrase.charAt(0).toUpperCase()}${phrase.slice(1)}`;
+}
+
+function formatTimestamp(timestamp: string): string {
+  return new Intl.DateTimeFormat(undefined, {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(timestamp));
 }
 
 function StatusCard({
@@ -80,7 +99,7 @@ export function EveGovernanceView({
   isError,
   isLoading,
 }: {
-  data?: EveGovernanceAdminView;
+  data?: EveGovernancePageData;
   errorMessage?: string;
   isError: boolean;
   isLoading: boolean;
@@ -212,6 +231,109 @@ export function EveGovernanceView({
           )}
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History aria-hidden="true" className="size-5" />
+            Audit history
+          </CardTitle>
+          <CardDescription>
+            App-owned action records with decision summaries and redacted replay
+            metadata. Raw prompts and hidden model reasoning are never stored
+            here.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          {data.auditHistory.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No Eve audit events have been recorded.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {data.auditHistory.map((event) => (
+                <li key={event.id} className="py-4">
+                  <details className="group">
+                    <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-3 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-ring">
+                      <div className="min-w-0">
+                        <p className="flex items-center gap-2 text-sm font-medium text-foreground">
+                          <FileSearch
+                            aria-hidden="true"
+                            className="size-4 shrink-0"
+                          />
+                          {event.action}
+                        </p>
+                        <p className="mt-1 text-xs text-muted-foreground">
+                          {event.actorId} · {event.identityMode} ·{" "}
+                          {formatTimestamp(event.createdAt)}
+                        </p>
+                      </div>
+                      <Badge
+                        variant={
+                          event.result === "failed" ||
+                          event.result === "blocked"
+                            ? "destructive"
+                            : "secondary"
+                        }
+                      >
+                        {event.result}
+                      </Badge>
+                    </summary>
+                    <div className="mt-4 grid gap-4 rounded-lg border border-border bg-muted/25 p-4 text-sm md:grid-cols-2">
+                      <div className="space-y-1 md:col-span-2">
+                        <p className="font-medium text-foreground">
+                          Decision summary
+                        </p>
+                        <p className="text-muted-foreground">
+                          {event.decisionSummary}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">Evidence</p>
+                        <p className="break-words text-muted-foreground">
+                          {event.evidenceSummary}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="font-medium text-foreground">Change</p>
+                        <p className="break-words text-muted-foreground">
+                          {event.changeSummary}
+                        </p>
+                      </div>
+                      <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-1 text-xs md:col-span-2">
+                        <dt className="text-muted-foreground">Target</dt>
+                        <dd>{event.target ?? "No external target"}</dd>
+                        <dt className="text-muted-foreground">Initiator</dt>
+                        <dd>
+                          {event.initiatorType}: {event.initiatorId}
+                        </dd>
+                        <dt className="text-muted-foreground">Policy</dt>
+                        <dd>
+                          {event.policyId} ({event.policyStatus})
+                        </dd>
+                        <dt className="text-muted-foreground">Model role</dt>
+                        <dd>{event.modelRole}</dd>
+                        <dt className="text-muted-foreground">
+                          Redaction contract
+                        </dt>
+                        <dd>{event.redactionVersion}</dd>
+                      </dl>
+                      <div className="space-y-1 md:col-span-2">
+                        <p className="font-medium text-foreground">
+                          Redacted debug metadata
+                        </p>
+                        <pre className="overflow-x-auto rounded-md bg-background p-3 text-xs text-muted-foreground">
+                          {JSON.stringify(event.debugMetadata, null, 2)}
+                        </pre>
+                      </div>
+                    </div>
+                  </details>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -222,6 +344,7 @@ export default function EveGovernancePage() {
     queryFn: loadEveGovernance,
     staleTime: 15_000,
     gcTime: 5 * 60_000,
+    refetchInterval: 15_000,
     refetchOnWindowFocus: false,
     retry: false,
   });

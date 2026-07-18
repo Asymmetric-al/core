@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0006` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0006**, the shared-model-policy decision required by issue #421. It builds
-> on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **EVE-DESIGN-0003** (#419,
+> on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0020** (#419,
 > `add-eve-audit-tracer-bullet`), and **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), all of which
 > build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it
 > operationalizes the shared model-policy capability whose changes the #420 kill switch can revoke and whose
@@ -14,7 +14,7 @@
 
 ## Status
 
-Proposed (partner draft for #421). Supersedes nothing. Builds on ADR-0019 (#418), EVE-DESIGN-0003 (#419), and
+Proposed (partner draft for #421). Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), and
 EVE-DESIGN-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -96,7 +96,7 @@ constraint mandates. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-
 - **#418 (ADR-0019, governance kernel):** owns the release/kill-switch **state** and the single consult gate.
   #421 consumes the model-policy switch state; it does not persist or own it.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:465]
-- **#419 (EVE-DESIGN-0003, audit tracer):** owns the **audit-record shape**. #421 requires that each policy
+- **#419 (ADR-0020, audit tracer):** owns the **audit-record shape**. #421 requires that each policy
   draft/activation/rollback/override emits one; it does not redefine the record.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:84]
 - **#420 (EVE-DESIGN-0004, kill-switch):** owns the **model-policy-changes switch** as one of its per-domain controls.
