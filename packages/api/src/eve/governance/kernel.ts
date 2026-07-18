@@ -3,6 +3,7 @@ import type {
   EveGovernanceDecisionRecord,
   EveGovernanceSnapshot,
   EveGovernanceStore,
+  EveAutonomousDomain,
 } from "./types";
 
 export type EveGovernanceEvaluation =
@@ -11,6 +12,7 @@ export type EveGovernanceEvaluation =
 
 export function evaluateEveGovernance(
   snapshot: EveGovernanceSnapshot,
+  input: { domain: EveAutonomousDomain; approvalGranted?: boolean },
 ): EveGovernanceEvaluation {
   if (snapshot.emergencyOff) {
     return { allowed: false, reason: "emergency_off" };
@@ -22,6 +24,17 @@ export function evaluateEveGovernance(
 
   if (snapshot.killSwitchState.all_automation === true) {
     return { allowed: false, reason: "kill_switch_active" };
+  }
+
+  if (snapshot.killSwitchState[input.domain] === true) {
+    return { allowed: false, reason: "kill_switch_active" };
+  }
+
+  if (
+    snapshot.killSwitchState.force_approval === true &&
+    input.approvalGranted !== true
+  ) {
+    return { allowed: false, reason: "approval_required" };
   }
 
   if (snapshot.policyStatus !== "ready") {
@@ -46,6 +59,8 @@ async function tryRecordBlockedDecision(
 
 export async function runGovernedEveAction<Value>(input: {
   action: string;
+  domain: EveAutonomousDomain;
+  approvalGranted?: boolean;
   target?: string;
   store: EveGovernanceStore;
   effect: () => Promise<Value> | Value;
@@ -80,7 +95,10 @@ export async function runGovernedEveAction<Value>(input: {
     return { executed: false, reason: "governance_unavailable" };
   }
 
-  const evaluation = evaluateEveGovernance(snapshot);
+  const evaluation = evaluateEveGovernance(snapshot, {
+    domain: input.domain,
+    approvalGranted: input.approvalGranted,
+  });
   if (!evaluation.allowed) {
     await tryRecordBlockedDecision(input.store, {
       id: runId,

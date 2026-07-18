@@ -1,20 +1,17 @@
-# Design (provisional Eve label EVE-DESIGN-0004): Eve Kill-Switch Control Path
+# Design (ADR-0021): Eve Kill-Switch Control Path
 
-> **Numbering:** `EVE-DESIGN-0004` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
-
-> This `design.md` uses provisional Eve design label **EVE-DESIGN-0004**, the kill-switch control-path decision required by issue #420. It
+> This `design.md` records canonical **ADR-0021**, the accepted kill-switch control-path decision for issue #420. It
 > builds on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`) and **ADR-0020** (#419,
 > `add-eve-audit-tracer-bullet`), which both build on **ADR-0018** (#417,
 > `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it operationalizes the granular
-> per-domain kill-switch control path that drives #418's persisted state and emits #419 audit records. When
-> accepted into `Asymmetric-al/core`, its ADR body should also be landed at the repo's ADR location (same
-> convention chosen for ADR-0018). Every grounded claim carries a `[VERIFIED-REPO: path]` citation read from
+> per-domain kill-switch control path that drives #418's persisted state and emits #419 audit records.
+> Its canonical ADR body is `docs/adr/0021-eve-kill-switch-control.md`. Every grounded claim carries a `[VERIFIED-REPO: path]` citation read from
 > `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 
 ## Status
 
-Proposed (partner draft for #420). Supersedes nothing. Builds on ADR-0019 (#418) and ADR-0020 (#419).
+Accepted and implemented for #420. Supersedes nothing. Builds on ADR-0019 (#418) and ADR-0020 (#419).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -126,6 +123,7 @@ restrictions — they never relax them. [VERIFIED-REPO: openspec/specs/platform-
 
 ## Out of scope (this change)
 
-Supabase schema, admin UI, the governance-kernel state store (#418), the audit-record implementation (#419),
-the model-policy capability (#421), and any live autonomous behavior — all deferred to later,
-separately-gated slices. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+The governance-kernel state store (#418), the audit-record shape (#419), the model-policy capability (#421),
+and any live autonomous behavior. This slice adds only the explicit switch-state shape, atomic control RPC,
+admin actuation surface, audit emission, and policy-check consumption.
+[VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

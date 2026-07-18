@@ -1,12 +1,30 @@
 "use client";
 
+import {
+  EVE_KILL_SWITCH_KEYS,
+  type EveGovernanceAdminView,
+  type EveKillSwitchKey,
+  type EveKillSwitchMutationResult,
+} from "@asym/api/eve/governance/types";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import {
   Alert,
   AlertDescription,
   AlertTitle,
 } from "@asym/ui/components/shadcn/alert";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@asym/ui/components/shadcn/alert-dialog";
 import { Badge } from "@asym/ui/components/shadcn/badge";
+import { Button } from "@asym/ui/components/shadcn/button";
 import {
   Card,
   CardContent,
@@ -15,18 +33,18 @@ import {
   CardTitle,
 } from "@asym/ui/components/shadcn/card";
 import { Skeleton } from "@asym/ui/components/shadcn/skeleton";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
   Bot,
   FileSearch,
   History,
   Power,
+  ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
-import type { EveGovernanceAdminView } from "@asym/api/eve/governance/types";
 
 export interface EveGovernancePageData extends EveGovernanceAdminView {
   auditHistory: EveAuditEventRecord[];
@@ -35,6 +53,50 @@ export interface EveGovernancePageData extends EveGovernanceAdminView {
 interface EveGovernanceResponse extends EveGovernancePageData {
   requestId: string;
 }
+
+interface EveKillSwitchResponse extends EveGovernanceResponse {
+  mutation: EveKillSwitchMutationResult;
+}
+
+const EVE_GOVERNANCE_QUERY_KEY = ["admin", "eve", "governance"] as const;
+
+const KILL_SWITCH_COPY: Record<
+  EveKillSwitchKey,
+  { label: string; description: string }
+> = {
+  all_automation: {
+    label: "All automation",
+    description: "Master pause for every autonomous Eve domain.",
+  },
+  active_runs: {
+    label: "Active runs",
+    description: "Stops in-flight or continuing governed work.",
+  },
+  github_actions: {
+    label: "GitHub actions",
+    description: "Blocks reviews, comments, labels, pushes, and merges.",
+  },
+  production_writes: {
+    label: "Production writes",
+    description: "Blocks all governed production mutations.",
+  },
+  sandbox_networking: {
+    label: "Sandbox networking",
+    description: "Blocks network egress from engineering sandboxes.",
+  },
+  dynamic_workflows: {
+    label: "Dynamic workflows",
+    description: "Blocks generated or runtime-selected workflows.",
+  },
+  model_policy_changes: {
+    label: "Model-policy changes",
+    description: "Blocks activation or rollback of model policy.",
+  },
+  force_approval: {
+    label: "Force approval",
+    description: "Requires explicit human approval for every action.",
+  },
+};
 
 async function loadEveGovernance(): Promise<EveGovernanceResponse> {
   const response = await fetch("/api/admin/eve/governance", {
@@ -50,6 +112,35 @@ async function loadEveGovernance(): Promise<EveGovernanceResponse> {
   }
 
   return (await response.json()) as EveGovernanceResponse;
+}
+
+async function updateEveKillSwitch(input: {
+  switchKey: EveKillSwitchKey;
+  enabled: boolean;
+  expectedStateVersion: number;
+}): Promise<EveKillSwitchResponse> {
+  const label = KILL_SWITCH_COPY[input.switchKey].label;
+  const response = await fetch("/api/admin/eve/governance", {
+    method: "PATCH",
+    credentials: "same-origin",
+    headers: {
+      accept: "application/json",
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      ...input,
+      reason: `${input.enabled ? "Engage" : "Clear"} ${label} from Eve Governance.`,
+    }),
+  });
+
+  if (!response.ok) {
+    const body = (await response.json().catch(() => null)) as {
+      error?: string;
+    } | null;
+    throw new Error(body?.error ?? "Could not update the Eve kill switch.");
+  }
+
+  return (await response.json()) as EveKillSwitchResponse;
 }
 
 function formatPolicyStatus(status: string): string {
@@ -93,16 +184,84 @@ function StatusCard({
   );
 }
 
+function KillSwitchControl({
+  disabled,
+  enabled,
+  isPending,
+  onSet,
+  switchKey,
+}: {
+  disabled: boolean;
+  enabled: boolean;
+  isPending: boolean;
+  onSet: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
+  switchKey: EveKillSwitchKey;
+}) {
+  const copy = KILL_SWITCH_COPY[switchKey];
+  const nextEnabled = !enabled;
+
+  return (
+    <li className="flex flex-wrap items-center justify-between gap-4 py-4">
+      <div className="min-w-0 flex-1">
+        <div className="flex items-center gap-2">
+          <p className="text-sm font-medium text-foreground">{copy.label}</p>
+          <Badge variant={enabled ? "destructive" : "outline"}>
+            {enabled ? "Engaged" : "Clear"}
+          </Badge>
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">{copy.description}</p>
+      </div>
+      <AlertDialog>
+        <AlertDialogTrigger
+          disabled={disabled}
+          render={
+            <Button size="sm" variant={enabled ? "destructive" : "outline"}>
+              {isPending ? "Updating…" : enabled ? "Clear" : "Engage"}
+            </Button>
+          }
+        />
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {nextEnabled ? "Engage" : "Clear"} {copy.label}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {nextEnabled
+                ? `${copy.description} The change takes effect for the next policy check and is permanently audited.`
+                : "Clearing this switch removes only this restriction. It does not enable Eve, bypass policy, or grant authority."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              variant={nextEnabled ? "default" : "destructive"}
+              onClick={() => onSet(switchKey, nextEnabled)}
+            >
+              Confirm {nextEnabled ? "engage" : "clear"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </li>
+  );
+}
+
 export function EveGovernanceView({
   data,
   errorMessage,
   isError,
   isLoading,
+  mutationError,
+  mutationPendingKey,
+  onSetKillSwitch,
 }: {
   data?: EveGovernancePageData;
   errorMessage?: string;
   isError: boolean;
   isLoading: boolean;
+  mutationError?: string;
+  mutationPendingKey?: EveKillSwitchKey;
+  onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
 }) {
   if (isLoading) {
     return (
@@ -186,6 +345,41 @@ export function EveGovernanceView({
           warning={system.policyStatus !== "ready"}
         />
       </div>
+
+      {mutationError ? (
+        <Alert variant="destructive">
+          <AlertTriangle aria-hidden="true" className="size-4" />
+          <AlertTitle>Kill-switch update failed</AlertTitle>
+          <AlertDescription>{mutationError}</AlertDescription>
+        </Alert>
+      ) : null}
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldAlert aria-hidden="true" className="size-5" />
+            Kill-switch controls
+          </CardTitle>
+          <CardDescription>
+            Every change is atomic, attributed to your verified admin identity,
+            and recorded in audit history. Clearing a switch never enables Eve.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <ul className="divide-y divide-border">
+            {EVE_KILL_SWITCH_KEYS.map((switchKey) => (
+              <KillSwitchControl
+                key={switchKey}
+                switchKey={switchKey}
+                disabled={mutationPendingKey !== undefined}
+                enabled={system.killSwitchState[switchKey]}
+                isPending={mutationPendingKey === switchKey}
+                onSet={onSetKillSwitch ?? (() => undefined)}
+              />
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardHeader>
@@ -339,8 +533,9 @@ export function EveGovernanceView({
 }
 
 export default function EveGovernancePage() {
+  const queryClient = useQueryClient();
   const query = useQuery({
-    queryKey: ["admin", "eve", "governance"],
+    queryKey: EVE_GOVERNANCE_QUERY_KEY,
     queryFn: loadEveGovernance,
     staleTime: 15_000,
     gcTime: 5 * 60_000,
@@ -348,6 +543,21 @@ export default function EveGovernancePage() {
     refetchOnWindowFocus: false,
     retry: false,
   });
+  const mutation = useMutation({
+    mutationFn: updateEveKillSwitch,
+    onSuccess(data) {
+      queryClient.setQueryData(EVE_GOVERNANCE_QUERY_KEY, data);
+    },
+  });
+
+  const setKillSwitch = (switchKey: EveKillSwitchKey, enabled: boolean) => {
+    const expectedStateVersion = query.data?.system.stateVersion;
+    if (!expectedStateVersion) {
+      return;
+    }
+
+    mutation.mutate({ switchKey, enabled, expectedStateVersion });
+  };
 
   return (
     <PageShell
@@ -357,7 +567,7 @@ export default function EveGovernancePage() {
       actions={
         <Badge variant="outline" className="gap-1.5">
           <Power aria-hidden="true" className="size-3.5" />
-          Read-only in this slice
+          Controls audited
         </Badge>
       }
     >
@@ -366,6 +576,11 @@ export default function EveGovernancePage() {
         errorMessage={query.error?.message}
         isError={query.isError}
         isLoading={query.isLoading}
+        mutationError={mutation.error?.message}
+        mutationPendingKey={
+          mutation.isPending ? mutation.variables?.switchKey : undefined
+        }
+        onSetKillSwitch={setKillSwitch}
       />
     </PageShell>
   );

@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0011` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0011**, the sandbox-engineering-worker decision required by issue #429. It
-> builds on **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0005** (#423,
+> builds on **ADR-0021** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0005** (#423,
 > `add-eve-approval-budget-policy`), and **EVE-DESIGN-0007** (#425, `add-eve-runtime-foundation`), and does not
 > restate them — it operationalizes the contained sandbox in which the isolated #425 runtime does writable
 > engineering work, honoring #420's sandbox-networking kill switch and spending under #423's budgets, while the
@@ -14,7 +14,7 @@
 
 ## Status
 
-Proposed (partner draft for #429). Supersedes nothing. Builds on EVE-DESIGN-0004 (#420), EVE-DESIGN-0005 (#423), and
+Proposed (partner draft for #429). Supersedes nothing. Builds on ADR-0021 (#420), EVE-DESIGN-0005 (#423), and
 EVE-DESIGN-0007 (#425). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -102,7 +102,7 @@ GPU gateway a proposed, non-default, revocable fallback. [VERIFIED-REPO: docs/pr
   protected-file detection reads that set; it does not define it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
 - **#419 (ADR-0020, audit):** owns the audit-record shape. #429 emits egress/command audit records in that
   shape; it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:99]
-- **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state and control path, including the "disable sandbox
+- **#420 (ADR-0021, kill-switch):** owns the kill-switch state and control path, including the "disable sandbox
   networking" switch. #429 honors that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:97]
 - **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #429 resolves models through

@@ -1,1 +1,1 @@
-export { GET, POST } from "@asym/api/eve/governance/route";
+export { GET, PATCH, POST } from "@asym/api/eve/governance/route";

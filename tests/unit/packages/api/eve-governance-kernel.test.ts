@@ -4,6 +4,10 @@ import {
   evaluateEveGovernance,
   runGovernedEveAction,
 } from "../../../../packages/api/src/eve/governance/kernel";
+import {
+  createClearedEveKillSwitchState,
+  EVE_AUTONOMOUS_DOMAINS,
+} from "../../../../packages/api/src/eve/governance/types";
 
 import type {
   EveGovernanceSnapshot,
@@ -14,7 +18,7 @@ const enabledSnapshot: EveGovernanceSnapshot = {
   source: "persisted",
   releaseEnabled: true,
   emergencyOff: false,
-  killSwitchState: {},
+  killSwitchState: createClearedEveKillSwitchState(),
   policyStatus: "ready",
   stateVersion: 1,
   updatedAt: "2026-07-17T00:00:00.000Z",
@@ -39,6 +43,7 @@ describe("Eve governance kernel", () => {
 
     const result = await runGovernedEveAction({
       action: "github.review",
+      domain: "github_actions",
       target: "Asymmetric-al/core#999",
       store,
       effect,
@@ -69,11 +74,13 @@ describe("Eve governance kernel", () => {
 
     const absentResult = await runGovernedEveAction({
       action: "schedule.tick",
+      domain: "dynamic_workflows",
       store: absentStore,
       effect,
     });
     const unavailableResult = await runGovernedEveAction({
       action: "schedule.tick",
+      domain: "dynamic_workflows",
       store: unavailableStore,
       effect,
     });
@@ -91,26 +98,38 @@ describe("Eve governance kernel", () => {
 
   it("gives emergency-off precedence over an enabled gate", () => {
     expect(
-      evaluateEveGovernance({
-        ...enabledSnapshot,
-        emergencyOff: true,
-      }),
+      evaluateEveGovernance(
+        {
+          ...enabledSnapshot,
+          emergencyOff: true,
+        },
+        { domain: "active_runs" },
+      ),
     ).toEqual({ allowed: false, reason: "emergency_off" });
   });
 
   it("requires ready policy and clear all-automation kill-switch state", () => {
     expect(
-      evaluateEveGovernance({
-        ...enabledSnapshot,
-        policyStatus: "blocked",
-      }),
+      evaluateEveGovernance(
+        {
+          ...enabledSnapshot,
+          policyStatus: "blocked",
+        },
+        { domain: "active_runs" },
+      ),
     ).toEqual({ allowed: false, reason: "policy_not_ready" });
 
     expect(
-      evaluateEveGovernance({
-        ...enabledSnapshot,
-        killSwitchState: { all_automation: true },
-      }),
+      evaluateEveGovernance(
+        {
+          ...enabledSnapshot,
+          killSwitchState: {
+            ...createClearedEveKillSwitchState(),
+            all_automation: true,
+          },
+        },
+        { domain: "active_runs" },
+      ),
     ).toEqual({ allowed: false, reason: "kill_switch_active" });
   });
 
@@ -120,6 +139,7 @@ describe("Eve governance kernel", () => {
 
     const result = await runGovernedEveAction({
       action: "eval.run",
+      domain: "active_runs",
       store,
       effect,
     });
@@ -138,6 +158,7 @@ describe("Eve governance kernel", () => {
 
     const result = await runGovernedEveAction({
       action: "eval.run",
+      domain: "active_runs",
       store,
       effect,
     });
@@ -158,11 +179,50 @@ describe("Eve governance kernel", () => {
 
     const result = await runGovernedEveAction({
       action: "eval.run",
+      domain: "active_runs",
       store,
       effect,
     });
 
     expect(effect).toHaveBeenCalledOnce();
     expect(result).toEqual({ executed: true, value: "done" });
+  });
+
+  it.each(EVE_AUTONOMOUS_DOMAINS)(
+    "blocks the %s domain from persisted switch state",
+    (domain) => {
+      expect(
+        evaluateEveGovernance(
+          {
+            ...enabledSnapshot,
+            killSwitchState: {
+              ...createClearedEveKillSwitchState(),
+              [domain]: true,
+            },
+          },
+          { domain },
+        ),
+      ).toEqual({ allowed: false, reason: "kill_switch_active" });
+    },
+  );
+
+  it("requires explicit approval while force-approval mode is engaged", () => {
+    const snapshot = {
+      ...enabledSnapshot,
+      killSwitchState: {
+        ...createClearedEveKillSwitchState(),
+        force_approval: true,
+      },
+    };
+
+    expect(
+      evaluateEveGovernance(snapshot, { domain: "production_writes" }),
+    ).toEqual({ allowed: false, reason: "approval_required" });
+    expect(
+      evaluateEveGovernance(snapshot, {
+        domain: "production_writes",
+        approvalGranted: true,
+      }),
+    ).toEqual({ allowed: true, reason: "governance_allowed" });
   });
 });

@@ -11,6 +11,7 @@ const createAdminEveAuditIdentityMock = vi.fn();
 const createEveAuditStoreMock = vi.fn();
 const loadRecentEveAuditEventsMock = vi.fn();
 const traceEveAuditEventMock = vi.fn();
+const setEveKillSwitchMock = vi.fn();
 
 vi.mock("@asym/database/supabase/admin", () => ({
   getAdminClient: getAdminClientMock,
@@ -43,8 +44,22 @@ vi.mock("../../../../packages/api/src/eve/audit/store", () => ({
   loadRecentEveAuditEvents: loadRecentEveAuditEventsMock,
 }));
 
-function createRequest(method = "GET"): NextRequest {
+vi.mock("../../../../packages/api/src/eve/governance/control", async () => {
+  const actual = await vi.importActual<
+    typeof import("../../../../packages/api/src/eve/governance/control")
+  >("../../../../packages/api/src/eve/governance/control");
+
+  return {
+    ...actual,
+    setEveKillSwitch: setEveKillSwitchMock,
+  };
+});
+
+function createRequest(method = "GET", body?: unknown): NextRequest {
   return new Request("https://admin.example.test/api/admin/eve/governance", {
+    body: body === undefined ? undefined : JSON.stringify(body),
+    headers:
+      body === undefined ? undefined : { "content-type": "application/json" },
     method,
   }) as NextRequest;
 }
@@ -70,13 +85,40 @@ describe("Eve governance admin route", () => {
     createAdminEveAuditIdentityMock.mockReturnValue({ verified: true });
     createEveAuditStoreMock.mockReturnValue({ append: vi.fn() });
     traceEveAuditEventMock.mockResolvedValue({});
+    setEveKillSwitchMock.mockResolvedValue({
+      auditId: "00000000-0000-4000-8000-000000000004",
+      changed: true,
+      enabled: true,
+      killSwitchState: {
+        all_automation: false,
+        active_runs: false,
+        github_actions: true,
+        production_writes: false,
+        sandbox_networking: false,
+        dynamic_workflows: false,
+        model_policy_changes: false,
+        force_approval: false,
+      },
+      stateVersion: 2,
+      switchKey: "github_actions",
+      updatedAt: "2026-07-17T00:01:00.000Z",
+    });
     loadRecentEveAuditEventsMock.mockResolvedValue([]);
     loadEveGovernanceAdminViewMock.mockResolvedValue({
       system: {
         source: "persisted",
         releaseEnabled: false,
         emergencyOff: false,
-        killSwitchState: {},
+        killSwitchState: {
+          all_automation: false,
+          active_runs: false,
+          github_actions: false,
+          production_writes: false,
+          sandbox_networking: false,
+          dynamic_workflows: false,
+          model_policy_changes: false,
+          force_approval: false,
+        },
         policyStatus: "not_configured",
         stateVersion: 1,
         updatedAt: "2026-07-17T00:00:00.000Z",
@@ -136,5 +178,57 @@ describe("Eve governance admin route", () => {
       auditEvent: {},
       requestId: expect.any(String),
     });
+  });
+
+  it("deliberately changes a kill switch under verified admin identity", async () => {
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await PATCH(
+      createRequest("PATCH", {
+        switchKey: "github_actions",
+        enabled: true,
+        expectedStateVersion: 1,
+        reason: "Pause GitHub effects during incident review.",
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(createAdminEveAuditIdentityMock).toHaveBeenCalledWith(
+      expect.objectContaining({ profileId: "profile_1" }),
+    );
+    expect(setEveKillSwitchMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        switchKey: "github_actions",
+        enabled: true,
+        expectedStateVersion: 1,
+        identity: { verified: true },
+      }),
+    );
+    expect(await response.json()).toEqual(
+      expect.objectContaining({
+        mutation: expect.objectContaining({
+          switchKey: "github_actions",
+          enabled: true,
+        }),
+        requestId: expect.any(String),
+      }),
+    );
+  });
+
+  it("rejects an unknown kill-switch key before any mutation", async () => {
+    const { PATCH } =
+      await import("../../../../packages/api/src/eve/governance/route");
+
+    const response = await PATCH(
+      createRequest("PATCH", {
+        switchKey: "prompt_granted_authority",
+        enabled: true,
+        expectedStateVersion: 1,
+      }),
+    );
+
+    expect(response.status).toBe(400);
+    expect(setEveKillSwitchMock).not.toHaveBeenCalled();
   });
 });

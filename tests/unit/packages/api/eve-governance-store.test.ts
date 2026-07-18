@@ -5,6 +5,7 @@ import {
   loadEveGovernanceSnapshot,
   recordEveGovernanceDecision,
 } from "../../../../packages/api/src/eve/governance/store";
+import { createClearedEveKillSwitchState } from "../../../../packages/api/src/eve/governance/types";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
@@ -40,7 +41,7 @@ function createReadClient(input: {
 const persistedState = {
   release_enabled: false,
   emergency_off: false,
-  kill_switch_state: { all_automation: false },
+  kill_switch_state: createClearedEveKillSwitchState(),
   policy_status: "not_configured",
   policy_summary: null,
   state_version: 1,
@@ -57,7 +58,7 @@ describe("Eve governance store", () => {
       source: "persisted",
       releaseEnabled: false,
       emergencyOff: false,
-      killSwitchState: { all_automation: false },
+      killSwitchState: createClearedEveKillSwitchState(),
       policyStatus: "not_configured",
       stateVersion: 1,
       updatedAt: "2026-07-17T00:00:00.000Z",
@@ -76,6 +77,9 @@ describe("Eve governance store", () => {
         emergencyOff: false,
         policyStatus: "not_configured",
       }),
+    );
+    expect(Object.values(view.system.killSwitchState)).toEqual(
+      Array.from({ length: 8 }, () => true),
     );
     expect(view.recentRuns).toEqual([]);
   });

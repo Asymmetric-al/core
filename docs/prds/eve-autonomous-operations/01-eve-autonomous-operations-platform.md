@@ -538,6 +538,11 @@ on together, rather than shipping as a toy foundation first.
   [ADR-0020: Persist redacted, accountable Eve action
   records](../../adr/0020-eve-audit-tracer.md).
 
+- The granular stop controls, atomic accountable actuation, and per-domain
+  policy-consumption contract are defined by
+  [ADR-0021: Restrict Eve through atomic, app-owned kill
+  switches](../../adr/0021-eve-kill-switch-control.md).
+
 ## Testing Decisions
 
 - Tests should verify external behavior and policy outcomes, not private helper

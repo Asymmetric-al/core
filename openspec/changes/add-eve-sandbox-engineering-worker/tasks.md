@@ -16,7 +16,7 @@ scope grounded in [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impleme
 
 ## 2. Record the provisional Eve design decision EVE-DESIGN-0011 (sandbox engineering worker)
 
-- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0011 in this change's `design.md`, traceable from EVE-DESIGN-0004 (#420), EVE-DESIGN-0005 (#423), and
+- [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0011 in this change's `design.md`, traceable from ADR-0021 (#420), EVE-DESIGN-0005 (#423), and
       EVE-DESIGN-0007 (#425)
 - [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
 - [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #429

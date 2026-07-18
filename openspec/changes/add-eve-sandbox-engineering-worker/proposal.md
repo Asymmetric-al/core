@@ -5,7 +5,7 @@
 > **Partner DRAFT for GitHub issue #429 ("Eve: Sandbox Engineering Worker").** Staged in the Gitea
 > `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #420** (`add-eve-kill-switch-control-path`,
-> EVE-DESIGN-0004), **#423** (`add-eve-approval-budget-policy`, EVE-DESIGN-0005), and **#425** (`add-eve-runtime-foundation`,
+> ADR-0021), **#423** (`add-eve-approval-budget-policy`, EVE-DESIGN-0005), and **#425** (`add-eve-runtime-foundation`,
 > EVE-DESIGN-0007) — the three slices the implementation plan names as #429's blockers. It does not restate their
 > contracts; it defines the **contained sandbox** in which the isolated #425 runtime does writable engineering
 > work, honoring #420's sandbox-networking kill switch and spending under #423's budgets, while the release
@@ -64,7 +64,7 @@ a proposed, non-default, revocable route rather than something the sandbox hardc
   sandbox **grants no new authority** — it resolves models through #421 via the #425 runtime, spends under #423
   budgets, stays disabled by default while the release switch is off, and never bypasses #417 protected-area or
   #418 emergency-off precedence.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0011** in this change's `design.md`, building on EVE-DESIGN-0004 (#420), EVE-DESIGN-0005
+- Record the decision under provisional Eve design label **EVE-DESIGN-0011** in this change's `design.md`, building on ADR-0021 (#420), EVE-DESIGN-0005
   (#423), and EVE-DESIGN-0007 (#425).
 
 ## What Does Not Change
@@ -97,7 +97,7 @@ a proposed, non-default, revocable route rather than something the sandbox hardc
   contained sandbox — writable checkout, allow-all-with-containment networking, no mounted
   secrets/env/service-role/prod-dumps, egress and command audit, sensitive-file scanning, protected-file
   detection, and a networking kill switch — a durable, spec-level contract. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0011` for the sandbox engineering worker, traceable from EVE-DESIGN-0004 (#420), EVE-DESIGN-0005 (#423), and
+- Provisional Eve design decision `EVE-DESIGN-0011` for the sandbox engineering worker, traceable from ADR-0021 (#420), EVE-DESIGN-0005 (#423), and
   EVE-DESIGN-0007 (#425).
 - A clear boundary: #420 owns the kill-switch state; #423 owns approval/budget; #425 owns the isolated runtime;
   #419 owns the audit shape; #421 owns model policy; #429 owns the **contained sandbox** those compose in, and
