@@ -87,15 +87,16 @@ policy applied, what evidence was used, and what changed.
 
 ### Requirement: The Strict Auto-Merge Policy Grants No New Authority
 
-The strict-auto-merge path MUST run on the **#425 runtime**, MUST reuse **#431's** mutating PR operator surface
+The strict-auto-merge path MUST run on the **#425 runtime**, MUST remain separate from **#431's** seven-operation mutating PR operator surface
 and **#430's** accountable bot identity, MUST read **#417's** protected-area set to block merges, MUST resolve
 any model through **#421's shared policy** (Gateway-primary; never hardcoding a model or provider), MUST spend
 **under #423 hard budgets**, and MUST honor **#420's `disable GitHub actions` kill switch** — reading the
 persisted switch state from the app-owned governance store, never a prompt/model/tool claim. It MUST NOT bypass
 GitHub branch protection, required reviews, or repository policy; MUST stay **disabled by default while the
 release switch is off**; and MUST NOT bypass #417 protected-area / production-write / approval limits or #418
-emergency-off precedence. The change itself MUST remain a spec/ADR contract and MUST NOT introduce live
-auto-merge, protected-area-detection, or GitHub App code.
+emergency-off precedence. Its executor MUST bind the merge to the observed head SHA, fail closed on incomplete
+or unsupported protection evidence, and create an explicit idempotent human escalation for every non-passing
+evidence decision.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:629]

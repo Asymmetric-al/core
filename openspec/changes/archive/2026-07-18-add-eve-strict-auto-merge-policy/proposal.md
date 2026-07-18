@@ -2,9 +2,8 @@
 
 **Prepared by the Eve partner fleet for Eve / Asymmetric.**
 
-> **Partner DRAFT for GitHub issue #432 ("Eve: Strict Auto-Merge Policy").** Staged in the Gitea `proposals`
-> repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's OpenSpec workflow
-> after operator/maintainer sign-off. **Builds on #430** (`add-eve-github-read-review-path`, EVE-DESIGN-0012) and
+> **Accepted implementation for GitHub issue #432 ("Eve: Strict Auto-Merge Policy").** Builds on #430
+> (`add-eve-github-read-review-path`, EVE-DESIGN-0012) and
 > **#431** (`add-eve-autonomous-pr-operator`, EVE-DESIGN-0013) — the two slices the implementation plan names as #432's
 > blockers — and stands on #417 (ADR-0018), #418 (ADR-0019), #419 (ADR-0020), #420 (ADR-0021), #421 (ADR-0022),
 > #423 (EVE-DESIGN-0005), #425 (EVE-DESIGN-0007), and #429 (EVE-DESIGN-0011). It does not restate their contracts; it defines the
@@ -81,11 +80,9 @@ the fleet data-boundary law on the one surface where an autonomous action is irr
 
 ## What Does Not Change
 
-- This change adds **no auto-merge executor, no protected-area detector, no required-check/required-review
-  evaluator, no escalation router, and no GitHub App code**; it defines the strict-auto-merge capability, its
-  strict-pass-only rule, its protected-area block, its explicit human escalation, and its
-  accountability/policy/audit contract, while the system stays disabled by default (per #418) and the release
-  switch stays off. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
+- This change implements the auto-merge executor, repo-aware evidence detector, required-check/review evaluator,
+  idempotent escalation router, and GitHub App adapter while the system stays disabled by default (per #418)
+  and the release switch stays off. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 - The **mutating PR operations and work initiation** — label, rerun CI, push safe fixes, update PR state, create
   issues/branches/PRs — remain #431's scope; this path adds **only** the merge decision on top and reuses #431's
   operator surface rather than redefining it. #431 explicitly performs **no merge**; #432 owns it.
@@ -105,8 +102,8 @@ the fleet data-boundary law on the one surface where an autonomous action is irr
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:155]
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:210]
 - No donor PII, payments, secrets, one-time codes, or tenant facts enter this path or are written to GitHub, and
-  no protected-area merge is performed autonomously — those boundaries are reinforced here, never relaxed. No
-  Supabase schema, Mission Control UI, or provider-client code lands. This change does not bypass GitHub branch
+  no protected-area merge is performed autonomously — those boundaries are reinforced here, never relaxed. The
+  only Supabase change is the separate policy action and hard budget. This change does not bypass GitHub branch
   protection, required reviews, or repository policy. #417's contract, `AGENTS.md`, `openspec/project.md`,
   `openspec/specs/**`, and existing CI gates remain authoritative and unchanged; this change is subordinate to
   them. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:627]

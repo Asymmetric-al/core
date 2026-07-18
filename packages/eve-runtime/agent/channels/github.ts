@@ -10,14 +10,20 @@ import {
   type EveGithubPreparedReview,
 } from "@asym/api/eve/github-review";
 import { createEveGovernanceStore } from "@asym/api/eve/governance";
+import { authorizeEveStrictAutoMergeTrigger } from "@asym/api/eve/strict-auto-merge";
 import {
   defaultGitHubAuth,
   githubChannel,
+  type GitHubCheckSuiteEvent,
   type GitHubEventContext,
   type GitHubInboundContext,
 } from "eve/channels/github";
 
 import { eveGithubCredentials } from "../../src/github/credentials";
+import {
+  eveStrictAutoMergeRunId,
+  runEveStrictAutoMergeTool,
+} from "../../src/github/strict-auto-merge-tool-runtime";
 
 const REVIEW_TRIGGER_ACTIONS = new Set([
   "opened",
@@ -59,6 +65,62 @@ function accountableTrigger(ctx: GitHubInboundContext): string {
   return `github_sender:${ctx.sender.id}:delivery:${ctx.delivery.id}`;
 }
 
+async function evaluateCompletedCheckSuite(
+  ctx: GitHubInboundContext,
+  checkSuite: GitHubCheckSuiteEvent,
+): Promise<void> {
+  if (checkSuite.action !== "completed" || checkSuite.status !== "completed") {
+    return;
+  }
+  const pullRequestNumber = checkSuite.pullRequests[0];
+  const expectedHeadSha = checkSuite.headSha;
+  if (!pullRequestNumber || !expectedHeadSha) return;
+
+  const allowed = await authorizeAutoMergeTrigger(
+    ctx,
+    `${ctx.repository.fullName}#${pullRequestNumber}:strict-auto-merge`,
+  );
+  if (!allowed) return;
+
+  const pull = await ctx.github.request<{
+    base?: { ref?: unknown };
+    head?: { ref?: unknown; sha?: unknown };
+  }>({
+    method: "GET",
+    path: `/repos/${encodeURIComponent(ctx.repository.owner)}/${encodeURIComponent(ctx.repository.name)}/pulls/${pullRequestNumber}`,
+  });
+  const headRef = pull.body.head?.ref;
+  if (
+    pull.body.base?.ref !== "develop" ||
+    typeof headRef !== "string" ||
+    !/^eve\/issue-\d+-[A-Za-z0-9._/-]+$/u.test(headRef) ||
+    pull.body.head?.sha !== expectedHeadSha
+  ) {
+    return;
+  }
+
+  const auth = defaultGitHubAuth(ctx);
+  const rawInstallationId = auth.attributes.installation_id;
+  const installationId =
+    typeof rawInstallationId === "string"
+      ? Number(rawInstallationId)
+      : Number.NaN;
+  if (!Number.isSafeInteger(installationId) || installationId <= 0) return;
+
+  const request = {
+    accountableLogin: ctx.sender.login,
+    expectedHeadSha,
+    pullRequestNumber,
+  };
+  await runEveStrictAutoMergeTool({
+    accountablePrincipalId: auth.principalId,
+    accountableTrigger: accountableTrigger(ctx),
+    installationId,
+    request,
+    runId: eveStrictAutoMergeRunId(ctx.delivery.id, request),
+  });
+}
+
 async function authorizeTrigger(
   ctx: GitHubInboundContext,
   target: string,
@@ -70,6 +132,25 @@ async function authorizeTrigger(
   if (!admin.client) return false;
 
   return authorizeEveGithubReviewTrigger({
+    accountableTrigger: accountableTrigger(ctx),
+    actorProfileId: principal.actorProfileId,
+    governanceStore: createEveGovernanceStore(admin.client),
+    runId: crypto.randomUUID(),
+    target,
+  });
+}
+
+async function authorizeAutoMergeTrigger(
+  ctx: GitHubInboundContext,
+  target: string,
+): Promise<boolean> {
+  const principal = githubServicePrincipal();
+  if (!principal) return false;
+  const { getAdminClient } = await import("@asym/database/supabase/admin");
+  const admin = getAdminClient();
+  if (!admin.client) return false;
+
+  return authorizeEveStrictAutoMergeTrigger({
     accountableTrigger: accountableTrigger(ctx),
     actorProfileId: principal.actorProfileId,
     governanceStore: createEveGovernanceStore(admin.client),
@@ -246,6 +327,10 @@ export default githubChannel({
           context: [EVE_GITHUB_REVIEW_OUTPUT_INSTRUCTIONS],
         }
       : null;
+  },
+  async onCheckSuite(ctx, checkSuite) {
+    await evaluateCompletedCheckSuite(ctx, checkSuite);
+    return null;
   },
   async onPullRequest(ctx, pullRequest) {
     if (!REVIEW_TRIGGER_ACTIONS.has(pullRequest.action)) return null;

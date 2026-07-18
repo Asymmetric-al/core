@@ -16,6 +16,8 @@ describe("Eve GitHub channel boundary", () => {
     expect(source).toContain("eveGithubCredentials");
     expect(source).toContain("authorizeEveGithubReviewTrigger");
     expect(source).toContain("publishEveGithubReview");
+    expect(source).toContain("onCheckSuite");
+    expect(source).toContain("runEveStrictAutoMergeTool");
     expect(source).toContain("event: review.event");
     expect(source).toContain("progress: { reactions: false }");
     expect(source).toContain('"turn.failed"()');

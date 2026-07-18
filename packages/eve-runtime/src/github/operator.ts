@@ -1,53 +1,13 @@
-import { resolveEveGithubInstallationToken } from "./credentials";
+import {
+  eveGithubRequest as githubRequest,
+  EveGithubRequestError as GithubRequestError,
+  githubPathPart as pathPart,
+} from "./client";
 
 import type {
   EveGithubOperatorInput,
   EveGithubOperatorRequest,
 } from "@asym/api/eve/github-operator";
-
-interface GithubResponse<T> {
-  body: T;
-  status: number;
-}
-
-class GithubRequestError extends Error {
-  constructor(
-    readonly status: number,
-    method: string,
-    path: string,
-  ) {
-    super(`GitHub ${method} ${path} failed (${status}).`);
-  }
-}
-
-function pathPart(value: string): string {
-  return encodeURIComponent(value);
-}
-
-async function githubRequest<T>(input: {
-  body?: Record<string, unknown>;
-  installationId: number;
-  method: "GET" | "PATCH" | "POST";
-  path: string;
-}): Promise<GithubResponse<T>> {
-  const token = await resolveEveGithubInstallationToken(input.installationId);
-  const response = await fetch(`https://api.github.com${input.path}`, {
-    method: input.method,
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-      "User-Agent": "eve-asymmetric",
-      "X-GitHub-Api-Version": "2026-03-10",
-    },
-    body: input.body ? JSON.stringify(input.body) : undefined,
-  });
-  const body = response.status === 204 ? null : await response.json();
-  if (!response.ok) {
-    throw new GithubRequestError(response.status, input.method, input.path);
-  }
-  return { body: body as T, status: response.status };
-}
 
 async function verifyIssue(input: EveGithubOperatorInput, issueNumber: number) {
   const issue = await githubRequest<{ pull_request?: unknown }>({

@@ -14,7 +14,7 @@
 
 ## Status
 
-Proposed (partner draft for #432). Supersedes nothing. Builds on EVE-DESIGN-0012 (#430) and EVE-DESIGN-0013 (#431).
+Accepted as ADR-0033 for #432. Supersedes nothing. Builds on EVE-DESIGN-0012 (#430) and EVE-DESIGN-0013 (#431).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -153,8 +153,8 @@ rather than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operat
 - Existing repo gates remain required and unchanged (`format:check`, `skills:verify`, `lint`,
   `verify:workspace-contract`, `verify:eslint`, `typecheck`, `build`, `test:unit`, plus data-boundary
   verification). [VERIFIED-REPO: docs/ai/rules/general.md]
-- The slice-specific acceptance tests — protected-area detection, strict auto-merge pass, strict auto-merge
-  block, and accountability metadata — land with the implementing PR, not this spec/ADR.
+- The slice-specific acceptance tests cover protected-area detection, strict auto-merge pass, strict auto-merge
+  block, expected-SHA GitHub requests, idempotent escalation, and accountability metadata in this implementing PR.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:548]
 
 ## Consequences
@@ -196,10 +196,9 @@ rather than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operat
 
 ## Out of scope (this change)
 
-The auto-merge executor, the protected-area detector, the required-check/required-review evaluator, the human
-escalation router, the GitHub App code, the mutating PR operations and work initiation (#431), the
+The mutating PR operations and work initiation (#431), the
 accountable-identity implementation (#430), the protected-area set definition (#417), the kill-switch state
 store (#420), the audit-record store (#419), the approval/budget policy (#423), the model-policy capability
 (#421), the isolated runtime package (#425), the sandbox (#429), any Supabase schema or Mission Control UI, and
-any live autonomy — all deferred to later, separately-gated slices or owned by the blockers.
+launch authorization — all remain owned by their blocker slices or the final release switch.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:253]

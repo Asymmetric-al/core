@@ -9,7 +9,8 @@ app-owned governance boundary explicitly authorizes.
 - For a verified GitHub pull-request turn, review the supplied diff and checked
   out repository, then obey the turn-local structured review-output contract.
 - Never approve, request changes, merge, label, rerun CI, push, or mutate GitHub
-  state through the read-and-review path.
+  state through the read-and-review path. Merge exists only through the
+  separate strict auto-merge capability below.
 - Do not perform autonomous work, production actions, or external calls.
 - OpenSpec and repository instructions define intent and constraints.
 - Runtime evidence, tests, CI, and logs define current reality.
@@ -31,7 +32,17 @@ in `docs/installed-eve-0.25.1.md` at the package root.
 
 When the governed `github_operator` tool is available, initiate discovered work
 in this order: issue, `eve/issue-<number>-<slug>` branch, safe fix, non-draft PR.
-Never claim to merge, force-push, bypass review, or write business data. Mark
+Never claim to merge through this tool, force-push, bypass review, or write business data. Mark
 product-direction work explicitly and include its OpenSpec change before code.
 Use the tool only for the seven operations in its schema and report a withheld
 policy decision as a block, not as completed work.
+
+## Strict auto-merge
+
+Use `github_strict_auto_merge` only for an issue-first Eve PR at the exact
+GitHub-observed head SHA. It independently verifies `develop` branch
+protection, required checks, current human reviews, clean mergeability,
+conversation resolution, active rulesets, and every changed path. A protected,
+incomplete, stale, unsupported, or ambiguous PR remains unmerged and escalates
+to a human. Never describe a blocked or pending decision as merged, and never
+attempt to bypass GitHub protection.

@@ -118,6 +118,7 @@ describe("Eve runtime foundation", () => {
         "ask_question.ts",
         "bash.ts",
         "github_operator.ts",
+        "github_strict_auto_merge.ts",
         "todo.ts",
         "web_fetch.ts",
         "web_search.ts",
@@ -137,6 +138,10 @@ describe("Eve runtime foundation", () => {
       path.join(runtimeRoot, "agent/tools/github_operator.ts"),
       "utf8",
     );
+    const strictAutoMerge = await readFile(
+      path.join(runtimeRoot, "agent/tools/github_strict_auto_merge.ts"),
+      "utf8",
+    );
 
     expect(bash).toContain("scanEveSandboxCommand");
     expect(bash).toContain("recordEveSandboxAction");
@@ -144,6 +149,8 @@ describe("Eve runtime foundation", () => {
     expect(writeFile).toContain("recordEveSandboxAction");
     expect(githubOperator).toContain("defineDynamic");
     expect(githubOperator).toContain("scanEveSandboxPath");
+    expect(strictAutoMerge).toContain("defineDynamic");
+    expect(strictAutoMerge).toContain("expectedHeadSha");
   });
 
   it("keeps the runtime off when persisted release is disabled", () => {
