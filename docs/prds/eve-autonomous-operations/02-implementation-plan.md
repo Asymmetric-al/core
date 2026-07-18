@@ -252,6 +252,10 @@ cookie authentication are delivered by issue #428 and ADR-0029.
 
 ### 13. Sandbox Engineering Worker
 
+Implementation: the Eve 0.25.1 per-session writable sandbox, deny-first
+app-owned network authorization, protected/sensitive-file guardrails, and
+redacted command/write audit are delivered by issue #429 and ADR-0030.
+
 - Type: AFK
 - Blocked by: 4, 7, 9
 - User stories covered: 55, 56, 57
