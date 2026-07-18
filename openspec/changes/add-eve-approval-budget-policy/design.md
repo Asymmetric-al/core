@@ -3,7 +3,7 @@
 > **Numbering:** `EVE-DESIGN-0005` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0005**, the approval/budget-policy decision required by issue #423. It
-> builds on **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), **ADR-0020** (#419,
+> builds on **ADR-0021** (#420, `add-eve-kill-switch-control-path`), **ADR-0020** (#419,
 > `add-eve-audit-tracer-bullet`), and **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), which
 > all build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them —
 > it operationalizes the trust-zone approval policy and hard-budget policy that #418's single consult gate
@@ -17,7 +17,7 @@
 ## Status
 
 Proposed (partner draft for #423). Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), and
-EVE-DESIGN-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+ADR-0021 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -86,7 +86,7 @@ this policy sits on top of those boundaries and only tightens them.
 - **#419 (ADR-0020, audit tracer):** owns the **audit-record shape**. #423 requires that each policy/budget
   decision emits one; it does not redefine the record.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
-- **#420 (EVE-DESIGN-0004, kill-switch):** owns the per-domain **control path** (incl. production-writes and
+- **#420 (ADR-0021, kill-switch):** owns the per-domain **control path** (incl. production-writes and
   force-approval). #423's budget/approval checks are consumed alongside kill-switch state; the more
   restrictive result wins, and force-approval overrides any allow this policy grants.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

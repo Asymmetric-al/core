@@ -133,7 +133,7 @@ than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 - **#419 (ADR-0020, audit):** owns the audit-record shape. #431 emits an operation audit record in that shape;
   it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
-- **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state, including "disable GitHub actions." #431 honors
+- **#420 (ADR-0021, kill-switch):** owns the kill-switch state, including "disable GitHub actions." #431 honors
   that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
 - **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #431 resolves operator models

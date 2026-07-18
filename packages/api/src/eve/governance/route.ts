@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { eveKillSwitchMutationSchema, setEveKillSwitch } from "./control";
 import { loadEveGovernanceAdminView } from "./store";
 import { toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
@@ -75,4 +76,55 @@ export const POST = withOperation(
     }
   },
   { roles: ["admin", "super_admin"] },
+);
+
+export const PATCH = withOperation(
+  async ({ auth, request, supabaseAdmin, requestId }) => {
+    let body: unknown;
+    try {
+      body = await request.json();
+    } catch {
+      return NextResponse.json(
+        { error: "Request body must be valid JSON.", requestId },
+        { status: 400 },
+      );
+    }
+
+    const parsed = eveKillSwitchMutationSchema.safeParse(body);
+    if (!parsed.success) {
+      return NextResponse.json(
+        { error: "Invalid Eve kill-switch request.", requestId },
+        { status: 400 },
+      );
+    }
+
+    try {
+      const mutation = await setEveKillSwitch({
+        supabaseAdmin,
+        identity: createAdminEveAuditIdentity(auth),
+        ...parsed.data,
+      });
+      const [governance, auditHistory] = await Promise.all([
+        loadEveGovernanceAdminView({ supabaseAdmin }),
+        loadRecentEveAuditEvents({
+          supabaseAdmin,
+          tenantId: auth.role === "super_admin" ? null : auth.tenantId,
+        }),
+      ]);
+
+      return NextResponse.json({
+        ...governance,
+        auditHistory,
+        mutation,
+        requestId,
+      });
+    } catch (error) {
+      return toErrorResponse(
+        error,
+        "Failed to update the Eve kill switch.",
+        requestId,
+      );
+    }
+  },
+  { roles: ["super_admin"] },
 );

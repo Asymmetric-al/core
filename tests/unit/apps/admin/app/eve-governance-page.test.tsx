@@ -1,10 +1,14 @@
 /** @vitest-environment jsdom */
 
-import { cleanup, render } from "@testing-library/react";
-import { afterEach, beforeAll, describe, expect, it } from "vitest";
+import { cleanup, fireEvent, render } from "@testing-library/react";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
-import type { EveGovernanceAdminView } from "@asym/api/eve/governance/types";
+import {
+  createClearedEveKillSwitchState,
+  type EveGovernanceAdminView,
+  type EveKillSwitchKey,
+} from "@asym/api/eve/governance/types";
 import type { ComponentType } from "react";
 
 type EveGovernanceViewComponent = ComponentType<{
@@ -12,6 +16,9 @@ type EveGovernanceViewComponent = ComponentType<{
   errorMessage?: string;
   isError: boolean;
   isLoading: boolean;
+  mutationError?: string;
+  mutationPendingKey?: EveKillSwitchKey;
+  onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
 }>;
 
 let EveGovernanceView: EveGovernanceViewComponent;
@@ -33,7 +40,7 @@ describe("Eve governance admin view", () => {
             source: "persisted",
             releaseEnabled: false,
             emergencyOff: false,
-            killSwitchState: {},
+            killSwitchState: createClearedEveKillSwitchState(),
             policyStatus: "not_configured",
             stateVersion: 1,
             updatedAt: "2026-07-17T00:00:00.000Z",
@@ -62,7 +69,7 @@ describe("Eve governance admin view", () => {
             source: "persisted",
             releaseEnabled: false,
             emergencyOff: false,
-            killSwitchState: {},
+            killSwitchState: createClearedEveKillSwitchState(),
             policyStatus: "not_configured",
             stateVersion: 1,
             updatedAt: "2026-07-17T00:00:00.000Z",
@@ -87,7 +94,7 @@ describe("Eve governance admin view", () => {
             source: "missing",
             releaseEnabled: false,
             emergencyOff: false,
-            killSwitchState: {},
+            killSwitchState: createClearedEveKillSwitchState(),
             policyStatus: "not_configured",
             stateVersion: 1,
             updatedAt: "1970-01-01T00:00:00.000Z",
@@ -112,7 +119,7 @@ describe("Eve governance admin view", () => {
             source: "persisted",
             releaseEnabled: false,
             emergencyOff: false,
-            killSwitchState: {},
+            killSwitchState: createClearedEveKillSwitchState(),
             policyStatus: "not_configured",
             stateVersion: 1,
             updatedAt: "2026-07-17T00:00:00.000Z",
@@ -154,5 +161,47 @@ describe("Eve governance admin view", () => {
     expect(view.getByText("governance.inspect")).toBeTruthy();
     expect(view.getAllByText(/verified-admin/)).toHaveLength(2);
     expect(view.queryByText(/raw model reasoning contents/i)).toBeNull();
+  });
+
+  it("shows every required kill switch and requires confirmation", () => {
+    const onSetKillSwitch = vi.fn();
+    const view = render(
+      <EveGovernanceView
+        data={{
+          system: {
+            source: "persisted",
+            releaseEnabled: false,
+            emergencyOff: false,
+            killSwitchState: createClearedEveKillSwitchState(),
+            policyStatus: "not_configured",
+            stateVersion: 1,
+            updatedAt: "2026-07-17T00:00:00.000Z",
+          },
+          auditHistory: [],
+          recentRuns: [],
+        }}
+        isError={false}
+        isLoading={false}
+        onSetKillSwitch={onSetKillSwitch}
+      />,
+    );
+
+    for (const label of [
+      "All automation",
+      "Active runs",
+      "GitHub actions",
+      "Production writes",
+      "Sandbox networking",
+      "Dynamic workflows",
+      "Model-policy changes",
+      "Force approval",
+    ]) {
+      expect(view.getByText(label)).toBeTruthy();
+    }
+
+    fireEvent.click(view.getAllByRole("button", { name: "Engage" })[2]!);
+    expect(onSetKillSwitch).not.toHaveBeenCalled();
+    fireEvent.click(view.getByRole("button", { name: "Confirm engage" }));
+    expect(onSetKillSwitch).toHaveBeenCalledWith("github_actions", true);
   });
 });

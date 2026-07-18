@@ -7,7 +7,7 @@
 > OpenSpec workflow after operator/maintainer sign-off. **Builds on #423** (`add-eve-approval-budget-policy`,
 > EVE-DESIGN-0005), **#429** (`add-eve-sandbox-engineering-worker`, EVE-DESIGN-0011), and **#430**
 > (`add-eve-github-read-review-path`, EVE-DESIGN-0012) — the three slices the implementation plan names as #431's
-> blockers — and stands on #417 (ADR-0018), #418 (ADR-0019), #419 (ADR-0020), #420 (EVE-DESIGN-0004), #421 (EVE-DESIGN-0006),
+> blockers — and stands on #417 (ADR-0018), #418 (ADR-0019), #419 (ADR-0020), #420 (ADR-0021), #421 (EVE-DESIGN-0006),
 > and #425 (EVE-DESIGN-0007). It does not restate their contracts; it defines the **mutating PR operator and work
 > initiation** path in which Eve creates issues, branches, PRs, and pushes, and labels, reruns CI, pushes safe
 > fixes, and updates PR state — issue-first, engineering-only, each operation with policy, audit, and an

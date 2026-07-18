@@ -2,9 +2,9 @@
 
 **Prepared by WNG partner fleet for Eve / Asymmetric.**
 
-> **Partner DRAFT for GitHub issue #420 ("Eve: Kill-switch control path").** Staged in the Gitea
-> `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
-> OpenSpec workflow after operator/maintainer sign-off. **Builds on #418**
+> **Accepted implementation for GitHub issue #420 ("Eve: Kill-switch control path").** This change entered
+> `Asymmetric-al/core` through its OpenSpec workflow and was implemented behind the disabled release gate.
+> **Builds on #418**
 > (`add-eve-governance-kernel-release-switch`, ADR-0019) and **#419** (`add-eve-audit-tracer-bullet`,
 > ADR-0020) — it does not restate those contracts, it adds the granular per-domain control path that drives
 > the emergency/kill-switch **state** #418 persists and records every actuation as a #419 audit record.
@@ -38,7 +38,7 @@ kill-switch state**. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impl
   action consumes kill-switch state and is blocked per-domain**, using only persisted app-owned state (not
   bypassable by prompt/model/tool/memory); and the control path **drives #418's state, is subordinate to
   #417, and grants no new authority**.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0004** in this change's `design.md`, building on ADR-0019 (#418) and
+- Record the accepted decision as **ADR-0021** in this change's `design.md` and `docs/adr/`, building on ADR-0019 (#418) and
   ADR-0020 (#419), which both build on ADR-0018 (#417).
 
 ## What Does Not Change
@@ -58,15 +58,16 @@ kill-switch state**. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-impl
 - #417's contract, `AGENTS.md`, `openspec/project.md`, `openspec/specs/**`, and existing CI gates remain
   authoritative and unchanged; this change is subordinate to them. [VERIFIED-REPO: AGENTS.md]
   [VERIFIED-REPO: openspec/project.md]
-- No Supabase schema, admin UI, or runtime code lands here — those implement this spec in later PRs.
+- No live autonomous runtime or release-gate enablement lands here. This slice implements the app-owned
+  state shape, atomic admin control, audit emission, and reusable policy consumption while Eve remains off.
 
 ## Expected Outcome
 
-- A validated OpenSpec change
+- A validated and archived OpenSpec capability
   (`bunx @fission-ai/openspec@latest validate add-eve-kill-switch-control-path --strict`) that makes the
   full per-domain kill-switch control path a durable, spec-level contract.
   [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0004` for the kill-switch control path, traceable from ADR-0019 (#418) and ADR-0020 (#419).
+- Canonical `ADR-0021` for the kill-switch control path, traceable from ADR-0019 (#418) and ADR-0020 (#419).
 - A clear boundary: #418 owns the emergency/kill-switch **state**; #419 owns the **audit record**; #421 owns
   **model policy**; #420 owns the granular per-domain **control path** that drives the state, emits the
   records, and feeds policy checks. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]

@@ -117,7 +117,7 @@ non-default, revocable route rather than a hardcoded default.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:52]
 - **#419 (ADR-0020, audit):** owns the audit-record shape. #430 emits review-action audit records in that shape;
   it does not redefine it. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:75]
-- **#420 (EVE-DESIGN-0004, kill-switch):** owns the kill-switch state, including the "disable GitHub actions" switch.
+- **#420 (ADR-0021, kill-switch):** owns the kill-switch state, including the "disable GitHub actions" switch.
   #430 honors that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
 - **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #430 resolves review models

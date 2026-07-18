@@ -4,7 +4,7 @@
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0006**, the shared-model-policy decision required by issue #421. It builds
 > on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0020** (#419,
-> `add-eve-audit-tracer-bullet`), and **EVE-DESIGN-0004** (#420, `add-eve-kill-switch-control-path`), all of which
+> `add-eve-audit-tracer-bullet`), and **ADR-0021** (#420, `add-eve-kill-switch-control-path`), all of which
 > build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it
 > operationalizes the shared model-policy capability whose changes the #420 kill switch can revoke and whose
 > activation is #419-audited and eval-gated. When accepted into `Asymmetric-al/core`, its ADR body should also
@@ -15,7 +15,7 @@
 ## Status
 
 Proposed (partner draft for #421). Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), and
-EVE-DESIGN-0004 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+ADR-0021 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -99,7 +99,7 @@ constraint mandates. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-
 - **#419 (ADR-0020, audit tracer):** owns the **audit-record shape**. #421 requires that each policy
   draft/activation/rollback/override emits one; it does not redefine the record.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:84]
-- **#420 (EVE-DESIGN-0004, kill-switch):** owns the **model-policy-changes switch** as one of its per-domain controls.
+- **#420 (ADR-0021, kill-switch):** owns the **model-policy-changes switch** as one of its per-domain controls.
   #421 owns the policy that switch revokes. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:97]
 - **#421 (this change):** owns the **model-policy capability** — named roles, Gateway-primary routing,
   controlled non-default direct-provider fallbacks, permissioned eval-gated rollback-capable edits, per-role

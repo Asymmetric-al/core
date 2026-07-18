@@ -96,6 +96,9 @@ records](../../adr/0020-eve-audit-tracer.md).
 
 ### 4. Kill-Switch Control Path
 
+Canonical decision: [ADR-0021: Restrict Eve through atomic, app-owned kill
+switches](../../adr/0021-eve-kill-switch-control.md).
+
 - Type: AFK
 - Blocked by: 2, 3
 - User stories covered: 35, 42, 53, 54, 56, 57
