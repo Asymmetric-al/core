@@ -334,6 +334,13 @@ absent and belongs to #432.
   - Per-subagent model role, budget, eval gate, and routing policy are defined.
   - Shared context writes require schema, provenance, confidence, risk, source
     evidence, and conflict preservation.
+- Implementation evidence:
+  - ADR-0034 and `docs/guides/operations/eve-subagents-shared-context.md`
+  - `packages/api/src/eve/subagent-catalog/**`
+  - `packages/api/src/eve/shared-context/**`
+  - `packages/eve-runtime/agent/subagents/**`
+  - `packages/eve-runtime/src/specialists/**`
+  - `supabase/migrations/20260718070400_eve_subagent_shared_context.sql`
 
 ### 18. Dynamic Workflow Orchestration
 

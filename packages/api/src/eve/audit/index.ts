@@ -1,6 +1,7 @@
 export {
   createAdminEveAuditIdentity,
   createGithubBotEveAuditIdentity,
+  createSessionEveAuditIdentity,
   createServiceEveAuditIdentity,
 } from "./identity";
 export { buildEveAuditEvent, traceEveAuditEvent } from "./record";
