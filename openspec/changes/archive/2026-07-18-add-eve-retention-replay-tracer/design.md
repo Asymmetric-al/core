@@ -1,5 +1,7 @@
 # Design / ADR — Eve retention and replay artifact tracer bullet
 
+> Implemented by [ADR-0025](../../../../docs/adr/0025-eve-retention-replay-lifecycle.md).
+
 ## Context
 
 The PRD requires category-based retention (180-day default), incident/legal holds, and redacted
@@ -27,6 +29,14 @@ change specifies their **lifecycle**.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:590]
 - **Access enforces user + tenant ownership** for replay/debug artifact reads.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:544]
+
+The implementation uses a private `eve-replay-artifacts` bucket, app-built
+`tenant/profile/artifact` paths, and server-side body redaction before upload.
+Postgres stores only an allowlisted content
+type, size, SHA-256, redacted summary, category, and lifecycle state. Expiry is
+two-phase: Postgres claims eligible rows with `SKIP LOCKED`, the server deletes
+Storage objects, and only successful deletions are finalized. Upload-pending
+rows need no Storage deletion and expire in the claim transaction.
 
 ## Boundaries (relation to sibling changes — do not duplicate)
 

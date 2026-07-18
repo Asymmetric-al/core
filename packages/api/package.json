@@ -152,7 +152,10 @@
     "./eve/governance/types": "./src/eve/governance/types.ts",
     "./eve/model-policy": "./src/eve/model-policy/index.ts",
     "./eve/model-policy/route": "./src/eve/model-policy/route.ts",
-    "./eve/model-policy/types": "./src/eve/model-policy/types.ts"
+    "./eve/model-policy/types": "./src/eve/model-policy/types.ts",
+    "./eve/retention": "./src/eve/retention/index.ts",
+    "./eve/retention/route": "./src/eve/retention/route.ts",
+    "./eve/retention/types": "./src/eve/retention/types.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

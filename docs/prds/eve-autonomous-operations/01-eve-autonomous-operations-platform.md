@@ -311,6 +311,10 @@ on together, rather than shipping as a toy foundation first.
     from run logs, so that useful memory can remain while memory history and
     deleted entries follow clear policy.
 
+Implementation note: issue #424 and ADR-0025 establish the non-memory retention
+catalog, private replay artifact metadata/storage boundary, human holds, and
+two-phase expiry. Memory retention remains separate.
+
 70. As a platform owner, I want phased PRs with one release switch, so that the
     system can be reviewed safely while still shipping as one complete
     capability.

@@ -47,6 +47,7 @@ import {
 import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveApprovalBudgetPanel } from "./approval-budget-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
+import { EveRetentionPanel } from "./retention-panel";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
 
@@ -589,6 +590,7 @@ export default function EveGovernancePage() {
       <EveModelPolicyPanel />
       <EveAdminMemoryPanel />
       <EveApprovalBudgetPanel />
+      <EveRetentionPanel />
     </PageShell>
   );
 }
