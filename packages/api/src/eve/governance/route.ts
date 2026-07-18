@@ -106,7 +106,10 @@ export const PATCH = withOperation(
       });
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents({ supabaseAdmin }),
+        loadRecentEveAuditEvents({
+          supabaseAdmin,
+          tenantId: auth.role === "super_admin" ? null : auth.tenantId,
+        }),
       ]);
 
       return NextResponse.json({
