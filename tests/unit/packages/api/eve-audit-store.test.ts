@@ -89,13 +89,19 @@ describe("Eve audit store", () => {
       error: null,
     });
     const order = vi.fn().mockReturnValue({ limit });
-    const select = vi.fn().mockReturnValue({ order });
+    const eq = vi.fn().mockReturnValue({ order });
+    const select = vi.fn().mockReturnValue({ eq });
     const supabaseAdmin = {
       from: vi.fn().mockReturnValue({ select }),
     } as unknown as AdminSupabaseClient;
 
-    const events = await loadRecentEveAuditEvents({ supabaseAdmin, limit: 20 });
+    const events = await loadRecentEveAuditEvents({
+      supabaseAdmin,
+      tenantId: RECORD.tenantId,
+      limit: 20,
+    });
 
+    expect(eq).toHaveBeenCalledWith("tenant_id", RECORD.tenantId);
     expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
     expect(limit).toHaveBeenCalledWith(20);
     expect(events).toEqual([RECORD]);
