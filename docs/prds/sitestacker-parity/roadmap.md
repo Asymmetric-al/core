@@ -137,8 +137,8 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **13** | `contribution-ledger`        | Campaign, Designation, Contribution Ledger & Giving Cart                                                                          | 1, 2, 3, 4, 5, 7                            | —                                                     | Contributions/giving, public checkout, MC finance               | `PRD exists` (epic #690 + #691–#713)                           |
 | **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                    | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                           |
 | **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                               | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                           |
-| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **17** | `system-messages`            | System Messages & Template Management                                                                                             | 6, 2, 3                                     | 7                                                     | Email Studio / System Messages                                  | `future (needs PRD)`                                           |
+| **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
+| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (issue set pending; groomed-not-dispatched)       |
 | **18** | `document-templates`         | Receipt & PDF Template System                                                                                                     | 7, **13**, 17                               | 6                                                     | PDF/Statement Studio, receipt services                          | `future (needs PRD)`                                           |
 | **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6                        | 9, 4                                                  | Mission Control Contributions/Finance                           | `future (needs PRD)`                                           |
 | **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2                           | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
@@ -232,7 +232,7 @@ generally precede higher ones.
 
 - **Lane B remainder (10 → 11 → 12)** and **Lane C start (13 → 14 → …)** are
   independent chains and can be groomed/built in parallel.
-- **Phase 17 (System Messages)** needs only 6 + 2 + 3 — it can run alongside
+- **Phase 17 (System Messages)** needs only 6 + 2 + 3 + 7 — it can run alongside
   either chain.
 - **Phase 23 (Web Studio/CMS)** needs only 5 + 3 + 2 — it can start early
   whenever content-lane capacity exists.
@@ -1031,9 +1031,12 @@ data, and override per site/locale, with every send recorded in the one
 communication history. Moved up from v1 Phase 24 because Phases 18, 19, 16,
 and 34 all deliver through it.
 
-**Why it sits here.** Needs only the Phase 6 spine, Phase 2 site/locale
-context, and Phase 3 consent governance — and must precede the
-statement/reminder/workflow phases that send at scale.
+**Why it sits here.** Needs the Phase 6 spine, Phase 2 site/locale context,
+Phase 3 consent governance, and Phase 7 source-owned receipt/statement truth.
+Phase 7 is hard because the Target Live launch catalog includes required receipt
+contracts and its first tracer consumes an immutable Phase 7 receipt artifact.
+Phase 17 must then precede the statement/reminder/workflow phases that send at
+scale.
 
 **What it covers.**
 
@@ -1048,10 +1051,14 @@ statement/reminder/workflow phases that send at scale.
 - **Draft → commit → publish promotion** as the approval gate (the Knock
   model: immutable published versions, diff view, publish audit) — no
   separate approval bureaucracy.
-- **Per-tenant → per-site → per-locale override resolution** with
-  deterministic fallback to the system default, plus **render-failure
-  fallback + alerting** (a broken tenant override must never block a
-  receipt).
+- **Whole-publication override resolution** with deterministic, contract-bounded
+  fallback. Tenant-policy-eligible System message contracts allow exactly two
+  priorities: recipient language first (recommended) or site wording first.
+  Receipts, official documents, and every contract without tenant choice retain
+  Phase 2's fixed order. Resolution always selects one complete compatible
+  publication—never field-level merging. A broken override falls through only
+  to another contract-approved compatible publication; if none exists, the
+  message fails closed and alerts rather than sending incompatible content.
 - **Shared layouts** (Postmark-style): tenant branding lives once; templates
   carry content only.
 - **Trigger-binding registry** generalized from
@@ -1070,10 +1077,34 @@ statement/reminder/workflow phases that send at scale.
 (consent snapshot + communication event by construction). Templates render
 approved facts — they never decide receipt/statement truth (Phase 7).
 
-**Open questions for grooming.** Two-person review on official-communication
-templates (receipts/statements) vs publish-with-audit; per-tenant outbound
-identity (custom From domain + DKIM on Resend) and where verification state
-lives; which locales Phase 2 makes real at launch.
+**Ratified grooming result (2026-07-19; D1–D20).** The earlier fallback
+shorthand is superseded by the exact whole-publication rule above and the Phase
+17 PRD and dated congruence package. The permanent winner is one
+code-governed complete System message catalog with contract-owned safety and a
+tenant capability envelope; complete immutable structured publications with
+typed source-owned facts, whole-message inheritance/fallback, tenant-open
+contract-proven locales, Brand Kits and bounded Layout Roles; standard publish
+with audit plus independent review for protected publications; contract-bounded
+Delivery Plans compiled into the Phase 6 recipient-specific intent/event spine;
+proportional in-product notifications; SMS compliance evidence with transport
+dark; one proof-gated tenant-owned Resend connection with no shared fallback,
+one Default plus bounded same-domain Sender Profiles, and contract-owned human
+reply destinations; body-free durable history with an optional expiring
+support-safe Recent sent copy; phase-separated whole-message recovery; and
+versioned tenant portability. Platform-owner email such as Eve #436 uses a
+structurally separate Asym-fixed platform contract/Resend connection through the
+same Phase 6/17 spine and never falls back for tenant mail; Eve keeps its Discord
+operational channel outside tenant System Messages.
+
+**Dated compatibility boundary.** Phase 6 remains communication execution and
+history. Phase 7 owns receipt/statement truth; Phase 14 owns recognition
+recipients; Phase 18 owns immutable document artifacts; Phase 19 owns statement
+runs and recipient bulk state; Phase 24 owns broad site/CMS/shell localization;
+Phase 25/28 own complete donor/missionary notification-center information
+architecture; Phase 26 owns inbound replies; Phase 32 owns campaigns/newsletters;
+and Phase 34 owns general workflows. The three original open questions are
+closed, not deferred. The phase is a groomed PRD only—neither built nor
+dispatched, and its issue set remains pending.
 
 ---
 

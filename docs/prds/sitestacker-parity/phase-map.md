@@ -129,9 +129,11 @@ capabilities that already have code lives in
 [`parity-matrix.md`](./parity-matrix.md) — all matrix `Live?` cells are
 `unconf` until the human-only Phase 0 Lane 2 check runs.
 
-The Phase 16 qualifier `issue set pending; groomed-not-dispatched` means its PRD
-exists, but no Phase 16 epic/children have been published and no implementation
-dispatch has been authorized.
+The Phase 16 qualifier `epic #793 + #794–#837; groomed-not-dispatched` means its
+PRD and issue set exist, but no implementation dispatch has been authorized.
+The Phase 17 qualifier `issue set pending; groomed-not-dispatched` means its PRD
+exists, but no epic/children have been published and no implementation dispatch
+has been authorized.
 
 | #      | Phase                                                                            | Hard deps                                        | Status                                                         |
 | ------ | -------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
@@ -151,8 +153,8 @@ dispatch has been authorized.
 | **13** | Campaign, Designation, Contribution Ledger & Giving Cart                         | 1, 2, 3, 4, 5, 7                                 | `PRD exists` (epic #690 + #691–#713)                           |
 | **14** | Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts           | 13, 7, 9                                         | `PRD exists` (epic #719 + #720–#741)                           |
 | **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists (epic #758 + #759–#786)`                           |
-| **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **17** | System Messages & Template Management                                            | 6, 2, 3                                          | `future (needs PRD)`                                           |
+| **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
+| **17** | System Messages & Template Management                                            | 6, 2, 3, 7                                       | `PRD exists` (issue set pending; groomed-not-dispatched)       |
 | **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `future (needs PRD)`                                           |
 | **19** | Year-End Statement Operations                                                    | 7, 18, 17, **13**, 6                             | `future (needs PRD)`                                           |
 | **20** | Accounting Exports & Reconciliation                                              | **13**, 15, 14, 2                                | `future (needs PRD)`                                           |
@@ -359,12 +361,12 @@ Before creating issues or tickets, check:
   staff-keyed PANs would break SAQ-A" wording is superseded.)_
 
 - **Do not present any later phase (9–40) as implemented or live.** Groomed
-  PRDs through Phase 16 are planning contracts, not build proof. Phase 16 is
-  marked `PRD exists` with an explicit issue-set-pending/groomed-not-dispatched
-  qualifier; only the separate `/to-tickets` publication step may add issue
-  references, and only a separate founder decision may dispatch them. The
-  matrix's `Built?` cells marked `(v)` still need per-area code
-  verification, and all `Live?` cells are `unconf`.
+  PRDs through Phase 17 are planning contracts, not build proof. Phase 16 is
+  marked `PRD exists` with epic #793 and children #794–#837; Phase 17 has a PRD
+  and an unpublished pending issue set, with no epic or children yet. Both are
+  explicitly groomed-not-dispatched, and only a separate founder decision may
+  dispatch either. The matrix's `Built?` cells marked `(v)` still need per-area
+  code verification, and all `Live?` cells are `unconf`.
 
 ## Related documents
 

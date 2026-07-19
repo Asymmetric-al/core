@@ -136,3 +136,28 @@ package with a link-fix sweep.
 3. **Issue re-scoping** — executed 2026-07-06 after founder approval: epic
    #587 bannered, children #588–#601 commented, #599 and #466–#476 closed
    as superseded, #602/#603 filed.
+
+## Dated Phase 17 ownership amendment (2026-07-19)
+
+**Old statement.** The matrix assigns Communication history to Asym Postgres
+through the Phase 6 `communication_events` spine and treats Resend/Mailchimp as
+providers. It does not yet name Phase 17's configuration and presentation
+records.
+
+**New winner.** Asym Postgres also owns the Phase 17 executable system-message
+catalog and activation generations; tenant drafts and immutable publications;
+Brand Kits, Role Layouts, locale readiness, fallback policy, and Delivery Plan
+versions; the tenant-owned Resend connection, Sender Profile and human-reply
+destination revisions; and the separately protected, expiring Recent sent copy
+detail. Code owns stable catalog meaning and lifecycle. Resend executes email
+and returns signed evidence only.
+
+**Compatibility boundary.** Phase 6 continues to own communication intent,
+event, dispatch, consent snapshot, provider reconciliation, and durable
+body-free history. Producer domains own eligibility, facts, recipients, timing,
+and protected actions. A provider message/template/account identifier is a
+link, never product identity or authority. A Recent sent copy is subordinate
+support detail, never communication truth, an official artifact, or a retry
+payload. All tenant-facing Phase 17 records carry `tenant_id NOT NULL`,
+same-tenant composite references, and the Phase 12 access floor; provider-ingest
+evidence may be service-only only behind an explicit isolation contract.

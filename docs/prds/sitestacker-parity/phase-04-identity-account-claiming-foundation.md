@@ -167,7 +167,10 @@ Each is a deep module — a simple, testable interface hiding real complexity �
 ### E. Contracts / wiring
 
 - **Supabase Auth:** `signInWithOtp` (magic-link entry), `admin.inviteUserByEmail`/`generateLink` (invites; fresh link at redemption), `updateUser` (post-auth password), automatic identity linking (verified-email-only — reinforces the takeover-safety rule). Send Email Hook for branded delivery.
-- **Email Studio → Resend:** per-tenant branded auth-email templates; the hook carries tenant/site in `redirectTo` so it can resolve branding.
+- **Email Studio → Resend:** per-tenant branded auth-email templates; the hook
+  carries only a server-issued opaque context handle in `redirectTo`. Server-side
+  lookup re-proves tenant, site, recipient, action, and template before
+  rendering; no URL field selects authority.
 - **Inngest:** scheduled self-healing dedupe scan (the shipped recovery-scan / donation-saga-recovery Inngest pattern).
 - **UI:** all Phase-4 screens use the shadcn **`base-maia`** style + **zinc** tokens defined in `packages/ui/styles/globals.css` (re-exported by `theme.css`), consumed via `@asym/ui`, built on **Base UI** primitives and `DataTableResponsive`. No ad-hoc colors; if a token is unclear, look it up in `packages/ui/styles/globals.css`.
 
@@ -231,7 +234,7 @@ Good tests here assert **external behavior and safety invariants**, not implemen
 - **Compliance anchors.** PCI SAQ-A (store no cardholder data; Stripe holds the customer/PM); AFP Donor Bill of Rights + CAN-SPAM/GDPR (consent preserved through attribution and merge; anonymity/redaction reserved as explicit states); IRS receipt integrity (frozen legal-donor snapshot).
 - **Related security work (soft dependency, not a blocker).** Two in-flight P0 patches — CSV formula-injection across exporters and a fail-closed email-consent gate before Resend — are adjacent; Phase 4's consent-on-attribution rule reuses the email-consent gate if it has landed. Track as related, not blocking.
 - **Enumeration defense-in-depth (reserved hardening).** Constant-time, constant-shape attribution is necessary but not sufficient: per-email / per-IP **rate limiting** + CAPTCHA-on-abuse on the guest-attribution and claim-initiation endpoints is reserved as a fast-follow (Supabase's throttles protect only its own auth endpoints, not our forms), and the rate-limit-timing behavior must be verified before promising "no signal."
-- **Honest build-verify items carried into tickets.** Confirm `donors` uniqueness is `(tenant_id, profile_id)`; confirm `profile.tenant_id` `NOT NULL` and quarantine it from authz; confirm `crm_merge_candidates` can reference two Asym donor ids; confirm `generateLink` and the Send Email Hook payload can resolve tenant (encode tenant/site in `redirectTo`).
+- **Honest build-verify items carried into tickets.** Confirm `donors` uniqueness is `(tenant_id, profile_id)`; confirm `profile.tenant_id` `NOT NULL` and quarantine it from authz; confirm `crm_merge_candidates` can reference two Asym donor ids; confirm `generateLink` and the Send Email Hook payload can resolve only a server-issued opaque handle whose server-side record re-proves tenant/site/recipient/template—never encode authoritative tenant/site ids in `redirectTo`.
 
 ---
 
@@ -273,3 +276,37 @@ Mirrors the Phase-2/3 structure. Foundation tickets first (`status:todo`); the r
 - **T11** — Branded auth emails (Send Email Hook → per-tenant Email Studio template resolution → Resend).
 - **T12** — Cross-tenant negative-test CI tier + FORCE-RLS assertion + branding test.
 - **T13** — Phase 4 evidence file.
+
+## Dated Phase 17 protected-action and transport amendment (2026-07-19)
+
+**Old statement.** Phase 4 describes the Supabase Send Email Hook as resolving
+tenant context from request/`redirectTo`, injecting an action link, and sending
+through a per-tenant Email Studio/Resend path.
+
+**New winner.** Phase 4 remains the sole owner of invitation/claim purpose,
+tenant and intended Party binding, issuance identity, credential creation,
+expiry, replacement, revocation, redemption, current-state authorization,
+postcondition, and completion audit. Phase 17 renders only a typed protected
+action descriptor in an immutable publication. The original invitation email
+uses a scanner-safe Asym handoff; after the recipient deliberately selects
+**Accept invitation**, Phase 4 re-proves the invitation and creates/exchanges
+the fresh short-lived Supabase proof needed for redemption.
+
+The producer command is `BeginLegacyInvitationRedemption`. It binds the exact
+tenant, invitation id/revision, invited email and Party/donor, fixed allow-listed
+site origin, opaque handle, expected pending state, and one idempotency key. A
+deliberate POST CAS-reserves one attempt only after current expiry, revocation,
+use, tenant and email proof. Phase 4 then uses the pinned server-only Supabase
+Admin invite-link generation and matching `verifyOtp` exchange. Any short-lived
+returned bearer hash is envelope-encrypted producer crash-recovery material,
+never Phase 17 history/template/browser/log data. Exact retry resumes one proof;
+possible success becomes `redemption_indeterminate` and is reconciled before any
+successor proof can be issued. Final Party/account bind is idempotent.
+
+**Compatibility boundary.** `redirectTo` may carry an opaque context reference
+but never selects tenant, site, recipient, template, sender, or authority. The
+server reloads and re-proves those facts. An editable merge tag can never be the
+credential/action URL. Tenant identity/system email uses that tenant's D10
+Ready Resend connection. Initial Asym customer-account bootstrap is a distinct
+platform sender, purpose, audience, and contract—not a fallback for tenant
+mail. Historical invitation evidence remains truthful and is not rewritten.

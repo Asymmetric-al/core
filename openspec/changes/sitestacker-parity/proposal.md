@@ -47,12 +47,47 @@ platform boundaries already warn against.
   authorize the superseded one-Stripe-subscription-to-one-legacy-pledge model or
   provider-owned retry policy. Detailed behavior is governed by the Phase 16
   PRD, dated congruence package, and ADRs.
+- **Amended 2026-07-19 (Phase 17 (System Messages & Template Management)):**
+  add the `outbound-communications` capability contract and dated full
+  amendments to the platform surface and automation boundaries. Establish one
+  code-governed system-message catalog, producer-owned truth and protected
+  actions, complete immutable structured publications, contract-bounded Delivery
+  Plans, proportional publication review, tenant/site/locale whole-message
+  resolution, one Asym notification presentation model, mutually exclusive
+  tenant-owned and service-only platform Resend connections with composed
+  sender/reply identities, recipient-specific
+  preparation and recovery, body-free durable history with a bounded tenant
+  recent support copy and no readable platform copy in this generation,
+  transport-dark SMS evidence, and versioned portability. The
+  proposed observable behavior is governed by this active OpenSpec delta; its
+  detailed implementation interface is
+  `docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md`,
+  its executable-manifest specification, and `docs/adr/0022`–`0029`. The dated
+  producer/obligation census, decision-to-test traceability matrix, and Phase 17
+  congruence package provide derived coverage evidence; the research appendix
+  is informative. This remains a
+  groomed planning change; it does not dispatch or implement product work.
+  Platform email uses a Phase 17 fixed contract/compiler and the Phase 6
+  delivery spine through an explicit tenant/platform-exclusive owner arc. V1
+  admits only the exact revisioned `eve_platform_owner` authority plus a separate
+  service-only Asym connection/profile; it never uses a fake tenant or tenant
+  fallback. Customer-account bootstrap/security requires a future distinct
+  recipient-authority branch. The current manifest generation contains zero
+  Eve email keys, so Eve email remains non-dispatchable until a later generation
+  adds producer-ratified meaning-specific keys, exact source fences, the fixed
+  platform profile, and complete proof packs; generic catch-all keys are
+  prohibited.
 
 ## Impact
 
-- Affected specs: `platform-product-intent`, `donation-lifecycle`
+- Affected specs: `platform-product-intent`, `donation-lifecycle`,
+  `outbound-communications`, `platform-surfaces`, `platform-boundaries`
 - Affected docs: `docs/prds/sitestacker-parity/**` (including `roadmap.md`,
-  the source of truth for phase architecture), the Phase 0 evidence file
+  the source of truth for phase architecture, plus the Phase 17 executable
+  manifest/census/traceability/research companions), `docs/adr/0022`–`0029`, the
+  Phase 0 evidence file, and the active
+  `openspec/changes/add-eve-email-discord-notifications/**` planning package
 - Reconciled active changes: `add-recurring-giving`,
-  `add-donor-self-service`
-- No product code changes (this change is baseline + governance only).
+  `add-donor-self-service`, `add-eve-email-discord-notifications`
+- No product code changes or issue dispatch (this change is specification and
+  governance only).

@@ -64,6 +64,53 @@
       evidence/targets remain distinct from application authority, and heuristic
       evidence remains suggestion-only.
 
+## 2e. Phase 17 (System Messages & Template Management) (2026-07-19)
+
+- [x] 2e.1 Record all ratified D1–D20 decisions in
+      `docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md`
+      plus the normative executable manifest, dated producer/obligation census,
+      dated decision-to-test traceability matrix, and research evidence appendix,
+      with explicit REAL-versus-FORWARD anchors, source ownership, APIs/data,
+      staff and recipient UX, migration, observability, security, accessibility,
+      and release-blocking acceptance criteria.
+- [x] 2e.2 Add the platform-level `outbound-communications` capability delta
+      covering the code-governed catalog, structured publications, locale and
+      fallback resolution, review, Delivery Plans, protected actions,
+      notifications, transport-dark SMS evidence, tenant-owned Resend,
+      sender/reply identity, recipient preparation/recovery, evidence retention,
+      portability, tenant safety, accessibility, and operations.
+- [x] 2e.3 Add full `MODIFIED` deltas for **Outbound Communications Are A
+      Governed Platform Channel** and **Mission Control Automations Are
+      Declarative And Guarded**, preserving their merged scenarios while making
+      tenant control contract-bounded and routing platform-level system
+      messages through Phase 17 contracts and the Phase 6 spine.
+- [x] 2e.4 Record canonical `docs/adr/0022`–`0029` for producer-owned protected actions,
+      contract-bounded Delivery Plans, one notification model, unavailable SMS
+      transport, tenant-owned Resend and composed delivery identities, the
+      canonical structured document/presentation graph, body-free history with
+      bounded recent copy, and immutable preparation/whole-message recovery.
+- [x] 2e.5 Complete and apply the dated cross-PRD/OpenSpec congruence package,
+      including bounded amendments to Phases 1, 2, 3, 4, 5, 6, 7, 10, 12, 13,
+      14, and 16 and explicit ownership boundaries for Phases 18, 19, 25, 26,
+      28, 32, and 34.
+- [x] 2e.6 Reconcile the active Eve email/Discord change: Eve owns safe source
+      facts, platform-owner recipients, policy, and Discord delivery. Record that
+      the current manifest has zero Eve email keys and blocks email before intent
+      creation. A later generation may add only producer-ratified,
+      meaning-specific platform keys with exact fences, the fixed platform
+      profile, and complete proof packs; then Phase 17 owns its fixed contract,
+      publication/compiler, and platform profile proof while Phase 6 owns Resend
+      delivery/history, without becoming tenant mail or a tenant fallback. A generic Eve
+      alert key is prohibited.
+- [x] 2e.7 Define the exact exclusive tenant/platform owner and recipient arcs,
+      scope-aware parent/result keys and single-scope batching, the revisioned
+      closed v1 `eve_platform_owner` authority branch, service-only platform
+      Resend aggregate, RLS boundary, tenant backfill, no-fake-tenant proof, and
+      fail-closed future branch for customer-account security mail.
+- [x] 2e.8 Verify no merged `openspec/specs/**` file is edited, no product code
+      or transport is shipped, no issue is dispatched, and all Phase 17 records
+      remain groomed planning until the founder separately authorizes dispatch.
+
 ## 3. Verification
 
 - [x] 3.1 `bunx @fission-ai/openspec@latest validate --all --strict` passes.

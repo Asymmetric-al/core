@@ -1003,19 +1003,425 @@ therefore justify a new product message. A raw provider attempt, duplicate event
 failure is not one by itself.
 _Avoid_: one email per webhook; one email per processor attempt; retry count as message policy
 
-**Communication intent** (Phases 6 and 16):
-The durable, tenant-scoped pre-dispatch request that one exact meaning be evaluated for one exact
-recipient and channel under the shared consent, suppression, rendering, and delivery seam. Its
-permanent semantic key prevents duplicate submission. It is not proof that a message was queued,
+**Communication intent** (Phases 6, 16, and 17):
+The durable, scope-owned pre-dispatch request that one exact meaning be evaluated for one exact
+recipient and channel under the shared consent, suppression, rendering, and delivery seam. The
+closed scope is either one tenant or the service-only Asym platform owner, never a fake tenant or
+caller-selected branch. One permanent, producer-authorized recipient/channel-step occurrence slot
+plus server-derived semantic-identity and immutable-command hashes prevents duplicate or
+changed-input submission; fan-out uses independent slots. It is not proof that a message was queued,
 sent, delivered, read, or understood; an actual communication event is recorded only by the Phase 6
 send seam.
 _Avoid_: domain-owned email queue; communication event before send; provider message ID as dedupe
 
-**Communication delivery profile version** (Phase 6):
-An immutable tenant email-delivery snapshot that binds the governed sender identity, reply-to contact
-point, underlying tenant email settings revision/hash, channel, and operational eligibility used when
-a communication intent is submitted. It supplies delivery configuration, never consent, template
-content, recipient authority, or domain eligibility.
+**System message contract** (Phase 17):
+The platform-owned definition of one system message's meaning and non-delegable safety boundaries,
+including its purpose, eligible audience, allowed facts, mandatory content, and safe failure posture.
+_Avoid_: editable business rule; arbitrary event trigger; template as product truth
+
+**Catalog completeness inventory** (Phase 17):
+The versioned, cited accounting of every current system-message producer, prior product obligation,
+known future dependency, historical surface, and deliberate exclusion. Its audit dispositions explain
+scope and readiness for cataloging but are not executable lifecycle states.
+_Avoid_: template list; roadmap wishlist; every future item as a permanent key
+
+**Executable system-message catalog** (Phase 17):
+The code-governed registry containing only stable product-message meanings with immutable keys and
+exactly one platform lifecycle state: Reserved, Live, or Retired. Every entry maps to inventory evidence.
+_Avoid_: database rows as product truth; provider template catalog; tenant-created event key
+
+**System-message scope kind** (Phase 17):
+The closed contract discriminator declaring either one exact tenant scope or an Asym-owned platform
+scope. Tenant scope uses tenant-owned publications, permissions, data, recipients, and Resend connection;
+platform scope uses fixed service-only publications, verified platform recipients, and the separately
+proved Asym platform connection. Every execution/history row carries the exclusive `tenant_id` XOR
+`platform_scope_id` owner arc and scope-prefixed keys/FKs. Tenant Party/contact/profile and platform
+authority/profile fields are mutually exclusive. Exactly one applies and platform transport is never tenant fallback.
+_Avoid_: fake tenant id; nullable scope by convention; request-selected scope; shared tenant fallback
+
+**System-message platform lifecycle** (Phase 17):
+The three-state product contract governing whether new message intent is forbidden for future work
+(Reserved), accepted through a proven generation (Live), or forbidden after supersession while history
+remains readable (Retired). It is independent of publication, tenant readiness, Delivery Plan policy,
+and individual delivery or recovery outcome.
+_Avoid_: Active Boolean; Ready badge; quarantine as lifecycle; template publication state
+
+**Message activation generation** (Phase 17):
+The immutable compiled catalog manifest revision whose applicable automated proof authorizes a stable
+set of Live contracts across rolling deployments. Each accepted communication intent pins a compatible
+generation so partial activation or later configuration drift cannot change its authority.
+_Avoid_: active template row; mutable production manifest; per-tenant activation ceremony
+
+**Tenant message readiness** (Phase 17):
+The derived, scope-aware answer for whether a tenant can satisfy one Live message contract now, including
+its effective system, organization, site, or locale source and reason. A policy-valid approved fallback
+may be ready; platform lifecycle, publication, optional-step suppression, and delivery outcome remain separate.
+_Avoid_: globally Live means tenant ready; published means ready; every fallback needs repair
+
+**Tenant message capability envelope** (Phase 17):
+The explicit, bounded set of content, branding, channel, audience, timing, enablement, and preference
+choices a system message contract permits a tenant. For each role and channel, the contract classifies
+the path as required, tenant-and-recipient optional, tenant-optional but role-required when enabled, or
+prohibited; the envelope never grants arbitrary data, recipient-query, workflow, or safety authority.
+_Avoid_: unrestricted template behavior; custom workflow language; tenant-authored recipient query
+
+**Delivery Plan** (Phase 17):
+The effective, versioned selection of contract-permitted delivery steps for a system message at an
+allowed scope. For tenant scope, authorized tenant staff publish the plan and may choose only approved
+recipients, channels, content, and named product-owned timing or condition options. For platform scope,
+the plan is an immutable Asym-owned fixed version declared by the exact meaning-specific platform
+profile; tenant configuration cannot select or alter it. Neither form owns triggering truth or arbitrary
+workflow logic.
+_Avoid_: workflow definition; journey graph; template as scheduler
+
+**Delivery Plan Builder** (Phase 17):
+The guided staff experience for assembling a Delivery Plan from required and optional
+contract-approved delivery slots. Its visual connections explain the resolved plan; they are not a
+tenant-authored execution graph.
+_Avoid_: workflow canvas; rules engine; no-code programming
+
+**Delivery Plan occurrence** (Phases 6 and 17):
+One immutable, bounded coordination header for an authoritative producer occurrence and the exact
+Delivery Plan generation compiled for it. A separate stable producer token owns the occurrence
+slot even when no member applies. Phase 6 inserts or exactly replays the complete canonically
+ordered child-intent set and marks the header released in one PostgreSQL transaction; changed
+source, plan, binding, condition, recipient, or membership under that slot conflicts. The header
+proves all-before-any release but never becomes a scheduler, workflow run, queue, communication
+ledger, or message-outcome truth.
+_Avoid_: batch outcome; workflow header; queue item; independently committed child fan-out
+
+**Delivery Step** (Phase 17):
+One contract-permitted recipient-and-channel instruction within a Delivery Plan. When the producing
+domain says it applies, every step becomes its own recipient-specific Phase 6 communication intent
+beneath the Delivery Plan occurrence and becomes claimable only after the complete occurrence is
+released. An external-delivery intent proceeds through its channel executor; an in-product intent
+produces one local `available` event and its independent role-safe Phase 17 attention projection,
+with no provider submission, provider state, or provider outcome.
+_Avoid_: workflow node; provider send; batch-wide outcome
+
+**In-product communication availability** (Phases 6 and 17):
+The Phase 6 fact that one role-safe in-product communication exists for its exact tenant, recipient,
+and source meaning. It is local delivery truth only, not evidence that the recipient saw, read, acted
+on, resolved, or understood it.
+_Avoid_: delivered to the person; unread state; task created; recipient aware
+
+**In-product notification item** (Phase 17):
+The tenant-scoped, recipient- and role-specific presentation of one available in-product
+communication, bound to the system message contract and source occurrence that gave it meaning. It
+is not an email copy, business record, task, permission grant, or proof of attention.
+_Avoid_: email mirror; notification queue row; task record; permission-bearing message
+
+**Notification attention group** (Phase 17):
+A recipient's single triage unit for one meaningful source episode, summarizing related in-product
+notification items without merging their individual history or source truth. It cannot combine
+tenants, recipients, privacy classes, or incompatible actions.
+_Avoid_: raw event count; cross-donor thread; batch outcome; business task
+
+**Notification engagement** (Phase 17):
+The recipient-specific presentation facts `seen`, `read`, and `archived`, kept separate from
+in-product communication availability and the authoritative source status. Engagement describes
+interaction with the presentation; it never completes business work or proves comprehension.
+_Avoid_: delivered; resolved; completed; recipient understood
+
+**Notification source status** (Phase 17):
+The authoritative fact that the underlying matter remains unresolved, has resolved, been superseded
+or canceled, become inapplicable, or is no longer authorized for this recipient. It may change the
+notification's presentation but is neither local delivery truth nor recipient engagement.
+_Avoid_: inbox-owned business state; archive as completion; read as resolution
+
+**Reserved SMS channel** (Phase 17):
+The governed future channel whose consent, suppression, sender, and readiness meanings are defined
+while platform transport remains unavailable. It cannot be selected, rendered, tested, queued, used
+as fallback, or sent until a later authorized launch removes the platform transport lock.
+_Avoid_: disabled tenant feature; dormant Twilio transport; SMS-ready channel
+
+**SMS consent evidence** (Phase 17):
+Append-only proof that an exact Party using a specific phone contact-point revision gave permission
+to one identified sender for one message subject under a known disclosure, method, and time. A phone
+number, preference, email consent, staff note, or absence of a broad restriction is not this evidence.
+_Avoid_: SMS opt-in boolean; phone-number consent; preferred channel as permission
+
+**SMS sender-route readiness** (Phase 17):
+The evidence-derived status for one tenant, public sender identity, message use case, destination
+market, and contemplated route. It requires every applicable registration component to be current
+and approved, but it is neither platform availability, recipient consent, nor permission to send.
+_Avoid_: tenant registered; SMS enabled; provider object ID as approval
+
+**SMS hard suppression** (Phase 17):
+An append-only restriction created by STOP, another reasonable withdrawal, or an applicable safety
+condition for an exact recipient, contact point, and sender or service scope. It outranks message
+importance and preferences and may be lifted only by sufficient, supported recovery evidence.
+_Avoid_: optional topic preference; tenant override; required-message bypass
+
+**Protected SMS control semantics** (Phase 17):
+The platform- and provider-governed meanings of opt-out, opt-in, and assistance signals such as STOP,
+START, UNSTOP, and HELP. Tenants cannot remove or repurpose them; HELP does not suppress, and a
+provider unblock does not by itself restore subject-specific consent.
+_Avoid_: tenant-authored keyword workflow; HELP as opt-out; START as blanket consent
+
+**Published message variant** (Phase 17):
+One complete approved content expression for a system-message step at a permitted tenant, site,
+locale, and channel scope. A scope without its own variant inherits another complete published
+variant; parts are never mixed across variants for one message.
+_Avoid_: live field overlay; partial runtime override; Frankenstein template
+
+**Message-locale activation** (Phase 17):
+The tenant's choice to make one canonical human-language locale eligible for system-message
+resolution at a permitted scope. It does not by itself prove that every message is translated or ready.
+_Avoid_: site localization; translated-everywhere flag; valid locale tag as readiness
+
+**Contract-locale readiness** (Phase 17):
+The evidence-derived result that one system message contract's complete publication and required
+immediate recipient experience are safe for one locale and presentation.
+_Avoid_: translation-present Boolean; tenant attestation as certification; recipient preference as support
+
+**Brand Kit** (Phase 17):
+A complete published set of typed visual identity choices for a tenant organization or permitted site.
+It presents the brand but never owns message truth, protected actions, recipient facts, or localized prose.
+_Avoid_: mutable theme overlay; template variables; website styles as authority
+
+**Layout Role** (Phase 17):
+A platform-owned semantic role selected by an email system message contract to define the minimum
+shared frame and protected structural obligations for that class of email.
+_Avoid_: tenant-created layout category; visual theme; per-template layout choice
+
+**Role Layout** (Phase 17):
+The tenant-designed structured visual email frame for one Layout Role at an organization or permitted
+site scope. It may vary broadly while the message contract retains protected meaning.
+_Avoid_: complete message template; raw HTML shell; locale-specific layout
+
+**Saved Section** (Phase 17):
+A tenant-authored reusable visual starting block that becomes an independent copy when inserted into
+a draft. Later changes to the saved source do not alter existing consumers.
+_Avoid_: live partial; synchronized runtime fragment; nested include
+
+**System-message publication review floor** (Phase 17):
+The minimum review posture a system message contract requires before a committed change can become
+the published message. A tenant may require more review but cannot weaken this floor.
+_Avoid_: tenant-authored approval rules; optional safety check; one policy for every message
+
+**Protected message publication** (Phase 17):
+A publication whose effect on official, security, payment, delivery, or protected-action meaning
+requires an independent publication review before it can replace the current published message.
+_Avoid_: high-risk label chosen by staff; reviewer-per-send; editable safety classification
+
+**Independent publication review** (Phase 17):
+An authorized person's review of a committed protected publication that they did not author or
+substantively edit. It supplements contract validation and never permits an unsafe publication.
+_Avoid_: self-approval through another role; generic approval workflow; validation bypass
+
+**Tenant message fallback policy** (Phase 17):
+The tenant's published choice between the platform's permitted language-first and
+site-wording-first resolution postures for eligible system-message content. It orders only
+complete compatible published variants and cannot create locale graphs, widen a message contract,
+cross tenant or site boundaries, or override a message's fixed safe-failure behavior.
+_Avoid_: custom fallback chain; tenant rules graph; unrestricted locale priority
+
+**Structured message document** (Phase 17):
+The one canonical, versioned subject, preheader, and structured content source for a complete
+published message variant. HTML and plain text are deterministic compiled outputs, not independent
+editable sources, and the document never owns recipient selection or business truth.
+_Avoid_: raw HTML template; three content sources; browser output as canonical truth
+
+**Message document compatibility schema** (Phase 17):
+The platform-owned, versioned vocabulary that can safely recognize supported and intentionally
+retained legacy message nodes. A system message contract separately decides which recognized nodes
+are writable, required, restricted, or forbidden for one message.
+_Avoid_: different ProseMirror schema per message; silent unknown-node deletion; tenant block plug-in
+
+**Portable message layer** (Phase 17):
+The tenant-authored message source, reusable content, safe variable declarations, and eligible assets
+that can stand independently of recipient data and destination-owned identity or authority.
+_Avoid_: complete tenant state; sent email; provider template
+
+**Asym Message Package** (Phase 17):
+A versioned, integrity-protected representation of one or more Portable message layers that can be
+exported and restored without carrying recipient, provider, consent, approval, or secure-action authority.
+_Avoid_: database dump; vendor template file; tenant backup
+
+**External message conversion** (Phase 17):
+The evidence-bearing transformation of a supported foreign message source into a new Structured message
+document, with every unsupported, changed, removed, replaced, or unresolved meaning disclosed.
+_Avoid_: exact native round-trip; silent import; executable foreign template
+
+**Message conversion report** (Phase 17):
+The destination-safe account of what an External message conversion copied, rebound, changed, could not
+use, or still requires staff to resolve before publication.
+_Avoid_: raw parser log; success Boolean; lossless claim
+
+**Message transfer offer** (Phase 17):
+A revocable, time-bounded source authorization allowing one verified destination organization to accept
+an independent copy of named immutable Portable message layers.
+_Avoid_: cross-tenant write; public share link; live synchronization
+
+**Destination-owned message copy** (Phase 17):
+A new independent draft created for the accepting organization with destination identities, assets,
+contracts, permissions, and publication authority rather than live source dependencies.
+_Avoid_: moved template; shared source; inherited approval
+
+**Protected message block** (Phase 17):
+A small, visible, typed component whose authoritative facts, indispensable meaning, safe destination,
+privacy projection, or accessible function come from the owning producer and System message contract.
+Staff retain the contract's safe styling and movement freedom but cannot alter, remove, duplicate,
+split, hide, redirect, image-convert, deceptively relabel, track, or make the protected meaning inaccessible.
+_Avoid_: locked whole template; disabled UI as security; pasted password-reset URL; tenant-removable required notice
+
+**Minimum source-owned truth core** (Phase 17):
+The smallest set of Protected message blocks a Live contract can prove must remain producer-owned so
+the surrounding tenant-authored system message cannot falsify authoritative facts, remove indispensable
+official or safety meaning, weaken a protected action, widen a privacy projection, or hide required
+identity or accessible function. Every protection names its source, evidence, applicability, safe
+freedom envelope, and nearest legitimate source action; ordinary tenant content remains editable.
+_Avoid_: universally locked official template; legal clause builder; tenant-authored lock policy
+
+**Protected action handoff** (Phase 17):
+A purpose-bound path from a governed message into producer-owned proof or an authorized service
+experience; merely opening it never performs a consequential action.
+_Avoid_: editable action URL; email-click mutation; template-owned credential
+
+**Producer capability** (Phase 17):
+A one-time proof issued and redeemed by the domain that owns the protected action while Phase 17
+presents only its governed purpose and recipient experience.
+_Avoid_: generic Phase 17 token; reusable action link; template-derived authority
+
+**Authenticated service doorway** (Phase 17):
+A protected entry into a tenant-bound service experience that establishes current authorization before
+opening any short-lived downstream session or consequential review.
+_Avoid_: emailed provider session; unauthenticated billing link; return redirect as completion proof
+
+**Compiled message artifact** (Phase 17):
+The immutable, pre-recipient HTML and plain-text output plus dependency versions, asset manifest,
+hashes, and validation evidence produced by the server-authoritative compiler for one committed or
+published structured message document.
+_Avoid_: live editor render at send; mutable layout dependency; personalized donor body as template source
+
+**Needs-migration message document** (Phase 17):
+A preserved structured message document that the current compatibility and policy layer cannot
+safely edit or publish without an explicit loss-detecting migration. It remains read-only and is
+never silently stripped, blanked, or autosaved.
+_Avoid_: best-effort normalization; empty-document recovery; destructive bulk migration
+
+**Message fact contract** (Phase 17):
+The producer-owned, versioned vocabulary of approved facts, presentation cases, item sets, and
+protected action purpose that one system message may present without deciding or querying business truth.
+_Avoid_: source schema path; arbitrary record access; template expression language
+
+**Prepared message identity** (Phase 17):
+The stable identity of one recipient's fully resolved message truth and exact published presentation,
+used to recognize the same delivery across safe retries and reconciliation.
+_Avoid_: render exactly once; mutable re-render after submission; provider message ID as message truth
+
+**Contract-owned whole-message recovery** (Phase 17):
+The message contract's safe-failure rule that may select another complete compatible publication only
+before a recipient message is prepared; after preparation or possible submission, recovery preserves
+the exact prepared message and reconciles its original outcome rather than changing its content.
+_Avoid_: fragment fallback; rerender after submission; provider failover; send-anything emergency copy
+
+**Compatible prior publication** (Phase 17):
+A complete immutable publication from the same permitted scope that the current System message
+contract proves remains safe for the present audience, locale, sender, legal identity, facts, layout,
+Brand Kit, and protected-action context. It is not merely the last publication sent or published.
+_Avoid_: last-used template; arbitrary historic version; tenant-selected rollback target
+
+**Delivery outcome unknown** (Phases 6 and 17):
+The truthful state where provider acceptance cannot be proved or ruled out for one exact prepared
+message. It requires reconciliation and never permits a guessed replacement or differently rendered
+message for the same communication meaning.
+_Avoid_: failed; safe to resend; provider accepted; recipient delivered
+
+**Message repair case** (Phase 17):
+One exact-scope-owner operational attention item grouping the same actionable system-message
+failure cause, its recipient impact, responsible owner, and governed repair path without becoming
+communication truth, recipient content, or a separate workflow product. Tenant cases preserve
+tenant/site boundaries; platform cases are service-only and never appear in tenant surfaces.
+_Avoid_: one task per failed recipient; generic incident ticket; template error as recipient truth
+
+**Message transport batch** (Phase 17):
+An operational grouping of distinct recipient messages submitted together through Resend while each
+message keeps its own exact scope-owner boundary, identity, delivery state, and retry outcome. A
+batch is wholly tenant-scoped or wholly service-only platform-scoped and can never mix owners.
+_Avoid_: BCC personalization; cross-owner batch; batch-wide delivery truth
+
+**Tenant-owned Resend connection** (Phase 17):
+The tenant's single active Resend account relationship for system email, including its governed
+Sender Profile set, sending authority, delivery-evidence authority, and current readiness.
+_Avoid_: shared Asym tenant-mail account; per-message provider account; emergency sender substitution
+
+**Sender Profile** (Phase 17):
+A tenant-owned, reusable recipient-visible `From` identity on the exact Tenant-owned Resend
+connection domain, with immutable revisions and bounded site or Sender Purpose assignments.
+_Avoid_: template From field; Resend sender object; reply mailbox; dynamic per-recipient sender
+
+**Sender Purpose** (Phase 17):
+A platform-owned semantic category from the Live System message catalog that constrains where one
+stable Sender Profile may be used, independently of message content and Human reply purpose.
+_Avoid_: tenant routing taxonomy; template category; custom sender rule; Reply-To purpose
+
+**Resend credential revision** (Phase 17):
+One attributable version of the tenant-provided send authority, kept distinct so replacement and
+in-flight communication can retain their exact original authority.
+_Avoid_: editable API key field; overwritten secret; provider credential in a delivery profile
+
+**Resend webhook authority** (Phase 17):
+The exact tenant-connection or structurally separate platform-connection trust evidence used to
+authenticate Resend delivery events before they may affect Asym communication history.
+_Avoid_: one global tenant webhook secret; payload tag as authorization; unsigned delivery event;
+platform webhook used to resolve tenant messages
+
+**Email delivery readiness** (Phase 17):
+The fail-closed result derived from current credential, sender, domain, delivery-event, tracking,
+profile, and safety evidence for one tenant-owned Resend connection or the separately scoped Asym
+platform connection.
+_Avoid_: connected Boolean; successful API-key paste; heuristic deliverability score
+
+**Human reply posture** (Phase 17):
+The System message contract's explicit declaration that a recipient's human reply is supported or
+deliberately not expected, including the governed help behavior for the latter.
+_Avoid_: blank Reply-To setting; omitted header as policy; template-authored reply behavior
+
+**Human reply purpose** (Phase 17):
+The platform-owned operational reason and responsible team category for a supported human reply,
+derived only from materially distinct owners in the Live system-message catalog.
+_Avoid_: tenant routing taxonomy; subject-matching rule; arbitrary department label
+
+**Human reply destination** (Phase 17):
+One tenant-accountable mailbox mapped to a Human reply purpose after mailbox access and monitoring
+responsibility are confirmed; replies remain outside Asym until the inbound phase records them.
+_Avoid_: template Reply-To field; dynamic assignee address; Asym support conversation
+
+**Mailbox access confirmation** (Phase 17):
+Point-in-time evidence that an authorized tenant administrator could retrieve a challenge from one
+Human reply destination; it is neither legal ownership nor continuous monitoring proof.
+_Avoid_: Resend domain verification; delivered challenge; mailbox health
+
+**Monitoring responsibility confirmation** (Phase 17):
+A named authorized tenant administrator's statement that a real team accepts and monitors one Human
+reply destination, kept separate from mailbox-access and provider-delivery evidence.
+_Avoid_: continuous monitoring telemetry; Healthy badge; provider-delivered event
+
+**Support-safe projection** (Phase 17):
+The recipient-visible wording and layout of an eligible communication with credentials, protected
+destinations, and other forbidden content omitted while preserving what authorized staff need to understand.
+_Avoid_: raw provider email; regex-redacted archive; credential-bearing preview
+
+**Recent sent copy** (Phase 17):
+A short-lived, recipient-specific support-safe projection of one eligible tenant email retained only so authorized
+tenant staff can resolve recent recipient questions; it is not permanent communication truth or an official document.
+Platform-scoped messages retain body-free evidence only and have no readable-copy branch in this generation.
+_Avoid_: sent-mail archive; communication event body; retry payload; provider log
+
+**Readable sent-copy retention** (Phase 17):
+The organization-wide maximum time ordinary eligible Recent sent copies remain readable in Asym,
+further limited by each System message contract's safety ceiling.
+_Avoid_: email retention; keep forever; per-template retention rule
+
+**Communication delivery profile version** (Phases 6 and 17):
+An immutable, non-secret, scope-owned email-delivery snapshot. The tenant branch binds one exact
+Sender Profile revision, validated site and Sender Purpose, Human reply posture and—when Reply-To is
+emitted—one exact destination and tenant email-settings revision/hash. The service-only platform
+branch instead binds the fixed Asym sender/reply policy and platform email-settings revision/hash,
+with every tenant field null. It supplies delivery configuration, never consent, template content,
+recipient authority, domain eligibility, or a provider credential.
 _Avoid_: mutable sender setting on a reminder; template as reply-to authority; provider API key in domain data
 
 **Required-notice override** (Phase 16):
@@ -1864,3 +2270,23 @@ once?"
 
 Domain expert: "Yes, but every message still needs the same tenant checks,
 reason, audit trail, and move safeguards as a single-message move."
+
+## Dated Phase 17 glossary congruence note (2026-07-19)
+
+The Phase 17 terms above are the canonical vocabulary for System Messages &
+Template Management. Earlier documents sometimes use **template**, **binding**,
+**notification**, **sender setting**, or **workflow** as if each were the whole
+product. The Phase 17 winner keeps those narrower ideas separate: a **System
+message contract** owns meaning and safety; a **System-message publication**
+owns one immutable presentation; a **Delivery Plan** selects only
+contract-permitted Delivery Steps; a **Delivery Plan occurrence** is Phase 6's
+atomic coordination header for all-before-any intent release; a **Communication
+intent/event** remains the recipient-specific execution and history fact; and
+producer domains retain business truth, recipient authority, timing, and
+protected actions.
+
+Compatibility boundary: historical rows and earlier prose remain evidence of
+their original systems. They do not become executable-catalog lifecycle,
+publication approval, recipient truth, sender authority, workflow state, or
+proof that a message was sent. Phase 17 is a groomed planning contract, not a
+claim that these glossary objects are built or dispatched.

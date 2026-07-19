@@ -297,13 +297,36 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 17. System messages & email template management
 
 - **Benchmark:** SiteStacker system messages / email templates. (s)
-- **Current state:** Email Studio referenced by contribution-operations; extent
-  partial. (v)
-- **Depends on:** —.
-- **Acceptance test:** staff manage templated system/email messages with
-  merge-tag validation.
-- **Evidence:** contribution-operations spec (PR #462); needs per-area check.
-- **Open questions:** template management surface.
+- **Current state:** **Partial foundation, not the Phase 17 product.** The repo
+  has real `tenant_email_settings`, `email_templates`,
+  `email_template_versions`, `email_template_system_bindings`, Resend send/event
+  logs, suppressions, and test-send paths. The Phase 6 communication-intent/event
+  spine and Phase 17 catalog, immutable publication, typed fact, locale/layout,
+  Delivery Plan, in-product, SMS-governance, sender/reply, recent-copy, recovery,
+  portability, and staff-workspace contracts remain forward. (v)
+- **Depends on:** Phase 6 communication spine, Phase 2 site/locale context, and
+  Phase 3 consent/projection governance. Producer-specific Live contracts also
+  require their source owner and proof bundle.
+- **Acceptance test:** every current producer and prior obligation is accounted
+  for in a cited inventory and stable Reserved/Live/Retired catalog; authorized
+  staff can safely customize, preview with synthetic data, review, publish,
+  resolve, and repair a complete message without accessing arbitrary records or
+  weakening required truth; every external recipient delivery attempt first
+  creates exactly one durable pre-dispatch Phase 6 intent, while its
+  communication event is created only at the send seam after the applicable
+  transition occurs; every `in_product` step becomes one role-safe attention
+  projection; tenant/site/locale, sender/reply, consent, privacy,
+  accessibility, provider-boundary, recovery, and cross-tenant negative tests
+  pass; SMS remains unable to send.
+- **Evidence:** Phase 17 PRD, dated 2026-07-19 cross-PRD congruence package,
+  research-evidence ledger, focused ADRs, and the active
+  `outbound-communications` OpenSpec delta. Current repo anchors remain evidence
+  of the starting point, not proof the target is built.
+- **Open questions:** none requiring another Phase 17 founder decision; D1–D20
+  are ratified. Producer-owned future meanings—such as exact Eve occurrence
+  keys—remain intentionally unminted until their owning producer ratifies the
+  occurrence and fence, and implementation proofs remain pending. Phase 17 is
+  groomed-not-dispatched and the issue set is pending.
 
 ### 18. File manager & document management
 

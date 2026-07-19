@@ -1962,3 +1962,33 @@ _Vertical-slice tickets mapped to the Build Order, one line each. **Published 20
 20. **T20 (S10)** — Ingest socket (versioned event-shape contract, quarantine/dead-letter split, no sync echo) + intermediary payer hints on the match path. _(socket)_
 21. **T21 (cross)** — The consolidated poison-fixture tier (35 fixtures) + per-generator cross-tenant tier + golden snapshots wired red-on-regression into CI. _(safety; lands incrementally with S1–S10, tracked as one gate)_
 22. **T22 (docs)** — The one congruence commit: the full cross-PRD amendment package (§OpenSpec & Docs Updates) + OpenSpec change + ADRs. _(docs are part of "done")_
+
+## Dated Phase 17 recognition-message amendment (2026-07-19)
+
+**Old statement.** Phase 14 ships fixed DAF/tribute/matching recognition
+templates and expects Phase 17 to add tenant editing on the same registry.
+
+**New winner.** Phase 17 supplies the code-governed System message contract,
+complete immutable publication, typed fact nodes, Layout Role/Brand Kit,
+locale/fallback resolution, publication review, Sender Profile/reply posture,
+Delivery Plan, and Phase 6 intent handoff for those messages. Existing fixed
+templates and `email_template_system_bindings` are migration adapters into that
+governed model, not a second catalog or lifecycle authority.
+
+The adapter is one-way and versioned: each legacy `{family, variant,
+binding_version}` maps deterministically to exactly one Phase 17 stable contract
+and publication, or to `history_only_alias` when it has no current send
+authority. Legacy rows become read-only migration/history evidence; Phase 17's
+generated registry is the sole runtime resolver, and new legacy writes are
+rejected after shadow cutover. Removal requires complete caller and historical-
+reference mapping, old-writer fencing, generated-registry parity and one-writer
+proof, rollback evidence, and closure of the bounded rollback window. No reverse
+sync or fallback to a legacy row is permitted.
+
+**Compatibility boundary.** Phase 14 remains the only owner of legal donor,
+DAF sponsor/advisor, tribute honoree/notify party, matching-gift participant,
+recognition, privacy, amount suppression, and acknowledgment eligibility.
+Phase 17 never derives or changes those recipients/facts and cannot put
+deductibility fields into acknowledgments or per-gift amounts into tribute
+notifications. Phase 7 retains the three-document wall; Phase 6 retains
+delivery/history.

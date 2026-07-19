@@ -276,3 +276,19 @@ Mirrors the Phase-2/3/4 structure. Foundation tickets first (`status:todo`); the
 - **T9** — Public media: allowlist serializer public fields + `next/image` delivery.
 - **T10** — The missionary-giving-page proof slice (mock → contract), built as a generalizable template + site-branding/anonymity/consent wiring.
 - **T11** — The cross-tenant negative-test tier + structural CI gates + the Phase 5 evidence file.
+
+## Dated Phase 17 outbound-identity clarification (2026-07-19)
+
+**Old statement.** Phase 5 reserves tenant/site branding and public-runtime
+context used by donor identity and receipt prerequisites but does not separate
+tenant system mail from Asym's own customer-account bootstrap mail.
+
+**New winner.** A donor-facing identity or system message for a tenant uses the
+tenant-owned, proof-gated Ready Resend connection and the exact Phase 17 Sender
+Profile/Reply-To resolution permitted by its System message contract.
+
+**Compatibility boundary.** Asym customer-account bootstrap remains a separate
+platform communication with its own sender, purpose, audience, and safety
+contract. It is never a shared credential/sender fallback for tenant mail.
+Phase 5 continues to own public runtime/site context and creates no template,
+message, transport, or communication-history authority.

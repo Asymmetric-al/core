@@ -234,7 +234,24 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   change operations, and opt-in tenant-controlled gentle reminders without
   turning the legacy workflow into the primary product. Groomed 2026-07-13
   (ratified D1–D19; official-source research, six ADRs, dated cross-PRD
-  congruence, and OpenSpec reconciliation). Planning only; not dispatched.
+  congruence, and OpenSpec reconciliation). Tracked by epic #793 + children
+  #794–#837. Planning only; groomed-not-dispatched.
+- [`phase-17-system-messages-template-management.md`](./phase-17-system-messages-template-management.md)
+  — the Phase 17 plan (System Messages & Template Management): one complete
+  code-governed System message catalog and contract-owned safety kernel;
+  immutable structured publications with typed source-owned facts, tenant-open
+  locales, bounded whole-message fallback, Brand Kits and Layout Roles;
+  contract-bounded Delivery Plans and proportional in-product notifications;
+  transport-dark SMS governance; universal tenant-owned Resend with one Default
+  plus bounded Sender Profiles and governed Reply-To purposes; evidence-first
+  body-free history with an expiring support-safe Recent sent copy; deterministic
+  recovery; versioned tenant portability; and a structurally separate fixed
+  platform-email seam for Eve/operator mail while Discord remains Eve-owned
+  operational delivery. Groomed 2026-07-19 (ratified
+  D1–D20, executable 18-key manifest, dated producer/obligation census,
+  decision-to-test traceability, primary-source research, dated cross-PRD
+  congruence, focused ADRs, and an `outbound-communications` OpenSpec delta).
+  Planning only; issue set pending; not built or dispatched.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

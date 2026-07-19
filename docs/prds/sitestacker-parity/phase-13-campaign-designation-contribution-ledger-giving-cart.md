@@ -1607,3 +1607,22 @@ Congruence work owed at authoring (Phase 13 introduces the contribution ledger, 
     This preserves donor control without forcing a debit per destination.
 - **Governing principles that bound every decision:** [[R-JW]] "just works" (seamless/invisible to donors, effortless for the tenant, no hacky workarounds), R-UX (effortless by default, powerful on demand), [[founder-completeness-bar]] (ship the finished thing — tests + docs are part of "done"), and [[design-from-first-principles-not-current-impl]] (current code is evidence, not a template). All repo anchors above are framed real-vs-forward _as of authoring_ — evidence of the starting point, never brittle build instructions.
 - **Verification provenance:** design ratified 2026-07-09 via `grill-with-docs` (decisions D1–D25 + governing rulings R-JW / R-UX), grounded by the `phase13-grill-prep` research workflow (15 agents: predecessor PRDs + current money-code evidence-classified + Stripe/CiviCRM/IRS/Baymard/FTC-ROSCA best practice), then a ruthless 16/17-category adversarial review + verify pass on each major decision (D2, D3, D5, D7, D8, D12, D13, D14, D15, D16). Two live code hazards owned as ship-first blockers: the missing fail-closed consent gate (`packages/api/src/email/consent.ts` absent on this branch) and the display-only designation classifier (`designation-set.ts`). **No "live/shipped" claims** — this is a design, groomed against not-yet-built Phase 3/4/5/7/9/10/11/12 contracts.
+
+## Dated Phase 17 message-ownership clarification (2026-07-19)
+
+**Old statement.** Phase 13 owns append-only money truth, contribution state,
+payment finality, campaign/source attribution, and communication eligibility;
+it already reserves authored content to Phase 17.
+
+**New winner.** Phase 17 renders only the typed, recipient-projected facts and
+protected actions that Phase 13 (or the current superseding Phase 16 recurring
+domain) supplies through a System message contract. The contract-owned minimum
+truth core preserves exact amount/currency, actual payment/finality state,
+legal donor, designation, correction/refund/return meaning, masked payment
+description, and source occurrence.
+
+**Compatibility boundary.** Phase 17 creates no contribution, ledger posting,
+receipt, refund, campaign attribution, recurring schedule, recipient, or
+communication candidate. Tenant prose cannot relabel Processing as Received,
+promise settlement, change money, or invent an event. The Phase 16 recurring
+supersession remains binding; this note changes no Phase 13 ledger authority.

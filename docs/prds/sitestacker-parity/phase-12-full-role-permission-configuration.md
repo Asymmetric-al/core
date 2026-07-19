@@ -275,3 +275,31 @@ The full enterprise IdP integration (SSO seam only) · the ML/behavioral-anomaly
 - **ADR to write:** an ADR recording the capability-based spine + the tenant-axis-in-the-token decision + the in-house-resolver-over-policy-engine choice with its pre-committed re-evaluation trigger (hard-to-reverse, surprising-without-context, a real trade-off — all three ADR criteria met).
 - **Glossary (add to root `CONTEXT.md`):** _Capability_ (a specific enforced permission; the sole enforcement unit) · _Group_ vs _Role_ vs _Named grant_ (bundles that resolve into capabilities) · _The floor_ (the subtract-only safety layer that always wins) · _Active assignment_ (the one org-hat a person acts within per request) · _EffectiveAccess token_ (the runtime-verifiable output of the one resolver) · _Purpose_ (the required "for what" input; the consent/legal-basis axis) · _Protected constituent_ (a whole-record restriction as a floor row) · _Existence oracle / uniformity_ (why blocked and missing must look identical).
 - **Verification provenance:** design ratified 2026-07-08 via `grill-with-docs` (26 decisions, 7 rulings) then five adversarial passes — a D1 spine research + adversarial hardening, two cross-domain completeness sweeps (sweep-1: 33 findings; sweep-2: AI/realtime/encryption/consent/financial/anomaly/residency + a 4-lens panel), a definitive 8-cluster best-practice + nonprofit-CRM benchmark validation, and a final ruthless 7-lens risk-category review that surfaced the tenant-axis substrate cluster. Benchmarked against Salesforce NPSP/Shield, CiviCRM, Blackbaud RE NXT, Bloomerang, Neon, Virtuous, DonorPerfect, MinistryPlatform, SiteStacker/WMTek, TntConnect, and Cedar/OpenFGA/Zanzibar/Cerbos/Entra-PIM/SailPoint. Two live code hazards found and owned (`packages/auth/e2e-auth.ts` unsigned bypass → D22; `use-supabase-realtime.ts` raw streaming → D23). **No "live/shipped" claims** — this is a design, groomed against not-yet-built Phase 3/9/10/11 contracts.
+
+## Dated Phase 17 capability amendment (2026-07-19)
+
+**Old statement.** Phase 12 provides the capability-only PDP, broad per-entity
+template/CMS permissions, draft/unpublished enforcement, active assignment,
+tenant branding in access, and maker-checker governance. It does not enumerate
+the Phase 17 product's smaller action atoms.
+
+**New winner.** The code capability registry gains distinct, auditable Phase 17
+atoms for: view catalog/readiness; manage drafts; publish standard content;
+`system_messages.review.protected`; `system_messages.publish.protected`; manage
+Brand Kits, Role Layouts, locale activation, Delivery Plans, Resend connection,
+Sender Profiles and human-reply destinations; reveal eligible Recent sent
+copies; export/import/accept transfer; and operate bounded message repair. The
+atomic **Approve & publish** protected-content command requires both protected
+atoms and a human principal different from every substantive author/editor of
+that exact head and review epoch. It does not require a third publishing actor.
+Exact remaining names are minted once in the implementation manifest; each UI
+action maps to the smallest applicable atom and active assignment.
+
+**Compatibility boundary.** Role names, job titles, possession of a template
+id, browser state, imported authority, and provider credentials never
+authorize. The System message contract owns the D11 publication-review floor;
+a tenant may require another reviewer more broadly but cannot weaken that
+floor. No Phase 17 approval chain, role system, policy engine, or workflow
+engine is created. Every tenant-facing Phase 17 row carries `tenant_id NOT
+NULL`, same-tenant composite references, and the Phase 12 floor; delegated
+review exposes only the bounded synthetic review projection.

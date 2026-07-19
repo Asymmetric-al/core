@@ -576,3 +576,24 @@ Tracked as epic **#477** + children (created via `/to-issues`). Ticket shape:
    read-only Sites list.
 9. Two ADRs (site-before-ledger; currency-aware minor units).
 10. Phase 2 evidence file.
+
+## Dated Phase 17 message-resolution amendment (2026-07-19)
+
+**Old statement.** Phase 2 D9 reserves one fixed receipt/system-message override
+order: tenant default → site override → locale override. Phase 2 also owns site
+locale context, the requested → site default → `en-US` locale fallback, and the
+immutable `rendered_locale` fact.
+
+**New winner.** For a System message contract that explicitly permits tenant
+choice, Phase 17 allows exactly one of two platform-defined safe content
+fallback priorities and records the selected policy version plus the complete
+resolution trace. Phase 17 also owns system-message locale activation,
+per-contract locale readiness, and the message-presentation inheritance for an
+organization or permitted Phase 2 site.
+
+**Compatibility boundary.** Phase 2's fixed order remains binding for receipts,
+official-document resolution, and every message contract that does not permit a
+tenant choice. Resolution always selects one complete compatible publication;
+it never mixes fragments. `rendered_locale` remains a frozen issuance/render
+fact. Phase 24, not Phase 17, owns broad site, CMS, public-shell, staff-shell,
+domain, currency, and jurisdiction localization.

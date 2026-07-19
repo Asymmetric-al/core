@@ -235,3 +235,34 @@ Foundation tickets first (`status:todo`); the rest `status:blocked`. Hard-blocke
 - **T11 · #639** — Permanent negative/safety test tier + structural CI gates (sole-entry lint, alias-at-data-layer, extended column lint) + the Supabase advisors.
 - **T12 · #640** — Phase 10 evidence file (Built/Live/Confirmed; seeded demonstrations; the "did not build" list).
 - **T13 · #641** — **Mission Control → Settings → Security page:** role Security-Clearance toggles + member counts + confirm dialog + breadth stat; the `country_risk` manager + WWL one-click import; the request queue + standing-grants list; audit/break-glass review links. _(scoped to clearance+country+grants; Phase 12 absorbs/deepens)_
+
+## Dated Phase 17 communication-safety amendment (2026-07-19)
+
+**Old statement.** Phase 10 makes restricted identity structurally unreachable
+from public/email/receipt projections and truthfully warns that an already-sent
+email cannot be retracted.
+
+**New winner.** Every Phase 17 preview, review, test, publication, prepared
+message, in-product item, communication-history view, support projection,
+Recent sent copy, portability package, repair case, cache, and metric consumes
+the same Phase 3/10 strictest-wins projection. Restricted/high-risk messages
+retain no readable Recent sent copy. If a person is later raised to a
+restricted/high-risk tier, reads fail closed immediately and any still-readable
+copy or derived cache receives priority, observable purge without revealing the
+old projection.
+
+That observability is restricted to a security-cleared, body-free purge ledger.
+Tenant dashboards, ordinary support views, application logs, traces, analytics,
+and metrics MUST remain aggregate and non-enumerating: they reveal no message or
+cache existence, recipient, storage key, content, purge identifier, or prior
+classification. An already-authorized ordinary surface may show only the generic
+unavailable state required by the current projection, never evidence that a
+specific restricted copy existed.
+
+**Compatibility boundary.** Durable body-free Phase 6 evidence may remain under
+its lawful retention class; issued Phase 7 artifacts remain immutable under
+their source contract; and external email already delivered cannot be recalled.
+Phase 17 must state those limitations honestly. It never routes legal identity,
+real location/photo, care/security fields, protected destinations, or action
+credentials through a tenant-editable node, fallback, test fixture, export,
+search index, log, trace, or provider tag.

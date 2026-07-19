@@ -189,7 +189,9 @@ The governing principle throughout is **least privilege / need-to-know**: restri
     rowCount: number;
   }>;
   ```
-- Enforce-now: CSV, receipt (text), `sendEmail()`. Contract-only: Mailchimp, receipt-PDF generation, the future `notification_queue` worker.
+- Enforce-now: CSV, receipt (text), `sendEmail()`. Contract-only: Mailchimp and
+  receipt-PDF generation. The historical “future `notification_queue` worker”
+  idea is superseded by the dated Phase 17 amendment below and must not be built.
 - Prior art: `crm/reports/export.ts` (already audited via `audit.log('crm_export_created')`); the three live-vulnerable serializers to converge.
 
 **Module 5 — `field_policy_change_requests` + `widen()` classifier + Mission Control change-control** _(the largest work item)_
@@ -242,7 +244,7 @@ The governing principle throughout is **least privilege / need-to-know**: restri
 
 - **Read chokepoint** — `resolveProjection` is the required path for donor-portal (promote `DONOR_SELECT`), missionary-portal (promote `DONOR_RELATIONSHIP_SELECT`), and export. **Promotion-parity guard (must-fix):** seed policies so each promoted surface's post-resolver field set **equals its current hardcoded `SELECT`** (minus deliberately-narrowed fields, listed explicitly), asserted by a golden-snapshot test in CI **before** enforcement is enabled — the analog of Phase 2's lossless-backfill rule, so fail-closed promotion can't silently regress a live portal.
 - **Write chokepoint (D6)** — `assertEditableForSurface` wraps the donor/missionary **mutation entrypoints** (portal profile/preference update handlers — enumerated in the ticket) so a write to a field not editable-for-that-surface is rejected (the tamper-symmetric twin of the read chokepoint). Sensitive-category edits capture a reason (reusable component); reason-capture is generic, blocking _approval_ stays domain-specific (corrections).
-- **Export governance** — `resolvePolicy` + `csvSafeCell` + consent + audit across CSV/receipt/`sendEmail()` now; Mailchimp/receipt-PDF/queue-worker as contracts (Mailchimp contract includes the inbound `unsubscribed|cleaned → do_not_email` writer). The CRM CSV serializer's columns are driven by the resolved exportable projection.
+- **Export governance** — `resolvePolicy` + `csvSafeCell` + consent + audit across CSV/receipt/`sendEmail()` now; Mailchimp and receipt-PDF remain contracts (the Mailchimp contract includes the inbound `unsubscribed|cleaned → do_not_email` writer). The historical `notification_queue` carries no worker or transport contract: implementation must classify/migrate and retire it, or retain it only after proving the one bounded non-transport owner required below. The CRM CSV serializer's columns are driven by the resolved exportable projection.
 - **Change-control flow** — reason → server-computed diff-preview (`widen()` + blast-radius rollup) → direction branch → approval-on-widening (distinct human at profile-id level) → base-fingerprint recheck → apply → audit → rollback-as-inverse-edit.
 - **Baseline guard** — a dedicated `assertCanEditBaselinePolicy` (explicit super-admin check; **rejects `tenant_id NULL` writes routed through the tenant-scoped `requireCrmAccess` path**, which `??`-falls-back and would otherwise pass for any staff).
 - **Meta-capabilities** — `permissions.view` / `permissions.propose_widening` / `permissions.approve_widening` on the **contribution capability resolver** (graduated so propose ≠ approve), not the flat staff-capability union.
@@ -338,3 +340,42 @@ Ticket shape (filed via `/to-issues`):
 10. The four ADRs.
 11. Glossary (`CONTEXT.md`) + OpenSpec spec-delta/tasks + `parity-matrix.md` row.
 12. Phase 3 evidence file.
+
+## Dated Phase 17 consent and projection amendment (2026-07-19)
+
+**Old statement.** Phase 3 governs email consent through `do_not_email`,
+`do_not_contact`, and `email_suppressions`, and binds merge-field resolution to
+the recipient surface/document class. It does not define SMS evidence or the
+Phase 17 authoring and support-detail capabilities.
+
+**New winner.** Phase 17 consumes the same fail-closed projection and consent
+boundary for typed message facts, fake-data-only preview/review, publication,
+delivery resolution, and Recent sent copy access. D9 adds channel-scoped SMS
+consent provenance and registration evidence while SMS transport stays
+structurally unavailable. Phase 12 supplies explicit capabilities for catalog
+administration, drafting, standard/protected publication, branding/layout,
+delivery settings, reply destinations, portability, repair, and privileged
+Recent sent copy reveal.
+
+**Compatibility boundary.** `do_not_contact` remains the absolute contact floor
+and `email_suppressions` remains the email suppression authority. Phase 17 does
+not create an SMS send, template, binding, preview, test, fallback, phone-number
+campaign, or second consent system. Templates never receive an unconstrained
+record bag; producer-owned facts are tenant-, role-, surface-, purpose-, and
+document-class projected and escaped by default.
+
+The earlier “future `notification_queue` worker” wording is historical and is
+expressly superseded. The Phase 17 census found staff-scoped RLS/authenticated
+grants but no production worker. Phase 6/17 and later workflow delivery use the
+governed intent/outbox and Delivery Plan seams; they never revive this table.
+Implementation must classify and migrate any still-needed data and retire the
+table, or prove one bounded non-transport owner before retaining it.
+
+Resend bounce/complaint/suppressed observations remain separate provider
+transport evidence bound to the tenant connection/region and exact contact
+revision; they are not a second consent store, a Sender Profile switch, or a
+complete copy of Resend's regional list. The Phase 3 gate consumes known
+blocking provider evidence alongside current product consent/contact authority
+without claiming that a send-only key proves provider-list absence. Provider
+remediation may supersede that evidence only through the owning Phase 3/contact
+policy and never silently restores product consent.

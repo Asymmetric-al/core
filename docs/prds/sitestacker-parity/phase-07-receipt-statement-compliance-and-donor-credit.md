@@ -379,3 +379,27 @@ _Epic #566 + children #567–#586 created via `/to-issues`. First-pass breakdown
 - **{{T20}}** — The permanent negative/safety test tier + structural CI gates (sole-seam lint, legacy-symbol grep) + the evidence file. _(blocked on T2–T19)_
 
 **Related:** program charter + parity matrix (`README.md`, `parity-matrix.md`); predecessor epics Phase 2–6. **Prerequisites (must land first):** Phase 4 isolation foundation (C1), Phase 6 comms spine + seam (C2), Phase 3 consent gate PR #502 (C3).
+
+## Dated Phase 17 official-document presentation amendment (2026-07-19)
+
+**Old statement.** Phase 7 owns receipt/statement rules, frozen facts, the
+three-document wall, official versions, and delivery eligibility; earlier
+template prose does not yet distinguish a protected truth core from editable
+surrounding message content or an expiring sent-email support copy.
+
+**New winner.** Phase 7 and the applicable statement phase continue to own the
+authoritative legal donor/recipient, organization identity, amount/currency,
+gift date, deductibility/goods-or-services result, document identity,
+correction/void/supersession state, currentness, and official artifact handoff.
+Phase 17 may let a tenant author the allowed surrounding voice and visual
+presentation around those source-owned protected fact/action nodes through an
+immutable publication. The message contract determines which nodes cannot be
+removed, relabeled, hidden, or contradicted.
+
+**Compatibility boundary.** Phase 17 never decides receipt eligibility,
+deductibility, amount, document currentness, void/supersession, or artifact
+truth. A Phase 17 email wrapper or Recent sent copy may expire while the Phase 7
+official artifact and Phase 6 delivery evidence remain available. The recent
+copy is not the official document and cannot reconstruct, resend, correct, or
+supersede one. Receipt, acknowledgment, and notification document classes keep
+their existing forbidden-field walls.
