@@ -40,6 +40,20 @@ const EXCLUSION_RULES: ExclusionRule[] = [
   },
   {
     code: "customer_or_donor_pii",
+    pattern: /\b\d{3}-\d{2}-\d{4}\b/,
+  },
+  {
+    code: "customer_or_donor_pii",
+    pattern:
+      /(?:^|[^A-Z0-9])(?:\+1[ .-]?|1[ .-])?(?:\([2-9]\d{2}\)|[2-9]\d{2})[ .-][2-9]\d{2}[ .-]\d{4}(?:$|[^A-Z0-9])/i,
+  },
+  {
+    code: "customer_or_donor_pii",
+    pattern:
+      /\b\d{1,6}\s+(?:(?:[A-Z][A-Z.'-]*|\d+(?:ST|ND|RD|TH))\s+){1,5}(?:STREET|ST|AVENUE|AVE|ROAD|RD|BOULEVARD|BLVD|LANE|LN|DRIVE|DR|COURT|CT|CIRCLE|CIR|PARKWAY|PKWY|HIGHWAY|HWY|WAY|TERRACE|TER|PLACE|PL)\b(?:\s+(?:APT|APARTMENT|SUITE|UNIT|#)\s*[A-Z0-9-]+)?\b/i,
+  },
+  {
+    code: "customer_or_donor_pii",
     pattern:
       /\b(?:phone|mobile|telephone|street address|mailing address)\s*(?::|is)?\s*(?:\+?\d|\d{1,6}\s+[A-Za-z])/i,
   },

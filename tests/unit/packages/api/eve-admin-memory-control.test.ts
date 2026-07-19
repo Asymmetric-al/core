@@ -23,6 +23,28 @@ const auth = {
   isAuthenticated: true,
 } as AuthenticatedContext;
 
+const barePiiCandidates = [
+  ["SSN", "123-45-6789"],
+  ["phone number", "(415) 555-2671"],
+  ["street address", "742 Evergreen Terrace"],
+] as const;
+
+function expectValueFreePiiAudit(candidate: string) {
+  expect(JSON.stringify(appendMock.mock.calls)).not.toContain(candidate);
+  expect(appendMock).toHaveBeenCalledWith(
+    expect.objectContaining({
+      action: "memory.excluded",
+      result: "blocked",
+      evidenceSummary:
+        '{"exclusionCategories":["customer_or_donor_pii"],"candidateIncluded":false}',
+      debugMetadata: {
+        source: "eve_admin_memory_control",
+        exclusionCategories: ["customer_or_donor_pii"],
+      },
+    }),
+  );
+}
+
 describe("Eve admin-memory control", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -76,6 +98,57 @@ describe("Eve admin-memory control", () => {
       }),
     );
   });
+
+  it.each(barePiiCandidates)(
+    "rejects a bare %s before calling the create RPC and keeps it out of audit evidence",
+    async (_label, candidate) => {
+      const rpc = vi.fn();
+      const { createEveAdminMemory } =
+        await import("../../../../packages/api/src/eve/admin-memory/control");
+
+      await expect(
+        createEveAdminMemory({
+          auth,
+          category: "preference",
+          title: "Contact detail",
+          content: candidate,
+          source: "manual",
+          supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+        }),
+      ).resolves.toEqual({
+        stored: false,
+        exclusions: ["customer_or_donor_pii"],
+      });
+      expect(rpc).not.toHaveBeenCalled();
+      expectValueFreePiiAudit(candidate);
+    },
+  );
+
+  it.each(barePiiCandidates)(
+    "rejects a bare %s before calling the update RPC and keeps it out of audit evidence",
+    async (_label, candidate) => {
+      const rpc = vi.fn();
+      const { updateEveAdminMemory } =
+        await import("../../../../packages/api/src/eve/admin-memory/control");
+
+      await expect(
+        updateEveAdminMemory({
+          auth,
+          entryId: crypto.randomUUID(),
+          expectedVersion: 1,
+          category: "decision",
+          title: "Contact detail",
+          content: candidate,
+          supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+        }),
+      ).resolves.toEqual({
+        stored: false,
+        exclusions: ["customer_or_donor_pii"],
+      });
+      expect(rpc).not.toHaveBeenCalled();
+      expectValueFreePiiAudit(candidate);
+    },
+  );
 
   it("maps optimistic concurrency failures to a deliberate refresh response", async () => {
     const rpc = vi.fn().mockResolvedValue({

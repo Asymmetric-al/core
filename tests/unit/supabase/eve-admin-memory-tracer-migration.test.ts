@@ -9,6 +9,30 @@ const sql = readFileSync(
   "utf8",
 );
 
+function getFunctionDefinition(functionName: string): string {
+  const functionStart = sql.indexOf(
+    `CREATE OR REPLACE FUNCTION public.${functionName}`,
+  );
+  const functionEnd = sql.indexOf("\n$$;", functionStart);
+
+  expect(functionStart).toBeGreaterThanOrEqual(0);
+  expect(functionEnd).toBeGreaterThan(functionStart);
+  return sql.slice(functionStart, functionEnd);
+}
+
+function expectExclusionBefore(
+  functionDefinition: string,
+  mutationStatement: string,
+) {
+  const exclusionIndex = functionDefinition.indexOf(
+    "IF public.contains_eve_admin_memory_exclusion",
+  );
+  const mutationIndex = functionDefinition.indexOf(mutationStatement);
+
+  expect(exclusionIndex).toBeGreaterThanOrEqual(0);
+  expect(mutationIndex).toBeGreaterThan(exclusionIndex);
+}
+
 describe("Eve admin-memory migration", () => {
   it("stores owner-bound entries, immutable history, category settings, and search", () => {
     expect(sql).toContain("CREATE TABLE public.eve_admin_memory_entries");
@@ -26,6 +50,41 @@ describe("Eve admin-memory migration", () => {
     expect(sql).toContain("eve_tenant_operational_memory_disabled");
     expect(sql).toContain("contains_eve_admin_memory_exclusion");
     expect(sql).toContain("eve_admin_memory_excluded");
+  });
+
+  it("detects equivalent bare SSN, phone, and street-address forms before entry or history insertion", () => {
+    const exclusionFunction = getFunctionDefinition(
+      "contains_eve_admin_memory_exclusion",
+    );
+    expect(exclusionFunction).toContain(
+      "~* '(^|[^[:alnum:]])[0-9]{3}-[0-9]{2}-[0-9]{4}([^[:alnum:]]|$)'",
+    );
+    expect(exclusionFunction).toContain(
+      "~* '(^|[^[:alnum:]])([+]1[ .-]?|1[ .-])?([(][2-9][0-9]{2}[)]|[2-9][0-9]{2})[ .-][2-9][0-9]{2}[ .-][0-9]{4}([^[:alnum:]]|$)'",
+    );
+    expect(exclusionFunction).toContain(
+      "[0-9]{1,6}[[:space:]]+(([[:alpha:]][[:alpha:].''-]*|[0-9]+(st|nd|rd|th))[[:space:]]+){1,5}(street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|circle|cir|parkway|pkwy|highway|hwy|way|terrace|ter|place|pl)",
+    );
+
+    const createFunction = getFunctionDefinition("create_eve_admin_memory");
+    const updateFunction = getFunctionDefinition("update_eve_admin_memory");
+
+    expectExclusionBefore(
+      createFunction,
+      "INSERT INTO public.eve_admin_memory_entries",
+    );
+    expectExclusionBefore(
+      createFunction,
+      "INSERT INTO public.eve_admin_memory_history",
+    );
+    expectExclusionBefore(
+      updateFunction,
+      "UPDATE public.eve_admin_memory_entries SET",
+    );
+    expectExclusionBefore(
+      updateFunction,
+      "INSERT INTO public.eve_admin_memory_history",
+    );
   });
 
   it("gates auto-save, supports disable without deletion, and audits mutations atomically", () => {

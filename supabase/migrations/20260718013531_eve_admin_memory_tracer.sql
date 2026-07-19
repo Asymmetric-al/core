@@ -124,6 +124,9 @@ AS $$
         OR COALESCE(p_value, '') ~* '([0-9][ -]?){13,19}'
         OR COALESCE(p_value, '') ~* '[A-Z0-9._%+-]+@[A-Z0-9.-]+[.][A-Z]{2,}'
         OR COALESCE(p_value, '') ~* '(ssn|social security)[[:space:]]*(:|is)?[[:space:]]*[0-9]{3}-?[0-9]{2}-?[0-9]{4}'
+        OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])[0-9]{3}-[0-9]{2}-[0-9]{4}([^[:alnum:]]|$)'
+        OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])([+]1[ .-]?|1[ .-])?([(][2-9][0-9]{2}[)]|[2-9][0-9]{2})[ .-][2-9][0-9]{2}[ .-][0-9]{4}([^[:alnum:]]|$)'
+        OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])[0-9]{1,6}[[:space:]]+(([[:alpha:]][[:alpha:].''-]*|[0-9]+(st|nd|rd|th))[[:space:]]+){1,5}(street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|circle|cir|parkway|pkwy|highway|hwy|way|terrace|ter|place|pl)([[:space:]]+(apt|apartment|suite|unit|#)[[:space:]]*[[:alnum:]-]+)?([^[:alnum:]]|$)'
         OR COALESCE(p_value, '') ~* '(phone|mobile|telephone|street address|mailing address)[[:space:]]*(:|is)[[:space:]]*[^[:space:]]+'
         OR COALESCE(p_value, '') ~* '(donor|customer|tenant)[[:space:]]+(name|email|phone|address|account|balance|gift|giving|payment|identifier)[[:space:]]*(:|is)[[:space:]]*[^[:space:]]+';
 $$;

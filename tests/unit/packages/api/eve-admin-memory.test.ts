@@ -11,6 +11,9 @@ describe("Eve private-admin memory boundary", () => {
     ["OTP is 123456", "one_time_code"],
     ["card number: 4242 4242 4242 4242", "payment_data"],
     ["donor@example.com", "customer_or_donor_pii"],
+    ["123-45-6789", "customer_or_donor_pii"],
+    ["Call me at (415) 555-2671.", "customer_or_donor_pii"],
+    ["Send the packet to 742 Evergreen Terrace.", "customer_or_donor_pii"],
     ["tenant balance: 10000", "sensitive_tenant_fact"],
   ])("rejects %s as %s without returning the value", (candidate, expected) => {
     const result = classifyEveAdminMemoryExclusions(candidate);
@@ -24,6 +27,15 @@ describe("Eve private-admin memory boundary", () => {
         "Prefer concise updates. Decision: use the shared control plane.",
       ),
     ).toEqual([]);
+  });
+
+  it.each([
+    "Release v1.2.3 is planned for 2026-07-19.",
+    "Decision 12345 stays with the existing owner.",
+    "The main road remains open after lunch.",
+    "Review the mailing workflow before launch.",
+  ])("allows a non-PII near miss: %s", (candidate) => {
+    expect(classifyEveAdminMemoryExclusions(candidate)).toEqual([]);
   });
 
   it("keeps tenant operational scope out of the application write schema", () => {
