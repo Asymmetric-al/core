@@ -156,8 +156,8 @@ governance kernel: when that switch (or the master pause) forbids model-policy c
 and provider changes MUST be blocked, reading only persisted app-owned state and never a prompt/model/tool
 claim that a switch is off. This change MUST only add a governed policy surface; it MUST NOT widen Eve's
 authority, and no model-policy state may bypass #417's protected-area blocks, production-write limits, or
-human-approval requirements, nor #418's release-switch/emergency-off precedence. The change itself MUST remain
-a spec/ADR contract and MUST NOT introduce live model routing. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:185]
+human-approval requirements, nor #418's release-switch/emergency-off precedence. The implementation MUST remain
+an app-owned control plane and MUST NOT introduce live provider calls or enable the Eve release gate. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:185]
 [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
 
 #### Scenario: The model-policy kill switch blocks activation

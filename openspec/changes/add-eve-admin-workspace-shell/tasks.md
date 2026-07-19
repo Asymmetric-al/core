@@ -16,7 +16,7 @@ grounded in [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementatio
 ## 2. Record the provisional Eve design decision EVE-DESIGN-0009 (admin workspace operations shell)
 
 - [ ] 2.1 Author the decision under provisional Eve design label EVE-DESIGN-0009 in this change's `design.md`, traceable from ADR-0019 (#418), ADR-0020 (#419),
-      ADR-0021 (#420), EVE-DESIGN-0006 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay)
+      ADR-0021 (#420), ADR-0022 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay)
 - [ ] 2.2 At implementation time, promote the accepted decision into `docs/adr/` using the next available canonical number, then update all references.
 - [ ] 2.3 Cross-link the resulting canonical ADR from the parent PRD and issue #427
 

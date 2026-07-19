@@ -105,7 +105,7 @@ GPU gateway a proposed, non-default, revocable fallback. [VERIFIED-REPO: docs/pr
 - **#420 (ADR-0021, kill-switch):** owns the kill-switch state and control path, including the "disable sandbox
   networking" switch. #429 honors that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:97]
-- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #429 resolves models through
+- **#421 (ADR-0022, model policy):** owns named roles and Gateway-primary routing. #429 resolves models through
   that policy via the #425 runtime; it does not define routing. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
 - **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. Sandbox work spends under
   those budgets; it does not define them. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:129]

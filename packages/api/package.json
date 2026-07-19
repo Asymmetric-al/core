@@ -143,7 +143,10 @@
     "./eve/audit/types": "./src/eve/audit/types.ts",
     "./eve/governance": "./src/eve/governance/index.ts",
     "./eve/governance/route": "./src/eve/governance/route.ts",
-    "./eve/governance/types": "./src/eve/governance/types.ts"
+    "./eve/governance/types": "./src/eve/governance/types.ts",
+    "./eve/model-policy": "./src/eve/model-policy/index.ts",
+    "./eve/model-policy/route": "./src/eve/model-policy/route.ts",
+    "./eve/model-policy/types": "./src/eve/model-policy/types.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",

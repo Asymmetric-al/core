@@ -1,10 +1,9 @@
 # Proposal: Eve model policy tracer bullet
 
-**Prepared by the Eve partner fleet for Eve / Asymmetric.**
+**Accepted implementation for GitHub issue #421 ("Eve: Model policy tracer
+bullet").**
 
-> **Partner DRAFT for GitHub issue #421 ("Eve: Model policy tracer bullet").** Staged in the Gitea
-> `proposals` repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's
-> OpenSpec workflow after operator/maintainer sign-off. **Builds on #417** (`openspec/specs/eve-autonomous-operations/spec.md`,
+> **Builds on #417** (`openspec/specs/eve-autonomous-operations/spec.md`,
 > ADR-0018), **#418** (`add-eve-governance-kernel-release-switch`, ADR-0019), **#419**
 > (`add-eve-audit-tracer-bullet`, ADR-0020), and **#420** (`add-eve-kill-switch-control-path`, ADR-0021) —
 > the three slices the implementation plan names as #421's blockers. It does not restate their contracts; it
@@ -60,13 +59,15 @@ fallbacks"; policy "uses named roles … rather than a single hard-coded model")
   budgets and rate limits** apply per role/subagent/workflow/eval/judge with an audited emergency override;
   **judge models are configured separately from agent models**; and the policy **consumes the #420
   model-policy kill-switch state, is subordinate to #417/#418, and grants no new authority**.
-- Record the decision under provisional Eve design label **EVE-DESIGN-0006** in this change's `design.md`, building on ADR-0019 (#418), ADR-0020
-  (#419), and ADR-0021 (#420), all of which build on ADR-0018 (#417).
+- Record the accepted decision as **ADR-0022** in `docs/adr/`, building on
+  ADR-0019 (#418), ADR-0020 (#419), and ADR-0021 (#420), all of which build on
+  ADR-0018 (#417).
 
 ## What Does Not Change
 
-- This change adds **no live model routing** and no runtime that resolves a role to a provider; it defines the
-  policy capability, its lifecycle, and its guards while the system stays disabled by default (per #418).
+- This change adds **no live provider call**. It adds a pure role resolver and
+  the app-owned policy control plane while the system stays disabled by default
+  (per #418).
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:104]
 - The **emergency/kill-switch state** (including the model-policy-changes switch) remains #418/#420's scope;
   #421 only requires that policy edits and activation **consume** that switch state and can be revoked by it.
@@ -76,9 +77,11 @@ fallbacks"; policy "uses named roles … rather than a single hard-coded model")
 - The **subagent catalog and shared run context** (which subagents exist, their tools and instructions) remain
   #433's scope; #421 only defines that a subagent **has** a model role, fallback, budget, and eval gate.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:30]
-- No Supabase schema, Mission Control UI, eval harness, or provider-client code lands here — those implement
-  this spec in later PRs. #417's contract, `AGENTS.md`, `openspec/project.md`, `openspec/specs/**`, and
-  existing CI gates remain authoritative and unchanged; this change is subordinate to them.
+- The Supabase policy store, Mission Control UI, deterministic server-side
+  safety evaluator, and pure resolver land here. Provider clients, live model
+  routing, usage metering, and model-quality eval execution remain later
+  runtime concerns. #417's contract, `AGENTS.md`, `openspec/project.md`,
+  `openspec/specs/**`, and existing CI gates remain authoritative.
   [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Expected Outcome
@@ -88,8 +91,8 @@ fallbacks"; policy "uses named roles … rather than a single hard-coded model")
   model-policy capability — named roles, Gateway-primary routing, controlled non-default direct-provider
   fallbacks, permissioned eval-gated rollback-capable edits, per-role/subagent budgets, and separate judge
   models — a durable, spec-level contract. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- Provisional Eve design decision `EVE-DESIGN-0006` for the model policy, traceable from ADR-0019 (#418), ADR-0020 (#419), and ADR-0021
-  (#420).
+- Canonical `ADR-0022` for the model policy, traceable from ADR-0019 (#418),
+  ADR-0020 (#419), and ADR-0021 (#420).
 - A clear boundary: #418 owns the release/kill-switch **state**; #419 owns the **audit record**; #420 owns the
   per-domain **control path** (incl. the model-policy switch); #421 owns the **model-policy capability** whose
   changes that switch can revoke and whose activation is eval-gated — and, critically, the rule that keeps any

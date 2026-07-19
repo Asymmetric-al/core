@@ -1,20 +1,18 @@
-# Design (provisional Eve label EVE-DESIGN-0006): Eve Model Policy
+# Design (ADR-0022): Eve Model Policy
 
-> **Numbering:** `EVE-DESIGN-0006` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
-
-> This `design.md` uses provisional Eve design label **EVE-DESIGN-0006**, the shared-model-policy decision required by issue #421. It builds
+> This accepted design is promoted canonically as
+> `docs/adr/0022-eve-model-policy-control-plane.md`. It builds
 > on **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0020** (#419,
 > `add-eve-audit-tracer-bullet`), and **ADR-0021** (#420, `add-eve-kill-switch-control-path`), all of which
 > build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them — it
 > operationalizes the shared model-policy capability whose changes the #420 kill switch can revoke and whose
-> activation is #419-audited and eval-gated. When accepted into `Asymmetric-al/core`, its ADR body should also
-> be landed at the repo's ADR location (using the next available canonical number per `docs/adr/README.md`). Every grounded claim carries a
+> activation is #419-audited and eval-gated. Every grounded claim carries a
 > `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
 > [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
 
 ## Status
 
-Proposed (partner draft for #421). Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), and
+Accepted for #421. Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), and
 ADR-0021 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
@@ -114,9 +112,10 @@ constraint mandates. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-
 - Existing repo gates remain required and unchanged (`format:check`, `skills:verify`, `lint`,
   `verify:workspace-contract`, `verify:eslint`, `typecheck`, `build`, `test:unit`, plus data-boundary
   verification). [VERIFIED-REPO: docs/ai/rules/general.md]
-- The slice-specific acceptance tests — role resolution, subagent model assignment, Gateway-primary routing,
-  direct-provider fallback eligibility, eval-gated activation, rollback, budget caps, separate judge model, and
-  kill-switch consumption — land with the implementing PR, not this spec/ADR.
+- Slice-specific acceptance tests cover role resolution, subagent model
+  assignment, Gateway-primary routing, direct-provider fallback eligibility,
+  eval-gated activation, rollback, budget caps, separate judge models, and
+  kill-switch consumption.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:555]
 
 ## Consequences
@@ -150,7 +149,9 @@ constraint mandates. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-
 
 ## Out of scope (this change)
 
-Supabase schema, Mission Control UI, the eval harness, provider-client/runtime routing code, the
-governance-kernel state store (#418), the audit-record implementation (#419), the kill-switch control path
-(#420), the subagent catalog (#433), and any live model routing — all deferred to later, separately-gated
-slices. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:104]
+Provider-client calls, live runtime routing, usage metering, model-quality eval
+execution, the governance-kernel state store (#418), the audit-record
+implementation (#419), the kill-switch control path (#420), and the subagent
+catalog (#433) remain separately gated. The control-plane schema, Mission
+Control surface, deterministic safety evaluator, and pure resolver are included.
+[VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:104]
