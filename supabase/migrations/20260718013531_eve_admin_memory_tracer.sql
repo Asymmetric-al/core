@@ -116,7 +116,7 @@ LANGUAGE sql
 IMMUTABLE
 SET search_path = public, pg_temp
 AS $$
-    SELECT COALESCE(p_value, '') ~* '-----BEGIN (RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----'
+    SELECT COALESCE(p_value, '') ~* '(^|[\r\n])-----BEGIN (PRIVATE KEY|(ENCRYPTED|RSA|EC|DSA|ED25519|OPENSSH) PRIVATE KEY|PGP PRIVATE KEY( BLOCK)?)-----([\r\n]|$)'
         OR COALESCE(p_value, '') ~* '(api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)[[:space:]]*[:=][[:space:]]*[^[:space:]]+'
         OR COALESCE(p_value, '') ~* '(bearer[[:space:]]+[a-z0-9._~+/-]{12,}|(sk|ghp|github_pat|sb_secret)_[a-z0-9_-]{12,})'
         OR COALESCE(p_value, '') ~* '(otp|one[- ]time (code|password)|verification code|2fa code|mfa code)[[:space:]]*(:|is)?[[:space:]]*[0-9]{4,10}'

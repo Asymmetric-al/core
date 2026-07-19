@@ -33,6 +33,19 @@ function expectExclusionBefore(
   expect(mutationIndex).toBeGreaterThan(exclusionIndex);
 }
 
+function getPrivateKeyExclusionPattern(): RegExp {
+  const exclusionFunction = getFunctionDefinition(
+    "contains_eve_admin_memory_exclusion",
+  );
+  const patternMatch = exclusionFunction.match(/~\* '([^']*PRIVATE KEY[^']*)'/);
+
+  expect(patternMatch).not.toBeNull();
+  if (!patternMatch) {
+    throw new Error("Private-key exclusion pattern is missing");
+  }
+  return new RegExp(patternMatch[1], "i");
+}
+
 describe("Eve admin-memory migration", () => {
   it("stores owner-bound entries, immutable history, category settings, and search", () => {
     expect(sql).toContain("CREATE TABLE public.eve_admin_memory_entries");
@@ -85,6 +98,28 @@ describe("Eve admin-memory migration", () => {
       updateFunction,
       "INSERT INTO public.eve_admin_memory_history",
     );
+  });
+
+  it.each([
+    "-----BEGIN PRIVATE KEY-----",
+    "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+    "-----BEGIN RSA PRIVATE KEY-----",
+    "-----BEGIN EC PRIVATE KEY-----",
+    "-----BEGIN DSA PRIVATE KEY-----",
+    "-----BEGIN ED25519 PRIVATE KEY-----",
+    "-----BEGIN OPENSSH PRIVATE KEY-----",
+    "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+  ])("recognizes a private-key header before persistence: %s", (candidate) => {
+    expect(getPrivateKeyExclusionPattern().test(candidate)).toBe(true);
+  });
+
+  it.each([
+    "-----BEGIN PUBLIC KEY-----",
+    "-----BEGIN RSA PUBLIC KEY-----",
+    "The private key rotation is scheduled for next week.",
+    "Prose before -----BEGIN PRIVATE KEY-----",
+  ])("does not treat a near miss as a private-key header: %s", (candidate) => {
+    expect(getPrivateKeyExclusionPattern().test(candidate)).toBe(false);
   });
 
   it("gates auto-save, supports disable without deletion, and audits mutations atomically", () => {

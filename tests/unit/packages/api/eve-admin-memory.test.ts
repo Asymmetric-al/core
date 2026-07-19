@@ -30,6 +30,30 @@ describe("Eve private-admin memory boundary", () => {
   });
 
   it.each([
+    "-----BEGIN PRIVATE KEY-----",
+    "-----BEGIN ENCRYPTED PRIVATE KEY-----",
+    "-----BEGIN RSA PRIVATE KEY-----",
+    "-----BEGIN EC PRIVATE KEY-----",
+    "-----BEGIN DSA PRIVATE KEY-----",
+    "-----BEGIN ED25519 PRIVATE KEY-----",
+    "-----BEGIN OPENSSH PRIVATE KEY-----",
+    "-----BEGIN PGP PRIVATE KEY BLOCK-----",
+  ])("rejects a private-key header: %s", (candidate) => {
+    expect(classifyEveAdminMemoryExclusions(candidate)).toContain(
+      "private_key",
+    );
+  });
+
+  it.each([
+    "-----BEGIN PUBLIC KEY-----",
+    "-----BEGIN RSA PUBLIC KEY-----",
+    "The private key rotation is scheduled for next week.",
+    "Prose before -----BEGIN PRIVATE KEY-----",
+  ])("allows a private-key near miss: %s", (candidate) => {
+    expect(classifyEveAdminMemoryExclusions(candidate)).toEqual([]);
+  });
+
+  it.each([
     "Release v1.2.3 is planned for 2026-07-19.",
     "Decision 12345 stays with the existing owner.",
     "The main road remains open after lunch.",

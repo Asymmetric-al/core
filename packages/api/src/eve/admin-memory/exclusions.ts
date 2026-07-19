@@ -8,7 +8,8 @@ interface ExclusionRule {
 const EXCLUSION_RULES: ExclusionRule[] = [
   {
     code: "private_key",
-    pattern: /-----BEGIN (?:RSA |EC |OPENSSH |PGP )?PRIVATE KEY-----/i,
+    pattern:
+      /^-----BEGIN (?:PRIVATE KEY|(?:ENCRYPTED|RSA|EC|DSA|ED25519|OPENSSH) PRIVATE KEY|PGP PRIVATE KEY(?: BLOCK)?)-----\r?$/im,
   },
   {
     code: "credential",
