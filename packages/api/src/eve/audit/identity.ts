@@ -3,6 +3,7 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 
 export function createAdminEveAuditIdentity(
   auth: AuthenticatedContext,
+  options?: { tenantId?: string },
 ): EveVerifiedAuditIdentity {
   return {
     actorId: auth.userId,
@@ -11,7 +12,7 @@ export function createAdminEveAuditIdentity(
     identityMode: "admin",
     initiatorId: auth.userId,
     initiatorType: "authenticated_admin",
-    tenantId: auth.tenantId,
+    tenantId: auth.role === "super_admin" ? options?.tenantId : auth.tenantId,
   } as EveVerifiedAuditIdentity;
 }
 

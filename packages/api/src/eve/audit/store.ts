@@ -108,13 +108,20 @@ export function createEveAuditStore(
 
 export async function loadRecentEveAuditEvents(input: {
   supabaseAdmin: AdminSupabaseClient;
+  tenantId: string | null;
   limit?: number;
 }): Promise<EveAuditEventRecord[]> {
-  const { data, error } = await input.supabaseAdmin
+  let query = input.supabaseAdmin
     .from("eve_audit_events")
     .select(
       "id, run_id, tenant_id, actor_id, actor_profile_id, actor_role, identity_mode, initiator_type, initiator_id, policy_id, policy_status, governance_state_version, action, target, result, tool_name, subagent_name, model_role, evidence_summary, change_summary, decision_summary, debug_metadata, redaction_version, created_at",
-    )
+    );
+
+  if (input.tenantId !== null) {
+    query = query.eq("tenant_id", input.tenantId);
+  }
+
+  const { data, error } = await query
     .order("created_at", { ascending: false })
     .limit(input.limit ?? 50);
 
