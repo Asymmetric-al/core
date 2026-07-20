@@ -1,23 +1,9 @@
-# Design (provisional Eve label EVE-DESIGN-0005): Eve Approval and Budget Policy
-
-> **Numbering:** `EVE-DESIGN-0005` is a provisional cross-change label, not a canonical `docs/adr/` number. If this decision is accepted, its implementation PR must allocate the next available canonical number and update every reference, following `docs/adr/README.md`.
-
-> This `design.md` uses provisional Eve design label **EVE-DESIGN-0005**, the approval/budget-policy decision required by issue #423. It
-> builds on **ADR-0021** (#420, `add-eve-kill-switch-control-path`), **ADR-0020** (#419,
-> `add-eve-audit-tracer-bullet`), and **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), which
-> all build on **ADR-0018** (#417, `openspec/specs/eve-autonomous-operations/spec.md`), and does not restate them —
-> it operationalizes the trust-zone approval policy and hard-budget policy that #418's single consult gate
-> evaluates and that emit #419 audit records. **The provisional label follows authoring order:** #421 and #422 ADRs are not
-> yet authored in this partner-draft sequence, so this label is replaced at implementation time per
-> `docs/adr/README.md`. When accepted into `Asymmetric-al/core`, its ADR
-> body should also be landed at the repo's ADR location. Every grounded claim carries a
-> `[VERIFIED-REPO: path]` citation read from `Asymmetric-al/core` at commit `d14a2434` on 2026-07-02.
-> [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+# Design: Eve Approval and Budget Policy (ADR-0024)
 
 ## Status
 
-Proposed (partner draft for #423). Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), and
-ADR-0021 (#420). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
+Accepted for #423. Supersedes nothing. Builds on ADR-0019 (#418), ADR-0020 (#419), ADR-0021 (#420), and
+ADR-0022 (#421). Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md]
 [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -72,7 +58,7 @@ this policy sits on top of those boundaries and only tightens them.
    pause/override flows through #418's single consult gate, reads only persisted app-owned state, and emits a
    #419 audit record. Where kill-switch state and budget/approval policy disagree, the more restrictive
    result wins; #417 protected-area/approval limits and #418 emergency-off precedence always still apply. The
-   change stays a spec/ADR + policy contract with no live autonomous surface.
+   change stays a policy/control contract with no live autonomous surface.
    [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md]
    [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
 
@@ -97,6 +83,24 @@ this policy sits on top of those boundaries and only tightens them.
   classification, and the hard-budget/rate-limit policy that the gate, kill-switch checks, and model policy
   all consume.
 
+## Implementation
+
+- A persisted action catalog fixes zone, write class, governance domain,
+  budget scope, and cost; request input cannot supply those fields.
+- Three persisted approval-policy rows keep engineering, product/admin, and
+  memory rules separate. Unknown actions default to strict denial.
+- Zone and strict approvals are target-bound, expiring, single-use, and
+  permissioned at decision time.
+- Deterministic budget windows are locked and reserved in the same transaction
+  as the tracer artifact, decision, approval consumption, and audit event.
+- Emergency overrides require dedicated authority, a reason, hard ceilings,
+  and expiry within 24 hours.
+- Mission Control exposes the fixed tracer actions, queue, budgets, bounded
+  override control, and recent decisions without enabling Eve.
+
+The canonical record is
+[ADR-0024](../../../../docs/adr/0024-eve-approval-budget-policy.md).
+
 ## Verification contract
 
 - OpenSpec validates: `bunx @fission-ai/openspec@latest validate add-eve-approval-budget-policy --strict`.
@@ -104,9 +108,9 @@ this policy sits on top of those boundaries and only tightens them.
 - Existing repo gates remain required and unchanged (`format:check`, `skills:verify`, `lint`,
   `verify:workspace-contract`, `verify:eslint`, `typecheck`, `build`, `test:unit`, plus data-boundary
   verification). [VERIFIED-REPO: docs/ai/rules/general.md]
-- The slice-specific acceptance tests — one operational action allowed/denied/paused by zone + budget,
-  separate zone policies, operational-vs-business-data distinction, and an audited emergency override — land
-  with the implementing PR, not this spec/ADR.
+- Slice-specific tests prove one operational action allowed/denied/paused by
+  zone and budget, separate zone policies, the operational/business-data
+  distinction, and an audited emergency override.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
 
 ## Consequences
@@ -141,7 +145,7 @@ this policy sits on top of those boundaries and only tightens them.
 
 ## Out of scope (this change)
 
-Supabase schema, admin UI, the governance-kernel gate/state store (#418), the audit-record implementation
-(#419), the kill-switch control path (#420), the model-policy capability (#421), and any live autonomous
-behavior — all deferred to later, separately-gated slices.
-[VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md]
+Live customer/donor/payment/identity writes, migrations, destructive
+production effects, provider calls, and autonomous runtime behavior remain
+outside this tracer. Existing governance, audit, kill-switch, and model-policy
+ownership remains with #418–#421.

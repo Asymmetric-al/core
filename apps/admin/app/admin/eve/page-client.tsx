@@ -46,6 +46,7 @@ import {
 import { useState } from "react";
 
 import { EveAdminMemoryPanel } from "./admin-memory-panel";
+import { EveApprovalBudgetPanel } from "./approval-budget-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
@@ -624,6 +625,7 @@ export default function EveGovernancePage() {
       />
       <EveModelPolicyPanel />
       <EveAdminMemoryPanel />
+      <EveApprovalBudgetPanel />
     </PageShell>
   );
 }
