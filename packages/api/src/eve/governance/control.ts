@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-import { EVE_KILL_SWITCH_KEYS } from "./types";
+import { EVE_KILL_SWITCH_KEYS, eveKillSwitchStateSchema } from "./types";
 import { ApiHttpError } from "../../shared/api-http-error";
 import { traceEveAuditEvent } from "../audit/record";
 import { summarizeEveAuditValue } from "../audit/redaction";
@@ -19,22 +19,11 @@ export const eveKillSwitchMutationSchema = z
   })
   .strict();
 
-const killSwitchStateSchema = z.object({
-  all_automation: z.boolean(),
-  active_runs: z.boolean(),
-  github_actions: z.boolean(),
-  production_writes: z.boolean(),
-  sandbox_networking: z.boolean(),
-  dynamic_workflows: z.boolean(),
-  model_policy_changes: z.boolean(),
-  force_approval: z.boolean(),
-});
-
 const mutationResultSchema = z.object({
   auditId: z.string().uuid(),
   changed: z.boolean(),
   enabled: z.boolean(),
-  killSwitchState: killSwitchStateSchema,
+  killSwitchState: eveKillSwitchStateSchema,
   stateVersion: z.number().int().positive(),
   switchKey: z.enum(EVE_KILL_SWITCH_KEYS),
   updatedAt: z.string(),
