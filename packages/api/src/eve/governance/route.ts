@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { eveKillSwitchMutationSchema, setEveKillSwitch } from "./control";
 import { loadEveGovernanceAdminView } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
 import { traceEveControlDecision } from "../audit/control-decision";
 import { createAdminEveAuditIdentity } from "../audit/identity";
@@ -76,29 +76,11 @@ export const POST = withOperation(
 
 export const PATCH = withOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "Request body must be valid JSON.", requestId },
-        { status: 400 },
-      );
-    }
-
-    const parsed = eveKillSwitchMutationSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid Eve kill-switch request.", requestId },
-        { status: 400 },
-      );
-    }
-
     try {
       const mutation = await setEveKillSwitch({
         supabaseAdmin,
         identity: createAdminEveAuditIdentity(auth),
-        ...parsed.data,
+        ...eveKillSwitchMutationSchema.parse(await ensureJsonBody(request)),
       });
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
