@@ -184,7 +184,9 @@ AS $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM public.profiles
-        WHERE id = p_actor_profile_id AND tenant_id = p_tenant_id
+        WHERE id = p_actor_profile_id
+          AND (tenant_id = p_tenant_id
+            OR (tenant_id IS NULL AND role = 'super_admin'))
     ) THEN
         RAISE EXCEPTION 'eve_policy_actor_tenant_mismatch';
     END IF;
@@ -439,6 +441,7 @@ BEGIN
              additional_input_tokens, additional_output_tokens
         FROM public.eve_budget_emergency_overrides active_override
         WHERE active_override.budget_id = budget_row.id
+          AND active_override.tenant_id = p_tenant_id
           AND active_override.expires_at > NOW();
     END IF;
 

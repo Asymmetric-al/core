@@ -31,6 +31,12 @@ describe("Eve approval and budget policy migration", () => {
     expect(sql).toContain("action_row.request_cost");
   });
 
+  it("accepts tenantless super admins without weakening tenant-bound actors", () => {
+    expect(sql).toMatch(
+      /WHERE id = p_actor_profile_id\s+AND \(tenant_id = p_tenant_id\s+OR \(tenant_id IS NULL AND role = 'super_admin'\)\)/,
+    );
+  });
+
   it("atomically reserves a deterministic window and pauses at hard ceilings", () => {
     expect(sql).toContain(
       "ON CONFLICT (budget_id, window_started_at) DO NOTHING",
@@ -45,6 +51,10 @@ describe("Eve approval and budget policy migration", () => {
     expect(sql).toContain("p_expires_at > NOW() + INTERVAL '24 hours'");
     expect(sql).toContain("p_additional_requests NOT BETWEEN 0 AND 1000");
     expect(sql).toContain("budget.emergency_override");
+  });
+
+  it("applies active emergency overrides only to their tenant", () => {
+    expect(sql).toContain("active_override.tenant_id = p_tenant_id");
   });
 
   it("keeps browser roles out and makes decision plus audit one transaction", () => {
