@@ -1,4 +1,6 @@
 export { evaluateEveModelPolicy, hashEveModelPolicy } from "./evaluator";
+export { eveModelPolicyActions } from "./lifecycle";
+export type { EveModelPolicyActionAvailability } from "./lifecycle";
 export { resolveEveModelRole } from "./resolver";
 export {
   activateEveModelPolicy,
