@@ -214,6 +214,7 @@ BEGIN
             OR NOT governance.release_enabled
             OR governance.emergency_off
             OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+            OR (governance.kill_switch_state ->> 'production_writes')::BOOLEAN
             OR (governance.kill_switch_state ->> 'force_approval')::BOOLEAN
             OR governance.policy_status <> 'ready'
         THEN

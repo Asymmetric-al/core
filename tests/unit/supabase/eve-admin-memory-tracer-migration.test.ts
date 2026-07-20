@@ -143,6 +143,9 @@ describe("Eve admin-memory migration", () => {
     expect(createFunction).toContain("p_source = 'auto_save'");
     expect(createFunction).toContain("NOT governance.release_enabled");
     expect(createFunction).toContain(
+      "governance.kill_switch_state ->> 'production_writes'",
+    );
+    expect(createFunction).toContain(
       "governance.kill_switch_state ->> 'force_approval'",
     );
     expect(createFunction).toContain("governance.policy_status <> 'ready'");
