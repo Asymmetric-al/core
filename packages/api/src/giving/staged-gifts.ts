@@ -1,7 +1,7 @@
 import { enqueueCrmOutboundJob } from "../crm/sync/outbound";
 import { createSupabaseCrmSyncStore } from "../crm/sync/store";
 import { ApiHttpError } from "../shared/http-errors";
-import { asString } from "../shared/json-coerce";
+import { asString, isRecord } from "../shared/json-coerce";
 
 import type { CrmSyncRuntimeConfig } from "../crm/sync/types";
 import type { getAdminClient } from "@asym/database/supabase/admin";
@@ -129,17 +129,13 @@ const ALLOWED_TRANSITIONS: Record<
   voided: [],
 };
 
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 function rowRecord(row: JsonRecord, key: string): JsonRecord {
   const value = row[key];
-  return isJsonRecord(value) ? value : {};
+  return isRecord(value) ? value : {};
 }
 
 function requireNoError(error: { message?: string } | null, fallback: string) {
@@ -249,7 +245,7 @@ export async function loadStagedGiftById(input: {
     .eq("tenant_id", input.tenantId)
     .single();
 
-  if (error || !isJsonRecord(data)) {
+  if (error || !isRecord(data)) {
     throw new ApiHttpError(404, "Staged gift not found.");
   }
 
@@ -299,7 +295,7 @@ async function ensureInitialAllocation(input: {
     .limit(1)
     .maybeSingle();
   requireNoError(existing.error, "Failed to read staged gift allocations.");
-  if (isJsonRecord(existing.data)) {
+  if (isRecord(existing.data)) {
     // Any allocation row (initial or reviewed admin split) blocks stale full re-insert on webhook replay.
     return;
   }
@@ -332,7 +328,7 @@ export async function stageGiftFromStripeDonation(
     .maybeSingle();
 
   requireNoError(existing.error, "Failed to read staged gift.");
-  if (isJsonRecord(existing.data)) {
+  if (isRecord(existing.data)) {
     const existingGift = toStagedGiftRow(existing.data);
     await ensureInitialAllocation({
       supabaseAdmin: input.supabaseAdmin,
@@ -384,7 +380,7 @@ export async function stageGiftFromStripeDonation(
       .eq("donation_id", input.donation.id)
       .single();
     requireNoError(duplicate.error, "Failed to read duplicate staged gift.");
-    if (!isJsonRecord(duplicate.data)) {
+    if (!isRecord(duplicate.data)) {
       throw new Error("Staged gift insert returned no row.");
     }
     const duplicateGift = toStagedGiftRow(duplicate.data);
@@ -398,7 +394,7 @@ export async function stageGiftFromStripeDonation(
   }
 
   requireNoError(inserted.error, "Failed to stage gift.");
-  if (!isJsonRecord(inserted.data)) {
+  if (!isRecord(inserted.data)) {
     throw new Error("Staged gift insert returned no row.");
   }
   const stagedGift = toStagedGiftRow(inserted.data);
@@ -447,7 +443,7 @@ export async function markStagedGiftRefunded(input: {
     .maybeSingle();
   requireNoError(existing.error, "Failed to read staged gift for refund.");
 
-  if (!isJsonRecord(existing.data)) {
+  if (!isRecord(existing.data)) {
     return null;
   }
 
@@ -556,7 +552,7 @@ export async function queueStagedGiftPostingToTwenty(
     .maybeSingle();
   requireNoError(linked.error, "Failed to read donation CRM link.");
 
-  if (isJsonRecord(linked.data)) {
+  if (isRecord(linked.data)) {
     const { error: linkUpdateError } = await input.supabaseAdmin
       .from("donation_crm_links")
       .update({
@@ -630,7 +626,7 @@ export async function retryStagedGiftDesignationPostingToTwenty(
     .maybeSingle();
   requireNoError(allocation.error, "Failed to read staged gift allocation.");
 
-  if (!isJsonRecord(allocation.data)) {
+  if (!isRecord(allocation.data)) {
     throw new ApiHttpError(404, "Designation allocation not found.");
   }
 
@@ -664,7 +660,7 @@ async function insertReconciliationRun(input: {
     throw new Error(error.message);
   }
 
-  return isJsonRecord(data) ? (asString(data.id) ?? null) : null;
+  return isRecord(data) ? (asString(data.id) ?? null) : null;
 }
 
 function toFinding(row: JsonRecord, reason: string): ReconciliationFinding {

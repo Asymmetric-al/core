@@ -139,6 +139,9 @@ function getResendWebhookConfig() {
   };
 }
 
+// Looser than shared json-coerce isRecord on purpose: arrays pass, matching
+// how this webhook's payloads have always been parsed. Do not swap without
+// deciding the array behavior.
 function isJsonRecord(value: unknown): value is JsonRecord {
   return typeof value === "object" && value !== null;
 }
