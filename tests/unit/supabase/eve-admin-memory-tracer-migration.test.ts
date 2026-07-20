@@ -101,13 +101,16 @@ describe("Eve admin-memory migration", () => {
     );
   });
 
-  it("rejects natural-language credentials and JWT-shaped secrets", () => {
+  it("rejects natural-language credentials, hyphenated secret keys, and JWT-shaped secrets", () => {
     const exclusionFunction = getFunctionDefinition(
       "contains_eve_admin_memory_exclusion",
     );
 
     expect(exclusionFunction).toContain(
       "[[:space:]]+is[[:space:]]+)[^[:space:]]+",
+    );
+    expect(exclusionFunction).toContain(
+      "(sk[-_]|(ghp|github_pat|sb_secret)_)[a-z0-9_-]{12,}",
     );
     expect(exclusionFunction).toContain("eyJ[a-z0-9_-]{20,}[.][a-z0-9_-]{10,}");
   });

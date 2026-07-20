@@ -8,6 +8,7 @@ describe("Eve private-admin memory boundary", () => {
     ["password: hunter2", "credential"],
     ["password is hunter2", "credential"],
     ["Bearer abcdefghijklmnopqrstuvwxyz", "secret"],
+    ["sk-abcdefghijklmnopqrstuvwxyz", "secret"],
     ["-----BEGIN PRIVATE KEY-----", "private_key"],
     ["OTP is 123456", "one_time_code"],
     ["card number: 4242 4242 4242 4242", "payment_data"],

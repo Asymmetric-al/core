@@ -19,7 +19,7 @@ const EXCLUSION_RULES: ExclusionRule[] = [
   {
     code: "secret",
     pattern:
-      /\b(?:bearer\s+[a-z0-9._~+\/-]{12,}|(?:sk|ghp|github_pat|sb_secret)_[a-z0-9_-]{12,}|eyJ[a-z0-9_-]{20,}\.[a-z0-9_-]{10,})/i,
+      /\b(?:bearer\s+[a-z0-9._~+\/-]{12,}|(?:sk[-_]|(?:ghp|github_pat|sb_secret)_)[a-z0-9_-]{12,}|eyJ[a-z0-9_-]{20,}\.[a-z0-9_-]{10,})/i,
   },
   {
     code: "one_time_code",
