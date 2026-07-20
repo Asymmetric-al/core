@@ -548,6 +548,11 @@ on together, rather than shipping as a toy foundation first.
   defined by [ADR-0022: Govern Eve model routing through an eval-gated policy
   control plane](../../adr/0022-eve-model-policy-control-plane.md).
 
+- Private-admin ownership, write-time exclusions, immutable history, category
+  auto-save controls, and the disabled tenant-operational scope are defined by
+  [ADR-0023: Bound Eve memory to private, excluded, human-controlled
+  context](../../adr/0023-eve-private-admin-memory.md).
+
 ## Testing Decisions
 
 - Tests should verify external behavior and policy outcomes, not private helper

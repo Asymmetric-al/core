@@ -129,6 +129,9 @@ policy control plane](../../adr/0022-eve-model-policy-control-plane.md).
 
 ### 6. Private Admin Memory Tracer Bullet
 
+Canonical decision: [ADR-0023: Bound Eve memory to private, excluded,
+human-controlled context](../../adr/0023-eve-private-admin-memory.md).
+
 - Type: AFK
 - Blocked by: 2, 3
 - User stories covered: 18, 19, 20, 21, 22, 23, 24, 69

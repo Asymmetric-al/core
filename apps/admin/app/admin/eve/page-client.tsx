@@ -45,6 +45,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 
+import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
 
 import type { EveAuditEventRecord } from "@asym/api/eve/audit/types";
@@ -622,6 +623,7 @@ export default function EveGovernancePage() {
         onConfirmKillSwitch={setKillSwitch}
       />
       <EveModelPolicyPanel />
+      <EveAdminMemoryPanel />
     </PageShell>
   );
 }
