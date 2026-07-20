@@ -23,12 +23,6 @@ function identityParams(auth: AuthenticatedContext) {
 
 function mapMutationError(error: { message: string } | null): never {
   const message = error?.message ?? "eve_model_policy_mutation_failed";
-  if (message.includes("eve_model_policy_changes_blocked")) {
-    throw new ApiHttpError(
-      409,
-      "Model-policy changes are blocked by Eve governance state.",
-    );
-  }
   if (message.includes("eve_model_policy_eval_required")) {
     throw new ApiHttpError(
       409,
@@ -68,6 +62,32 @@ function mapMutationError(error: { message: string } | null): never {
   throw new Error(message);
 }
 
+function throwGovernanceBlocked(): never {
+  throw new ApiHttpError(
+    409,
+    "Model-policy changes are blocked by Eve governance state.",
+  );
+}
+
+function readUuidMutationResult(
+  data: unknown,
+  error: { message: string } | null,
+): string {
+  if (error) mapMutationError(error);
+  if (data === null) throwGovernanceBlocked();
+  if (typeof data !== "string") mapMutationError(null);
+  return data;
+}
+
+function assertBooleanMutationResult(
+  data: unknown,
+  error: { message: string } | null,
+): void {
+  if (error) mapMutationError(error);
+  if (data === false) throwGovernanceBlocked();
+  if (data !== true) mapMutationError(null);
+}
+
 export async function createEveModelPolicyDraft(input: {
   auth: AuthenticatedContext;
   policy: EveModelPolicyDocument;
@@ -90,8 +110,7 @@ export async function createEveModelPolicyDraft(input: {
       ...identityParams(input.auth),
     },
   );
-  if (error || typeof data !== "string") return mapMutationError(error);
-  return data;
+  return readUuidMutationResult(data, error);
 }
 
 export async function evaluateEveModelPolicyDraft(input: {
@@ -116,7 +135,7 @@ export async function evaluateEveModelPolicyDraft(input: {
     );
   }
   const evaluation = evaluateEveModelPolicy(policy.policy);
-  const { error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.supabaseAdmin.rpc(
     "evaluate_eve_model_policy_draft",
     {
       p_policy_id: input.policyId,
@@ -127,7 +146,7 @@ export async function evaluateEveModelPolicyDraft(input: {
       ...identityParams(input.auth),
     },
   );
-  if (error) mapMutationError(error);
+  assertBooleanMutationResult(data, error);
 }
 
 export async function activateEveModelPolicy(input: {
@@ -142,13 +161,16 @@ export async function activateEveModelPolicy(input: {
     supabaseAdmin: input.supabaseAdmin,
     target: `model_policy:${input.policyId}`,
   });
-  const { error } = await input.supabaseAdmin.rpc("activate_eve_model_policy", {
-    p_policy_id: input.policyId,
-    p_expected_active_policy_id: input.expectedActivePolicyId,
-    p_audit_id: crypto.randomUUID(),
-    ...identityParams(input.auth),
-  });
-  if (error) mapMutationError(error);
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "activate_eve_model_policy",
+    {
+      p_policy_id: input.policyId,
+      p_expected_active_policy_id: input.expectedActivePolicyId,
+      p_audit_id: crypto.randomUUID(),
+      ...identityParams(input.auth),
+    },
+  );
+  assertBooleanMutationResult(data, error);
 }
 
 export async function rollbackEveModelPolicy(input: {
@@ -162,12 +184,15 @@ export async function rollbackEveModelPolicy(input: {
     supabaseAdmin: input.supabaseAdmin,
     target: `model_policy:${input.expectedActivePolicyId}`,
   });
-  const { error } = await input.supabaseAdmin.rpc("rollback_eve_model_policy", {
-    p_expected_active_policy_id: input.expectedActivePolicyId,
-    p_audit_id: crypto.randomUUID(),
-    ...identityParams(input.auth),
-  });
-  if (error) mapMutationError(error);
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "rollback_eve_model_policy",
+    {
+      p_expected_active_policy_id: input.expectedActivePolicyId,
+      p_audit_id: crypto.randomUUID(),
+      ...identityParams(input.auth),
+    },
+  );
+  assertBooleanMutationResult(data, error);
 }
 
 export async function createEveModelBudgetOverride(input: {
@@ -189,7 +214,7 @@ export async function createEveModelBudgetOverride(input: {
     supabaseAdmin: input.supabaseAdmin,
     target: `${input.scopeType}:${input.scopeId}`,
   });
-  const { error } = await input.supabaseAdmin.rpc(
+  const { data, error } = await input.supabaseAdmin.rpc(
     "create_eve_model_budget_override",
     {
       p_policy_id: input.policyId,
@@ -205,5 +230,5 @@ export async function createEveModelBudgetOverride(input: {
       ...identityParams(input.auth),
     },
   );
-  if (error) mapMutationError(error);
+  readUuidMutationResult(data, error);
 }

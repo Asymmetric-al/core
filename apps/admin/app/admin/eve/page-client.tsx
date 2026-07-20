@@ -43,6 +43,7 @@ import {
   ShieldAlert,
   ShieldCheck,
 } from "lucide-react";
+import { useState } from "react";
 
 import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveApprovalBudgetPanel } from "./approval-budget-panel";
@@ -60,6 +61,12 @@ interface EveGovernanceResponse extends EveGovernancePageData {
 
 interface EveKillSwitchResponse extends EveGovernanceResponse {
   mutation: EveKillSwitchMutationResult;
+}
+
+interface KillSwitchConfirmationRequest {
+  switchKey: EveKillSwitchKey;
+  enabled: boolean;
+  expectedStateVersion: number;
 }
 
 const EVE_GOVERNANCE_QUERY_KEY = ["admin", "eve", "governance"] as const;
@@ -192,17 +199,33 @@ function KillSwitchControl({
   disabled,
   enabled,
   isPending,
-  onSet,
+  onConfirm,
+  stateVersion,
   switchKey,
 }: {
   disabled: boolean;
   enabled: boolean;
   isPending: boolean;
-  onSet: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
+  onConfirm: (request: KillSwitchConfirmationRequest) => void;
+  stateVersion: number;
   switchKey: EveKillSwitchKey;
 }) {
   const copy = KILL_SWITCH_COPY[switchKey];
-  const nextEnabled = !enabled;
+  const [confirmationRequest, setConfirmationRequest] =
+    useState<KillSwitchConfirmationRequest | null>(null);
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setConfirmationRequest(null);
+      return;
+    }
+
+    setConfirmationRequest({
+      switchKey,
+      enabled: !enabled,
+      expectedStateVersion: stateVersion,
+    });
+  };
 
   return (
     <li className="flex flex-wrap items-center justify-between gap-4 py-4">
@@ -215,7 +238,10 @@ function KillSwitchControl({
         </div>
         <p className="mt-1 text-xs text-muted-foreground">{copy.description}</p>
       </div>
-      <AlertDialog>
+      <AlertDialog
+        open={confirmationRequest !== null}
+        onOpenChange={handleOpenChange}
+      >
         <AlertDialogTrigger
           disabled={disabled}
           render={
@@ -224,27 +250,32 @@ function KillSwitchControl({
             </Button>
           }
         />
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>
-              {nextEnabled ? "Engage" : "Clear"} {copy.label}?
-            </AlertDialogTitle>
-            <AlertDialogDescription>
-              {nextEnabled
-                ? `${copy.description} The change takes effect for the next policy check and is permanently audited.`
-                : "Clearing this switch removes only this restriction. It does not enable Eve, bypass policy, or grant authority."}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              variant={nextEnabled ? "default" : "destructive"}
-              onClick={() => onSet(switchKey, nextEnabled)}
-            >
-              Confirm {nextEnabled ? "engage" : "clear"}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
+        {confirmationRequest ? (
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {confirmationRequest.enabled ? "Engage" : "Clear"}{" "}
+                {KILL_SWITCH_COPY[confirmationRequest.switchKey].label}?
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {confirmationRequest.enabled
+                  ? `${KILL_SWITCH_COPY[confirmationRequest.switchKey].description} The change takes effect for the next policy check and is permanently audited.`
+                  : "Clearing this switch removes only this restriction. It does not enable Eve, bypass policy, or grant authority."}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                variant={
+                  confirmationRequest.enabled ? "default" : "destructive"
+                }
+                onClick={() => onConfirm(confirmationRequest)}
+              >
+                Confirm {confirmationRequest.enabled ? "engage" : "clear"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        ) : null}
       </AlertDialog>
     </li>
   );
@@ -257,6 +288,7 @@ export function EveGovernanceView({
   isLoading,
   mutationError,
   mutationPendingKey,
+  onConfirmKillSwitch,
   onSetKillSwitch,
 }: {
   data?: EveGovernancePageData;
@@ -265,6 +297,7 @@ export function EveGovernanceView({
   isLoading: boolean;
   mutationError?: string;
   mutationPendingKey?: EveKillSwitchKey;
+  onConfirmKillSwitch?: (request: KillSwitchConfirmationRequest) => void;
   onSetKillSwitch?: (switchKey: EveKillSwitchKey, enabled: boolean) => void;
 }) {
   if (isLoading) {
@@ -305,6 +338,14 @@ export function EveGovernanceView({
     ? "Emergency engaged"
     : "Emergency clear";
   const policyLabel = formatPolicyStatus(system.policyStatus);
+  const confirmKillSwitch = (request: KillSwitchConfirmationRequest) => {
+    if (onConfirmKillSwitch) {
+      onConfirmKillSwitch(request);
+      return;
+    }
+
+    onSetKillSwitch?.(request.switchKey, request.enabled);
+  };
 
   return (
     <div className="space-y-6">
@@ -378,7 +419,8 @@ export function EveGovernanceView({
                 disabled={mutationPendingKey !== undefined}
                 enabled={system.killSwitchState[switchKey]}
                 isPending={mutationPendingKey === switchKey}
-                onSet={onSetKillSwitch ?? (() => undefined)}
+                onConfirm={confirmKillSwitch}
+                stateVersion={system.stateVersion}
               />
             ))}
           </ul>
@@ -554,13 +596,8 @@ export default function EveGovernancePage() {
     },
   });
 
-  const setKillSwitch = (switchKey: EveKillSwitchKey, enabled: boolean) => {
-    const expectedStateVersion = query.data?.system.stateVersion;
-    if (!expectedStateVersion) {
-      return;
-    }
-
-    mutation.mutate({ switchKey, enabled, expectedStateVersion });
+  const setKillSwitch = (request: KillSwitchConfirmationRequest) => {
+    mutation.mutate(request);
   };
 
   return (
@@ -584,7 +621,7 @@ export default function EveGovernancePage() {
         mutationPendingKey={
           mutation.isPending ? mutation.variables?.switchKey : undefined
         }
-        onSetKillSwitch={setKillSwitch}
+        onConfirmKillSwitch={setKillSwitch}
       />
       <EveModelPolicyPanel />
       <EveAdminMemoryPanel />
