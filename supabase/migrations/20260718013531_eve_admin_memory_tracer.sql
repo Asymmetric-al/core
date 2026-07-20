@@ -117,8 +117,8 @@ IMMUTABLE
 SET search_path = public, pg_temp
 AS $$
     SELECT COALESCE(p_value, '') ~* '(^|[\r\n])-----BEGIN (PRIVATE KEY|(ENCRYPTED|RSA|EC|DSA|ED25519|OPENSSH) PRIVATE KEY|PGP PRIVATE KEY( BLOCK)?)-----([\r\n]|$)'
-        OR COALESCE(p_value, '') ~* '(api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)[[:space:]]*[:=][[:space:]]*[^[:space:]]+'
-        OR COALESCE(p_value, '') ~* '(bearer[[:space:]]+[a-z0-9._~+/-]{12,}|(sk|ghp|github_pat|sb_secret)_[a-z0-9_-]{12,})'
+        OR COALESCE(p_value, '') ~* '(api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)([[:space:]]*[:=][[:space:]]*|[[:space:]]+is[[:space:]]+)[^[:space:]]+'
+        OR COALESCE(p_value, '') ~* '(bearer[[:space:]]+[a-z0-9._~+/-]{12,}|(sk|ghp|github_pat|sb_secret)_[a-z0-9_-]{12,}|eyJ[a-z0-9_-]{20,}[.][a-z0-9_-]{10,})'
         OR COALESCE(p_value, '') ~* '(otp|one[- ]time (code|password)|verification code|2fa code|mfa code)[[:space:]]*(:|is)?[[:space:]]*[0-9]{4,10}'
         OR COALESCE(p_value, '') ~* '(cvv|cvc|routing number|bank account|card number)[[:space:]]*(:|is)?[[:space:]]*[0-9 -]{3,24}'
         OR COALESCE(p_value, '') ~* '([0-9][ -]?){13,19}'
@@ -214,6 +214,8 @@ BEGIN
             OR NOT governance.release_enabled
             OR governance.emergency_off
             OR (governance.kill_switch_state ->> 'all_automation')::BOOLEAN
+            OR (governance.kill_switch_state ->> 'force_approval')::BOOLEAN
+            OR governance.policy_status <> 'ready'
         THEN
             RAISE EXCEPTION 'eve_admin_memory_auto_save_governance_blocked';
         END IF;

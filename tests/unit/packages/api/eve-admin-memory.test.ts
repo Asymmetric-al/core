@@ -6,6 +6,7 @@ import { createEveAdminMemorySchema } from "../../../../packages/api/src/eve/adm
 describe("Eve private-admin memory boundary", () => {
   it.each([
     ["password: hunter2", "credential"],
+    ["password is hunter2", "credential"],
     ["Bearer abcdefghijklmnopqrstuvwxyz", "secret"],
     ["-----BEGIN PRIVATE KEY-----", "private_key"],
     ["OTP is 123456", "one_time_code"],

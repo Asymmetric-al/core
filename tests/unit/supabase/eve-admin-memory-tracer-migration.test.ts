@@ -1,4 +1,5 @@
 import { readFileSync } from "node:fs";
+
 import { describe, expect, it } from "vitest";
 
 const sql = readFileSync(
@@ -100,6 +101,17 @@ describe("Eve admin-memory migration", () => {
     );
   });
 
+  it("rejects natural-language credentials and JWT-shaped secrets", () => {
+    const exclusionFunction = getFunctionDefinition(
+      "contains_eve_admin_memory_exclusion",
+    );
+
+    expect(exclusionFunction).toContain(
+      "[[:space:]]+is[[:space:]]+)[^[:space:]]+",
+    );
+    expect(exclusionFunction).toContain("eyJ[a-z0-9_-]{20,}[.][a-z0-9_-]{10,}");
+  });
+
   it.each([
     "-----BEGIN PRIVATE KEY-----",
     "-----BEGIN ENCRYPTED PRIVATE KEY-----",
@@ -123,8 +135,14 @@ describe("Eve admin-memory migration", () => {
   });
 
   it("gates auto-save, supports disable without deletion, and audits mutations atomically", () => {
-    expect(sql).toContain("p_source = 'auto_save'");
-    expect(sql).toContain("NOT governance.release_enabled");
+    const createFunction = getFunctionDefinition("create_eve_admin_memory");
+
+    expect(createFunction).toContain("p_source = 'auto_save'");
+    expect(createFunction).toContain("NOT governance.release_enabled");
+    expect(createFunction).toContain(
+      "governance.kill_switch_state ->> 'force_approval'",
+    );
+    expect(createFunction).toContain("governance.policy_status <> 'ready'");
     expect(sql).toContain("eve_admin_memory_auto_save_disabled");
     expect(sql).toContain("append_eve_admin_memory_audit");
     expect(sql).toContain(

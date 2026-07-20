@@ -14,7 +14,7 @@ const EXCLUSION_RULES: ExclusionRule[] = [
   {
     code: "credential",
     pattern:
-      /\b(?:api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)\s*[:=]\s*\S+/i,
+      /\b(?:api[_ -]?key|client[_ -]?secret|password|passwd|credential|access[_ -]?token|refresh[_ -]?token)(?:\s*[:=]\s*|\s+is\s+)\S+/i,
   },
   {
     code: "secret",
