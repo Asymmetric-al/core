@@ -57,6 +57,24 @@ describe("Eve admin-memory migration", () => {
     expect(sql).toContain("owner_profile_id = p_actor_profile_id");
   });
 
+  it("retains immutable history when its profile and live entry are deleted", () => {
+    const historyTableStart = sql.indexOf(
+      "CREATE TABLE public.eve_admin_memory_history",
+    );
+    const historyTableEnd = sql.indexOf(
+      "CREATE INDEX eve_admin_memory_history_owner_idx",
+      historyTableStart,
+    );
+    const historyTable = sql.slice(historyTableStart, historyTableEnd);
+
+    expect(historyTable).toContain("owner_profile_id UUID NOT NULL");
+    expect(historyTable).toContain("changed_by_profile_id UUID NOT NULL");
+    expect(historyTable).not.toContain("REFERENCES public.profiles");
+    expect(historyTable).not.toContain(
+      "REFERENCES public.eve_admin_memory_entries",
+    );
+  });
+
   it("keeps tenant operational memory schema-only and enforces exclusions on writes", () => {
     expect(sql).toContain(
       "scope_type IN ('admin_private', 'tenant_operational')",

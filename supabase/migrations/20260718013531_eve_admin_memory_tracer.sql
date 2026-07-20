@@ -37,11 +37,13 @@ CREATE INDEX eve_admin_memory_owner_updated_idx
 CREATE INDEX eve_admin_memory_search_idx
     ON public.eve_admin_memory_entries USING GIN (search_vector);
 
+-- Entry and profile IDs are immutable snapshot data, not foreign keys, so
+-- deleting live records cannot cascade into independently retained history.
 CREATE TABLE public.eve_admin_memory_history (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     entry_id UUID NOT NULL,
     tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
-    owner_profile_id UUID NOT NULL REFERENCES public.profiles(id) ON DELETE CASCADE,
+    owner_profile_id UUID NOT NULL,
     version BIGINT NOT NULL CHECK (version > 0),
     action TEXT NOT NULL CHECK (action IN ('created', 'updated', 'deleted')),
     category TEXT NOT NULL
@@ -49,12 +51,9 @@ CREATE TABLE public.eve_admin_memory_history (
     title TEXT NOT NULL,
     content TEXT NOT NULL,
     source TEXT NOT NULL CHECK (source IN ('manual', 'auto_save')),
-    changed_by_profile_id UUID NOT NULL REFERENCES public.profiles(id),
+    changed_by_profile_id UUID NOT NULL,
     changed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (entry_id, version),
-    FOREIGN KEY (entry_id, tenant_id, owner_profile_id)
-        REFERENCES public.eve_admin_memory_entries(id, tenant_id, owner_profile_id)
-        ON DELETE CASCADE
+    UNIQUE (entry_id, version)
 );
 
 CREATE INDEX eve_admin_memory_history_owner_idx
