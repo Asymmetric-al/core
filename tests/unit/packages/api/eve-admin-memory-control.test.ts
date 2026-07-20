@@ -17,8 +17,8 @@ const auth = {
   email: "admin@example.com",
   tenantId: "00000000-0000-4000-8000-000000000001",
   profileId: "00000000-0000-4000-8000-000000000002",
-  role: "admin",
-  profileRole: "admin",
+  role: "super_admin",
+  profileRole: "super_admin",
   memberships: [],
   isAuthenticated: true,
 } as AuthenticatedContext;
@@ -33,6 +33,7 @@ function expectValueFreePiiAudit(candidate: string) {
   expect(JSON.stringify(appendMock.mock.calls)).not.toContain(candidate);
   expect(appendMock).toHaveBeenCalledWith(
     expect.objectContaining({
+      tenantId: auth.tenantId,
       action: "memory.excluded",
       result: "blocked",
       evidenceSummary:
@@ -68,7 +69,11 @@ describe("Eve admin-memory control", () => {
     expect(rpc).not.toHaveBeenCalled();
     expect(JSON.stringify(appendMock.mock.calls)).not.toContain(secret);
     expect(appendMock).toHaveBeenCalledWith(
-      expect.objectContaining({ action: "memory.excluded", result: "blocked" }),
+      expect.objectContaining({
+        tenantId: auth.tenantId,
+        action: "memory.excluded",
+        result: "blocked",
+      }),
     );
   });
 
@@ -123,6 +128,78 @@ describe("Eve admin-memory control", () => {
       expectValueFreePiiAudit(candidate);
     },
   );
+
+  it("updates allowed memory through the tenant-bound RPC", async () => {
+    const entryId = "00000000-0000-4000-8000-000000000003";
+    const entry = { id: entryId, title: "Choice" };
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    loadEntryMock.mockResolvedValue(entry);
+    const { updateEveAdminMemory } =
+      await import("../../../../packages/api/src/eve/admin-memory/control");
+
+    await expect(
+      updateEveAdminMemory({
+        auth,
+        entryId,
+        expectedVersion: 1,
+        category: "decision",
+        title: "Choice",
+        content: "Use the shared boundary.",
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      }),
+    ).resolves.toEqual({ stored: true, entry });
+    expect(rpc).toHaveBeenCalledWith(
+      "update_eve_admin_memory",
+      expect.objectContaining({
+        p_actor_profile_id: auth.profileId,
+        p_tenant_id: auth.tenantId,
+      }),
+    );
+  });
+
+  it("deletes memory through the tenant-bound RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const { deleteEveAdminMemory } =
+      await import("../../../../packages/api/src/eve/admin-memory/control");
+
+    await expect(
+      deleteEveAdminMemory({
+        auth,
+        entryId: "00000000-0000-4000-8000-000000000003",
+        expectedVersion: 1,
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      }),
+    ).resolves.toBeUndefined();
+    expect(rpc).toHaveBeenCalledWith(
+      "delete_eve_admin_memory",
+      expect.objectContaining({
+        p_actor_profile_id: auth.profileId,
+        p_tenant_id: auth.tenantId,
+      }),
+    );
+  });
+
+  it("sets auto-save through the tenant-bound RPC", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const { setEveAdminMemoryAutoSave } =
+      await import("../../../../packages/api/src/eve/admin-memory/control");
+
+    await expect(
+      setEveAdminMemoryAutoSave({
+        auth,
+        category: "preference",
+        enabled: false,
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      }),
+    ).resolves.toBeUndefined();
+    expect(rpc).toHaveBeenCalledWith(
+      "set_eve_admin_memory_auto_save",
+      expect.objectContaining({
+        p_actor_profile_id: auth.profileId,
+        p_tenant_id: auth.tenantId,
+      }),
+    );
+  });
 
   it.each(barePiiCandidates)(
     "rejects a bare %s before calling the update RPC and keeps it out of audit evidence",

@@ -12,8 +12,14 @@ import type {
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
+function createMemoryAuditIdentity(auth: AuthenticatedContext) {
+  return createAdminEveAuditIdentity(auth, {
+    tenantId: auth.tenantId,
+  });
+}
+
 function identityParams(auth: AuthenticatedContext) {
-  const identity = createAdminEveAuditIdentity(auth);
+  const identity = createMemoryAuditIdentity(auth);
   return {
     p_actor_id: identity.actorId,
     p_actor_profile_id: identity.actorProfileId,
@@ -76,7 +82,7 @@ async function rejectExcluded(input: {
   await traceEveAuditEvent({
     store: createEveAuditStore(input.supabaseAdmin),
     event: {
-      identity: createAdminEveAuditIdentity(input.auth),
+      identity: createMemoryAuditIdentity(input.auth),
       policy: { id: "eve-admin-memory", status: "advisory_only" },
       action: "memory.excluded",
       target: "admin_memory:blocked",
