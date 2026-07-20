@@ -64,6 +64,13 @@ export async function storeEveReplayArtifact(input: {
   runId?: string;
   supabaseAdmin: AdminSupabaseClient;
 }) {
+  if (input.artifactKind === "gateway_telemetry") {
+    throw new ApiHttpError(
+      400,
+      "Gateway telemetry is metadata-only and cannot store artifact bodies.",
+    );
+  }
+
   const artifactId = crypto.randomUUID();
   const extension = input.artifactKind === "debug" ? "txt" : "json";
   const storagePath = `${input.auth.tenantId}/${input.auth.profileId}/${artifactId}.${extension}`;
@@ -178,9 +185,17 @@ export async function clearEveRetentionHold(input: {
 }
 
 export async function runEveRetentionExpiry(input: {
+  auth: AuthenticatedContext;
   limit: number;
   supabaseAdmin: AdminSupabaseClient;
 }) {
+  if (input.auth.role !== "super_admin") {
+    throw new ApiHttpError(
+      403,
+      "Only super administrators can run global retention expiry.",
+    );
+  }
+
   const { data: claimed, error } = await input.supabaseAdmin.rpc(
     "claim_eve_replay_artifact_expiry",
     { p_limit: input.limit },

@@ -63,7 +63,8 @@ CREATE TABLE public.eve_replay_artifacts (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (storage_bucket, storage_path),
     CHECK ((status = 'upload_pending' AND uploaded_at IS NULL)
-        OR (status <> 'upload_pending' AND uploaded_at IS NOT NULL))
+        OR (status IN ('available', 'delete_pending') AND uploaded_at IS NOT NULL)
+        OR status = 'expired')
 );
 
 CREATE INDEX eve_replay_artifacts_tenant_created_idx
@@ -397,10 +398,12 @@ BEGIN
         DELETE FROM public.eve_run_summaries summary
         WHERE summary.id IN (
             SELECT candidate.id FROM public.eve_run_summaries candidate
+            LEFT JOIN public.profiles initiator
+                ON initiator.id = candidate.initiated_by_profile_id
             WHERE candidate.expires_at <= NOW() AND NOT EXISTS (
                 SELECT 1 FROM public.eve_retention_holds hold
                 WHERE hold.status = 'active'
-                  AND (hold.tenant_id = candidate.tenant_id OR candidate.tenant_id IS NULL)
+                  AND (hold.tenant_id = initiator.tenant_id OR initiator.tenant_id IS NULL)
                   AND ((hold.scope_type = 'run_summary' AND hold.target_id = candidate.id::TEXT)
                     OR (hold.scope_type = 'category' AND hold.target_id = candidate.retention_category))
             ) ORDER BY candidate.expires_at LIMIT LEAST(GREATEST(p_limit, 1), 2000)

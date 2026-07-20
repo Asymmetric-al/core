@@ -42,4 +42,15 @@ describe("Eve retention route schema", () => {
       }).success,
     ).toBe(false);
   });
+
+  it("rejects gateway telemetry bodies at the mutation boundary", () => {
+    expect(
+      mutateEveRetentionSchema.safeParse({
+        action: "store_artifact",
+        artifactKind: "gateway_telemetry",
+        content: JSON.stringify({ response: "private response" }),
+        redactedSummary: "Gateway telemetry",
+      }).success,
+    ).toBe(false);
+  });
 });

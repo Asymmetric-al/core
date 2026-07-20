@@ -28,7 +28,9 @@ describe("Eve retention and replay migration", () => {
   });
 
   it("enforces tenant-owner paths and blocks browser table/RPC access", () => {
-    expect(sql).toContain("p_tenant_id::TEXT || '/' || p_actor_profile_id::TEXT");
+    expect(sql).toContain(
+      "p_tenant_id::TEXT || '/' || p_actor_profile_id::TEXT",
+    );
     expect(sql).toContain("eve_retention_actor_tenant_mismatch");
     expect(sql).toContain("FROM PUBLIC, anon, authenticated");
     expect(sql).not.toContain("TO authenticated;");
@@ -41,5 +43,31 @@ describe("Eve retention and replay migration", () => {
     expect(sql).toContain("FOR UPDATE SKIP LOCKED");
     expect(sql).toContain("'delete_pending'");
     expect(sql).toContain("finalize_eve_replay_artifact_expiry");
+  });
+
+  it("allows stale upload-pending metadata to transition directly to expired", () => {
+    expect(sql).toContain(
+      "OR (status IN ('available', 'delete_pending') AND uploaded_at IS NOT NULL)",
+    );
+    expect(sql).toContain("OR status = 'expired'");
+    expect(sql).toContain(
+      "status = CASE WHEN artifact.uploaded_at IS NULL THEN 'expired' ELSE 'delete_pending' END",
+    );
+  });
+
+  it("derives the run-summary tenant through its initiating profile", () => {
+    const runSummaryExpiry = sql.slice(
+      sql.indexOf("DELETE FROM public.eve_run_summaries"),
+      sql.indexOf(
+        "INSERT INTO public.eve_retention_lifecycle_events",
+        sql.indexOf("DELETE FROM public.eve_run_summaries"),
+      ),
+    );
+
+    expect(runSummaryExpiry).toContain("LEFT JOIN public.profiles initiator");
+    expect(runSummaryExpiry).toContain(
+      "hold.tenant_id = initiator.tenant_id OR initiator.tenant_id IS NULL",
+    );
+    expect(runSummaryExpiry).not.toContain("candidate.tenant_id");
   });
 });

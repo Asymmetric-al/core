@@ -27,6 +27,8 @@ const SECRET_VALUE_PATTERNS: Array<[RegExp, string]> = [
   [/\+?\d(?:[(). -]*\d){9,14}\b/g, "[redacted-phone]"],
   [/\b(?:\d[ -]*?){13,19}\b/g, "[redacted-payment-number]"],
 ];
+const SENSITIVE_TEXT_SECTION_PATTERN =
+  /(^|\r?\n)([ \t]*(?:prompt|response|transcript|request[ _-]?body|chain[ _-]?of[ _-]?thought|hidden[ _-]?reason|system|user|assistant|tool)[ \t]*[:=])[ \t]*[\s\S]*?(?=\r?\n[ \t]*(?:prompt|response|transcript|request[ _-]?body|chain[ _-]?of[ _-]?thought|hidden[ _-]?reason|system|user|assistant|tool)[ \t]*[:=]|$)/gi;
 
 function replaceSensitiveStringValues(value: string): string {
   let sanitized = value;
@@ -49,7 +51,11 @@ function sanitizeString(value: string): string {
 
 /** Redact a bounded artifact body without applying audit-summary truncation. */
 export function redactEveArtifactText(value: string): string {
-  return replaceSensitiveStringValues(value);
+  const redactedLabels = value.replace(
+    SENSITIVE_TEXT_SECTION_PATTERN,
+    `$1$2 ${REDACTED}`,
+  );
+  return replaceSensitiveStringValues(redactedLabels);
 }
 
 export function redactEveAuditValue(value: unknown, depth = 0): unknown {
