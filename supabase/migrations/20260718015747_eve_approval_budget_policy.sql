@@ -43,6 +43,7 @@ CREATE TABLE public.eve_operational_budgets (
 
 CREATE TABLE public.eve_budget_usage_windows (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     budget_id UUID NOT NULL REFERENCES public.eve_operational_budgets(id) ON DELETE CASCADE,
     window_started_at TIMESTAMPTZ NOT NULL,
     used_requests BIGINT NOT NULL DEFAULT 0 CHECK (used_requests >= 0),
@@ -50,7 +51,7 @@ CREATE TABLE public.eve_budget_usage_windows (
     used_input_tokens BIGINT NOT NULL DEFAULT 0 CHECK (used_input_tokens >= 0),
     used_output_tokens BIGINT NOT NULL DEFAULT 0 CHECK (used_output_tokens >= 0),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (budget_id, window_started_at)
+    UNIQUE (tenant_id, budget_id, window_started_at)
 );
 
 CREATE TABLE public.eve_policy_permission_grants (
@@ -427,11 +428,12 @@ BEGIN
             floor(extract(epoch FROM NOW()) / budget_row.window_seconds)
             * budget_row.window_seconds
         );
-        INSERT INTO public.eve_budget_usage_windows (budget_id, window_started_at)
-        VALUES (budget_row.id, window_start)
-        ON CONFLICT (budget_id, window_started_at) DO NOTHING;
+        INSERT INTO public.eve_budget_usage_windows (tenant_id, budget_id, window_started_at)
+        VALUES (p_tenant_id, budget_row.id, window_start)
+        ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING;
         SELECT * INTO usage_row FROM public.eve_budget_usage_windows
-        WHERE budget_id = budget_row.id
+        WHERE tenant_id = p_tenant_id
+          AND budget_id = budget_row.id
           AND window_started_at = window_start FOR UPDATE;
         SELECT COALESCE(SUM(active_override.additional_requests), 0),
                COALESCE(SUM(active_override.additional_usd_micros), 0),

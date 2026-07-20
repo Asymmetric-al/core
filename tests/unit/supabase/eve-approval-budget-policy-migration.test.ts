@@ -38,10 +38,14 @@ describe("Eve approval and budget policy migration", () => {
   });
 
   it("atomically reserves a deterministic window and pauses at hard ceilings", () => {
+    expect(sql).toContain("UNIQUE (tenant_id, budget_id, window_started_at)");
     expect(sql).toContain(
-      "ON CONFLICT (budget_id, window_started_at) DO NOTHING",
+      "ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING",
     );
-    expect(sql).toContain("window_started_at = window_start FOR UPDATE");
+    expect(sql).toContain("VALUES (p_tenant_id, budget_row.id, window_start)");
+    expect(sql).toMatch(
+      /SELECT \* INTO usage_row FROM public\.eve_budget_usage_windows\s+WHERE tenant_id = p_tenant_id\s+AND budget_id = budget_row\.id\s+AND window_started_at = window_start FOR UPDATE;/,
+    );
     expect(sql).toContain("decision := 'pause'; reason := 'budget_exhausted'");
     expect(sql).toContain("UPDATE public.eve_budget_usage_windows SET");
   });

@@ -23,7 +23,7 @@ function createQuery() {
 }
 
 describe("Eve approval and budget store", () => {
-  it("loads emergency overrides only for the requested tenant", async () => {
+  it("loads tenant-owned budget usage and overrides only", async () => {
     const queries = new Map<string, ReturnType<typeof createQuery>>();
     const client = {
       from: vi.fn((table: string) => {
@@ -38,6 +38,10 @@ describe("Eve approval and budget store", () => {
       tenantId: "00000000-0000-4000-8000-000000000001",
     });
 
+    expect(queries.get("eve_budget_usage_windows")?.eq).toHaveBeenCalledWith(
+      "tenant_id",
+      "00000000-0000-4000-8000-000000000001",
+    );
     expect(
       queries.get("eve_budget_emergency_overrides")?.eq,
     ).toHaveBeenCalledWith("tenant_id", "00000000-0000-4000-8000-000000000001");
