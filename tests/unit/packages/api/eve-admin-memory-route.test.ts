@@ -173,8 +173,14 @@ describe("Eve admin-memory route tenant binding", () => {
       error: null,
     });
     loadViewMock.mockResolvedValue({ entries: [], history: [], settings: [] });
-    createMemoryMock.mockResolvedValue({ stored: true, entry: { id: entryId } });
-    updateMemoryMock.mockResolvedValue({ stored: true, entry: { id: entryId } });
+    createMemoryMock.mockResolvedValue({
+      stored: true,
+      entry: { id: entryId },
+    });
+    updateMemoryMock.mockResolvedValue({
+      stored: true,
+      entry: { id: entryId },
+    });
     setAutoSaveMock.mockResolvedValue(undefined);
     deleteMemoryMock.mockResolvedValue(undefined);
   });
