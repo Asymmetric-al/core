@@ -126,7 +126,7 @@ AS $$
         OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])[0-9]{3}-[0-9]{2}-[0-9]{4}([^[:alnum:]]|$)'
         OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])([+]1[ .-]?|1[ .-])?([(][2-9][0-9]{2}[)]|[2-9][0-9]{2})[ .-][2-9][0-9]{2}[ .-][0-9]{4}([^[:alnum:]]|$)'
         OR COALESCE(p_value, '') ~* '(^|[^[:alnum:]])[0-9]{1,6}[[:space:]]+(([[:alpha:]][[:alpha:].''-]*|[0-9]+(st|nd|rd|th))[[:space:]]+){1,5}(street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|circle|cir|parkway|pkwy|highway|hwy|way|terrace|ter|place|pl)([[:space:]]+(apt|apartment|suite|unit|#)[[:space:]]*[[:alnum:]-]+)?([^[:alnum:]]|$)'
-        OR COALESCE(p_value, '') ~* '(phone|mobile|telephone|street address|mailing address)[[:space:]]*(:|is)[[:space:]]*[^[:space:]]+'
+        OR COALESCE(p_value, '') ~* '(phone|mobile|telephone|street address|mailing address)[[:space:]]*(:|is)?[[:space:]]*([+]?[0-9]|[0-9]{1,6}[[:space:]]+[[:alpha:]])'
         OR COALESCE(p_value, '') ~* '(donor|customer|tenant)[[:space:]]+(name|email|phone|address|account|balance|gift|giving|payment|identifier)[[:space:]]*(:|is)[[:space:]]*[^[:space:]]+';
 $$;
 
@@ -203,7 +203,16 @@ BEGIN
         RAISE EXCEPTION 'invalid_eve_admin_memory';
     END IF;
     IF public.contains_eve_admin_memory_exclusion(p_title || E'\n' || p_content) THEN
-        RAISE EXCEPTION 'eve_admin_memory_excluded';
+        PERFORM public.append_eve_admin_memory_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, 'memory.excluded',
+            'admin_memory:blocked', 'blocked',
+            jsonb_build_object('candidateIncluded', FALSE, 'exclusionSource', 'database_guard'),
+            jsonb_build_object('stored', FALSE),
+            'The database write-time exclusion boundary rejected sensitive data before persistence'
+        );
+        -- Raising here would roll back the audit row. NULL is the rejection sentinel.
+        RETURN NULL;
     END IF;
 
     IF p_source = 'auto_save' THEN
@@ -295,7 +304,16 @@ BEGIN
         OR char_length(btrim(p_content)) NOT BETWEEN 1 AND 4000
     THEN RAISE EXCEPTION 'invalid_eve_admin_memory'; END IF;
     IF public.contains_eve_admin_memory_exclusion(p_title || E'\n' || p_content) THEN
-        RAISE EXCEPTION 'eve_admin_memory_excluded';
+        PERFORM public.append_eve_admin_memory_audit(
+            p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+            p_initiator_type, p_initiator_id, 'memory.excluded',
+            'admin_memory:blocked', 'blocked',
+            jsonb_build_object('candidateIncluded', FALSE, 'exclusionSource', 'database_guard'),
+            jsonb_build_object('stored', FALSE),
+            'The database write-time exclusion boundary rejected sensitive data before persistence'
+        );
+        -- Raising here would roll back the audit row. NULL is the rejection sentinel.
+        RETURN NULL;
     END IF;
     next_version := entry.version + 1;
     UPDATE public.eve_admin_memory_entries SET

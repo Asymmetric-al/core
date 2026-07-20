@@ -104,6 +104,24 @@ describe("Eve admin-memory control", () => {
     );
   });
 
+  it("maps a database-only create exclusion sentinel to a rejected write", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const { createEveAdminMemory } =
+      await import("../../../../packages/api/src/eve/admin-memory/control");
+
+    await expect(
+      createEveAdminMemory({
+        auth,
+        category: "preference",
+        title: "Reference",
+        content: "Digits 1234567890123",
+        source: "manual",
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(loadEntryMock).not.toHaveBeenCalled();
+  });
+
   it.each(barePiiCandidates)(
     "rejects a bare %s before calling the create RPC and keeps it out of audit evidence",
     async (_label, candidate) => {
@@ -132,7 +150,7 @@ describe("Eve admin-memory control", () => {
   it("updates allowed memory through the tenant-bound RPC", async () => {
     const entryId = "00000000-0000-4000-8000-000000000003";
     const entry = { id: entryId, title: "Choice" };
-    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const rpc = vi.fn().mockResolvedValue({ data: 2, error: null });
     loadEntryMock.mockResolvedValue(entry);
     const { updateEveAdminMemory } =
       await import("../../../../packages/api/src/eve/admin-memory/control");
@@ -155,6 +173,25 @@ describe("Eve admin-memory control", () => {
         p_tenant_id: auth.tenantId,
       }),
     );
+  });
+
+  it("maps a database-only update exclusion sentinel to a rejected write", async () => {
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const { updateEveAdminMemory } =
+      await import("../../../../packages/api/src/eve/admin-memory/control");
+
+    await expect(
+      updateEveAdminMemory({
+        auth,
+        entryId: crypto.randomUUID(),
+        expectedVersion: 1,
+        category: "decision",
+        title: "Reference",
+        content: "Digits 1234567890123",
+        supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(loadEntryMock).not.toHaveBeenCalled();
   });
 
   it("deletes memory through the tenant-bound RPC", async () => {

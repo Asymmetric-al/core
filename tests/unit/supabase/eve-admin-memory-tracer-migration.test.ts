@@ -34,6 +34,18 @@ function expectExclusionBefore(
   expect(mutationIndex).toBeGreaterThan(exclusionIndex);
 }
 
+function getExclusionBranch(functionName: string): string {
+  const functionDefinition = getFunctionDefinition(functionName);
+  const branchStart = functionDefinition.indexOf(
+    "IF public.contains_eve_admin_memory_exclusion",
+  );
+  const branchEnd = functionDefinition.indexOf("END IF;", branchStart);
+
+  expect(branchStart).toBeGreaterThanOrEqual(0);
+  expect(branchEnd).toBeGreaterThan(branchStart);
+  return functionDefinition.slice(branchStart, branchEnd);
+}
+
 function getPrivateKeyExclusionPattern(): RegExp {
   const exclusionFunction = getFunctionDefinition(
     "contains_eve_admin_memory_exclusion",
@@ -45,6 +57,24 @@ function getPrivateKeyExclusionPattern(): RegExp {
     throw new Error("Private-key exclusion pattern is missing");
   }
   return new RegExp(patternMatch[1], "i");
+}
+
+function getLabeledPiiExclusionPattern(): RegExp {
+  const exclusionFunction = getFunctionDefinition(
+    "contains_eve_admin_memory_exclusion",
+  );
+  const patternMatch = exclusionFunction.match(
+    /~\* '(\(phone\|mobile\|telephone\|street address\|mailing address\)[^']*)'/,
+  );
+
+  expect(patternMatch).not.toBeNull();
+  if (!patternMatch) {
+    throw new Error("Labeled PII exclusion pattern is missing");
+  }
+  const javascriptPattern = patternMatch[1]
+    .replaceAll("[[:space:]]", "\\s")
+    .replaceAll("[[:alpha:]]", "[A-Za-z]");
+  return new RegExp(javascriptPattern, "i");
 }
 
 describe("Eve admin-memory migration", () => {
@@ -81,7 +111,7 @@ describe("Eve admin-memory migration", () => {
     );
     expect(sql).toContain("eve_tenant_operational_memory_disabled");
     expect(sql).toContain("contains_eve_admin_memory_exclusion");
-    expect(sql).toContain("eve_admin_memory_excluded");
+    expect(sql).toContain("'memory.excluded'");
   });
 
   it("detects equivalent bare SSN, phone, and street-address forms before entry or history insertion", () => {
@@ -96,6 +126,9 @@ describe("Eve admin-memory migration", () => {
     );
     expect(exclusionFunction).toContain(
       "[0-9]{1,6}[[:space:]]+(([[:alpha:]][[:alpha:].''-]*|[0-9]+(st|nd|rd|th))[[:space:]]+){1,5}(street|st|avenue|ave|road|rd|boulevard|blvd|lane|ln|drive|dr|court|ct|circle|cir|parkway|pkwy|highway|hwy|way|terrace|ter|place|pl)",
+    );
+    expect(exclusionFunction).toContain(
+      "(phone|mobile|telephone|street address|mailing address)[[:space:]]*(:|is)?[[:space:]]*([+]?[0-9]|[0-9]{1,6}[[:space:]]+[[:alpha:]])",
     );
 
     const createFunction = getFunctionDefinition("create_eve_admin_memory");
@@ -118,6 +151,32 @@ describe("Eve admin-memory migration", () => {
       "INSERT INTO public.eve_admin_memory_history",
     );
   });
+
+  it.each([
+    "phone 4155552671",
+    "mobile is +14155552671",
+    "telephone: 4155552671",
+    "street address 742 Evergreen",
+    "mailing address: 742 Evergreen",
+  ])("rejects labeled PII with an optional separator: %s", (candidate) => {
+    expect(getLabeledPiiExclusionPattern().test(candidate)).toBe(true);
+  });
+
+  it.each(["create_eve_admin_memory", "update_eve_admin_memory"])(
+    "audits database-only exclusions without copying the candidate in %s",
+    (functionName) => {
+      const exclusionBranch = getExclusionBranch(functionName);
+
+      expect(exclusionBranch).toContain("'memory.excluded'");
+      expect(exclusionBranch).toContain("'admin_memory:blocked', 'blocked'");
+      expect(exclusionBranch).toContain("'candidateIncluded', FALSE");
+      expect(exclusionBranch).toContain("'stored', FALSE");
+      expect(exclusionBranch).toContain("RETURN NULL;");
+      expect(exclusionBranch).not.toContain("RAISE EXCEPTION");
+      expect(exclusionBranch).not.toContain("p_title,");
+      expect(exclusionBranch).not.toContain("p_content,");
+    },
+  );
 
   it("rejects natural-language credentials, hyphenated secret keys, and JWT-shaped secrets", () => {
     const exclusionFunction = getFunctionDefinition(

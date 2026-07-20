@@ -131,7 +131,10 @@ export async function createEveAdminMemory(input: {
       ...identityParams(input.auth),
     },
   );
-  if (error || typeof data !== "string") return mapMemoryError(error);
+  if (error) return mapMemoryError(error);
+  if (data === null)
+    return mapMemoryError({ message: "eve_admin_memory_excluded" });
+  if (typeof data !== "string") return mapMemoryError(null);
   const entry = await loadEveAdminMemoryEntryById({
     entryId: data,
     tenantId: input.auth.tenantId,
@@ -156,16 +159,20 @@ export async function updateEveAdminMemory(input: {
     candidate: `${input.title}\n${input.content}`,
   });
   if (rejected) return rejected;
-  const { error } = await input.supabaseAdmin.rpc("update_eve_admin_memory", {
-    p_entry_id: input.entryId,
-    p_expected_version: input.expectedVersion,
-    p_category: input.category,
-    p_title: input.title,
-    p_content: input.content,
-    p_audit_id: crypto.randomUUID(),
-    ...identityParams(input.auth),
-  });
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "update_eve_admin_memory",
+    {
+      p_entry_id: input.entryId,
+      p_expected_version: input.expectedVersion,
+      p_category: input.category,
+      p_title: input.title,
+      p_content: input.content,
+      p_audit_id: crypto.randomUUID(),
+      ...identityParams(input.auth),
+    },
+  );
   if (error) mapMemoryError(error);
+  if (data === null) mapMemoryError({ message: "eve_admin_memory_excluded" });
   const entry = await loadEveAdminMemoryEntryById({
     entryId: input.entryId,
     tenantId: input.auth.tenantId,
