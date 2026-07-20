@@ -18,6 +18,7 @@ export type EveApprovalMode = (typeof EVE_APPROVAL_MODES)[number];
 export const EVE_POLICY_ACTION_IDS = [
   "engineering.review_artifact.write",
   "engineering.github_operation.write",
+  "engineering.github_merge.execute",
   "product.internal_status.write",
   "memory.advisory.write",
   "product.donor.write",

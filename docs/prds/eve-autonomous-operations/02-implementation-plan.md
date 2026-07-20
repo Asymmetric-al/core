@@ -305,6 +305,7 @@ absent and belongs to #432.
 
 ### 16. Strict Auto-Merge Policy
 
+- Status: implemented in #432; release switch remains off
 - Type: HITL
 - Blocked by: 14, 15
 - User stories covered: 12, 13, 31, 32
@@ -314,6 +315,12 @@ absent and belongs to #432.
   - Auto-merge passes for safe PRs with required checks and reviews satisfied.
   - Auto-merge blocks for repo-aware protected areas.
   - Human escalation path is explicit.
+- Implementation evidence:
+  - ADR-0033 and `docs/guides/operations/eve-strict-auto-merge.md`
+  - `packages/api/src/eve/strict-auto-merge/**`
+  - `packages/eve-runtime/agent/tools/github_strict_auto_merge.ts`
+  - `packages/eve-runtime/src/github/strict-auto-merge*.ts`
+  - `supabase/migrations/20260718063523_eve_strict_auto_merge_policy_action.sql`
 
 ### 17. Subagent Catalog and Shared Run Context
 
