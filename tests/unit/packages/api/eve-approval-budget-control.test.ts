@@ -50,12 +50,10 @@ describe("Eve approval and budget controls", () => {
   });
 
   it("fails a permissioned mutation closed when its dedicated grant is absent", async () => {
-    const rpc = vi
-      .fn()
-      .mockResolvedValue({
-        data: null,
-        error: { message: "eve_budget_override_permission_required" },
-      });
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "eve_budget_override_permission_required" },
+    });
     const { createEveBudgetEmergencyOverride } =
       await import("../../../../packages/api/src/eve/approval-budget/control");
     await expect(
