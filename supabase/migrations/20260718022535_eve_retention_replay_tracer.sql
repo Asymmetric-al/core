@@ -268,6 +268,7 @@ BEGIN
         PERFORM 1 FROM public.eve_replay_artifacts artifact
         WHERE artifact.id::TEXT = p_target_id AND artifact.tenant_id = p_tenant_id
         FOR UPDATE;
+        IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_replay_artifact'; END IF;
         IF EXISTS (
             SELECT 1 FROM public.eve_replay_artifacts artifact
             WHERE artifact.id::TEXT = p_target_id AND artifact.tenant_id = p_tenant_id
@@ -280,6 +281,9 @@ BEGIN
         WHERE id::TEXT = p_target_id AND tenant_id = p_tenant_id
           AND deletion_started_at <= NOW() - INTERVAL '15 minutes';
     ELSIF p_scope_type = 'category' THEN
+        PERFORM 1 FROM public.eve_retention_categories category
+        WHERE category.category = p_target_id;
+        IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_retention_category'; END IF;
         PERFORM 1 FROM public.eve_replay_artifacts artifact
         WHERE artifact.tenant_id = p_tenant_id AND artifact.category = p_target_id
           AND artifact.status <> 'expired'
@@ -296,6 +300,21 @@ BEGIN
             deletion_started_at = NULL, updated_at = NOW()
         WHERE tenant_id = p_tenant_id AND category = p_target_id
           AND deletion_started_at <= NOW() - INTERVAL '15 minutes';
+    ELSIF p_scope_type = 'audit_event' THEN
+        PERFORM 1 FROM public.eve_audit_events audit_event
+        WHERE audit_event.id::TEXT = p_target_id
+          AND audit_event.tenant_id = p_tenant_id
+        FOR UPDATE;
+        IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_audit_event'; END IF;
+    ELSIF p_scope_type = 'run_summary' THEN
+        PERFORM 1
+        FROM public.eve_run_summaries run_summary
+        JOIN public.profiles initiator
+          ON initiator.id = run_summary.initiated_by_profile_id
+        WHERE run_summary.id::TEXT = p_target_id
+          AND initiator.tenant_id = p_tenant_id
+        FOR UPDATE OF run_summary;
+        IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_run_summary'; END IF;
     END IF;
     INSERT INTO public.eve_retention_holds (
         id, tenant_id, hold_type, scope_type, target_id, reason, set_by_profile_id

@@ -80,6 +80,29 @@ describe("Eve retention and replay migration", () => {
     expect(sql).toContain("finalize_eve_replay_artifact_expiry");
   });
 
+  it("rejects holds whose scoped target does not exist for the tenant", () => {
+    const setHold = sql.slice(
+      sql.indexOf("public.set_eve_retention_hold"),
+      sql.indexOf("public.clear_eve_retention_hold"),
+    );
+    const insertIndex = setHold.indexOf(
+      "INSERT INTO public.eve_retention_holds",
+    );
+
+    expect(setHold).toContain("artifact.tenant_id = p_tenant_id");
+    expect(setHold).toContain("missing_eve_replay_artifact");
+    expect(setHold).toContain("FROM public.eve_retention_categories category");
+    expect(setHold).toContain("category.category = p_target_id");
+    expect(setHold).toContain("missing_eve_retention_category");
+    expect(setHold).toContain("FROM public.eve_audit_events audit_event");
+    expect(setHold).toContain("audit_event.tenant_id = p_tenant_id");
+    expect(setHold).toContain("missing_eve_audit_event");
+    expect(setHold).toContain("FROM public.eve_run_summaries run_summary");
+    expect(setHold).toContain("initiator.tenant_id = p_tenant_id");
+    expect(setHold).toContain("missing_eve_run_summary");
+    expect(setHold.lastIndexOf("IF NOT FOUND THEN")).toBeLessThan(insertIndex);
+  });
+
   it("rechecks holds under a deletion lease before removing Storage bodies", () => {
     const beginDeletion = sql.slice(
       sql.indexOf("public.begin_eve_replay_artifact_deletion"),
