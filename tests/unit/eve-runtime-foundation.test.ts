@@ -1,15 +1,12 @@
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 
-import {
-  EVE_AUTONOMOUS_DOMAINS,
-  type EveGovernanceSnapshot,
-} from "@asym/api/eve/governance/types";
 import { describe, expect, it } from "vitest";
 
 import { prepareEveRuntimeActivation } from "../../packages/eve-runtime/src/governance-boundary";
 
 import type { EvePolicyConsultResult } from "@asym/api/eve/approval-budget/types";
+import type { EveGovernanceSnapshot } from "@asym/api/eve/governance/types";
 import type { EveModelResolution } from "@asym/api/eve/model-policy/types";
 
 const repositoryRoot = path.resolve(import.meta.dirname, "../..");
@@ -135,7 +132,6 @@ describe("Eve runtime foundation", () => {
     expect(
       prepareEveRuntimeActivation({
         approvalBudget: allowedBudget,
-        domain: "active_runs",
         governance: governance({ releaseEnabled: false }),
         modelResolution: allowedModel,
       }),
@@ -158,34 +154,41 @@ describe("Eve runtime foundation", () => {
     expect(
       prepareEveRuntimeActivation({
         approvalBudget: allowedBudget,
-        domain: "active_runs",
         governance: governance(overrides),
         modelResolution: allowedModel,
       }),
     ).toEqual({ enabled: false, reason: "governance_blocked" });
   });
 
-  it.each(EVE_AUTONOMOUS_DOMAINS)(
-    "fails closed when the requested %s domain switch is engaged",
-    (domain) => {
-      expect(
-        prepareEveRuntimeActivation({
-          approvalBudget: allowedBudget,
-          domain,
-          governance: governance({
-            killSwitchState: { ...clearedSwitches, [domain]: true },
-          }),
-          modelResolution: allowedModel,
+  it("binds governance to the approved action's kill-switch domain", () => {
+    expect(
+      prepareEveRuntimeActivation({
+        approvalBudget: allowedBudget,
+        governance: governance({
+          killSwitchState: {
+            ...clearedSwitches,
+            production_writes: true,
+          },
         }),
-      ).toEqual({ enabled: false, reason: "governance_blocked" });
-    },
-  );
+        modelResolution: allowedModel,
+      }),
+    ).toEqual({ enabled: false, reason: "governance_blocked" });
+  });
+
+  it("fails closed when the approved action is not catalogued", () => {
+    expect(
+      prepareEveRuntimeActivation({
+        approvalBudget: { ...allowedBudget, actionId: "unknown" },
+        governance: governance(),
+        modelResolution: allowedModel,
+      }),
+    ).toEqual({ enabled: false, reason: "governance_blocked" });
+  });
 
   it("refuses a blocked model-policy result", () => {
     expect(
       prepareEveRuntimeActivation({
         approvalBudget: allowedBudget,
-        domain: "active_runs",
         governance: governance(),
         modelResolution: { allowed: false, reason: "budget_exhausted" },
       }),
@@ -200,7 +203,6 @@ describe("Eve runtime foundation", () => {
           decision: "pause",
           reason: "budget_exhausted",
         },
-        domain: "active_runs",
         governance: governance(),
         modelResolution: allowedModel,
       }),
@@ -211,7 +213,6 @@ describe("Eve runtime foundation", () => {
     expect(
       prepareEveRuntimeActivation({
         approvalBudget: allowedBudget,
-        domain: "active_runs",
         governance: governance(),
         modelResolution: {
           ...allowedModel,
@@ -225,7 +226,6 @@ describe("Eve runtime foundation", () => {
     expect(
       prepareEveRuntimeActivation({
         approvalBudget: allowedBudget,
-        domain: "active_runs",
         governance: governance(),
         modelResolution: allowedModel,
       }),

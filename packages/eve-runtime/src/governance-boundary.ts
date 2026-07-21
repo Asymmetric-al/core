@@ -1,10 +1,8 @@
+import { getEveActionCatalogEntry } from "@asym/api/eve/approval-budget";
 import { evaluateEveGovernance } from "@asym/api/eve/governance";
 
 import type { EvePolicyConsultResult } from "@asym/api/eve/approval-budget/types";
-import type {
-  EveAutonomousDomain,
-  EveGovernanceSnapshot,
-} from "@asym/api/eve/governance/types";
+import type { EveGovernanceSnapshot } from "@asym/api/eve/governance/types";
 import type { EveModelResolution } from "@asym/api/eve/model-policy/types";
 
 export type EveRuntimeActivationPlan =
@@ -33,13 +31,25 @@ export type EveRuntimeActivationPlan =
 
 function governanceAllowsRuntime(
   governance: EveGovernanceSnapshot,
-  domain: EveAutonomousDomain,
+  actionId: string,
 ): boolean {
   if (governance.source !== "persisted") {
     return false;
   }
 
-  return evaluateEveGovernance(governance, { domain }).allowed;
+  const action = getEveActionCatalogEntry(actionId);
+  if (!action) {
+    return false;
+  }
+
+  const activeRunsAllowed = evaluateEveGovernance(governance, {
+    domain: "active_runs",
+  }).allowed;
+  const actionDomainAllowed = evaluateEveGovernance(governance, {
+    domain: action.domain,
+  }).allowed;
+
+  return activeRunsAllowed && actionDomainAllowed;
 }
 
 /**
@@ -53,7 +63,6 @@ function governanceAllowsRuntime(
  */
 export function prepareEveRuntimeActivation(input: {
   approvalBudget: EvePolicyConsultResult;
-  domain: EveAutonomousDomain;
   governance: EveGovernanceSnapshot;
   modelResolution: EveModelResolution;
 }): EveRuntimeActivationPlan {
@@ -61,7 +70,9 @@ export function prepareEveRuntimeActivation(input: {
     return { enabled: false, reason: "release_disabled" };
   }
 
-  if (!governanceAllowsRuntime(input.governance, input.domain)) {
+  if (
+    !governanceAllowsRuntime(input.governance, input.approvalBudget.actionId)
+  ) {
     return { enabled: false, reason: "governance_blocked" };
   }
 
