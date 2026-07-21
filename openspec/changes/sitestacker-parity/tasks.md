@@ -64,6 +64,22 @@
       evidence/targets remain distinct from application authority, and heuristic
       evidence remains suggestion-only.
 
+## 2e. Phase 5 (Public Website Runtime Contract) (2026-07-22)
+
+- [x] 2e.1 Record the public-tenant-website runtime-contract durable
+      requirement in this change's `platform-product-intent` delta (per
+      `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`).
+- [x] 2e.2 Author the five Phase 5 ADRs (`docs/adr/0026`–`0030`): surface in
+      `apps/donor` with `apps/web` reserved; transport-agnostic reader with
+      the single Payload read in admin; defense-in-depth public isolation;
+      reference-not-copy CMS↔operational; function-level tagged caching with
+      the cross-app publish signal and no route-segment config.
+- [x] 2e.3 Add the Phase 5 public-runtime glossary entries to `CONTEXT.md`
+      (glossary only; "channel" stays retired) and record the contract in
+      `docs/guides/architecture/runtime-map.md`,
+      `docs/guides/architecture/web-studio-living-spec.md`, and the parity
+      matrix (areas 12/13).
+
 ## 3. Verification
 
 - [x] 3.1 `bunx @fission-ai/openspec@latest validate --all --strict` passes.
