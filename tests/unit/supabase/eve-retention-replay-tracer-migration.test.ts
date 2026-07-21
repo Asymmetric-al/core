@@ -153,4 +153,31 @@ describe("Eve retention and replay migration", () => {
     expect(runSummaryExpiry).not.toContain("initiator.tenant_id IS NULL");
     expect(runSummaryExpiry).not.toContain("candidate.tenant_id");
   });
+
+  it("serializes record expiry with record and category hold creation", () => {
+    const lockKey = "eve_retention:record_hold_expiry";
+    const setHold = sql.slice(
+      sql.indexOf("public.set_eve_retention_hold"),
+      sql.indexOf("public.clear_eve_retention_hold"),
+    );
+    const expireRecords = sql.slice(
+      sql.indexOf("public.expire_eve_retention_records"),
+      sql.indexOf(
+        "REVOKE ALL ON FUNCTION",
+        sql.indexOf("public.expire_eve_retention_records"),
+      ),
+    );
+
+    expect(setHold).toContain(
+      "p_scope_type IN ('category', 'audit_event', 'run_summary')",
+    );
+    expect(setHold).toContain(lockKey);
+    expect(expireRecords).toContain(lockKey);
+    expect(setHold.indexOf(lockKey)).toBeLessThan(
+      setHold.indexOf("PERFORM public.assert_eve_retention_actor"),
+    );
+    expect(expireRecords.indexOf(lockKey)).toBeLessThan(
+      expireRecords.indexOf("DELETE FROM public.eve_audit_events"),
+    );
+  });
 });

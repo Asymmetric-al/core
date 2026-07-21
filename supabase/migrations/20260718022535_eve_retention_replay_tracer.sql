@@ -263,6 +263,12 @@ SET search_path = public, pg_temp
 AS $$
 DECLARE hold_id UUID := gen_random_uuid();
 BEGIN
+    -- Row locks cannot serialize a category hold with every record expiry snapshot.
+    IF p_scope_type IN ('category', 'audit_event', 'run_summary') THEN
+        PERFORM pg_advisory_xact_lock(
+            hashtextextended('eve_retention:record_hold_expiry', 0)
+        );
+    END IF;
     PERFORM public.assert_eve_retention_actor(p_tenant_id, p_actor_profile_id, p_actor_role);
     IF p_scope_type = 'artifact' THEN
         PERFORM 1 FROM public.eve_replay_artifacts artifact
@@ -497,6 +503,10 @@ SET search_path = public, pg_temp
 AS $$
 DECLARE audit_count INTEGER := 0; run_count INTEGER := 0;
 BEGIN
+    -- Use the same transaction mutex as record-relevant hold creation.
+    PERFORM pg_advisory_xact_lock(
+        hashtextextended('eve_retention:record_hold_expiry', 0)
+    );
     WITH expired AS (
         DELETE FROM public.eve_audit_events event
         WHERE event.id IN (
