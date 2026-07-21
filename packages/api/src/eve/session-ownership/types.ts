@@ -13,6 +13,7 @@ interface EveSessionIdentityBase {
 
 export interface EveAdminSessionIdentity extends EveSessionIdentityBase {
   actorProfileId: string;
+  actorProfileRole: UserRole | null;
   actorRole: UserRole;
   identityMode: "admin";
   initiatorType: "authenticated_admin";

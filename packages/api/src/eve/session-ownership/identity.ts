@@ -49,6 +49,7 @@ export function createAdminEveSessionIdentity(
     identity: {
       actorId: auth.userId,
       actorProfileId: auth.profileId,
+      actorProfileRole: auth.profileRole,
       actorRole: auth.role,
       identityMode: "admin",
       initiatorId: auth.userId,
@@ -97,6 +98,9 @@ export function toEveSessionAuthSnapshot(
     attributes: {
       identityMode: identity.identityMode,
       profileId: identity.actorProfileId,
+      ...(identity.actorProfileRole
+        ? { profileRole: identity.actorProfileRole }
+        : {}),
       role: identity.actorRole,
       tenantId: identity.tenantId,
     },
@@ -124,9 +128,11 @@ export function identityFromEveSessionAuthSnapshot(
     profileId:
       typeof attributes.profileId === "string" ? attributes.profileId : null,
     profileRole:
-      typeof attributes.role === "string"
-        ? (attributes.role as AuthenticatedContext["profileRole"])
-        : null,
+      typeof attributes.profileRole === "string"
+        ? (attributes.profileRole as AuthenticatedContext["profileRole"])
+        : typeof attributes.role === "string"
+          ? (attributes.role as AuthenticatedContext["profileRole"])
+          : null,
     role:
       typeof attributes.role === "string"
         ? (attributes.role as AuthenticatedContext["role"])
