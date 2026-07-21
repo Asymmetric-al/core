@@ -838,9 +838,14 @@ encryption, authorization, support-access, and purge policy; it MUST NOT inherit
 tenant settings or tenant support capabilities.
 
 The recipient and delivery-profile owners MUST also be exclusive. Tenant scope
-MUST use a same-tenant Party/contact revision and tenant connection/profile and
-MUST leave platform-authority fields null. Platform recipient authority MUST be
-a closed mutually exclusive union. Platform v1 MUST admit exactly
+MUST use exactly one of a same-tenant Party/contact revision or a tenant
+non-constituent no-Party recipient-authority branch, MUST use the tenant
+connection/profile, and MUST leave platform-authority fields null. The no-Party
+branch MUST leave Party/contact fields null and retain only its body-free,
+scope-safe authority/reference in durable execution and history. Its transport
+address MAY exist only in encrypted, short-lived prepared-delivery material and
+MUST NOT become identity or provider-event correlation authority. Platform
+recipient authority MUST be a closed mutually exclusive union. Platform v1 MUST admit exactly
 `eve_platform_owner`, carrying an enabled, verified app-owned
 platform-owner-notification-record revision and identity/permission epoch plus
 the fixed platform connection/profile, and MUST leave every tenant, Party,
@@ -883,9 +888,10 @@ and audit MUST carry the exact `(scope_kind, scope_owner_id, environment)`.
 Restricted material MUST use two closed, non-interchangeable associated-data
 schemas. `prepared_artifact_aad@1` MUST additionally bind preparation id,
 artifact schema version, material hash, encryption-key version, exact recipient-
-authority revision, and delivery-profile revision. The tenant branch uses exact
-Party/contact and tenant connection/profile revisions; the platform branch uses
-exact platform-recipient authority and fixed platform connection/profile
+authority revision, and delivery-profile revision. The tenant branch uses either
+an exact Party/contact revision or an exact no-Party recipient-authority revision,
+plus the tenant connection/profile revision; the platform branch uses exact
+platform-recipient authority and fixed platform connection/profile
 revisions with tenant fields null. `provider_submission_envelope_aad@1` MUST
 instead bind submission id, envelope schema version, request digest,
 encryption-key version, connection revision, credential revision, and ordered-
@@ -931,6 +937,17 @@ platform proof pack. A generic catch-all Eve key is prohibited.
 - WHEN Eve requests an email handoff
 - THEN the request is rejected before a Phase 6 intent or provider operation
 - AND no generic alert key, tenant fallback, or uncataloged publication is used
+
+#### Scenario: A tenant sends to an authorized non-constituent
+
+- GIVEN a tenant contract resolves an exact non-constituent no-Party
+  recipient-authority branch and the matching tenant connection/profile
+- WHEN Phase 6 prepares, sends, and records the communication
+- THEN the send uses that closed authority branch without creating a Party or
+  contact record
+- AND the address exists only in encrypted, short-lived prepared-delivery
+  material while durable execution and history retain only the body-free
+  scope-safe authority/reference
 
 #### Scenario: Eve requests a platform-owner email and Discord alert
 
@@ -1278,7 +1295,8 @@ failure MUST NOT rewrite others.
 
 Durable communication events MUST remain body-free and retain `scope_kind` plus
 exactly one scope owner. Tenant events MUST retain `tenant_id` and only permitted
-site/Party/contact-revision references; platform events MUST retain
+site/Party/contact-revision or body-free no-Party recipient-authority references;
+platform events MUST retain
 `platform_scope_id` and the exact platform-recipient authority and platform
 delivery-profile revisions while leaving tenant/site/Party/contact fields null.
 Every channel MUST retain stable catalog classification or contract-proven safe
