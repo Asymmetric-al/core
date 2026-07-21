@@ -61,7 +61,10 @@ commit when the deployment exposes a non-`unknown` commit.
 | admin      | `/api/admin/crm/table-preferences/views`                       | Node.js (no `runtime` segment export) | Personal CRM named views                      |
 | admin      | `/api/admin/crm/table-preferences/views/[viewId]`              | Node.js (no `runtime` segment export) | Personal CRM named view mutation              |
 | admin      | `/api/admin/crm/webhooks/twenty`                               | Node.js (no `runtime` segment export) | Twenty HMAC webhook, admin client             |
+| admin      | `/api/admin/eve/admin-memory`                                  | Node.js (no `runtime` segment export) | Owner-bound private Eve memory and history    |
+| admin      | `/api/admin/eve/approval-budget`                               | Node.js (no `runtime` segment export) | Audited trust-zone and hard-budget tracer     |
 | admin      | `/api/admin/eve/governance`                                    | Node.js (no `runtime` segment export) | Eve governance, kill switches, and audit      |
+| admin      | `/api/admin/eve/model-policy`                                  | Node.js (no `runtime` segment export) | Permissioned Eve model-policy control plane   |
 | admin      | `/api/admin/funds`                                             | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/locations`                                         | Node.js (no `runtime` segment export) | Admin client                                  |
 | admin      | `/api/admin/member-care/activity`                              | Node.js (no `runtime` segment export) | Admin client                                  |

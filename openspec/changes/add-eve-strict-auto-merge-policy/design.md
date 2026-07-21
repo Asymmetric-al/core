@@ -129,7 +129,7 @@ rather than a hardcoded default. [VERIFIED-REPO: docs/prds/eve-autonomous-operat
 - **#420 (ADR-0021, kill-switch):** owns the kill-switch state, including "disable GitHub actions." #432 honors
   that switch; it does not persist switch state.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:183]
-- **#421 (EVE-DESIGN-0006, model policy):** owns named roles and Gateway-primary routing. #432 resolves any model
+- **#421 (ADR-0022, model policy):** owns named roles and Gateway-primary routing. #432 resolves any model
   through that policy via the #425 runtime; it does not define routing.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:205]
 - **#423 (EVE-DESIGN-0005, approval/budget):** owns trust-zone approval and hard budgets. #432's merge decisions are

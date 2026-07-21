@@ -113,6 +113,9 @@ switches](../../adr/0021-eve-kill-switch-control.md).
 
 ### 5. Model Policy Tracer Bullet
 
+Canonical decision: [ADR-0022: Govern Eve model routing through an eval-gated
+policy control plane](../../adr/0022-eve-model-policy-control-plane.md).
+
 - Type: AFK
 - Blocked by: 2, 3, 4
 - User stories covered: 36, 37, 38, 39, 40, 41, 42, 43, 46
@@ -125,6 +128,9 @@ switches](../../adr/0021-eve-kill-switch-control.md).
   - Activation is eval-gated and rollback-capable.
 
 ### 6. Private Admin Memory Tracer Bullet
+
+Canonical decision: [ADR-0023: Bound Eve memory to private, excluded,
+human-controlled context](../../adr/0023-eve-private-admin-memory.md).
 
 - Type: AFK
 - Blocked by: 2, 3
@@ -139,6 +145,9 @@ switches](../../adr/0021-eve-kill-switch-control.md).
   - Schema can support future tenant operational memory without enabling it.
 
 ### 7. Approval and Budget Policy Tracer Bullet
+
+Canonical decision: [ADR-0024: Classify Eve actions by trust zone and reserve
+hard budgets atomically](../../adr/0024-eve-approval-budget-policy.md).
 
 - Type: AFK
 - Blocked by: 2, 3, 4, 5

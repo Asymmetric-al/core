@@ -4,7 +4,7 @@
 
 > This `design.md` uses provisional Eve design label **EVE-DESIGN-0009**, the admin-workspace-shell decision required by issue #427. It is
 > traceable from **ADR-0019** (#418, `add-eve-governance-kernel-release-switch`), **ADR-0020** (#419,
-> `add-eve-audit-tracer-bullet`), **ADR-0021** (#420, `add-eve-kill-switch-control-path`), **EVE-DESIGN-0006** (#421,
+> `add-eve-audit-tracer-bullet`), **ADR-0021** (#420, `add-eve-kill-switch-control-path`), **ADR-0022** (#421,
 > `add-eve-model-policy-tracer`), **#422** (`add-eve-admin-memory-tracer`), **EVE-DESIGN-0005** (#423,
 > `add-eve-approval-budget-policy`), and **#424** (`add-eve-retention-replay-tracer`), and does not restate
 > them — it operationalizes the operations-first workspace shell that renders that governance state as
@@ -18,7 +18,7 @@
 ## Status
 
 Proposed (partner draft for #427). Supersedes nothing. Traceable from ADR-0019 (#418), ADR-0020 (#419),
-ADR-0021 (#420), EVE-DESIGN-0006 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay).
+ADR-0021 (#420), ADR-0022 (#421), #422 (admin memory), EVE-DESIGN-0005 (#423), and #424 (retention/replay).
 Subordinate to OpenSpec and `AGENTS.md`. [VERIFIED-REPO: AGENTS.md] [VERIFIED-REPO: openspec/project.md]
 
 ## Context
@@ -135,7 +135,7 @@ boundary. [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-
 - **#420 (ADR-0021, kill switches):** owns the kill-switch control path and switch semantics. #427 surfaces the
   emergency controls that trigger them; it does not define them.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:88]
-- **#421 (EVE-DESIGN-0006, model policy):** owns named roles, eval-gating, and rollback protection. #427 surfaces the
+- **#421 (ADR-0022, model policy):** owns named roles, eval-gating, and rollback protection. #427 surfaces the
   model-policy editor over it; it does not define policy.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:102]
 - **#422 (admin memory):** owns what memory stores and its exclusions. #427 surfaces the memory management

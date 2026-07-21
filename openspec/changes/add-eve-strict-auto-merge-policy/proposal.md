@@ -6,7 +6,7 @@
 > repo; NOT a change to `Asymmetric-al/core`, and enters that repo only through Asymmetric's OpenSpec workflow
 > after operator/maintainer sign-off. **Builds on #430** (`add-eve-github-read-review-path`, EVE-DESIGN-0012) and
 > **#431** (`add-eve-autonomous-pr-operator`, EVE-DESIGN-0013) — the two slices the implementation plan names as #432's
-> blockers — and stands on #417 (ADR-0018), #418 (ADR-0019), #419 (ADR-0020), #420 (ADR-0021), #421 (EVE-DESIGN-0006),
+> blockers — and stands on #417 (ADR-0018), #418 (ADR-0019), #419 (ADR-0020), #420 (ADR-0021), #421 (ADR-0022),
 > #423 (EVE-DESIGN-0005), #425 (EVE-DESIGN-0007), and #429 (EVE-DESIGN-0011). It does not restate their contracts; it defines the
 > single **strict auto-merge** decision — Eve may merge **only** when strict safe policy passes and protected
 > areas are absent, auto-merge is **blocked** for repo-aware protected areas, and the **human escalation path is

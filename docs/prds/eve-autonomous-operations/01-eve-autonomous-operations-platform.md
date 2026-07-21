@@ -543,6 +543,21 @@ on together, rather than shipping as a toy foundation first.
   [ADR-0021: Restrict Eve through atomic, app-owned kill
   switches](../../adr/0021-eve-kill-switch-control.md).
 
+- The shared model-policy schema, dedicated permission, eval-gated lifecycle,
+  Gateway-primary resolver, hard limits, and atomic rollback contract are
+  defined by [ADR-0022: Govern Eve model routing through an eval-gated policy
+  control plane](../../adr/0022-eve-model-policy-control-plane.md).
+
+- Private-admin ownership, write-time exclusions, immutable history, category
+  auto-save controls, and the disabled tenant-operational scope are defined by
+  [ADR-0023: Bound Eve memory to private, excluded, human-controlled
+  context](../../adr/0023-eve-private-admin-memory.md).
+
+- Trust-zone classification, operational-versus-business-data policy, atomic
+  hard-budget reservation, target-bound approvals, and bounded emergency
+  overrides are defined by [ADR-0024: Classify Eve actions by trust zone and
+  reserve hard budgets atomically](../../adr/0024-eve-approval-budget-policy.md).
+
 ## Testing Decisions
 
 - Tests should verify external behavior and policy outcomes, not private helper
