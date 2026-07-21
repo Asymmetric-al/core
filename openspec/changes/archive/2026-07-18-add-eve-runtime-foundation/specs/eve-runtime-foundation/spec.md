@@ -117,7 +117,8 @@ API facts; memory is helpful context only — and MUST preserve **AGENTS and Ope
 agent memory or provider plugins. The runtime MUST only add an isolated, off-by-default host; it MUST NOT widen
 Eve's authority, MUST NOT bypass #417 protected-area/production-write/approval limits or #418 emergency-off
 precedence, and MUST read only persisted app-owned governance state, never a prompt/model/tool claim that a
-switch is off. The change itself MUST remain a spec/ADR contract and MUST NOT introduce live runtime code.
+switch is off. The foundation MAY include disabled local verification runtime code, but MUST NOT introduce a
+live model/provider path, an app mount, deployment, or autonomous effect.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:399]
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:339]
 [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]

@@ -179,6 +179,10 @@ expiry are delivered by issue #424 and ADR-0025.
 
 ### 9. Standalone Eve Runtime Foundation
 
+Implementation: the isolated Node.js 24+ Eve 0.25.1 workspace package,
+disabled capability surface, app-owned governance activation boundary, and
+offline framework verification are delivered by issue #425 and ADR-0026.
+
 - Type: AFK
 - Blocked by: 1, 5, 7
 - User stories covered: 1, 2, 17, 36, 41, 73, 76, 77

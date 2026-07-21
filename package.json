@@ -224,7 +224,8 @@
     "@payloadcms/storage-vercel-blob": "4.0.0-internal.1f9ae9a",
     "@payloadcms/ui": "4.0.0-internal.1f9ae9a",
     "@tanstack/db": "0.6.4",
-    "payload": "4.0.0-internal.1f9ae9a"
+    "payload": "4.0.0-internal.1f9ae9a",
+    "zod": "4.3.6"
   },
   "lint-staged": {
     "{apps,packages,tooling}/**/*.{ts,tsx,js,jsx,mjs,cjs}": [
