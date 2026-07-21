@@ -41,10 +41,10 @@ export type SerializedPublicMediaValue =
 export type SerializedPublicBlockBase = {
   id: string | null;
   blockName: string | null;
-  blockType: string | null;
 };
 
 export type SerializedPublicHeroBlock = SerializedPublicBlockBase & {
+  blockType: "hero";
   eyebrow: string | null;
   headline: string;
   subheading: string | null;
@@ -54,6 +54,7 @@ export type SerializedPublicHeroBlock = SerializedPublicBlockBase & {
 };
 
 export type SerializedPublicCallToActionBlock = SerializedPublicBlockBase & {
+  blockType: "call-to-action";
   headline: string;
   copy: string | null;
   buttonLabel: string | null;
@@ -62,12 +63,14 @@ export type SerializedPublicCallToActionBlock = SerializedPublicBlockBase & {
 };
 
 export type SerializedPublicRichTextBlock = SerializedPublicBlockBase & {
+  blockType: "rich-text";
   heading: string | null;
   /** Lexical rich-text JSON; rendered by the shared rich-text renderer. */
   body: unknown;
 };
 
 export type SerializedPublicMediaFeatureBlock = SerializedPublicBlockBase & {
+  blockType: "media-feature";
   title: string | null;
   body: string | null;
   media: SerializedPublicMediaValue;
@@ -81,6 +84,7 @@ export type SerializedPublicFaqItem = {
 };
 
 export type SerializedPublicFaqBlock = SerializedPublicBlockBase & {
+  blockType: "faq";
   heading: string | null;
   items: SerializedPublicFaqItem[];
 };
@@ -93,20 +97,16 @@ export type SerializedPublicImpactStat = {
 };
 
 export type SerializedPublicImpactStatsBlock = SerializedPublicBlockBase & {
+  blockType: "impact-stats";
   heading: string | null;
   items: SerializedPublicImpactStat[];
 };
 
 export type SerializedPublicTestimonialBlock = SerializedPublicBlockBase & {
+  blockType: "testimonial";
   quote: string;
   attribution: string | null;
 };
-
-/**
- * A block whose `blockType` the allowlist does not recognize: only the base
- * identity fields survive serialization. Unknown fields never leak.
- */
-export type SerializedPublicUnknownBlock = SerializedPublicBlockBase;
 
 export type SerializedPublicLayoutBlock =
   | SerializedPublicHeroBlock
@@ -115,8 +115,7 @@ export type SerializedPublicLayoutBlock =
   | SerializedPublicMediaFeatureBlock
   | SerializedPublicFaqBlock
   | SerializedPublicImpactStatsBlock
-  | SerializedPublicTestimonialBlock
-  | SerializedPublicUnknownBlock;
+  | SerializedPublicTestimonialBlock;
 
 /**
  * The serialized public page. Field-compatible with the shipped

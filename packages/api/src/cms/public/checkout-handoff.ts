@@ -11,6 +11,8 @@
  * opaque Phase 7 pass-through seams, and the wire parameter names.
  */
 
+import type { PublicRequestContext } from "./context";
+
 /** The reserved entry-method value for public-checkout gifts (Phase 2 vocabulary). */
 export const PUBLIC_CHECKOUT_ENTRY_METHOD = "public_checkout";
 
@@ -26,10 +28,16 @@ export const DEFAULT_CHECKOUT_PARTY_KIND = "person";
  * The single designation target carried by a giving CTA today. A giving-cart
  * multi-line seam is reserved, not built (ruling A8).
  */
-export type CheckoutHandoffTarget = {
-  missionaryId: string | null;
-  fundId: string | null;
-};
+export type CheckoutHandoffTarget =
+  | { missionaryId: string; fundId: null }
+  | { missionaryId: null; fundId: string }
+  | { missionaryId: null; fundId: null };
+
+/** Draft form of the exclusive single-designation target. */
+export type CheckoutHandoffTargetDraft =
+  | { missionaryId: string; fundId?: null }
+  | { missionaryId?: null; fundId: string }
+  | { missionaryId?: null; fundId?: null };
 
 /**
  * Reserved attribution fields — plumbed now, populated by Phase 2 (Site,
@@ -86,10 +94,12 @@ export type CheckoutHandoff = {
 
 /** Draft input for {@link buildCheckoutHandoff}; omitted fields get safe defaults. */
 export type CheckoutHandoffDraft = {
-  target?: Partial<CheckoutHandoffTarget>;
+  target?: CheckoutHandoffTargetDraft;
   suggestedAmount?: string | null;
   suggestedFrequency?: string | null;
-  attribution?: Partial<Omit<CheckoutHandoffAttribution, "entryMethod">>;
+  attribution?: Partial<
+    Omit<CheckoutHandoffAttribution, "entryMethod" | "siteId">
+  >;
   tribute?: Partial<CheckoutTributeAnnotation>;
   intent?: Partial<CheckoutGivingIntentHints>;
   partyKind?: string;
@@ -123,19 +133,20 @@ export const CHECKOUT_HANDOFF_PARAM_NAMES = {
   orgType: "org_type",
 } as const;
 
-/** Builds a complete handoff from a draft, applying the safe defaults. */
+/**
+ * Builds a complete handoff from trusted request context and a draft, applying
+ * safe defaults and rejecting ambiguous designations.
+ */
 export function buildCheckoutHandoff(
+  context: PublicRequestContext,
   draft: CheckoutHandoffDraft = {},
 ): CheckoutHandoff {
   return {
-    target: {
-      missionaryId: draft.target?.missionaryId ?? null,
-      fundId: draft.target?.fundId ?? null,
-    },
+    target: buildCheckoutHandoffTarget(draft.target),
     suggestedAmount: draft.suggestedAmount ?? null,
     suggestedFrequency: draft.suggestedFrequency ?? null,
     attribution: {
-      siteId: draft.attribution?.siteId ?? null,
+      siteId: context.siteId,
       sourceCode: draft.attribution?.sourceCode ?? null,
       currency: draft.attribution?.currency ?? null,
       locale: draft.attribution?.locale ?? null,
@@ -154,6 +165,29 @@ export function buildCheckoutHandoff(
     partyKind: draft.partyKind ?? DEFAULT_CHECKOUT_PARTY_KIND,
     orgType: draft.orgType ?? null,
   };
+}
+
+function buildCheckoutHandoffTarget(
+  draft: CheckoutHandoffTargetDraft | undefined,
+): CheckoutHandoffTarget {
+  const missionaryId = draft?.missionaryId ?? null;
+  const fundId = draft?.fundId ?? null;
+
+  if (missionaryId !== null && fundId !== null) {
+    throw new Error(
+      "Checkout handoff must have at most one designation target",
+    );
+  }
+
+  if (missionaryId !== null) {
+    return { missionaryId, fundId: null };
+  }
+
+  if (fundId !== null) {
+    return { missionaryId: null, fundId };
+  }
+
+  return { missionaryId: null, fundId: null };
 }
 
 /**

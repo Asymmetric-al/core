@@ -181,7 +181,7 @@ describe("serializePublicPage", () => {
     });
   });
 
-  it("reduces an unknown block type to identity fields only", () => {
+  it("excludes unknown block types", () => {
     const doc = {
       ...baseDoc,
       layout: [
@@ -197,9 +197,7 @@ describe("serializePublicPage", () => {
 
     const page = serializePublicPage(doc);
 
-    expect(page.layout).toEqual([
-      { id: "x1", blockName: "Mystery", blockType: "internal-experiment" },
-    ]);
+    expect(page.layout).toEqual([]);
   });
 
   it("normalizes populated media to the public URL shape with no raw Payload fields", () => {

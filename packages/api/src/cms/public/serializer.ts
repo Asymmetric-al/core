@@ -148,13 +148,13 @@ function serializePublicBlock(
   const base = {
     id: readOptionalString(block.id),
     blockName: readOptionalString(block.blockName),
-    blockType: readOptionalString(block.blockType),
   };
 
   switch (block.blockType) {
     case "hero":
       return {
         ...base,
+        blockType: "hero",
         eyebrow: readOptionalString(block.eyebrow),
         headline: readRequiredString(block.headline),
         subheading: readOptionalString(block.subheading),
@@ -168,6 +168,7 @@ function serializePublicBlock(
     case "call-to-action":
       return {
         ...base,
+        blockType: "call-to-action",
         headline: readRequiredString(block.headline),
         copy: readOptionalString(block.copy),
         buttonLabel: readOptionalString(block.buttonLabel),
@@ -181,12 +182,14 @@ function serializePublicBlock(
     case "rich-text":
       return {
         ...base,
+        blockType: "rich-text",
         heading: readOptionalString(block.heading),
         body: block.body,
       };
     case "media-feature":
       return {
         ...base,
+        blockType: "media-feature",
         title: readOptionalString(block.title),
         body: readOptionalString(block.body),
         media: serializePublicMediaValue(block.media),
@@ -195,24 +198,26 @@ function serializePublicBlock(
     case "faq":
       return {
         ...base,
+        blockType: "faq",
         heading: readOptionalString(block.heading),
         items: serializeItems(block.items, serializeFaqItem),
       };
     case "impact-stats":
       return {
         ...base,
+        blockType: "impact-stats",
         heading: readOptionalString(block.heading),
         items: serializeItems(block.items, serializeImpactStat),
       };
     case "testimonial":
       return {
         ...base,
+        blockType: "testimonial",
         quote: readRequiredString(block.quote),
         attribution: readOptionalString(block.attribution),
       };
     default:
-      // Allowlist: unrecognized block types keep identity fields only.
-      return base;
+      return null;
   }
 }
 

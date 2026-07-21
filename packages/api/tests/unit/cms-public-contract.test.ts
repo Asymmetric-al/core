@@ -26,6 +26,7 @@ import {
   PUBLISHED_UPDATES_MAX_LIMIT,
 } from "../../src/cms/public/reader";
 
+import type { CheckoutHandoffDraft } from "../../src/cms/public/checkout-handoff";
 import type { PublicRequestContext } from "../../src/cms/public/context";
 import type {
   PublicPageTypeConfig,
@@ -60,7 +61,7 @@ describe("PublicRequestContext", () => {
 
 describe("checkout handoff contract", () => {
   it("defaults party_kind to 'person' and entry_method to public_checkout", () => {
-    const handoff = buildCheckoutHandoff({
+    const handoff = buildCheckoutHandoff(context, {
       target: { missionaryId: "mis_1" },
       suggestedAmount: "50",
     });
@@ -86,12 +87,12 @@ describe("checkout handoff contract", () => {
   });
 
   it("serializes populated reserved fields under their reserved wire names", () => {
-    const handoff = buildCheckoutHandoff({
+    const siteContext = { ...context, siteId: "site_1" };
+    const handoff = buildCheckoutHandoff(siteContext, {
       target: { fundId: "fund_1" },
       suggestedAmount: "100",
       suggestedFrequency: "monthly",
       attribution: {
-        siteId: "site_1",
         sourceCode: "spring-appeal",
         currency: "USD",
         locale: "en-US",
@@ -131,7 +132,7 @@ describe("checkout handoff contract", () => {
   });
 
   it("never emits a party_type parameter (Phase 9 C2 amendment)", () => {
-    const handoff = buildCheckoutHandoff({ partyKind: "person" });
+    const handoff = buildCheckoutHandoff(context, { partyKind: "person" });
     const params = checkoutHandoffSearchParams(handoff);
 
     expect(params.has("party_type")).toBe(false);
@@ -144,12 +145,36 @@ describe("checkout handoff contract", () => {
   });
 
   it("omits unpopulated reserved params so today's wire matches the shipped checkout contract", () => {
-    const handoff = buildCheckoutHandoff({ target: { missionaryId: "mis_1" } });
+    const handoff = buildCheckoutHandoff(context, {
+      target: { missionaryId: "mis_1" },
+    });
     const params = checkoutHandoffSearchParams(handoff);
 
     expect([...params.keys()].sort()).toEqual(
       ["entry_method", "missionary_id", "party_kind"].sort(),
     );
+  });
+
+  it("rejects a draft containing both designation targets", () => {
+    const ambiguousDraft = {
+      target: { missionaryId: "mis_1", fundId: "fund_1" },
+    } as unknown as CheckoutHandoffDraft;
+
+    expect(() => buildCheckoutHandoff(context, ambiguousDraft)).toThrow(
+      "Checkout handoff must have at most one designation target",
+    );
+  });
+
+  it("derives site attribution from the trusted request context", () => {
+    const callerControlledDraft = {
+      attribution: { siteId: "forged-site", sourceCode: "spring-appeal" },
+    } as CheckoutHandoffDraft;
+    const siteContext = { ...context, siteId: "trusted-site" };
+
+    const handoff = buildCheckoutHandoff(siteContext, callerControlledDraft);
+
+    expect(handoff.attribution.siteId).toBe("trusted-site");
+    expect(handoff.attribution.sourceCode).toBe("spring-appeal");
   });
 });
 
