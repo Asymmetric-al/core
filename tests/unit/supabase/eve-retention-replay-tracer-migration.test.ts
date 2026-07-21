@@ -123,14 +123,14 @@ describe("Eve retention and replay migration", () => {
     expect(sql).toContain("eve_replay_artifact_deletion_in_progress");
   });
 
-  it("allows stale upload-pending metadata to transition directly to expired", () => {
+  it("routes stale upload-pending metadata through Storage deletion", () => {
     expect(sql).toContain(
-      "OR (status IN ('available', 'delete_pending') AND uploaded_at IS NOT NULL)",
+      "OR (status = 'available' AND uploaded_at IS NOT NULL)",
     );
-    expect(sql).toContain("OR status = 'expired'");
-    expect(sql).toContain(
-      "status = CASE WHEN artifact.uploaded_at IS NULL THEN 'expired' ELSE 'delete_pending' END",
-    );
+    expect(sql).toContain("OR status IN ('delete_pending', 'expired')");
+    expect(sql).toContain("status = 'delete_pending'");
+    expect(sql).not.toContain("artifact.uploaded_at IS NULL THEN 'expired'");
+    expect(sql).toContain("FROM claimed;");
   });
 
   it("does not let tenant holds match records without that tenant", () => {

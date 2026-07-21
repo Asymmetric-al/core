@@ -173,6 +173,110 @@ describe("Eve retention controls", () => {
     expect(upload).not.toHaveBeenCalled();
   });
 
+  it("rejects oversized encoded bodies before registering or uploading them", async () => {
+    const rpc = vi.fn();
+    const upload = vi.fn();
+    const { storeEveReplayArtifact } =
+      await import("../../../../packages/api/src/eve/retention/control");
+
+    await expect(
+      storeEveReplayArtifact({
+        artifactKind: "debug",
+        auth,
+        content: "é".repeat(2_500_001),
+        redactedSummary: "Oversized debug artifact",
+        supabaseAdmin: {
+          rpc,
+          storage: { from: () => ({ upload }) },
+        } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+    expect(rpc).not.toHaveBeenCalled();
+    expect(upload).not.toHaveBeenCalled();
+  });
+
+  it("keeps pending metadata when completion and Storage cleanup both fail", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: "2027-01-01T00:00:00.000Z",
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "violates check constraint" },
+      });
+    const upload = vi.fn().mockResolvedValue({ data: {}, error: null });
+    const remove = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "storage unavailable" },
+    });
+    const from = vi.fn();
+    const { storeEveReplayArtifact } =
+      await import("../../../../packages/api/src/eve/retention/control");
+
+    await expect(
+      storeEveReplayArtifact({
+        artifactKind: "replay",
+        auth,
+        content: JSON.stringify({ status: "failed" }),
+        redactedSummary: "Failed replay artifact",
+        supabaseAdmin: {
+          from,
+          rpc,
+          storage: { from: () => ({ upload, remove }) },
+        } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toThrow("eve_replay_artifact_storage_cleanup_failed");
+
+    expect(remove).toHaveBeenCalledOnce();
+    expect(from).not.toHaveBeenCalled();
+  });
+
+  it("removes pending metadata only after failed completion cleanup succeeds", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: "2027-01-01T00:00:00.000Z",
+        error: null,
+      })
+      .mockResolvedValueOnce({
+        data: null,
+        error: { message: "violates check constraint" },
+      });
+    const upload = vi.fn().mockResolvedValue({ data: {}, error: null });
+    const remove = vi.fn().mockResolvedValue({ data: [], error: null });
+    const eq = vi.fn();
+    const pendingDelete = { delete: vi.fn(), eq };
+    pendingDelete.delete.mockReturnValue(pendingDelete);
+    eq.mockReturnValueOnce(pendingDelete);
+    eq.mockReturnValueOnce(pendingDelete);
+    eq.mockReturnValueOnce(pendingDelete);
+    eq.mockResolvedValueOnce({ data: null, error: null });
+    const from = vi.fn(() => pendingDelete);
+    const { storeEveReplayArtifact } =
+      await import("../../../../packages/api/src/eve/retention/control");
+
+    await expect(
+      storeEveReplayArtifact({
+        artifactKind: "replay",
+        auth,
+        content: JSON.stringify({ status: "failed" }),
+        redactedSummary: "Failed replay artifact",
+        supabaseAdmin: {
+          from,
+          rpc,
+          storage: { from: () => ({ upload, remove }) },
+        } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toMatchObject({ status: 400 });
+
+    expect(remove).toHaveBeenCalledOnce();
+    expect(from).toHaveBeenCalledWith("eve_replay_artifacts");
+    expect(pendingDelete.delete).toHaveBeenCalledOnce();
+    expect(eq).toHaveBeenNthCalledWith(4, "status", "upload_pending");
+  });
+
   it("finalizes only storage objects that were actually deleted", async () => {
     const rpc = vi
       .fn()

@@ -64,8 +64,8 @@ CREATE TABLE public.eve_replay_artifacts (
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (storage_bucket, storage_path),
     CHECK ((status = 'upload_pending' AND uploaded_at IS NULL)
-        OR (status IN ('available', 'delete_pending') AND uploaded_at IS NOT NULL)
-        OR status = 'expired'),
+        OR (status = 'available' AND uploaded_at IS NOT NULL)
+        OR status IN ('delete_pending', 'expired')),
     CHECK (deletion_started_at IS NULL OR status = 'delete_pending')
 );
 
@@ -390,9 +390,9 @@ BEGIN
         LIMIT LEAST(GREATEST(p_limit, 1), 500)
     ), claimed AS (
         UPDATE public.eve_replay_artifacts artifact SET
-            status = CASE WHEN artifact.uploaded_at IS NULL THEN 'expired' ELSE 'delete_pending' END,
+            status = 'delete_pending',
             deletion_started_at = NULL,
-            storage_deleted_at = CASE WHEN artifact.uploaded_at IS NULL THEN NOW() ELSE NULL END,
+            storage_deleted_at = NULL,
             updated_at = NOW()
         FROM candidates WHERE artifact.id = candidates.id
         RETURNING artifact.id, artifact.tenant_id, artifact.owner_profile_id,
@@ -405,7 +405,7 @@ BEGIN
             jsonb_build_object('status', claimed.status) FROM claimed
     )
     SELECT claimed.id, claimed.storage_bucket, claimed.storage_path
-    FROM claimed WHERE claimed.status = 'delete_pending';
+    FROM claimed;
 END;
 $$;
 

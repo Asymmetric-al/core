@@ -14,6 +14,7 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const BUCKET = "eve-replay-artifacts";
+const MAX_ARTIFACT_BYTES = 5_000_000;
 
 function actorParams(auth: AuthenticatedContext) {
   return {
@@ -78,6 +79,18 @@ export async function storeEveReplayArtifact(input: {
     );
   }
 
+  const redactedContent = redactArtifactContent(
+    input.artifactKind,
+    input.content,
+  );
+  const encoded = new TextEncoder().encode(redactedContent);
+  if (encoded.byteLength > MAX_ARTIFACT_BYTES) {
+    throw new ApiHttpError(
+      400,
+      "Replay artifact bodies cannot exceed 5,000,000 bytes.",
+    );
+  }
+
   const artifactId = crypto.randomUUID();
   const extension = input.artifactKind === "debug" ? "txt" : "json";
   const storagePath = `${input.auth.tenantId}/${input.auth.profileId}/${artifactId}.${extension}`;
@@ -93,11 +106,6 @@ export async function storeEveReplayArtifact(input: {
     });
   if (prepareError || typeof expiresAt !== "string")
     return mapError(prepareError);
-  const redactedContent = redactArtifactContent(
-    input.artifactKind,
-    input.content,
-  );
-  const encoded = new TextEncoder().encode(redactedContent);
   const contentType =
     input.artifactKind === "debug" ? "text/plain" : "application/json";
   const sha256 = toHex(await crypto.subtle.digest("SHA-256", encoded));
@@ -125,7 +133,22 @@ export async function storeEveReplayArtifact(input: {
     },
   );
   if (completeError) {
-    await input.supabaseAdmin.storage.from(BUCKET).remove([storagePath]);
+    const { error: cleanupError } = await input.supabaseAdmin.storage
+      .from(BUCKET)
+      .remove([storagePath]);
+    if (cleanupError) {
+      throw new Error("eve_replay_artifact_storage_cleanup_failed", {
+        cause: cleanupError,
+      });
+    }
+
+    await input.supabaseAdmin
+      .from("eve_replay_artifacts")
+      .delete()
+      .eq("id", artifactId)
+      .eq("tenant_id", input.auth.tenantId)
+      .eq("owner_profile_id", input.auth.profileId)
+      .eq("status", "upload_pending");
     mapError(completeError);
   }
   return { artifactId, expiresAt, byteSize: encoded.byteLength, sha256 };
