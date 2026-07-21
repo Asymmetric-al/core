@@ -1512,6 +1512,25 @@ describe("verify-eslint-config", () => {
       runNodeScript(tempRoot, "scripts/verify-eslint-config.mjs"),
     ).not.toThrow();
   });
+
+  it("ignores generated Eve and Nitro build directories", async () => {
+    const tempRoot = await createEslintVerifyRepo();
+
+    for (const directory of [".eve", ".nitro", ".output"]) {
+      const generatedPath = path.join(
+        tempRoot,
+        "packages/eve-runtime",
+        directory,
+        "generated.ts",
+      );
+      await mkdir(path.dirname(generatedPath), { recursive: true });
+      await writeFile(generatedPath, "/* eslint-disable */\n");
+    }
+
+    expect(() =>
+      runNodeScript(tempRoot, "scripts/verify-eslint-config.mjs"),
+    ).not.toThrow();
+  });
 });
 
 describe("data-boundary-check", () => {
