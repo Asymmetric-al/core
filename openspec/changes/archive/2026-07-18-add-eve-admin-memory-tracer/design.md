@@ -9,8 +9,8 @@ part of the governance data model that Supabase owns
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:408]; and memory
 is one of the operational production records Eve may write under policy
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:420]. This change
-specifies the memory **contract** at spec level — the categories, the hard exclusion set, audited auto-save,
-full admin control, and a disabled future-tenant schema — before any runtime store exists.
+implements the memory **contract** — the categories, the hard exclusion set,
+audited auto-save, full admin control, and a disabled future-tenant schema.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/02-implementation-plan.md:115]
 
 ## Decision
@@ -64,11 +64,30 @@ enter this infrastructure. Encoding it as a write-time MUST-exclude, not a redac
 ever becoming a hidden leak channel.
 [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:123]
 
+## Implementation
+
+- `eve_admin_memory_entries` binds private memory to tenant and owner, with a
+  generated full-text search vector and optimistic version.
+- `eve_admin_memory_history` records immutable created, updated, and deleted
+  snapshots; category settings disable future auto-save without deletion.
+- One application classifier rejects every sensitive candidate before an RPC
+  and records only exclusion categories. Database checks provide defense in
+  depth.
+- Service-role-only RPCs make the entry, history, and ADR-0020 audit mutation
+  atomic. Browser roles receive no table or function access.
+- The admin workspace exposes create, view, search, edit, soft delete,
+  category control, auto-save control, and version history.
+- `tenant_operational` is schema-representable but rejected by application
+  validation and database mutation functions.
+
+The accepted architectural record is
+[ADR-0023](../../../../docs/adr/0023-eve-private-admin-memory.md).
+
 ## Verification contract
 
 - `openspec validate --strict` passes; `eve-judge --change` PASS; `cite-verify` clean; `qa-gates.sh --change`
   machine gates (0/1/3) PASS. [VERIFIED-REPO: docs/ai/rules/openspec.md]
-- When implemented (later PR), memory tests MUST cover auto-save categories, exclusions, search, edit, delete,
+- Memory tests MUST cover auto-save categories, exclusions, search, edit, delete,
   disable, change history, audit events, and future tenant-scope schema constraints.
   [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:574]
 - Ships disabled behind the #418 release switch; final activation is the #437 launch gate. Human (code owner)

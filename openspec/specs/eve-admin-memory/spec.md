@@ -1,6 +1,13 @@
-# Delta for Eve private admin memory tracer bullet
+# eve-admin-memory Specification
 
-## ADDED Requirements
+## Purpose
+
+Define the private-admin memory boundary: advisory categories, hard
+write-time exclusions, owner-and-tenant isolation, audited automatic saves,
+full human control, immutable history, separate retention controls, and a
+schema-ready but disabled tenant-operational scope.
+
+## Requirements
 
 ### Requirement: Private Admin Memory Is Categorized And Never Authoritative
 
@@ -47,7 +54,7 @@ path, including auto-save.
 
 - **GIVEN** the auto-save path is active
 - **WHEN** it encounters excluded data mixed into otherwise-allowed context
-- **THEN** the excluded data is dropped and only the allowed remainder may be stored
+- **THEN** the entire candidate write is rejected so no sensitive fragment can be stored
 - **AND** exclusion is never weaker on the auto-save path than on the manual path
 
 ### Requirement: Auto-Save Of Allowed Memory Emits Audit Events
