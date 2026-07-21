@@ -1,0 +1,404 @@
+/**
+ * Phase 18 D3 renderer qualification contest — frozen charter contracts.
+ *
+ * The contest is pre-registered: candidates, corpus, gates, weights, budgets,
+ * validators, roles, remediation allowance, and evidence rules freeze under
+ * one digest BEFORE either finalist is judged, so a candidate can never be
+ * tuned to fixture answers or select itself by defining a budget after
+ * measurement. Normative source:
+ * `docs/prds/sitestacker-parity/phase-18-renderer-qualification-protocol.md`
+ * and ADR-0034.
+ */
+
+export const RENDERER_QUALIFICATION_SCHEMA_VERSION = "1";
+
+export const RENDERER_CANDIDATE_IDS = [
+  "P18-R-P",
+  "P18-R-T",
+  "P18-R-C",
+] as const;
+export type RendererCandidateId = (typeof RENDERER_CANDIDATE_IDS)[number];
+
+export type RendererCandidateEligibility = "comparison_control" | "finalist";
+
+export interface RendererCandidateLock {
+  candidate_id: RendererCandidateId;
+  display_name: string;
+  eligibility: RendererCandidateEligibility;
+  engine: string;
+  engine_version: string;
+  pipeline: string;
+  adapter_commit: string;
+  adapter_digest: string;
+  dependency_lock_digest: string;
+  container_runtime?: string;
+  os_libc?: string;
+  fonts_assets_packages: readonly {
+    name: string;
+    version: string;
+    license: string;
+    digest: string;
+  }[];
+  locale_data_version: string;
+  finalizer: { name: string; version: string };
+  configuration_digest: string;
+  network_filesystem_policy: string;
+  provider_settings?: Readonly<Record<string, string>>;
+}
+
+export const OPEN_CASE_IDS = [
+  "O01",
+  "O02",
+  "O03",
+  "O04",
+  "O05",
+  "O06",
+  "O07",
+  "O08",
+  "O09",
+  "O10",
+  "O11",
+  "O12",
+  "O13",
+  "O14",
+  "O15",
+  "O16",
+  "O17",
+  "O18",
+] as const;
+export type OpenCaseId = (typeof OPEN_CASE_IDS)[number];
+
+export const HELD_BACK_CASE_IDS = [
+  "H01",
+  "H02",
+  "H03",
+  "H04",
+  "H05",
+  "H06",
+  "H07",
+  "H08",
+  "H09",
+  "H10",
+  "H11",
+  "H12",
+] as const;
+export type HeldBackCaseId = (typeof HELD_BACK_CASE_IDS)[number];
+
+export type QualificationCaseId = HeldBackCaseId | OpenCaseId;
+
+export type QualificationOutputProfile =
+  | "accessible-archive-v1"
+  | "accessible-v1"
+  | "both";
+
+export interface QualificationCaseExpectation {
+  protected_facts: readonly string[];
+  layout_assertions: readonly string[];
+  failure_behavior?: string;
+}
+
+export interface QualificationCaseManifest {
+  case_id: QualificationCaseId;
+  visibility: "held_back" | "open";
+  title: string;
+  output_profile: QualificationOutputProfile;
+  /** Every fixture is synthetic; real donor/tenant data can never enter. */
+  synthetic: true;
+  fixture: {
+    facts_digest: string;
+    document_digest: string;
+    /** Documented schema/bounds — visible to candidate implementers. */
+    bounds: string;
+  };
+  /** Present only for open cases: candidate implementers may see these. */
+  expected?: QualificationCaseExpectation;
+  /**
+   * Present only for held-back cases: the custodian seals the expected
+   * results out of band and only their digest enters the charter.
+   */
+  sealed_expectation_digest?: string;
+}
+
+export const QUALIFICATION_GATE_IDS = [
+  "G01",
+  "G02",
+  "G03",
+  "G04",
+  "G05",
+  "G06",
+  "G07",
+  "G08",
+  "G09",
+  "G10",
+  "G11",
+  "G12",
+] as const;
+export type QualificationGateId = (typeof QUALIFICATION_GATE_IDS)[number];
+
+export interface QualificationGate {
+  gate_id: QualificationGateId;
+  title: string;
+  pass_rule: string;
+}
+
+export const SCORE_DIMENSION_IDS = [
+  "fidelity_editor_simplicity",
+  "accessibility_archival_quality",
+  "long_document_throughput",
+  "isolation_failure_clarity",
+  "international_text",
+  "total_operational_cost",
+  "provider_portability",
+] as const;
+export type ScoreDimensionId = (typeof SCORE_DIMENSION_IDS)[number];
+
+/** The seven weights are frozen by the protocol: 20/20/20/15/10/10/5. */
+export const SCORE_DIMENSION_WEIGHTS: Readonly<
+  Record<ScoreDimensionId, number>
+> = {
+  fidelity_editor_simplicity: 20,
+  accessibility_archival_quality: 20,
+  long_document_throughput: 20,
+  isolation_failure_clarity: 15,
+  international_text: 10,
+  total_operational_cost: 10,
+  provider_portability: 5,
+};
+
+export interface ScoreDimension {
+  dimension_id: ScoreDimensionId;
+  title: string;
+  weight: number;
+  /** Exact 0–5 anchors. */
+  anchors: readonly [string, string, string, string, string, string];
+}
+
+export interface ScoringRules {
+  reviewer_count: 2;
+  /** Uncertainty band = max(this, half the reviewer-total difference). */
+  min_uncertainty_band_points: number;
+  /** Material lead requires at least this mean difference plus band separation. */
+  material_lead_points: number;
+  /** Order-sensitive deterministic tie-break evidence comparison. */
+  tie_break_order: readonly [string, string, string];
+}
+
+export interface OperationalSuites {
+  repeatability: {
+    case_ids: readonly QualificationCaseId[];
+    cold_runs_per_case: number;
+    warm_runs_per_case: number;
+  };
+  mixed_batch: {
+    total_items: number;
+    tenants: number;
+    short_items: number;
+    medium_items: number;
+    long_items: number;
+    poison_items: number;
+  };
+  fairness: {
+    heavy_tenant_items: number;
+    light_tenants: number;
+    light_items_each: number;
+    claim_bound_multiplier: number;
+  };
+  concurrency_staircase: {
+    /** Order-sensitive steps. */
+    steps: readonly number[];
+  };
+  failure_matrix: {
+    injections: readonly string[];
+  };
+  outage_recovery: {
+    outage_window_minutes: number;
+    proof: string;
+  };
+}
+
+export const REQUIRED_BUDGET_METRICS = [
+  "short_item_latency_p50_ms",
+  "short_item_latency_p95_ms",
+  "short_item_latency_p99_ms",
+  "medium_item_latency_p95_ms",
+  "long_item_latency_p95_ms",
+  "batch_completion_minutes",
+  "throughput_items_per_minute",
+  "max_queue_age_seconds",
+  "max_resident_memory_mb",
+  "max_artifact_bytes",
+  "min_capacity_headroom_percent",
+  "max_error_rate_percent",
+  "max_retry_rate_percent",
+  "max_provider_requests_per_hour",
+  "max_cost_usd_per_thousand_documents",
+  "recovery_time_objective_minutes",
+] as const;
+export type RequiredBudgetMetric = (typeof REQUIRED_BUDGET_METRICS)[number];
+
+export interface AbsoluteBudget {
+  metric: RequiredBudgetMetric;
+  limit: number;
+  unit: string;
+  basis: string;
+}
+
+export const VALIDATOR_CATEGORIES = [
+  "pdf_a_machine",
+  "pdf_ua_machine",
+  "product_validator",
+  "text_structure_extraction",
+  "visual_diff",
+  "assistive_technology",
+] as const;
+export type ValidatorCategory = (typeof VALIDATOR_CATEGORIES)[number];
+
+export interface ValidationTool {
+  name: string;
+  version: string;
+  category: ValidatorCategory;
+  ruleset: string;
+}
+
+export interface QualificationRoles {
+  accountable_owner: string;
+  corpus_custodian: string;
+  candidate_operators: Readonly<Record<RendererCandidateId, string>>;
+  independent_reviewers: readonly [string, string];
+  security_privacy_reviewer: string;
+  final_approver: string;
+}
+
+export interface CharterApproval {
+  actor: string;
+  role: string;
+  approved_at: string;
+  statement: string;
+}
+
+export interface HeldBackSeal {
+  custodian: string;
+  sealed_at: string;
+  /** Digest of the custodian-held expected results, sealed before any candidate work. */
+  sealed_expectations_digest: string;
+  access_log: readonly { actor: string; at: string; reason: string }[];
+}
+
+export interface RemediationPolicy {
+  initial_attempts: 1;
+  max_cycles: 2;
+  max_hours_per_cycle: number;
+  permitted_changes: string;
+}
+
+export interface EvidenceRules {
+  package_schema_version: string;
+  redaction_policy: string;
+  retention_owner: string;
+  retention_days: number;
+}
+
+export interface RendererQualificationCharterInput {
+  charter_id: string;
+  charter_version: string;
+  frozen_at: string;
+  roles: QualificationRoles;
+  approvals: readonly CharterApproval[];
+  candidates: readonly RendererCandidateLock[];
+  open_corpus: readonly QualificationCaseManifest[];
+  held_back_corpus: readonly QualificationCaseManifest[];
+  held_back_seal: HeldBackSeal;
+  operational_suites: OperationalSuites;
+  gates: readonly QualificationGate[];
+  score_dimensions: readonly ScoreDimension[];
+  scoring_rules: ScoringRules;
+  budgets: readonly AbsoluteBudget[];
+  validators: readonly ValidationTool[];
+  remediation_policy: RemediationPolicy;
+  evidence_rules: EvidenceRules;
+  requalification_triggers: readonly string[];
+  /** Unknown or missing evidence always fails the affected hard gate. */
+  unknown_evidence_rule: "fails_affected_gate";
+}
+
+export interface FrozenRendererQualificationCharter extends RendererQualificationCharterInput {
+  schema_version: string;
+  /** SHA-256 over the canonical serialization of every frozen field. */
+  manifest_digest: string;
+}
+
+export interface RendererQualificationManifest {
+  schema_version: string;
+  charter_id: string;
+  charter_version: string;
+  digest_algorithm: "sha256";
+  manifest_digest: string;
+}
+
+export interface CharterVerificationFailure {
+  code: "digest_mismatch" | "schema_version_unsupported" | "structure_invalid";
+  detail: string;
+}
+
+export interface CharterVerificationResult {
+  valid: boolean;
+  failures: readonly CharterVerificationFailure[];
+}
+
+export interface CharterValidationIssue {
+  path: string;
+  code: string;
+  message: string;
+}
+
+/**
+ * What a candidate implementer receives: open evidence in full, held-back
+ * schemas/bounds only — never held-back expected values or outputs.
+ */
+export interface CandidateWorkPacket {
+  charter_id: string;
+  charter_version: string;
+  manifest_digest: string;
+  candidate_id: RendererCandidateId;
+  candidate_lock: RendererCandidateLock;
+  open_cases: readonly QualificationCaseManifest[];
+  held_back_case_schemas: readonly {
+    case_id: QualificationCaseId;
+    title: string;
+    output_profile: QualificationOutputProfile;
+    bounds: string;
+  }[];
+  operational_suites: OperationalSuites;
+  gates: readonly QualificationGate[];
+  budgets: readonly AbsoluteBudget[];
+  remediation_policy: RemediationPolicy;
+}
+
+export interface SealedCandidateSubmission {
+  submission_id: string;
+  charter_id: string;
+  manifest_digest: string;
+  candidate_id: RendererCandidateId;
+  candidate_lock_digest: string;
+  remediation_cycle_ordinal: 0 | 1 | 2;
+  source_digest: string;
+  output_digest: string;
+  sealed_at: string;
+  sealed_by: string;
+}
+
+export interface RemediationCycleRecord {
+  cycle_id: string;
+  charter_id: string;
+  manifest_digest: string;
+  candidate_id: RendererCandidateId;
+  ordinal: 1 | 2;
+  hours_spent: number;
+  changes: readonly string[];
+  affected_case_ids: readonly QualificationCaseId[];
+  /** Affected cases plus the entire held-back corpus, always. */
+  required_rerun_case_ids: readonly QualificationCaseId[];
+  evidence_digest: string;
+  recorded_at: string;
+  recorded_by: string;
+}

@@ -98,6 +98,7 @@
     "./reads/donor-history": "./src/reads/donor-history.ts",
     "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
     "./shared/http-errors": "./src/shared/http-errors.ts",
+    "./generated-documents/renderer-qualification": "./src/generated-documents/renderer-qualification/index.ts",
     "./health/app": "./src/health/app.ts",
     "./health/db": "./src/health/db.ts",
     "./health/crm": "./src/health/crm.ts",
