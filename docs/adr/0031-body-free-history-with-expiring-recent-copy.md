@@ -1,4 +1,4 @@
-# ADR-0028: Body-free history with an expiring recent copy
+# ADR-0031: Body-free history with an expiring recent copy
 
 **Status:** Accepted (founder ruling, Phase 17 grill session — D14)
 

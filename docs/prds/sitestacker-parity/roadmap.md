@@ -138,8 +138,8 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **14** | `donor-credit-ops`           | [Donor Credit Operations: Soft Credits, DAFs, Tributes & Matching Gifts](./phase-14-donor-credit-operations.md)                   | 13, 7, 9                                    | enhanced by 17 (tribute letters)                      | Contributions, CRM views, reports                               | `PRD exists` (epic #719 + #720–#741)                           |
 | **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                               | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                           |
 | **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
-| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **18** | `document-templates`         | Receipt & PDF Template System                                                                                                     | 7, **13**, 17                               | 6                                                     | PDF/Statement Studio, receipt services                          | `future (needs PRD)`                                           |
+| **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)   |
+| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                               | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
 | **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6                        | 9, 4                                                  | Mission Control Contributions/Finance                           | `future (needs PRD)`                                           |
 | **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2                           | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
 | **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4                                | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                           |
@@ -1104,64 +1104,72 @@ Phase 25/28 own complete donor/missionary notification-center information
 architecture; Phase 26 owns inbound replies; Phase 32 owns campaigns/newsletters;
 and Phase 34 owns general workflows. The three original open questions are
 closed, not deferred. The phase is a groomed PRD only—neither built nor
-dispatched, and its issue set remains pending.
+dispatched. Epic #873 and children #874–#905 are published and blocked; no
+`ready-for-agent` label or implementation authorization is implied.
 
 ---
 
 ### Phase 18 — Receipt & PDF Template System (`document-templates`)
 
-**What this phase is (plain language).** The document renderer: official
-receipts, statements, and generated documents as **archival PDF artifacts**,
-rendered from Phase 7's immutable facts through approved templates. Staff
-design the look; the system guarantees the content.
+**What this phase is (plain language).** One governed Generated Document
+product for official acknowledgments/receipts, statements, tribute and pledge
+documents, and bounded custom business documents. Source domains guarantee the
+facts; staff design within a safe structured visual editor; one qualified
+pipeline creates and privately preserves the exact accessible PDF.
 
 **Why it sits here.** After Phase 7 (facts), Phase 13 (ledger lines the
 facts derive from), and Phase 17 (template governance it reuses).
 
 **What it covers.**
 
-- **PDF/Statement Studio consolidation**: the repo has a native PDF Studio
-  foundation (`pdf_template_batches`/`jobs`) _and_ three coexisting receipt
-  models (live render, `contribution_receipt_snapshots`,
-  `gift_receipt_records`) with reconciliation explicitly deferred — this
-  phase resolves them into **one** facts→render pipeline and retires the
-  marked non-production receipt-language placeholder with finance-approved
-  language.
-- **Generated-document records**: every rendered artifact versioned,
-  traceable (which template version + which facts version), archived, and
-  linked from the CRM record and donor portal.
-- **Jurisdiction-gated numbering and lifecycle** (from Phase 7): US
-  non-gapless; **CRA-grade for Canada** — serial numbers, split receipting
-  (eligible amount = payment minus advantage FMV), cancel-and-replace with
-  new serial citing the old, read-only PDFs, registration number/signature
-  blocks.
-- **Template governance**: print + email variants; safe merge-field
-  catalog; test renders on mock data; templates for single-gift receipts,
-  multi-gift statements, tribute notifications, and pledge statements.
-- **Quid pro quo disclosure support**: per-gift advantage/premium fields →
-  computed deductible amount rendered per IRS Pub 1771.
+- One clean canonical `pdf_*` bounded context: immutable definitions,
+  drafts/commits/publications/heads, source-owned Facts Packages, idempotent
+  requests, fenced attempts, exact artifacts, logical-document currentness,
+  batches, access evidence, publication appointments, and records controls.
+- Three staff destinations only: **Templates**, **Documents**, and **Batches**;
+  one current-first donor/missionary document experience; broad safe visual
+  freedom through structured blocks, purpose-scoped facts, exact synthetic
+  proof, and proportionate review.
+- A pre-registered production-shaped contest between exact renderer pipelines;
+  at most one winner ships, and no winner keeps official generation dark. Every
+  final artifact is validated, hashed, privately stored, read back, and promoted
+  atomically.
+- A complete everyday U.S. acknowledgment pack plus governed specialist
+  obligations; a deliberately activated exact-issuer Canadian registered-
+  charity pack with prescribed fields, split receipting, one `R-` series,
+  protected signer evidence, and new-serial formal replacement.
+- One logical document and one current canonical accessible PDF. Historical
+  versions remain evidence-only; access, delivery, issuance, human reading, and
+  records disposition remain separate truths.
+- Purpose-owned retention, holds, custody, verified staged disposal, and
+  restore-suppression evidence; scanner-resistant selector-plus-fragment access
+  through the shared Phase 17 protected-action primitive.
+- An environment-gated destructive pre-production cut that removes every live
+  text, snapshot-rerender, `gift_receipt_records`, direct render, provider-URL,
+  Unlayer, and dual-runtime prototype. Contrary production evidence stops the
+  cut before mutation and requires re-grooming.
 
 **Boundaries & guardrails.** Document templates cannot invent legal, donor,
-or money truth. A receipt renders posted ledger facts only; any adjustment
-triggers the correction workflow (new version; prior retained + void-
-audited). Restricted workers (Phase 10) appear on documents per the
-publication rules (alias/fund-code decision made with Phase 13).
-
-**Open questions for grooming.** Render stack (react-pdf vs headless-Chromium
-HTML→PDF vs Typst-class engines — decide at grooming with a print-fidelity
-spike); intangible-religious-benefits statement defaults for missions orgs;
-Canada v1 scope (schema-ready vs fully shipped).
+recipient, money, correction, delivery, or records truth. Phase 7/source domains
+own facts and optional issuance; Phase 17 owns message delivery; Phase 19 owns
+statement population and run timing. Restricted-worker policy applies to
+visible and hidden artifact surfaces. Renderer selection, U.S. breadth, Canada
+scope, access, records, publication scheduling, and the clean cut are resolved
+by the Phase 18 D1–D17 contracts; no founder question remains open. The phase is
+a groomed PRD only, with an issue set pending and no implementation dispatch or
+`ready-for-agent` state.
 
 ---
 
 ### Phase 19 — Year-End Statement Operations (`statement-operations`)
 
-**What this phase is (plain language).** Every January, finance must send
-every donor a correct year-end statement — thousands at once, by the
-January 31 convention. That is a **bulk operations product**: choose an
-eligibility snapshot, preview groups, test-send, run the batch, watch
-per-recipient delivery, recover failures, resend, and audit — not a loop
-over an ad-hoc year filter.
+**What this phase is (plain language).** Finance needs to produce correct
+year-end statements for every eligible donor at scale. That is a **population
+and run-operations product**: choose and freeze eligibility/cutoff, preview
+groups, test safely, run item-authoritative work, monitor generation and
+delivery as separate axes, recover failures, resend exact current artifacts,
+and audit. January 31 may be a tenant service target; the phase must not present
+it as a universal federal deadline.
 
 **Why it sits here.** After facts (7), rendering (18), templates/delivery
 (17), the ledger (13), and the comms spine (6).
@@ -1172,15 +1180,16 @@ over an ad-hoc year filter.
   issued-on-accept semantics; inclusions/exclusions recorded); grouping and
   preview (Virtuous-style receipting groups with per-group gift lists);
   test mode against mock recipients.
-- **Per-recipient delivery state** (rendered/sent/delivered/bounced/failed)
-  through the Phase 6 monotonic delivery machine; failure queues with retry
-  and channel fallback (email → print/download); resend affordances (also
-  surfaced on the Phase 9 Giving tab).
-- **Cumulative-vs-per-gift receipt interaction** (the CRA rule Keela
-  enforces): a cumulative receipt must first cancel covered per-gift
-  receipts — per-gift "receipted by document X" state, not a boolean.
-- **Reprint vs reissue semantics** (Blackbaud distinction): reprint = new
-  number, old invalidated; reissue = same number for never-delivered copies.
+- **Separated item axes**: Phase 18 generation/current artifact and Phase 17
+  message/provider delivery never collapse into one `rendered/sent/delivered`
+  status. Failure queues route generation repair to Phase 18 and resend/delivery
+  repair to Phase 17 without rerendering or changing identity.
+- **Cumulative-vs-per-gift interaction** uses Phase 7 eligibility/issuance and
+  Phase 18 currentness/coverage contracts. Staff cannot infer cancellation from
+  grouping or create competing receipt truth.
+- **Copy versus formal replacement semantics**: a copy reuses exact current
+  bytes and identity; a changed Canadian official receipt receives a new serial
+  citing the retained canceled predecessor. Delivery retry never changes either.
 - **Donor self-service statements** in the portal ride the same runs
   (self-service cuts January support load; completion in Phase 25).
 - Soft-credit/volunteer recognition sections togglable per org, clearly

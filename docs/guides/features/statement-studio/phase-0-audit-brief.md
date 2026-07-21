@@ -1,5 +1,13 @@
 # Statement Studio Phase 0 Audit Brief
 
+> **Historical evidence; superseded implementation authority (Phase 18,
+> 2026-07-21).** The findings below describe the repository as audited and are
+> intentionally preserved. Its DocRaptor-first, legacy-retention, migration,
+> signed-URL, and dual-runtime recommendations are not current instructions.
+> Phase 18 D3 selects at most one renderer through a bounded production-shaped
+> evidence contest; D17 performs a clean pre-production cutover; D13 permits
+> only authenticated Asym access to the exact frozen artifact.
+
 Status: research and the Phase 0 decision package were completed on 2026-07-10
 against `origin/develop` at `25b5aae6`. PR #715 is the merge/approval record;
 provider qualification and the finance/legal gates below remain separate.

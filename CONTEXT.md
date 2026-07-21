@@ -1956,6 +1956,74 @@ acknowledgment pipeline. Imports stay `held`; nothing auto-sends.
 _Avoid_: auto-sending acknowledgments on batch commit; a batch that sends
 without the gate
 
+**Document Purpose Contract** (Phase 18):
+The immutable, versioned rule set defining one generated-document purpose, its authoritative facts, eligible recipients, permitted access and delivery routes, jurisdictional obligations, and required evidence. Tenant-authored templates may present the purpose but cannot widen or redefine it.
+_Avoid_: template policy, tenant legal-rule builder, delivery-channel setting
+
+**Approved Data View** (Phase 18):
+The immutable, typed, purpose-scoped semantic contract naming exactly which source-owned facts a document may consume, including their types, classifications, recipient bindings, examples, and required/forbidden conditions. It is narrower than the CRM field catalog and never grants live record traversal.
+_Avoid_: merge-field permission list, SQL view, arbitrary record context, template data query
+
+**Facts Package** (Phase 18):
+The immutable values produced by the owning source domain for one exact purpose, source revision, recipient/issuer context, and policy fingerprint. Phase 18 validates and renders it but never recalculates its legal, money, pledge, or recognition truth.
+_Avoid_: template variables, live record snapshot, renderer input assembled from queries
+
+**Document Definition Publication** (Phase 18):
+One immutable, fully proved executable document definition with its purpose/view versions, semantic tree, locale, assets, fonts, renderer/profile pins, protected review, and validation evidence. A mutable draft or commit is never a production publication.
+_Avoid_: published template flag, latest draft, provider template, partial fallback fragment
+
+**Generation Request** (Phase 18):
+One tenant-scoped idempotent orchestration intent that freezes the purpose, source facts, exact compatible publication, profile, recipient/issuer/authorization/safety epochs, and semantic fingerprint before rendering. Attempts are subordinate evidence and cannot replace or widen it.
+_Avoid_: render job, retry row, provider request, batch item status
+
+**Generated Document Artifact** (Phase 18):
+The exact immutable private PDF bytes promoted only after all byte-changing work, validation, hashing, storage, and read-back proof succeed. Its digest, length, opaque object generation, and evidence identify the artifact; a provider URL, filename, template, or later rerender does not.
+_Avoid_: PDF URL, render output, email attachment identity, current document record
+
+**Specialist Document Obligation** (Phase 18):
+A durable source-triggered record for a real uncommon document/form duty outside the complete everyday U.S. acknowledgment pack, with a stable cause, owner, deadline provenance, evidence, and one closed outcome. It cannot be dismissed merely to clear a queue.
+_Avoid_: generic task, reminder, unsupported-form template, hidden compliance note
+
+**Logical official document** (Phase 18):
+The stable recipient-facing identity of one official document across its immutable publications and correction history, exposing exactly one current canonical artifact while predecessors remain evidence-only.
+_Avoid_: PDF file as document identity, email copy, accessible copy, archive copy
+
+**Mailbox capability** (Phase 18):
+A short-lived, recipient-bound authority delivered to an accepted mailbox that permits the exact contract-approved guest access path. Possession proves control of that capability, not the civil identity or human intent of the person using it.
+_Avoid_: email authentication, donor identity proof, read receipt, public link
+
+**Recipient authorization epoch** (Phase 18):
+An immutable interval during which one exact Party, recipient or evidenced representative, and accepted contact point are authorized for a document purpose. A material authority or destination change ends the epoch rather than silently widening old access.
+_Avoid_: current email lookup, household access, mutable recipient flag
+
+**Durable portal access** (Phase 18):
+Authenticated access to a current official document while the artifact is lawfully retained and the viewer remains authorized, independent of any guest-link expiry. It is not a promise of permanent retention or perpetual authorization.
+_Avoid_: permanent receipt, forever access, guest-link lifetime
+
+**Records Schedule Contract** (Phase 18):
+The immutable, effective-dated, purpose- and jurisdiction-owned rule set that classifies a generated-document record, names its authoritative source-owned clock, applies lawful preservation minimums and privacy maximums, bounds any tenant extension, and defines access restriction, hold, custody, recovery, and verified disposal. A record pins its original version for evidence; later legal or policy changes apply only through an explicit reviewed impact transition.
+_Avoid_: retention TTL, latest-date-wins rule, tenant legal-rule builder, per-document expiry picker
+
+**Records hold** (Phase 18):
+A scoped, authorized, evidence-backed prohibition on disposing of specified records. Its review date is an escalation deadline, never an automatic expiry; release is a separate privileged event, and the hold neither widens access nor changes the underlying retention clock.
+_Avoid_: staff note as hold, indefinite archive policy, auto-expiring legal hold, hold as permission
+
+**Disposition suppression journal** (Phase 18):
+A small, forward-only, independently recoverable record of opaque tenant-bound disposition epochs that is replayed before any restored system serves reads or resumes workers. It prevents an older database or object snapshot from resurrecting access to records already disposed or restricted without becoming a second records database or retaining donor content.
+_Avoid_: deletion log with PII, backup itself, public tombstone, duplicate artifact registry
+
+**Compatible document publication** (Phase 18):
+One complete immutable Document Definition Publication that the exact Document Purpose Contract currently proves compatible across tenant and environment, issuer and jurisdiction, purpose and document class, facts schema, permitted scope, locale and legal language, protected truth, signer and serial rules, accessible/archive output, renderer dependencies, privacy, authorization, review, quarantine, and safety state. Historical render success alone never establishes compatibility.
+_Avoid_: last-known-good template, sibling-Site fallback, fragment merge, post-freeze substitution, renderer failover
+
+**Document publication head** (Phase 18):
+The server-resolved authoritative slot naming which one immutable compatible publication is current for an exact tenant, environment, purpose, issuer where required, jurisdiction, scope, locale, and document class.
+_Avoid_: mutable template status, client-selected current version, default template flag
+
+**Publication appointment** (Phase 18):
+One immutable, explicitly authorized decision permitting an exact ready publication to advance one Document publication head at or after a recorded future instant, subject to current safety proof. It is not a timer, release calendar, legal-effective-date rule, recurrence, or promise of backdated currentness.
+_Avoid_: scheduled draft mutation, cron job as authority, queued release, automatic rollback
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"

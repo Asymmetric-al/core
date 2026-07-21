@@ -62,7 +62,7 @@ platform boundaries already warn against.
   proposed observable behavior is governed by this active OpenSpec delta; its
   detailed implementation interface is
   `docs/prds/sitestacker-parity/phase-17-system-messages-template-management.md`,
-  its executable-manifest specification, and `docs/adr/0022`–`0029`. The dated
+  its executable-manifest specification, and `docs/adr/0025`–`0032`. The dated
   producer/obligation census, decision-to-test traceability matrix, and Phase 17
   congruence package provide derived coverage evidence; the research appendix
   is informative. This remains a
@@ -77,17 +77,42 @@ platform boundaries already warn against.
   adds producer-ratified meaning-specific keys, exact source fences, the fixed
   platform profile, and complete proof packs; generic catch-all keys are
   prohibited.
+- **Amended 2026-07-21 (Phase 18 (Receipt & PDF Template System)):** add a
+  durable generated-document authority requirement and rewrite the active
+  `add-statement-studio` change as the canonical `document-production`
+  capability. Establish one Document Studio and one Generated Document service
+  over five separate authorities: immutable publication, source-owned Facts
+  Package, idempotent Generation Request, optional source-authorized Issuance,
+  and exact private Artifact. Source domains own issuance validity and correction
+  effect; Phase 18 owns D9/D11 reference/serial mechanics and artifact linkage
+  after admitted freeze. Phase 17 Delivery remains external. Select at most one
+  production renderer through a pre-registered no-winner-capable evidence
+  contest; produce one current accessible canonical PDF per logical document;
+  keep U.S. and opt-in Canadian legal behavior in code-owned packs; use the one
+  corrected shared scanner-resistant protected-action protocol; and govern exact
+  access, batches, records, disposal, proof-gated publication recovery, and one
+  future appointment. Conrad confirmed the environment has no production users
+  or irreplaceable artifacts, so a server-proved pre-production cutover removes
+  every prototype receipt/statement/PDF runtime and ships no legacy adapter,
+  importer, dual path, shadow migration, or fabricated history. Detailed
+  behavior is governed by the Phase 18 PRD, dated congruence and traceability
+  packages, purpose-authority manifest, research appendix,
+  `docs/adr/0033`–`0039`, and the active `add-statement-studio` delta. This is a
+  groomed planning change only; it does not dispatch implementation.
 
 ## Impact
 
 - Affected specs: `platform-product-intent`, `donation-lifecycle`,
-  `outbound-communications`, `platform-surfaces`, `platform-boundaries`
+  `outbound-communications`, `document-production`, `platform-surfaces`,
+  `platform-boundaries`
 - Affected docs: `docs/prds/sitestacker-parity/**` (including `roadmap.md`,
-  the source of truth for phase architecture, plus the Phase 17 executable
-  manifest/census/traceability/research companions), `docs/adr/0022`–`0029`, the
-  Phase 0 evidence file, and the active
-  `openspec/changes/add-eve-email-discord-notifications/**` planning package
+  the source of truth for phase architecture, plus the Phase 17 and Phase 18
+  manifests/census/traceability/congruence/research companions),
+  `docs/adr/0025`–`0039`, the Phase 0 evidence file, and the active
+  `openspec/changes/add-eve-email-discord-notifications/**` and
+  `openspec/changes/add-statement-studio/**` planning packages
 - Reconciled active changes: `add-recurring-giving`,
-  `add-donor-self-service`, `add-eve-email-discord-notifications`
+  `add-donor-self-service`, `add-eve-email-discord-notifications`,
+  `add-statement-studio`
 - No product code changes or issue dispatch (this change is specification and
   governance only).

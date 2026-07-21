@@ -19,8 +19,10 @@ receipt, consent, protected-action, recipient, or current-source meaning.
 
 Every platform/system-generated message on an enabled catalog channel—including
 email, in-product, and separately activated future SMS—MUST use the code-governed
-system-message catalog and, for external delivery, the one Phase 6
-recipient-specific communication seam. Human-authored support replies,
+system-message catalog and the one Phase 6 recipient-specific intent, event,
+idempotency, and history seam. External steps continue through the applicable
+delivery executor; `in_product` steps create only the local `available` event
+and role-safe projection with no provider work. Human-authored support replies,
 newsletters, campaigns, and missionary personal messages remain outside the
 system-message catalog under their owning phases, but their external delivery
 MUST still use the Phase 6 seam.
@@ -31,9 +33,13 @@ communication truth. The current manifest generation contains no Eve email key,
 so every Eve email request is rejected before intent creation. Any later Eve
 email uses a meaning-specific platform-scoped fixed Phase 17 contract and the
 Phase 6 recipient-specific Resend delivery spine only after its platform proof
-pack passes; no generic catch-all key is allowed. Phase 17 owns contract
-publication, compiler validation, and configuration proof; Phase 6 owns
-recipient resolution, runtime preparation, provider submission, and history.
+pack passes; no generic catch-all key is allowed. Eve/the producing platform
+domain owns platform-recipient selection and its revisioned authority record;
+Phase 17 owns contract publication, generated resolver identity, resolver and
+configuration proof, and compilation. Phase 6 creates the recipient-specific
+intent and orchestrates runtime preparation through that exact resolver, then
+owns provider submission, evidence reduction, and history. Phase 6 never selects
+or invents a platform recipient authority.
 That spine MUST propagate one explicit tenant/platform owner arc: tenant mail
 uses tenant Party/contact/publication/connection authority, while platform mail
 uses an exact revisioned verified platform-owner authority and service-only Asym

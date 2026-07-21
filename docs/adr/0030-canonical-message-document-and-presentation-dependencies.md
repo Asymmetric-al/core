@@ -1,4 +1,4 @@
-# ADR-0027: Canonical message document and immutable presentation dependencies
+# ADR-0030: Canonical message document and immutable presentation dependencies
 
 **Status:** Accepted (founder rulings, Phase 17 grill session — D4, D13, D18)
 

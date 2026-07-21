@@ -251,7 +251,23 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   D1–D20, executable 18-key manifest, dated producer/obligation census,
   decision-to-test traceability, primary-source research, dated cross-PRD
   congruence, focused ADRs, and an `outbound-communications` OpenSpec delta).
-  Planning only; issue set pending; not built or dispatched.
+  Tracked by epic #873 + children #874–#905. Planning only; every child remains
+  `status:blocked`; groomed-not-dispatched and not built.
+- [`phase-18-receipt-pdf-template-system.md`](./phase-18-receipt-pdf-template-system.md)
+  — the Phase 18 plan (Receipt & PDF Template System): one clean canonical
+  Generated Document service and structured Document Studio over source-owned
+  immutable facts; one pre-registered renderer contest with at most one exact
+  production winner; one current canonical accessible PDF; exact-byte private
+  custody and scanner-resistant access; complete everyday U.S. acknowledgments;
+  a proof-gated exact-issuer Canadian registered-charity pack; governed
+  specialist obligations; item-authoritative batches; purpose-owned records,
+  holds and verified disposal; and an environment-gated destructive
+  pre-production cut that leaves zero legacy runtime. Groomed 2026-07-21
+  (ratified D1–D17; executable purpose/authority manifest, renderer qualification
+  protocol, 204-row decision-to-test traceability, primary-source research,
+  dated cross-PRD congruence, ADRs 0033–0039, and a rewritten Document Production
+  OpenSpec contract). Planning only; issue set pending;
+  groomed-not-dispatched and not built.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

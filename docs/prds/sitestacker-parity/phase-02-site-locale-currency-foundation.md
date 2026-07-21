@@ -512,7 +512,9 @@ write-up.
   donor-identity/credit model) and the later reporting/export phases; Phase 2 reserves the primitives
   (reporting currency, rate-snapshot shape, attribution axes, `rendered_locale`, and the
   override-resolution contract) they will consume. The issuing tenant/site **jurisdiction/country** —
-  which gates receipt numbering (US non-gapless vs Canada/CRA gapless) and tax language — is part of
+  which gates later document identity (the U.S. short opaque acknowledgment reference versus the
+  Phase 18 proof-gated Canadian exact-issuer `R-` series with uniqueness, nonreuse, and explicit
+  disposition accounting—not a mathematical gaplessness promise) and tax language — is part of
   this deferred receipt-compliance bundle and is **not** a reserved column on `public.sites` in
   Phase 2; Phase 7 introduces it and **may extend** the reserved override-resolution contract with a
   jurisdiction axis.
@@ -591,9 +593,15 @@ resolution trace. Phase 17 also owns system-message locale activation,
 per-contract locale readiness, and the message-presentation inheritance for an
 organization or permitted Phase 2 site.
 
-**Compatibility boundary.** Phase 2's fixed order remains binding for receipts,
-official-document resolution, and every message contract that does not permit a
-tenant choice. Resolution always selects one complete compatible publication;
-it never mixes fragments. `rendered_locale` remains a frozen issuance/render
-fact. Phase 24, not Phase 17, owns broad site, CMS, public-shell, staff-shell,
-domain, currency, and jurisdiction localization.
+**Compatibility boundary.** Phase 2's fixed order remains binding except where
+a later purpose owner defines a narrower closed resolver. Phase 17 governs the
+eligible system-message contracts described above. Phase 18 governs generated
+official and protected documents: normal configured assignment/inheritance is
+the primary resolution; if that exact primary is unusable and the purpose allows
+recovery, the fixed D15 order checks one compatible prior publication at the
+same scope and exact locale, then one purpose-permitted ancestor publication at
+the exact locale. It never uses a system, sibling, foreign-locale, tenant-
+reordered, or fragment-mixed fallback. Every other contract continues to use
+Phase 2's fixed order. `rendered_locale` remains a frozen issuance/render fact.
+Phase 24, not Phase 17 or Phase 18, owns broad site, CMS, public-shell, staff-
+shell, domain, currency, and jurisdiction localization.

@@ -196,37 +196,48 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 9. Receipt & PDF template system
 
 - **Benchmark:** SiteStacker receipts / PDF templates. (s)
-- **Current state:** PDF Studio template persistence built (phase 10); donation
-  receipts issued from gift records. Receipt facts/compliance layer owned by
-  Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model);
-  Statement Studio remains the render consumer (PDF Studio and Statement
-  Studio are the same surface — see Phase 7 E1). (v)
-- **Depends on:** #5, Phase 7 (receipt facts/compliance layer).
-- **Acceptance test:** staff configure a receipt template and donors receive a
-  correct receipt from it, backed by an immutable, versioned, per-tenant-numbered
-  receipt **facts** record that references `contribution_adjustments`, where a
-  correction or partial refund creates a **new** version (the prior version is
-  retained and void-audited) and numbering is jurisdiction-gated (US
-  non-gapless / CRA gapless).
-- **Evidence:** `docs/ops/phase-evidence/2026-05-15_phase-10_studios-operational-hubs.md`.
-- **Open questions:** template breadth vs SiteStacker.
+- **Current state:** current PDF Studio persistence, live text downloads,
+  `contribution_receipt_snapshots`, `gift_receipt_records`, direct render routes,
+  DocRaptor selection, and Unlayer compatibility are non-production prototypes,
+  not the final authority. Phase 18 is fully specified but not built; its D17
+  clean cut removes those paths rather than migrating or preserving them. (v)
+- **Depends on:** #5/Phase 13 ledger truth, Phase 7 receipt/statement facts and
+  optional issuance, and Phase 17 delivery/protected-action governance.
+- **Acceptance test:** staff safely author, prove, publish, generate, batch,
+  correct, access, and manage one logical generated document through one
+  tenant-safe Generated Document service. Every current PDF is the exact
+  validated private artifact over frozen source facts; one U.S. reference or
+  exact-issuer Canadian serial policy applies; a copy preserves bytes/identity;
+  formal replacement retains/cancels the predecessor and advances identity as
+  the jurisdiction contract requires; no prototype writer/reader remains.
+- **Evidence:**
+  [`phase-18-receipt-pdf-template-system.md`](./phase-18-receipt-pdf-template-system.md),
+  its executable manifest, renderer protocol, 204-row traceability, research,
+  dated congruence, ADRs 0033–0039, and Document Production OpenSpec delta.
+- **Open questions:** none at product-contract level; the pre-registered D3
+  contest may qualify one exact renderer or correctly produce no winner, and
+  legal/accessibility/Canadian approvals are explicit release evidence gates.
 
 ### 10. Year-end statement operations
 
 - **Benchmark:** SiteStacker year-end statements. (s)
-- **Current state:** donor-portal statements exist; annual statement generation
-  **proposed** (add-donor-self-service, PR #462). Statement eligibility rules
-  owned by Phase 7 (Receipt & Statement Compliance Rules + Donor
-  Identity/Credit Model); Statement Studio remains the render consumer. (v)
-- **Depends on:** #5, #9, Phase 7 (statement eligibility rules).
-- **Acceptance test:** a donor downloads a correct year-end statement whose
-  eligibility is issued **on accept** per payment method (card on capture; ACH
-  on `payment_intent.processing` pre-settlement; offline on
-  recorded-received) — settlement is a no-op — and a gift is voided/superseded
-  only on a negative terminal event (e.g. an ACH `charge.dispute.created`
-  return, a lost card dispute, or a refund).
-- **Evidence:** add-donor-self-service change (PR #462).
-- **Open questions:** bulk statement runs for staff.
+- **Current state:** donor-portal live statements exist only as prototype
+  behavior; annual statement operations remain unbuilt. The active
+  `add-donor-self-service` change now delegates population/run truth to Phase 19
+  and exact artifacts/access to Phase 18. (v)
+- **Depends on:** #5, #9, Phase 7 eligibility/facts, Phase 18 generation, and
+  Phase 17 delivery.
+- **Acceptance test:** Phase 19 freezes a source-authorized population/cutoff and
+  operates item-authoritative runs; every item uses Phase 18's one generation
+  seam and Phase 17's separate delivery seam. ACH initiation/processing is not
+  received and is absent from official successful-payment receipt/statement
+  truth until processor-confirmed success; later returns/refunds append exact
+  inverse and source-authorized replacement effects without deleting history.
+- **Evidence:** add-donor-self-service OpenSpec plus the Phase 18 PRD/OpenSpec
+  package.
+- **Open questions:** the detailed Phase 19 run UX and operations contract is
+  still ungroomed; rendering, artifact currentness, and delivery ownership are
+  closed.
 
 ### 11. Accounting exports & reconciliation
 

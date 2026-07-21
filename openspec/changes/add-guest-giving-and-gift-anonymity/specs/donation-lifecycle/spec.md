@@ -75,30 +75,36 @@ an audit entry.
 ### Requirement: Receipts Derive From Payment Truth
 
 Donation receipts MUST be issued from the server-side gift record only after
-the donation reaches a completed state, using the immutable receipt identity
-snapshot stored on the contribution at gift time (name, email, address) so
-later donor-profile edits do not rewrite historical receipts, delivered through
-the tenant-configured email path with an idempotent send per gift, and the send
-outcome MUST be recorded.
+the donation reaches the source-owned successful/completed state. Phase 7 MUST
+freeze the legal donor identity and exact receipt facts independently of later
+profile edits. Phase 18 MUST consume that immutable Facts Package through its
+one Generated Document service and preserve one exact canonical artifact. Phase
+17 MUST deliver only that exact artifact through the governed communication
+spine and record the separate send outcome. The gift/source domain MUST NOT own
+render, artifact, access, or delivery state.
 
 #### Scenario: A gift completes and a receipt is sent
 
-- WHEN a donation transitions to completed and stages a gift
-- THEN the receipt renders from the gift record and its frozen receipt identity
-  snapshot with amount, date, and donor
-- AND the receipt send is recorded and cannot duplicate for the same gift
+- WHEN a donation transitions to the source-owned successful/completed state
+- THEN Phase 7 freezes the exact legal-donor and receipt facts once
+- AND Phase 18 admits one idempotent request and creates at most one current
+  exact canonical artifact from those facts
+- AND Phase 17 sends that artifact under one semantic delivery identity and
+  records its independent outcome
 
 #### Scenario: A receipt send fails
 
 - WHEN the tenant email path rejects or fails the receipt send
-- THEN the failure is recorded on the gift's receipt state
-- AND the gift itself remains completed and correct
+- THEN Phase 17 records the delivery failure without changing the gift, Phase 7
+  facts/issuance, or Phase 18 artifact/currentness
+- AND an eligible resend references the same exact current artifact rather than
+  rerendering or creating another receipt
 
 #### Scenario: A donor profile is edited after a receipt exists
 
-- GIVEN a receipt was issued from a contribution's frozen receipt identity
-  snapshot
+- GIVEN Phase 7 froze the legal donor and receipt facts and Phase 18 promoted the
+  exact artifact
 - WHEN the donor's profile name, email, or address later changes
-- THEN the historical receipt still reflects the snapshot captured at gift time
-- AND re-rendered or downloaded copies use that same snapshot, not the mutated
-  profile
+- THEN the historical facts and stored artifact remain unchanged
+- AND every authorized copy/download streams the same stored bytes rather than
+  rerendering from either the old facts or the mutated profile

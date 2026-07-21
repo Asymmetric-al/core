@@ -15,7 +15,9 @@
       server-side before the saga.
 - [ ] 2.2 Provision claimable donor portal access (Supabase magic-link), no
       forced password, no account-existence leak in responses.
-- [ ] 2.3 Snapshot receipt identity (name, email, address) on the contribution.
+- [ ] 2.3 Freeze receipt-eligible donor identity (name, email, address) and gift
+      facts in the Phase 7 source authority; hand one immutable Facts Package to
+      Phase 18. Do not add contribution-owned render/artifact/delivery state.
 - [ ] 2.4 Keep idempotency-key contract across the guest path.
 
 ## 3. Gift anonymity
@@ -33,8 +35,10 @@
 - [ ] 4.1 Add known-donor offline entry: donor search/create, gift details,
       designation, anonymity flags, receipt eligibility, entry audit.
 - [ ] 4.2 Add unknown-offline entry mode: `donor_id` null,
-      `donor_identity_status = unknown_offline`, receipt status
-      not-receiptable, batch/deposit reference support; no fake donor rows.
+      `donor_identity_status = unknown_offline`, the source facts Phase 7 uses
+      to derive reason-carrying `not_receiptable` eligibility, and
+      batch/deposit reference support; create no fake donor rows or duplicate
+      contribution-owned receipt/send status.
 - [ ] 4.3 Route through Contribution Operations Core contracts (permissions,
       audit, corrections).
 

@@ -1,4 +1,4 @@
-# ADR-0025: SMS evidence governance with transport unavailable
+# ADR-0028: SMS evidence governance with transport unavailable
 
 **Status:** Accepted (founder ruling, Phase 17 grill session — D9)
 

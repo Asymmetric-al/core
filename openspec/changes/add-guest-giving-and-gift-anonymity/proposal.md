@@ -21,7 +21,9 @@ exists.
   finance/admin), enforced by server-side redaction and audited when changed.
 - Add offline contribution entry in Mission Control for known donors and truly
   unknown donors (`donor_id` null, not receiptable, no fake donor data).
-- Snapshot receipt identity on each contribution.
+- Freeze receipt-eligible donor identity and source facts in the Phase 7 facts
+  authority; Phase 18 consumes that immutable Facts Package to create one exact
+  canonical artifact, and Phase 17 separately delivers it.
 
 ## Impact
 

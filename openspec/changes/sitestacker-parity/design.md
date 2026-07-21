@@ -121,7 +121,7 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   Phase 26, broad portal notification centers Phases 25/28, campaigns Phase 32,
   and official documents/statements their producing phases.
 - **Phase 17 architecture decisions are recorded once (added 2026-07-19).**
-  Canonical `docs/adr/0022`–`0029` bind protected actions, Delivery Plans,
+  Canonical `docs/adr/0025`–`0032` bind protected actions, Delivery Plans,
   notifications, dark SMS
   evidence, mutually exclusive tenant/platform Resend ownership and composed delivery identity, the structured
   document and presentation graph, body-free history/recent copy, and immutable
@@ -129,6 +129,39 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   `specs/outbound-communications/spec.md`; the dated full requirement deltas in
   `platform-surfaces` and `platform-boundaries` remove the older unbounded
   tenant-control and contribution-specific automation routing ambiguity.
+- **Generated documents preserve separate durable authorities (added
+  2026-07-21, Phase 18).** One bounded relational Document Production module
+  and one product-level Generated Document service keep the immutable Document
+  Definition Publication, source-owned Facts Package, idempotent Generation
+  Request, optional source-authorized Issuance, and exact private Artifact
+  separate. Source domains retain issuance validity and correction-effect
+  authority; Phase 18 owns D9/D11 code-governed reference/serial allocation,
+  nonreuse/disposition, and artifact linkage after admitted freeze. Render
+  Attempts are subordinate technical evidence and Phase 17 Delivery is external.
+  Templates and renderers cannot query source tables, decide legal or money
+  truth, allocate identifiers, select statement populations, or turn a send/
+  download into issuance. Staff use Templates, Documents, and Batches; recipients
+  see one authorized logical document and one current PDF action.
+- **One evidence-qualified renderer produces one exact accessible artifact
+  (added 2026-07-21, Phase 18).** A pre-registered Prince-family versus Typst
+  0.15.1 contest with Chromium control may select one production deployment or
+  no winner. Each purpose selects one code-owned accessible output policy, and
+  archival conformance is added to the same PDF rather than creating a peer
+  file. Structured authoring, Approved Data Views, immutable publication,
+  code-owned U.S./opt-in Canadian packs, proof-gated resolution, current-object
+  authorization, scanner-resistant shared protected actions, item-authoritative
+  batches, records schedules, and one future publication appointment remain
+  purpose-bound and tenant-safe.
+- **The pre-production prototype runtime is removed rather than migrated
+  (added 2026-07-21, Phase 18).** A server-authoritative environment/data/
+  dependency assertion must first prove there are no production tenants,
+  irreplaceable artifacts, or relied-upon external dependencies. Only then may
+  the disposable environment be reset to the canonical schema and every
+  snapshot, scaffold, live-text, hard-coded-send, mutable-root, browser-facts,
+  Unlayer/native-switch, provider-URL, direct-write, and alternate reader/writer
+  path be deleted. An indeterminate or positive proof stops the line for
+  re-grooming. No importer, compatibility view, archive, dual path, shadow
+  migration, or fabricated history ships.
 
 ## Non-goals
 
@@ -141,6 +174,9 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
 - No product implementation, migration, transport activation, catalog
   activation, tenant credential collection, message publication, bulk send, or
   issue dispatch is authorized by the Phase 17 specification package.
+- No product implementation, destructive cutover, renderer selection, Canadian
+  activation, document publication, artifact generation, migration, or issue
+  dispatch is authorized by the Phase 18 specification package.
 
 ## Risks / trade-offs
 

@@ -177,8 +177,9 @@ display strings with locale/formatting version metadata. The document-production
 capability MUST resolve the assigned immutable template and private artifact,
 bind those frozen strings and supplied classifications, never render audit-only
 exclusions, and avoid recalculating, reclassifying, or reformatting official
-facts. The donor BFF MUST authorize the recipient, expose only the current
-eligible artifact, and record delivery/download. A later correction, refund, or
+facts. The donor BFF MUST ask Phase 18 to authorize the recipient, expose only
+the current eligible artifact, and record the authorized access/download.
+Phase 17 alone records any outbound delivery. A later correction, refund, or
 donor relink MUST supersede or void stale output per policy while preserving
 correction and artifact lineage.
 
@@ -190,4 +191,5 @@ correction and artifact lineage.
 - AND any approved indirect lines supplied by the owning domain appear only in
   a labeled indirect section and remain excluded from the deductible total
 - AND the portal does not present a superseded or void statement as current
-- AND the delivery or download is recorded
+- AND Phase 18 records the authorized download; any outbound delivery remains
+  a separate Phase 17 communication event

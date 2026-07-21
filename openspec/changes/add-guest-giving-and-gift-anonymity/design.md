@@ -10,6 +10,18 @@
 **Status:** Product/spec decision for implementation
 **Last updated:** 2026-07-02
 
+> **Controlling generated-document amendment (2026-07-21).** This change owns
+> guest-giving identity capture, anonymity, payment/contribution truth, and the
+> source facts needed for receipting. Phase 7 freezes legal-donor and
+> receipt/statement eligibility/issuance facts. Phase 18 alone owns document
+> definitions, publications, generation requests, exact PDF artifacts,
+> currentness, access, and generated-document records evidence. Phase 17 alone
+> owns message preparation, send, provider outcome, and communication history.
+> The contribution never owns receipt render/artifact/delivery state; copies
+> stream stored exact bytes and never rerender a snapshot. Where older design
+> examples below conflict, this amendment and the active OpenSpec requirements
+> control.
+
 ---
 
 ## 1. Executive answer
@@ -342,7 +354,7 @@ Flow:
 2. Staff enters gift amount, date, method, batch/deposit info, and designation.
 3. `donor_id` remains null.
 4. System sets donor identity status to unknown.
-5. System sets receipt status to not receiptable unless donor information is later provided.
+5. System records the source-owned `unknown_offline` identity fact and asks Phase 7 to derive the reason-carrying receipt eligibility; it does not create a mutable contribution-owned receipt status.
 6. Missionary/public views show “Anonymous donor”.
 7. Admin/finance can still see contribution details, batch, source, and internal notes.
 
@@ -362,7 +374,7 @@ Offline gift entry should require:
 - designation/fund/missionary
 - batch/deposit reference when applicable
 - entered-by user
-- receipt status
+- the source facts Phase 7 requires to derive receipt eligibility and its reason
 - anonymity flags
 
 For checks, store check number/reference if needed, but do not store unnecessary bank account details.
@@ -462,10 +474,6 @@ ALTER TABLE public.donations
   ADD COLUMN IF NOT EXISTS donor_identity_status TEXT NOT NULL DEFAULT 'known',
   ADD COLUMN IF NOT EXISTS anonymous_to_recipient BOOLEAN NOT NULL DEFAULT FALSE,
   ADD COLUMN IF NOT EXISTS anonymous_to_public BOOLEAN NOT NULL DEFAULT FALSE,
-  ADD COLUMN IF NOT EXISTS receipt_status TEXT NOT NULL DEFAULT 'pending',
-  ADD COLUMN IF NOT EXISTS receipt_name TEXT,
-  ADD COLUMN IF NOT EXISTS receipt_email TEXT,
-  ADD COLUMN IF NOT EXISTS receipt_address JSONB,
   ADD COLUMN IF NOT EXISTS donor_display_name_snapshot TEXT,
   ADD COLUMN IF NOT EXISTS entered_by_user_id UUID,
   ADD COLUMN IF NOT EXISTS anonymity_requested_at TIMESTAMPTZ,
@@ -479,13 +487,6 @@ Suggested values:
 donor_identity_status:
   known
   unknown_offline
-
-receipt_status:
-  pending
-  sent
-  not_receiptable
-  no_receipt_requested
-  failed
 
 anonymity_requested_source:
   online_checkout
@@ -546,9 +547,13 @@ Fallback only if a downstream system absolutely requires `donor_id`:
 
 Preferred: avoid the fallback unless forced.
 
-### 8.4 Donor identity snapshot
+### 8.4 Receipt-eligible donor facts
 
-Each contribution should snapshot the receipt identity used at the time of gift.
+Checkout captures the receipt-eligible donor inputs needed by the owning source
+domain. After payment reaches the required source state, Phase 7 freezes the
+legal donor and receipt facts in its immutable authority and supplies one typed
+Facts Package to Phase 18. These values do not become mutable `donations`
+columns, a render snapshot, or delivery state.
 
 Reason:
 
@@ -556,7 +561,9 @@ Reason:
 - receipts and audit records need historical accuracy
 - year-end statements need stable source data
 
-Snapshot fields should not be exposed to missionary/public views.
+Protected source facts are not exposed to missionary/public views. Phase 18
+renders only its purpose-scoped Approved Data View, and authorized copies stream
+the same stored exact bytes.
 
 ---
 
@@ -623,7 +630,8 @@ Server responsibilities:
 5. Normalize email.
 6. Create or match donor record by tenant + normalized email.
 7. Create/link claimable donor portal access.
-8. Snapshot receipt identity.
+8. Capture receipt-eligible donor inputs and, after source-confirmed success,
+   freeze them through the Phase 7 facts authority for Phase 18.
 9. Store anonymity flags on the contribution.
 10. Create Stripe customer/payment intent through server-only Stripe client.
 11. Use idempotency key.
@@ -703,7 +711,7 @@ Server responsibilities:
 - validate designation
 - prevent fake donor data
 - set `donor_id = null` for unknown offline gifts
-- set receipt status correctly
+- provide the exact source facts Phase 7 requires to derive receipt eligibility without creating contribution-owned receipt state
 - audit who entered/edited the gift
 - update contribution/donor totals where applicable
 - keep donor identity out of missionary/public projections when anonymous
@@ -773,13 +781,19 @@ Do not put raw PII in metadata unless needed and approved.
 
 ### 11.1 Online gifts
 
-Online gifts should generate receipt records because donor identity is known.
+Online gifts with sufficient legal-donor facts may become receipt eligible only
+under the Phase 7 source contract.
 
 Receipt should be sent after appropriate payment status:
 
 - card: after payment succeeds
-- ACH/bank: after processor state supports receipt/finalization policy
+- ACH/bank: only after processor-confirmed success; initiation/processing is not
+  received and produces no official successful-payment receipt
 - recurring: after each successful installment
+
+Phase 18 creates and stores the exact canonical artifact. Phase 17 delivers that
+artifact and records the independent send outcome. A delivery failure never
+changes the gift, receipt facts/issuance, or artifact currentness.
 
 ### 11.2 Offline known gifts
 
@@ -791,11 +805,8 @@ If the donor requests anonymity, the receipt still uses real donor identity. Ano
 
 Unknown offline gifts are not receiptable unless donor information is later provided.
 
-System should mark:
-
-```text
-receipt_status = not_receiptable
-```
+The Phase 7 eligibility authority records a reason-carrying `not_receiptable`
+outcome. It is not a mutable contribution delivery/status field.
 
 ### 11.4 Year-end statements
 
@@ -965,7 +976,9 @@ When implementing this, follow these rules:
 10. Add contribution-level anonymity fields, not only donor-level defaults.
 11. Support `donor_id = null` for truly unknown offline gifts.
 12. Do not create fake donor rows for unknown cash.
-13. Snapshot receipt identity on the contribution.
+13. Freeze receipt-eligible donor identity and gift facts in the Phase 7 source
+    authority after source-confirmed success; use the Phase 18 service for the
+    exact artifact and Phase 17 for delivery.
 14. Redact donor identity server-side for missionary/public APIs.
 15. Add audit logs for anonymity changes and offline entry.
 16. Add tests for admin, donor, missionary, and public views.
@@ -1013,7 +1026,7 @@ When implementing this, follow these rules:
 - [ ] Staff can intentionally select unknown/anonymous offline donor.
 - [ ] No fake name/email is required.
 - [ ] `donor_id` remains null or uses an explicit system-anonymous fallback only if absolutely required.
-- [ ] Receipt status defaults to not receiptable.
+- [ ] Phase 7 derives `not_receiptable` with an explicit unknown-donor reason from the source-owned `unknown_offline` fact; the contribution owns no receipt/send status.
 - [ ] Gift can still be designated and reconciled.
 - [ ] Missionary/public views show “Anonymous donor.”
 - [ ] Admin/finance can see batch/source/internal notes.
@@ -1040,7 +1053,7 @@ When implementing this, follow these rules:
 - Redaction helper returns anonymous display name and omits donor identity.
 - Admin projection includes donor identity.
 - Missionary projection redacts donor identity.
-- Receipt status for unknown offline gifts is not receiptable.
+- Phase 7 receipt eligibility for an unknown offline gift is `not_receiptable` with the expected reason, and the contribution stores no duplicate receipt state.
 - Contribution-level anonymity overrides donor default.
 
 ### Integration tests
@@ -1076,7 +1089,8 @@ For the Platform MVP, the shortest real value path is:
 3. Add guest donor record creation/matching.
 4. Add anonymous-to-recipient/public flags.
 5. Add offline known/unknown gift entry in Contributions Hub.
-6. Add receipt status and basic receipt send.
+6. Integrate Phase 7 receipt facts with one Phase 18 generated artifact and one
+   Phase 17 governed delivery; add no contribution-owned receipt/send status.
 7. Add missionary/public redacted views.
 8. Add admin/finance full-visibility views.
 9. Add tests and QA gates around money/tenant/auth/RLS.

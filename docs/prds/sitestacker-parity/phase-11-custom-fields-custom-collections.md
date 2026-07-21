@@ -9,6 +9,8 @@
 
 **Posture note (fresh-build):** Phase 11 stands on three groomed-but-not-yet-built foundations (Phases 3, 9, 10). Build against their ratified contracts. The product has **no production users** (ADR-0001 posture), so design correct-from-start; there is no legacy custom-field data to migrate — but the _behavior_ must be correct the moment a tenant has many records and evolves a field. Make **no "live/shipped" claims** without evidence.
 
+**Phase 18 generated-document amendment (2026-07-21).** Phase 18 reuses Phase 11's one stable field catalog, semantic identity, type, classification, source owner, recipient binding, synthetic sample, and egress policy through purpose-scoped Approved Data Views. `Available in documents` is an audited narrowing only; it cannot make an otherwise forbidden field available. Templates cannot traverse records or create a second merge-field catalog/per-template permission system. A field meaning/type/privacy change requires impact analysis and new proof; a label-only change does not break the stable binding.
+
 ---
 
 ## Problem Statement

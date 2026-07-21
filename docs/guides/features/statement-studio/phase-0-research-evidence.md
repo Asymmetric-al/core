@@ -1,5 +1,14 @@
 # Statement Studio Phase 0 research evidence
 
+> **Historical evidence; superseded implementation authority (Phase 18,
+> 2026-07-21).** This file remains authoritative only for what the earlier audit
+> observed in the repository. Its recommendations are not dispatchable. Current
+> product and implementation authority is the Phase 18 PRD, authority manifest,
+> renderer qualification protocol, ADRs 0033-0039, and OpenSpec change. In
+> particular, Phase 18 D17 eliminates legacy runtime/migration compatibility,
+> D3 leaves the renderer unselected until the evidence contest, and D13 forbids
+> raw provider or signed object URL authority.
+
 This appendix records primary-source findings for
 [GitHub issue #312](https://github.com/Asymmetric-al/core/issues/312). It is an
 implementation audit, not a replacement PRD. The audited repository baseline is

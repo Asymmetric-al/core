@@ -1,4 +1,4 @@
-# ADR-0026: Tenant-owned Resend and composed delivery identities
+# ADR-0029: Tenant-owned Resend and composed delivery identities
 
 **Status:** Accepted (founder rulings, Phase 17 grill session — D10, D17, D20)
 

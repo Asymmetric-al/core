@@ -4,13 +4,15 @@
 
 Groomed via `grill-with-docs` on 2026-07-12 through 2026-07-13. Conrad ratified all nineteen decision families, **D1–D19**, after current-primary-source research and explicit adversarial hardening. This PRD is the authoritative `/to-spec` synthesis of those decisions. The supporting evidence is in `phase-16-pledges-recurring-commitments-research-evidence.md`; the dated predecessor reconciliation is in `phase-16-cross-prd-congruence-2026-07-13.md`.
 
-**Slug:** `pledges-commitments` · **Roadmap position:** Phase 16 of 41 (roadmap v2) · **Primary predecessor:** Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) · **Other required predecessors:** Phases 2–7, 9–10, 12, 14, and 15 · **Later consumers:** Phases 17, 20, 25, 27–28, 33, and 35.
+**Slug:** `pledges-commitments` · **Roadmap position:** Phase 16 of 41 (roadmap v2) · **Primary predecessor:** Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) · **Other required predecessors:** Phases 2–7, 9–10, 12, 14, and 15 · **Later consumers:** Phases 17–18, 20, 25, 27–28, 33, and 35.
 
 **Program posture: groomed-not-built and not dispatched.** This is a planning specification. Committing this planning package to PR #465 authorizes no product code, issue publication, label change, or `ready-for-agent` state; dispatch remains a separate founder decision. Phase 13's append-only contribution ledger, Stripe Connect topology, recurring-group substrate, Phase 6 communication-event spine, Phase 7 Party/receipt contracts, and Phase 3 role-projection floor are committed design dependencies but are not all implemented in the current worktree. Every anchor below is labeled **REAL** or **FORWARD** so an implementing agent cannot mistake current prototype code for the product contract.
 
 **Critical predecessor supersession.** Published Phase 13 recurring children #706–#710 remain open and blocked, but their older recurring behavior is not safe to dispatch unchanged. Dated amendments A1–A15 and the issue dispositions in the congruence package are binding. In particular, this phase replaces one-subscription-per-line, `items[0]`, Stripe-Smart-Retry authority, one six-state status, UTC-as-business-calendar pause behavior, and optimistic provider adoption with the group/cohort/line, civil-date, product-owned-recovery, multi-axis, and proof-gated-control contracts below.
 
 **Production gate.** Recurring card terms, off-session permission, ACH mandate and reinitiation, staff-assisted authorization, cancellation, required network notices, and campaign-commitment reminder purpose/consent are compliance-adjacent. Qualified payments/compliance counsel and the applicable processor/acquirer must approve the final production terms, scripts, evidence retention, and jurisdiction/rail rules. This document is not legal, accounting, tax, or network advice. Product defaults remain binding unless a stricter current rule narrows them.
+
+**Binding Phase 18 document amendment (2026-07-21).** Phase 16 remains the sole owner of recurring/fixed commitment intent, schedules, fulfillment, health, Party roles, and source facts. A pledge statement or recurring-support document is a Phase 18 governed purpose over one immutable Phase 16 Facts Package; it is never a Phase 18 balance calculator and never rewrites commitment history. Phase 18 alone owns the generated definition, publication, request, exact PDF artifact, current head, access, and document records evidence. Phase 17 alone owns the surrounding message and delivery. ACH processing remains initiation evidence only and cannot produce an official successful-payment receipt.
 
 ---
 
@@ -112,6 +114,7 @@ All audiences consume the same append-only facts through different role-safe pro
 ### Later seams
 
 - **Phase 17** owns governed localized message templates and rendering. Phase 16 pins typed facts, purpose, eligibility, and preview, not a vendor or mutable prose.
+- **Phase 18** owns generated-document templates, publication, exact PDF artifacts, currentness, access, and records evidence. Phase 16 supplies only its purpose-scoped immutable commitment facts and source authority.
 - **Phase 20** owns receivable/accounting classification, GL export, and finance posting. A CRM pledge is not automatically a receivable.
 - **Phase 25** may deepen donor preferences and portal breadth, but Phase 16 must ship the core recurring self-service actions required for a complete recurring product.
 - **Phases 27–28/33/35** may consume health, partner, reporting, and channel facts but cannot redefine them or bypass D9/D19 consent and proof.

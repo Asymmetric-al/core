@@ -1,5 +1,11 @@
 # Testing And Fixtures
 
+> **Superseded implementation authority (Phase 18, 2026-07-21).** This file is
+> retained as historical testing evidence only. Current tests must derive from
+> the Phase 18 PRD, decision-test traceability matrix, authority manifest,
+> renderer qualification protocol, ADRs 0033-0039, and OpenSpec change. Do not
+> use old renderer, migration, signed-URL, or dual-runtime expectations.
+
 Testing should be risk-based and practical. It should catch broken renders and tenant leaks without creating a heavyweight framework before the product shape is proven.
 
 ## Triggers

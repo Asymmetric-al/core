@@ -84,7 +84,7 @@
       Declarative And Guarded**, preserving their merged scenarios while making
       tenant control contract-bounded and routing platform-level system
       messages through Phase 17 contracts and the Phase 6 spine.
-- [x] 2e.4 Record canonical `docs/adr/0022`–`0029` for producer-owned protected actions,
+- [x] 2e.4 Record canonical `docs/adr/0025`–`0032` for producer-owned protected actions,
       contract-bounded Delivery Plans, one notification model, unavailable SMS
       transport, tenant-owned Resend and composed delivery identities, the
       canonical structured document/presentation graph, body-free history with
@@ -110,6 +110,37 @@
 - [x] 2e.8 Verify no merged `openspec/specs/**` file is edited, no product code
       or transport is shipped, no issue is dispatched, and all Phase 17 records
       remain groomed planning until the founder separately authorizes dispatch.
+
+## 2f. Phase 18 (Receipt & PDF Template System) (2026-07-21)
+
+- [x] 2f.1 Record D1–D17 in the implementation-ready Phase 18 PRD plus the
+      dated cross-PRD congruence package, decision-to-test traceability matrix,
+      purpose-authority manifest, and research evidence appendix.
+- [x] 2f.2 Add the `document-production` capability delta and bounded
+      `platform-product-intent`, `platform-boundaries`, and `platform-surfaces`
+      deltas for one Generated Document service, source-owned truth, exact
+      artifacts, one calm Studio, and one current recipient document.
+- [x] 2f.3 Record canonical `docs/adr/0033`–`0039` for durable authorities and
+      clean cutover, renderer evidence and canonical PDF profiles, structured
+      authoring and Approved Data Views, jurisdiction packs and identities,
+      scanner-resistant exact access, records/disposal, and proof-gated
+      publication
+      resolution/appointment.
+- [x] 2f.4 Amend the shared ADR-0025 protected-action primitive for every
+      producer to selector plus independent fragment verifier, inert GET/HEAD,
+      deliberate same-origin POST, exact no-store/no-transform headers, and
+      production Vercel/CDN/mail-scanner proof; do not create a document-only
+      token system.
+- [x] 2f.5 Reconcile Phase 7/13/17/19 ownership so source domains own facts and
+      issuance, Phase 18 owns exact generated artifacts, Phase 17 owns delivery,
+      and Phase 19 owns statement population and run orchestration.
+- [x] 2f.6 Record the no-production premise and environment-gated destructive
+      cutover that removes every prototype receipt/statement/PDF runtime without
+      a legacy importer, adapter, compatibility view, dual path, shadow
+      migration, or fabricated history.
+- [x] 2f.7 Verify the active `add-statement-studio` change and the complete
+      OpenSpec workspace under strict validation; keep all Phase 18 work groomed
+      but not dispatched, and apply no `ready-for-agent` label.
 
 ## 3. Verification
 

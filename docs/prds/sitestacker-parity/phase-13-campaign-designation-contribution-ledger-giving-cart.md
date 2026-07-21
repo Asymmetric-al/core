@@ -21,6 +21,18 @@ Groomed via `grill-with-docs` (2026-07-09). All decisions **D1–D25** ratified 
 > package, ADRs 0012–0017, or OpenSpec delta. Issues #706–#710 are not safe to
 > dispatch unchanged.
 
+> **Binding generated-document ownership amendment (2026-07-21).** Phase 13
+> remains the sole authority for posted ledger and line-level money truth. Phase
+> 7 owns receipt/statement eligibility, legal-donor facts, and correction or
+> issuance authority. Phase 18 alone owns generated-document definitions,
+> publications, requests, artifacts, current heads, access, and document records
+> evidence. The current `gift_receipt_records`,
+> `contribution_receipt_snapshots`, staged receipt-status carrier, live download,
+> and direct render paths are Phase 18 D17 prototype-removal targets; none is a
+> document or receipt authority and none receives a compatibility runtime. Phase
+> 13 emits exact immutable source facts and never computes, stores, or advances a
+> generated-document artifact.
+
 This is the **money backbone** of the platform: the append-only contribution ledger every gift is written to, the Stripe Connect posture that moves the money, the giving cart the donor uses, the recurring commitments that are a missionary's paycheck, the source codes and campaigns that explain what drove a gift, and the corrections/refunds finance performs on all of it. Today the platform records a gift as **one flat `donations` row** — one designation, one amount, an in-place status that mutates as Stripe events arrive, and a plaintext tenant Stripe key on the side. That single row cannot represent a split gift, cannot carry an immutable correction history, cannot separate the four things a nonprofit must keep separate (gross, designation, fees, deductible), and treats the payment processor's mutable state as the system of record. Phase 13 replaces the row with a **header + designation-lines + append-only postings** ledger where Asym Postgres is the source of record and Stripe is only the executor — so that a donor can give to five missionaries and a fund in one cart, finance can refund and re-designate without ever editing history, a returned ACH gift automatically reverses itself, and the money truth is one coherent, auditable, tenant-isolated record instead of a processor side effect.
 
 ---
@@ -774,7 +786,12 @@ _(This block covers the money-movement plane and ledger core: D1, D1b, D24/D25, 
 
 **Core ruling: a contribution has no single `status`.** It has **five separate, orthogonal state axes**, each a closed `CHECK`-constrained, DB-function-enforced state machine that moves independently and is **never collapsed into one enum**. This retires the free-text `donations.status` (`supabase/migrations/…init_schema.sql:183` — `TEXT DEFAULT 'pending'`, no `CHECK`) and its drifting reader vocabularies (`completed` / `succeeded` / `success` / display-`Succeeded`; the duplicate `SETTLED_DONATION_STATUSES` constant), and **promotes the discipline `staged_gifts` already proves** (multi-axis status columns + an `ALLOWED_TRANSITIONS` matrix at `staged-gifts.ts:118-129`) onto the canonical ledger header.
 
-> **Real-vs-forward (as of authoring).** `staged_gifts` today carries five parallel status columns and a transition matrix — evidence that the five-axis shape is native to this domain, not an invention. The gap is that the _header_ (the `donations` row that D2 replaces) collapses everything into one untyped `status`, and that matrix lives in TypeScript, not the database. Phase 13 moves the discipline onto the header and into the DB.
+> **Real-vs-forward (as of authoring).** `staged_gifts` today carries five
+> parallel status columns and a transition matrix. That is evidence of the
+> concerns that must remain separate, not authority to copy every legacy column
+> onto the final header. Phase 13 moves only its owned payment/posting/review
+> discipline plus the narrow Phase 20 stub into the final DB model; the legacy
+> receipt carrier is removed by Phase 18 D17.
 
 The five axes:
 
@@ -782,13 +799,18 @@ The five axes:
 
 2. **LEDGER / POSTING** — the append-only DB fold. States: `unposted / posted / reversed`. **This axis does not exist today — it is Phase 13's core gap.** A header posts only when its payment is _money-final_; corrections and refunds **append a reversing posting** (never mutate the posted row). `posted` means "a ledger entry exists," never "immutable-final money" (ACH posts provisional; see below).
 
-3. **RECEIPT** — Phase 7 (Receipt & Statement Compliance) owns this axis. States: `not_required / pending / issued / suppressed / voided / failed`. It reads a frozen snapshot and is suppression-gated. **Refinement:** fold the two current carriers (`staged_gifts.receipt_status` + `gift_receipt_records.status`) into this one axis. In Phase 13 this axis ships as a **reserved single-state stub**, not a full machine — Phase 7 builds the machine; Phase 13 only reserves the column so posting-vs-receipt timing (below) can gate on it.
+3. **RECEIPT / DOCUMENT PROJECTION** — Phase 7 owns source eligibility/issuance truth and Phase 18 owns generated-document lifecycle/current artifact; Phase 13 owns neither. Phase 13 may expose a constrained derived projection for money operations, but it MUST NOT create a competing receipt state machine or reserve an authoritative receipt column. `staged_gifts.receipt_status`, `gift_receipt_records.status`, and `contribution_receipt_snapshots` are D17 removal targets. Posting and payment transitions emit typed source facts; the owning services derive receipt/document state without writing it back as money truth.
 
 4. **ACCOUNTING-EXPORT** — a Phase 20 seam. States: `not_exported / queued / exported / failed / excluded`. Batch-cadence, distinct from real-time posting; re-export is idempotent and read-only with respect to the ledger. **Seam-only in Phase 13** (reserved single-state stub) so accounting-export can never collapse into posting.
 
 5. **REVIEW / workflow** — the finance queue. States: `received / needs_review / ready_to_post / …`, with **donor-match and allocation as review-_reason inputs_ into this single axis, not standalone axes.** This is a **durable precedent** (`staged_gifts` `ALLOWED_TRANSITIONS`, `staged-gifts.ts:118-129`). Keep it as the human-workflow axis, but **stop overloading its `posted` value** to also mean ledger-posted _and_ CRM-posted — re-anchor those meanings to the first-class POSTING axis.
 
-**Right-sized, not over-built.** The five-axis model was validated three independent ways: `staged_gifts` already carries five parallel status columns; CiviCRM, NPSP, and Blackbaud all separate payment / posting / receipt / GL-export lifecycles; and a single free-text `status` is the anti-pattern being replaced. Over-engineering verdict: **no.** RECEIPT and ACCOUNTING-EXPORT ship as reserved single-state stubs (not full machines) in Phase 13; the full machines belong to Phases 7 and 20 respectively.
+**Right-sized, not over-built.** The five lifecycle concerns remain separate,
+but that does not mean five Phase 13 authorities. Phase 13 persists its payment,
+posting, and review truth plus the already-ratified narrow accounting-export
+stub for Phase 20. Receipt/document state is a constrained read projection over
+Phase 7 source issuance plus Phase 18 generated-document state. No reserved
+receipt column or duplicate receipt state machine ships here.
 
 #### D.1 — The composition chain (one-directional preconditions, never merged)
 
@@ -823,7 +845,7 @@ The forward exception predicate is **composable, tenant-configurable, and FAIL-C
 The founder's _"no delay in auto-posting"_ is reconciled with ACH's ~60-day provisionality by making **auto-post method-aware, not method-blind:**
 
 - **POSTING.** ACH posts **immediately** on `payment_intent.processing` / `succeeded` as an append-only ledger entry — **no artificial delay** (honors D7.a). The entry carries `settlement = provisional` and `return_exposed_until` (the debit date + ~60 days for personal accounts / ~2 business days for business accounts). Card `succeeded` posts **final** immediately.
-- **RECEIPT.** A receipt issues on acceptance per Phase 7, **governed** by the ratified knobs `hold_ach_receipt_until_settled` (default _off_ in the US / forced _on_ for CRA/Canada), `high_value_ach_threshold`, and `year_end_ach_policy`. **Do not flatten this with "no delay."** Receipt rows are `(donation_id, version)`-grained (a later void is a new version, never a mutation).
+- **RECEIPT.** An ACH payment that is only `processing` is never official-receipt eligible. Phase 7 may authorize issuance only after processor-confirmed success; Phase 18 then generates the exact artifact. A later return appends the source-owned inverse and correction/void/replacement effect. Phase 13 stores no receipt status or document identity and exposes only a constrained projection for finance operations.
 - **PROGRESS / SUPPORT.** Provisional ACH counts toward **private finance totals** immediately; it counts toward **public progress bars / missionary support** only under a per-tenant `expose_provisional_ach_to_public` flag (**default: settled-only**). See D17.
 - **POST-RECEIPT RETURN** (`charge.dispute.created` after settlement): in **one transactional DB function under a per-contribution advisory lock**, append a reversing entry (never mutate) → move the payment axis to the terminal `returned` state (**distinct from `refunded`**) → void/supersede the receipt as a _new version_ and notify the donor → supersede any issued year-end statement → net-reduce public progress.
 
@@ -1187,14 +1209,21 @@ Every new table below carries: `tenant_id UUID NOT NULL` with **no default** (th
 - **`contribution_postings`** — append-only entries that fold to the effective value. Purpose: the ledger's event stream (initial allocation + every correction/refund/reversal). Key columns: `id`, `tenant_id`, `header_id`, `target_line_id`, `seq` (monotonic per-header), `amount_delta_minor` (signed), `kind` (TEXT+CHECK: `initial`, `refund`, `void`, `write_off`, `ach_return`, `chargeback`, `gift_date_correction`, `source_code_correction`, …), `reverses_posting_id` (nullable), `is_initial` replay-guard, actor/reason/provider-outcome facts, plus the **immutable D14 attribution columns copied as plain columns** (never re-read from the live registry). Invariants: **no UPDATE/DELETE once written** (BEFORE UPDATE OR DELETE trigger that RAISEs — not RLS, not REVOKE, because `service_role` has BYPASSRLS and migrations run as owner); `seq` allocated under `SELECT … FOR UPDATE` on the header so ties are impossible; a reversal carries inverse deltas and both rows survive as provenance (never a status flip).
 - **`contribution_adjustments` (generalized)** — the current JSONB adjustment overlay is **folded into `contribution_postings` in the same cutover** (per D2 completeness: leaving it as a parallel overlay delivers "one canonical truth" only half-way). Purpose after Phase 13: retired as a truth store; the append-only posting stream is the sole correction record. The shipped effective-fold discipline (ADR-CD-004) and `base_revision` optimistic-concurrency + partial-unique idempotency key are **kept and generalized** onto postings; the whole-array `effective_values.designationLines` replace is **replaced by per-line-id deltas** `{target_line_id, amount_delta_minor, fund_id?, missionary_id?}` with explicit `add_line` / `void_line`.
 
-### New/changed tables — five-axis lifecycle (D7)
+### New/changed tables — separated lifecycle ownership (D7)
 
-A contribution has **no single status**. Each of five orthogonal axes is a closed CHECK-constrained state machine enforced in a **locked SECURITY DEFINER DB function + BEFORE UPDATE trigger** (the locked-function pattern from the custom-collections reorder work), composing all co-moving axes for one event into ONE RPC under a **per-contribution advisory lock**. The axes live as columns on `contribution_headers` (some as reserved single-state stubs):
+A contribution has **no single status**. Phase 13's owned payment, posting, and
+review axes are closed CHECK-constrained state machines enforced in a **locked
+SECURITY DEFINER DB function + BEFORE UPDATE trigger** (the locked-function
+pattern from the custom-collections reorder work), composing co-moving Phase 13
+facts for one event into one RPC under a **per-contribution advisory lock**.
+Receipt/document status remains separately owned rather than a column on
+`contribution_headers`; the Phase 20 accounting-export reservation remains a
+single inert stub:
 
 1. **PAYMENT** (Stripe/rail truth, driven by webhooks ONLY): `requires_action / processing / succeeded / failed / canceled / refunded / disputed / returned`, plus ACH `provisionally_settled`. Card `succeeded` = final; **ACH `succeeded` = PROVISIONAL** (returns arrive up to ~60 days later).
 2. **LEDGER/POSTING** (append-only fold — **the core gap that does not exist today**): `unposted / posted / reversed`. "Posted" = "a ledger entry exists," never immutable-final money.
-3. **RECEIPT** (Phase 7 (Receipt/Statement Compliance) owns it): reserved stub `not_required / pending / issued / suppressed / voided / failed`. Receipt rows are `(donation_id, version)`-grained (a later void = a new version, never a mutation).
-4. **ACCOUNTING-EXPORT** (Phase 20 seam): reserved stub `not_exported / queued / exported / failed / excluded`.
+3. **RECEIPT / DOCUMENT** (Phase 7 source truth + Phase 18 generated-document truth): constrained derived projection only; no Phase 13 column or transition machine.
+4. **ACCOUNTING-EXPORT** (Phase 20 seam): reserved single-state stub only; Phase 13 authors no export transitions.
 5. **REVIEW/workflow** (finance queue): `received / needs_review / ready_to_post / …` + review-reason inputs (`donor_match`, `allocation`). This is the human gate; it must **stop overloading `posted`** to also mean ledger-posted.
 
 Composition is a one-directional precondition chain (payment money-final → eligible to post; posted → receipt eligible; posted+settled → exportable); reversals flow the **same append-only direction**. Free-text drift is deleted (`succeeded`/`success`/`Succeeded`, the duplicate `SETTLED_DONATION_STATUSES` constant); `donations.status` becomes a projection over the PAYMENT axis. **Hard rule: ACH is not enabled until the `charge.dispute.*` / return handlers + fail-closed review + one-transaction reversal cascade ship.**
@@ -1460,7 +1489,7 @@ _What the PRD tells the agent to build, and in what order. Nothing in a later gr
 **BUILD-V1 — the enforced product (each behind a named gate, dependency-ordered):**
 
 5. The **D3 ledger core**: header + designation lines + append-only postings; monotonic `seq` via `FOR UPDATE` on the header; the immutability trigger; the deferrable `sum(lines)=header` constraint; the derivation-only effective-value fold + CI grep gate on base-money reads; the version-cursored read model; **delete `funds.current_amount`** (derive + reconcile); the shared largest-remainder (Hamilton) proration function used by both the UI preview and the ledger.
-6. The **D7 five-axis lifecycle**: five CHECK-TEXT status columns; the locked transition RPC + `BEFORE UPDATE` trigger (unknown pairs → escalation row, never silent-ignore); route existing webhooks through it; migrate the free-text `donations.status`; `(donation_id, version)` receipt grain; the fail-closed exception predicate set + queue; RECEIPT (Phase 7) and ACCOUNTING-EXPORT (Phase 20) ship as **reserved single-state stubs**, not full machines.
+6. The **D7 separated lifecycle**: CHECK-TEXT columns for Phase 13-owned payment, posting, and review truth plus the inert Phase 20 accounting-export stub; the locked transition RPC + `BEFORE UPDATE` trigger (unknown pairs → escalation row, never silent-ignore); route existing webhooks through it; replace the free-text `donations.status`; and ship the fail-closed exception predicate set + queue. Receipt/document state remains a constrained cross-domain projection with no Phase 13 stub column.
 7. The **NEW `charge.dispute.*` + refund/return handlers** in the Inngest processor (idempotent; Nacha R05/R07/R10/R11 → void; pin the Stripe API version + a CI allowlist-review-on-bump) and the one-transaction reversal cascade (payment→ledger→receipt→progress under a per-contribution advisory lock). **HARD GATE — the ACH no-go:** _do not enable ACH until these dispute/return handlers + the fail-closed review + the one-transaction reversal cascade ship._ ACH is one Stripe dashboard toggle from live; enabling it earlier means money leaves and the gift stays "paid" forever (D7 blocker #1 / the one hard rule).
 8. **D8 tender + dating + non-cash subtypes**: the `gift_method` enum + per-tender metadata; the capture-not-recompute date-of-delivery resolver with `delivery_basis` **guided override bounded by method** + live tax-year preview + A15 approval on issued-year crossing; fail-closed tenant tax config; the `non_cash_asset` substrate (vehicle/securities incl. crypto/real-estate) with subtype-keyed CHECK constraints making illegal combos unrepresentable, dedicated append-only fact tables (not the closed fold), derived 1098-C/8283/appraisal flags from DB lookup constants; the structural internal-value wall; real-estate always `requires_gift_acceptance_review` (never auto-posts).
 9. **D14 source codes + attribution**: the `source_codes` registry (FORCE RLS, Data-API-revoke, composite uniqueness, `ON DELETE RESTRICT`, `campaign_id` nullable-reserved); the **seed/bulk-import path** (cannot trail — an empty registry routes the whole ledger to triage on day one); the shared `normalizeSourceCode`; UTM capture (discrete allowlisted columns + jsonb overflow); per-line write-once freeze; the immutable recurring attribution snapshot (label+channel+segment+id, **not** raw UTM); the **separate erasable raw-UTM capture-log** off the ledger (Article-9 religious-affiliation risk) + redaction path; store-both + per-tenant report-time toggle initialized to **last-touch**; the CSV-injection fix; **the tagged-link builder** (canonical `?sc=` link + short link + dynamic QR) and the `/s/[token]` data-driven redirect (the one friction-critical UI — match rate is a direct function of it).

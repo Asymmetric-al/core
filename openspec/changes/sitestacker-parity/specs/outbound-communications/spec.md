@@ -481,7 +481,7 @@ provider material, or an existing id until same-scope ownership is proved.
 - THEN it fails before header or child persistence with a repair-visible reason
 - AND it never truncates or chunks the logical occurrence
 
-### Requirement: Protected Actions Remain Producer-owned And Scanner-safe
+### Requirement: Protected Actions Remain Producer-owned And Scanner-resistant
 
 Protected actions MUST be tenant-scope-only in this generation and MUST bind one
 exact Party/contact authority. Every platform-scoped contract MUST declare
@@ -497,91 +497,101 @@ the contract-approved protected-action node. Templates, imports, tests, and
 tenant staff MUST NOT create, reveal, rewrite, duplicate, relabel, track, or
 widen protected actions.
 
-Protected actions MUST use either a producer capability with an inert Asym
-explanation and deliberate single-use exchange, or an authenticated Asym service
-doorway that re-proves current tenant, Party, role, resource, expiry,
-revocation, and authorization. `GET`, `HEAD`, preview, scanner, and link-expander
-traffic MUST have no business effect. Credentials and protected destinations
-MUST NOT appear in editor state, logs, analytics, durable history, recent-copy
-storage, or exported packages. Reissuance MUST create a successor communication
-identity rather than mutating a prepared message.
+Every protected action MUST use the same fixed scanner-resistant Asym doorway.
+After the verifier POST, a producer contract MAY require an authenticated portal
+session, reauthentication, step-up, producer OTP, or explicit confirmation, but
+those are assurance requirements behind one transport—not alternate link,
+handoff, token, or authorization systems. `GET`, `HEAD`, preview, scanner, and
+link-expander traffic MUST have no business effect. Credentials and protected
+destinations MUST NOT appear in editor state, logs, analytics, durable history,
+recent-copy storage, or exported packages. Reissuance MUST create a successor
+communication identity rather than mutating a prepared message.
 
-The handoff MUST be no-store, no-referrer, and third-party-free. At startup, the
-server MUST parse the configured `protectedActionOrigin` as one canonical HTTPS
-origin and join it only to the code-owned exact `PROTECTED_ACTION_PATH`; tenant
-input, request headers, and arbitrary configured paths MUST NOT participate. A
-dedicated CSP-source serializer MUST produce `protectedActionSource` only when
-the resulting `protectedActionUrl` parses and round-trips to that exact origin
-and path, has no user information, wildcard, query, or fragment, and its source
-token contains no raw comma, semicolon, ASCII control, whitespace, single quote,
-double quote, or backtick. Invalid or non-round-tripping configuration MUST fail
-readiness, and policy fixtures MUST parse the completed value back to the exact
-directive/source map. For every landing and terminal response, the server MUST
-generate at least 128 fresh random bits with a cryptographically secure
-random-number generator, Base64-encode them as `nonce`, and serialize the
-following exact policy value only after those checks:
-`default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; style-src 'nonce-${nonce}'; form-action ${protectedActionSource}`.
-The serialization variables MUST be replaced and MUST never appear literally in
-output. The response MAY use one server-rendered inline
-`<style nonce="${nonce}">` block with the exact same response nonce; nonces MUST
-NOT be reused across responses. Its form action MUST equal the exact
-`protectedActionUrl`. It MUST have no style
-attributes, scripts, external resources, analytics, or CSP report receiver. Only
-POST to the exact server-configured action origin and exact server-owned route,
-with method, CSRF/origin/Fetch-Metadata controls, current authorization, expected
-state, idempotency, and contract-owned step-up, may mutate. The POST MUST return
-its terminal response directly rather than redirect a secret-bearing submission
-to another authority. Host/forwarded-host/query/fragment/tenant content MUST NOT
-select an action origin, redirect, or authority. Every adopted Supabase Send
-Email Hook action MUST have a
-checked-in exact recipient/token/hash mapping, including secure and non-secure
-email-change cases; raw Standard Webhooks signatures MUST be verified before
-parse and the bounded hook deadline MUST use an already-published individual-send
-path. Possible provider acceptance MUST remain indeterminate under the same
-frozen identity.
+The handoff MUST be no-store, no-referrer, third-party-free, and shared by every
+producer. The fixed code-owned Asym HTTP URL MUST carry only a random non-secret
+selector. An independent verifier MUST contain at least 256 random bits and MUST
+exist only in the URL fragment until browser bootstrap. The server MUST store
+only a versioned HMAC/digest of the verifier. The verifier MUST NOT enter an HTTP
+path/query, redirect, provider tracking URL, communication history, recent-copy
+storage, export, storage URL, log, trace, analytics event, screenshot, support
+tool, or browser telemetry. There MUST be no full-secret or raw-selector
+fallback.
 
-Before rendering content, the first browser GET to an opaque-handle URL MUST
-perform a server-side clean-URL exchange. The server MUST validate only the
-short-lived, non-PII, minimally scoped, revocable handle, create a
-non-authorizing landing session in a `Secure`, `HttpOnly`, path-scoped,
-host-only `SameSite=Lax` cookie, and immediately return `303 See Other` to the exact
-code-owned token-free landing path with no query or fragment. The exchange MUST
-be safe to repeat, MUST NOT consume or redeem the producer credential, and MUST
-grant no mutation authority. `HEAD` MUST create no session. The redirected GET
-MAY render from the landing session; deliberate POST MUST still re-prove every
-required tenant/recipient/source/action condition. JavaScript and
-`history.replaceState` MUST NOT substitute for the server redirect.
+A selector-only `GET` or `HEAD` MUST be inert and non-enumerating. It MUST reveal
+no organization, action, recipient, resource, expiry, terminal state, or other
+protected fact; touch no protected resource; consume no credential or grant;
+create no authorized session; and prove neither identity nor human intent.
+`HEAD` MUST return no body or session. Missing, malformed, modified, or stripped
+fragments MUST lead only to the same generic code-owned recovery route.
 
-`SameSite=Lax` MUST support the legitimate cross-site top-level navigation from
-an email client and subsequent same-origin redirect without granting mutation
-authority. A small bounded set of simultaneous short-lived non-authorizing
-sessions MAY exist for one handle so scanner follows cannot invalidate a human
-landing. Rate/cap enforcement MUST NOT consume the producer credential, mark the
-action used, invalidate an existing valid session merely because another GET
-arrived, or prevent later recovery/reissue. Terminal, expiry, replacement, and
-revocation MUST clear every session for the handle.
+At startup, the server MUST parse `protectedActionOrigin` as one canonical HTTPS
+origin and join it only to the exact code-owned `PROTECTED_ACTION_PATH`. Tenant
+input, request/forwarded-host headers, arbitrary configured paths, selector,
+verifier, and return destinations MUST NOT choose the origin, route, authority,
+or redirect. Invalid or non-round-tripping origin/route configuration MUST fail
+readiness.
 
-The cookie MUST contain only a cryptographically random server-side session id,
-MUST omit `Domain` so it is host-only, MUST use the exact landing/action `Path`,
-and MUST have absolute expiry and `Max-Age` no later than the handle and action
-authority. Server state MUST bind environment, scope tuple, handle digest,
-protected-action kind, purpose, key version, expiry and revocation. Every render
-MUST recheck those bindings; rotation MUST invalidate the prior session, and
-terminal, expired, revoked or replaced authority MUST clear it. Tests MUST reject
-sibling-subdomain cookie injection/tossing, stale sessions, wrong path/scope/
-environment/action/purpose, and session survival after terminal state.
-Real-browser fixtures MUST cover external-webmail and redirect-chain entry in
-Chromium, WebKit, and Firefox plus repeated scanner/prefetch GETs, iframe and
-cross-site POST attempts, human-session coexistence, cap/rate recovery, and
-terminal clearing.
+For every landing and terminal response, the server MUST generate at least 128
+fresh random bits with a cryptographically secure random-number generator,
+Base64-encode them as `nonce`, and serialize this exact policy after the
+origin/route checks:
+`default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'nonce-${nonce}'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; style-src 'nonce-${nonce}'; form-action 'self'`.
+The serialization variable MUST be replaced and MUST never appear literally in
+output. A response MAY use at most one server-rendered inline
+`<style nonce="${nonce}">` block and one minimal inline
+`<script nonce="${nonce}">` block with the exact same response nonce; nonces
+MUST NOT be reused across responses. The script MUST do only four things: parse
+the closed verifier envelope from `location.hash`, reject malformed input,
+immediately remove the fragment from browser-visible history with
+`history.replaceState`, and place the verifier in the same-origin protected
+form. It MUST NOT auto-submit, fetch, beacon, persist, log, report, navigate, or
+load another resource. The recipient MUST deliberately submit the form.
 
-The product MUST prove that the current address, refresh, forward navigation,
-form action, and outbound referrer contain no handle, secret, or PII; back
-navigation MUST NOT redeem or mutate. It MUST redact handles and secret URL
-material from product-controlled logs, analytics, support, tests, screenshots,
-and browser telemetry. It MUST NOT claim to erase user-agent-managed prior
-navigation entries, browser sync, mail-client history, clipboard contents, or
+Every protected action's exact same-origin POST, protected by method, CSRF,
+Origin, Fetch Metadata, current authorization, expected state, idempotency, and
+any contract-owned step-up, MUST validate the selector/verifier pair before it
+may establish a short-lived non-authorizing landing session or continue to the
+producer-owned assurance/action step. Digest comparison MUST be constant time.
+Raw request bodies and verifiers MUST be redacted before every
+product-controlled observability seam. The cookie MUST contain only a
+cryptographically random server-side session id; MUST be `Secure`, `HttpOnly`,
+host-only by omitting `Domain`, `SameSite=Lax`, and scoped to the exact
+landing/action `Path`; and MUST expire no later than producer action authority.
+Server state MUST bind environment, scope tuple, selector and digest/key
+versions, protected-action kind, purpose, recipient-authorization epoch, expiry,
+and revocation. Every later request MUST re-prove those bindings. Rotation MUST
+invalidate prior sessions, and terminal, expired, replaced, or revoked authority
+MUST clear every affected session. Verified POST replay MUST be idempotent and
+MUST NOT execute the producer action twice.
+
+Every protected landing, redirect, error, session, and terminal response MUST
+set all three cache headers exactly: `Cache-Control: private, no-store,
+no-transform, max-age=0`, `CDN-Cache-Control: no-store`, and
+`Vercel-CDN-Cache-Control: no-store`. It MUST also set `Referrer-Policy:
+no-referrer`. No protected route MAY add `s-maxage`, stale fallback, an optimizer,
+or service-worker handling. The form action MUST be the exact same-origin
+code-owned route. There MUST be no style attributes, external resources,
+third-party script, CSP report receiver, analytics, session replay, remote
+image/font, tag manager, pixel, or tracking receiver.
+
+Real-browser and production-path fixtures MUST cover supported webmail, mail
+clients, mobile webviews, Chromium/WebKit/Firefox, and scanners that follow
+links, execute script, or submit forms. They MUST prove fragment preservation,
+fragment removal, deliberate-submit behavior, duplicate POST idempotency,
+selector enumeration resistance, iframe/cross-site POST denial, current
+authorization, sibling-subdomain cookie rejection, key rotation, terminal
+clearing, and the exact cache headers through the actual Vercel/CDN path. There
+MUST be no query/path-secret compatibility fallback when a client strips the
+fragment. The product MAY guarantee verifier-free product-controlled URLs,
+referrers, logs, and telemetry after bootstrap; it MUST NOT claim to erase
+mail-client/extension history, browser sync, screenshots, clipboard contents, or
 other records outside Asym control.
+
+Every adopted Supabase Send Email Hook action MUST have a checked-in exact
+recipient/token/hash mapping, including secure and non-secure email-change cases;
+raw Standard Webhooks signatures MUST be verified before parse and the bounded
+hook deadline MUST use an already-published individual-send path. Possible
+provider acceptance MUST remain indeterminate under the same frozen identity.
 
 #### Scenario: An email scanner opens a protected link
 
@@ -589,6 +599,16 @@ other records outside Asym control.
 - WHEN a scanner or preview client issues `GET` or `HEAD`
 - THEN no credential is redeemed and no source state changes
 - AND only deliberate, currently authorized acceptance can perform the action
+
+#### Scenario: An advanced scanner executes the landing page
+
+- GIVEN a scanner executes the pinned bootstrap script or submits the verifier
+  form
+- WHEN the platform records the bootstrap or grants a non-authorizing landing
+  session
+- THEN it does not label the event human, opened, read, accepted, or completed
+- AND the producer action still requires its current contract-owned confirmation,
+  authorization, expected-state, and idempotency proofs
 
 #### Scenario: A platform contract supplies a protected action
 
@@ -602,18 +622,36 @@ other records outside Asym control.
 
 - GIVEN a protected-action landing is rendered with its per-response CSP nonce
 - AND the nonce contains at least 128 bits from a cryptographically secure random
-  source, differs from another response, and matches the sole inline style nonce
-- AND the form action is the exact configured HTTPS origin plus code-owned route,
-  whose CSP source survived delimiter rejection and policy round-trip with no
-  literal serialization placeholder
-- WHEN injected or accidental content attempts script, fetch, beacon, image,
-  font, frame, external style, or CSP-report traffic
+  source, differs from another response, and matches the sole inline script and
+  style nonces
+- AND the form action is the exact same-origin code-owned route with no literal
+  serialization placeholder
+- WHEN injected or accidental content attempts any unpinned script, fetch,
+  beacon, image, font, frame, external style, or CSP-report traffic
 - THEN the browser policy blocks every request
-- AND `form-action` permits form submission only by the deliberate POST to the
-  server-configured action origin and code-owned route
-- AND it does not constrain ordinary browser navigation, so exact route, method,
-  origin, Fetch Metadata, CSRF, authorization, and state checks remain
-  authoritative
+- AND the sole pinned script can only prepare the fragment verifier for the
+  recipient's deliberate same-origin form POST
+- AND exact route, method, Origin, Fetch Metadata, CSRF, authorization, and state
+  checks remain authoritative
+
+#### Scenario: A supported mail client strips the verifier fragment
+
+- GIVEN a protected-action notice is opened with its non-secret selector but no
+  valid fragment verifier
+- WHEN the landing route receives GET, HEAD, refresh, or a submit attempt
+- THEN it reveals no protected facts, creates no authorized session, and consumes
+  no credential or grant
+- AND it offers only the generic recovery route with no path, query, cookie, or
+  raw-selector secret fallback
+
+#### Scenario: A protected response crosses the production edge
+
+- GIVEN any protected landing, redirect, error, session, or terminal response
+- WHEN the response traverses the actual Vercel and CDN configuration
+- THEN it retains `Cache-Control: private, no-store, no-transform, max-age=0`,
+  `CDN-Cache-Control: no-store`, and `Vercel-CDN-Cache-Control: no-store`
+- AND no cache, transform, stale response, optimizer, or service worker handles
+  it
 
 ### Requirement: In-product Notifications Are One Role-safe Attention Projection
 

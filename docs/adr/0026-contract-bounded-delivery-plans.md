@@ -1,4 +1,4 @@
-# ADR-0023: Contract-bounded Delivery Plans
+# ADR-0026: Contract-bounded Delivery Plans
 
 **Status:** Accepted (founder ruling, Phase 17 grill session — D7)
 

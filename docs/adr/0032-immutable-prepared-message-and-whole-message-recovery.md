@@ -1,4 +1,4 @@
-# ADR-0029: Immutable prepared message and whole-message recovery
+# ADR-0032: Immutable prepared message and whole-message recovery
 
 **Status:** Accepted (founder ruling, Phase 17 grill session — D15)
 

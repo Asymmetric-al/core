@@ -23,6 +23,16 @@ cannot manufacture missing donor authority. System schedulers and reconcilers
 use separately registered service-principal capabilities and the same tenant/
 purpose/audit boundaries, never a staff-role shortcut.
 
+**Phase 18 downstream capability amendment (2026-07-21).** Phase 18 registers
+explicit atoms for document draft/edit, standard publish, protected submit and
+different-human review, publication appointment, generation, correction or
+replacement, exact artifact access, Canadian issuer/signer/serial operations,
+records holds/disposition, and technical evidence. Phase 12 owns capability
+registry, active assignment, step-up, epochs, audit, and tenant/object scope;
+Phase 18 owns command preconditions and purpose/issuer/resource authorization.
+Role names, UI visibility, authored-template ownership, a URL, or successful
+rendering never authorize a command or artifact read.
+
 **Posture note (fresh-build).** The product has **no production users** (ADR-0001). Design correct-from-start; there is no end-user data to migrate. But the current auth code (`packages/auth/permissions.ts`, `packages/auth/context.ts`, `supabase/migrations/20260226113000_authz_memberships_foundation.sql`) contains the MVP "all staff subroles share broad admin access" posture and several **live cross-tenant hazards** this phase retires as its first task (see **§ Ship-First Substrate**). Make **no "live/shipped" claims** without evidence. A cross-tenant or cross-clearance exposure of a restricted-ministry worker is a **physical-safety event**, not a privacy incident — this is the design's controlling constraint.
 
 ---

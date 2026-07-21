@@ -30,5 +30,8 @@ validation, and batch/deposit references for reconciliation.
 - WHEN staff selects the unknown-donor offline mode
 - THEN the contribution records amount, date, method, designation, and batch
   reference with a null donor record
-- AND receipt status defaults to not receiptable
+- AND Phase 7 derives reason-carrying `not_receiptable` eligibility from the
+  source-owned unknown-donor fact
+- AND the contribution stores no duplicate receipt, render, artifact, access,
+  or delivery status
 - AND no fake donor name or email is required or accepted

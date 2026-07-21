@@ -1,5 +1,14 @@
 # Statement Studio PRD
 
+> **Superseded implementation authority (Phase 18, 2026-07-21).** This PRD is
+> retained as historical design and repo evidence only. Do not dispatch or
+> implement it directly. The Phase 18 PRD, authority manifest, renderer
+> qualification protocol, ADRs 0033-0039, and OpenSpec change are controlling.
+> Phase 18 D17 requires a clean pre-production cutover with no legacy runtime,
+> import, backfill, or dual compatibility; D3 selects at most one exact
+> production renderer through evidence; D13 forbids raw provider or signed
+> object URLs as access authority.
+
 Statement Studio is the full rebuild of PDF Studio into a usable staff-facing
 product inside Mission Control. It must become the platform's own custom PDF
 and statement product surface, not Unlayer, not an email editor pretending to
@@ -9,16 +18,17 @@ The product must keep its saved template format Asym-owned, tenant-safe,
 versioned, auditable, and usable by non-technical tenant admins. Rendering stays
 behind a provider-neutral server boundary.
 
-**Phase 0 decision:** The in-flight native PDF Studio server-side DocRaptor
-adapter is the first-slice provider candidate. If provider qualification and
-HITL approval pass, use it as the sole first-slice provider. The repo has no pdfx
-or React PDF runtime path; adding one now would create a competing greenfield
-stack. See `phase-0-audit-brief.md` for qualification, parity, cutover, rollback,
-and template-migration gates.
+**Current Phase 18 decision:** no renderer is selected before D3. One bounded,
+pre-registered, production-shaped evidence contest yields zero or one exact
+production winner. DocRaptor, Chromium-class HTML-to-PDF, React PDF, and
+Typst-class candidates have no production authority unless they win. D17 then
+enables only the winner in the clean canonical runtime; there is no migration or
+fallback renderer.
 
 ## Triggers
 
-Use this PRD when creating issues, planning implementation, reviewing scope, or
+Use this PRD only as historical evidence when reconciling old issues or scope.
+Use the Phase 18 PRD when creating issues, planning implementation, or
 checking completeness for Statement Studio work.
 
 Use it for:
@@ -268,11 +278,11 @@ event badges, and schedules.
 ### Product Identity
 
 - The user-facing product name is Statement Studio.
-- Existing PDF Studio route names or `pdf_*` internals can migrate
-  pragmatically, but user-facing UI must not present PDF Studio and Statement
-  Studio as separate products.
-- Unlayer is not part of the new product architecture. It is legacy-only and
-  may be removed entirely once Phase 0 confirms the removal/migration path.
+- Prototype PDF Studio routes and `pdf_*` internals are direct-removal evidence.
+  After D17 proof, replace them with one clean canonical Phase 18 runtime; do
+  not migrate data or preserve a competing product surface.
+- Unlayer is not part of the new product architecture and is removed in the D17
+  clean cut after the pre-production environment proof passes.
 - The rebuild is a product replacement, not a compatibility layer around old
   Unlayer document editing.
 
@@ -335,9 +345,9 @@ UX requirements:
 - Persist templates as a constrained Asym JSON block/tree schema, not JSX, raw
   pdfx registry JSON, HTML, direct React props, or Unlayer design JSON.
 - Compile the validated template schema through the server-only renderer port.
-  The first production provider candidate is DocRaptor per the Phase 0 decision;
-  production enablement remains gated on provider qualification and HITL
-  approval.
+  D3 qualifies candidates and permits at most one exact production renderer.
+  No candidate is assumed, and no losing candidate remains as an official
+  fallback.
 - Store immutable published versions with content hashes and schema versions.
 - Store drafts separately from published versions.
 - Allow clone, edit, preview, publish, assign, replace, and rollback workflows.
@@ -363,7 +373,9 @@ queries.
 
 Supabase requirements:
 
-- Create additive, migration-safe schema changes.
+- After the D17 environment assertion passes, replace the prototype schema with
+  the one clean canonical `pdf_*` model. Do not add migration compatibility,
+  import/backfill, aliases, dual writers/readers, or shadow paths.
 - Make Data API exposure and grants explicit.
 - Enable RLS on every tenant-owned table exposed through a client-accessible
   schema.
@@ -379,8 +391,9 @@ Supabase requirements:
 - Prefer server/BFF boundaries for production rendering, sensitive reads,
   private artifacts, and cross-surface document access.
 - Keep generated PDFs in private Supabase Storage buckets.
-- Use RLS policies on Storage objects and/or server-checked signed URL or
-  streaming boundaries.
+- Keep custody private and expose exact bytes only through the authenticated
+  Asym route. Raw provider, bucket, or signed object URLs are never access
+  authority.
 - Use tenant-aware object paths and metadata.
 - Delete/purge files through Supabase Storage APIs, not SQL-only metadata
   deletes.
@@ -402,9 +415,10 @@ Current official Supabase posture checked on 2026-06-12:
 
 ### Core Data Model
 
-Phase 0 retained the existing `pdf_*` family as the canonical migration base.
-Foundation work must map or add these concepts without creating a parallel
-template/version/render/artifact store:
+Phase 18 retains the `pdf_*` namespace for one clean canonical bounded context,
+not the prototype tables as a migration base. Foundation work must implement
+these concepts without creating a parallel template/version/render/artifact
+store:
 
 - System document job catalog.
 - System starter template library and starter versions.
@@ -818,12 +832,14 @@ CMS/Public Context:
 Render rules:
 
 - Resolve the assignment/default first.
-- Resolve production data server-side through the owning domain resolver.
+- Consume the request-pinned immutable source-owned Facts Package; production
+  rendering never rereads mutable source rows.
 - Validate template and variables before render.
 - Render through the approved Statement Studio renderer.
 - Store generated PDF in private Supabase Storage.
 - Store artifact metadata in Postgres.
-- Expose download through server-checked access or short-lived signed URL.
+- Expose exact bytes only through the authenticated Asym access route, with
+  per-request authorization and no raw/signed object URL authority.
 - Apply retention and purge policy.
 - Keep audit/tombstone metadata after purge.
 
@@ -1011,10 +1027,12 @@ Phase 7: Batch rendering, retention, purge, governance
 - Add storage threshold cleanup.
 - Add deeper audit, rollback history, and governance views.
 
-Phase 8: Legacy removal and cleanup
+Phase 0: Environment-gated prototype removal
 
-- Remove or migrate legacy Unlayer PDF Studio code, config, docs, tests, env
-  references, and user-facing naming.
+- Run D17 proof, then remove prototype Unlayer/PDF Studio/schema/routes,
+  direct-render paths, config, docs, tests, dependencies, flags, and naming
+  before the canonical writer is enabled. Stop before mutation if the
+  no-production premise is false; do not improvise migration.
 - Rewrite useful tests around Statement Studio behavior.
 - Remove product confusion between old PDF Studio and Statement Studio.
 
@@ -1026,7 +1044,7 @@ Create issues from this PRD as epics and thin vertical slices:
 - Product shell and IA issue.
 - Supabase foundation schema/RLS/Storage issue.
 - Template schema and validation issue.
-- Renderer port and DocRaptor artifact integration issue.
+- D3 renderer qualification and single-winner canonical port issue.
 - Starter Library issue.
 - Variables registry/source maps issue.
 - Tenant custom variables issue.
@@ -1165,7 +1183,10 @@ Definition of done:
 
 ## Further Notes
 
-### Phase 0 Answers And Remaining Gates
+### Historical Phase 0 answers — superseded by Phase 18
+
+The bullets below preserve the earlier decision record and must not be
+dispatched as current instructions:
 
 - Retain the `pdf_*` family and extend it with missing job, assignment,
   variable, recipient/source, and retention concepts; do not create parallel

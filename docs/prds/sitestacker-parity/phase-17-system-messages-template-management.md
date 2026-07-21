@@ -4,7 +4,8 @@
 
 - **Product decision:** Ratified D1–D20 on 2026-07-17 through 2026-07-19
 - **Specification date:** 2026-07-19
-- **Program posture:** PRD complete; issue set pending; groomed but not dispatched
+- **Program posture:** PRD complete; epic #873 and children #874–#905
+  published; every child remains `status:blocked`; groomed but not dispatched
 - **Implementation posture:** planning only; this document authorizes no
   product-code deployment
 - **Slug:** `system-messages`
@@ -20,14 +21,14 @@ the operative documents is a release blocker; an implementer must not guess:
    specification](./phase-17-system-message-executable-manifest.md) together
    provide the detailed Phase 17 implementation interface and must agree with
    the OpenSpec delta;
-4. canonical platform [ADR-0022](../../adr/0022-producer-owned-protected-actions.md),
-   [ADR-0023](../../adr/0023-contract-bounded-delivery-plans.md),
-   [ADR-0024](../../adr/0024-one-notification-presentation-and-engagement-model.md),
-   [ADR-0025](../../adr/0025-sms-evidence-governance-transport-unavailable.md),
-   [ADR-0026](../../adr/0026-tenant-owned-resend-and-composed-delivery-identities.md),
-   [ADR-0027](../../adr/0027-canonical-message-document-and-presentation-dependencies.md),
-   [ADR-0028](../../adr/0028-body-free-history-with-expiring-recent-copy.md), and
-   [ADR-0029](../../adr/0029-immutable-prepared-message-and-whole-message-recovery.md)
+4. canonical platform [ADR-0025](../../adr/0025-producer-owned-protected-actions.md),
+   [ADR-0026](../../adr/0026-contract-bounded-delivery-plans.md),
+   [ADR-0027](../../adr/0027-one-notification-presentation-and-engagement-model.md),
+   [ADR-0028](../../adr/0028-sms-evidence-governance-transport-unavailable.md),
+   [ADR-0029](../../adr/0029-tenant-owned-resend-and-composed-delivery-identities.md),
+   [ADR-0030](../../adr/0030-canonical-message-document-and-presentation-dependencies.md),
+   [ADR-0031](../../adr/0031-body-free-history-with-expiring-recent-copy.md), and
+   [ADR-0032](../../adr/0032-immutable-prepared-message-and-whole-message-recovery.md)
    record the accepted architecture and cannot override observable product
    behavior; and
 5. [the dated census](./phase-17-system-message-census-2026-07-19.md),
@@ -191,7 +192,7 @@ At Phase 17 acceptance:
 | D3       | Two bounded fallback postures                      | Exact site+locale first; then one versioned language-first or site-wording-first algorithm.                                                                                                                                                       |
 | D4       | One Asym-structured visual document                | Canonical JSON plus deterministic server HTML/text; immutable publication and migrations.                                                                                                                                                         |
 | D5       | Contract-owned adaptive content                    | Typed facts/cases/collections only; recipient-grained truth; Resend batching is transport optimization.                                                                                                                                           |
-| D6       | Producer-owned protected actions                   | Email contains a scanner-safe Asym handoff; GET/HEAD never completes a consequential action.                                                                                                                                                      |
+| D6       | Producer-owned protected actions                   | Email contains a scanner-resistant Asym handoff; GET/HEAD never completes a consequential action.                                                                                                                                                 |
 | D7       | Contract-bounded Delivery Plans                    | A fixed set of required/optional slots; no general workflow runtime.                                                                                                                                                                              |
 | D8       | One proportional in-product model                  | Full staff center now; only explicit donor/missionary contextual notices now; one Phase 6 truth.                                                                                                                                                  |
 | D9       | Compliance-ready, transport-dark SMS               | Persist only future governance evidence; every executable SMS path is absent or rejected.                                                                                                                                                         |
@@ -213,10 +214,13 @@ At Phase 17 acceptance:
 
 Phase 17 foundation work may begin once the Phase 2 tenant/site/locale context,
 Phase 3 consent/privacy governance, and Phase 6 communication spine exist. Full
-Phase 17 shipment and acceptance also require Phase 7 because the mandatory
-`giving_receipt_issued_v1` Target Live tracer consumes Phase 7's immutable,
-source-owned receipt artifact. The phase-level shipment hard dependencies are
-therefore 2, 3, 6, and 7. The other rows below are consumed ownership contracts:
+Phase 17 shipment and acceptance also require Phase 7 source receipt
+eligibility/facts/issuance and the exact current Phase 18 artifact for the
+mandatory `giving_receipt_issued_v1` Target Live tracer. Phase 18 is a
+key-specific integration dependency for that tracer, not a prerequisite for
+building Phase 17's foundation; the Phase 18 build in turn consumes the Phase
+17 delivery contract. The phase-level foundation hard dependencies remain 2,
+3, 6, and 7. The other rows below are consumed ownership contracts:
 a particular catalog key or capability cannot become **Live** until its owning
 producer/source phase and required evidence exist, but an unfinished producer
 phase does not block construction of the Phase 17 foundation or unrelated
@@ -224,28 +228,32 @@ Reserved authoring work.
 
 ### Consumed ownership contracts by applicable Live key
 
-| Owner    | Phase 17 consumes                                                                   | Phase 17 must not take over                               |
-| -------- | ----------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Phase 1  | source-of-truth ownership and provider-as-executor rule                             | provider IDs as product identity                          |
-| Phase 2  | tenant, validated site, locale context, branding context, currency and legal entity | broad site/CMS localization or arbitrary locale graphs    |
-| Phase 3  | consent, suppression, projection, retention, export, purpose governance             | contact permission or compliance truth                    |
-| Phase 4  | Party/account identity, invitation/claim authority, Supabase action issuance        | authentication tokens, claim completion, access authority |
-| Phase 5  | tenant public-domain context and customer-account bootstrap boundary                | donor identity or email ownership                         |
-| Phase 6  | recipient-specific intent, dispatch, provider evidence, communication event/history | a second send/history/notification ledger                 |
-| Phase 7  | receipt, statement, legal donor, tax, artifact, void and supersession truth         | official-document facts or finality                       |
-| Phase 8  | operations worklists and health conventions                                         | a generic incident platform                               |
-| Phase 9  | Party/relationship projections and role-safe views                                  | identity inference or supporter ownership                 |
-| Phase 10 | restricted-person firewall, anonymity and privacy precedence                        | exception-by-template                                     |
-| Phase 12 | capability atoms, active assignment, delegated governance                           | local roles or job-title authorization                    |
-| Phase 13 | contribution/payment/designation/finality truth                                     | money calculations or eligibility                         |
-| Phase 14 | donor-credit/recognition recipients and facts                                       | recognition inference                                     |
-| Phase 15 | governed outbox-only batch entry                                                    | another offline-money or send path                        |
-| Phase 16 | recurring/fixed-pledge events, facts, actions and exact message obligations         | schedule/payment/fulfillment truth                        |
+| Owner    | Phase 17 consumes                                                                                             | Phase 17 must not take over                                 |
+| -------- | ------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| Phase 1  | source-of-truth ownership and provider-as-executor rule                                                       | provider IDs as product identity                            |
+| Phase 2  | tenant, validated site, locale context, branding context, currency and legal entity                           | broad site/CMS localization or arbitrary locale graphs      |
+| Phase 3  | consent, suppression, projection, retention, export, purpose governance                                       | contact permission or compliance truth                      |
+| Phase 4  | Party/account identity, invitation/claim authority, Supabase action issuance                                  | authentication tokens, claim completion, access authority   |
+| Phase 5  | tenant public-domain context and customer-account bootstrap boundary                                          | donor identity or email ownership                           |
+| Phase 6  | recipient-specific intent, dispatch, provider evidence, communication event/history                           | a second send/history/notification ledger                   |
+| Phase 7  | receipt/statement eligibility, legal donor, tax facts, source issuance and correction/void/replacement effect | generated-document definition, artifact, access or delivery |
+| Phase 8  | operations worklists and health conventions                                                                   | a generic incident platform                                 |
+| Phase 9  | Party/relationship projections and role-safe views                                                            | identity inference or supporter ownership                   |
+| Phase 10 | restricted-person firewall, anonymity and privacy precedence                                                  | exception-by-template                                       |
+| Phase 12 | capability atoms, active assignment, delegated governance                                                     | local roles or job-title authorization                      |
+| Phase 13 | contribution/payment/designation/finality truth                                                               | money calculations or eligibility                           |
+| Phase 14 | donor-credit/recognition recipients and facts                                                                 | recognition inference                                       |
+| Phase 15 | governed outbox-only batch entry                                                                              | another offline-money or send path                          |
+| Phase 16 | recurring/fixed-pledge events, facts, actions and exact message obligations                                   | schedule/payment/fulfillment truth                          |
 
 ### Forward seams
 
-- Phase 18 owns immutable PDF/document artifacts; Phase 17 renders the delivery wrapper only.
-- Phase 19 owns statement runs, grouping, bulk recipient state, and statement recovery; Phase 17 renders each governed message.
+- Phase 18 owns every generated-document definition, publication, request,
+  exact artifact, current head, artifact access and document-records evidence;
+  Phase 17 renders the delivery wrapper only.
+- Phase 19 owns statement populations, runs, item selection, grouping, cutoffs,
+  and run recovery; each item calls Phase 18, and Phase 17 renders/delivers each
+  governed message.
 - Phase 24 owns broad site/CMS/shell locale and currency management; Phase 17 owns message-locale activation and readiness only.
 - Phases 25 and 28 own complete donor and missionary notification-center information architecture, reusing the Phase 6/17 records created here.
 - Phase 26 owns inbound email, threading, assignments, reply content, retention, and send-reply operations. Phase 17 only sets outbound Reply-To.
@@ -392,44 +400,44 @@ inference from a tenant publication or recipient. A future platform entry must
 use a separately named `scope_kind: platform` profile and pass the complete
 platform proof gate before activation.
 
-| Stable key                                        | Target                                    | Owner and meaning                                                         | Audience / steps                                                             | Important contract pins                                                                                                                |
-| ------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------- | ---------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `giving_receipt_issued_v1`                        | Target Live tracer                        | Phase 7 successful gift receipt issued from an immutable receipt artifact | donor; required email where legally/operationally eligible                   | official receipt block protected; fallback policy fixed; Giving sender purpose; Replies supported for giving help; no open/click truth |
-| `giving_receipt_replaced_v1`                      | Target Live                               | Phase 7 corrected/replacement receipt available                           | legal donor; required email where eligible                                   | replacement identity and supersession protected; never mutates prior history                                                           |
-| `contribution_refund_failed_v1`                   | Target Live                               | contribution operation ended with failed refund                           | proven donor/contact where notice is required by producer policy             | no raw provider decline; support action; correction owner facts                                                                        |
-| `contribution_refund_completed_v1`                | Target Live                               | refund completed when producer does not classify partial/full separately  | proven donor                                                                 | amount/date/finality protected                                                                                                         |
-| `contribution_partial_refund_completed_v1`        | Target Live                               | partial refund completed                                                  | proven donor                                                                 | original/refund/remainder truth source-owned                                                                                           |
-| `contribution_full_refund_completed_v1`           | Target Live                               | full refund completed                                                     | proven donor                                                                 | finality and receipt impact protected                                                                                                  |
-| `contribution_amount_corrected_v1`                | Target Live                               | posted contribution amount corrected                                      | proven donor                                                                 | old/new amount and artifact impact protected                                                                                           |
-| `contribution_designation_changed_v1`             | Target Live                               | posted designation corrected                                              | proven donor                                                                 | previous/current designation and effective truth protected                                                                             |
-| `contribution_receipt_corrected_v1`               | Target Live                               | receipt correction produced                                               | legal donor                                                                  | Phase 7 artifact action protected                                                                                                      |
-| `contribution_statement_corrected_v1`             | Reserved until Phase 18/19 artifact proof | statement correction produced                                             | statement recipient                                                          | no Live status before immutable statement artifact and run owner exist                                                                 |
-| `contribution_payment_state_corrected_v1`         | Target Live                               | payment state corrected                                                   | proven donor                                                                 | provider-confirmed old/new state; receipt/statement implications protected                                                             |
-| `contribution_donor_relinked_v1`                  | Target Live                               | contribution donor ownership link corrected                               | permitted affected contact                                                   | privacy-safe explanation only; Party identity not inferred by template                                                                 |
-| `contribution_approval_requested_v1`              | Target Live                               | correction approval requires staff attention                              | exact eligible approver role; required in-product, optional email if enabled | source task owns completion; notification engagement never approves                                                                    |
-| `contribution_approval_reminder_v1`               | Target Live                               | an existing approval remains due at producer-owned reminder point         | exact eligible approver; in-product, optional email                          | fixed producer timing; no tenant timer or duplicate task                                                                               |
-| `contribution_approval_escalated_v1`              | Target Live                               | producer marks approval overdue/escalated                                 | exact authorized escalation role; in-product, optional email                 | urgency source-owned; no automatic approval                                                                                            |
-| `contribution_approval_outcome_v1`                | Target Live                               | approval requester receives final decision                                | exact requester; in-product, optional email                                  | decision truth and destination protected                                                                                               |
-| `system_message_publication_review_requested_v1`  | Target Live                               | a protected immutable candidate needs independent review                  | exact Phase 12 reviewer projection; required in-product                      | candidate action opens authenticated review; no approval by email click                                                                |
-| `system_message_publication_changes_requested_v1` | Target Live                               | reviewer requested changes on exact candidate                             | author/editors; required in-product                                          | exact candidate and comment metadata, no content body in notification                                                                  |
-| `system_message_delivery_needs_attention_v1`      | Target Live                               | D10/D15 repair condition materially changed                               | tenant email admin/repair capability; required in-product                    | grouped case, one safe action, no credentials/provider payload                                                                         |
-| `recurring_recovery_started_v1`                   | Reserved                                  | Phase 16 card recovery episode began                                      | Party-safe donor recipient                                                   | exact Phase 16 facts; email eligibility is producer-owned                                                                              |
-| `recurring_action_required_v1`                    | Reserved                                  | Phase 16 requires donor payment action                                    | donor                                                                        | protected recovery action; no raw decline                                                                                              |
-| `recurring_occurrence_missed_v1`                  | Reserved                                  | one recurring occurrence is terminally missed                             | donor email/in-product; missionary in-product only where Phase 16 permits    | no debt/backcharge; schedule continues; no per-attempt missionary noise                                                                |
-| `recurring_payment_truth_corrected_v1`            | Reserved                                  | provider-confirmed recurring payment truth changed                        | affected donor                                                               | old/new truth, receipt/statement impact, correction semantics                                                                          |
-| `recurring_ach_initiated_v1`                      | Reserved                                  | ACH occurrence initiated and is processing                                | donor                                                                        | processing is not received; official receipt waits for success                                                                         |
-| `recurring_upcoming_charge_v1`                    | Reserved                                  | required upcoming semiannual/annual charge notice                         | donor                                                                        | amount/date/merchant/manage/cancel facts                                                                                               |
-| `recurring_schedule_changed_v1`                   | Reserved                                  | recurring arrangement changed successfully                                | donor                                                                        | next dates, effective behavior, in-flight non-effect, provider-sync truth                                                              |
-| `fixed_pledge_upcoming_v1`                        | Reserved                                  | enrolled fixed-pledge expectation is upcoming                             | commitment Party                                                             | no debt or cash claim; optional/gentle profile                                                                                         |
-| `fixed_pledge_source_aware_followup_v1`           | Reserved                                  | current records show no applied gift after enrolled expectation           | commitment Party                                                             | processing/matching uncertainty and stop-purpose action                                                                                |
-| `identity_account_claim_invitation_v1`            | Reserved                                  | Phase 4 issued a legacy account-claim invitation                          | exact invited contact                                                        | D6 scanner-safe handoff; invitation owner controls expiry/revocation                                                                   |
-| `identity_magic_link_v1`                          | Reserved                                  | Supabase magic-link sign-in requested in a tenant context                 | exact auth recipient                                                         | ephemeral D6 handoff; Supabase hook deadline; no fallback across tenant                                                                |
-| `identity_email_otp_v1`                           | Reserved                                  | Supabase email OTP requested where adopted                                | exact auth recipient                                                         | code/action secrecy; rate and expiry producer-owned                                                                                    |
-| `identity_password_recovery_v1`                   | Reserved                                  | Supabase password recovery requested                                      | exact auth recipient                                                         | scanner-safe landing and fresh proof                                                                                                   |
-| `identity_email_change_v1`                        | Reserved                                  | Supabase email-change confirmation requested                              | source-defined old/new recipients                                            | recipient cardinality and action mapping must be proved before Live                                                                    |
-| `document_artifact_ready_v1`                      | Reserved                                  | Phase 18 immutable artifact is ready                                      | artifact owner recipient                                                     | protected authenticated download; no artifact body in template                                                                         |
-| `statement_delivery_ready_v1`                     | Reserved                                  | Phase 19 statement run produced a recipient artifact                      | statement recipient                                                          | run/eligibility/finality owned by Phase 19                                                                                             |
-| `statement_delivery_failed_v1`                    | Reserved                                  | Phase 19 delivery reached terminal failure                                | staff and/or recipient per producer                                          | no retry truth invented by template                                                                                                    |
+| Stable key                                        | Target                                    | Owner and meaning                                                                          | Audience / steps                                                             | Important contract pins                                                                                                                                       |
+| ------------------------------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `giving_receipt_issued_v1`                        | Target Live tracer                        | Phase 7 source issuance is current and the exact current Phase 18 artifact is ready        | donor; required email where legally/operationally eligible                   | official receipt block protected; exact artifact action; fallback policy fixed; Giving sender purpose; Replies supported for giving help; no open/click truth |
+| `giving_receipt_replaced_v1`                      | Target Live                               | Phase 7 authorizes successor facts/issuance and Phase 18 promotes the replacement artifact | legal donor; required email where eligible                                   | replacement identity and supersession protected; never mutates prior history                                                                                  |
+| `contribution_refund_failed_v1`                   | Target Live                               | contribution operation ended with failed refund                                            | proven donor/contact where notice is required by producer policy             | no raw provider decline; support action; correction owner facts                                                                                               |
+| `contribution_refund_completed_v1`                | Target Live                               | refund completed when producer does not classify partial/full separately                   | proven donor                                                                 | amount/date/finality protected                                                                                                                                |
+| `contribution_partial_refund_completed_v1`        | Target Live                               | partial refund completed                                                                   | proven donor                                                                 | original/refund/remainder truth source-owned                                                                                                                  |
+| `contribution_full_refund_completed_v1`           | Target Live                               | full refund completed                                                                      | proven donor                                                                 | finality and receipt impact protected                                                                                                                         |
+| `contribution_amount_corrected_v1`                | Target Live                               | posted contribution amount corrected                                                       | proven donor                                                                 | old/new amount and artifact impact protected                                                                                                                  |
+| `contribution_designation_changed_v1`             | Target Live                               | posted designation corrected                                                               | proven donor                                                                 | previous/current designation and effective truth protected                                                                                                    |
+| `contribution_receipt_corrected_v1`               | Target Live                               | source correction effect is current and Phase 18 replacement artifact is ready             | legal donor                                                                  | Phase 18 exact-current artifact action protected; Phase 7 facts never altered by template                                                                     |
+| `contribution_statement_corrected_v1`             | Reserved until Phase 18/19 artifact proof | statement correction produced                                                              | statement recipient                                                          | no Live status before immutable statement artifact and run owner exist                                                                                        |
+| `contribution_payment_state_corrected_v1`         | Target Live                               | payment state corrected                                                                    | proven donor                                                                 | provider-confirmed old/new state; receipt/statement implications protected                                                                                    |
+| `contribution_donor_relinked_v1`                  | Target Live                               | contribution donor ownership link corrected                                                | permitted affected contact                                                   | privacy-safe explanation only; Party identity not inferred by template                                                                                        |
+| `contribution_approval_requested_v1`              | Target Live                               | correction approval requires staff attention                                               | exact eligible approver role; required in-product, optional email if enabled | source task owns completion; notification engagement never approves                                                                                           |
+| `contribution_approval_reminder_v1`               | Target Live                               | an existing approval remains due at producer-owned reminder point                          | exact eligible approver; in-product, optional email                          | fixed producer timing; no tenant timer or duplicate task                                                                                                      |
+| `contribution_approval_escalated_v1`              | Target Live                               | producer marks approval overdue/escalated                                                  | exact authorized escalation role; in-product, optional email                 | urgency source-owned; no automatic approval                                                                                                                   |
+| `contribution_approval_outcome_v1`                | Target Live                               | approval requester receives final decision                                                 | exact requester; in-product, optional email                                  | decision truth and destination protected                                                                                                                      |
+| `system_message_publication_review_requested_v1`  | Target Live                               | a protected immutable candidate needs independent review                                   | exact Phase 12 reviewer projection; required in-product                      | candidate action opens authenticated review; no approval by email click                                                                                       |
+| `system_message_publication_changes_requested_v1` | Target Live                               | reviewer requested changes on exact candidate                                              | author/editors; required in-product                                          | exact candidate and comment metadata, no content body in notification                                                                                         |
+| `system_message_delivery_needs_attention_v1`      | Target Live                               | D10/D15 repair condition materially changed                                                | tenant email admin/repair capability; required in-product                    | grouped case, one safe action, no credentials/provider payload                                                                                                |
+| `recurring_recovery_started_v1`                   | Reserved                                  | Phase 16 card recovery episode began                                                       | Party-safe donor recipient                                                   | exact Phase 16 facts; email eligibility is producer-owned                                                                                                     |
+| `recurring_action_required_v1`                    | Reserved                                  | Phase 16 requires donor payment action                                                     | donor                                                                        | protected recovery action; no raw decline                                                                                                                     |
+| `recurring_occurrence_missed_v1`                  | Reserved                                  | one recurring occurrence is terminally missed                                              | donor email/in-product; missionary in-product only where Phase 16 permits    | no debt/backcharge; schedule continues; no per-attempt missionary noise                                                                                       |
+| `recurring_payment_truth_corrected_v1`            | Reserved                                  | provider-confirmed recurring payment truth changed                                         | affected donor                                                               | old/new truth, receipt/statement impact, correction semantics                                                                                                 |
+| `recurring_ach_initiated_v1`                      | Reserved                                  | ACH occurrence initiated and is processing                                                 | donor                                                                        | processing is not received; official receipt waits for success                                                                                                |
+| `recurring_upcoming_charge_v1`                    | Reserved                                  | required upcoming semiannual/annual charge notice                                          | donor                                                                        | amount/date/merchant/manage/cancel facts                                                                                                                      |
+| `recurring_schedule_changed_v1`                   | Reserved                                  | recurring arrangement changed successfully                                                 | donor                                                                        | next dates, effective behavior, in-flight non-effect, provider-sync truth                                                                                     |
+| `fixed_pledge_upcoming_v1`                        | Reserved                                  | enrolled fixed-pledge expectation is upcoming                                              | commitment Party                                                             | no debt or cash claim; optional/gentle profile                                                                                                                |
+| `fixed_pledge_source_aware_followup_v1`           | Reserved                                  | current records show no applied gift after enrolled expectation                            | commitment Party                                                             | processing/matching uncertainty and stop-purpose action                                                                                                       |
+| `identity_account_claim_invitation_v1`            | Reserved                                  | Phase 4 issued a legacy account-claim invitation                                           | exact invited contact                                                        | D6 scanner-resistant handoff; invitation owner controls expiry/revocation                                                                                     |
+| `identity_magic_link_v1`                          | Reserved                                  | Supabase magic-link sign-in requested in a tenant context                                  | exact auth recipient                                                         | ephemeral D6 handoff; Supabase hook deadline; no fallback across tenant                                                                                       |
+| `identity_email_otp_v1`                           | Reserved                                  | Supabase email OTP requested where adopted                                                 | exact auth recipient                                                         | code/action secrecy; rate and expiry producer-owned                                                                                                           |
+| `identity_password_recovery_v1`                   | Reserved                                  | Supabase password recovery requested                                                       | exact auth recipient                                                         | scanner-resistant landing and fresh proof                                                                                                                     |
+| `identity_email_change_v1`                        | Reserved                                  | Supabase email-change confirmation requested                                               | source-defined old/new recipients                                            | recipient cardinality and action mapping must be proved before Live                                                                                           |
+| `document_artifact_ready_v1`                      | Reserved                                  | Phase 18 immutable artifact is ready                                                       | artifact owner recipient                                                     | protected authenticated download; no artifact body in template                                                                                                |
+| `statement_delivery_ready_v1`                     | Reserved                                  | Phase 19 item is eligible and its exact Phase 18 artifact is ready for Phase 17 delivery   | statement recipient                                                          | Phase 19 owns run/item; Phase 18 owns artifact; readiness is not delivery                                                                                     |
+| `statement_delivery_failed_v1`                    | Reserved                                  | Phase 17/6 delivery reached terminal failure for an exact artifact handoff                 | staff and/or recipient per producer                                          | Phase 19 run and Phase 18 artifact remain unchanged; no retry truth invented by template                                                                      |
 
 ### Inventory-only categories with keys deferred
 
@@ -437,48 +445,48 @@ Do not mint stable keys until the producing phase fixes meaning, owner, recipien
 
 The complete obligation census below prevents those deferred meanings from disappearing. It is an inventory, not tenant-visible configuration and not permission to invent a stable key.
 
-| Product meaning to account for                                       | Owning source / target phase            | Phase 17 disposition                                                                                                          |
-| -------------------------------------------------------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
-| Account claim invitation                                             | Phase 4                                 | stable Reserved key above; D6 mapping required                                                                                |
-| Magic link and adopted email OTP                                     | Supabase Auth / Phase 4                 | stable Reserved keys above; exact hook action/recipient mapping required                                                      |
-| Password recovery                                                    | Supabase Auth / Phase 4                 | stable Reserved key above                                                                                                     |
-| Email confirmation/change and reauthentication                       | Supabase Auth / Phase 4                 | email-change key Reserved; split/add successor only after exact current/old/new recipient semantics are proved                |
-| Password/email/security change completed notice                      | Phase 4/future security owner           | key deferred; no producer/recipient occurrence proved                                                                         |
-| Staff/donor account invitation or membership change                  | Phase 4/12                              | key deferred; distinguish authorization notice from marketing                                                                 |
-| Donor profile/address/contact change confirmation                    | donor self-service phase                | key deferred; source command and security consequence not yet fixed                                                           |
-| One-time gift acknowledgement                                        | Phase 7/13                              | key deferred until acknowledgement versus official receipt is a distinct emitted occurrence                                   |
-| Successful gift receipt                                              | Phase 7                                 | Target Live tracer above                                                                                                      |
-| Receipt replacement, correction, void or supersession                | Phase 7                                 | replacement Target Live; other meanings get distinct keys only when their occurrences exist                                   |
-| Refund, return, chargeback or payment-state correction               | Phase 13/contribution operations        | current correction keys above; missing meanings deferred rather than conflated                                                |
-| ACH initiated/processing confirmation                                | Phase 13 or Phase 16 by occurrence kind | recurring key Reserved; one-time key deferred to its owner                                                                    |
-| ACH success/failure/return                                           | Phase 13/16 plus Phase 7                | source event may issue receipt/correction; no duplicate generic success key                                                   |
-| Recurring arrangement created/confirmed                              | Phase 16                                | use exact producer-owned confirmation obligation; no new key until Phase 16 names it beyond schedule-change/receipt contracts |
-| Recurring schedule/amount/destination/end changed                    | Phase 16                                | `recurring_schedule_changed_v1` Reserved                                                                                      |
-| Recurring skipped, paused, resumed or canceled                       | Phase 16                                | contextual product confirmation/source projection; separate email key deferred unless Phase 16 emits stable meaning           |
-| Recurring recovery started/action required/missed/corrected          | Phase 16                                | exact Reserved keys above                                                                                                     |
-| Upcoming recurring charge                                            | Phase 16                                | exact Reserved key above; required only for its contract-declared cadences                                                    |
-| Payment method updated/expiring/unusable                             | Phase 16/payment-method owner           | key deferred except where represented by `recurring_action_required_v1`; no raw provider event becomes meaning                |
-| Fixed pledge upcoming/source-aware follow-up                         | Phase 16                                | exact Reserved keys above; quiet optional profile                                                                             |
-| Missionary recurring pause visibility                                | Phase 16 dashboard projection           | not a message; no Phase 17 key or runtime intent                                                                              |
-| Missionary terminal recurring miss                                   | Phase 16 + D8                           | in-product step of the exact terminal occurrence contract; no per-attempt/email noise                                         |
-| DAF/tribute/matching/church recognition acknowledgement              | Phase 14                                | keys deferred per exact recognition occurrence and recipient owner                                                            |
-| Artifact ready/download notice                                       | Phase 18                                | stable Reserved key above                                                                                                     |
-| Statement ready/delivery/correction/failure/void                     | Phase 19 + Phase 7                      | ready/failure Reserved; correction current path stays non-Live until artifact owner proof                                     |
-| Annual tax summary or other official document delivery               | Phase 18/19                             | key deferred until document class and legal recipient are fixed                                                               |
-| Contribution correction approval request/reminder/escalation/outcome | contribution operations                 | Target Live keys above                                                                                                        |
-| Generic staff assignment or @mention                                 | owning CRM/workflow phase               | key deferred until typed source/destination exists; D8 is presentation only                                                   |
-| Task deadline/overdue/escalation                                     | Phase 34 or owning domain               | key deferred; producer owns clock and completion                                                                              |
-| Workflow form/file/reference request                                 | Phase 34                                | key deferred; Phase 17 may render only a future Live contract                                                                 |
-| Workflow stage/outcome notice                                        | Phase 34                                | key deferred; no generic workflow event key                                                                                   |
-| Support conversation assigned/replied/SLA/undelivered                | Phase 26                                | system-notice keys deferred; human message body remains outside catalog                                                       |
-| Event registration/ticket/team/fundraiser notice                     | future Event Hub                        | key deferred; benchmark outcome only                                                                                          |
-| Public form submission/content review/publish/domain change          | public-content phases                   | key deferred; exact producer/audience required                                                                                |
-| Campaign/newsletter/journey message                                  | Phases 32/34/35                         | outside system catalog unless it invokes an already-Live system meaning                                                       |
-| Resend connection/domain/webhook/sender/reply problem                | Phase 17 D10/D15                        | one Target Live grouped Needs-attention meaning; no email-only incident dependency                                            |
-| Publication review/change request                                    | Phase 17 D11                            | Target Live in-product meanings above                                                                                         |
-| Import/export/transfer job completion or action needed               | Phase 17 D19                            | contextual job state; stable notification key deferred unless user testing proves an attention event is needed                |
-| Eve platform-operator outage/security incident                       | Eve #436 plus Phase 17 email seam       | Eve owns safe facts/recipient/policy and Discord; email key deferred until exact event meaning is enumerated and Live-proved  |
-| SMS STOP/HELP, registration and delivery                             | later explicit SMS phase                | evidence vocabulary only; no Phase 17 key, content or transport                                                               |
+| Product meaning to account for                                       | Owning source / target phase                                              | Phase 17 disposition                                                                                                          |
+| -------------------------------------------------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| Account claim invitation                                             | Phase 4                                                                   | stable Reserved key above; D6 mapping required                                                                                |
+| Magic link and adopted email OTP                                     | Supabase Auth / Phase 4                                                   | stable Reserved keys above; exact hook action/recipient mapping required                                                      |
+| Password recovery                                                    | Supabase Auth / Phase 4                                                   | stable Reserved key above                                                                                                     |
+| Email confirmation/change and reauthentication                       | Supabase Auth / Phase 4                                                   | email-change key Reserved; split/add successor only after exact current/old/new recipient semantics are proved                |
+| Password/email/security change completed notice                      | Phase 4/future security owner                                             | key deferred; no producer/recipient occurrence proved                                                                         |
+| Staff/donor account invitation or membership change                  | Phase 4/12                                                                | key deferred; distinguish authorization notice from marketing                                                                 |
+| Donor profile/address/contact change confirmation                    | donor self-service phase                                                  | key deferred; source command and security consequence not yet fixed                                                           |
+| One-time gift acknowledgement                                        | Phase 7/13                                                                | key deferred until acknowledgement versus official receipt is a distinct emitted occurrence                                   |
+| Successful gift receipt                                              | Phase 7                                                                   | Target Live tracer above                                                                                                      |
+| Receipt replacement, correction, void or supersession                | Phase 7                                                                   | replacement Target Live; other meanings get distinct keys only when their occurrences exist                                   |
+| Refund, return, chargeback or payment-state correction               | Phase 13/contribution operations                                          | current correction keys above; missing meanings deferred rather than conflated                                                |
+| ACH initiated/processing confirmation                                | Phase 13 or Phase 16 by occurrence kind                                   | recurring key Reserved; one-time key deferred to its owner                                                                    |
+| ACH success/failure/return                                           | Phase 13/16 plus Phase 7                                                  | source event may issue receipt/correction; no duplicate generic success key                                                   |
+| Recurring arrangement created/confirmed                              | Phase 16                                                                  | use exact producer-owned confirmation obligation; no new key until Phase 16 names it beyond schedule-change/receipt contracts |
+| Recurring schedule/amount/destination/end changed                    | Phase 16                                                                  | `recurring_schedule_changed_v1` Reserved                                                                                      |
+| Recurring skipped, paused, resumed or canceled                       | Phase 16                                                                  | contextual product confirmation/source projection; separate email key deferred unless Phase 16 emits stable meaning           |
+| Recurring recovery started/action required/missed/corrected          | Phase 16                                                                  | exact Reserved keys above                                                                                                     |
+| Upcoming recurring charge                                            | Phase 16                                                                  | exact Reserved key above; required only for its contract-declared cadences                                                    |
+| Payment method updated/expiring/unusable                             | Phase 16/payment-method owner                                             | key deferred except where represented by `recurring_action_required_v1`; no raw provider event becomes meaning                |
+| Fixed pledge upcoming/source-aware follow-up                         | Phase 16                                                                  | exact Reserved keys above; quiet optional profile                                                                             |
+| Missionary recurring pause visibility                                | Phase 16 dashboard projection                                             | not a message; no Phase 17 key or runtime intent                                                                              |
+| Missionary terminal recurring miss                                   | Phase 16 + D8                                                             | in-product step of the exact terminal occurrence contract; no per-attempt/email noise                                         |
+| DAF/tribute/matching/church recognition acknowledgement              | Phase 14                                                                  | keys deferred per exact recognition occurrence and recipient owner                                                            |
+| Artifact ready/download notice                                       | Phase 18                                                                  | stable Reserved key above                                                                                                     |
+| Statement ready/delivery/correction/failure/void                     | Phase 19 run/item + Phase 7 facts + Phase 18 artifact + Phase 17 delivery | Reserved until every exact owner contract is proved; no phase collapses another axis                                          |
+| Annual tax summary or other official document delivery               | Phase 19 run/item + Phase 18 artifact + Phase 17 delivery                 | key deferred until document class, legal recipient and exact handoff are fixed                                                |
+| Contribution correction approval request/reminder/escalation/outcome | contribution operations                                                   | Target Live keys above                                                                                                        |
+| Generic staff assignment or @mention                                 | owning CRM/workflow phase                                                 | key deferred until typed source/destination exists; D8 is presentation only                                                   |
+| Task deadline/overdue/escalation                                     | Phase 34 or owning domain                                                 | key deferred; producer owns clock and completion                                                                              |
+| Workflow form/file/reference request                                 | Phase 34                                                                  | key deferred; Phase 17 may render only a future Live contract                                                                 |
+| Workflow stage/outcome notice                                        | Phase 34                                                                  | key deferred; no generic workflow event key                                                                                   |
+| Support conversation assigned/replied/SLA/undelivered                | Phase 26                                                                  | system-notice keys deferred; human message body remains outside catalog                                                       |
+| Event registration/ticket/team/fundraiser notice                     | future Event Hub                                                          | key deferred; benchmark outcome only                                                                                          |
+| Public form submission/content review/publish/domain change          | public-content phases                                                     | key deferred; exact producer/audience required                                                                                |
+| Campaign/newsletter/journey message                                  | Phases 32/34/35                                                           | outside system catalog unless it invokes an already-Live system meaning                                                       |
+| Resend connection/domain/webhook/sender/reply problem                | Phase 17 D10/D15                                                          | one Target Live grouped Needs-attention meaning; no email-only incident dependency                                            |
+| Publication review/change request                                    | Phase 17 D11                                                              | Target Live in-product meanings above                                                                                         |
+| Import/export/transfer job completion or action needed               | Phase 17 D19                                                              | contextual job state; stable notification key deferred unless user testing proves an attention event is needed                |
+| Eve platform-operator outage/security incident                       | Eve #436 plus Phase 17 email seam                                         | Eve owns safe facts/recipient/policy and Discord; email key deferred until exact event meaning is enumerated and Live-proved  |
+| SMS STOP/HELP, registration and delivery                             | later explicit SMS phase                                                  | evidence vocabulary only; no Phase 17 key, content or transport                                                               |
 
 ### Explicit exclusions and migration dispositions
 
@@ -503,7 +511,8 @@ One automated evidence bundle per key and generation must prove:
 4. Phase 3 consent/suppression/purpose mapping and required-message policy are explicit;
 5. required channels and Delivery Steps compile with no phantom channel;
 6. every required locale has a valid complete publication, plain text, layout, long/RTL/blocked-image proof, and deterministic fallback policy;
-7. the D6 action, if present, proves scanner-safe landing, expiry, replay, binding, and postcondition;
+7. the D6 action, if present, proves scanner-resistant landing, expiry,
+   replay, binding, and postcondition;
 8. each executable external-email step proves its applicable D10 connection,
    D20 sender, D17 reply, domain authentication, tracking posture, signed
    webhook, canary, transport, delivery, and outcome-reconciliation readiness;
@@ -756,7 +765,9 @@ Protected components expose owner, reason, applicability, permitted freedom, and
 
 Source-family rules:
 
-- Phase 7 owns official receipt/statement/artifact facts and links.
+- Phase 7 owns official receipt/statement eligibility, source facts, issuance,
+  and correction effect. Phase 18 owns generated-document identity, exact
+  artifact/current head, access, and document-record links.
 - Phase 4/auth owners own tokens, expiry, recipient cardinality and completion.
 - Phase 13/16 own amount, currency, finality, schedule, processing, no-backcharge and recovery facts.
 - Phase 3 owns purpose, consent and suppression meaning.
@@ -892,7 +903,7 @@ Responsive visibility is allowed only for an explicitly optional decorative bloc
 Do not create a role for every conceptual category. The D16 launch inventory earns only these structurally distinct roles:
 
 1. **Service message** — default compact transactional/operational wrapper for receipts, corrections, recurring notices and ordinary staff email.
-2. **Protected action** — scanner-safe action emphasis and required security/authorization treatment for auth and other D6 contracts.
+2. **Protected action** — scanner-resistant action emphasis and required security/authorization treatment for auth and other D6 contracts.
 3. **Official artifact delivery** — reserved until Phase 18/19; layout includes protected artifact identity and download region but never renders the official artifact itself.
 
 Marketing/campaign, in-product, SMS, and personal correspondence are not email Layout Roles in this phase. Each tenant owns one complete organization Role Layout per earned role and optional complete site overrides. A Role Layout pins its compatible Brand Kit version and declares locale-neutral or exact locale compatibility. There is no nested live layout inheritance or runtime fragment graph.
@@ -914,99 +925,159 @@ platform protected-action descriptor. A future platform protected action needs
 a separate ratified authority model and ADR rather than borrowing tenant Party,
 site, session, or Supabase-invitation semantics.
 
-The producer owns action purpose, recipient binding, tenant/site, source occurrence/fence, expiry, replacement/revocation, replay behavior, completion preconditions, and postcondition. Phase 17 owns only the protected visual component and scanner-safe handoff presentation.
+The producer owns action purpose, recipient binding, tenant/site, source occurrence/fence, expiry, replacement/revocation, replay behavior, completion preconditions, and postcondition. Phase 17 owns only the protected visual component and scanner-resistant handoff presentation.
 
-Two forms are allowed:
+Every protected action enters through one fixed scanner-resistant Asym doorway:
+the HTTP URL carries a random non-secret selector and an independent 256-bit
+verifier remains in the fragment. GET/HEAD with the selector alone opens only a
+generic inert explanation. One minimal first-party script removes the fragment
+from browser-visible history; a deliberate same-origin POST validates it and
+re-proves current tenant/recipient/source authority. The producer contract may
+then require an authenticated portal session, reauthentication, step-up,
+producer OTP, or explicit confirmation before its own operation. Those are
+assurance requirements behind one doorway, not alternate handoff, link, token,
+or authorization systems.
 
-1. **Producer capability handoff.** Email links to a short-lived opaque Asym landing capability. GET/HEAD only opens an explanation. A deliberate POST after current tenant/recipient/source proof completes or issues a fresh producer credential.
-2. **Authenticated service doorway.** Email links to a stable tenant-owned Asym page. The user authenticates and the server re-proves current authorization before showing or performing the source-owned action.
-
-No email GET/HEAD pauses, cancels, approves, changes payment, claims an account, changes an address, or mutates business data. Security scanners and prefetchers must be harmless. URLs contain no PII, payment data, provider credentials, raw tokens, tenant-selectable destinations, or long-lived bearer authority. Logs, analytics, Recent sent copy, support tools and communication history never retain the secret. Ordinary links cannot visually compete with or imitate a protected action.
+No email GET/HEAD pauses, cancels, approves, changes payment, claims an account,
+changes an address, retrieves a protected resource, creates an authorized
+session, or mutates business data. Security scanners and prefetchers must be
+harmless. The HTTP path/query contains no PII, payment data, provider
+credentials, verifier, tenant-selectable destination, or long-lived bearer
+authority. The verifier exists only in the fragment until the minimal landing
+script moves it into the deliberate same-origin POST; logs, analytics, Recent
+sent copy, support tools, provider tracking, communication history, and storage
+URLs never retain it. Ordinary links cannot visually compete with or imitate a
+protected action.
 
 Supabase auth templates map each adopted action type explicitly; the hook must complete within the current official deadline and use server-owned tenant context. Stripe/payment actions land in authenticated Asym UI and never expose provider mutation through the email. Every action has expiry, replay, replacement, race, wrong-tenant, wrong-recipient, host/origin/open-redirect, scanner, key-rotation, environment, rollback and terminal-state fixtures.
 
-Every protected action instantiates one versioned producer-owned descriptor. Required fields are stable `action_key`/`producer_key`; closed `handoff_shape` (`producer_capability` or `authenticated_service_doorway`); purpose and authoritative postcondition; server-owned tenant/environment/site/origin and intended recipient bindings; nonsecret resource/issuance reference; producer-owned issuance/validity/expiry/replacement/revocation/replay semantics; one proof requirement (`current_session`, `step_up`, `producer_otp`, or `explicit_confirmation_with_source_authorization`); a minimal masked review-fact schema; the closed terminal vocabulary `ready`, `expired`, `replaced`, `used`, `revoked`, `wrong_account`, `stale_state`, `already_resolved`, or `unavailable`; exactly one code-owned recovery route; the required visual/accessible presentation; and body-free Phase 6/17 audit evidence plus the producer completion reference. Phase 17 validates and renders this descriptor but never mints, refreshes, redeems, extends, interprets, or marks the credential complete.
+Every protected action instantiates one versioned producer-owned descriptor.
+Required fields are stable `action_key`/`producer_key`; the single shared doorway
+protocol/version; purpose and authoritative postcondition; server-owned
+tenant/environment/site/origin and intended recipient bindings; nonsecret
+resource/issuance reference; producer-owned
+issuance/validity/expiry/replacement/revocation/replay semantics; one closed
+assurance requirement (`current_session`, `step_up`, `producer_otp`, or
+`explicit_confirmation_with_source_authorization`); a minimal masked review-fact
+schema; the closed terminal vocabulary `ready`, `expired`, `replaced`, `used`,
+`revoked`, `wrong_account`, `stale_state`, `already_resolved`, or `unavailable`;
+exactly one code-owned recovery route; the required visual/accessible
+presentation; and body-free Phase 6/17 audit evidence plus the producer
+completion reference. Phase 17 validates and renders this descriptor but never
+mints, refreshes, redeems, extends, interprets, or marks the credential complete.
 
 The protected-action browser protocol is exact:
 
-| Request/state                            | Required behavior                                                                                                                                                                                                                            |
-| ---------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| scanner, prefetch, preview, `GET`/`HEAD` | never consumes a credential, signs in, verifies an address, claims an account, creates a provider session, or mutates product state; `HEAD` returns no session, while the first browser `GET` follows the mandatory clean-URL exchange below |
-| landing                                  | derives organization, action, masked review facts, expiry/terminal explanation, and one deliberate action from server-bound facts; never enumerates account existence or exposes raw provider errors                                         |
-| deliberate action                        | `POST` to the exact trusted origin with framework CSRF protection, `Origin`/Fetch-Metadata checks, and immediate reproof of tenant, recipient, source/resource, issuance, current authorization, expected revision, and producer state       |
-| consequential financial/private action   | current authentication plus contract-owned reauthentication/step-up, significant masked-fact review, and the producer's idempotent command; the email grants entry to review, not authority to complete                                      |
-| duplicate/race/timeout                   | one producer idempotency and expected-state boundary; repeat returns the same privacy-safe terminal result and never executes twice                                                                                                          |
-| redirect/return                          | a code-owned allow-listed destination resolved from server context; `Host`, forwarded host, query, fragment, `redirect_to`, and tenant content never choose authority, and return navigation never proves completion                         |
+| Request/state                            | Required behavior                                                                                                                                                                                                                                                                                                         |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| scanner, prefetch, preview, `GET`/`HEAD` | selector-only request is inert and non-enumerating: no protected facts/resource, credential use, sign-in, address verification, account claim, authorized session, provider session, or product mutation; `HEAD` returns no body/session                                                                                  |
+| landing                                  | generic page reveals no protected fact from the selector; one pinned first-party script validates the fragment envelope, removes it from browser-visible history, and prepares—but never auto-submits—the same-origin form                                                                                                |
+| deliberate action                        | recipient submits selector + verifier by `POST` to the exact trusted same origin with framework CSRF protection, `Origin`/Fetch-Metadata checks, versioned HMAC verification, and immediate tenant, recipient, source/resource, issuance, authorization, expiry/revocation, expected-revision, and producer-state reproof |
+| consequential financial/private action   | current authentication plus contract-owned reauthentication/step-up, significant masked-fact review, and the producer's idempotent command; the email grants entry to review, not authority to complete                                                                                                                   |
+| duplicate/race/timeout                   | one producer idempotency and expected-state boundary; repeat returns the same privacy-safe terminal result and never executes twice                                                                                                                                                                                       |
+| redirect/return                          | a code-owned allow-listed destination resolved from server context; `Host`, forwarded host, selector, verifier, `redirect_to`, and tenant content never choose authority, and return navigation never proves completion                                                                                                   |
 
-The entire flow is `Cache-Control: private, no-store` with `Referrer-Policy: no-referrer`. At startup, the server parses the server-configured `protectedActionOrigin` as one canonical HTTPS origin and joins it only to the code-owned exact `PROTECTED_ACTION_PATH`; tenant input, request headers, and arbitrary configured paths never participate. A dedicated CSP-source serializer produces `protectedActionSource` only when the resulting `protectedActionUrl` parses and round-trips to that exact origin and path, has no user information, wildcard, query, or fragment, and its serialized source token contains no raw comma, semicolon, ASCII control, whitespace, single quote, double quote, or backtick. Invalid or non-round-tripping configuration fails readiness. Startup fixtures parse the completed policy back to the exact directive/source map, including malicious delimiter-bearing configuration cases. For every landing and terminal response, the server generates at least 128 fresh random bits with a cryptographically secure random-number generator and Base64-encodes them as `nonce`. It serializes this exact header only after those checks:
+Every protected landing, redirect, error, session, and terminal response carries
+`Referrer-Policy: no-referrer` and all three cache headers exactly:
 
 ```text
-Content-Security-Policy: default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'none'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; style-src 'nonce-${nonce}'; form-action ${protectedActionSource}
+Cache-Control: private, no-store, no-transform, max-age=0
+CDN-Cache-Control: no-store
+Vercel-CDN-Cache-Control: no-store
 ```
 
-`${nonce}` and `${protectedActionSource}` are serialization variables, never literal output: a response containing either placeholder fails closed. The page is server-rendered with at most one inline `<style nonce="${nonce}">` block using the exact response nonce, and its form action is the exact `protectedActionUrl`; there are no style attributes, scripts, external resources, CSP report receiver, analytics, session replay, remote image/font, tag manager, pixel, or link-tracking receiver. Nonces are never reused across responses. The action origin is configuration and the route is code-owned, never selected by `Host`/forwarded headers; exact route, method, origin, Fetch Metadata, CSRF, and authorization checks remain authoritative because CSP source matching is not route authorization. The POST returns its terminal page directly and never redirects a secret-bearing submission to another authority.
+No protected route permits `s-maxage`, stale fallback, an optimizer, or service
+worker handling. At startup, the server parses the configured
+`protectedActionOrigin` as one canonical HTTPS origin and joins it only to the
+code-owned exact `PROTECTED_ACTION_PATH`; tenant input, request headers, and
+arbitrary configured paths never participate. The route may carry only the
+closed, random non-secret selector field. It never carries the verifier. Invalid
+or non-round-tripping origin/route configuration fails readiness.
 
-The first browser `GET` to an opaque-handle URL MUST perform a server-side
-clean-URL exchange before rendering content. The server validates only the
-short-lived, non-PII, minimally scoped, revocable handle; creates a
-non-authorizing landing session; and immediately returns `303 See Other` to the
-exact code-owned token-free landing path with no query or fragment. The cookie
-contains only a cryptographically random server-side session id. It is
-`Secure`, `HttpOnly`, `SameSite=Lax`, host-only because `Domain` is omitted,
-and limited to the exact landing/action `Path`; its absolute expiry and
-`Max-Age` are no later than the handle and producer action authority. Server
-state binds the exact environment, scope tuple, handle digest, protected-action
-kind, purpose, key version, expiry and revocation state. Every redirected GET
-rechecks those bindings; rotation invalidates the prior session, and terminal,
-expired, revoked or replaced authority clears it. A signed/encrypted cookie
-carrying that state is not an alternative in this generation.
+For every landing and terminal response, the server generates at least 128 fresh
+random bits with a cryptographically secure random-number generator and
+Base64-encodes them as `nonce`. It serializes this exact policy only after the
+origin/route checks:
 
-`Lax` is deliberate because an email link is a cross-site top-level navigation;
-the landing cookie is non-authorizing, and a stricter cookie that disappears
-during that redirect chain would break the safe handoff rather than add action
-security. The exchange is safe to repeat, does not consume or redeem the producer
-credential, and grants no mutation authority. `HEAD` creates no session. The
-redirected GET renders only from the current landing session; the subsequent
-POST still re-proves every tenant/recipient/source/action condition. No
-JavaScript or `history.replaceState` may substitute for the server redirect.
-One handle may have a small bounded set of simultaneous short-lived
-non-authorizing landing sessions so scanner opens and redirect followers cannot
-invalidate a human's already-open landing. Rate/cap enforcement may deny or
-delay excess session creation but never consumes the producer credential,
-marks the action used, invalidates an existing valid session merely because a
-new GET arrived, or prevents later recovery/reissue. Terminal, expiry,
-replacement, and revocation clear every session for the handle. Security tests
-cover stale/expired/revoked sessions, sibling-subdomain cookie injection/tossing,
-wrong path/environment/action/purpose, key rotation, repeated/scanner-flooded
-GET/HEAD, external-webmail and redirect-chain entry in Chromium/WebKit/Firefox,
-iframe/cross-site POST, human-session coexistence, rate-limit recovery, and
-terminal clearing.
+```text
+Content-Security-Policy: default-src 'none'; base-uri 'none'; object-src 'none'; frame-ancestors 'none'; script-src 'nonce-${nonce}'; connect-src 'none'; img-src 'none'; font-src 'none'; media-src 'none'; worker-src 'none'; manifest-src 'none'; style-src 'nonce-${nonce}'; form-action 'self'
+```
 
-Handles, tokens, OTPs, hashes, full URLs, and secret query/fragment values are
-redacted before proxy/CDN/app logs, traces, errors, support, screenshots,
-browser telemetry, and analytics. The token-free current address, refresh,
-forward navigation, form action and outbound referrer are product guarantees;
-Asym does not claim to erase user-agent-managed prior navigation entries,
-browser sync, screenshots, clipboard contents or external mail-client history
-outside its control. Terminal pages are non-enumerating and offer exactly one
-safe recovery route.
+`${nonce}` is a serialization variable, never literal output; a response
+containing the placeholder fails closed. The page is server-rendered with at
+most one inline `<style nonce="${nonce}">` block and one minimal inline
+`<script nonce="${nonce}">` block using the exact response nonce. The script's
+entire job is to parse the closed verifier envelope from `location.hash`, remove
+the fragment immediately with `history.replaceState`, and place the verifier in
+the same-origin form for an explicit recipient submit. It MUST NOT auto-submit,
+fetch, beacon, persist, log, report, navigate, or load another resource. The form
+action is the exact same-origin code-owned route. There are no style attributes,
+external resources, CSP report receiver, analytics, session replay, remote
+image/font, tag manager, pixel, or tracking receiver. Nonces are never reused
+across responses. Exact route, method, origin, Fetch Metadata, CSRF, and
+authorization checks remain authoritative because CSP is not route
+authorization.
+
+The server stores only a versioned HMAC/digest of the independent 256-bit
+verifier. A selector-only `GET` or `HEAD` is inert and non-enumerating: it
+reveals no organization, action, recipient, resource, expiry, terminal state, or
+other protected fact; touches no protected resource; consumes no grant; and
+creates no authorized session. `HEAD` returns no body or session. Missing,
+malformed, or stripped fragments have no path/query/cookie/raw-selector fallback
+and lead only to the same generic recovery surface.
+
+Only an explicit same-origin POST containing the selector/verifier pair may
+perform constant-time digest verification and establish a short-lived
+non-authorizing landing session. The POST still re-proves every
+tenant/recipient/source/action condition and returns a generic failure when any
+proof fails. Its cookie contains only a cryptographically random server-side
+session id; it is `Secure`, `HttpOnly`, `SameSite=Lax`, host-only because
+`Domain` is omitted, and limited to the exact landing/action `Path`. Its absolute
+expiry and `Max-Age` are no later than producer action authority. Server state
+binds environment, scope tuple, selector and digest/key versions, action kind,
+purpose, recipient-authorization epoch, expiry, and revocation. Every later
+render/command rechecks those bindings. Rotation invalidates prior sessions;
+terminal, expired, replaced, or revoked authority clears every affected
+session. A signed/encrypted cookie carrying authority is not an alternative.
+
+Verified POST replay is idempotent and cannot execute the source action twice.
+Repeated/scanner-flooded GET/HEAD cannot invalidate a human flow or consume
+authority; bounded rate limits may slow the inert landing but never mark an
+action used or block recovery/reissue. Security tests cover stripped/modified
+fragments, selector enumeration, digest/key rotation, stale/expired/revoked
+sessions, sibling-subdomain cookie injection/tossing, wrong
+path/scope/environment/action/purpose, duplicate POST, external-webmail and
+mobile-webview entry in Chromium/WebKit/Firefox, scanners that execute script or
+submit forms, iframe/cross-site POST, rate-limit recovery, and terminal clearing.
+
+Selectors, verifiers, tokens, OTPs, raw POST bodies, hashes, capability-bearing
+full URLs, and secret fragments are redacted before proxy/CDN/app logs, traces,
+errors, support, screenshots, browser telemetry, and analytics. The
+verifier-free current product URL, refresh/forward navigation, form action, and
+outbound referrer are product-controlled guarantees after the minimal script
+runs; Asym does not claim to erase mail-client/extension history, browser sync,
+screenshots, clipboard contents, or other records outside its control. Terminal
+pages are non-enumerating and offer exactly one safe recovery route. Production
+release proves the fragment survives every supported mail client/webview and
+scanner path and that the three cache headers survive the actual Vercel/CDN
+route; there is no unsafe compatibility fallback.
 
 The Supabase Send Email Hook mapping is checked in and pinned to the adopted producer schema. Unknown or missing `email_action_type`, unexpected field combinations, or an unsupported project/environment fails closed:
 
-| Supabase action type                                                      | Exact recipient/credential interpretation                                                                                             | Phase 17 contract/postcondition                                                                                                                                                    |
-| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `signup`                                                                  | `user.email`; `token` with `token_hash`                                                                                               | confirm-signup capability; completion is Supabase confirmation, never the communication event                                                                                      |
-| `invite`                                                                  | `user.email`; a fresh `token`/`token_hash` only after deliberate acceptance of the authoritative seven-day Asym invitation            | Phase 4 `BeginLegacyInvitationRedemption` owns the scanner-safe, idempotent exchange; the original Asym invitation remains authoritative and is not replaced by this shorter proof |
-| `magiclink`                                                               | `user.email`; `token` with `token_hash`                                                                                               | one-time sign-in capability; opening the harmless landing is not sign-in                                                                                                           |
-| `recovery`                                                                | `user.email`; `token` with `token_hash`                                                                                               | password-recovery capability; completion requires the producer password-change postcondition and link opening alone does not create an ordinary continuing login                   |
-| secure `email_change`                                                     | current `user.email` gets `token` with the counterintuitive `token_hash_new`; new `user.new_email` gets `token_new` with `token_hash` | two independently addressed producer capabilities; never infer meaning from the `_new` suffix                                                                                      |
-| non-secure `email_change`                                                 | new `user.new_email`; use the documented present `token`/`token_hash` or `token_new`/`token_hash` combination                         | one producer capability; any other combination is schema drift                                                                                                                     |
-| `reauthentication`                                                        | `user.email`; OTP in `token`; do not invent a link/hash pair                                                                          | paste/autofill-friendly producer code; never retained in history, preview, logs, test fixture, or Recent sent copy                                                                 |
-| `password_changed_notification`                                           | `user.email`; no action credential                                                                                                    | security notice with safe help/recovery route; delivery does not prove authorization or awareness                                                                                  |
-| `email_changed_notification`                                              | `user.email`; `old_email` is typed context only                                                                                       | producer-owned old/current meaning                                                                                                                                                 |
-| `phone_changed_notification`                                              | `user.email`; `old_phone` is typed context only                                                                                       | minimized fact, never a generic variable                                                                                                                                           |
-| `identity_linked_notification` / `identity_unlinked_notification`         | `user.email`; `provider` is typed context only                                                                                        | escaped label cannot become a URL or authority                                                                                                                                     |
-| `mfa_factor_enrolled_notification` / `mfa_factor_unenrolled_notification` | `user.email`; `factor_type` is typed context only                                                                                     | no credential material                                                                                                                                                             |
+| Supabase action type                                                      | Exact recipient/credential interpretation                                                                                             | Phase 17 contract/postcondition                                                                                                                                                         |
+| ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `signup`                                                                  | `user.email`; `token` with `token_hash`                                                                                               | confirm-signup capability; completion is Supabase confirmation, never the communication event                                                                                           |
+| `invite`                                                                  | `user.email`; a fresh `token`/`token_hash` only after deliberate acceptance of the authoritative seven-day Asym invitation            | Phase 4 `BeginLegacyInvitationRedemption` owns the scanner-resistant, idempotent exchange; the original Asym invitation remains authoritative and is not replaced by this shorter proof |
+| `magiclink`                                                               | `user.email`; `token` with `token_hash`                                                                                               | one-time sign-in capability; opening the harmless landing is not sign-in                                                                                                                |
+| `recovery`                                                                | `user.email`; `token` with `token_hash`                                                                                               | password-recovery capability; completion requires the producer password-change postcondition and link opening alone does not create an ordinary continuing login                        |
+| secure `email_change`                                                     | current `user.email` gets `token` with the counterintuitive `token_hash_new`; new `user.new_email` gets `token_new` with `token_hash` | two independently addressed producer capabilities; never infer meaning from the `_new` suffix                                                                                           |
+| non-secure `email_change`                                                 | new `user.new_email`; use the documented present `token`/`token_hash` or `token_new`/`token_hash` combination                         | one producer capability; any other combination is schema drift                                                                                                                          |
+| `reauthentication`                                                        | `user.email`; OTP in `token`; do not invent a link/hash pair                                                                          | paste/autofill-friendly producer code; never retained in history, preview, logs, test fixture, or Recent sent copy                                                                      |
+| `password_changed_notification`                                           | `user.email`; no action credential                                                                                                    | security notice with safe help/recovery route; delivery does not prove authorization or awareness                                                                                       |
+| `email_changed_notification`                                              | `user.email`; `old_email` is typed context only                                                                                       | producer-owned old/current meaning                                                                                                                                                      |
+| `phone_changed_notification`                                              | `user.email`; `old_phone` is typed context only                                                                                       | minimized fact, never a generic variable                                                                                                                                                |
+| `identity_linked_notification` / `identity_unlinked_notification`         | `user.email`; `provider` is typed context only                                                                                        | escaped label cannot become a URL or authority                                                                                                                                          |
+| `mfa_factor_enrolled_notification` / `mfa_factor_unenrolled_notification` | `user.email`; `factor_type` is typed context only                                                                                     | no credential material                                                                                                                                                                  |
 
 This paragraph governs the **Supabase Auth Send Email Hook**, not Resend delivery
 events. The hook verifies Standard Webhooks headers `webhook-id`,
@@ -1027,7 +1098,26 @@ secret retire together. A failed proof leaves the current endpoint active.
 
 The five-second producer deadline uses already-published artifacts and one low-latency individual Resend send—no editor compilation, review, foreign conversion, provider-management probe, batch wait, or unrestricted tenant query. HTTP 200 is returned only after the semantic occurrence is already known accepted or a duplicate is known accepted. A possible acceptance becomes `Outcome indeterminate`; replay reuses the frozen payload and Resend key. Release probes pin the producer's actual non-2xx, timeout, and retry behavior rather than assuming a retry schedule.
 
-`BeginLegacyInvitationRedemption` binds tenant, invitation id/revision, normalized invited email, intended Party/donor, fixed allow-listed origin, opaque handle, expected `pending` state, and one idempotency key. Its POST re-proves pending/unexpired/unrevoked/unused/same-tenant/same-email and CAS-reserves one attempt. Phase 4 uses pinned server-only Supabase Admin `generateLink({ type: "invite", email, redirectTo })`, then immediately exchanges the returned hash through the pinned `verifyOtp` invite flow into the response-bound session. For crash recovery only, one short-lived envelope-encrypted producer credential slot may hold that bearer hash; it is bound to the redemption attempt and purged on exchange, failure finality, or provider expiry, and never enters a Phase 17 row, browser storage, log, or client-selected redirect. Exact command retry resumes the reserved exchange and cannot generate a second live proof. Possible success without recoverable proof becomes `redemption_indeterminate`; Phase 4 reconciles user/session/invitation binding or explicitly invalidates the uncertain proof before a successor. Final account bind is idempotent; expired/revoked/replaced/wrong-context/incompatible-account states return one privacy-safe Phase 4 recovery route.
+`BeginLegacyInvitationRedemption` binds tenant, invitation id/revision,
+normalized invited email, intended Party/donor, fixed allow-listed origin, the
+protected-action selector plus verifier-digest/key versions and recipient epoch,
+expected `pending` state, and one idempotency key. The verified landing-session
+POST re-proves pending/unexpired/unrevoked/unused/same-tenant/same-email and
+CAS-reserves one attempt; the raw fragment verifier is neither an input to this
+producer command nor retained by it. Phase 4 uses pinned server-only Supabase
+Admin `generateLink({ type: "invite", email, redirectTo })`, then immediately
+exchanges the returned hash through the pinned `verifyOtp` invite flow into the
+response-bound session. For crash recovery only, one short-lived
+envelope-encrypted producer credential slot may hold that bearer hash; it is
+bound to the redemption attempt and purged on exchange, failure finality, or
+provider expiry, and never enters a Phase 17 row, browser storage, log, or
+client-selected redirect. Exact command retry resumes the reserved exchange and
+cannot generate a second live proof. Possible success without recoverable proof
+becomes `redemption_indeterminate`; Phase 4 reconciles
+user/session/invitation binding or explicitly invalidates the uncertain proof
+before a successor. Final account bind is idempotent;
+expired/revoked/replaced/wrong-context/incompatible-account states return one
+privacy-safe Phase 4 recovery route.
 
 ## Contract-Bounded Delivery Plans
 
@@ -1247,11 +1337,11 @@ Consent evidence is append-only and binds tenant, Party, exact phone revision, s
 
 Suppression preserves exact scope, reason, source, time, actor, provider evidence and lineage. STOP or a reasonable withdrawal is hard; HELP changes nothing; START/UNSTOP does not reconstruct every required consent. Duplicates and out-of-order facts reduce fail-closed. Tenants cannot edit STOP/HELP semantics. Readiness evidence is exact tenant+sender+use case+market+route+policy and partial/stale evidence is not Ready.
 
-ADR-0025 preserves a non-executable launch gate for the later SMS phase. That phase must freshly prove, for each tenant/sender/use-case/market/route component: current law/carrier/provider research; tenant and provider account authority; completed registration rather than an aggregate progress guess; approved sender/use-case/content class; exact affirmative consent and phone-revision ownership; immutable STOP/HELP/withdrawal behavior; recipient preference and broad `do_not_contact`; required-message suppression policy; signed callbacks and normalized duplicate/out-of-order evidence; idempotent send/retry/finality; rate/quiet-hour/time-zone rules; tenant isolation; retention/audit/export/deletion; accessible donor/staff UX; real test-number isolation; operations owner, alert, support and shutdown; and migration/rollback. Every component must be Ready together before transport can activate.
+ADR-0028 preserves a non-executable launch gate for the later SMS phase. That phase must freshly prove, for each tenant/sender/use-case/market/route component: current law/carrier/provider research; tenant and provider account authority; completed registration rather than an aggregate progress guess; approved sender/use-case/content class; exact affirmative consent and phone-revision ownership; immutable STOP/HELP/withdrawal behavior; recipient preference and broad `do_not_contact`; required-message suppression policy; signed callbacks and normalized duplicate/out-of-order evidence; idempotent send/retry/finality; rate/quiet-hour/time-zone rules; tenant isolation; retention/audit/export/deletion; accessible donor/staff UX; real test-number isolation; operations owner, alert, support and shutdown; and migration/rollback. Every component must be Ready together before transport can activate.
 
 The later proof suite must include partial or rejected registration, registration/provider drift, reassigned/recycled phone, Party merge/relink, consent captured for a different sender/use case/market, STOP racing a queued send, HELP/START ambiguity, required-message suppression, duplicate/reordered callback, delivery timeout, provider outage/rate limit, test-to-production leakage, tenant switch and credential compromise. These are preservation requirements only: Phase 17 adds no Twilio state machine, provider client, worker, registration editor or dormant execution branch.
 
-The only tenant-facing Phase 17 treatment is a quiet, noninteractive **SMS — Planned, not available** explanation where future channels are relevant. No prominent navigation, setup checklist, progress bar, activation control or donor enrollment exists. A later separately authorized Twilio phase must re-research current carrier/legal rules and pass every gate in ADR-0025.
+The only tenant-facing Phase 17 treatment is a quiet, noninteractive **SMS — Planned, not available** explanation where future channels are relevant. No prominent navigation, setup checklist, progress bar, activation control or donor enrollment exists. A later separately authorized Twilio phase must re-research current carrier/legal rules and pass every gate in ADR-0028.
 
 ## Tenant-Owned Resend Connection
 
@@ -1542,7 +1632,7 @@ Adapter use becomes unauthorized immediately and primary ciphertext/key material
 Authorization denies decryption at the trigger instant. An idempotent,
 scope-owner-fair purge worker removes primary ciphertext, wrapped data keys and
 plaintext-capable caches within 24 hours, records content-free destruction
-evidence, and applies the Phase 10/ADR-0026 live-purge, backup-expiry and
+evidence, and applies the Phase 10/ADR-0029 live-purge, backup-expiry and
 cryptographic-erasure distinctions. Tenant owners and the service-only platform
 owner are scheduled fairly without crossing access boundaries. Permanent hashes,
 ids, source/provider fences and body-free outcome evidence remain. Provider
@@ -1955,7 +2045,7 @@ Build or evolve these cohesive seams rather than one giant service:
 - `.../delivery-plans.*` — fixed-slot validator/compiler;
 - `.../brand-layout.*`, `locales.*` — immutable presentation dependencies/readiness;
 - `.../resend-connection.*`, `resend-adapter.*`, `provider-reducer.*`, `transport-headers.*`, `sender-profiles.*`, `reply-destinations.*` — D10/D17/D20 aggregate, exact provider-schema, event, header and identity services;
-- `.../protected-actions.*` plus producer adapters — scanner-safe descriptor validation/landing protocol; producer domains retain credential issuance/redemption/postcondition;
+- `.../protected-actions.*` plus producer adapters — scanner-resistant descriptor validation/landing protocol; producer domains retain credential issuance/redemption/postcondition;
 - `packages/api/src/communications/intents.*`, `prepare.*`, `dispatch.*`, `provider-evidence.*`, `history.*`, `recent-copy.*`, `repair.*` — the Phase 6/17 one-writer seam;
 - `.../in-product.*` — role-safe item/group/engagement projection; and
 - `.../portability.*` — signed package, isolated finite converters, destination copy.
@@ -2583,9 +2673,10 @@ Each alert names owner, impact, diagnostic query, safe containment, reconciliati
 **M3 — Establish canonical authoring/publication.** Implement structured schema/compiler, synthetic fixtures, draft CAS, immutable commit/publication, D11 review, Brand Kit, Service/Protected Action layouts, whole-message inheritance, D3 resolver, locale readiness and safe legacy read-only behavior.
 
 **M4 — Ship the receipt tracer end-to-end.** Adapt
-`giving_receipt_issued_v1` from the current receipt producer to source-owned
-Phase 7 artifact, Phase 6 intent, Phase 17 content/preparation, D10 Resend, and
-body-free history. Before traffic moves, check in an exact cutover map from each
+`giving_receipt_issued_v1` from current receipt prototype evidence to Phase 7
+source issuance/facts, the exact current Phase 18 artifact, Phase 6 intent,
+Phase 17 content/preparation, D10 Resend, and body-free history. Before traffic
+moves, check in an exact cutover map from each
 legacy receipt occurrence/idempotency identity, writer, send-log/provider id,
 reader, and FK to the new source occurrence, producer-authorized occurrence
 slot, server-derived semantic identity, preparation, provider-message identity,
@@ -2712,17 +2803,32 @@ The following stable conformance IDs are release blocking and complement the sce
 - GET/HEAD/scanner/prefetch never mutates; POST requires current deliberate proof;
 - exact tenant/site/recipient/source/environment/origin/Host/forwarded-host binding and open-redirect resistance;
 - expiry, revocation, replacement, replay, duplicate submit, simultaneous race, already-complete and no-longer-applicable terminals;
-- mandatory first-GET handle exchange issues the exact secure landing cookie and
-  server-side 303 to a token-free code-owned path before rendering; scanner,
-  prefetch, repeated exchange and `HEAD` remain non-authorizing; the host-only,
-  path-scoped, short-lived `SameSite=Lax` session survives real external-email
-  top-level redirect chains without becoming POST authority; bounded parallel
-  sessions prevent scanner exhaustion of a human landing; current address,
-  refresh, forward navigation, form action and referrer contain no handle/secret/
-  PII; back navigation cannot redeem or mutate; logs, analytics, Recent copy,
-  support and tests retain no handle/secret/PII; and the product does not claim
-  to erase browser/mail-client-managed history outside Asym control;
-- browser-negative fixtures prove each response uses a fresh cryptographically random nonce of at least 128 bits, the CSP and sole style element carry the exact same encoded value, neither serialization placeholder can reach output, the server-configured origin plus code-owned route serializes and round-trips as exactly one absolute HTTPS CSP source token, raw comma/semicolon/control/whitespace/quote/backtick and non-round-tripping inputs fail readiness, and the exact CSP blocks scripts, fetch/beacon, images, fonts, frames, external style and CSP reports; `form-action` permits form submission only by the deliberate POST to the configured action origin and route, but does not constrain ordinary browser navigation, so exact route, method, origin, Fetch Metadata, CSRF, authorization, and state checks remain authoritative;
+- the fixed route carries a non-secret selector while an independent 256-bit
+  verifier remains fragment-held; GET/HEAD/scanner/prefetch and selector
+  enumeration expose no protected fact/resource, create no authorized session,
+  consume nothing, and prove no identity or human intent; the one minimal pinned
+  script removes the fragment from browser-visible history and prepares—but
+  never auto-submits—the exact same-origin form; missing/stripped fragments have
+  one safe recovery path and no raw path/query/cookie fallback; only a deliberate
+  CSRF-protected POST may verify the versioned digest and establish the bounded
+  non-authorizing session; current address, refresh, forward navigation, form
+  action and referrer contain no verifier/PII after bootstrap; logs, analytics,
+  Recent copy, support and tests retain no verifier/PII; and the product does not
+  claim to erase mail-client/extension or browser-managed history outside Asym
+  control;
+- browser-negative fixtures prove each response uses a fresh cryptographically
+  random nonce of at least 128 bits, the CSP plus sole script/style elements
+  carry the exact same encoded value, no serialization placeholder reaches
+  output, invalid/non-round-tripping origin or route configuration fails
+  readiness, and the exact CSP blocks every script except the one pinned fragment
+  bootstrap plus all fetch/beacon, images, fonts, frames, external style and CSP
+  reports; `form-action 'self'` permits only the same-origin deliberate POST,
+  while exact route, method, Origin, Fetch Metadata, CSRF, authorization and state
+  checks remain authoritative; every protected response proves
+  `Cache-Control: private, no-store, no-transform, max-age=0`,
+  `CDN-Cache-Control: no-store`, and `Vercel-CDN-Cache-Control: no-store` through
+  the actual Vercel/CDN route; and supported mail-client/webview/scanner fixtures
+  prove fragment preservation with no unsafe fallback;
 - tracking remains off and ordinary links cannot impersonate/redirect protected action;
 - auth hook deadline/failure/rollback/key rotation; and
 - authenticated payment/recurring action and provider reconciliation without direct email mutation.
@@ -2972,7 +3078,19 @@ Phase 17 is complete only when:
 ## Further Notes
 
 - For this SiteStacker parity program, the word **spec** means this repository PRD plus its normative manifest, OpenSpec delta, ADRs, and dated congruence artifacts. It does not mean a tracker-issue specification.
-- Phase 17 is groomed planning, not implementation dispatch. Its Phase 17 issue set remains unpublished, no child may receive `ready-for-agent`, and product-code work requires a separate explicit decision from Conrad.
+- Phase 17 is groomed planning, not implementation dispatch. Epic #873 and
+  children #874–#905 are published as the implementation-ready decomposition,
+  but every child remains `status:blocked`; no child may receive
+  `ready-for-agent`, and product-code work requires a separate explicit decision
+  from Conrad.
+- `issue: 905` · `disposition: superseded_by_phase_18` ·
+  `dispatch: blocked_from_dispatch` ·
+  `unblock_condition: body_amended_to_phase_18`. Its published phrase “source-owned
+  Phase 7 receipt artifact” is obsolete. The receipt tracer must instead bind
+  Phase 7 source issuance/facts to the exact current Phase 18 artifact before
+  Phase 17 prepares or delivers the wrapper. This repo disposition is
+  controlling until the GitHub body is explicitly corrected; no implementation
+  may follow the stale ownership sentence.
 - Provider behavior, limits, compliance guidance, and client compatibility are dated evidence. Implementation and release must reverify the exact current Resend and recipient-client contracts rather than treating the research snapshot as permanent vendor truth.
 - The PRD, executable manifest, OpenSpec delta, ADRs, census, decision-to-test traceability, and cross-PRD congruence package form one contract set. Any unresolved disagreement among them blocks issue publication, implementation dispatch, and Live activation.
 
@@ -2983,7 +3101,7 @@ Phase 17 is complete only when:
   promoted through the repository's OpenSpec process.
 - **Normative implementation interface:** this PRD and the executable manifest
   specify the detailed Phase 17 contract and must agree with the active delta.
-- **Normative architecture:** canonical `docs/adr/0022`–`0029` record accepted architectural
+- **Normative architecture:** canonical `docs/adr/0025`–`0032` record accepted architectural
   choices but cannot override observable behavior.
 - **Derived activation and reconciliation evidence:** the dated census,
   decision-to-test register, congruence package, and canonical `CONTEXT.md`

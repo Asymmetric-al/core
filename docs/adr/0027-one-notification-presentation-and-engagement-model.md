@@ -1,4 +1,4 @@
-# ADR-0024: One notification presentation and engagement model
+# ADR-0027: One notification presentation and engagement model
 
 **Status:** Accepted (founder ruling, Phase 17 grill session — D8)
 

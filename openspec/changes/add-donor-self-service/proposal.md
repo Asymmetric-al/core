@@ -26,11 +26,14 @@ the gap between the surface intent and shipped product.
   not Phase 16 recovery eligibility or timing.
 - Add donor payment-method management (add, update default, remove) through
   Stripe-managed flows; no raw payment data touches Asym servers.
-- Add annual giving statement generation and delivery for receiptable gifts
-  tied to known donor records. The Giving/statement domain owns the canonical
-  frozen snapshot/version, including official display strings and raw values;
-  Statement Studio owns assigned template/render/private artifact, and the donor
-  BFF owns recipient-authorized download/delivery.
+- Add annual giving statement access for receiptable gifts tied to known donor
+  records. Phase 19 owns the frozen population, cutoff, and run orchestration;
+  source domains own the underlying money, eligibility, recipient, correction,
+  and display truth and assemble the immutable purpose-scoped Facts Package.
+  Phase 18 Document Production owns the exact assigned publication, Generation
+  Request, private canonical artifact, current head, and artifact authorization.
+  The donor BFF is a thin recipient-authorized adapter, and Phase 17 owns any
+  governed delivery and communication history.
 
 **Recurring supersession record (2026-07-13):** the original self-service
 wording assumed one Stripe subscription and one mutable pledge record. Phase 16
@@ -44,7 +47,7 @@ and control-loss quarantine. The annual-statement scope below is unchanged.
 - Affected specs: `donation-lifecycle`
 - Affected code: `packages/api/src/donor-portal/**`,
   `packages/api/src/stripe/**`, `apps/donor` dashboard (recurring, wallet,
-  statements), and the Statement Studio artifact boundary proposed by
+  statements), and the canonical Document Production boundary proposed by
   `add-statement-studio`
 - Requires `add-recurring-giving` to land against the Phase 16 target model;
   this change does not authorize extending `donor_pledges`.

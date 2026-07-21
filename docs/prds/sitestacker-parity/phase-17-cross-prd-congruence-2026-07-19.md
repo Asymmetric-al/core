@@ -5,8 +5,8 @@
 - **Authoring provenance:** founder-ratified D1–D20, reproduced in the checked-in
   [decision-to-test register](./phase-17-decision-test-traceability-2026-07-19.md)
   with the source-record digest
-- **Program posture:** planning only; issue set pending; groomed-not-dispatched;
-  not built or live
+- **Program posture:** planning only; epic #873 and children #874–#905
+  published and `status:blocked`; groomed-not-dispatched; not built or live
 
 ## Verdict
 
@@ -15,7 +15,7 @@
 | Can the Phase 17 PRD be authored without changing prior product truth? | **GREEN**                                                                                  | D1–D20 extend the existing Phase 2/3/6 foundation while preserving producer, document, money, recognition, privacy, and workflow owners.                                          |
 | Were there material predecessor conflicts?                             | **RED before this package; GREEN after the dated amendments**                              | Phase 2 fallback order, Phase 3 SMS consent, Phase 4 protected actions, Phase 6 history/delivery identity/recovery, and OpenSpec automation routing required explicit correction. |
 | Is the current repo already Phase 17?                                  | **RED**                                                                                    | Email Studio and Resend foundations are real; the Phase 6 spine and Phase 17 governed product remain forward.                                                                     |
-| Does this package authorize implementation or dispatch?                | **RED**                                                                                    | No Phase 17 issue set or implementation dispatch is authorized. No `ready-for-agent` state is created.                                                                            |
+| Does this package authorize implementation or dispatch?                | **RED**                                                                                    | The published Phase 17 issue set is a blocked decomposition, not dispatch authorization. Every child remains `status:blocked`; no `ready-for-agent` state is created.             |
 | Is cross-phase ownership now unambiguous?                              | **GREEN, conditional on the companion OpenSpec/ADR files landing in the same spec change** | The old statement, new winner, compatibility boundary, and future-phase owners are enumerated below.                                                                              |
 
 ## Authority and method
@@ -27,7 +27,7 @@ This package uses one no-guessing hierarchy:
    17 behavior;
 3. the Phase 17 PRD and executable manifest together provide the detailed
    implementation interface and must agree with that delta;
-4. canonical `docs/adr/0022`–`0029` record accepted architecture but cannot
+4. canonical `docs/adr/0025`–`0032` record accepted architecture but cannot
    override observable behavior; and
 5. predecessor PRDs/roadmap/code provide context or current-state evidence,
    while the census, traceability register, this congruence package, and
@@ -46,24 +46,26 @@ rewriting history.
 
 ## Canonical ownership map
 
-| Concern                                                                                                                                                      | Owner                                                               | Phase 17 relationship                                                                                                                                                                                                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Operational business truth, source occurrence, eligibility, recipient roles, timing, protected action                                                        | Producing domain                                                    | Consumes one typed, fenced, explicitly scoped projection; tenant scope uses tenant/Party authority, while platform scope is admitted only through the fixed platform scope and exact current `eve_platform_owner` authority/fence; never queries or invents source truth.                                        |
-| Site/locale/currency context                                                                                                                                 | Phase 2                                                             | Phase 17 consumes that context and owns the system-message locale activation aggregate, per-contract readiness projection, and permitted presentation inheritance.                                                                                                                                               |
-| Consent, field projection, export and merge-field safety                                                                                                     | Phase 3                                                             | Consumes the single fail-closed resolver; adds no parallel consent or arbitrary record access.                                                                                                                                                                                                                   |
-| Invitation/claim credential and redemption                                                                                                                   | Phase 4                                                             | Presents a typed scanner-safe action descriptor; never mints/redeems/interprets proof.                                                                                                                                                                                                                           |
-| Delivery Plan occurrence coordination; communication intent, dispatch, provider evidence, suppression and durable history                                    | Phase 6                                                             | Phase 17's generated resolver selects the exact immutable binding/plan. Phase 6 owns one unique plan-occurrence header and one bounded transaction that releases the complete independently keyed child-intent set before any claim; the header is coordination only, not a queue, workflow, ledger, or outcome. |
-| Receipt/statement facts, document class, currentness and official artifact                                                                                   | Phase 7; artifacts deepened by Phase 18; statement runs by Phase 19 | Provides editable surrounding content only; never owns official truth or artifact.                                                                                                                                                                                                                               |
-| Restricted-person and care/security egress safety                                                                                                            | Phases 3/10                                                         | Every authoring, preview, send, support and history projection obeys strictest-wins.                                                                                                                                                                                                                             |
-| Authorization and publication-review capabilities                                                                                                            | Phase 12                                                            | Consumes explicit capabilities and active assignment; creates no role or policy engine.                                                                                                                                                                                                                          |
-| Money/payment/campaign facts                                                                                                                                 | Phase 13                                                            | Renders protected typed facts only.                                                                                                                                                                                                                                                                              |
-| DAF/tribute/matching/recognition recipients and privacy                                                                                                      | Phase 14                                                            | Governs presentation only; never derives a recognition recipient or amount visibility.                                                                                                                                                                                                                           |
-| Offline-gift post/outbox                                                                                                                                     | Phase 15                                                            | Consumes already-governed outbox candidates; creates no second send path.                                                                                                                                                                                                                                        |
-| Recurring/fixed-pledge states, candidates, retry/no-debt meaning and audiences                                                                               | Phase 16                                                            | Maps exact obligations to catalog contracts and publications without reinterpreting them.                                                                                                                                                                                                                        |
-| System-message catalog, publication, presentation resolution, bounded Delivery Plans, in-product presentation, sender/reply configuration and message repair | Phase 17                                                            | Owns.                                                                                                                                                                                                                                                                                                            |
-| Inbound replies and conversations                                                                                                                            | Phase 26                                                            | Phase 17 records only outbound reply posture and destination evidence; remains transport-dark inbound.                                                                                                                                                                                                           |
-| Campaign/newsletter authoring and audience operations                                                                                                        | Phase 32                                                            | Not a Phase 17 system-message feature.                                                                                                                                                                                                                                                                           |
-| General enrollment, waits, branches, tasks, mutations and workflow runs                                                                                      | Phase 34                                                            | May call a fixed governed-message action; Phase 17 does not build a workflow engine.                                                                                                                                                                                                                             |
+| Concern                                                                                                                                                      | Owner            | Phase 17 relationship                                                                                                                                                                                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Operational business truth, source occurrence, eligibility, recipient roles, timing, protected action                                                        | Producing domain | Consumes one typed, fenced, explicitly scoped projection; tenant scope uses tenant/Party authority, while platform scope is admitted only through the fixed platform scope and exact current `eve_platform_owner` authority/fence; never queries or invents source truth.                                        |
+| Site/locale/currency context                                                                                                                                 | Phase 2          | Phase 17 consumes that context and owns the system-message locale activation aggregate, per-contract readiness projection, and permitted presentation inheritance.                                                                                                                                               |
+| Consent, field projection, export and merge-field safety                                                                                                     | Phase 3          | Consumes the single fail-closed resolver; adds no parallel consent or arbitrary record access.                                                                                                                                                                                                                   |
+| Invitation/claim credential and redemption                                                                                                                   | Phase 4          | Presents a typed scanner-resistant action descriptor; never mints/redeems/interprets proof.                                                                                                                                                                                                                      |
+| Delivery Plan occurrence coordination; communication intent, dispatch, provider evidence, suppression and durable history                                    | Phase 6          | Phase 17's generated resolver selects the exact immutable binding/plan. Phase 6 owns one unique plan-occurrence header and one bounded transaction that releases the complete independently keyed child-intent set before any claim; the header is coordination only, not a queue, workflow, ledger, or outcome. |
+| Receipt/statement eligibility, source facts, issuance and correction effect                                                                                  | Phase 7          | Provides editable surrounding content only; never owns source legal/tax truth.                                                                                                                                                                                                                                   |
+| Generated-document definition, publication, request, exact artifact, current head, access and records evidence                                               | Phase 18         | References the exact current artifact in the wrapper/action; never renders or owns it.                                                                                                                                                                                                                           |
+| Statement population, cutoff, run, items and run recovery                                                                                                    | Phase 19         | Delivers only after the exact Phase 19 item and Phase 18 artifact are ready; never owns run truth.                                                                                                                                                                                                               |
+| Restricted-person and care/security egress safety                                                                                                            | Phases 3/10      | Every authoring, preview, send, support and history projection obeys strictest-wins.                                                                                                                                                                                                                             |
+| Authorization and publication-review capabilities                                                                                                            | Phase 12         | Consumes explicit capabilities and active assignment; creates no role or policy engine.                                                                                                                                                                                                                          |
+| Money/payment/campaign facts                                                                                                                                 | Phase 13         | Renders protected typed facts only.                                                                                                                                                                                                                                                                              |
+| DAF/tribute/matching/recognition recipients and privacy                                                                                                      | Phase 14         | Governs presentation only; never derives a recognition recipient or amount visibility.                                                                                                                                                                                                                           |
+| Offline-gift post/outbox                                                                                                                                     | Phase 15         | Consumes already-governed outbox candidates; creates no second send path.                                                                                                                                                                                                                                        |
+| Recurring/fixed-pledge states, candidates, retry/no-debt meaning and audiences                                                                               | Phase 16         | Maps exact obligations to catalog contracts and publications without reinterpreting them.                                                                                                                                                                                                                        |
+| System-message catalog, publication, presentation resolution, bounded Delivery Plans, in-product presentation, sender/reply configuration and message repair | Phase 17         | Owns.                                                                                                                                                                                                                                                                                                            |
+| Inbound replies and conversations                                                                                                                            | Phase 26         | Phase 17 records only outbound reply posture and destination evidence; remains transport-dark inbound.                                                                                                                                                                                                           |
+| Campaign/newsletter authoring and audience operations                                                                                                        | Phase 32         | Not a Phase 17 system-message feature.                                                                                                                                                                                                                                                                           |
+| General enrollment, waits, branches, tasks, mutations and workflow runs                                                                                      | Phase 34         | May call a fixed governed-message action; Phase 17 does not build a workflow engine.                                                                                                                                                                                                                             |
 
 ## Current repo truth versus Phase 17 target
 
@@ -127,10 +129,10 @@ built.”
 | 1     | **AMENDED.** Communication history was named; Phase 17 configuration/presentation records were not.                                                                      | Asym Postgres/code own catalog, publications, configuration, sender/reply revisions and recent-copy detail; provider remains executor/evidence only.                                                                   |
 | 2     | **MATERIAL CONFLICT, AMENDED.** D9 fixed one override order.                                                                                                             | D3 permits two platform-defined priorities only for eligible system-message content. Receipts and contracts without tenant choice retain the fixed order.                                                              |
 | 3     | **MATERIAL GAP, AMENDED.** Email consent/merge-field safety exists; SMS provenance and Phase 17 capabilities were absent.                                                | Extend channel evidence without enabling SMS; reuse one resolver and explicit Phase 12 capabilities.                                                                                                                   |
-| 4     | **MATERIAL SECURITY CONFLICT, AMENDED.** Raw redirect context/action-link wording could become authority or an editable token.                                           | Phase 4 owns proof; Phase 17 presents a scanner-safe Asym handoff; server-owned context is re-proved.                                                                                                                  |
+| 4     | **MATERIAL SECURITY CONFLICT, AMENDED.** Raw redirect context/action-link wording could become authority or an editable token.                                           | Phase 4 owns proof; Phase 17 presents a scanner-resistant Asym handoff; server-owned context is re-proved.                                                                                                             |
 | 5     | **BOUNDED GAP, AMENDED.** Tenant and platform sender purposes were not separated.                                                                                        | Tenant identity/system mail uses tenant Ready Resend; Asym customer bootstrap is a distinct platform contract, never fallback.                                                                                         |
 | 6     | **MATERIAL CONFLICT, AMENDED.** Test-history, personalized subject, singular delivery profile, provider-boundary and raw-evidence language were too broad or incomplete. | Preserve the one spine while adopting D10/D14/D15/D16/D17/D20 amendments.                                                                                                                                              |
-| 7     | **BOUNDED CONFLICT, AMENDED.** Editable presentation could be mistaken for receipt/statement truth; recent copy for artifact.                                            | Phase 7 owns facts/artifacts; Phase 17 owns only permitted surrounding content/presentation.                                                                                                                           |
+| 7     | **BOUNDED CONFLICT, AMENDED.** Editable presentation could be mistaken for receipt/statement truth; recent copy could be mistaken for the artifact.                      | Phase 7 owns source eligibility/facts/issuance/correction effect; Phase 18 owns exact artifact/currentness/access/records; Phase 17 owns only the permitted wrapper and delivery.                                      |
 | 8     | **GREEN WITH CONSUMER NOTE.** Operations/data health is the correct place to surface catalog/readiness/recovery health.                                                  | Consume body-free grouped health signals; do not create one task per failed recipient or a second healer. No predecessor edit required.                                                                                |
 | 9     | **GREEN WITH CONSUMER NOTE.** Party/activity spine is compatible.                                                                                                        | Timeline and in-product projections reference Phase 6/17 records and apply role/privacy floors. No duplicate history.                                                                                                  |
 | 10    | **MATERIAL SAFETY GAP, AMENDED.** Already-sent email is non-retractable, but still-readable recent copies needed a reclassification rule.                                | Immediate deny plus priority purge; durable body-free evidence and immutable official artifacts retain their lawful contracts.                                                                                         |
@@ -171,11 +173,16 @@ built.”
 - **Old statement:** the branded hook resolves tenant from request/redirect
   context and injects an action link
   (`phase-04-identity-account-claiming-foundation.md:136-140`, `:169-170`).
-- **New winner:** producer-owned credential/action; scanner-safe Asym handoff;
-  fresh provider proof only after deliberate recipient action.
+- **New winner:** producer-owned credential/action; scanner-resistant fixed Asym
+  handoff with a non-secret HTTP selector plus independent fragment-held
+  verifier; fresh provider proof only after a deliberate same-origin recipient
+  POST. Ratified Phase 18 D13 amends this shared transport for every protected
+  action rather than creating a document-only token system.
 - **Compatibility boundary:** Phase 4 retains issuance, expiry, revocation,
-  redemption and completion. `redirectTo` may carry an opaque reference but
-  cannot choose authority, tenant, recipient, template or sender.
+  redemption and completion. `redirectTo` may carry only the inert selector and
+  fixed trusted Asym route; the independent verifier remains in the fragment.
+  Neither can choose authority, tenant, recipient, template or sender, and there
+  is no full-secret path/query fallback.
 
 ### A4 — Tenant versus platform identity mail
 
@@ -337,11 +344,15 @@ built.”
 
 ### A19 — Roadmap open questions
 
-- **Old statement:** review, outbound identity and launch locales are open
-  (`roadmap.md:1073-1076`).
+- **Old statement:** review, outbound identity and launch locales were open in
+  the pre-ratification roadmap text.
+- **Current replacement anchor:** `roadmap.md`, section **Phase 17 — System
+  Messages & Template Management**, paragraphs **Ratified grooming result
+  (2026-07-19; D1–D20)** and **Dated compatibility boundary**.
 - **New winner:** D1–D20 close all three and define the complete governed model.
-- **Compatibility boundary:** Phase 17 remains planning-only and issue-set
-  pending; closing design questions does not claim implementation.
+- **Compatibility boundary:** Phase 17 remains planning-only and
+  groomed-not-dispatched; publishing blocked epic #873 and children #874–#905
+  does not claim implementation or authorize dispatch.
 
 ### A20 — Future-phase boundaries
 
@@ -381,24 +392,25 @@ feature details.
 ## ADR allocation
 
 PR #465 ended the SiteStacker series at ADR-0017. Current `develop` subsequently
-assigned ADR-0018 through ADR-0021 to Eve autonomy, governance, audit, and
-kill-switch decisions. Those numbers remain Eve-owned; Phase 17 therefore starts
-at the next available **ADR-0022**. Every identifier in the allocation below
+assigned ADR-0018 through ADR-0024 to Eve autonomy, governance, audit,
+kill-switch, model-policy, private-memory, and approval-budget decisions. Those
+numbers remain Eve-owned; Phase 17 therefore starts at the next available
+**ADR-0025**. Every identifier in the allocation below
 refers exclusively to the canonical repository ADR files under `docs/adr/`; no
 feature-local ADR namespace applies. The lean allocation is:
 
-1. ADR-0022 — producer-owned protected actions and Phase 17 presentation;
-2. ADR-0023 — contract-bounded Delivery Plans versus general workflows;
-3. ADR-0024 — one Asym notification presentation/engagement model with
+1. ADR-0025 — producer-owned protected actions and Phase 17 presentation;
+2. ADR-0026 — contract-bounded Delivery Plans versus general workflows;
+3. ADR-0027 — one Asym notification presentation/engagement model with
    proportional role launch;
-4. ADR-0025 — evidence-ready SMS governance with transport unavailable;
-5. ADR-0026 — universal tenant-owned Resend, no shared fallback, and composed
+4. ADR-0028 — evidence-ready SMS governance with transport unavailable;
+5. ADR-0029 — universal tenant-owned Resend, no shared fallback, and composed
    sender/reply delivery identities (includes D17/D20; no duplicate Sender
    Profile ADR);
-6. ADR-0027 — canonical structured message document, immutable presentation
+6. ADR-0030 — canonical structured message document, immutable presentation
    dependencies, and minimum protected truth core (D4/D13/D18);
-7. ADR-0028 — body-free history and expiring support-safe recent copy; and
-8. ADR-0029 — immutable prepared-message/provider boundary and whole-message
+7. ADR-0031 — body-free history and expiring support-safe recent copy; and
+8. ADR-0032 — immutable prepared-message/provider boundary and whole-message
    recovery.
 
 Do not create an ADR for every D-number. The PRD/OpenSpec adequately own the
@@ -449,8 +461,8 @@ this same split so neither implementation can claim ambiguous ownership.
 
 ## Required program-document state
 
-- `roadmap.md` and `phase-map.md`: `PRD exists (issue set pending;
-groomed-not-dispatched)` for Phase 17; no invented issue number.
+- `roadmap.md` and `phase-map.md`: `PRD exists (epic #873 + #874–#905;
+groomed-not-dispatched)` for Phase 17.
 - `README.md`: Phase 17 entry after Phase 16, naming D1–D20 and planning-only
   posture.
 - `parity-matrix.md`: distinguish real Email Studio/Resend foundation from the
@@ -488,9 +500,10 @@ groomed-not-dispatched)` for Phase 17; no invented issue number.
    revisioned and non-secret; prepared snapshots are immutable and same-scope.
 7. Cross-tenant/site/locale/role/account, stale revision, arbitrary id, import,
    cache, preview and support-tool negative tests fail closed.
-8. Phase 7 official artifacts and Phase 10 safety survive fallback, expiry,
-   recovery, portability, reclassification and restore. Recent-copy deletion
-   cannot break official records, reconciliation or retry.
+8. Phase 7 source facts/issuance, Phase 18 exact official artifacts, and Phase
+   10 safety survive fallback, expiry, recovery, portability, reclassification
+   and restore. Recent-copy deletion cannot break source facts, official
+   records, reconciliation, artifact access or retry.
 9. OpenSpec strict validation and Markdown/Prettier/link checks pass. Every
    `MODIFIED` OpenSpec requirement restates the complete requirement and
    scenarios.

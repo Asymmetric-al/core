@@ -10,6 +10,15 @@
 
 > **Founder grill (2026-07-07) — what this session changed.** A formal grill-with-docs pressure-tested the committed PRD and ratified G1–G7, then ran a four-lens adversarial pass (over-engineering / tech-debt / brittleness / safety-congruence). Net effect: a **leaner** phase (dropped a country-risk subscription engine, a trigger-word hook, and premature purge executors) that is simultaneously **safer** (data-layer alias enforcement, sole-entry firewall). Key rulings folded below: person-level `security_level` composes with Phase-3 field sensitivity through the **one** resolver (G1); a **minimal locked room** holds only publication-dangerous identity (G2); **country risk is tenant-sovereign** with an opt-in importable WWL seed and a person-always-wins override (G3); **"Security Clearance" is a capability admins toggle onto any role** (G4); **one `identity_access_grants` object** serves standing / requested / break-glass access (G5); reclassification triggers a **scrub of what we control + an honest-limitation notice** (G6).
 
+> **Phase 18 generated-document amendment (2026-07-21).** Phase 10's
+> strictest alias/withholding/publication policy applies before any generated
+> document field, accessibility text, metadata, bookmark, filename, route,
+> preview fixture, log, export, storage object, or role projection is produced.
+> An already issued exact artifact is never silently rewritten. A current safety
+> change may revoke future access or generation and require source-authorized
+> correction/replacement through Phase 18 while retaining protected historical
+> evidence under the applicable records contract.
+
 ---
 
 ## Problem Statement
@@ -260,8 +269,9 @@ unavailable state required by the current projection, never evidence that a
 specific restricted copy existed.
 
 **Compatibility boundary.** Durable body-free Phase 6 evidence may remain under
-its lawful retention class; issued Phase 7 artifacts remain immutable under
-their source contract; and external email already delivered cannot be recalled.
+its lawful retention class; issued Phase 18 exact artifacts remain immutable
+while Phase 7 source facts and issuance/correction evidence retain their own
+authority; and external email already delivered cannot be recalled.
 Phase 17 must state those limitations honestly. It never routes legal identity,
 real location/photo, care/security fields, protected destinations, or action
 credentials through a tenant-editable node, fallback, test fixture, export,

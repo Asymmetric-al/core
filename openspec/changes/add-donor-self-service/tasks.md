@@ -41,24 +41,30 @@
 
 ## 3. Annual statements
 
-- [ ] 3.1 The Giving/statement domain builds the canonical frozen, versioned
-      annual-statement snapshot for receiptable gifts by year and tenant policy,
-      including deductible hard-credit and approved indirect partitions,
-      audit-only exclusion references with source-domain-approved reason codes,
-      corrections, refunds, currency, identity, raw values, frozen display
-      strings/locale, source IDs, and policy version (finance/legal review before
-      production).
-- [ ] 3.2 Statement Studio resolves the assigned immutable template and creates
-      the private artifact by binding frozen official display fields, without
-      recalculating or reformatting source facts.
-- [ ] 3.3 The donor BFF authorizes the recipient on every download, exposes only
-      the current eligible artifact, and records delivery/download.
-- [ ] 3.4 Contribution corrections/refunds/relinks supersede or void stale
-      statement artifacts per policy and link replacement lineage without
-      erasing retained audit history.
-- [ ] 3.5 Outbound delivery uses the approved Phase 6 communication seam and
-      document delivery adapter; authenticated self-download remains available
-      without creating a second send/log path.
+- [ ] 3.1 Phase 19 freezes the annual population, cutoff, and run identity.
+      Owning source domains assemble the immutable purpose-scoped Facts Package
+      for receiptable gifts by year and tenant policy, including deductible hard-
+      credit and approved indirect partitions, audit-only exclusion references
+      with source-approved reason codes, corrections, refunds, currency,
+      recipient identity, raw validation values, frozen display strings/locale,
+      source IDs, and policy version (finance/legal review before production).
+- [ ] 3.2 Phase 18 Document Production resolves and freezes one compatible
+      immutable publication, creates one idempotent Generation Request, and
+      produces the private canonical artifact without independently querying,
+      recalculating, or reformatting source truth.
+- [ ] 3.3 The donor BFF remains a thin adapter over Phase 18 authorization: it
+      reauthorizes the recipient, logical current head, exact artifact, and
+      records state on every request and exposes only the current eligible exact
+      PDF. Access evidence remains separate from delivery evidence.
+- [ ] 3.4 Contribution corrections, refunds, or relinks first create
+      source-owned correction/successor authority. Phase 18 then creates the
+      linked successor request and exact artifact, updates the logical current
+      head only after validation, and preserves the predecessor as restricted
+      immutable evidence.
+- [ ] 3.5 Outbound delivery uses the governed Phase 17/Phase 6 communication
+      seam with the exact artifact reference. Authenticated self-download
+      remains available without creating a second send/history path, and a send,
+      bounce, or resend never changes statement issuance or artifact truth.
 
 ## 4. Verification
 

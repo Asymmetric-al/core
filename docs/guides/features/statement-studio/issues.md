@@ -1,10 +1,19 @@
 # Statement Studio Issue Breakdown
 
-This is the canonical issue map for implementing Statement Studio from the PRD.
+> **Superseded and blocked from dispatch (Phase 18, 2026-07-21).** GitHub issues
+> #314-#364 preserve useful historical decomposition and repo evidence, but
+> their implementation instructions are superseded by Phase 18 and must not be
+> dispatched as written. Amend or close/reissue each issue against the Phase 18
+> PRD, authority manifest, renderer qualification protocol, ADRs 0033-0039, and
+> OpenSpec change before implementation. Phase 18 D17 requires a clean
+> pre-production cutover, not a legacy migration or dual-runtime plan.
+
+This was the canonical pre-Phase-18 issue map for implementing Statement Studio
+from the earlier PRD.
 GitHub issues **#310** (parent) and **#312–#364** (slices **SS-00** through
 **SS-26**) were published on 2026-06-12. Use the GitHub issue numbers for
-implementation work; keep `SS-##` draft IDs here for cross-reference with the
-PRD and planning docs.
+historical cross-reference only; do not use them for implementation until their
+bodies are reconciled with Phase 18.
 
 **HITL** (human-in-the-loop): slices that need product, legal, care, or legacy
 removal decisions before an agent implements them alone.
