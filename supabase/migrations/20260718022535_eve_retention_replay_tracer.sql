@@ -115,15 +115,10 @@ CREATE TABLE public.eve_retention_lifecycle_events (
 CREATE INDEX eve_retention_lifecycle_tenant_created_idx
     ON public.eve_retention_lifecycle_events (tenant_id, created_at DESC);
 
-INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
-VALUES (
-    'eve-replay-artifacts', 'eve-replay-artifacts', FALSE, 5000000,
-    ARRAY['application/json', 'text/plain']
-)
+INSERT INTO storage.buckets (id, name, public)
+VALUES ('eve-replay-artifacts', 'eve-replay-artifacts', FALSE)
 ON CONFLICT (id) DO UPDATE SET
-    public = FALSE,
-    file_size_limit = EXCLUDED.file_size_limit,
-    allowed_mime_types = EXCLUDED.allowed_mime_types;
+    public = FALSE;
 
 ALTER TABLE public.eve_retention_categories ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.eve_replay_artifacts ENABLE ROW LEVEL SECURITY;

@@ -18,10 +18,23 @@ describe("Eve retention and replay migration", () => {
     expect(sql).toContain("ADD COLUMN expires_at TIMESTAMPTZ");
   });
 
-  it("keeps artifact bodies in a private constrained Storage bucket", () => {
+  it("keeps artifact bodies in a private compatible Storage bucket", () => {
     expect(sql).toContain("CREATE TABLE public.eve_replay_artifacts");
-    expect(sql).toContain("INSERT INTO storage.buckets");
-    expect(sql).toContain("'eve-replay-artifacts', FALSE, 5000000");
+    expect(sql).toContain("INSERT INTO storage.buckets (id, name, public)");
+    expect(sql).toContain(
+      "VALUES ('eve-replay-artifacts', 'eve-replay-artifacts', FALSE)",
+    );
+    expect(sql).toContain(
+      "ON CONFLICT (id) DO UPDATE SET\n    public = FALSE;",
+    );
+    expect(sql).not.toContain("file_size_limit");
+    expect(sql).not.toContain("allowed_mime_types");
+    expect(sql).toContain(
+      "byte_size BIGINT CHECK (byte_size BETWEEN 1 AND 5000000)",
+    );
+    expect(sql).toContain(
+      "content_type TEXT CHECK (content_type IN ('application/json', 'text/plain'))",
+    );
     expect(sql).not.toContain("artifact_content");
     expect(sql).not.toContain("prompt_body");
     expect(sql).not.toContain("response_body");
