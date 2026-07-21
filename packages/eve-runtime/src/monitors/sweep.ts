@@ -63,7 +63,7 @@ function nextRunAt(now: Date, failed = false): string {
   return new Date(now.getTime() + (failed ? 15 : 5) * 60_000).toISOString();
 }
 
-async function auditMonitor(input: {
+export async function auditMonitor(input: {
   action: string;
   config: EveEngineeringMonitorConfig;
   evidence: Record<string, unknown>;
@@ -71,6 +71,27 @@ async function auditMonitor(input: {
   runId: string;
   supabaseAdmin: AdminSupabaseClient;
 }) {
+  const target = `${input.config.repoOwner}/${input.config.repoName}:${input.config.type}`;
+  const blocked = input.result === "blocked" || input.result === "skipped";
+  let status: "completed" | "failed" | "skipped" | "started" = "skipped";
+  if (input.result === "started") status = "started";
+  if (input.result === "succeeded") status = "completed";
+  if (input.result === "failed") status = "failed";
+  await createEveGovernanceStore(input.supabaseAdmin).recordDecision({
+    id: input.runId,
+    action: "engineering_monitor.run",
+    target,
+    decision: blocked ? "blocked" : "allowed",
+    reason: blocked ? "policy_not_ready" : "governance_allowed",
+    status,
+    stateVersion: input.config.policyVersion,
+    accountableTrigger: "engineering-health-monitor-schedule",
+    summary: {
+      auditAction: input.action,
+      monitorType: input.config.type,
+      ...input.evidence,
+    },
+  });
   await traceEveAuditEvent({
     store: createEveAuditStore(input.supabaseAdmin),
     event: {
@@ -95,7 +116,7 @@ async function auditMonitor(input: {
       },
       result: input.result,
       runId: input.runId,
-      target: `${input.config.repoOwner}/${input.config.repoName}:${input.config.type}`,
+      target,
       toolName: "engineering_health_monitor",
     },
   });
