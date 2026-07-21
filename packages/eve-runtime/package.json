@@ -1,0 +1,29 @@
+{
+  "name": "@asym/eve-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./governance-boundary": "./src/governance-boundary.ts"
+  },
+  "scripts": {
+    "build": "eve build",
+    "eval": "eve eval smoke --strict --max-concurrency 1",
+    "info": "eve info",
+    "lint": "eslint agent evals src",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "ai": "7.0.31",
+    "eve": "0.25.1",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@asym/api": "workspace:*",
+    "@types/node": "^24.0.0",
+    "typescript": "6.0.3"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
