@@ -59,7 +59,7 @@ export function assertContributionActionPermission(
   );
   const actorCapabilities = resolveContributionCapabilities(auth);
   const requiresEveryCapability =
-    (actionType === "refund" || actionType === "stripe_replay") &&
+    isProviderGranularContributionAction(actionType) &&
     options.mode === "request";
   const hasRequiredCapabilities = requiresEveryCapability
     ? requiredCapabilities.every((capability) =>
@@ -100,60 +100,135 @@ export type ContributionCapability =
   | "contributions.manage_table_preferences"
   | "crm.gift_history.manage_view_defaults";
 
-const CONTRIBUTION_ACTION_REQUIRED_CAPABILITY: Record<
-  ContributionActionType,
-  ContributionCapability
-> = {
-  resend_receipt: "contributions.manage_receipts",
-  approve_staged_gift: "contributions.apply_corrections",
-  retry_staged_gift: "contributions.retry_crm_post",
-  crm_repost: "contributions.retry_crm_post",
-  metadata_update: "contributions.apply_corrections",
-  refund: "contributions.run_refunds",
-  stripe_replay: "contributions.use_provider_actions",
-  donor_relink: "contributions.apply_corrections",
-  amount_correction: "contributions.apply_corrections",
-  designation_correction: "contributions.apply_corrections",
-  fund_correction: "contributions.apply_corrections",
-  allocation_correction: "contributions.apply_corrections",
-  receipt_correction: "contributions.apply_corrections",
-  statement_correction: "contributions.apply_corrections",
-  payment_state_correction: "contributions.apply_corrections",
-};
+export const REQUEST_CORRECTION_CAPABILITY: ContributionCapability =
+  "contributions.request_corrections";
 
-const APPROVAL_REQUEST_ACTION_TYPES = new Set<ContributionActionType>([
-  "refund",
-  "stripe_replay",
-  "donor_relink",
-  "amount_correction",
-  "designation_correction",
-  "fund_correction",
-  "allocation_correction",
-  "receipt_correction",
-  "statement_correction",
-  "payment_state_correction",
-]);
+export const APPROVE_CORRECTION_CAPABILITY: ContributionCapability =
+  "contributions.approve_corrections";
+
+interface ContributionActionPolicy {
+  /** Granular capability that authorizes executing the action directly. */
+  directCapability: ContributionCapability;
+  /** Whether tenant approval policy may route it through a correction request. */
+  approvalRequestable: boolean;
+  /**
+   * Provider-touching actions are granted only by their granular capability
+   * (never the legacy manage permission), and in request mode the requester
+   * must hold the request capability in addition — not instead.
+   */
+  providerGranular: boolean;
+}
+
+/**
+ * Single authority for what every contribution action requires (ADR-CD-024).
+ * Adding an action type forces a decision on all three properties here; the
+ * route gate, the executor, and the viewer availability projection all
+ * derive from this table.
+ */
+const CONTRIBUTION_ACTION_POLICY: Record<
+  ContributionActionType,
+  ContributionActionPolicy
+> = {
+  resend_receipt: {
+    directCapability: "contributions.manage_receipts",
+    approvalRequestable: false,
+    providerGranular: false,
+  },
+  approve_staged_gift: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: false,
+    providerGranular: false,
+  },
+  retry_staged_gift: {
+    directCapability: "contributions.retry_crm_post",
+    approvalRequestable: false,
+    providerGranular: false,
+  },
+  crm_repost: {
+    directCapability: "contributions.retry_crm_post",
+    approvalRequestable: false,
+    providerGranular: false,
+  },
+  metadata_update: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: false,
+    providerGranular: false,
+  },
+  refund: {
+    directCapability: "contributions.run_refunds",
+    approvalRequestable: true,
+    providerGranular: true,
+  },
+  stripe_replay: {
+    directCapability: "contributions.use_provider_actions",
+    approvalRequestable: true,
+    providerGranular: true,
+  },
+  donor_relink: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  amount_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  designation_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  fund_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  allocation_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  receipt_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  statement_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+  payment_state_correction: {
+    directCapability: "contributions.apply_corrections",
+    approvalRequestable: true,
+    providerGranular: false,
+  },
+};
 
 export function directContributionCapabilityForAction(
   actionType: ContributionActionType,
 ): ContributionCapability {
-  return CONTRIBUTION_ACTION_REQUIRED_CAPABILITY[actionType];
+  return CONTRIBUTION_ACTION_POLICY[actionType].directCapability;
+}
+
+export function isProviderGranularContributionAction(
+  actionType: ContributionActionType,
+): boolean {
+  return CONTRIBUTION_ACTION_POLICY[actionType].providerGranular;
 }
 
 export function requiredCapabilitiesForContributionAction(
   actionType: ContributionActionType,
   options: { mode?: "direct" | "request" },
 ): ContributionCapability[] {
-  const directCapability = directContributionCapabilityForAction(actionType);
+  const policy = CONTRIBUTION_ACTION_POLICY[actionType];
 
-  if (
-    options.mode === "request" &&
-    APPROVAL_REQUEST_ACTION_TYPES.has(actionType)
-  ) {
-    return [directCapability, "contributions.request_corrections"];
+  if (options.mode === "request" && policy.approvalRequestable) {
+    return [policy.directCapability, REQUEST_CORRECTION_CAPABILITY];
   }
 
-  return [directCapability];
+  return [policy.directCapability];
 }
 
 function formatRequiredCapabilities(

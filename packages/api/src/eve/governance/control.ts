@@ -1,10 +1,10 @@
 import { z } from "zod";
 
-import { EVE_KILL_SWITCH_KEYS } from "./types";
+import { EVE_KILL_SWITCH_KEYS, eveKillSwitchStateSchema } from "./types";
 import { ApiHttpError } from "../../shared/api-http-error";
-import { traceEveAuditEvent } from "../audit/record";
+import { traceBlockedEveControlDecision } from "../audit/control-decision";
+import { toEveAuditIdentityRpcParams } from "../audit/identity";
 import { summarizeEveAuditValue } from "../audit/redaction";
-import { createEveAuditStore } from "../audit/store";
 
 import type { EveKillSwitchKey, EveKillSwitchMutationResult } from "./types";
 import type { EveVerifiedAuditIdentity } from "../audit/types";
@@ -19,22 +19,11 @@ export const eveKillSwitchMutationSchema = z
   })
   .strict();
 
-const killSwitchStateSchema = z.object({
-  all_automation: z.boolean(),
-  active_runs: z.boolean(),
-  github_actions: z.boolean(),
-  production_writes: z.boolean(),
-  sandbox_networking: z.boolean(),
-  dynamic_workflows: z.boolean(),
-  model_policy_changes: z.boolean(),
-  force_approval: z.boolean(),
-});
-
 const mutationResultSchema = z.object({
   auditId: z.string().uuid(),
   changed: z.boolean(),
   enabled: z.boolean(),
-  killSwitchState: killSwitchStateSchema,
+  killSwitchState: eveKillSwitchStateSchema,
   stateVersion: z.number().int().positive(),
   switchKey: z.enum(EVE_KILL_SWITCH_KEYS),
   updatedAt: z.string(),
@@ -50,34 +39,32 @@ export async function setEveKillSwitch(input: {
   auditId?: string;
 }): Promise<EveKillSwitchMutationResult> {
   if (input.identity.identityMode !== "admin") {
-    await traceEveAuditEvent({
-      store: createEveAuditStore(input.supabaseAdmin),
-      event: {
-        identity: input.identity,
-        policy: {
-          id: "eve-governance-kernel",
-          status: "unavailable",
-        },
-        action: "kill_switch.actuation_rejected",
-        target: `kill_switch:${input.switchKey}`,
-        result: "blocked",
-        modelRole: "not_used",
-        evidence: {
-          requestedEnabled: input.enabled,
-          reason: input.reason ?? "No reason provided.",
-        },
-        change: { stateChanged: false },
-        decision: {
-          rationale:
-            "Kill-switch actuation requires a verified authenticated admin identity.",
-          risk: "Prompt, model, tool, service, and runtime identities cannot actuate governance controls.",
-          reversalOrFollowUp:
-            "Use the authenticated admin control path for any deliberate human change.",
-        },
-        debug: { source: "eve_kill_switch_control" },
+    await traceBlockedEveControlDecision({
+      supabaseAdmin: input.supabaseAdmin,
+      identity: input.identity,
+      policy: {
+        id: "eve-governance-kernel",
+        status: "unavailable",
       },
-    }).catch(() => undefined);
-    throw new Error("eve_kill_switch_requires_admin_identity");
+      action: "kill_switch.actuation_rejected",
+      target: `kill_switch:${input.switchKey}`,
+      evidence: {
+        requestedEnabled: input.enabled,
+        reason: input.reason ?? "No reason provided.",
+      },
+      decision: {
+        rationale:
+          "Kill-switch actuation requires a verified authenticated admin identity.",
+        risk: "Prompt, model, tool, service, and runtime identities cannot actuate governance controls.",
+        reversalOrFollowUp:
+          "Use the authenticated admin control path for any deliberate human change.",
+      },
+      debug: { source: "eve_kill_switch_control" },
+    });
+    throw new ApiHttpError(
+      403,
+      "Forbidden: kill-switch actuation requires an authenticated admin identity.",
+    );
   }
 
   const reason = input.reason
@@ -90,12 +77,7 @@ export async function setEveKillSwitch(input: {
     p_enabled: input.enabled,
     p_expected_state_version: input.expectedStateVersion,
     p_audit_id: auditId,
-    p_actor_id: input.identity.actorId,
-    p_actor_profile_id: input.identity.actorProfileId ?? null,
-    p_actor_role: input.identity.actorRole ?? null,
-    p_tenant_id: input.identity.tenantId ?? null,
-    p_initiator_type: input.identity.initiatorType,
-    p_initiator_id: input.identity.initiatorId,
+    ...toEveAuditIdentityRpcParams(input.identity),
     p_reason: reason,
   });
 

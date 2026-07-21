@@ -1,6 +1,10 @@
 import { z } from "zod";
 
-import { EVE_POLICY_STATUSES } from "./types";
+import {
+  EVE_POLICY_STATUSES,
+  createEngagedEveKillSwitchState,
+  eveKillSwitchStateSchema,
+} from "./types";
 
 import type {
   EveGovernanceAdminView,
@@ -14,16 +18,7 @@ import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 const governanceStateRowSchema = z.object({
   release_enabled: z.boolean(),
   emergency_off: z.boolean(),
-  kill_switch_state: z.object({
-    all_automation: z.boolean(),
-    active_runs: z.boolean(),
-    github_actions: z.boolean(),
-    production_writes: z.boolean(),
-    sandbox_networking: z.boolean(),
-    dynamic_workflows: z.boolean(),
-    model_policy_changes: z.boolean(),
-    force_approval: z.boolean(),
-  }),
+  kill_switch_state: eveKillSwitchStateSchema,
   policy_status: z.enum(EVE_POLICY_STATUSES),
   policy_summary: z.string().nullable(),
   state_version: z.number().int().positive(),
@@ -146,16 +141,7 @@ export async function loadEveGovernanceAdminView(input: {
       source: "missing",
       releaseEnabled: false,
       emergencyOff: false,
-      killSwitchState: {
-        all_automation: true,
-        active_runs: true,
-        github_actions: true,
-        production_writes: true,
-        sandbox_networking: true,
-        dynamic_workflows: true,
-        model_policy_changes: true,
-        force_approval: true,
-      },
+      killSwitchState: createEngagedEveKillSwitchState(),
       policyStatus: "not_configured",
       stateVersion: 1,
       updatedAt: new Date(0).toISOString(),

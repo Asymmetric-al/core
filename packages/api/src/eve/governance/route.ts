@@ -2,11 +2,11 @@ import { NextResponse } from "next/server";
 
 import { eveKillSwitchMutationSchema, setEveKillSwitch } from "./control";
 import { loadEveGovernanceAdminView } from "./store";
-import { toErrorResponse } from "../../shared/http-errors";
+import { ensureJsonBody, toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+import { traceEveControlDecision } from "../audit/control-decision";
 import { createAdminEveAuditIdentity } from "../audit/identity";
-import { traceEveAuditEvent } from "../audit/record";
-import { createEveAuditStore, loadRecentEveAuditEvents } from "../audit/store";
+import { loadRecentEveAuditEvents } from "../audit/store";
 
 export const GET = withOperation(
   async ({ auth, supabaseAdmin, requestId }) => {
@@ -34,36 +34,32 @@ export const POST = withOperation(
   async ({ auth, supabaseAdmin, requestId }) => {
     try {
       const governance = await loadEveGovernanceAdminView({ supabaseAdmin });
-      const auditEvent = await traceEveAuditEvent({
-        store: createEveAuditStore(supabaseAdmin),
-        event: {
-          identity: createAdminEveAuditIdentity(auth),
-          policy: {
-            id: "eve-governance-kernel",
-            status: governance.system.policyStatus,
-            governanceStateVersion: governance.system.stateVersion,
-          },
-          action: "audit.tracer.verify",
-          target: "eve:global",
-          result: "succeeded",
-          modelRole: "not_used",
-          evidence: {
-            emergencyOff: governance.system.emergencyOff,
-            policyStatus: governance.system.policyStatus,
-            releaseEnabled: governance.system.releaseEnabled,
-          },
-          change: { stateChanged: false },
-          decision: {
-            rationale:
-              "An authorized admin explicitly verified the Eve audit tracer.",
-            risk: "Read-only inspection; no operational state changed.",
-            reversalOrFollowUp:
-              "No reversal is required. Investigate any unsafe status before enabling autonomy.",
-          },
-          debug: {
-            requestId,
-            source: "admin_eve_audit_tracer_route",
-          },
+      const auditEvent = await traceEveControlDecision({
+        supabaseAdmin,
+        identity: createAdminEveAuditIdentity(auth),
+        policy: {
+          id: "eve-governance-kernel",
+          status: governance.system.policyStatus,
+          governanceStateVersion: governance.system.stateVersion,
+        },
+        action: "audit.tracer.verify",
+        target: "eve:global",
+        result: "succeeded",
+        evidence: {
+          emergencyOff: governance.system.emergencyOff,
+          policyStatus: governance.system.policyStatus,
+          releaseEnabled: governance.system.releaseEnabled,
+        },
+        decision: {
+          rationale:
+            "An authorized admin explicitly verified the Eve audit tracer.",
+          risk: "Read-only inspection; no operational state changed.",
+          reversalOrFollowUp:
+            "No reversal is required. Investigate any unsafe status before enabling autonomy.",
+        },
+        debug: {
+          requestId,
+          source: "admin_eve_audit_tracer_route",
         },
       });
       return NextResponse.json({ auditEvent, requestId }, { status: 201 });
@@ -80,29 +76,11 @@ export const POST = withOperation(
 
 export const PATCH = withOperation(
   async ({ auth, request, supabaseAdmin, requestId }) => {
-    let body: unknown;
-    try {
-      body = await request.json();
-    } catch {
-      return NextResponse.json(
-        { error: "Request body must be valid JSON.", requestId },
-        { status: 400 },
-      );
-    }
-
-    const parsed = eveKillSwitchMutationSchema.safeParse(body);
-    if (!parsed.success) {
-      return NextResponse.json(
-        { error: "Invalid Eve kill-switch request.", requestId },
-        { status: 400 },
-      );
-    }
-
     try {
       const mutation = await setEveKillSwitch({
         supabaseAdmin,
         identity: createAdminEveAuditIdentity(auth),
-        ...parsed.data,
+        ...eveKillSwitchMutationSchema.parse(await ensureJsonBody(request)),
       });
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
