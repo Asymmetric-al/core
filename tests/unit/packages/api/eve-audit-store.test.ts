@@ -111,6 +111,7 @@ describe("Eve audit store", () => {
     const events = await loadRecentEveAuditEvents({
       auth: AUTH,
       supabaseAdmin,
+      tenantId: RECORD.tenantId,
       limit: 20,
     });
 

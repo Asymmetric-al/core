@@ -10,7 +10,9 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 function identityParams(auth: AuthenticatedContext) {
-  const identity = createAdminEveAuditIdentity(auth);
+  const identity = createAdminEveAuditIdentity(auth, {
+    tenantId: auth.tenantId,
+  });
   return {
     p_actor_id: identity.actorId,
     p_actor_profile_id: identity.actorProfileId,

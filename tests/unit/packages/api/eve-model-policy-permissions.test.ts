@@ -4,20 +4,20 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const hasGrantMock = vi.fn();
-const traceAuditMock = vi.fn();
-const createStoreMock = vi.fn();
 
 vi.mock("../../../../packages/api/src/eve/model-policy/store", () => ({
   hasEveAiSettingsGrant: hasGrantMock,
 }));
 
-vi.mock("../../../../packages/api/src/eve/audit/record", () => ({
-  traceEveAuditEvent: traceAuditMock,
-}));
-
-vi.mock("../../../../packages/api/src/eve/audit/store", () => ({
-  createEveAuditStore: createStoreMock,
-}));
+function createAuditInsertClient(insertResult: {
+  error: { message: string } | null;
+}) {
+  const insert = vi.fn().mockResolvedValue(insertResult);
+  const client = {
+    from: vi.fn().mockReturnValue({ insert }),
+  } as unknown as AdminSupabaseClient;
+  return { client, insert };
+}
 
 function auth(role: "admin" | "super_admin"): AuthenticatedContext {
   return {
@@ -35,8 +35,6 @@ function auth(role: "admin" | "super_admin"): AuthenticatedContext {
 describe("Eve model-policy permission", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    createStoreMock.mockReturnValue({ append: vi.fn() });
-    traceAuditMock.mockResolvedValue({});
   });
 
   it("lets a super admin manage settings without a redundant grant lookup", async () => {
@@ -70,6 +68,7 @@ describe("Eve model-policy permission", () => {
 
   it("refuses a general admin without the grant and records the attempt", async () => {
     hasGrantMock.mockResolvedValue(false);
+    const { client, insert } = createAuditInsertClient({ error: null });
     const { assertEveModelPolicyPermission } =
       await import("../../../../packages/api/src/eve/model-policy/permissions");
 
@@ -77,24 +76,44 @@ describe("Eve model-policy permission", () => {
       assertEveModelPolicyPermission({
         action: "activate",
         auth: auth("admin"),
-        supabaseAdmin: {} as AdminSupabaseClient,
+        supabaseAdmin: client,
         target: "model_policy:candidate",
       }),
     ).rejects.toMatchObject({
       status: 403,
       message: "Forbidden: requires ai.settings.manage",
     });
-    expect(traceAuditMock).toHaveBeenCalledWith(
+    expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
-        event: expect.objectContaining({
-          action: "model_policy.permission_denied",
-          result: "blocked",
-          target: "model_policy:candidate",
-          evidence: expect.objectContaining({
-            requiredPermission: "ai.settings.manage",
-          }),
-        }),
+        action: "model_policy.permission_denied",
+        result: "blocked",
+        target: "model_policy:candidate",
+        identity_mode: "admin",
+        change_summary: '{"stateChanged":false}',
+        evidence_summary: expect.stringContaining("ai.settings.manage"),
       }),
     );
+  });
+
+  it("still refuses with 403 when the denial audit write itself fails", async () => {
+    hasGrantMock.mockResolvedValue(false);
+    const { client, insert } = createAuditInsertClient({
+      error: { message: "insert_denied" },
+    });
+    const { assertEveModelPolicyPermission } =
+      await import("../../../../packages/api/src/eve/model-policy/permissions");
+
+    await expect(
+      assertEveModelPolicyPermission({
+        action: "activate",
+        auth: auth("admin"),
+        supabaseAdmin: client,
+        target: "model_policy:candidate",
+      }),
+    ).rejects.toMatchObject({
+      status: 403,
+      message: "Forbidden: requires ai.settings.manage",
+    });
+    expect(insert).toHaveBeenCalled();
   });
 });

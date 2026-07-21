@@ -101,6 +101,7 @@
     "./health/app": "./src/health/app.ts",
     "./health/db": "./src/health/db.ts",
     "./health/crm": "./src/health/crm.ts",
+    "./cms/public": "./src/cms/public/index.ts",
     "./email/connect": "./src/email/connect.ts",
     "./email/test-send": "./src/email/test-send.ts",
     "./email/templates": "./src/email/templates.ts",
@@ -179,6 +180,7 @@
     "@supabase/ssr": "^0.8.0",
     "inngest": "4.5.1",
     "next": "16.2.6",
+    "server-only": "0.0.1",
     "stripe": "22.2.0",
     "zod": "^4.3.6"
   },
