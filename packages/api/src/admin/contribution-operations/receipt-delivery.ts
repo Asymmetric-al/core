@@ -1,4 +1,5 @@
 import { ApiHttpError } from "../../shared/http-errors";
+import { isRecord } from "../../shared/json-coerce";
 
 import type { ContributionAdjustmentEffectiveValues } from "../contribution-shared/effective-values";
 
@@ -369,10 +370,6 @@ export function buildReceiptSnapshotContent(input: {
   };
 }
 
-function isJsonRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function isValidAmountCents(value: unknown): value is number {
   return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
 }
@@ -381,7 +378,7 @@ function parseSnapshotDesignationLine(
   value: unknown,
   index: number,
 ): ReceiptSnapshotDesignationLineV1 | null {
-  if (!isJsonRecord(value)) {
+  if (!isRecord(value)) {
     return null;
   }
   // A line without a numeric amount cannot represent financial truth; the
@@ -417,7 +414,7 @@ function parseSnapshotDesignationLine(
 export function parseReceiptSnapshotContent(
   value: unknown,
 ): ReceiptSnapshotContentV1 | null {
-  if (!isJsonRecord(value) || value.version !== 1) {
+  if (!isRecord(value) || value.version !== 1) {
     return null;
   }
 
@@ -427,7 +424,7 @@ export function parseReceiptSnapshotContent(
       : null;
   const effective = value.effective;
   const rawLines = value.designationLines;
-  if (!donationId || !isJsonRecord(effective) || !Array.isArray(rawLines)) {
+  if (!donationId || !isRecord(effective) || !Array.isArray(rawLines)) {
     return null;
   }
   if (!isValidAmountCents(effective.amountCents)) {

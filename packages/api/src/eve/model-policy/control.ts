@@ -2,7 +2,10 @@ import { evaluateEveModelPolicy, hashEveModelPolicy } from "./evaluator";
 import { assertEveModelPolicyPermission } from "./permissions";
 import { loadEveModelPolicyById } from "./store";
 import { ApiHttpError } from "../../shared/api-http-error";
-import { createAdminEveAuditIdentity } from "../audit/identity";
+import {
+  createAdminEveAuditIdentity,
+  toEveAuditIdentityRpcParams,
+} from "../audit/identity";
 import { summarizeEveAuditValue } from "../audit/redaction";
 
 import type { EveModelPolicyDocument } from "./types";
@@ -10,15 +13,7 @@ import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 function identityParams(auth: AuthenticatedContext) {
-  const identity = createAdminEveAuditIdentity(auth);
-  return {
-    p_actor_id: identity.actorId,
-    p_actor_profile_id: identity.actorProfileId ?? null,
-    p_actor_role: identity.actorRole ?? null,
-    p_tenant_id: identity.tenantId ?? null,
-    p_initiator_type: identity.initiatorType,
-    p_initiator_id: identity.initiatorId,
-  };
+  return toEveAuditIdentityRpcParams(createAdminEveAuditIdentity(auth));
 }
 
 function mapMutationError(error: { message: string } | null): never {

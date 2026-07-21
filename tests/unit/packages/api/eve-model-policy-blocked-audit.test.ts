@@ -1,8 +1,8 @@
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
+import type { EveModelPolicyDocument } from "../../../../packages/api/src/eve/model-policy/types";
 import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
-import type { EveModelPolicyDocument } from "../../../../packages/api/src/eve/model-policy/types";
 
 const dependencyMocks = vi.hoisted(() => ({
   assertPermission: vi.fn(),
@@ -26,9 +26,16 @@ vi.mock("../../../../packages/api/src/eve/model-policy/store", () => ({
   loadEveModelPolicyById: dependencyMocks.loadPolicy,
 }));
 
-vi.mock("../../../../packages/api/src/eve/audit/identity", () => ({
-  createAdminEveAuditIdentity: dependencyMocks.createIdentity,
-}));
+vi.mock("../../../../packages/api/src/eve/audit/identity", async () => {
+  const actual = await vi.importActual<
+    typeof import("../../../../packages/api/src/eve/audit/identity")
+  >("../../../../packages/api/src/eve/audit/identity");
+
+  return {
+    ...actual,
+    createAdminEveAuditIdentity: dependencyMocks.createIdentity,
+  };
+});
 
 vi.mock("../../../../packages/api/src/eve/audit/redaction", () => ({
   summarizeEveAuditValue: dependencyMocks.summarizeAuditValue,
