@@ -175,6 +175,13 @@ DECLARE
     expiry TIMESTAMPTZ;
 BEGIN
     PERFORM public.assert_eve_retention_actor(p_tenant_id, p_actor_profile_id, p_actor_role);
+    IF p_run_id IS NOT NULL THEN
+        PERFORM 1 FROM public.eve_run_summaries run_summary
+        WHERE run_summary.id = p_run_id
+          AND run_summary.initiated_by_profile_id = p_actor_profile_id
+        FOR SHARE;
+        IF NOT FOUND THEN RAISE EXCEPTION 'eve_replay_run_owner_mismatch'; END IF;
+    END IF;
     selected_category := CASE WHEN p_artifact_kind = 'gateway_telemetry'
         THEN 'gateway_telemetry' ELSE 'replay_artifact' END;
     SELECT * INTO STRICT category_row FROM public.eve_retention_categories
@@ -478,7 +485,7 @@ BEGIN
             WHERE candidate.expires_at <= NOW() AND NOT EXISTS (
                 SELECT 1 FROM public.eve_retention_holds hold
                 WHERE hold.status = 'active'
-                  AND (hold.tenant_id = candidate.tenant_id OR candidate.tenant_id IS NULL)
+                  AND hold.tenant_id = candidate.tenant_id
                   AND ((hold.scope_type = 'audit_event' AND hold.target_id = candidate.id::TEXT)
                     OR (hold.scope_type = 'category' AND hold.target_id = candidate.retention_category))
             ) ORDER BY candidate.expires_at LIMIT LEAST(GREATEST(p_limit, 1), 2000)
@@ -493,7 +500,7 @@ BEGIN
             WHERE candidate.expires_at <= NOW() AND NOT EXISTS (
                 SELECT 1 FROM public.eve_retention_holds hold
                 WHERE hold.status = 'active'
-                  AND (hold.tenant_id = initiator.tenant_id OR initiator.tenant_id IS NULL)
+                  AND hold.tenant_id = initiator.tenant_id
                   AND ((hold.scope_type = 'run_summary' AND hold.target_id = candidate.id::TEXT)
                     OR (hold.scope_type = 'category' AND hold.target_id = candidate.retention_category))
             ) ORDER BY candidate.expires_at LIMIT LEAST(GREATEST(p_limit, 1), 2000)

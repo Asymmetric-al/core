@@ -148,6 +148,31 @@ describe("Eve retention controls", () => {
     expect(upload).not.toHaveBeenCalled();
   });
 
+  it("rejects replay artifacts associated with a run owned by another profile", async () => {
+    const rpc = vi.fn().mockResolvedValue({
+      data: null,
+      error: { message: "eve_replay_run_owner_mismatch" },
+    });
+    const upload = vi.fn();
+    const { storeEveReplayArtifact } =
+      await import("../../../../packages/api/src/eve/retention/control");
+
+    await expect(
+      storeEveReplayArtifact({
+        artifactKind: "replay",
+        auth,
+        content: JSON.stringify({ status: "failed" }),
+        redactedSummary: "Safe replay artifact",
+        runId: "00000000-0000-4000-8000-000000000003",
+        supabaseAdmin: {
+          rpc,
+          storage: { from: () => ({ upload }) },
+        } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(upload).not.toHaveBeenCalled();
+  });
+
   it("finalizes only storage objects that were actually deleted", async () => {
     const rpc = vi
       .fn()

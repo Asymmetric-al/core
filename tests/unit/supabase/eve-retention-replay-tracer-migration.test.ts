@@ -49,6 +49,28 @@ describe("Eve retention and replay migration", () => {
     expect(sql).not.toContain("TO authenticated;");
   });
 
+  it("rejects replay artifacts associated with a run owned by another profile", () => {
+    const prepareArtifact = sql.slice(
+      sql.indexOf("public.prepare_eve_replay_artifact"),
+      sql.indexOf("public.complete_eve_replay_artifact"),
+    );
+    const ownerCheckIndex = prepareArtifact.indexOf(
+      "IF p_run_id IS NOT NULL THEN",
+    );
+    const insertIndex = prepareArtifact.indexOf(
+      "INSERT INTO public.eve_replay_artifacts",
+    );
+
+    expect(ownerCheckIndex).toBeGreaterThan(-1);
+    expect(ownerCheckIndex).toBeLessThan(insertIndex);
+    expect(prepareArtifact).toContain("run_summary.id = p_run_id");
+    expect(prepareArtifact).toContain(
+      "run_summary.initiated_by_profile_id = p_actor_profile_id",
+    );
+    expect(prepareArtifact).toContain("FOR SHARE");
+    expect(prepareArtifact).toContain("eve_replay_run_owner_mismatch");
+  });
+
   it("supports auditable holds and two-phase artifact expiry", () => {
     expect(sql).toContain("CREATE TABLE public.eve_retention_holds");
     expect(sql).toContain("'hold.set'");
@@ -88,7 +110,11 @@ describe("Eve retention and replay migration", () => {
     );
   });
 
-  it("derives the run-summary tenant through its initiating profile", () => {
+  it("does not let tenant holds match records without that tenant", () => {
+    const auditExpiry = sql.slice(
+      sql.indexOf("DELETE FROM public.eve_audit_events"),
+      sql.indexOf("DELETE FROM public.eve_run_summaries"),
+    );
     const runSummaryExpiry = sql.slice(
       sql.indexOf("DELETE FROM public.eve_run_summaries"),
       sql.indexOf(
@@ -97,10 +123,11 @@ describe("Eve retention and replay migration", () => {
       ),
     );
 
+    expect(auditExpiry).toContain("hold.tenant_id = candidate.tenant_id");
+    expect(auditExpiry).not.toContain("candidate.tenant_id IS NULL");
     expect(runSummaryExpiry).toContain("LEFT JOIN public.profiles initiator");
-    expect(runSummaryExpiry).toContain(
-      "hold.tenant_id = initiator.tenant_id OR initiator.tenant_id IS NULL",
-    );
+    expect(runSummaryExpiry).toContain("hold.tenant_id = initiator.tenant_id");
+    expect(runSummaryExpiry).not.toContain("initiator.tenant_id IS NULL");
     expect(runSummaryExpiry).not.toContain("candidate.tenant_id");
   });
 });

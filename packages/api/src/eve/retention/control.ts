@@ -27,6 +27,8 @@ function mapError(error: { message: string } | null): never {
   const message = error?.message ?? "eve_retention_mutation_failed";
   if (message.includes("actor_tenant_mismatch"))
     throw new ApiHttpError(403, "Retention ownership could not be verified.");
+  if (message.includes("eve_replay_run_owner_mismatch"))
+    throw new ApiHttpError(403, "Replay run ownership could not be verified.");
   if (message.includes("missing_eve_replay_artifact"))
     throw new ApiHttpError(404, "Replay artifact was not found.");
   if (message.includes("missing_eve_retention_hold"))
