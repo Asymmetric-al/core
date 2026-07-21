@@ -1,6 +1,6 @@
 import { getRawPayloadEvent, type StoredStripeRawEvent } from "./event-store";
 import { ApiHttpError } from "../shared/http-errors";
-import { asString } from "../shared/json-coerce";
+import { asString, isRecord } from "../shared/json-coerce";
 
 import type { getAdminClient } from "@asym/database/supabase/admin";
 
@@ -12,17 +12,13 @@ type JsonRecord = Record<string, unknown>;
 
 const STRIPE_CONTRIBUTION_REPLAY_EVENT_TYPE = "payment_intent.succeeded";
 
-function isJsonRecord(value: unknown): value is JsonRecord {
-  return typeof value === "object" && value !== null && !Array.isArray(value);
-}
-
 function asNumber(value: unknown): number {
   return typeof value === "number" && Number.isFinite(value) ? value : 0;
 }
 
 function rowRecord(row: JsonRecord, key: string): JsonRecord {
   const value = row[key];
-  return isJsonRecord(value) ? value : {};
+  return isRecord(value) ? value : {};
 }
 
 function toStoredStripeRawEvent(row: JsonRecord): StoredStripeRawEvent {
@@ -63,7 +59,7 @@ export async function loadStripeRawEventForReplay(input: {
   if (error) {
     throw new Error(error.message);
   }
-  if (!isJsonRecord(data)) {
+  if (!isRecord(data)) {
     throw new ApiHttpError(404, "Stripe raw event not found.");
   }
 
@@ -94,7 +90,7 @@ export async function resolveLatestStripeEventIdForDonation(input: {
     throw new Error(error.message);
   }
 
-  return isJsonRecord(data) ? asString(data.stripe_event_id) : null;
+  return isRecord(data) ? asString(data.stripe_event_id) : null;
 }
 
 export async function markStripeRawEventForReplay(input: {
