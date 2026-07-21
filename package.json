@@ -99,6 +99,7 @@
     "verify:bun-version": "node scripts/verify/bun-version.mjs",
     "verify:data-boundary": "node scripts/verify/data-boundary-check.mjs",
     "verify:twenty-crm-health": "bun scripts/verify/twenty-crm-health.ts",
+    "cutover:assess:documents": "bun scripts/document-cutover/assess-document-cutover.ts",
     "verify:workspace-contract": "node scripts/verify-workspace-contract.mjs",
     "skills:sync": "node scripts/sync-agent-skills.mjs",
     "skills:verify": "node scripts/verify-skills-sync.mjs",

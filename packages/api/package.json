@@ -16,6 +16,7 @@
     "./auth/demo-account": "./src/auth/demo-account.ts",
     "./auth/signout": "./src/auth/signout.ts",
     "./auth/cleanup-demo-users": "./src/auth/cleanup-demo-users.ts",
+    "./document-cutover": "./src/document-cutover/index.ts",
     "./donate": "./src/donate/index.ts",
     "./donate/guest/donor-matching": "./src/donate/guest/donor-matching.ts",
     "./donate/guest/donor-merge": "./src/donate/guest/donor-merge.ts",
