@@ -11,6 +11,7 @@ export {
 export { buildEveAuditEvent, traceEveAuditEvent } from "./record";
 export {
   getEveAuditRedactionVersion,
+  redactEveArtifactText,
   redactEveAuditValue,
   summarizeEveAuditValue,
 } from "./redaction";

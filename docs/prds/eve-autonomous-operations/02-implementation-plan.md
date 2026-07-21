@@ -162,6 +162,10 @@ hard budgets atomically](../../adr/0024-eve-approval-budget-policy.md).
 
 ### 8. Retention and Replay Artifact Tracer Bullet
 
+Implementation: private Storage artifacts, relational redacted metadata,
+tenant/owner-scoped signed access, human incident/legal holds, and two-phase
+expiry are delivered by issue #424 and ADR-0025.
+
 - Type: AFK
 - Blocked by: 2, 3
 - User stories covered: 33, 66, 67, 68, 69
