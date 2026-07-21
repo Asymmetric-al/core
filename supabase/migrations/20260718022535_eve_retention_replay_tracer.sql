@@ -58,13 +58,15 @@ CREATE TABLE public.eve_replay_artifacts (
         CHECK (status IN ('upload_pending', 'available', 'delete_pending', 'expired')),
     expires_at TIMESTAMPTZ NOT NULL,
     uploaded_at TIMESTAMPTZ,
+    deletion_started_at TIMESTAMPTZ,
     storage_deleted_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (storage_bucket, storage_path),
     CHECK ((status = 'upload_pending' AND uploaded_at IS NULL)
         OR (status IN ('available', 'delete_pending') AND uploaded_at IS NOT NULL)
-        OR status = 'expired')
+        OR status = 'expired'),
+    CHECK (deletion_started_at IS NULL OR status = 'delete_pending')
 );
 
 CREATE INDEX eve_replay_artifacts_tenant_created_idx
@@ -255,6 +257,39 @@ AS $$
 DECLARE hold_id UUID := gen_random_uuid();
 BEGIN
     PERFORM public.assert_eve_retention_actor(p_tenant_id, p_actor_profile_id, p_actor_role);
+    IF p_scope_type = 'artifact' THEN
+        PERFORM 1 FROM public.eve_replay_artifacts artifact
+        WHERE artifact.id::TEXT = p_target_id AND artifact.tenant_id = p_tenant_id
+        FOR UPDATE;
+        IF EXISTS (
+            SELECT 1 FROM public.eve_replay_artifacts artifact
+            WHERE artifact.id::TEXT = p_target_id AND artifact.tenant_id = p_tenant_id
+              AND artifact.deletion_started_at > NOW() - INTERVAL '15 minutes'
+        ) THEN
+            RAISE EXCEPTION 'eve_replay_artifact_deletion_in_progress';
+        END IF;
+        UPDATE public.eve_replay_artifacts SET
+            deletion_started_at = NULL, updated_at = NOW()
+        WHERE id::TEXT = p_target_id AND tenant_id = p_tenant_id
+          AND deletion_started_at <= NOW() - INTERVAL '15 minutes';
+    ELSIF p_scope_type = 'category' THEN
+        PERFORM 1 FROM public.eve_replay_artifacts artifact
+        WHERE artifact.tenant_id = p_tenant_id AND artifact.category = p_target_id
+          AND artifact.status <> 'expired'
+        ORDER BY artifact.id
+        FOR UPDATE;
+        IF EXISTS (
+            SELECT 1 FROM public.eve_replay_artifacts artifact
+            WHERE artifact.tenant_id = p_tenant_id AND artifact.category = p_target_id
+              AND artifact.deletion_started_at > NOW() - INTERVAL '15 minutes'
+        ) THEN
+            RAISE EXCEPTION 'eve_replay_artifact_deletion_in_progress';
+        END IF;
+        UPDATE public.eve_replay_artifacts SET
+            deletion_started_at = NULL, updated_at = NOW()
+        WHERE tenant_id = p_tenant_id AND category = p_target_id
+          AND deletion_started_at <= NOW() - INTERVAL '15 minutes';
+    END IF;
     INSERT INTO public.eve_retention_holds (
         id, tenant_id, hold_type, scope_type, target_id, reason, set_by_profile_id
     ) VALUES (
@@ -316,6 +351,8 @@ BEGIN
         FROM public.eve_replay_artifacts artifact
         WHERE artifact.status IN ('upload_pending', 'available', 'delete_pending')
           AND artifact.expires_at <= NOW()
+          AND (artifact.deletion_started_at IS NULL
+            OR artifact.deletion_started_at <= NOW() - INTERVAL '15 minutes')
           AND NOT EXISTS (
               SELECT 1 FROM public.eve_retention_holds hold
               WHERE hold.tenant_id = artifact.tenant_id AND hold.status = 'active'
@@ -328,6 +365,7 @@ BEGIN
     ), claimed AS (
         UPDATE public.eve_replay_artifacts artifact SET
             status = CASE WHEN artifact.uploaded_at IS NULL THEN 'expired' ELSE 'delete_pending' END,
+            deletion_started_at = NULL,
             storage_deleted_at = CASE WHEN artifact.uploaded_at IS NULL THEN NOW() ELSE NULL END,
             updated_at = NOW()
         FROM candidates WHERE artifact.id = candidates.id
@@ -345,6 +383,52 @@ BEGIN
 END;
 $$;
 
+CREATE OR REPLACE FUNCTION public.begin_eve_replay_artifact_deletion(p_id UUID)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+DECLARE artifact_row public.eve_replay_artifacts%ROWTYPE;
+BEGIN
+    SELECT * INTO artifact_row FROM public.eve_replay_artifacts
+    WHERE id = p_id AND status = 'delete_pending'
+    FOR UPDATE;
+    IF NOT FOUND THEN RETURN FALSE; END IF;
+    IF artifact_row.deletion_started_at > NOW() - INTERVAL '15 minutes' THEN
+        RETURN FALSE;
+    END IF;
+    IF EXISTS (
+        SELECT 1 FROM public.eve_retention_holds hold
+        WHERE hold.tenant_id = artifact_row.tenant_id AND hold.status = 'active'
+          AND ((hold.scope_type = 'artifact' AND hold.target_id = artifact_row.id::TEXT)
+            OR (hold.scope_type = 'category' AND hold.target_id = artifact_row.category))
+    ) THEN
+        UPDATE public.eve_replay_artifacts SET
+            deletion_started_at = NULL, updated_at = NOW()
+        WHERE id = p_id;
+        RETURN FALSE;
+    END IF;
+    UPDATE public.eve_replay_artifacts SET
+        deletion_started_at = NOW(), updated_at = NOW()
+    WHERE id = p_id;
+    RETURN TRUE;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.release_eve_replay_artifact_deletion(p_id UUID)
+RETURNS VOID
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+    UPDATE public.eve_replay_artifacts SET
+        deletion_started_at = NULL, updated_at = NOW()
+    WHERE id = p_id AND status = 'delete_pending';
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.finalize_eve_replay_artifact_expiry(p_ids UUID[])
 RETURNS INTEGER
 LANGUAGE plpgsql
@@ -355,8 +439,19 @@ DECLARE affected INTEGER;
 BEGIN
     WITH finalized AS (
         UPDATE public.eve_replay_artifacts SET
-            status = 'expired', storage_deleted_at = NOW(), updated_at = NOW()
+            status = 'expired', deletion_started_at = NULL,
+            storage_deleted_at = NOW(), updated_at = NOW()
         WHERE id = ANY(p_ids) AND status = 'delete_pending'
+          AND deletion_started_at IS NOT NULL
+          AND NOT EXISTS (
+              SELECT 1 FROM public.eve_retention_holds hold
+              WHERE hold.tenant_id = eve_replay_artifacts.tenant_id
+                AND hold.status = 'active'
+                AND ((hold.scope_type = 'artifact'
+                      AND hold.target_id = eve_replay_artifacts.id::TEXT)
+                  OR (hold.scope_type = 'category'
+                      AND hold.target_id = eve_replay_artifacts.category))
+          )
         RETURNING id, tenant_id, owner_profile_id
     ), events AS (
         INSERT INTO public.eve_retention_lifecycle_events (
@@ -420,6 +515,8 @@ REVOKE ALL ON FUNCTION public.complete_eve_replay_artifact(UUID, UUID, UUID, TEX
 REVOKE ALL ON FUNCTION public.set_eve_retention_hold(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.clear_eve_retention_hold(UUID, UUID, UUID, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.claim_eve_replay_artifact_expiry(INTEGER) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.begin_eve_replay_artifact_deletion(UUID) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.release_eve_replay_artifact_deletion(UUID) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.finalize_eve_replay_artifact_expiry(UUID[]) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.expire_eve_retention_records(INTEGER) FROM PUBLIC, anon, authenticated;
 
@@ -428,6 +525,8 @@ GRANT EXECUTE ON FUNCTION public.complete_eve_replay_artifact(UUID, UUID, UUID, 
 GRANT EXECUTE ON FUNCTION public.set_eve_retention_hold(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.clear_eve_retention_hold(UUID, UUID, UUID, TEXT, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.claim_eve_replay_artifact_expiry(INTEGER) TO service_role;
+GRANT EXECUTE ON FUNCTION public.begin_eve_replay_artifact_deletion(UUID) TO service_role;
+GRANT EXECUTE ON FUNCTION public.release_eve_replay_artifact_deletion(UUID) TO service_role;
 GRANT EXECUTE ON FUNCTION public.finalize_eve_replay_artifact_expiry(UUID[]) TO service_role;
 GRANT EXECUTE ON FUNCTION public.expire_eve_retention_records(INTEGER) TO service_role;
 

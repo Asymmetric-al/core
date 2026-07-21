@@ -58,6 +58,26 @@ describe("Eve retention and replay migration", () => {
     expect(sql).toContain("finalize_eve_replay_artifact_expiry");
   });
 
+  it("rechecks holds under a deletion lease before removing Storage bodies", () => {
+    const beginDeletion = sql.slice(
+      sql.indexOf("public.begin_eve_replay_artifact_deletion"),
+      sql.indexOf("public.release_eve_replay_artifact_deletion"),
+    );
+    const finalizeDeletion = sql.slice(
+      sql.indexOf("public.finalize_eve_replay_artifact_expiry"),
+      sql.indexOf("public.expire_eve_retention_records"),
+    );
+
+    expect(sql).toContain("deletion_started_at TIMESTAMPTZ");
+    expect(beginDeletion).toContain("FOR UPDATE");
+    expect(beginDeletion).toContain("hold.status = 'active'");
+    expect(beginDeletion).toContain("hold.scope_type = 'artifact'");
+    expect(beginDeletion).toContain("hold.scope_type = 'category'");
+    expect(finalizeDeletion).toContain("deletion_started_at IS NOT NULL");
+    expect(finalizeDeletion).toContain("hold.status = 'active'");
+    expect(sql).toContain("eve_replay_artifact_deletion_in_progress");
+  });
+
   it("allows stale upload-pending metadata to transition directly to expired", () => {
     expect(sql).toContain(
       "OR (status IN ('available', 'delete_pending') AND uploaded_at IS NOT NULL)",

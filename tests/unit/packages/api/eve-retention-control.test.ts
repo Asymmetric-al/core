@@ -41,6 +41,13 @@ describe("Eve retention controls", () => {
         email: "admin@example.com",
         detail: "Bearer secret",
         response: "private model response",
+        messages: [
+          { role: "user", content: "private user prompt" },
+          {
+            role: "assistant",
+            content: [{ type: "text", text: "private assistant reply" }],
+          },
+        ],
       }),
       redactedSummary: "Failure for admin@example.com with Bearer secret",
       supabaseAdmin: {
@@ -59,6 +66,14 @@ describe("Eve retention controls", () => {
     expect(uploadedBody).not.toContain("admin@example.com");
     expect(uploadedBody).not.toContain("Bearer secret");
     expect(uploadedBody).not.toContain("private model response");
+    expect(uploadedBody).not.toContain("private user prompt");
+    expect(uploadedBody).not.toContain("private assistant reply");
+    expect(JSON.parse(uploadedBody)).toMatchObject({
+      messages: [
+        { role: "user", content: "[redacted]" },
+        { role: "assistant", content: "[redacted]" },
+      ],
+    });
     expect(result.sha256).toMatch(/^[a-f0-9]{64}$/);
     expect(rpc).toHaveBeenNthCalledWith(
       2,
@@ -151,6 +166,9 @@ describe("Eve retention controls", () => {
         ],
         error: null,
       })
+      .mockResolvedValueOnce({ data: true, error: null })
+      .mockResolvedValueOnce({ data: true, error: null })
+      .mockResolvedValueOnce({ data: null, error: null })
       .mockResolvedValueOnce({ data: 1, error: null })
       .mockResolvedValueOnce({
         data: { auditRecords: 2, runSummaries: 1 },
@@ -173,11 +191,61 @@ describe("Eve retention controls", () => {
       }),
     ).resolves.toMatchObject({ claimedArtifacts: 2, expiredArtifacts: 1 });
     expect(rpc).toHaveBeenNthCalledWith(
-      2,
+      5,
       "finalize_eve_replay_artifact_expiry",
       {
         p_ids: ["a"],
       },
+    );
+    expect(rpc).toHaveBeenNthCalledWith(
+      4,
+      "release_eve_replay_artifact_deletion",
+      { p_id: "b" },
+    );
+  });
+
+  it("skips storage deletion when a hold wins after the initial claim", async () => {
+    const rpc = vi
+      .fn()
+      .mockResolvedValueOnce({
+        data: [
+          {
+            id: "held",
+            storage_bucket: "eve-replay-artifacts",
+            storage_path: "held.json",
+          },
+        ],
+        error: null,
+      })
+      .mockResolvedValueOnce({ data: false, error: null })
+      .mockResolvedValueOnce({
+        data: { auditRecords: 0, runSummaries: 0 },
+        error: null,
+      });
+    const remove = vi.fn();
+    const { runEveRetentionExpiry } =
+      await import("../../../../packages/api/src/eve/retention/control");
+
+    await expect(
+      runEveRetentionExpiry({
+        auth: superAdminAuth,
+        limit: 100,
+        supabaseAdmin: {
+          rpc,
+          storage: { from: () => ({ remove }) },
+        } as unknown as AdminSupabaseClient,
+      }),
+    ).resolves.toMatchObject({ claimedArtifacts: 1, expiredArtifacts: 0 });
+
+    expect(rpc).toHaveBeenNthCalledWith(
+      2,
+      "begin_eve_replay_artifact_deletion",
+      { p_id: "held" },
+    );
+    expect(remove).not.toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalledWith(
+      "finalize_eve_replay_artifact_expiry",
+      expect.anything(),
     );
   });
 

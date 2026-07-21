@@ -1,7 +1,7 @@
 import { ApiHttpError } from "../../shared/api-http-error";
 import {
   redactEveArtifactText,
-  redactEveAuditValue,
+  redactEveReplayValue,
   summarizeEveAuditValue,
 } from "../audit/redaction";
 
@@ -33,6 +33,11 @@ function mapError(error: { message: string } | null): never {
     throw new ApiHttpError(404, "Retention hold was not found.");
   if (message.includes("duplicate key"))
     throw new ApiHttpError(409, "An active hold already covers that target.");
+  if (message.includes("eve_replay_artifact_deletion_in_progress"))
+    throw new ApiHttpError(
+      409,
+      "Replay artifact deletion is already in progress.",
+    );
   if (message.includes("invalid_eve") || message.includes("violates check"))
     throw new ApiHttpError(400, "The retention request is invalid.");
   throw new Error(message);
@@ -47,7 +52,7 @@ function toHex(buffer: ArrayBuffer): string {
 function redactArtifactContent(kind: EveArtifactKind, content: string): string {
   if (kind === "debug") return redactEveArtifactText(content);
   try {
-    return JSON.stringify(redactEveAuditValue(JSON.parse(content)));
+    return JSON.stringify(redactEveReplayValue(JSON.parse(content)));
   } catch {
     throw new ApiHttpError(
       400,
@@ -208,10 +213,26 @@ export async function runEveRetentionExpiry(input: {
   }>;
   const deletedIds: string[] = [];
   for (const row of rows) {
+    const { data: deletionStarted, error: beginError } =
+      await input.supabaseAdmin.rpc("begin_eve_replay_artifact_deletion", {
+        p_id: row.id,
+      });
+    if (beginError) mapError(beginError);
+    if (deletionStarted !== true) continue;
+
     const { error: removeError } = await input.supabaseAdmin.storage
       .from(row.storage_bucket)
       .remove([row.storage_path]);
-    if (!removeError) deletedIds.push(row.id);
+    if (!removeError) {
+      deletedIds.push(row.id);
+      continue;
+    }
+
+    const { error: releaseError } = await input.supabaseAdmin.rpc(
+      "release_eve_replay_artifact_deletion",
+      { p_id: row.id },
+    );
+    if (releaseError) mapError(releaseError);
   }
   if (deletedIds.length > 0) {
     const { error: finalizeError } = await input.supabaseAdmin.rpc(
