@@ -159,6 +159,77 @@ $$;
 REVOKE ALL ON FUNCTION public.is_eve_launch_safe_text(TEXT)
   FROM PUBLIC, anon, authenticated;
 
+CREATE OR REPLACE FUNCTION public.create_eve_launch_manifest(
+  p_tenant_id UUID, p_manifest_id UUID, p_document JSONB, p_evaluation JSONB,
+  p_content_hash TEXT, p_audit_id UUID, p_actor_id TEXT,
+  p_actor_profile_id UUID, p_actor_role TEXT, p_initiator_type TEXT,
+  p_initiator_id TEXT
+) RETURNS JSONB
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
+DECLARE
+  governance public.eve_governance_state%ROWTYPE;
+  manifest public.eve_launch_manifests%ROWTYPE;
+BEGIN
+  IF auth.role() <> 'service_role' THEN RAISE EXCEPTION 'eve_launch_service_role_required'; END IF;
+  PERFORM public.assert_eve_launch_profile(p_tenant_id, p_actor_profile_id, p_actor_role);
+  SELECT * INTO governance FROM public.eve_governance_state WHERE id = 'global';
+  INSERT INTO public.eve_audit_events (
+    id, tenant_id, actor_id, actor_profile_id, actor_role, identity_mode,
+    initiator_type, initiator_id, policy_id, policy_status,
+    governance_state_version, action, target, result, tool_name, model_role,
+    evidence_summary, change_summary, decision_summary, debug_metadata,
+    redaction_version
+  ) VALUES (
+    p_audit_id, p_tenant_id, p_actor_id, p_actor_profile_id, p_actor_role,
+    'admin', p_initiator_type, p_initiator_id, 'eve-final-launch-v1',
+    COALESCE(governance.policy_status, 'unavailable'), governance.state_version,
+    'launch.manifest_created',
+    'launch-target:' || (p_document -> 'target' ->> 'environment') || ':' ||
+      (p_document -> 'target' ->> 'deploymentId'),
+    CASE WHEN (p_evaluation ->> 'ready')::BOOLEAN THEN 'succeeded' ELSE 'blocked' END,
+    'eve_launch_control', 'not_used',
+    jsonb_build_object(
+      'blockers', p_evaluation -> 'blockers', 'contentHash', p_content_hash,
+      'evidenceCount', p_evaluation -> 'evidenceCount',
+      'ready', p_evaluation -> 'ready',
+      'revision', p_document -> 'target' -> 'revision'
+    )::TEXT,
+    jsonb_build_object('stateChanged', FALSE)::TEXT,
+    'launch.manifest_created '
+      || CASE WHEN (p_evaluation ->> 'ready')::BOOLEAN THEN 'succeeded' ELSE 'blocked' END
+      || '. Rationale: An authorized human performed an Eve launch review step. '
+      || 'Policy: eve-final-launch-v1 ('
+      || COALESCE(governance.policy_status, 'unavailable') || '). '
+      || 'Risk: Production autonomy release boundary. '
+      || 'Follow-up: Keep the release switch off or use the emergency control path.',
+    '{}'::JSONB, 'eve-audit-v1'
+  );
+  INSERT INTO public.eve_launch_manifests (
+    id, tenant_id, status, content_hash, environment, revision, deployment_id,
+    migration_version, governance_state_version, policy_version,
+    model_policy_revision, eval_config_revision, generated_at, expires_at,
+    document, evaluation, audit_id, created_by_profile_id,
+    retention_expires_at
+  ) VALUES (
+    p_manifest_id, p_tenant_id,
+    CASE WHEN (p_evaluation ->> 'ready')::BOOLEAN THEN 'evidence_passed' ELSE 'not_ready' END,
+    p_content_hash, p_document -> 'target' ->> 'environment',
+    p_document -> 'target' ->> 'revision',
+    p_document -> 'target' ->> 'deploymentId',
+    p_document -> 'target' ->> 'migrationVersion',
+    (p_document -> 'target' ->> 'governanceStateVersion')::BIGINT,
+    (p_document -> 'target' ->> 'policyVersion')::BIGINT,
+    p_document -> 'target' ->> 'modelPolicyRevision',
+    p_document -> 'target' ->> 'evalConfigRevision',
+    (p_document ->> 'generatedAt')::TIMESTAMPTZ,
+    (p_document ->> 'expiresAt')::TIMESTAMPTZ,
+    p_document, p_evaluation, p_audit_id, p_actor_profile_id,
+    NOW() + INTERVAL '365 days'
+  ) RETURNING * INTO manifest;
+  RETURN to_jsonb(manifest);
+END;
+$$;
+
 CREATE OR REPLACE FUNCTION public.grant_eve_launch_permission(
   p_tenant_id UUID, p_profile_id UUID, p_permission TEXT, p_enabled BOOLEAN,
   p_reason TEXT, p_audit_id UUID, p_actor_id TEXT, p_actor_profile_id UUID,
@@ -311,6 +382,9 @@ BEGIN
   IF NOT public.has_eve_launch_permission(p_tenant_id, p_actor_profile_id, 'release.activate') THEN
     RAISE EXCEPTION 'eve_launch_activation_permission_required';
   END IF;
+  SELECT * INTO governance FROM public.eve_governance_state
+  WHERE id = 'global' FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_governance_state'; END IF;
   SELECT * INTO manifest FROM public.eve_launch_manifests
   WHERE id = p_manifest_id AND tenant_id = p_tenant_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_launch_manifest'; END IF;
@@ -332,9 +406,6 @@ BEGIN
     SELECT 1 FROM public.eve_launch_reviews
     WHERE manifest_id = p_manifest_id AND decision = 'rejected'
   ) THEN RAISE EXCEPTION 'eve_launch_reviews_incomplete'; END IF;
-  SELECT * INTO governance FROM public.eve_governance_state
-  WHERE id = 'global' FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_governance_state'; END IF;
   IF governance.state_version <> p_expected_state_version
     OR manifest.governance_state_version <> governance.state_version
   THEN RAISE EXCEPTION 'stale_eve_governance_state'; END IF;
@@ -443,7 +514,8 @@ BEGIN
       WHERE status = 'active'
     ) AND status = 'active';
     UPDATE public.eve_launch_records SET
-      status = 'rolled_back', closed_at = NOW(), canary_results = jsonb_build_object('safetyControl', p_mode)
+      status = 'rolled_back', closed_at = NOW(),
+      canary_results = jsonb_build_object('safetyControlTriggered', TRUE)
     WHERE status = 'active';
   END IF;
   INSERT INTO public.eve_audit_events (
@@ -498,6 +570,9 @@ BEGIN
   IF NOT public.has_eve_launch_permission(p_tenant_id, p_actor_profile_id, 'release.activate') THEN
     RAISE EXCEPTION 'eve_launch_activation_permission_required';
   END IF;
+  SELECT * INTO governance FROM public.eve_governance_state
+  WHERE id = 'global' FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_governance_state'; END IF;
   SELECT * INTO launch FROM public.eve_launch_records
   WHERE id = p_launch_id AND tenant_id = p_tenant_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_launch_record'; END IF;
@@ -507,9 +582,18 @@ BEGIN
       SELECT 1 FROM jsonb_each(p_results) AS item WHERE item.value <> 'true'::JSONB
     )
   ) THEN RAISE EXCEPTION 'eve_launch_not_ready'; END IF;
-  SELECT * INTO governance FROM public.eve_governance_state
-  WHERE id = 'global' FOR UPDATE;
-  IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_governance_state'; END IF;
+  IF p_status = 'completed' AND (
+    governance.release_enabled IS DISTINCT FROM TRUE
+    OR governance.emergency_off IS DISTINCT FROM FALSE
+    OR governance.policy_status IS DISTINCT FROM 'ready'
+    OR COALESCE((governance.kill_switch_state ->> 'all_automation')::BOOLEAN, TRUE)
+    OR COALESCE((governance.kill_switch_state ->> 'active_runs')::BOOLEAN, TRUE)
+    OR COALESCE((governance.kill_switch_state ->> 'github_actions')::BOOLEAN, TRUE)
+    OR COALESCE((governance.kill_switch_state ->> 'production_writes')::BOOLEAN, TRUE)
+    OR COALESCE((governance.kill_switch_state ->> 'sandbox_networking')::BOOLEAN, TRUE)
+    OR COALESCE((governance.kill_switch_state ->> 'dynamic_workflows')::BOOLEAN, TRUE)
+    OR COALESCE((governance.kill_switch_state ->> 'model_policy_changes')::BOOLEAN, TRUE)
+  ) THEN RAISE EXCEPTION 'eve_launch_blocked'; END IF;
   IF p_status = 'failed' THEN
     UPDATE public.eve_governance_state SET
       release_enabled = FALSE, emergency_off = TRUE,
@@ -562,11 +646,13 @@ DECLARE
   audit_id UUID := gen_random_uuid();
 BEGIN
   IF auth.role() <> 'service_role' THEN RAISE EXCEPTION 'eve_launch_service_role_required'; END IF;
+  SELECT * INTO governance FROM public.eve_governance_state
+  WHERE id = 'global' FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'missing_eve_governance_state'; END IF;
   SELECT * INTO launch FROM public.eve_launch_records
   WHERE status = 'active' AND canary_deadline <= NOW()
   ORDER BY canary_deadline LIMIT 1 FOR UPDATE SKIP LOCKED;
   IF NOT FOUND THEN RETURN 0; END IF;
-  SELECT * INTO governance FROM public.eve_governance_state WHERE id = 'global' FOR UPDATE;
   UPDATE public.eve_governance_state SET
     release_enabled = FALSE, emergency_off = TRUE,
     kill_switch_state = jsonb_set(
@@ -626,6 +712,7 @@ $$;
 
 REVOKE ALL ON FUNCTION public.assert_eve_launch_profile(UUID, UUID, TEXT) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.has_eve_launch_permission(UUID, UUID, TEXT) FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON FUNCTION public.create_eve_launch_manifest(UUID, UUID, JSONB, JSONB, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.grant_eve_launch_permission(UUID, UUID, TEXT, BOOLEAN, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.review_eve_launch_manifest(UUID, UUID, TEXT, TEXT, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.activate_eve_launch_manifest(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, BIGINT, TEXT, TEXT, BIGINT, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) FROM PUBLIC, anon, authenticated;
@@ -634,6 +721,7 @@ REVOKE ALL ON FUNCTION public.close_eve_launch_canary(UUID, UUID, TEXT, JSONB, T
 REVOKE ALL ON FUNCTION public.expire_eve_launch_canaries() FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON FUNCTION public.expire_eve_launch_manifests(INTEGER) FROM PUBLIC, anon, authenticated;
 
+GRANT EXECUTE ON FUNCTION public.create_eve_launch_manifest(UUID, UUID, JSONB, JSONB, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.grant_eve_launch_permission(UUID, UUID, TEXT, BOOLEAN, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.review_eve_launch_manifest(UUID, UUID, TEXT, TEXT, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) TO service_role;
 GRANT EXECUTE ON FUNCTION public.activate_eve_launch_manifest(UUID, UUID, TEXT, TEXT, TEXT, TEXT, TEXT, BIGINT, TEXT, TEXT, BIGINT, TEXT, UUID, TEXT, UUID, TEXT, TEXT, TEXT) TO service_role;

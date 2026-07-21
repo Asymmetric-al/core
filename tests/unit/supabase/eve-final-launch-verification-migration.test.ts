@@ -10,6 +10,15 @@ const migrationPath = path.resolve(
 const sql = await readFile(migrationPath, "utf8");
 const schemaDdl = sql.split("CREATE OR REPLACE FUNCTION")[0]!;
 
+function functionSql(name: string): string {
+  const start = sql.indexOf(`CREATE OR REPLACE FUNCTION public.${name}`);
+  const end = sql.indexOf("\n$$;", start);
+
+  expect(start).toBeGreaterThanOrEqual(0);
+  expect(end).toBeGreaterThan(start);
+  return sql.slice(start, end);
+}
+
 describe("Eve final launch verification migration", () => {
   it("ships with no permission grant and no release-enabling seed", () => {
     expect(sql).toContain("is_active BOOLEAN NOT NULL DEFAULT FALSE");
@@ -63,6 +72,66 @@ describe("Eve final launch verification migration", () => {
     expect(sql).toContain("release_enabled = FALSE");
     expect(sql).toContain("emergency_off = TRUE");
     expect(sql).toContain("retention_holds");
+  });
+
+  it("creates each manifest and its audit event in one database transaction", () => {
+    const createManifestSql = functionSql("create_eve_launch_manifest");
+    const auditInsert = createManifestSql.indexOf(
+      "INSERT INTO public.eve_audit_events",
+    );
+    const manifestInsert = createManifestSql.indexOf(
+      "INSERT INTO public.eve_launch_manifests",
+    );
+
+    expect(auditInsert).toBeGreaterThanOrEqual(0);
+    expect(manifestInsert).toBeGreaterThan(auditInsert);
+    expect(createManifestSql).toContain("RETURN to_jsonb(manifest)");
+    expect(sql).toContain(
+      "GRANT EXECUTE ON FUNCTION public.create_eve_launch_manifest",
+    );
+  });
+
+  it("uses governance-first locking for every launch transition", () => {
+    for (const [functionName, protectedRow] of [
+      ["activate_eve_launch_manifest", "SELECT * INTO manifest"],
+      ["set_eve_release_safety_control", "UPDATE public.eve_launch_manifests"],
+      ["close_eve_launch_canary", "SELECT * INTO launch"],
+      ["expire_eve_launch_canaries", "SELECT * INTO launch"],
+    ] as const) {
+      const transitionSql = functionSql(functionName);
+      expect(transitionSql.indexOf("SELECT * INTO governance")).toBeLessThan(
+        transitionSql.indexOf(protectedRow),
+      );
+    }
+  });
+
+  it("rejects passing canaries after governance is blocked", () => {
+    const closeCanarySql = functionSql("close_eve_launch_canary");
+
+    expect(closeCanarySql).toContain(
+      "governance.release_enabled IS DISTINCT FROM TRUE",
+    );
+    expect(closeCanarySql).toContain(
+      "governance.emergency_off IS DISTINCT FROM FALSE",
+    );
+    expect(closeCanarySql).toContain(
+      "governance.policy_status IS DISTINCT FROM 'ready'",
+    );
+    expect(closeCanarySql).toContain(
+      "governance.kill_switch_state ->> 'all_automation'",
+    );
+    expect(closeCanarySql).toContain("RAISE EXCEPTION 'eve_launch_blocked'");
+  });
+
+  it("keeps safety rollback metadata compatible with boolean canary results", () => {
+    const safetyControlSql = functionSql("set_eve_release_safety_control");
+
+    expect(safetyControlSql).toContain(
+      "jsonb_build_object('safetyControlTriggered', TRUE)",
+    );
+    expect(safetyControlSql).not.toContain(
+      "jsonb_build_object('safetyControl', p_mode)",
+    );
   });
 
   it("keeps all launch state service-role-only with RLS enabled", () => {

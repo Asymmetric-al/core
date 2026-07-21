@@ -153,45 +153,35 @@ export async function hasEveLaunchPermission(input: {
 }
 
 export async function createEveLaunchManifestRecord(input: {
+  actorId: string;
+  actorRole: string;
   auditId: string;
   contentHash: string;
   document: EveLaunchManifestRecord["document"];
   evaluation: EveLaunchReadinessEvaluation;
+  initiatorId: string;
+  initiatorType: string;
   profileId: string;
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string;
 }): Promise<EveLaunchManifestRecord> {
   const id = crypto.randomUUID();
-  const status: EveLaunchManifestStatus = input.evaluation.ready
-    ? "evidence_passed"
-    : "not_ready";
-  const { data, error } = await input.supabaseAdmin
-    .from("eve_launch_manifests")
-    .insert({
-      id,
-      tenant_id: input.tenantId,
-      status,
-      content_hash: input.contentHash,
-      environment: input.document.target.environment,
-      revision: input.document.target.revision,
-      deployment_id: input.document.target.deploymentId,
-      migration_version: input.document.target.migrationVersion,
-      governance_state_version: input.document.target.governanceStateVersion,
-      policy_version: input.document.target.policyVersion,
-      model_policy_revision: input.document.target.modelPolicyRevision,
-      eval_config_revision: input.document.target.evalConfigRevision,
-      generated_at: input.document.generatedAt,
-      expires_at: input.document.expiresAt,
-      document: input.document,
-      evaluation: input.evaluation,
-      audit_id: input.auditId,
-      created_by_profile_id: input.profileId,
-      retention_expires_at: new Date(
-        Date.now() + 365 * 24 * 60 * 60 * 1_000,
-      ).toISOString(),
-    })
-    .select(manifestSelect)
-    .single();
+  const { data, error } = await input.supabaseAdmin.rpc(
+    "create_eve_launch_manifest",
+    {
+      p_actor_id: input.actorId,
+      p_actor_profile_id: input.profileId,
+      p_actor_role: input.actorRole,
+      p_audit_id: input.auditId,
+      p_content_hash: input.contentHash,
+      p_document: input.document,
+      p_evaluation: input.evaluation,
+      p_initiator_id: input.initiatorId,
+      p_initiator_type: input.initiatorType,
+      p_manifest_id: id,
+      p_tenant_id: input.tenantId,
+    },
+  );
   if (error) throw new Error(error.message);
   return toManifest({ reviews: [], row: data });
 }

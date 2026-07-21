@@ -18,6 +18,8 @@ DECLARE
   v_policy_version BIGINT;
   v_policy_hash CONSTANT TEXT := repeat('d', 64);
   activation JSONB;
+  duplicate_rejected BOOLEAN := FALSE;
+  passing_canary_blocked BOOLEAN := FALSE;
 BEGIN
   INSERT INTO public.tenants (id, name, slug)
   VALUES (tenant_id, 'Eve launch proof', 'eve-launch-proof-437');
@@ -81,36 +83,47 @@ BEGIN
   WHERE id = 'global'
   RETURNING eve_governance_state.state_version INTO v_state_version;
 
-  INSERT INTO public.eve_audit_events (
-    id, tenant_id, actor_id, actor_profile_id, actor_role, identity_mode,
-    initiator_type, initiator_id, policy_id, policy_status,
-    governance_state_version, action, target, result, model_role,
-    evidence_summary, change_summary, decision_summary, debug_metadata
-  ) VALUES (
-    '43700000-0000-4000-8000-000000000010', tenant_id, 'proof-creator',
-    creator_id, 'super_admin', 'admin', 'admin', 'proof-creator',
-    'eve-final-launch-v1', 'ready', v_state_version, 'launch.manifest_created',
-    'launch-target:production:dpl-proof', 'succeeded', 'not_used',
-    '{"ready":true}', '{"stateChanged":false}',
-    'Local transaction proof created target-bound launch evidence.', '{}'
+  PERFORM public.create_eve_launch_manifest(
+    tenant_id, manifest_id,
+    jsonb_build_object(
+      'schemaVersion', 'eve-launch-manifest-v1',
+      'generatedAt', NOW() - INTERVAL '1 minute',
+      'expiresAt', NOW() + INTERVAL '1 hour',
+      'target', jsonb_build_object(
+        'environment', 'production', 'revision', repeat('b', 40),
+        'deploymentId', 'dpl-proof',
+        'migrationVersion', '20260718102000_eve_final_launch_verification',
+        'governanceStateVersion', v_state_version,
+        'policyVersion', v_policy_version,
+        'modelPolicyRevision', v_policy_hash,
+        'evalConfigRevision', repeat('c', 64)
+      )
+    ),
+    jsonb_build_object(
+      'ready', TRUE, 'blockers', jsonb_build_array(),
+      'evidenceCount', 72, 'evaluatedAt', NOW()
+    ),
+    repeat('a', 64), '43700000-0000-4000-8000-000000000010',
+    'proof-creator', creator_id, 'super_admin', 'admin', 'proof-creator'
   );
 
-  INSERT INTO public.eve_launch_manifests (
-    id, tenant_id, status, content_hash, environment, revision, deployment_id,
-    migration_version, governance_state_version, policy_version,
-    model_policy_revision, eval_config_revision, generated_at, expires_at,
-    document, evaluation, audit_id, created_by_profile_id,
-    retention_expires_at
-  ) VALUES (
-    manifest_id, tenant_id, 'evidence_passed', repeat('a', 64), 'production',
-    repeat('b', 40), 'dpl-proof',
-    '20260718102000_eve_final_launch_verification', v_state_version,
-    v_policy_version, v_policy_hash, repeat('c', 64), NOW() - INTERVAL '1 minute',
-    NOW() + INTERVAL '1 hour', '{"schemaVersion":"eve-launch-manifest-v1"}',
-    '{"ready":true,"blockers":[]}',
-    '43700000-0000-4000-8000-000000000010', creator_id,
-    NOW() + INTERVAL '365 days'
-  );
+  BEGIN
+    PERFORM public.create_eve_launch_manifest(
+      tenant_id, '43700000-0000-4000-8000-000000000007',
+      (SELECT document FROM public.eve_launch_manifests WHERE id = manifest_id),
+      (SELECT evaluation FROM public.eve_launch_manifests WHERE id = manifest_id),
+      repeat('a', 64), '43700000-0000-4000-8000-000000000018',
+      'proof-creator', creator_id, 'super_admin', 'admin', 'proof-creator'
+    );
+  EXCEPTION WHEN unique_violation THEN
+    duplicate_rejected := TRUE;
+  END;
+  IF NOT duplicate_rejected OR EXISTS (
+    SELECT 1 FROM public.eve_audit_events
+    WHERE id = '43700000-0000-4000-8000-000000000018'
+  ) THEN
+    RAISE EXCEPTION 'proof_failed_manifest_audit_not_atomic';
+  END IF;
 
   PERFORM public.grant_eve_launch_permission(
     tenant_id, release_reviewer_id, 'release.review', TRUE, 'Local proof',
@@ -156,6 +169,39 @@ BEGIN
   IF NOT (SELECT release_enabled FROM public.eve_governance_state WHERE id = 'global') THEN
     RAISE EXCEPTION 'proof_failed_release_not_enabled';
   END IF;
+
+  UPDATE public.eve_governance_state SET
+    kill_switch_state = jsonb_set(
+      kill_switch_state, '{production_writes}', 'true'::JSONB, FALSE
+    )
+  WHERE id = 'global';
+  BEGIN
+    PERFORM public.close_eve_launch_canary(
+      tenant_id, launch_id, 'completed', jsonb_build_object(
+        'state_visible', TRUE,
+        'trigger_gate_current', TRUE,
+        'audit_recorded', TRUE,
+        'budget_enforced', TRUE,
+        'notification_safe', TRUE,
+        'non_destructive_canary', TRUE
+      ), 'Blocked completion proof',
+      '43700000-0000-4000-8000-000000000019', 'proof-activator', activator_id,
+      'super_admin', 'admin', 'proof-activator'
+    );
+  EXCEPTION WHEN OTHERS THEN
+    IF SQLERRM NOT LIKE '%eve_launch_blocked%' THEN RAISE; END IF;
+    passing_canary_blocked := TRUE;
+  END;
+  IF NOT passing_canary_blocked
+    OR (SELECT status FROM public.eve_launch_records WHERE id = launch_id) <> 'active'
+  THEN
+    RAISE EXCEPTION 'proof_failed_blocked_governance_completed_canary';
+  END IF;
+  UPDATE public.eve_governance_state SET
+    kill_switch_state = jsonb_set(
+      kill_switch_state, '{production_writes}', 'false'::JSONB, FALSE
+    )
+  WHERE id = 'global';
 
   PERFORM public.close_eve_launch_canary(
     tenant_id, launch_id, 'failed', jsonb_build_object(

@@ -1,8 +1,7 @@
 import { z } from "zod";
 
 import { ApiHttpError } from "../../shared/api-http-error";
-import { createAdminEveAuditIdentity, traceEveAuditEvent } from "../audit";
-import { createEveAuditStore } from "../audit/store";
+import { createAdminEveAuditIdentity } from "../audit";
 import { loadEveGovernanceSnapshot } from "../governance";
 import { evaluateEveLaunchReadiness } from "./evaluator";
 import { resolveEveLaunchRuntimeTarget } from "./runtime-target";
@@ -87,43 +86,6 @@ function mapLaunchError(error: { message: string } | null): never {
   throw new Error(message);
 }
 
-async function auditLaunch(input: {
-  action: string;
-  auth: AuthenticatedContext;
-  evidence: Record<string, unknown>;
-  result: "blocked" | "failed" | "skipped" | "started" | "succeeded";
-  supabaseAdmin: AdminSupabaseClient;
-  target: string;
-}) {
-  const governance = await loadEveGovernanceSnapshot({
-    supabaseAdmin: input.supabaseAdmin,
-  });
-  return traceEveAuditEvent({
-    store: createEveAuditStore(input.supabaseAdmin),
-    event: {
-      action: input.action,
-      change: { stateChanged: false },
-      decision: {
-        rationale: "An authorized human performed an Eve launch review step.",
-        risk: "Production autonomy release boundary",
-        reversalOrFollowUp:
-          "Keep the release switch off or use the emergency control path.",
-      },
-      evidence: input.evidence,
-      identity: createAdminEveAuditIdentity(input.auth),
-      modelRole: "not_used",
-      policy: {
-        governanceStateVersion: governance?.stateVersion,
-        id: "eve-final-launch-v1",
-        status: governance?.policyStatus ?? "unavailable",
-      },
-      result: input.result,
-      target: input.target,
-      toolName: "eve_launch_control",
-    },
-  });
-}
-
 export async function createEveLaunchManifest(input: {
   auth: AuthenticatedContext;
   document: EveLaunchManifestDocument;
@@ -132,25 +94,17 @@ export async function createEveLaunchManifest(input: {
   const identity = requireAdminIdentity(input.auth);
   const normalized = normalizeEveLaunchManifest(input.document);
   const evaluation = evaluateEveLaunchReadiness({ document: normalized });
-  const audit = await auditLaunch({
-    action: "launch.manifest_created",
-    auth: input.auth,
-    evidence: {
-      blockers: evaluation.blockers,
-      contentHash: hashEveLaunchManifest(normalized),
-      evidenceCount: evaluation.evidenceCount,
-      ready: evaluation.ready,
-      revision: normalized.target.revision,
-    },
-    result: evaluation.ready ? "succeeded" : "blocked",
-    supabaseAdmin: input.supabaseAdmin,
-    target: `launch-target:${normalized.target.environment}:${normalized.target.deploymentId}`,
-  });
+  const contentHash = hashEveLaunchManifest(normalized);
+
   return createEveLaunchManifestRecord({
-    auditId: audit.id,
-    contentHash: hashEveLaunchManifest(normalized),
+    actorId: identity.actorId,
+    actorRole: identity.actorRole!,
+    auditId: crypto.randomUUID(),
+    contentHash,
     document: normalized,
     evaluation,
+    initiatorId: identity.initiatorId,
+    initiatorType: identity.initiatorType,
     profileId: identity.actorProfileId!,
     supabaseAdmin: input.supabaseAdmin,
     tenantId: identity.tenantId!,

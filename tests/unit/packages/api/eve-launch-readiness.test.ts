@@ -5,6 +5,7 @@ import {
   EVE_LAUNCH_SLICE_IDS,
   eveLaunchManifestDocumentSchema,
   evaluateEveLaunchReadiness,
+  createEveLaunchManifestRecord,
   hashEveLaunchManifest,
   resolveEveLaunchRuntimeTarget,
 } from "@asym/api/eve/launch-readiness";
@@ -15,6 +16,7 @@ import type {
   EveLaunchManifestDocument,
   EveLaunchTarget,
 } from "@asym/api/eve/launch-readiness";
+import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const target: EveLaunchTarget = {
   deploymentId: "dpl_verified",
@@ -156,6 +158,53 @@ describe("Eve final launch readiness", () => {
     second.reversal.reverse();
     second.runbooks.reverse();
     expect(hashEveLaunchManifest(second)).toBe(hashEveLaunchManifest(first));
+  });
+
+  it("creates the manifest and audit through one atomic RPC", async () => {
+    const document = validManifest();
+    const evaluation = evaluateEveLaunchReadiness({
+      document,
+      now: new Date("2026-07-18T10:30:00.000Z"),
+    });
+    const rpc = vi.fn().mockResolvedValue({
+      data: {
+        audit_id: "43700000-0000-4000-8000-000000000010",
+        content_hash: "c".repeat(64),
+        created_at: "2026-07-18T10:30:00.000Z",
+        created_by_profile_id: "43700000-0000-4000-8000-000000000002",
+        document,
+        evaluation,
+        id: "43700000-0000-4000-8000-000000000006",
+        status: "evidence_passed",
+        tenant_id: "43700000-0000-4000-8000-000000000001",
+      },
+      error: null,
+    });
+
+    await createEveLaunchManifestRecord({
+      actorId: "verified-user-1",
+      actorRole: "super_admin",
+      auditId: "43700000-0000-4000-8000-000000000010",
+      contentHash: "c".repeat(64),
+      document,
+      evaluation,
+      initiatorId: "verified-user-1",
+      initiatorType: "authenticated_admin",
+      profileId: "43700000-0000-4000-8000-000000000002",
+      supabaseAdmin: { rpc } as unknown as AdminSupabaseClient,
+      tenantId: "43700000-0000-4000-8000-000000000001",
+    });
+
+    expect(rpc).toHaveBeenCalledOnce();
+    expect(rpc).toHaveBeenCalledWith(
+      "create_eve_launch_manifest",
+      expect.objectContaining({
+        p_audit_id: "43700000-0000-4000-8000-000000000010",
+        p_document: document,
+        p_evaluation: evaluation,
+        p_manifest_id: expect.any(String),
+      }),
+    );
   });
 
   it("allows safe control descriptions but rejects embedded credential values", () => {
