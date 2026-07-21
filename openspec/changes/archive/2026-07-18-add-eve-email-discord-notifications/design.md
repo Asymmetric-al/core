@@ -68,8 +68,8 @@ sensitive content are never retained.
 
 #425 owns event-consumer/runtime durability; #436 owns the safe envelope, notification policy, and delivery
 lifecycle rather than a new host. Email delivery remains behind the repository's existing server-side outbound
-email boundary, never a browser-to-provider path. Provider selection remains an implementation decision
-outside this specification.
+email boundary, never a browser-to-provider path. Email uses that existing Resend boundary; Discord uses a
+server-only environment webhook that is never persisted.
 
 ## State Flow
 
@@ -98,5 +98,6 @@ outside this specification.
 
 ## Rollout
 
-This PR defines only the contract. No destination or provider is configured here. Implementation must remain
-disabled until channel tests and #437 final launch verification pass.
+This PR implements the contract with app-owned destination classes and provider boundaries. No provider
+credential or live destination is configured, both channels ship disabled and paused, and the release switch
+remains off until #437 final launch verification passes.

@@ -49,6 +49,7 @@ import { EveAdminMemoryPanel } from "./admin-memory-panel";
 import { EveApprovalBudgetPanel } from "./approval-budget-panel";
 import { EveEngineeringMonitorsPanel } from "./engineering-monitors-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
+import { EveNotificationsPanel } from "./notifications-panel";
 import { EveRetentionPanel } from "./retention-panel";
 import {
   EveCapabilityConnectionsPanel,
@@ -663,6 +664,7 @@ export default function EveGovernancePage() {
       <EveApprovalBudgetPanel />
       <EveModelPolicyPanel />
       <EveAdminMemoryPanel />
+      <EveNotificationsPanel />
       <EveEngineeringMonitorsPanel />
       <EveRetentionPanel />
       <EveCapabilityConnectionsPanel />

@@ -83,7 +83,8 @@ describe("Eve retention controls", () => {
       .mockResolvedValueOnce({
         data: { auditRecords: 2, runSummaries: 1 },
         error: null,
-      });
+      })
+      .mockResolvedValueOnce({ data: 3, error: null });
     const remove = vi
       .fn()
       .mockResolvedValueOnce({ error: null })
@@ -98,7 +99,11 @@ describe("Eve retention controls", () => {
           storage: { from: () => ({ remove }) },
         } as unknown as AdminSupabaseClient,
       }),
-    ).resolves.toMatchObject({ claimedArtifacts: 2, expiredArtifacts: 1 });
+    ).resolves.toMatchObject({
+      claimedArtifacts: 2,
+      expiredArtifacts: 1,
+      notificationRecords: 3,
+    });
     expect(rpc).toHaveBeenNthCalledWith(
       2,
       "finalize_eve_replay_artifact_expiry",
@@ -106,5 +111,8 @@ describe("Eve retention controls", () => {
         p_ids: ["a"],
       },
     );
+    expect(rpc).toHaveBeenNthCalledWith(4, "expire_eve_notification_records", {
+      p_limit: 100,
+    });
   });
 });

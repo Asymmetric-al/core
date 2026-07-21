@@ -1,5 +1,33 @@
 # Working Set
 
+## 2026-07-18 (Eve email and Discord notifications)
+
+- Date: 2026-07-18
+- Repo: Asymmetric-al/core
+- Goal: Implement issue #436 as the policy-gated external notification layer and open a stacked review PR on #869.
+- Primary area:
+  - `packages/api/src/eve/notifications/**`
+  - `packages/eve-runtime/src/notifications/**`
+  - `packages/email/**`
+  - `apps/admin/app/admin/eve/**`
+  - `supabase/migrations/**`
+  - `tests/unit/**`
+  - `openspec/changes/add-eve-email-discord-notifications/**`
+- Stack:
+  - TypeScript
+  - Eve runtime
+  - Resend
+  - Discord webhooks
+  - Supabase Postgres
+  - Zod
+  - Vitest
+- Constraints:
+  - Email only to verified, configured platform owners; runtime content cannot supply recipients.
+  - Discord only to configured operational destinations and urgent severity; rich fields require deterministic per-field approval.
+  - Redact before provider submission, use stable dedupe and idempotency, bounded retry, expiry, budgets, audit, and pause checks.
+  - Ship provider destinations disabled and keep the global release switch off.
+  - Nia is unavailable; use repo-scoped `rg`, direct source reads, installed skills, and package source.
+
 ## 2026-07-18 (Eve engineering health monitors)
 
 - Date: 2026-07-18
