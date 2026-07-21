@@ -1,5 +1,10 @@
+import { evaluateEveGovernance } from "@asym/api/eve/governance";
+
 import type { EvePolicyConsultResult } from "@asym/api/eve/approval-budget/types";
-import type { EveGovernanceSnapshot } from "@asym/api/eve/governance/types";
+import type {
+  EveAutonomousDomain,
+  EveGovernanceSnapshot,
+} from "@asym/api/eve/governance/types";
 import type { EveModelResolution } from "@asym/api/eve/model-policy/types";
 
 export type EveRuntimeActivationPlan =
@@ -26,15 +31,15 @@ export type EveRuntimeActivationPlan =
       route: "vercel_ai_gateway";
     };
 
-function governanceAllowsRuntime(governance: EveGovernanceSnapshot): boolean {
-  return (
-    governance.source === "persisted" &&
-    governance.releaseEnabled &&
-    !governance.emergencyOff &&
-    governance.policyStatus === "ready" &&
-    !governance.killSwitchState.all_automation &&
-    !governance.killSwitchState.active_runs
-  );
+function governanceAllowsRuntime(
+  governance: EveGovernanceSnapshot,
+  domain: EveAutonomousDomain,
+): boolean {
+  if (governance.source !== "persisted") {
+    return false;
+  }
+
+  return evaluateEveGovernance(governance, { domain }).allowed;
 }
 
 /**
@@ -48,6 +53,7 @@ function governanceAllowsRuntime(governance: EveGovernanceSnapshot): boolean {
  */
 export function prepareEveRuntimeActivation(input: {
   approvalBudget: EvePolicyConsultResult;
+  domain: EveAutonomousDomain;
   governance: EveGovernanceSnapshot;
   modelResolution: EveModelResolution;
 }): EveRuntimeActivationPlan {
@@ -55,7 +61,7 @@ export function prepareEveRuntimeActivation(input: {
     return { enabled: false, reason: "release_disabled" };
   }
 
-  if (!governanceAllowsRuntime(input.governance)) {
+  if (!governanceAllowsRuntime(input.governance, input.domain)) {
     return { enabled: false, reason: "governance_blocked" };
   }
 
