@@ -1,14 +1,10 @@
-import { revalidateTag } from "next/cache";
-
 import { postIdParamSchema } from "../schemas/posts";
-import { CACHE_TAGS } from "../shared/cache-tags";
+import { CACHE_TAGS, revalidateTags } from "../shared/cache-tags";
 import { ApiHttpError } from "../shared/http-errors";
 
 import type { createClient } from "@asym/database/supabase/server";
 
 type PostsRouteSupabaseClient = Awaited<ReturnType<typeof createClient>>;
-
-export type ReactionTableName = "post_likes" | "post_prayers" | "post_fires";
 
 export interface ReactionRouteContext {
   postId: string;
@@ -62,6 +58,5 @@ export function revalidatePostReactionTags({
   postId,
   tenantId,
 }: Pick<ReactionRouteContext, "postId" | "tenantId">) {
-  revalidateTag(CACHE_TAGS.tenantPosts(tenantId), "max");
-  revalidateTag(CACHE_TAGS.post(postId), "max");
+  revalidateTags([CACHE_TAGS.tenantPosts(tenantId), CACHE_TAGS.post(postId)]);
 }

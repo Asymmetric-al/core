@@ -43,6 +43,7 @@ CREATE TABLE public.eve_operational_budgets (
 
 CREATE TABLE public.eve_budget_usage_windows (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    tenant_id UUID NOT NULL REFERENCES public.tenants(id) ON DELETE CASCADE,
     budget_id UUID NOT NULL REFERENCES public.eve_operational_budgets(id) ON DELETE CASCADE,
     window_started_at TIMESTAMPTZ NOT NULL,
     used_requests BIGINT NOT NULL DEFAULT 0 CHECK (used_requests >= 0),
@@ -50,7 +51,7 @@ CREATE TABLE public.eve_budget_usage_windows (
     used_input_tokens BIGINT NOT NULL DEFAULT 0 CHECK (used_input_tokens >= 0),
     used_output_tokens BIGINT NOT NULL DEFAULT 0 CHECK (used_output_tokens >= 0),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    UNIQUE (budget_id, window_started_at)
+    UNIQUE (tenant_id, budget_id, window_started_at)
 );
 
 CREATE TABLE public.eve_policy_permission_grants (
@@ -184,7 +185,9 @@ AS $$
 BEGIN
     IF NOT EXISTS (
         SELECT 1 FROM public.profiles
-        WHERE id = p_actor_profile_id AND tenant_id = p_tenant_id
+        WHERE id = p_actor_profile_id
+          AND (tenant_id = p_tenant_id
+            OR (tenant_id IS NULL AND role = 'super_admin'))
     ) THEN
         RAISE EXCEPTION 'eve_policy_actor_tenant_mismatch';
     END IF;
@@ -425,11 +428,12 @@ BEGIN
             floor(extract(epoch FROM NOW()) / budget_row.window_seconds)
             * budget_row.window_seconds
         );
-        INSERT INTO public.eve_budget_usage_windows (budget_id, window_started_at)
-        VALUES (budget_row.id, window_start)
-        ON CONFLICT (budget_id, window_started_at) DO NOTHING;
+        INSERT INTO public.eve_budget_usage_windows (tenant_id, budget_id, window_started_at)
+        VALUES (p_tenant_id, budget_row.id, window_start)
+        ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING;
         SELECT * INTO usage_row FROM public.eve_budget_usage_windows
-        WHERE budget_id = budget_row.id
+        WHERE tenant_id = p_tenant_id
+          AND budget_id = budget_row.id
           AND window_started_at = window_start FOR UPDATE;
         SELECT COALESCE(SUM(active_override.additional_requests), 0),
                COALESCE(SUM(active_override.additional_usd_micros), 0),
@@ -439,6 +443,7 @@ BEGIN
              additional_input_tokens, additional_output_tokens
         FROM public.eve_budget_emergency_overrides active_override
         WHERE active_override.budget_id = budget_row.id
+          AND active_override.tenant_id = p_tenant_id
           AND active_override.expires_at > NOW();
     END IF;
 

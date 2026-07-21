@@ -31,11 +31,21 @@ describe("Eve approval and budget policy migration", () => {
     expect(sql).toContain("action_row.request_cost");
   });
 
-  it("atomically reserves a deterministic window and pauses at hard ceilings", () => {
-    expect(sql).toContain(
-      "ON CONFLICT (budget_id, window_started_at) DO NOTHING",
+  it("accepts tenantless super admins without weakening tenant-bound actors", () => {
+    expect(sql).toMatch(
+      /WHERE id = p_actor_profile_id\s+AND \(tenant_id = p_tenant_id\s+OR \(tenant_id IS NULL AND role = 'super_admin'\)\)/,
     );
-    expect(sql).toContain("window_started_at = window_start FOR UPDATE");
+  });
+
+  it("atomically reserves a deterministic window and pauses at hard ceilings", () => {
+    expect(sql).toContain("UNIQUE (tenant_id, budget_id, window_started_at)");
+    expect(sql).toContain(
+      "ON CONFLICT (tenant_id, budget_id, window_started_at) DO NOTHING",
+    );
+    expect(sql).toContain("VALUES (p_tenant_id, budget_row.id, window_start)");
+    expect(sql).toMatch(
+      /SELECT \* INTO usage_row FROM public\.eve_budget_usage_windows\s+WHERE tenant_id = p_tenant_id\s+AND budget_id = budget_row\.id\s+AND window_started_at = window_start FOR UPDATE;/,
+    );
     expect(sql).toContain("decision := 'pause'; reason := 'budget_exhausted'");
     expect(sql).toContain("UPDATE public.eve_budget_usage_windows SET");
   });
@@ -45,6 +55,10 @@ describe("Eve approval and budget policy migration", () => {
     expect(sql).toContain("p_expires_at > NOW() + INTERVAL '24 hours'");
     expect(sql).toContain("p_additional_requests NOT BETWEEN 0 AND 1000");
     expect(sql).toContain("budget.emergency_override");
+  });
+
+  it("applies active emergency overrides only to their tenant", () => {
+    expect(sql).toContain("active_override.tenant_id = p_tenant_id");
   });
 
   it("keeps browser roles out and makes decision plus audit one transaction", () => {

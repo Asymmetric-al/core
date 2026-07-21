@@ -1,12 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { createAdminEveAuditIdentity } from "../../../../packages/api/src/eve/audit/identity";
-import { createServiceEveAuditIdentity } from "../../../../packages/api/src/eve/audit/identity";
+import {
+  createAdminEveAuditIdentity,
+  createServiceEveAuditIdentity,
+} from "../../../../packages/api/src/eve/audit/identity";
 import { setEveKillSwitch } from "../../../../packages/api/src/eve/governance/control";
 import { createClearedEveKillSwitchState } from "../../../../packages/api/src/eve/governance/types";
 
-import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 import type { AuthenticatedContext } from "@asym/auth/context";
+import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 function createAdminIdentity() {
   return createAdminEveAuditIdentity({
@@ -92,7 +94,11 @@ describe("Eve kill-switch control", () => {
         enabled: false,
         expectedStateVersion: 1,
       }),
-    ).rejects.toThrow("eve_kill_switch_requires_admin_identity");
+    ).rejects.toMatchObject({
+      status: 403,
+      message:
+        "Forbidden: kill-switch actuation requires an authenticated admin identity.",
+    });
     expect(rpc).not.toHaveBeenCalled();
     expect(insert).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -103,6 +109,33 @@ describe("Eve kill-switch control", () => {
         change_summary: '{"stateChanged":false}',
       }),
     );
+  });
+
+  it("still fails closed when the rejection audit write itself fails", async () => {
+    const rpc = vi.fn();
+    const insert = vi
+      .fn()
+      .mockResolvedValue({ error: { message: "insert_denied" } });
+    const client = {
+      rpc,
+      from: vi.fn().mockReturnValue({ insert }),
+    } as unknown as AdminSupabaseClient;
+
+    await expect(
+      setEveKillSwitch({
+        supabaseAdmin: client,
+        identity: createServiceEveAuditIdentity({
+          serviceId: "eve-runtime",
+          initiatorId: "model-request",
+          initiatorType: "system",
+        }),
+        switchKey: "all_automation",
+        enabled: false,
+        expectedStateVersion: 1,
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(insert).toHaveBeenCalled();
+    expect(rpc).not.toHaveBeenCalled();
   });
 
   it("fails closed when the database rejects the atomic transition", async () => {
