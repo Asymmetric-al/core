@@ -16,6 +16,7 @@
  *   - apps/admin/src/cms/public/       — the public CMS server modules
  *   - apps/donor/app/(public)/         — the public site surface
  *   - apps/donor/lib/cms/              — the donor-side CMS client
+ *   - app-local imports reachable from those entry paths
  *
  * Allowlist (documented construction sites):
  *   - apps/admin/src/cms/public/published-content-reader.ts
@@ -29,11 +30,12 @@
  * Staff/admin Payload reads outside these paths are unaffected.
  */
 
+import { spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { spawnSync } from "node:child_process";
+import ts from "typescript";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, "..", "..");
@@ -50,32 +52,27 @@ export const SOLE_ENTRY_ALLOWLIST = [
   "apps/admin/src/cms/public/resolve-tenant.ts",
 ];
 
-const RAW_READ_PATTERNS = [
-  {
-    id: "payload-local-api-read",
-    pattern:
-      /\bpayload\s*\.\s*(find|findByID|findGlobal|findVersions|findVersionByID|count|db)\b/,
-    message:
-      "Raw Payload Local API read in a public code path. Public content must go through the published-content reader (apps/admin/src/cms/public/published-content-reader.ts).",
-  },
-  {
-    id: "aliased-collection-read",
-    // Reads through an aliased client (`client.find({ collection: ... })`).
-    // The lookbehind only suppresses a bare `payload` receiver (covered by
-    // payload-local-api-read); suffixed identifiers like `adminpayload.find`
-    // or `admin_payload.find` must still match this rule.
-    pattern:
-      /(?<!\bpayload)\.\s*(find|findByID|count)\s*\(\s*\{[^}]*collection\s*:/s,
-    message:
-      "Aliased Payload collection read in a public code path. Public content must go through the published-content reader.",
-  },
-  {
-    id: "override-access-true",
-    pattern: /overrideAccess\s*:\s*true\b/,
-    message:
-      "`overrideAccess: true` in a public code path skips the public-read access policy. Public reads run overrideAccess: false inside the published-content reader only.",
-  },
-];
+const PAYLOAD_READ_METHODS = new Set([
+  "find",
+  "findByID",
+  "findGlobal",
+  "findVersions",
+  "findVersionByID",
+  "count",
+]);
+
+const ALIASED_READ_METHODS = new Set(["find", "findByID", "count"]);
+
+const RULE_MESSAGES = {
+  "payload-local-api-read":
+    "Raw Payload Local API read in a public code path. Public content must go through the published-content reader (apps/admin/src/cms/public/published-content-reader.ts).",
+  "aliased-collection-read":
+    "Aliased Payload collection read in a public code path. Public content must go through the published-content reader.",
+  "override-access-true":
+    "`overrideAccess: true` in a public code path skips the public-read access policy. Public reads run overrideAccess: false inside the published-content reader only.",
+};
+
+const CODE_EXTENSIONS = [".ts", ".tsx", ".mts", ".cts", ".js", ".mjs", ".cjs"];
 
 export function normalizeRepoPath(filePath) {
   return filePath.replace(/\\/g, "/").replace(/^\.\//, "");
@@ -88,6 +85,175 @@ export function isPublicCodePath(relativePath) {
 
 export function isSoleEntryAllowlisted(relativePath) {
   return SOLE_ENTRY_ALLOWLIST.includes(normalizeRepoPath(relativePath));
+}
+
+function propertyNameText(name) {
+  if (
+    ts.isIdentifier(name) ||
+    ts.isStringLiteral(name) ||
+    ts.isNumericLiteral(name)
+  ) {
+    return name.text;
+  }
+
+  return null;
+}
+
+function accessedProperty(expression) {
+  if (ts.isPropertyAccessExpression(expression)) {
+    return { receiver: expression.expression, name: expression.name.text };
+  }
+
+  if (
+    ts.isElementAccessExpression(expression) &&
+    expression.argumentExpression &&
+    ts.isStringLiteral(expression.argumentExpression)
+  ) {
+    return {
+      receiver: expression.expression,
+      name: expression.argumentExpression.text,
+    };
+  }
+
+  return null;
+}
+
+function isPayloadReceiver(expression) {
+  if (ts.isIdentifier(expression)) {
+    return expression.text === "payload";
+  }
+
+  const property = accessedProperty(expression);
+  return property?.name === "payload";
+}
+
+function objectHasCollectionProperty(expression) {
+  if (!ts.isObjectLiteralExpression(expression)) {
+    return false;
+  }
+
+  return expression.properties.some((property) => {
+    if (
+      !ts.isPropertyAssignment(property) &&
+      !ts.isShorthandPropertyAssignment(property)
+    ) {
+      return false;
+    }
+
+    return propertyNameText(property.name) === "collection";
+  });
+}
+
+function collectIdentifierInitializers(sourceFile) {
+  const initializers = new Map();
+
+  function visit(node) {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.initializer
+    ) {
+      initializers.set(node.name.text, node.initializer);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return initializers;
+}
+
+function isCallbackArgument(argument, identifierInitializers) {
+  if (ts.isArrowFunction(argument) || ts.isFunctionExpression(argument)) {
+    return true;
+  }
+
+  if (!ts.isIdentifier(argument)) {
+    return false;
+  }
+
+  const initializer = identifierInitializers.get(argument.text);
+  return Boolean(
+    initializer &&
+    (ts.isArrowFunction(initializer) || ts.isFunctionExpression(initializer)),
+  );
+}
+
+function shouldFlagAliasedRead(call, identifierInitializers) {
+  const firstArgument = call.arguments[0];
+  if (!firstArgument) {
+    return false;
+  }
+
+  if (objectHasCollectionProperty(firstArgument)) {
+    return true;
+  }
+
+  if (ts.isObjectLiteralExpression(firstArgument)) {
+    return false;
+  }
+
+  return !isCallbackArgument(firstArgument, identifierInitializers);
+}
+
+function collectRawReadViolations(relativePath, source) {
+  const normalized = normalizeRepoPath(relativePath);
+  const sourceFile = ts.createSourceFile(
+    normalized,
+    source,
+    ts.ScriptTarget.Latest,
+    true,
+  );
+  const identifierInitializers = collectIdentifierInitializers(sourceFile);
+  const violations = [];
+  const seen = new Set();
+
+  function addViolation(node, id) {
+    const line =
+      sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line +
+      1;
+    const key = `${id}:${line}`;
+    if (seen.has(key)) {
+      return;
+    }
+
+    seen.add(key);
+    violations.push(`${normalized}:${line}: ${RULE_MESSAGES[id]} [${id}]`);
+  }
+
+  function visit(node) {
+    if (ts.isCallExpression(node)) {
+      const property = accessedProperty(node.expression);
+      if (property && PAYLOAD_READ_METHODS.has(property.name)) {
+        if (isPayloadReceiver(property.receiver)) {
+          addViolation(node, "payload-local-api-read");
+        } else if (
+          ALIASED_READ_METHODS.has(property.name) &&
+          shouldFlagAliasedRead(node, identifierInitializers)
+        ) {
+          addViolation(node, "aliased-collection-read");
+        }
+      }
+    }
+
+    const property = accessedProperty(node);
+    if (property?.name === "db" && isPayloadReceiver(property.receiver)) {
+      addViolation(node, "payload-local-api-read");
+    }
+
+    if (
+      ts.isPropertyAssignment(node) &&
+      propertyNameText(node.name) === "overrideAccess" &&
+      node.initializer.kind === ts.SyntaxKind.TrueKeyword
+    ) {
+      addViolation(node, "override-access-true");
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return violations;
 }
 
 /**
@@ -104,50 +270,152 @@ export function collectCmsPublicSoleEntryViolationsFromSource(
     return [];
   }
 
-  const violations = [];
-  const lines = source.split(/\r?\n/);
+  return collectRawReadViolations(normalized, source);
+}
 
-  for (const rule of RAW_READ_PATTERNS) {
-    const perLinePattern = new RegExp(
-      rule.pattern.source,
-      rule.pattern.flags.replace("s", ""),
-    );
+function collectModuleSpecifiers(sourceFile) {
+  const specifiers = [];
 
-    let matchedALine = false;
-    lines.forEach((line, index) => {
-      if (perLinePattern.test(line)) {
-        matchedALine = true;
-        violations.push(
-          `${normalized}:${index + 1}: ${rule.message} [${rule.id}]`,
-        );
-      }
-    });
-
-    // A call whose object literal spans lines only matches against the whole
-    // source; report it at the top of the file with the rule id.
+  for (const statement of sourceFile.statements) {
     if (
-      !matchedALine &&
-      rule.pattern.flags.includes("s") &&
-      rule.pattern.test(source)
+      ts.isImportDeclaration(statement) &&
+      !statement.importClause?.isTypeOnly &&
+      ts.isStringLiteral(statement.moduleSpecifier)
     ) {
-      violations.push(`${normalized}:1: ${rule.message} [${rule.id}]`);
+      specifiers.push(statement.moduleSpecifier.text);
+    }
+
+    if (
+      ts.isExportDeclaration(statement) &&
+      !statement.isTypeOnly &&
+      statement.moduleSpecifier &&
+      ts.isStringLiteral(statement.moduleSpecifier)
+    ) {
+      specifiers.push(statement.moduleSpecifier.text);
+    }
+  }
+
+  function visit(node) {
+    if (
+      ts.isCallExpression(node) &&
+      node.arguments.length === 1 &&
+      ts.isStringLiteral(node.arguments[0]) &&
+      (node.expression.kind === ts.SyntaxKind.ImportKeyword ||
+        (ts.isIdentifier(node.expression) &&
+          node.expression.text === "require"))
+    ) {
+      specifiers.push(node.arguments[0].text);
+    }
+
+    ts.forEachChild(node, visit);
+  }
+
+  visit(sourceFile);
+  return specifiers;
+}
+
+function appRootForFile(relativePath) {
+  if (relativePath.startsWith("apps/admin/")) {
+    return "apps/admin";
+  }
+
+  if (relativePath.startsWith("apps/donor/")) {
+    return "apps/donor";
+  }
+
+  return null;
+}
+
+function resolveAppLocalImport(importer, specifier, availableFiles) {
+  const appRoot = appRootForFile(importer);
+  if (!appRoot) {
+    return null;
+  }
+
+  let unresolvedPath;
+  if (specifier.startsWith("./") || specifier.startsWith("../")) {
+    unresolvedPath = path.posix.join(path.posix.dirname(importer), specifier);
+  } else if (specifier.startsWith("@/")) {
+    unresolvedPath = path.posix.join(appRoot, specifier.slice(2));
+  } else {
+    return null;
+  }
+
+  const normalized = path.posix.normalize(unresolvedPath);
+  if (!normalized.startsWith(`${appRoot}/`)) {
+    return null;
+  }
+
+  const candidates = [normalized];
+  const extension = path.posix.extname(normalized);
+  if (CODE_EXTENSIONS.includes(extension)) {
+    const withoutExtension = normalized.slice(0, -extension.length);
+    for (const codeExtension of CODE_EXTENSIONS) {
+      candidates.push(`${withoutExtension}${codeExtension}`);
+    }
+  } else {
+    for (const codeExtension of CODE_EXTENSIONS) {
+      candidates.push(`${normalized}${codeExtension}`);
+      candidates.push(`${normalized}/index${codeExtension}`);
+    }
+  }
+
+  return candidates.find((candidate) => availableFiles.has(candidate)) ?? null;
+}
+
+export function collectCmsPublicSoleEntryViolationsFromSources(
+  entryFiles,
+  sources,
+) {
+  const normalizedSources = new Map(
+    [...sources].map(([file, source]) => [normalizeRepoPath(file), source]),
+  );
+  const availableFiles = new Set(normalizedSources.keys());
+  const queue = entryFiles.map(normalizeRepoPath);
+  const visited = new Set();
+  const violations = [];
+
+  while (queue.length > 0) {
+    const file = queue.shift();
+    if (visited.has(file)) {
+      continue;
+    }
+
+    visited.add(file);
+    const source = normalizedSources.get(file);
+    if (source === undefined) {
+      continue;
+    }
+
+    if (!isSoleEntryAllowlisted(file)) {
+      violations.push(...collectRawReadViolations(file, source));
+    }
+
+    const sourceFile = ts.createSourceFile(
+      file,
+      source,
+      ts.ScriptTarget.Latest,
+      true,
+    );
+    for (const specifier of collectModuleSpecifiers(sourceFile)) {
+      const importedFile = resolveAppLocalImport(
+        file,
+        specifier,
+        availableFiles,
+      );
+      if (importedFile && !visited.has(importedFile)) {
+        queue.push(importedFile);
+      }
     }
   }
 
   return violations;
 }
 
-function listPublicPathFiles() {
+function listAppCodeFiles() {
   const result = spawnSync(
     "git",
-    [
-      "ls-files",
-      "--",
-      "apps/admin/app/api/cms/public",
-      "apps/admin/src/cms/public",
-      "apps/donor/app/(public)",
-      "apps/donor/lib/cms",
-    ],
+    ["ls-files", "--", "apps/admin", "apps/donor"],
     { cwd: repoRoot, encoding: "utf8", stdio: "pipe" },
   );
 
@@ -163,15 +431,18 @@ function listPublicPathFiles() {
 }
 
 function main() {
-  const files = listPublicPathFiles();
-  const violations = [];
-
-  for (const file of files) {
-    const source = readFileSync(path.join(repoRoot, file), "utf8");
-    violations.push(
-      ...collectCmsPublicSoleEntryViolationsFromSource(file, source),
-    );
-  }
+  const files = listAppCodeFiles();
+  const sources = new Map(
+    files.map((file) => [
+      file,
+      readFileSync(path.join(repoRoot, file), "utf8"),
+    ]),
+  );
+  const publicEntryFiles = files.filter(isPublicCodePath);
+  const violations = collectCmsPublicSoleEntryViolationsFromSources(
+    publicEntryFiles,
+    sources,
+  );
 
   if (violations.length > 0) {
     console.error(
@@ -182,7 +453,7 @@ function main() {
   }
 
   console.log(
-    `CMS public sole-entry check passed: ${files.length} public-path files, no raw Payload reads outside the choke-point.`,
+    `CMS public sole-entry check passed: ${publicEntryFiles.length} public-path files and their app-local imports, no raw Payload reads outside the choke-point.`,
   );
 }
 

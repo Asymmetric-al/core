@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   SOLE_ENTRY_ALLOWLIST,
+  collectCmsPublicSoleEntryViolationsFromSources,
   collectCmsPublicSoleEntryViolationsFromSource,
   isPublicCodePath,
   isSoleEntryAllowlisted,
@@ -119,6 +120,35 @@ describe("raw Payload reads in public paths fail the lint", () => {
     expect(violations[0]).toContain("[aliased-collection-read]");
   });
 
+  it("flags an aliased read when nested options precede collection", () => {
+    const violations = collectCmsPublicSoleEntryViolationsFromSource(
+      PUBLIC_MODULE_FILE,
+      [
+        "const result = await client.find({",
+        "  where: { tenant: { equals: 1 } },",
+        '  collection: "pages",',
+        "});",
+      ].join("\n"),
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain("[aliased-collection-read]");
+  });
+
+  it("flags an aliased read whose options are stored in a variable", () => {
+    const violations = collectCmsPublicSoleEntryViolationsFromSource(
+      PUBLIC_MODULE_FILE,
+      [
+        'const options = { collection: "pages" };',
+        "const result = await client.find(options);",
+      ].join("\n"),
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain(`${PUBLIC_MODULE_FILE}:2`);
+    expect(violations[0]).toContain("[aliased-collection-read]");
+  });
+
   it("flags overrideAccess: true anywhere in a public path", () => {
     const violations = collectCmsPublicSoleEntryViolationsFromSource(
       PUBLIC_ROUTE_FILE,
@@ -136,6 +166,31 @@ describe("raw Payload reads in public paths fail the lint", () => {
         "const item = docs.find((doc) => doc.id === id);\n",
       ),
     ).toEqual([]);
+  });
+});
+
+describe("imports reachable from public code paths", () => {
+  it("flags a raw Payload read in an app-local imported helper", () => {
+    const helperFile = "apps/admin/src/cms/unsafe-public-helper.ts";
+    const sources = new Map([
+      [
+        PUBLIC_ROUTE_FILE,
+        'import { unsafeRead } from "@/src/cms/unsafe-public-helper";\nexport const GET = unsafeRead;\n',
+      ],
+      [
+        helperFile,
+        'export async function unsafeRead() {\n  return payload.find({ collection: "pages" });\n}\n',
+      ],
+    ]);
+
+    const violations = collectCmsPublicSoleEntryViolationsFromSources(
+      [PUBLIC_ROUTE_FILE],
+      sources,
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain(`${helperFile}:2`);
+    expect(violations[0]).toContain("[payload-local-api-read]");
   });
 });
 
