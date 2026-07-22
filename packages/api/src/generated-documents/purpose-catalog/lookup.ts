@@ -35,7 +35,7 @@ export class DocumentPurposeContractError extends Error {
 }
 
 export function isDocumentPurposeId(value: string): value is DocumentPurposeId {
-  return value in DOCUMENT_PURPOSE_CATALOG;
+  return Object.prototype.hasOwnProperty.call(DOCUMENT_PURPOSE_CATALOG, value);
 }
 
 /** Exact lookup; unknown keys throw and never fall back to a general purpose. */

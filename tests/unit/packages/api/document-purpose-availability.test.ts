@@ -4,6 +4,7 @@ import {
   admitDocumentPurpose,
   createFailClosedQualificationPort,
   createStaticQualificationPort,
+  getDocumentPurposeContract,
   getDocumentPurposeCatalogDigest,
   listDocumentPurposeContracts,
   resolvePurposeAvailability,
@@ -40,7 +41,7 @@ function context(
 }
 
 /**
- * A context whose non-official gates all pass and whose issuer proof is fully
+ * A context whose catalog gates all pass and whose issuer proof is fully
  * present — the "domain-ready fixture". Even here, official purposes must stay
  * dark under the default fail-closed port.
  */
@@ -124,6 +125,32 @@ describe("resolvePurposeAvailability", () => {
       expect(result.state).toBe("dark");
       expect(result.causes.map((item) => item.code)).toContain(code);
     }
+  });
+
+  it("treats qualified evidence with an elapsed expiry as expired", async () => {
+    const expiredPort: DocumentQualificationAvailabilityPort = {
+      async checkPurposeQualification({ purpose_id }) {
+        return {
+          outcome: "qualified",
+          purpose_id,
+          checked_at: "2026-01-01T00:00:00.000Z",
+          expires_at: "2026-01-02T00:00:00.000Z",
+        };
+      },
+    };
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+      },
+      expiredPort,
+    );
+
+    expect(result.state).toBe("dark");
+    expect(result.causes.map((item) => item.code)).toContain(
+      "qualification_expired",
+    );
   });
 
   it("rejects qualification evidence that names a different purpose", async () => {
@@ -217,6 +244,39 @@ describe("resolvePurposeAvailability", () => {
     );
   });
 
+  it("requires every catalog-declared launch gate for official purposes", async () => {
+    const port = createStaticQualificationPort(
+      Object.fromEntries(
+        OFFICIAL_PURPOSE_IDS.map((purposeId) => [purposeId, "qualified"]),
+      ),
+    );
+
+    for (const purposeId of OFFICIAL_PURPOSE_IDS) {
+      const contract = getDocumentPurposeContract(purposeId);
+
+      for (const gate of contract.launch.gates) {
+        if (gate === "ca_pack_active") continue;
+
+        const ready = domainReadyContext();
+        const result = await resolvePurposeAvailability(
+          {
+            purpose_id: purposeId,
+            context: {
+              ...ready,
+              gate_status: { ...ready.gate_status, [gate]: false },
+            },
+          },
+          port,
+        );
+
+        expect(result.state, `${purposeId}: ${gate}`).toBe("dark");
+        expect(result.causes, `${purposeId}: ${gate}`).toContainEqual(
+          expect.objectContaining({ code: "launch_gate_unmet", gate }),
+        );
+      }
+    }
+  });
+
   it("resolves governed purposes from their launch gates", async () => {
     const port = createFailClosedQualificationPort();
 
@@ -282,6 +342,23 @@ describe("resolvePurposeAvailability", () => {
     expect(result.causes.map((item) => item.code)).toEqual(["purpose_unknown"]);
     expect(JSON.stringify(result)).not.toContain("custom.business_document");
   });
+
+  it.each(["toString", "constructor", "__proto__"])(
+    "treats inherited property %s as an unknown purpose",
+    async (purposeId) => {
+      const qualificationSpy = vi.fn();
+      const result = await resolvePurposeAvailability(
+        { purpose_id: purposeId, context: domainReadyContext() },
+        { checkPurposeQualification: qualificationSpy },
+      );
+
+      expect(result.state).toBe("absent");
+      expect(result.causes.map((item) => item.code)).toEqual([
+        "purpose_unknown",
+      ]);
+      expect(qualificationSpy).not.toHaveBeenCalled();
+    },
+  );
 });
 
 describe("the public admission adapter", () => {

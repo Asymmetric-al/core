@@ -284,7 +284,7 @@ export interface PurposeAvailabilityCause {
 
 export interface PurposeAvailabilityContext {
   tenant_id?: string;
-  /** Non-official launch-gate status, resolved by the caller's own domain. */
+  /** Catalog launch-gate status, resolved by the caller's own domain. */
   gate_status: Readonly<Partial<Record<PurposeLaunchGate, boolean>>>;
   /** Structural issuer proof carried by the request context. */
   issuer_proof: {

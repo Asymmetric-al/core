@@ -71,8 +71,28 @@ function resolveOfficialQualification(
   }
 
   switch (evidence.outcome) {
-    case "qualified":
+    case "qualified": {
+      if (evidence.expires_at !== undefined) {
+        const expiresAt = Date.parse(evidence.expires_at);
+        if (!Number.isFinite(expiresAt)) {
+          return [
+            cause(
+              "qualification_not_ready",
+              "Qualification evidence has no valid expiry; only a current exact result activates this purpose.",
+            ),
+          ];
+        }
+        if (expiresAt <= Date.now()) {
+          return [
+            cause(
+              "qualification_expired",
+              "The recorded qualification evidence has expired; the purpose stays dark until it is re-proved.",
+            ),
+          ];
+        }
+      }
       return [];
+    }
     case "expired":
       return [
         cause(
@@ -229,6 +249,16 @@ export async function resolvePurposeAvailability(
         purpose_id,
         state: "dark",
         causes: qualificationCauses,
+        qualification_outcome: evidence.outcome,
+      };
+    }
+
+    const gateCauses = resolveGatedLaunch(contract, context);
+    if (gateCauses.length > 0) {
+      return {
+        purpose_id,
+        state: "dark",
+        causes: gateCauses,
         qualification_outcome: evidence.outcome,
       };
     }
