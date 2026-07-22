@@ -149,6 +149,20 @@ describe("raw Payload reads in public paths fail the lint", () => {
     expect(violations[0]).toContain("[aliased-collection-read]");
   });
 
+  it("flags an aliased read whose collection options are spread", () => {
+    const violations = collectCmsPublicSoleEntryViolationsFromSource(
+      PUBLIC_MODULE_FILE,
+      [
+        'const options = { collection: "pages" };',
+        "const result = await client.find({ ...options });",
+      ].join("\n"),
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain(`${PUBLIC_MODULE_FILE}:2`);
+    expect(violations[0]).toContain("[aliased-collection-read]");
+  });
+
   it("flags overrideAccess: true anywhere in a public path", () => {
     const violations = collectCmsPublicSoleEntryViolationsFromSource(
       PUBLIC_ROUTE_FILE,
@@ -176,6 +190,29 @@ describe("imports reachable from public code paths", () => {
       [
         PUBLIC_ROUTE_FILE,
         'import { unsafeRead } from "@/src/cms/unsafe-public-helper";\nexport const GET = unsafeRead;\n',
+      ],
+      [
+        helperFile,
+        'export async function unsafeRead() {\n  return payload.find({ collection: "pages" });\n}\n',
+      ],
+    ]);
+
+    const violations = collectCmsPublicSoleEntryViolationsFromSources(
+      [PUBLIC_ROUTE_FILE],
+      sources,
+    );
+
+    expect(violations).toHaveLength(1);
+    expect(violations[0]).toContain(`${helperFile}:2`);
+    expect(violations[0]).toContain("[payload-local-api-read]");
+  });
+
+  it("flags a raw Payload read in an imported workspace-package helper", () => {
+    const helperFile = "packages/api/src/cms/public/index.ts";
+    const sources = new Map([
+      [
+        PUBLIC_ROUTE_FILE,
+        'import { unsafeRead } from "@asym/api/cms/public";\nexport const GET = unsafeRead;\n',
       ],
       [
         helperFile,

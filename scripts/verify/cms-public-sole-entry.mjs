@@ -16,7 +16,7 @@
  *   - apps/admin/src/cms/public/       — the public CMS server modules
  *   - apps/donor/app/(public)/         — the public site surface
  *   - apps/donor/lib/cms/              — the donor-side CMS client
- *   - app-local imports reachable from those entry paths
+ *   - app-local and @asym workspace imports reachable from those entry paths
  *
  * Allowlist (documented construction sites):
  *   - apps/admin/src/cms/public/published-content-reader.ts
@@ -127,12 +127,16 @@ function isPayloadReceiver(expression) {
   return property?.name === "payload";
 }
 
-function objectHasCollectionProperty(expression) {
+function objectMayHaveCollectionProperty(expression) {
   if (!ts.isObjectLiteralExpression(expression)) {
     return false;
   }
 
   return expression.properties.some((property) => {
+    if (ts.isSpreadAssignment(property)) {
+      return true;
+    }
+
     if (
       !ts.isPropertyAssignment(property) &&
       !ts.isShorthandPropertyAssignment(property)
@@ -185,7 +189,7 @@ function shouldFlagAliasedRead(call, identifierInitializers) {
     return false;
   }
 
-  if (objectHasCollectionProperty(firstArgument)) {
+  if (objectMayHaveCollectionProperty(firstArgument)) {
     return true;
   }
 
@@ -326,23 +330,19 @@ function appRootForFile(relativePath) {
   return null;
 }
 
-function resolveAppLocalImport(importer, specifier, availableFiles) {
-  const appRoot = appRootForFile(importer);
-  if (!appRoot) {
-    return null;
+function sourceRootForFile(relativePath) {
+  const appRoot = appRootForFile(relativePath);
+  if (appRoot) {
+    return appRoot;
   }
 
-  let unresolvedPath;
-  if (specifier.startsWith("./") || specifier.startsWith("../")) {
-    unresolvedPath = path.posix.join(path.posix.dirname(importer), specifier);
-  } else if (specifier.startsWith("@/")) {
-    unresolvedPath = path.posix.join(appRoot, specifier.slice(2));
-  } else {
-    return null;
-  }
+  const packageMatch = relativePath.match(/^(packages\/[^/]+)\//);
+  return packageMatch?.[1] ?? null;
+}
 
+function resolveCodeFile(unresolvedPath, sourceRoot, availableFiles) {
   const normalized = path.posix.normalize(unresolvedPath);
-  if (!normalized.startsWith(`${appRoot}/`)) {
+  if (!normalized.startsWith(`${sourceRoot}/`)) {
     return null;
   }
 
@@ -361,6 +361,45 @@ function resolveAppLocalImport(importer, specifier, availableFiles) {
   }
 
   return candidates.find((candidate) => availableFiles.has(candidate)) ?? null;
+}
+
+function resolveWorkspaceImport(specifier, availableFiles) {
+  try {
+    const resolvedUrl = import.meta.resolve(specifier);
+    const resolvedPath = normalizeRepoPath(
+      path.relative(repoRoot, fileURLToPath(resolvedUrl)),
+    );
+
+    if (!resolvedPath.startsWith("packages/")) {
+      return null;
+    }
+
+    return availableFiles.has(resolvedPath) ? resolvedPath : null;
+  } catch {
+    return null;
+  }
+}
+
+function resolveReachableImport(importer, specifier, availableFiles) {
+  if (specifier.startsWith("@asym/")) {
+    return resolveWorkspaceImport(specifier, availableFiles);
+  }
+
+  const sourceRoot = sourceRootForFile(importer);
+  if (!sourceRoot) {
+    return null;
+  }
+
+  let unresolvedPath;
+  if (specifier.startsWith("./") || specifier.startsWith("../")) {
+    unresolvedPath = path.posix.join(path.posix.dirname(importer), specifier);
+  } else if (specifier.startsWith("@/") && appRootForFile(importer)) {
+    unresolvedPath = path.posix.join(sourceRoot, specifier.slice(2));
+  } else {
+    return null;
+  }
+
+  return resolveCodeFile(unresolvedPath, sourceRoot, availableFiles);
 }
 
 export function collectCmsPublicSoleEntryViolationsFromSources(
@@ -398,7 +437,7 @@ export function collectCmsPublicSoleEntryViolationsFromSources(
       true,
     );
     for (const specifier of collectModuleSpecifiers(sourceFile)) {
-      const importedFile = resolveAppLocalImport(
+      const importedFile = resolveReachableImport(
         file,
         specifier,
         availableFiles,
@@ -412,10 +451,10 @@ export function collectCmsPublicSoleEntryViolationsFromSources(
   return violations;
 }
 
-function listAppCodeFiles() {
+function listReachableSourceFiles() {
   const result = spawnSync(
     "git",
-    ["ls-files", "--", "apps/admin", "apps/donor"],
+    ["ls-files", "--", "apps/admin", "apps/donor", "packages"],
     { cwd: repoRoot, encoding: "utf8", stdio: "pipe" },
   );
 
@@ -431,7 +470,7 @@ function listAppCodeFiles() {
 }
 
 function main() {
-  const files = listAppCodeFiles();
+  const files = listReachableSourceFiles();
   const sources = new Map(
     files.map((file) => [
       file,
@@ -453,7 +492,7 @@ function main() {
   }
 
   console.log(
-    `CMS public sole-entry check passed: ${publicEntryFiles.length} public-path files and their app-local imports, no raw Payload reads outside the choke-point.`,
+    `CMS public sole-entry check passed: ${publicEntryFiles.length} public-path files and their app/workspace imports, no raw Payload reads outside the choke-point.`,
   );
 }
 
