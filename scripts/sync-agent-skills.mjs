@@ -158,12 +158,40 @@ function getTemporarySiblingPath(targetDir, label) {
   return path.join(parentDir, `.${targetName}.${label}-${uniqueSuffix}`);
 }
 
+/**
+ * Windows can transiently fail a directory rename with EPERM/EACCES/EBUSY
+ * while an indexer, antivirus scan, or editor watcher briefly holds a handle
+ * on the directory or a child. The contention clears in milliseconds, so a
+ * short bounded retry (the graceful-fs/npm pattern) makes the mirror swap
+ * reliable without masking real permission failures.
+ */
+const TRANSIENT_RENAME_CODES = new Set(["EPERM", "EACCES", "EBUSY"]);
+
+async function renameWithRetry(fromPath, toPath) {
+  const maxAttempts = 6;
+  let delayMs = 50;
+
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await rename(fromPath, toPath);
+      return;
+    } catch (error) {
+      const isTransient = TRANSIENT_RENAME_CODES.has(getErrorCode(error));
+      if (!isTransient || attempt >= maxAttempts) {
+        throw error;
+      }
+      await new Promise((resolve) => setTimeout(resolve, delayMs));
+      delayMs = Math.min(delayMs * 2, 800);
+    }
+  }
+}
+
 async function swapStagedDirectory(stagingDir, targetDir) {
   const backupDir = getTemporarySiblingPath(targetDir, "backup");
   let hasBackup = false;
 
   try {
-    await rename(targetDir, backupDir);
+    await renameWithRetry(targetDir, backupDir);
     hasBackup = true;
   } catch (error) {
     if (getErrorCode(error) !== "ENOENT") {
@@ -172,10 +200,10 @@ async function swapStagedDirectory(stagingDir, targetDir) {
   }
 
   try {
-    await rename(stagingDir, targetDir);
+    await renameWithRetry(stagingDir, targetDir);
   } catch (error) {
     if (hasBackup) {
-      await rename(backupDir, targetDir);
+      await renameWithRetry(backupDir, targetDir);
     }
     throw error;
   }
