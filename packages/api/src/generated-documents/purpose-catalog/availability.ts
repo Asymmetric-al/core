@@ -11,6 +11,8 @@ import type {
   PurposeAvailabilityResult,
 } from "./types";
 
+const QUALIFICATION_FRESHNESS_WITHOUT_EXPIRY_MS = 5 * 60 * 1000;
+
 export interface ResolvePurposeAvailabilityInput {
   purpose_id: string;
   context: PurposeAvailabilityContext;
@@ -75,9 +77,24 @@ function resolveOfficialQualification(
 
   switch (evidence.outcome) {
     case "qualified": {
+      const nowMs = now.getTime();
+      const checkedAtMs = Date.parse(evidence.checked_at);
+      if (
+        !Number.isFinite(nowMs) ||
+        !Number.isFinite(checkedAtMs) ||
+        checkedAtMs > nowMs
+      ) {
+        return [
+          cause(
+            "qualification_not_ready",
+            "Qualification evidence carries an invalid or future check time; only a current result activates an official purpose.",
+          ),
+        ];
+      }
+
       if (evidence.expires_at !== undefined) {
         const expiresAtMs = Date.parse(evidence.expires_at);
-        if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now.getTime()) {
+        if (!Number.isFinite(expiresAtMs) || expiresAtMs <= nowMs) {
           return [
             cause(
               "qualification_expired",
@@ -85,6 +102,16 @@ function resolveOfficialQualification(
             ),
           ];
         }
+      } else if (
+        nowMs - checkedAtMs >
+        QUALIFICATION_FRESHNESS_WITHOUT_EXPIRY_MS
+      ) {
+        return [
+          cause(
+            "qualification_expired",
+            "Qualification evidence has no expiry and its freshness window has elapsed; only a current result activates an official purpose.",
+          ),
+        ];
       }
       return [];
     }
@@ -247,10 +274,24 @@ export async function resolvePurposeAvailability(
       return { purpose_id, state: "dark", causes: structuralCauses };
     }
 
-    const evidence = await qualificationPort.checkPurposeQualification({
-      purpose_id,
-      tenant_id: context.tenant_id,
-    });
+    let evidence: DocumentQualificationEvidence;
+    try {
+      evidence = await qualificationPort.checkPurposeQualification({
+        purpose_id,
+        tenant_id: context.tenant_id,
+      });
+    } catch {
+      return {
+        purpose_id,
+        state: "dark",
+        causes: [
+          cause(
+            "qualification_not_ready",
+            "Qualification evidence could not be checked; the official purpose stays dark.",
+          ),
+        ],
+      };
+    }
     const qualificationCauses = resolveOfficialQualification(
       purpose_id,
       evidence,

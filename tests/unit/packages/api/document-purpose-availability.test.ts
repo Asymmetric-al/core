@@ -552,6 +552,61 @@ describe("qualification evidence freshness and unknown outcomes", () => {
     expect(result.state).toBe("supported");
   });
 
+  it("keeps qualified evidence without an expiry dark once its freshness window elapses", async () => {
+    const stalePort: DocumentQualificationAvailabilityPort = {
+      async checkPurposeQualification({ purpose_id }) {
+        return {
+          outcome: "qualified",
+          purpose_id,
+          checked_at: "2000-01-01T00:00:00.000Z",
+        };
+      },
+    };
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+        now: () => NOW,
+      },
+      stalePort,
+    );
+
+    expect(result.state).toBe("dark");
+    expect(result.causes.map((item) => item.code)).toContain(
+      "qualification_expired",
+    );
+  });
+
+  it("keeps an official purpose dark when the qualification port fails", async () => {
+    const failingPort: DocumentQualificationAvailabilityPort = {
+      async checkPurposeQualification() {
+        throw new Error("qualification backend unavailable");
+      },
+    };
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+        now: () => NOW,
+      },
+      failingPort,
+    );
+
+    expect(result).toEqual({
+      purpose_id: "us.contribution_acknowledgment.single@1",
+      state: "dark",
+      causes: [
+        {
+          code: "qualification_not_ready",
+          explanation:
+            "Qualification evidence could not be checked; the official purpose stays dark.",
+        },
+      ],
+    });
+  });
+
   it("fails closed on an unrecognized qualification outcome instead of crashing", async () => {
     const confusedPort: DocumentQualificationAvailabilityPort = {
       async checkPurposeQualification({ purpose_id }) {
