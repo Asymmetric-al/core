@@ -1,4 +1,6 @@
 import { hasAnyRole } from "@asym/auth/permissions";
+import { getSupabasePublicConfig } from "@asym/database/supabase/config";
+import { createServerClient } from "@supabase/ssr";
 import { z } from "zod";
 
 import type {
@@ -17,6 +19,100 @@ const serviceIdentitySchema = z.object({
 });
 
 const membershipRolesSchema = z.array(z.enum(["donor", "missionary", "staff"]));
+
+function createUnauthenticatedContext(): AuthContext {
+  return {
+    email: null,
+    isAuthenticated: false,
+    memberships: [],
+    profileId: null,
+    profileRole: null,
+    role: null,
+    tenantId: null,
+    userId: null,
+  };
+}
+
+function getBearerToken(request: Request): string | null {
+  const authorizationHeader = request.headers.get("authorization")?.trim();
+  if (!authorizationHeader) {
+    return null;
+  }
+
+  const [scheme, ...tokenParts] = authorizationHeader.split(" ");
+  if (scheme?.toLowerCase() !== "bearer") {
+    return null;
+  }
+
+  const token = tokenParts.join(" ").trim();
+  return token || null;
+}
+
+function parseCookieHeader(cookieHeader: string) {
+  return cookieHeader
+    .split(";")
+    .map((part) => part.trim())
+    .filter(Boolean)
+    .map((pair) => {
+      const separatorIndex = pair.indexOf("=");
+      if (separatorIndex === -1) {
+        return { name: pair, value: "" };
+      }
+
+      const value = pair.slice(separatorIndex + 1);
+      try {
+        return {
+          name: pair.slice(0, separatorIndex),
+          value: decodeURIComponent(value),
+        };
+      } catch {
+        return { name: pair.slice(0, separatorIndex), value };
+      }
+    });
+}
+
+async function resolveRequestAuthContext(request: Request) {
+  const { getAuthContext } = await import("@asym/auth/context");
+  if (getBearerToken(request)) {
+    return getAuthContext(request);
+  }
+
+  const cookieHeader = request.headers.get("cookie");
+  const { url, key } = getSupabasePublicConfig();
+  if (!cookieHeader || !url || !key) {
+    return createUnauthenticatedContext();
+  }
+
+  const requestCookies = parseCookieHeader(cookieHeader);
+  const supabase = createServerClient(url, key, {
+    cookies: {
+      getAll() {
+        return requestCookies;
+      },
+      setAll() {
+        // Eve owns this Request boundary but has no HTTP response cookie store.
+      },
+    },
+  });
+
+  let accessToken: string | undefined;
+  try {
+    const { data, error } = await supabase.auth.getSession();
+    accessToken = error ? undefined : data.session?.access_token;
+  } catch {
+    return createUnauthenticatedContext();
+  }
+
+  if (!accessToken) {
+    return createUnauthenticatedContext();
+  }
+
+  // The cookie session only supplies a candidate token. getAuthContext calls
+  // Supabase getUser(token) before deriving any application identity from it.
+  const authHeaders = new Headers(request.headers);
+  authHeaders.set("authorization", `Bearer ${accessToken}`);
+  return getAuthContext(new Request(request.url, { headers: authHeaders }));
+}
 
 function isCompleteAuthContext(
   auth: AuthContext,
@@ -72,10 +168,7 @@ export async function resolveAdminEveSessionIdentity(
 ): Promise<EveAdminIdentityResolution> {
   const resolveAuth =
     dependencies.getVerifiedAuthContext ??
-    (async (candidate: Request) => {
-      const { getAuthContext } = await import("@asym/auth/context");
-      return getAuthContext(candidate);
-    });
+    ((candidate: Request) => resolveRequestAuthContext(candidate));
   const auth = await resolveAuth(request);
   return createAdminEveSessionIdentity(auth);
 }
