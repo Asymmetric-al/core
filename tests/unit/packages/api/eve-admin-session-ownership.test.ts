@@ -208,6 +208,37 @@ describe("Eve admin auth and session ownership", () => {
     },
   );
 
+  it.each(["donor", "missionary"] as const)(
+    "preserves staff-membership authority for a %s profile",
+    (profileRole) => {
+      const result = createAdminEveSessionIdentity({
+        ...verifiedAdmin,
+        memberships: [
+          {
+            isActive: true,
+            role: "staff",
+            staffRole: "mobilizer",
+            tenantId: TENANT_ID,
+          },
+        ],
+        profileRole,
+        role: "staff",
+      });
+      if (!result.ok) throw new Error("expected staff member identity");
+
+      const snapshot = toEveSessionAuthSnapshot(result.identity);
+
+      expect(snapshot.attributes).toMatchObject({
+        membershipRoles: ["staff"],
+        profileRole,
+        role: "staff",
+      });
+      expect(identityFromEveSessionAuthSnapshot(snapshot)).toEqual(
+        result.identity,
+      );
+    },
+  );
+
   it("extracts ownership targets only from Eve session route paths", () => {
     expect(
       getEveSessionIdFromRoute(

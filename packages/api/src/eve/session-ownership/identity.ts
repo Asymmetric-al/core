@@ -16,6 +16,8 @@ const serviceIdentitySchema = z.object({
   tenantId: z.string().uuid(),
 });
 
+const membershipRolesSchema = z.array(z.enum(["donor", "missionary", "staff"]));
+
 function isCompleteAuthContext(
   auth: AuthContext,
 ): auth is AuthenticatedContext {
@@ -48,6 +50,9 @@ export function createAdminEveSessionIdentity(
     ok: true,
     identity: {
       actorId: auth.userId,
+      actorMembershipRoles: auth.memberships
+        .filter((membership) => membership.isActive)
+        .map((membership) => membership.role),
       actorProfileId: auth.profileId,
       actorProfileRole: auth.profileRole,
       actorRole: auth.role,
@@ -97,6 +102,7 @@ export function toEveSessionAuthSnapshot(
   return {
     attributes: {
       identityMode: identity.identityMode,
+      membershipRoles: identity.actorMembershipRoles,
       profileId: identity.actorProfileId,
       ...(identity.actorProfileRole
         ? { profileRole: identity.actorProfileRole }
@@ -121,10 +127,22 @@ export function identityFromEveSessionAuthSnapshot(
   }
 
   const attributes = snapshot.attributes;
+  const membershipRolesResult = membershipRolesSchema.safeParse(
+    attributes.membershipRoles,
+  );
+  const tenantId =
+    typeof attributes.tenantId === "string" ? attributes.tenantId : null;
   const result = createAdminEveSessionIdentity({
     email: null,
     isAuthenticated: true,
-    memberships: [],
+    memberships: membershipRolesResult.success
+      ? membershipRolesResult.data.map((role) => ({
+          isActive: true,
+          role,
+          staffRole: null,
+          tenantId: tenantId ?? "",
+        }))
+      : [],
     profileId:
       typeof attributes.profileId === "string" ? attributes.profileId : null,
     profileRole:
@@ -137,8 +155,7 @@ export function identityFromEveSessionAuthSnapshot(
       typeof attributes.role === "string"
         ? (attributes.role as AuthenticatedContext["role"])
         : null,
-    tenantId:
-      typeof attributes.tenantId === "string" ? attributes.tenantId : null,
+    tenantId,
     userId: snapshot.principalId,
   });
 
