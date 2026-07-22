@@ -1,6 +1,7 @@
 import { loadEnvConfig } from "@next/env";
 import { withSentryConfig } from "@sentry/nextjs";
 
+import { buildPublicCmsImageRemotePatterns } from "../../scripts/cms/public-media-remote-pattern.mjs";
 import { resolveMonorepoRoot } from "../../scripts/resolve-monorepo-root.mjs";
 import { buildSentryNextConfigOptions } from "../../scripts/sentry/next-config.mjs";
 
@@ -50,6 +51,10 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
+      // The CMS media origin (admin-served Payload uploads) — derived from
+      // CMS_BASE_URL so public CMS images optimize from exactly that host
+      // (Phase 5 ruling A12; issue #529).
+      ...buildPublicCmsImageRemotePatterns(process.env.CMS_BASE_URL),
       {
         protocol: "https",
         hostname: "images.unsplash.com",

@@ -201,7 +201,7 @@ function serializePublicMedia(value: unknown) {
   const thumbnail = readMediaSizeUrl(sizes?.thumbnail);
   const card = readMediaSizeUrl(sizes?.card);
 
-  return {
+  const serialized: Record<string, unknown> = {
     id:
       typeof media.id === "string" || typeof media.id === "number"
         ? String(media.id)
@@ -214,6 +214,21 @@ function serializePublicMedia(value: unknown) {
     height: typeof media.height === "number" ? media.height : null,
     mimeType: readOptionalString(media.mimeType),
   };
+
+  // Present-only public fields (kept identical to the package serializer —
+  // the parity baseline): the file name is public by construction, and the
+  // caption is the media document's editorial caption.
+  const filename = readOptionalString(media.filename);
+  if (filename !== null) {
+    serialized.filename = filename;
+  }
+
+  const caption = readOptionalString(media.caption);
+  if (caption !== null) {
+    serialized.caption = caption;
+  }
+
+  return serialized;
 }
 
 function readMediaSizeUrl(value: unknown) {

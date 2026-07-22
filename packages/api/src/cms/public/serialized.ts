@@ -25,6 +25,14 @@ export type SerializedPublicMedia = {
   width: number | null;
   height: number | null;
   mimeType: string | null;
+  /**
+   * Uploaded file name — public by construction (it is the last segment of
+   * the public URL). Emitted only when the document carries it, so existing
+   * consumers and parity baselines are unaffected.
+   */
+  filename?: string;
+  /** Editorial caption from the media document. Emitted only when set. */
+  caption?: string;
 };
 
 /**
