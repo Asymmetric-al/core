@@ -11,6 +11,8 @@ export default defineConfig({
   resolve: {
     alias: {
       "@": srcPath,
+      /** Vitest runs in Node (a server context); the marker must not throw. */
+      "server-only": path.join(rootDir, "tests/mocks/server-only.ts"),
       "@tiptap/react/menus": path.join(
         rootDir,
         "tests/mocks/tiptap-react-menus.tsx",

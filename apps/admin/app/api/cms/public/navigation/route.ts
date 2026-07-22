@@ -1,6 +1,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "../../../../../src/cms/get-payload";
+import { createPayloadPublishedContentReader } from "../../../../../src/cms/public/published-content-reader";
 import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
 import {
   ensureRequestTimeExecution,
@@ -18,24 +19,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    const navigationQuery = await payload.find({
-      collection: "navigation",
-      limit: 1,
-      overrideAccess: true,
-      pagination: false,
-      sort: "-updatedAt",
-      where: {
-        tenant: {
-          equals: tenant.id,
-        },
-      },
+    const reader = createPayloadPublishedContentReader(payload);
+    const result = await reader.getNavigation({
+      operationalTenantId: String(tenant.id),
+      cmsTenantId: tenant.id,
+      siteId: null,
     });
 
+    if (result.status === "unavailable") {
+      return NextResponse.json({ error: result.error }, { status: 503 });
+    }
+
     return NextResponse.json({
-      navigation: navigationQuery.docs[0] ?? null,
-      tenant: {
-        slug: tenant.slug ?? null,
-      },
+      navigation: result.navigation,
+      tenant: result.tenant,
     });
   } catch (error) {
     return publicCmsRouteErrorResponse(error, {

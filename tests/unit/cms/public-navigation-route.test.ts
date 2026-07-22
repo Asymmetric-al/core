@@ -26,12 +26,21 @@ vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
 
 let GET: (request: unknown) => Promise<Response>;
 
+const TENANT_DOC = { id: "tenant_1", slug: "alpha", isActive: true };
+
 function createRequest(
   url = "http://localhost:3030/api/cms/public/navigation",
 ) {
   return {
     nextUrl: new URL(url),
   } as never;
+}
+
+/** Collection-aware fake: the reader reads tenants first, then navigation. */
+function fakeFind(docsByCollection: Partial<Record<string, unknown[]>>) {
+  return vi.fn(async (args: { collection: string }) => ({
+    docs: docsByCollection[args.collection] ?? [],
+  }));
 }
 
 beforeAll(async () => {
@@ -41,7 +50,7 @@ beforeAll(async () => {
   GET = routeModule.GET;
 });
 
-describe("public navigation route", () => {
+describe("public navigation route (through the choke-point)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -66,9 +75,26 @@ describe("public navigation route", () => {
     );
   });
 
-  it("returns newest tenant navigation record", async () => {
-    const find = vi.fn().mockResolvedValue({
-      docs: [{ id: "nav_1", label: "Main Navigation" }],
+  it("reads navigation tenant-constrained under the public-read policy and serializes it", async () => {
+    const find = fakeFind({
+      tenants: [TENANT_DOC],
+      navigation: [
+        {
+          id: "nav_1",
+          label: "Main Navigation",
+          tenant: "tenant_1",
+          items: [
+            { id: "i1", label: "Home", href: "/", openInNewTab: false },
+            {
+              id: "i2",
+              label: "Unsafe",
+              href: "javascript:alert(1)",
+              openInNewTab: false,
+            },
+          ],
+          updatedAt: "2026-07-22T00:00:00.000Z",
+        },
+      ],
     });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
@@ -81,25 +107,37 @@ describe("public navigation route", () => {
 
     expect(response.status).toBe(200);
     expect(body).toEqual({
-      navigation: { id: "nav_1", label: "Main Navigation" },
+      navigation: {
+        id: "nav_1",
+        label: "Main Navigation",
+        items: [
+          { id: "i1", label: "Home", href: "/", openInNewTab: false },
+          // Unsafe hrefs are sanitized by the allowlist serializer.
+          { id: "i2", label: "Unsafe", href: null, openInNewTab: false },
+        ],
+        updatedAt: "2026-07-22T00:00:00.000Z",
+      },
       tenant: { slug: "alpha" },
     });
-    expect(find).toHaveBeenCalledWith({
+    // The raw tenant relationship never leaks through the serializer.
+    expect(JSON.stringify(body.navigation)).not.toContain("tenant_1");
+
+    const navigationCall = find.mock.calls
+      .map(([args]) => args as Record<string, unknown>)
+      .find((args) => args.collection === "navigation");
+    expect(navigationCall).toMatchObject({
       collection: "navigation",
       limit: 1,
-      overrideAccess: true,
+      overrideAccess: false,
       pagination: false,
       sort: "-updatedAt",
-      where: {
-        tenant: {
-          equals: "tenant_1",
-        },
-      },
+      context: { asymPublicRead: { cmsTenantId: "tenant_1" } },
+      where: { and: [{ tenant: { equals: "tenant_1" } }] },
     });
   });
 
   it("returns null navigation when the tenant has no navigation docs", async () => {
-    const find = vi.fn().mockResolvedValue({ docs: [] });
+    const find = fakeFind({ tenants: [TENANT_DOC], navigation: [] });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
       id: "tenant_1",
@@ -116,7 +154,30 @@ describe("public navigation route", () => {
     });
   });
 
-  it("returns 500 when payload lookup fails", async () => {
+  it("serves nothing for a missing or inactive tenant (fail-closed empty)", async () => {
+    const find = fakeFind({
+      tenants: [],
+      navigation: [{ id: "nav_1", label: "Leak?" }],
+    });
+    getPayloadClientMock.mockResolvedValue({ find });
+    resolveTenantFromRequestMock.mockResolvedValue({
+      id: "tenant_1",
+      slug: "alpha",
+    });
+
+    const response = await GET(createRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ navigation: null, tenant: { slug: null } });
+
+    const collections = find.mock.calls.map(
+      ([args]) => (args as { collection: string }).collection,
+    );
+    expect(collections).toEqual(["tenants"]);
+  });
+
+  it("returns 503 unavailable when the store fails", async () => {
     const consoleErrorSpy = vi
       .spyOn(console, "error")
       .mockImplementation(() => undefined);
@@ -130,9 +191,10 @@ describe("public navigation route", () => {
     const response = await GET(createRequest());
     const body = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch navigation content" });
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      error: "Published content is temporarily unavailable",
+    });
     consoleErrorSpy.mockRestore();
   });
 

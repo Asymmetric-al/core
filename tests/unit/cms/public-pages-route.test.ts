@@ -68,10 +68,13 @@ describe("public pages route", () => {
     );
   });
 
-  it("queries published page by tenant and normalizes slug segments", async () => {
-    const find = vi.fn().mockResolvedValue({
-      docs: [{ id: "page_1", slug: "about/team" }],
-    });
+  it("queries the published page through the choke-point (tenant + slug + published, no access override)", async () => {
+    const find = vi.fn(async (args: { collection: string }) => ({
+      docs:
+        args.collection === "tenants"
+          ? [{ id: "tenant_1", slug: "alpha", isActive: true }]
+          : [{ id: "page_1", slug: "about/team" }],
+    }));
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
       id: "tenant_1",
@@ -88,32 +91,35 @@ describe("public pages route", () => {
       page: { id: "page_1", slug: "about/team" },
       tenant: { slug: "alpha" },
     });
-    expect(find).toHaveBeenCalledWith({
-      collection: "pages",
-      limit: 1,
-      overrideAccess: true,
-      pagination: false,
-      sort: "-updatedAt",
-      where: {
-        and: [
-          {
-            tenant: {
-              equals: "tenant_1",
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: "pages",
+        limit: 1,
+        overrideAccess: false,
+        pagination: false,
+        sort: "-updatedAt",
+        context: { asymPublicRead: { cmsTenantId: "tenant_1" } },
+        where: {
+          and: [
+            {
+              tenant: {
+                equals: "tenant_1",
+              },
             },
-          },
-          {
-            slug: {
-              equals: "about/team",
+            {
+              slug: {
+                equals: "about/team",
+              },
             },
-          },
-          {
-            _status: {
-              equals: "published",
+            {
+              _status: {
+                equals: "published",
+              },
             },
-          },
-        ],
-      },
-    });
+          ],
+        },
+      }),
+    );
   });
 
   it("falls back to home slug for missing catch-all params", async () => {
@@ -165,10 +171,7 @@ describe("public pages route", () => {
     expect(body).toEqual({ error: "Page not found" });
   });
 
-  it("returns 500 when payload page query fails", async () => {
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
+  it("degrades to 503 unavailable when the payload page query fails", async () => {
     const find = vi.fn().mockRejectedValue(new Error("db down"));
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
@@ -181,10 +184,10 @@ describe("public pages route", () => {
     });
     const body = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch page content" });
-    expect(consoleErrorSpy).toHaveBeenCalled();
-    consoleErrorSpy.mockRestore();
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      error: "Published content is temporarily unavailable",
+    });
   });
 
   it("returns 503 when payload client initialization fails", async () => {

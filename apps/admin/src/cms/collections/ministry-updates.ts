@@ -1,9 +1,9 @@
 import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
+import { publishedPublicReadAccess } from "../access/public-read";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
-  tenantScopedReadAccess,
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
@@ -41,7 +41,7 @@ export const MinistryUpdates: CollectionConfig = {
     ...nativeMinistryUpdatesAdmin,
   },
   access: {
-    read: tenantScopedReadAccess("tenant"),
+    read: publishedPublicReadAccess("tenant", { draftable: true }),
     create: tenantScopedCreateAccess("tenant"),
     update: tenantScopedUpdateAccess("tenant"),
     delete: tenantScopedDeleteAccess("tenant"),
