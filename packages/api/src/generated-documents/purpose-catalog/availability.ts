@@ -14,6 +14,8 @@ import type {
 export interface ResolvePurposeAvailabilityInput {
   purpose_id: string;
   context: PurposeAvailabilityContext;
+  /** Injected clock for deterministic freshness checks. */
+  now?: () => Date;
 }
 
 /**
@@ -60,6 +62,7 @@ function cause(
 function resolveOfficialQualification(
   purposeId: string,
   evidence: DocumentQualificationEvidence,
+  now: Date,
 ): PurposeAvailabilityCause[] {
   if (evidence.purpose_id !== purposeId) {
     return [
@@ -73,20 +76,12 @@ function resolveOfficialQualification(
   switch (evidence.outcome) {
     case "qualified": {
       if (evidence.expires_at !== undefined) {
-        const expiresAt = Date.parse(evidence.expires_at);
-        if (!Number.isFinite(expiresAt)) {
-          return [
-            cause(
-              "qualification_not_ready",
-              "Qualification evidence has no valid expiry; only a current exact result activates this purpose.",
-            ),
-          ];
-        }
-        if (expiresAt <= Date.now()) {
+        const expiresAtMs = Date.parse(evidence.expires_at);
+        if (!Number.isFinite(expiresAtMs) || expiresAtMs <= now.getTime()) {
           return [
             cause(
               "qualification_expired",
-              "The recorded qualification evidence has expired; the purpose stays dark until it is re-proved.",
+              "The qualification evidence has expired or carries an invalid expiry; only a current result activates an official purpose.",
             ),
           ];
         }
@@ -112,6 +107,15 @@ function resolveOfficialQualification(
         cause(
           "contract_dark",
           "This purpose launches production-dark and no current qualification evidence exists yet.",
+        ),
+      ];
+    default:
+      // A future adapter returning an unrecognized outcome must fail closed,
+      // never crash a caller or accidentally activate a tax purpose.
+      return [
+        cause(
+          "qualification_not_ready",
+          "The qualification port returned an unrecognized outcome; unknown evidence keeps the purpose dark.",
         ),
       ];
   }
@@ -190,14 +194,18 @@ function resolveGatedLaunch(
 
 /**
  * One fail-closed answer combining contract launch state, injected context,
- * and the shared qualification port. The resolver never queries CRM, infers
- * issuer proof, allocates identity, or renders anything.
+ * and the shared qualification port. Official purposes require BOTH every
+ * declared launch gate and an affirmative current exact `qualified` result —
+ * qualification can never bypass the code-owned launch gates, and passing
+ * gates can never substitute for qualification evidence. The resolver never
+ * queries CRM, infers issuer proof, allocates, or renders.
  */
 export async function resolvePurposeAvailability(
   input: ResolvePurposeAvailabilityInput,
   qualificationPort: DocumentQualificationAvailabilityPort,
 ): Promise<PurposeAvailabilityResult> {
   const { purpose_id, context } = input;
+  const now = (input.now ?? (() => new Date()))();
 
   if (!isDocumentPurposeId(purpose_id)) {
     return {
@@ -231,9 +239,12 @@ export async function resolvePurposeAvailability(
   }
 
   if (contract.lane === "official_tax") {
-    const contextCauses = resolveOfficialContext(contract, context);
-    if (contextCauses.length > 0) {
-      return { purpose_id, state: "dark", causes: contextCauses };
+    const structuralCauses = [
+      ...resolveGatedLaunch(contract, context),
+      ...resolveOfficialContext(contract, context),
+    ];
+    if (structuralCauses.length > 0) {
+      return { purpose_id, state: "dark", causes: structuralCauses };
     }
 
     const evidence = await qualificationPort.checkPurposeQualification({
@@ -243,22 +254,13 @@ export async function resolvePurposeAvailability(
     const qualificationCauses = resolveOfficialQualification(
       purpose_id,
       evidence,
+      now,
     );
     if (qualificationCauses.length > 0) {
       return {
         purpose_id,
         state: "dark",
         causes: qualificationCauses,
-        qualification_outcome: evidence.outcome,
-      };
-    }
-
-    const gateCauses = resolveGatedLaunch(contract, context);
-    if (gateCauses.length > 0) {
-      return {
-        purpose_id,
-        state: "dark",
-        causes: gateCauses,
         qualification_outcome: evidence.outcome,
       };
     }

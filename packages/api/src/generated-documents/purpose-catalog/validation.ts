@@ -67,6 +67,97 @@ function includes<T extends string>(
   return (values as readonly string[]).includes(candidate);
 }
 
+function isPlainObject(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+const STRING_FIELDS = ["purpose_key", "source_owner"] as const;
+
+const OBJECT_FIELDS = [
+  "recipient_role",
+  "approved_data_view",
+  "forbidden_facts",
+  "locale_policy",
+  "publication_scope_policy",
+  "identity_policy",
+  "correction_policy",
+  "delivery_policy",
+  "access_policy",
+  "records_schedule",
+  "fixture_pack",
+  "launch",
+] as const;
+
+const ARRAY_FIELDS = [
+  "case_registry",
+  "required_blocks",
+  "optional_blocks",
+  "release_evidence",
+] as const;
+
+/** [holder field, nested field] pairs that must be arrays of strings. */
+const NESTED_ARRAY_FIELDS: readonly (readonly [string, string])[] = [
+  ["approved_data_view", "fields"],
+  ["forbidden_facts", "facts"],
+  ["locale_policy", "activated_locales"],
+  ["locale_policy", "required_legal_variants"],
+  ["fixture_pack", "required_fixtures"],
+  ["launch", "gates"],
+  ["delivery_policy", "phase17_routes"],
+];
+
+function contractShapeIssues(
+  entryId: string,
+  contract: DocumentPurposeContract,
+): DocumentPurposeValidationIssue[] {
+  const issues: DocumentPurposeValidationIssue[] = [];
+  const record = contract as unknown as Record<string, unknown>;
+  const shapeIssue = (field: string, expected: string) =>
+    issue(
+      `${entryId}.${field}`,
+      "invalid_field_shape",
+      `Field ${field} must be ${expected}; malformed contracts fail closed.`,
+    );
+
+  for (const field of STRING_FIELDS) {
+    if (typeof record[field] !== "string") {
+      issues.push(shapeIssue(field, "a string"));
+    }
+  }
+  if (typeof record.purpose_version !== "number") {
+    issues.push(shapeIssue("purpose_version", "a number"));
+  }
+  for (const field of OBJECT_FIELDS) {
+    if (!isPlainObject(record[field])) {
+      issues.push(shapeIssue(field, "an object"));
+    }
+  }
+  for (const field of ARRAY_FIELDS) {
+    if (!Array.isArray(record[field])) {
+      issues.push(shapeIssue(field, "an array"));
+    }
+  }
+  for (const [holder, nested] of NESTED_ARRAY_FIELDS) {
+    const parent = record[holder];
+    if (isPlainObject(parent) && !Array.isArray(parent[nested])) {
+      issues.push(shapeIssue(`${holder}.${nested}`, "an array"));
+    }
+  }
+  const identityPolicy = record.identity_policy;
+  if (
+    isPlainObject(identityPolicy) &&
+    typeof identityPolicy.public_reference !== "string"
+  ) {
+    issues.push(shapeIssue("identity_policy.public_reference", "a string"));
+  }
+  const launch = record.launch;
+  if (isPlainObject(launch) && typeof launch.state !== "string") {
+    issues.push(shapeIssue("launch.state", "a string"));
+  }
+
+  return issues;
+}
+
 export function validateDocumentPurposeContractShape(
   entryId: string,
   contract: DocumentPurposeContract,
@@ -87,7 +178,11 @@ export function validateDocumentPurposeContractShape(
     }
   }
   for (const field of CONTRACT_FIELDS) {
-    if (!(field in contract) || contract[field] === undefined) {
+    if (
+      !(field in contract) ||
+      contract[field] === undefined ||
+      contract[field] === null
+    ) {
       issues.push(
         issue(
           path(field),
@@ -98,6 +193,14 @@ export function validateDocumentPurposeContractShape(
     }
   }
   if (issues.some((item) => item.code === "missing_field")) {
+    return issues;
+  }
+
+  // Structural shape gate: runtime input with the right field names but the
+  // wrong shapes must produce stable issues, never a raw TypeError from a
+  // deeper dereference. Any shape defect stops validation here.
+  issues.push(...contractShapeIssues(entryId, contract));
+  if (issues.some((item) => item.code === "invalid_field_shape")) {
     return issues;
   }
 

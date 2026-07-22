@@ -1,11 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  UnknownDocumentPurposeError,
   admitDocumentPurpose,
   createFailClosedQualificationPort,
   createStaticQualificationPort,
   getDocumentPurposeContract,
   getDocumentPurposeCatalogDigest,
+  isDocumentPurposeId,
   listDocumentPurposeContracts,
   resolvePurposeAvailability,
 } from "../../../../packages/api/src/generated-documents/purpose-catalog";
@@ -434,5 +436,166 @@ describe("the public admission adapter", () => {
     }
     // Structural context failures short-circuit before qualification.
     expect(qualificationSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe("official launch gates bind even when qualification passes", () => {
+  it("keeps a qualified U.S. purpose dark while any declared launch gate is unmet", async () => {
+    const port = createStaticQualificationPort({
+      "us.contribution_acknowledgment.single@1": "qualified",
+      "us.contribution_acknowledgment.annual@1": "qualified",
+    });
+
+    const missingLegalReview = domainReadyContext();
+    missingLegalReview.gate_status = {
+      ...missingLegalReview.gate_status,
+      us_legal_finance_review: false,
+    };
+    const single = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: missingLegalReview,
+      },
+      port,
+    );
+    expect(single.state).toBe("dark");
+    expect(single.causes.map((item) => item.code)).toContain(
+      "launch_gate_unmet",
+    );
+    expect(single.causes[0]?.gate).toBe("us_legal_finance_review");
+
+    const missingSeam = domainReadyContext();
+    missingSeam.gate_status = {
+      ...missingSeam.gate_status,
+      phase19_statement_seam: false,
+    };
+    const annual = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.annual@1",
+        context: missingSeam,
+      },
+      port,
+    );
+    expect(annual.state).toBe("dark");
+    expect(annual.causes.map((item) => item.code)).toContain(
+      "launch_gate_unmet",
+    );
+  });
+
+  it("keeps a qualified activated Canadian purpose dark without coverage/case proof", async () => {
+    const port = createStaticQualificationPort({
+      "ca.official_receipt.individual_cash@1": "qualified",
+    });
+    const context = domainReadyContext();
+    context.gate_status = {
+      ...context.gate_status,
+      ca_issuer_coverage_case_proof: false,
+    };
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "ca.official_receipt.individual_cash@1",
+        context,
+      },
+      port,
+    );
+    expect(result.state).toBe("dark");
+    expect(result.causes.map((item) => item.code)).toContain(
+      "launch_gate_unmet",
+    );
+  });
+});
+
+describe("qualification evidence freshness and unknown outcomes", () => {
+  const NOW = new Date("2026-07-22T12:00:00.000Z");
+
+  function portWithExpiry(expiresAt: string | undefined) {
+    const port: DocumentQualificationAvailabilityPort = {
+      async checkPurposeQualification({ purpose_id }) {
+        return {
+          outcome: "qualified",
+          purpose_id,
+          checked_at: "2026-07-01T00:00:00.000Z",
+          ...(expiresAt !== undefined ? { expires_at: expiresAt } : {}),
+        };
+      },
+    };
+    return port;
+  }
+
+  it("treats qualified evidence with a past or invalid expiry as expired", async () => {
+    for (const expiresAt of ["2026-07-22T11:59:59.000Z", "not-a-date"]) {
+      const result = await resolvePurposeAvailability(
+        {
+          purpose_id: "us.contribution_acknowledgment.single@1",
+          context: domainReadyContext(),
+          now: () => NOW,
+        },
+        portWithExpiry(expiresAt),
+      );
+      expect(result.state, expiresAt).toBe("dark");
+      expect(result.causes.map((item) => item.code)).toContain(
+        "qualification_expired",
+      );
+    }
+  });
+
+  it("supports qualified evidence whose expiry is still in the future", async () => {
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+        now: () => NOW,
+      },
+      portWithExpiry("2026-07-23T00:00:00.000Z"),
+    );
+    expect(result.state).toBe("supported");
+  });
+
+  it("fails closed on an unrecognized qualification outcome instead of crashing", async () => {
+    const confusedPort: DocumentQualificationAvailabilityPort = {
+      async checkPurposeQualification({ purpose_id }) {
+        return {
+          outcome: "pending" as never,
+          purpose_id,
+          checked_at: NOW.toISOString(),
+        };
+      },
+    };
+
+    const result = await resolvePurposeAvailability(
+      {
+        purpose_id: "us.contribution_acknowledgment.single@1",
+        context: domainReadyContext(),
+        now: () => NOW,
+      },
+      confusedPort,
+    );
+    expect(result.state).toBe("dark");
+    expect(result.causes.map((item) => item.code)).toContain(
+      "qualification_not_ready",
+    );
+  });
+});
+
+describe("inherited object keys fail closed", () => {
+  it("treats prototype-inherited names as unknown purposes everywhere", async () => {
+    const port = createFailClosedQualificationPort();
+
+    for (const hostile of ["toString", "__proto__", "constructor", "valueOf"]) {
+      expect(isDocumentPurposeId(hostile)).toBe(false);
+      expect(() => getDocumentPurposeContract(hostile)).toThrow(
+        UnknownDocumentPurposeError,
+      );
+
+      const result = await resolvePurposeAvailability(
+        { purpose_id: hostile, context: domainReadyContext() },
+        port,
+      );
+      expect(result.state, hostile).toBe("absent");
+      expect(result.causes.map((item) => item.code)).toEqual([
+        "purpose_unknown",
+      ]);
+    }
   });
 });

@@ -385,3 +385,62 @@ describe("purpose lookup and the assertion seam", () => {
     );
   });
 });
+
+describe("malformed contracts fail closed with issues, never a crash", () => {
+  it("treats null fields as missing and reports broken nested shapes", () => {
+    const nullNested = cloneContract("custom.business_document@1") as Record<
+      string,
+      unknown
+    >;
+    nullNested.identity_policy = null;
+    expect(
+      validateDocumentPurposeContractShape(
+        "custom.business_document@1",
+        nullNested as never,
+      ).map((item) => item.code),
+    ).toContain("missing_field");
+
+    const gatelessLaunch = cloneContract("pledge.statement@1") as Record<
+      string,
+      unknown
+    >;
+    gatelessLaunch.launch = { state: "supported_after_gates" };
+    expect(
+      validateDocumentPurposeContractShape(
+        "pledge.statement@1",
+        gatelessLaunch as never,
+      ).map((item) => item.code),
+    ).toContain("invalid_field_shape");
+
+    const stringRegistry = cloneContract("pledge.statement@1") as Record<
+      string,
+      unknown
+    >;
+    stringRegistry.case_registry = "not-an-array";
+    expect(
+      validateDocumentPurposeContractShape(
+        "pledge.statement@1",
+        stringRegistry as never,
+      ).map((item) => item.code),
+    ).toContain("invalid_field_shape");
+  });
+
+  it("keeps the assertion seam typed for malformed input instead of crashing", () => {
+    const broken = cloneContract("us.qcd.acknowledgment@1") as Record<
+      string,
+      unknown
+    >;
+    broken.identity_policy = null;
+    broken.locale_policy = { fallback: "fail_closed" };
+
+    try {
+      assertDocumentPurposeContract(broken as never);
+      expect.unreachable("malformed contract must throw the typed error");
+    } catch (error) {
+      expect(error).toBeInstanceOf(DocumentPurposeContractError);
+      expect(
+        (error as DocumentPurposeContractError).issues.length,
+      ).toBeGreaterThan(0);
+    }
+  });
+});
