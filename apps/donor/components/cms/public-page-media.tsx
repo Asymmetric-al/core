@@ -10,18 +10,21 @@ import type {
 } from "@asym/api/cms/public";
 
 /**
- * Renders the media-bearing layout blocks of a published CMS page (Phase 5
- * (Public Website Runtime Contract), ruling A12; issue #529).
+ * Renders the media of a published CMS page's layout blocks (Phase 5 (Public
+ * Website Runtime Contract), ruling A12; issue #529).
  *
- * This is the public media delivery seam: hero background images and
- * media-feature figures render through the shared `next/image` primitives,
- * consuming only the allowlist serializer's public media fields. Every other
- * block type renders nothing here — the generalizable page template that
- * renders the full block set is the proof-slice ticket (#530), which extends
- * this seam rather than replacing it. A media value that does not resolve to
- * a renderable public image (a bare reference id, missing URL or dimensions)
+ * This is the public media delivery seam and nothing more: hero background
+ * images and media-feature figures (with their captions) render through the
+ * shared `next/image` primitives, consuming only the allowlist serializer's
+ * public media fields. Block text and every other block type render nothing
+ * here — the generalizable page template that renders the full block set is
+ * the proof-slice ticket (#530), which extends this seam rather than
+ * replacing it. A media value that does not resolve to a renderable public
+ * image (a bare reference id, missing URL or dimensions, foreign host)
  * renders nothing — fail-safe by construction, never a broken image.
  */
+
+const PAGE_MEDIA_SIZES = "(min-width: 1024px) 896px, 100vw";
 
 type MediaBearingBlock =
   | { kind: "hero-image"; key: string; block: SerializedPublicHeroBlock }
@@ -58,10 +61,7 @@ export function readMediaBearingBlocks(
 
     if (block.blockType === "media-feature") {
       const feature = block as SerializedPublicMediaFeatureBlock;
-      const hasRenderableMedia = Boolean(
-        resolveRenderablePublicCmsImage(feature.media, cmsBaseUrl),
-      );
-      if (hasRenderableMedia || feature.title || feature.body) {
+      if (resolveRenderablePublicCmsImage(feature.media, cmsBaseUrl)) {
         blocks.push({ kind: "media-figure", key, block: feature });
       }
     }
@@ -93,7 +93,7 @@ export function PublicCmsPageMedia({
               key={entry.key}
               media={entry.block.backgroundImage}
               cmsBaseUrl={cmsBaseUrl}
-              sizes="(min-width: 1024px) 896px, 100vw"
+              sizes={PAGE_MEDIA_SIZES}
               priority={index === 0}
               className="rounded-2xl"
             />
@@ -101,23 +101,14 @@ export function PublicCmsPageMedia({
         }
 
         return (
-          <section key={entry.key} className="space-y-3">
-            {entry.block.title ? (
-              <h2 className="text-2xl font-semibold text-zinc-900">
-                {entry.block.title}
-              </h2>
-            ) : null}
-            {entry.block.body ? (
-              <p className="text-zinc-600">{entry.block.body}</p>
-            ) : null}
-            <PublicCmsMediaFigure
-              media={entry.block.media}
-              cmsBaseUrl={cmsBaseUrl}
-              caption={entry.block.mediaCaption}
-              sizes="(min-width: 1024px) 896px, 100vw"
-              className="my-0"
-            />
-          </section>
+          <PublicCmsMediaFigure
+            key={entry.key}
+            media={entry.block.media}
+            cmsBaseUrl={cmsBaseUrl}
+            caption={entry.block.mediaCaption}
+            sizes={PAGE_MEDIA_SIZES}
+            className="my-0"
+          />
         );
       })}
     </div>

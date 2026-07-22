@@ -29,10 +29,6 @@ export function getPublicCmsBaseUrl() {
   return process.env.CMS_BASE_URL ?? "http://127.0.0.1:3030";
 }
 
-function getCmsBaseUrl() {
-  return getPublicCmsBaseUrl();
-}
-
 async function getForwardedHost(hostOverride?: string) {
   if (hostOverride) {
     return hostOverride;
@@ -77,7 +73,7 @@ async function fetchPublicCmsJSON(
   hostOverride: string | undefined,
   buildCachePolicy: (tenantHost: string) => PublicCmsReadCachePolicy,
 ): Promise<PublicCmsJsonReadResult> {
-  const cmsURL = getCmsBaseUrl();
+  const cmsURL = getPublicCmsBaseUrl();
   const tenantHost = await getForwardedHost(hostOverride);
 
   try {

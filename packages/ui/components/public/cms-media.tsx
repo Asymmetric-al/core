@@ -1,7 +1,7 @@
 import { resolveRenderablePublicCmsImage } from "@asym/lib/cms/public-media";
 import Image from "next/image";
 
-import { cn } from "@asym/ui/lib/utils";
+import { cn } from "../../lib/utils";
 
 /**
  * Public CMS media primitives (Phase 5 (Public Website Runtime Contract),

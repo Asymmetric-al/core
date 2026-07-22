@@ -30,4 +30,24 @@ describe("buildPublicCmsImageRemotePatterns", () => {
     );
     expect(buildPublicCmsImageRemotePatterns("not a url")).toEqual([]);
   });
+
+  it("keeps its dev default in sync with the donor CMS client default", async () => {
+    const clientModule = await import("../../../apps/donor/lib/cms/client");
+
+    const originalBaseUrl = process.env.CMS_BASE_URL;
+    delete process.env.CMS_BASE_URL;
+    try {
+      const clientDefault = new URL(clientModule.getPublicCmsBaseUrl());
+      const [pattern] = buildPublicCmsImageRemotePatterns(undefined);
+
+      expect(pattern).toBeDefined();
+      expect(`${pattern?.protocol}:`).toBe(clientDefault.protocol);
+      expect(pattern?.hostname).toBe(clientDefault.hostname);
+      expect(pattern?.port ?? "").toBe(clientDefault.port);
+    } finally {
+      if (originalBaseUrl !== undefined) {
+        process.env.CMS_BASE_URL = originalBaseUrl;
+      }
+    }
+  });
 });

@@ -85,14 +85,13 @@ describe("readMediaBearingBlocks", () => {
     expect(readMediaBearingBlocks({}, CMS_BASE_URL)).toEqual([]);
   });
 
-  it("keeps a media-feature with text even when its media is a bare reference id", () => {
+  it("excludes a media-feature whose media is a bare reference id (media-only seam — block text is #530's template)", () => {
     const blocks = readMediaBearingBlocks(
       [{ ...MEDIA_FEATURE_BLOCK, media: 44 }],
       CMS_BASE_URL,
     );
 
-    expect(blocks).toHaveLength(1);
-    expect(blocks[0]?.kind).toBe("media-figure");
+    expect(blocks).toEqual([]);
   });
 });
 
@@ -111,8 +110,10 @@ describe("PublicCmsPageMedia", () => {
     expect(markup).toContain('alt="Jane in field"');
     expect(markup).toContain('width="1200"');
     expect(markup).toContain('height="800"');
-    expect(markup).toContain("From the field");
-    expect(markup).toContain("A season of growth.");
+    // Media-only seam: block text (title/body) is #530's template, not media
+    // delivery — only the image and its caption render here.
+    expect(markup).not.toContain("From the field");
+    expect(markup).not.toContain("A season of growth.");
     // The block-level caption overrides the media document's caption.
     expect(markup).toContain("Block caption wins");
     expect(markup).not.toContain("Jane serving in June");

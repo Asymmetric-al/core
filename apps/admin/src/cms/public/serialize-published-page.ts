@@ -1,5 +1,6 @@
 import { resolvePublicCmsCtaHref } from "@asym/lib/cms/public-page";
 
+import type { SerializedPublicMedia } from "@asym/api/cms/public";
 import type { PublicCmsPage } from "@asym/lib/cms/public-page";
 
 /**
@@ -201,7 +202,7 @@ function serializePublicMedia(value: unknown) {
   const thumbnail = readMediaSizeUrl(sizes?.thumbnail);
   const card = readMediaSizeUrl(sizes?.card);
 
-  const serialized: Record<string, unknown> = {
+  const serialized: SerializedPublicMedia = {
     id:
       typeof media.id === "string" || typeof media.id === "number"
         ? String(media.id)

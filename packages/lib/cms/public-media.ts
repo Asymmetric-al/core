@@ -10,28 +10,27 @@
  *   relationship id (an unpopulated or non-public-eligible reference), a
  *   missing URL, or missing intrinsic dimensions — resolves to `null` and is
  *   simply not rendered. Silence, never a broken or leaking image.
- * - Serialized URLs are admin-relative (`/api/media/file/...`); resolution
- *   joins them to the CMS base origin and admits only http(s) results, so a
- *   hostile URL smuggled into a media field cannot reach `next/image`.
+ * - Serialized URLs resolve only against the CMS media origin: admin-relative
+ *   paths (`/api/media/file/...`) join the base, and absolute URLs are
+ *   admitted only when they already live on that origin. A foreign-host or
+ *   non-http(s) URL smuggled into a media field resolves to `null` instead of
+ *   reaching `next/image` (whose host allowlist would turn it into a
+ *   render-time error).
  */
 
 const SAFE_IMAGE_PROTOCOLS = new Set(["http:", "https:"]);
 
 /**
- * The structural media shape the resolver accepts — matches
- * `SerializedPublicMedia` (`@asym/api/cms/public`) without importing it, so
- * `@asym/lib` stays dependency-light.
+ * The public media fields delivery resolution actually consumes — a
+ * structural subset of `SerializedPublicMedia` (`@asym/api/cms/public`),
+ * declared here because the workspace dependency direction points the other
+ * way (`@asym/api` depends on `@asym/lib`).
  */
 export type PublicCmsMediaLike = {
-  id?: string | null;
   alt?: string | null;
   url?: string | null;
-  thumbnailURL?: string | null;
-  cardURL?: string | null;
   width?: number | null;
   height?: number | null;
-  mimeType?: string | null;
-  filename?: string | null;
   caption?: string | null;
 };
 
@@ -45,10 +44,21 @@ export type RenderablePublicCmsImage = {
 };
 
 /**
- * Resolves a serialized public media URL against the CMS base origin.
- * Absolute http(s) URLs pass through; site-relative paths join to the base;
- * everything else (missing, protocol-relative, non-http(s) schemes,
- * unparsable base) resolves to `null`.
+ * Public-eligibility seam (Phase 3 [#496] anonymity/restricted-content —
+ * reserved). Today every fully serialized public media object is eligible:
+ * the serializer only emits public fields and non-public references arrive as
+ * bare ids, which never resolve. When #496 lands, its predicates plug in
+ * here — the resolver already consumes this check on every resolution.
+ */
+export function isPublicEligibleCmsMedia(media: PublicCmsMediaLike): boolean {
+  return typeof media === "object" && media !== null;
+}
+
+/**
+ * Resolves a serialized public media URL against the CMS media origin.
+ * Site-relative paths join the base; absolute URLs pass only when already on
+ * that origin; everything else (missing value, protocol-relative, non-http(s)
+ * schemes, foreign hosts, unparsable base) resolves to `null`.
  */
 export function resolvePublicCmsMediaUrl(
   url: unknown,
@@ -63,16 +73,20 @@ export function resolvePublicCmsMediaUrl(
     return null;
   }
 
-  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
-    return parseSafeHttpUrl(trimmed);
-  }
-
-  if (!trimmed.startsWith("/")) {
+  const base = parseSafeHttpUrl(cmsBaseUrl ?? null);
+  if (!base) {
     return null;
   }
 
-  const base = parseSafeHttpUrl(cmsBaseUrl ?? null);
-  if (!base) {
+  if (/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(trimmed)) {
+    const absolute = parseSafeHttpUrl(trimmed);
+    if (!absolute) {
+      return null;
+    }
+    return new URL(absolute).origin === new URL(base).origin ? absolute : null;
+  }
+
+  if (!trimmed.startsWith("/")) {
     return null;
   }
 
@@ -88,8 +102,8 @@ export function resolvePublicCmsMediaUrl(
  *
  * - a bare id (string/number) is an unpopulated or non-public-eligible
  *   reference — `null`, never a fetch;
- * - an object without a resolvable URL or positive intrinsic dimensions is
- *   `null` (`next/image` needs both);
+ * - an object that is not public-eligible, has no resolvable URL, or lacks
+ *   positive intrinsic dimensions is `null` (`next/image` needs all three);
  * - missing alt text renders as decorative (`alt=""`), never a leak.
  */
 export function resolveRenderablePublicCmsImage(
@@ -101,6 +115,10 @@ export function resolveRenderablePublicCmsImage(
   }
 
   const media = value as PublicCmsMediaLike;
+  if (!isPublicEligibleCmsMedia(media)) {
+    return null;
+  }
+
   const src = resolvePublicCmsMediaUrl(media.url, cmsBaseUrl);
   if (!src) {
     return null;
