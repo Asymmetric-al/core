@@ -1,5 +1,6 @@
 import {
   DOCUMENT_CUTOVER_SERIALIZER_VERSION,
+  compareOrdinal,
   digestCanonicalValue,
 } from "./canonical";
 import {
@@ -45,6 +46,12 @@ const RELIANCE_REASON_BY_KEY: Record<
 export interface DocumentCutoverProcedureInput {
   reference: string;
   pinnedVersion: string;
+  /**
+   * Trusted content digest for the pinned procedure version. When provided,
+   * on-disk content that no longer matches it stops the line — a version
+   * label alone cannot vouch for altered procedure text.
+   */
+  expectedDigest?: string;
 }
 
 export interface AssessDocumentCutoverEnvironmentInput {
@@ -165,6 +172,7 @@ async function resolveProcedureReference(
 function procedureReasons(
   name: string,
   procedure: DocumentCutoverProcedureReference,
+  expectedDigest: string | undefined,
 ): DocumentCutoverBlockingReason[] {
   const reasons: DocumentCutoverBlockingReason[] = [];
 
@@ -180,6 +188,16 @@ function procedureReasons(
       explanation: `The ${name} procedure at ${procedure.reference} has no pinned version.`,
     });
   }
+  if (
+    procedure.present &&
+    expectedDigest !== undefined &&
+    procedure.digest !== expectedDigest
+  ) {
+    reasons.push({
+      code: "procedure_digest_mismatch",
+      explanation: `The ${name} procedure at ${procedure.reference} does not match its trusted pinned digest; the on-disk document was altered after pinning.`,
+    });
+  }
 
   return reasons;
 }
@@ -187,13 +205,16 @@ function procedureReasons(
 function environmentReasons(
   environment: DocumentCutoverEnvironmentIdentity | null,
   expected: AssessDocumentCutoverEnvironmentInput["expectedEnvironment"],
+  resolutionDetail?: string,
 ): DocumentCutoverBlockingReason[] {
   if (environment === null) {
+    const detail = resolutionDetail
+      ? ` Resolver detail: ${resolutionDetail}`
+      : "";
     return [
       {
         code: "environment_resolution_failed",
-        explanation:
-          "The target environment could not be resolved on the server; nothing can be assessed.",
+        explanation: `The target environment could not be resolved on the server; nothing can be assessed.${detail}`,
       },
     ];
   }
@@ -299,13 +320,21 @@ export async function assessDocumentCutoverEnvironment(
   );
 
   let environment: DocumentCutoverEnvironmentIdentity | null = null;
+  let environmentResolutionDetail: string | undefined;
   try {
     environment = await input.resolveEnvironment();
-  } catch {
+  } catch (error) {
     environment = null;
+    environmentResolutionDetail = redactDiagnosticText(
+      error instanceof Error ? error.message : "Unknown resolver failure",
+    );
   }
   blockingReasons.push(
-    ...environmentReasons(environment, input.expectedEnvironment),
+    ...environmentReasons(
+      environment,
+      input.expectedEnvironment,
+      environmentResolutionDetail,
+    ),
   );
 
   const planSurfaceKeys = new Set(
@@ -314,24 +343,27 @@ export async function assessDocumentCutoverEnvironment(
     ),
   );
 
-  const evidence: DocumentCutoverSurfaceEvidence[] = [];
-  for (const detector of input.detectors) {
-    for (const surfaceId of detector.surfaceIds) {
-      if (!planSurfaceKeys.has(`${detector.surfaceKind}:${surfaceId}`)) {
-        continue;
-      }
-      const inspection = await inspectWithTimeout(
-        detector,
-        surfaceId,
-        timeoutMs,
-      );
-      evidence.push(
-        await buildSurfaceEvidence(detector, surfaceId, inspection),
-      );
-    }
-  }
+  // Surfaces are independent read-only inspections, so they run concurrently;
+  // the deterministic ordinal sort below fixes the recorded order.
+  const evidence: DocumentCutoverSurfaceEvidence[] = await Promise.all(
+    input.detectors.flatMap((detector) =>
+      detector.surfaceIds
+        .filter((surfaceId) =>
+          planSurfaceKeys.has(`${detector.surfaceKind}:${surfaceId}`),
+        )
+        .map(async (surfaceId) => {
+          const inspection = await inspectWithTimeout(
+            detector,
+            surfaceId,
+            timeoutMs,
+          );
+          return buildSurfaceEvidence(detector, surfaceId, inspection);
+        }),
+    ),
+  );
   evidence.sort((left, right) =>
-    `${left.surfaceKind}:${left.surfaceId}`.localeCompare(
+    compareOrdinal(
+      `${left.surfaceKind}:${left.surfaceId}`,
       `${right.surfaceKind}:${right.surfaceId}`,
     ),
   );
@@ -351,10 +383,15 @@ export async function assessDocumentCutoverEnvironment(
     ),
   };
   blockingReasons.push(
-    ...procedureReasons("fresh reset/rebuild", procedures.resetRebuild),
+    ...procedureReasons(
+      "fresh reset/rebuild",
+      procedures.resetRebuild,
+      input.procedures.resetRebuild.expectedDigest,
+    ),
     ...procedureReasons(
       "rollback-before-first-canonical-write",
       procedures.rollbackBeforeFirstCanonicalWrite,
+      input.procedures.rollbackBeforeFirstCanonicalWrite.expectedDigest,
     ),
   );
 

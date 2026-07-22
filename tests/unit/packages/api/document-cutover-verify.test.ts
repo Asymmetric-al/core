@@ -165,3 +165,77 @@ describe("verifyDocumentCutoverEnvironmentProof", () => {
     );
   });
 });
+
+describe("clean-proof coverage and freshness verification", () => {
+  it("rejects a digest-consistent clean proof whose evidence was emptied", async () => {
+    const proof = structuredClone(await cleanProof());
+    (proof as { evidence: unknown[] }).evidence = [];
+    const { proofDigest: _old, ...body } = proof;
+    proof.proofDigest = await digestCanonicalValue(body);
+
+    const result = await verifyDocumentCutoverEnvironmentProof(proof);
+    expect(result.valid).toBe(false);
+    expect(result.failures.map((failure) => failure.code)).toContain(
+      "plan_coverage_mismatch",
+    );
+  });
+
+  it("rejects an expired clean proof, a future-dated proof, and an invalid timestamp", async () => {
+    const proof = await cleanProof();
+
+    const expired = await verifyDocumentCutoverEnvironmentProof(proof, {
+      now: () => new Date(Date.parse(proof.recordedAt) + 25 * 60 * 60 * 1000),
+    });
+    expect(expired.valid).toBe(false);
+    expect(expired.failures.map((failure) => failure.code)).toContain(
+      "proof_stale",
+    );
+
+    const futureDated = await verifyDocumentCutoverEnvironmentProof(proof, {
+      now: () => new Date(Date.parse(proof.recordedAt) - 60 * 1000),
+    });
+    expect(futureDated.valid).toBe(false);
+    expect(futureDated.failures.map((failure) => failure.code)).toContain(
+      "proof_stale",
+    );
+
+    const invalid = structuredClone(proof);
+    invalid.recordedAt = "garbage";
+    const { proofDigest: _old, ...body } = invalid;
+    invalid.proofDigest = await digestCanonicalValue(body);
+    const invalidResult = await verifyDocumentCutoverEnvironmentProof(invalid);
+    expect(invalidResult.valid).toBe(false);
+    expect(invalidResult.failures.map((failure) => failure.code)).toContain(
+      "proof_stale",
+    );
+  });
+
+  it("keeps a fresh clean proof valid within the bounded window", async () => {
+    const proof = await cleanProof();
+    const result = await verifyDocumentCutoverEnvironmentProof(proof, {
+      now: () => new Date(Date.parse(proof.recordedAt) + 60 * 1000),
+    });
+    expect(result).toEqual({ valid: true, failures: [] });
+  });
+});
+
+describe("canonicalization hardening", () => {
+  it("canonicalizes Date values instead of silently losing them", async () => {
+    const withDate = await digestCanonicalValue({
+      at: new Date("2026-07-22T00:00:00.000Z"),
+    });
+    const withString = await digestCanonicalValue({
+      at: "2026-07-22T00:00:00.000Z",
+    });
+    expect(withDate).toBe(withString);
+  });
+
+  it("refuses Map and Set values outright", async () => {
+    await expect(
+      digestCanonicalValue({ bad: new Map([["a", 1]]) }),
+    ).rejects.toThrow(TypeError);
+    await expect(digestCanonicalValue({ bad: new Set([1]) })).rejects.toThrow(
+      TypeError,
+    );
+  });
+});

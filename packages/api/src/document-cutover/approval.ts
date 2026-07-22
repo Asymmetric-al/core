@@ -1,5 +1,9 @@
 import { digestCanonicalValue } from "./canonical";
-import { digestDestructiveCutoverPlan } from "./plan";
+import {
+  checkPlanEvidenceCoverage,
+  digestDestructiveCutoverPlan,
+  validateDestructiveCutoverPlan,
+} from "./plan";
 import { DOCUMENT_CUTOVER_ASSESSMENT_MAX_AGE_MS } from "./types";
 
 import type {
@@ -8,11 +12,11 @@ import type {
   DocumentCutoverEnvironmentProof,
   DocumentCutoverOwnerIdentity,
   DocumentCutoverProofStore,
-  DocumentCutoverSurfaceEvidence,
 } from "./types";
 
 export type DocumentCutoverApprovalErrorCode =
   | "approval_invalid"
+  | "approver_unauthorized"
   | "assessment_stale"
   | "assessment_tampered"
   | "owner_missing"
@@ -43,6 +47,15 @@ export interface RecordDocumentCutoverApprovalInput {
   };
   attestation: DocumentCutoverAttestation;
   store: DocumentCutoverProofStore;
+  /**
+   * Optional server-side identity allowlists. When provided, an owner or
+   * approver outside the list is rejected before any proof is recorded, so a
+   * caller cannot self-declare authorization by typing a name.
+   */
+  authorization?: {
+    allowedOwnerIds?: readonly string[];
+    allowedApproverIds?: readonly string[];
+  };
   now?: () => Date;
   generateId?: () => string;
   maxAssessmentAgeMs?: number;
@@ -51,6 +64,14 @@ export interface RecordDocumentCutoverApprovalInput {
 async function verifyAssessmentIntegrity(
   assessment: DocumentCutoverAssessment,
 ): Promise<void> {
+  const planIssues = validateDestructiveCutoverPlan(assessment.plan);
+  if (planIssues.length > 0) {
+    throw new DocumentCutoverApprovalError(
+      "assessment_tampered",
+      "The assessment carries a structurally invalid destructive plan.",
+    );
+  }
+
   const expectedPlanDigest = await digestDestructiveCutoverPlan(
     assessment.plan,
   );
@@ -73,6 +94,20 @@ async function verifyAssessmentIntegrity(
   }
 }
 
+function unsafe(message: string): DocumentCutoverApprovalError {
+  return new DocumentCutoverApprovalError(
+    "unsafe_assessment",
+    `Approval rejected: ${message}`,
+  );
+}
+
+/**
+ * Independently re-derive the clean verdict from the assessment's primitive
+ * evidence instead of trusting caller-supplied summary fields. A caller who
+ * clears `blockingReasons` or flips `proposedOutcome` on an unsafe assessment
+ * still cannot mint a clean proof: the environment classification, procedure
+ * pins, plan-surface coverage, and every reliance count are re-checked here.
+ */
 function requireCleanAssessment(
   assessment: DocumentCutoverAssessment,
   ageMs: number,
@@ -83,26 +118,65 @@ function requireCleanAssessment(
     assessment.status !== "complete" ||
     assessment.blockingReasons.length > 0
   ) {
-    throw new DocumentCutoverApprovalError(
-      "unsafe_assessment",
-      "Approval rejected: the assessment is stopped or incomplete, and approval cannot override evidence.",
+    throw unsafe(
+      "the assessment is stopped or incomplete, and approval cannot override evidence.",
+    );
+  }
+
+  if (assessment.environment === null) {
+    throw unsafe("the target environment was never resolved.");
+  }
+  if (assessment.environment.productionClassification !== "non_production") {
+    throw unsafe(
+      `the target is classified ${assessment.environment.productionClassification}; only an authoritative non-production target can be approved.`,
+    );
+  }
+
+  for (const procedure of [
+    assessment.procedures.resetRebuild,
+    assessment.procedures.rollbackBeforeFirstCanonicalWrite,
+  ]) {
+    if (
+      !procedure.present ||
+      !procedure.pinnedVersion.trim() ||
+      !procedure.digest.trim()
+    ) {
+      throw unsafe(
+        `the procedure at ${procedure.reference} is missing, unpinned, or undigested.`,
+      );
+    }
+  }
+
+  const coverageGaps = checkPlanEvidenceCoverage(
+    assessment.plan,
+    assessment.evidence,
+  );
+  if (coverageGaps.length > 0) {
+    throw unsafe(
+      `plan-surface evidence coverage is incomplete (${coverageGaps[0]}).`,
     );
   }
 
   const unsafeEvidence = assessment.evidence.find(
-    (item: DocumentCutoverSurfaceEvidence) =>
+    (item) =>
       item.completeness !== "complete" ||
+      item.failure !== undefined ||
       Object.values(item.relianceCounts).some(
         (count) => typeof count === "number" && count > 0,
       ),
   );
   if (unsafeEvidence) {
-    throw new DocumentCutoverApprovalError(
-      "unsafe_assessment",
-      `Approval rejected: ${unsafeEvidence.surfaceKind}:${unsafeEvidence.surfaceId} carries reliance or indeterminate evidence.`,
+    throw unsafe(
+      `${unsafeEvidence.surfaceKind}:${unsafeEvidence.surfaceId} carries reliance or indeterminate evidence.`,
     );
   }
 
+  if (!Number.isFinite(ageMs) || ageMs < 0) {
+    throw new DocumentCutoverApprovalError(
+      "assessment_stale",
+      "Approval rejected: the assessment completion time is invalid or in the future.",
+    );
+  }
   if (ageMs > maxAgeMs) {
     throw new DocumentCutoverApprovalError(
       "assessment_stale",
@@ -144,11 +218,29 @@ export async function recordDocumentCutoverApproval(
     );
   }
 
+  const allowedOwners = input.authorization?.allowedOwnerIds;
+  if (allowedOwners && !allowedOwners.includes(input.owner.ownerId)) {
+    throw new DocumentCutoverApprovalError(
+      "approver_unauthorized",
+      "The named owner is not in the configured owner allowlist.",
+    );
+  }
+  const allowedApprovers = input.authorization?.allowedApproverIds;
+  if (
+    allowedApprovers &&
+    !allowedApprovers.includes(input.approval.approverId)
+  ) {
+    throw new DocumentCutoverApprovalError(
+      "approver_unauthorized",
+      "The named approver is not in the configured approver allowlist.",
+    );
+  }
+
   await verifyAssessmentIntegrity(input.assessment);
 
   if (input.approval.decision === "go") {
-    const ageMs =
-      recordedAt.getTime() - Date.parse(input.assessment.completedAt);
+    const completedAtMs = Date.parse(input.assessment.completedAt);
+    const ageMs = recordedAt.getTime() - completedAtMs;
     requireCleanAssessment(input.assessment, ageMs, maxAgeMs);
   }
 

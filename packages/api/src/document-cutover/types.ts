@@ -65,6 +65,7 @@ export const DOCUMENT_CUTOVER_BLOCKING_CODES = [
   "detector_without_plan_surface",
   "procedure_missing",
   "procedure_unpinned",
+  "procedure_digest_mismatch",
   "owner_missing",
   "approval_invalid",
   "assessment_stale",
@@ -256,8 +257,10 @@ export interface DocumentCutoverProofVerificationFailure {
   code:
     | "evidence_digest_mismatch"
     | "outcome_inconsistent"
+    | "plan_coverage_mismatch"
     | "plan_digest_mismatch"
     | "proof_digest_mismatch"
+    | "proof_stale"
     | "schema_version_unsupported";
   detail: string;
 }

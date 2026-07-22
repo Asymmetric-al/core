@@ -245,3 +245,128 @@ describe("recordDocumentCutoverApproval", () => {
     ).rejects.toBeInstanceOf(DocumentCutoverApprovalError);
   });
 });
+
+describe("approval re-derives safety from primitive evidence", () => {
+  it("rejects a forged assessment that claims clean over a production classification", async () => {
+    const assessment = await cleanAssessment();
+    const forged = structuredClone(assessment);
+    if (forged.environment) {
+      forged.environment.productionClassification = "production";
+    }
+    // Summary fields still claim clean; evidence digests remain valid.
+    expect(forged.proposedOutcome).toBe("clean_preproduction_proof");
+    expect(forged.blockingReasons).toEqual([]);
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: forged,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        store: new InMemoryDocumentCutoverProofStore(),
+      }),
+    ).rejects.toMatchObject({ code: "unsafe_assessment" });
+  });
+
+  it("rejects a forged assessment whose evidence no longer covers every plan surface", async () => {
+    const assessment = await cleanAssessment();
+    const forged = structuredClone(assessment);
+    forged.evidence = forged.evidence.slice(1);
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: forged,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        store: new InMemoryDocumentCutoverProofStore(),
+      }),
+    ).rejects.toMatchObject({ code: "unsafe_assessment" });
+  });
+
+  it("rejects a forged assessment with a missing or unpinned procedure", async () => {
+    const assessment = await cleanAssessment();
+    const forged = structuredClone(assessment);
+    forged.procedures.resetRebuild.present = false;
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: forged,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        store: new InMemoryDocumentCutoverProofStore(),
+      }),
+    ).rejects.toMatchObject({ code: "unsafe_assessment" });
+  });
+
+  it("fails closed on malformed or future assessment timestamps", async () => {
+    const assessment = await cleanAssessment();
+
+    const malformed = structuredClone(assessment);
+    malformed.completedAt = "not-a-timestamp";
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: malformed,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        store: new InMemoryDocumentCutoverProofStore(),
+      }),
+    ).rejects.toMatchObject({ code: "assessment_stale" });
+
+    const future = structuredClone(assessment);
+    future.completedAt = new Date(Date.now() + 60 * 60 * 1000).toISOString();
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: future,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        store: new InMemoryDocumentCutoverProofStore(),
+      }),
+    ).rejects.toMatchObject({ code: "assessment_stale" });
+  });
+
+  it("enforces configured owner and approver allowlists", async () => {
+    const store = new InMemoryDocumentCutoverProofStore();
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: await cleanAssessment(),
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        authorization: { allowedOwnerIds: ["someone-else"] },
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "approver_unauthorized" });
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment: await cleanAssessment(),
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        authorization: {
+          allowedOwnerIds: [OWNER.ownerId],
+          allowedApproverIds: ["someone-else"],
+        },
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "approver_unauthorized" });
+
+    const proof = await recordDocumentCutoverApproval({
+      assessment: await cleanAssessment(),
+      owner: OWNER,
+      approval: goApproval(),
+      attestation: ATTESTATION,
+      authorization: {
+        allowedOwnerIds: [OWNER.ownerId],
+        allowedApproverIds: ["approver-blake"],
+      },
+      store,
+    });
+    expect(proof.outcome).toBe("clean_preproduction_proof");
+  });
+});

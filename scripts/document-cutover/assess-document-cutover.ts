@@ -23,9 +23,25 @@
  *   --statement <text>        Approval statement (required with --decision).
  *   --expect-project <ref>    Operator-declared database/project identity.
  *   --expect-env <label>      Operator-declared environment label.
+ *   --allow-non-production-project <ref>
+ *                             Explicitly declare a hosted Supabase project ref
+ *                             as non-production (repeatable). Hosted targets
+ *                             classify as `unknown` (stop-the-line) unless
+ *                             declared here or in the env allowlist; only
+ *                             loopback databases classify as non-production on
+ *                             their own.
  *   --out <dir>               Proof output directory
  *                             (default var/document-cutover-proofs).
- *   --verify <proof.json>     Verify a stored proof file and exit.
+ *   --verify <proof.json>     Verify a stored proof file and exit (clean
+ *                             proofs must also be within the freshness bound).
+ *
+ * Environment:
+ *   DOCUMENT_CUTOVER_NON_PRODUCTION_PROJECTS  Comma-separated hosted project
+ *                             refs that may classify as non-production.
+ *   DOCUMENT_CUTOVER_OWNER_ALLOWLIST          Comma-separated owner ids
+ *                             permitted to be recorded on proofs (when set).
+ *   DOCUMENT_CUTOVER_APPROVER_ALLOWLIST       Comma-separated approver ids
+ *                             permitted to be recorded on proofs (when set).
  */
 
 import { execFileSync } from "node:child_process";
@@ -85,10 +101,14 @@ type CliArgs = {
   out: string;
   verify?: string;
   help?: boolean;
+  allowNonProductionProjects: string[];
 };
 
 function parseArgs(argv: string[]): CliArgs {
-  const args: CliArgs = { out: "var/document-cutover-proofs" };
+  const args: CliArgs = {
+    out: "var/document-cutover-proofs",
+    allowNonProductionProjects: [],
+  };
 
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
@@ -106,7 +126,10 @@ function parseArgs(argv: string[]): CliArgs {
     else if (arg === "--statement") args.statement = next();
     else if (arg === "--expect-project") args.expectProject = next();
     else if (arg === "--expect-env") args.expectEnv = next();
-    else if (arg === "--out") args.out = next() ?? args.out;
+    else if (arg === "--allow-non-production-project") {
+      const ref = next();
+      if (ref) args.allowNonProductionProjects.push(ref);
+    } else if (arg === "--out") args.out = next() ?? args.out;
     else if (arg === "--verify") args.verify = next();
     else if (arg === "--help" || arg === "-h") args.help = true;
   }
@@ -136,43 +159,90 @@ function latestMigrationVersion(): string {
   }
 }
 
-function supabaseIdentity(url: string | undefined): string {
-  if (!url) return "unknown";
+function supabaseIdentity(url: string | undefined): {
+  kind: "hosted" | "local" | "unknown";
+  id: string;
+} {
+  if (!url) return { kind: "unknown", id: "unknown" };
   try {
     const parsed = new URL(url);
-    const [ref, ...rest] = parsed.hostname.split(".");
-    if (rest.join(".") === "supabase.co") return ref;
-    return `local:${parsed.host}`;
+    const host = parsed.hostname;
+    if (
+      host === "127.0.0.1" ||
+      host === "localhost" ||
+      host === "::1" ||
+      host === "[::1]"
+    ) {
+      return { kind: "local", id: `local:${parsed.host}` };
+    }
+    const [ref, ...rest] = host.split(".");
+    if (rest.join(".") === "supabase.co" && ref) {
+      return { kind: "hosted", id: ref };
+    }
+    return { kind: "hosted", id: host };
   } catch {
-    return "unknown";
+    return { kind: "unknown", id: "unknown" };
   }
 }
 
-async function resolveEnvironment(): Promise<DocumentCutoverEnvironmentIdentity> {
+function nonProductionProjectAllowlist(
+  cliAllowed: readonly string[],
+): string[] {
+  const fromEnv = (process.env.DOCUMENT_CUTOVER_NON_PRODUCTION_PROJECTS ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+  return [...new Set([...fromEnv, ...cliAllowed])];
+}
+
+/** Comma-separated identity allowlist; undefined when the env var is unset. */
+function parseIdentityAllowlist(raw: string | undefined): string[] | undefined {
+  if (raw === undefined) return undefined;
+  return raw
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+}
+
+/**
+ * Classification never trusts the operator's runtime shell for a hosted
+ * target: a remote Supabase project is `unknown` (stop-the-line) unless its
+ * exact ref is explicitly declared non-production via the allowlist. Only
+ * loopback databases classify as non-production on their own.
+ */
+async function resolveEnvironment(
+  allowedNonProductionProjects: readonly string[],
+): Promise<DocumentCutoverEnvironmentIdentity> {
   const env = {
     VERCEL_ENV: process.env.VERCEL_ENV,
     VERCEL_TARGET_ENV: process.env.VERCEL_TARGET_ENV,
   };
   const supabaseUrl =
     process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const databaseProjectId = supabaseIdentity(supabaseUrl);
+  const database = supabaseIdentity(supabaseUrl);
 
-  const productionClassification = isProductionDeployment(env)
-    ? "production"
-    : isProtectedNonProductionDeployment(env)
-      ? "protected_non_production"
-      : databaseProjectId === "unknown"
-        ? "unknown"
-        : "non_production";
+  let productionClassification: DocumentCutoverEnvironmentIdentity["productionClassification"];
+  if (isProductionDeployment(env)) {
+    productionClassification = "production";
+  } else if (isProtectedNonProductionDeployment(env)) {
+    productionClassification = "protected_non_production";
+  } else if (database.kind === "local") {
+    productionClassification = "non_production";
+  } else if (
+    database.kind === "hosted" &&
+    allowedNonProductionProjects.includes(database.id)
+  ) {
+    productionClassification = "non_production";
+  } else {
+    productionClassification = "unknown";
+  }
 
   return {
     environmentLabel: resolveDeploymentEnvironment(env),
     productionClassification,
-    databaseProjectId,
+    databaseProjectId: database.id,
     storageIdentity:
-      databaseProjectId === "unknown"
-        ? "unknown"
-        : `${databaseProjectId}/storage/v1`,
+      database.id === "unknown" ? "unknown" : `${database.id}/storage/v1`,
     schemaVersion: latestMigrationVersion(),
     codeVersion: gitCommit(),
     deploymentVersion: process.env.VERCEL_DEPLOYMENT_ID,
@@ -284,37 +354,103 @@ function tableDetector(client: SupabaseReadClient): DocumentCutoverDetector {
   };
 }
 
+const PROTOTYPE_BUCKET_NAME_PATTERN = /pdf|template|artifact|receipt/i;
+
 function storageDetector(client: SupabaseReadClient): DocumentCutoverDetector {
   return {
     detectorId: "supabase-artifact-storage-census",
-    detectorVersion: "1",
+    detectorVersion: "2",
     surfaceKind: "storage_location",
     surfaceIds: ["pdf_template_artifacts.storage_objects"],
     async inspectSurface() {
       const detectorQuery =
-        "select count(*) from public.pdf_template_artifacts where storage_path is not null or storage_bucket is not null";
+        "count pdf_template_artifacts rows with storage references; list objects in every referenced or prototype-named storage bucket";
       if (!client) return unavailable(detectorQuery);
 
-      const objects = await countRows(
+      const referencedRows = await countRows(
         client,
         "pdf_template_artifacts",
         (query) => query.not("storage_path", "is", null),
       );
-      if ("error" in objects) {
+      if ("error" in referencedRows) {
         return {
           completeness: "indeterminate",
           detectorQuery,
           failure: {
-            code: classifyPostgrestError(objects.error),
-            message: objects.error,
+            code: classifyPostgrestError(referencedRows.error),
+            message: referencedRows.error,
           },
         };
+      }
+
+      const { data: bucketRows, error: bucketRowsError } = await client
+        .from("pdf_template_artifacts")
+        .select("storage_bucket")
+        .not("storage_bucket", "is", null)
+        .limit(1000);
+      if (bucketRowsError) {
+        return {
+          completeness: "indeterminate",
+          detectorQuery,
+          failure: {
+            code: classifyPostgrestError(bucketRowsError.message),
+            message: bucketRowsError.message,
+          },
+        };
+      }
+
+      const bucketsToInspect = new Set<string>(
+        (bucketRows ?? [])
+          .map((row) =>
+            typeof row.storage_bucket === "string" ? row.storage_bucket : "",
+          )
+          .filter(Boolean),
+      );
+
+      // Also inspect any bucket whose name looks prototype-owned, so objects
+      // orphaned from their rows still stop the line.
+      const { data: allBuckets, error: listBucketsError } =
+        await client.storage.listBuckets();
+      if (listBucketsError) {
+        return {
+          completeness: "indeterminate",
+          detectorQuery,
+          failure: {
+            code: "permission_denied",
+            message: listBucketsError.message,
+          },
+        };
+      }
+      for (const bucket of allBuckets ?? []) {
+        if (PROTOTYPE_BUCKET_NAME_PATTERN.test(bucket.name)) {
+          bucketsToInspect.add(bucket.name);
+        }
+      }
+
+      let listedObjects = 0;
+      for (const bucket of bucketsToInspect) {
+        const { data: entries, error: listError } = await client.storage
+          .from(bucket)
+          .list("", { limit: 1000 });
+        if (listError) {
+          return {
+            completeness: "indeterminate",
+            detectorQuery,
+            failure: { code: "permission_denied", message: listError.message },
+          };
+        }
+        listedObjects += entries?.length ?? 0;
       }
 
       return {
         completeness: "complete",
         detectorQuery,
-        relianceCounts: { objects: objects.count },
+        relianceCounts: { objects: referencedRows.count + listedObjects },
+        inventoryFindings: {
+          referencedObjectRows: referencedRows.count,
+          listedBucketEntries: listedObjects,
+          bucketsInspected: [...bucketsToInspect].sort().join(",") || "(none)",
+        },
       };
     },
   };
@@ -450,19 +586,34 @@ class FileDocumentCutoverProofStore implements DocumentCutoverProofStore {
   async getById(
     proofId: string,
   ): Promise<DocumentCutoverEnvironmentProof | null> {
+    // Only a genuinely absent file is "not found"; an unreadable or corrupt
+    // proof must surface loudly in a tamper-evidence store, never as null.
     try {
       return JSON.parse(readFileSync(this.proofPath(proofId), "utf8"));
-    } catch {
-      return null;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT") return null;
+      throw new Error(
+        `Proof ${proofId} exists but cannot be read or parsed; treat the store as tampered.`,
+        { cause: error },
+      );
     }
   }
 
   async list(): Promise<DocumentCutoverEnvironmentProof[]> {
     return readdirSync(this.directory)
       .filter((name) => name.endsWith(".json"))
-      .map((name) =>
-        JSON.parse(readFileSync(path.join(this.directory, name), "utf8")),
-      );
+      .map((name) => {
+        try {
+          return JSON.parse(
+            readFileSync(path.join(this.directory, name), "utf8"),
+          ) as DocumentCutoverEnvironmentProof;
+        } catch (error) {
+          throw new Error(
+            `Proof file ${name} cannot be read or parsed; treat the store as tampered.`,
+            { cause: error },
+          );
+        }
+      });
   }
 }
 
@@ -522,9 +673,17 @@ function printAssessment(assessment: DocumentCutoverAssessment): void {
 }
 
 async function verifyStoredProof(proofPath: string): Promise<number> {
-  const proof = JSON.parse(
-    readFileSync(path.resolve(repoRoot, proofPath), "utf8"),
-  ) as DocumentCutoverEnvironmentProof;
+  let proof: DocumentCutoverEnvironmentProof;
+  try {
+    proof = JSON.parse(
+      readFileSync(path.resolve(repoRoot, proofPath), "utf8"),
+    ) as DocumentCutoverEnvironmentProof;
+  } catch (error) {
+    console.error(
+      `Unable to read or parse the proof at ${proofPath}: ${error instanceof Error ? error.message : error}`,
+    );
+    return 1;
+  }
   const result = await verifyDocumentCutoverEnvironmentProof(proof);
 
   if (result.valid && proof.outcome === "clean_preproduction_proof") {
@@ -558,9 +717,12 @@ async function main(): Promise<number> {
   }
 
   const client = createReadClient();
+  const allowedNonProductionProjects = nonProductionProjectAllowlist(
+    args.allowNonProductionProjects,
+  );
   const assessment = await assessDocumentCutoverEnvironment({
     plan: PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
-    resolveEnvironment,
+    resolveEnvironment: () => resolveEnvironment(allowedNonProductionProjects),
     detectors: [
       tableDetector(client),
       storageDetector(client),
@@ -618,6 +780,14 @@ async function main(): Promise<number> {
       attestation: {
         attestedBy: `cli:${os.userInfo().username}`,
         attestationContext: `git:${gitCommit()}`,
+      },
+      authorization: {
+        allowedOwnerIds: parseIdentityAllowlist(
+          process.env.DOCUMENT_CUTOVER_OWNER_ALLOWLIST,
+        ),
+        allowedApproverIds: parseIdentityAllowlist(
+          process.env.DOCUMENT_CUTOVER_APPROVER_ALLOWLIST,
+        ),
       },
       store,
     });

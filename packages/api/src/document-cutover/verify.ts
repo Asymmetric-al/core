@@ -1,12 +1,24 @@
 import { digestCanonicalValue } from "./canonical";
-import { digestDestructiveCutoverPlan } from "./plan";
-import { DOCUMENT_CUTOVER_PROOF_SCHEMA_VERSION } from "./types";
+import {
+  checkPlanEvidenceCoverage,
+  digestDestructiveCutoverPlan,
+} from "./plan";
+import {
+  DOCUMENT_CUTOVER_PROOF_MAX_AGE_MS,
+  DOCUMENT_CUTOVER_PROOF_SCHEMA_VERSION,
+} from "./types";
 
 import type {
   DocumentCutoverEnvironmentProof,
   DocumentCutoverProofVerificationFailure,
   DocumentCutoverProofVerificationResult,
 } from "./types";
+
+export interface VerifyDocumentCutoverProofOptions {
+  now?: () => Date;
+  /** Bounded freshness rule for clean proofs; stale clean proofs fail. */
+  maxProofAgeMs?: number;
+}
 
 function checkCleanOutcomeConsistency(
   proof: DocumentCutoverEnvironmentProof,
@@ -66,12 +78,15 @@ function checkCleanOutcomeConsistency(
 
 /**
  * Detect any changed field or mismatched digest in a stored proof. Digest
- * recomputation catches byte-level tampering; the clean-outcome consistency
- * check additionally rejects a proof whose digests are internally consistent
- * but whose content could never legitimately produce a clean outcome.
+ * recomputation catches byte-level tampering; the clean-outcome checks
+ * additionally reject a proof whose digests are internally consistent but
+ * whose content could never legitimately produce a clean outcome — including
+ * a proof whose evidence no longer covers every planned surface, and a clean
+ * proof recorded outside the bounded freshness window.
  */
 export async function verifyDocumentCutoverEnvironmentProof(
   proof: DocumentCutoverEnvironmentProof,
+  options: VerifyDocumentCutoverProofOptions = {},
 ): Promise<DocumentCutoverProofVerificationResult> {
   const failures: DocumentCutoverProofVerificationFailure[] = [];
 
@@ -112,7 +127,25 @@ export async function verifyDocumentCutoverEnvironmentProof(
   }
 
   if (proof.outcome === "clean_preproduction_proof") {
+    for (const gap of checkPlanEvidenceCoverage(proof.plan, proof.evidence)) {
+      failures.push({
+        code: "plan_coverage_mismatch",
+        detail: `A clean proof must carry evidence for every planned surface: ${gap}.`,
+      });
+    }
+
     failures.push(...checkCleanOutcomeConsistency(proof));
+
+    const now = (options.now ?? (() => new Date()))();
+    const maxAgeMs = options.maxProofAgeMs ?? DOCUMENT_CUTOVER_PROOF_MAX_AGE_MS;
+    const recordedAtMs = Date.parse(proof.recordedAt);
+    const ageMs = now.getTime() - recordedAtMs;
+    if (!Number.isFinite(recordedAtMs) || ageMs < 0 || ageMs > maxAgeMs) {
+      failures.push({
+        code: "proof_stale",
+        detail: `A clean proof authorizes work only within ${maxAgeMs}ms of recording; this proof is stale, future-dated, or carries an invalid timestamp. Rerun the assessment.`,
+      });
+    }
   }
 
   return { valid: failures.length === 0, failures };

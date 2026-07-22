@@ -5,6 +5,7 @@ import type {
   DestructiveCutoverPlanSurface,
   DocumentCutoverBlockingReason,
   DocumentCutoverDetector,
+  DocumentCutoverSurfaceEvidence,
 } from "./types";
 
 /**
@@ -246,4 +247,41 @@ export function checkDetectorCompleteness(
   }
 
   return reasons;
+}
+
+/**
+ * Every plan surface must be covered by exactly one evidence record and no
+ * evidence record may describe a surface outside the plan. Returns
+ * human-readable gap descriptions; an empty array means coverage is exact.
+ */
+export function checkPlanEvidenceCoverage(
+  plan: DestructiveCutoverPlan,
+  evidence: readonly DocumentCutoverSurfaceEvidence[],
+): string[] {
+  const gaps: string[] = [];
+  const planKeys = new Set(
+    plan.surfaces.map(
+      (surface) => `${surface.surfaceKind}:${surface.surfaceId}`,
+    ),
+  );
+
+  const seen = new Map<string, number>();
+  for (const item of evidence) {
+    const key = `${item.surfaceKind}:${item.surfaceId}`;
+    seen.set(key, (seen.get(key) ?? 0) + 1);
+    if (!planKeys.has(key)) {
+      gaps.push(`evidence for undeclared surface ${key}`);
+    }
+  }
+
+  for (const key of planKeys) {
+    const count = seen.get(key) ?? 0;
+    if (count === 0) {
+      gaps.push(`no evidence for plan surface ${key}`);
+    } else if (count > 1) {
+      gaps.push(`duplicate evidence for plan surface ${key}`);
+    }
+  }
+
+  return gaps.sort();
 }

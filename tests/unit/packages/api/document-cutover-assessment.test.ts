@@ -11,6 +11,7 @@ import {
   PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
   PHASE_18_PROTOTYPE_DOCUMENT_TABLES,
   assessDocumentCutoverEnvironment,
+  digestCanonicalValue,
 } from "../../../../packages/api/src/document-cutover";
 
 import type { DocumentCutoverBlockingCode } from "../../../../packages/api/src/document-cutover";
@@ -398,5 +399,57 @@ describe("assessDocumentCutoverEnvironment", () => {
     // Rerunning produces a new assessment record, never an edit of the first.
     expect(second.assessmentId).not.toBe(first.assessmentId);
     expect(second.planDigest).toBe(first.planDigest);
+  });
+});
+
+describe("procedure digest pinning", () => {
+  it("stops the line when on-disk procedure content no longer matches its trusted digest", async () => {
+    const fixture = new DocumentEnvironmentFixture();
+    const trustedDigest = await digestCanonicalValue(
+      "procedure body for docs/ops/document-cutover/reset-rebuild.md",
+    );
+
+    const clean = await assessDocumentCutoverEnvironment(
+      buildAssessmentInput(fixture, {
+        procedures: {
+          resetRebuild: {
+            reference: "docs/ops/document-cutover/reset-rebuild.md",
+            pinnedVersion: "1",
+            expectedDigest: trustedDigest,
+          },
+          rollbackBeforeFirstCanonicalWrite: {
+            reference:
+              "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
+            pinnedVersion: "1",
+          },
+        },
+      }),
+    );
+    expect(clean.proposedOutcome).toBe("clean_preproduction_proof");
+
+    const tampered = await assessDocumentCutoverEnvironment(
+      buildAssessmentInput(fixture, {
+        procedures: {
+          resetRebuild: {
+            reference: "docs/ops/document-cutover/reset-rebuild.md",
+            pinnedVersion: "1",
+            expectedDigest: trustedDigest,
+          },
+          rollbackBeforeFirstCanonicalWrite: {
+            reference:
+              "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
+            pinnedVersion: "1",
+          },
+        },
+        readProcedure: fixtureProcedureReader({
+          "docs/ops/document-cutover/reset-rebuild.md":
+            "altered content labeled with the pinned version",
+        }),
+      }),
+    );
+    expect(tampered.proposedOutcome).toBe("stop_the_line");
+    expect(reasonCodes(tampered.blockingReasons)).toContain(
+      "procedure_digest_mismatch",
+    );
   });
 });
