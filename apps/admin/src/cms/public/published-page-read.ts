@@ -5,6 +5,7 @@ import {
 import { NextResponse } from "next/server";
 
 import { createPayloadPublishedContentReader } from "./published-content-reader";
+import { toPublicRequestContext } from "./resolve-tenant";
 
 import type {
   PublicCmsPageDescriptor,
@@ -55,14 +56,10 @@ export async function readPublishedPageLike({
   }
 
   const reader = createPayloadPublishedContentReader(payload);
-  const result = await reader.getPublishedPage(
-    {
-      operationalTenantId: String(tenant.id),
-      cmsTenantId: tenant.id,
-      siteId: null,
-    },
-    { pageType: queryShape.pageType, key: queryShape.key },
-  );
+  const result = await reader.getPublishedPage(toPublicRequestContext(tenant), {
+    pageType: queryShape.pageType,
+    key: queryShape.key,
+  });
 
   switch (result.status) {
     case "found":

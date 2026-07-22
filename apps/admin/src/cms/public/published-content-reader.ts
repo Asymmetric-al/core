@@ -6,7 +6,11 @@ import {
   serializePublicUpdate,
 } from "@asym/api/cms/public";
 
-import { buildPublicReadRequestContext } from "../access/public-read";
+import {
+  buildPublicReadRequestContext,
+  getPublicCollectionCapability,
+  isBlankTenantId,
+} from "../access/public-read";
 
 import type {
   PublicRequestContext,
@@ -43,27 +47,17 @@ import type { Payload, Where } from "payload";
 
 type ReaderPayloadClient = Pick<Payload, "find">;
 
-/**
- * Draft capability per public collection, kept honest by a unit test that
- * derives these values from the real collection configs. Draft-enabled
- * collections carry `_status` and require the published constraint; a
- * versionless collection (navigation) has no `_status` column — every
- * document in it is live by definition, and querying `_status` would be an
- * invalid Payload query. If navigation ever gains drafts, the drift test
- * fails and flipping this flag engages the published constraint everywhere
- * at once.
- */
-export const PUBLIC_COLLECTION_CAPABILITIES: Readonly<
-  Record<string, { draftable: boolean }>
-> = {
-  pages: { draftable: true },
-  "missionary-giving-pages": { draftable: true },
-  "project-pages": { draftable: true },
-  "ministry-updates": { draftable: true },
-  navigation: { draftable: false },
-};
-
 const EMPTY_TENANT_SUMMARY: SerializedPublicTenantSummary = { slug: null };
+
+/**
+ * The one degraded result the reader ever reports: store failures never leak
+ * their shape (connection strings, hosts, driver errors) into a public
+ * response.
+ */
+const UNAVAILABLE_RESULT = {
+  status: "unavailable",
+  error: "Published content is temporarily unavailable",
+} as const;
 
 /**
  * Rich-text fields (`content`, rich-text block `body`) pass through the
@@ -131,16 +125,6 @@ function sanitizeRichTextPassThroughs(
   return sanitized;
 }
 
-function isBlankTenantId(value: unknown): boolean {
-  if (typeof value === "number") {
-    return !Number.isFinite(value);
-  }
-  if (typeof value === "string") {
-    return value.trim() === "";
-  }
-  return true;
-}
-
 function publicWhere(
   collection: string,
   context: PublicRequestContext,
@@ -150,7 +134,7 @@ function publicWhere(
     { tenant: { equals: context.cmsTenantId } },
     ...extra,
   ];
-  if (PUBLIC_COLLECTION_CAPABILITIES[collection]?.draftable) {
+  if (getPublicCollectionCapability(collection)?.draftable) {
     constraints.push({ _status: { equals: "published" } });
   }
   return { and: constraints };
@@ -253,10 +237,7 @@ export function createPayloadPublishedContentReader(
           tenant,
         };
       } catch {
-        return {
-          status: "unavailable",
-          error: "Published content is temporarily unavailable",
-        };
+        return UNAVAILABLE_RESULT;
       }
     },
 
@@ -293,10 +274,7 @@ export function createPayloadPublishedContentReader(
           tenant,
         };
       } catch {
-        return {
-          status: "unavailable",
-          error: "Published content is temporarily unavailable",
-        };
+        return UNAVAILABLE_RESULT;
       }
     },
 
@@ -331,10 +309,7 @@ export function createPayloadPublishedContentReader(
           tenant,
         };
       } catch {
-        return {
-          status: "unavailable",
-          error: "Published content is temporarily unavailable",
-        };
+        return UNAVAILABLE_RESULT;
       }
     },
   };

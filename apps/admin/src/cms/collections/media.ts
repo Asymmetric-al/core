@@ -1,5 +1,8 @@
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
-import { publishedPublicReadAccess } from "../access/public-read";
+import {
+  PUBLIC_COLLECTION_CAPABILITIES,
+  publishedPublicReadAccess,
+} from "../access/public-read";
 import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
@@ -36,7 +39,10 @@ export const Media: CollectionConfig = {
       : {}),
   },
   access: {
-    read: publishedPublicReadAccess("tenant", { draftable: false }),
+    read: publishedPublicReadAccess(
+      "tenant",
+      PUBLIC_COLLECTION_CAPABILITIES["media"],
+    ),
     create: tenantScopedCreateAccess("tenant"),
     update: tenantScopedUpdateAccess("tenant"),
     delete: tenantScopedDeleteAccess("tenant"),

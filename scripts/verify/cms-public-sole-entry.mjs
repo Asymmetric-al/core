@@ -60,10 +60,12 @@ const RAW_READ_PATTERNS = [
   },
   {
     id: "aliased-collection-read",
-    // Reads through an aliased client (`client.find({ collection: ... })`);
-    // direct `payload.*` receivers are covered by payload-local-api-read.
+    // Reads through an aliased client (`client.find({ collection: ... })`).
+    // The lookbehind only suppresses a bare `payload` receiver (covered by
+    // payload-local-api-read); suffixed identifiers like `adminpayload.find`
+    // or `admin_payload.find` must still match this rule.
     pattern:
-      /(?<!payload)\.\s*(find|findByID|count)\s*\(\s*\{[^}]*collection\s*:/s,
+      /(?<!\bpayload)\.\s*(find|findByID|count)\s*\(\s*\{[^}]*collection\s*:/s,
     message:
       "Aliased Payload collection read in a public code path. Public content must go through the published-content reader.",
   },

@@ -22,23 +22,21 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 
 vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
   resolveTenantFromRequest: resolveTenantFromRequestMock,
+  toPublicRequestContext: (tenant: { id: number | string }) => ({
+    operationalTenantId: String(tenant.id),
+    cmsTenantId: tenant.id,
+    siteId: null,
+  }),
 }));
 
 let GET: (request: unknown) => Promise<Response>;
 
-const TENANT_DOC = { id: "tenant_1", slug: "alpha", isActive: true };
+import { TENANT_DOC, fakeFind } from "./public-route-fakes";
 
 function createRequest(url = "http://localhost:3030/api/cms/public/updates") {
   return {
     nextUrl: new URL(url),
   } as never;
-}
-
-/** Collection-aware fake: the reader now reads tenants first, then content. */
-function fakeFind(docsByCollection: Partial<Record<string, unknown[]>>) {
-  return vi.fn(async (args: { collection: string }) => ({
-    docs: docsByCollection[args.collection] ?? [],
-  }));
 }
 
 beforeAll(async () => {

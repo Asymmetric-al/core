@@ -4,20 +4,25 @@ import { serializePublicPage } from "../../../packages/api/src/cms/public/serial
 
 type ReaderModule =
   typeof import("../../../apps/admin/src/cms/public/published-content-reader");
+type PublicReadPolicyModule =
+  typeof import("../../../apps/admin/src/cms/access/public-read");
 type ShippedSerializerModule =
   typeof import("../../../apps/admin/src/cms/public/serialize-published-page");
 import type { PublicRequestContext } from "../../../packages/api/src/cms/public/context";
 
-let PUBLIC_COLLECTION_CAPABILITIES: ReaderModule["PUBLIC_COLLECTION_CAPABILITIES"];
+let PUBLIC_COLLECTION_CAPABILITIES: PublicReadPolicyModule["PUBLIC_COLLECTION_CAPABILITIES"];
 let createPayloadPublishedContentReader: ReaderModule["createPayloadPublishedContentReader"];
 let serializePublishedPageLike: ShippedSerializerModule["serializePublishedPageLike"];
 
 beforeAll(async () => {
   const readerModule =
     await import("../../../apps/admin/src/cms/public/published-content-reader");
-  PUBLIC_COLLECTION_CAPABILITIES = readerModule.PUBLIC_COLLECTION_CAPABILITIES;
   createPayloadPublishedContentReader =
     readerModule.createPayloadPublishedContentReader;
+
+  const policyModule =
+    await import("../../../apps/admin/src/cms/access/public-read");
+  PUBLIC_COLLECTION_CAPABILITIES = policyModule.PUBLIC_COLLECTION_CAPABILITIES;
 
   const shippedSerializerModule =
     await import("../../../apps/admin/src/cms/public/serialize-published-page");
@@ -420,6 +425,8 @@ describe("collection capabilities stay true to the real Payload configs", () => 
       await import("../../../apps/admin/src/cms/collections/missionary-giving-pages");
     const { ProjectPages } =
       await import("../../../apps/admin/src/cms/collections/project-pages");
+    const { Media } =
+      await import("../../../apps/admin/src/cms/collections/media");
 
     const derivedDraftable = (config: { versions?: unknown }) => {
       const versions = config.versions;
@@ -438,6 +445,7 @@ describe("collection capabilities stay true to the real Payload configs", () => 
       "project-pages": { draftable: derivedDraftable(ProjectPages) },
       "ministry-updates": { draftable: derivedDraftable(MinistryUpdates) },
       navigation: { draftable: derivedDraftable(Navigation) },
+      media: { draftable: derivedDraftable(Media) },
     });
   });
 });

@@ -2,7 +2,10 @@ import { NextResponse, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "../../../../../src/cms/get-payload";
 import { createPayloadPublishedContentReader } from "../../../../../src/cms/public/published-content-reader";
-import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
+import {
+  resolveTenantFromRequest,
+  toPublicRequestContext,
+} from "../../../../../src/cms/public/resolve-tenant";
 import {
   ensureRequestTimeExecution,
   publicCmsRouteErrorResponse,
@@ -20,11 +23,7 @@ export async function GET(request: NextRequest) {
     }
 
     const reader = createPayloadPublishedContentReader(payload);
-    const result = await reader.getNavigation({
-      operationalTenantId: String(tenant.id),
-      cmsTenantId: tenant.id,
-      siteId: null,
-    });
+    const result = await reader.getNavigation(toPublicRequestContext(tenant));
 
     if (result.status === "unavailable") {
       return NextResponse.json({ error: result.error }, { status: 503 });

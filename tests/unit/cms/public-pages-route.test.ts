@@ -22,6 +22,11 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 
 vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
   resolveTenantFromRequest: resolveTenantFromRequestMock,
+  toPublicRequestContext: (tenant: { id: number | string }) => ({
+    operationalTenantId: String(tenant.id),
+    cmsTenantId: tenant.id,
+    siteId: null,
+  }),
 }));
 
 let GET: (request: unknown, context: unknown) => Promise<Response>;

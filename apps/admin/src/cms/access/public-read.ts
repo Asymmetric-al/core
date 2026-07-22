@@ -1,7 +1,7 @@
 import { tenantScopedReadAccess } from "./tenant-access";
 import { getTenantContext, isSuperAdmin } from "./tenant-context";
 
-import type { Access, PayloadRequest, Where } from "payload";
+import type { Access, AccessResult, PayloadRequest, Where } from "payload";
 
 /**
  * The public-read access policy (Phase 5 (Public Website Runtime Contract),
@@ -38,7 +38,12 @@ export function buildPublicReadRequestContext(
   return { [PUBLIC_READ_CONTEXT_KEY]: { cmsTenantId: context.cmsTenantId } };
 }
 
-function isBlankTenantId(value: unknown): boolean {
+/**
+ * Shared blank-tenant guard for the policy and the published-content reader:
+ * a tenant id that is not a finite number or a non-empty string never
+ * constrains a query — it fails closed instead.
+ */
+export function isBlankTenantId(value: unknown): boolean {
   if (typeof value === "number") {
     return !Number.isFinite(value);
   }
@@ -98,13 +103,50 @@ export type PublishedPublicReadOptions = {
 };
 
 /**
+ * The single source of truth for draft capability per public-facing
+ * collection, kept honest by a drift test that derives every value from the
+ * real collection configs. Collections wire their `read` access from this
+ * map and the published-content reader builds its `_status` constraint from
+ * it, so flipping a collection's drafts on is one edit here (which the drift
+ * test forces) and the published constraint engages in both layers at once.
+ *
+ * `media` is policy-only: the reader never queries it directly, but public
+ * reads depth-populate media through its `read` access, so it needs the same
+ * capability wiring.
+ */
+export const PUBLIC_COLLECTION_CAPABILITIES = {
+  pages: { draftable: true },
+  "missionary-giving-pages": { draftable: true },
+  "project-pages": { draftable: true },
+  "ministry-updates": { draftable: true },
+  navigation: { draftable: false },
+  media: { draftable: false },
+} satisfies Readonly<Record<string, PublishedPublicReadOptions>>;
+
+/**
+ * Capability lookup by collection slug for callers holding a plain string
+ * (the published-content reader's query builder). Unknown collections return
+ * `null` — the caller decides what a missing capability means.
+ */
+export function getPublicCollectionCapability(
+  collection: string,
+): PublishedPublicReadOptions | null {
+  if (!Object.hasOwn(PUBLIC_COLLECTION_CAPABILITIES, collection)) {
+    return null;
+  }
+  return PUBLIC_COLLECTION_CAPABILITIES[
+    collection as keyof typeof PUBLIC_COLLECTION_CAPABILITIES
+  ];
+}
+
+/**
  * Collection `read` access for public-serving content collections:
  * anonymous public reads see only the resolved tenant's published documents;
  * everything without the marker keeps the existing tenant-scoped staff
  * behavior.
  */
 export const publishedPublicReadAccess = (
-  tenantField: string = "tenant",
+  tenantField: string,
   options: PublishedPublicReadOptions,
 ): Access => {
   const staffAccess = tenantScopedReadAccess(tenantField);
@@ -139,15 +181,14 @@ export const publishedPublicReadAccess = (
  * a disabled tenant serves nothing. Staff behavior is unchanged.
  */
 export const publicTenantReadAccess = (): Access => {
-  return ({ req }) => {
+  return ({ req }): AccessResult => {
     const publicRead = getPublicReadContext(req);
     if (publicRead) {
       const constraints: Where[] = [
         { id: { equals: publicRead.cmsTenantId } },
         { isActive: { equals: true } },
       ];
-      const publicConstraint: Where = { and: constraints };
-      return publicConstraint;
+      return { and: constraints };
     }
 
     const context = getTenantContext(req);
@@ -164,11 +205,6 @@ export const publicTenantReadAccess = (): Access => {
       return false;
     }
 
-    const staffConstraint: Where = {
-      id: {
-        equals: context.tenantId,
-      },
-    };
-    return staffConstraint;
+    return { id: { equals: context.tenantId } };
   };
 };

@@ -92,6 +92,18 @@ describe("raw Payload reads in public paths fail the lint", () => {
     ).toHaveLength(1);
   });
 
+  it("flags payload-suffixed aliases that would evade the bare-payload rule", () => {
+    for (const receiver of ["adminpayload", "admin_payload", "adminPayload"]) {
+      expect(
+        collectCmsPublicSoleEntryViolationsFromSource(
+          PUBLIC_MODULE_FILE,
+          `const result = await ${receiver}.find({ collection: "pages" });\n`,
+        ),
+        receiver,
+      ).toHaveLength(1);
+    }
+  });
+
   it("flags a multiline aliased collection read", () => {
     const violations = collectCmsPublicSoleEntryViolationsFromSource(
       PUBLIC_MODULE_FILE,
