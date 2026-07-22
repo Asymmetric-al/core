@@ -27,7 +27,7 @@ the release switch.
   governance, #421 model-policy resolution, and #423 approval/budget results.
 - Add unit coverage for app isolation, disabled capabilities, and activation
   refusal/allow behavior.
-- Promote EVE-DESIGN-0007 to canonical ADR-0026.
+- Promote EVE-DESIGN-0007 to canonical ADR-0031.
 
 ## What does not change
 

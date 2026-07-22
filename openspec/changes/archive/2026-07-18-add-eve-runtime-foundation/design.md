@@ -1,6 +1,6 @@
 # Design / ADR — Eve standalone runtime foundation
 
-> Implemented by [ADR-0026](../../../../docs/adr/0026-eve-standalone-runtime-foundation.md).
+> Implemented by [ADR-0031](../../../../docs/adr/0031-eve-standalone-runtime-foundation.md).
 
 ## Context
 
@@ -43,7 +43,7 @@ perform external effects.
 - #426: admin auth/session ownership
 - #428: Next.js admin mount
 - #429: engineering sandbox worker
-- ADR-0026: isolated, off-by-default runtime foundation only
+- ADR-0031: isolated, off-by-default runtime foundation only
 
 ## Verification
 

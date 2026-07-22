@@ -23,6 +23,6 @@
 
 - [x] 4.1 Cover app isolation and disabled capability inventory
 - [x] 4.2 Cover release, governance, model-policy, approval/budget, invalid-policy, and allowed activation branches
-- [x] 4.3 Promote EVE-DESIGN-0007 to ADR-0026 and link the implementation plan
+- [x] 4.3 Promote EVE-DESIGN-0007 to ADR-0031 and link the implementation plan
 - [x] 4.4 Validate the OpenSpec change strictly
 - [x] 4.5 Open a non-draft stacked PR for human review without enabling autonomy
