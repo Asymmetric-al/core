@@ -1,5 +1,12 @@
 import { digestQualificationValue } from "./canonical";
 import {
+  PHASE_18_QUALIFICATION_GATES,
+  PHASE_18_REQUALIFICATION_TRIGGERS,
+  PHASE_18_SCORE_DIMENSIONS,
+  PHASE_18_SCORING_RULES,
+  PHASE_18_VALIDATION_TOOLS,
+} from "./launch-contest";
+import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
   QUALIFICATION_GATE_IDS,
@@ -123,13 +130,14 @@ function validateCandidates(
   if (
     typst?.eligibility !== "finalist" ||
     typst.engine !== "typst" ||
-    typst.engine_version !== "0.15.1"
+    typst.engine_version !== "0.15.1" ||
+    typst.pipeline !== "typst-cli@0.15.1"
   ) {
     issues.push(
       issue(
         "candidates.P18-R-T",
         "candidate_lock_invalid",
-        "P18-R-T must be the finalist Typst exactly 0.15.1, official distribution.",
+        "P18-R-T must be the finalist Typst exactly 0.15.1, official distribution, on the pinned typst-cli@0.15.1 sandbox pipeline.",
       ),
     );
   }
@@ -137,13 +145,15 @@ function validateCandidates(
   const control = byId.get("P18-R-C");
   if (
     control?.eligibility !== "comparison_control" ||
-    control.engine !== "chromium"
+    control.engine !== "chromium" ||
+    control.pipeline !== "playwright-print-to-pdf" ||
+    !control.engine_version.trim()
   ) {
     issues.push(
       issue(
         "candidates.P18-R-C",
         "candidate_lock_invalid",
-        "P18-R-C is the pinned Playwright Chromium comparison control and can never be eligible to win.",
+        "P18-R-C is the exact pinned Playwright Chromium print-to-pdf comparison control and can never be eligible to win.",
       ),
     );
   }
@@ -344,9 +354,16 @@ function validateCorpus(
       ),
     );
   }
-  if (
-    Date.parse(input.held_back_seal.sealed_at) > Date.parse(input.frozen_at)
-  ) {
+  const sealedAtMs = Date.parse(input.held_back_seal.sealed_at);
+  if (Number.isNaN(sealedAtMs)) {
+    issues.push(
+      issue(
+        "held_back_seal.sealed_at",
+        "held_back_not_sealed",
+        "The held-back seal must record a valid timestamp.",
+      ),
+    );
+  } else if (sealedAtMs > Date.parse(input.frozen_at)) {
     issues.push(
       issue(
         "held_back_seal.sealed_at",
@@ -442,6 +459,17 @@ function validateSuites(
       );
     }
   }
+  for (const injection of suites.failure_matrix.injections) {
+    if (!REQUIRED_FAILURE_INJECTIONS.includes(injection)) {
+      issues.push(
+        issue(
+          "operational_suites.failure_matrix",
+          "suite_invalid",
+          `Injection ${injection} is not part of the frozen eight-injection failure matrix.`,
+        ),
+      );
+    }
+  }
 
   if (suites.outage_recovery.outage_window_minutes <= 0) {
     issues.push(
@@ -471,13 +499,18 @@ function validateGatesAndScoring(
       ),
     );
   }
+  const fixedGates = new Map(
+    PHASE_18_QUALIFICATION_GATES.map((gate) => [gate.gate_id, gate]),
+  );
   for (const gate of input.gates) {
-    if (!gate.pass_rule.trim()) {
+    const fixed = fixedGates.get(gate.gate_id);
+    if (!fixed) continue;
+    if (gate.pass_rule !== fixed.pass_rule || gate.title !== fixed.title) {
       issues.push(
         issue(
           `gates.${gate.gate_id}`,
-          "gates_incomplete",
-          "Every gate states its exact pass rule.",
+          "protocol_fixed_field_changed",
+          "Hard-gate titles and pass rules are pre-registered by the protocol; a materially different rule requires a new protocol version, not a freeze-time edit.",
         ),
       );
     }
@@ -531,6 +564,29 @@ function validateGatesAndScoring(
     );
   }
 
+  const fixedDimensions = new Map(
+    PHASE_18_SCORE_DIMENSIONS.map((dimension) => [
+      dimension.dimension_id,
+      dimension,
+    ]),
+  );
+  for (const dimension of input.score_dimensions) {
+    const fixed = fixedDimensions.get(dimension.dimension_id);
+    if (!fixed) continue;
+    if (
+      dimension.title !== fixed.title ||
+      JSON.stringify(dimension.anchors) !== JSON.stringify(fixed.anchors)
+    ) {
+      issues.push(
+        issue(
+          `score_dimensions.${dimension.dimension_id}`,
+          "protocol_fixed_field_changed",
+          "Dimension titles and 0–5 anchors are pre-registered by the protocol.",
+        ),
+      );
+    }
+  }
+
   const rules = input.scoring_rules;
   if (
     rules.reviewer_count !== 2 ||
@@ -543,6 +599,18 @@ function validateGatesAndScoring(
         "scoring_rules",
         "scoring_invalid",
         "Two reviewers, a 2.0 minimum uncertainty band, a 5.0 material lead, and the three-step tie-break are frozen.",
+      ),
+    );
+  }
+  if (
+    JSON.stringify(rules.tie_break_order) !==
+    JSON.stringify(PHASE_18_SCORING_RULES.tie_break_order)
+  ) {
+    issues.push(
+      issue(
+        "scoring_rules.tie_break_order",
+        "protocol_fixed_field_changed",
+        "The deterministic tie-break steps and their order are pre-registered by the protocol.",
       ),
     );
   }
@@ -602,6 +670,28 @@ function validateBudgetsValidatorsRoles(
           `validators.${tool.name}`,
           "validator_missing",
           "Every validator pins its exact version and ruleset.",
+        ),
+      );
+    }
+  }
+  const fixedValidators = new Map(
+    PHASE_18_VALIDATION_TOOLS.map((tool) => [
+      `${tool.category}:${tool.name}`,
+      tool,
+    ]),
+  );
+  for (const tool of input.validators) {
+    const fixed = fixedValidators.get(`${tool.category}:${tool.name}`);
+    if (
+      !fixed ||
+      fixed.version !== tool.version ||
+      fixed.ruleset !== tool.ruleset
+    ) {
+      issues.push(
+        issue(
+          `validators.${tool.name}`,
+          "protocol_fixed_field_changed",
+          "The validator names, versions, and rulesets are pre-registered; substituting a tool weakens the qualification evidence stack and requires a new protocol version.",
         ),
       );
     }
@@ -745,6 +835,21 @@ export function validateRendererQualificationCharterInput(
         "Expiration/requalification triggers must be frozen.",
       ),
     );
+  } else {
+    const fixedTriggers = new Set(PHASE_18_REQUALIFICATION_TRIGGERS);
+    const declaredTriggers = new Set(input.requalification_triggers);
+    const setsMatch =
+      fixedTriggers.size === declaredTriggers.size &&
+      [...fixedTriggers].every((trigger) => declaredTriggers.has(trigger));
+    if (!setsMatch) {
+      issues.push(
+        issue(
+          "requalification_triggers",
+          "protocol_fixed_field_changed",
+          "The requalification trigger set is pre-registered; omitting or inventing triggers changes the protocol.",
+        ),
+      );
+    }
   }
   if (input.unknown_evidence_rule !== "fails_affected_gate") {
     issues.push(

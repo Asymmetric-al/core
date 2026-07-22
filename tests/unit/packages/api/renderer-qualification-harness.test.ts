@@ -338,3 +338,184 @@ describe("recordRemediationCycle", () => {
     expect(await store.listRemediationCycles()).toHaveLength(0);
   });
 });
+
+describe("submission metering and integrity hardening", () => {
+  it("rejects blank or malformed submission digests", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    for (const bad of ["", "   ", "not-hex", "abc123"]) {
+      await expect(
+        sealCandidateSubmission({
+          charter,
+          expected_manifest_digest: charter.manifest_digest,
+          candidate_id: "P18-R-P",
+          actor: "operator-prince",
+          source_digest: bad,
+          output_digest: syntheticDigest("output"),
+          store,
+        }),
+      ).rejects.toMatchObject({ code: "submission_invalid" });
+    }
+    expect(await store.listSubmissions()).toHaveLength(0);
+  });
+
+  it("permits exactly one initial submission per candidate per charter", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    await sealCandidateSubmission({
+      charter,
+      expected_manifest_digest: charter.manifest_digest,
+      candidate_id: "P18-R-P",
+      actor: "operator-prince",
+      source_digest: syntheticDigest("s1"),
+      output_digest: syntheticDigest("o1"),
+      store,
+    });
+
+    await expect(
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        source_digest: syntheticDigest("s2"),
+        output_digest: syntheticDigest("o2"),
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "submission_already_sealed" });
+  });
+
+  it("requires a recorded remediation cycle before sealing its submission", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    await expect(
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-T",
+        actor: "operator-typst",
+        source_digest: syntheticDigest("s"),
+        output_digest: syntheticDigest("o"),
+        remediation_cycle_ordinal: 1,
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "remediation_cycle_missing" });
+
+    await recordRemediationCycle({
+      charter,
+      candidate_id: "P18-R-T",
+      actor: "operator-typst",
+      hours_spent: 2,
+      changes: ["bidi fix"],
+      affected_case_ids: ["O15"],
+      store,
+    });
+
+    const sealed = await sealCandidateSubmission({
+      charter,
+      expected_manifest_digest: charter.manifest_digest,
+      candidate_id: "P18-R-T",
+      actor: "operator-typst",
+      source_digest: syntheticDigest("s"),
+      output_digest: syntheticDigest("o"),
+      remediation_cycle_ordinal: 1,
+      store,
+    });
+    expect(sealed.remediation_cycle_ordinal).toBe(1);
+  });
+});
+
+describe("remediation accounting hardening", () => {
+  it("rejects unknown case ids outside the frozen corpus", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    await expect(
+      recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: 1,
+        changes: ["phantom fix"],
+        affected_case_ids: ["O99" as never],
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "case_unknown" });
+  });
+
+  it("rejects non-finite remediation hours", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    for (const hours of [Number.NaN, Number.POSITIVE_INFINITY]) {
+      await expect(
+        recordRemediationCycle({
+          charter,
+          candidate_id: "P18-R-P",
+          actor: "operator-prince",
+          hours_spent: hours,
+          changes: ["fix"],
+          affected_case_ids: ["O01"],
+          store,
+        }),
+      ).rejects.toMatchObject({ code: "remediation_budget_exceeded" });
+    }
+  });
+
+  it("scopes remediation allowances to the exact charter digest", async () => {
+    const store = new InMemoryRendererQualificationStore();
+    const charterA = frozenCharter();
+
+    for (const cycle of [1, 2]) {
+      await recordRemediationCycle({
+        charter: charterA,
+        candidate_id: "P18-R-T",
+        actor: "operator-typst",
+        hours_spent: cycle,
+        changes: [`fix ${cycle}`],
+        affected_case_ids: ["O15"],
+        store,
+      });
+    }
+
+    // A reset contest is a new digest; the finalist's fresh allowance starts
+    // at ordinal 1 and old cycles never consume it.
+    const changed = structuredClone(buildFixtureContestInput());
+    changed.charter_version = "2.0.0";
+    const charterB = freezeRendererQualificationCharter(changed);
+
+    const fresh = await recordRemediationCycle({
+      charter: charterB,
+      candidate_id: "P18-R-T",
+      actor: "operator-typst",
+      hours_spent: 1,
+      changes: ["fresh start"],
+      affected_case_ids: ["O15"],
+      store,
+    });
+    expect(fresh.ordinal).toBe(1);
+  });
+
+  it("routes append-only conflicts through the typed error", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    const cycle = await recordRemediationCycle({
+      charter,
+      candidate_id: "P18-R-P",
+      actor: "operator-prince",
+      hours_spent: 1,
+      changes: ["fix"],
+      affected_case_ids: ["O01"],
+      store,
+    });
+
+    await expect(store.appendRemediationCycle(cycle)).rejects.toMatchObject({
+      name: "QualificationHarnessError",
+      code: "evidence_append_conflict",
+    });
+  });
+});

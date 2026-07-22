@@ -102,17 +102,23 @@ describe("freezeRendererQualificationCharter", () => {
   it("changes the digest for order-sensitive protocol changes and any frozen-field change", () => {
     const base = freezeRendererQualificationCharter(buildFixtureContestInput());
 
-    const reorderedTieBreak = structuredClone(buildFixtureContestInput());
-    reorderedTieBreak.scoring_rules = {
-      ...reorderedTieBreak.scoring_rules,
-      tie_break_order: [
-        reorderedTieBreak.scoring_rules.tie_break_order[2],
-        reorderedTieBreak.scoring_rules.tie_break_order[1],
-        reorderedTieBreak.scoring_rules.tie_break_order[0],
+    // The custodian access log is a genuinely order-sensitive record; its
+    // order participates in the digest. (Tie-break order is now pinned to the
+    // protocol, so reordering it is a validation error, not a new version.)
+    const reorderedAccessLog = structuredClone(buildFixtureContestInput());
+    reorderedAccessLog.held_back_seal = {
+      ...reorderedAccessLog.held_back_seal,
+      access_log: [
+        ...reorderedAccessLog.held_back_seal.access_log,
+        {
+          actor: "custodian-quinn",
+          at: "2026-07-22T11:30:00.000Z",
+          reason: "re-verified the sealed digest",
+        },
       ],
     };
     expect(
-      freezeRendererQualificationCharter(reorderedTieBreak).manifest_digest,
+      freezeRendererQualificationCharter(reorderedAccessLog).manifest_digest,
     ).not.toBe(base.manifest_digest);
 
     const changedBudget = structuredClone(buildFixtureContestInput());
@@ -533,5 +539,127 @@ describe("the harness surface", () => {
       buildFixtureContestInput(),
     );
     expect(charter.unknown_evidence_rule).toBe("fails_affected_gate");
+  });
+});
+
+describe("protocol-fixed fields are pinned at freeze", () => {
+  it("rejects an altered hard-gate pass rule", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.gates = input.gates.map((gate) =>
+            gate.gate_id === "G01"
+              ? { ...gate, pass_rule: "always passes" }
+              : gate,
+          );
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+  });
+
+  it("rejects altered tie-break criteria", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.scoring_rules = {
+            ...input.scoring_rules,
+            tie_break_order: ["vibes", "coin flip", "incumbency"],
+          };
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+  });
+
+  it("rejects a substituted frozen validator", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.validators = input.validators.map((tool) =>
+            tool.name === "veraPDF" ? { ...tool, version: "9.9.9" } : tool,
+          );
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+  });
+
+  it("rejects a reduced requalification-trigger set", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.requalification_triggers = [
+            input.requalification_triggers[0] ?? "only one trigger",
+          ];
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+  });
+
+  it("rejects extra failure-matrix injections beyond the frozen eight", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.operational_suites = {
+            ...input.operational_suites,
+            failure_matrix: {
+              injections: [
+                ...input.operational_suites.failure_matrix.injections,
+                "surprise_injection",
+              ],
+            },
+          };
+        }),
+      ),
+    ).toContain("suite_invalid");
+  });
+
+  it("pins the Typst pipeline and the Chromium control lock", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.candidates = input.candidates.map((item) =>
+            item.candidate_id === "P18-R-T"
+              ? { ...item, pipeline: "typst-anywhere@latest" }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("candidate_lock_invalid");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.candidates = input.candidates.map((item) =>
+            item.candidate_id === "P18-R-C"
+              ? { ...item, pipeline: "puppeteer-freestyle" }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("candidate_lock_invalid");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.candidates = input.candidates.map((item) =>
+            item.candidate_id === "P18-R-C"
+              ? { ...item, engine_version: " " }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("candidate_lock_invalid");
+  });
+
+  it("rejects a malformed held-back seal timestamp", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.held_back_seal = {
+            ...input.held_back_seal,
+            sealed_at: "not-a-timestamp",
+          };
+        }),
+      ),
+    ).toContain("held_back_not_sealed");
   });
 });

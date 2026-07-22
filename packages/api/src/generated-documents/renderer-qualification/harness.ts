@@ -1,6 +1,6 @@
 import { digestQualificationValue } from "./canonical";
 import { digestCandidateLock } from "./charter";
-import { HELD_BACK_CASE_IDS } from "./types";
+import { HELD_BACK_CASE_IDS, OPEN_CASE_IDS } from "./types";
 import { verifyRendererQualificationCharter } from "./verify";
 
 import type {
@@ -15,12 +15,17 @@ import type {
 export type QualificationHarnessErrorCode =
   | "candidate_ineligible_for_remediation"
   | "candidate_unknown"
+  | "case_unknown"
   | "charter_digest_mismatch"
   | "charter_invalid"
+  | "evidence_append_conflict"
   | "remediation_budget_exceeded"
   | "remediation_cycle_limit"
+  | "remediation_cycle_missing"
   | "remediation_incomplete"
-  | "role_forbidden";
+  | "role_forbidden"
+  | "submission_already_sealed"
+  | "submission_invalid";
 
 export class QualificationHarnessError extends Error {
   readonly code: QualificationHarnessErrorCode;
@@ -40,39 +45,81 @@ export class InMemoryRendererQualificationStore {
   private readonly submissions = new Map<string, SealedCandidateSubmission>();
   private readonly cycles = new Map<string, RemediationCycleRecord>();
 
+  private static meterKey(record: {
+    manifest_digest: string;
+    candidate_id: RendererCandidateId;
+    remediation_cycle_ordinal?: number;
+    ordinal?: number;
+  }): string {
+    const ordinal = record.remediation_cycle_ordinal ?? record.ordinal ?? 0;
+    return `${record.manifest_digest}:${record.candidate_id}:${ordinal}`;
+  }
+
   async appendSubmission(record: SealedCandidateSubmission): Promise<void> {
     if (this.submissions.has(record.submission_id)) {
-      throw new Error(
+      throw new QualificationHarnessError(
+        "evidence_append_conflict",
         `Submission ${record.submission_id} already exists; evidence records are append-only.`,
       );
+    }
+    // The metering key is unique at the store so a duplicate attempt loses
+    // even under concurrent sealing.
+    const meterKey = InMemoryRendererQualificationStore.meterKey(record);
+    for (const existing of this.submissions.values()) {
+      if (InMemoryRendererQualificationStore.meterKey(existing) === meterKey) {
+        throw new QualificationHarnessError(
+          "submission_already_sealed",
+          `Candidate ${record.candidate_id} already sealed a submission for ordinal ${record.remediation_cycle_ordinal} under this charter.`,
+        );
+      }
     }
     this.submissions.set(record.submission_id, structuredClone(record));
   }
 
-  async listSubmissions(): Promise<SealedCandidateSubmission[]> {
-    return Array.from(this.submissions.values(), (item) =>
+  async listSubmissions(
+    manifestDigest?: string,
+  ): Promise<SealedCandidateSubmission[]> {
+    const all = Array.from(this.submissions.values(), (item) =>
       structuredClone(item),
     );
+    return manifestDigest
+      ? all.filter((item) => item.manifest_digest === manifestDigest)
+      : all;
   }
 
   async appendRemediationCycle(record: RemediationCycleRecord): Promise<void> {
     if (this.cycles.has(record.cycle_id)) {
-      throw new Error(
+      throw new QualificationHarnessError(
+        "evidence_append_conflict",
         `Remediation cycle ${record.cycle_id} already exists; evidence records are append-only.`,
       );
+    }
+    const meterKey = InMemoryRendererQualificationStore.meterKey(record);
+    for (const existing of this.cycles.values()) {
+      if (InMemoryRendererQualificationStore.meterKey(existing) === meterKey) {
+        throw new QualificationHarnessError(
+          "evidence_append_conflict",
+          `Candidate ${record.candidate_id} already recorded remediation cycle ${record.ordinal} under this charter; ordinals never repeat.`,
+        );
+      }
     }
     this.cycles.set(record.cycle_id, structuredClone(record));
   }
 
   async listRemediationCycles(
     candidateId?: RendererCandidateId,
+    manifestDigest?: string,
   ): Promise<RemediationCycleRecord[]> {
-    const all = Array.from(this.cycles.values(), (item) =>
-      structuredClone(item),
-    );
-    return candidateId
-      ? all.filter((item) => item.candidate_id === candidateId)
-      : all;
+    return Array.from(this.cycles.values(), (item) => structuredClone(item))
+      .filter(
+        (item) =>
+          candidateId === undefined || item.candidate_id === candidateId,
+      )
+      .filter(
+        (item) =>
+          manifestDigest === undefined ||
+          item.manifest_digest === manifestDigest,
+      );
   }
 }
 
@@ -193,6 +240,31 @@ export async function sealCandidateSubmission(
     );
   }
 
+  const SHA256_HEX = /^[0-9a-f]{64}$/;
+  if (
+    !SHA256_HEX.test(input.source_digest) ||
+    !SHA256_HEX.test(input.output_digest)
+  ) {
+    throw new QualificationHarnessError(
+      "submission_invalid",
+      "A sealed submission pins its exact source and output bytes with SHA-256 digests; blank or malformed digests are rejected.",
+    );
+  }
+
+  const ordinal = input.remediation_cycle_ordinal ?? 0;
+  if (ordinal > 0) {
+    const cycles = await input.store.listRemediationCycles(
+      candidateId,
+      input.charter.manifest_digest,
+    );
+    if (!cycles.some((cycle) => cycle.ordinal === ordinal)) {
+      throw new QualificationHarnessError(
+        "remediation_cycle_missing",
+        `Submission ordinal ${ordinal} requires recorded remediation cycle ${ordinal} for ${candidateId} under this charter first.`,
+      );
+    }
+  }
+
   const record: SealedCandidateSubmission = {
     submission_id: (input.generateId ?? (() => crypto.randomUUID()))(),
     charter_id: input.charter.charter_id,
@@ -253,7 +325,20 @@ export async function recordRemediationCycle(
       "A remediation cycle documents its changes and identifies the affected cases.",
     );
   }
+  const knownCaseIds = new Set<string>([
+    ...OPEN_CASE_IDS,
+    ...HELD_BACK_CASE_IDS,
+  ]);
+  for (const caseId of input.affected_case_ids) {
+    if (!knownCaseIds.has(caseId)) {
+      throw new QualificationHarnessError(
+        "case_unknown",
+        `Affected case ${caseId} is not part of the frozen corpus; remediation must identify real cases.`,
+      );
+    }
+  }
   if (
+    !Number.isFinite(input.hours_spent) ||
     input.hours_spent <= 0 ||
     input.hours_spent > input.charter.remediation_policy.max_hours_per_cycle
   ) {
@@ -263,7 +348,12 @@ export async function recordRemediationCycle(
     );
   }
 
-  const prior = await input.store.listRemediationCycles(candidateId);
+  // Allowances are scoped to the exact charter digest: a reset contest starts
+  // a fresh equal budget and prior-charter cycles never consume it.
+  const prior = await input.store.listRemediationCycles(
+    candidateId,
+    input.charter.manifest_digest,
+  );
   const ordinal = prior.length + 1;
   if (ordinal > input.charter.remediation_policy.max_cycles) {
     throw new QualificationHarnessError(
