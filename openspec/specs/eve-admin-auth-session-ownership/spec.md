@@ -1,6 +1,12 @@
-# Delta for Eve Admin Auth and Session Ownership
+# eve-admin-auth-session-ownership Specification
 
-## ADDED Requirements
+## Purpose
+
+Define verified current-admin and accountable service identity for Eve, plus
+fail-closed user/tenant ownership across durable sessions and governance
+artifacts before the admin mount.
+
+## Requirements
 
 ### Requirement: Eve Acts As The Current Admin Identity In Mission Control
 
@@ -113,14 +119,15 @@ hosts. [VERIFIED-REPO: openspec/specs/platform-boundaries/spec.md]
 - THEN auth and session-ownership enforcement already applies to the #425 runtime-hosted sessions
 - AND admin UI is not exposed until this gate holds
 
-### Requirement: The Auth Boundary Grants No New Authority And Introduces No Live Code
+### Requirement: The Auth Boundary Grants No New Authority And Keeps Release Disabled
 
-This change MUST only add the auth/session-ownership boundary as a spec/ADR contract. It MUST NOT widen Eve's
-authority, MUST NOT bypass #417 protected-area/production-write/approval limits or #418 emergency-off
-precedence, and the **release switch MUST stay off until auth is verified**. It MUST NOT introduce live auth
-code, a session store, middleware, admin UI, or Supabase schema; and it MUST NOT redefine the audit-record
-shape (#419), private-memory content (#422), approval/budget policy (#423), retention/replay (#424), or the
-session-hosting runtime (#425). [VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
+The auth/session-ownership implementation MUST NOT widen Eve's authority, bypass #417 protected-area,
+production-write, or approval limits, or bypass #418 emergency-off precedence. The **release switch MUST stay
+off until auth is verified**. This slice MAY add server-side route auth and minimal app-owned session ACL
+metadata, but MUST NOT add a live model/provider, operational tool, sandbox, deployment, admin UI, or Next.js
+mount. It MUST NOT redefine the audit-record shape (#419), private-memory content (#422), approval/budget
+policy (#423), retention/replay policy (#424), or Eve-owned session durability (#425).
+[VERIFIED-REPO: docs/prds/eve-autonomous-operations/01-eve-autonomous-operations-platform.md:667]
 [VERIFIED-REPO: openspec/project.md] [VERIFIED-REPO: AGENTS.md]
 
 #### Scenario: The auth gate does not override higher-authority constraints
@@ -130,9 +137,9 @@ session-hosting runtime (#425). [VERIFIED-REPO: docs/prds/eve-autonomous-operati
 - THEN the #417 protected-area and approval rules and #418 emergency-off precedence still apply and can block it
 - AND the auth boundary never widens Eve's authority beyond the acting identity
 
-#### Scenario: The change stays spec-only with the release switch off
+#### Scenario: Auth is implemented while operational release stays off
 
-- GIVEN this change is under review
-- WHEN a reviewer inspects what it introduces
-- THEN it adds only the spec/ADR contract, no live auth code, session store, middleware, admin UI, or schema
-- AND the release switch stays off until auth is verified
+- GIVEN route auth and ownership metadata are installed
+- WHEN a reviewer exercises the Eve runtime
+- THEN verified identity and ownership checks run server-side before access
+- AND no live model/provider, operational capability, app mount, or release is enabled

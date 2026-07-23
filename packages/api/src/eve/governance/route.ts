@@ -13,10 +13,11 @@ export const GET = withOperation(
     try {
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents({
-          supabaseAdmin,
-          tenantId: auth.role === "super_admin" ? null : auth.tenantId,
-        }),
+        loadRecentEveAuditEvents(
+          auth.role === "super_admin"
+            ? { supabaseAdmin, tenantId: null }
+            : { auth, supabaseAdmin, tenantId: auth.tenantId },
+        ),
       ]);
       return NextResponse.json({ ...governance, auditHistory, requestId });
     } catch (error) {
@@ -84,10 +85,11 @@ export const PATCH = withOperation(
       });
       const [governance, auditHistory] = await Promise.all([
         loadEveGovernanceAdminView({ supabaseAdmin }),
-        loadRecentEveAuditEvents({
-          supabaseAdmin,
-          tenantId: auth.role === "super_admin" ? null : auth.tenantId,
-        }),
+        loadRecentEveAuditEvents(
+          auth.role === "super_admin"
+            ? { supabaseAdmin, tenantId: null }
+            : { auth, supabaseAdmin, tenantId: auth.tenantId },
+        ),
       ]);
 
       return NextResponse.json({
