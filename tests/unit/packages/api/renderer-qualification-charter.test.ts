@@ -8,8 +8,10 @@ import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
   PHASE_18_OPERATIONAL_SUITES,
+  PHASE_18_ABSOLUTE_BUDGETS,
   RendererCharterValidationError,
   buildRendererQualificationManifest,
+  digestQualificationValue,
   freezeRendererQualificationCharter,
   validateRendererQualificationCharterInput,
   verifyRendererQualificationCharter,
@@ -100,7 +102,7 @@ describe("freezeRendererQualificationCharter", () => {
     );
   });
 
-  it("changes the digest for order-sensitive protocol changes and any frozen-field change", () => {
+  it("changes the digest for order-sensitive protocol changes and frozen-field changes", () => {
     const base = freezeRendererQualificationCharter(buildFixtureContestInput());
 
     // The custodian access log is a genuinely order-sensitive record; its
@@ -120,16 +122,6 @@ describe("freezeRendererQualificationCharter", () => {
     };
     expect(
       freezeRendererQualificationCharter(reorderedAccessLog).manifest_digest,
-    ).not.toBe(base.manifest_digest);
-
-    const changedBudget = structuredClone(buildFixtureContestInput());
-    changedBudget.budgets = changedBudget.budgets.map((budget) =>
-      budget.metric === "batch_completion_minutes"
-        ? { ...budget, limit: 120 }
-        : budget,
-    );
-    expect(
-      freezeRendererQualificationCharter(changedBudget).manifest_digest,
     ).not.toBe(base.manifest_digest);
   });
 
@@ -375,6 +367,34 @@ describe("freezeRendererQualificationCharter", () => {
     expect(
       issueCodes(
         mutated((input) => {
+          input.budgets = [
+            ...input.budgets,
+            {
+              metric: "unregistered_metric",
+              limit: 1,
+              unit: "items",
+              basis: "not part of the protocol",
+            } as never,
+          ];
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.budgets = input.budgets.map((item) =>
+            item.metric === "batch_completion_minutes"
+              ? { ...item, limit: 120 }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
           input.validators = input.validators.filter(
             (item) => item.category !== "pdf_a_machine",
           );
@@ -410,6 +430,28 @@ describe("freezeRendererQualificationCharter", () => {
       issueCodes(
         mutated((input) => {
           input.approvals = [];
+        }),
+      ),
+    ).toContain("approval_missing");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.approvals = input.approvals.map((approval) => ({
+            ...approval,
+            approved_at: "not-a-timestamp",
+          }));
+        }),
+      ),
+    ).toContain("approval_missing");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.approvals = input.approvals.map((approval) => ({
+            ...approval,
+            approved_at: "2026-07-22T12:01:00.000Z",
+          }));
         }),
       ),
     ).toContain("approval_missing");
@@ -491,8 +533,6 @@ describe("verifyRendererQualificationCharter", () => {
   });
 
   it("rejects a self-consistent charter that could never have legitimately frozen", async () => {
-    const { digestQualificationValue } =
-      await import("../../../../packages/api/src/generated-documents/renderer-qualification");
     const charter = structuredClone(
       freezeRendererQualificationCharter(buildFixtureContestInput()),
     );
@@ -505,6 +545,24 @@ describe("verifyRendererQualificationCharter", () => {
     expect(result.valid).toBe(false);
     expect(result.failures.map((item) => item.code)).toContain(
       "structure_invalid",
+    );
+  });
+
+  it("rejects a self-consistent digest over non-normalized frozen fields", () => {
+    const charter = structuredClone(
+      freezeRendererQualificationCharter(buildFixtureContestInput()),
+    );
+    (charter as { budgets: typeof PHASE_18_ABSOLUTE_BUDGETS }).budgets = [
+      ...charter.budgets,
+    ].reverse();
+    const { schema_version, manifest_digest: _old, ...frozenFields } = charter;
+    (charter as { manifest_digest: string }).manifest_digest =
+      digestQualificationValue({ schema_version, charter: frozenFields });
+
+    const result = verifyRendererQualificationCharter(charter);
+    expect(result.valid).toBe(false);
+    expect(result.failures.map((item) => item.code)).toContain(
+      "digest_mismatch",
     );
   });
 

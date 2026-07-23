@@ -1,5 +1,8 @@
 import { digestQualificationValue } from "./canonical";
-import { validateRendererQualificationCharterInput } from "./charter";
+import {
+  normalizeRendererQualificationCharterInput,
+  validateRendererQualificationCharterInput,
+} from "./charter";
 import { RENDERER_QUALIFICATION_SCHEMA_VERSION } from "./types";
 
 import type {
@@ -32,9 +35,11 @@ export function verifyRendererQualificationCharter(
   }
 
   const { schema_version, manifest_digest, ...frozenFields } = charter;
+  const normalizedFrozenFields =
+    normalizeRendererQualificationCharterInput(frozenFields);
   const expectedDigest = digestQualificationValue({
     schema_version,
-    charter: frozenFields,
+    charter: normalizedFrozenFields,
   });
   if (expectedDigest !== manifest_digest) {
     failures.push({

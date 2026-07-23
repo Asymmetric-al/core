@@ -2,6 +2,7 @@ import { digestQualificationValue } from "./canonical";
 import {
   HELD_BACK_CASE_DEFINITIONS,
   OPEN_CASE_DEFINITIONS,
+  PHASE_18_ABSOLUTE_BUDGETS,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,
   PHASE_18_REQUALIFICATION_TRIGGERS,
@@ -673,6 +674,26 @@ function validateBudgetsValidatorsRoles(
   const budgetMetrics = new Map(
     input.budgets.map((budget) => [budget.metric, budget]),
   );
+  const fixedBudgets = new Map(
+    PHASE_18_ABSOLUTE_BUDGETS.map((budget) => [budget.metric, budget]),
+  );
+  const declaredBudgetMetrics = input.budgets.map((budget) => budget.metric);
+  const declaredBudgetMetricSet = new Set(declaredBudgetMetrics);
+  const budgetsMatch =
+    declaredBudgetMetrics.length === fixedBudgets.size &&
+    declaredBudgetMetricSet.size === fixedBudgets.size &&
+    [...fixedBudgets.keys()].every((metric) =>
+      declaredBudgetMetricSet.has(metric),
+    );
+  if (!budgetsMatch) {
+    issues.push(
+      issue(
+        "budgets",
+        "protocol_fixed_field_changed",
+        "The frozen absolute budget set is exactly the pre-registered protocol metrics with no duplicates or additions.",
+      ),
+    );
+  }
   for (const metric of REQUIRED_BUDGET_METRICS) {
     const budget = budgetMetrics.get(metric);
     if (!budget) {
@@ -691,6 +712,21 @@ function validateBudgetsValidatorsRoles(
           `budgets.${metric}`,
           "budget_unbounded",
           "Every budget is a finite absolute threshold; relative evidence cannot substitute.",
+        ),
+      );
+    }
+    const fixed = fixedBudgets.get(metric);
+    if (
+      fixed &&
+      (budget.limit !== fixed.limit ||
+        budget.unit !== fixed.unit ||
+        budget.basis !== fixed.basis)
+    ) {
+      issues.push(
+        issue(
+          `budgets.${metric}`,
+          "protocol_fixed_field_changed",
+          "Budget limits, units, and bases are pre-registered by the protocol.",
         ),
       );
     }
@@ -824,10 +860,10 @@ function validateBudgetsValidatorsRoles(
     );
   }
 
-  if (
-    input.approvals.length === 0 ||
-    !input.approvals.some((approval) => approval.actor === roles.final_approver)
-  ) {
+  const finalApproval = input.approvals.find(
+    (approval) => approval.actor === roles.final_approver,
+  );
+  if (!finalApproval) {
     issues.push(
       issue(
         "approvals",
@@ -835,6 +871,21 @@ function validateBudgetsValidatorsRoles(
         "The charter freezes only with the final approver's recorded approval.",
       ),
     );
+  } else {
+    const approvedAtMs = Date.parse(finalApproval.approved_at);
+    const frozenAtMs = Date.parse(input.frozen_at);
+    if (
+      Number.isNaN(approvedAtMs) ||
+      (!Number.isNaN(frozenAtMs) && approvedAtMs > frozenAtMs)
+    ) {
+      issues.push(
+        issue(
+          "approvals",
+          "approval_missing",
+          "The final approver must record a valid approval timestamp before the charter freezes.",
+        ),
+      );
+    }
   }
 }
 
@@ -942,7 +993,7 @@ function sortById<T>(items: readonly T[], key: (item: T) => string): T[] {
  * (tie-break order, staircase steps, failure-injection sequence) keep their
  * declared order.
  */
-function normalizeCharterInput(
+export function normalizeRendererQualificationCharterInput(
   input: RendererQualificationCharterInput,
 ): RendererQualificationCharterInput {
   const clone = structuredClone(input);
@@ -990,7 +1041,7 @@ export function freezeRendererQualificationCharter(
     throw new RendererCharterValidationError(issues);
   }
 
-  const normalized = normalizeCharterInput(input);
+  const normalized = normalizeRendererQualificationCharterInput(input);
   const manifest_digest = digestQualificationValue({
     schema_version: RENDERER_QUALIFICATION_SCHEMA_VERSION,
     charter: normalized,
