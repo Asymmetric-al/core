@@ -54,10 +54,14 @@ export type RenderablePublicCmsImage = {
 
 /**
  * Public-eligibility seam (Phase 3 [#496] anonymity/restricted-content —
- * reserved). Today every fully serialized public media object is eligible:
- * the serializer only emits public fields and non-public references arrive as
- * bare ids, which never resolve. When #496 lands, its predicates plug in
- * here — the resolver already consumes this check on every resolution.
+ * reserved). Today every fully serialized public media object is eligible,
+ * because eligibility is enforced upstream by the #523 policy chain: the
+ * published-content choke-point reads with `overrideAccess: false` under the
+ * tenant-constrained public-read access policy, Payload depopulates any
+ * media relationship that policy denies (cross-tenant refs arrive as bare
+ * ids, which never resolve), and the serializer only emits public fields.
+ * When #496 lands, its predicates plug in here — the resolver already
+ * consumes this check on every resolution.
  */
 export function isPublicEligibleCmsMedia(media: PublicCmsMediaLike): boolean {
   return typeof media === "object" && media !== null;

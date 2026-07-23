@@ -2,11 +2,21 @@
  * Derives the `next/image` remote patterns for public CMS media origins
  * (Phase 5 (Public Website Runtime Contract), ruling A12; issue #529).
  *
- * Public CMS media is uploaded through the admin app. In local/dev without
- * Blob it is served from the admin origin; in hosted deployments the Payload
- * Vercel Blob adapter stores files at
- * `https://<store>.public.blob.vercel-storage.com`. The donor image optimizer
- * must accept exactly those origins — and nothing else.
+ * Public CMS media is uploaded through the admin app and served from the
+ * Payload media file route (`/api/media/file/<filename>`) on the admin
+ * origin; in hosted deployments the Payload Vercel Blob adapter stores the
+ * bytes at `https://<store>.public.blob.vercel-storage.com` behind that same
+ * route. The donor image optimizer must accept exactly those origins — and,
+ * on the CMS origin, exactly the media file route: omitted `port`/`pathname`
+ * imply `**` wildcards (Next.js `remotePatterns` docs), which would let the
+ * optimizer proxy any path on the admin host.
+ *
+ * `search` is deliberately left open on the CMS pattern: with Payload access
+ * control in front of Blob storage, the cloud-storage plugin appends
+ * `?prefix=<...>` to media URLs (`@payloadcms/plugin-cloud-storage`
+ * afterRead hook) while local-dev URLs carry no query at all, so a single
+ * exact `search` match cannot admit both. The `pathname` scope bounds what
+ * the optimizer will fetch to the media file route.
  *
  * The CMS-origin pattern is derived from the configured `CMS_BASE_URL` (the
  * same base the donor CMS client fetches JSON from); when it is missing, the
@@ -17,8 +27,11 @@
 
 const LOCAL_DEV_CMS_BASE_URL = "http://127.0.0.1:3030";
 
+/** The Payload media file route on the CMS origin — the only public media path. */
+const CMS_MEDIA_FILE_PATHNAME = "/api/media/file/**";
+
 /**
- * @typedef {{ protocol: "http" | "https", hostname: string, port?: string }} CmsImageRemotePattern
+ * @typedef {{ protocol: "http" | "https", hostname: string, port: string, pathname?: string }} CmsImageRemotePattern
  */
 
 /**
@@ -39,26 +52,25 @@ export function buildPublicCmsImageRemotePatterns(cmsBaseUrl) {
   }
 
   if (parsed && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
-    /** @type {CmsImageRemotePattern} */
-    const cmsPattern = {
+    patterns.push({
       protocol: parsed.protocol === "http:" ? "http" : "https",
       hostname: parsed.hostname,
-    };
-
-    if (parsed.port) {
-      cmsPattern.port = parsed.port;
-    }
-
-    patterns.push(cmsPattern);
+      // `URL#port` is "" for default ports; an explicit empty string blocks
+      // custom ports instead of the omitted-field `**` wildcard.
+      port: parsed.port,
+      pathname: CMS_MEDIA_FILE_PATHNAME,
+    });
   }
 
   // Payload `@payloadcms/storage-vercel-blob` with `access: "public"` serves
   // media from `<storeId>.public.blob.vercel-storage.com`. Next.js remote
   // patterns accept `**` as a multi-label hostname wildcard (same shape as
-  // the donor `**.supabase.co` entry).
+  // the donor `**.supabase.co` entry). The store id is token-derived and not
+  // available to the donor build, so the pathname stays unscoped here.
   patterns.push({
     protocol: "https",
     hostname: "**.public.blob.vercel-storage.com",
+    port: "",
   });
 
   return patterns;

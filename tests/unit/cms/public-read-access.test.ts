@@ -7,6 +7,7 @@ type PublicReadModule =
 
 let buildPublicReadRequestContext: PublicReadModule["buildPublicReadRequestContext"];
 let getPublicReadContext: PublicReadModule["getPublicReadContext"];
+let publicMediaReadAccess: PublicReadModule["publicMediaReadAccess"];
 let publicTenantReadAccess: PublicReadModule["publicTenantReadAccess"];
 let publishedPublicReadAccess: PublicReadModule["publishedPublicReadAccess"];
 
@@ -14,6 +15,7 @@ beforeAll(async () => {
   const module = await import("../../../apps/admin/src/cms/access/public-read");
   buildPublicReadRequestContext = module.buildPublicReadRequestContext;
   getPublicReadContext = module.getPublicReadContext;
+  publicMediaReadAccess = module.publicMediaReadAccess;
   publicTenantReadAccess = module.publicTenantReadAccess;
   publishedPublicReadAccess = module.publishedPublicReadAccess;
 });
@@ -132,6 +134,34 @@ describe("publishedPublicReadAccess", () => {
 
     // Anonymous without the marker stays denied, exactly as before.
     expect(access(accessArgs(staffRequest(null)))).toBe(false);
+  });
+});
+
+describe("publicMediaReadAccess", () => {
+  const MEDIA_CAPABILITY = { draftable: false } as const;
+
+  it("serves media file bytes to anonymous static-file requests (the next/image optimizer fetch)", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(staffRequest(null)),
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toBe(true);
+  });
+
+  it("keeps anonymous document reads without the marker denied", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+
+    expect(access(accessArgs(staffRequest(null)))).toBe(false);
+  });
+
+  it("constrains marked public document reads to the resolved tenant", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+
+    expect(access(accessArgs(publicReadRequest()))).toEqual({
+      and: [{ tenant: { equals: CMS_TENANT_ID } }],
+    });
   });
 });
 

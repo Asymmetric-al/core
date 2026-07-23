@@ -176,6 +176,36 @@ export const publishedPublicReadAccess = (
 };
 
 /**
+ * Media `read` access: document reads follow the standard public-read policy
+ * (public marker → resolved tenant's documents; staff behavior otherwise),
+ * while static-file requests (`/api/media/file/<filename>`) are publicly
+ * readable.
+ *
+ * Payload runs collection `read` access before serving file bytes
+ * (`checkFileAccess`, invoked with `isReadingStaticFile: true`), and the
+ * donor `next/image` optimizer fetches those URLs anonymously — the default
+ * loader forwards no headers or cookies — so public pages can only render
+ * CMS media if the bytes themselves are public. This matches the hosted
+ * posture exactly: the Vercel Blob adapter creates the store with
+ * `access: "public"`, where anyone holding a URL can read the bytes. Document
+ * metadata (alt, caption, tenant) stays behind the public-read policy.
+ */
+export const publicMediaReadAccess = (
+  tenantField: string,
+  options: PublishedPublicReadOptions,
+): Access => {
+  const documentAccess = publishedPublicReadAccess(tenantField, options);
+
+  return (args) => {
+    if (args.isReadingStaticFile) {
+      return true;
+    }
+
+    return documentAccess(args);
+  };
+};
+
+/**
  * `tenants` read access with the public-read arm: a public request may see
  * exactly the resolved tenant's own document, and only while it is active —
  * a disabled tenant serves nothing. Staff behavior is unchanged.
