@@ -19,6 +19,10 @@ const ATTESTATION = {
   attestedBy: "test-suite",
   attestationContext: "unit",
 };
+const AUTHORIZATION = {
+  allowedOwnerIds: [OWNER.ownerId],
+  allowedApproverIds: ["approver-blake"],
+};
 
 function goApproval() {
   return {
@@ -51,6 +55,7 @@ describe("recordDocumentCutoverApproval", () => {
       owner: OWNER,
       approval: goApproval(),
       attestation: ATTESTATION,
+      authorization: AUTHORIZATION,
       store,
     });
 
@@ -77,6 +82,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store,
       }),
     ).rejects.toMatchObject({
@@ -103,6 +109,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "unsafe_assessment" });
@@ -117,6 +124,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
         now: () =>
           new Date(Date.parse(assessment.completedAt) + 61 * 60 * 1000),
@@ -134,6 +142,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: { ownerId: "  ", ownerRole: "platform_owner" },
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store,
       }),
     ).rejects.toMatchObject({ code: "owner_missing" });
@@ -144,6 +153,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: OWNER,
         approval: { ...goApproval(), approvalStatement: "" },
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store,
       }),
     ).rejects.toMatchObject({ code: "approval_invalid" });
@@ -164,6 +174,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "assessment_tampered" });
@@ -201,6 +212,7 @@ describe("recordDocumentCutoverApproval", () => {
       owner: OWNER,
       approval: goApproval(),
       attestation: ATTESTATION,
+      authorization: AUTHORIZATION,
       store,
     });
     const second = await recordDocumentCutoverApproval({
@@ -208,6 +220,7 @@ describe("recordDocumentCutoverApproval", () => {
       owner: OWNER,
       approval: goApproval(),
       attestation: ATTESTATION,
+      authorization: AUTHORIZATION,
       store,
     });
 
@@ -240,6 +253,7 @@ describe("recordDocumentCutoverApproval", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toBeInstanceOf(DocumentCutoverApprovalError);
@@ -263,6 +277,7 @@ describe("approval re-derives safety from primitive evidence", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "unsafe_assessment" });
@@ -279,6 +294,7 @@ describe("approval re-derives safety from primitive evidence", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "unsafe_assessment" });
@@ -295,6 +311,7 @@ describe("approval re-derives safety from primitive evidence", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "unsafe_assessment" });
@@ -311,6 +328,7 @@ describe("approval re-derives safety from primitive evidence", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "assessment_stale" });
@@ -323,17 +341,40 @@ describe("approval re-derives safety from primitive evidence", () => {
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
+        authorization: AUTHORIZATION,
         store: new InMemoryDocumentCutoverProofStore(),
       }),
     ).rejects.toMatchObject({ code: "assessment_stale" });
   });
 
-  it("enforces configured owner and approver allowlists", async () => {
+  it("rejects go when owner/approver allowlists are missing, empty, or exclude the caller", async () => {
     const store = new InMemoryDocumentCutoverProofStore();
+    const assessment = await cleanAssessment();
 
     await expect(
       recordDocumentCutoverApproval({
-        assessment: await cleanAssessment(),
+        assessment,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "approver_unauthorized" });
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment,
+        owner: OWNER,
+        approval: goApproval(),
+        attestation: ATTESTATION,
+        authorization: { allowedOwnerIds: [], allowedApproverIds: [] },
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "approver_unauthorized" });
+
+    await expect(
+      recordDocumentCutoverApproval({
+        assessment,
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
@@ -344,7 +385,7 @@ describe("approval re-derives safety from primitive evidence", () => {
 
     await expect(
       recordDocumentCutoverApproval({
-        assessment: await cleanAssessment(),
+        assessment,
         owner: OWNER,
         approval: goApproval(),
         attestation: ATTESTATION,
@@ -357,14 +398,11 @@ describe("approval re-derives safety from primitive evidence", () => {
     ).rejects.toMatchObject({ code: "approver_unauthorized" });
 
     const proof = await recordDocumentCutoverApproval({
-      assessment: await cleanAssessment(),
+      assessment,
       owner: OWNER,
       approval: goApproval(),
       attestation: ATTESTATION,
-      authorization: {
-        allowedOwnerIds: [OWNER.ownerId],
-        allowedApproverIds: ["approver-blake"],
-      },
+      authorization: AUTHORIZATION,
       store,
     });
     expect(proof.outcome).toBe("clean_preproduction_proof");

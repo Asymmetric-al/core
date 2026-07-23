@@ -48,9 +48,10 @@ export interface RecordDocumentCutoverApprovalInput {
   attestation: DocumentCutoverAttestation;
   store: DocumentCutoverProofStore;
   /**
-   * Optional server-side identity allowlists. When provided, an owner or
-   * approver outside the list is rejected before any proof is recorded, so a
-   * caller cannot self-declare authorization by typing a name.
+   * Server-side identity allowlists. A `go` decision requires both lists to be
+   * present and non-empty, and the named owner/approver must appear in them —
+   * otherwise a caller could self-declare authorization and mint a clean proof.
+   * A `no_go` may omit them so stopped states stay auditable without a policy.
    */
   authorization?: {
     allowedOwnerIds?: readonly string[];
@@ -99,6 +100,44 @@ function unsafe(message: string): DocumentCutoverApprovalError {
     "unsafe_assessment",
     `Approval rejected: ${message}`,
   );
+}
+
+/**
+ * A clean `go` must bind to a configured authorization policy. Missing or empty
+ * allowlists fail closed so self-declared identities cannot mint clean proofs.
+ */
+function requireAuthorizedGoIdentities(
+  ownerId: string,
+  approverId: string,
+  authorization: RecordDocumentCutoverApprovalInput["authorization"],
+): void {
+  const allowedOwners = authorization?.allowedOwnerIds;
+  const allowedApprovers = authorization?.allowedApproverIds;
+
+  if (!allowedOwners || allowedOwners.length === 0) {
+    throw new DocumentCutoverApprovalError(
+      "approver_unauthorized",
+      "A clean go requires a configured non-empty owner allowlist; self-declared owners are rejected.",
+    );
+  }
+  if (!allowedApprovers || allowedApprovers.length === 0) {
+    throw new DocumentCutoverApprovalError(
+      "approver_unauthorized",
+      "A clean go requires a configured non-empty approver allowlist; self-declared approvers are rejected.",
+    );
+  }
+  if (!allowedOwners.includes(ownerId)) {
+    throw new DocumentCutoverApprovalError(
+      "approver_unauthorized",
+      "The named owner is not in the configured owner allowlist.",
+    );
+  }
+  if (!allowedApprovers.includes(approverId)) {
+    throw new DocumentCutoverApprovalError(
+      "approver_unauthorized",
+      "The named approver is not in the configured approver allowlist.",
+    );
+  }
 }
 
 /**
@@ -218,22 +257,31 @@ export async function recordDocumentCutoverApproval(
     );
   }
 
-  const allowedOwners = input.authorization?.allowedOwnerIds;
-  if (allowedOwners && !allowedOwners.includes(input.owner.ownerId)) {
-    throw new DocumentCutoverApprovalError(
-      "approver_unauthorized",
-      "The named owner is not in the configured owner allowlist.",
+  if (input.approval.decision === "go") {
+    requireAuthorizedGoIdentities(
+      input.owner.ownerId,
+      input.approval.approverId,
+      input.authorization,
     );
-  }
-  const allowedApprovers = input.authorization?.allowedApproverIds;
-  if (
-    allowedApprovers &&
-    !allowedApprovers.includes(input.approval.approverId)
-  ) {
-    throw new DocumentCutoverApprovalError(
-      "approver_unauthorized",
-      "The named approver is not in the configured approver allowlist.",
-    );
+  } else {
+    // Optional membership checks for no_go when a policy is present.
+    const allowedOwners = input.authorization?.allowedOwnerIds;
+    if (allowedOwners && !allowedOwners.includes(input.owner.ownerId)) {
+      throw new DocumentCutoverApprovalError(
+        "approver_unauthorized",
+        "The named owner is not in the configured owner allowlist.",
+      );
+    }
+    const allowedApprovers = input.authorization?.allowedApproverIds;
+    if (
+      allowedApprovers &&
+      !allowedApprovers.includes(input.approval.approverId)
+    ) {
+      throw new DocumentCutoverApprovalError(
+        "approver_unauthorized",
+        "The named approver is not in the configured approver allowlist.",
+      );
+    }
   }
 
   await verifyAssessmentIntegrity(input.assessment);

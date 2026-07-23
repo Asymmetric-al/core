@@ -28,6 +28,10 @@ async function cleanProof(): Promise<DocumentCutoverEnvironmentProof> {
       decision: "go",
     },
     attestation: { attestedBy: "test-suite", attestationContext: "unit" },
+    authorization: {
+      allowedOwnerIds: ["owner-blake"],
+      allowedApproverIds: ["approver-blake"],
+    },
     store: new InMemoryDocumentCutoverProofStore(),
   });
 }

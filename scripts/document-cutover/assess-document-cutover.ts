@@ -39,9 +39,9 @@
  *   DOCUMENT_CUTOVER_NON_PRODUCTION_PROJECTS  Comma-separated hosted project
  *                             refs that may classify as non-production.
  *   DOCUMENT_CUTOVER_OWNER_ALLOWLIST          Comma-separated owner ids
- *                             permitted to be recorded on proofs (when set).
+ *                             required for --decision go (fail-closed).
  *   DOCUMENT_CUTOVER_APPROVER_ALLOWLIST       Comma-separated approver ids
- *                             permitted to be recorded on proofs (when set).
+ *                             required for --decision go (fail-closed).
  */
 
 import { execFileSync } from "node:child_process";
@@ -770,6 +770,27 @@ async function main(): Promise<number> {
     return 1;
   }
 
+  const allowedOwnerIds = parseIdentityAllowlist(
+    process.env.DOCUMENT_CUTOVER_OWNER_ALLOWLIST,
+  );
+  const allowedApproverIds = parseIdentityAllowlist(
+    process.env.DOCUMENT_CUTOVER_APPROVER_ALLOWLIST,
+  );
+  if (args.decision === "go") {
+    if (!allowedOwnerIds || allowedOwnerIds.length === 0) {
+      console.error(
+        "--decision go requires DOCUMENT_CUTOVER_OWNER_ALLOWLIST with at least one owner id.",
+      );
+      return 1;
+    }
+    if (!allowedApproverIds || allowedApproverIds.length === 0) {
+      console.error(
+        "--decision go requires DOCUMENT_CUTOVER_APPROVER_ALLOWLIST with at least one approver id.",
+      );
+      return 1;
+    }
+  }
+
   const store = new FileDocumentCutoverProofStore(
     path.resolve(repoRoot, args.out),
   );
@@ -788,12 +809,8 @@ async function main(): Promise<number> {
         attestationContext: `git:${gitCommit()}`,
       },
       authorization: {
-        allowedOwnerIds: parseIdentityAllowlist(
-          process.env.DOCUMENT_CUTOVER_OWNER_ALLOWLIST,
-        ),
-        allowedApproverIds: parseIdentityAllowlist(
-          process.env.DOCUMENT_CUTOVER_APPROVER_ALLOWLIST,
-        ),
+        allowedOwnerIds,
+        allowedApproverIds,
       },
       store,
     });
