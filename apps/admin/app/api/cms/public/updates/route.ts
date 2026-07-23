@@ -1,7 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
 import { getPayloadClient } from "../../../../../src/cms/get-payload";
-import { resolveTenantFromRequest } from "../../../../../src/cms/public/resolve-tenant";
+import { createPayloadPublishedContentReader } from "../../../../../src/cms/public/published-content-reader";
+import {
+  resolveTenantFromRequest,
+  toPublicRequestContext,
+} from "../../../../../src/cms/public/resolve-tenant";
 import {
   ensureRequestTimeExecution,
   publicCmsRouteErrorResponse,
@@ -19,35 +23,20 @@ export async function GET(request: NextRequest) {
     }
 
     const limitParam = request.nextUrl.searchParams.get("limit");
-    const limit = limitParam ? Number.parseInt(limitParam, 10) : 5;
+    const limit = limitParam ? Number.parseInt(limitParam, 10) : undefined;
 
-    const updatesQuery = await payload.find({
-      collection: "ministry-updates",
-      limit: Number.isNaN(limit) ? 5 : Math.min(Math.max(limit, 1), 20),
-      overrideAccess: true,
-      pagination: false,
-      sort: "-publishedAt",
-      where: {
-        and: [
-          {
-            tenant: {
-              equals: tenant.id,
-            },
-          },
-          {
-            _status: {
-              equals: "published",
-            },
-          },
-        ],
-      },
+    const reader = createPayloadPublishedContentReader(payload);
+    const result = await reader.getUpdates(toPublicRequestContext(tenant), {
+      limit,
     });
 
+    if (result.status === "unavailable") {
+      return NextResponse.json({ error: result.error }, { status: 503 });
+    }
+
     return NextResponse.json({
-      tenant: {
-        slug: tenant.slug ?? null,
-      },
-      updates: updatesQuery.docs,
+      tenant: result.tenant,
+      updates: result.updates,
     });
   } catch (error) {
     return publicCmsRouteErrorResponse(error, {
