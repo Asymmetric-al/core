@@ -75,6 +75,9 @@ jobs:
         run: bun run lint
       - name: Check data access boundary
         run: bun run verify:data-boundary
+
+      - name: CMS public sole-entry check
+        run: bun run verify:cms-public-sole-entry
       - run: bun run verify:workspace-contract
       - run: bun run verify:eslint
 

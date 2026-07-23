@@ -13,6 +13,7 @@ const ciSupabasePublicEnv = {
 /**
  * Mirrors blocking GitHub CI checks:
  * verify:git-attribution -> format -> skills:verify -> lint -> verify:data-boundary
+ * -> verify:cms-public-sole-entry
  * -> verify:workspace-contract -> verify:eslint -> verify:shadcn-config
  * -> verify:shadcn-diff
  * -> typecheck -> build -> test-unit
@@ -37,6 +38,10 @@ const stages = [
   {
     id: "verify-data-boundary",
     script: "verify:data-boundary",
+  },
+  {
+    id: "verify-cms-public-sole-entry",
+    script: "verify:cms-public-sole-entry",
   },
   {
     id: "verify-workspace-contract",

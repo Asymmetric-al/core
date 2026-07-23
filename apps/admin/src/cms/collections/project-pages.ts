@@ -6,9 +6,12 @@ import {
 import { createWebStudioAuthenticatedPreviewURL } from "../../cms-ui/web-studio/adapters/preview-url";
 import { isNativeCollectionWebStudioEnabled } from "../../cms-ui/web-studio/feature-flags";
 import {
+  PUBLIC_COLLECTION_CAPABILITIES,
+  publishedPublicReadAccess,
+} from "../access/public-read";
+import {
   tenantScopedCreateAccess,
   tenantScopedDeleteAccess,
-  tenantScopedReadAccess,
   tenantScopedUpdateAccess,
 } from "../access/tenant-access";
 import { PROJECT_PAGES_SLUG } from "../constants";
@@ -45,7 +48,10 @@ export const ProjectPages: CollectionConfig = {
     ...nativeProjectPagesAdmin,
   },
   access: {
-    read: tenantScopedReadAccess("tenant"),
+    read: publishedPublicReadAccess(
+      "tenant",
+      PUBLIC_COLLECTION_CAPABILITIES["project-pages"],
+    ),
     create: tenantScopedCreateAccess("tenant"),
     update: tenantScopedUpdateAccess("tenant"),
     delete: tenantScopedDeleteAccess("tenant"),
