@@ -1,0 +1,68 @@
+# Shadscan UI audit (https://www.shadscan.com/docs).
+# Scans packages/ui — the only workspace with a shadcn components.json — scores it
+# 0-100, and fails the check when the score drops below the assessed floor.
+# The floor and CLI version are also pinned in .husky/pre-commit; keep them in sync.
+name: Shadscan
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [develop, production]
+  push:
+    branches: [develop]
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Run Shadscan audit
+        id: shadscan
+        uses: TheOrcDev/shadscan@629c89ed7b4d01659aedf9f3f3fed228364fe222 # v0.1.1
+        with:
+          path: packages/ui
+          version: "0.1.1"
+          fail-under: "29"
+          create-issue: ${{ github.event_name == 'push' && 'true' || 'false' }}
+          issue-label: shadscan
+          github-token: ${{ github.token }}
+      - name: Comment score on pull request
+        if: >-
+          always() &&
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SCORE: ${{ steps.shadscan.outputs.score }}
+          GRADE: ${{ steps.shadscan.outputs.grade }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          marker='<!-- shadscan-report -->'
+          {
+            echo "$marker"
+            echo "## Shadscan score"
+            echo ""
+            echo "**Score:** ${SCORE:-unassessed}/100 (grade: ${GRADE:-n/a}) — floor: 29"
+            echo ""
+            echo "Scanned \`packages/ui\` with \`@shadscan/cli@0.1.1\`. Category breakdown and failing findings are in the [job summary](${RUN_URL})."
+          } > shadscan-comment.md
+
+          comment_id=$(gh api "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+            --paginate --jq '.[] | select(.body | startswith("<!-- shadscan-report -->")) | .id' | head -n 1)
+          if [ -n "$comment_id" ]; then
+            gh api --method PATCH "repos/${GITHUB_REPOSITORY}/issues/comments/${comment_id}" \
+              -F body=@shadscan-comment.md > /dev/null
+          else
+            gh api --method POST "repos/${GITHUB_REPOSITORY}/issues/${PR_NUMBER}/comments" \
+              -F body=@shadscan-comment.md > /dev/null
+          fi
