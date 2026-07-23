@@ -75,3 +75,6 @@ __pycache__/
 /.tmp/
 /~/
 .vercel
+
+# Phase 18 document-cutover proofs (operator artifacts, per-environment)
+/var/document-cutover-proofs/

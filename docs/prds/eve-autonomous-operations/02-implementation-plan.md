@@ -196,6 +196,11 @@ offline framework verification are delivered by issue #425 and ADR-0031.
 
 ### 10. Current Admin Auth and Session Ownership
 
+Implementation: verified Supabase admin route identity, explicit accountable
+service identity, app-owned session ACL metadata, and ownership enforcement for
+session and governance-artifact access are delivered by issue #426 and
+ADR-0027.
+
 - Type: AFK
 - Blocked by: 6, 7, 9
 - User stories covered: 5, 6, 7, 30, 31, 74, 75
