@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   CLEAN_ENVIRONMENT,
   DocumentEnvironmentFixture,
+  FIXTURE_PROCEDURES,
   buildAssessmentInput,
   buildFixtureDetectors,
   fixtureProcedureReader,
@@ -11,7 +12,6 @@ import {
   PHASE_18_DESTRUCTIVE_CUTOVER_PLAN,
   PHASE_18_PROTOTYPE_DOCUMENT_TABLES,
   assessDocumentCutoverEnvironment,
-  digestCanonicalValue,
 } from "../../../../packages/api/src/document-cutover";
 
 import type { DocumentCutoverBlockingCode } from "../../../../packages/api/src/document-cutover";
@@ -290,12 +290,10 @@ describe("assessDocumentCutoverEnvironment", () => {
           resetRebuild: {
             reference: "docs/ops/document-cutover/reset-rebuild.md",
             pinnedVersion: "",
+            expectedDigest: FIXTURE_PROCEDURES.resetRebuild.expectedDigest,
           },
-          rollbackBeforeFirstCanonicalWrite: {
-            reference:
-              "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
-            pinnedVersion: "1",
-          },
+          rollbackBeforeFirstCanonicalWrite:
+            FIXTURE_PROCEDURES.rollbackBeforeFirstCanonicalWrite,
         },
       }),
     );
@@ -405,25 +403,10 @@ describe("assessDocumentCutoverEnvironment", () => {
 describe("procedure digest pinning", () => {
   it("stops the line when on-disk procedure content no longer matches its trusted digest", async () => {
     const fixture = new DocumentEnvironmentFixture();
-    const trustedDigest = await digestCanonicalValue(
-      "procedure body for docs/ops/document-cutover/reset-rebuild.md",
-    );
+    const trustedDigest = FIXTURE_PROCEDURES.resetRebuild.expectedDigest;
 
     const clean = await assessDocumentCutoverEnvironment(
-      buildAssessmentInput(fixture, {
-        procedures: {
-          resetRebuild: {
-            reference: "docs/ops/document-cutover/reset-rebuild.md",
-            pinnedVersion: "1",
-            expectedDigest: trustedDigest,
-          },
-          rollbackBeforeFirstCanonicalWrite: {
-            reference:
-              "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
-            pinnedVersion: "1",
-          },
-        },
-      }),
+      buildAssessmentInput(fixture),
     );
     expect(clean.proposedOutcome).toBe("clean_preproduction_proof");
 
@@ -435,11 +418,8 @@ describe("procedure digest pinning", () => {
             pinnedVersion: "1",
             expectedDigest: trustedDigest,
           },
-          rollbackBeforeFirstCanonicalWrite: {
-            reference:
-              "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
-            pinnedVersion: "1",
-          },
+          rollbackBeforeFirstCanonicalWrite:
+            FIXTURE_PROCEDURES.rollbackBeforeFirstCanonicalWrite,
         },
         readProcedure: fixtureProcedureReader({
           "docs/ops/document-cutover/reset-rebuild.md":
@@ -450,6 +430,27 @@ describe("procedure digest pinning", () => {
     expect(tampered.proposedOutcome).toBe("stop_the_line");
     expect(reasonCodes(tampered.blockingReasons)).toContain(
       "procedure_digest_mismatch",
+    );
+  });
+
+  it("stops the line when a trusted procedure digest is omitted", async () => {
+    const fixture = new DocumentEnvironmentFixture();
+    const missingPin = await assessDocumentCutoverEnvironment(
+      buildAssessmentInput(fixture, {
+        procedures: {
+          resetRebuild: {
+            reference: "docs/ops/document-cutover/reset-rebuild.md",
+            pinnedVersion: "1",
+            expectedDigest: "",
+          },
+          rollbackBeforeFirstCanonicalWrite:
+            FIXTURE_PROCEDURES.rollbackBeforeFirstCanonicalWrite,
+        },
+      }),
+    );
+    expect(missingPin.proposedOutcome).toBe("stop_the_line");
+    expect(reasonCodes(missingPin.blockingReasons)).toContain(
+      "procedure_unpinned",
     );
   });
 });

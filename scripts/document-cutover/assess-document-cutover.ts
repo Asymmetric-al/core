@@ -83,11 +83,17 @@ const repoRoot = path.resolve(
 const RESET_PROCEDURE = {
   reference: "docs/ops/document-cutover/reset-rebuild.md",
   pinnedVersion: "1",
+  // Trusted digest of the committed procedure document at this pin. Editing
+  // the markdown while leaving Procedure version: 1 must stop the line.
+  expectedDigest:
+    "9a3187dc574be5a004103c479dc04d0e80fb83994a98762f1611115a440bcc53",
 };
 const ROLLBACK_PROCEDURE = {
   reference:
     "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
   pinnedVersion: "1",
+  expectedDigest:
+    "f33970631c86629179d4a188bfa560574a01b7322af15e5c1d513d0cdb933042",
 };
 
 type CliArgs = {

@@ -189,11 +189,16 @@ export const FIXTURE_PROCEDURES = {
   resetRebuild: {
     reference: "docs/ops/document-cutover/reset-rebuild.md",
     pinnedVersion: "1",
+    // Digest of fixtureProcedureReader()'s default body for this reference.
+    expectedDigest:
+      "f7612c82364453cff064d5871e10c42401ada00bdcc8d3b26c0100be8e715fff",
   },
   rollbackBeforeFirstCanonicalWrite: {
     reference:
       "docs/ops/document-cutover/rollback-before-first-canonical-write.md",
     pinnedVersion: "1",
+    expectedDigest:
+      "4fac474f5497d0b7ad7217c5323f463973b7ca175d62131ae188ff80b03cd503",
   },
 };
 

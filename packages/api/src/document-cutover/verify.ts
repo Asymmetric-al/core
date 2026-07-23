@@ -2,6 +2,7 @@ import { digestCanonicalValue } from "./canonical";
 import {
   checkPlanEvidenceCoverage,
   digestDestructiveCutoverPlan,
+  validateDestructiveCutoverPlan,
 } from "./plan";
 import {
   DOCUMENT_CUTOVER_PROOF_MAX_AGE_MS,
@@ -52,9 +53,13 @@ function checkCleanOutcomeConsistency(
     proof.procedures.resetRebuild,
     proof.procedures.rollbackBeforeFirstCanonicalWrite,
   ]) {
-    if (!procedure.present || !procedure.pinnedVersion.trim()) {
+    if (
+      !procedure.present ||
+      !procedure.pinnedVersion.trim() ||
+      !procedure.digest.trim()
+    ) {
       inconsistent(
-        `Procedure ${procedure.reference} must be present and version-pinned in a clean proof.`,
+        `Procedure ${procedure.reference} must be present, version-pinned, and content-digested in a clean proof.`,
       );
     }
   }
@@ -65,9 +70,11 @@ function checkCleanOutcomeConsistency(
       );
     }
     for (const [key, count] of Object.entries(evidence.relianceCounts)) {
-      if (typeof count === "number" && count > 0) {
+      if (typeof count === "number" && count !== 0) {
         inconsistent(
-          `Evidence for ${evidence.surfaceKind}:${evidence.surfaceId} reports ${count} ${key}.`,
+          count < 0
+            ? `Evidence for ${evidence.surfaceKind}:${evidence.surfaceId} reports impossible negative ${key} (${count}).`
+            : `Evidence for ${evidence.surfaceKind}:${evidence.surfaceId} reports ${count} ${key}.`,
         );
       }
     }
@@ -127,6 +134,13 @@ export async function verifyDocumentCutoverEnvironmentProof(
   }
 
   if (proof.outcome === "clean_preproduction_proof") {
+    for (const issue of validateDestructiveCutoverPlan(proof.plan)) {
+      failures.push({
+        code: "plan_invalid",
+        detail: issue.explanation,
+      });
+    }
+
     for (const gap of checkPlanEvidenceCoverage(proof.plan, proof.evidence)) {
       failures.push({
         code: "plan_coverage_mismatch",

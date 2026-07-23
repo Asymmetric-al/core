@@ -217,6 +217,68 @@ describe("clean-proof coverage and freshness verification", () => {
     });
     expect(result).toEqual({ valid: true, failures: [] });
   });
+
+  it("rejects a digest-consistent clean proof with an emptied plan", async () => {
+    const proof = structuredClone(await cleanProof());
+    proof.plan = {
+      planId: "empty",
+      planTitle: "empty",
+      planVersion: "1",
+      surfaces: [],
+    };
+    proof.planDigest = await digestCanonicalValue(proof.plan);
+    proof.evidence = [];
+    const { proofDigest: _old, ...body } = proof;
+    proof.proofDigest = await digestCanonicalValue(body);
+
+    const result = await verifyDocumentCutoverEnvironmentProof(proof);
+    expect(result.valid).toBe(false);
+    expect(result.failures.map((failure) => failure.code)).toContain(
+      "plan_invalid",
+    );
+  });
+
+  it("rejects a digest-consistent clean proof with blank procedure digests", async () => {
+    const proof = structuredClone(await cleanProof());
+    proof.procedures.resetRebuild.digest = "";
+    proof.procedures.rollbackBeforeFirstCanonicalWrite.digest = "";
+    const { proofDigest: _old, ...body } = proof;
+    proof.proofDigest = await digestCanonicalValue(body);
+
+    const result = await verifyDocumentCutoverEnvironmentProof(proof);
+    expect(result.valid).toBe(false);
+    expect(result.failures.map((failure) => failure.code)).toContain(
+      "outcome_inconsistent",
+    );
+  });
+
+  it("rejects a digest-consistent clean proof that hides reliance behind negative counts", async () => {
+    const proof = structuredClone(await cleanProof());
+    const forgedEvidenceBody = {
+      surfaceKind: proof.evidence[0].surfaceKind,
+      surfaceId: proof.evidence[0].surfaceId,
+      detectorId: proof.evidence[0].detectorId,
+      detectorVersion: proof.evidence[0].detectorVersion,
+      completeness: proof.evidence[0].completeness,
+      relianceCounts: { rows: -1 },
+      inventoryFindings: proof.evidence[0].inventoryFindings,
+      externalReferenceSummaries: proof.evidence[0].externalReferenceSummaries,
+      detectorQuery: proof.evidence[0].detectorQuery,
+      failure: undefined,
+    };
+    proof.evidence[0] = {
+      ...forgedEvidenceBody,
+      evidenceDigest: await digestCanonicalValue(forgedEvidenceBody),
+    };
+    const { proofDigest: _old, ...body } = proof;
+    proof.proofDigest = await digestCanonicalValue(body);
+
+    const result = await verifyDocumentCutoverEnvironmentProof(proof);
+    expect(result.valid).toBe(false);
+    expect(result.failures.map((failure) => failure.code)).toContain(
+      "outcome_inconsistent",
+    );
+  });
 });
 
 describe("canonicalization hardening", () => {

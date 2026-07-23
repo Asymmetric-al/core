@@ -162,7 +162,7 @@ function requireCleanAssessment(
       item.completeness !== "complete" ||
       item.failure !== undefined ||
       Object.values(item.relianceCounts).some(
-        (count) => typeof count === "number" && count > 0,
+        (count) => typeof count === "number" && count !== 0,
       ),
   );
   if (unsafeEvidence) {

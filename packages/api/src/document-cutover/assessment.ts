@@ -47,11 +47,11 @@ export interface DocumentCutoverProcedureInput {
   reference: string;
   pinnedVersion: string;
   /**
-   * Trusted content digest for the pinned procedure version. When provided,
-   * on-disk content that no longer matches it stops the line — a version
-   * label alone cannot vouch for altered procedure text.
+   * Trusted content digest for the pinned procedure version. Required: a
+   * version label alone cannot vouch for altered procedure text. On-disk
+   * content that no longer matches this digest stops the line.
    */
-  expectedDigest?: string;
+  expectedDigest: string;
 }
 
 export interface AssessDocumentCutoverEnvironmentInput {
@@ -172,7 +172,7 @@ async function resolveProcedureReference(
 function procedureReasons(
   name: string,
   procedure: DocumentCutoverProcedureReference,
-  expectedDigest: string | undefined,
+  expectedDigest: string,
 ): DocumentCutoverBlockingReason[] {
   const reasons: DocumentCutoverBlockingReason[] = [];
 
@@ -188,11 +188,12 @@ function procedureReasons(
       explanation: `The ${name} procedure at ${procedure.reference} has no pinned version.`,
     });
   }
-  if (
-    procedure.present &&
-    expectedDigest !== undefined &&
-    procedure.digest !== expectedDigest
-  ) {
+  if (!expectedDigest.trim()) {
+    reasons.push({
+      code: "procedure_unpinned",
+      explanation: `The ${name} procedure at ${procedure.reference} has no trusted content digest; a version label alone is not a pin.`,
+    });
+  } else if (procedure.present && procedure.digest !== expectedDigest) {
     reasons.push({
       code: "procedure_digest_mismatch",
       explanation: `The ${name} procedure at ${procedure.reference} does not match its trusted pinned digest; the on-disk document was altered after pinning.`,
@@ -286,11 +287,14 @@ function evidenceReasons(
   }
 
   for (const [key, count] of Object.entries(evidence.relianceCounts)) {
-    if (typeof count === "number" && count > 0) {
+    if (typeof count === "number" && count !== 0) {
       reasons.push({
         code: RELIANCE_REASON_BY_KEY[key as DocumentCutoverRelianceCountKey],
         ...location,
-        explanation: `${evidence.surfaceId} reports ${count} ${key}; any reliance stops the line.`,
+        explanation:
+          count < 0
+            ? `${evidence.surfaceId} reports impossible negative ${key} (${count}); forged or corrupt evidence stops the line.`
+            : `${evidence.surfaceId} reports ${count} ${key}; any reliance stops the line.`,
       });
     }
   }

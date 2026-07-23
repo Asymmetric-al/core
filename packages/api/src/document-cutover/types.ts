@@ -259,6 +259,7 @@ export interface DocumentCutoverProofVerificationFailure {
     | "outcome_inconsistent"
     | "plan_coverage_mismatch"
     | "plan_digest_mismatch"
+    | "plan_invalid"
     | "proof_digest_mismatch"
     | "proof_stale"
     | "schema_version_unsupported";
