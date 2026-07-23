@@ -99,6 +99,7 @@
     "./reads/donor-history": "./src/reads/donor-history.ts",
     "./reads/tenant-contributions": "./src/reads/tenant-contributions.ts",
     "./shared/http-errors": "./src/shared/http-errors.ts",
+    "./generated-documents/purpose-catalog": "./src/generated-documents/purpose-catalog/index.ts",
     "./health/app": "./src/health/app.ts",
     "./health/db": "./src/health/db.ts",
     "./health/crm": "./src/health/crm.ts",
@@ -157,7 +158,9 @@
     "./eve/model-policy/types": "./src/eve/model-policy/types.ts",
     "./eve/retention": "./src/eve/retention/index.ts",
     "./eve/retention/route": "./src/eve/retention/route.ts",
-    "./eve/retention/types": "./src/eve/retention/types.ts"
+    "./eve/retention/types": "./src/eve/retention/types.ts",
+    "./eve/session-ownership": "./src/eve/session-ownership/index.ts",
+    "./eve/session-ownership/types": "./src/eve/session-ownership/types.ts"
   },
   "scripts": {
     "build": "tsc --noEmit",
