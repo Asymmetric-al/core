@@ -118,7 +118,9 @@ export function resolvePublicCmsMediaUrl(
     }
     // Site-relative inputs must remain on the CMS origin after URL joining
     // (closes `/\evil.example.org/...` host-escape via backslash normalization).
-    return resolved.origin === new URL(base).origin ? resolved.toString() : null;
+    return resolved.origin === new URL(base).origin
+      ? resolved.toString()
+      : null;
   } catch {
     return null;
   }

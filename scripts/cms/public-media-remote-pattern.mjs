@@ -38,10 +38,7 @@ export function buildPublicCmsImageRemotePatterns(cmsBaseUrl) {
     parsed = null;
   }
 
-  if (
-    parsed &&
-    (parsed.protocol === "http:" || parsed.protocol === "https:")
-  ) {
+  if (parsed && (parsed.protocol === "http:" || parsed.protocol === "https:")) {
     /** @type {CmsImageRemotePattern} */
     const cmsPattern = {
       protocol: parsed.protocol === "http:" ? "http" : "https",
