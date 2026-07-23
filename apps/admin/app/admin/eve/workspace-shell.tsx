@@ -195,7 +195,7 @@ export function EveCapabilityConnectionsPanel() {
           />
           <ConnectionState
             id="eve-notifications"
-            issue="#432"
+            issue="#436"
             title="Notifications"
             description="Email and Discord delivery are not connected, so the workspace reports no fabricated channel status or delivery history."
             icon={<BellRing aria-hidden="true" className="size-4" />}
