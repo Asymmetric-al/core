@@ -44,6 +44,7 @@ export class QualificationHarnessError extends Error {
  */
 export class InMemoryRendererQualificationStore {
   private readonly submissions = new Map<string, SealedCandidateSubmission>();
+  private readonly submissionMeterKeys = new Map<string, string>();
   private readonly cycles = new Map<string, RemediationCycleRecord>();
 
   private static meterKey(record: {
@@ -66,14 +67,13 @@ export class InMemoryRendererQualificationStore {
     // The metering key is unique at the store so a duplicate attempt loses
     // even under concurrent sealing.
     const meterKey = InMemoryRendererQualificationStore.meterKey(record);
-    for (const existing of this.submissions.values()) {
-      if (InMemoryRendererQualificationStore.meterKey(existing) === meterKey) {
-        throw new QualificationHarnessError(
-          "submission_already_sealed",
-          `Candidate ${record.candidate_id} already sealed a submission for ordinal ${record.remediation_cycle_ordinal} under this charter.`,
-        );
-      }
+    if (this.submissionMeterKeys.has(meterKey)) {
+      throw new QualificationHarnessError(
+        "submission_already_sealed",
+        `Candidate ${record.candidate_id} already sealed a submission for ordinal ${record.remediation_cycle_ordinal} under this charter.`,
+      );
     }
+    this.submissionMeterKeys.set(meterKey, record.submission_id);
     this.submissions.set(record.submission_id, structuredClone(record));
   }
 
@@ -190,6 +190,15 @@ async function requirePriorSubmissionSealed(
   }
 }
 
+function parseSubmissionOrdinal(ordinal: unknown): 0 | 1 | 2 {
+  if (ordinal === undefined) return 0;
+  if (ordinal === 0 || ordinal === 1 || ordinal === 2) return ordinal;
+  throw new QualificationHarnessError(
+    "submission_invalid",
+    "Submission ordinals are limited to the initial attempt and two remediation cycles.",
+  );
+}
+
 /**
  * Build the packet a candidate implementer may see. Open cases arrive in
  * full; held-back cases arrive as schema/bounds only — the expected values
@@ -288,13 +297,13 @@ export async function sealCandidateSubmission(
     );
   }
 
-  const ordinal = input.remediation_cycle_ordinal ?? 0;
-  if (ordinal > 0) {
+  const ordinal = parseSubmissionOrdinal(input.remediation_cycle_ordinal);
+  if (ordinal !== 0) {
     await requirePriorSubmissionSealed(
       input.store,
       input.charter.manifest_digest,
       candidateId,
-      ordinal as 1 | 2,
+      ordinal,
     );
     const cycles = await input.store.listRemediationCycles(
       candidateId,
@@ -314,7 +323,7 @@ export async function sealCandidateSubmission(
     manifest_digest: input.charter.manifest_digest,
     candidate_id: candidateId,
     candidate_lock_digest: digestCandidateLock(input.charter, candidateId),
-    remediation_cycle_ordinal: input.remediation_cycle_ordinal ?? 0,
+    remediation_cycle_ordinal: ordinal,
     source_digest: input.source_digest,
     output_digest: input.output_digest,
     sealed_at: (input.now ?? (() => new Date()))().toISOString(),

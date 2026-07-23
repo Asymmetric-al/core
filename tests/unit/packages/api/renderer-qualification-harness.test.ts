@@ -458,6 +458,64 @@ describe("submission metering and integrity hardening", () => {
     ).rejects.toMatchObject({ code: "submission_already_sealed" });
   });
 
+  it("rejects runtime submission ordinals outside the frozen allowance", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    for (const ordinal of [-1, 3, Number.NaN]) {
+      await expect(
+        sealCandidateSubmission({
+          charter,
+          expected_manifest_digest: charter.manifest_digest,
+          candidate_id: "P18-R-P",
+          actor: "operator-prince",
+          source_digest: syntheticDigest(`bad-ordinal-${ordinal}-source`),
+          output_digest: syntheticDigest(`bad-ordinal-${ordinal}-output`),
+          remediation_cycle_ordinal: ordinal as never,
+          store,
+        }),
+      ).rejects.toMatchObject({ code: "submission_invalid" });
+    }
+
+    expect(await store.listSubmissions()).toHaveLength(0);
+  });
+
+  it("keeps concurrent seal attempts in one meter slot", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    const results = await Promise.allSettled([
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        source_digest: syntheticDigest("concurrent-source-1"),
+        output_digest: syntheticDigest("concurrent-output-1"),
+        store,
+        generateId: () => "concurrent-submission-1",
+      }),
+      sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        source_digest: syntheticDigest("concurrent-source-2"),
+        output_digest: syntheticDigest("concurrent-output-2"),
+        store,
+        generateId: () => "concurrent-submission-2",
+      }),
+    ]);
+
+    expect(
+      results.filter((result) => result.status === "fulfilled"),
+    ).toHaveLength(1);
+    expect(
+      results.filter((result) => result.status === "rejected"),
+    ).toHaveLength(1);
+    expect(await store.listSubmissions()).toHaveLength(1);
+  });
+
   it("requires a recorded remediation cycle before sealing its submission", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();

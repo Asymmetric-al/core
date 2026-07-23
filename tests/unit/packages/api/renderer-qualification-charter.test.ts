@@ -7,6 +7,7 @@ import {
 import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
+  PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_ABSOLUTE_BUDGETS,
   RendererCharterValidationError,
@@ -345,6 +346,20 @@ describe("freezeRendererQualificationCharter", () => {
     expect(
       issueCodes(
         mutated((input) => {
+          input.operational_suites = {
+            ...input.operational_suites,
+            outage_recovery: {
+              ...input.operational_suites.outage_recovery,
+              outage_window_minutes: 60,
+            },
+          };
+        }),
+      ),
+    ).toContain("suite_invalid");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
           input.budgets = input.budgets.filter(
             (item) => item.metric !== "max_cost_usd_per_thousand_documents",
           );
@@ -420,6 +435,17 @@ describe("freezeRendererQualificationCharter", () => {
         mutated((input) => {
           input.roles = {
             ...input.roles,
+            accountable_owner: "operator-prince",
+          };
+        }),
+      ),
+    ).toContain("role_collision");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.roles = {
+            ...input.roles,
             independent_reviewers: ["reviewer-avery", "reviewer-avery"],
           };
         }),
@@ -462,6 +488,39 @@ describe("freezeRendererQualificationCharter", () => {
           input.remediation_policy = {
             ...input.remediation_policy,
             max_cycles: 3 as never,
+          };
+        }),
+      ),
+    ).toContain("charter_incomplete");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.remediation_policy = {
+            ...input.remediation_policy,
+            max_hours_per_cycle: Number.POSITIVE_INFINITY,
+          };
+        }),
+      ),
+    ).toContain("charter_incomplete");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.evidence_rules = {
+            ...input.evidence_rules,
+            retention_days: Number.NaN,
+          };
+        }),
+      ),
+    ).toContain("charter_incomplete");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.evidence_rules = {
+            ...PHASE_18_EVIDENCE_RULES,
+            retention_owner: "short-retention-owner",
           };
         }),
       ),

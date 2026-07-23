@@ -1,5 +1,6 @@
 import type {
   AbsoluteBudget,
+  EvidenceRules,
   HeldBackCaseId,
   OpenCaseId,
   OperationalSuites,
@@ -489,6 +490,14 @@ export const PHASE_18_OPERATIONAL_SUITES: OperationalSuites = {
   },
 };
 
+export const PHASE_18_EVIDENCE_RULES: EvidenceRules = {
+  package_schema_version: "1",
+  redaction_policy:
+    "synthetic data and PII-safe diagnostics only; neutral candidate IDs during visual and accessibility review",
+  retention_owner: "phase-18-evidence-owner",
+  retention_days: 2_555,
+};
+
 export const PHASE_18_ABSOLUTE_BUDGETS: readonly AbsoluteBudget[] = [
   {
     metric: "short_item_latency_p50_ms",
@@ -736,13 +745,7 @@ export function buildPhase18RendererContestInput(
       permitted_changes:
         "adapter/translation fixes against the same frozen semantic requirements; no fixture-ID-specific branches; no manual edits to generated PDFs",
     },
-    evidence_rules: {
-      package_schema_version: "1",
-      redaction_policy:
-        "synthetic data and PII-safe diagnostics only; neutral candidate IDs during visual and accessibility review",
-      retention_owner: "phase-18-evidence-owner",
-      retention_days: 2_555,
-    },
+    evidence_rules: PHASE_18_EVIDENCE_RULES,
     requalification_triggers: PHASE_18_REQUALIFICATION_TRIGGERS,
     unknown_evidence_rule: "fails_affected_gate",
   };

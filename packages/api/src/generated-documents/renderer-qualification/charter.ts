@@ -3,6 +3,7 @@ import {
   HELD_BACK_CASE_DEFINITIONS,
   OPEN_CASE_DEFINITIONS,
   PHASE_18_ABSOLUTE_BUDGETS,
+  PHASE_18_EVIDENCE_RULES,
   PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,
   PHASE_18_REQUALIFICATION_TRIGGERS,
@@ -522,12 +523,17 @@ function validateSuites(
     );
   }
 
-  if (suites.outage_recovery.outage_window_minutes <= 0) {
+  if (
+    suites.outage_recovery.outage_window_minutes !==
+      PHASE_18_OPERATIONAL_SUITES.outage_recovery.outage_window_minutes ||
+    suites.outage_recovery.proof !==
+      PHASE_18_OPERATIONAL_SUITES.outage_recovery.proof
+  ) {
     issues.push(
       issue(
         "operational_suites.outage_recovery",
         "suite_invalid",
-        "The outage window must be a predeclared positive duration.",
+        "Outage recovery window and proof text are pre-registered by the protocol.",
       ),
     );
   }
@@ -804,6 +810,7 @@ function validateBudgetsValidatorsRoles(
   const roles = input.roles;
   const operators = Object.values(roles.candidate_operators);
   const nonOperatorRoles: Array<[string, string]> = [
+    ["accountable_owner", roles.accountable_owner],
     ["corpus_custodian", roles.corpus_custodian],
     ["independent_reviewers.0", roles.independent_reviewers[0]],
     ["independent_reviewers.1", roles.independent_reviewers[1]],
@@ -825,7 +832,7 @@ function validateBudgetsValidatorsRoles(
         issue(
           `roles.${rolePath}`,
           "role_collision",
-          "A candidate operator cannot also hold custodian, reviewer, or approval roles.",
+          "A candidate operator cannot also hold owner, custodian, reviewer, or approval roles.",
         ),
       );
     }
@@ -850,16 +857,6 @@ function validateBudgetsValidatorsRoles(
       );
     }
   }
-  if (!roles.accountable_owner.trim()) {
-    issues.push(
-      issue(
-        "roles.accountable_owner",
-        "role_missing",
-        "An accountable owner is required.",
-      ),
-    );
-  }
-
   const finalApproval = input.approvals.find(
     (approval) => approval.actor === roles.final_approver,
   );
@@ -922,6 +919,7 @@ export function validateRendererQualificationCharterInput(
   if (
     input.remediation_policy.initial_attempts !== 1 ||
     input.remediation_policy.max_cycles !== 2 ||
+    !Number.isFinite(input.remediation_policy.max_hours_per_cycle) ||
     input.remediation_policy.max_hours_per_cycle <= 0
   ) {
     issues.push(
@@ -933,10 +931,15 @@ export function validateRendererQualificationCharterInput(
     );
   }
   if (
-    !input.evidence_rules.package_schema_version.trim() ||
-    !input.evidence_rules.redaction_policy.trim() ||
-    !input.evidence_rules.retention_owner.trim() ||
-    input.evidence_rules.retention_days <= 0
+    input.evidence_rules.package_schema_version !==
+      PHASE_18_EVIDENCE_RULES.package_schema_version ||
+    input.evidence_rules.redaction_policy !==
+      PHASE_18_EVIDENCE_RULES.redaction_policy ||
+    input.evidence_rules.retention_owner !==
+      PHASE_18_EVIDENCE_RULES.retention_owner ||
+    input.evidence_rules.retention_days !==
+      PHASE_18_EVIDENCE_RULES.retention_days ||
+    !Number.isFinite(input.evidence_rules.retention_days)
   ) {
     issues.push(
       issue(
