@@ -160,6 +160,31 @@ describe("Eve runtime foundation", () => {
     ).toEqual({ enabled: false, reason: "governance_blocked" });
   });
 
+  it("binds governance to the approved action's kill-switch domain", () => {
+    expect(
+      prepareEveRuntimeActivation({
+        approvalBudget: allowedBudget,
+        governance: governance({
+          killSwitchState: {
+            ...clearedSwitches,
+            production_writes: true,
+          },
+        }),
+        modelResolution: allowedModel,
+      }),
+    ).toEqual({ enabled: false, reason: "governance_blocked" });
+  });
+
+  it("fails closed when the approved action is not catalogued", () => {
+    expect(
+      prepareEveRuntimeActivation({
+        approvalBudget: { ...allowedBudget, actionId: "unknown" },
+        governance: governance(),
+        modelResolution: allowedModel,
+      }),
+    ).toEqual({ enabled: false, reason: "governance_blocked" });
+  });
+
   it("refuses a blocked model-policy result", () => {
     expect(
       prepareEveRuntimeActivation({

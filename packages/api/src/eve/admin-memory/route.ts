@@ -13,8 +13,35 @@ import {
   updateEveAdminMemorySchema,
 } from "./schema";
 import { loadEveAdminMemoryAdminView } from "./store";
+import { ApiHttpError } from "../../shared/api-http-error";
 import { toErrorResponse } from "../../shared/http-errors";
 import { withOperation } from "../../shared/with-operation";
+
+import type { AuthenticatedContext } from "@asym/auth/context";
+import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+
+async function requireVerifiedMemoryTenant(input: {
+  auth: AuthenticatedContext;
+  supabaseAdmin: AdminSupabaseClient;
+}): Promise<void> {
+  const { data: profile, error } = await input.supabaseAdmin
+    .from("profiles")
+    .select("tenant_id")
+    .eq("id", input.auth.profileId)
+    .eq("user_id", input.auth.userId)
+    .single();
+
+  if (
+    error ||
+    typeof profile?.tenant_id !== "string" ||
+    profile.tenant_id !== input.auth.tenantId
+  ) {
+    throw new ApiHttpError(
+      403,
+      "Private memory requires a tenant-bound profile matching the authenticated tenant.",
+    );
+  }
+}
 
 function view(input: {
   auth: { profileId: string; tenantId: string };
@@ -36,6 +63,7 @@ function view(input: {
 export const GET = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
+      await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
       const url = new URL(request.url);
       const search = searchEveAdminMemorySchema.parse({
         includeDeleted: url.searchParams.get("includeDeleted") ?? undefined,
@@ -59,6 +87,7 @@ export const GET = withOperation(
 export const POST = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
+      await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
       const parsed = createEveAdminMemorySchema.parse(await request.json());
       const mutation = await createEveAdminMemory({
         auth,
@@ -83,6 +112,7 @@ export const POST = withOperation(
 export const PATCH = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
+      await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
       const parsed = updateEveAdminMemorySchema.parse(await request.json());
       const mutation =
         parsed.action === "edit"
@@ -111,6 +141,7 @@ export const PATCH = withOperation(
 export const DELETE = withOperation(
   async ({ auth, request, requestId, supabaseAdmin }) => {
     try {
+      await requireVerifiedMemoryTenant({ auth, supabaseAdmin });
       const parsed = deleteEveAdminMemorySchema.parse(await request.json());
       await deleteEveAdminMemory({ auth, supabaseAdmin, ...parsed });
       return NextResponse.json({

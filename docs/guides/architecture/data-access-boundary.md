@@ -54,11 +54,12 @@ only when that ticket removes the code.
 
 ## Approved Exceptions
 
-| File                             | Allowed import                   | Justification                                                                                 |
-| -------------------------------- | -------------------------------- | --------------------------------------------------------------------------------------------- |
-| `apps/*/app/api/health/route.ts` | `@asym/database/supabase/server` | Health endpoints are minimal connectivity probes; no business logic to delegate to API layer. |
-| Any GraphQL handler (if present) | `@asym/database/supabase/server` | The GraphQL gateway is itself a data-layer boundary.                                          |
-| `packages/lib/audit/logger.ts`   | internal                         | Audit logger is infrastructure, not a route handler.                                          |
+| File                                                    | Allowed import                   | Justification                                                                                                                                                                                                                                                                                     |
+| ------------------------------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `apps/*/app/api/health/route.ts`                        | `@asym/database/supabase/server` | Health endpoints are minimal connectivity probes; no business logic to delegate to API layer.                                                                                                                                                                                                     |
+| Any GraphQL handler (if present)                        | `@asym/database/supabase/server` | The GraphQL gateway is itself a data-layer boundary.                                                                                                                                                                                                                                              |
+| `packages/lib/audit/logger.ts`                          | internal                         | Audit logger is infrastructure, not a route handler.                                                                                                                                                                                                                                              |
+| `apps/admin/app/api/cms/**` and `apps/admin/src/cms/**` | Payload Local API                | Payload CMS runs inside the admin app, so CMS data access cannot delegate to `packages/api` without moving the Payload runtime. Public code paths are further confined to the single published-content reader choke-point by the hard `verify:cms-public-sole-entry` gate (issue #523, ADR-0028). |
 
 ## How to add a new exception
 

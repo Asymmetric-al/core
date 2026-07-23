@@ -4,14 +4,22 @@ import {
 } from "@asym/lib/cms/public-page";
 import { NextResponse } from "next/server";
 
-import { MISSIONARY_GIVING_PAGES_SLUG, PROJECT_PAGES_SLUG } from "../constants";
-import { serializePublishedPageLike } from "./serialize-published-page";
+import { createPayloadPublishedContentReader } from "./published-content-reader";
+import { toPublicRequestContext } from "./resolve-tenant";
 
 import type {
   PublicCmsPageDescriptor,
   PublicCmsPageReadResult,
 } from "@asym/lib/cms/public-page";
 import type { Payload } from "payload";
+
+/**
+ * Route adapter over the public-content choke-point
+ * (`./published-content-reader`, issue #523). It translates the shipped
+ * public route descriptors into reader queries and reader results into the
+ * exact JSON/status contract the donor app consumes — it performs no Payload
+ * read of its own (the sole-entry lint enforces that).
+ */
 
 type TenantDoc = {
   id: number | string;
@@ -26,13 +34,9 @@ type ReadPublishedPageLikeOptions = {
   descriptor: PublicCmsPageDescriptor;
 };
 
-type QueryShape = {
-  collection:
-    | "pages"
-    | typeof MISSIONARY_GIVING_PAGES_SLUG
-    | typeof PROJECT_PAGES_SLUG;
-  field: "slug" | "missionaryId";
-  value: string;
+type ReaderQueryShape = {
+  pageType: string;
+  key: string;
   emptyError?: string;
 };
 
@@ -43,7 +47,7 @@ export async function readPublishedPageLike({
 }: ReadPublishedPageLikeOptions): Promise<PublicCmsPageReadResult> {
   const queryShape = descriptorToQueryShape(descriptor);
 
-  if (!queryShape.value) {
+  if (!queryShape.key) {
     return {
       status: "bad-request",
       statusCode: 400,
@@ -51,38 +55,27 @@ export async function readPublishedPageLike({
     };
   }
 
-  const pageQuery = await payload.find({
-    collection: queryShape.collection,
-    limit: 1,
-    overrideAccess: true,
-    pagination: false,
-    sort: "-updatedAt",
-    where: {
-      and: [
-        { tenant: { equals: tenant.id } },
-        { [queryShape.field]: { equals: queryShape.value } },
-        { _status: { equals: "published" } },
-      ],
-    },
+  const reader = createPayloadPublishedContentReader(payload);
+  const result = await reader.getPublishedPage(toPublicRequestContext(tenant), {
+    pageType: queryShape.pageType,
+    key: queryShape.key,
   });
 
-  const doc = pageQuery.docs[0];
-  if (!doc) {
-    return {
-      status: "not-found",
-      statusCode: 404,
-      error: "Page not found",
-    };
+  switch (result.status) {
+    case "found":
+      return {
+        status: "found",
+        statusCode: 200,
+        page: result.page,
+        tenant: result.tenant,
+      };
+    case "bad-request":
+      return { status: "bad-request", statusCode: 400, error: result.error };
+    case "not-found":
+      return { status: "not-found", statusCode: 404, error: "Page not found" };
+    case "unavailable":
+      return { status: "unavailable", statusCode: 503, error: result.error };
   }
-
-  return {
-    status: "found",
-    statusCode: 200,
-    page: serializePublishedPageLike(doc as unknown as Record<string, unknown>),
-    tenant: {
-      slug: tenant.slug ?? null,
-    },
-  };
 }
 
 export function publicCmsPublishedPageResponse(
@@ -103,26 +96,23 @@ export function publicCmsPublishedPageResponse(
 
 function descriptorToQueryShape(
   descriptor: PublicCmsPageDescriptor,
-): QueryShape {
+): ReaderQueryShape {
   switch (descriptor.kind) {
     case "page":
       return {
-        collection: "pages",
-        field: "slug",
-        value: normalizePublicCmsPageSlug(descriptor.slugSegments),
+        pageType: "page",
+        key: normalizePublicCmsPageSlug(descriptor.slugSegments),
       };
     case "missionary-giving-page":
       return {
-        collection: MISSIONARY_GIVING_PAGES_SLUG,
-        field: "missionaryId",
-        value: normalizePublicCmsLookupValue(descriptor.missionaryId),
+        pageType: "missionary-giving-page",
+        key: normalizePublicCmsLookupValue(descriptor.missionaryId),
         emptyError: "Missionary id required",
       };
     case "project-page":
       return {
-        collection: PROJECT_PAGES_SLUG,
-        field: "slug",
-        value: normalizePublicCmsLookupValue(descriptor.slug),
+        pageType: "project-page",
+        key: normalizePublicCmsLookupValue(descriptor.slug),
         emptyError: "Slug required",
       };
   }
