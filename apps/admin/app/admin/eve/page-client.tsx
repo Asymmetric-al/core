@@ -361,7 +361,11 @@ export function EveGovernanceView({
         summary: event.decisionSummary,
         timestamp: event.createdAt,
       })),
-  ].slice(0, 10);
+  ]
+    .sort((first, second) => {
+      return Date.parse(second.timestamp) - Date.parse(first.timestamp);
+    })
+    .slice(0, 10);
   const confirmKillSwitch = (request: KillSwitchConfirmationRequest) => {
     if (onConfirmKillSwitch) {
       onConfirmKillSwitch(request);
