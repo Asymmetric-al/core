@@ -88,6 +88,21 @@ export async function decideEvePolicyApproval(input: {
   reason: string;
   supabaseAdmin: AdminSupabaseClient;
 }): Promise<void> {
+  const { data: approval, error: ownershipError } = await input.supabaseAdmin
+    .from("eve_action_approvals")
+    .select("id")
+    .eq("id", input.approvalId)
+    .eq("tenant_id", input.auth.tenantId)
+    .eq("requested_by_profile_id", input.auth.profileId)
+    .maybeSingle();
+  if (ownershipError) throw new Error(ownershipError.message);
+  if (!approval) {
+    throw new ApiHttpError(
+      403,
+      "Approval response ownership could not be verified.",
+    );
+  }
+
   const { error } = await input.supabaseAdmin.rpc(
     "decide_eve_policy_approval",
     {
