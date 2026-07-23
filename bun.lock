@@ -20,6 +20,7 @@
         "@asym/pdf-template-schema": "file:vendor/react-pdf-packages/asym-pdf-template-schema",
         "@asym/ui": "workspace:*",
         "@next/env": "16.2.6",
+        "@supabase/supabase-js": "^2.89.0",
         "@tailwindcss/typography": "^0.5.19",
         "graphql": "16.12.0",
         "graphql-yoga": "5.17.1",
