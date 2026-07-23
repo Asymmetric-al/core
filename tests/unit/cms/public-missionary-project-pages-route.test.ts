@@ -22,6 +22,11 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 
 vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
   resolveTenantFromRequest: resolveTenantFromRequestMock,
+  toPublicRequestContext: (tenant: { id: number | string }) => ({
+    operationalTenantId: String(tenant.id),
+    cmsTenantId: tenant.id,
+    siteId: null,
+  }),
 }));
 
 let missionaryGET: (request: unknown, context: unknown) => Promise<Response>;
@@ -56,17 +61,20 @@ describe("public missionary giving page route", () => {
   });
 
   it("returns serialized published doc", async () => {
-    const find = vi.fn().mockResolvedValue({
-      docs: [
-        {
-          id: "p1",
-          title: "Give",
-          slug: "give",
-          missionaryId: "m1",
-          _status: "published",
-        },
-      ],
-    });
+    const find = vi.fn(async (args: { collection: string }) => ({
+      docs:
+        args.collection === "tenants"
+          ? [{ id: "t1", slug: "demo", isActive: true }]
+          : [
+              {
+                id: "p1",
+                title: "Give",
+                slug: "give",
+                missionaryId: "m1",
+                _status: "published",
+              },
+            ],
+    }));
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({ id: "t1", slug: "demo" });
 
@@ -91,7 +99,7 @@ describe("public missionary giving page route", () => {
       expect.objectContaining({
         collection: "missionary-giving-pages",
         limit: 1,
-        overrideAccess: true,
+        overrideAccess: false,
         pagination: false,
         sort: "-updatedAt",
         where: expect.objectContaining({
@@ -132,9 +140,12 @@ describe("public project page route", () => {
   });
 
   it("returns serialized published doc by slug", async () => {
-    const find = vi.fn().mockResolvedValue({
-      docs: [{ id: "pp1", title: "Project", slug: "water-well", fundId: "f1" }],
-    });
+    const find = vi.fn(async (args: { collection: string }) => ({
+      docs:
+        args.collection === "tenants"
+          ? [{ id: "t1", slug: "demo", isActive: true }]
+          : [{ id: "pp1", title: "Project", slug: "water-well", fundId: "f1" }],
+    }));
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({ id: "t1", slug: "demo" });
 
@@ -154,7 +165,7 @@ describe("public project page route", () => {
       expect.objectContaining({
         collection: "project-pages",
         limit: 1,
-        overrideAccess: true,
+        overrideAccess: false,
         pagination: false,
         sort: "-updatedAt",
         where: expect.objectContaining({

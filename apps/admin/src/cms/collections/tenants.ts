@@ -1,5 +1,5 @@
+import { publicTenantReadAccess } from "../access/public-read";
 import { superAdminOnlyAccess } from "../access/staff-access";
-import { getTenantContext, isSuperAdmin } from "../access/tenant-context";
 import { logCmsChangeAudit, logCmsDeleteAudit } from "../hooks/audit";
 
 import type { CollectionConfig } from "payload";
@@ -11,27 +11,9 @@ export const Tenants: CollectionConfig = {
     useAsTitle: "name",
   },
   access: {
-    read: ({ req }) => {
-      const context = getTenantContext(req);
-
-      if (!context.isAuthenticated) {
-        return false;
-      }
-
-      if (isSuperAdmin(context)) {
-        return true;
-      }
-
-      if (!context.tenantId) {
-        return false;
-      }
-
-      return {
-        id: {
-          equals: context.tenantId,
-        },
-      };
-    },
+    // Public reads see only the resolved, active tenant document; staff
+    // behavior (self-tenant, super-admin all) is unchanged inside the policy.
+    read: publicTenantReadAccess(),
     create: superAdminOnlyAccess,
     update: superAdminOnlyAccess,
     delete: superAdminOnlyAccess,

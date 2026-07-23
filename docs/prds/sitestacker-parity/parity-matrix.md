@@ -254,8 +254,13 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 - **Benchmark:** SiteStacker missionary/project public pages. (s)
 - **Current state:** public `/workers` + profile pages currently render **mock
   data**, not real CRM-backed entities (see PR #462 audit note); CMS foundation
-  built. (v)
-- **Depends on:** #1, #13.
+  built. (v) The runtime contract these pages run on — isolation choke-point,
+  host resolution, reference validation, enumeration-safe checkout handoff,
+  caching, Draft Mode preview — is governed by Phase 5 (Public Website Runtime
+  Contract): PRD `phase-05-public-website-runtime-contract.md`, epic #520,
+  ADRs 0026–0030; the missionary giving page is its proof slice (mock →
+  contract, built as a generalizable template).
+- **Depends on:** #1, #13; Phase 5 (public runtime contract).
 - **Acceptance test:** a real CRM missionary has a public, CMS-managed page with
   native giving.
 - **Evidence:** phase 06/07 CMS evidence; PR #462 project.md current-state note.
@@ -265,8 +270,12 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 
 - **Benchmark:** SiteStacker Site Planner / dynamic content. (s)
 - **Current state:** Payload Web Studio CMS foundation built (phase 06/07);
-  dynamic-content parity partial. (v)
-- **Depends on:** —.
+  dynamic-content parity partial. (v) Public delivery of that content —
+  published-only isolated reads, allowlist serialization, tagged caching with
+  secured invalidation, Draft Mode preview convergence — is governed by
+  Phase 5 (Public Website Runtime Contract): PRD
+  `phase-05-public-website-runtime-contract.md`, epic #520, ADRs 0026–0030.
+- **Depends on:** —; Phase 5 governs the public delivery contract.
 - **Acceptance test:** staff build/publish tenant-branded dynamic pages.
 - **Evidence:** `docs/ops/phase-evidence/2026-05-15_phase-07_web-studio-ux.md`.
 - **Open questions:** dynamic content-type breadth.

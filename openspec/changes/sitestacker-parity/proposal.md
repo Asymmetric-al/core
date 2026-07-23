@@ -99,6 +99,18 @@ platform boundaries already warn against.
   packages, purpose-authority manifest, research appendix,
   `docs/adr/0033`–`0039`, and the active `add-statement-studio` delta. This is a
   groomed planning change only; it does not dispatch implementation.
+- **Amended 2026-07-22 (Phase 5 (Public Website Runtime Contract)):** add a
+  durable requirement recording the public-tenant-website runtime contract —
+  one server-only published-content choke-point with the resolved tenant as a
+  required argument (fail-closed, `overrideAccess: false` under a public-read
+  policy), host-only tenant resolution, no publicly reachable drafts with
+  Draft Mode preview, a server-validated enumeration-safe checkout handoff
+  carrying the reserved `site_id`/`source_code`/`currency`/`locale`/
+  `entry_method` attribution fields ("channel" stays retired),
+  tenant-as-argument cache keys with a secured admin→public revalidation
+  signal and no route-segment config, and reference-not-copy
+  CMS↔operational with operational-wins. Detailed behavior is governed by the
+  Phase 5 PRD and ADRs 0026–0030.
 
 ## Impact
 

@@ -526,3 +526,61 @@ migration, or fabricated history.
 - THEN no destructive reset or prototype removal runs
 - AND the migration question is re-groomed rather than guessed, backfilled,
   fabricated, or hidden behind a compatibility fallback
+
+### Requirement: The Public Tenant Website Runs On One Governed Runtime Contract
+
+The public tenant website MUST run on one governed runtime contract, per
+Phase 5 (Public Website Runtime Contract) and
+`docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`.
+Public content MUST be readable only through one server-only published-content
+choke-point that takes the resolved tenant (and reserved site) as a required
+argument, always applies the tenant-and-published constraint, runs with
+Payload access control enforced (`overrideAccess: false`) under an explicit
+public-read policy, and returns empty — never unfiltered — when no tenant
+resolves. A public request MUST resolve its tenant only from the
+platform-trusted host in production and MUST fail closed to a neutral "site
+not found" on an unknown or disabled host. No draft or unpublished document
+may be reachable through any public route; staff preview goes through Draft
+Mode behind a signed, tenant-checked route and is never cached and never
+indexed. A giving CTA MUST hand off through the server-validated,
+enumeration-safe checkout resolver — every operational reference re-validated
+server-side against the resolved tenant, a preset amount treated as a
+re-validated suggestion — and the handoff carries the reserved
+`site_id` / `source_code` / `currency` / `locale` /
+`entry_method = 'public_checkout'` attribution fields ("channel" stays
+retired). Cached public reads MUST key on the tenant passed as an argument
+(tags are invalidation-only) with a secured admin→public revalidation signal
+and a bounded-staleness backstop, and no route-segment cache config may exist
+in the public app. CMS pages reference operational records
+(reference-not-copy); operational truth wins for identity, money, and
+existence, and a dangling or cross-tenant reference fails safe.
+
+#### Scenario: A visitor requests a public page
+
+- WHEN a public request arrives for a tenant page
+- THEN the tenant resolves only from the platform-trusted host, the page reads
+  published content solely through the choke-point with the resolved tenant as
+  a required argument, and an unknown host or unresolved tenant yields a
+  neutral "site not found" rather than any other tenant's content
+- AND no draft, cross-tenant document, or unserialized Payload internals reach
+  the response
+
+#### Scenario: A giving CTA hands off into checkout
+
+- WHEN a visitor follows a "Give" CTA from a public page
+- THEN checkout re-resolves and validates every operational reference
+  server-side against the resolved tenant and public-eligibility before
+  rendering or charging, the form stays enumeration-safe and constant-time,
+  and the handoff carries the reserved attribution fields
+- AND an invalid, stale, or cross-tenant giving link fails to a friendly
+  "give another way" instead of a mis-designated gift
+
+#### Scenario: Staff preview and publish a draft
+
+- WHEN a staff member previews a draft or publishes a change
+- THEN preview renders the real page through the same reader with drafts on,
+  behind a signed-secret route that authenticates the staff user and checks
+  the tenant, marked noindex and never cached
+- AND publishing emits the secured admin→public invalidation signal so the
+  right cache tags revalidate promptly, with the bounded-staleness backstop
+  self-healing a missed signal

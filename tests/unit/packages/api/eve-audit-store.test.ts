@@ -6,6 +6,7 @@ import {
 } from "../../../../packages/api/src/eve/audit/store";
 
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
+import type { AuthenticatedContext } from "@asym/auth/context";
 
 const RECORD = {
   id: "00000000-0000-4000-8000-000000000001",
@@ -30,6 +31,17 @@ const RECORD = {
   redactionVersion: "eve-audit-v1",
   createdAt: "2026-07-17T00:00:00.000Z",
 } as const;
+
+const AUTH = {
+  userId: RECORD.actorId,
+  email: "admin@example.com",
+  tenantId: RECORD.tenantId,
+  role: "admin",
+  profileRole: "admin",
+  memberships: [],
+  profileId: RECORD.actorProfileId,
+  isAuthenticated: true,
+} satisfies AuthenticatedContext;
 
 describe("Eve audit store", () => {
   it("inserts only the normalized audit record shape", async () => {
@@ -89,19 +101,25 @@ describe("Eve audit store", () => {
       error: null,
     });
     const order = vi.fn().mockReturnValue({ limit });
-    const eq = vi.fn().mockReturnValue({ order });
-    const select = vi.fn().mockReturnValue({ eq });
+    const profileEq = vi.fn().mockReturnValue({ order });
+    const tenantEq = vi.fn().mockReturnValue({ eq: profileEq });
+    const select = vi.fn().mockReturnValue({ eq: tenantEq });
     const supabaseAdmin = {
       from: vi.fn().mockReturnValue({ select }),
     } as unknown as AdminSupabaseClient;
 
     const events = await loadRecentEveAuditEvents({
+      auth: AUTH,
       supabaseAdmin,
       tenantId: RECORD.tenantId,
       limit: 20,
     });
 
-    expect(eq).toHaveBeenCalledWith("tenant_id", RECORD.tenantId);
+    expect(tenantEq).toHaveBeenCalledWith("tenant_id", RECORD.tenantId);
+    expect(profileEq).toHaveBeenCalledWith(
+      "actor_profile_id",
+      RECORD.actorProfileId,
+    );
     expect(order).toHaveBeenCalledWith("created_at", { ascending: false });
     expect(limit).toHaveBeenCalledWith(20);
     expect(events).toEqual([RECORD]);
