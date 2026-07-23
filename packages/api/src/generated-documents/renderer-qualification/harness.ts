@@ -19,6 +19,7 @@ export type QualificationHarnessErrorCode =
   | "charter_digest_mismatch"
   | "charter_invalid"
   | "evidence_append_conflict"
+  | "initial_submission_missing"
   | "remediation_budget_exceeded"
   | "remediation_cycle_limit"
   | "remediation_cycle_missing"
@@ -153,6 +154,42 @@ function requireKnownCandidate(
   return candidate;
 }
 
+async function hasSealedSubmission(
+  store: InMemoryRendererQualificationStore,
+  manifestDigest: string,
+  candidateId: RendererCandidateId,
+  ordinal: 0 | 1 | 2,
+): Promise<boolean> {
+  const submissions = await store.listSubmissions(manifestDigest);
+  return submissions.some(
+    (submission) =>
+      submission.candidate_id === candidateId &&
+      submission.remediation_cycle_ordinal === ordinal,
+  );
+}
+
+async function requirePriorSubmissionSealed(
+  store: InMemoryRendererQualificationStore,
+  manifestDigest: string,
+  candidateId: RendererCandidateId,
+  ordinal: 1 | 2,
+): Promise<void> {
+  for (let priorOrdinal = 0; priorOrdinal < ordinal; priorOrdinal += 1) {
+    const priorSealed = await hasSealedSubmission(
+      store,
+      manifestDigest,
+      candidateId,
+      priorOrdinal as 0 | 1,
+    );
+    if (!priorSealed) {
+      throw new QualificationHarnessError(
+        "initial_submission_missing",
+        `Remediation cycle ${ordinal} requires candidate ${candidateId} to seal submission ordinal ${priorOrdinal} first.`,
+      );
+    }
+  }
+}
+
 /**
  * Build the packet a candidate implementer may see. Open cases arrive in
  * full; held-back cases arrive as schema/bounds only — the expected values
@@ -253,6 +290,12 @@ export async function sealCandidateSubmission(
 
   const ordinal = input.remediation_cycle_ordinal ?? 0;
   if (ordinal > 0) {
+    await requirePriorSubmissionSealed(
+      input.store,
+      input.charter.manifest_digest,
+      candidateId,
+      ordinal as 1 | 2,
+    );
     const cycles = await input.store.listRemediationCycles(
       candidateId,
       input.charter.manifest_digest,
@@ -361,6 +404,12 @@ export async function recordRemediationCycle(
       "Each finalist receives at most two remediation cycles; a third is rejected.",
     );
   }
+  await requirePriorSubmissionSealed(
+    input.store,
+    input.charter.manifest_digest,
+    candidateId,
+    ordinal as 1 | 2,
+  );
 
   const rerunSet = new Set<QualificationCaseId>([
     ...input.affected_case_ids,

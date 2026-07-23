@@ -7,6 +7,7 @@ import {
 import {
   HELD_BACK_CASE_IDS,
   OPEN_CASE_IDS,
+  PHASE_18_OPERATIONAL_SUITES,
   RendererCharterValidationError,
   buildRendererQualificationManifest,
   freezeRendererQualificationCharter,
@@ -610,6 +611,107 @@ describe("protocol-fixed fields are pinned at freeze", () => {
         }),
       ),
     ).toContain("suite_invalid");
+  });
+
+  it("rejects duplicate or reordered order-sensitive operational suite entries", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.operational_suites = {
+            ...input.operational_suites,
+            repeatability: {
+              ...input.operational_suites.repeatability,
+              case_ids: [
+                ...PHASE_18_OPERATIONAL_SUITES.repeatability.case_ids,
+              ].reverse(),
+            },
+          };
+        }),
+      ),
+    ).toContain("suite_invalid");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.operational_suites = {
+            ...input.operational_suites,
+            failure_matrix: {
+              injections: [
+                ...input.operational_suites.failure_matrix.injections,
+                input.operational_suites.failure_matrix.injections[0] ?? "",
+              ],
+            },
+          };
+        }),
+      ),
+    ).toContain("suite_invalid");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.operational_suites = {
+            ...input.operational_suites,
+            failure_matrix: {
+              injections: [
+                ...input.operational_suites.failure_matrix.injections,
+              ].reverse(),
+            },
+          };
+        }),
+      ),
+    ).toContain("suite_invalid");
+  });
+
+  it("rejects duplicate hard gates and validators", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          const duplicate = input.gates[0];
+          if (duplicate) input.gates = [...input.gates, duplicate];
+        }),
+      ),
+    ).toContain("gates_incomplete");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          const duplicate = input.validators[0];
+          if (duplicate) input.validators = [...input.validators, duplicate];
+        }),
+      ),
+    ).toContain("validator_missing");
+  });
+
+  it("rejects protocol-fixed corpus metadata and open-case expectations changes", () => {
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.open_corpus = input.open_corpus.map((item) =>
+            item.case_id === "O01"
+              ? {
+                  ...item,
+                  expected: {
+                    protected_facts: ["different protected fact"],
+                    layout_assertions: item.expected?.layout_assertions ?? [],
+                  },
+                }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
+
+    expect(
+      issueCodes(
+        mutated((input) => {
+          input.held_back_corpus = input.held_back_corpus.map((item) =>
+            item.case_id === "H01"
+              ? { ...item, title: "Different held-back case title" }
+              : item,
+          );
+        }),
+      ),
+    ).toContain("protocol_fixed_field_changed");
   });
 
   it("pins the Typst pipeline and the Chromium control lock", () => {

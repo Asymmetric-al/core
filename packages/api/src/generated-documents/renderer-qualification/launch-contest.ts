@@ -19,7 +19,7 @@ import type {
  * because they describe real artifacts the harness cannot invent.
  */
 
-const OPEN_CASE_DEFINITIONS: Record<
+export const OPEN_CASE_DEFINITIONS: Record<
   OpenCaseId,
   {
     title: string;
@@ -225,7 +225,7 @@ const OPEN_CASE_DEFINITIONS: Record<
   },
 };
 
-const HELD_BACK_CASE_DEFINITIONS: Record<
+export const HELD_BACK_CASE_DEFINITIONS: Record<
   HeldBackCaseId,
   {
     title: string;

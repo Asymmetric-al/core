@@ -19,6 +19,24 @@ function frozenCharter(): FrozenRendererQualificationCharter {
   return freezeRendererQualificationCharter(buildFixtureContestInput());
 }
 
+async function sealInitialSubmission(
+  charter: FrozenRendererQualificationCharter,
+  store: InMemoryRendererQualificationStore,
+  candidate_id: "P18-R-P" | "P18-R-T" = "P18-R-P",
+): Promise<void> {
+  const actor =
+    candidate_id === "P18-R-P" ? "operator-prince" : "operator-typst";
+  await sealCandidateSubmission({
+    charter,
+    expected_manifest_digest: charter.manifest_digest,
+    candidate_id,
+    actor,
+    source_digest: syntheticDigest(`${candidate_id}-initial-source`),
+    output_digest: syntheticDigest(`${candidate_id}-initial-output`),
+    store,
+  });
+}
+
 describe("loadCandidateWorkPacket", () => {
   it("discloses open fixtures and held-back schemas but never held-back expectations", () => {
     const charter = frozenCharter();
@@ -212,6 +230,7 @@ describe("recordRemediationCycle", () => {
       ["P18-R-P", "operator-prince"],
       ["P18-R-T", "operator-typst"],
     ] as const) {
+      await sealInitialSubmission(charter, store, candidateId);
       const first = await recordRemediationCycle({
         charter,
         candidate_id: candidateId,
@@ -222,6 +241,17 @@ describe("recordRemediationCycle", () => {
         store,
       });
       expect(first.ordinal).toBe(1);
+
+      await sealCandidateSubmission({
+        charter,
+        expected_manifest_digest: charter.manifest_digest,
+        candidate_id: candidateId,
+        actor,
+        source_digest: syntheticDigest(`${candidateId}-remediation-1-source`),
+        output_digest: syntheticDigest(`${candidateId}-remediation-1-output`),
+        remediation_cycle_ordinal: 1,
+        store,
+      });
 
       const second = await recordRemediationCycle({
         charter,
@@ -251,6 +281,7 @@ describe("recordRemediationCycle", () => {
   it("requires affected cases to rerun together with the entire held-back corpus", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store);
 
     const cycle = await recordRemediationCycle({
       charter,
@@ -337,6 +368,46 @@ describe("recordRemediationCycle", () => {
 
     expect(await store.listRemediationCycles()).toHaveLength(0);
   });
+
+  it("requires the prior submission before each remediation cycle can be recorded", async () => {
+    const charter = frozenCharter();
+    const store = new InMemoryRendererQualificationStore();
+
+    await expect(
+      recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: 1,
+        changes: ["fix before initial evidence"],
+        affected_case_ids: ["O01"],
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "initial_submission_missing" });
+
+    await sealInitialSubmission(charter, store);
+    await recordRemediationCycle({
+      charter,
+      candidate_id: "P18-R-P",
+      actor: "operator-prince",
+      hours_spent: 1,
+      changes: ["first remediation"],
+      affected_case_ids: ["O01"],
+      store,
+    });
+
+    await expect(
+      recordRemediationCycle({
+        charter,
+        candidate_id: "P18-R-P",
+        actor: "operator-prince",
+        hours_spent: 1,
+        changes: ["second remediation before first sealed rerun"],
+        affected_case_ids: ["O04"],
+        store,
+      }),
+    ).rejects.toMatchObject({ code: "initial_submission_missing" });
+  });
 });
 
 describe("submission metering and integrity hardening", () => {
@@ -390,6 +461,7 @@ describe("submission metering and integrity hardening", () => {
   it("requires a recorded remediation cycle before sealing its submission", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store, "P18-R-T");
 
     await expect(
       sealCandidateSubmission({
@@ -449,6 +521,7 @@ describe("remediation accounting hardening", () => {
   it("rejects non-finite remediation hours", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store);
 
     for (const hours of [Number.NaN, Number.POSITIVE_INFINITY]) {
       await expect(
@@ -468,6 +541,7 @@ describe("remediation accounting hardening", () => {
   it("scopes remediation allowances to the exact charter digest", async () => {
     const store = new InMemoryRendererQualificationStore();
     const charterA = frozenCharter();
+    await sealInitialSubmission(charterA, store, "P18-R-T");
 
     for (const cycle of [1, 2]) {
       await recordRemediationCycle({
@@ -479,6 +553,16 @@ describe("remediation accounting hardening", () => {
         affected_case_ids: ["O15"],
         store,
       });
+      await sealCandidateSubmission({
+        charter: charterA,
+        expected_manifest_digest: charterA.manifest_digest,
+        candidate_id: "P18-R-T",
+        actor: "operator-typst",
+        source_digest: syntheticDigest(`typst-cycle-${cycle}-source`),
+        output_digest: syntheticDigest(`typst-cycle-${cycle}-output`),
+        remediation_cycle_ordinal: cycle as 1 | 2,
+        store,
+      });
     }
 
     // A reset contest is a new digest; the finalist's fresh allowance starts
@@ -486,6 +570,7 @@ describe("remediation accounting hardening", () => {
     const changed = structuredClone(buildFixtureContestInput());
     changed.charter_version = "2.0.0";
     const charterB = freezeRendererQualificationCharter(changed);
+    await sealInitialSubmission(charterB, store, "P18-R-T");
 
     const fresh = await recordRemediationCycle({
       charter: charterB,
@@ -502,6 +587,7 @@ describe("remediation accounting hardening", () => {
   it("routes append-only conflicts through the typed error", async () => {
     const charter = frozenCharter();
     const store = new InMemoryRendererQualificationStore();
+    await sealInitialSubmission(charter, store);
 
     const cycle = await recordRemediationCycle({
       charter,

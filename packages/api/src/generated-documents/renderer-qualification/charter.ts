@@ -1,5 +1,8 @@
 import { digestQualificationValue } from "./canonical";
 import {
+  HELD_BACK_CASE_DEFINITIONS,
+  OPEN_CASE_DEFINITIONS,
+  PHASE_18_OPERATIONAL_SUITES,
   PHASE_18_QUALIFICATION_GATES,
   PHASE_18_REQUALIFICATION_TRIGGERS,
   PHASE_18_SCORE_DIMENSIONS,
@@ -42,18 +45,12 @@ export class RendererCharterValidationError extends Error {
   }
 }
 
-const REQUIRED_REPEATABILITY_CASES = ["O01", "O04", "O10", "H02", "H06", "H09"];
-
-const REQUIRED_FAILURE_INJECTIONS = [
-  "timeout",
-  "process_termination",
-  "ambiguous_provider_result",
-  "worker_redelivery",
-  "object_upload_failure",
-  "read_back_mismatch",
-  "validator_crash",
-  "finalization_race",
-];
+function sameStringSequence(
+  actual: readonly string[],
+  expected: readonly string[],
+): boolean {
+  return JSON.stringify(actual) === JSON.stringify(expected);
+}
 
 /** Conservative synthetic-data screen for corpus text fields. */
 const PII_PATTERNS = [
@@ -247,6 +244,26 @@ function validateCase(
   scanForRealData(path, manifest.fixture.bounds, issues);
 
   if (kind === "open") {
+    const fixed =
+      manifest.case_id in OPEN_CASE_DEFINITIONS
+        ? OPEN_CASE_DEFINITIONS[
+            manifest.case_id as keyof typeof OPEN_CASE_DEFINITIONS
+          ]
+        : undefined;
+    if (
+      fixed &&
+      (manifest.title !== fixed.title ||
+        manifest.output_profile !== fixed.output_profile ||
+        manifest.fixture.bounds !== fixed.bounds)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "Open corpus titles, output profiles, and bounds are pre-registered by the protocol.",
+        ),
+      );
+    }
     if (!manifest.expected) {
       issues.push(
         issue(
@@ -269,6 +286,26 @@ function validateCase(
           ),
         );
       }
+      if (
+        fixed &&
+        (!sameStringSequence(
+          manifest.expected.protected_facts,
+          fixed.protected_facts,
+        ) ||
+          !sameStringSequence(
+            manifest.expected.layout_assertions,
+            fixed.layout_assertions,
+          ) ||
+          manifest.expected.failure_behavior !== fixed.failure_behavior)
+      ) {
+        issues.push(
+          issue(
+            path,
+            "protocol_fixed_field_changed",
+            "Open corpus expectations are pre-registered by the protocol and cannot change at freeze time.",
+          ),
+        );
+      }
       for (const text of [
         ...manifest.expected.protected_facts,
         ...manifest.expected.layout_assertions,
@@ -280,6 +317,26 @@ function validateCase(
       issues.push(issue(path, "corpus_invalid", "Open cases are not sealed."));
     }
   } else {
+    const fixed =
+      manifest.case_id in HELD_BACK_CASE_DEFINITIONS
+        ? HELD_BACK_CASE_DEFINITIONS[
+            manifest.case_id as keyof typeof HELD_BACK_CASE_DEFINITIONS
+          ]
+        : undefined;
+    if (
+      fixed &&
+      (manifest.title !== fixed.title ||
+        manifest.output_profile !== fixed.output_profile ||
+        manifest.fixture.bounds !== fixed.bounds)
+    ) {
+      issues.push(
+        issue(
+          path,
+          "protocol_fixed_field_changed",
+          "Held-back corpus titles, output profiles, and bounds are pre-registered by the protocol.",
+        ),
+      );
+    }
     if (manifest.expected) {
       issues.push(
         issue(
@@ -380,10 +437,11 @@ function validateSuites(
 ): void {
   const suites = input.operational_suites;
 
-  const repeatIds = [...suites.repeatability.case_ids].sort();
   if (
-    JSON.stringify(repeatIds) !==
-      JSON.stringify([...REQUIRED_REPEATABILITY_CASES].sort()) ||
+    !sameStringSequence(
+      suites.repeatability.case_ids,
+      PHASE_18_OPERATIONAL_SUITES.repeatability.case_ids,
+    ) ||
     suites.repeatability.cold_runs_per_case !== 10 ||
     suites.repeatability.warm_runs_per_case !== 10
   ) {
@@ -448,27 +506,19 @@ function validateSuites(
     );
   }
 
-  for (const injection of REQUIRED_FAILURE_INJECTIONS) {
-    if (!suites.failure_matrix.injections.includes(injection)) {
-      issues.push(
-        issue(
-          "operational_suites.failure_matrix",
-          "suite_invalid",
-          `The failure matrix must inject ${injection}.`,
-        ),
-      );
-    }
-  }
-  for (const injection of suites.failure_matrix.injections) {
-    if (!REQUIRED_FAILURE_INJECTIONS.includes(injection)) {
-      issues.push(
-        issue(
-          "operational_suites.failure_matrix",
-          "suite_invalid",
-          `Injection ${injection} is not part of the frozen eight-injection failure matrix.`,
-        ),
-      );
-    }
+  if (
+    !sameStringSequence(
+      suites.failure_matrix.injections,
+      PHASE_18_OPERATIONAL_SUITES.failure_matrix.injections,
+    )
+  ) {
+    issues.push(
+      issue(
+        "operational_suites.failure_matrix",
+        "suite_invalid",
+        "The failure matrix injection sequence is exactly the frozen eight-injection protocol order.",
+      ),
+    );
   }
 
   if (suites.outage_recovery.outage_window_minutes <= 0) {
@@ -651,6 +701,30 @@ function validateBudgetsValidatorsRoles(
     );
   }
 
+  const fixedValidators = new Map(
+    PHASE_18_VALIDATION_TOOLS.map((tool) => [
+      `${tool.category}:${tool.name}`,
+      tool,
+    ]),
+  );
+  const validatorKeys = input.validators.map(
+    (tool) => `${tool.category}:${tool.name}`,
+  );
+  const validatorKeySet = new Set(validatorKeys);
+  const validatorsMatch =
+    validatorKeys.length === fixedValidators.size &&
+    validatorKeySet.size === fixedValidators.size &&
+    [...fixedValidators.keys()].every((key) => validatorKeySet.has(key));
+  if (!validatorsMatch) {
+    issues.push(
+      issue(
+        "validators",
+        "validator_missing",
+        "The frozen validator set is exactly the pre-registered tools with no duplicates or substitutions.",
+      ),
+    );
+  }
+
   const categories = new Set(input.validators.map((tool) => tool.category));
   for (const category of VALIDATOR_CATEGORIES) {
     if (!categories.has(category)) {
@@ -674,12 +748,6 @@ function validateBudgetsValidatorsRoles(
       );
     }
   }
-  const fixedValidators = new Map(
-    PHASE_18_VALIDATION_TOOLS.map((tool) => [
-      `${tool.category}:${tool.name}`,
-      tool,
-    ]),
-  );
   for (const tool of input.validators) {
     const fixed = fixedValidators.get(`${tool.category}:${tool.name}`);
     if (
