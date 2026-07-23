@@ -22,9 +22,16 @@ vi.mock("../../../apps/admin/src/cms/get-payload", () => ({
 
 vi.mock("../../../apps/admin/src/cms/public/resolve-tenant", () => ({
   resolveTenantFromRequest: resolveTenantFromRequestMock,
+  toPublicRequestContext: (tenant: { id: number | string }) => ({
+    operationalTenantId: String(tenant.id),
+    cmsTenantId: tenant.id,
+    siteId: null,
+  }),
 }));
 
 let GET: (request: unknown) => Promise<Response>;
+
+import { TENANT_DOC, fakeFind } from "./public-route-fakes";
 
 function createRequest(url = "http://localhost:3030/api/cms/public/updates") {
   return {
@@ -39,7 +46,7 @@ beforeAll(async () => {
   GET = routeModule.GET;
 });
 
-describe("public ministry updates route", () => {
+describe("public ministry updates route (through the choke-point)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -64,10 +71,22 @@ describe("public ministry updates route", () => {
     );
   });
 
-  it("defaults to limit=5 and filters to published docs", async () => {
-    const find = vi.fn().mockResolvedValue({
-      docs: [
-        { id: "update_1", title: "Quarterly Update", _status: "published" },
+  it("reads published updates under the public-read policy and serializes them through the allowlist", async () => {
+    const find = fakeFind({
+      tenants: [TENANT_DOC],
+      "ministry-updates": [
+        {
+          id: "update_1",
+          title: "Quarterly Update",
+          slug: "quarterly-update",
+          excerpt: "Progress",
+          content: { root: {} },
+          missionary: { id: 9, privateEmail: "never@leaks.example" },
+          publishedAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-02T00:00:00.000Z",
+          _status: "published",
+          internalNotes: "staff only",
+        },
       ],
     });
     getPayloadClientMock.mockResolvedValue({ find });
@@ -83,34 +102,52 @@ describe("public ministry updates route", () => {
     expect(body).toEqual({
       tenant: { slug: "alpha" },
       updates: [
-        { id: "update_1", title: "Quarterly Update", _status: "published" },
+        {
+          id: "update_1",
+          title: "Quarterly Update",
+          slug: "quarterly-update",
+          excerpt: "Progress",
+          content: { root: {} },
+          missionaryId: "9",
+          publishedAt: "2026-07-01T00:00:00.000Z",
+          updatedAt: "2026-07-02T00:00:00.000Z",
+        },
       ],
     });
-    expect(find).toHaveBeenCalledWith({
-      collection: "ministry-updates",
-      limit: 5,
-      overrideAccess: true,
-      pagination: false,
-      sort: "-publishedAt",
-      where: {
-        and: [
-          {
-            tenant: {
-              equals: "tenant_1",
-            },
-          },
-          {
-            _status: {
-              equals: "published",
-            },
-          },
-        ],
-      },
-    });
+    // Raw Payload fields never leak through the allowlist serializer.
+    expect(JSON.stringify(body)).not.toContain("internalNotes");
+    expect(JSON.stringify(body)).not.toContain("privateEmail");
+    expect(JSON.stringify(body)).not.toContain("_status");
+
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: "ministry-updates",
+        limit: 5,
+        overrideAccess: false,
+        pagination: false,
+        sort: "-publishedAt",
+        context: { asymPublicRead: { cmsTenantId: "tenant_1" } },
+        where: {
+          and: [
+            { tenant: { equals: "tenant_1" } },
+            { _status: { equals: "published" } },
+          ],
+        },
+      }),
+    );
+    expect(find).toHaveBeenCalledWith(
+      expect.objectContaining({
+        collection: "tenants",
+        overrideAccess: false,
+        where: {
+          and: [{ id: { equals: "tenant_1" } }, { isActive: { equals: true } }],
+        },
+      }),
+    );
   });
 
   it("clamps limit values between 1 and 20", async () => {
-    const find = vi.fn().mockResolvedValue({ docs: [] });
+    const find = fakeFind({ tenants: [TENANT_DOC], "ministry-updates": [] });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
       id: "tenant_1",
@@ -129,31 +166,17 @@ describe("public ministry updates route", () => {
       ),
     );
 
-    expect(find).toHaveBeenNthCalledWith(
-      1,
-      expect.objectContaining({
-        limit: 20,
-      }),
-    );
-    expect(find).toHaveBeenNthCalledWith(
-      2,
-      expect.objectContaining({
-        limit: 1,
-      }),
-    );
-    expect(find).toHaveBeenNthCalledWith(
-      3,
-      expect.objectContaining({
-        limit: 5,
-      }),
-    );
+    const updatesCalls = find.mock.calls
+      .map(([args]) => args as { collection: string; limit?: number })
+      .filter((args) => args.collection === "ministry-updates");
+    expect(updatesCalls.map((args) => args.limit)).toEqual([20, 1, 5]);
   });
 
-  it("returns 500 when payload lookup fails", async () => {
-    const consoleErrorSpy = vi
-      .spyOn(console, "error")
-      .mockImplementation(() => undefined);
-    const find = vi.fn().mockRejectedValue(new Error("db down"));
+  it("serves nothing for a missing or inactive tenant (fail-closed empty)", async () => {
+    const find = fakeFind({
+      tenants: [],
+      "ministry-updates": [{ id: "update_1", title: "Leak?" }],
+    });
     getPayloadClientMock.mockResolvedValue({ find });
     resolveTenantFromRequestMock.mockResolvedValue({
       id: "tenant_1",
@@ -163,9 +186,35 @@ describe("public ministry updates route", () => {
     const response = await GET(createRequest());
     const body = await response.json();
 
-    expect(response.status).toBe(500);
-    expect(body).toEqual({ error: "Failed to fetch ministry updates" });
-    expect(consoleErrorSpy).toHaveBeenCalled();
+    expect(response.status).toBe(200);
+    expect(body).toEqual({ tenant: { slug: null }, updates: [] });
+
+    // The content query never ran: tenant gate first, then nothing.
+    const collections = find.mock.calls.map(
+      ([args]) => (args as { collection: string }).collection,
+    );
+    expect(collections).toEqual(["tenants"]);
+  });
+
+  it("returns 503 unavailable when the store fails, without the raw error", async () => {
+    const consoleErrorSpy = vi
+      .spyOn(console, "error")
+      .mockImplementation(() => undefined);
+    const find = vi.fn().mockRejectedValue(new Error("db down at 10.0.0.5"));
+    getPayloadClientMock.mockResolvedValue({ find });
+    resolveTenantFromRequestMock.mockResolvedValue({
+      id: "tenant_1",
+      slug: "alpha",
+    });
+
+    const response = await GET(createRequest());
+    const body = await response.json();
+
+    expect(response.status).toBe(503);
+    expect(body).toEqual({
+      error: "Published content is temporarily unavailable",
+    });
+    expect(JSON.stringify(body)).not.toContain("10.0.0.5");
     consoleErrorSpy.mockRestore();
   });
 

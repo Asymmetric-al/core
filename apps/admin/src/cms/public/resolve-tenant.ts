@@ -1,5 +1,6 @@
 import { getPayloadClient } from "../get-payload";
 
+import type { PublicRequestContext } from "@asym/api/cms/public";
 import type { NextRequest } from "next/server";
 import type { Payload } from "payload";
 
@@ -10,6 +11,21 @@ type TenantDoc = {
 };
 
 type TenantResolverPayloadClient = Pick<Payload, "find">;
+
+/**
+ * Builds the published-content reader's required request context from a
+ * resolved tenant. The reserved `siteId` seam stays null until #524 formalizes
+ * the unified host→tenant/site resolver.
+ */
+export function toPublicRequestContext(tenant: {
+  id: number | string;
+}): PublicRequestContext {
+  return {
+    operationalTenantId: String(tenant.id),
+    cmsTenantId: tenant.id,
+    siteId: null,
+  };
+}
 
 function normalizeHost(host: string | null) {
   if (!host) {

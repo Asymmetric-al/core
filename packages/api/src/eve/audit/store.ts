@@ -3,6 +3,7 @@ import { z } from "zod";
 import { EVE_AUDIT_IDENTITY_MODES, EVE_AUDIT_RESULTS } from "./types";
 
 import type { EveAuditEventRecord, EveAuditStore } from "./types";
+import type { AuthenticatedContext } from "@asym/auth/context";
 import type { AdminSupabaseClient } from "@asym/database/supabase/admin";
 
 const auditRowSchema = z.object({
@@ -110,7 +111,14 @@ export async function loadRecentEveAuditEvents(input: {
   supabaseAdmin: AdminSupabaseClient;
   tenantId: string | null;
   limit?: number;
+  auth?: AuthenticatedContext;
 }): Promise<EveAuditEventRecord[]> {
+  if (input.auth && input.tenantId !== input.auth.tenantId) {
+    throw new Error(
+      "Audit tenant scope must match the verified admin context.",
+    );
+  }
+
   let query = input.supabaseAdmin
     .from("eve_audit_events")
     .select(
@@ -119,6 +127,10 @@ export async function loadRecentEveAuditEvents(input: {
 
   if (input.tenantId !== null) {
     query = query.eq("tenant_id", input.tenantId);
+  }
+
+  if (input.auth) {
+    query = query.eq("actor_profile_id", input.auth.profileId);
   }
 
   const { data, error } = await query

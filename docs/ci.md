@@ -50,13 +50,14 @@ bun run ci:preflight
 3. `skills:verify`
 4. `lint`
 5. `verify:data-boundary`
-6. `verify:workspace-contract`
-7. `verify:eslint`
-8. `verify:shadcn-config`
-9. `verify:shadcn-diff`
-10. `typecheck`
-11. `build` (with CI-compatible env defaults for local parity)
-12. `test:unit`
+6. `verify:cms-public-sole-entry`
+7. `verify:workspace-contract`
+8. `verify:eslint`
+9. `verify:shadcn-config`
+10. `verify:shadcn-diff`
+11. `typecheck`
+12. `build` (with CI-compatible env defaults for local parity)
+13. `test:unit`
 
 Regression guards: `tests/unit/scripts/ci-preflight.contract.test.ts` (stage order),
 `tests/unit/scripts/local-gates.contract.test.ts` (`bun run check`), and
@@ -167,9 +168,9 @@ This check runs unit tests and fails if blocked warning patterns are present in 
 
 ### `lint` (needs: `format`)
 
-- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
+- _What it checks:_ Runs `bun run lint` (Turborepo → ESLint flat config across all workspaces), then `bun run verify:data-boundary` (architecture/data-access boundary contract), then `bun run verify:cms-public-sole-entry` (public CMS reads confined to the published-content reader choke-point — no raw Payload reads or `overrideAccess: true` in public code paths), then `bun run verify:workspace-contract` (workspace dependency contract), then `bun run verify:eslint` (ESLint config contract — no legacy `.eslintrc.*`, all packages have `eslint.config.mjs`, disable comments have tracking references), then `bun run verify:shadcn-config` (shared shadcn config guardrails) and `bun run verify:shadcn-diff` (component drift guard).
 - _Why it exists:_ Enforces consistent code quality and prevents architecture, workspace, and ESLint config drift.
-- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
+- _Debug locally:_ Run each command individually: `bun run lint`, `bun run verify:data-boundary`, `bun run verify:cms-public-sole-entry`, `bun run verify:workspace-contract`, `bun run verify:eslint`, `bun run verify:shadcn-config`, and `bun run verify:shadcn-diff`.
 
 ### `typecheck` (needs: `lint`)
 

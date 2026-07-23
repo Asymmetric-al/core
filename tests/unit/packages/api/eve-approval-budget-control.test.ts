@@ -71,4 +71,72 @@ describe("Eve approval and budget controls", () => {
       }),
     ).rejects.toMatchObject({ status: 403 });
   });
+
+  it("checks approval-response tenant and user ownership before the decision RPC", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({
+      data: { id: "00000000-0000-4000-8000-000000000003" },
+      error: null,
+    });
+    const requestedByEq = vi.fn().mockReturnValue({ maybeSingle });
+    const tenantEq = vi.fn().mockReturnValue({ eq: requestedByEq });
+    const idEq = vi.fn().mockReturnValue({ eq: tenantEq });
+    const select = vi.fn().mockReturnValue({ eq: idEq });
+    const rpc = vi.fn().mockResolvedValue({ data: null, error: null });
+    const supabaseAdmin = {
+      from: vi.fn().mockReturnValue({ select }),
+      rpc,
+    } as unknown as AdminSupabaseClient;
+    const { decideEvePolicyApproval } =
+      await import("../../../../packages/api/src/eve/approval-budget/control");
+
+    await decideEvePolicyApproval({
+      approvalId: "00000000-0000-4000-8000-000000000003",
+      approved: true,
+      auth,
+      reason: "Explicitly approved after review.",
+      supabaseAdmin,
+    });
+
+    expect(idEq).toHaveBeenCalledWith(
+      "id",
+      "00000000-0000-4000-8000-000000000003",
+    );
+    expect(tenantEq).toHaveBeenCalledWith("tenant_id", auth.tenantId);
+    expect(requestedByEq).toHaveBeenCalledWith(
+      "requested_by_profile_id",
+      auth.profileId,
+    );
+    expect(rpc).toHaveBeenCalledWith(
+      "decide_eve_policy_approval",
+      expect.objectContaining({
+        p_actor_profile_id: auth.profileId,
+        p_tenant_id: auth.tenantId,
+      }),
+    );
+  });
+
+  it("refuses an approval response not owned by the verified admin", async () => {
+    const maybeSingle = vi.fn().mockResolvedValue({ data: null, error: null });
+    const requestedByEq = vi.fn().mockReturnValue({ maybeSingle });
+    const tenantEq = vi.fn().mockReturnValue({ eq: requestedByEq });
+    const idEq = vi.fn().mockReturnValue({ eq: tenantEq });
+    const select = vi.fn().mockReturnValue({ eq: idEq });
+    const rpc = vi.fn();
+    const { decideEvePolicyApproval } =
+      await import("../../../../packages/api/src/eve/approval-budget/control");
+
+    await expect(
+      decideEvePolicyApproval({
+        approvalId: "00000000-0000-4000-8000-000000000004",
+        approved: false,
+        auth,
+        reason: "Not authorized for this request.",
+        supabaseAdmin: {
+          from: vi.fn().mockReturnValue({ select }),
+          rpc,
+        } as unknown as AdminSupabaseClient,
+      }),
+    ).rejects.toMatchObject({ status: 403 });
+    expect(rpc).not.toHaveBeenCalled();
+  });
 });
