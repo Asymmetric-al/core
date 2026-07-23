@@ -107,6 +107,7 @@ export function PublicCmsPageMedia({
             cmsBaseUrl={cmsBaseUrl}
             caption={entry.block.mediaCaption}
             sizes={PAGE_MEDIA_SIZES}
+            priority={index === 0}
             className="my-0"
           />
         );

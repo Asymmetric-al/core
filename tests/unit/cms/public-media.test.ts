@@ -44,6 +44,35 @@ describe("resolvePublicCmsMediaUrl", () => {
     ).toBeNull();
   });
 
+  it("admits absolute Vercel Blob public-store URLs (hosted Payload media origin)", () => {
+    const blobUrl =
+      "https://store123.public.blob.vercel-storage.com/web-studio/media/jane.jpg";
+    expect(resolvePublicCmsMediaUrl(blobUrl, CMS_BASE_URL)).toBe(blobUrl);
+    // Blob URLs do not need a CMS base — production media is absolute.
+    expect(resolvePublicCmsMediaUrl(blobUrl, null)).toBe(blobUrl);
+  });
+
+  it("rejects lookalike hosts that are not a Vercel Blob public store", () => {
+    expect(
+      resolvePublicCmsMediaUrl(
+        "https://evil.public.blob.vercel-storage.com.attacker.example/x.jpg",
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl(
+        "https://store123.private.blob.vercel-storage.com/x.jpg",
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl(
+        "http://store123.public.blob.vercel-storage.com/x.jpg",
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
+  });
+
   it("rejects unsafe or unresolvable URLs fail-safe", () => {
     expect(resolvePublicCmsMediaUrl(null, CMS_BASE_URL)).toBeNull();
     expect(resolvePublicCmsMediaUrl("", CMS_BASE_URL)).toBeNull();
@@ -59,6 +88,13 @@ describe("resolvePublicCmsMediaUrl", () => {
     ).toBeNull();
     expect(
       resolvePublicCmsMediaUrl("relative/no-slash.jpg", CMS_BASE_URL),
+    ).toBeNull();
+    // `new URL("/\\evil...", base)` would otherwise escape to evil.example.org.
+    expect(
+      resolvePublicCmsMediaUrl("/\\evil.example.org/x.jpg", CMS_BASE_URL),
+    ).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl("/\\\\evil.example.org/x.jpg", CMS_BASE_URL),
     ).toBeNull();
   });
 
@@ -139,5 +175,37 @@ describe("resolveRenderablePublicCmsImage", () => {
 
     expect(resolved?.width).toBe(1200);
     expect(resolved?.height).toBe(799);
+  });
+
+  it("fails safe when rounding would yield a non-positive dimension", () => {
+    expect(
+      resolveRenderablePublicCmsImage(
+        { ...PUBLIC_MEDIA, width: 0.3, height: 800 },
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
+    expect(
+      resolveRenderablePublicCmsImage(
+        { ...PUBLIC_MEDIA, width: 1200, height: 0.4 },
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
+  });
+
+  it("resolves Blob-backed absolute media URLs into a renderable image", () => {
+    const blobUrl =
+      "https://store123.public.blob.vercel-storage.com/web-studio/media/jane.jpg";
+    expect(
+      resolveRenderablePublicCmsImage(
+        { ...PUBLIC_MEDIA, url: blobUrl },
+        CMS_BASE_URL,
+      ),
+    ).toEqual({
+      src: blobUrl,
+      alt: "Jane in field",
+      width: 1200,
+      height: 800,
+      caption: "Jane serving in June",
+    });
   });
 });

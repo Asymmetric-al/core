@@ -1,14 +1,18 @@
 /**
- * Derives the `next/image` remote pattern for the CMS media origin (Phase 5
- * (Public Website Runtime Contract), ruling A12; issue #529).
+ * Derives the `next/image` remote patterns for public CMS media origins
+ * (Phase 5 (Public Website Runtime Contract), ruling A12; issue #529).
  *
- * Public CMS media is uploaded to and served by the admin app, so the donor
- * app's image optimizer must accept exactly that origin — and nothing else.
- * The pattern is derived from the configured `CMS_BASE_URL` (the same base
- * the donor CMS client fetches JSON from); when it is missing, the local-dev
- * default matches `apps/donor/lib/cms/client.ts`. A base URL that is not
- * http(s) yields no pattern at all (fail-safe: the optimizer proxies nothing
- * from unknown origins).
+ * Public CMS media is uploaded through the admin app. In local/dev without
+ * Blob it is served from the admin origin; in hosted deployments the Payload
+ * Vercel Blob adapter stores files at
+ * `https://<store>.public.blob.vercel-storage.com`. The donor image optimizer
+ * must accept exactly those origins — and nothing else.
+ *
+ * The CMS-origin pattern is derived from the configured `CMS_BASE_URL` (the
+ * same base the donor CMS client fetches JSON from); when it is missing, the
+ * local-dev default matches `apps/donor/lib/cms/client.ts`. A base URL that
+ * is not http(s) contributes no CMS pattern. The Blob public-host pattern is
+ * always included so production Blob URLs optimize without a separate env.
  */
 
 const LOCAL_DEV_CMS_BASE_URL = "http://127.0.0.1:3030";
@@ -22,28 +26,43 @@ const LOCAL_DEV_CMS_BASE_URL = "http://127.0.0.1:3030";
  * @returns {CmsImageRemotePattern[]}
  */
 export function buildPublicCmsImageRemotePatterns(cmsBaseUrl) {
+  /** @type {CmsImageRemotePattern[]} */
+  const patterns = [];
+
   const base = cmsBaseUrl?.trim() || LOCAL_DEV_CMS_BASE_URL;
 
   let parsed;
   try {
     parsed = new URL(base);
   } catch {
-    return [];
+    parsed = null;
   }
 
-  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-    return [];
+  if (
+    parsed &&
+    (parsed.protocol === "http:" || parsed.protocol === "https:")
+  ) {
+    /** @type {CmsImageRemotePattern} */
+    const cmsPattern = {
+      protocol: parsed.protocol === "http:" ? "http" : "https",
+      hostname: parsed.hostname,
+    };
+
+    if (parsed.port) {
+      cmsPattern.port = parsed.port;
+    }
+
+    patterns.push(cmsPattern);
   }
 
-  /** @type {CmsImageRemotePattern} */
-  const pattern = {
-    protocol: parsed.protocol === "http:" ? "http" : "https",
-    hostname: parsed.hostname,
-  };
+  // Payload `@payloadcms/storage-vercel-blob` with `access: "public"` serves
+  // media from `<storeId>.public.blob.vercel-storage.com`. Next.js remote
+  // patterns accept `**` as a multi-label hostname wildcard (same shape as
+  // the donor `**.supabase.co` entry).
+  patterns.push({
+    protocol: "https",
+    hostname: "**.public.blob.vercel-storage.com",
+  });
 
-  if (parsed.port) {
-    pattern.port = parsed.port;
-  }
-
-  return [pattern];
+  return patterns;
 }

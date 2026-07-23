@@ -10,15 +10,24 @@
  *   relationship id (an unpopulated or non-public-eligible reference), a
  *   missing URL, or missing intrinsic dimensions — resolves to `null` and is
  *   simply not rendered. Silence, never a broken or leaking image.
- * - Serialized URLs resolve only against the CMS media origin: admin-relative
- *   paths (`/api/media/file/...`) join the base, and absolute URLs are
- *   admitted only when they already live on that origin. A foreign-host or
- *   non-http(s) URL smuggled into a media field resolves to `null` instead of
- *   reaching `next/image` (whose host allowlist would turn it into a
- *   render-time error).
+ * - Serialized URLs resolve only against allowed public media origins:
+ *   admin-relative paths (`/api/media/file/...`) join the CMS base, absolute
+ *   URLs on that CMS origin pass through, and absolute URLs on the configured
+ *   Vercel Blob public host (`*.public.blob.vercel-storage.com`) pass when
+ *   production storage is Blob-backed. A foreign-host or non-http(s) URL
+ *   smuggled into a media field resolves to `null` instead of reaching
+ *   `next/image` (whose host allowlist would turn it into a render-time
+ *   error).
  */
 
 const SAFE_IMAGE_PROTOCOLS = new Set(["http:", "https:"]);
+
+/**
+ * Host suffix for Payload's Vercel Blob adapter when `access: "public"`
+ * (the only access mode the adapter supports today). Store id is the single
+ * DNS label before this suffix — see `@payloadcms/storage-vercel-blob`.
+ */
+const VERCEL_BLOB_PUBLIC_HOST_SUFFIX = ".public.blob.vercel-storage.com";
 
 /**
  * The public media fields delivery resolution actually consumes — a
@@ -55,10 +64,12 @@ export function isPublicEligibleCmsMedia(media: PublicCmsMediaLike): boolean {
 }
 
 /**
- * Resolves a serialized public media URL against the CMS media origin.
- * Site-relative paths join the base; absolute URLs pass only when already on
- * that origin; everything else (missing value, protocol-relative, non-http(s)
- * schemes, foreign hosts, unparsable base) resolves to `null`.
+ * Resolves a serialized public media URL against allowed public media
+ * origins. Site-relative paths join the CMS base (and must stay on that
+ * origin after resolution); absolute URLs pass only on the CMS origin or the
+ * Vercel Blob public host; everything else (missing value, protocol-relative,
+ * non-http(s) schemes, foreign hosts, backslash host tricks, unparsable base
+ * for relative paths) resolves to `null`.
  */
 export function resolvePublicCmsMediaUrl(
   url: unknown,
@@ -69,12 +80,7 @@ export function resolvePublicCmsMediaUrl(
   }
 
   const trimmed = url.trim();
-  if (!trimmed || trimmed.startsWith("//")) {
-    return null;
-  }
-
-  const base = parseSafeHttpUrl(cmsBaseUrl ?? null);
-  if (!base) {
+  if (!trimmed || trimmed.startsWith("//") || trimmed.includes("\\")) {
     return null;
   }
 
@@ -83,6 +89,16 @@ export function resolvePublicCmsMediaUrl(
     if (!absolute) {
       return null;
     }
+
+    if (isVercelBlobPublicMediaUrl(absolute)) {
+      return absolute;
+    }
+
+    const base = parseSafeHttpUrl(cmsBaseUrl ?? null);
+    if (!base) {
+      return null;
+    }
+
     return new URL(absolute).origin === new URL(base).origin ? absolute : null;
   }
 
@@ -90,8 +106,19 @@ export function resolvePublicCmsMediaUrl(
     return null;
   }
 
+  const base = parseSafeHttpUrl(cmsBaseUrl ?? null);
+  if (!base) {
+    return null;
+  }
+
   try {
-    return new URL(trimmed, base).toString();
+    const resolved = new URL(trimmed, base);
+    if (!SAFE_IMAGE_PROTOCOLS.has(resolved.protocol)) {
+      return null;
+    }
+    // Site-relative inputs must remain on the CMS origin after URL joining
+    // (closes `/\evil.example.org/...` host-escape via backslash normalization).
+    return resolved.origin === new URL(base).origin ? resolved.toString() : null;
   } catch {
     return null;
   }
@@ -155,10 +182,38 @@ function parseSafeHttpUrl(value: string | null): string | null {
   }
 }
 
+/**
+ * True when `url` is an https URL on a Vercel Blob public store host
+ * (`<storeId>.public.blob.vercel-storage.com`). Store id is a single DNS
+ * label (no extra dots), matching the adapter's token-derived base URL.
+ */
+export function isVercelBlobPublicMediaUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== "https:") {
+      return false;
+    }
+
+    const hostname = parsed.hostname.toLowerCase();
+    if (!hostname.endsWith(VERCEL_BLOB_PUBLIC_HOST_SUFFIX)) {
+      return false;
+    }
+
+    const storeId = hostname.slice(
+      0,
+      hostname.length - VERCEL_BLOB_PUBLIC_HOST_SUFFIX.length,
+    );
+    return /^[a-z0-9]+$/.test(storeId);
+  } catch {
+    return false;
+  }
+}
+
 function readPositiveDimension(value: unknown): number | null {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) {
+  if (typeof value !== "number" || !Number.isFinite(value)) {
     return null;
   }
 
-  return Math.round(value);
+  const rounded = Math.round(value);
+  return rounded > 0 ? rounded : null;
 }

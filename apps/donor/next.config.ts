@@ -51,8 +51,8 @@ const nextConfig: NextConfig = {
   },
   images: {
     remotePatterns: [
-      // The CMS media origin (admin-served Payload uploads) — derived from
-      // CMS_BASE_URL so public CMS images optimize from exactly that host
+      // Public CMS media origins: CMS_BASE_URL (admin-relative uploads) plus
+      // `**.public.blob.vercel-storage.com` for hosted Vercel Blob media
       // (Phase 5 ruling A12; issue #529).
       ...buildPublicCmsImageRemotePatterns(process.env.CMS_BASE_URL),
       {

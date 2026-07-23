@@ -62,6 +62,8 @@ type PublicCmsMediaFigureProps = {
    */
   caption?: string | null;
   sizes?: string;
+  /** Set for above-the-fold imagery (first layout media block). */
+  priority?: boolean;
   className?: string;
 };
 
@@ -70,6 +72,7 @@ export function PublicCmsMediaFigure({
   cmsBaseUrl,
   caption,
   sizes,
+  priority = false,
   className,
 }: PublicCmsMediaFigureProps) {
   const image = resolveRenderablePublicCmsImage(media, cmsBaseUrl);
@@ -87,6 +90,7 @@ export function PublicCmsMediaFigure({
         width={image.width}
         height={image.height}
         sizes={sizes}
+        priority={priority}
         className="h-auto w-full rounded-xl object-cover"
       />
       {figcaption ? (
