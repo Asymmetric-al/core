@@ -4,6 +4,8 @@ import { existsSync, readdirSync, rmSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { repairWorkspaceLinks } from "../repair-workspace-links.mjs";
+
 const REPO_ROOT = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
   "../..",
@@ -279,6 +281,14 @@ function clearStaleNextLocks() {
   }
 }
 
+/** Heal hollow workspace links (Bun isolated-linker corruption) before builds. */
+function logRepairedWorkspaceLinks() {
+  const { repaired } = repairWorkspaceLinks(REPO_ROOT);
+  for (const entry of repaired) {
+    console.log(`[repair-workspace-links] restored ${entry}`);
+  }
+}
+
 function main(args = process.argv.slice(2)) {
   let requestedApps;
   try {
@@ -288,6 +298,8 @@ function main(args = process.argv.slice(2)) {
     process.exit(1);
   }
 
+  logRepairedWorkspaceLinks();
+
   for (const step of getSharedPackageBuildSteps()) {
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
@@ -296,6 +308,7 @@ function main(args = process.argv.slice(2)) {
 
   for (const app of requestedApps) {
     const step = getAppBuildStep(app);
+    logRepairedWorkspaceLinks();
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();

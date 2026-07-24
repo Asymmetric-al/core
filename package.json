@@ -150,7 +150,7 @@
     "boneyard:donor:force": "cd apps/donor && bunx boneyard-js build http://localhost:3000 --force",
     "boneyard:force": "bun run boneyard:admin:force && bun run boneyard:missionary:force && bun run boneyard:donor:force",
     "prepare": "husky",
-    "postinstall": "node scripts/dedupe-tanstack-db.mjs"
+    "postinstall": "node scripts/dedupe-tanstack-db.mjs && node scripts/repair-workspace-links.mjs"
   },
   "dependencies": {
     "@asym/api": "workspace:*",
