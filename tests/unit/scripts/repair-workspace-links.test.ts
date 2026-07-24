@@ -4,9 +4,12 @@ import {
   rmSync,
   symlinkSync,
   writeFileSync,
+  readFileSync,
+  readdirSync,
   lstatSync,
   realpathSync,
   existsSync,
+  renameSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -101,5 +104,34 @@ describe("repairWorkspaceLinks", () => {
     expect(
       existsSync(path.join(repoRoot, "apps/admin/node_modules/@asym")),
     ).toBe(false);
+  });
+
+  it("restores the hollow directory if symlink creation is not supported", () => {
+    const hollow = path.join(
+      repoRoot,
+      "apps/admin/node_modules/@asym/mock-data",
+    );
+    const hollowBuildInfo = path.join(hollow, "dist/tsconfig.tsbuildinfo");
+    mkdirSync(path.dirname(hollowBuildInfo), { recursive: true });
+    writeFileSync(hollowBuildInfo, "{}");
+
+    const { repaired } = repairWorkspaceLinks(repoRoot, {
+      existsSync,
+      lstatSync,
+      mkdirSync,
+      readFileSync,
+      readdirSync,
+      renameSync,
+      rmSync,
+      symlinkSync() {
+        const error = new Error("Symlinks are disabled");
+        (error as NodeJS.ErrnoException).code = "EPERM";
+        throw error;
+      },
+    });
+
+    expect(repaired).toHaveLength(0);
+    expect(lstatSync(hollow).isDirectory()).toBe(true);
+    expect(existsSync(hollowBuildInfo)).toBe(true);
   });
 });

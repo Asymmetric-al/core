@@ -18,6 +18,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const SKIPPABLE_SYMLINK_ERROR_CODES = new Set(["EPERM", "EACCES", "ENOTSUP"]);
 
 /** @param {string} repoRoot */
 function discoverWorkspaceDirs(repoRoot, fileSystem) {
@@ -49,6 +50,17 @@ function readPackageJson(dir, fileSystem) {
   return JSON.parse(
     fileSystem.readFileSync(path.join(dir, "package.json"), "utf8"),
   );
+}
+
+function getErrorCode(error) {
+  return /** @type {NodeJS.ErrnoException} */ (error).code;
+}
+
+function createBackupPath(linkPath, fileSystem) {
+  for (let attempt = 0; ; attempt += 1) {
+    const backupPath = `${linkPath}.repair-backup-${process.pid}-${attempt}`;
+    if (!fileSystem.existsSync(backupPath)) return backupPath;
+  }
 }
 
 /**
@@ -108,9 +120,27 @@ export function repairWorkspaceLinks(repoRoot, fileSystem = fs) {
 
       if (!needsRepair) continue;
 
-      fileSystem.rmSync(linkPath, { recursive: true, force: true });
-      fileSystem.mkdirSync(path.dirname(linkPath), { recursive: true });
-      fileSystem.symlinkSync(targetDir, linkPath, linkType);
+      const backupPath = createBackupPath(linkPath, fileSystem);
+      fileSystem.renameSync(linkPath, backupPath);
+      try {
+        fileSystem.mkdirSync(path.dirname(linkPath), { recursive: true });
+        fileSystem.symlinkSync(targetDir, linkPath, linkType);
+      } catch (error) {
+        fileSystem.rmSync(linkPath, { recursive: true, force: true });
+        fileSystem.renameSync(backupPath, linkPath);
+        const code = getErrorCode(error);
+        if (SKIPPABLE_SYMLINK_ERROR_CODES.has(code)) {
+          console.warn(
+            `[repair-workspace-links] Skipping ${path.relative(
+              repoRoot,
+              linkPath,
+            )}: ${code}.`,
+          );
+          continue;
+        }
+        throw error;
+      }
+      fileSystem.rmSync(backupPath, { recursive: true, force: true });
       repaired.push(`${path.relative(repoRoot, linkPath)} -> ${depName}`);
     }
   }
