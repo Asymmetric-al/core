@@ -90,6 +90,17 @@ run; changed semantic reuse MUST conflict.
 - AND the UI shows a permission-safe typed delta and offers to rebuild and
   review the current candidate
 
+#### Scenario: Protected review becomes stale or two reviewers start concurrently
+
+- GIVEN a protected review is bound to one exact Run Preflight digest
+- WHEN participation changes after review or two eligible reviewers concurrently
+  call `approveAndStartLiveRun`
+- THEN a participation change supersedes that review and requires a new review
+  bound to the rebuilt digest
+- AND exactly one concurrent command may create and release one run
+- AND every losing or stale command returns a typed replay or conflict with zero
+  additional run, item, outbox, audit-decision, or provider effects
+
 ### Requirement: D3 Statement Recognition Delivery And Presentation Subjects Stay Separate
 
 Phase 19 MUST preserve four distinct concepts:
@@ -136,6 +147,15 @@ epoch MUST be frozen into source facts and preflight. A later plan change MUST
 affect future eligible gifts only and MUST NOT rewrite existing issuance or
 coverage.
 
+Phase 15 batch and quick-entry commit, and every other gift-intake path, MUST
+consume that Phase 7-frozen plan. `individual_cash` permits ordinary eligible
+per-gift receipt admission only after the tender reaches source-required
+finality. `annual_cumulative_cash` MUST create no per-gift official receipt,
+official coverage, or receipt-send outbox occurrence; the posted gift remains
+available only to Phase 7's year-end coverage authority. Tenant configuration,
+caller input, donor data, currency, locale, and intake channel MUST NOT override
+or infer the plan.
+
 For `annual_cumulative_cash`, Phase 7 MUST own exact eligible coverage and
 exclude ineligible, non-cash, already individually receipted, cancelled,
 replaced, or otherwise covered facts. Phase 19 MUST coordinate the cumulative
@@ -158,6 +178,17 @@ coverage.
   plan epoch
 - AND Phase 18 remains the sole authority for official receipt identity,
   currentness, cancellation, and replacement
+
+#### Scenario: Batch commit respects annual cumulative coverage
+
+- GIVEN an eligible settled check or cash gift is frozen under
+  `annual_cumulative_cash`
+- WHEN Phase 15 commits the batch or quick-entry gift
+- THEN the money posts through the ordinary append-only ledger path
+- AND no per-gift official receipt, coverage record, or receipt-send outbox
+  occurrence is created
+- AND staff see the occurrence as ready for year-end receipt rather than failed
+  or omitted
 
 ### Requirement: D5 Primary Releases Stay Immutable While Late Facts Use A Contract-owned Lane
 

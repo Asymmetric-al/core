@@ -35,7 +35,7 @@ document, communication, audit, or workflow system.
 - Add an optional purpose-separated **Support overview — Not a tax document**
   for the closed Phase 14 household-support and disclosed-DAF launch set.
 - Replace the live annual-statement text route with the canonical Phase 19
-  run -> Phase 18 document -> Phase 17 delivery path. No legacy adapter or
+  run, then Phase 18 document, then Phase 17 delivery path. No legacy adapter or
   parallel statement runtime is authorized.
 
 ## Capability Deltas

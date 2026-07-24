@@ -41,7 +41,15 @@ Modern SiteStacker parity for the **finance/legal record foundation** of the pla
 > owns the **Recognition Subject** projection. When enabled, Phase 19 may render
 > that projection only as `giving.summary.informational@1`, persistently labeled
 > **Support overview — Not a tax document**; it never enters an official total
-> or blocks an official document. For a legitimate December check entered in
+> or blocks an official document. For an exact issuer with an active Canadian
+> pack, Phase 7 freezes exactly one prospective plan on every eligible cash
+> occurrence: `individual_cash` permits ordinary per-gift receipt admission
+> after source-confirmed success, while `annual_cumulative_cash` forbids a
+> per-gift official receipt and reserves that occurrence for Phase 7-owned
+> nonoverlapping year-end coverage. Phase 15 commit and every other intake path
+> must consume that frozen plan; neither a tenant setting nor a caller may
+> reinterpret it. Plan changes affect future eligible occurrences only. For a
+> legitimate December check entered in
 > January, ordinary source intake accepts an auditable staff attestation as the
 > default basis for the prior-year date. A tenant or jurisdiction contract may
 > require stronger evidence or review, but Phase 7 does not impose a universal

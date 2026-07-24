@@ -6,6 +6,13 @@ This design implements the ratified Phase 19 D1-D18 decisions without reopening
 them. The Phase 19 PRD and its decision-to-test matrix are the detailed
 implementation interface; this OpenSpec change records the observable contract.
 
+At implementation and archive time, the repository source-of-truth order
+controls: merged OpenSpec specifications, then accepted proposed OpenSpec
+requirements, then the ratified PRD's detailed implementation and acceptance
+contract, then ADR rationale, then `CONTEXT.md` vocabulary. These artifacts MUST
+agree before dispatch. A conflict blocks implementation until every affected
+surface is reconciled; an implementer may not select the most convenient text.
+
 ## Public Application Boundary
 
 The highest public seam is one tenant- and actor-scoped

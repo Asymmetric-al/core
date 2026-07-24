@@ -6,6 +6,9 @@
       research evidence, congruence package, ADRs, and this OpenSpec change.
 - [ ] 1.2 Prove or explicitly supersede the Phase 7, Phase 14, Phase 18,
       Phase 17/6, Phase 12, and Phase 15 dependency seams before runtime work.
+      This proof includes Phase 15 intake consuming Phase 7's frozen
+      `individual_cash` or `annual_cumulative_cash` plan with no per-gift
+      receipt/outbox admission for annual-cumulative occurrences.
 - [ ] 1.3 Remove `issued-on-accept`, joint-household official-statement,
       mixed-recognition official-statement, and Phase 19-owned eligibility
       wording from active contracts.
@@ -34,7 +37,9 @@
 - [ ] 3.3 Add standard same-person and protected different-human release floors
       without an ordinary approval workflow.
 - [ ] 3.4 Implement one idempotent atomic Start transaction and unclaimable
-      release barrier with no external I/O.
+      release barrier with no external I/O; prove concurrent protected
+      approve-and-start calls create exactly one run and a participation edit
+      invalidates review evidence bound to the prior preflight.
 
 ## 4. Recipient And Fulfillment Operations
 
@@ -91,7 +96,14 @@
 - [ ] 8.2 Prove D1-D18 happy paths, edge cases, failures, replay, races,
       provider ambiguity, tenant isolation, exact counts, records behavior,
       accessibility, and production-shaped seasonal load at the accepted public
-      seam.
+      seam. Named boundary proofs MUST include a 50,000-subject release and a
+      complete 50,001-subject preflight whose release blocks atomically with
+      zero run/item/outbox effects, plus Phase 15 annual-cumulative commit with
+      zero per-gift receipt/outbox effects.
 - [ ] 8.3 Keep implementation blocked until the dependency and release gates in
-      `design.md` are satisfied; archive this change only after deployed
-      behavior is verified.
+      `design.md` are satisfied. Coordinate archive order with the Phase 19
+      `platform-product-intent` delta in `sitestacker-parity` and the annual-
+      statement `donation-lifecycle` delta in `add-donor-self-service`; do not
+      merge a cross-change reference before its required
+      `statement-operations` capability is available. Archive this change only
+      after deployed behavior is verified.

@@ -92,4 +92,8 @@
       overview as a separate **Not a tax document** artifact; deliberately
       requests one outbound copy without duplicate submission; and cannot
       access another subject's, a predecessor's, or an unauthorized artifact.
-- [ ] 4.3 Archive this change after deployment verification.
+- [ ] 4.3 Archive this change after deployment verification and only in an order
+      that ensures the Phase 19 `statement-operations` capability and its
+      `platform-product-intent` delta are available before this change's
+      annual-statement `donation-lifecycle` references become merged product
+      intent.

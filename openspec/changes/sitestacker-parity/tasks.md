@@ -176,8 +176,11 @@
       **Support overview — Not a tax document** purpose.
 - [x] 2h.5 Record the accepted
       `StatementOperationsService` real-database acceptance seam, D1-D18 release
-      proof, program-order gate on the Phase 17/18 authority package, and clean
-      removal of the live-text annual-statement route with no legacy adapter.
+      proof, program-order gate on the Phase 17/18 authority package, and the
+      required future clean removal of the live-text annual-statement route
+      with no legacy adapter. This checked planning task records the mandate;
+      runtime removal remains the unchecked
+      `add-statement-operations` task 8.1 and is not claimed complete here.
 - [x] 2h.6 Validate the active `add-statement-operations` change and the
       complete OpenSpec workspace strictly; keep Phase 19 groomed but do not
       dispatch implementation or apply `ready-for-agent`.

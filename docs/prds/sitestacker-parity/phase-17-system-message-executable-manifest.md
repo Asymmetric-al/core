@@ -883,7 +883,7 @@ package. It contains:
 2. a product-obligation census covering the 41 dated categories in this PRD,
    with source citation, owning phase, stable key or intentional deferral,
    blocker, migration disposition, and tenant-visibility classification;
-3. the 36-key planning catalog: 18 Target Live candidates and 18 Reserved keys,
+3. the 38-key planning catalog: 18 Target Live candidates and 20 Reserved keys,
    with zero Retired keys at the fresh-build target; all keys start Reserved in
    runtime until proof-gated activation;
 4. current migration evidence for receipt/replacement, every contribution
@@ -1034,7 +1034,7 @@ explicit dated product-decision amendment.
 
 1. Expand every profile/key pair and snapshot-test the complete flat object;
    there are no `undefined`, inferred, or runtime-defaulted safety fields.
-2. Compile all 18 Target Live candidates and 18 Reserved keys; Reserved entries
+2. Compile all 18 Target Live candidates and 20 Reserved keys; Reserved entries
    generate no tenant publication, binding, preview, readiness, or send path.
 3. Reject an unknown fact, a fact in any inherited forbidden set, a missing
    required/conditional fact, an unlisted optional fact, and a protected fact

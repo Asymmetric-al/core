@@ -397,9 +397,24 @@ The service exposes explicit typed commands and queries. It is not one mega-func
 | Help/copy            | Resolve contextual intent and admit one bounded additional-copy occurrence                                          |
 | Evidence             | Prepare, authorize, stream, expire, and dispose one temporary audit package                                         |
 
-The service is invoked with one trusted server-resolved execution context containing tenant, environment, stable human or service principal, active assignment, effective-access token, assurance, governance epoch, and trace identity. Command DTOs never accept caller-authoritative tenant, environment, actor, role, capability, or assurance fields.
+The service receives one trusted, server-resolved execution context containing:
 
-Every consequential command carries the target resource, expected revision or fence, an opaque client replay token, and only its bounded command-specific input. The server derives the permanent semantic slot and immutable command fingerprint. Exact replay returns the original result; reusing a slot with changed normalized input conflicts. Authorization and currentness are re-proved at commit.
+- tenant and environment;
+- stable human or service principal and active assignment;
+- effective-access token and assurance;
+- governance epoch; and
+- trace identity.
+
+Command DTOs never accept caller-authoritative tenant, environment, actor, role, capability, or assurance fields.
+
+Every consequential command carries only:
+
+- the target resource;
+- the expected revision or fence;
+- an opaque client replay token; and
+- bounded command-specific input.
+
+The server derives the permanent semantic slot and immutable command fingerprint. Exact replay returns the original result; reuse with changed normalized input conflicts. Authorization and currentness are re-proved at commit.
 
 ### Queries
 
@@ -1258,6 +1273,9 @@ Runbooks must cover stale preflight, population mismatch, ambiguous downstream h
 
 - Only gifts frozen as `annual_cumulative_cash` and otherwise eligible enter cumulative coverage.
 - Individually receipted and noncash gifts remain excluded with truthful reasons.
+- Phase 15 batch or quick-entry commit posts the money but creates no per-gift
+  official receipt, coverage record, or receipt-send outbox occurrence for an
+  `annual_cumulative_cash` gift.
 - Concurrent individual and cumulative coverage cannot overlap.
 
 ### US19-13 — Year-boundary checks use source-owned dates
@@ -1548,8 +1566,11 @@ Do not make Inngest internals, Resend, a renderer, raw database tables, route ha
 - stale source/publication/profile/review rejection with zero side effects;
 - one-operation material staleness, rebuilt exact digest, unchanged-evidence
   reproof, and protected-review supersession;
-- two concurrent starts produce one run;
-- participation race versus start;
+- two concurrent `approveAndStartLiveRun` calls produce exactly one run and one
+  final review decision;
+- a participation edit supersedes review evidence bound to the old preflight,
+  and a stale approve-and-start returns a typed conflict with zero side effects;
+- participation race versus standard Start;
 - concurrent Canadian individual versus cumulative coverage;
 - destination change before, during, and after ambiguous handoff;
 - direct-mail connection administrator without paid-lane authority, and

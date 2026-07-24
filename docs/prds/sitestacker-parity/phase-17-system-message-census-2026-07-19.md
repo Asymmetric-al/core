@@ -10,6 +10,9 @@
   [executable manifest](./phase-17-system-message-executable-manifest.md), and
   the active `outbound-communications` OpenSpec delta
 - **Informative evidence:** [research appendix](./phase-17-system-messages-template-management-research-evidence.md)
+- **Phase 19 amendment (2026-07-24):** the three former generic statement
+  planning keys are replaced by five finite Phase 19 meanings; this census now
+  contains 18 Target Live candidates and 20 Reserved keys
 
 ## Purpose and Truth Posture
 
@@ -20,7 +23,7 @@ This is the durable M0 inventory required by D16. It answers four different ques
 3. Which product-message obligations have a deliberate key or deferral?
 4. What must a mechanical closure gate prove before any key becomes Live?
 
-The answers below are **specified**, not implemented. “Target Live” is a delivery target, not current runtime truth. All 36 planning keys begin `Reserved`; a Target Live candidate becomes `Live` only after its complete key-specific proof pack passes. No row below proves a producer has migrated, a tenant is ready, a provider submission is safe, or a feature is available.
+The answers below are **specified**, not implemented. “Target Live” is a delivery target, not current runtime truth. All 38 planning keys begin `Reserved`; a Target Live candidate becomes `Live` only after its complete key-specific proof pack passes. No row below proves a producer has migrated, a tenant is ready, a provider submission is safe, or a feature is available.
 
 Every one of the 18 Target Live keys in this census is explicitly tenant scope
 through its named executable-manifest profile. None may infer scope from a
@@ -135,9 +138,9 @@ Hook and no production `notification_queue` worker. These are bounded
 observations, not permanent truths. A changed codebase invalidates the conclusion
 until the mechanical census is rerun.
 
-## Thirty-Six-Key Planning Catalog
+## Thirty-Eight-Key Planning Catalog
 
-There are exactly 18 Target Live candidates and 18 Reserved keys in this planning generation. There are zero fresh-build Retired keys. Runtime lifecycle is initially `Reserved` for every row.
+There are exactly 18 Target Live candidates and 20 Reserved keys in this planning generation. There are zero fresh-build Retired keys. Runtime lifecycle is initially `Reserved` for every row.
 
 ### Target Live Candidates — Initially Reserved
 
@@ -164,26 +167,28 @@ There are exactly 18 Target Live candidates and 18 Reserved keys in this plannin
 
 ### Reserved Planning Keys — No Runtime Path
 
-| Row       | Stable key                              | Owner/source meaning                                 | Blocker before Live consideration                                           |
-| --------- | --------------------------------------- | ---------------------------------------------------- | --------------------------------------------------------------------------- |
-| `KEY-R01` | `contribution_statement_corrected_v1`   | Corrected statement artifact                         | Phase 18/19 immutable artifact and run-owner proof                          |
-| `KEY-R02` | `recurring_recovery_started_v1`         | Phase 16 card recovery episode began                 | Exact Phase 16 source facts, recipient, consent, and occurrence contract    |
-| `KEY-R03` | `recurring_action_required_v1`          | Donor payment action required                        | Producer-owned D6 action, no raw decline, exact recovery state              |
-| `KEY-R04` | `recurring_occurrence_missed_v1`        | One recurring occurrence is terminally missed        | D8/D16 role-safe steps, no debt/backcharge, no per-attempt missionary noise |
-| `KEY-R05` | `recurring_payment_truth_corrected_v1`  | Recurring payment truth corrected                    | Provider-confirmed correction and Phase 7 artifact consequences             |
-| `KEY-R06` | `recurring_ach_initiated_v1`            | ACH occurrence initiated/processing                  | Processing must not be called received; official receipt waits for success  |
-| `KEY-R07` | `recurring_upcoming_charge_v1`          | Required upcoming semiannual/annual charge notice    | Contract-declared cadence/notice law and amount/date/manage facts           |
-| `KEY-R08` | `recurring_schedule_changed_v1`         | Recurring arrangement changed                        | Effective dates, in-flight behavior, and provider-sync truth                |
-| `KEY-R09` | `fixed_pledge_upcoming_v1`              | Optional fixed-pledge expectation upcoming           | Gentle enrolled profile; no debt or cash claim                              |
-| `KEY-R10` | `fixed_pledge_source_aware_followup_v1` | No applied gift after enrolled expectation           | Processing/matching uncertainty and stop-purpose action                     |
-| `KEY-R11` | `identity_account_claim_invitation_v1`  | Phase 4 legacy account-claim invitation              | Fresh invitation authority, D6 protected handoff, expiry/revocation         |
-| `KEY-R12` | `identity_magic_link_v1`                | Supabase magic-link sign-in                          | Signed hook, exact tenant/recipient/action mapping, five-second budget      |
-| `KEY-R13` | `identity_email_otp_v1`                 | Supabase email OTP                                   | Exact adopted auth flow, secret exclusion, producer-owned rate/expiry       |
-| `KEY-R14` | `identity_password_recovery_v1`         | Supabase password recovery                           | Scanner-resistant landing, fresh proof, terminal-state contract             |
-| `KEY-R15` | `identity_email_change_v1`              | Supabase secure/non-secure email-change confirmation | Old/new recipient cardinality and exact token/hash mapping                  |
-| `KEY-R16` | `document_artifact_ready_v1`            | Phase 18 immutable artifact ready                    | Artifact-owner recipient and protected authenticated download               |
-| `KEY-R17` | `statement_delivery_ready_v1`           | Phase 19 statement run produced recipient artifact   | Run eligibility/finality, legal recipient, delivery contract                |
-| `KEY-R18` | `statement_delivery_failed_v1`          | Phase 19 statement delivery terminally failed        | Source-owned terminality, staff/recipient decision, no invented retry truth |
+| Row       | Stable key                              | Owner/source meaning                                  | Blocker before Live consideration                                                       |
+| --------- | --------------------------------------- | ----------------------------------------------------- | --------------------------------------------------------------------------------------- |
+| `KEY-R01` | `statement_current_updated_v1`          | Meaningful exact-current statement successor          | Source/exposure proof, exact current artifact, authorized recipient and safe meaning    |
+| `KEY-R02` | `recurring_recovery_started_v1`         | Phase 16 card recovery episode began                  | Exact Phase 16 source facts, recipient, consent, and occurrence contract                |
+| `KEY-R03` | `recurring_action_required_v1`          | Donor payment action required                         | Producer-owned D6 action, no raw decline, exact recovery state                          |
+| `KEY-R04` | `recurring_occurrence_missed_v1`        | One recurring occurrence is terminally missed         | D8/D16 role-safe steps, no debt/backcharge, no per-attempt missionary noise             |
+| `KEY-R05` | `recurring_payment_truth_corrected_v1`  | Recurring payment truth corrected                     | Provider-confirmed correction and Phase 7 artifact consequences                         |
+| `KEY-R06` | `recurring_ach_initiated_v1`            | ACH occurrence initiated/processing                   | Processing must not be called received; official receipt waits for success              |
+| `KEY-R07` | `recurring_upcoming_charge_v1`          | Required upcoming semiannual/annual charge notice     | Contract-declared cadence/notice law and amount/date/manage facts                       |
+| `KEY-R08` | `recurring_schedule_changed_v1`         | Recurring arrangement changed                         | Effective dates, in-flight behavior, and provider-sync truth                            |
+| `KEY-R09` | `fixed_pledge_upcoming_v1`              | Optional fixed-pledge expectation upcoming            | Gentle enrolled profile; no debt or cash claim                                          |
+| `KEY-R10` | `fixed_pledge_source_aware_followup_v1` | No applied gift after enrolled expectation            | Processing/matching uncertainty and stop-purpose action                                 |
+| `KEY-R11` | `identity_account_claim_invitation_v1`  | Phase 4 legacy account-claim invitation               | Fresh invitation authority, D6 protected handoff, expiry/revocation                     |
+| `KEY-R12` | `identity_magic_link_v1`                | Supabase magic-link sign-in                           | Signed hook, exact tenant/recipient/action mapping, five-second budget                  |
+| `KEY-R13` | `identity_email_otp_v1`                 | Supabase email OTP                                    | Exact adopted auth flow, secret exclusion, producer-owned rate/expiry                   |
+| `KEY-R14` | `identity_password_recovery_v1`         | Supabase password recovery                            | Scanner-resistant landing, fresh proof, terminal-state contract                         |
+| `KEY-R15` | `identity_email_change_v1`              | Supabase secure/non-secure email-change confirmation  | Old/new recipient cardinality and exact token/hash mapping                              |
+| `KEY-R16` | `document_artifact_ready_v1`            | Phase 18 immutable artifact ready                     | Artifact-owner recipient and protected authenticated download                           |
+| `KEY-R17` | `statement_current_available_v1`        | Ordinary frozen current-statement delivery occurrence | Frozen occurrence, exact current artifact, recipient and delivery contract              |
+| `KEY-R18` | `statement_current_withdrawn_v1`        | Current statement withdrawn without a successor       | Source-owned withdrawal, purpose/jurisdiction admission, safe contextual help           |
+| `KEY-R19` | `statement_additional_copy_ready_v1`    | Fresh exact-current additional-copy fulfillment       | Fresh copy identity, exact current authority, no lifecycle replay or rerender           |
+| `KEY-R20` | `statement_delivery_attention_v1`       | Grouped statement-delivery condition needs staff care | Actionable cause/owner contract, in-product path, no donor failure message or raw cause |
 
 ## Forty-One Product-Obligation and Disposition Categories
 
@@ -215,7 +220,7 @@ This table is an obligation inventory, not permission to mint speculative keys. 
 | `OBL-022` | Missionary terminal recurring miss                                   | Phase 16 plus D8                                       | In-product step of exact missed contract                                                                                 | Terminal occurrence only; no per-attempt email/noise                                                                                                                                                                                                            | Coming later with parent key           |
 | `OBL-023` | DAF/tribute/matching/church recognition acknowledgement              | Phase 14                                               | Deferred with owner                                                                                                      | Exact recognition occurrence and legal recipient missing                                                                                                                                                                                                        | Hidden inventory                       |
 | `OBL-024` | Artifact ready/download notice                                       | Phase 18                                               | Reserved key                                                                                                             | Immutable artifact, recipient, D6 download action                                                                                                                                                                                                               | Coming later                           |
-| `OBL-025` | Statement ready/delivery/correction/failure/void                     | Phases 18/19 plus 7                                    | Ready/failure Reserved; correction Reserved; others deferred                                                             | Run/artifact/finality owner and legal recipient                                                                                                                                                                                                                 | Coming later for existing keys         |
+| `OBL-025` | Statement available/update/withdrawal/copy/delivery attention        | Phases 18/19 plus 7                                    | Five finite Phase 19 Reserved keys                                                                                       | Exact producer meaning, artifact/currentness, legal recipient, purpose, exposure, and delivery-attention proof                                                                                                                                                  | Coming later for existing keys         |
 | `OBL-026` | Annual tax summary or other official document delivery               | Phases 18/19                                           | Deferred with owner                                                                                                      | Document class, jurisdiction, legal recipient not fixed                                                                                                                                                                                                         | Hidden inventory                       |
 | `OBL-027` | Contribution correction approval request/reminder/escalation/outcome | Contribution operations                                | Four Target Live candidates                                                                                              | Exact source predicates, eligible role, required in-product projection                                                                                                                                                                                          | Messages after Live                    |
 | `OBL-028` | Generic staff assignment or mention                                  | Owning CRM/workflow phase                              | Deferred with owner                                                                                                      | Typed source/destination absent; D8 is presentation only                                                                                                                                                                                                        | Hidden inventory                       |
@@ -253,7 +258,7 @@ The following are intentionally outside the system-message catalog:
 ## Fresh-Build and Activation Semantics
 
 1. Catalog keys are code-governed and immutable in meaning. A material semantic change creates a successor key.
-2. The fresh-build target contains 36 keys: 18 Target Live candidates, 18 Reserved, and zero Retired.
+2. The fresh-build target contains 38 keys: 18 Target Live candidates, 20 Reserved, and zero Retired.
 3. Database projection or UI presence never makes a key Live. `is_active`, a legacy binding, a published template, a provider template, or a tenant toggle is insufficient.
 4. Reserved keys generate no tenant content row, binding, editor, preview, test send, readiness control, Phase 6 intent, provider submission, or product communication history.
 5. Target Live candidates also begin Reserved. Activation is per exact catalog/contract generation and requires the complete source, recipient, fact, publication, locale, layout, sender, reply, plan, retention, recovery, migration, security, accessibility, and end-to-end proof bundle.
@@ -271,7 +276,7 @@ For one recorded code SHA and catalog generation, CI must generate and hash:
 
 - the AST/import graph of every Resend SDK construction/send call and every production `sendEmail` import/caller;
 - every Phase 6 product intent producer, scheduled/background sender, Supabase Send Email Hook, provider webhook route, template/binding reader, history writer, and legacy queue row type;
-- the expanded 36-key manifest and generated trigger-binding projection;
+- the expanded 38-key manifest and generated trigger-binding projection;
 - canonical `phase17-runtime-census-closure@1`, containing every discovered
   `RUN-*` row in ascending numeric order as `{row_id, repository_anchor,
 symbol, observed_role, disposition, required_closure}`. `disposition` is one
