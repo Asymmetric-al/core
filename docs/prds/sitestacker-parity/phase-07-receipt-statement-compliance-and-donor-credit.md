@@ -18,8 +18,10 @@ Modern SiteStacker parity for the **finance/legal record foundation** of the pla
 > and other receipt/document paths are non-production prototypes and are
 > removed through Phase 18's environment-gated clean cut; they are not preserved
 > through an additive migration or compatibility runtime. Phase 17 alone owns
-> delivery, and Phase 19 alone owns statement populations, cutoffs, and run
-> timing. An ACH payment that is only `processing` is not receipt eligible;
+> delivery; Phase 19 owns statement cutoffs, run timing, and the frozen run
+> population only after consuming Phase 7's Statement Subject, eligibility,
+> and inclusion/exclusion facts. An ACH payment that is only `processing` is
+> not receipt eligible;
 > source-confirmed success is required. U.S. acknowledgments use Phase 18's
 > short opaque reference plus immutable versions. Canadian official receipts,
 > when an exact issuer deliberately activates the pack, use the one issuer-owned
