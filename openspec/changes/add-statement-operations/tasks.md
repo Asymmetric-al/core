@@ -57,7 +57,10 @@
 ## 5. Run Control Recovery And Completion
 
 - [ ] 5.1 Add atomic Pause new work, proof-gated Resume remaining work, and
-      permanent Stop remaining work over one monotonic control fence.
+      permanent Stop remaining work over one monotonic control fence. Prove
+      that Stop after the run-level Start barrier prevents both unclaimed work
+      and claimed work that has not crossed its serialized irreversible-handoff
+      fence, while a handoff that won first remains truthful and reconciles.
 - [ ] 5.2 Add staff-attested year-boundary check intake consumption, immutable
       source cutoffs, and purpose-owned late-fact/supplemental recovery.
 - [ ] 5.3 Add the contextual Help with this statement projection and command
@@ -71,7 +74,9 @@
       repeatable bounded exact-current outbound copy fulfillment.
 - [ ] 6.2 Add the optional, default-Off Support overview purpose for the closed
       household-support and disclosed-DAF recognition set, fully independent
-      from official documents.
+      from official documents, and require the Phase 19 population/privacy seam
+      in addition to the existing Phase 18 renderer/artifact gates before
+      admission.
 - [ ] 6.3 Add one PII-minimized Run Evidence Record plus a fixed,
       permissioned, expiring audit package derivative.
 

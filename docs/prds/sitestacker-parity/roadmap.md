@@ -140,7 +140,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
 | **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)   |
 | **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                               | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6                        | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
+| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 6, 7, 12, **13**, 14, 15, 17, 18            | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
 | **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2                           | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
 | **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4                                | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                           |
 | **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                             | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                           |
@@ -1215,9 +1215,11 @@ must not present it as a universal federal deadline.
   PostGrid is the first candidate and Lob the U.S.-focused alternative.
 - **Cooperative containment and truthful completion.** Pause closes admission
   and proves containment; Resume re-proves only safe work; Stop permanently
-  prevents only unreleased work while in-flight work reconciles. Staff decide
-  when to mark a run complete, while Asym derives clean versus exception
-  outcome and preserves independently live follow-up.
+  prevents every unclaimed operation and every claimed operation that has not
+  crossed its serialized irreversible-handoff fence, while handed-off or
+  outcome-unknown work reconciles. Staff decide when to mark a run complete,
+  while Asym derives clean versus exception outcome and preserves independently
+  live follow-up.
 - **Source-owned late facts and exact-current help.** A released primary run is
   immutable. Proof-backed year-boundary checks use Phase 7/15 gift-date truth;
   post-release facts create deduplicated supplemental/correction obligations.

@@ -377,11 +377,12 @@ and epoch before every new claim and irreversible handoff. The handoff fence
 and control command MUST serialize so one race winner is truthful.
 
 Pause MUST be reversible only after containment is proved and current safety is
-rechecked. Stop MUST permanently prevent unclaimed work within that run while
-preserving issued, submitted, accepted, indeterminate, completed, and historical
-facts. Provider cancellation MUST be requested only when current provider
-evidence proves it is available; requested, confirmed, too late, and unknown
-MUST remain distinct.
+rechecked. Stop MUST permanently prevent every unclaimed operation and every
+claimed operation that has not crossed its serialized irreversible-handoff
+fence while preserving issued, submitted, accepted, indeterminate, completed,
+and historical facts. Provider cancellation MUST be requested only when current
+provider evidence proves it is available; requested, confirmed, too late, and
+unknown MUST remain distinct.
 
 #### Scenario: Pause races email submission
 
@@ -397,6 +398,16 @@ MUST remain distinct.
 - THEN Resume remains blocked until current incident-owner clearance and safety
   proof exist
 - AND already issued documents and external outcomes remain unchanged
+
+#### Scenario: Stop follows run release while work remains unclaimed
+
+- GIVEN the run-level Start barrier is open and one operation is unclaimed while
+  another is claimed but has not crossed its irreversible-handoff fence
+- WHEN authorized staff Stop remaining work and the control command wins the
+  serialized race
+- THEN both operations become permanently stopped without an external handoff
+- AND an operation whose handoff fence won first remains in flight and
+  reconciles without being relabeled as stopped
 
 ### Requirement: D9 Physical Fulfillment Is Self-print-first And Evidence-based
 

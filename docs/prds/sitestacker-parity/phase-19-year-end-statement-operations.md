@@ -153,7 +153,7 @@ Provider URLs, current contact defaults, browser selections, run completion, dow
 - The donor-portal annual-statement handler recomputes current donor data into a `.txt` response.
 - `getOwnedStatementDonations` filters current settled donations by UTC year.
 - The donor statement route is a thin adapter to that legacy statement handler.
-- The generated-document purpose catalog registers annual U.S., Canadian cumulative, and informational document purposes behind the `phase19_statement_seam` launch gate.
+- The generated-document purpose catalog registers annual U.S. and Canadian cumulative purposes behind the `phase19_statement_seam` launch gate. The optional `giving.summary.informational@1` purpose is currently gated only by the Phase 18 renderer/artifact pipeline; the Phase 19 contract requires its separate Phase 7/13/14/19 purpose-and-privacy proof before activation.
 - `admitDocumentPurpose` demonstrates a side-effect-free purpose-admission boundary, not a statement-run implementation.
 - The existing workflow ledger, claim, dispatch, and recovery modules demonstrate reusable durable dispatch, fencing, and recovery patterns.
 - The shared API package is the established business boundary; application route handlers are thin adapters.
@@ -729,7 +729,8 @@ never changes frozen population.
 
 ### Stop remaining work
 
-- Permanently prevent only unreleased/unclaimed work.
+- Permanently prevent every unclaimed operation and every claimed operation
+  that has not crossed its serialized irreversible-handoff fence.
 - Reconcile submitted and indeterminate work.
 - Never claim to recall, void, revoke, delete, or unsend prior work.
 - Never resume stopped work inside the same run.
@@ -1417,9 +1418,10 @@ Runbooks must cover stale preflight, population mismatch, ambiguous downstream h
 - Completed, submitted, indeterminate, or permanently stopped work is not replayed.
 - Blocked items may remain held while safe work resumes.
 
-### US19-31 — Staff can permanently stop unreleased work
+### US19-31 — Staff can permanently stop work not yet handed off
 
-- Stop prevents only unclaimed or unreleased work.
+- Stop prevents every unclaimed operation and every claimed operation that has
+  not crossed its serialized irreversible-handoff fence.
 - Submitted and indeterminate work is reconciled, not relabeled.
 - Stopped work cannot resume inside the same run.
 - Documents and prior history remain intact.

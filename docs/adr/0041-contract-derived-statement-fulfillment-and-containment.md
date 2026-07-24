@@ -82,8 +82,9 @@ One monotonic run control row and epoch fence every irreversible handoff:
 - Pause closes admission in O(1), then settles old-epoch work before claiming
   containment.
 - Resume opens only proved-safe remaining work under a new epoch.
-- Stop permanently prevents only unreleased work and never pretends to undo
-  prior work.
+- Stop permanently prevents every unclaimed operation and every claimed
+  operation that has not crossed its serialized irreversible-handoff fence; it
+  never pretends to undo prior work.
 - Urgent privacy containment closes the same fence immediately, revokes
   provably unsubmitted material, attempts supported cancellation, and links the
   owning incident.
