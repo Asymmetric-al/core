@@ -6,12 +6,13 @@ build with the Next.js testing API exposed; `next dev` cannot produce a valid
 verdict (no prefetching, unreliable lock).
 
 - BUILD: local production build + start, per app. Donor (primary target):
-  `EXPOSE_TESTING_API=1 bun run build:donor`
+  `VERCEL_ENV=preview EXPOSE_TESTING_API=1 bun run build:donor`
   then
-  `EXPOSE_TESTING_API=1 node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor start -- --port 3006 --hostname 127.0.0.1`.
-- EXPOSE: `experimental.exposeTestingApiInProductionBuild: process.env.EXPOSE_TESTING_API === "1"`
-  in each app `next.config.ts`. `EXPOSE_TESTING_API` is set only for this rig's
-  build/start; Vercel production builds never set it.
+  `VERCEL_ENV=preview EXPOSE_TESTING_API=1 node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor start -- --port 3006 --hostname 127.0.0.1`.
+- EXPOSE: `experimental.exposeTestingApiInProductionBuild` requires both
+  `EXPOSE_TESTING_API=1` and `VERCEL_ENV=preview` in each app `next.config.ts`.
+  `EXPOSE_TESTING_API` is set only for this rig's build/start; Vercel production
+  builds never set it.
 - RUN: `INSTANT_NAV_RIG=1 PLAYWRIGHT_BASE_URL=http://127.0.0.1:3006 node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/instant-navigation.spec.ts --project=chromium`.
   The spec self-skips unless `INSTANT_NAV_RIG=1`, so dev-server CI jobs
   (`.github/workflows/ci-integration.yml` runs apps with `next dev`) never
