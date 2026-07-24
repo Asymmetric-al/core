@@ -54,9 +54,10 @@ function WorkerCard({
       <div className="relative aspect-[4/5] rounded-2xl overflow-hidden bg-zinc-900 shadow-xl shadow-zinc-200/50 ring-1 ring-black/5 transition-[box-shadow,transform] duration-500 ease-out [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-2xl [@media(hover:hover)_and_(pointer:fine)]:group-hover:shadow-zinc-300/60 [@media(hover:hover)_and_(pointer:fine)]:group-hover:-translate-y-1 [@media(hover:hover)_and_(pointer:fine)]:group-hover:ring-emerald-500/20">
         <Link
           href={`/workers/${worker.id}`}
-          // Per-link prefetch: the shared /workers/[id] route shell cannot
-          // carry per-worker content, so prefetch this card's build-time
-          // profile for an instant soft navigation (giving data still streams).
+          // The shared /workers/[id] App Shell cannot carry per-worker content.
+          // A full prefetch pulls this worker's prerendered page (see
+          // `generateStaticParams` there) so the click commits the real hero
+          // instead of a placeholder. Giving progress still streams in after.
           prefetch={true}
           className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500 focus-visible:ring-offset-2 focus-visible:ring-offset-white rounded-2xl"
           aria-label={`View ${worker.title}'s profile`}

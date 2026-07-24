@@ -121,6 +121,12 @@ test.describe("Instant navigation (donor public site)", () => {
       await expect(
         page.getByTestId("worker-profile-route-shell"),
       ).toBeVisible();
+      // Params-dependent: the shared App Shell cannot carry this, so it only
+      // commits under the lock because the route exports
+      // `prefetch = 'allow-runtime'`. Fails if that config is dropped.
+      await expect(
+        page.getByRole("heading", { level: 1, name: /miller/i }),
+      ).toBeVisible();
       await expect(page.getByRole("link", { name: /^give \$/i })).toHaveCount(
         0,
       );

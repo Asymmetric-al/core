@@ -307,6 +307,15 @@ async function GivingWidgetSection({ id }: { id: string }) {
   );
 }
 
+/**
+ * Deliberately NOT `export const prefetch = 'allow-runtime'`. The profile is
+ * keyed by `params`, which normally keeps it out of the shared App Shell, but
+ * `generateStaticParams` above prerenders every worker as its own static page
+ * and the directory's `<Link prefetch>` fetches that page directly. Measured
+ * both ways against the instant-nav rig: the hero commits under `instant()`
+ * either way, so runtime prefetching would only add a server render per
+ * visible card. Revisit if workers ever outgrow `generateStaticParams`.
+ */
 export default async function WorkerProfilePage({ params }: PageProps) {
   const { id } = await params;
   const worker = getFieldWorkerById(id);
