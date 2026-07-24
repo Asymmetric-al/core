@@ -33,6 +33,8 @@ const nextConfig: NextConfig = {
     globalNotFound: true,
     viewTransition: true,
     optimizePackageImports: ["@asym/ui", "lucide-react"],
+    /** Instant-navigation e2e rig only (see instant-nav.rig.md); never true in real production. */
+    exposeTestingApiInProductionBuild: process.env.EXPOSE_TESTING_API === "1",
   },
   images: {
     remotePatterns: [

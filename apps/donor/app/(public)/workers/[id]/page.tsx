@@ -204,7 +204,14 @@ function StoryContent({ worker }: { worker: { description: string } }) {
   );
 }
 
-function UpdatesContent({ workerTitle }: { workerTitle: string }) {
+/**
+ * Cached so the sanitized update HTML (DOMPurify reads `new Date()`
+ * internally) prerenders into the static shell; the demo updates are static
+ * content, so one cache entry per worker is correct.
+ */
+async function UpdatesContent({ workerTitle }: { workerTitle: string }) {
+  "use cache";
+
   return (
     <>
       <div className="flex items-center justify-between mb-8">
@@ -271,19 +278,42 @@ function GivingWidgetSkeleton() {
   );
 }
 
-export default async function WorkerProfilePage({ params }: PageProps) {
+/**
+ * Giving progress must stay request-fresh, so the `connection()` read lives
+ * inside this Suspense-wrapped leaf instead of at the page top — the rest of
+ * the profile stays in the prerendered static shell for instant navigation.
+ */
+async function GivingWidgetSection({ id }: { id: string }) {
   await connection();
-  const { id } = await params;
   const worker = getFieldWorkerById(id);
 
   if (!worker) {
-    notFound();
+    return null;
   }
 
   const percentRaised =
     worker.goal !== null
       ? Math.min(100, Math.round((worker.raised / worker.goal) * 100))
       : null;
+
+  return (
+    <GivingWidget
+      missionaryId={worker.givingMissionaryId}
+      workerId={worker.id}
+      raised={worker.raised}
+      goal={worker.goal}
+      percentRaised={percentRaised}
+    />
+  );
+}
+
+export default async function WorkerProfilePage({ params }: PageProps) {
+  const { id } = await params;
+  const worker = getFieldWorkerById(id);
+
+  if (!worker) {
+    notFound();
+  }
 
   return (
     <>
@@ -333,13 +363,7 @@ export default async function WorkerProfilePage({ params }: PageProps) {
             >
               <div className="sticky top-24 space-y-6">
                 <Suspense fallback={<GivingWidgetSkeleton />}>
-                  <GivingWidget
-                    missionaryId={worker.givingMissionaryId}
-                    workerId={worker.id}
-                    raised={worker.raised}
-                    goal={worker.goal}
-                    percentRaised={percentRaised}
-                  />
+                  <GivingWidgetSection id={worker.id} />
                 </Suspense>
 
                 <div className="flex gap-4 justify-center">

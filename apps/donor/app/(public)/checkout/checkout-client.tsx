@@ -1355,7 +1355,14 @@ function CheckoutContent({
   useEffect(() => {
     loadCheckoutRuntimeConfig();
 
-    return () => runtimeConfigAbortRef.current?.abort();
+    return () => {
+      // The aborted request leaves `runtimeConfig` stuck on "loading"; clear
+      // the request flag so a re-run of this effect (StrictMode/Activity
+      // remounts) can start a fresh fetch instead of deadlocking on the
+      // in-flight guard.
+      runtimeConfigRequestedRef.current = false;
+      runtimeConfigAbortRef.current?.abort();
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps -- TODO(checkout-runtime-config): Runtime config is keyed by the override object or tenant fetch, not by transient checkout state.
   }, [stripeOverride]);
 

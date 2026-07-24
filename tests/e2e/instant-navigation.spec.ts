@@ -2,40 +2,116 @@ import { instant } from "@next/playwright";
 import { expect, test } from "@playwright/test";
 
 /**
- * Instant Navigation guardrail (Next.js 16.3, `cacheComponents` +
- * `partialPrefetching`). Asserts the `/workers` route shell renders without
- * waiting for the network, per docs/ai/rules/frontend.md.
+ * Instant Navigation guards (Next.js 16.3 Cache Components + Partial
+ * Prefetching) for the donor public site, per `instant-nav.rig.md`.
+ *
+ * An `instant()` verdict is only trustworthy against a production build with
+ * the testing API exposed (`EXPOSE_TESTING_API=1`); `next dev` neither
+ * prefetches nor locks reliably. The suite therefore self-skips unless the
+ * rig is running (`INSTANT_NAV_RIG=1`) so dev-server CI jobs never record a
+ * vacuous pass.
  */
+const rigActive = process.env.INSTANT_NAV_RIG === "1";
+
+const NAV_TARGETS = [
+  { heading: /field/i, link: "Deployments", path: "/workers" },
+  { heading: /engineered/i, link: "Mission", path: "/about" },
+  {
+    heading: /financial integrity/i,
+    link: "Transparency",
+    path: "/financials",
+  },
+  { heading: /invest in hope/i, link: "Ways to Give", path: "/ways-to-give" },
+] as const;
+
 test.describe("Instant navigation (donor public site)", () => {
-  test("navbar navigation to /workers renders the route shell instantly", async ({
+  test.skip(
+    !rigActive,
+    "Requires the production instant-nav rig (see instant-nav.rig.md)",
+  );
+
+  for (const target of NAV_TARGETS) {
+    test(`navbar navigation to ${target.path} commits the route shell under instant()`, async ({
+      page,
+    }) => {
+      await page.goto("/");
+      await page.waitForLoadState("domcontentloaded");
+      await expect(page.locator("#__next_error__")).toHaveCount(0);
+
+      const mobileMenuTrigger = page.getByRole("button", { name: "Open menu" });
+      const trigger = page
+        .getByRole("navigation", { name: "Main navigation" })
+        .getByRole("link", { name: target.link })
+        .filter({ visible: true })
+        .first();
+
+      await Promise.race([
+        trigger.waitFor({ state: "visible" }),
+        mobileMenuTrigger.waitFor({ state: "visible" }),
+      ]);
+
+      if (await mobileMenuTrigger.isVisible()) {
+        await mobileMenuTrigger.click();
+      }
+      await expect(trigger).toBeVisible();
+
+      await instant(page, async () => {
+        await trigger.click();
+        await expect(
+          page.getByRole("heading", { level: 1, name: target.heading }),
+        ).toBeVisible();
+      });
+    });
+  }
+
+  /**
+   * Self-validating guard (worker profile has genuinely deferred content):
+   * under the lock the profile shell must commit while the request-time
+   * giving widget stays gated, then stream in after release. This also proves
+   * the instant() lock engages on this rig — if the testing API were missing,
+   * the "Give $" button would already be present under the lock.
+   */
+  test("worker card navigation commits the profile shell and defers giving data under instant()", async ({
     page,
   }) => {
-    await page.goto("/");
+    await page.goto("/workers");
     await page.waitForLoadState("domcontentloaded");
     await expect(page.locator("#__next_error__")).toHaveCount(0);
 
-    const mobileMenuTrigger = page.getByRole("button", { name: "Open menu" });
-    const workersLink = page
-      .locator('a[href="/workers"]')
-      .filter({ visible: true })
+    const card = page
+      .locator('a[aria-label="View The Miller Family\'s profile"]')
       .first();
-
-    await Promise.race([
-      workersLink.waitFor({ state: "visible" }),
-      mobileMenuTrigger.waitFor({ state: "visible" }),
-    ]);
-
-    if (await mobileMenuTrigger.isVisible()) {
-      await mobileMenuTrigger.click();
-      await expect(workersLink).toBeVisible();
-    }
+    await card.scrollIntoViewIfNeeded();
+    await expect(card).toBeVisible();
 
     await instant(page, async () => {
-      await workersLink.click();
-
+      await card.click();
       await expect(
-        page.getByRole("heading", { level: 1, name: /field/i }),
+        page.getByRole("heading", { level: 1, name: /miller/i }),
       ).toBeVisible();
+      await expect(page.getByRole("link", { name: /^give \$/i })).toHaveCount(
+        0,
+      );
     });
+
+    await expect(page.getByRole("link", { name: /^give \$/i })).toBeVisible();
+  });
+
+  test("initial load of /workers serves the route shell under instant()", async ({
+    baseURL,
+    page,
+  }) => {
+    const url = new URL("/workers", baseURL).toString();
+
+    await instant(
+      page,
+      async () => {
+        await page.goto(url);
+        await expect(
+          page.getByRole("heading", { level: 1, name: /field/i }),
+        ).toBeVisible();
+      },
+      { baseURL: new URL(url).origin },
+    );
   });
 });
