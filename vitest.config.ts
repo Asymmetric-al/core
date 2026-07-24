@@ -17,6 +17,8 @@ export default defineConfig({
         rootDir,
         "tests/mocks/tiptap-react-menus.tsx",
       ),
+      /** Bun's isolated store can split `next` into per-peer-set copies (root vs apps); pin one instance so `vi.mock("next/navigation")` patches the same module the app code under test imports. */
+      next: path.join(rootDir, "node_modules/next"),
       /** Tests live outside `packages/ui`; pin Sonner so `vi.mock('sonner')` patches the same module as `@asym/ui`. */
       sonner: path.join(rootDir, "packages/ui/node_modules/sonner"),
       /** Tests live outside `packages/database`; pin the Supabase adapter so `vi.mock("@supabase-labs/tanstack-db")` patches the same module as `@asym/database`. */

@@ -53,6 +53,6 @@
     }
   },
   "dependencies": {
-    "eslint-config-next": "16.2.6"
+    "eslint-config-next": "16.3.0-preview.9"
   }
 }

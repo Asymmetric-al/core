@@ -16,6 +16,7 @@ const nextConfig: NextConfig = {
   /** Dev HMR when opening the app via `http://127.0.0.1:3030` instead of `localhost`. */
   allowedDevOrigins: ["127.0.0.1"],
   cacheComponents: true,
+  partialPrefetching: true,
   async redirects() {
     return [
       { source: "/mc", destination: "/", permanent: false },

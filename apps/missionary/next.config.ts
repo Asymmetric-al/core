@@ -12,6 +12,7 @@ loadEnvConfig(WORKSPACE_ROOT);
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   cacheComponents: true,
+  partialPrefetching: true,
   reactCompiler: {
     compilationMode: "annotation",
   },

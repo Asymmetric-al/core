@@ -282,23 +282,23 @@
       "computedHash": "4e8f502fcf48553949387a9a7f58b21349e0ff87c24bf8ff5c0013e9da6819fd",
       "treeHash": "6669b419736af5f002039b6d52268a53a97a447c83521cfa1abaae7ff4a65d51"
     },
-    "next-best-practices": {
-      "source": "vercel-labs/next-skills",
+    "next-cache-components-adoption": {
+      "source": "vercel/next.js",
       "sourceType": "github",
-      "skillPath": "skills/next-best-practices/SKILL.md",
-      "computedHash": "f4678aef4ffc10a5ea64a91e57abe5a5081af813b06d58d565caf3e8ef56e26c"
+      "skillPath": "skills/next-cache-components-adoption/SKILL.md",
+      "computedHash": "216eee49883e5348c2b639d0784c2540964f201ef5345be417c80c24f38332b8"
     },
-    "next-cache-components": {
-      "source": "vercel-labs/next-skills",
+    "next-cache-components-optimizer": {
+      "source": "vercel/next.js",
       "sourceType": "github",
-      "skillPath": "skills/next-cache-components/SKILL.md",
-      "computedHash": "f835d8226c28abf012cc013928e2627c8a7a046de61127ef229be1711bd1f255"
+      "skillPath": "skills/next-cache-components-optimizer/SKILL.md",
+      "computedHash": "fdeaf0393f4fb3326851275c19938af81062318d3e20cd2e88f48acb1fa9bc72"
     },
-    "next-upgrade": {
-      "source": "vercel-labs/next-skills",
+    "next-dev-loop": {
+      "source": "vercel/next.js",
       "sourceType": "github",
-      "skillPath": "skills/next-upgrade/SKILL.md",
-      "computedHash": "e3aeb1f9e8a68d24df0c1c2e3c8ab97ede09a7251a2c76988318d02254346979"
+      "skillPath": "skills/next-dev-loop/SKILL.md",
+      "computedHash": "aad97b32ba6efd31e92d063ec77120a694fe0d4a9401daf9af4c205cd5e21b07"
     },
     "npm-deps-cleanup": {
       "source": "anthonyshew/dotfiles",

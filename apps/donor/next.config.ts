@@ -20,6 +20,7 @@ const BONEYARD_JS_REACT_ALIAS = `${BONEYARD_JS_ALIAS}/dist/react.js`;
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   cacheComponents: true,
+  partialPrefetching: true,
   reactCompiler: {
     compilationMode: "annotation",
   },

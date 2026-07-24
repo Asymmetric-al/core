@@ -9,21 +9,9 @@ function readRepoFile(path: string) {
 }
 
 describe("React Review audit cleanup contracts", () => {
-  it("keeps draft-mode API navigation on Next Link without prefetching", () => {
-    for (const path of [
-      ".agents/skills/nextjs/templates/app-router-async-params.tsx",
-      ".cursor/skills/nextjs/templates/app-router-async-params.tsx",
-    ]) {
-      const source = readRepoFile(path);
-
-      expect(source, path).toContain("import Link from 'next/link'");
-      expect(source, path).toContain(
-        '<Link href="/api/disable-draft" prefetch={false}>',
-      );
-      expect(source, path).not.toContain('<a href="/api/disable-draft">');
-    }
-  });
-
+  // The draft-mode Link contract for the community `nextjs` skill was removed
+  // with that skill in the Next.js 16.3 upgrade (stale 16.1.1 knowledge skill,
+  // superseded by the bundled node_modules/next/dist/docs).
   it("keeps review-touched examples on gap utilities at the affected call sites", () => {
     for (const path of [
       ".agents/skills/shadcn-ui/examples/auth-layout.tsx",
