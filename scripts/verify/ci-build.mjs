@@ -108,50 +108,56 @@ function createRunWithCiEnvStep(label, command, args) {
   };
 }
 
+function createBuildStep(label, command, args, { strict = false } = {}) {
+  if (strict) {
+    return { label, command, args };
+  }
+
+  return createRunWithCiEnvStep(label, command, args);
+}
+
 export function getSharedPackageBuildSteps({
   platform = process.platform,
+  strict = false,
   turboBin = TURBO_BIN,
 } = {}) {
   if (platform === "win32") {
     return SHARED_PACKAGES.map((workspace) =>
-      createRunWithCiEnvStep(workspace.id, "bun", [
-        "run",
-        "--cwd",
-        workspace.cwd,
-        "build",
-      ]),
+      createBuildStep(
+        workspace.id,
+        "bun",
+        ["run", "--cwd", workspace.cwd, "build"],
+        { strict },
+      ),
     );
   }
 
   return [
-    createRunWithCiEnvStep("shared packages", turboBin, [
-      "run",
-      "build",
-      ...NEXT_APP_FILTERS,
-      "--concurrency=1",
-    ]),
+    createBuildStep(
+      "shared packages",
+      turboBin,
+      ["run", "build", ...NEXT_APP_FILTERS, "--concurrency=1"],
+      { strict },
+    ),
   ];
 }
 
 export function getAppBuildStep(
   app,
-  { platform = process.platform, turboBin = TURBO_BIN } = {},
+  { platform = process.platform, strict = false, turboBin = TURBO_BIN } = {},
 ) {
   if (platform === "win32") {
-    return createRunWithCiEnvStep(app.id, "bun", [
-      "run",
-      "--cwd",
-      app.cwd,
-      "build",
-    ]);
+    return createBuildStep(app.id, "bun", ["run", "--cwd", app.cwd, "build"], {
+      strict,
+    });
   }
 
-  return createRunWithCiEnvStep(app.id, turboBin, [
-    "run",
-    "build",
-    `--filter=${app.filter}`,
-    "--concurrency=1",
-  ]);
+  return createBuildStep(
+    app.id,
+    turboBin,
+    ["run", "build", `--filter=${app.filter}`, "--concurrency=1"],
+    { strict },
+  );
 }
 
 export function getRequestedApps(args = [], apps = NEXT_APPS) {
@@ -290,6 +296,7 @@ function logRepairedWorkspaceLinks() {
 }
 
 function main(args = process.argv.slice(2)) {
+  const strict = args.includes("--strict");
   let requestedApps;
   try {
     requestedApps = getRequestedApps(args);
@@ -300,14 +307,14 @@ function main(args = process.argv.slice(2)) {
 
   logRepairedWorkspaceLinks();
 
-  for (const step of getSharedPackageBuildSteps()) {
+  for (const step of getSharedPackageBuildSteps({ strict })) {
     clearStaleNextLocks();
     run(step.command, step.args, step.label);
     clearStaleNextLocks();
   }
 
   for (const app of requestedApps) {
-    const step = getAppBuildStep(app);
+    const step = getAppBuildStep(app, { strict });
     logRepairedWorkspaceLinks();
     clearStaleNextLocks();
     run(step.command, step.args, step.label);

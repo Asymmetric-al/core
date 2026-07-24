@@ -19,7 +19,7 @@
     "dev:all": "bun run --env-file=.env.local turbo run dev --filter=@asym/admin --filter=@asym/missionary-app --filter=@asym/donor",
     "env:link-apps": "bun scripts/sync-root-env-to-apps.mjs",
     "build": "node scripts/verify/ci-build.mjs",
-    "build:strict": "turbo run build",
+    "build:strict": "node scripts/verify/ci-build.mjs --strict",
     "build:admin": "node scripts/verify/ci-build.mjs --app admin",
     "build:admin:strict": "node scripts/verify/ci-build.mjs --app admin",
     "build:missionary": "node scripts/verify/ci-build.mjs --app missionary",

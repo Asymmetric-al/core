@@ -6,7 +6,7 @@ build with the Next.js testing API exposed; `next dev` cannot produce a valid
 verdict (no prefetching, unreliable lock).
 
 - BUILD: local production build + start, per app. Donor (primary target):
-  `EXPOSE_TESTING_API=1 node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor build`
+  `EXPOSE_TESTING_API=1 bun run build:donor`
   then
   `EXPOSE_TESTING_API=1 node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor start -- --port 3006 --hostname 127.0.0.1`.
 - EXPOSE: `experimental.exposeTestingApiInProductionBuild: process.env.EXPOSE_TESTING_API === "1"`

@@ -18,6 +18,9 @@ describe("ci-build command planning", () => {
       readFileSync(path.resolve("package.json"), "utf8"),
     );
 
+    expect(packageJson.scripts["build:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --strict",
+    );
     expect(packageJson.scripts["build:admin"]).toBe(
       "node scripts/verify/ci-build.mjs --app admin",
     );
@@ -107,6 +110,29 @@ describe("ci-build command planning", () => {
           "scripts/run-with-ci-env.mjs",
           "--",
           "node_modules/.bin/turbo",
+          "run",
+          "build",
+          "--filter=!@asym/admin",
+          "--filter=!@asym/donor",
+          "--filter=!@asym/missionary-app",
+          "--concurrency=1",
+        ],
+      },
+    ]);
+  });
+
+  it("keeps strict builds off CI env defaults while using ci-build repair", () => {
+    expect(
+      getSharedPackageBuildSteps({
+        platform: "linux",
+        strict: true,
+        turboBin: "node_modules/.bin/turbo",
+      }),
+    ).toEqual([
+      {
+        label: "shared packages",
+        command: "node_modules/.bin/turbo",
+        args: [
           "run",
           "build",
           "--filter=!@asym/admin",

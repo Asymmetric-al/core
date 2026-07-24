@@ -65,7 +65,7 @@ test.describe("Instant navigation (donor public site)", () => {
 
       await instant(page, async () => {
         await trigger.click();
-        await expect(page.getByTestId(target.shellTestId)).toBeAttached();
+        await expect(page.getByTestId(target.shellTestId)).toBeVisible();
       });
     });
   }
@@ -94,7 +94,7 @@ test.describe("Instant navigation (donor public site)", () => {
       await card.click();
       await expect(
         page.getByTestId("worker-profile-route-shell"),
-      ).toBeAttached();
+      ).toBeVisible();
       await expect(page.getByRole("link", { name: /^give \$/i })).toHaveCount(
         0,
       );
@@ -113,7 +113,7 @@ test.describe("Instant navigation (donor public site)", () => {
       page,
       async () => {
         await page.goto(url);
-        await expect(page.getByTestId("workers-route-shell")).toBeAttached();
+        await expect(page.getByTestId("workers-route-shell")).toBeVisible();
       },
       { baseURL: new URL(url).origin },
     );
