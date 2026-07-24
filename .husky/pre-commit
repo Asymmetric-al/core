@@ -1,4 +1,11 @@
 set -e
 
 bunx lint-staged --concurrent false --no-stash --no-hide-partially-staged
-bunx @shadscan/cli@0.1.1 ./packages/ui --fail-under 29 --no-roast --no-interactive
+
+repo_root=$(git rev-parse --show-toplevel)
+staged_tree=$(mktemp -d)
+trap 'rm -rf "$staged_tree"' EXIT
+
+cd "$repo_root"
+git checkout-index --all --prefix="$staged_tree/"
+bunx @shadscan/cli@0.1.1 "$staged_tree/packages/ui" --fail-under 29 --no-roast --no-interactive
