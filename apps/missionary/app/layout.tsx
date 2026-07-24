@@ -162,13 +162,18 @@ export default function RootLayout({
           <QueryProvider>
             <MotionProvider>
               <TooltipProvider delay={0}>
-                <Suspense fallback={null}>
-                  <NuqsAdapter>
-                    <MissionaryRoleGate>
-                      <MissionaryLayoutShell>{children}</MissionaryLayoutShell>
-                    </MissionaryRoleGate>
-                  </NuqsAdapter>
-                </Suspense>
+                <NuqsAdapter>
+                  {/*
+                   * Only the role gate reads `headers()`/session, so it is the
+                   * only thing behind the boundary. The chrome renders from the
+                   * client-side pathname and prerenders into the static shell.
+                   */}
+                  <MissionaryLayoutShell>
+                    <Suspense fallback={null}>
+                      <MissionaryRoleGate>{children}</MissionaryRoleGate>
+                    </Suspense>
+                  </MissionaryLayoutShell>
+                </NuqsAdapter>
               </TooltipProvider>
             </MotionProvider>
           </QueryProvider>

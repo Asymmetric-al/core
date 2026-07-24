@@ -71,6 +71,32 @@ test.describe("Instant navigation (donor public site)", () => {
   }
 
   /**
+   * The home page's CMS updates read resolves the tenant from `headers()`, so
+   * it can never join the static shell. Guards that the hero (the LCP) is not
+   * dragged out of the shell with it — the regression this covers is a
+   * top-level `await` creeping back into `(public)/page.tsx`.
+   */
+  test("navbar logo navigation commits the home hero under instant()", async ({
+    page,
+  }) => {
+    await page.goto("/about");
+    await page.waitForLoadState("domcontentloaded");
+    await expect(page.locator("#__next_error__")).toHaveCount(0);
+
+    const logo = page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link")
+      .filter({ visible: true })
+      .first();
+    await expect(logo).toBeVisible();
+
+    await instant(page, async () => {
+      await logo.click();
+      await expect(page.locator("#hero-heading")).toBeVisible();
+    });
+  });
+
+  /**
    * Self-validating guard (worker profile has genuinely deferred content):
    * under the lock the profile shell must commit while the request-time
    * giving widget stays gated, then stream in after release. This also proves

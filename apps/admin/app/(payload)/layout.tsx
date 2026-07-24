@@ -70,6 +70,16 @@ const serverFunction: ServerFunctionClient = async (args) => {
   }
 };
 
+/**
+ * Block: the Payload admin resolves auth, access rules and nav preferences
+ * before it can render `children` at all, so there is nothing to lift into a
+ * static shell — a boundary here would only produce an empty one.
+ */
+export const instant = false;
+
+/** The shell can never hold segment data here, so don't spend a prefetch on it. */
+export const prefetch = "force-disabled";
+
 export default function PayloadLayout({ children }: Props) {
   return <PayloadEmbeddedLayout>{children}</PayloadEmbeddedLayout>;
 }
