@@ -134,4 +134,29 @@ describe("repairWorkspaceLinks", () => {
     expect(lstatSync(hollow).isDirectory()).toBe(true);
     expect(existsSync(hollowBuildInfo)).toBe(true);
   });
+
+  it("fails fast when all generated backup paths are unavailable", () => {
+    const hollow = path.join(
+      repoRoot,
+      "apps/admin/node_modules/@asym/mock-data",
+    );
+    mkdirSync(path.join(hollow, "dist"), { recursive: true });
+    writeFileSync(path.join(hollow, "dist/tsconfig.tsbuildinfo"), "{}");
+
+    expect(() =>
+      repairWorkspaceLinks(repoRoot, {
+        existsSync(filePath) {
+          if (filePath.includes(".repair-backup-")) return true;
+          return existsSync(filePath);
+        },
+        lstatSync,
+        mkdirSync,
+        readFileSync,
+        readdirSync,
+        renameSync,
+        rmSync,
+        symlinkSync,
+      }),
+    ).toThrow("Could not find an available backup path");
+  });
 });

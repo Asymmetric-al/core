@@ -19,6 +19,7 @@ import { fileURLToPath } from "node:url";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SKIPPABLE_SYMLINK_ERROR_CODES = new Set(["EPERM", "EACCES", "ENOTSUP"]);
+const MAX_BACKUP_PATH_ATTEMPTS = 1000;
 
 /** @param {string} repoRoot */
 function discoverWorkspaceDirs(repoRoot, fileSystem) {
@@ -57,10 +58,13 @@ function getErrorCode(error) {
 }
 
 function createBackupPath(linkPath, fileSystem) {
-  for (let attempt = 0; ; attempt += 1) {
+  for (let attempt = 0; attempt < MAX_BACKUP_PATH_ATTEMPTS; attempt += 1) {
     const backupPath = `${linkPath}.repair-backup-${process.pid}-${attempt}`;
     if (!fileSystem.existsSync(backupPath)) return backupPath;
   }
+  throw new Error(
+    `[repair-workspace-links] Could not find an available backup path for ${linkPath} after ${MAX_BACKUP_PATH_ATTEMPTS} attempts.`,
+  );
 }
 
 /**
