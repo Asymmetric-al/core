@@ -45,9 +45,10 @@ jobs:
       - name: Comment score on pull request
         continue-on-error: true
         if: >-
-          always() &&
+          !cancelled() &&
           github.event_name == 'pull_request' &&
-          github.event.pull_request.head.repo.full_name == github.repository
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          (steps.shadscan.outcome == 'success' || steps.shadscan.outcome == 'failure')
         env:
           GH_TOKEN: ${{ github.token }}
           SCORE: ${{ steps.shadscan.outputs.score }}

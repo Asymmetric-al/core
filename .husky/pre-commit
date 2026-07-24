@@ -1,2 +1,4 @@
+set -e
+
 bunx lint-staged --concurrent false --no-stash --no-hide-partially-staged
 bunx @shadscan/cli@0.1.1 ./packages/ui --fail-under 29 --no-roast --no-interactive
