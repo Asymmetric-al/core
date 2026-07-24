@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import path from "node:path";
+
 import { describe, expect, it } from "vitest";
 
 import {
@@ -12,16 +13,28 @@ import {
 } from "../../../scripts/verify/ci-build.mjs";
 
 describe("ci-build command planning", () => {
-  it("routes donor package build scripts through ci-build link repair", () => {
+  it("routes app package build scripts through ci-build link repair", () => {
     const packageJson = JSON.parse(
       readFileSync(path.resolve("package.json"), "utf8"),
     );
 
+    expect(packageJson.scripts["build:admin"]).toBe(
+      "node scripts/verify/ci-build.mjs --app admin",
+    );
+    expect(packageJson.scripts["build:admin:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --app admin",
+    );
     expect(packageJson.scripts["build:donor"]).toBe(
       "node scripts/verify/ci-build.mjs --app donor",
     );
     expect(packageJson.scripts["build:donor:strict"]).toBe(
       "node scripts/verify/ci-build.mjs --app donor",
+    );
+    expect(packageJson.scripts["build:missionary"]).toBe(
+      "node scripts/verify/ci-build.mjs --app missionary",
+    );
+    expect(packageJson.scripts["build:missionary:strict"]).toBe(
+      "node scripts/verify/ci-build.mjs --app missionary",
     );
   });
 

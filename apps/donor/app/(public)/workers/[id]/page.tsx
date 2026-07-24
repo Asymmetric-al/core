@@ -333,7 +333,10 @@ export default async function WorkerProfilePage({ params }: PageProps) {
         ]}
       />
 
-      <div className="min-h-screen bg-zinc-50 font-sans pt-16">
+      <div
+        className="min-h-screen bg-zinc-50 font-sans pt-16"
+        data-testid="worker-profile-route-shell"
+      >
         <div className="bg-white border-b border-zinc-100">
           <div className="container mx-auto px-4 h-12 flex items-center">
             <Link

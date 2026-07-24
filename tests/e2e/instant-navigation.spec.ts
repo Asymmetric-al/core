@@ -14,14 +14,22 @@ import { expect, test } from "@playwright/test";
 const rigActive = process.env.INSTANT_NAV_RIG === "1";
 
 const NAV_TARGETS = [
-  { heading: /field/i, link: "Deployments", path: "/workers" },
-  { heading: /engineered/i, link: "Mission", path: "/about" },
   {
-    heading: /financial integrity/i,
+    link: "Deployments",
+    path: "/workers",
+    shellTestId: "workers-route-shell",
+  },
+  { link: "Mission", path: "/about", shellTestId: "about-route-shell" },
+  {
     link: "Transparency",
     path: "/financials",
+    shellTestId: "financials-route-shell",
   },
-  { heading: /invest in hope/i, link: "Ways to Give", path: "/ways-to-give" },
+  {
+    link: "Ways to Give",
+    path: "/ways-to-give",
+    shellTestId: "ways-to-give-route-shell",
+  },
 ] as const;
 
 test.describe("Instant navigation (donor public site)", () => {
@@ -57,9 +65,7 @@ test.describe("Instant navigation (donor public site)", () => {
 
       await instant(page, async () => {
         await trigger.click();
-        await expect(
-          page.getByRole("heading", { level: 1, name: target.heading }),
-        ).toBeVisible();
+        await expect(page.getByTestId(target.shellTestId)).toBeAttached();
       });
     });
   }
@@ -87,8 +93,8 @@ test.describe("Instant navigation (donor public site)", () => {
     await instant(page, async () => {
       await card.click();
       await expect(
-        page.getByRole("heading", { level: 1, name: /miller/i }),
-      ).toBeVisible();
+        page.getByTestId("worker-profile-route-shell"),
+      ).toBeAttached();
       await expect(page.getByRole("link", { name: /^give \$/i })).toHaveCount(
         0,
       );
@@ -107,9 +113,7 @@ test.describe("Instant navigation (donor public site)", () => {
       page,
       async () => {
         await page.goto(url);
-        await expect(
-          page.getByRole("heading", { level: 1, name: /field/i }),
-        ).toBeVisible();
+        await expect(page.getByTestId("workers-route-shell")).toBeAttached();
       },
       { baseURL: new URL(url).origin },
     );

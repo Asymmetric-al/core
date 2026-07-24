@@ -15,7 +15,9 @@ export default function WaysToGivePage() {
           { name: "Ways to Give", href: "/ways-to-give" },
         ]}
       />
-      <WaysToGiveClient />
+      <div data-testid="ways-to-give-route-shell">
+        <WaysToGiveClient />
+      </div>
     </>
   );
 }
