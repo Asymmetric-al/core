@@ -138,6 +138,10 @@ The Phase 18 qualifier `issue set pending; groomed-not-dispatched` means its PRD
 companion contracts, ADRs, and OpenSpec delta exist, but no epic/children or
 implementation dispatch have been authorized.
 
+The Phase 19 qualifier `issue set pending; groomed-not-dispatched` means its
+PRD authority map, traceability, research, congruence, ADR, and OpenSpec package
+exist, but no epic/children or implementation dispatch have been authorized.
+
 | #      | Phase                                                                            | Hard deps                                        | Status                                                         |
 | ------ | -------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
 | **0**  | Baseline, Governance & Evidence                                                  | —                                                | `PRD exists`                                                   |
@@ -159,7 +163,7 @@ implementation dispatch have been authorized.
 | **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
 | **17** | System Messages & Template Management                                            | 6, 2, 3, 7                                       | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)   |
 | **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **19** | Year-End Statement Operations                                                    | 7, 18, 17, **13**, 6                             | `future (needs PRD)`                                           |
+| **19** | Year-End Statement Operations                                                    | 7, 18, 17, **13**, 6                             | `PRD exists` (issue set pending; groomed-not-dispatched)       |
 | **20** | Accounting Exports & Reconciliation                                              | **13**, 15, 14, 2                                | `future (needs PRD)`                                           |
 | **21** | Missionary Field Accounts & Support Balances                                     | 13, 20, 3, 4                                     | `future (needs PRD)` — new in v2                               |
 | **22** | Public Missionary & Project Page Workflow                                        | 5, 9, 10, 13, 3                                  | `future (needs PRD)`                                           |
@@ -294,8 +298,21 @@ Before creating issues or tickets, check:
   **consume, not re-derive** it: Phase 9 (CRM depth) builds on the Phase 7 party
   tables; Phase 14 (donor credit operations) builds on the Phase 7 credit
   model; Phase 18 alone renders/stores exact artifacts from approved facts,
-  while Phase 19 selects populations and operates statement runs. Do not
+  while Phase 19 freezes source-authoritative populations, applies only bounded
+  pre-release participation, and operates statement runs. Do not
   re-model those concepts in a later phase.
+
+- **Phase 19 is a source-authoritative bulk-operations consumer, not a second
+  receipt or statement engine.** Phase 7 owns the legal donor, eligibility,
+  facts, coverage, and correction effect; Phase 13 owns posted money; Phase 14
+  owns recognition; Phase 18 owns exact generated-document identity, artifact,
+  currentness, access, and records; and Phase 17/6 own message preparation,
+  transport, and delivery evidence. Phase 19 alone owns the immutable Run
+  Preflight, purpose-pinned Statement Run and Run Items, bounded participation,
+  release and control fences, recipient-operation coordination, physical
+  fulfillment, operational completion, and the PII-minimized Run Evidence
+  Record. Its Year-End Operations workspace is a rebuildable projection, never
+  another authority.
 
 - **Spark-style contribution triggers are confirmed separate (Phase 35).** The
   parity matrix tracks Spark triggers (area #25) as distinct from the automation
@@ -365,11 +382,12 @@ Before creating issues or tickets, check:
   staff-keyed PANs would break SAQ-A" wording is superseded.)_
 
 - **Do not present any later phase (9–40) as implemented or live.** Groomed
-  PRDs through Phase 18 are planning contracts, not build proof. Phase 16 is
+  PRDs through Phase 19 are planning contracts, not build proof. Phase 16 is
   marked `PRD exists` with epic #793 and children #794–#837; Phase 17 has a PRD
   plus blocked epic #873 and children #874–#905. Phase 18 has a PRD package but
-  its issue set remains pending. All three are explicitly groomed-not-dispatched,
-  and only a separate founder decision may dispatch them. The matrix's `Built?`
+  its issue set remains pending. Phase 19 also has a PRD package with its issue
+  set pending. All four are explicitly groomed-not-dispatched, and only a
+  separate founder decision may dispatch them. The matrix's `Built?`
   cells marked `(v)` still need per-area
   code verification, and all `Live?` cells are `unconf`.
 

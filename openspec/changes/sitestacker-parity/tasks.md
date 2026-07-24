@@ -158,6 +158,30 @@
       `docs/guides/architecture/web-studio-living-spec.md`, and the parity
       matrix (areas 12/13).
 
+## 2h. Phase 19 (Year-End Statement Operations) (2026-07-24)
+
+- [x] 2h.1 Record D1-D18 in the implementation-ready Phase 19 PRD plus the
+      dated cross-PRD congruence package, decision-to-test traceability,
+      authority map, and research appendix.
+- [x] 2h.2 Add the `statement-operations` capability for purpose-pinned runs,
+      immutable preflight, atomic start, recipient operations, fulfillment,
+      containment, completion, recovery, and evidence.
+- [x] 2h.3 Reconcile active product intent and donor self-service so Phase 7
+      owns eligibility and legal-donor facts, Phase 14 owns recognition, Phase
+      18 owns documents, Phase 17/6 owns communication, and Phase 19 owns
+      participation, release, coordination, physical fulfillment, and
+      operational completion.
+- [x] 2h.4 Replace joint-household and mixed indirect official-statement
+      language with source-owned Statement Subjects and the optional separate
+      **Support overview — Not a tax document** purpose.
+- [x] 2h.5 Record the accepted
+      `StatementOperationsService` real-database acceptance seam, D1-D18 release
+      proof, program-order gate on the Phase 17/18 authority package, and clean
+      removal of the live-text annual-statement route with no legacy adapter.
+- [x] 2h.6 Validate the active `add-statement-operations` change and the
+      complete OpenSpec workspace strictly; keep Phase 19 groomed but do not
+      dispatch implementation or apply `ready-for-agent`.
+
 ## 3. Verification
 
 - [x] 3.1 `bunx @fission-ai/openspec@latest validate --all --strict` passes.

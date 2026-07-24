@@ -154,42 +154,64 @@ first.
 
 ### Requirement: Donors Receive Annual Giving Statements
 
-The platform MUST generate annual giving statements whose deductible lines and
-totals cover only settled, receiptable hard-credit gifts tied to the authorized
-donor or household subject. When the canonical source context contains approved
-indirect soft-credit, DAF, or matched-gift lines supplied by the owning domain,
-the statement MUST render those lines only in a clearly labeled indirect
-section, and those lines MUST NOT enter the deductible total. Pending or
-in-flight gifts (for example unsettled ACH or not-yet-collected recurring
-installments) MUST NOT appear in deductible or indirect lines or totals in the
-donor artifact until settled; the owning domain MUST retain their excluded/audit
-record with its approved reason code. Still-unknown-donor gifts MUST NOT appear
-in a donor artifact unless the owning domain later matches them. When such a
-candidate is evaluated for a statement run, the owning domain MUST retain its
-exclusion/audit record with a #579/source-domain-approved reason code. Statement
-language MUST be finance/legal reviewed before production use.
+The platform MUST expose annual documents only through the canonical Phase 19
+Statement Run and Phase 18 Generated Document authorities. Phase 7 MUST own the
+exact legal-donor Statement Subject, eligibility, official facts and lines,
+coverage, exclusions, corrections, and frozen display truth. Phase 19 MUST own
+the reviewed frozen run population, source cutoff, participation, recipient
+operation, and release. Household relationship, soft credit, DAF advisory
+status, shared destination, or staff preference MUST NOT create or merge a
+Statement Subject.
 
-Giving MUST produce the frozen, versioned statement context from canonical
-donation/correction truth, including the deductible hard-credit partition, the
-approved indirect partition, audit-only exclusion references and their
-source-domain-approved reason codes, raw structured values, and frozen official
-display strings with locale/formatting version metadata. The document-production
-capability MUST resolve the assigned immutable template and private artifact,
-bind those frozen strings and supplied classifications, never render audit-only
-exclusions, and avoid recalculating, reclassifying, or reformatting official
-facts. The donor BFF MUST ask Phase 18 to authorize the recipient, expose only
-the current eligible artifact, and record the authorized access/download.
-Phase 17 alone records any outbound delivery. A later correction, refund, or
-donor relink MUST supersede or void stale output per policy while preserving
-correction and artifact lineage.
+An official annual document MUST contain only the purpose- and
+jurisdiction-authorized facts for its exact Statement Subject. Recognition-only
+facts MUST NOT appear in an official artifact or official/deductible total. When
+the tenant enables Phase 19's optional purpose-separated support overview, only
+the closed Phase 14 household-support and disclosed-DAF projection MAY appear
+in a separate `giving.summary.informational@1` artifact persistently labeled
+**Support overview — Not a tax document**.
+
+Phase 18 MUST resolve the immutable publication, admit the Generation Request,
+produce the private canonical PDF, and preserve one current logical-document
+head plus restricted immutable predecessors. The donor BFF MUST reauthorize the
+exact Statement Subject, Delivery Recipient or representative, purpose, current
+head, artifact, and records state for every list, view, range, and download
+request. Repeated authorized view, download, and local print MUST return the
+same exact current bytes without creating a document, delivery, or receipt
+claim. Phase 17/6 alone owns outbound communication and delivery evidence.
+Phase 19 MAY admit a deliberate bounded **Send another copy** occurrence but
+MUST prevent equivalent unresolved duplicates and MUST reconcile indeterminate
+provider handoff before another release.
+
+A later correction, refund, donor relink, or newly eligible source fact MUST
+first create source-owned correction or supplemental authority. Phase 19 and
+Phase 18 MUST then create the linked supplemental or successor operation while
+preserving the frozen primary run and predecessor evidence.
 
 #### Scenario: A donor downloads last year's statement
 
 - WHEN a donor requests a statement for a completed year
-- THEN its deductible lines and totals include exactly the settled, receiptable
-  hard-credit gifts for the authorized donor/household subject and year
-- AND any approved indirect lines supplied by the owning domain appear only in
-  a labeled indirect section and remain excluded from the deductible total
+- THEN the portal reauthorizes and returns the exact current canonical PDF for
+  the exact legal-donor Statement Subject
+- AND its official facts and totals contain only the source-authorized facts for
+  that subject and purpose
+- AND recognition-only household or DAF facts do not appear in that official
+  artifact
 - AND the portal does not present a superseded or void statement as current
-- AND Phase 18 records the authorized download; any outbound delivery remains
-  a separate Phase 17 communication event
+- AND access does not create an outbound delivery or claim donor receipt
+
+#### Scenario: A donor has an enabled support overview
+
+- GIVEN the tenant enabled support overviews and Phase 14 authorized meaningful
+  household or disclosed-DAF recognition for the recipient
+- WHEN the donor opens the year group
+- THEN official documents appear first and remain unchanged
+- AND the overview appears separately and persistently says Not a tax document
+- AND no recognition amount enters an official or deductible total
+
+#### Scenario: A donor requests another copy twice
+
+- WHEN duplicate gestures submit the same reviewed exact-current copy request
+- THEN Phase 19 returns one durable outbound occurrence
+- AND Phase 17/6 may submit at most one equivalent message or Phase 19 physical
+  fulfillment may release at most one equivalent paper attempt

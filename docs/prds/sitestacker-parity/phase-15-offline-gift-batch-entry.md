@@ -10,6 +10,19 @@ Groomed via `grill-with-docs` (2026-07-11). All seven decision families **D1–D
 
 **Production gate:** the receipt, tax-year, noncash-duty (IRS 8283/8282), and NACHA/MOTO mandate-and-consent surfaces this phase touches are tax- and compliance-adjacent and require review by **qualified finance/tax counsel** before production use (this document is not legal or tax advice) — see the Counsel Review deliverable.
 
+> **Controlling Phase 19 year-boundary amendment (2026-07-24).** Phase 15
+> captures the source fact; Phase 19 owns statement cutoffs, frozen populations,
+> primary release, and the late-fact lane. For a legitimate December check
+> entered in January, the default low-friction control is an append-only staff
+> attestation of the asserted mail/delivery date, basis, reason, actor, and
+> time. A visible postmark or other proof may be retained when available, and a
+> tenant or jurisdiction contract may require stronger evidence or independent
+> review, but no donor attestation, uploaded envelope, certified-mail proof, or
+> second approver is universally required. The source correction never mutates
+> posted money or a frozen run. Before release it stales the affected Run
+> Preflight; after release it enters Phase 19's bounded late-fact
+> successor/supplemental workflow.
+
 ---
 
 ## Problem Statement
@@ -876,7 +889,7 @@ A phone card/ACH gift is written by the Stripe webhook (law 2). The workbench **
 
 ### 5.9 Presentation: frozen grid, tender facts in the inspector, a11y, copy [A12–A14]
 
-- **[A12]** `gift_method` is a single compact grid cell (default `check`); **all** tender-specific facts live in the non-modal row inspector or the follow-up worklist. Grid columns are **frozen at the D3 core set** and never grow for a rare tender — the row shows only a tender badge + a "needs facts" chip. Date-sensitive tenders (check, securities, in-kind) have **no global today-default** (resolver-suggested-but-empty, required); only cash defaults `received = today`; a cross-year date trips the P7 SoD gate. Acceptance test: a **500-row all-check batch renders exactly the core column set.**
+- **[A12]** `gift_method` is a single compact grid cell (default `check`); **all** tender-specific facts live in the non-modal row inspector or the follow-up worklist. Grid columns are **frozen at the D3 core set** and never grow for a rare tender — the row shows only a tender badge + a "needs facts" chip. Date-sensitive tenders (check, securities, in-kind) have **no global today-default** (resolver-suggested-but-empty, required); only cash defaults `received = today`; a cross-year date opens the Phase 7/19 staff-attestation control and any tenant- or jurisdiction-required strengthening. Acceptance test: a **500-row all-check batch renders exactly the core column set.**
 - **[A13]** No `role="grid"` nested inside `role="grid"` — the P14 remittance attribution sub-grid renders as a full-context surface or an add/edit list. Button-first uploads with a keyboard alternative to any drag zone. Live link/MOTO/ACH status via `aria-live="polite"` **without stealing focus** + `prefers-reduced-motion`. ≥24px targets; focus-not-obscured under the sticky rail. Asym a11y-tests **its own** labels/focus-order into and out of the Stripe iframe (it cannot attest to Stripe's iframe internals). Fold the nested-grid ruling into the D3 keyboard spike.
 - **[A14]** A GOV.UK-plain **compliance copy deck** for every compliance-sensitive label/hint/gate (describe-never-value copy, "postmark date = the date stamped on the envelope," MOTO higher-pricing/no-liability-shift disclosure, "gift submitted, will settle in a few business days," ACH pending/returned states, mapped human decline copy, WEB/TEL mandate + saved-method consent language), following the D2 four-part gate pattern (what's wrong, why it matters, how to fix, what it blocks). Add **contrast-verified semantic `warning`/`info` tokens (light + dark)** before any compliance hint ships — none exist today; forbid ad-hoc emerald/amber.
 
@@ -1075,16 +1088,16 @@ Copy: _"The postmark decides this gift's tax year and its receipt — add it if 
 
 The 2025 USPS rule (postmark = first automated scan, not the mailing date) makes postmark and mailing date legitimately diverge by days, which is exactly why the guard is advisory, not mechanical — the system cannot infer the true mailing date.
 
-#### Donor-attested mail-date override, inheriting P7 cross-year SoD [D5 Amd 8, Call-back C]
+#### Staff-attested prior-year date, strengthened only by tenant or jurisdiction policy [Phase 19 D5]
 
-At the boundary, staff may record a **donor-attested mail-date override-with-reason** (a PVI / certified-mail evidence note) that sets the gift's tax year against the postmark/received default. Because this moves a gift across a tax-year line — a material tax decision — it **inherits the P7 cross-year separation-of-duties** (the same governance P7 applies to any cross-year dating override). The override is optional and advisory, stamps its reason and evidence note, and is captured, never inferred.
+At the boundary, authorized staff may record a **prior-year date attestation** that states the asserted mail/delivery date, basis, reason, actor, and time. Staff judgment is sufficient under the default tenant policy; a visible postmark, donor note, or other proof may be retained when available but is not a universal prerequisite. A tenant or jurisdiction contract may strengthen the policy with a cutoff, evidence, or independent review. The action is append-only and audited, never inferred and never an in-place rewrite. Before a Phase 19 primary release it invalidates the affected preflight; afterward it enters the contract-owned late-fact lane.
 
 #### Invariants (Mod 4)
 
 - The resolver is pure and total: every gift yields a defensible `{gift_date, delivery_basis, tax_year}`; the received fallback is stamped `delivery_basis = received`, never silently recomputed.
 - Postmark is `optional_by_design`; only a tenant template may require it, and only with a loud warning; the year-boundary nudge fires regardless of the template setting.
 - The boundary nudge is non-blocking and window-scoped (config, default Dec 26 – Jan 15, or straddling dates); it never blocks post.
-- A cross-year mail-date override records a reason + evidence and inherits P7 cross-year SoD.
+- A prior-year date records a staff attestation by default; evidence and independent review apply only when the tenant or jurisdiction policy requires them.
 - A "quiet 364 days / wrong 1 day" seasonal regression is covered by a named property test spanning the boundary window.
 
 ### Repo anchors (evidence, not build instructions)

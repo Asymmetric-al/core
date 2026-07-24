@@ -162,6 +162,37 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
   path be deleted. An indeterminate or positive proof stops the line for
   re-grooming. No importer, compatibility view, archive, dual path, shadow
   migration, or fabricated history ships.
+- **Statement operations coordinate separate authorities through one reviewed
+  release (added 2026-07-24, Phase 19).** One immutable Run Preflight pins
+  source-authoritative Statement Subjects, facts closure, participation,
+  document and communication resolution, recipient delivery, fulfillment, and
+  policy. One atomic Start transaction creates the canonical purpose-pinned
+  Statement Run and opens the release barrier without external I/O. Phase 19
+  coordinates but does not absorb Phase 7 eligibility/facts, Phase 14
+  recognition, Phase 18 document/artifact, or Phase 17/6 communication truth.
+  The Year-End Operations workspace is a derived operational projection rather
+  than a campaign parent or lifecycle authority.
+- **Tenant control stays broad inside explicit statement contracts (added
+  2026-07-24, Phase 19).** Tenants control compatible pre-start participation,
+  Statement Delivery Profiles, self-print/mail-house/direct-mail posture,
+  staff capabilities, bounded review strengthening, run control, operational
+  completion, and one target-ready date. They cannot override legal-donor
+  identity, eligibility, coverage, current artifact, privacy, suppression,
+  provider finality, or tenant-fair capacity. The ordinary path remains
+  automatic and low-ceremony.
+- **Official and recognition documents never collapse (added 2026-07-24,
+  Phase 19).** Official documents use exact Phase 7 legal-donor Statement
+  Subjects. Household and disclosed-DAF recognition may appear only through the
+  separate optional `giving.summary.informational@1` Support overview, always
+  labeled **Not a tax document** and absent by default. Shared destinations and
+  presentation groups never create joint legal truth.
+- **Frozen runs recover through owner-specific append-only lanes (added
+  2026-07-24, Phase 19).** Destination succession, cooperative Pause/Resume/
+  Stop, year-boundary check late facts, contextual help, supplemental runs,
+  exact-current copy requests, staff completion, and audit-package retrieval
+  preserve immutable release evidence and route each action to its source
+  owner. Unknown provider outcomes reconcile before new effects. The live-text
+  annual statement path is removed rather than extended.
 
 ## Non-goals
 
@@ -177,6 +208,9 @@ only; it ships no features. These decisions came from a structured Phase 0 grill
 - No product implementation, destructive cutover, renderer selection, Canadian
   activation, document publication, artifact generation, migration, or issue
   dispatch is authorized by the Phase 18 specification package.
+- No product implementation, provider activation, live statement release,
+  mailpiece submission, data migration, or issue dispatch is authorized by the
+  Phase 19 specification package.
 
 ## Risks / trade-offs
 

@@ -140,7 +140,7 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
 | **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)   |
 | **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                               | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6                        | 9, 4                                                  | Mission Control Contributions/Finance                           | `future (needs PRD)`                                           |
+| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 7, 18, 17, **13**, 6                        | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
 | **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2                           | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
 | **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4                                | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                           |
 | **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                             | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                           |
@@ -1097,9 +1097,12 @@ same Phase 6/17 spine and never falls back for tenant mail; Eve keeps its Discor
 operational channel outside tenant System Messages.
 
 **Dated compatibility boundary.** Phase 6 remains communication execution and
-history. Phase 7 owns receipt/statement truth; Phase 14 owns recognition
-recipients; Phase 18 owns immutable document artifacts; Phase 19 owns statement
-runs and recipient bulk state; Phase 24 owns broad site/CMS/shell localization;
+history. Phase 7 owns receipt/statement legal-donor, eligibility, facts,
+coverage, and correction truth; Phase 14 owns recognition; Phase 18 owns
+logical generated documents, immutable artifacts, currentness, access, and
+records; Phase 19 owns frozen statement population, bounded participation,
+run/recipient-operation coordination, physical fulfillment, control, completion,
+and run evidence; Phase 24 owns broad site/CMS/shell localization;
 Phase 25/28 own complete donor/missionary notification-center information
 architecture; Phase 26 owns inbound replies; Phase 32 owns campaigns/newsletters;
 and Phase 34 owns general workflows. The three original open questions are
@@ -1151,8 +1154,11 @@ facts derive from), and Phase 17 (template governance it reuses).
 
 **Boundaries & guardrails.** Document templates cannot invent legal, donor,
 recipient, money, correction, delivery, or records truth. Phase 7/source domains
-own facts and optional issuance; Phase 17 owns message delivery; Phase 19 owns
-statement population and run timing. Restricted-worker policy applies to
+own facts and optional issuance; Phase 17 owns message delivery; Phase 19
+consumes source-authoritative eligibility and owns the immutable Run Preflight,
+bounded participation, frozen Statement Run/Run Items, recipient-operation
+coordination, physical fulfillment, control, completion, and Run Evidence
+Record. Restricted-worker policy applies to
 visible and hidden artifact surfaces. Renderer selection, U.S. breadth, Canada
 scope, access, records, publication scheduling, and the clean cut are resolved
 by the Phase 18 D1–D17 contracts; no founder question remains open. The phase is
@@ -1165,44 +1171,85 @@ a groomed PRD only, with an issue set pending and no implementation dispatch or
 
 **What this phase is (plain language).** Finance needs to produce correct
 year-end statements for every eligible donor at scale. That is a **population
-and run-operations product**: choose and freeze eligibility/cutoff, preview
-groups, test safely, run item-authoritative work, monitor generation and
-delivery as separate axes, recover failures, resend exact current artifacts,
-and audit. January 31 may be a tenant service target; the phase must not present
-it as a universal federal deadline.
+and run-operations product**: consume source-authoritative eligibility, prepare
+one exact immutable Run Preflight, release the reviewed candidate atomically,
+operate item-authoritative work, preserve separately authoritative outcomes,
+recover exceptions, fulfill paper work, serve exact-current artifacts, and
+retain auditable evidence. January 31 may be a tenant service target; the phase
+must not present it as a universal federal deadline.
 
 **Why it sits here.** After facts (7), rendering (18), templates/delivery
 (17), the ledger (13), and the comms spine (6).
 
 **What it covers.**
 
-- **Statement runs** with frozen eligibility snapshots (Phase 7 rules:
-  issued-on-accept semantics; inclusions/exclusions recorded); grouping and
-  preview (Virtuous-style receipting groups with per-group gift lists);
-  test mode against mock recipients.
-- **Separated item axes**: Phase 18 generation/current artifact and Phase 17
-  message/provider delivery never collapse into one `rendered/sent/delivered`
-  status. Failure queues route generation repair to Phase 18 and resend/delivery
-  repair to Phase 17 without rerendering or changing identity.
-- **Cumulative-vs-per-gift interaction** uses Phase 7 eligibility/issuance and
-  Phase 18 currentness/coverage contracts. Staff cannot infer cancellation from
-  grouping or create competing receipt truth.
-- **Copy versus formal replacement semantics**: a copy reuses exact current
-  bytes and identity; a changed Canadian official receipt receives a new serial
-  citing the retained canceled predecessor. Delivery retry never changes either.
-- **Donor self-service statements** in the portal ride the same runs
-  (self-service cuts January support load; completion in Phase 25).
-- Soft-credit/volunteer recognition sections togglable per org, clearly
-  non-tax (14).
+- **One canonical purpose-pinned Statement Run system.** An inert Run Preflight
+  freezes tenant/environment, issuer, jurisdiction activation, purpose,
+  document period, source-fact cutoff, rule/publication/profile versions,
+  Statement Subjects, reasons, counts, totals, and digests. One idempotent
+  transaction promotes the exact reviewed preflight, creates Run Items and
+  release evidence, opens one release barrier, and emits the outbox wake.
+- **Source-owned people and facts.** Phase 7 owns each legal-donor Statement
+  Subject, eligibility, facts, coverage, and correction effect; Phase 13 owns
+  posted money; Phase 14 owns optional Recognition Subjects. A Delivery
+  Recipient is independently authorized. Household recognition never merges
+  official legal-donor documents or deductible totals.
+- **Bounded tenant participation.** Automatic source-derived participation is
+  the default. Authorized staff may include, hold, omit where the purpose
+  permits, restore the automatic result, or add an already-existing eligible
+  Statement Subject before release. They cannot create legal donors, edit gift
+  lines/totals, force ineligible facts, or write jurisdiction rules.
+- **Separately authoritative outcomes.** Population, Phase 18 document,
+  portal-access, Phase 17/6 communication, paper, run-control, completion, and
+  evidence-package state remain distinct. There is no blended
+  `rendered/sent/delivered` status or fabricated global completion percentage.
+- **Tenant-configurable delivery with code-owned safety.** Versioned Statement
+  Delivery Profiles compile deterministically into compatible Fulfillment
+  Plans and mutually exclusive Execution Lanes. Recipient/destination meaning
+  freezes at release; governed Destination Succession changes only still-safe
+  future execution.
+- **Self-print first.** The quiet default is a secure exact-artifact package
+  with reconciled counts, checksums, print profile, and truthful staff-recorded
+  print/postal evidence. Existing mail-house export uses the same contract. At
+  most one direct-mail adapter may launch after production-shaped proof;
+  PostGrid is the first candidate and Lob the U.S.-focused alternative.
+- **Cooperative containment and truthful completion.** Pause closes admission
+  and proves containment; Resume re-proves only safe work; Stop permanently
+  prevents only unreleased work while in-flight work reconciles. Staff decide
+  when to mark a run complete, while Asym derives clean versus exception
+  outcome and preserves independently live follow-up.
+- **Source-owned late facts and exact-current help.** A released primary run is
+  immutable. Proof-backed year-boundary checks use Phase 7/15 gift-date truth;
+  post-release facts create deduplicated supplemental/correction obligations.
+  Staff use one **Help with this statement** doorway, and donors have unmetered
+  authorized access to the exact current Phase 18 artifact plus bounded,
+  repeatable outbound-copy fulfillment.
+- **Quiet evidence and seasonal operations.** One PII-minimized Run Evidence
+  Record preserves release/completion proof and owner references; a governed
+  temporary package supports audit retrieval. Execution is certified,
+  tenant-fair, resumable, provider-adaptive, and protects critical messages.
+  Tenants receive one bounded **Target ready for review by** control, not queue
+  priority.
+- **Optional products stay separate.** Exact-issuer Canadian annual receipt
+  behavior is structurally absent unless its Phase 18 pack is active.
+  **Support overview — Not a tax document** is an off-by-default informational
+  document, never a section of or substitute for an official statement.
 
-**Boundaries & guardrails.** Statements use eligibility snapshots, never
-ad-hoc year filters. Delivery goes through the communication event model.
-Runs are idempotent and resumable (Inngest step functions).
+**Boundaries & guardrails.** Phase 19 owns the Run Preflight, frozen population,
+bounded participation, Statement Run/Run Items, release/control fences,
+recipient-operation coordination, physical fulfillment, operational completion,
+and Run Evidence Record. It does not re-author Phase 7/13/14 truth, render
+documents outside Phase 18, or send outside Phase 17/6. Inngest is a subordinate
+executor; durable database state, idempotency, leases, fencing, outbox/recovery,
+composite tenant/environment ownership, RLS, and reconciliation remain the
+authority. Test mode uses synthetic data and can never become live work.
 
-**Open questions for grooming.** Print-vendor/mail-house export lane (file
-format, who owns fulfillment); statement grouping unit (per party vs per
-household — Phase 7's receipted-donor model decides; verify at grooming);
-volume targets for render throughput.
+**Grooming outcome (2026-07-24).** Ratified D1–D18; no founder product question
+remains open. The [Phase 19 PRD](./phase-19-year-end-statement-operations.md),
+its authority map, research, decision-to-test traceability, cross-PRD
+congruence, focused ADRs, and OpenSpec delta are the planning
+authority. Issue slicing, explicit dispatch, implementation, provider
+qualification, and production evidence remain pending.
 
 ---
 

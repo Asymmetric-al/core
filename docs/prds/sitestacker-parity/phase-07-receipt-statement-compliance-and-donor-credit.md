@@ -28,6 +28,29 @@ Modern SiteStacker parity for the **finance/legal record foundation** of the pla
 > corrected Canadian receipt. Where older text below conflicts, this amendment
 > and the Phase 18 PRD/manifest control.
 
+> **Controlling Phase 19 statement-operations amendment (2026-07-24).**
+> Phase 7 owns the exact source-authorized **Statement Subject** (the frozen
+> legal-donor Party, or a source-proved joint-donor Party only where the
+> applicable jurisdiction and purpose permit it), statement eligibility,
+> immutable inclusion/exclusion facts, and any prospective exact-issuer receipt
+> plan. Phase 19 consumes those decisions; it owns tenant-authorized
+> participation, Run Preflight, frozen population, runs, items, cutoffs, and
+> late-fact coordination, but may not merge, replace, or override a Statement
+> Subject. Household membership, shared contact data, soft credit, or staff
+> preference never creates an official joint statement. Phase 14 separately
+> owns the **Recognition Subject** projection. When enabled, Phase 19 may render
+> that projection only as `giving.summary.informational@1`, persistently labeled
+> **Support overview — Not a tax document**; it never enters an official total
+> or blocks an official document. For a legitimate December check entered in
+> January, ordinary source intake accepts an auditable staff attestation as the
+> default basis for the prior-year date. A tenant or jurisdiction contract may
+> require stronger evidence or review, but Phase 7 does not impose a universal
+> second approver or attachment requirement. After the primary release, the
+> same append-only source correction enters Phase 19's late-fact lane rather
+> than mutating frozen run facts. This amendment replaces older blanket
+> "households roll up," "one joint statement," combined-household-total, and
+> universal evidence/separation-of-duties language below.
+
 ---
 
 ## Problem Statement
@@ -76,11 +99,11 @@ A **rules-first, server-only receipt & statement facts engine** — the system o
 
 4. **The three-document wall, enforced structurally.** A **tax receipt** (legal donor only; may carry deductibility + EIN), an **acknowledgment** (soft-credited parties; **no** deductibility language), and a **notification** (tribute notify party; **amount hidden**; never a tax document). Acknowledgment and notification templates have **no access to deductibility or amount merge-fields** — a wrong-party tax statement is impossible by construction, not by staff memory.
 
-5. **The year-end statement as a frozen inclusion snapshot + a live view + versioning.** A **statement run** is an async batch that computes a frozen `statement_inclusion_snapshots` (which gifts included, which excluded **with reasons**, deductible vs indirect totals, legal-donor/household grouping) — the official/audit record — plus a **live "running summary"** portal view (recomputed on demand, cached, explicitly labeled non-official), plus **statement versioning** (a post-run correction issues a superseding version, prior retained, donor re-notified). Inclusion is driven by the credit model: DAF/soft-credit/matched gifts go in a separate labeled indirect section, never the deductible total; refunds net-reduce; households roll up to one deduped statement.
+5. **The year-end statement as source-owned facts consumed by a frozen run.** Phase 7 supplies immutable inclusion/exclusion facts and the exact legal-donor Statement Subject. Phase 19 freezes those facts into its own run and item records, while Phase 18 versions the exact document artifact. Soft-credit and household recognition never enter an official statement or total; when the tenant enables it and Phase 14 supplies a meaningful authorized projection, Phase 19 may create the separate **Support overview — Not a tax document** purpose.
 
 6. **A high-performance, resumable statement batch contract.** Phase 19 owns population, cutoff, scheduling, run recovery, and item selection; each item invokes Phase 18's one generation seam over Phase 7 facts. The run uses item-authoritative idempotency, bounded fair concurrency, resumable claims, and a first-class auditable exclusion set. January 31 may be a tenant service target, but this PRD does not present it as a universal federal contemporaneous deadline; the exact legal timing rule is qualified and revalidated at release.
 
-7. **Correct tax year by stored date-of-delivery.** A single **delivery date is resolved once at ingestion/entry, in the tenant tax timezone, and stored** in `gift_date` (never recomputed on read): card/ACH = settlement; mailed check = **postmark** (the IRS mailbox rule — the written check date is not authoritative); hand-delivered/cash/in-kind = received; private carrier = received. A `delivery_basis` field records which input governed. An **offline gift-entry** flow captures postmark + received date, shows the computed tax year before save, and warns on a year-boundary straddle. **Backdating** to a prior year is permission-gated, evidence-required, cutoff-bounded, and separation-of-duties-approved when it crosses an issued-statement year — append-only, never a silent rewrite. This fixes the shipped UTC year-bucketing bug.
+7. **Correct tax year by stored date-of-delivery.** A single **delivery date is resolved once at ingestion/entry, in the tenant tax timezone, and stored** in `gift_date` (never recomputed on read): card/ACH = settlement; mailed check = **postmark** when known; hand-delivered/cash/in-kind = received; private carrier = received. A `delivery_basis` field records which input governed. An **offline gift-entry** flow captures postmark + received date, shows the computed tax year before save, and warns on a year-boundary straddle. A legitimate prior-year date uses append-only staff attestation by default; tenant or jurisdiction policy may strengthen evidence/review. This fixes the shipped UTC year-bucketing bug without creating universal January ceremony.
 
 8. **Lean tax facts from a fund deductibility policy.** Deductibility is sourced from a **fund/designation policy** (fully-deductible / has-goods-services / non-deductible / in-kind) so most gifts are correct by default; a small set of frozen per-gift/per-line fields (deductible amount, goods-services FMV, quid-pro-quo, in-kind description) with per-gift override; a normalized benefit child table **only** for the rare multi-benefit gift. Split gifts may carry **mixed deductibility per designation line**.
 
@@ -108,7 +131,7 @@ Underneath, Phase 7 source facts live **server-only at the Asym boundary** in ne
 6. As a **finance operator**, I want to void a receipt with a reason and an audit trail, so that a mistaken issuance is corrected defensibly.
 7. As a **finance operator**, I want a full interactive explainer on a gift showing every included/excluded line, deductible vs indirect, the reason each fired, and the version history, so that I can defend any receipt to a donor or an examiner.
 8. As a **finance operator**, I want to enter an offline gift and see the tax year it will be counted in (based on the postmark) before I save, so that a January-arriving December check lands in the right year.
-9. As a **finance operator**, I want to backdate a legitimate prior-year gift with evidence and approval, but be stopped from backdating a February gift into December without justification, so that our records are correct but not abusable.
+9. As a **finance operator**, I want to record a legitimate prior-year gift with an auditable staff attestation by default, while tenant or jurisdiction policy may require stronger proof or review, so that our records are correct without needless ceremony.
 10. As a **finance operator**, I want to run year-end statements through a guided wizard with a pre-flight data-health check, a live preview, a per-donor inclusion explainer, a dry-run/test-send, and a diff against last year, so that thousands of tax documents go out reviewed and correct.
 11. As a **finance operator**, I want a post-run correction to supersede only the affected statements with a new version and an auto-drafted donor re-notification, so that one refund doesn't force a full re-blast.
 12. As a **finance operator**, I want the wizard to block commit if the template is missing EIN, the goods-and-services statement, or the tax-year label, so that IRS requirements are a checklist, not tribal knowledge.
@@ -118,20 +141,20 @@ Underneath, Phase 7 source facts live **server-only at the Asym boundary** in ne
 13. As **finance staff**, I want the receipt owner to always be the frozen legal (hard-credit) donor, never a login, email, or soft-credited person, so that a tax receipt never goes to the wrong party.
 14. As **finance staff**, I want a DAF grant to receipt the sponsoring fund and give the advising individual a clearly non-deductible acknowledgment, so that we never tell a DAF advisor a grant is deductible to them.
 15. As **finance staff**, I want an employer match to be the company's own receipted gift and only a soft credit to the employee, so that the same dollars are never receipted twice.
-16. As **finance staff**, I want a couple to receive one joint statement and the second spouse only a soft credit, so that we never double-receipt one contribution.
-17. As **finance staff**, I want soft credits, DAF grants, and in-kind gifts to be excluded from a donor's deductible total and shown in a clearly labeled indirect section, so that the one deductible number a donor hands their accountant is unambiguous.
+16. As **finance staff**, I want every official statement to stay with its source-owned legal-donor Statement Subject, so that shared household details never merge or double-receipt contributions.
+17. As **finance staff**, I want soft credits and DAF recommendations excluded from official statements and, when enabled and authorized, shown only in a separate **Support overview — Not a tax document**, so that recognition cannot be mistaken for deductible giving.
 18. As **finance staff**, I want in-kind gifts described but never valued on the receipt, quid-pro-quo gifts to show the benefit value and the net deductible, and gifts over $75 with a benefit to carry the required disclosure, so that we meet IRS substantiation rules.
 19. As **finance staff**, I want money on receipts and statements formatted with real currency metadata and the frozen render locale, so that amounts are correct in any currency and a receipt renders identically forever.
 20. As **finance staff**, I want a durable, retention-classified record that a receipt or statement was sent, corrected, or voided, and whether it delivered, so that we can substantiate official communications for years.
-21. As **finance staff**, I want statement runs, corrections, and voids to require the right permission and separation-of-duties approval where they cross a tax year or an issued document, so that high-risk finance actions are controlled.
+21. As **finance staff**, I want statement runs, corrections, and voids permissioned and auditable, with independent review only where the governing tenant or jurisdiction policy requires it, so that high-risk actions are controlled without universal bureaucracy.
 
 ### Donor (self-service)
 
 22. As a **donor**, I want to download a correct, compliant PDF receipt for any gift with one click, so that I have my own record without emailing the office.
 23. As a **donor**, I want a clearly-labeled "running total for this year" view separate from my official year-end statement, so that I never confuse a mid-year summary with my filing document.
 24. As a **donor**, I want my authorized portal to keep every retained official statement discoverable by tax year, while each open/download re-proves current access instead of relying on a never-expiring bearer link, so that tax prep is simple without weakening document security.
-25. As a **donor** in a household, I want one joint statement for our household with a combined deductible total, so that my spouse and I don't receive two conflicting documents.
-26. As a **donor**, I want my deductible gifts, indirect/soft-credited gifts, and in-kind gifts shown in clearly separate sections, so that I know exactly what I can deduct.
+25. As a **donor** in a household, I want each official document clearly labeled for its actual legal donor and any optional household recognition placed in a separate non-tax overview, so that shared delivery never obscures tax ownership.
+26. As a **donor**, I want official tax documents and optional support information presented as purpose-separated documents, so that I never mistake recognition for deductible giving.
 27. As a **donor** whose statement was corrected, I want to see the superseded version, a "corrected" badge, and a plain-language explanation of what changed, so that I understand and can amend my return if needed.
 28. As a **DAF advisor**, I want a warm thank-you that clearly states it is not a tax receipt, so that I am acknowledged without being misled about deductibility.
 
@@ -199,7 +222,7 @@ Underneath, Phase 7 source facts live **server-only at the Asym boundary** in ne
 
 - **A14 — Tax year = one resolved, stored date-of-delivery in the tenant tax timezone; never recomputed on read.** Resolution at ingestion/entry: card/ACH = settlement timestamp → DATE in tax timezone; **mailed check = postmark** (the written check date is not authoritative — IRS mailbox rule); hand-delivered/cash/in-kind = received; private carrier = received (no USPS postmark). `delivery_basis ∈ {postmark, received, settlement}` records which input governed. Stored in `gift_date`; `tax_year = year(gift_date)`. Fixes the shipped UTC year-bucketing bug via a tenant `tax_timezone`. (D6.)
 
-- **A15 — Backdating is append-only, evidence-required, cutoff-bounded, and approval-gated across tax years.** True backdating (`gift_date` year < entry year) requires a non-suppressible reason + evidence (postmark for checks); crossing into a year whose statements issued routes through separation-of-duties approval and supersedes that year's statement; a tenant `prior_year_backdate_cutoff` (default ~Jan 31) bounds it, and backdating past the cutoff / older than the prior year is blocked without an elevated capability. All via the shipped adjustment ledger (`gift_date_correction` adjustment/action type); `gift_date` is never rewritten in place. (D6.)
+- **A15 — Prior-year dating is append-only, staff-attested by default, and policy-strengthenable.** True prior-year dating (`gift_date` year < entry year) requires an auditable staff attestation with the asserted date, basis, reason, actor, and time; a postmark or other evidence may be retained when available. A tenant or jurisdiction contract may require stronger evidence, a bounded cutoff, or independent review, but those are not universal defaults. All changes use the adjustment ledger (`gift_date_correction` adjustment/action type); `gift_date` is never rewritten in place. If an immutable primary statement release already exists, Phase 19 coordinates the correction through its late-fact lane rather than changing the frozen run or artifact in place. (Phase 19 D5.)
 
 - **A16 — Tax facts from a fund deductibility policy + lean per-gift/per-line fields.** A fund/designation `deductibility_policy ∈ {fully_deductible, has_goods_services, non_deductible, in_kind}` drives auto-populated per-gift facts; legacy funds default to `fully_deductible`; split gifts may carry **mixed deductibility per designation line**; per-gift/line overrides take precedence. Frozen facts on the receipt version: deductible amount, goods-services FMV, quid-pro-quo, in-kind description, is-deductible. A normalized benefit child table is added **only** for the rare multi-benefit gift. In-kind: deductible amount `NULL` (excluded from the deductible SUM), described-not-valued. (D6-B, D9#1/#6.)
 
@@ -360,9 +383,9 @@ Reserved as seams, **not** built in Phase 7:
 **Done when finance can:**
 
 1. See a receiptable/not-receiptable verdict + reason on every gift, and issue/correct/void/supersede receipts as immutable, numbered, versioned records that reference the money-truth ledger.
-2. Have the right document reach the right party for every case — individual, couple/household, organization/church, DAF (sponsor + $0 advisor acknowledgment), matching (company + employee soft credit), tribute (notify-party notification) — with soft credit structurally unable to mint a receipt or enter a deductible total.
-3. Enter an offline gift, see and confirm its tax year (postmark-governed), and backdate a legitimate prior-year gift with evidence + approval, bounded by a cutoff.
-4. Run year-end statements as frozen, versioned inclusion snapshots (with a live running view, a pre-flight gate, an inclusion explainer, dry-run/test-send, and supersede-on-correction), and explain every inclusion/exclusion.
+2. Have the right document reach the right party for every case — individual, source-proved joint donor, organization/church, DAF (sponsor + $0 advisor acknowledgment), matching (company + employee soft credit), tribute (notify-party notification) — with shared household details unable to merge Statement Subjects and soft credit structurally unable to mint a receipt or enter an official total.
+3. Enter an offline gift, see and confirm its tax year, and record a legitimate prior-year gift through append-only staff attestation by default, with stronger evidence or approval only when tenant or jurisdiction policy requires it.
+4. Supply source-authoritative statement eligibility, Statement Subjects, facts, and reasons for Phase 19 to freeze into its Run Preflight and item-authoritative runs, while keeping optional recognition in a separate non-tax purpose.
 5. Rely on Phase 17 delivering the exact Phase 18 artifact through the Phase-6 spine with durable, version-scoped communication evidence, and on the three pre-existing bugs being fixed.
 
 **Acceptance artifacts:** the permanent negative/safety test tier + structural CI gates pass; the evidence file is complete; the counsel-review checklist is produced; the parity-matrix rows (7, 9, 10; touch 2, 5, 11) reflect the Phase 7/17/18/19 ownership split; the OpenSpec change + `CONTEXT.md` glossary terms are authored; and Phase 18's environment-gated D17 clean-cut inventory proves every non-production document path is removed without a compatibility runtime.
@@ -381,7 +404,7 @@ _Epic #566 + children #567–#586 created via `/to-issues`. First-pass breakdown
 - **{{T5}}** — `gift_credits` soft-credit ledger + `is_receiptable=FALSE` invariant + the three-document wall + credit resolver (B3). _(blocked on T4)_ _(Amended 2026-07-10, Phase 14 (Donor Credit Operations) D1.14: T5/#571 is RESCOPED to receipt/statement CONSUMPTION of the Phase 14 credit read models — Phase 14 takes build ownership of all six credit objects; `gift_credits` is renamed `contribution_credits`.)_
 - **{{T6}}** — DAF (`daf_sponsors`), matching-gift lifecycle, tribute (+ notifications) models + routing. _(blocked on T5)_ _(Amended 2026-07-10, Phase 14 (Donor Credit Operations) D1.14: T6/#572 is RESCOPED to receipt/statement CONSUMPTION of the Phase 14 credit read models — the DAF/matching/tribute objects (`daf_sponsors` party-extension + `party_payer_aliases`, `matching_gift_expectancies` + `matching_gift_settlements`, `tributes`/`contribution_tributes`/`tribute_notify_parties`) are built by Phase 14.)_
 - **{{T7}}** — Date-of-delivery resolver (B4) + `gift_method`/`received_date`/`postmark_date`/`delivery_basis` columns + tenant `tax_timezone` + the UTC-bug fix. _(foundation-ish)_
-- **{{T8}}** — Offline gift-entry flow + backdating governance (evidence, cutoff, separation-of-duties, `gift_date_correction`). _(blocked on T7)_
+- **{{T8}}** — Offline gift-entry flow + prior-year dating governance (auditable staff attestation by default, optional policy-strengthened evidence/review, `gift_date_correction`). _(blocked on T7)_
 - **{{T9}}** — Fund deductibility policy + lean per-gift/per-line tax facts + resolver (B8). _(foundation-ish)_
 - **{{T10}}** — Receipt eligibility evaluator (B1) + the issue-on-accept/void state machine + `receipt_status` formalization. _(blocked on T9)_
 - **{{T11}}** — `charge.dispute.*` ingestion in the Stripe event processor (E2) + the single-gift issuance path (E3) + reconciliation (E4). _(blocked on T10)_

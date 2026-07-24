@@ -2098,6 +2098,175 @@ _Avoid_: mutable template status, client-selected current version, default templ
 One immutable, explicitly authorized decision permitting an exact ready publication to advance one Document publication head at or after a recorded future instant, subject to current safety proof. It is not a timer, release calendar, legal-effective-date rule, recurrence, or promise of backdated currentness.
 _Avoid_: scheduled draft mutation, cron job as authority, queued release, automatic rollback
 
+**Statement Run** (Phase 19):
+One immutable released population for one exact tenant/environment, issuer,
+purpose, jurisdiction, document period, source-fact cutoff, and pinned policy
+set. It is a bulk-operations authority, not a campaign or year filter.
+_Avoid_: statement campaign, mutable batch, ad-hoc annual query
+
+**Run Draft** (Phase 19):
+The editable, server-owned candidate configuration used before a Run Preflight
+is frozen. It has no live document, portal, message, print, or legal effect.
+_Avoid_: live run, mutable preflight, browser-owned population
+
+**Run Preflight** (Phase 19):
+One immutable, inert candidate manifest that reconciles exact included,
+excluded, blocked, held, and already-current Statement Subjects; source
+closures; purpose/publication/profile pins; counts, totals, reasons, and digest
+before release.
+_Avoid_: preview query, spreadsheet export, cached dashboard count
+
+**Run Item** (Phase 19):
+One governed Statement Subject and exact source-coverage candidate inside a
+Statement Run. It is never an email address, household, delivery attempt, PDF
+file, or communication event.
+_Avoid_: recipient row, message item, attachment job
+
+**Statement Subject** (Phase 19):
+The exact Phase 7 legal donor or source-proved joint donor to whom the official
+statement belongs. Phase 19 consumes this authority and cannot choose or merge
+it.
+_Avoid_: household addressee, preferred contact, soft-credit recipient
+
+**Recognition Subject** (Phase 19):
+A purpose-separated Phase 14 person or household that may be recognized in an
+authorized informational product without replacing the Statement Subject or
+entering an official deductible total.
+_Avoid_: joint legal donor, official household statement, recognition as tax credit
+
+**Delivery Recipient** (Phase 19):
+The independently authorized person or evidenced representative permitted to
+receive one exact document. A shared destination never merges legal subjects.
+_Avoid_: email address as identity, household as automatic recipient
+
+**Year Presentation Group** (Phase 19):
+A disposable navigation grouping that helps staff or donors browse related
+documents for a year. It carries no legal, population, delivery, or completion
+authority.
+_Avoid_: annual campaign, household tax statement, run parent
+
+**Participation Decision** (Phase 19):
+An append-only, pre-release, run-local decision recording automatic inclusion,
+permitted inclusion, hold, permitted omission, or restoration to the automatic
+source result. It cannot change source facts or legal eligibility.
+_Avoid_: eligibility override, gift-line editor, force include
+
+**Document Period** (Phase 19):
+The source- and jurisdiction-owned period represented by an official statement.
+It is pinned in the Run Preflight and is not inferred from a UI year label.
+_Avoid_: calendar filter, current locale year, staff-selected tax rule
+
+**Source-Fact Cutoff** (Phase 19):
+The exact source closure through which facts may enter one reviewed Statement
+Run. Facts after it never mutate the released population.
+_Avoid_: worker start time, render timestamp, provider submission date
+
+**Readiness Target** (Phase 19):
+A tenant operational goal shown as **Target ready for review by**. It may inform
+an honest readiness range but never establishes eligibility, legal timing,
+queue priority, or permission to bypass safety.
+_Avoid_: statutory deadline, guaranteed completion, paid priority
+
+**Compliance-Risk Rule** (Phase 19):
+A versioned source-, jurisdiction-, or tenant-owned evidence-and-review policy
+that may strengthen proof for exceptional dating. It never changes gift date,
+Document Period, Source-Fact Cutoff, or release authority.
+_Avoid_: date override, legal conclusion, hidden reviewer trigger
+
+**Late Fact Obligation** (Phase 19):
+One deduplicated post-release fact requiring a source-authorized closed outcome:
+no action, supplemental coverage, correction, or replacement. It never reopens
+or mutates the primary run.
+_Avoid_: mutable primary population, blind resend, late-gift override
+
+**Supplemental Run** (Phase 19):
+A new reviewed operation that covers source-authorized post-release facts while
+preserving the primary Statement Run and its evidence unchanged.
+_Avoid_: rerun primary, append to frozen batch, statement retry
+
+**Statement Delivery Profile** (Phase 19):
+One versioned tenant-authored configuration of permitted statement routes,
+portal posture, paper method, and compatible fallback behavior inside
+purpose-owned safety floors.
+_Avoid_: workflow builder, provider-state mapping, legal-rules editor
+
+**Fulfillment Plan** (Phase 19):
+The frozen, code-compiled set of compatible route steps for one
+Recipient-Document Operation after resolving the published Statement Delivery
+Profile, Site, locale, destination readiness, and contract constraints.
+_Avoid_: tenant-authored execution graph, mutable fallback list
+
+**Execution Lane** (Phase 19):
+A derived, mutually exclusive operational lane for one executable route step,
+used for fair claims, capacity, progress, and recovery without becoming a new
+business authority.
+_Avoid_: provider queue as domain state, tenant priority class
+
+**Recipient-Document Operation** (Phase 19):
+One Statement Subject, logical Phase 18 document, authorized Delivery Recipient,
+and frozen fulfillment intent. Document, portal, communication, and paper
+outcomes remain separate within it.
+_Avoid_: one blended status, email row, PDF job
+
+**Recipient Delivery Snapshot** (Phase 19):
+The frozen recipient, destination revision, authority, locale, Site, route,
+consent/suppression review, and digest used for a released recipient operation.
+It preserves reviewed meaning but never grants permanent authorization.
+_Avoid_: current contact lookup, permanent mailing authority
+
+**Destination Succession** (Phase 19):
+The governed, append-only replacement of an eligible destination for future
+still-safe execution. Submitted or indeterminate work reconciles before any
+successor can cause another delivery.
+_Avoid_: editing frozen history, blind resend to new address
+
+**Run Control Posture** (Phase 19):
+The separately authoritative operational posture: running, pause requested,
+paused and contained, stop requested, or remaining work stopped. It does not
+rewrite document, delivery, print, or legal truth.
+_Avoid_: one global run status, cancel means recall
+
+**Control Fence** (Phase 19):
+The atomic epoch and authority check that prevents stale claims from crossing a
+later irreversible boundary after Pause, Stop, or privacy containment.
+_Avoid_: dashboard flag, best-effort worker cancellation
+
+**Physical Fulfillment Attempt** (Phase 19):
+One self-print, mail-house, or proof-gated connected-provider attempt using the
+exact Phase 18 artifact bytes, with truthful preparation, transfer, production,
+postal, cancellation, and return evidence.
+_Avoid_: PDF generation, mailing equals delivery, package download equals print
+
+**Completion Snapshot** (Phase 19):
+An immutable tenant-authorized staff attestation plus Asym-derived clean or
+exception outcome. Current delivery, incidents, returns, corrections, and
+follow-up remain independently live after completion.
+_Avoid_: automatic completion, all work succeeded, closing exceptions
+
+**Statement Communication Occurrence** (Phase 19):
+One permanent semantic donor-message occurrence admitted by Phase 19 and
+prepared, transported, and reconciled through the Phase 17/6 communication
+boundary.
+_Avoid_: direct Resend call, portal access as email, duplicate lifecycle notice
+
+**Support overview — Not a tax document** (Phase 19):
+An optional, off-by-default, purpose-separated informational document for
+authorized household support or disclosed DAF-recommendation recognition. It is
+never an official statement section or tax receipt.
+_Avoid_: soft-credit tax statement, combined deductible total, default donor noise
+
+**Run Evidence Record** (Phase 19):
+One PII-minimized projection of frozen release and completion evidence, current
+follow-up references, and records-owner links. It is not a duplicate event
+store, artifact archive, or communication history.
+_Avoid_: permanent audit export, copied donor addresses, second source of truth
+
+**Audit Package** (Phase 19):
+A temporary, scope-bound derivative of currently authorized evidence prepared
+for a governed audit request with explicit contents, exclusions, expiry,
+reauthorization, integrity proof, and verified disposal.
+_Avoid_: permanent download library, unbounded export, access-by-link
+
 ## Example Dialogue
 
 Developer: "Should this workflow event include the full donor record?"
@@ -2432,3 +2601,25 @@ their original systems. They do not become executable-catalog lifecycle,
 publication approval, recipient truth, sender authority, workflow state, or
 proof that a message was sent. Phase 17 is a groomed planning contract, not a
 claim that these glossary objects are built or dispatched.
+
+## Dated Phase 19 glossary congruence note (2026-07-24)
+
+The Phase 19 terms above are the canonical vocabulary for Year-End Statement
+Operations. Earlier documents sometimes use **annual statement**, **batch**,
+**recipient**, **household statement**, **delivery status**, or **campaign** as
+if one row owned the whole operation. The Phase 19 winner keeps each authority
+separate: Phase 7 owns the legal-donor Statement Subject, eligibility, facts,
+coverage, and correction effect; Phase 13 owns posted money; Phase 14 owns
+Recognition Subjects; Phase 18 owns logical documents, exact artifacts,
+currentness, access, and records; Phase 17/6 own communication preparation,
+transport, and delivery evidence; and Phase 19 owns the Run Preflight, frozen
+population, bounded participation, release and control fences,
+recipient-operation coordination, physical fulfillment, operational
+completion, and Run Evidence Record.
+
+Compatibility boundary: the existing donor-portal live-text year view,
+ad-hoc year filters, provider queues, PDF jobs, message states, and historical
+batch rows remain evidence of their own systems. They do not become a Statement
+Run, establish eligibility, merge legal donors, prove delivery or printing, or
+authorize a current artifact. Phase 19 D1–D18 are a groomed planning contract,
+not a claim that these glossary objects are built or dispatched.

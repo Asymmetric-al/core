@@ -8,6 +8,19 @@
   Target Live key remains `Reserved` until its exact proof-gated activation
   passes.
 
+## Phase 19 finite producer-meaning amendment
+
+Phase 19 admits exactly five statement communication meanings into this
+manifest generation: ordinary current availability; source- and
+exposure-proved current update; contract-permitted withdrawal; fresh
+exact-current additional-copy fulfillment; and grouped staff delivery
+attention. Portal availability alone, self-print/package readiness, run
+progress or completion, transport retries, and missionary visibility are not
+message occurrences. Route failure cannot produce a donor notice to the same
+failed route. These meanings remain Reserved until each row has its complete
+source fence, recipient resolver, Delivery Plan, protected-action contract, and
+proof pack.
+
 ## Executable Target Live Contract Manifest
 
 The catalog table names the product meanings. The executable manifest below
@@ -687,7 +700,7 @@ generation.
 ### Reserved catalog stubs — structurally non-executable
 
 The compiler MUST emit one closed negative stub for every planning key below so
-the 18 Reserved keys are named, counted, and rejectable without accidentally
+the 20 Reserved keys are named, counted, and rejectable without accidentally
 granting them runtime capability. Each generated stub contains exactly
 `{key, lifecycle: "Reserved", scope_kind: "tenant", source_owner,
 blocker_codes, executable: false}`. It contains no profile, fact adapter,
@@ -698,7 +711,7 @@ merely because a future Live key may use one.
 
 | Stable key                              | `source_owner` | `blocker_codes`                                                                              |
 | --------------------------------------- | -------------- | -------------------------------------------------------------------------------------------- |
-| `contribution_statement_corrected_v1`   | `phase_18_19`  | `immutable_artifact_authority`, `statement_run_owner_proof`                                  |
+| `statement_current_updated_v1`          | `phase_19`     | `source_and_exposure_proof`, `exact_current_artifact`, `recipient_and_safety_contract`       |
 | `recurring_recovery_started_v1`         | `phase_16`     | `source_fact_contract`, `recipient_contract`, `consent_contract`, `occurrence_contract`      |
 | `recurring_action_required_v1`          | `phase_16`     | `producer_owned_action`, `safe_failure_reason`, `recovery_state_contract`                    |
 | `recurring_occurrence_missed_v1`        | `phase_16`     | `role_safe_delivery_plan`, `no_debt_or_backcharge_claim`, `meaningful_state_change_contract` |
@@ -714,8 +727,10 @@ merely because a future Live key may use one.
 | `identity_password_recovery_v1`         | `identity`     | `scanner_safe_landing`, `fresh_proof`, `terminal_state_contract`                             |
 | `identity_email_change_v1`              | `identity`     | `recipient_cardinality`, `token_hash_mapping`                                                |
 | `document_artifact_ready_v1`            | `phase_18`     | `artifact_recipient_authority`, `protected_download_action`                                  |
-| `statement_delivery_ready_v1`           | `phase_19`     | `run_eligibility_and_finality`, `legal_recipient`, `delivery_contract`                       |
-| `statement_delivery_failed_v1`          | `phase_19`     | `source_owned_terminality`, `recipient_and_staff_decision`, `no_invented_retry_truth`        |
+| `statement_current_available_v1`        | `phase_19`     | `frozen_delivery_occurrence`, `exact_current_artifact`, `recipient_and_delivery_contract`    |
+| `statement_current_withdrawn_v1`        | `phase_19`     | `source_owned_withdrawal`, `purpose_and_jurisdiction_admission`, `safe_help_contract`        |
+| `statement_additional_copy_ready_v1`    | `phase_19`     | `fresh_copy_occurrence`, `exact_current_authority`, `no_lifecycle_replay`                    |
+| `statement_delivery_attention_v1`       | `phase_19`     | `grouped_actionable_cause`, `staff_owner_contract`, `no_donor_failure_notice`                |
 
 Reserved→Live is a manifest-generation change, not an in-place switch. The new
 generation MUST replace the stub with one fully expanded contract, exact

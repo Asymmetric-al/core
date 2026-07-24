@@ -162,3 +162,31 @@ support detail, never communication truth, an official artifact, or a retry
 payload. All tenant-facing Phase 17 records carry `tenant_id NOT NULL`,
 same-tenant composite references, and the Phase 12 access floor; provider-ingest
 evidence may be service-only only behind an explicit isolation contract.
+
+## Dated Phase 19 ownership amendment (2026-07-24)
+
+**Existing authorities remain unchanged.** Phase 7 owns the legal-donor
+Statement Subject, eligibility, facts, coverage, and correction effect. Phase 13
+owns posted money; Phase 14 owns recognition; Phase 18 owns generated-document
+definitions, requests, logical identity, exact artifacts, current heads, access,
+and records; Phase 17/6 own communication preparation, transport, delivery
+evidence, and history.
+
+**New winner.** Asym Postgres owns Phase 19's immutable Run Preflight and
+purpose-pinned Statement Run/Run Items; append-only participation and release
+evidence; Recipient-Document Operations, frozen delivery snapshots and
+Destination Succession; Fulfillment Plans and derived Execution Lanes; release
+and control fences; physical-fulfillment attempts; completion snapshots; late
+fact/supplemental obligations; and the PII-minimized Run Evidence Record. The
+tenant- and actor-scoped Statement Operations service is the only Phase 19 write
+path.
+
+**Conflict and repair.** A Phase 19 record never wins a conflict against its
+source authority or rewrites a released run. Rebuild disposable projections,
+append participation/control/completion/recovery evidence, reconcile
+indeterminate external work, and create a supplemental or source-owned
+correction operation. Inngest, renderers, Resend, print providers, mail houses,
+object storage, and local downloads are subordinate executors or evidence—not
+statement-run authority. Every Phase 19 record is tenant/environment scoped,
+uses same-scope references and RLS, and preserves independently live document,
+portal, communication, paper, incident, legal, and records truth.

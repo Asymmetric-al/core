@@ -14,6 +14,21 @@
 - [Phase 18 primary-source and legal research evidence](./phase-18-receipt-pdf-template-system-research-evidence.md)
 - [Phase 18 cross-PRD and cutover congruence](./phase-18-cross-prd-congruence-2026-07-21.md)
 
+> **Controlling Phase 19 statement-operations amendment (2026-07-24).**
+> Phase 7/applicable source packs own the exact Statement Subject,
+> eligibility, immutable facts/exclusions, correction effect, issuance, and
+> prospective exact-issuer receipt plan. Phase 19 owns tenant-authorized
+> participation, Run Preflight, frozen population, runs/items, cutoffs, and
+> late-fact coordination. Phase 18 owns only the admitted document purpose,
+> generation lifecycle, logical-document lineage, and exact artifact; it cannot
+> infer or override source or run truth. The optional
+> `giving.summary.informational@1` purpose is Phase 19's default-Off **Support
+> overview — Not a tax document**. Its direct-support facts remain sourced from
+> Phases 7/13; its recognition sections render only from Phase 14's closed
+> household-support/DAF-recommendation projection. It is operationally
+> independent from every official document. Older generic "statement
+> population" or mixed recognition language below is read through this split.
+
 ## Problem statement
 
 The repository currently has several incompatible prototypes:
@@ -58,7 +73,7 @@ This phase removes rather than adapts the repository's non-production receipt, s
 
 ## Goals
 
-- Consolidate every generated receipt, statement, tribute notification, pledge statement, and approved custom document onto one canonical `pdf_*` bounded context.
+- Consolidate every generated receipt, official statement, optional purpose-separated Support overview, tribute notification, pledge statement, and approved custom document onto one canonical `pdf_*` bounded context.
 - Define durable identity, authority, state, correction, access, retention, and evidence contracts before product code is written.
 - Provide structured visual authoring that is fast for ordinary nonprofit staff, accessible without drag-and-drop, and safe by construction.
 - Qualify at most one exact production renderer through a pre-registered production-shaped evidence contest.
@@ -123,7 +138,8 @@ Provider URLs, renderer status, email events, filenames, templates, staff select
 | Tribute recognition/recipient/privacy                                                             | Phase 14        | Render source-selected recipient facts only                                                                                   |
 | Pledge/commitment plan and fulfillment                                                            | Phase 16        | Render source-owned non-debt commitment truth only                                                                            |
 | Message wrapper, outbox, provider, communication history                                          | Phase 17        | Receive exact artifact identity; Phase 18 never sends directly                                                                |
-| Statement population, cutoffs, run scheduling                                                     | Phase 19        | Receive item-authoritative generation intents; no second run engine                                                           |
+| Statement eligibility, Statement Subject, facts, coverage, receipt plan                           | Phase 7/source  | Consume exact immutable authority; never infer from tenant selection, household data, render, or delivery                     |
+| Statement participation, Run Preflight, frozen population, cutoffs, runs/items, late-fact lane    | Phase 19        | Receive item-authoritative generation intents; no second run engine                                                           |
 | General files/custody future                                                                      | Phase 29        | Phase 18 owns generated-document identity and evidence; expose one provider-neutral custody port                              |
 | Donor-wide privacy case                                                                           | Phase 38        | Return document-specific outcome; never become privacy-request orchestrator                                                   |
 
@@ -607,7 +623,7 @@ Release is blocked until all companion-manifest stop assertions and the followin
 3. Build the smallest tenant-safe immutable relational core and one Generated Document service.
 4. Build structured drafts/commits/proof/publication/head behavior and exact renderer/finalizer/storage boundary.
 5. Ship one U.S. ordinary receipt tracer from source facts through artifact, authorization, Phase 17 handoff, exact resend and correction.
-6. Add annual/Phase 19 item seam, batches, tribute, pledge and approved custom purposes through the same contract.
+6. Add the Phase 19 item seam for official annual documents and the separately purposed optional Support overview, then batches, tribute, pledge and approved custom purposes through the same contract.
 7. Add U.S. specialist obligations and the opt-in Canadian issuer/serial/signer/case package behind its release gates.
 8. Add records schedules, holds, verified disposal/restore suppression, scheduling and grouped operations surfaces.
 9. Delete every prototype path in the same pre-production program and prove closure; never leave a temporary fallback.

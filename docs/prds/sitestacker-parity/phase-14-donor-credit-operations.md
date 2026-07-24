@@ -23,6 +23,23 @@ Groomed via `grill-with-docs` (2026-07-10). All five decision families **D1–D5
 > migration inputs. Historical language below is read through this ownership
 > amendment.
 
+> **Controlling Phase 19 statement-recognition amendment (2026-07-24).**
+> Phase 14 owns the closed, versioned, donor-visible **Recognition Subject**
+> projection; it never owns or alters Phase 7's legal-donor **Statement
+> Subject**. Household membership, shared destinations, soft credit, DAF
+> advisory status, and staff preference may not merge official documents or
+> produce a household deductible total. Phase 19 may freeze the Phase 14
+> projection only for the separately purposed
+> `giving.summary.informational@1` **Support overview — Not a tax document**,
+> default Off. Launch recognition is limited to source-authorized household
+> support and sufficiently disclosed, unambiguous DAF recommendations. The
+> overview has independent population, run, artifact, access, delivery,
+> correction, and completion truth and cannot block or change an official
+> statement. Older "one joint statement," "recognition section," "indirect
+> section," and credit-keyed official-statement language below is superseded by
+> this purpose-separated contract; Phase 14's gift-date, time-bounded
+> recognition derivation and privacy walls remain controlling.
+
 This is the phase where the platform learns that **the person who caused a gift and the person who legally gave it are usually different people** — and that a ministry lives or dies on honoring both correctly. Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) defined the truth model: exactly one hard-credit legal donor owns the receipt; soft credit is recognition-only and structurally non-receiptable. Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) built the append-only ledger and explicitly left the credit table as "a Phase 14 seam." Phase 14 makes complicated donor-credit reality **operational** — the credit spine, DAF sponsor/advisor operations with an entry-gated automatic thank-you stream, tribute/memorial gifts with a second letter stream that never leaks an amount, the matching-gift expectancy lifecycle and the employer's separate legal gift, church remittance attribution flowing onto the missionary's supporter roster, household recognition derived at read, and standing rules for affiliated parties — across gift entry, Contribution Detail, the CRM Giving tab, reports, statements, acknowledgments, and dashboards.
 
 ---
@@ -226,11 +243,11 @@ Stories are grouped by actor and numbered continuously. Every story traces to a 
 92. As a **church member**, I want my via-church attribution NEVER on my own portal or statement — the church was receipted, not me — so that I'm never confused into claiming a deduction that isn't mine. `[D5 close-out 2]`
 93. As a **church treasurer**, I want NO member thank-you letters generated from our remittance breakdown, so that our members hear from their church, not a stranger. `[D5]`
 
-### Households — derived recognition & the joint statement
+### Households — derived recognition and purpose-separated presentation
 
 94. As a **spouse**, I want household recognition DERIVED at read from Phase 9 time-bounded household membership — no per-gift rows except explicit exceptions/suppressions, which override the derivation — so that a divorce or backdated membership edit is automatically correct everywhere. `[D1.12, D5 close-out 3]`
 95. As a **spouse**, I want my view to show household-derived recognition LABELED as household, never merged into my personal legal giving, so that I always know which number is legally mine. `[D5 close-out 3]`
-96. As a **couple**, we want ONE joint statement — hard credit under the legal donor, household recognition in the labeled recognition section — so that our giving reads as one household without corrupting tax truth. `[D5 close-out 3]`
+96. As a **couple**, we want each official document to remain with its source-owned legal donor and, when enabled, one separate **Support overview — Not a tax document** to present authorized household recognition, so that convenience never corrupts tax truth. `[Phase 19 D3/D15]`
 97. As a **development staffer**, I want both spouses recognizable at the full gift amount (recognition-class cross-party sums deliberately unbounded — the RE-legal norm), so that recognition reflects relationships, not arithmetic rationing. `[D1.3]`
 
 ### Donor-care & development staff — credits, rules & reporting
@@ -243,7 +260,7 @@ Stories are grouped by actor and numbered continuously. Every story traces to a 
 103.  As a **finance manager**, I want retroactive application as an explicit governed backfill under a separation-of-duties pair that REFUSES statement-referenced headers, so that rewriting the past is deliberate, dual-controlled, and can never contradict an issued statement. `[D1.13]`
 104.  As a **development staffer**, I want tenant-custom recognition labels as Phase 11 (Custom Fields & Custom Collections) custom fields — never new credit roles — so that the role registry stays a fixed, testable set. `[D1.13]`
 105.  As a **development staffer**, I want the Phase 9 Giving tab's soft-credit rows fed exclusively by `getPartyCreditActivity` — the sole consumer interface for credit activity — so that every surface shows the same numbers. `[D1 forward-carried]`
-106.  As a **finance staffer**, I want recognition to NEVER fail the money path — single-row credits sync in the posting transaction, fan-out async and resumable with no duplicates (die-at-117 safe), statement runs freezing whatever exists at run time — so that recognition is eventually consistent and gifts always post. `[D1.7]`
+106.  As a **finance staffer**, I want recognition to NEVER fail the money path — single-row credits sync in the posting transaction, fan-out is async and resumable with no duplicates (die-at-117 safe), and any Phase 19 informational run freezes one exact reviewed recognition cursor — so that recognition is eventually consistent and gifts always post. `[D1.7; Phase 19 D15]`
 107.  As a **donor-care staffer** merging duplicate parties, I want credit and tribute tables on the Phase 9 merge re-point list — strictest preference wins, `include_total=false` wins, coverage untouched — so that a merge never re-mails or double-mails a family. `[D1.5, D3.11]`
 
 ### Donors & families — document truth
@@ -251,7 +268,7 @@ Stories are grouped by actor and numbered continuously. Every story traces to a 
 108. As a **donor**, I want receipt truth unchanged by this phase: exactly ONE hard-credit legal donor owns the receipt, and the receipt-mint path structurally takes no `contribution_credits` input, so that no credit can ever mint a receipt or enter deductible totals. `[D1.11; Phase 7 binding]`
 109. As a **donor**, I want acknowledgments and notifications constrained by purpose — acknowledgment: no deductibility facts; notification: no per-gift amounts + controlled donor identity — with atomic refusal at the Phase 17 message and Phase 18 document seams, so that the wrong fact can never appear in the wrong presentation. `[D1.11, D3.6]`
 110. As an **anonymous or suppressed donor** named in a notification, I want to appear as "an anonymous friend" — per-donor `notify_donor_identity` defaulted from my anonymity flag — so that notification letters respect my identity choice by default. `[D1.10]`
-111. As a **donor**, I want DAF-advisor and household recognition rendered in the Phase 7 labeled non-deductible statement section per the existing tenant toggle, so that my statement tells the whole story without corrupting the deductible total. `[D5 close-out 2]`
+111. As a **donor**, I want eligible DAF-recommendation and household recognition rendered only in the optional, separately purposed **Support overview — Not a tax document**, so that my official statement remains unambiguous. `[Phase 19 D15]`
 
 ### Missionaries — visibility floor
 
@@ -349,7 +366,7 @@ Adjudicated **4:1 over pure append-only**: credits are not money — there is no
 
 - **Single-row capture credits are SYNCHRONOUS** in the posting/entry transaction: the manual credit a staffer adds on the entry form, the DAF advisor credit minted from the D2 attribution field, the tribute-link annotation row. One row, same transaction, no queue.
 - **Fan-out generation is ASYNC** via the repo's outbox/Inngest idiom (REAL: `packages/api/src/donate/outbox.ts` + `packages/api/src/donate/saga.ts` transactional outbox; `packages/api/src/workflows/functions/donation-saga-recovery.ts` Inngest recovery scan — the durable template Phase 14 instantiates, not modifies): church-remittance member sets and standing-rule application run as jobs recorded in a **`credit_generation_runs`** table, each run performing a **full-target-set idempotent upsert** against the A.1 identity key. The sizing scenario that ratified this: a 200-member remittance whose generator dies at member 117 must be **resumable with zero duplicates** — the run record plus the identity key make the retry a no-op for the 117 already written.
-- **The money path NEVER fails on recognition.** No credit generator can abort, delay, or roll back a posting. Recognition is **eventually consistent** by design; **statement runs freeze what exists at run time** (C.6) — a late-generated credit rides the next statement, never a retroactive edit of a frozen run.
+- **The money path NEVER fails on recognition.** No credit generator can abort, delay, or roll back a posting. Recognition is **eventually consistent** by design; a Phase 19 Support-overview run freezes the exact Phase 14 cursor it reviewed. Late or corrected recognition never edits frozen bytes and follows that informational purpose's successor/supplemental lane.
 
 #### A.7 Locking [D1.8, as amended by D4.2]
 
@@ -455,9 +472,9 @@ Contract (binding):
 Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) defined `statement_run_items` as per-gift statement lines keyed `donation_id XOR gift_credit_id` (FORWARD: Phase 7 PRD data model, epic #566). The D1.14 amendment package restates the contract onto the P13/P14 spine, binding here:
 
 - **Key: `contribution_header_id XOR contribution_credit_id`** (exactly one non-null), plus `credit_type`, `included_on`, and the frozen effective/deductible amounts per the P7 shape.
-- **Deductible totals draw from hard-credit receiptable lines ONLY** (P7 A8: `is_receiptable = FALSE` is structural); credit-keyed items render **only in the labeled indirect/recognition section** — the statement is the flagship two-vocabulary surface.
+- **Official totals draw from hard-credit receiptable lines ONLY** (P7 A8: `is_receiptable = FALSE` is structural). Credit-keyed recognition is absent from the official document and may render only through Phase 19's independently purposed Support overview.
 - **A `statement_run_items` row is a freeze trigger** (A.4): once a credit is statement-referenced it is supersede-only.
-- **Statement runs freeze what exists at run time** (A.6): a credit generated after the run rides the next statement; runs are never retro-edited.
+- **Purpose-pinned runs freeze the exact reviewed recognition cursor** (A.6): a credit generated after the run never retro-edits frozen bytes and may enter only a later informational successor/supplemental operation.
 - Statement composition also runs the same deceased check as letter composition [D1.10]: a deceased-flagged recipient party's statement is held with a routed task, never auto-mailed.
 
 #### C.7 Index plan — the v1 covering set [D1]
@@ -1020,7 +1037,7 @@ Concretely:
 - **The tender row keeps payer metadata only:** the remitting-church party id (the payer, and per Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) A8 the **hard-credit legal donor** — the receipt goes to the church), `check_number`, `postmark_date`, and the provisional-until-cleared payment posture, all exactly as P13 ratified them. The attribution array is an **input contract to the credit generator** — it is consumed at entry and never stored on the tender or the line. There is no second place where member attribution can live, so the CRM and the roster can never disagree with each other by construction.
 - **Member attribution = `church_member` credit rows,** allocation class per Implementation Decision B.2: `amount_minor` **required and bounded — member rows under one remittance line sum ≤ that line's effective amount**, enforced by the generator AND a deferred constraint trigger (a generator bug must not be able to over-allocate a line). Line-scoped (`line_id` set) — the remittance attribution editor is one of the three named flows permitted to set `line_id` [D1.2].
 - **Under-attribution is legal.** A church that remits $2,000 and breaks down $1,700 of it produces member rows summing to $1,700; the $300 remainder is simply unattributed — a legitimate, visible state (the FINANCE view shows the attributed/unattributed split; H.5 governs who else may see that arithmetic). Nothing forces a fake "unknown member" row, and nothing blocks posting.
-- **Generation is async fan-out** per D1.7: the remittance posts on the money path synchronously; member credits mint through the outbox/Inngest fan-out with a `credit_generation_runs` record and full-target-set idempotent upsert (the 200-member die-at-117 case resumes without duplicates). Verbatim posture: **"Money path NEVER fails on recognition; recognition is eventually consistent; statement runs freeze what exists at run time."** [D1.7]
+- **Generation is async fan-out** per D1.7: the remittance posts on the money path synchronously; member credits mint through the outbox/Inngest fan-out with a `credit_generation_runs` record and full-target-set idempotent upsert (the 200-member die-at-117 case resumes without duplicates). The permanent posture is: **money never fails on recognition; recognition is eventually consistent; a Phase 19 informational run freezes the exact reviewed recognition cursor.** [D1.7; Phase 19 D15]
 
 #### H.2 Entry guards — copy-last-remittance, CSV staged preview, one confirm, per-row ambiguity holds [D5]
 
@@ -1123,7 +1140,7 @@ Four postures imported from the design pass's market study, binding on the build
 
 ### I. Household recognition — derived at read, labeled, never merged [D1.12, D5 close-out 3]
 
-Plain-language: when one spouse gives, the other spouse _sees_ the gift as household recognition — but the platform never fabricates a second gift, never splits the legal record, and never lets the derived recognition masquerade as personal deductible giving. Phase 7 fixed the compliance spine (one legal donor; one joint statement; the household never absorbs its members); Phase 14 fixes _how the recognition is computed and displayed_ — and the answer is a derivation, not a table.
+Plain-language: when one spouse gives, another currently authorized household member may _see_ the gift as household recognition — but the platform never fabricates a second gift, never splits the legal record, never merges legal-donor Statement Subjects, and never lets derived recognition masquerade as personal deductible giving. Phase 7 fixes the compliance spine; Phase 14 fixes _how recognition is computed_; Phase 19 may present it only in the separate non-tax Support overview.
 
 **The ruling [D1.12], verbatim:** **"Household/spousal recognition is DERIVED at read from P9 time-bounded household membership"** — **no per-gift row materialization**. The adversarial pass killed the materialized alternative twice over: per-gift household rows were the single biggest row-count driver in the credit table (a 2× multiplier on every gift by a partnered donor), and they froze household composition at gift time in exactly the wrong way — a divorce, a late-recorded marriage, or a backdated membership correction would strand thousands of stale rows (the "divorce/backdating class"). Deriving at read kills both: row count stays proportional to _explicit_ facts, and household changes are reflected by the next read with zero backfill.
 
@@ -1133,12 +1150,12 @@ Mechanics (lean by construction — **no new machinery**):
 - **Explicit rows are the exception path ONLY:** the `household` credit role (Implementation Decision B.1) exists solely for **per-gift exception/suppression rows** — "recognize the household for this gift even though the derivation wouldn't" or "do NOT derive household recognition for this gift" — and those explicit rows **override the derivation** wherever both would apply. They are manual, rare, and carry the standard A.1 identity and A.4 freeze semantics. A standing rule can never mint them (section K.6).
 - **Time-boundedness is the correctness core:** a person joining a household in 2027 derives nothing from the household's 2025 gifts; a divorce recorded with a membership end-date stops derivation from that date without touching one historical row. There is nothing to migrate, reverse, or repair — the derivation reads the windows.
 
-**The display rule (D5 close-out item 3 — closes the dangling D1.12 "D14" pointer), verbatim:** **either spouse's view shows household-derived recognition LABELED household, never merged into personal legal giving; joint statement = one document, hard credit under legal donor, household recognition in the recognition section; explicit exception/suppression rows override; no new machinery.**
+**The controlling display rule (amended by Phase 19 D3/D15):** either spouse's authorized view may show household-derived recognition labeled **Household support**, never merged into personal legal giving. Official documents remain separate per source-owned Statement Subject. The optional `giving.summary.informational@1` overview is one independently governed **Support overview — Not a tax document**; explicit exception/suppression rows override, and no new recognition engine is created.
 
 Binding consequences:
 
 - **Labeled, always.** On every surface — Giving tab, roster row, donor portal (per section J), statement — household-derived recognition renders under an explicit household label/chip. It is never summed into, displayed beside-as-equivalent, or exportable as the viewing party's personal legal giving. This is the two-vocabulary rule (C.1) applied at household grain: legal giving belongs to the legal donor alone; recognition says "your household gave."
-- **One joint statement.** The household receives **one document** per Phase 7's household-statement contract (FORWARD: Phase 7 PRD — households "never absorb" members; one joint statement with the second spouse soft-credited): the hard-credit/deductible lines sit under the legal donor, and household recognition renders in the statement's labeled recognition/indirect section — never in the deductible total (P7 A8: recognition is structurally non-receiptable).
+- **Purpose-separated documents.** Each official document remains with the exact Phase 7 Statement Subject. If the tenant enables the feature and meaningful authorized recognition exists, Phase 19 may create one separate Support overview for the Recognition Subject. It is never an official statement, never a receipt, and never contributes to a deductible or cash total.
 - **No new machinery** — no household-credit generator, no membership-change backfill job, no reconciliation task queue. The derivation + the exception rows + the existing statement composer cover the whole surface. (Founder posture: don't over-engineer; the reviewers' cuts stand.)
 
 ---
@@ -1159,7 +1176,7 @@ Rationale (fail-closed): this posture exists to make the nightmare scenario — 
 
 **J.2 The member's own portal and statement: `church_member` credits NEVER appear [close-out 2].** A member who _also_ has their own donor portal login (from a direct gift or a claimed account) **never sees their via-church attribution on their own portal or statement**. Three stacked reasons, each sufficient: (1) **the church was receipted** — the member has no receipt, no deduction, and no legal gift of record here; (2) **deduction confusion is the concrete harm** — a portal line reading "$600 via First Baptist" invites the member to hand their accountant a number that is not theirs to deduct (their substantiation, if any, comes from their church); (3) **D5 killed member correspondence** — a platform that never writes to members about via-church giving should not display it to them either; showing it invites exactly the "where's my receipt?" support burden the founder declined to create. `church_member` credits are **staff/missionary-side ONLY**.
 
-**J.3 What DOES render donor-side in v1:** **`daf_advisor` and household recognition render in the Phase 7 labeled non-deductible statement section, per the existing tenant toggle** — the statement's clearly-labeled indirect/recognition section (FORWARD: Phase 7 PRD statement contract — soft credits, DAF grants, and in-kind shown in "a clearly labeled indirect section," separate from the one deductible number; the tenant-level toggle governing recognition display on statements is the P7 statement-composition setting, not a new Phase 14 config). The advisor sees "your recommended grants" as recognition, never as deduction; the spouse sees household recognition per section I's display rule. `statement_run_items` carries these as credit-keyed lines per the amended contract (Implementation Decision C.6), and each rendered credit honors `credited_party_visible` (the reserved P6 fourth visibility value) per D1.10.
+**J.3 What DOES render donor-side in v1:** when the tenant turns on Phase 19's single **Create support overviews** setting, only source-authorized household support and sufficiently disclosed, unambiguous DAF recommendations may render in `giving.summary.informational@1`. The overview remains separate from every official document and persistently says **Not a tax document**. The advisor sees **Grant recommended through** (or equivalent contract-owned wording), never a deductible-gift claim; household recognition follows section I's source visibility and gift-date rules. Phase 19 freezes the exact Phase 14 recognition cursor and visibility result into its independently purposed item; it does not place credit-keyed lines into an official statement.
 
 **J.4 Everything else defers to Phase 25 (Donor Dashboard Depth).** Portal recognition displays beyond J.3 — recognition timelines, via-chips on the donor's own dashboard, matched-gift progress ("your employer's match arrived"), tribute walls — are **Phase 25's lane**, consuming `getPartyCreditActivity` / `getMatchingActivity` (Implementation Decisions C.2/C.3) when it gets there. Phase 14 ships the read models and the v1 statement rendering; it builds no new donor-portal surface. (D4.10 already pinned the matching side of this: no donor-portal or missionary-workspace matching surfaces in v1.)
 
@@ -1293,7 +1310,7 @@ credit_generation_runs
 - started_at / completed_at / last_error — timestamptz / text — [D1.7]
 ```
 
-Topology (sync capture vs async fan-out, "the money path NEVER fails on recognition," statement runs freeze what exists at run time) is Implementation Decision A.6's lane [D1.7].
+Topology (sync capture vs async fan-out, "the money path NEVER fails on recognition," and Phase 19 informational runs freeze one exact reviewed recognition cursor) is Implementation Decision A.6's lane [D1.7; Phase 19 D15].
 
 ### `daf_sponsors` + `party_payer_aliases` — the payer intelligence registry [D1.9, D4.5]
 
@@ -1889,7 +1906,7 @@ Reserved as seams (plumbed, not built), owned by a named later phase, or deliber
 - **Volunteer grants (Dollars for Doers)** — out; reserved to Phase 31 (Platform API, Webhooks & Connector Framework) [D4.14].
 - **Payroll-deduction giving** — out; the `workplace_giving_donor` lane covers the recognition shape today; the product surface is reserved to Phase 31 (Platform API, Webhooks & Connector Framework) [D4.14].
 - **Donor-development ranking semantics** — formally deferred to Phase 27 (Donor Development & Portfolio Management); Phase 14 ships zero ranking semantics; Phase 27 consumes `getPartyCreditActivity` + `getMatchingActivity` + `getSupporterRoster`, so staff and missionary ranking can never diverge [D5 close-out 5].
-- **Donor-portal recognition depth** — Phase 25 (Donor Dashboard Depth); v1 renders only the Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) labeled non-deductible statement section for DAF-advisor + household recognition per the existing tenant toggle [D5 close-out 2]. No donor-portal or missionary-workspace matching surfaces v1 [D4.10].
+- **Donor-portal recognition depth** — Phase 25 (Donor Dashboard Depth); Phase 19 may expose only the optional, separately purposed **Support overview — Not a tax document** for the Phase 19 D15 launch allow-list. No recognition is inserted into an official statement, and no missionary-workspace matching surface ships in v1 [D4.10].
 - **Member thank-you letters** — **killed, not deferred** [D5 founder ruling]: no member correspondence of any kind, no tenant toggle; the church-member acknowledgment stream named in D2's scope note is SUPERSEDED by D5 [D5 close-out 4b]. Platform-mediated member thank-you affordances are a Phase 28 (Missionary Workspace Depth & Support-Raising CRM) question [D5 close-out 1].
 - **`supports` edge revision** — Phase 9 (Full CRM Depth & Relationship Graph)'s v1 edge stays untouched; `supports_policy_v2` is roster-only; reconciliation revisits at Phase 28 (Missionary Workspace Depth & Support-Raising CRM) [D5].
 - **Public tribute capture** — arrives when Phase 5 (Public Website Runtime Contract) plumbs it; the binding rule ships now: publicly-captured named parties quarantine behind staff review before any letter (Phase 4 (Identity & Account-Claiming Foundation) A5) [D1 forward-carry].

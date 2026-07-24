@@ -221,23 +221,29 @@ questions**. Benchmark source root: `https://sitestacker.training`.
 ### 10. Year-end statement operations
 
 - **Benchmark:** SiteStacker year-end statements. (s)
-- **Current state:** donor-portal live statements exist only as prototype
-  behavior; annual statement operations remain unbuilt. The active
-  `add-donor-self-service` change now delegates population/run truth to Phase 19
-  and exact artifacts/access to Phase 18. (v)
+- **Current state:** the annual statement runtime remains unbuilt; the existing
+  donor-portal live-text year view is prototype behavior, not the target
+  architecture. Phase 19 is fully groomed through D1–D18 as a planning-only,
+  groomed-not-dispatched contract. It delegates eligibility and legal donor
+  truth to Phase 7, exact documents and current access to Phase 18, and message
+  delivery to Phase 17/6. (v)
 - **Depends on:** #5, #9, Phase 7 eligibility/facts, Phase 18 generation, and
   Phase 17 delivery.
-- **Acceptance test:** Phase 19 freezes a source-authorized population/cutoff and
-  operates item-authoritative runs; every item uses Phase 18's one generation
-  seam and Phase 17's separate delivery seam. ACH initiation/processing is not
-  received and is absent from official successful-payment receipt/statement
-  truth until processor-confirmed success; later returns/refunds append exact
-  inverse and source-authorized replacement effects without deleting history.
-- **Evidence:** add-donor-self-service OpenSpec plus the Phase 18 PRD/OpenSpec
-  package.
-- **Open questions:** the detailed Phase 19 run UX and operations contract is
-  still ungroomed; rendering, artifact currentness, and delivery ownership are
-  closed.
+- **Acceptance test:** staff review one exact immutable Run Preflight and start
+  it through one idempotent atomic release barrier; the resulting purpose-pinned
+  Statement Run preserves frozen source-authoritative membership while document,
+  portal, communication, and paper outcomes remain separately truthful. Staff
+  can contain and recover work, use self-print by default, mark a run complete
+  without erasing live exceptions, and donors can repeatedly access the exact
+  current artifact without creating another document or delivery.
+- **Evidence:** Phase 19 PRD and its authority map,
+  decision-to-test traceability, primary-source research, dated cross-PRD
+  congruence, focused ADRs, and the Statement Operations OpenSpec delta; Phase
+  18 and Phase 17 packages remain the subordinate document and communication
+  authorities.
+- **Open questions:** none requiring another Phase 19 founder decision; D1–D18
+  are ratified. Implementation proofs, provider qualification, issue slicing,
+  and explicit dispatch remain pending.
 
 ### 11. Accounting exports & reconciliation
 

@@ -33,6 +33,25 @@ Phase 18 owns command preconditions and purpose/issuer/resource authorization.
 Role names, UI visibility, authored-template ownership, a URL, or successful
 rendering never authorize a command or artifact read.
 
+**Phase 19 downstream capability amendment (2026-07-24).** Phase 19 registers
+separate exact atoms for role-safe statement-operations view; draft/preflight
+management; participation; standard start; protected independent review;
+delivery-profile and destination succession management; physical preparation
+and physical-evidence recording; Pause/Resume/Stop/privacy containment;
+completion/return-to-review; staff exact-current statement-copy requests; and
+separate audit-package preparation/download.
+The Phase 19 PRD owns the exact `statement_operations.*` keys and command
+matrix, including separate add-participant, include/restore-participant, and
+handle-participant-separately grants, separate direct-mail connection
+administration and paid-lane authorization, and separate completion and
+return-to-review grants. Phase 12 owns registry, grants, active assignment,
+assurance, step-up,
+governance epoch, delegation, audit, and tenant/object scope. No role name,
+visible button, run ownership, tenant setting, client actor field, or successful
+preflight can replace a current capability and command-specific server proof.
+Candidate-scoped protected reviewer delegation reuses Phase 12 authority and
+never creates standing tenant membership or a Phase 19 role engine.
+
 **Posture note (fresh-build).** The product has **no production users** (ADR-0001). Design correct-from-start; there is no end-user data to migrate. But the current auth code (`packages/auth/permissions.ts`, `packages/auth/context.ts`, `supabase/migrations/20260226113000_authz_memberships_foundation.sql`) contains the MVP "all staff subroles share broad admin access" posture and several **live cross-tenant hazards** this phase retires as its first task (see **§ Ship-First Substrate**). Make **no "live/shipped" claims** without evidence. A cross-tenant or cross-clearance exposure of a restricted-ministry worker is a **physical-safety event**, not a privacy incident — this is the design's controlling constraint.
 
 ---

@@ -527,6 +527,67 @@ migration, or fabricated history.
 - AND the migration question is re-groomed rather than guessed, backfilled,
   fabricated, or hidden behind a compatibility fallback
 
+### Requirement: Year-End Statements Run Through One Governed Operations Contract
+
+Phase 19 (Year-End Statement Operations) MUST provide one canonical,
+purpose-pinned Statement Run and one immutable Run Preflight over
+source-authoritative Statement Subjects, exact source closure, participation,
+document and communication resolution, recipient delivery, fulfillment, and
+policy. One atomic release MUST create the reviewed run, item bindings, evidence,
+outbox request, and release barrier without external I/O. Start MUST mean queued
+work only and MUST NOT collapse population, document issuance/currentness,
+portal availability/access, communication delivery, physical fulfillment,
+incident, legal, or staff-completion truth.
+
+Phase 7 MUST retain legal-donor, eligibility, facts, coverage, and correction
+authority; Phase 14 MUST retain recognition authority; Phase 18 MUST retain
+logical-document, current-artifact, and access authority; Phase 17/6 MUST retain
+communication and provider-delivery authority; and Phase 19 MUST own only
+pre-start participation, run release/coordination, physical-fulfillment
+orchestration, cooperative containment, operational completion, recovery
+correlation, and its PII-minimized Run Evidence Record.
+
+Tenant control MUST include compatible Statement Delivery Profiles,
+self-print-first paper posture, exact pre-start participation, bounded review
+strengthening, Pause/Resume/Stop, truthful staff completion, and one target-ready
+date. It MUST NOT permit eligibility, legal-donor, coverage, destination-safety,
+current-artifact, provider-finality, or tenant-fair-capacity overrides.
+Official documents MUST use exact Phase 7 Statement Subjects. Optional household
+and disclosed-DAF recognition MUST use a separate, default-Off
+**Support overview — Not a tax document** purpose and MUST NOT enter official or
+deductible totals.
+
+The donor portal MUST expose one current exact PDF with unmetered authorized
+view, download, and local print plus repeatable bounded outbound-copy
+fulfillment. Late facts, source corrections, destination changes, unknown
+provider outcomes, and additional copies MUST use append-only owner-specific
+recovery rather than reopening a frozen run. The live recomputed annual
+statement text route and every competing run or delivery path MUST be removed
+without a legacy adapter.
+
+#### Scenario: Staff release and operate one annual statement run
+
+- GIVEN Phase 7 supplied exact eligible Statement Subjects and Phase 18/17
+  supplied side-effect-free compatible resolution pins
+- WHEN authorized staff start the exact reviewed Run Preflight
+- THEN one purpose-pinned run becomes durably queued through an atomic release
+  barrier
+- AND each document, portal, communication, and paper operation advances
+  through its own authority and truthful outcome
+- AND staff may contain, recover, and operationally complete the run without
+  rewriting source facts, artifacts, provider evidence, or frozen release
+  history
+
+#### Scenario: A household has recognition but separate legal donors
+
+- WHEN the tenant enables the purpose-separated Support overview
+- THEN official documents remain separate by exact legal-donor Statement
+  Subject
+- AND any permitted household or disclosed-DAF recognition appears only in a
+  separately authorized artifact labeled Not a tax document
+- AND a shared destination or Year Presentation Group does not merge legal
+  ownership, totals, documents, or access
+
 ### Requirement: The Public Tenant Website Runs On One Governed Runtime Contract
 
 The public tenant website MUST run on one governed runtime contract, per

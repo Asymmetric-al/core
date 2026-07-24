@@ -99,6 +99,22 @@ platform boundaries already warn against.
   packages, purpose-authority manifest, research appendix,
   `docs/adr/0033`–`0039`, and the active `add-statement-studio` delta. This is a
   groomed planning change only; it does not dispatch implementation.
+- **Amended 2026-07-24 (Phase 19 (Year-End Statement Operations)):** add the
+  `statement-operations` capability for one purpose-pinned Statement Run,
+  immutable Run Preflight, atomic release barrier, source-authoritative
+  Statement Subjects, tenant-bounded participation, delivery profiles,
+  recipient snapshots, cooperative containment, self-print-first fulfillment,
+  tenant-authorized truthful completion, seasonal tenant-fair capacity,
+  contextual recovery, proportional communication and review, unmetered
+  current-artifact donor access, and one PII-minimized Run Evidence Record.
+  Keep Phase 7 eligibility/facts, Phase 14 recognition, Phase 18 documents,
+  Phase 17/6 communication, and Phase 19 orchestration separately authoritative.
+  Replace the live-text statement path and mixed official/recognition statement
+  wording; optional recognition uses a separate **Support overview — Not a tax
+  document**. Detailed behavior is governed by the Phase 19 PRD, dated
+  congruence package, decision-to-test traceability, authority map, research
+  appendix, Phase 19 ADRs, and the active `add-statement-operations` delta. This
+  is a groomed planning change only and does not dispatch implementation.
 - **Amended 2026-07-22 (Phase 5 (Public Website Runtime Contract)):** add a
   durable requirement recording the public-tenant-website runtime contract —
   one server-only published-content choke-point with the resolved tenant as a
@@ -115,16 +131,17 @@ platform boundaries already warn against.
 ## Impact
 
 - Affected specs: `platform-product-intent`, `donation-lifecycle`,
-  `outbound-communications`, `document-production`, `platform-surfaces`,
-  `platform-boundaries`
+  `outbound-communications`, `document-production`, `statement-operations`,
+  `platform-surfaces`, `platform-boundaries`
 - Affected docs: `docs/prds/sitestacker-parity/**` (including `roadmap.md`,
-  the source of truth for phase architecture, plus the Phase 17 and Phase 18
-  manifests/census/traceability/congruence/research companions),
-  `docs/adr/0025`–`0039`, the Phase 0 evidence file, and the active
+  the source of truth for phase architecture, plus the Phase 17, Phase 18, and
+  Phase 19 PRD authority map, traceability, congruence, and research
+  companions),
+  `docs/adr/0025` onward, the Phase 0 evidence file, and the active
   `openspec/changes/add-eve-email-discord-notifications/**` and
   `openspec/changes/add-statement-studio/**` planning packages
 - Reconciled active changes: `add-recurring-giving`,
   `add-donor-self-service`, `add-eve-email-discord-notifications`,
-  `add-statement-studio`
+  `add-statement-studio`, `add-statement-operations`
 - No product code changes or issue dispatch (this change is specification and
   governance only).

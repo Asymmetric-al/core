@@ -1,13 +1,19 @@
 # Statement Studio
 
-> **Current authority (Phase 18, 2026-07-21).** The documents in this folder are
+> **Current authority (Phases 18–19, 2026-07-24).** The documents in this folder are
 > retained as pre-Phase-18 research and design evidence; they are not
 > dispatchable target architecture. Use the Phase 18 PRD, authority manifest,
-> renderer qualification protocol, ADRs 0033-0039, and OpenSpec change. Phase 7
+> renderer qualification protocol, ADRs 0033-0039, and OpenSpec change for the
+> Generated Document service. For year-end bulk operations, use the
+> [Phase 19 PRD](../../../prds/sitestacker-parity/phase-19-year-end-statement-operations.md),
+> its authority map, ADRs, and OpenSpec change. Phase 7
 > owns eligibility, facts, source issuance, and correction effect; Phase 18 owns
 > document definition, publication, requests, exact artifacts, current-head
-> access, and records; Phase 19 owns statement population, runs, and items; Phase
-> 17 owns message and delivery. D17 requires a clean pre-production cutover, and
+> access, and records; Phase 19 consumes Phase 7 eligibility and owns frozen
+> statement population, participation, runs, recipient-operation coordination,
+> physical fulfillment, controls, completion, and run evidence; Phase 17 owns
+> message and delivery. Both phases are planning-only and
+> groomed-not-dispatched. Phase 18 D17 requires a clean pre-production cutover, and
 > D13 forbids raw provider or signed object URLs as access authority.
 
 Statement Studio is the planned replacement for PDF Studio: a fully usable staff-facing Mission Control product for building, assigning, rendering, and managing tenant-safe PDFs and statements.
@@ -33,8 +39,10 @@ Use this documentation when planning or implementing:
 
 1. Read this `README.md`.
 2. Read the Phase 18 PRD, authority manifest, renderer qualification protocol,
-   ADRs 0033-0039, and Phase 18 OpenSpec change before implementation. Use the
-   Phase 0 brief and evidence appendix only for historical repo observations.
+   ADRs 0033-0039, and Phase 18 OpenSpec change before Generated Document work.
+   For year-end runs, also read the Phase 19 PRD, its authority map, ADRs, and
+   OpenSpec change. Use the Phase 0 brief and evidence
+   appendix only for historical repo observations.
 3. Load `docs/ai/skills/supabase/SKILL.md`, `docs/ai/rules/backend.md`, and `supabase/AGENTS.md` before any Supabase/database work.
 4. Load `docs/ai/skills/supabase-postgres-best-practices/SKILL.md` for schema, RLS, indexes, query, or migration work.
 5. Load `docs/ai/rules/frontend.md` before UI work.
@@ -81,11 +89,15 @@ Use this documentation when planning or implementing:
   route. Raw provider, bucket, or signed object URLs never become access
   authority.
 - Tenant admins control how templates, defaults, variables, retention, and capabilities are used inside platform safety floors.
-- **Canonical owner split:** Phase 7 owns receipt/statement eligibility, facts,
-  source issuance, and correction effect. Phase 18 owns document definition,
+- **Canonical owner split:** Phase 7 owns receipt/statement eligibility, legal
+  donor, facts, coverage, source issuance, and correction effect; Phase 13 owns
+  posted money; Phase 14 owns recognition. Phase 18 owns document definition,
   publication, request, exact artifact, public reference/version, current head,
-  access, and document records. Phase 19 owns statement population, cutoff,
-  runs, and items. Phase 17 owns message and delivery.
+  access, and document records. Phase 19 consumes those authorities and owns the
+  immutable Run Preflight, bounded participation, purpose-pinned Statement Run
+  and Run Items, release/control fences, recipient-operation coordination,
+  physical fulfillment, operational completion, and Run Evidence Record. Phase
+  17/6 own message preparation, transport, and delivery evidence.
 
 ## Checklist
 

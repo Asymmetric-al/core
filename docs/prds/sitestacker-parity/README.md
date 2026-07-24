@@ -268,6 +268,17 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   dated cross-PRD congruence, ADRs 0033–0039, and a rewritten Document Production
   OpenSpec contract). Planning only; issue set pending;
   groomed-not-dispatched and not built.
+- [`phase-19-year-end-statement-operations.md`](./phase-19-year-end-statement-operations.md)
+  — the Phase 19 plan (Year-End Statement Operations): one source-authoritative
+  population, immutable Run Preflight, atomic release barrier, canonical
+  purpose-pinned Statement Run and Run Item system, separately authoritative
+  document/portal/communication/paper outcomes, self-print-first physical
+  fulfillment, cooperative containment, tenant-controlled truthful completion,
+  exact-current donor access, and one PII-minimized Run Evidence Record.
+  Groomed 2026-07-24 (ratified D1–D18; PRD authority map,
+  decision-to-test traceability, primary-source research, dated cross-PRD
+  congruence, focused ADRs, and a Statement Operations OpenSpec delta).
+  Planning only; issue set pending; groomed-not-dispatched and not built.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this
