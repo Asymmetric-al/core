@@ -310,6 +310,74 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(200);
   });
 
+  it("redirects a signed-in visitor away from an auth route when redirectAuthenticatedTo is set", async () => {
+    mockConfigWithUser();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard",
+    );
+  });
+
+  it("honours a safe next param when redirecting a signed-in visitor off an auth route", async () => {
+    mockConfigWithUser();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(
+      createRequest("/login?next=%2Fdonor-dashboard%2Fhistory"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard/history",
+    );
+  });
+
+  it("ignores an off-origin next param when redirecting a signed-in visitor", async () => {
+    mockConfigWithUser();
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(
+      createRequest("/login?next=https%3A%2F%2Fevil.example%2Fsteal"),
+    );
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard",
+    );
+  });
+
+  it("leaves auth routes alone for an E2E-bypass session with no Supabase user", async () => {
+    // The bypass cookie populates `userId` but never a Supabase `user`; keying
+    // the redirect off `userId` would bounce the e2e suite off /login.
+    mockConfigWithUser(null);
+    process.env.E2E_AUTH_BYPASS = "true";
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(200);
+  });
+
   it("uses only nextUrl.origin for redirect (no open redirect)", async () => {
     mockNoConfig();
     const middleware = createAuthMiddleware({

@@ -145,6 +145,7 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
   const loginPath = options.loginPath ?? "/login";
   const allowApi = options.allowApi ?? true;
   const allowedRoles = options.allowedRoles;
+  const redirectAuthenticatedTo = options.redirectAuthenticatedTo;
 
   return async function authMiddleware(request: NextRequest) {
     const pathname = request.nextUrl.pathname;
@@ -259,6 +260,19 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
     }
 
     if (isAuthRoute) {
+      // Send an already-signed-in visitor on to the app instead of rendering a
+      // sign-in form. Gate on the Supabase `user`, never on `userId`: the E2E
+      // bypass populates `userId` from a cookie with no Supabase session, and
+      // redirecting those would bounce the e2e suite off /login and /register.
+      if (user && redirectAuthenticatedTo) {
+        const requestedNext = safeNextParam(
+          request.nextUrl.searchParams.get("next"),
+        );
+        return NextResponse.redirect(
+          buildRedirectUrl(request, requestedNext ?? redirectAuthenticatedTo),
+        );
+      }
+
       return supabaseResponse;
     }
 
