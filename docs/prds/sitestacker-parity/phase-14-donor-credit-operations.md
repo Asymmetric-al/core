@@ -1154,9 +1154,9 @@ Mechanics (lean by construction — **no new machinery**):
 
 Binding consequences:
 
-- **Labeled, always.** On every surface — Giving tab, roster row, donor portal (per section J), statement — household-derived recognition renders under an explicit household label/chip. It is never summed into, displayed beside-as-equivalent, or exportable as the viewing party's personal legal giving. This is the two-vocabulary rule (C.1) applied at household grain: legal giving belongs to the legal donor alone; recognition says "your household gave."
+- **Labeled, always.** On recognition surfaces — Giving tab, roster row, donor portal (per section J), and the optional Support overview — household-derived recognition renders under an explicit household label/chip. It is never summed into, displayed beside-as-equivalent, included on an official statement, or exportable as the viewing party's personal legal giving. This is the two-vocabulary rule (C.1) applied at household grain: legal giving belongs to the legal donor alone; recognition says "your household gave."
 - **Purpose-separated documents.** Each official document remains with the exact Phase 7 Statement Subject. If the tenant enables the feature and meaningful authorized recognition exists, Phase 19 may create one separate Support overview for the Recognition Subject. It is never an official statement, never a receipt, and never contributes to a deductible or cash total.
-- **No new machinery** — no household-credit generator, no membership-change backfill job, no reconciliation task queue. The derivation + the exception rows + the existing statement composer cover the whole surface. (Founder posture: don't over-engineer; the reviewers' cuts stand.)
+- **No new machinery** — no household-credit generator, no membership-change backfill job, no reconciliation task queue. The derivation + the exception rows + the existing source projection/Support-overview composer cover the permitted recognition surface. (Founder posture: don't over-engineer; the reviewers' cuts stand.)
 
 ---
 
