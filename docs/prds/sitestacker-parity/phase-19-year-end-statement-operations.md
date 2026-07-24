@@ -189,12 +189,12 @@ Nothing in this PRD claims the forward elements are implemented.
   evidence-and-review policy that may strengthen proof for exceptional dating;
   it never changes gift date, Document Period, Source-Fact Cutoff, or release
   authority.
-- **Late Fact Obligation:** Deduplicated post-release fact requiring no action, supplemental coverage, correction, or replacement.
+- **Late Fact Obligation:** Deduplicated post-release fact requiring no action, supplemental coverage, correction, or replacement. Its permanent logical slot is tenant/environment + primary run + Statement Subject + source-fact identity + purpose contract; source revisions append through compare-and-swap instead of creating parallel open obligations.
 - **Supplemental Run:** New reviewed operation covering post-release facts without reopening the primary run.
 - **Statement Delivery Profile:** Versioned tenant-authored configuration of permitted statement routes.
 - **Fulfillment Plan:** Frozen compatible route plan for one recipient-document operation.
 - **Execution Lane:** Derived mutually exclusive operational lane for an executable route step.
-- **Recipient Document Operation:** One Statement Subject, logical document, authorized recipient, and fulfillment intent.
+- **Recipient-Document Operation:** One Statement Subject, logical document, authorized recipient, and fulfillment intent.
 - **Recipient Delivery Snapshot:** Frozen recipient, destination, authority, locale, Site, route, and revision evidence.
 - **Destination Succession:** Governed append-only replacement of an eligible destination for future execution.
 - **Run Control Posture:** Running, pause requested, paused and contained, stop requested, or remaining work stopped.
@@ -330,11 +330,11 @@ a change stales the preflight with zero external effect.
 - One release barrier controls claimability.
 - No external I/O occurs inside the start transaction.
 
-### Run Item and Recipient Document Operation
+### Run Item and Recipient-Document Operation
 
 - A Run Item binds one Statement Subject and exact source coverage.
 - Source gift and recognition lines remain inclusion facts beneath the item; they are not Phase 19 run items.
-- A Recipient Document Operation independently binds the authorized recipient, destination snapshot, logical-document intent, portal posture, Fulfillment Plan, and route steps.
+- A Recipient-Document Operation independently binds the authorized recipient, destination snapshot, logical-document intent, portal posture, Fulfillment Plan, and route steps.
 - Shared destinations never merge items.
 - Each route step has one execution lane and permanent semantic identity.
 
@@ -503,9 +503,14 @@ the applicable Phase 7/15 source capability. Resolving an intent never grants
 its owner action.
 
 `applyRunDeliveryChange` is candidate-only before Start and invalidates the
-current preflight and review. After Start, the frozen Fulfillment Plan and
-fallback are immutable; deliberate new fulfillment uses D7 destination
-succession or one D12/D16 copy occurrence, never an in-place route mutation.
+current preflight digest and any protected review. Only operations whose
+compiled plan or destination consequence changed are marked stale, and
+unchanged operation evidence may be reused when still current, but Start always
+requires a rebuilt exact preflight with zero stale operations and a review
+record bound to that new digest when protected. After Start, the frozen
+Fulfillment Plan and fallback are immutable; deliberate new fulfillment uses
+D7 destination succession or one D12/D16 copy occurrence, never an in-place
+route mutation.
 Statement-only destination succession requires `manage_destinations`.
 Selecting **Also use for future statements** additionally requires the
 applicable source-owned general-contact or preference capability. Without that
@@ -933,12 +938,26 @@ The ordinary intake:
 
 Phase 19 never edits that date. It displays a permission-safe source explanation such as **2025 · Staff-confirmed mailing date · Received January 3, 2026**.
 
-If the source fact changes before start, the preflight becomes stale. If it arrives after start, the primary run remains immutable and one deduplicated Late Fact Obligation resolves through owner rules to:
+If a material source fact changes before Start, only affected operations are
+marked stale, but the immutable preflight digest and any protected review are
+no longer startable. Staff rebuild the exact preflight; unchanged operation
+evidence may be reused when still current, while Start requires zero stale
+operations and, when protected, a review record bound to the rebuilt digest.
+
+If a fact arrives after Start, the primary run remains immutable and one
+deduplicated Late Fact Obligation resolves through owner rules to:
 
 - no document action;
 - nonoverlapping supplemental coverage;
 - source-authorized correction/replacement; or
 - another separately reviewed purpose-pinned run.
+
+The obligation's permanent semantic slot is derived from tenant/environment,
+primary run, Statement Subject, source-fact identity, and purpose contract.
+Exact replay returns the same obligation. A later revision of the same source
+fact appends a compare-and-swap successor revision inside that slot; it never
+creates a second concurrently open obligation. A materially different source
+fact receives a different slot.
 
 Exact copy access, delivery retry, portal access, or print replay never creates a late fact.
 
@@ -1251,6 +1270,9 @@ Runbooks must cover stale preflight, population mismatch, ambiguous downstream h
 
 - Facts posted after start do not mutate the primary run.
 - One deduplicated obligation resolves to no action, supplemental coverage, correction, or replacement.
+- The logical slot uses primary run, Statement Subject, source-fact identity,
+  and purpose; exact replay returns the same obligation and a later source
+  revision appends instead of creating a parallel open obligation.
 - Exact-copy access and delivery retry never create a late fact.
 
 ### US19-15 — Automatic participation is the default
@@ -1524,6 +1546,8 @@ Do not make Inngest internals, Resend, a renderer, raw database tables, route ha
 
 - exact preflight replay and changed-fingerprint conflict;
 - stale source/publication/profile/review rejection with zero side effects;
+- one-operation material staleness, rebuilt exact digest, unchanged-evidence
+  reproof, and protected-review supersession;
 - two concurrent starts produce one run;
 - participation race versus start;
 - concurrent Canadian individual versus cumulative coverage;
@@ -1539,6 +1563,8 @@ Do not make Inngest internals, Resend, a renderer, raw database tables, route ha
   outcome-unknown paid attempt, proving one reservation and zero duplicate paid
   effect;
 - pause/stop/privacy containment at every irreversible boundary;
+- duplicate late-fact delivery and later source revision produce one logical,
+  append-only obligation slot;
 - completion while exceptions and later webhooks remain live;
 - 50,000-item run with tenant fairness and bounded memory;
 - complete 50,001-subject preflight followed by an atomic no-side-effect release block;
@@ -1716,7 +1742,7 @@ The permanent system is:
 - one exact Run Preflight;
 - one atomic release barrier;
 - one canonical run/item system;
-- one Recipient Document Operation model;
+- one Recipient-Document Operation model;
 - one public Statement Operations service;
 - one Phase 18 document boundary;
 - one Phase 17 communication boundary;

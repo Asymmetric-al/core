@@ -181,11 +181,21 @@ before/after history. Tenants MAY require stronger evidence or review where the
 jurisdiction contract permits; no universal attachment or second approver is
 allowed.
 
-A fact posted before Start MUST stale the affected preflight. A fact posted
-after Start MUST create one deduplicated late-fact obligation whose source and
-purpose contracts derive no action, additional nonoverlapping coverage, or a
-formal successor/correction/replacement. Staff MUST NOT edit the frozen primary
-run or choose the legal result.
+A material fact posted before Start MUST mark only affected operations stale,
+but the immutable preflight digest and any protected review MUST become
+non-startable. Rebuild MAY reuse unchanged operation evidence only after
+re-proving it current. Start MUST require zero stale operations and, when
+protected, a review record bound to the rebuilt exact digest.
+
+A fact posted after Start MUST create one deduplicated late-fact obligation
+whose source and purpose contracts derive no action, additional nonoverlapping
+coverage, or a formal successor/correction/replacement. Its permanent semantic
+slot MUST derive from tenant/environment, primary run, Statement Subject,
+source-fact identity, and purpose contract. Exact replay MUST return the same
+obligation. A later revision of that source fact MUST append through
+compare-and-swap inside the same slot rather than create a parallel open
+obligation; a materially different source fact MUST use a different slot.
+Staff MUST NOT edit the frozen primary run or choose the legal result.
 
 #### Scenario: A December 31 check is received after year-end
 
@@ -205,6 +215,15 @@ run or choose the legal result.
 - THEN the source domain appends its reversal and correction authority
 - AND Phase 19 coordinates the required successor operation without rewriting
   the intake evidence, source cutoff, or original run
+
+#### Scenario: The same late source fact is delivered twice
+
+- GIVEN one post-Start source fact already created a Late Fact Obligation
+- WHEN an import retry or concurrent source delivery repeats the same
+  source-fact identity
+- THEN exact replay returns the same obligation
+- AND a later source revision appends through compare-and-swap in that logical
+  slot rather than creating a second open obligation
 
 ### Requirement: D6 Delivery Profiles Compile Into Frozen Fulfillment Plans
 
@@ -227,7 +246,11 @@ legal, consent, privacy, restricted-person, tenant, locale, or readiness
 authority.
 
 A run-only delivery change MUST be candidate-only before Start and MUST
-invalidate the current preflight and review. After Start, the frozen
+invalidate the current preflight digest and protected review. Only operations
+whose compiled plan or destination consequence changed MUST be marked stale;
+unchanged operation evidence MAY be reused only after reproof. Start MUST still
+require a rebuilt exact preflight with zero stale operations and, when
+protected, a review record bound to that digest. After Start, the frozen
 Fulfillment Plan and fallback MUST NOT be mutated in place; deliberate new
 fulfillment MUST use governed destination succession or one D12/D16 copy
 occurrence.
@@ -296,8 +319,10 @@ denied while statement-only succession remains available.
 - GIVEN a material address revision changes after staff reviewed the preflight
 - WHEN staff attempt to start the run
 - THEN only the affected recipient operation is marked stale
-- AND staff see masked before/after consequences and must refresh and review
-  that operation before Start can commit
+- AND the old immutable preflight digest cannot start
+- AND staff see masked before/after consequences, rebuild the exact candidate,
+  and refresh the protected review when applicable
+- AND unchanged operations may reuse only evidence re-proved current
 
 #### Scenario: A destination changes after possible provider acceptance
 

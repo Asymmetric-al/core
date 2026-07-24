@@ -71,6 +71,11 @@
       and contains only source-authorized household support or disclosed DAF
       recognition. It never enters an official artifact, deductible total, or
       ordinary nonparticipant surface.
+- [ ] 3.7 Before any Phase 19 donor statement artifact path becomes available,
+      remove or hard-disable the live recomputed annual-statement route and
+      atomically update its clients, prototype inventory, and closure tests.
+      No year may expose both live-recomputed text and frozen official PDF
+      truth.
 
 ## 4. Verification
 

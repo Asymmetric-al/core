@@ -41,8 +41,14 @@ document, communication, audit, or workflow system.
 ## Capability Deltas
 
 - Add capability: `statement-operations`
-- Modify capability: `platform-product-intent`
-- Modify capability: `donation-lifecycle`
+- Modify capability: `platform-product-intent` through
+  `openspec/changes/sitestacker-parity/specs/platform-product-intent/spec.md`
+- Modify capability: `donation-lifecycle` through
+  `openspec/changes/add-donor-self-service/specs/donation-lifecycle/spec.md`
+
+The sibling delta paths above are part of this PR's explicit congruence
+package. `add-statement-operations` owns the new capability; it does not copy
+or fork those already-active capability changes.
 
 ## Dependencies
 

@@ -85,7 +85,9 @@
 
 - [ ] 8.1 Remove the live annual-statement text route and every alternate
       population, render, portal, delivery, or completion path; ship no legacy
-      adapter or fabricated history.
+      adapter or fabricated history. Complete the route/client cutover,
+      prototype-inventory closure, and closure-test updates atomically before
+      any Phase 19 donor artifact path becomes available.
 - [ ] 8.2 Prove D1-D18 happy paths, edge cases, failures, replay, races,
       provider ambiguity, tenant isolation, exact counts, records behavior,
       accessibility, and production-shaped seasonal load at the accepted public
