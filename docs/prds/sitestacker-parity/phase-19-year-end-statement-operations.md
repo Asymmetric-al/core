@@ -82,7 +82,7 @@ The **Year-End Operations** workspace is a permission-filtered, rebuildable proj
 1. **D1 — Canonical purpose-pinned runs:** one authoritative run/item system behind a disposable Year-End Operations projection.
 2. **D2 — Exact reviewed atomic start:** one immutable Run Preflight, one atomic release barrier, and separately authoritative downstream truth.
 3. **D3 — Source-owned subjects:** Phase 7 legal-donor Statement Subjects, optional purpose-separated recognition, and independently authorized Delivery Recipients.
-4. **D4 — Prospective receipt plans:** exact-issuer Canadian receipt plans are source-frozen; Canadian behavior is structurally absent without an active Phase 18 pack.
+4. **D4 — Prospective receipt plans:** exact-issuer Canadian receipt plans are source-frozen; never-activated issuers have no Canadian surface, repairable pauses preserve source plan facts while holding issuance, and legal lock/end stops new issuable facts without deleting history.
 5. **D5 — Immutable primary release:** source-owned year-boundary check evidence and a contract-owned late-fact lane never reopen the original run.
 6. **D6 — Delivery profiles:** tenant-authored Statement Delivery Profiles compile into code-owned compatible Fulfillment Plans and execution lanes.
 7. **D7 — Frozen recipient snapshot:** one reviewed destination snapshot changes only through governed destination succession.
@@ -291,6 +291,15 @@ The preflight pins:
 - tenant and environment;
 - live or synthetic test mode;
 - issuer, jurisdiction pack, activation epoch, and compliance profile;
+- exact effective Phase 7 `contribution_dating_facts` identity, revision and
+  digest, including source-occurrence legal issuer, jurisdiction-policy
+  identity/version/digest, resolved IANA timezone, distinct basis/evidence
+  identity, gift date, tax year, and resolution time; the preflight never
+  re-resolves against a current mutable profile;
+- for every Canadian-plan candidate, the exact Phase 7 referenced row identity
+  and digest from `contribution_receipt_plan_facts`, plan code, activation
+  epoch, and policy revision; these are frozen evidence references, not a Phase
+  19-owned plan;
 - document purpose/version/digest and output policy;
 - period, source cutoff, issuer timezone, and canonicalization version;
 - ordered included, excluded, blocked, held, and already-current Statement Subjects with stable reasons;
@@ -914,13 +923,15 @@ The server resolves the legal action. Staff never choose retry, regenerate, vers
 
 ## Canadian participation
 
-Canadian annual official-receipt behavior exists only when the exact issuer's Phase 18 Canadian registered-charity pack is active.
+Canadian annual official-receipt behavior exists only under the exact issuer's Phase 18 Canadian registered-charity authority and its reason-aware effective interval.
 
-Without that activation:
+For an issuer that has never activated the pack:
 
 - no Canadian fields, labels, controls, joins, jobs, exports, alerts, or empty states appear;
 - donor country, Site, address, CAD currency, French locale, import, or caller input cannot activate it;
-- ordinary U.S./informational execution is unchanged.
+- ordinary applicable non-Canadian/informational execution is unchanged.
+
+A repairable issuance pause preserves the active source plan epoch and continues freezing plan facts while generation/issuance is held. A confirmed legal lock or ended pack stops new issuable plan facts and never queues the locked interval for retroactive receipts. Historical facts, coverage, documents, serials, holds, and records obligations remain permissioned and readable without exposing new-intake controls. Reactivation requires fresh proof and a new epoch.
 
 For an active issuer, Phase 7 freezes one prospective receipt plan per eligible cash occurrence:
 
@@ -940,7 +951,7 @@ Phase 19 keeps four independent coordinates separate:
 3. versioned compliance-risk rule;
 4. immutable Source-Fact Cutoff.
 
-For U.S. mailed checks, Phase 15/7 records the actual mailing/postmark date and delivery basis. The check's written date, entry date, deposit date, clearing date, or run date is not a substitute.
+For a verified U.S. issuer under the U.S. mailed-check contract, Phase 15/7 records either the actual staff-attested mailing date or a captured postmark with a distinct delivery basis. Those facts are never aliases. The check's written date, entry date, deposit date, clearing date, or run date is not a substitute. Other jurisdictions consume their own source-owned rule and never inherit this one.
 
 The ordinary intake:
 
@@ -1265,18 +1276,19 @@ Runbooks must cover stale preflight, population mismatch, ambiguous downstream h
 - Every surface persistently says **Support overview — Not a tax document**.
 - Official and informational failures remain independent.
 
-### US19-11 — Canadian behavior is absent for nonparticipants
+### US19-11 — Canadian behavior is absent for never-participants and truthful after transitions
 
-- No active exact-issuer pack means no Canadian controls, labels, joins, jobs, or measurable ordinary overhead.
+- An exact issuer that never activated the pack has no Canadian controls, labels, joins, jobs, or measurable ordinary overhead.
 - Canadian-looking donor, locale, currency, address, import, or caller input cannot activate it.
+- A repairable pause keeps source plan facts but holds issuance; a legal lock/end creates no new issuable plan facts; both preserve permissioned history, and reactivation starts a new proved epoch.
 
 ### US19-12 — Canadian annual receipt coverage is source-authoritative
 
 - Only gifts frozen as `annual_cumulative_cash` and otherwise eligible enter cumulative coverage.
 - Individually receipted and noncash gifts remain excluded with truthful reasons.
 - Phase 15 batch or quick-entry commit posts the money but creates no per-gift
-  official receipt, coverage record, or receipt-send outbox occurrence for an
-  `annual_cumulative_cash` gift.
+  receipt authorization, official generated-document request, coverage record,
+  or delivery occurrence for an `annual_cumulative_cash` gift.
 - Concurrent individual and cumulative coverage cannot overlap.
 
 ### US19-13 — Year-boundary checks use source-owned dates

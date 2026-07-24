@@ -75,7 +75,10 @@ pre-production environment/data gate.
 
 ## Release Posture
 
-This change defines intended behavior; it does not dispatch implementation and
-must not receive `ready-for-agent`. Production is blocked by the renderer,
+This change defines intended behavior and does not itself dispatch
+implementation. Epic #907 and children #908–#961 are published; #908–#910 are
+the separately approved `status:todo` + `ready-for-agent` frontier and
+#911–#961 remain `status:blocked`. Production remains blocked by the renderer,
 legal/finance/records/security, accessibility/archive, tenant-isolation,
-exact-byte, load/restore, and destructive-cutover proofs in the capability spec.
+exact-byte, load/restore, and destructive-cutover proofs in the capability spec,
+and this change authorizes no further dispatch.

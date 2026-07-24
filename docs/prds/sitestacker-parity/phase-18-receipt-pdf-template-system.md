@@ -2,7 +2,11 @@
 
 ## Status
 
-**PRD exists; issue set pending; groomed but not dispatched.** This document authorizes planning only. It does not authorize implementation, schema changes, issue dispatch, or a `ready-for-agent` label.
+**PRD exists; epic #907 and children #908–#961 are published.** The approved
+frontier #908–#910 is open with `status:todo` and `ready-for-agent`; #911–#961
+remain open with `status:blocked`. This planning contract does not itself
+authorize further dispatch, implementation, or schema changes, and issue status
+never proves that implementation exists.
 
 **Decision authority:** Phase 18 `/grill-with-docs` D1-D17, ratified by Conrad on 2026-07-20 and 2026-07-21. D17 is controlling wherever earlier language mentioned legacy/foreign import, migration, compatibility, preservation of prototype paths, or a legacy runtime. D1's narrow versioned Asym-native semantic-template package remains authoring portability only and never becomes a cutover/runtime path.
 
@@ -550,6 +554,7 @@ As a records/privacy administrator, I want clear bounded retention, hold and cus
 - **Given** a later law, policy or provider change, **then** an authorized qualified review creates one effective-dated successor and bounded impact set, preserves every prior schedule/trigger decision, and recalculates idempotently; a shorter result enters the ordinary grace/reproof/disposal lane and never mass-deletes.
 - **Given** a permissioned records admin, **then** one quiet Records disclosure explains the controlling purpose, authority, dates and schedule version and offers only contract-enumerated documented extensions, scoped holds and custody/disposition evidence export.
 - **Given** an activated Canadian issuer closes service, **then** ordinary app access ends only after either verified destination-custody transfer preserving issuer/history/holds or an explicit restricted records-only custody agreement; tenants that never enrolled see no related UI, data or work.
+- **Given** repairable proof loss pauses a previously active Canadian pack, **then** eligible source plan facts continue under the active epoch while generation/issuance is held; **given** a confirmed legal lock or ended pack, **then** no later occurrence receives an issuable plan fact and the locked interval is never queued retroactively. In both cases permissioned historical plan facts, coverage, serials, artifacts, corrections, holds and records obligations remain available; a reactivation requires fresh proof and a new epoch.
 
 ### US18-22 — Disposal and restore cannot resurrect data
 
@@ -614,7 +619,7 @@ Release is blocked until all companion-manifest stop assertions and the followin
 - Security threat model, hostile RLS/IDOR tests, private-storage exact-byte protocol and recipient authorization pass.
 - Fairness, seasonal capacity, alert/runbook, backup/restore, shared audit-checkpoint, bounded retention extension, Canadian custody offboarding, hold/disposal and suppression-replay evidence pass.
 - D17 environment gate certifies no production/irreplaceable state and closure tests prove one writer/reader/service path.
-- PRD, manifest, ADRs, OpenSpec, predecessor amendments, roadmap, phase map, parity matrix and future tickets express one congruent authority model.
+- PRD, manifest, ADRs, OpenSpec, predecessor amendments, roadmap, phase map, parity matrix and the published ticket set express one congruent authority model.
 
 ## Implementation order
 
@@ -640,4 +645,8 @@ Phase 18 is done only when every user story and traceability row passes through 
 ## Further notes
 
 - The companion research record is dated planning evidence, not legal advice, vendor certification, renderer qualification, or permission to activate a jurisdiction pack. Time-sensitive law, provider behavior, standards, validators, renderer builds, licenses, retention rules, protected copy, and operational limits must be revalidated by the named release owners.
-- This PRD is intentionally implementation-ready but not dispatched. A later explicit `/to-tickets` step will create the blocked issue set; no issue receives `ready-for-agent` until Conrad separately authorizes dispatch.
+- Epic #907 and children #908–#961 are the published implementation
+  decomposition. The separately approved frontier #908–#910 carries
+  `status:todo` plus `ready-for-agent`; #911–#961 remain `status:blocked`.
+  Publication and frontier labels do not claim that any behavior is built, and
+  this PRD does not authorize further dispatch beyond that explicit frontier.

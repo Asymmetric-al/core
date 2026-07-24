@@ -139,8 +139,8 @@ forward and never gate anything. Statuses: `PRD exists` / `re-groom pending` /
 | **15** | `gift-batch-entry`           | Offline Gift & Batch Entry                                                                                                        | **13**, 14, 7                               | 9; enhanced by 16 (fulfillment matching)              | Mission Control Contributions                                   | `PRD exists (epic #758 + #759–#786)`                           |
 | **16** | `pledges-commitments`        | Pledges & Recurring Commitments                                                                                                   | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15** | enhanced by 17 (message rendering/delivery)           | Contributions and CRM                                           | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
 | **17** | `system-messages`            | [System Messages & Template Management](./phase-17-system-messages-template-management.md)                                        | 6, 2, 3, 7                                  | —                                                     | Email Studio / System Messages                                  | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)   |
-| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                               | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **19** | `statement-operations`       | Year-End Statement Operations                                                                                                     | 6, 7, 12, **13**, 14, 15, 17, 18            | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (issue set pending; groomed-not-dispatched)       |
+| **18** | `document-templates`         | [Receipt & PDF Template System](./phase-18-receipt-pdf-template-system.md)                                                        | 7, **13**, 17                               | 6                                                     | Document Studio / Generated Documents                           | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier) |
+| **19** | `statement-operations`       | [Year-End Statement Operations](./phase-19-year-end-statement-operations.md)                                                      | 6, 7, 12, **13**, 14, 15, 17, 18            | 9, 4                                                  | Mission Control Contributions/Finance                           | `PRD exists` (no epic/children published; not dispatched)      |
 | **20** | `accounting-exports`         | Accounting Exports & Reconciliation                                                                                               | **13**, 15, 14, 2                           | 16, 7                                                 | Mission Control Contributions/Accounting                        | `future (needs PRD)`                                           |
 | **21** | `field-accounts`             | Missionary Field Accounts & Support Balances                                                                                      | 13, 20, 3, 4                                | 16                                                    | Mission Control Finance, Missionary Workspace projection        | `future (needs PRD)` — **new in v2**                           |
 | **22** | `public-ministry-pages`      | Public Missionary & Project Page Workflow                                                                                         | 5, 9, 10, 13, 3                             | 15, 16 (offline gifts + commitments in progress bars) | Web Studio, Public Website, Missionary Workspace, Contributions | `future (needs PRD)`                                           |
@@ -1161,9 +1161,11 @@ coordination, physical fulfillment, control, completion, and Run Evidence
 Record. Restricted-worker policy applies to
 visible and hidden artifact surfaces. Renderer selection, U.S. breadth, Canada
 scope, access, records, publication scheduling, and the clean cut are resolved
-by the Phase 18 D1–D17 contracts; no founder question remains open. The phase is
-a groomed PRD only, with an issue set pending and no implementation dispatch or
-`ready-for-agent` state.
+by the Phase 18 D1–D17 contracts; no founder question remains open. Epic #907
+and children #908–#961 are published: #908–#910 form the approved
+`status:todo` + `ready-for-agent` frontier and #911–#961 remain
+`status:blocked`. That ticket posture claims no implementation and authorizes no
+further dispatch.
 
 ---
 
@@ -1232,8 +1234,13 @@ must not present it as a universal federal deadline.
   tenant-fair, resumable, provider-adaptive, and protects critical messages.
   Tenants receive one bounded **Target ready for review by** control, not queue
   priority.
-- **Optional products stay separate.** Exact-issuer Canadian annual receipt
-  behavior is structurally absent unless its Phase 18 pack is active.
+- **Optional products stay separate.** Exact-issuer Canadian annual-receipt
+  behavior is structurally absent only for a non-Canadian or never-activated
+  issuer. An active or repairably paused Canadian epoch retains its frozen plan
+  (the pause holds generation/issuance); a legal lock or ended epoch creates no
+  new issuable plan facts and never falls through to ordinary policy for that
+  issuer and interval. Historical artifacts, access, and records remain visible
+  under pause, lock, or end.
   **Support overview — Not a tax document** is an off-by-default informational
   document, never a section of or substitute for an official statement.
 

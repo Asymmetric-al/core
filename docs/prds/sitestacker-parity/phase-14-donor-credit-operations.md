@@ -1034,7 +1034,7 @@ Phase 13 (Campaign, Designation, Contribution Ledger & Giving Cart) ratified the
 
 Concretely:
 
-- **The tender row keeps payer metadata only:** the remitting-church party id (the payer, and per Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) A8 the **hard-credit legal donor** — the receipt goes to the church), `check_number`, `postmark_date`, and the provisional-until-cleared payment posture, all exactly as P13 ratified them. The attribution array is an **input contract to the credit generator** — it is consumed at entry and never stored on the tender or the line. There is no second place where member attribution can live, so the CRM and the roster can never disagree with each other by construction.
+- **The tender row keeps payer and delivery-input metadata only:** the remitting-church party id (the payer, and per Phase 7 (Receipt & Statement Compliance Rules + Donor Identity/Credit Model) A8 the **hard-credit legal donor** — the receipt goes to the church), `check_number`, distinct optional `postmark_date`, staff-attested `mailing_date`, `received_date`, and the provisional-until-cleared payment posture. The exact issuer's Phase 7 jurisdiction contract selects the permitted delivery basis and blocks when required evidence is missing; church remittances never imply a global postmark rule. The attribution array is an **input contract to the credit generator** — it is consumed at entry and never stored on the tender or the line. There is no second place where member attribution can live, so the CRM and the roster can never disagree with each other by construction.
 - **Member attribution = `church_member` credit rows,** allocation class per Implementation Decision B.2: `amount_minor` **required and bounded — member rows under one remittance line sum ≤ that line's effective amount**, enforced by the generator AND a deferred constraint trigger (a generator bug must not be able to over-allocate a line). Line-scoped (`line_id` set) — the remittance attribution editor is one of the three named flows permitted to set `line_id` [D1.2].
 - **Under-attribution is legal.** A church that remits $2,000 and breaks down $1,700 of it produces member rows summing to $1,700; the $300 remainder is simply unattributed — a legitimate, visible state (the FINANCE view shows the attributed/unattributed split; H.5 governs who else may see that arithmetic). Nothing forces a fake "unknown member" row, and nothing blocks posting.
 - **Generation is async fan-out** per D1.7: the remittance posts on the money path synchronously; member credits mint through the outbox/Inngest fan-out with a `credit_generation_runs` record and full-target-set idempotent upsert (the 200-member die-at-117 case resumes without duplicates). The permanent posture is: **money never fails on recognition; recognition is eventually consistent; a Phase 19 informational run freezes the exact reviewed recognition cursor.** [D1.7; Phase 19 D15]
@@ -2013,10 +2013,12 @@ reference mapping, old-writer fencing, generated-registry parity and one-writer
 proof, rollback evidence, and closure of the bounded rollback window. No reverse
 sync or fallback to a legacy row is permitted.
 
-**Compatibility boundary.** Phase 14 remains the only owner of legal donor,
-DAF sponsor/advisor, tribute honoree/notify party, matching-gift participant,
-recognition, privacy, amount suppression, and acknowledgment eligibility.
-Phase 17 never derives or changes those recipients/facts and cannot put
-deductibility fields into acknowledgments or per-gift amounts into tribute
-notifications. Phase 7 retains the three-document wall; Phase 6 retains
-delivery/history.
+**Compatibility boundary.** Phase 14 remains the owner of DAF sponsor/advisor,
+tribute honoree/notify party, matching-gift participant, Recognition Subject,
+recognition visibility/privacy, amount suppression, and the source-authorized
+recipient/fact projection for recognition acknowledgments and notifications.
+Phase 7 alone resolves and freezes the legal donor, Statement Subject, and
+receipt/official-statement eligibility. Phase 17 never derives or changes
+those recipients or facts and cannot expose deductibility fields in
+acknowledgments or per-gift amounts in tribute notifications. Phase 7 retains
+the three-document wall; Phase 6 retains delivery/history.

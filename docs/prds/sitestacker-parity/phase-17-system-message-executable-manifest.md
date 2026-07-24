@@ -873,7 +873,7 @@ The durable catalog package MUST include
 `docs/prds/sitestacker-parity/phase-17-system-message-census-2026-07-19.md`.
 That appendix promotes the cited producer research out of scratch space and is
 hashed into every catalog generation. Its baseline is repository commit
-`fb5f1bfeb4378bc16bbe036a22975cb3f4c600a4` plus the dated Phase 17 planning
+`b14a8a369dfc495d293a1564a16b970329075fd4` plus the dated Phase 17 planning
 package. It contains:
 
 1. a mechanical runtime-producer census of direct `sendEmail`/Resend imports,

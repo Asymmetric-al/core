@@ -136,16 +136,26 @@ authorization. Shared destinations MUST NOT merge documents or subjects.
 
 Phase 19 MUST consume Phase 18's exact legal-issuer Canadian pack authority and
 MUST NOT create a second country test, activation flag, enrollment flow, or
-legal-rules layer. Without an active proved pack for the exact issuer, Canadian
-plan state, UI, API fields, jobs, storage, alerts, and meaningful query cost
-MUST be absent even when a donor, address, currency, locale, import, or Site
-appears Canadian.
+legal-rules layer. For an issuer that has never activated a proved Canadian
+pack, Canadian plan state, UI, API fields, jobs, storage, alerts, and meaningful
+query cost MUST be absent even when a donor, address, currency, locale, import,
+or Site appears Canadian. A repairable issuance pause MUST preserve the active
+plan epoch and continue source plan facts while holding generation/issuance. A
+confirmed legal lock or ended pack MUST stop new issuable plan facts at its
+effective boundary and MUST NOT queue the locked interval for retroactive
+receipts. Reactivation MUST require fresh proof and begin a new epoch. No
+transition may delete or hide prior plan facts, coverage, serials, documents,
+corrections, holds, or records obligations.
 
 An activated issuer MUST choose exactly one code-owned prospective cash-receipt
 plan: `individual_cash` or `annual_cumulative_cash`. The plan and activation
 epoch MUST be frozen into source facts and preflight. A later plan change MUST
 affect future eligible gifts only and MUST NOT rewrite existing issuance or
 coverage.
+
+The source fact MUST be the immutable Phase 7 occurrence-grain receipt-plan
+fact. Intake and preflight MUST reference its identity and digest rather than
+copying an independently mutable plan.
 
 Phase 15 batch and quick-entry commit, and every other gift-intake path, MUST
 consume that Phase 7-frozen plan. `individual_cash` permits ordinary eligible
@@ -174,8 +184,9 @@ coverage.
 
 - GIVEN the exact issuer's Canadian pack and annual cumulative plan are active
 - WHEN Phase 19 builds a preflight
-- THEN it consumes Phase 7's nonoverlapping eligible coverage set and exact
-  plan epoch
+- THEN it consumes Phase 7's nonoverlapping eligible coverage set and the exact
+  immutable receipt-plan fact identity, digest, plan code, activation epoch, and
+  policy revision
 - AND Phase 18 remains the sole authority for official receipt identity,
   currentness, cancellation, and replacement
 
@@ -185,10 +196,26 @@ coverage.
   `annual_cumulative_cash`
 - WHEN Phase 15 commits the batch or quick-entry gift
 - THEN the money posts through the ordinary append-only ledger path
-- AND no per-gift official receipt, coverage record, or receipt-send outbox
-  occurrence is created
+- AND the year-end-readiness evidence references the exact immutable Phase 7
+  receipt-plan fact
+- AND no per-gift receipt authorization, generated-document request, official
+  coverage, or delivery occurrence is created
 - AND staff see the occurrence as ready for year-end receipt rather than failed
   or omitted
+
+#### Scenario: Canadian authority changes preserve truth by reason
+
+- GIVEN a previously active issuer has a repairable issuance pause
+- WHEN an eligible cash occurrence is committed
+- THEN its source plan fact remains frozen in the active epoch
+- AND official generation/issuance remains held until proof-gated recovery
+- GIVEN instead a confirmed legal lock or ended pack
+- WHEN a later occurrence is committed
+- THEN it receives no issuable Canadian plan fact and is not queued
+  retroactively
+- AND prior plan facts, coverage, serials, documents, corrections, holds, and
+  retention evidence remain available under their original epoch
+- AND reactivation requires fresh proof and a new epoch
 
 ### Requirement: D5 Primary Releases Stay Immutable While Late Facts Use A Contract-owned Lane
 
@@ -205,12 +232,26 @@ decide document period, while the source cutoff MUST decide only whether the
 posted fact was known to the reviewed primary run. Received, entered, deposited,
 cleared, imported, and run dates MUST NOT substitute for those coordinates.
 
-Phase 19 MUST accept Phase 15's authorized structured staff attestation of an
-actual mailing/postmark date as sufficient by default. The attestation MUST
-record the exact date, factual basis, actor, time, source rule version, and
-before/after history. Tenants MAY require stronger evidence or review where the
-jurisdiction contract permits; no universal attachment or second approver is
-allowed.
+For a verified U.S. issuer under the U.S. mailed-check policy, Phase 19 MUST
+accept Phase 15's authorized structured staff attestation of an actual mailing
+date as sufficient by default. A captured postmark and a staff-attested mailing
+date MUST remain distinct source evidence and delivery-basis values. The
+attestation MUST record the exact date, factual basis, actor, time, source rule
+version, and before/after history. Tenants MAY require stronger evidence or
+review where the jurisdiction contract permits; no universal attachment or
+second approver is allowed. Other jurisdictions MUST consume their own
+source-owned dating contract and MUST NOT inherit the U.S. postmark rule.
+
+The initial resolution and every authorized correction MUST be an immutable
+revision in Phase 7-owned `contribution_dating_facts`. The first revision MUST
+be written atomically with the contribution. A correction MUST append exactly
+one successor against the expected current revision and MUST NOT update the
+header, an earlier dating fact, or a money posting. Same-tenant exact-issuer
+foreign keys, unique revision/successor constraints, semantic idempotency, and
+compare-and-set MUST guarantee one linear chain and one effective leaf.
+Corrections MUST preserve the frozen legal issuer and tender and emit only a
+pointer source event. Preflight MUST pin the exact effective dating-fact
+identity, revision, and digest.
 
 A material fact posted before Start MUST mark only affected operations stale,
 but the immutable preflight digest and any protected review MUST become

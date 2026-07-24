@@ -1555,11 +1555,11 @@ setting or tenant support capability.
 
 The contract chooses exactly one code-owned class:
 
-| Recent-copy class       | Maximum | Eligible material                                                                                                                                                                |
-| ----------------------- | ------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `ordinary_support_copy` | 30 days | support-safe receipt wrapper, ordinary contribution-correction/service email, and ordinary staff operational email; the official artifact remains in Phase 7/18/19               |
-| `limited_support_copy`  | 7 days  | a contract-proved service/approval wrapper whose protected destination, action descriptor, security context, credential, raw error, and unnecessary financial detail are removed |
-| `no_readable_copy`      | 0 days  | auth/security/credential messages, Phase 10 restricted/care/high-risk privacy content, provider raw material, SMS, and any unknown/unclassified contract                         |
+| Recent-copy class       | Maximum | Eligible material                                                                                                                                                                                                                                                      |
+| ----------------------- | ------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ordinary_support_copy` | 30 days | support-safe receipt wrapper, ordinary contribution-correction/service email, and ordinary staff operational email; Phase 7 source facts/issuance effects, the Phase 18 exact artifact/currentness/access record, and any Phase 19 run remain separately authoritative |
+| `limited_support_copy`  | 7 days  | a contract-proved service/approval wrapper whose protected destination, action descriptor, security context, credential, raw error, and unnecessary financial detail are removed                                                                                       |
+| `no_readable_copy`      | 0 days  | auth/security/credential messages, Phase 10 restricted/care/high-risk privacy content, provider raw material, SMS, and any unknown/unclassified contract                                                                                                               |
 
 The stored projection is allow-listed: support-safe resolved subject and preheader, sanitized inert HTML and plain text, safe sender/reply display labels, effective locale, and the nonsecret catalog title. It excludes every URL/action target, token/code, attachment/artifact body, tracking pixel/query, remote asset reference, custom header, raw provider field/error, internal id, care/restricted field, and value the contract does not explicitly permit. The exact provider-bound payload lives only in the separately sealed delivery artifact required by D15; this convenience projection can never dispatch or reconstruct it.
 

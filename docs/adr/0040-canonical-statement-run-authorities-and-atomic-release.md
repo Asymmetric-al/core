@@ -75,15 +75,24 @@ is always labeled **Support overview — Not a tax document**.
 
 For an exact issuer with an active Phase 18 Canadian pack, Phase 7 prospectively
 freezes `individual_cash` or `annual_cumulative_cash` on each eligible
-occurrence. Phase 19 consumes that decision and enforces nonoverlapping
-coverage. Inactive issuers have no Canadian state, work, or surface.
+occurrence. Phase 19 consumes that decision and coordinates Phase 7's
+nonoverlapping coverage. Issuers that never activated the Canadian pack have
+no Canadian state, work, or surface. A repairable issuance pause keeps freezing
+source plan facts in the active epoch while holding generation/issuance. A
+confirmed legal lock or ended pack stops new issuable plan facts and never
+queues the locked interval for retroactive receipts; reactivation begins a new
+proved epoch. Every transition preserves prior plan facts, coverage, serials,
+artifacts, corrections, holds, and records obligations.
 
-For mailed year-boundary checks, Phase 15/7 records the actual mailing date and
-delivery basis. One authorized staff attestation is sufficient by default;
-tenant or jurisdiction policy may strengthen proof. Phase 19 cannot edit the
-date. Facts arriving before start stale the preflight. Facts arriving after
-start create one deduplicated Late Fact Obligation and a separately reviewed
-supplemental or correction operation; the primary run never reopens.
+For a verified U.S. issuer under the U.S. mailed-check policy, Phase 15/7
+records the actual mailing date or captured postmark and the corresponding
+distinct delivery basis. One authorized staff attestation is sufficient by
+default. Other jurisdictions consume their own source-owned dating contract and
+never inherit the U.S. rule; tenant or jurisdiction policy may strengthen
+proof. Phase 19 cannot edit the date. Facts arriving before start stale the
+preflight. Facts arriving after start create one deduplicated Late Fact
+Obligation and a separately reviewed supplemental or correction operation; the
+primary run never reopens.
 
 Before release, authorized staff may append bounded participation decisions:
 include, hold, purpose-permitted omit, restore automatic, or add an existing

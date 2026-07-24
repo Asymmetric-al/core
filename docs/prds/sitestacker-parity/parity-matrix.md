@@ -227,8 +227,10 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   groomed-not-dispatched contract. It delegates eligibility and legal donor
   truth to Phase 7, exact documents and current access to Phase 18, and message
   delivery to Phase 17/6. (v)
-- **Depends on:** #5, #9, Phase 7 eligibility/facts, Phase 18 generation, and
-  Phase 17 delivery.
+- **Depends on:** Phase 6 communication spine; Phase 7 eligibility/facts; Phase
+  12 authorization/review; Phase 13 posted money; Phase 14 optional recognition;
+  Phase 15 check intake/correction; Phase 17 delivery; and Phase 18
+  generation/access.
 - **Acceptance test:** staff review one exact immutable Run Preflight and start
   it through one idempotent atomic release barrier; the resulting purpose-pinned
   Statement Run preserves frozen source-authoritative membership while document,
@@ -352,7 +354,9 @@ questions**. Benchmark source root: `https://sitestacker.training`.
   are ratified. Producer-owned future meanings—such as exact Eve occurrence
   keys—remain intentionally unminted until their owning producer ratifies the
   occurrence and fence, and implementation proofs remain pending. Phase 17 is
-  groomed-not-dispatched and the issue set is pending.
+  groomed-not-dispatched; epic #873 and children #874–#905 are published, every
+  child remains open with `status:blocked`, and none carries
+  `ready-for-agent`.
 
 ### 18. File manager & document management
 

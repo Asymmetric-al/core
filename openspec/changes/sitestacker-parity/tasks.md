@@ -139,19 +139,29 @@
       a legacy importer, adapter, compatibility view, dual path, shadow
       migration, or fabricated history.
 - [x] 2f.7 Verify the active `add-statement-studio` change and the complete
-      OpenSpec workspace under strict validation; keep all Phase 18 work groomed
-      but not dispatched, and apply no `ready-for-agent` label.
+      OpenSpec workspace under strict validation; record published epic #907 and
+      children #908–#961 accurately, including the approved
+      `status:todo` + `ready-for-agent` frontier #908–#910 and the
+      `status:blocked` remainder #911–#961, without claiming implementation or
+      authorizing further dispatch.
 
 ## 2g. Phase 5 (Public Website Runtime Contract) (2026-07-22)
 
 - [x] 2g.1 Record the public-tenant-website runtime-contract durable
       requirement in this change's `platform-product-intent` delta (per
       `docs/prds/sitestacker-parity/phase-05-public-website-runtime-contract.md`).
-- [x] 2g.2 Author the five Phase 5 ADRs (`docs/adr/0026`–`0030`): surface in
-      `apps/donor` with `apps/web` reserved; transport-agnostic reader with
-      the single Payload read in admin; defense-in-depth public isolation;
-      reference-not-copy CMS↔operational; function-level tagged caching with
-      the cross-app publish signal and no route-segment config.
+- [x] 2g.2 Author the five Phase 5 decision records, named explicitly to avoid
+      collision with the separately titled Phase 17 records that reuse the
+      same numeric prefixes:
+      `0026-public-website-surface-in-donor-app.md`,
+      `0027-transport-agnostic-public-content-reader.md`,
+      `0028-defense-in-depth-public-isolation.md`,
+      `0029-reference-not-copy-cms-operational.md`, and
+      `0030-function-level-tagged-caching-publish-signal.md`. They cover the
+      surface in `apps/donor` with `apps/web` reserved; transport-agnostic
+      reader with the single Payload read in admin; defense-in-depth public
+      isolation; reference-not-copy CMS↔operational; and function-level tagged
+      caching with the cross-app publish signal and no route-segment config.
 - [x] 2g.3 Add the Phase 5 public-runtime glossary entries to `CONTEXT.md`
       (glossary only; "channel" stays retired) and record the contract in
       `docs/guides/architecture/runtime-map.md`,

@@ -1,7 +1,10 @@
 # Phase 18 Cross-PRD and Clean-Cut Congruence — 2026-07-21
 
 - **Verdict:** GREEN for specification. The predecessor, program-document, ADR, OpenSpec, and normative [Renderer Qualification Protocol](./phase-18-renderer-qualification-protocol.md) amendments named below land atomically in this package; implementation still must pass the listed closure checks.
-- **Dispatch posture:** PRD exists; issue set pending; groomed but not dispatched. No `ready-for-agent` state is created.
+- **Dispatch posture:** PRD exists; epic #907 and children #908–#961 are
+  published. The separately approved frontier #908–#910 is `status:todo` +
+  `ready-for-agent`; #911–#961 remain `status:blocked`. This specification
+  claims no implementation and authorizes no further dispatch.
 
 ## Authority and reconciliation rule
 
@@ -73,7 +76,7 @@ Every protected Phase 18 HTML, redirect, denial/error, full PDF and range respon
 
 ### Phase 19 — Statements and Batch Runs
 
-Phase 19 owns statement eligibility/population, cutoff, run scheduling and run-level recovery. Phase 18 owns one immutable Facts Package/request/artifact per item. A Phase 19 batch pins one complete publication graph, displays a known Phase 18 publication appointment inside its planned window, preserves item-authoritative mixed outcomes and invokes retry-failed-only. Phase 19 does not render or store a competing statement artifact.
+Phase 7 and the applicable source pack own statement eligibility, Statement Subject, facts, coverage, and receipt plan. Phase 19 owns tenant-authorized participation, frozen population, cutoff, run scheduling, items, and run-level recovery. Phase 18 owns one immutable Facts Package/request/artifact per item. A Phase 19 batch pins one complete publication graph, displays a known Phase 18 publication appointment inside its planned window, preserves item-authoritative mixed outcomes and invokes retry-failed-only. Phase 19 does not render or store a competing statement artifact.
 
 ### Phase 29 — General Files
 
@@ -114,23 +117,27 @@ Update all active Phase 18 surfaces to the same wording:
 - Phase map says Phase 19 selects/runs and Phase 18 alone renders/stores; and
 - parity matrix says specified/not built, removes stale ACH-processing receipt finality and records the D17 clean cut.
 
-Status everywhere is **PRD exists (issue set pending; groomed-not-dispatched)** until a later explicit `/to-tickets` publication. No `ready-for-agent` label is applied.
+Ticket posture everywhere is **epic #907 and children #908–#961 published**:
+#908–#910 are the explicitly approved `status:todo` + `ready-for-agent`
+frontier, while #911–#961 remain `status:blocked`. Published tickets and
+frontier labels are planning/dispatch state, not proof that implementation
+exists, and this contract does not authorize further dispatch.
 
 ## D17 clean-cut closure map
 
-| Prototype/current path                                 | Final disposition                                                                            | CI/acceptance closure                                       |
-| ------------------------------------------------------ | -------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
-| Donor live receipt `.txt`                              | Delete; portal calls logical-document/current-artifact access                                | Route/export inventory and donor E2E reject live generation |
-| Donor live annual statement `.txt`                     | Delete; Phase 19 requests Phase 18 artifacts                                                 | Same public seam and exact-byte tests                       |
-| Staged-gift hard-coded receipt send                    | Delete direct generation/send; source fact/outbox goes through Phase 18 then Phase 17        | Forbidden symbol/route and outbox tracer                    |
-| `contribution_receipt_snapshots` as render authority   | Remove as document authority; no historical rerender/import                                  | Schema/type/query inventory                                 |
-| `gift_receipt_records` scaffold and placeholder output | Remove                                                                                       | Fresh reset and forbidden schema/symbol checks              |
-| Mutable PDF root content/status/current pointers       | Replace with draft/commit/publication/head/CAS                                               | Direct-write denial and concurrency tests                   |
-| Direct native preview/render production route          | Preview becomes synthetic proof only; production calls Generated Document service            | Route contract and no browser production facts              |
-| DocRaptor-as-selected provider                         | Remove selection claim; run D3 contest                                                       | No-winner dark assertion and one-winner evidence            |
-| Unlayer/native switch and migration reports            | Delete                                                                                       | Dependency/symbol/UI/test inventory                         |
-| Provider URL as artifact truth                         | Delete; private opaque exact-byte access only                                                | Object substitution/cache/range tests                       |
-| Duplicate receipt/document statuses                    | Replace with separated source issuance, request, artifact, delivery, access and records axes | State projection tests                                      |
+| Prototype/current path                                 | Final disposition                                                                                                                    | CI/acceptance closure                                       |
+| ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------- |
+| Donor live receipt `.txt`                              | Delete; portal calls logical-document/current-artifact access                                                                        | Route/export inventory and donor E2E reject live generation |
+| Donor live annual statement `.txt`                     | Delete; Phase 19 requests Phase 18 artifacts                                                                                         | Same public seam and exact-byte tests                       |
+| Staged-gift hard-coded receipt send                    | Delete direct generation/send; source fact/outbox goes through Phase 18 then Phase 17                                                | Forbidden symbol/route and outbox tracer                    |
+| `contribution_receipt_snapshots` prototype             | Remove from the target schema and runtime entirely; no import, backfill, compatibility view, dual read/write, or historical rerender | Schema/type/query/forbidden-symbol inventory                |
+| `gift_receipt_records` scaffold and placeholder output | Remove                                                                                                                               | Fresh reset and forbidden schema/symbol checks              |
+| Mutable PDF root content/status/current pointers       | Replace with draft/commit/publication/head/CAS                                                                                       | Direct-write denial and concurrency tests                   |
+| Direct native preview/render production route          | Preview becomes synthetic proof only; production calls Generated Document service                                                    | Route contract and no browser production facts              |
+| DocRaptor-as-selected provider                         | Remove selection claim; run D3 contest                                                                                               | No-winner dark assertion and one-winner evidence            |
+| Unlayer/native switch and migration reports            | Delete                                                                                                                               | Dependency/symbol/UI/test inventory                         |
+| Provider URL as artifact truth                         | Delete; private opaque exact-byte access only                                                                                        | Object substitution/cache/range tests                       |
+| Duplicate receipt/document statuses                    | Replace with separated source issuance, request, artifact, delivery, access and records axes                                         | State projection tests                                      |
 
 No compatibility flag, dual writer/reader, alias, generic importer, legacy archive, migration report, repair workbench or backfill is created.
 
@@ -300,7 +307,10 @@ Before publishing the Phase 18 package and again before implementation dispatch:
 4. verify every Phase 17 delivery contract references exact Phase 18 artifact identity and every Phase 19 item calls the one generation seam;
 5. verify Canada remains structurally absent for nonparticipants;
 6. verify all protected response header values and deployed-CDN proof requirements are identical across PRD/OpenSpec/tests; and
-7. verify docs never claim built/live, ticketed/dispatched, CRA/IRS certification, a selected renderer, legal advice, mathematical gaplessness, human read/delivery, or historical migration.
+7. verify docs report the published ticket set and approved frontier accurately
+   without claiming built/live behavior, broader dispatch, CRA/IRS
+   certification, a selected renderer, legal advice, mathematical gaplessness,
+   human read/delivery, or historical migration.
 
 ## Final congruence verdict
 

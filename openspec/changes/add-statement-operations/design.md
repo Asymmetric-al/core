@@ -125,9 +125,12 @@ View, download, and local print are unmetered while current authorization and
 records state permit access. A deliberate outbound copy request is a separate,
 bounded, idempotent operation.
 
-Canadian controls and Support-overview surfaces are structurally absent unless
-their exact issuer/purpose contracts are active. Self-print is the quiet paper
-default; provider configuration stays outside the ordinary workflow.
+Canadian controls are structurally absent for never-activated issuers. A
+repairable pause preserves source plan facts/history while holding issuance; a
+legal lock/end stops new issuable facts; neither transition deletes permissioned
+history. Support-overview surfaces remain absent unless their purpose contract
+is enabled. Self-print is the quiet paper default; provider configuration stays
+outside the ordinary workflow.
 
 ## Test Architecture
 

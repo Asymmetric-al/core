@@ -266,8 +266,10 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   (ratified D1–D17; executable purpose/authority manifest, renderer qualification
   protocol, 204-row decision-to-test traceability, primary-source research,
   dated cross-PRD congruence, ADRs 0033–0039, and a rewritten Document Production
-  OpenSpec contract). Planning only; issue set pending;
-  groomed-not-dispatched and not built.
+  OpenSpec contract). Epic #907 and children #908–#961 are published:
+  #908–#910 are open with `status:todo` + `ready-for-agent`, while #911–#961
+  remain open with `status:blocked`. This approved frontier does not prove the
+  phase is built or authorize further dispatch.
 - [`phase-19-year-end-statement-operations.md`](./phase-19-year-end-statement-operations.md)
   — the Phase 19 plan (Year-End Statement Operations): one source-authoritative
   population, immutable Run Preflight, atomic release barrier, canonical
@@ -278,7 +280,8 @@ bolted-on module or push admin depth into donor/missionary surfaces.
   Groomed 2026-07-24 (ratified D1–D18; PRD authority map,
   decision-to-test traceability, primary-source research, dated cross-PRD
   congruence, focused ADRs, and a Statement Operations OpenSpec delta).
-  Planning only; issue set pending; groomed-not-dispatched and not built.
+  Planning only; no Phase 19 epic or child issue has been published, no
+  implementation dispatch is authorized, and the phase is not built.
 - Evidence: `docs/ops/phase-evidence/2026-07-03_sitestacker-parity-phase-00-baseline.md`
   (the 0A truth-finding output).
 - OpenSpec: `openspec/changes/sitestacker-parity/` (the durable record that this

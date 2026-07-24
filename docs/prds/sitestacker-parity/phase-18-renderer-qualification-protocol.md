@@ -3,7 +3,9 @@
 - **Phase:** 18 — Receipt & PDF Template System (`document-templates`)
 - **Decision:** D3 — C-prime-amended-and-hardened (C-prime-R)
 - **Status:** Normative pre-registration contract; contest not yet run; no renderer selected
-- **Dispatch posture:** Groomed only; issue set pending; implementation not dispatched
+- **Dispatch posture:** Epic #907 and children #908–#961 are published; the
+  approved frontier #908–#910 is `status:todo` + `ready-for-agent`, #911–#961
+  remain `status:blocked`, and no implementation is claimed
 - **Last evidence review:** 2026-07-21
 
 ## Authority and purpose

@@ -194,9 +194,11 @@
       help or implementation vocabulary, and donors see one current authorized
       document action.
 - [ ] 8.3 Keep the Phase 18 PRD, ADR-0033 through ADR-0039, OpenSpec, Phase
-      7/13/17/19 contracts, roadmap, phase map, parity matrix, guides, and future
-      tickets congruent. Preserve groomed-not-dispatched status and apply no
-      `ready-for-agent` label.
+      7/13/17/19 contracts, roadmap, phase map, parity matrix, guides, and published
+      tickets congruent. Preserve the published epic #907 and children
+      #908–#961: #908–#910 are the approved `status:todo` +
+      `ready-for-agent` frontier, #911–#961 remain `status:blocked`, and this
+      task authorizes no further dispatch.
 - [ ] 8.4 Archive this change only after implementation has shipped, every gate
       is proven, and the delta is merged into the durable capability specs.
 - [ ] 8.5 Add public-seam acceptance tests for the records-admin projection,

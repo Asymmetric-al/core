@@ -637,11 +637,11 @@ daf_sponsor, partner, agency, …}` on the org subtype. The dual person/party
   `party_kind` (+ `org_type` for org-kind legal donors) instead of
   `party_type` (Phase 7's §D snapshot copy also drops `org_subtype`); the
   inert-reserved line and A2/acceptance
-  wording carry the supersession; §G2 gains the interim-vs-final
-  reconciliation sentence (Phase 4's `contribution_receipt_snapshots`
-  extension is the interim frozen-donor record satisfying #507 pre-Phase-7;
-  Phase 7's `contribution_receipts` embeds the final party-aware snapshot —
-  same frozen-copy contract, no dual truth). Duplicate/merge UX stays
+  wording carry the supersession; §G2 records the clean canonical cutover
+  (the prototype `contribution_receipt_snapshots` runtime is removal evidence,
+  never an interim authority; Phase 7's `contribution_receipts` freezes the
+  party-aware legal-donor facts from first authoritative write, and Phase 18
+  D17 removes the prototype before activation). Duplicate/merge UX stays
   Phase-4-owned (#514); Phase 9 surfaces and links.
 - **C2 — Phase 7 §D/T4 amendment (the party-spine restructuring).** Phase 7's
   committed flat `party_type ∈ {individual, household, organization, church,

@@ -27,8 +27,10 @@ document, communication, audit, or workflow system.
   succession, cooperative Pause/Resume/Stop containment, self-print-first
   physical fulfillment, truthful staff completion, and proportional review.
 - Add source-owned late-fact recovery, including staff-attested year-boundary
-  check intake; exact-issuer Canadian receipt-plan participation remains absent
-  unless the Phase 18 Canadian pack is active.
+  check intake. Exact-issuer Canadian receipt-plan participation is absent for
+  never-activated issuers; repairable pauses preserve source plan facts while
+  holding issuance, and legal lock/end stops new issuable facts without
+  deleting history.
 - Add one contextual **Help with this statement** doorway, proportional
   statement communications, unmetered exact-current donor access, repeatable
   bounded copy fulfillment, and one PII-minimized Run Evidence Record.

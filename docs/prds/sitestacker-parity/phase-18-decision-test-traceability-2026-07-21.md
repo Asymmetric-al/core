@@ -2,7 +2,9 @@
 
 - **Status:** Normative companion to the Phase 18 PRD
 - **Testing seam confirmed by Conrad:** One product-level Generated Document service, with subordinate renderer-conformance, real-database and thin-interface proof seams
-- **Dispatch posture:** Groomed only; issue set pending; no `ready-for-agent`
+- **Dispatch posture:** Epic #907 and children #908–#961 are published; the
+  approved frontier #908–#910 is `status:todo` + `ready-for-agent`, while
+  #911–#961 remain `status:blocked`
 
 ## Test namespace and evidence rule
 
@@ -151,7 +153,7 @@ This register contains 204 unique primary proof obligations—twelve for each ra
 | P18-D10-03       | PRD / US18-11                        | Setup is one resumable four-task page                                                                                                                                                                            | Canadian setup UI            | Task/accessibility              | Specified; not implemented; not proved |
 | P18-D10-04       | Manifest / Canada transitions        | Activation CAS pins exact issuer/proof/pack/signer/records/locale/continuity                                                                                                                                     | Activation service           | Concurrency/failpoint           | Specified; not implemented; not proved |
 | P18-D10-05       | Manifest / Canada cases              | Individual cash case renders every protected required fact                                                                                                                                                       | Canada pack/PDF              | Decision/semantic               | Specified; not implemented; not proved |
-| P18-D10-06       | Manifest / Canada cases              | Cumulative case uses exact nonoverlapping Phase 19 coverage                                                                                                                                                      | Phase19/P18 seam             | Contract/integration            | Specified; not implemented; not proved |
+| P18-D10-06       | Manifest / Canada cases              | Cumulative case uses exact nonoverlapping Phase 7/source coverage frozen and coordinated by Phase 19                                                                                                             | Phase7/Phase19/P18 seam      | Contract/integration            | Specified; not implemented; not proved |
 | P18-D10-07       | Manifest / Canada cases              | Noncash case includes Canadian FMV/deemed-value facts                                                                                                                                                            | Canada pack/PDF              | Decision/semantic               | Specified; not implemented; not proved |
 | P18-D10-08       | Manifest / Canada cases              | Split case uses source-owned advantage/eligible amount                                                                                                                                                           | Canada pack/PDF              | Decision/negative               | Specified; not implemented; not proved |
 | P18-D10-09       | Manifest / Canada cases              | Québec is bounded overlay, not second product                                                                                                                                                                    | Pack resolver/UI             | Contract/E2E                    | Specified; not implemented; not proved |

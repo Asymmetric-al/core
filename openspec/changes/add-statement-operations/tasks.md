@@ -6,9 +6,16 @@
       research evidence, congruence package, ADRs, and this OpenSpec change.
 - [ ] 1.2 Prove or explicitly supersede the Phase 7, Phase 14, Phase 18,
       Phase 17/6, Phase 12, and Phase 15 dependency seams before runtime work.
-      This proof includes Phase 15 intake consuming Phase 7's frozen
-      `individual_cash` or `annual_cumulative_cash` plan with no per-gift
-      receipt/outbox admission for annual-cumulative occurrences.
+      This proof includes Phase 7 creating one immutable occurrence-grain
+      `contribution_receipt_plan_facts` row for each eligible cash occurrence
+      under an active or repairably paused exact-issuer Canadian epoch; a
+      repairable pause holds generation/issuance without changing that frozen
+      plan. A legal lock or ended epoch admits no new Canadian plan fact and
+      cannot fall back to ordinary receipt policy for that issuer/interval.
+      Phase 15 intake and Phase 19 preflight reference the exact row
+      identity/digest rather than accepting or storing an independent plan
+      value. `annual_cumulative_cash` permits no per-gift receipt, coverage, or
+      receipt-outbox occurrence.
 - [ ] 1.3 Remove `issued-on-accept`, joint-household official-statement,
       mixed-recognition official-statement, and Phase 19-owned eligibility
       wording from active contracts.
@@ -104,7 +111,16 @@
       seam. Named boundary proofs MUST include a 50,000-subject release and a
       complete 50,001-subject preflight whose release blocks atomically with
       zero run/item/outbox effects, plus Phase 15 annual-cumulative commit with
-      zero per-gift receipt/outbox effects.
+      the exact Phase 7 receipt-plan-fact reference and zero per-gift
+      receipt/coverage/outbox effects. Prove the plan fact is absent for an
+      issuer that never activated the Canadian pack, immutable after creation,
+      same-tenant/exact-issuer, and unaffected by later prospective plan
+      changes. Prove a repairable pause continues same-epoch plan facts while
+      producing zero generation/issuance; a legal lock or ended epoch creates
+      no later issuable plan fact, does not fall back to ordinary policy, and
+      creates no retroactive queue; all prior plan facts, artifacts, serials,
+      holds, and records obligations remain permissioned and readable; and
+      reactivation starts a fresh proved epoch.
 - [ ] 8.3 Keep implementation blocked until the dependency and release gates in
       `design.md` are satisfied. Coordinate archive order with the Phase 19
       `platform-product-intent` delta in `sitestacker-parity` and the annual-

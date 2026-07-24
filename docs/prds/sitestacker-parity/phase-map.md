@@ -134,13 +134,16 @@ PRD and issue set exist, but no implementation dispatch has been authorized.
 The Phase 17 qualifier `epic #873 + #874–#905; groomed-not-dispatched` means its
 PRD and blocked issue set exist, but no implementation dispatch has been
 authorized and no child carries `ready-for-agent`.
-The Phase 18 qualifier `issue set pending; groomed-not-dispatched` means its PRD,
-companion contracts, ADRs, and OpenSpec delta exist, but no epic/children or
-implementation dispatch have been authorized.
+The Phase 18 qualifier `epic #907 + #908–#961; approved frontier #908–#910`
+means its PRD and published issue set exist. Children #908–#910 are open with
+`status:todo` + `ready-for-agent`; #911–#961 remain open with
+`status:blocked`. Those labels do not prove implementation or authorize further
+dispatch.
 
-The Phase 19 qualifier `issue set pending; groomed-not-dispatched` means its
+The Phase 19 qualifier `no epic/children published; groomed-not-dispatched` means its
 PRD authority map, traceability, research, congruence, ADR, and OpenSpec package
-exist, but no epic/children or implementation dispatch have been authorized.
+exist, but no epic/children have been published and no implementation dispatch
+has been authorized.
 
 | #      | Phase                                                                            | Hard deps                                        | Status                                                         |
 | ------ | -------------------------------------------------------------------------------- | ------------------------------------------------ | -------------------------------------------------------------- |
@@ -162,8 +165,8 @@ exist, but no epic/children or implementation dispatch have been authorized.
 | **15** | Offline Gift & Batch Entry                                                       | **13**, 14, 7                                    | `PRD exists (epic #758 + #759–#786)`                           |
 | **16** | Pledges & Recurring Commitments                                                  | **2, 3, 4, 5, 6, 7, 9, 10, 12, 13, 14, 15**      | `PRD exists` (epic #793 + #794–#837; groomed-not-dispatched)   |
 | **17** | System Messages & Template Management                                            | 6, 2, 3, 7                                       | `PRD exists` (epic #873 + #874–#905; groomed-not-dispatched)   |
-| **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `PRD exists` (issue set pending; groomed-not-dispatched)       |
-| **19** | Year-End Statement Operations                                                    | 7, 18, 17, **13**, 6                             | `PRD exists` (issue set pending; groomed-not-dispatched)       |
+| **18** | Receipt & PDF Template System                                                    | 7, **13**, 17                                    | `PRD exists` (epic #907 + #908–#961; #908–#910 ready frontier) |
+| **19** | Year-End Statement Operations                                                    | 6, 7, 12, **13**, 14, 15, 17, 18                 | `PRD exists` (no epic/children published; not dispatched)      |
 | **20** | Accounting Exports & Reconciliation                                              | **13**, 15, 14, 2                                | `future (needs PRD)`                                           |
 | **21** | Missionary Field Accounts & Support Balances                                     | 13, 20, 3, 4                                     | `future (needs PRD)` — new in v2                               |
 | **22** | Public Missionary & Project Page Workflow                                        | 5, 9, 10, 13, 3                                  | `future (needs PRD)`                                           |
@@ -384,10 +387,12 @@ Before creating issues or tickets, check:
 - **Do not present any later phase (9–40) as implemented or live.** Groomed
   PRDs through Phase 19 are planning contracts, not build proof. Phase 16 is
   marked `PRD exists` with epic #793 and children #794–#837; Phase 17 has a PRD
-  plus blocked epic #873 and children #874–#905. Phase 18 has a PRD package but
-  its issue set remains pending. Phase 19 also has a PRD package with its issue
-  set pending. All four are explicitly groomed-not-dispatched, and only a
-  separate founder decision may dispatch them. The matrix's `Built?`
+  plus blocked epic #873 and children #874–#905. Phase 18 has published epic
+  #907 and children #908–#961; #908–#910 are the approved
+  `status:todo` + `ready-for-agent` frontier and #911–#961 remain
+  `status:blocked`. Phase 19 has no published epic or children. Published issue
+  posture is not build proof, and only an explicit founder decision may dispatch
+  additional work. The matrix's `Built?`
   cells marked `(v)` still need per-area
   code verification, and all `Live?` cells are `unconf`.
 
