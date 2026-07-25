@@ -100,6 +100,14 @@ function buildUnauthenticatedRedirectUrl(
   return buildRedirectUrl(request, redirectPath, next);
 }
 
+function redirectWithCookies(url: URL, cookieSource: NextResponse) {
+  const response = NextResponse.redirect(url);
+  cookieSource.cookies.getAll().forEach((cookie) => {
+    response.cookies.set(cookie);
+  });
+  return response;
+}
+
 function logMissingSupabaseConfig(
   pathname: string,
   config: SupabasePublicConfig,
@@ -268,8 +276,9 @@ export function createAuthMiddleware(options: AuthMiddlewareOptions = {}) {
         const requestedNext = safeNextParam(
           request.nextUrl.searchParams.get("next"),
         );
-        return NextResponse.redirect(
+        return redirectWithCookies(
           buildRedirectUrl(request, requestedNext ?? redirectAuthenticatedTo),
+          supabaseResponse,
         );
       }
 

@@ -6,13 +6,20 @@ import {
   E2E_AUTH_COOKIE_NAMES,
 } from "../../../packages/auth/e2e-auth";
 
+type MockCookieToSet = {
+  name: string;
+  value: string;
+  options?: Record<string, unknown>;
+};
+
 // Stable object identity for hoisted mock factory (reassigning `let` can desync the mock).
 const mockSupabaseConfig = {
   url: null as string | null,
   key: null as string | null,
   keyType: null as "anon" | "publishable" | null,
 };
-const { supabaseSessionRef } = vi.hoisted(() => ({
+const { supabaseCookiesToSetRef, supabaseSessionRef } = vi.hoisted(() => ({
+  supabaseCookiesToSetRef: { cookies: [] as MockCookieToSet[] },
   supabaseSessionRef: { userId: null as string | null },
 }));
 
@@ -21,16 +28,25 @@ vi.mock("@asym/database/supabase/config", () => ({
 }));
 
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: () => ({
+  createServerClient: (
+    _url: string,
+    _key: string,
+    options: { cookies: { setAll: (cookies: MockCookieToSet[]) => void } },
+  ) => ({
     auth: {
-      getUser: () =>
-        Promise.resolve({
+      getUser: () => {
+        if (supabaseCookiesToSetRef.cookies.length > 0) {
+          options.cookies.setAll(supabaseCookiesToSetRef.cookies);
+        }
+
+        return Promise.resolve({
           data: {
             user: supabaseSessionRef.userId
               ? { id: supabaseSessionRef.userId }
               : null,
           },
-        }),
+        });
+      },
     },
   }),
 }));
@@ -76,6 +92,7 @@ function mockNoConfig() {
   mockSupabaseConfig.url = null;
   mockSupabaseConfig.key = null;
   mockSupabaseConfig.keyType = null;
+  supabaseCookiesToSetRef.cookies = [];
   supabaseSessionRef.userId = null;
 }
 
@@ -323,6 +340,32 @@ describe("createAuthMiddleware", () => {
     expect(response.status).toBe(307);
     expect(response.headers.get("location")).toBe(
       "https://example.org/donor-dashboard",
+    );
+  });
+
+  it("preserves refreshed auth cookies when redirecting a signed-in visitor off an auth route", async () => {
+    mockConfigWithUser();
+    supabaseCookiesToSetRef.cookies = [
+      {
+        name: "sb-access-token",
+        value: "refreshed-access-token",
+        options: { path: "/", httpOnly: true },
+      },
+    ];
+    const middleware = createAuthMiddleware({
+      publicRoutes: ["/login", "/register", "/auth/callback"],
+      loginPath: "/login",
+      redirectAuthenticatedTo: "/donor-dashboard",
+    });
+
+    const response = await middleware(createRequest("/login"));
+
+    expect(response.status).toBe(307);
+    expect(response.headers.get("location")).toBe(
+      "https://example.org/donor-dashboard",
+    );
+    expect(response.cookies.get("sb-access-token")?.value).toBe(
+      "refreshed-access-token",
     );
   });
 
