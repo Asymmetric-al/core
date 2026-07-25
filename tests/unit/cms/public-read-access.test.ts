@@ -150,6 +150,18 @@ describe("publicMediaReadAccess", () => {
     expect(access(args)).toBe(true);
   });
 
+  it("keeps authenticated staff static-file reads tenant scoped", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const args = {
+      ...accessArgs(
+        staffRequest({ id: "staff-1", role: "staff", tenantId: "tenant-a" }),
+      ),
+      isReadingStaticFile: true,
+    };
+
+    expect(access(args)).toEqual({ tenant: { equals: "tenant-a" } });
+  });
+
   it("keeps anonymous document reads without the marker denied", () => {
     const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
 

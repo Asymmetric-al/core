@@ -1,5 +1,5 @@
 import { tenantScopedReadAccess } from "./tenant-access";
-import { getTenantContext, isSuperAdmin } from "./tenant-context";
+import { getTenantContext, isStaffRole, isSuperAdmin } from "./tenant-context";
 
 import type { Access, AccessResult, PayloadRequest, Where } from "payload";
 
@@ -198,7 +198,10 @@ export const publicMediaReadAccess = (
 
   return (args) => {
     if (args.isReadingStaticFile) {
-      return true;
+      const context = getTenantContext(args.req);
+      if (!context.isAuthenticated || !isStaffRole(context)) {
+        return true;
+      }
     }
 
     return documentAccess(args);
