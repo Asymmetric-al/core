@@ -158,3 +158,33 @@ Fix:
 - Use a file-relative absolute path so root resolution does not depend on the shell working directory:
   - `const WORKSPACE_ROOT = fileURLToPath(new URL("../..", import.meta.url))`
   - `turbopack: { root: WORKSPACE_ROOT }`
+
+### `TS6059` after a cached `typecheck` (workspace symlinks replaced by real directories)
+
+Symptom (Windows): a cache-hit `bun run typecheck` is immediately followed by a failing build, e.g.
+
+```
+error TS6059: File '.../packages/lib/responsive.ts' is not under 'rootDir' '.../packages/ui'.
+```
+
+`ls -la packages/ui/node_modules/@asym/` shows `lib`, `auth`, and `database` as real directories
+instead of symlinks into `packages/*`.
+
+Cause: `tsc` writes `.tsbuildinfo` through the Bun workspace symlinks, so an unanchored output glob
+such as `**/*.tsbuildinfo` captures paths like
+`packages/ui/node_modules/@asym/lib/dist/tsconfig.tsbuildinfo`. Restoring that cached output
+materializes a real directory over the symlink and breaks module resolution.
+
+Fix (already applied in `turbo.json`): keep `outputs` anchored to the two locations `tsc` actually
+writes (`*.tsbuildinfo` at the package root, `dist/*.tsbuildinfo`), and keep the
+`"!**/node_modules/**"` guard on both `build` and `typecheck`. **Never cache anything under
+`node_modules`.** If Next.js `output: "standalone"` is ever enabled, revisit that guard — standalone
+builds emit required dependencies into `.next/standalone/node_modules`.
+
+Recovery if a workspace is already corrupted: `bun install` alone does **not** repair it, because the
+clobbered directory already exists. Delete the affected links first, then reinstall:
+
+```bash
+find packages apps -path "*/node_modules/@asym/*" -maxdepth 4 -type d '!' -exec test -e "{}/package.json" ';' -print -prune | xargs rm -rf
+bun install
+```
