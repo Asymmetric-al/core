@@ -11,7 +11,7 @@ import {
   previewOfflineReceiptStatus,
   toOfflineContributionRequest,
   type OfflineGiftFormValues,
-} from "../../../../../apps/admin/app/contributions/offline-gift/offline-gift-form-model";
+} from "../../../../../apps/admin/app/(app)/contributions/offline-gift/offline-gift-form-model";
 
 /**
  * TDD — offline gift entry FORM model (Contributions Hub UI, spec §6/§9.3).

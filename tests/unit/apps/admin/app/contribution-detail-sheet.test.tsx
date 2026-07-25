@@ -17,9 +17,9 @@ import {
 } from "./contribution-test-dom";
 
 type ContributionDetailSheetComponent =
-  typeof import("../../../../../apps/admin/app/contributions/contribution-detail-sheet").ContributionDetailSheet;
+  typeof import("../../../../../apps/admin/app/(app)/contributions/contribution-detail-sheet").ContributionDetailSheet;
 type ContributionsDataModule =
-  typeof import("../../../../../apps/admin/app/contributions/data");
+  typeof import("../../../../../apps/admin/app/(app)/contributions/data");
 
 let ContributionDetailSheet: ContributionDetailSheetComponent;
 let boneyardContributionsFixture: ContributionsDataModule["boneyardContributionsFixture"];
@@ -28,8 +28,8 @@ let testDom: ContributionTestDom | undefined;
 beforeAll(async () => {
   testDom = installContributionTestDom();
   const [detailSheetModule, dataModule] = await Promise.all([
-    import("../../../../../apps/admin/app/contributions/contribution-detail-sheet"),
-    import("../../../../../apps/admin/app/contributions/data"),
+    import("../../../../../apps/admin/app/(app)/contributions/contribution-detail-sheet"),
+    import("../../../../../apps/admin/app/(app)/contributions/data"),
   ]);
   ContributionDetailSheet = detailSheetModule.ContributionDetailSheet;
   boneyardContributionsFixture = dataModule.boneyardContributionsFixture;

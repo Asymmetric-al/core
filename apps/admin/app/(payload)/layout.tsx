@@ -28,6 +28,7 @@ import type {
   ServerFunctionClient,
 } from "payload";
 
+import { requireAdminAccess } from "@/lib/admin-access";
 import {
   assertPayloadDatabaseConfiguration,
   PayloadDatabaseConfigurationError,
@@ -85,6 +86,16 @@ export default function PayloadLayout({ children }: Props) {
 }
 
 async function PayloadEmbeddedLayout({ children }: Props) {
+  // `(payload)` deliberately stays outside `(app)`: Payload's import-map
+  // generator only resolves `app/(payload)/<adminRoute>/`, so moving this group
+  // breaks `generate:importmap`. That means the `(app)` layout's role gate does
+  // not cover these routes, and `proxy.ts` authenticates without ever checking
+  // role — so the gate has to be explicit here, or any signed-in donor or
+  // missionary reaches the Payload admin.
+  const gatePathname =
+    (await nextHeaders()).get("x-asym-pathname") ?? "/web-studio";
+  await requireAdminAccess(gatePathname);
+
   try {
     assertPayloadDatabaseConfiguration();
   } catch (cause) {

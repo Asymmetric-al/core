@@ -61,7 +61,7 @@ export const IGNORED_BUILD_SCENARIOS = Object.freeze([
   }),
   Object.freeze({
     name: "admin-only app change",
-    changedFiles: Object.freeze(["apps/admin/app/page.tsx"]),
+    changedFiles: Object.freeze(["apps/admin/app/(app)/page.tsx"]),
     expected: Object.freeze({
       admin: true,
       donor: false,

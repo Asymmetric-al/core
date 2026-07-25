@@ -22,7 +22,7 @@ import {
 } from "./freshness-indicator";
 import { ContributionsMainBody, ContributionsPageActions } from "./main-body";
 import { useAdminContributions } from "./use-admin-contributions";
-import { CONTRIBUTIONS_PAGE_META } from "../../components/table-page-meta";
+import { CONTRIBUTIONS_PAGE_META } from "../../../components/table-page-meta";
 
 /**
  * Re-exported so existing consumers (tests, sibling surfaces) keep one import

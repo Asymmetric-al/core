@@ -24,7 +24,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { getCrmProjectionShadowColumns } from "./columns";
-import { CRM_PROJECTIONS_PAGE_META } from "../../../components/table-page-meta";
+import { CRM_PROJECTIONS_PAGE_META } from "../../../../components/table-page-meta";
 
 import type { ReactNode } from "react";
 

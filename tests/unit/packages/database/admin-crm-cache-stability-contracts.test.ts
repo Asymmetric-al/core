@@ -39,7 +39,9 @@ describe("admin CRM TanStack cache stability contracts", () => {
     const hookSource = readRepoFile(
       "packages/database/hooks/admin-crm-detail.ts",
     );
-    const drawerSource = readRepoFile("apps/admin/app/crm/detail-drawer.tsx");
+    const drawerSource = readRepoFile(
+      "apps/admin/app/(app)/crm/detail-drawer.tsx",
+    );
 
     // The drawer reads detail via this hook, keyed under the detail prefix.
     expect(drawerSource).toMatch(/useAdminCrmRecordDetail\(contact\.id\)/);

@@ -40,10 +40,10 @@ Staff can open **one gift** from either the **CRM donor page** or the **Contribu
 
 ### Entry points today
 
-| Surface               | Route / component                                        | Opens detail?                                                | Data source                                       |
-| --------------------- | -------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- |
-| **Contributions Hub** | `apps/admin/app/contributions/page-client.tsx`           | Yes — `ContributionDetailSheet` side sheet on row click      | `useAdminContributions` → `ContributionGridRow[]` |
-| **CRM donor drawer**  | `apps/admin/app/crm/page-client.tsx` → gift history list | **No** — inline row only; optional **Resend receipt** button | `getAdminCrmDonorDetail` → `CrmGiftHistoryRow[]`  |
+| Surface               | Route / component                                              | Opens detail?                                                | Data source                                       |
+| --------------------- | -------------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------- |
+| **Contributions Hub** | `apps/admin/app/(app)/contributions/page-client.tsx`           | Yes — `ContributionDetailSheet` side sheet on row click      | `useAdminContributions` → `ContributionGridRow[]` |
+| **CRM donor drawer**  | `apps/admin/app/(app)/crm/page-client.tsx` → gift history list | **No** — inline row only; optional **Resend receipt** button | `getAdminCrmDonorDetail` → `CrmGiftHistoryRow[]`  |
 
 Product tile name: **Contributions Hub** (`packages/config/tiles.ts`).
 
@@ -86,7 +86,7 @@ Backend writes to `staged_gift_audit_events` (`packages/api/src/admin/contributi
 - `packages/api/src/admin/contribution-operations/detail-read-model.ts` currently returns a **single** `designation` object (`fundId`, `missionaryId`, `projectId`) instead of first-class multiple designation lines.
 - `packages/api/src/admin/contribution-operations/operations.ts` currently applies `designation_correction`, `fund_correction`, and `allocation_correction` by patching `donations.fund_id` / `donations.missionary_id`, which conflicts with the accepted adjustment-record model (D5) and first-class multi-designation direction (D9).
 - `supabase/migrations/20260512190000_phase_03_giving_pipeline.sql` already has `staged_gift_allocations` with `fund_id`, `missionary_id`, `amount`, and `memo`, but the detail model does not yet expose those allocation rows as financial truth.
-- Admin tables already enable column visibility in `DataTableResponsive` (`apps/admin/app/crm/page-client.tsx`, `apps/admin/app/contributions/main-body.tsx`, support table), but current usage is initial-state driven. CRM gift history needs persisted per-user column preferences, not only local table state.
+- Admin tables already enable column visibility in `DataTableResponsive` (`apps/admin/app/(app)/crm/page-client.tsx`, `apps/admin/app/(app)/contributions/main-body.tsx`, support table), but current usage is initial-state driven. CRM gift history needs persisted per-user column preferences, not only local table state.
 - `packages/api/src/admin/contribution-operations/types.ts` currently exposes a broad `finance:manage_contributions` permission. The target product model needs user-facing roles backed by granular server-side capabilities (D26).
 
 ---

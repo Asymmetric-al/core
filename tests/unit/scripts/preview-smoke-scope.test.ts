@@ -4,7 +4,9 @@ import { resolvePreviewSmokeScope } from "../../../scripts/qa/preview-smoke-scop
 
 describe("resolvePreviewSmokeScope", () => {
   it("targets only the changed app surface", () => {
-    const scope = resolvePreviewSmokeScope(["apps/admin/app/admin/page.tsx"]);
+    const scope = resolvePreviewSmokeScope([
+      "apps/admin/app/(app)/admin/page.tsx",
+    ]);
 
     expect(scope.admin).toBe(true);
     expect(scope.donor).toBe(false);

@@ -14,7 +14,7 @@ Local merge into `upstream/production`: failed.
 
 Conflict:
 
-- `apps/admin/app/support/page.tsx`
+- `apps/admin/app/(app)/support/page.tsx`
 
 Tests were not run because the PR does not produce a merged tree against current `production`.
 
@@ -31,7 +31,7 @@ Impact: there is no final merged route tree to test.
 Suggested fix:
 
 - Rebase onto current `production`.
-- Resolve `apps/admin/app/support/page.tsx`.
+- Resolve `apps/admin/app/(app)/support/page.tsx`.
 - Run `bun install --frozen-lockfile && bun run ci:preflight` after conflict resolution.
 
 ### P1 - PR scope is not docs-only at the current ref
@@ -87,7 +87,7 @@ Impact: follow-up implementers can create a route-level client boundary unnecess
 
 Suggested fix:
 
-- State clearly that `apps/admin/app/support/page.tsx` should be a server wrapper mounting a client Support Hub surface unless there is an explicit reason otherwise.
+- State clearly that `apps/admin/app/(app)/support/page.tsx` should be a server wrapper mounting a client Support Hub surface unless there is an explicit reason otherwise.
 - Keep the file map aligned to existing repo paths such as `tests/e2e/**`.
 
 ### P2 - Runtime support code remains mock/in-memory backed

@@ -3,11 +3,11 @@
 import { BoneyardSkeleton } from "@asym/ui/components/boneyard-skeleton";
 import { PageShell } from "@asym/ui/components/primitives/page-shell";
 
-import { boneyardContributionsFixture } from "../../contributions/data";
+import { boneyardContributionsFixture } from "../../../(app)/contributions/data";
 import {
   ContributionsMainBody,
   ContributionsPageActions,
-} from "../../contributions/main-body";
+} from "../../../(app)/contributions/main-body";
 
 /**
  * Public capture route for Boneyard CLI (no admin shell auth).

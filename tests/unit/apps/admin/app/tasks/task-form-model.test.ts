@@ -5,14 +5,14 @@ import {
   createInitialTaskFormValues,
   normalizeReminders,
   toTaskSavePayload,
-} from "../../../../../../apps/admin/app/tasks/task-form-model";
+} from "../../../../../../apps/admin/app/(app)/tasks/task-form-model";
 
 import type {
   LinkedEntity,
   StaffMember,
   Task,
   TaskReminder,
-} from "../../../../../../apps/admin/app/tasks/types";
+} from "../../../../../../apps/admin/app/(app)/tasks/types";
 
 const LINKED_ENTITY: LinkedEntity = {
   id: "donor-1",
@@ -31,7 +31,7 @@ const STAFF_MEMBERS: StaffMember[] = [
   },
 ];
 
-describe("apps/admin/app/tasks/task-form-model", () => {
+describe("apps/admin/app/(app)/tasks/task-form-model", () => {
   it("normalizes reminders and preserves existing ids", () => {
     const reminders = normalizeReminders([
       {

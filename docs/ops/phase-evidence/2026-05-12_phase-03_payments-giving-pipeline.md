@@ -46,10 +46,10 @@ Production completion remains blocked by provider access and runtime prerequisit
   - `apps/admin/app/api/admin/contributions/staged-gifts/[stagedGiftId]/retry/route.ts`
   - `apps/admin/app/api/admin/contributions/staged-gifts/[stagedGiftId]/receipt/route.ts`
 - Admin contributions UI:
-  - `apps/admin/app/contributions/use-admin-contributions.ts`
-  - `apps/admin/app/contributions/page-client.tsx`
-  - `apps/admin/app/contributions/contribution-detail-sheet.tsx`
-  - `apps/admin/app/contributions/data.ts`
+  - `apps/admin/app/(app)/contributions/use-admin-contributions.ts`
+  - `apps/admin/app/(app)/contributions/page-client.tsx`
+  - `apps/admin/app/(app)/contributions/contribution-detail-sheet.tsx`
+  - `apps/admin/app/(app)/contributions/data.ts`
 - CRM sync domain:
   - `packages/api/src/crm/sync/domains.ts`
   - `packages/api/src/crm/sync/types.ts`

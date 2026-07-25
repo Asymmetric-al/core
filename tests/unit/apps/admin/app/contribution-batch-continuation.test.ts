@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import {
   continueContributionBatch,
   readContributionBatchResponse,
-} from "../../../../../apps/admin/app/contributions/batch-continuation";
+} from "../../../../../apps/admin/app/(app)/contributions/batch-continuation";
 
 function response(body: unknown, ok = true) {
   return {

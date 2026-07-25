@@ -25,7 +25,7 @@ import { buildInlineContributionActions } from "../../../../../packages/api/src/
 import { projectContributionDetailForViewer } from "../../../../../packages/api/src/admin/contribution-operations/viewer-projection";
 
 type CrmPageComponent =
-  typeof import("../../../../../apps/admin/app/crm/page").default;
+  typeof import("../../../../../apps/admin/app/(app)/crm/page").default;
 
 const useAdminCrmRecordsInfiniteGridMock = vi.fn();
 const useAdminCrmRecordDetailMock = vi.fn();
@@ -422,11 +422,12 @@ function installDom() {
   };
 }
 
-describe("apps/admin/app/crm gift detail entry", () => {
+describe("apps/admin/app/(app)/crm gift detail entry", () => {
   beforeAll(async () => {
     process.env.NEXT_PUBLIC_SUPABASE_URL ??= "http://127.0.0.1:54321";
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ??= "test-anon-key";
-    const pageModule = await import("../../../../../apps/admin/app/crm/page");
+    const pageModule =
+      await import("../../../../../apps/admin/app/(app)/crm/page");
     CrmPage = pageModule.default;
   }, 120_000);
 

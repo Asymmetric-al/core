@@ -45,7 +45,7 @@ import { EMPTY_CELL_VALUE } from "./crm-detail-shared";
 import { DetailDrawer } from "./detail-drawer";
 import { KanbanView } from "./kanban-view";
 import { toCrmRecord, toCrmRecordFromDetail } from "./types";
-import { CRM_PAGE_META } from "../../components/table-page-meta";
+import { CRM_PAGE_META } from "../../../components/table-page-meta";
 import {
   ContributionDetailOverlay,
   isContributionGiftParam,

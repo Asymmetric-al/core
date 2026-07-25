@@ -9,7 +9,7 @@ import { Suspense } from "react";
 
 import { ContributionsBoneyardFallback } from "./boneyard-fallback";
 import PageClient from "./page-client";
-import { CONTRIBUTIONS_PAGE_META } from "../../components/table-page-meta";
+import { CONTRIBUTIONS_PAGE_META } from "../../../components/table-page-meta";
 
 function ContributionsPageFallback() {
   return (

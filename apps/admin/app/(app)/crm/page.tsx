@@ -2,7 +2,7 @@ import { PageShell } from "@asym/ui/components/primitives/page-shell";
 import { Suspense } from "react";
 
 import PageClient from "./page-client";
-import { CRM_PAGE_META } from "../../components/table-page-meta";
+import { CRM_PAGE_META } from "../../../components/table-page-meta";
 
 function CrmPageFallback() {
   return (

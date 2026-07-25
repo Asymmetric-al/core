@@ -71,7 +71,7 @@ engine, a real search — is missing or wrong in seven concrete ways:
    duplicate rows; list state is client-only (no shareable URLs); the global
    Cmd-K is the shadcn-studio `SearchDialog` with **hardcoded fake results**
    (`apps/admin/app/mc-shell.tsx:36,347`); and the virtualized container is
-   hardcoded to 720px (`apps/admin/app/crm/page-client.tsx:412`).
+   hardcoded to 720px (`apps/admin/app/(app)/crm/page-client.tsx:412`).
 
 5. **Record detail is a Twenty-era monolith.** The donor-only detail service
    still carries `reconciliation.crmWriteMode` (`detail/service.ts:487`) and a
