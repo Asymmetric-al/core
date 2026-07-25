@@ -35,6 +35,16 @@ describe("resolvePublicCmsMediaUrl", () => {
     ).toBe("http://127.0.0.1:3030/api/media/file/x.jpg");
   });
 
+  it("rejects CMS-origin URLs outside the media file route", () => {
+    expect(resolvePublicCmsMediaUrl("/admin", CMS_BASE_URL)).toBeNull();
+    expect(
+      resolvePublicCmsMediaUrl(
+        "http://127.0.0.1:3030/robots.txt",
+        CMS_BASE_URL,
+      ),
+    ).toBeNull();
+  });
+
   it("rejects absolute URLs on foreign hosts (they would break at next/image's host allowlist)", () => {
     expect(
       resolvePublicCmsMediaUrl("https://cdn.example.org/x.jpg", CMS_BASE_URL),

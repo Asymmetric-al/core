@@ -140,14 +140,24 @@ describe("publishedPublicReadAccess", () => {
 describe("publicMediaReadAccess", () => {
   const MEDIA_CAPABILITY = { draftable: false } as const;
 
-  it("serves media file bytes to anonymous static-file requests (the next/image optimizer fetch)", () => {
+  it("serves media file bytes to anonymous static-file requests with a document lookup", () => {
     const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
     const args = {
       ...accessArgs(staffRequest(null)),
       isReadingStaticFile: true,
     };
 
-    expect(access(args)).toBe(true);
+    expect(access(args)).toEqual({ id: { exists: true } });
+  });
+
+  it("keeps Blob prefix lookups public within an anonymous static-file request", () => {
+    const access = publicMediaReadAccess("tenant", MEDIA_CAPABILITY);
+    const req = staffRequest(null);
+
+    expect(access({ ...accessArgs(req), isReadingStaticFile: true })).toEqual({
+      id: { exists: true },
+    });
+    expect(access(accessArgs(req))).toBe(true);
   });
 
   it("keeps authenticated staff static-file reads tenant scoped", () => {

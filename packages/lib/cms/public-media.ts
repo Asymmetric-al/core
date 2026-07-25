@@ -22,6 +22,9 @@
 
 const SAFE_IMAGE_PROTOCOLS = new Set(["http:", "https:"]);
 
+/** The only CMS-origin route admitted by the donor `next/image` config. */
+const CMS_MEDIA_FILE_PATH_PREFIX = "/api/media/file/";
+
 /**
  * Host suffix for Payload's Vercel Blob adapter when `access: "public"`
  * (the only access mode the adapter supports today). Store id is the single
@@ -70,10 +73,11 @@ export function isPublicEligibleCmsMedia(media: PublicCmsMediaLike): boolean {
 /**
  * Resolves a serialized public media URL against allowed public media
  * origins. Site-relative paths join the CMS base (and must stay on that
- * origin after resolution); absolute URLs pass only on the CMS origin or the
- * Vercel Blob public host; everything else (missing value, protocol-relative,
- * non-http(s) schemes, foreign hosts, backslash host tricks, unparsable base
- * for relative paths) resolves to `null`.
+ * origin's media-file route after resolution); absolute URLs pass only on the
+ * CMS origin's media-file route or the Vercel Blob public host; everything
+ * else (missing value, protocol-relative, non-http(s) schemes, foreign hosts,
+ * backslash host tricks, unparsable base for relative paths) resolves to
+ * `null`.
  */
 export function resolvePublicCmsMediaUrl(
   url: unknown,
@@ -103,7 +107,7 @@ export function resolvePublicCmsMediaUrl(
       return null;
     }
 
-    return new URL(absolute).origin === new URL(base).origin ? absolute : null;
+    return isCmsMediaFileUrl(absolute, base) ? absolute : null;
   }
 
   if (!trimmed.startsWith("/")) {
@@ -120,9 +124,10 @@ export function resolvePublicCmsMediaUrl(
     if (!SAFE_IMAGE_PROTOCOLS.has(resolved.protocol)) {
       return null;
     }
-    // Site-relative inputs must remain on the CMS origin after URL joining
-    // (closes `/\evil.example.org/...` host-escape via backslash normalization).
-    return resolved.origin === new URL(base).origin
+    // Site-relative inputs must remain on the CMS media route after URL
+    // joining (closes `/\evil.example.org/...` host-escape via backslash
+    // normalization and keeps the resolver aligned with `next/image`).
+    return isCmsMediaFileUrl(resolved.toString(), base)
       ? resolved.toString()
       : null;
   } catch {
@@ -186,6 +191,16 @@ function parseSafeHttpUrl(value: string | null): string | null {
   } catch {
     return null;
   }
+}
+
+function isCmsMediaFileUrl(url: string, cmsBaseUrl: string): boolean {
+  const parsed = new URL(url);
+  const base = new URL(cmsBaseUrl);
+
+  return (
+    parsed.origin === base.origin &&
+    parsed.pathname.startsWith(CMS_MEDIA_FILE_PATH_PREFIX)
+  );
 }
 
 /**

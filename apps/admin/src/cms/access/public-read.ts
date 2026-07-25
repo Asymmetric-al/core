@@ -21,6 +21,8 @@ import type { Access, AccessResult, PayloadRequest, Where } from "payload";
  */
 
 const PUBLIC_READ_CONTEXT_KEY = "asymPublicRead";
+const PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY = "asymPublicStaticMediaRead";
+const STATIC_MEDIA_FILE_EXISTS_WHERE = { id: { exists: true } } satisfies Where;
 
 export type PublicReadContext = {
   /** The resolved CMS tenant document id (`cms` schema). */
@@ -78,6 +80,21 @@ export function getPublicReadContext(
   }
 
   return { cmsTenantId };
+}
+
+function markPublicStaticMediaRead(req: PayloadRequest): void {
+  req.context = {
+    ...(req.context ?? {}),
+    [PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY]: true,
+  };
+}
+
+function isPublicStaticMediaRead(req: PayloadRequest): boolean {
+  return (
+    (req.context as Record<string, unknown> | undefined)?.[
+      PUBLIC_STATIC_MEDIA_READ_CONTEXT_KEY
+    ] === true
+  );
 }
 
 /**
@@ -197,10 +214,15 @@ export const publicMediaReadAccess = (
   const documentAccess = publishedPublicReadAccess(tenantField, options);
 
   return (args) => {
+    if (isPublicStaticMediaRead(args.req)) {
+      return true;
+    }
+
     if (args.isReadingStaticFile) {
       const context = getTenantContext(args.req);
       if (!context.isAuthenticated || !isStaffRole(context)) {
-        return true;
+        markPublicStaticMediaRead(args.req);
+        return STATIC_MEDIA_FILE_EXISTS_WHERE;
       }
     }
 
