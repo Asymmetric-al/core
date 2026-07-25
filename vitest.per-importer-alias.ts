@@ -1,6 +1,7 @@
 import fs from "node:fs";
 import path from "node:path";
 
+import ts from "typescript";
 import type { Plugin } from "vitest/config";
 
 /**
@@ -22,22 +23,32 @@ export interface AtAliasWorkspace {
 
 const WORKSPACE_GROUPS = ["apps", "packages"];
 
+function diagnosticText(diagnostic: ts.Diagnostic): string {
+  return ts.flattenDiagnosticMessageText(diagnostic.messageText, " ");
+}
+
 function readAtAliasTarget(tsconfigPath: string): string | undefined {
   const tsconfigText = fs.readFileSync(tsconfigPath, "utf8");
+  // Fast path only: workspaces without the alias never need parsing, which also
+  // keeps parse failures scoped to configs that actually declare `@/*`.
   if (!tsconfigText.includes("@/*")) {
     return undefined;
   }
 
-  let parsed: unknown;
-  try {
-    parsed = JSON.parse(tsconfigText);
-  } catch (error) {
+  // `tsconfig.json` is JSONC (comments and trailing commas are legal), so parse
+  // it the way `tsc` does rather than with `JSON.parse`. TypeScript asserts
+  // that the file name it is handed is already slash-normalized.
+  const { config, error } = ts.parseConfigFileTextToJson(
+    tsconfigPath.replaceAll("\\", "/"),
+    tsconfigText,
+  );
+  if (error) {
     throw new Error(
-      `Cannot parse ${tsconfigPath} while discovering "@/*" path aliases for Vitest: ${String(error)}`,
-      { cause: error },
+      `Cannot parse ${tsconfigPath} while discovering "@/*" path aliases for Vitest: ${diagnosticText(error)}`,
     );
   }
 
+  const parsed: unknown = config;
   if (typeof parsed !== "object" || parsed === null) {
     return undefined;
   }
@@ -130,6 +141,9 @@ export function findWorkspaceForImporter(
  * Files outside every `@/`-mapped workspace (including test files) are left
  * to Vite's normal resolution, which reports them as unresolved `@/...`
  * imports naming the importing file — there is deliberately no fallback.
+ * A mapped-but-missing target behaves the same way: returning the joined path
+ * would make Vite fail later on loading a file that does not exist, hiding the
+ * `@/...` specifier that actually needs fixing.
  */
 export function perImporterAtAlias(rootDir: string): Plugin {
   const workspaces = discoverAtAliasWorkspaces(rootDir);
@@ -151,11 +165,10 @@ export function perImporterAtAlias(rootDir: string): Plugin {
         workspace.aliasBaseDir,
         source.slice("@/".length),
       );
-      const resolved = await this.resolve(target, importer, {
+      return await this.resolve(target, importer, {
         skipSelf: true,
         ...options,
       });
-      return resolved ?? target;
     },
   };
 }

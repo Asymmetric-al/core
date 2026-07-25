@@ -24,6 +24,6 @@ describe("packages/ui internal @/ alias", () => {
     // relative import, the first test would pass without exercising the alias.
     const fixtureSource = fs.readFileSync(fixturePath, "utf8");
 
-    expect(fixtureSource).toContain('from "@/lib/utils"');
+    expect(fixtureSource).toMatch(/from\s+["']@\/lib\/utils["']/);
   });
 });

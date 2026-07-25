@@ -8,6 +8,7 @@ import { afterAll, describe, expect, it } from "vitest";
 import {
   discoverAtAliasWorkspaces,
   findWorkspaceForImporter,
+  perImporterAtAlias,
 } from "../../vitest.per-importer-alias";
 
 const repoRoot = fileURLToPath(new URL("../..", import.meta.url));
@@ -86,9 +87,28 @@ describe("discoverAtAliasWorkspaces", () => {
     expect(discoverAtAliasWorkspaces(fixtureRoot)).toEqual([]);
   });
 
+  it("reads @/* out of a JSONC tsconfig with comments and trailing commas", () => {
+    const fixtureRoot = makeFixtureRoot({
+      "apps/jsonc": [
+        "{",
+        "  // tsconfig.json is JSONC, not strict JSON",
+        "  /* the alias below must still be discovered */",
+        '  "compilerOptions": { "paths": { "@/*": ["./src/*"] } },',
+        "}",
+      ].join("\n"),
+    });
+
+    const workspaces = discoverAtAliasWorkspaces(fixtureRoot);
+
+    expect(workspaces).toHaveLength(1);
+    expect(workspaces[0]?.aliasBaseDir).toBe(
+      path.join(fixtureRoot, "apps", "jsonc", "src"),
+    );
+  });
+
   it("fails loudly when a tsconfig declaring @/* cannot be parsed", () => {
     const fixtureRoot = makeFixtureRoot({
-      "apps/broken": '{ "compilerOptions": { "paths": { "@/*": ["./*"] } }, }',
+      "apps/broken": '{ "compilerOptions": { "paths": { "@/*": ["./*"] }',
     });
 
     expect(() => discoverAtAliasWorkspaces(fixtureRoot)).toThrowError(
@@ -131,5 +151,96 @@ describe("findWorkspaceForImporter", () => {
     const importer = path.join(repoRoot, "tests", "unit", "some.test.ts");
 
     expect(findWorkspaceForImporter([outer], importer)).toBeUndefined();
+  });
+});
+
+describe("perImporterAtAlias resolveId", () => {
+  const uiImporter = path.join(repoRoot, "packages", "ui", "lib", "button.tsx");
+  const outsideImporter = path.join(repoRoot, "tests", "unit", "some.test.ts");
+
+  /** Drives the plugin hook with a stub Rollup context that records resolves. */
+  async function callResolveId(
+    source: string,
+    importer: string | undefined,
+    innerResolve: (target: string) => { id: string } | null,
+  ) {
+    const requestedTargets: string[] = [];
+    const context = {
+      resolve(target: string) {
+        requestedTargets.push(target);
+        return Promise.resolve(innerResolve(target));
+      },
+    };
+
+    const hook = perImporterAtAlias(repoRoot).resolveId as unknown as (
+      this: typeof context,
+      source: string,
+      importer: string | undefined,
+      options: Record<string, unknown>,
+    ) => Promise<{ id: string } | null>;
+
+    const result = await hook.call(context, source, importer, {});
+    return { result, requestedTargets };
+  }
+
+  const resolveToTarget = (target: string) => ({ id: target });
+
+  it("leaves non-@/ specifiers and importer-less requests alone", async () => {
+    const relative = await callResolveId(
+      "./utils",
+      uiImporter,
+      resolveToTarget,
+    );
+    const noImporter = await callResolveId(
+      "@/lib/utils",
+      undefined,
+      resolveToTarget,
+    );
+
+    expect(relative.result).toBeNull();
+    expect(noImporter.result).toBeNull();
+    expect(relative.requestedTargets).toEqual([]);
+    expect(noImporter.requestedTargets).toEqual([]);
+  });
+
+  it("resolves @/ against the importing file's own workspace", async () => {
+    const { result, requestedTargets } = await callResolveId(
+      "@/lib/utils",
+      uiImporter,
+      resolveToTarget,
+    );
+
+    const expectedTarget = path.join(
+      repoRoot,
+      "packages",
+      "ui",
+      "lib",
+      "utils",
+    );
+    expect(requestedTargets).toEqual([expectedTarget]);
+    expect(result).toEqual({ id: expectedTarget });
+  });
+
+  it("declines importers outside every @/-mapped workspace", async () => {
+    const { result, requestedTargets } = await callResolveId(
+      "@/lib/utils",
+      outsideImporter,
+      resolveToTarget,
+    );
+
+    expect(result).toBeNull();
+    expect(requestedTargets).toEqual([]);
+  });
+
+  it("declines rather than inventing a path when the target does not resolve", async () => {
+    const { result } = await callResolveId(
+      "@/lib/missing",
+      uiImporter,
+      () => null,
+    );
+
+    // Returning the joined path here would defer the failure to module load and
+    // hide the `@/...` specifier that actually needs fixing.
+    expect(result).toBeNull();
   });
 });
