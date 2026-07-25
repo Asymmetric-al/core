@@ -17,6 +17,16 @@ verdict (no prefetching, unreliable lock).
   The spec self-skips unless `INSTANT_NAV_RIG=1`, so dev-server CI jobs
   (`.github/workflows/ci-integration.yml` runs apps with `next dev`) never
   record a vacuous verdict.
+  **Under `CI=true` two more vars are required**, or `playwright.config.ts`
+  still defines a `webServer` and spawns `next dev` — colliding with the
+  production server on 3006, and measuring a dev server if it resolved the
+  other way, which is exactly the untrustworthy verdict the skip exists to
+  prevent:
+  - `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` — reuse the production server
+    (health-checked via `/api/playwright-ready`) instead of spawning one.
+  - `PLAYWRIGHT_INCLUDE_ADMIN=0` — don't also start the admin dev server.
+  The `instant-nav` job in `.github/workflows/ci-integration.yml` is the
+  canonical invocation.
 - TEST USER: donor public routes run unauthenticated. Authenticated routes use
   the demo donor session via `installDemoSessionInBrowser(page, "donor")`
   (POST `/api/auth/demo-account`, zero-config E2E bypass on loopback).

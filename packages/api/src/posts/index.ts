@@ -1,5 +1,6 @@
 import {
   getAuthContext,
+  hasAnyContextRole,
   requireAuth,
   type AuthenticatedContext,
 } from "@asym/auth/context";
@@ -93,12 +94,25 @@ export async function GET(request: NextRequest) {
       missionaryId: searchParams.get("missionaryId"),
     });
 
+    // Drafts are author-private. The cached read uses the service-role client
+    // and only narrows by missionary when an id is supplied, so without this
+    // any authenticated member of the tenant could list every missionary's
+    // unpublished posts. Decide it here, outside the cached scope, and ignore
+    // any client-supplied id for drafts.
+    let effectiveMissionaryId = missionaryId ?? null;
+    if (status !== "published") {
+      if (!hasAnyContextRole(ctx, ["missionary", "staff"])) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+      effectiveMissionaryId = ctx.profileId;
+    }
+
     const posts = await getCachedFeedPosts({
       tenantId: ctx.tenantId,
       status,
       offset,
       limit,
-      missionaryId,
+      missionaryId: effectiveMissionaryId,
     });
 
     const postIds = posts.map((post: { id: string }) => post.id);

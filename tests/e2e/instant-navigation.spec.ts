@@ -121,9 +121,14 @@ test.describe("Instant navigation (donor public site)", () => {
       await expect(
         page.getByTestId("worker-profile-route-shell"),
       ).toBeVisible();
-      // Params-dependent: the shared App Shell cannot carry this, so it only
-      // commits under the lock because the route exports
-      // `prefetch = 'allow-runtime'`. Fails if that config is dropped.
+      // Params-dependent: the shared App Shell cannot carry this. It commits
+      // under the lock because the card link is `prefetch={true}`
+      // (workers-client.tsx) — a full prefetch, which makes the testing lock
+      // skip its shell-only restriction — and `generateStaticParams` in the
+      // route prerenders each worker page for that prefetch to pull.
+      // Regresses if the `prefetch` prop is dropped, NOT if
+      // `prefetch = 'allow-runtime'` is added or removed; the route
+      // deliberately omits it (see the note above WorkerProfilePage).
       await expect(
         page.getByRole("heading", { level: 1, name: /miller/i }),
       ).toBeVisible();

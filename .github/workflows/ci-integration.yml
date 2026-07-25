@@ -415,6 +415,71 @@ jobs:
             exit 1
           fi
 
+  # Instant Navigation guards (Next.js 16.3). These only produce a trustworthy
+  # verdict against a PRODUCTION build with the testing API exposed — `next dev`
+  # neither prefetches nor locks reliably — so this job builds and starts donor
+  # rather than reusing the dev servers the other e2e jobs run. See
+  # instant-nav.rig.md.
+  instant-nav:
+    continue-on-error: ${{ (github.event_name == 'pull_request' && github.base_ref == 'develop') || (github.event_name == 'push' && github.ref == 'refs/heads/develop') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    env:
+      SKIP_ENV_VALIDATION: "1"
+      NEXT_PUBLIC_SUPABASE_URL: https://example.supabase.co
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: example-anon-key
+      # Double-gated so real Vercel production builds never expose the API.
+      VERCEL_ENV: preview
+      EXPOSE_TESTING_API: "1"
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - name: Install system dependencies (canvas)
+        run: bash scripts/github/install-canvas-deps.sh
+      - uses: actions/setup-node@48b55a011bda9f5d6aeb4c2d9c7362e8dae4041e
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: ${{ env.BUN_VERSION }}
+      - run: bun ci --no-cache --backend=copyfile
+      - name: Install Playwright Chromium
+        run: bunx playwright install --with-deps chromium
+      - name: Build donor with the testing API exposed
+        run: bun run build:donor
+      - name: Start donor production server
+        run: |
+          nohup node scripts/run-with-ci-env.mjs -- bun run --cwd apps/donor start -- --port 3006 --hostname 127.0.0.1 > /tmp/donor-prod.log 2>&1 &
+          for i in $(seq 1 120); do
+            if curl -sf http://127.0.0.1:3006/api/playwright-ready >/dev/null; then
+              echo "donor production server ready after ${i}s"
+              exit 0
+            fi
+            sleep 1
+          done
+          echo "Timed out waiting for the donor production server"
+          tail -n 100 /tmp/donor-prod.log || true
+          exit 1
+      - name: Instant navigation guards
+        env:
+          INSTANT_NAV_RIG: "1"
+          PLAYWRIGHT_BASE_URL: http://127.0.0.1:3006
+          # Without these, playwright.config.ts still defines a webServer under
+          # CI and spawns `next dev` — colliding on 3006 and measuring a dev
+          # server, the exact vacuous verdict the rig exists to prevent.
+          PLAYWRIGHT_REUSE_EXISTING_SERVER: "1"
+          PLAYWRIGHT_INCLUDE_ADMIN: "0"
+        run: node scripts/run-with-ci-env.mjs -- node node_modules/@playwright/test/cli.js test tests/e2e/instant-navigation.spec.ts --project=chromium
+      - name: Upload instant-nav report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: playwright-instant-nav-report
+          path: playwright-report/
+          if-no-files-found: ignore
+          retention-days: 7
+
   integration-gate:
     if: always()
     needs: [migrate, smoke, e2e-smoke-gate]

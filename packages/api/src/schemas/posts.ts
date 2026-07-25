@@ -8,8 +8,14 @@ const optionalIdentifier = z.preprocess((value) => {
 
 export const postsQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(100),
-  offset: z.coerce.number().int().min(0),
-  status: z.string().trim().min(1),
+  offset: z.coerce.number().int().min(0).max(10_000),
+  /**
+   * The feed read runs through the service-role client, so this value reaches
+   * the query unmediated by RLS. Keep it a closed set — a free-form string
+   * lets a caller select any `posts.status` (the column has no CHECK
+   * constraint) and becomes an unbounded cache key.
+   */
+  status: z.enum(["published", "draft"]).default("published"),
   missionaryId: optionalIdentifier,
 });
 
