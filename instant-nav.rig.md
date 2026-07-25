@@ -25,8 +25,8 @@ verdict (no prefetching, unreliable lock).
   - `PLAYWRIGHT_REUSE_EXISTING_SERVER=1` — reuse the production server
     (health-checked via `/api/playwright-ready`) instead of spawning one.
   - `PLAYWRIGHT_INCLUDE_ADMIN=0` — don't also start the admin dev server.
-  The `instant-nav` job in `.github/workflows/ci-integration.yml` is the
-  canonical invocation.
+    The `instant-nav` job in `.github/workflows/ci-integration.yml` is the
+    canonical invocation.
 - TEST USER: donor public routes run unauthenticated. Authenticated routes use
   the demo donor session via `installDemoSessionInBrowser(page, "donor")`
   (POST `/api/auth/demo-account`, zero-config E2E bypass on loopback).
