@@ -277,7 +277,10 @@ async function main() {
   process.exit(1);
 }
 
-if (process.argv[1] === __filename) {
+if (
+  process.argv[1] !== undefined &&
+  path.resolve(process.argv[1]) === __filename
+) {
   main().catch((error) => {
     console.error("bun.lock drift verification failed");
     console.error(error);
