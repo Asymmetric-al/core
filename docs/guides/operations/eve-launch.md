@@ -82,6 +82,10 @@ Before selecting **Activate exact target**, confirm:
 - the activation rationale identifies the reviewed change window without
   including secrets or sensitive donor data.
 
+The panel re-evaluates stored evidence on every load, so a manifest whose
+freshness window has closed is shown as `expired` and cannot be activated even
+if it was reviewed and `ready` earlier.
+
 Activation performs every check again inside the database transaction, turns
 on the existing #418 switch, records #419 audit evidence, and opens a 15-minute
 canary. Confirm all six canaries: state visibility, current trigger gating,
@@ -93,7 +97,13 @@ engages emergency-off if the canary expires.
 
 Verify the launch record is `completed`, the expected audit entries are visible,
 and no unexpected notification or budget event occurred. Revoke temporary
-launch permissions. Launch evidence is retained for 365 days as metadata only;
+launch permissions.
+
+To close the release gate again without declaring an incident, a `super_admin`
+enters a reason and selects **Disable release (no emergency)**. It turns
+`release_enabled` off and rolls back any still-active launch record, but leaves
+emergency state and the master/active-run kill switches untouched. Reserve
+**Emergency off** for incidents. Launch evidence is retained for 365 days as metadata only;
 an active category hold prevents expiry. Use the retention panel for holds and
 replay access. Follow [Eve emergency operations](./eve-emergency.md) for any
 failure, rollback, or credential/provider disable.

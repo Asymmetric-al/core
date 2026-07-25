@@ -7,6 +7,7 @@ import {
   evaluateEveLaunchReadiness,
   createEveLaunchManifestRecord,
   hashEveLaunchManifest,
+  loadEveLaunchAdminView,
   resolveEveLaunchRuntimeTarget,
 } from "@asym/api/eve/launch-readiness";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -29,7 +30,10 @@ const target: EveLaunchTarget = {
   revision: "a".repeat(40),
 };
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.useRealTimers();
+});
 
 function evidence(reference: string): EveLaunchEvidence {
   return {
@@ -75,6 +79,41 @@ function validManifest(): EveLaunchManifestDocument {
     })),
     target,
   };
+}
+
+function launchAdminSupabase(input: {
+  manifestRows: unknown[];
+}): AdminSupabaseClient {
+  const listsByTable: Record<string, unknown[]> = {
+    eve_launch_manifests: input.manifestRows,
+    eve_launch_permission_grants: [],
+    eve_launch_records: [],
+    eve_launch_reviews: [],
+  };
+
+  return {
+    from(table: string) {
+      const query: Record<string, unknown> = {};
+      const chain = () => query;
+
+      query.eq = vi.fn(chain);
+      query.limit = vi.fn(chain);
+      query.order = vi.fn(chain);
+      query.select = vi.fn(chain);
+      query.maybeSingle = vi.fn(() =>
+        Promise.resolve({ data: null, error: null }),
+      );
+      query.then = (
+        resolve: (value: { data: unknown[]; error: null }) => unknown,
+        reject: (reason: unknown) => unknown,
+      ) =>
+        Promise.resolve({ data: listsByTable[table] ?? [], error: null }).then(
+          resolve,
+          reject,
+        );
+      return query;
+    },
+  } as unknown as AdminSupabaseClient;
 }
 
 describe("Eve final launch readiness", () => {
@@ -204,6 +243,44 @@ describe("Eve final launch readiness", () => {
         p_evaluation: evaluation,
         p_manifest_id: expect.any(String),
       }),
+    );
+  });
+
+  it("re-evaluates stored manifests so expired evidence never reads as ready", async () => {
+    const document = validManifest();
+    const manifestRow = {
+      audit_id: "43700000-0000-4000-8000-000000000010",
+      content_hash: hashEveLaunchManifest(document),
+      created_at: "2026-07-18T10:30:00.000Z",
+      created_by_profile_id: "43700000-0000-4000-8000-000000000002",
+      document,
+      evaluation: evaluateEveLaunchReadiness({
+        document,
+        now: new Date("2026-07-18T10:30:00.000Z"),
+      }),
+      id: "43700000-0000-4000-8000-000000000006",
+      status: "ready",
+      tenant_id: "43700000-0000-4000-8000-000000000001",
+    };
+    const loadAdminView = () =>
+      loadEveLaunchAdminView({
+        profileId: "43700000-0000-4000-8000-000000000002",
+        supabaseAdmin: launchAdminSupabase({ manifestRows: [manifestRow] }),
+        tenantId: "43700000-0000-4000-8000-000000000001",
+      });
+
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-07-18T10:30:00.000Z"));
+    const fresh = await loadAdminView();
+    expect(fresh.manifests[0]?.status).toBe("ready");
+    expect(fresh.manifests[0]?.evaluation.ready).toBe(true);
+
+    vi.setSystemTime(new Date("2026-07-18T13:00:00.000Z"));
+    const stale = await loadAdminView();
+    expect(stale.manifests[0]?.status).toBe("expired");
+    expect(stale.manifests[0]?.evaluation.ready).toBe(false);
+    expect(stale.manifests[0]?.evaluation.blockers).toContain(
+      "manifest_expired",
     );
   });
 

@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { evaluateEveLaunchReadiness } from "./evaluator";
 import { eveLaunchManifestDocumentSchema } from "./schema";
 
 import type {
@@ -118,6 +119,33 @@ function toManifest(input: {
   };
 }
 
+const REEVALUATED_MANIFEST_STATUSES: readonly EveLaunchManifestStatus[] = [
+  "evidence_passed",
+  "ready",
+];
+
+/**
+ * Launch readiness is time-bound: the stored status and evaluation are only
+ * true for the freshness window recorded in the manifest. Re-run the
+ * deterministic evaluator on read so operators never see a `ready` manifest
+ * whose evidence has since expired, and so the admin view agrees with the
+ * activation RPC instead of deferring the truth to a server-side error.
+ */
+function withCurrentReadiness(
+  manifest: EveLaunchManifestRecord,
+): EveLaunchManifestRecord {
+  if (!REEVALUATED_MANIFEST_STATUSES.includes(manifest.status)) {
+    return manifest;
+  }
+  const evaluation = evaluateEveLaunchReadiness({
+    document: manifest.document,
+  });
+  if (evaluation.ready) {
+    return { ...manifest, evaluation };
+  }
+  return { ...manifest, evaluation, status: "expired" };
+}
+
 function toLaunch(row: unknown): EveLaunchRecord {
   const parsed = launchRowSchema.parse(row);
   return {
@@ -209,10 +237,12 @@ export async function loadEveLaunchManifest(input: {
   if (error) throw new Error(error.message);
   if (reviewResult.error) throw new Error(reviewResult.error.message);
   if (!data) return null;
-  return toManifest({
-    reviews: (reviewResult.data ?? []).map(toReview),
-    row: data,
-  });
+  return withCurrentReadiness(
+    toManifest({
+      reviews: (reviewResult.data ?? []).map(toReview),
+      row: data,
+    }),
+  );
 }
 
 export async function loadEveLaunchAdminView(input: {
@@ -268,7 +298,7 @@ export async function loadEveLaunchAdminView(input: {
     canReview,
     latestLaunch: launchResult.data ? toLaunch(launchResult.data) : undefined,
     manifests: (manifestResult.data ?? []).map((row) =>
-      toManifest({ reviews, row }),
+      withCurrentReadiness(toManifest({ reviews, row })),
     ),
     runtimeTarget: input.runtimeTarget,
   };

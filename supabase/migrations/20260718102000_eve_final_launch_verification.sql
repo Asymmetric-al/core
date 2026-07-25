@@ -507,17 +507,9 @@ BEGIN
     updated_by_profile_id = p_actor_profile_id,
     updated_at = NOW()
   WHERE id = 'global' RETURNING * INTO governance;
-  IF p_mode IN ('disable', 'emergency_off') THEN
-    UPDATE public.eve_launch_manifests SET status = 'rolled_back'
-    WHERE id IN (
-      SELECT manifest_id FROM public.eve_launch_records
-      WHERE status = 'active'
-    ) AND status = 'active';
-    UPDATE public.eve_launch_records SET
-      status = 'rolled_back', closed_at = NOW(),
-      canary_results = jsonb_build_object('safetyControlTriggered', TRUE)
-    WHERE status = 'active';
-  END IF;
+  -- The audit event is written before the rollback so the closed launch record
+  -- can reference it, matching close_eve_launch_canary and
+  -- expire_eve_launch_canaries. Both writes stay in this one transaction.
   INSERT INTO public.eve_audit_events (
     id, tenant_id, actor_id, actor_profile_id, actor_role, identity_mode,
     initiator_type, initiator_id, policy_id, policy_status,
@@ -538,6 +530,18 @@ BEGIN
     'An authorized human used the existing Eve stop or emergency boundary.',
     jsonb_build_object('operation', 'set_eve_release_safety_control'), 'eve-audit-v1'
   );
+  IF p_mode IN ('disable', 'emergency_off') THEN
+    UPDATE public.eve_launch_manifests SET status = 'rolled_back'
+    WHERE id IN (
+      SELECT manifest_id FROM public.eve_launch_records
+      WHERE status = 'active'
+    ) AND status = 'active';
+    UPDATE public.eve_launch_records SET
+      status = 'rolled_back', closed_at = NOW(),
+      close_audit_id = p_audit_id,
+      canary_results = jsonb_build_object('safetyControlTriggered', TRUE)
+    WHERE status = 'active';
+  END IF;
   RETURN jsonb_build_object('stateVersion', governance.state_version);
 END;
 $$;

@@ -30,6 +30,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Rocket, ShieldAlert } from "lucide-react";
 import { useState } from "react";
 
+import { EVE_GOVERNANCE_QUERY_KEY } from "./query-keys";
+
 import type { EveGovernanceSnapshot } from "@asym/api/eve/governance/types";
 import type {
   EveLaunchAdminView,
@@ -114,9 +116,15 @@ export function EveLaunchReadinessPanel() {
   });
   const mutation = useMutation({
     mutationFn: mutateReadiness,
-    onSuccess(data) {
+    async onSuccess(data) {
       setLocalError(undefined);
       queryClient.setQueryData(QUERY_KEY, data);
+      // Activation, safety controls, and canary failures all write
+      // eve_governance_state, so the separately cached governance panel must
+      // refetch instead of showing release/emergency state from before the call.
+      await queryClient.invalidateQueries({
+        queryKey: EVE_GOVERNANCE_QUERY_KEY,
+      });
     },
   });
   const governance = query.data?.governance;
@@ -230,6 +238,23 @@ export function EveLaunchReadinessPanel() {
           </Button>
         </section>
 
+        <section aria-labelledby="eve-launch-reason-title">
+          <Label id="eve-launch-reason-title" htmlFor="eve-launch-reason">
+            Review or control reason
+          </Label>
+          <Input
+            id="eve-launch-reason"
+            className="mt-2"
+            value={reason}
+            onChange={(event) => setReason(event.target.value)}
+            placeholder="Concise, non-sensitive operator rationale"
+          />
+          <p className="mt-2 text-xs text-muted-foreground">
+            Required for every review, permission, release, and canary control
+            below, including the first-run state with no imported manifest.
+          </p>
+        </section>
+
         {manifest ? (
           <section
             className="space-y-3"
@@ -260,13 +285,6 @@ export function EveLaunchReadinessPanel() {
                 {JSON.stringify(manifest.document, null, 2)}
               </pre>
             </details>
-            <Label htmlFor="eve-launch-reason">Review or control reason</Label>
-            <Input
-              id="eve-launch-reason"
-              value={reason}
-              onChange={(event) => setReason(event.target.value)}
-              placeholder="Concise, non-sensitive operator rationale"
-            />
             <div className="flex flex-wrap gap-2">
               {(["release", "security"] as const).flatMap((reviewerRole) =>
                 (["approved", "rejected"] as const).map((decision) => (
@@ -392,6 +410,23 @@ export function EveLaunchReadinessPanel() {
                 </AlertDialogFooter>
               </AlertDialogContent>
             </AlertDialog>
+            {governance?.releaseEnabled ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={mutation.isPending || explanation.length === 0}
+                onClick={() =>
+                  mutation.mutate({
+                    kind: "safety_control",
+                    expectedStateVersion: governance.stateVersion,
+                    mode: "disable",
+                    reason: explanation,
+                  })
+                }
+              >
+                Disable release (no emergency)
+              </Button>
+            ) : null}
             <Button
               size="sm"
               variant="destructive"

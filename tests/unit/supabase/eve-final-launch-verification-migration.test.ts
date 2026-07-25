@@ -123,6 +123,20 @@ describe("Eve final launch verification migration", () => {
     expect(closeCanarySql).toContain("RAISE EXCEPTION 'eve_launch_blocked'");
   });
 
+  it("links a safety-control rollback to its closing audit event", () => {
+    const safetyControlSql = functionSql("set_eve_release_safety_control");
+    const auditInsert = safetyControlSql.indexOf(
+      "INSERT INTO public.eve_audit_events",
+    );
+    const recordUpdate = safetyControlSql.indexOf(
+      "UPDATE public.eve_launch_records",
+    );
+
+    expect(auditInsert).toBeGreaterThanOrEqual(0);
+    expect(recordUpdate).toBeGreaterThan(auditInsert);
+    expect(safetyControlSql).toContain("close_audit_id = p_audit_id");
+  });
+
   it("keeps safety rollback metadata compatible with boolean canary results", () => {
     const safetyControlSql = functionSql("set_eve_release_safety_control");
 

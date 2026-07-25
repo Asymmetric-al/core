@@ -51,6 +51,7 @@ import { EveEngineeringMonitorsPanel } from "./engineering-monitors-panel";
 import { EveLaunchReadinessPanel } from "./launch-readiness-panel";
 import { EveModelPolicyPanel } from "./model-policy-panel";
 import { EveNotificationsPanel } from "./notifications-panel";
+import { EVE_GOVERNANCE_QUERY_KEY } from "./query-keys";
 import { EveRetentionPanel } from "./retention-panel";
 import {
   EveCapabilityConnectionsPanel,
@@ -70,8 +71,6 @@ interface EveGovernanceResponse extends EveGovernancePageData {
 interface EveKillSwitchResponse extends EveGovernanceResponse {
   mutation: EveKillSwitchMutationResult;
 }
-
-const EVE_GOVERNANCE_QUERY_KEY = ["admin", "eve", "governance"] as const;
 
 const KILL_SWITCH_COPY: Record<
   EveKillSwitchKey,

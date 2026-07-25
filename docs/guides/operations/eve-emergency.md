@@ -6,6 +6,11 @@ Any verified admin may engage it from Mission Control. Clearing it requires a
 engaged until operators deliberately clear them through the existing governance
 controls.
 
+A planned, non-incident stop is a different control: a `super_admin` selects
+**Disable release (no emergency)** to turn `release_enabled` off and roll back
+any active launch record without engaging emergency state or the master and
+active-run switches. Use **Emergency off** whenever an incident is suspected.
+
 ## Immediate response
 
 1. Open **Eve Operations → Launch readiness**, enter a concise non-sensitive
